@@ -107,11 +107,21 @@ f4() {} return void;
 EOF
 expect_error "3 functions per file" "$TMP/fourfns.id" "too many functions"
 
-cat > "$TMP/dupvar.id" <<'EOF'
-main() { int x = 1; } return int 0;
-other() { int x = 2; } return void;
+# a name may repeat across functions when its type is consistent...
+cat > "$TMP/reuse.id" <<'EOF'
+inc(int i) { int r = i + 1; } return int r;
+dec(int i) { int r = i - 1; } return int r;
+main() { int r = inc(10) + dec(10); print("r=" + r); } return int 0;
 EOF
-expect_error "unique global names" "$TMP/dupvar.id" "already used in function"
+$IDC "$TMP/reuse.id" -o "$TMP/reuse" 2>/dev/null || bad "name reuse (same type) compiles"
+expect_output "name reuse same type" "r=20" "$("$TMP/reuse")"
+
+# ...but the same name with two different types is an error
+cat > "$TMP/typeconflict.id" <<'EOF'
+main() { int count = 1; } return int 0;
+other() { string count = "hi"; } return void;
+EOF
+expect_error "name keeps one type" "$TMP/typeconflict.id" "must keep one type"
 
 cat > "$TMP/noimport.id" <<'EOF'
 main() { int x = 1; } return int 0;

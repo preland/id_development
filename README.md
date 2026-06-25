@@ -41,12 +41,18 @@ one program.
   that must be split into its own function. Together with the 3-action rule this
   keeps every function shallow and small — deep dispatch is expressed as a chain
   of named functions, not a pyramid of nested branches (see `demos/idc_in_id`).
-- **Variable names are unique and global.** Declaring the same variable name
-  in two functions (parameters included) is a compile error, program-wide.
+- **A name keeps one type.** A variable name may be reused across functions, but
+  every declaration of it (parameters included) must have the *same* type —
+  `i` is always an `int`, `src` always a `string`. Declaring one name with two
+  different types anywhere in the program is a compile error. A name is one
+  variable *within* a function. (This prevents a vague name like `obj` meaning
+  different things in different places, while still letting natural names like
+  `i` or `src` recur.)
 - **Variables are function-private unless exported.** `export int value = …;`
   declares and publishes a variable; other functions read it with
   `(import value)`. Touching another function's variable any other way is a
-  compile error.
+  compile error. An exported name is **reserved program-wide**: no other
+  variable may use that name — the only way to reach it is `import`.
 - **Maximum of 3 functions per file.** Programs grow by adding files, not by
   growing files.
 

@@ -72,18 +72,14 @@ These are deliberate design choices, and the lexer is written to honor them:
 - **3 functions per file.** The 20-function lexer spans 7 files. Expected; the
   language grows programs by adding files.
 
-## Open design question: variable naming
+## Variable naming (resolved)
 
-- **Program-wide unique variable names** (parameters included). You cannot name
-  a parameter `src`, `i`, or `node` in more than one function anywhere in the
-  whole program, so the dispatch chain mangles by hand (`src_a`, `src_b`,
-  `src_c`, `i_a`, `i_b`, ...). The *intent* is sound -- a name should never mean
-  two different things -- but global uniqueness over-shoots: it forbids even
-  `i` as a loop index in two separate functions. A rule that ties a name to a
-  single consistent **type/role** (so `i` is always an int index, `src` always
-  the source string, but a vague `obj` can't be a `Foo` here and a `Bar` there)
-  would preserve the intent while letting natural names repeat. This is the next
-  thing to settle before the parser, since it will have far more functions.
+The old program-wide unique-name rule forced hand-mangling (`src_a`, `src_b`,
+...). It has been replaced by **type-consistency**: a name may recur across
+functions as long as it always has the same type, so the dispatch chain now
+just uses `src`/`i`/`ni` everywhere. Exported names stay reserved globally. The
+intent (a name never means two different things) is preserved; the incidental
+restriction (no two functions may share `i`) is gone.
 
 ## Other notes
 

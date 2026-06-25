@@ -1,36 +1,36 @@
-// Token scanners. Each advances its own index parameter inside the loop (so
-// no separate cursor declaration is needed) and prints one token. The caller
-// uses the returned index to continue. Pattern: decl(buffer) + while + print
-// = the full 3-action budget.
+// Token scanners. Each advances its index parameter inside the loop (so no
+// separate cursor declaration is needed) and prints one token. The caller uses
+// the returned index to continue. Pattern: decl(buffer) + while + print = the
+// full 3-action budget.
 
-scan_ident(string si_src, int si_a) {
-  string si_word = "";
-  while(is_alnum(charat(si_src, si_a))) {
-    si_word = si_word + chr(charat(si_src, si_a));
-    si_a = si_a + 1;
+scan_ident(string src, int i) {
+  string word = "";
+  while(is_alnum(charat(src, i))) {
+    word = word + chr(charat(src, i));
+    i = i + 1;
   }
-  print(kindof(si_word) + " " + si_word);
-} return int si_a;
+  print(kindof(word) + " " + word);
+} return int i;
 
 // LIMITATION: digit runs only. A float like 3.14 lexes as `int 3` `op .`
 // `int 14`; recombining needs lookahead this stage does not attempt.
-scan_number(string sn_src, int sn_a) {
-  string sn_num = "";
-  while(is_digit(charat(sn_src, sn_a))) {
-    sn_num = sn_num + chr(charat(sn_src, sn_a));
-    sn_a = sn_a + 1;
+scan_number(string src, int i) {
+  string num = "";
+  while(is_digit(charat(src, i))) {
+    num = num + chr(charat(src, i));
+    i = i + 1;
   }
-  print("int " + sn_num);
-} return int sn_a;
+  print("int " + num);
+} return int i;
 
 // Caller passes the index of the first char *after* the opening quote, so the
 // opening quote is already skipped; we return the index past the closing one.
 // LIMITATION: no escape handling -- a \" ends the string early.
-scan_string(string ss_src, int ss_a) {
-  string ss_body = "";
-  while(charat(ss_src, ss_a) != 34 && charat(ss_src, ss_a) != -1) {
-    ss_body = ss_body + chr(charat(ss_src, ss_a));
-    ss_a = ss_a + 1;
+scan_string(string src, int i) {
+  string body = "";
+  while(charat(src, i) != 34 && charat(src, i) != -1) {
+    body = body + chr(charat(src, i));
+    i = i + 1;
   }
-  print("str " + chr(34) + ss_body + chr(34));
-} return int ss_a + 1;
+  print("str " + chr(34) + body + chr(34));
+} return int i + 1;

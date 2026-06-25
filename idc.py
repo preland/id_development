@@ -551,27 +551,54 @@ class Compiler:
                                        f"{prev.file}:{prev.line}")
                 self.funcs[fn.name] = fn
 
-        # collect every variable declaration; names must be unique program-wide
+        self.var_types = {}        # non-exported name -> its single type
+
+        # pass 1: claim exported names (these become reserved globals)
         for fn in self.funcs.values():
+            for stmt in walk_stmts(fn.body):
+                if isinstance(stmt, DeclStmt) and stmt.exported:
+                    if stmt.name in self.exported:
+                        owner = self.exported[stmt.name][1]
+                        raise CompileError(stmt.file, stmt.line,
+                                           f"'{stmt.name}' is already an exported "
+                                           f"global (exported by '{owner}')")
+                    self.exported[stmt.name] = (stmt.typ, fn.name)
+
+        # pass 2: every variable declaration. A name may repeat across functions
+        # only if it always has the same type; an exported name is reserved and
+        # cannot be reused by any other variable.
+        for fn in self.funcs.values():
+            seen = set()
             for ptype, pname in fn.params:
-                self.register_var(pname, fn, fn.file, fn.line)
+                self.register_var(pname, ptype, fn, fn.file, fn.line, False, seen)
             for stmt in walk_stmts(fn.body):
                 if isinstance(stmt, DeclStmt):
-                    self.register_var(stmt.name, fn, stmt.file, stmt.line)
-                    if stmt.exported:
-                        self.exported[stmt.name] = (stmt.typ, fn.name)
+                    self.register_var(stmt.name, stmt.typ, fn, stmt.file, stmt.line,
+                                      stmt.exported, seen)
 
-    def register_var(self, name, fn, file, line):
-        if name in self.var_owner:
-            ofn, ofile, oline = self.var_owner[name]
-            raise CompileError(file, line,
-                               f"variable name '{name}' already used in function "
-                               f"'{ofn}' ({ofile}:{oline}); variable names are "
-                               f"unique and global")
+    def register_var(self, name, typ, fn, file, line, exported, seen):
         if name in self.funcs:
             raise CompileError(file, line,
                                f"'{name}' is already the name of a function")
-        self.var_owner[name] = (fn.name, file, line)
+        if name in seen:
+            raise CompileError(file, line,
+                               f"variable '{name}' is declared twice in function "
+                               f"'{fn.name}'")
+        seen.add(name)
+        if name in self.exported and not exported:
+            owner = self.exported[name][1]
+            raise CompileError(file, line,
+                               f"'{name}' is an exported global (by '{owner}'); "
+                               f"another variable cannot reuse that name -- read "
+                               f"the global with 'import {name}'")
+        if not exported:
+            if name in self.var_types and self.var_types[name] != typ:
+                raise CompileError(file, line,
+                                   f"variable '{name}' is declared {typ} here but "
+                                   f"{self.var_types[name]} elsewhere; a name must "
+                                   f"keep one type across the whole program")
+            self.var_types[name] = typ
+        self.var_owner.setdefault(name, (fn.name, file, line))
 
     # -- entry point
 

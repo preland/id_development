@@ -1,34 +1,35 @@
 // Dispatch chain, part 1. Each function makes one decision and returns the
 // index just past whatever was consumed, delegating the rest down the chain.
-// (The repetitive src/i parameter names are mangled per function only because
-// variable names are currently unique program-wide -- see BLOCKERS.md.)
+// `src`/`i`/`ni` repeat across these functions -- allowed now, because a name
+// may recur as long as it always denotes the same type (src: string indices
+// i and ni: int).
 
 // whitespace, or hand off
-scan_one(string src_a, int i_a) {
-  int ni_a = 0;
-  if(is_space(charat(src_a, i_a))) {
-    ni_a = i_a + 1;
+scan_one(string src, int i) {
+  int ni = 0;
+  if(is_space(charat(src, i))) {
+    ni = i + 1;
   } else {
-    ni_a = scan_word(src_a, i_a);
+    ni = scan_word(src, i);
   }
-} return int ni_a;
+} return int ni;
 
 // `//` line comment, or hand off
-scan_word(string src_b, int i_b) {
-  int ni_b = 0;
-  if(charat(src_b, i_b) == 47 && charat(src_b, i_b + 1) == 47) {
-    ni_b = skip_comment(src_b, i_b);
+scan_word(string src, int i) {
+  int ni = 0;
+  if(charat(src, i) == 47 && charat(src, i + 1) == 47) {
+    ni = skip_comment(src, i);
   } else {
-    ni_b = scan_token(src_b, i_b);
+    ni = scan_token(src, i);
   }
-} return int ni_b;
+} return int ni;
 
 // identifier/keyword, or hand off
-scan_token(string src_c, int i_c) {
-  int ni_c = 0;
-  if(is_alpha(charat(src_c, i_c))) {
-    ni_c = scan_ident(src_c, i_c);
+scan_token(string src, int i) {
+  int ni = 0;
+  if(is_alpha(charat(src, i))) {
+    ni = scan_ident(src, i);
   } else {
-    ni_c = scan_numop(src_c, i_c);
+    ni = scan_numop(src, i);
   }
-} return int ni_c;
+} return int ni;
