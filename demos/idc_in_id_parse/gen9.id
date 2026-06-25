@@ -1,5 +1,5 @@
-// Emit an expression as C. int -> digits; var/str -> the text; bin -> infix;
-// call -> id_NAME(args).
+// Emit an expression as C. int -> digits; var/str -> the text; bin -> infix
+// (or id_concat for string `+`); call -> id_NAME(args) (print wraps its arg).
 
 emit_expr(int id) {
   string s = "" + i1_of(id);
@@ -13,13 +13,13 @@ emit_expr(int id) {
 ee2(int id) {
   string s = ee3(id);
   if(k_of(id) == "bin") {
-    s = "(" + emit_expr(i1_of(id)) + " " + map_op(s1_of(id)) + " " + emit_expr(i2_of(id)) + ")";
+    s = emit_bin(id);
   }
 } return string s;
 
 ee3(int id) {
   string s = s1_of(id);
   if(k_of(id) == "call") {
-    s = "id_" + s1_of(id) + "(" + emit_args(l1_of(id)) + ")";
+    s = emit_call(id);
   }
 } return string s;

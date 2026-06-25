@@ -1,0 +1,26 @@
+// Remaining builtin return types, and the type of a binary expression.
+
+bt2(string name) {
+  string t = "?";
+  if(name == "input" || name == "read_all" || name == "chr") {
+    t = "string";
+  } else {
+    t = bt3(name);
+  }
+} return string t;
+
+bt3(string name) {
+  string t = "?";
+  if(name == "to_int" || name == "len" || name == "charat") {
+    t = "int";
+  }
+} return string t;
+
+// `+` with a string operand is concatenation (-> string); everything else
+// (arithmetic, comparison) is int in this scalar+string subset.
+type_bin(int id) {
+  string t = "int";
+  if(is_concat(id)) {
+    t = "string";
+  }
+} return string t;

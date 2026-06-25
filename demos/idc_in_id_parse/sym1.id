@@ -1,0 +1,25 @@
+// Build the symbol tables by scanning every AST node once: declarations and
+// parameters give variable types; functions give return types.
+
+build_syms() {
+  int i = 0;
+  while(i < len((import nkind))) {
+    sym_one(i);
+    i = i + 1;
+  }
+} return void;
+
+sym_one(int id) {
+  if(is_vardecl(id)) {
+    add_var(s2_of(id), s1_of(id));
+  } else {
+    sym_func(id);
+  }
+} return void;
+
+is_vardecl(int id) {
+  int ok = 0;
+  if(k_of(id) == "decl" || k_of(id) == "param") {
+    ok = 1;
+  }
+} return int ok;

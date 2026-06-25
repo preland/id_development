@@ -178,6 +178,24 @@ if diff "$TMP/parity_py.c" "$TMP/parity_id.c" >/dev/null; then
 else
     bad "codegen parity with idc.py (scalar)"
 fi
+# parity with the type pass: print(int) wraps id_str_of_int, string `+` becomes
+# id_concat -- exactly as idc.py
+cat > "$TMP/g_str.id" <<'EOF'
+show(int n) {
+  print("n = " + n);
+} return void;
+
+main() {
+  show(7);
+} return int 0;
+EOF
+"$IDC" "$TMP/g_str.id" --emit-c "$TMP/pstr_py.c" >/dev/null 2>&1
+"$TMP/idlex" < "$TMP/g_str.id" | "$TMP/idparse" > "$TMP/pstr_id.c"
+if diff "$TMP/pstr_py.c" "$TMP/pstr_id.c" >/dev/null; then
+    ok "codegen parity with idc.py (print + string concat)"
+else
+    bad "codegen parity with idc.py (print + string concat)"
+fi
 
 # --- export/import roundtrip at runtime
 cat > "$TMP/roundtrip.id" <<'EOF'
