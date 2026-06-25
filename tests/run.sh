@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# Regression tests for idc. Run from anywhere: tests/run.sh
+set -u
+cd "$(dirname "$0")"
+IDC=../idc.py
+TMP=$(mktemp -d)
+trap 'rm -rf "$TMP"' EXIT
+pass=0 fail=0
+
+ok()   { pass=$((pass+1)); echo "PASS: $1"; }
+bad()  { fail=$((fail+1)); echo "FAIL: $1"; }
+
+expect_output() { # name, expected, actual
+    if [ "$2" = "$3" ]; then ok "$1"; else bad "$1 (expected '$2', got '$3')"; fi
+}
+expect_error() { # name, file, pattern
+    if $IDC "$2" -o "$TMP/x" 2>&1 | grep -q "$3"; then ok "$1"; else bad "$1"; fi
+}
+
+# --- hello_world end to end (needs examples/otherfn.id for testfn's link dep)
+$IDC ../hello_world.id ../examples/otherfn.id -o "$TMP/hello" 2>/dev/null \
+    || bad "hello_world compiles"
+expect_output "usage message"  "usage: $TMP/hello <message>" "$("$TMP/hello")"
+expect_output "hello with arg" "hello world: hi"             "$("$TMP/hello" hi)"
+
+# --- export/import roundtrip at runtime
+cat > "$TMP/roundtrip.id" <<'EOF'
+main() {
+  export int code = 7;
+  string msg = describe();
+  print(msg);
+} return int code;
+
+describe() {
+  string s = "";
+  if((import code) = 7) {
+    s = "lucky " + (import code);
+  } else {
+    s = "boring";
+  }
+} return string s;
+EOF
+$IDC "$TMP/roundtrip.id" -o "$TMP/roundtrip" 2>/dev/null || bad "roundtrip compiles"
+expect_output "export/import roundtrip" "lucky 7" "$("$TMP/roundtrip")"
+"$TMP/roundtrip" >/dev/null; expect_output "exit code from exported var" "7" "$?"
+
+# --- rule violations must be compile errors
+cat > "$TMP/toomany.id" <<'EOF'
+main() {
+  int a = 1;
+  int b = 2;
+  int c = 3;
+  int d = 4;
+} return int 0;
+EOF
+expect_error "action limit enforced" "$TMP/toomany.id" "performs 4 actions"
+
+cat > "$TMP/fourfns.id" <<'EOF'
+f1() {} return void;
+f2() {} return void;
+f3() {} return void;
+f4() {} return void;
+EOF
+expect_error "3 functions per file" "$TMP/fourfns.id" "too many functions"
+
+cat > "$TMP/dupvar.id" <<'EOF'
+main() { int x = 1; } return int 0;
+other() { int x = 2; } return void;
+EOF
+expect_error "unique global names" "$TMP/dupvar.id" "already used in function"
+
+cat > "$TMP/noimport.id" <<'EOF'
+main() { int x = 1; } return int 0;
+other() { int y = x; } return void;
+EOF
+expect_error "cross-function use needs import" "$TMP/noimport.id" "not exported"
+
+cat > "$TMP/badimport.id" <<'EOF'
+main() { int x = 1; } return int 0;
+other() { int y = (import x); } return void;
+EOF
+expect_error "import requires export" "$TMP/badimport.id" "is not exported"
+
+echo
+echo "$pass passed, $fail failed"
+[ "$fail" -eq 0 ]
