@@ -33,9 +33,9 @@ one program.
   the returned type: `} return int 0;`, `} return string result;`, or
   `} return void;`. It may reference variables declared in the body.
 - **3-action limit per function.** Each top-level statement is one action; an
-  `if` is one action and each `else` is another. Statements nested inside
-  branches are free, and the `return` clause is free. Exceeding the limit is a
-  compile error.
+  `if` is one action and each `else` is another, and a `while` loop is one. The
+  bodies of branches and loops are free, and the `return` clause is free.
+  Exceeding the limit is a compile error.
 - **Variable names are unique and global.** Declaring the same variable name
   in two functions (parameters included) is a compile error, program-wide.
 - **Variables are function-private unless exported.** `export int value = …;`
@@ -75,6 +75,15 @@ resolves them as follows — revisit as the language evolves:
   takes no arguments. Branch on the result with ordinary string comparison —
   see `demos/adventure`, a choose-your-own-adventure that selects paths by the
   index the player types.
+- **`while (cond) { ... }`** loops while `cond` (an `int`) is nonzero. The loop
+  is one action; its body is free, like a branch body.
+- **String/IO builtins:** `len(s)` returns a string's length; `charat(s, i)`
+  returns the byte code at index `i` (or `-1` past the end); `chr(n)` builds a
+  one-character string from a byte code; `read_all()` reads all of stdin into
+  one `string`. Together with `while` these make text processing possible — see
+  `demos/idc_in_id`, a lexer for `id` **written in `id`** (stage 1 of a
+  self-hosting transpiler; `demos/idc_in_id/BLOCKERS.md` records what the
+  language still needs before the parser and C emitter can follow).
 
 ## The compiler
 

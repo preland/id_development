@@ -20,7 +20,7 @@ ACTION_LIMIT = 3
 FUNCS_PER_FILE_LIMIT = 3
 
 BASE_TYPES = {"int", "float", "string", "void"}
-KEYWORDS = BASE_TYPES | {"if", "else", "return", "export", "import"}
+KEYWORDS = BASE_TYPES | {"if", "else", "while", "return", "export", "import"}
 
 C_TYPES = {
     "int": "int",
@@ -181,6 +181,12 @@ class IfStmt(Stmt):
 
 
 @dataclass
+class WhileStmt(Stmt):
+    cond: Expr
+    body: List[Stmt]
+
+
+@dataclass
 class ExprStmt(Stmt):
     expr: Expr
 
@@ -293,6 +299,13 @@ class Parser:
         t = self.peek()
         if self.at("kw", "if"):
             return self.parse_if()
+        if self.at("kw", "while"):
+            self.next()
+            self.expect("op", "(")
+            cond = self.parse_expr()
+            self.expect("op", ")")
+            body = self.parse_block()
+            return WhileStmt(t.file, t.line, cond, body)
         if self.at("kw", "export"):
             self.next()
             typ = self.parse_type()
@@ -478,6 +491,29 @@ static char* id_input(void) {
     size_t n = strlen(buf);
     if (n > 0 && buf[n - 1] == '\n') { buf[--n] = '\0'; }
     char* r = (char*)malloc(n + 1); memcpy(r, buf, n + 1); return r;
+}
+static char* id_read_all(void) {
+    /* slurp all of stdin into one string (grows as needed) */
+    size_t cap = 4096, n = 0;
+    char* r = (char*)malloc(cap);
+    for (;;) {
+        if (n + 1 >= cap) { cap *= 2; r = (char*)realloc(r, cap); }
+        size_t got = fread(r + n, 1, cap - n - 1, stdin);
+        n += got;
+        if (got == 0) break;
+    }
+    r[n] = '\0';
+    return r;
+}
+static int id_len(const char* s) { return (int)strlen(s); }
+static int id_charat(const char* s, int i) {
+    if (i < 0 || i >= (int)strlen(s)) return -1;   /* out of range -> -1 */
+    return (unsigned char)s[i];
+}
+static char* id_chr(int code) {
+    char* r = (char*)malloc(2);
+    r[0] = (char)code; r[1] = '\0';
+    return r;
 }
 """
 
@@ -669,6 +705,15 @@ class Compiler:
                         out.extend(self.gen_stmt(s, fn, env, depth + 1))
                     out.append(f"{ind}}}")
             return out
+        if isinstance(stmt, WhileStmt):
+            cond, ctyp = self.gen_expr(stmt.cond, fn, env)
+            if ctyp == "void":
+                raise CompileError(stmt.file, stmt.line, "loop condition has type void")
+            out = [f"{ind}while ({cond}) {{"]
+            for s in stmt.body:
+                out.extend(self.gen_stmt(s, fn, env, depth + 1))
+            out.append(f"{ind}}}")
+            return out
         if isinstance(stmt, ExprStmt):
             code, _ = self.gen_expr(stmt.expr, fn, env)
             return [f"{ind}{code};"]
@@ -754,6 +799,34 @@ class Compiler:
             if len(e.args) != 0:
                 raise CompileError(e.file, e.line, "input takes no arguments")
             return "id_input()", "string"
+        if e.name == "read_all":
+            if len(e.args) != 0:
+                raise CompileError(e.file, e.line, "read_all takes no arguments")
+            return "id_read_all()", "string"
+        if e.name == "len":
+            if len(e.args) != 1:
+                raise CompileError(e.file, e.line, "len takes exactly one argument")
+            code, typ = self.gen_expr(e.args[0], fn, env)
+            if typ != "string":
+                raise CompileError(e.file, e.line, f"len expects a string, got {typ}")
+            return f"id_len({code})", "int"
+        if e.name == "charat":
+            if len(e.args) != 2:
+                raise CompileError(e.file, e.line, "charat takes exactly two arguments")
+            sc, st = self.gen_expr(e.args[0], fn, env)
+            ic, it = self.gen_expr(e.args[1], fn, env)
+            if st != "string":
+                raise CompileError(e.file, e.line, f"charat expects a string, got {st}")
+            if it != "int":
+                raise CompileError(e.file, e.line, f"charat index must be int, got {it}")
+            return f"id_charat({sc}, {ic})", "int"
+        if e.name == "chr":
+            if len(e.args) != 1:
+                raise CompileError(e.file, e.line, "chr takes exactly one argument")
+            code, typ = self.gen_expr(e.args[0], fn, env)
+            if typ != "int":
+                raise CompileError(e.file, e.line, f"chr expects an int, got {typ}")
+            return f"id_chr({code})", "string"
         args = [self.gen_expr(a, fn, env) for a in e.args]
         callee = self.funcs.get(e.name)
         if callee is None:
@@ -846,6 +919,8 @@ def walk_stmts(body):
                 yield from walk_stmts([s.els])
             elif s.els:
                 yield from walk_stmts(s.els)
+        elif isinstance(s, WhileStmt):
+            yield from walk_stmts(s.body)
 
 
 # ---------------------------------------------------------------- driver

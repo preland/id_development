@@ -46,6 +46,27 @@ expect_output "adventure path 2,1,2" "ENDING 6" \
 expect_output "adventure invalid choice" ">> You freeze with indecision and your torch gutters out. THE END." \
     "$(printf 'x\n' | "$TMP/adv" | grep '>>')"
 
+# --- while loop + string builtins (len/charat/chr)
+cat > "$TMP/scan.id" <<'EOF'
+main() {
+  string s = "aZ9";
+  int i = 0;
+  while(i < len(s)) {
+    print(i + ":" + charat(s, i) + ":" + chr(charat(s, i)));
+    i = i + 1;
+  }
+} return int 0;
+EOF
+$IDC "$TMP/scan.id" -o "$TMP/scan" 2>/dev/null || bad "while/len/charat/chr compiles"
+expect_output "string builtins walk" "0:97:a 1:90:Z 2:57:9" "$("$TMP/scan" | tr '\n' ' ' | sed 's/ $//')"
+
+# --- idc-in-id: the lexer (written in id) tokenizes id source from stdin
+$IDC ../demos/idc_in_id -o "$TMP/idlex" 2>/dev/null || bad "idc-in-id lexer compiles"
+expect_output "id-lexer keyword"    "kw while"   "$(printf 'while' | "$TMP/idlex" | head -1)"
+expect_output "id-lexer two-char op" "op =="     "$(printf 'x == 2' | "$TMP/idlex" | sed -n 2p)"
+expect_output "id-lexer string lit" 'str "hi"'   "$(printf '"hi"'   | "$TMP/idlex" | head -1)"
+expect_output "id-lexer comment skip + eof" "eof" "$(printf '// just a comment\n' | "$TMP/idlex" | head -1)"
+
 # --- export/import roundtrip at runtime
 cat > "$TMP/roundtrip.id" <<'EOF'
 main() {

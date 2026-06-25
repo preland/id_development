@@ -1,0 +1,27 @@
+// Operator scanning: match the six two-character operators, else a single
+// character. No loop needed -- just one char of lookahead.
+
+is_two_op(string t2_t) {
+  int t2 = 0;
+  if(t2_t == "==" || t2_t == "!=" || t2_t == "<=" || t2_t == ">=" || t2_t == "&&" || t2_t == "||") {
+    t2 = 1;
+  }
+} return int t2;
+
+// How many characters the operator at `ol_a` spans (2 or 1). Used by scan_op's
+// return clause so the function body stays within the action limit.
+oplen(string ol_src, int ol_a) {
+  int ol_n = 1;
+  if(is_two_op(chr(charat(ol_src, ol_a)) + chr(charat(ol_src, ol_a + 1)))) {
+    ol_n = 2;
+  }
+} return int ol_n;
+
+scan_op(string so_src, int so_a) {
+  string so_two = chr(charat(so_src, so_a)) + chr(charat(so_src, so_a + 1));
+  if(is_two_op(so_two)) {
+    print("op " + so_two);
+  } else {
+    print("op " + chr(charat(so_src, so_a)));
+  }
+} return int so_a + oplen(so_src, so_a);

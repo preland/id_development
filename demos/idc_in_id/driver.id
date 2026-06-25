@@ -1,0 +1,59 @@
+// idc-in-id -- a C transpiler for `id`, written in `id` itself.
+//
+// STATUS: stage 1 of N -- the LEXER. It reads id source on stdin and prints a
+// normalized token stream (one `<kind> <value>` per line). Parsing and C
+// emission are not built yet; see BLOCKERS.md for why the rest is currently
+// out of reach and what the language still needs.
+//
+// Run:  ./idc.py demos/idc_in_id -o idlex && ./idlex < some.id
+//
+// Architecture (spread across files by the 3-function-per-file rule):
+//   driver.id    main + the main scan loop `lex`
+//   classify.id  character-class predicates (is_space/is_digit/is_alpha)
+//   classify2.id is_alnum + keyword recognition (is_kw/kindof)
+//   scan.id      token scanners that consume a run and print it
+//   ops.id       operator matching (is_two_op/oplen/scan_op)
+//
+// Every scanner takes (source, start) and returns the index just past the
+// token it consumed, printing the token as a side effect. The main loop is a
+// single `while`; all dispatch lives in its (free) body.
+
+main(int argc, string[] argv) {
+  string m_src = read_all();
+  lex(m_src);
+  print("eof");
+} return int 0;
+
+// One pass over the source. decl(n) + decl(i) + while = exactly 3 actions, so
+// the entire dispatch has to nest inside the loop body (which is free).
+lex(string src) {
+  int n = len(src);
+  int i = 0;
+  while(i < n) {
+    int c = charat(src, i);
+    if(is_space(c)) {
+      i = i + 1;
+    } else {
+      if(c == 47 && charat(src, i + 1) == 47) {
+        // `//` line comment: skip to end of line
+        while(charat(src, i) != 10 && charat(src, i) != -1) {
+          i = i + 1;
+        }
+      } else {
+        if(is_alpha(c)) {
+          i = scan_ident(src, i);
+        } else {
+          if(is_digit(c)) {
+            i = scan_number(src, i);
+          } else {
+            if(c == 34) {
+              i = scan_string(src, i + 1);
+            } else {
+              i = scan_op(src, i);
+            }
+          }
+        }
+      }
+    }
+  }
+} return void;
