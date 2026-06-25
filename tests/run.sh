@@ -103,6 +103,40 @@ expect_output "calc evaluate" "= 14" \
 expect_output "calc precedence/parens/unary/%" "= 13" \
     "$(echo '2 * (3 + 4) - 10 % 3' | "$TMP/idlex" | "$TMP/idcalc" | tail -1)"
 
+# --- idc-in-id stage 2b: the function/statement parser (written in id), fed by
+#     the lexer; prints the parsed program as a nested S-expression
+$IDC ../demos/idc_in_id_parse -o "$TMP/idparse" 2>/dev/null || bad "idc-in-id parser compiles"
+cat > "$TMP/p_fn.id" <<'EOF'
+add(int x, int y) {
+  int sum = x + y;
+} return int sum;
+EOF
+expect_output "parser: function/params/decl" \
+    "(func add (params (param int x) (param int y)) int (body (decl int sum (+ x y))) (return sum))" \
+    "$("$TMP/idlex" < "$TMP/p_fn.id" | "$TMP/idparse")"
+cat > "$TMP/p_ctrl.id" <<'EOF'
+countdown(int n) {
+  while (n > 0) {
+    print(n);
+    n = n - 1;
+  }
+} return void;
+EOF
+expect_output "parser: while/call/void" \
+    "(func countdown (params (param int n)) void (body (while (> n 0) (body (expr (call print n)) (assign n (- n 1))))) (return void))" \
+    "$("$TMP/idlex" < "$TMP/p_ctrl.id" | "$TMP/idparse")"
+cat > "$TMP/p_if.id" <<'EOF'
+chk(int x) {
+  int r = 0;
+  if (x = 0) {
+    r = 1;
+  }
+} return int r;
+EOF
+expect_output "parser: if/else + bare-= equality" \
+    "(func chk (params (param int x)) int (body (decl int r 0) (if (= x 0) (then (assign r 1)) (else))) (return r))" \
+    "$("$TMP/idlex" < "$TMP/p_if.id" | "$TMP/idparse")"
+
 # --- export/import roundtrip at runtime
 cat > "$TMP/roundtrip.id" <<'EOF'
 main() {
