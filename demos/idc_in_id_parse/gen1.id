@@ -1,0 +1,30 @@
+// C emitter (stage 3). Walks the AST and prints C, mirroring idc.py:
+// id functions become `id_NAME`, locals are hoisted to function scope (id is
+// function-scoped), forward declarations come first, then a C main() wrapper.
+//
+// Scope: the same subset the parser handles (int/float/string/void, decl/
+// assign/if/while/expr statements, int/var/str/call/binop expressions). `+` is
+// emitted as C `+` (no string-concat type analysis), so the runnable programs
+// are integer ones. See README.
+
+emit_program() {
+  fwd_all();
+  def_all();
+  emit_main_wrapper();
+} return void;
+
+fwd_all() {
+  int i = 0;
+  while(i < len((import prog))) {
+    print(sig((import prog)[i]) + ";");
+    i = i + 1;
+  }
+} return void;
+
+def_all() {
+  int i = 0;
+  while(i < len((import prog))) {
+    emit_def((import prog)[i]);
+    i = i + 1;
+  }
+} return void;

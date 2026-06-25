@@ -1,14 +1,25 @@
-// Driver: set up state, load the token stream, parse all functions in the
-// file, then print the program's structure.
+// Driver: set up state, load the token stream, parse all functions, then emit.
+// Default output is C; pass `ast` to print the parsed structure instead.
+//
+//   idlex < prog.id | idparse        # emit C
+//   idlex < prog.id | idparse ast    # print the AST as an S-expression
 
 main(int argc, string[] argv) {
   setup();
   load();
-  run();
+  run(argc, argv);
 } return int 0;
 
-run() {
+run(int argc, string[] argv) {
   int[] pos = [0];
   parse_program(pos);
-  print_program();
+  emit(argc, argv);
+} return void;
+
+emit(int argc, string[] argv) {
+  if(argc > 1 && argv[1] == "ast") {
+    print_program();
+  } else {
+    emit_program();
+  }
 } return void;

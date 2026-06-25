@@ -103,8 +103,9 @@ expect_output "calc evaluate" "= 14" \
 expect_output "calc precedence/parens/unary/%" "= 13" \
     "$(echo '2 * (3 + 4) - 10 % 3' | "$TMP/idlex" | "$TMP/idcalc" | tail -1)"
 
-# --- idc-in-id stage 2b: the function/statement parser (written in id), fed by
-#     the lexer; prints the parsed program as a nested S-expression
+# --- idc-in-id stage 2b/3: the function/statement parser + C emitter (written
+#     in id), fed by the lexer. `idparse ast` prints the AST as an S-expression;
+#     `idparse` (no arg) emits C.
 $IDC ../demos/idc_in_id_parse -o "$TMP/idparse" 2>/dev/null || bad "idc-in-id parser compiles"
 cat > "$TMP/p_fn.id" <<'EOF'
 add(int x, int y) {
@@ -113,7 +114,7 @@ add(int x, int y) {
 EOF
 expect_output "parser: function/params/decl" \
     "(func add (params (param int x) (param int y)) int (body (decl int sum (+ x y))) (return sum))" \
-    "$("$TMP/idlex" < "$TMP/p_fn.id" | "$TMP/idparse")"
+    "$("$TMP/idlex" < "$TMP/p_fn.id" | "$TMP/idparse" ast)"
 cat > "$TMP/p_ctrl.id" <<'EOF'
 countdown(int n) {
   while (n > 0) {
@@ -124,7 +125,7 @@ countdown(int n) {
 EOF
 expect_output "parser: while/call/void" \
     "(func countdown (params (param int n)) void (body (while (> n 0) (body (expr (call print n)) (assign n (- n 1))))) (return void))" \
-    "$("$TMP/idlex" < "$TMP/p_ctrl.id" | "$TMP/idparse")"
+    "$("$TMP/idlex" < "$TMP/p_ctrl.id" | "$TMP/idparse" ast)"
 cat > "$TMP/p_if.id" <<'EOF'
 chk(int x) {
   int r = 0;
@@ -135,7 +136,38 @@ chk(int x) {
 EOF
 expect_output "parser: if/else + bare-= equality" \
     "(func chk (params (param int x)) int (body (decl int r 0) (if (= x 0) (then (assign r 1)) (else))) (return r))" \
-    "$("$TMP/idlex" < "$TMP/p_if.id" | "$TMP/idparse")"
+    "$("$TMP/idlex" < "$TMP/p_if.id" | "$TMP/idparse" ast)"
+
+# --- stage 3 end to end: id source -> (id lexer) -> (id parser+codegen) -> C,
+#     then compiled by cc and run. The whole front+middle is written in id.
+cat > "$TMP/g_sq.id" <<'EOF'
+square(int n) {
+  int r = n * n;
+} return int r;
+
+main() {
+  int a = square(6);
+} return int a;
+EOF
+"$TMP/idlex" < "$TMP/g_sq.id" | "$TMP/idparse" > "$TMP/g_sq.c"
+cc -std=c11 "$TMP/g_sq.c" -o "$TMP/g_sq" 2>/dev/null || bad "emitted C (square) compiles"
+"$TMP/g_sq"; expect_output "codegen: square(6) exit code" "36" "$?"
+cat > "$TMP/g_sum.id" <<'EOF'
+sumto(int n) {
+  int s = 0;
+  while (n > 0) {
+    s = s + n;
+    n = n - 1;
+  }
+} return int s;
+
+main() {
+  int t = sumto(5);
+} return int t;
+EOF
+"$TMP/idlex" < "$TMP/g_sum.id" | "$TMP/idparse" > "$TMP/g_sum.c"
+cc -std=c11 "$TMP/g_sum.c" -o "$TMP/g_sum" 2>/dev/null || bad "emitted C (sumto) compiles"
+"$TMP/g_sum"; expect_output "codegen: sumto(5) exit code" "15" "$?"
 
 # --- export/import roundtrip at runtime
 cat > "$TMP/roundtrip.id" <<'EOF'

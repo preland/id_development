@@ -1,13 +1,21 @@
-# idc-in-id, stage 2b: a function & statement parser written in id
+# idc-in-id, stages 2b + 3: an id parser and C emitter, written in id
 
-Parses `id` source into an AST and prints the program's structure as a nested
-S-expression. Like the calculator, it is fed by the stage-1 lexer through a pipe
-and builds its AST entirely in parallel lists (no structs).
+Parses `id` source into an AST and **emits C** from it — the front and middle of
+`idc`, written in `id` itself. Fed by the stage-1 lexer through a pipe; the AST
+is built entirely in parallel lists (no structs). Pass `ast` to dump the parsed
+structure instead of emitting C.
 
 ```sh
 ./idc.py demos/idc_in_id      -o idlex
 ./idc.py demos/idc_in_id_parse -o idparse
-printf 'add(int x, int y) {\n  int sum = x + y;\n} return int sum;\n' | ./idlex | ./idparse
+
+# emit C, then compile and run it -- the whole front+middle is written in id:
+printf 'square(int n) { int r = n * n; } return int r;\nmain() { int a = square(6); } return int a;\n' \
+  | ./idlex | ./idparse > out.c
+cc out.c -o out && ./out; echo $?      # 36
+
+# or inspect the AST:
+printf 'add(int x, int y) {\n  int sum = x + y;\n} return int sum;\n' | ./idlex | ./idparse ast
 # (func add (params (param int x) (param int y)) int (body (decl int sum (+ x y))) (return sum))
 ```
 
@@ -39,10 +47,22 @@ Same techniques as the calculator, scaled up:
   operators or collects list items is its own small function, to respect the
   3-action-per-block and 2-deep-nesting limits.
 
-## Out of scope (next productions)
+## C emission (stage 3, the `gen*.id` files)
 
-These id features are not parsed here and are the natural next additions:
-array indexing (`a[i]`) and index-assignment, array literals (`[a, b]`),
-`import` expressions, unary minus, and float literals (the stage-1 lexer emits a
-float `0.8` as `0 . 8`, so float support needs lexer work first). Stage 3 — C
-emission from this AST — is the remaining step toward a self-hosting `idc`.
+The emitter walks the AST and prints C, mirroring `idc.py`: id functions become
+`id_NAME`; locals are **hoisted** to the top of their C function (id is
+function-scoped, so a var declared inside a branch and used after it must be
+declared at function scope) and their initializers become assignments; forward
+declarations precede definitions; a C `main()` wraps id's `main`. id's bare `=`
+equality becomes C `==`. Verified end to end: emitted C is compiled by `cc` and
+run (`square(6)` exits 36, `sumto(5)` exits 15).
+
+## Out of scope
+
+Emission covers scalar (`int`/`void`) programs; `+` is emitted as C `+` with no
+string-concat type analysis, and the C `main` wrapper assumes `main()` returns
+`int` with no parameters. Not yet parsed (natural next additions): array
+indexing (`a[i]`) and index-assignment, array literals, `import` expressions,
+unary minus, and float literals (the lexer emits `0.8` as `0 . 8`, so floats
+need lexer work first). With those plus a type pass for `print`/string-concat,
+this would grow into a self-hosting `idc`.

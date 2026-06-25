@@ -102,8 +102,9 @@ resolves them as follows — revisit as the language evolves:
   `len(xs)` is the length. An AST or symbol table is built as a few parallel
   lists indexed by an integer id — see `demos/idc_in_id/BLOCKERS.md`,
   `demos/idc_in_id_calc` (an expression parser + evaluator written in `id`), and
-  `demos/idc_in_id_parse` (a parser for `id` functions and statements that builds
-  its AST this way and prints the program structure).
+  `demos/idc_in_id_parse` (a parser for `id` functions and statements **plus a C
+  emitter** — lex → parse → emit C, all written in `id`, with the emitted C
+  compiled by `cc` and run).
 
 ## The compiler
 
