@@ -57,12 +57,30 @@ declarations precede definitions; a C `main()` wraps id's `main`. id's bare `=`
 equality becomes C `==`. Verified end to end: emitted C is compiled by `cc` and
 run (`square(6)` exits 36, `sumto(5)` exits 15).
 
-## Out of scope
+## Parity with idc.py
 
-Emission covers scalar (`int`/`void`) programs; `+` is emitted as C `+` with no
-string-concat type analysis, and the C `main` wrapper assumes `main()` returns
-`int` with no parameters. Not yet parsed (natural next additions): array
-indexing (`a[i]`) and index-assignment, array literals, `import` expressions,
-unary minus, and float literals (the lexer emits `0.8` as `0 . 8`, so floats
-need lexer work first). With those plus a type pass for `print`/string-concat,
-this would grow into a self-hosting `idc`.
+The emitter is **differentially tested** against `idc.py`: for a supported
+program, `idlex | idparse` produces byte-identical C to `idc.py --emit-c`. Run
+`tools/parity.sh <file-or-dir>` to check any program. A type pass (built on id's
+one-type-per-name rule, so a single global symbol table suffices) drives the
+type-dependent emission to match idc.py exactly:
+
+- `print(int)` → `id_print(id_str_of_int(x))`; string `+` → `id_concat(...)`
+  with operands coerced; string `==`/`!=`/`=` → `(strcmp(a, b) OP 0)`
+- `(import name)` reads the exported global; exported vars become C globals in an
+  `/* exported variables */` block (not hoisted locals)
+- list types (`T[]`) map to `IdList*`; `main(int, string[])` gets the argv-
+  marshalling wrapper
+
+Whole demos at parity today: **`demos/calc`** and **`demos/adventure`** (and the
+export/import roundtrip) emit byte-identical C under both compilers; checked in
+the test suite.
+
+## Out of scope (next gaps)
+
+Not yet parsed/emitted: array indexing (`a[i]`) and index-assignment, array
+literals, unary minus, the list builtins (`push`/`len` on lists), and float
+literals (the lexer emits `0.8` as `0 . 8`, so floats need lexer work first).
+These block `hello_world` and `demos/control`. The parser no longer hangs on
+them — it terminates with (incorrect) output. Closing these, then feeding the
+compiler its own source, is the path to full self-hosting.
