@@ -85,7 +85,9 @@ restriction (no two functions may share `i`) is gone.
 
 ## Status
 
-Stage 1 (lexer) is built and the parser blockers above are cleared. **Next:
-stage 2, the parser** — read the token stream into an AST held in parallel lists,
-threading a shared cursor. That work is many small functions across several
-files and can be built incrementally on top of the primitives now in place.
+Stage 1 (lexer) is built, the parser blockers are cleared, and **stage 2 (a
+recursive-descent parser) is demonstrated** in `demos/idc_in_id_calc`: it reads
+the token stream into an AST held in parallel lists, threading a shared cursor,
+then evaluates and prints the tree. That demo covers arithmetic expressions;
+extending it toward the full `id` grammar (statements, functions, types) is more
+of the same — additional productions on the same ABI.

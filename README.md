@@ -100,7 +100,9 @@ resolves them as follows — revisit as the language evolves:
   `[a, b, c]` builds a list and `[]` makes an empty one (in a typed context);
   `xs[i]` reads an element and `xs[i] = v` writes one; `push(xs, v)` appends;
   `len(xs)` is the length. An AST or symbol table is built as a few parallel
-  lists indexed by an integer id — see `demos/idc_in_id/BLOCKERS.md`.
+  lists indexed by an integer id — see `demos/idc_in_id/BLOCKERS.md`, and
+  `demos/idc_in_id_calc`, a recursive-descent expression parser + evaluator
+  written in `id` that builds its AST exactly this way.
 
 ## The compiler
 

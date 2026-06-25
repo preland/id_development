@@ -93,6 +93,16 @@ expect_output "id-lexer two-char op" "op =="     "$(printf 'x == 2' | "$TMP/idle
 expect_output "id-lexer string lit" 'str "hi"'   "$(printf '"hi"'   | "$TMP/idlex" | head -1)"
 expect_output "id-lexer comment skip + eof" "eof" "$(printf '// just a comment\n' | "$TMP/idlex" | head -1)"
 
+# --- idc-in-id stage 2: the calculator (parser + evaluator + printer written
+#     in id), fed by the stage-1 lexer through a pipe
+$IDC ../demos/idc_in_id_calc -o "$TMP/idcalc" 2>/dev/null || bad "idc-in-id calc compiles"
+expect_output "calc parse+print" "(+ 2 (* 3 4))" \
+    "$(echo '2 + 3 * 4' | "$TMP/idlex" | "$TMP/idcalc" | head -1)"
+expect_output "calc evaluate" "= 14" \
+    "$(echo '2 + 3 * 4' | "$TMP/idlex" | "$TMP/idcalc" | tail -1)"
+expect_output "calc precedence/parens/unary/%" "= 13" \
+    "$(echo '2 * (3 + 4) - 10 % 3' | "$TMP/idlex" | "$TMP/idcalc" | tail -1)"
+
 # --- export/import roundtrip at runtime
 cat > "$TMP/roundtrip.id" <<'EOF'
 main() {
