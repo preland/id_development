@@ -10,16 +10,16 @@ emit_program() {
   emit_main_wrapper();
 } return void;
 
-// runtime prelude, a blank line, then the forward declarations + blank line,
-// matching idc.py's layout exactly
+// runtime prelude, a blank line, then the declarations section, matching
+// idc.py's layout exactly
 emit_head() {
   emit_runtime();
   print("");
-  emit_fwds();
+  emit_decls();
 } return void;
 
-emit_fwds() {
-  print("/* forward declarations */");
-  fwd_all();
-  print("");
+// forward declarations, then the exported-variable globals (if any)
+emit_decls() {
+  emit_fwds();
+  emit_exports();
 } return void;

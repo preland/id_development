@@ -1,27 +1,27 @@
-// id type -> C type. (Array types are out of scope for emission and fall
-// through to int; the runnable programs are scalar.)
+// id type -> C type. Any list type (ending in `]`) is the generic IdList*;
+// otherwise it is a scalar.
 
 c_type(string t) {
+  string ct = "IdList*";
+  if(charat(t, len(t) - 1) != 93) {
+    ct = c_scalar(t);
+  }
+} return string ct;
+
+c_scalar(string t) {
   string ct = "int";
   if(t == "string") {
     ct = "char*";
   } else {
-    ct = ctype2(t);
+    ct = cs2(t);
   }
 } return string ct;
 
-ctype2(string t) {
+cs2(string t) {
   string ct = "int";
   if(t == "float") {
     ct = "double";
   } else {
-    ct = ctype3(t);
-  }
-} return string ct;
-
-ctype3(string t) {
-  string ct = "int";
-  if(t == "void") {
-    ct = "void";
+    ct = cs3(t);
   }
 } return string ct;

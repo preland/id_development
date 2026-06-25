@@ -196,6 +196,15 @@ if diff "$TMP/pstr_py.c" "$TMP/pstr_id.c" >/dev/null; then
 else
     bad "codegen parity with idc.py (print + string concat)"
 fi
+# parity on a real multi-file demo: export/import, string[] params, concat,
+# nested if/else, cross-file calls
+"$IDC" ../demos/calc/app.id ../demos/calc/math.id --emit-c "$TMP/calc_py.c" >/dev/null 2>&1
+cat ../demos/calc/app.id ../demos/calc/math.id | "$TMP/idlex" | "$TMP/idparse" > "$TMP/calc_id.c"
+if diff "$TMP/calc_py.c" "$TMP/calc_id.c" >/dev/null; then
+    ok "codegen parity with idc.py (demos/calc)"
+else
+    bad "codegen parity with idc.py (demos/calc)"
+fi
 
 # --- export/import roundtrip at runtime
 cat > "$TMP/roundtrip.id" <<'EOF'

@@ -1,8 +1,21 @@
-// The real C entry point, wrapping id's main(). Assumes main() returns int and
-// takes no parameters (the runnable-demo shape).
+// The real C entry point wrapping id's main(). Matches idc.py: marshals C argv
+// into an id string[] list when main takes (int, string[]), and uses the right
+// return form for the declared return type. Emitted only when a main() exists.
 
 emit_main_wrapper() {
+  if(find_main() >= 0) {
+    emit_wrapper();
+  }
+} return void;
+
+emit_wrapper() {
   print("int main(int argc, char** argv) { (void)argc; (void)argv;");
-  print("    return id_main(); }");
+  wrap_body();
   print("");
+} return void;
+
+wrap_body() {
+  int m = find_main();
+  emit_marshal(m);
+  print("    " + main_body(m) + " }");
 } return void;
