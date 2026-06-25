@@ -1,0 +1,24 @@
+// Atom dispatch: integer, string, or identifier (which may begin a call).
+
+parse_atom(int[] pos) {
+  int node = 0;
+  if(cur_kind(pos) == "int") {
+    node = parse_int(pos);
+  } else {
+    node = parse_atom2(pos);
+  }
+} return int node;
+
+parse_atom2(int[] pos) {
+  int node = 0;
+  if(cur_kind(pos) == "str") {
+    node = parse_str(pos);
+  } else {
+    node = parse_ident_or_call(pos);
+  }
+} return int node;
+
+parse_ident_or_call(int[] pos) {
+  string name = cur_text(pos);
+  advance(pos);
+} return int finish_atom(name, pos);
