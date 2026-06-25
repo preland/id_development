@@ -1,0 +1,25 @@
+// Recursive-descent expression parser (precedence climbing). Each level parses
+// the next-tighter level, then folds left-associative operators in a loop.
+// The loop body must fit 3 actions, so each fold step is its own function.
+//
+//   expr -> add -> mul -> unary -> primary
+//
+// Every parse_* takes the cursor `pos` and returns the id of the AST node it
+// built, advancing `pos` past the tokens it consumed.
+
+parse_expr(int[] pos) {
+} return int parse_add(pos);
+
+// additive: mul (('+' | '-') mul)*
+parse_add(int[] pos) {
+  int left = parse_mul(pos);
+  while(is_addop(cur_text(pos))) {
+    left = fold_add(pos, left);
+  }
+} return int left;
+
+fold_add(int[] pos, int left) {
+  string op = cur_text(pos);
+  advance(pos);
+  int right = parse_mul(pos);
+} return int node_bin(op, left, right);

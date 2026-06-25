@@ -1,0 +1,28 @@
+// Low-level loader helpers: substring, token append, kind mapping.
+
+// src[a..b) as a new string
+slice(string src, int a, int b) {
+  string out = "";
+  while(a < b) {
+    out = out + chr(charat(src, a));
+    a = a + 1;
+  }
+} return string out;
+
+push_tok(int code, string text) {
+  push((import tkind), code);
+  push((import ttext), text);
+} return void;
+
+// map a lexer kind word to a code. The parser only needs int (3) and eof (6)
+// distinguished; everything else (operators, parens) is treated as op (5).
+kindcode(string w) {
+  int c = 5;
+  if(w == "int") {
+    c = 3;
+  } else {
+    if(w == "eof") {
+      c = 6;
+    }
+  }
+} return int c;

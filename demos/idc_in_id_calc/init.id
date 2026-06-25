@@ -1,0 +1,32 @@
+// idc-in-id, stage 2: an expression parser, written in id.
+//
+// Pipeline:  ./idlex < expr | ./idcalc
+//   the lexer (stage 1) turns source into a "<kind> <value>" token stream;
+//   this program loads that stream into a token store, parses it into an AST
+//   held in parallel lists, then prints and evaluates the tree.
+//
+// All shared state lives in exported lists (the token store and the AST store)
+// and is reached with `import`. Because a list is a reference, importing it and
+// pushing/reading mutates the one shared list -- so parse routines need no
+// state parameters. The only threaded value is the cursor `pos`, a one-element
+// int[] cell, passed by reference so it can be advanced with pos[0] = pos[0]+1.
+//
+// See ABI.md for the contract the parser / evaluator / printer build against.
+
+setup() {
+  init_tokens();
+  init_ast();
+  init_ast2();
+} return void;
+
+// token store: tkind[i] is a kind code (see ABI.md), ttext[i] the text
+init_tokens() {
+  export int[] tkind = [];
+  export string[] ttext = [];
+} return void;
+
+// AST store, part 1 -- a node id is an index into these parallel lists
+init_ast() {
+  export int[] nkind = [];
+  export int[] na = [];
+} return void;
