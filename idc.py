@@ -852,7 +852,9 @@ def walk_stmts(body):
 
 def main(argv):
     ap = argparse.ArgumentParser(prog="idc", description="compiler for the id language")
-    ap.add_argument("files", nargs="+", help="input .id source files")
+    ap.add_argument("files", nargs="+",
+                    help="input .id files, or directories (compiled as the set "
+                         "of .id files they contain)")
     ap.add_argument("-o", "--output", help="output executable path")
     ap.add_argument("--emit-c", metavar="FILE", help="write the generated C and stop")
     ap.add_argument("--keep-c", action="store_true",
@@ -861,8 +863,20 @@ def main(argv):
     args = ap.parse_args(argv)
 
     try:
-        funcs_by_file = {}
+        source_files = []
         for path in args.files:
+            if os.path.isdir(path):
+                found = sorted(os.path.join(path, n) for n in os.listdir(path)
+                               if n.endswith(".id"))
+                if not found:
+                    print(f"idc: no .id files in directory '{path}'", file=sys.stderr)
+                    return 1
+                source_files.extend(found)
+            else:
+                source_files.append(path)
+
+        funcs_by_file = {}
+        for path in source_files:
             with open(path) as f:
                 src = f.read()
             funcs_by_file[path] = Parser(lex(src, path)).parse_file()
@@ -884,7 +898,11 @@ def main(argv):
     have_main = "main" in compiler.funcs
     out = args.output
     if out is None:
-        base = os.path.splitext(os.path.basename(args.files[0]))[0]
+        # default name: the directory's name if a directory was given,
+        # otherwise the first source file's stem
+        first = os.path.normpath(args.files[0])
+        base = os.path.basename(first if os.path.isdir(first)
+                                else os.path.splitext(first)[0])
         out = base + (".o" if not have_main else "")
 
     c_path = (os.path.splitext(out)[0] + ".c") if args.keep_c else out + ".gen.c"

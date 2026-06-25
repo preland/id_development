@@ -13,8 +13,17 @@ the system C compiler.
 tests/run.sh           # regression suite
 ```
 
+A path may be a **directory**, which compiles every `.id` file inside it as one
+program; with no `-o`, the output is named after the directory:
+
+```sh
+./idc.py demos/adventure    # builds ./adventure from demos/adventure/*.id
+./adventure
+```
+
 `./idc.py prog.id --emit-c prog.c` writes the generated C instead of building.
-All input files are compiled together as one program.
+All input files (and files found in input directories) are compiled together as
+one program.
 
 ## Language rules (as stated in hello_world.id)
 

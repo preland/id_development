@@ -24,7 +24,7 @@ expect_output "usage message"  "usage: $TMP/hello <message>" "$("$TMP/hello")"
 expect_output "hello with arg" "hello world: hi"             "$("$TMP/hello" hi)"
 
 # --- demos/ projects compile and run as documented
-$IDC ../demos/calc/app.id ../demos/calc/math.id -o "$TMP/calc" 2>/dev/null \
+$IDC ../demos/calc -o "$TMP/calc" 2>/dev/null \
     || bad "calc demo compiles"
 expect_output "calc demo output" "total = 42 (positive)" "$("$TMP/calc")"
 "$TMP/calc" >/dev/null; expect_output "calc demo exit code" "42" "$?"
@@ -35,8 +35,7 @@ expect_output "control demo output" "7 is a big odd / medium" "$("$TMP/flow")"
 
 # --- adventure demo: input() builtin + cross-file branching to 8 endings.
 #     Feed a choice sequence on stdin and check which ending it reaches.
-$IDC ../demos/adventure/engine.id ../demos/adventure/left.id \
-     ../demos/adventure/right.id -o "$TMP/adv" 2>/dev/null \
+$IDC ../demos/adventure -o "$TMP/adv" 2>/dev/null \
     || bad "adventure demo compiles"
 expect_output "adventure path 1,1,1" "ENDING 1" \
     "$(printf '1\n1\n1\n' | "$TMP/adv" | grep -o 'ENDING [0-9]')"
