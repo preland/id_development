@@ -60,6 +60,32 @@ EOF
 $IDC "$TMP/scan.id" -o "$TMP/scan" 2>/dev/null || bad "while/len/charat/chr compiles"
 expect_output "string builtins walk" "0:97:a 1:90:Z 2:57:9" "$("$TMP/scan" | tr '\n' ' ' | sed 's/ $//')"
 
+# --- growable lists: empty literal, push across a call (reference semantics),
+#     len, index get/set, and to_int. seed() fills [0,1,4,9] through a list
+#     passed by reference; done() overwrites xs[0] via index-assign + to_int.
+cat > "$TMP/listrun.id" <<'EOF'
+seed(int[] xs) {
+  int i = 0;
+  while(i < 4) {
+    push(xs, i * i);
+    i = i + 1;
+  }
+} return void;
+
+done(int[] xs) {
+  xs[0] = to_int("99");
+  print("len=" + len(xs) + " xs[0]=" + xs[0] + " xs[3]=" + xs[3]);
+} return void;
+
+main() {
+  int[] xs = [];
+  seed(xs);
+  done(xs);
+} return int 0;
+EOF
+$IDC "$TMP/listrun.id" -o "$TMP/listrun" 2>/dev/null || bad "list runtime compiles"
+expect_output "lists push/get/set/to_int" "len=4 xs[0]=99 xs[3]=9" "$("$TMP/listrun")"
+
 # --- idc-in-id: the lexer (written in id) tokenizes id source from stdin
 $IDC ../demos/idc_in_id -o "$TMP/idlex" 2>/dev/null || bad "idc-in-id lexer compiles"
 expect_output "id-lexer keyword"    "kw while"   "$(printf 'while' | "$TMP/idlex" | head -1)"

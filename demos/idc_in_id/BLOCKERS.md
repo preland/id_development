@@ -5,14 +5,11 @@ emission) in the `id` language itself. This directory contains **stage 1, the
 lexer**, which works: it reads id source on stdin and prints a normalized token
 stream, and it can tokenize its own source.
 
-Getting even the lexer to run required adding language features that did not
-exist before (see "Features added" below). The **parser and C emitter are not
-built**, because they need capabilities the language still lacks. This file
-records exactly what is missing, so the gaps can be closed deliberately.
+Each stage has driven language features into `idc.py`. The lexer is built; the
+parser blockers are now cleared (growable lists + `to_int`); the parser and C
+emitter remain to be written. This file records what each stage needed.
 
-## Features added to make the lexer possible
-
-These were missing entirely and were added to `idc.py` for this demo:
+## Features added for the lexer
 
 - **`while` loops** — there was no iteration at all. A lexer must scan a string
   of unknown length. (Recursion technically works, but the 3-action limit makes
@@ -26,39 +23,39 @@ These were missing entirely and were added to `idc.py` for this demo:
   single line and returns `""` on EOF, which is indistinguishable from a blank
   line — useless for reading multi-line source. `read_all()` sidesteps that.
 
-## Hard blockers for the parser and code emitter
+## Features added for the parser
 
-These are missing capabilities, not just inconveniences. Each one independently
-prevents writing the next stage.
+- **Growable lists with reference semantics.** `T[]` became a heap list:
+  `push`, `xs[i] = v`, empty `[]`, `len`, and mutation visible across calls.
+- **`to_int(s)`** — parse a string to an int.
 
-1. **No aggregate/record types.** An AST node is `BinOp(op, left, right)`,
-   `IfStmt(cond, then, else)`, etc. The language has only flat primitives and
-   arrays *of* primitives — there is no way to declare a node type with named
-   fields, so the AST itself is unrepresentable.
+## Parser blockers (RESOLVED via growable lists + to_int)
 
-2. **No growable arrays and no array-element assignment.** Arrays exist only as
-   literals (`[1, 2, 3]`); `a[i] = x` is not a statement form (assignment is
-   only `name = expr`). A parser needs a growable token buffer and child lists;
-   neither can be built.
+The six capabilities below were each missing. Rather than add structs, maps,
+tuples, and references separately, one feature subsumes all of them: a **growable
+list with reference semantics** (`T[]` is now a heap object you can `push` to,
+index-assign into, and mutate through a shared reference). Plus `to_int`.
 
-3. **No keyed maps.** Semantic analysis needs symbol tables: variable→owner,
-   name→export, name→function signature. There is no dictionary type and no way
-   to build one (no mutable storage to back it).
+1. **AST / record types.** Instead of node structs, an AST is a handful of
+   *parallel lists* indexed by an integer node id: `kind[id]`, `text[id]`,
+   `child_a[id]`, ... `addnode(...)` pushes one cell to each and returns the new
+   id. (Demonstrated working.) No named-field type needed.
 
-4. **Single return value, no multiple returns / out-params.** Recursive-descent
-   parsing routines naturally return *two* things: the node parsed and the next
-   cursor position. A function returns exactly one value of one type. The lexer
-   dodged this by returning only the index and `print`ing tokens as a side
-   effect — that trick does not generalize to building a tree.
+2. **Growable token buffer + element assignment.** `push(xs, v)` appends;
+   `xs[i] = v` writes; `[]` makes an empty typed list. Done.
 
-5. **No mutable shared state across calls.** `export`/`import` is read-only for
-   everyone but the owner, so helpers cannot advance a shared cursor or append
-   to a shared output buffer. Combined with (4), there is no clean way to thread
-   parser state through the call graph.
+3. **Keyed maps / symbol tables.** Built in `id` as two parallel lists (keys,
+   values) with linear lookup — fine at compiler scale. No builtin map needed.
 
-6. **No `string` → `int` conversion.** `str_of_int` (int→string) exists, but
-   there is no inverse. The lexer prints `int 42` as text; a parser needs the
-   numeric value. A `to_int(s)` builtin would be needed.
+4. **Multiple returns.** A parse routine returns its node id (an `int`) and
+   advances the shared cursor as a side effect — return-plus-mutation covers the
+   "(node, next position)" pair.
+
+5. **Mutable shared state.** A list is a reference: pass the token list and a
+   one-element cursor cell to a function and it mutates them in place. This is
+   the cursor-threading mechanism recursive descent needs.
+
+6. **`string` → `int`.** `to_int(s)` added.
 
 ## Intentional constraints (not blockers -- the lexer complies with them)
 
@@ -86,11 +83,9 @@ restriction (no two functions may share `i`) is gone.
 - **No character literals or `char` type.** Character work is done with magic
   byte codes (`34` = `"`, `47` = `/`, `10` = newline). Workable, error-prone.
 
-## Smallest unblock that would make the parser feasible
+## Status
 
-In rough priority: **(a)** record/struct types (or growable arrays + element
-assignment) to represent the AST and token buffer; **(b)** a keyed map (or the
-primitives to build one) for symbol tables; **(c)** multiple return values or
-mutable out-params to thread the parse cursor; **(d)** `to_int`. Relaxing the
-unique-global-name rule and the 3-action limit would turn the result from
-"mechanically mangled" into something actually readable.
+Stage 1 (lexer) is built and the parser blockers above are cleared. **Next:
+stage 2, the parser** — read the token stream into an AST held in parallel lists,
+threading a shared cursor. That work is many small functions across several
+files and can be built incrementally on top of the primitives now in place.

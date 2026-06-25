@@ -91,10 +91,16 @@ resolves them as follows — revisit as the language evolves:
 - **String/IO builtins:** `len(s)` returns a string's length; `charat(s, i)`
   returns the byte code at index `i` (or `-1` past the end); `chr(n)` builds a
   one-character string from a byte code; `read_all()` reads all of stdin into
-  one `string`. Together with `while` these make text processing possible — see
-  `demos/idc_in_id`, a lexer for `id` **written in `id`** (stage 1 of a
-  self-hosting transpiler; `demos/idc_in_id/BLOCKERS.md` records what the
-  language still needs before the parser and C emitter can follow).
+  one `string`; `to_int(s)` parses a string to an `int`. Together with `while`
+  these make text processing possible — see `demos/idc_in_id`, a lexer for `id`
+  **written in `id`**.
+- **Growable lists.** A `T[]` is a heap-allocated, growable list with
+  **reference semantics** — passing one to a function and mutating it is visible
+  to the caller (this is how `id` gets shared mutable state). Operations:
+  `[a, b, c]` builds a list and `[]` makes an empty one (in a typed context);
+  `xs[i]` reads an element and `xs[i] = v` writes one; `push(xs, v)` appends;
+  `len(xs)` is the length. An AST or symbol table is built as a few parallel
+  lists indexed by an integer id — see `demos/idc_in_id/BLOCKERS.md`.
 
 ## The compiler
 
