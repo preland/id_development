@@ -61,6 +61,11 @@ resolves them as follows — revisit as the language evolves:
 - **Types**: `int`, `float`, `string`, `void`, and arrays `T[]`. They map to
   C `int`, `double`, `char*`, `void`, and pointers respectively.
 - **`print(x)`** is a builtin that prints any value followed by a newline.
+- **`input()`** is a builtin that reads one line from stdin and returns it as a
+  `string` (the trailing newline is stripped; end-of-input yields `""`). It
+  takes no arguments. Branch on the result with ordinary string comparison —
+  see `demos/adventure`, a choose-your-own-adventure that selects paths by the
+  index the player types.
 
 ## The compiler
 

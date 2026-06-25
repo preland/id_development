@@ -1,0 +1,40 @@
+// THE CAVERNS OF CHOICE -- a choose-your-own-adventure.
+//
+// Run:  ./idc.py demos/adventure/*.id -o adventure && ./adventure
+// At each scene, type an index (1 or 2) and press enter.
+//
+// The story is a binary tree three choices deep -> 8 endings. Each scene is
+// one function; the 3-function-per-file limit spreads them across three files
+// (engine / left / right). Functions and the shared `ask` helper resolve
+// across files automatically.
+//
+// This demo is the reason the language grew an `input()` builtin: it reads one
+// line from stdin and returns it as a string, so a scene can branch on the
+// player's choice using ordinary string comparison.
+
+main(int argc, string[] argv) {
+  print("==============================\n   THE CAVERNS OF CHOICE\n==============================\nEnter 1 or 2 at each prompt.\n");
+  scene_gate();
+} return int 0;
+
+// ask(prompt): print the prompt, then return the player's typed line.
+ask(string prompt) {
+  print(prompt);
+  string answer = input();
+} return string answer;
+
+// The opening fork. `if`/`else` is two actions; the decl is the third. The
+// nested `if` lives inside a branch, so it is free -- that is what lets every
+// scene validate input without blowing the 3-action limit.
+scene_gate() {
+  string g = ask("You stand before two tunnels.\n  1) Enter the LEFT tunnel\n  2) Enter the RIGHT tunnel\nChoose: ");
+  if(g == "1") {
+    scene_left();
+  } else {
+    if(g == "2") {
+      scene_right();
+    } else {
+      print(">> You freeze with indecision and your torch gutters out. THE END.");
+    }
+  }
+} return void;

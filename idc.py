@@ -469,6 +469,16 @@ static char* id_str_of_float(double x) {
     char* r = (char*)malloc(64); snprintf(r, 64, "%g", x); return r;
 }
 static void id_print(const char* s) { puts(s); }
+static char* id_input(void) {
+    /* read one line from stdin, drop the trailing newline; "" on EOF */
+    char buf[1024];
+    if (!fgets(buf, sizeof(buf), stdin)) {
+        char* e = (char*)malloc(1); e[0] = '\0'; return e;
+    }
+    size_t n = strlen(buf);
+    if (n > 0 && buf[n - 1] == '\n') { buf[--n] = '\0'; }
+    char* r = (char*)malloc(n + 1); memcpy(r, buf, n + 1); return r;
+}
 """
 
 
@@ -740,6 +750,10 @@ class Compiler:
                 raise CompileError(e.file, e.line, "print takes exactly one argument")
             code, typ = self.gen_expr(e.args[0], fn, env)
             return f"id_print({self.to_string(code, typ, e)})", "void"
+        if e.name == "input":
+            if len(e.args) != 0:
+                raise CompileError(e.file, e.line, "input takes no arguments")
+            return "id_input()", "string"
         args = [self.gen_expr(a, fn, env) for a in e.args]
         callee = self.funcs.get(e.name)
         if callee is None:

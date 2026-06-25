@@ -33,6 +33,20 @@ $IDC ../demos/control/flow.id -o "$TMP/flow" 2>/dev/null \
     || bad "control demo compiles"
 expect_output "control demo output" "7 is a big odd / medium" "$("$TMP/flow")"
 
+# --- adventure demo: input() builtin + cross-file branching to 8 endings.
+#     Feed a choice sequence on stdin and check which ending it reaches.
+$IDC ../demos/adventure/engine.id ../demos/adventure/left.id \
+     ../demos/adventure/right.id -o "$TMP/adv" 2>/dev/null \
+    || bad "adventure demo compiles"
+expect_output "adventure path 1,1,1" "ENDING 1" \
+    "$(printf '1\n1\n1\n' | "$TMP/adv" | grep -o 'ENDING [0-9]')"
+expect_output "adventure path 2,2,2" "ENDING 8" \
+    "$(printf '2\n2\n2\n' | "$TMP/adv" | grep -o 'ENDING [0-9]')"
+expect_output "adventure path 2,1,2" "ENDING 6" \
+    "$(printf '2\n1\n2\n' | "$TMP/adv" | grep -o 'ENDING [0-9]')"
+expect_output "adventure invalid choice" ">> You freeze with indecision and your torch gutters out. THE END." \
+    "$(printf 'x\n' | "$TMP/adv" | grep '>>')"
+
 # --- export/import roundtrip at runtime
 cat > "$TMP/roundtrip.id" <<'EOF'
 main() {
