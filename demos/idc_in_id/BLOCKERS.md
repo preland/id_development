@@ -60,19 +60,33 @@ prevents writing the next stage.
    there is no inverse. The lexer prints `int 42` as text; a parser needs the
    numeric value. A `to_int(s)` builtin would be needed.
 
-## Soft blockers (writable, but they scale badly)
+## Intentional constraints (not blockers -- the lexer complies with them)
 
-These do not stop you outright, but at compiler scale they become severe:
+These are deliberate design choices, and the lexer is written to honor them:
+
+- **3 actions per block** + **maximum nesting depth of 2.** Every block (the
+  function body and each branch/loop body) gets its own 3-action budget, and
+  blocks may nest only two deep. This is why dispatch is a *chain* of one-
+  decision functions (`scan_one -> scan_word -> scan_token -> ...`) instead of a
+  pyramid of nested `if`/`else`. It forces small, shallow, named functions.
+- **3 functions per file.** The 20-function lexer spans 7 files. Expected; the
+  language grows programs by adding files.
+
+## Open design question: variable naming
 
 - **Program-wide unique variable names** (parameters included). You cannot name
   a parameter `src`, `i`, or `node` in more than one function anywhere in the
-  whole program. The lexer already had to mangle by hand (`si_a`, `sn_a`,
-  `ss_a`, `ol_src`, ...). A hundreds-of-functions compiler would require a
-  mechanical naming scheme just to compile.
-- **3 actions per function** + **3 functions per file.** The 14-function lexer
-  spans 5 files, and several functions are contorted to fit exactly three
-  actions (the buffer/loop/print pattern in `scan.id` is at the ceiling). A full
-  parser + emitter would be hundreds of functions across dozens of files.
+  whole program, so the dispatch chain mangles by hand (`src_a`, `src_b`,
+  `src_c`, `i_a`, `i_b`, ...). The *intent* is sound -- a name should never mean
+  two different things -- but global uniqueness over-shoots: it forbids even
+  `i` as a loop index in two separate functions. A rule that ties a name to a
+  single consistent **type/role** (so `i` is always an int index, `src` always
+  the source string, but a vague `obj` can't be a `Foo` here and a `Bar` there)
+  would preserve the intent while letting natural names repeat. This is the next
+  thing to settle before the parser, since it will have far more functions.
+
+## Other notes
+
 - **No character literals or `char` type.** Character work is done with magic
   byte codes (`34` = `"`, `47` = `/`, `10` = newline). Workable, error-prone.
 

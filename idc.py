@@ -18,6 +18,7 @@ from typing import List, Optional, Tuple
 
 ACTION_LIMIT = 3
 FUNCS_PER_FILE_LIMIT = 3
+NEST_LIMIT = 2  # how deeply blocks may nest; deeper code must become a function
 
 BASE_TYPES = {"int", "float", "string", "void"}
 KEYWORDS = BASE_TYPES | {"if", "else", "while", "return", "export", "import"}
@@ -603,11 +604,13 @@ class Compiler:
         out.append(self.gen_entrypoint())
         return "\n".join(out) + "\n"
 
-    # -- the 3-action rule: each top-level statement is one action; an
-    #    if/else pair is two (the `if` and the `else`); statements nested
-    #    inside branches are free; the return clause is free.
+    # -- the 3-action rule: EVERY block (the function body and the body of each
+    #    if/else/while) may perform at most 3 actions. Each statement is one
+    #    action; an `if` is one and each chained `else` is another; a `while` is
+    #    one. The return clause is free. Blocks may also nest only NEST_LIMIT
+    #    deep -- code below that must be split into its own function.
 
-    def count_actions(self, body) -> int:
+    def block_actions(self, body) -> int:
         n = 0
         for s in body:
             if isinstance(s, IfStmt):
@@ -621,12 +624,30 @@ class Compiler:
         return n
 
     def check_action_limit(self, fn: FuncDef):
-        n = self.count_actions(fn.body)
+        self.check_block(fn.body, 0, fn, fn.file, fn.line)
+
+    def check_block(self, body, depth, fn, file, line):
+        if depth > NEST_LIMIT:
+            raise CompileError(file, line,
+                               f"code in '{fn.name}' is nested too deeply "
+                               f"({depth} levels); the maximum is {NEST_LIMIT}. "
+                               f"Split the inner block into its own function")
+        n = self.block_actions(body)
         if n > ACTION_LIMIT:
-            raise CompileError(fn.file, fn.line,
-                               f"function '{fn.name}' performs {n} actions; the limit "
-                               f"is {ACTION_LIMIT} (each statement, if, and else counts "
-                               f"as one action; return is free)")
+            raise CompileError(file, line,
+                               f"a block in '{fn.name}' performs {n} actions; the "
+                               f"limit is {ACTION_LIMIT} (each statement, if, else, "
+                               f"and while is one action; return is free)")
+        for s in body:
+            if isinstance(s, IfStmt):
+                cur = s
+                while isinstance(cur, IfStmt):  # walk an if / else-if chain
+                    self.check_block(cur.then, depth + 1, fn, cur.file, cur.line)
+                    cur = cur.els
+                if cur is not None:             # trailing plain `else` block
+                    self.check_block(cur, depth + 1, fn, s.file, s.line)
+            elif isinstance(s, WhileStmt):
+                self.check_block(s.body, depth + 1, fn, s.file, s.line)
 
     # -- codegen helpers
 

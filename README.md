@@ -32,10 +32,15 @@ one program.
 - **The `return` clause comes after the function's closing brace** and names
   the returned type: `} return int 0;`, `} return string result;`, or
   `} return void;`. It may reference variables declared in the body.
-- **3-action limit per function.** Each top-level statement is one action; an
-  `if` is one action and each `else` is another, and a `while` loop is one. The
-  bodies of branches and loops are free, and the `return` clause is free.
-  Exceeding the limit is a compile error.
+- **3-action limit per block.** *Every* block — the function body and the body
+  of each `if`, `else`, and `while` — may perform at most 3 actions. Each
+  statement is one action; an `if` is one and each chained `else` is another; a
+  `while` is one. The `return` clause is free. (Bodies are **not** free: a
+  branch or loop body has its own 3-action budget.)
+- **Maximum nesting depth of 2.** Blocks may nest at most two deep; code below
+  that must be split into its own function. Together with the 3-action rule this
+  keeps every function shallow and small — deep dispatch is expressed as a chain
+  of named functions, not a pyramid of nested branches (see `demos/idc_in_id`).
 - **Variable names are unique and global.** Declaring the same variable name
   in two functions (parameters included) is a compile error, program-wide.
 - **Variables are function-private unless exported.** `export int value = …;`

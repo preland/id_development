@@ -1,0 +1,34 @@
+// Dispatch chain, part 1. Each function makes one decision and returns the
+// index just past whatever was consumed, delegating the rest down the chain.
+// (The repetitive src/i parameter names are mangled per function only because
+// variable names are currently unique program-wide -- see BLOCKERS.md.)
+
+// whitespace, or hand off
+scan_one(string src_a, int i_a) {
+  int ni_a = 0;
+  if(is_space(charat(src_a, i_a))) {
+    ni_a = i_a + 1;
+  } else {
+    ni_a = scan_word(src_a, i_a);
+  }
+} return int ni_a;
+
+// `//` line comment, or hand off
+scan_word(string src_b, int i_b) {
+  int ni_b = 0;
+  if(charat(src_b, i_b) == 47 && charat(src_b, i_b + 1) == 47) {
+    ni_b = skip_comment(src_b, i_b);
+  } else {
+    ni_b = scan_token(src_b, i_b);
+  }
+} return int ni_b;
+
+// identifier/keyword, or hand off
+scan_token(string src_c, int i_c) {
+  int ni_c = 0;
+  if(is_alpha(charat(src_c, i_c))) {
+    ni_c = scan_ident(src_c, i_c);
+  } else {
+    ni_c = scan_numop(src_c, i_c);
+  }
+} return int ni_c;
