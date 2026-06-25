@@ -169,6 +169,16 @@ EOF
 cc -std=c11 "$TMP/g_sum.c" -o "$TMP/g_sum" 2>/dev/null || bad "emitted C (sumto) compiles"
 "$TMP/g_sum"; expect_output "codegen: sumto(5) exit code" "15" "$?"
 
+# parity: for the supported (scalar) subset, the id-written compiler emits
+# byte-identical C to idc.py itself
+"$IDC" "$TMP/g_sum.id" --emit-c "$TMP/parity_py.c" >/dev/null 2>&1
+"$TMP/idlex" < "$TMP/g_sum.id" | "$TMP/idparse" > "$TMP/parity_id.c"
+if diff "$TMP/parity_py.c" "$TMP/parity_id.c" >/dev/null; then
+    ok "codegen parity with idc.py (scalar)"
+else
+    bad "codegen parity with idc.py (scalar)"
+fi
+
 # --- export/import roundtrip at runtime
 cat > "$TMP/roundtrip.id" <<'EOF'
 main() {
