@@ -205,6 +205,15 @@ if diff "$TMP/calc_py.c" "$TMP/calc_id.c" >/dev/null; then
 else
     bad "codegen parity with idc.py (demos/calc)"
 fi
+# parity on the adventure demo: string equality (strcmp), nested if/else,
+# input(), concat, void functions across several files
+"$IDC" ../demos/adventure/*.id --emit-c "$TMP/adv_py.c" >/dev/null 2>&1
+cat ../demos/adventure/*.id | "$TMP/idlex" | "$TMP/idparse" > "$TMP/adv_id.c"
+if diff "$TMP/adv_py.c" "$TMP/adv_id.c" >/dev/null; then
+    ok "codegen parity with idc.py (demos/adventure)"
+else
+    bad "codegen parity with idc.py (demos/adventure)"
+fi
 
 # --- export/import roundtrip at runtime
 cat > "$TMP/roundtrip.id" <<'EOF'
