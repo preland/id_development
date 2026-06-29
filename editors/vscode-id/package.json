@@ -1,0 +1,90 @@
+{
+  "name": "id-lang",
+  "displayName": "id language",
+  "description": "Syntax highlighting and linting for the id language (compiled by idc.py).",
+  "version": "0.1.0",
+  "publisher": "id-lang",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:id"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "id",
+        "aliases": [
+          "id",
+          "id-lang"
+        ],
+        "extensions": [
+          ".id"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "id",
+        "scopeName": "source.id",
+        "path": "./syntaxes/id.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "id.lint",
+        "title": "id: Lint now"
+      }
+    ],
+    "configuration": {
+      "title": "id language",
+      "properties": {
+        "id.idcPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Path to `idc.py`. If empty, the extension searches upward from the edited file for a file named `idc.py`."
+        },
+        "id.pythonPath": {
+          "type": "string",
+          "default": "python3",
+          "description": "Python interpreter used to run idc.py."
+        },
+        "id.lint.scope": {
+          "type": "string",
+          "enum": [
+            "directory",
+            "file"
+          ],
+          "enumDescriptions": [
+            "Compile the edited file's whole directory as one program (matches how id programs are built). Catches cross-file errors and import access.",
+            "Compile only the edited file. Fewer false positives for stand-alone files; may flag valid cross-file references."
+          ],
+          "default": "directory",
+          "description": "What idc.py compiles when linting."
+        },
+        "id.lint.run": {
+          "type": "string",
+          "enum": [
+            "onType",
+            "onSave",
+            "off"
+          ],
+          "default": "onType",
+          "description": "When to run the linter."
+        },
+        "id.lint.debounce": {
+          "type": "number",
+          "default": 400,
+          "description": "Milliseconds to wait after typing before linting (when id.lint.run is onType)."
+        }
+      }
+    }
+  }
+}
