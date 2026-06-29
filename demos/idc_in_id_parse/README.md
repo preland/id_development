@@ -71,16 +71,33 @@ type-dependent emission to match idc.py exactly:
   `/* exported variables */` block (not hoisted locals)
 - list types (`T[]`) map to `IdList*`; `main(int, string[])` gets the argv-
   marshalling wrapper
+- `||`/`&&` (above equality), unary `-`/`!`, array indexing `a[i]` and
+  index-assignment `a[i] = v`, array literals (`[]`, `[a, b]`), and the list
+  builtins — `push` → `id_list_push` and `len` → `id_list_len`/`id_len` — all
+  emit with the same boxing/unboxing casts idc.py uses for the uniform cells
 
 Whole demos at parity today: **`demos/calc`** and **`demos/adventure`** (and the
 export/import roundtrip) emit byte-identical C under both compilers; checked in
 the test suite.
 
-## Out of scope (next gaps)
+## Self-hosting
 
-Not yet parsed/emitted: array indexing (`a[i]`) and index-assignment, array
-literals, unary minus, the list builtins (`push`/`len` on lists), and float
-literals (the lexer emits `0.8` as `0 . 8`, so floats need lexer work first).
-These block `hello_world` and `demos/control`. The parser no longer hangs on
-them — it terminates with (incorrect) output. Closing these, then feeding the
-compiler its own source, is the path to full self-hosting.
+The compiler now **compiles itself**. `idlex | idparse` emits byte-identical C
+to `idc.py` for its own source — both the stage-1 lexer (`demos/idc_in_id`) and
+this parser/codegen (`demos/idc_in_id_parse`):
+
+```sh
+tools/parity.sh demos/idc_in_id        # MATCH
+tools/parity.sh demos/idc_in_id_parse  # MATCH
+```
+
+And the result is a **fixpoint**: compile the compiler with `idc.py`, then use
+that binary to recompile the compiler's source, and the C it produces is
+identical to its own — so the self-compiled compiler reproduces itself exactly.
+The test suite checks both the parity and the fixpoint.
+
+The lexer change that unblocked this was backslash-escape handling in string
+literals (so a `\"` no longer ends a string early); the runtime prelude that
+`idparse` prints is one such string. Float literals remain the one unimplemented
+piece of the language (the lexer still splits `0.8` into `0 . 8`), but the
+compiler's own source uses no floats, so self-hosting does not need them.

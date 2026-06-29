@@ -1,0 +1,25 @@
+// Unary level: a prefix `-` or `!` applied to a unary (right-recursive), else
+// a postfix expression. Mirrors idc.py's parse_unary, which sits between the
+// multiplicative and postfix levels. So `-1` parses as a unary node and emits
+// `(-1)`, matching idc.py.
+
+parse_unary(int[] pos) {
+  int node = 0;
+  if(is_unop(cur_text(pos))) {
+    node = fold_unary(pos);
+  } else {
+    node = parse_postfix(pos);
+  }
+} return int node;
+
+fold_unary(int[] pos) {
+  string op = cur_text(pos);
+  advance(pos);
+} return int node_un(op, parse_unary(pos));
+
+is_unop(string s) {
+  int ok = 0;
+  if(s == "-" || s == "!") {
+    ok = 1;
+  }
+} return int ok;

@@ -25,12 +25,9 @@ scan_number(string src, int i) {
 
 // Caller passes the index of the first char *after* the opening quote, so the
 // opening quote is already skipped; we return the index past the closing one.
-// LIMITATION: no escape handling -- a \" ends the string early.
+// Backslash escapes are honored (see str_end), so a `\"` does not end the
+// string early; the raw spelling is preserved in the token text.
 scan_string(string src, int i) {
-  string body = "";
-  while(charat(src, i) != 34 && charat(src, i) != -1) {
-    body = body + chr(charat(src, i));
-    i = i + 1;
-  }
-  print("str " + chr(34) + body + chr(34));
-} return int i + 1;
+  int e = str_end(src, i);
+  print("str " + chr(34) + slice_str(src, i, e) + chr(34));
+} return int e + 1;
