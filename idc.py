@@ -738,7 +738,22 @@ class Compiler:
 
     # -- entry point
 
+    def check_unique_functions(self):
+        seen = {}  # canonical fingerprint -> the first function with it
+        for fn in self.funcs.values():
+            key = canonical_function(fn)
+            if key in seen:
+                orig = seen[key]
+                raise CompileError(
+                    fn.file, fn.line,
+                    f"function '{fn.name}' has the same signature and logic as "
+                    f"'{orig.name}' (defined at {orig.file}:{orig.line}); functions "
+                    f"must be unique -- remove one and call it from both places, or "
+                    f"make them genuinely differ")
+            seen[key] = fn
+
     def compile(self) -> str:
+        self.check_unique_functions()
         bodies = []
         for fn in self.funcs.values():
             self.check_action_limit(fn)
@@ -1186,6 +1201,85 @@ def walk_stmts(body):
                 yield from walk_stmts(s.els)
         elif isinstance(s, WhileStmt):
             yield from walk_stmts(s.body)
+
+
+# -- function uniqueness -------------------------------------------------------
+# Two functions that are identical except for their name are duplicate
+# functionality and a compile error. We fingerprint each function by its
+# signature (parameter types + return type) and the structure of its body, with
+# the function's own parameters and locals alpha-normalized (v0, v1, ...) so a
+# mere renaming can't hide a duplicate. What stays verbatim carries real meaning:
+# operators, literals, the names of called functions and builtins, imported and
+# exported global names. A self-recursive call is normalized to `self`, so two
+# identical recursive functions also collide.
+
+def _canon_expr(e, cn, selfname):
+    if isinstance(e, IntLit):
+        return "I" + e.value
+    if isinstance(e, FloatLit):
+        return "F" + e.value
+    if isinstance(e, StrLit):
+        return "S" + e.raw
+    if isinstance(e, VarRef):
+        return "v" + cn(e.name)
+    if isinstance(e, ImportRef):
+        return "g(" + e.name + ")"
+    if isinstance(e, CallExpr):
+        callee = "self" if e.name == selfname else e.name
+        return "c(" + callee + ":" + ",".join(_canon_expr(a, cn, selfname) for a in e.args) + ")"
+    if isinstance(e, IndexExpr):
+        return "ix(" + _canon_expr(e.base, cn, selfname) + "," + _canon_expr(e.index, cn, selfname) + ")"
+    if isinstance(e, ArrayLit):
+        return "ar(" + ",".join(_canon_expr(x, cn, selfname) for x in e.elems) + ")"
+    if isinstance(e, BinOp):
+        return "b" + e.op + "(" + _canon_expr(e.left, cn, selfname) + "," + _canon_expr(e.right, cn, selfname) + ")"
+    if isinstance(e, UnOp):
+        return "u" + e.op + "(" + _canon_expr(e.operand, cn, selfname) + ")"
+    raise AssertionError(e)
+
+
+def _canon_stmt(s, cn, selfname):
+    if isinstance(s, DeclStmt):
+        if s.exported:   # exported name is a reserved global -> keep it verbatim
+            return "ed:" + s.typ + " " + s.name + "=" + _canon_expr(s.expr, cn, selfname)
+        return "d:" + s.typ + " " + cn(s.name) + "=" + _canon_expr(s.expr, cn, selfname)
+    if isinstance(s, AssignStmt):
+        return "a:" + cn(s.name) + "=" + _canon_expr(s.expr, cn, selfname)
+    if isinstance(s, IndexAssignStmt):
+        return ("ia:" + _canon_expr(s.base, cn, selfname) + "[" +
+                _canon_expr(s.index, cn, selfname) + "]=" + _canon_expr(s.expr, cn, selfname))
+    if isinstance(s, IfStmt):
+        out = "if(" + _canon_expr(s.cond, cn, selfname) + "){" + _canon_block(s.then, cn, selfname) + "}"
+        if isinstance(s.els, IfStmt):
+            out += "elif" + _canon_stmt(s.els, cn, selfname)
+        elif s.els:
+            out += "else{" + _canon_block(s.els, cn, selfname) + "}"
+        return out
+    if isinstance(s, WhileStmt):
+        return "wh(" + _canon_expr(s.cond, cn, selfname) + "){" + _canon_block(s.body, cn, selfname) + "}"
+    if isinstance(s, ExprStmt):
+        return "e:" + _canon_expr(s.expr, cn, selfname)
+    raise AssertionError(s)
+
+
+def _canon_block(body, cn, selfname):
+    return ";".join(_canon_stmt(s, cn, selfname) for s in body)
+
+
+def canonical_function(fn):
+    """A signature+logic fingerprint of a function, independent of its name and
+    of how it spells its own parameters and locals."""
+    names = {}
+
+    def cn(n):
+        if n not in names:
+            names[n] = str(len(names))
+        return names[n]
+
+    params = ",".join(ptype + " " + cn(pname) for ptype, pname in fn.params)
+    body = _canon_block(fn.body, cn, fn.name)
+    ret = "void" if fn.retexpr is None else _canon_expr(fn.retexpr, cn, fn.name)
+    return "(" + params + ")->" + fn.rettype + "{" + body + "}=>" + ret
 
 
 # ---------------------------------------------------------------- driver

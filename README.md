@@ -64,6 +64,15 @@ building.
   or cluttering folders, but by adding files and nesting subdirectories — a
   project is a tree where every level stays small. The same "rule of 3" as the
   3-action block limit, applied to the file system.
+- **Functions must be unique.** Two functions with the same signature (parameter
+  types and return type) and the same logic are a compile error, even under
+  different names and even if their parameters and locals are spelled
+  differently. Bodies are compared up to a consistent renaming of each
+  function's own parameters and locals; what carries real meaning — operators,
+  literals, and the names of called functions, imported globals, and exported
+  variables — must differ for two functions to coexist. This keeps names
+  meaningful and stops the same behavior from being written twice; if you need
+  it in two places, give it one name and call it.
 
 ## Rules the example implies (decisions made by this compiler)
 
@@ -137,7 +146,8 @@ parser/codegen) **compiles its own source** to C that is byte-identical to
 
 `idc.py` is a self-contained Python program: lexer → recursive-descent parser
 → semantic checks (action limit, function-per-file limit, global name
-uniqueness, export/import access, light type checking) → C emission → `cc`.
+uniqueness, function-logic uniqueness, export/import access, light type
+checking) → C emission → `cc`.
 
 Generated code details:
 
