@@ -1,0 +1,25 @@
+// Decide the next column to scroll in. While a crater is in progress, keep
+// emitting gap columns; otherwise count down a cooldown, then occasionally
+// start a new crater of width 2-3.
+
+next_col() {
+  int c = 1;
+  if(gs_get(5) > 0) {
+    c = pop_crater();
+  } else {
+    c = ground_or_new();
+  }
+} return int c;
+
+pop_crater() {
+  gs_set(5, gs_get(5) - 1);
+} return int 0;
+
+ground_or_new() {
+  int c = 1;
+  if(gs_get(6) > 0) {
+    c = cool_tick();
+  } else {
+    c = roll_crater();
+  }
+} return int c;

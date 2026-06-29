@@ -1,0 +1,31 @@
+// A tiny CLI game engine, written in id. It keeps an off-screen character
+// buffer (a row-major list of byte codes plus a parallel list of color
+// attributes), lets a game draw into it, and renders the whole frame to the
+// terminal with ANSI escapes. Paired with the put/flush/getkey/sleep_ms/ticks
+// runtime builtins, this drives an animated, real-time, full-screen game loop.
+//
+// State (exported, so every engine + game function reaches it via import):
+//   scrw scrh    screen size in cells
+//   scr  scrc    the cell buffer (byte codes) and the attribute buffer
+//   palette      attr index -> ANSI SGR parameter string
+//   rng_cell     a one-element list holding the PRNG state
+//
+// engine_init sets all of it up; the game then calls term_setup once, runs its
+// own frame loop (clear -> draw* -> render -> last_key -> sleep_ms), and calls
+// term_done on exit.
+
+engine_init(int w, int h, int seed) {
+  screen_init(w, h);
+  palette_init();
+  rng_seed(seed);
+} return void;
+
+// attr index -> SGR parameters. 0 default, 1-7 fg colors, 8 bright white,
+// 9 reverse, 10 red-on-white, 11 black-on-white, 12 white-on-green, 13 bold
+// yellow. sgr(a) wraps the parameter in a full escape.
+palette_init() {
+  export string[] palette = ["0", "31", "32", "33", "34", "35", "36", "37", "1;37", "7", "31;47", "30;47", "37;42", "1;33"];
+} return void;
+
+sgr(int a) {
+} return string chr(27) + "[" + (import palette)[a] + "m";

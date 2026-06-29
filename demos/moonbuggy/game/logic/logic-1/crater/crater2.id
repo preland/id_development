@@ -1,0 +1,19 @@
+// Cooldown tick (stay solid), and the random crater start: a 1-in-4 chance per
+// eligible tick to open a crater 1..2 columns wide here (plus this column), and
+// arm a cooldown of 8..13 ticks before the next one.
+
+cool_tick() {
+  gs_set(6, gs_get(6) - 1);
+} return int 1;
+
+roll_crater() {
+  int c = 1;
+  if(rng_range(4) == 0) {
+    c = begin_crater();
+  }
+} return int c;
+
+begin_crater() {
+  gs_set(5, 1 + rng_range(2));
+  gs_set(6, 8 + rng_range(6));
+} return int 0;

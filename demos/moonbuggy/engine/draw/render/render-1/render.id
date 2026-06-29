@@ -1,0 +1,20 @@
+// Render the whole buffer to the terminal: home the cursor, emit every row,
+// then reset color and flush. Each row is positioned absolutely so a dropped
+// byte can never shift the picture.
+
+render() {
+  put(chr(27) + "[H");
+  render_rows(0);
+  finish_frame();
+} return void;
+
+render_rows(int y) {
+  while(y < (import scrh)) {
+    render_row(y);
+    y = y + 1;
+  }
+} return void;
+
+render_row(int y) {
+  put(rowpos(y) + row_str(y));
+} return void;

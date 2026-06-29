@@ -1,0 +1,33 @@
+// MOON BUGGY -- a real-time side-scroller written in id, on the id game engine.
+//
+// Drive a buggy across the lunar surface; the terrain scrolls toward you and
+// craters open in the ground. Tap [space] (or j) to jump them. Hit a crater on
+// the ground and you crash. [q] quits, [r] restarts after a crash.
+//
+// Built on the engine's frame loop: each frame reads the latest key, updates
+// the physics + terrain, repaints the whole screen, and sleeps ~70ms.
+//
+// Game state lives in one exported list `mb`, indexed by:
+//   0 score   1 height (cells above ground)   2 vy (vertical velocity)
+//   3 alive   4 tick    5 crater_left (crater columns still to spawn)
+//   6 cooldown (ticks until another crater may start)   7 quit
+// The terrain is the exported list `ground`: ground[x] = 1 solid, 0 crater.
+
+main() {
+  engine_init(60, 20, ticks());
+  term_setup();
+  start();
+} return int 0;
+
+start() {
+  mb_init();
+  play();
+  term_done();
+} return void;
+
+play() {
+  int running = 1;
+  while(running == 1) {
+    running = frame();
+  }
+} return void;
