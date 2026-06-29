@@ -1,0 +1,22 @@
+// One cell as a string: the character, prefixed by an SGR escape only when the
+// attribute differs from the cell to its left (so color changes, not every
+// cell, cost an escape). At the start of a row there is no left neighbor, so an
+// escape is always emitted -- which also re-establishes color per row.
+
+cell_str(int y, int x) {
+  int idx = y * (import scrw) + x;
+} return string sgr_prefix(x, idx) + chr((import scr)[idx]);
+
+sgr_prefix(int x, int idx) {
+  string s = "";
+  if(attr_changed(x, idx)) {
+    s = sgr((import scrc)[idx]);
+  }
+} return string s;
+
+attr_changed(int x, int idx) {
+  int ok = 1;
+  if(x > 0) {
+    ok = diff_attr(idx);
+  }
+} return int ok;
