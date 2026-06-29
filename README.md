@@ -1,29 +1,35 @@
 # The `id` language
 
 `id` is a small C-flavored language. This repo contains its first program
-(`hello_world.id`) and `idc`, a compiler that transpiles `id` to C and invokes
-the system C compiler.
+(`demos/hello`) and `idc`, a compiler that transpiles `id` to C and invokes the
+system C compiler.
 
 ## Quick start
 
+`idc` takes exactly one argument: a single `.id` file, or a **project
+directory**.
+
 ```sh
-./idc.py hello_world.id examples/otherfn.id -o hello_world
-./hello_world          # usage: ./hello_world <message>
-./hello_world hi       # hello world: hi
-tests/run.sh           # regression suite
+./idc.py demos/hello -o hello    # build the hello_world project
+./hello                          # usage: ./hello <message>
+./hello hi                       # hello world: hi
+tests/run.sh                     # regression suite
 ```
 
-A path may be a **directory**, which compiles every `.id` file inside it as one
-program; with no `-o`, the output is named after the directory:
+A **project** is a directory *tree*: every directory in it may hold at most 3
+entries (counting `.id` files and subdirectories combined), and *all* the `.id`
+files in the tree are compiled together as one program, so functions and
+exported variables resolve across the whole project. With no `-o`, the output is
+named after the project directory:
 
 ```sh
-./idc.py demos/adventure    # builds ./adventure from demos/adventure/*.id
+./idc.py demos/adventure    # builds ./adventure from the whole project tree
 ./adventure
 ```
 
-`./idc.py prog.id --emit-c prog.c` writes the generated C instead of building.
-All input files (and files found in input directories) are compiled together as
-one program.
+A single file is handy for tutorials (`./idc.py prog.id`); a project is how real
+programs grow. `./idc.py PATH --emit-c prog.c` writes the generated C instead of
+building.
 
 ## Language rules (as stated in hello_world.id)
 
@@ -53,8 +59,11 @@ one program.
   `(import value)`. Touching another function's variable any other way is a
   compile error. An exported name is **reserved program-wide**: no other
   variable may use that name — the only way to reach it is `import`.
-- **Maximum of 3 functions per file.** Programs grow by adding files, not by
-  growing files.
+- **Maximum of 3 functions per file**, and **at most 3 entries per directory**
+  (counting `.id` files and subdirectories). Programs grow not by growing files
+  or cluttering folders, but by adding files and nesting subdirectories — a
+  project is a tree where every level stays small. The same "rule of 3" as the
+  3-action block limit, applied to the file system.
 
 ## Rules the example implies (decisions made by this compiler)
 
@@ -68,10 +77,11 @@ resolves them as follows — revisit as the language evolves:
 - **Semicolons are optional.** Line 6 omits one. `idc` treats `;` as an
   optional statement terminator everywhere.
 - **Functions link across files implicitly.** `testfn()` calls `otherfn()`,
-  which no file in the original program defines — and the export/import rule
-  is stated only for *variables*. So function calls resolve across all input
-  files automatically; a call with no definition anywhere is a warning and
-  must be satisfied at link time (see `examples/otherfn.id`).
+  defined in a separate file of the same project — and the export/import rule
+  is stated only for *variables*. So function calls resolve across every file in
+  the project automatically; a call with no definition anywhere in the project
+  is a warning and must be satisfied at link time (see `demos/hello`, which
+  bundles `otherfn.id`).
 - **Array literals**: `["hello_world", "hi"]` builds a `string[]`.
 - **`+` on strings concatenates**, and a numeric operand mixed with a string
   is converted (`"lucky " + 7` → `"lucky 7"`).
@@ -105,6 +115,23 @@ resolves them as follows — revisit as the language evolves:
   `demos/idc_in_id_parse` (a parser for `id` functions and statements **plus a C
   emitter** — lex → parse → emit C, all written in `id`, with the emitted C
   compiled by `cc` and run).
+- **List ops also include `pop(xs)`** — remove and return the last element (the
+  complement of `push`).
+- **Real-time terminal I/O.** Beyond `print`/`input`/`read_all`, `id` has the
+  builtins a game loop needs: `put(s)` writes without a trailing newline,
+  `flush()` flushes stdout, `getkey()` polls one key **without blocking**
+  (`-1` if none; raw mode is entered lazily and restored at exit),
+  `sleep_ms(n)` sleeps, and `ticks()` returns monotonic milliseconds. On these,
+  `demos/engine` is a small full-screen game engine, and `demos/moonbuggy`
+  (a real-time side-scroller) and `demos/solitaire` (Klondike) are games
+  **written in `id`**.
+
+## Self-hosting
+
+The `id`-written compiler (`demos/idc_in_id` lexer + `demos/idc_in_id_parse`
+parser/codegen) **compiles its own source** to C that is byte-identical to
+`idc.py`, and the self-compiled binary reproduces itself exactly (a fixpoint).
+`tests/run.sh` checks both. See `demos/idc_in_id_parse/README.md`.
 
 ## The compiler
 
@@ -116,6 +143,7 @@ Generated code details:
 
 - `id` functions are prefixed `id_` in C (so `id` `main` becomes `id_main`,
   wrapped by a real C `main`). Exported variables become C globals.
-- A file set without a `main` compiles to a `.o` object file for later linking.
+- A project without a `main` compiles to a `.o` object file (e.g. a library
+  like `demos/engine`).
 - String concatenation allocates and never frees; fine for now, a real
   runtime would need ownership rules or GC.

@@ -2,10 +2,13 @@
 """idc -- compiler for the `id` language (transpiles to C, then invokes cc).
 
 Usage:
-    idc.py file1.id [file2.id ...] [-o OUTPUT] [--emit-c FILE] [--keep-c] [--cc CC]
+    idc.py PATH [-o OUTPUT] [--emit-c FILE] [--keep-c] [--cc CC]
 
-All input files are compiled together as one program (one C translation
-unit), so functions and exported variables resolve across files.
+PATH is either a single .id file (handy for tutorials) or a project directory.
+A project is a directory *tree*: every directory in it may hold at most 3
+entries (counting .id files and subdirectories combined), and all .id files in
+the tree are compiled together as one program -- so functions and exported
+variables resolve across the whole project.
 """
 
 import argparse
@@ -1187,11 +1190,40 @@ def walk_stmts(body):
 
 # ---------------------------------------------------------------- driver
 
+# A project is a directory tree. To keep it unified and uncluttered, every
+# directory in it may hold at most 3 entries, counting .id files and
+# subdirectories (other files, e.g. docs, are ignored and don't count). idc
+# compiles all .id files in the tree, in a deterministic sorted-path order.
+PROJECT_ENTRY_LIMIT = 3
+
+
+def collect_project(root):
+    """Walk the project tree, enforce the per-directory entry limit, and return
+    every .id file in deterministic (sorted full-path) order."""
+    id_files = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        # ignore hidden entries; they neither compile nor count
+        dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+        ids = [n for n in filenames if n.endswith(".id")]
+        entries = len(ids) + len(dirnames)
+        if entries > PROJECT_ENTRY_LIMIT:
+            raise CompileError(
+                dirpath, 1,
+                f"a project directory may contain at most {PROJECT_ENTRY_LIMIT} "
+                f"files and directories combined, but this one has {entries} "
+                f"(.id files and subdirectories); split it into subdirectories")
+        id_files.extend(os.path.join(dirpath, n) for n in ids)
+    if not id_files:
+        raise CompileError(root, 1, "no .id files in this project")
+    id_files.sort()
+    return id_files
+
+
 def main(argv):
     ap = argparse.ArgumentParser(prog="idc", description="compiler for the id language")
-    ap.add_argument("files", nargs="+",
-                    help="input .id files, or directories (compiled as the set "
-                         "of .id files they contain)")
+    ap.add_argument("path",
+                    help="a single .id file, or a project directory (its whole "
+                         "tree of .id files is compiled together)")
     ap.add_argument("-o", "--output", help="output executable path")
     ap.add_argument("--emit-c", metavar="FILE", help="write the generated C and stop")
     ap.add_argument("--keep-c", action="store_true",
@@ -1200,17 +1232,13 @@ def main(argv):
     args = ap.parse_args(argv)
 
     try:
-        source_files = []
-        for path in args.files:
-            if os.path.isdir(path):
-                found = sorted(os.path.join(path, n) for n in os.listdir(path)
-                               if n.endswith(".id"))
-                if not found:
-                    print(f"idc: no .id files in directory '{path}'", file=sys.stderr)
-                    return 1
-                source_files.extend(found)
-            else:
-                source_files.append(path)
+        if os.path.isdir(args.path):
+            source_files = collect_project(args.path)
+        elif os.path.isfile(args.path):
+            source_files = [args.path]
+        else:
+            print(f"idc: no such file or directory: '{args.path}'", file=sys.stderr)
+            return 1
 
         funcs_by_file = {}
         for path in source_files:
@@ -1235,9 +1263,8 @@ def main(argv):
     have_main = "main" in compiler.funcs
     out = args.output
     if out is None:
-        # default name: the directory's name if a directory was given,
-        # otherwise the first source file's stem
-        first = os.path.normpath(args.files[0])
+        # default name: the project directory's name, or the file's stem
+        first = os.path.normpath(args.path)
         base = os.path.basename(first if os.path.isdir(first)
                                 else os.path.splitext(first)[0])
         out = base + (".o" if not have_main else "")

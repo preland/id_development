@@ -17,7 +17,8 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, ROOT)
 import idc  # noqa: E402
 
-OUT = os.path.join(ROOT, "demos", "idc_in_id_parse", "runtime.id")
+OUT = os.path.join(ROOT, "demos", "idc_in_id_parse",
+                   "back", "back-3", "back-3-2", "runtime.id")
 
 
 def escape(s: str) -> str:

@@ -7,6 +7,11 @@ TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 pass=0 fail=0
 
+# concatenate a project's .id files in the same order idc compiles them
+# (every .id in the tree, sorted by full path), for the differential parity
+# checks against the id-written compiler.
+project_cat() { find "$1" -name '*.id' | LC_ALL=C sort | xargs cat; }
+
 ok()   { pass=$((pass+1)); echo "PASS: $1"; }
 bad()  { fail=$((fail+1)); echo "FAIL: $1"; }
 
@@ -17,8 +22,9 @@ expect_error() { # name, file, pattern
     if $IDC "$2" -o "$TMP/x" 2>&1 | grep -q "$3"; then ok "$1"; else bad "$1"; fi
 }
 
-# --- hello_world end to end (needs examples/otherfn.id for testfn's link dep)
-$IDC ../hello_world.id ../examples/otherfn.id -o "$TMP/hello" 2>/dev/null \
+# --- hello_world end to end (the demos/hello project bundles otherfn.id, which
+#     testfn calls, so the whole program resolves within one project)
+$IDC ../demos/hello -o "$TMP/hello" 2>/dev/null \
     || bad "hello_world compiles"
 expect_output "usage message"  "usage: $TMP/hello <message>" "$("$TMP/hello")"
 expect_output "hello with arg" "hello world: hi"             "$("$TMP/hello" hi)"
@@ -198,8 +204,8 @@ else
 fi
 # parity on a real multi-file demo: export/import, string[] params, concat,
 # nested if/else, cross-file calls
-"$IDC" ../demos/calc/app.id ../demos/calc/math.id --emit-c "$TMP/calc_py.c" >/dev/null 2>&1
-cat ../demos/calc/app.id ../demos/calc/math.id | "$TMP/idlex" | "$TMP/idparse" > "$TMP/calc_id.c"
+"$IDC" ../demos/calc --emit-c "$TMP/calc_py.c" >/dev/null 2>&1
+project_cat ../demos/calc | "$TMP/idlex" | "$TMP/idparse" > "$TMP/calc_id.c"
 if diff "$TMP/calc_py.c" "$TMP/calc_id.c" >/dev/null; then
     ok "codegen parity with idc.py (demos/calc)"
 else
@@ -207,12 +213,47 @@ else
 fi
 # parity on the adventure demo: string equality (strcmp), nested if/else,
 # input(), concat, void functions across several files
-"$IDC" ../demos/adventure/*.id --emit-c "$TMP/adv_py.c" >/dev/null 2>&1
-cat ../demos/adventure/*.id | "$TMP/idlex" | "$TMP/idparse" > "$TMP/adv_id.c"
+"$IDC" ../demos/adventure --emit-c "$TMP/adv_py.c" >/dev/null 2>&1
+project_cat ../demos/adventure | "$TMP/idlex" | "$TMP/idparse" > "$TMP/adv_id.c"
 if diff "$TMP/adv_py.c" "$TMP/adv_id.c" >/dev/null; then
     ok "codegen parity with idc.py (demos/adventure)"
 else
     bad "codegen parity with idc.py (demos/adventure)"
+fi
+
+# --- self-hosting: the id-written compiler emits byte-identical C for its OWN
+#     source (lexer + parser/codegen), and the self-compiled compiler is a
+#     fixpoint (compiling itself twice reproduces the same C exactly).
+for src in idc_in_id idc_in_id_parse; do
+    "$IDC" ../demos/$src --emit-c "$TMP/${src}_py.c" >/dev/null 2>&1
+    project_cat ../demos/$src | "$TMP/idlex" | "$TMP/idparse" > "$TMP/${src}_id.c"
+    if diff "$TMP/${src}_py.c" "$TMP/${src}_id.c" >/dev/null; then
+        ok "self-hosting parity with idc.py (demos/$src)"
+    else
+        bad "self-hosting parity with idc.py (demos/$src)"
+    fi
+done
+# build the self-compiled compiler and check it reproduces its own C (fixpoint)
+cc "$TMP/idc_in_id_id.c"       -o "$TMP/idlex2"   2>/dev/null || bad "self-compiled lexer builds"
+cc "$TMP/idc_in_id_parse_id.c" -o "$TMP/idparse2" 2>/dev/null || bad "self-compiled parser builds"
+project_cat ../demos/idc_in_id_parse | "$TMP/idlex2" | "$TMP/idparse2" > "$TMP/idparse_fix.c"
+if diff "$TMP/idc_in_id_parse_id.c" "$TMP/idparse_fix.c" >/dev/null; then
+    ok "self-hosting fixpoint (self-compiled compiler reproduces itself)"
+else
+    bad "self-hosting fixpoint (self-compiled compiler reproduces itself)"
+fi
+
+# --- the game engine + the two games it drives build cleanly (real-time I/O
+#     builtins put/flush/getkey/sleep_ms/ticks/pop exercised by the games)
+if "$IDC" ../demos/moonbuggy -o "$TMP/moonbuggy" 2>/dev/null; then
+    ok "moonbuggy builds (with bundled engine)"
+else
+    bad "moonbuggy builds (with bundled engine)"
+fi
+if "$IDC" ../demos/solitaire -o "$TMP/solitaire" 2>/dev/null; then
+    ok "solitaire builds (with bundled engine)"
+else
+    bad "solitaire builds (with bundled engine)"
 fi
 
 # --- export/import roundtrip at runtime
