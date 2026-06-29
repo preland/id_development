@@ -1,0 +1,23 @@
+// Moving to a tableau column: the selection's bottom card must continue the
+// column (one rank lower, opposite color), or be a King onto an empty column.
+
+move_to_tab() {
+  int d = ui_get(0) - 6;
+  int c = src_bottom();
+  tab_try(d, c);
+} return void;
+
+tab_try(int d, int c) {
+  if(tab_fits(d, c)) {
+    tab_do(d);
+  }
+} return void;
+
+tab_fits(int d, int c) {
+  int ok = 0;
+  if(empty_col(d)) {
+    ok = king_ok(c);
+  } else {
+    ok = seq_ok(d, c);
+  }
+} return int ok;

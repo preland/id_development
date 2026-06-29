@@ -1,0 +1,22 @@
+// A move with a source already selected: pressing on the same pile cancels the
+// selection; otherwise dispatch to a foundation or tableau destination.
+
+do_move() {
+  if(ui_get(0) == ui_get(1)) {
+    cancel_sel();
+  } else {
+    try_move();
+  }
+} return void;
+
+cancel_sel() {
+  ui_set(1, 0 - 1);
+} return void;
+
+try_move() {
+  if(ui_get(0) >= 6) {
+    move_to_tab();
+  } else {
+    move_to_found();
+  }
+} return void;

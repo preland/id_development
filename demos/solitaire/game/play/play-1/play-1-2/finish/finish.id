@@ -1,0 +1,20 @@
+// After any move: flip the source column's newly-exposed card if needed, clear
+// the selection, and check for a win.
+
+finish_move() {
+  flip_src();
+  ui_set(1, 0 - 1);
+  check_win();
+} return void;
+
+flip_src() {
+  if(ui_get(1) >= 6) {
+    maybe_flip(ui_get(1) - 6);
+  }
+} return void;
+
+maybe_flip(int col) {
+  if(needs_flip(col)) {
+    lset((import fd), col, (import fd)[col] - 1);
+  }
+} return void;

@@ -1,0 +1,22 @@
+// Record the selected source. For a tableau column the whole face-up run is
+// grabbed (start index = the face-down count); for the waste, the single top
+// card. src_count is how many cards the selection holds.
+
+set_src() {
+  ui_set(1, ui_get(0));
+  ui_set(2, src_start());
+} return void;
+
+src_start() {
+  int g = 0;
+  if(ui_get(0) >= 6) {
+    g = (import fd)[ui_get(0) - 6];
+  }
+} return int g;
+
+src_count() {
+  int n = 1;
+  if(ui_get(1) >= 6) {
+    n = col_len(ui_get(1) - 6) - ui_get(2);
+  }
+} return int n;

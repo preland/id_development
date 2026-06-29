@@ -1,0 +1,25 @@
+// The action splits on whether a source is already selected: with none, a
+// space either draws (on the stock) or selects a source; with a source set, it
+// attempts a move to the cursor's pile.
+
+do_action() {
+  if(ui_get(1) < 0) {
+    do_select();
+  } else {
+    do_move();
+  }
+} return void;
+
+do_select() {
+  if(ui_get(0) == 0) {
+    draw_stock();
+  } else {
+    select_src();
+  }
+} return void;
+
+select_src() {
+  if(can_select()) {
+    set_src();
+  }
+} return void;

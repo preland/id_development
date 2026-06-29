@@ -1,0 +1,16 @@
+// Non-blocking input. last_key drains every key buffered since the previous
+// frame and returns the most recent one (or -1 if none), so input never lags
+// behind the animation -- a held or repeated key resolves to its latest state.
+
+last_key() {
+  int last = 0 - 1;
+  int k = getkey();
+  last = drain(k, last);
+} return int last;
+
+drain(int k, int last) {
+  while(k >= 0) {
+    last = k;
+    k = getkey();
+  }
+} return int last;

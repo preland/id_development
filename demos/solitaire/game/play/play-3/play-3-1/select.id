@@ -1,0 +1,26 @@
+// Whether the cursor's pile offers a card to pick up: the waste needs a top
+// card; a tableau column needs at least one face-up card. (Foundations and the
+// stock are not sources.)
+
+can_select() {
+  int ok = 0;
+  if(ui_get(0) == 1) {
+    ok = waste_ok();
+  } else {
+    ok = sel_tab_ok();
+  }
+} return int ok;
+
+waste_ok() {
+  int ok = 0;
+  if(len((import waste)) > 0) {
+    ok = 1;
+  }
+} return int ok;
+
+sel_tab_ok() {
+  int ok = 0;
+  if(ui_get(0) >= 6 && col_len(ui_get(0) - 6) > (import fd)[ui_get(0) - 6]) {
+    ok = 1;
+  }
+} return int ok;
