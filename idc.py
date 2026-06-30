@@ -12,6 +12,7 @@ variables resolve across the whole project.
 """
 
 import argparse
+import json
 import os
 import re
 import subprocess
@@ -1313,6 +1314,51 @@ def collect_project(root):
     return id_files
 
 
+def platform_key():
+    """Map sys.platform to a backend.json platform key."""
+    if sys.platform == "darwin":
+        return "darwin"
+    if sys.platform.startswith("linux"):
+        return "linux"
+    return sys.platform
+
+
+def resolve_backend(dir_path, cc):
+    """Read a backend dir's manifest, compile its sources for this platform, and
+    return (objects, link_flags). Objects are temp .o files the caller links and
+    then removes. Raises CompileError on a bad/unsupported backend."""
+    manifest = os.path.join(dir_path, "backend.json")
+    try:
+        with open(manifest) as f:
+            spec = json.load(f)
+    except OSError:
+        raise CompileError(dir_path, 0, f"backend has no backend.json: {manifest}")
+    except ValueError as e:
+        raise CompileError(manifest, 0, f"invalid backend.json: {e}")
+
+    key = platform_key()
+    plat = spec.get("platforms", {}).get(key)
+    if plat is None:
+        name = spec.get("name", os.path.basename(dir_path.rstrip("/")))
+        raise CompileError(manifest, 0,
+                           f"backend '{name}' has no support for platform '{key}'")
+
+    objects = []
+    for src in plat.get("sources", []):
+        src_path = os.path.join(dir_path, src)
+        obj = os.path.splitext(src_path)[0] + ".gen.o"
+        cmd = [cc, "-O2", "-c", src_path, "-o", obj] + list(plat.get("cflags", []))
+        res = subprocess.run(cmd)
+        if res.returncode != 0:
+            for o in objects:
+                if os.path.exists(o):
+                    os.unlink(o)
+            raise CompileError(src_path, 0,
+                               f"backend compile failed (command: {' '.join(cmd)})")
+        objects.append(obj)
+    return objects, list(plat.get("link", []))
+
+
 def main(argv):
     ap = argparse.ArgumentParser(prog="idc", description="compiler for the id language")
     ap.add_argument("path",
@@ -1323,6 +1369,9 @@ def main(argv):
     ap.add_argument("--keep-c", action="store_true",
                     help="keep the generated C next to the output")
     ap.add_argument("--cc", default="cc", help="C compiler to use (default: cc)")
+    ap.add_argument("--backend", action="append", default=[], metavar="DIR",
+                    help="link a native backend directory (reads its backend.json "
+                         "for this platform's sources and link flags); repeatable")
     args = ap.parse_args(argv)
 
     try:
@@ -1363,11 +1412,30 @@ def main(argv):
                                 else os.path.splitext(first)[0])
         out = base + (".o" if not have_main else "")
 
+    # Native backends link only into a real executable; a library .o has nothing
+    # to link them into, so skip (with a note) when there is no main.
+    backend_objs, backend_link = [], []
+    if args.backend and not have_main:
+        warn(args.path, 0, "--backend ignored: this project has no main (builds "
+                           "to a .o); link the backend into the final program")
+    elif args.backend:
+        try:
+            for d in args.backend:
+                objs, link = resolve_backend(d, args.cc)
+                backend_objs += objs
+                backend_link += link
+        except CompileError as err:
+            for o in backend_objs:
+                if os.path.exists(o):
+                    os.unlink(o)
+            print(str(err), file=sys.stderr)
+            return 1
+
     c_path = (os.path.splitext(out)[0] + ".c") if args.keep_c else out + ".gen.c"
     with open(c_path, "w") as f:
         f.write(c_code)
 
-    cmd = [args.cc, "-std=c11", "-O2", c_path, "-o", out]
+    cmd = [args.cc, "-std=c11", "-O2", c_path] + backend_objs + ["-o", out] + backend_link
     if not have_main:
         cmd.insert(1, "-c")  # no entrypoint: produce an object file to link later
     try:
@@ -1375,6 +1443,9 @@ def main(argv):
     finally:
         if not args.keep_c:
             os.unlink(c_path)
+        for o in backend_objs:
+            if os.path.exists(o):
+                os.unlink(o)
     if res.returncode != 0:
         print(f"idc: C compilation failed (command: {' '.join(cmd)})", file=sys.stderr)
         return 1

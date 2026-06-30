@@ -1,0 +1,17 @@
+// The frame loop. spin advances a tick counter until a frame reports the window
+// wants to close, then tears the window down. sleep_ms paces it (~60fps); the
+// engine's terminal games use the same clear -> draw -> present -> poll -> sleep
+// shape.
+
+loop() {
+  spin(1, 0);
+  gfx_close();
+} return void;
+
+spin(int run, int t) {
+  while(run > 0) {
+    run = alive(frame(t));
+    sleep_ms(16);
+    t = t + 1;
+  }
+} return void;

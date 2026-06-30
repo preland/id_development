@@ -1,0 +1,17 @@
+// Low-level pixel access. px_idx maps (x, y) to a buffer offset; lset is the
+// "store into a list element" helper (an imported list can't be index-assigned
+// directly, but passing it as a parameter makes the lvalue an identifier again,
+// and lists are reference-semantic so the store is shared) -- the same trick the
+// engine uses for its screen buffer. Out-of-range writes are dropped by the
+// runtime, so callers need no bounds check here.
+
+lset(int[] xs, int i, int v) {
+  xs[i] = v;
+} return void;
+
+px_idx(int x, int y) {
+} return int y * (import gw) + x;
+
+pset(int x, int y, int c) {
+  lset((import fb), px_idx(x, y), c);
+} return void;
