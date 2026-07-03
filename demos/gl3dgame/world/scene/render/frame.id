@@ -1,0 +1,20 @@
+// Per-frame matrix setup. render() is called once per frame with the tick
+// counter t: it rebuilds the camera-view matrix and the projection matrix
+// fresh (see init.id's comment on why), then hands off to draw/.
+//
+// The view is a fixed chase-camera rig: tilt the world down 20 degrees, then
+// push it back 9 units on Z, so the player cube (always drawn at the view's
+// own origin -- see draw/instances.id) reads as sitting in front of and
+// below the camera, looking down at the grid.
+
+render(int t) {
+  int view = build_view();
+  gl_set_projection(build_proj());
+  draw_all(view, t);
+} return void;
+
+build_view() {
+} return int gl_mat_mul(gl_mat_translate(0, 0 - 1500, 0 - 9000), gl_mat_rotate_x(20000));
+
+build_proj() {
+} return int gl_mat_perspective(70000, 1333, 100, 40000);

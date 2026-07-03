@@ -1,0 +1,20 @@
+// Top of the per-frame draw chain: clear, draw the player + target, draw the
+// pillar field, then present. Split across 3 small functions to keep each
+// one at or under the 3-action limit, the same reason demos/gl3d's
+// scene/render/draw.id splits clear/place from submit.
+
+draw_all(int view, int t) {
+  draw_foreground(view, t);
+  draw_pillars(view);
+  gl_end_frame();
+} return void;
+
+draw_foreground(int view, int t) {
+  gl_begin_frame(15, 15, 35);
+  draw_dynamic(view, t);
+} return void;
+
+draw_dynamic(int view, int t) {
+  draw_player(view);
+  draw_target(view, t);
+} return void;

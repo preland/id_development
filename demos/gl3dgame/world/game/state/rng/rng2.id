@@ -1,0 +1,23 @@
+// Park-Miller minimal-standard PRNG via Schrage's method (same as
+// demos/moonbuggy/engine/io/rng/rng2.id), which keeps every intermediate
+// within 32-bit signed range (no overflow, no bitwise ops):
+//   state' = 16807*state mod 2147483647, computed as
+//   16807*(state mod 127773) - 2836*(state / 127773), corrected if <= 0.
+
+rng_next() {
+  int st = (import rng_cell)[0];
+  int ns = schrage(st);
+  lset((import rng_cell), 0, ns);
+} return int ns;
+
+schrage(int st) {
+  int hi = st / 127773;
+  int lo = st % 127773;
+} return int fixup(16807 * lo - 2836 * hi);
+
+fixup(int v) {
+  int r = v;
+  if(v <= 0) {
+    r = v + 2147483647;
+  }
+} return int r;

@@ -1,0 +1,20 @@
+// Seeding the PRNG (same design as demos/moonbuggy/engine/io/rng/rng.id):
+// the state lives in a one-element list (so it can be mutated across
+// functions via lset, defined in ../mutate.id). The seed is forced into the
+// valid range 1..2147483646 for the Park-Miller generator in rng2.id.
+
+rng_seed(int st) {
+  export int[] rng_cell = [1];
+  set_seed(st);
+} return void;
+
+set_seed(int st) {
+  lset((import rng_cell), 0, pos_seed(st % 2147483646));
+} return void;
+
+pos_seed(int v) {
+  int r = v + 1;
+  if(v < 0) {
+    r = 0 - v + 1;
+  }
+} return int r;

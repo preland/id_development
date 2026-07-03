@@ -1,0 +1,14 @@
+// gs_set writes one `mb` slot. lset is the generic "store into a list
+// element" helper demos/moonbuggy/engine/core/core-1/cell/cell.id explains:
+// an imported list cannot be index-assigned directly, but passing it as a
+// parameter makes the lvalue an identifier again, and lists are
+// reference-semantic so the store is shared. world/game/state/rng reuses
+// this same lset for its own one-cell PRNG state.
+
+gs_set(int i, int v) {
+  lset((import mb), i, v);
+} return void;
+
+lset(int[] xs, int i, int v) {
+  xs[i] = v;
+} return void;

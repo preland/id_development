@@ -1,0 +1,14 @@
+// Draw pillar `i`: like the target, its position is relative to the player
+// (world/game/state), but it never spins -- it's a static landmark, not a
+// goal.
+
+draw_one_pillar(int view, int i) {
+  int mv = pillar_mv(view, i);
+  gl_set_modelview(mv);
+  gl_draw_tris((import pillar_verts), (import pillar_colors), 12);
+} return void;
+
+pillar_mv(int view, int i) {
+  int dx = ((import pillar_x)[i] - gs_get(0)) * 1600;
+  int dz = ((import pillar_z)[i] - gs_get(1)) * 1600;
+} return int gl_mat_mul(view, gl_mat_translate(dx, 0, dz));
