@@ -1,0 +1,17 @@
+// One particle: pick a radius (denser toward the core, particles/shape/
+// radius.id) and an angle (arm + winding + jitter, particles/shape/theta.id)
+// from `i`'s position in the fill order, then push its position and color
+// (particles/look/). `i` itself isn't otherwise needed -- everything random
+// comes from the shared PRNG stream, advanced in a fixed order every run
+// (deterministic given the seed in galaxy/render/init.id).
+
+add_particle(int i) {
+  int r = particle_radius(i);
+  int theta = particle_theta(i, r);
+  push_particle(r, theta);
+} return void;
+
+push_particle(int r, int theta) {
+  push_position(r, theta);
+  push_color(r);
+} return void;

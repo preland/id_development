@@ -1,0 +1,9 @@
+// One color channel, linearly interpolated from `core` (frac=0, the
+// galaxy's center) to `edge` (frac=1000, its rim), with a small PRNG wobble
+// (noise_range) so particles at the same radius aren't all identically
+// colored, then clamped back into a byte (util.id).
+
+tint_channel(int frac, int core, int edge) {
+  int v = core + (edge - core) * frac / 1000;
+  int j = noise_range(20);
+} return int clamp255(v + j);

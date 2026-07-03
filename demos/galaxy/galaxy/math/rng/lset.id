@@ -1,0 +1,21 @@
+// lset: the generic "store into a list element" helper (an imported list
+// can't be index-assigned directly, but passing it as a parameter makes the
+// lvalue an identifier again; lists are reference-semantic so the store is
+// shared -- see demos/moonbuggy/engine/core/core-1/cell/cell.id).
+//
+// rng_range/noise_range build on rng_next() (rng2.id) for everything the
+// galaxy generator needs: rng_range(n) is a uniform pick in 0..n-1;
+// noise_range(half) is symmetric jitter in -half..+half, used for angle,
+// height and color noise alike (particles/shape/theta.id,
+// particles/look/position/y.id, particles/look/color/tint.id).
+
+lset(int[] xs, int i, int v) {
+  xs[i] = v;
+} return void;
+
+rng_range(int n) {
+} return int rng_next() % n;
+
+noise_range(int half) {
+  int span = 2 * half + 1;
+} return int rng_range(span) - half;

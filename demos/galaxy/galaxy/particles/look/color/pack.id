@@ -1,0 +1,17 @@
+// push_color computes and pushes one particle's packed color, keyed purely
+// by its radius: build_color interpolates 3 channels from a hot
+// yellow-white core (255,240,180) to a cool blue-ish rim (80,120,255) --
+// core/edge endpoints chosen in tint.id -- then packs them 0xRRGGBB the
+// same way demos/gl3d/scene/mesh/geom/color.id packs its corner colors.
+
+push_color(int r) {
+  int frac = radius_frac(r);
+  int c = build_color(frac);
+  push((import col), c);
+} return void;
+
+build_color(int frac) {
+  int r = tint_channel(frac, 255, 80);
+  int g = tint_channel(frac, 240, 120);
+  int b = tint_channel(frac, 180, 255);
+} return int pack_rgb(r, g, b);

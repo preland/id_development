@@ -1,0 +1,16 @@
+// Reduce any integer degree (the spiral math produces values well outside
+// 0..359: negative jitter, multi-turn winding) into the 0..359 range so
+// angle/sin.id's quadrant split always has a valid index. id's `%` follows C
+// truncating semantics, so a negative input needs one more fixup pass
+// (fix_neg) rather than a single mod.
+
+norm_deg(int d) {
+  int m = d % 360;
+} return int fix_neg(m);
+
+fix_neg(int m) {
+  int r = m;
+  if (m < 0) {
+    r = m + 360;
+  }
+} return int r;

@@ -1,0 +1,18 @@
+// particle_theta assigns i to one of 3 spiral arms 120 degrees apart
+// (arm_base), adds a winding term proportional to radius (so the angle
+// sweeps further out at larger r -- the actual "spiral" in spiral galaxy),
+// and a small PRNG jitter so the arms read as a scatter of stars rather
+// than a rigid wire. Everything here is a plain integer degree (0..~400
+// before norm_deg reduces it in trig/norm.id) -- a different scale from the
+// milli-degrees backends/gl/gl.h's gl_mat_rotate_* expects, kept strictly
+// on the particles/ side of the seam.
+
+particle_theta(int i, int r) {
+  int base = arm_base(i);
+  int wind = r * 60 / 1000;
+  int jit = noise_range(20);
+} return int base + wind + jit;
+
+arm_base(int i) {
+  int arm = i % 3;
+} return int arm * 120;

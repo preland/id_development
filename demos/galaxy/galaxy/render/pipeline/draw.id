@@ -1,0 +1,21 @@
+// The actual GL calls for one frame: load the projection, clear + place the
+// modelview, then submit the whole particle cloud as one gl_draw_points
+// call and present. Split into 3 small functions to keep each block at or
+// under the 3-action limit, the same decomposition demos/gl3d/scene/
+// render/draw.id uses for gl_draw_tris.
+
+draw_scene(int mv, int proj) {
+  gl_set_projection(proj);
+  clear_and_place(mv);
+  submit_points();
+} return void;
+
+clear_and_place(int mv) {
+  gl_begin_frame(0, 0, 8);
+  gl_set_modelview(mv);
+} return void;
+
+submit_points() {
+  gl_draw_points((import pos), (import col), particle_count(), 3000);
+  gl_end_frame();
+} return void;

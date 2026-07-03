@@ -1,0 +1,20 @@
+// sin_deg(d): integer-degree sine x1000 for any d, built from the 0..90
+// table (table.id) via quadrant reduction. sin_deg normalizes d and splits
+// it into quadrant q = n/90 (0..3) and the in-quadrant remainder r = n%90;
+// sin_q dispatches the actual reflection/sign work to quad.id in a small
+// binary tree of two-action functions rather than one big chained
+// if/else-if (keeps every block at or under the 3-action limit -- the same
+// "chain of named functions, not a pyramid" idiom the top-level README
+// calls out for idc_in_id).
+
+sin_deg(int d) {
+  int n = norm_deg(d);
+  int q = n / 90;
+  int r = n % 90;
+} return int sin_q(q, r);
+
+sin_q(int q, int r) {
+  int s = 0;
+  if (q < 2) { s = sin_q01(q, r); }
+  else { s = sin_q23(q, r); }
+} return int s;

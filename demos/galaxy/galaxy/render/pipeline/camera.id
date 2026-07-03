@@ -1,0 +1,15 @@
+// The camera rig: a fixed tilt-and-pull-back, the same "translate * rotate"
+// shape demos/gl3dgame/world/scene/render/init.id's build_view uses --
+// tilt the disk 55 degrees so the spiral reads as a disk seen from above
+// rather than edge-on, then push the whole thing 12 units down -Z so the
+// (up to 5-unit-radius, see particles/shape/radius.id's max_radius) cloud
+// sits well inside the frustum. camera_proj rebuilds the perspective
+// matrix from gl_aspect_x1000() every single frame (rather than caching it
+// once like demos/gl3d does) specifically to track a live window resize,
+// per backends/gl/README.md.
+
+camera_rig() {
+} return int gl_mat_mul(gl_mat_translate(0, 0, 0 - 12000), gl_mat_rotate_x(55000));
+
+camera_proj() {
+} return int gl_mat_perspective(60000, gl_aspect_x1000(), 100, 40000);

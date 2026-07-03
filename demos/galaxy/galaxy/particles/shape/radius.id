@@ -1,0 +1,19 @@
+// particle_radius picks a milli-unit radius in 0..max_radius(), biased
+// toward the center: u is uniform in 0..1000, and squaring it (u*u/1000,
+// still 0..1000) compresses the distribution toward 0 -- a uniform variable
+// squared has more mass near zero, which is exactly "denser toward the
+// core" without needing floats or a real inverse-CDF sample. radius_frac is
+// the inverse mapping (radius -> 0..1000 fraction of max), reused by the
+// color and thickness falloffs (particles/look/color/pack.id,
+// particles/look/position/y.id).
+
+particle_radius(int i) {
+  int u = rng_range(1001);
+  int biased = u * u / 1000;
+} return int biased * max_radius() / 1000;
+
+radius_frac(int r) {
+} return int r * 1000 / max_radius();
+
+max_radius() {
+} return int 5000;

@@ -1,0 +1,23 @@
+// The particle cloud's public surface: build the two flattened lists
+// gl_draw_points wants (backends/gl/gl.h) once at startup -- `pos`, 3
+// milli-unit ints per point, and `col`, 1 packed 0xRRGGBB per point -- and
+// report how many points they hold. particle_count is the single source of
+// truth for the cloud's size: the fill loop below, gl_draw_points' count
+// argument (render/pipeline/draw.id) and the status line (render/swirl.id)
+// all call it rather than repeating the literal.
+
+build_particles() {
+  export int[] pos = [];
+  export int[] col = [];
+  fill_particles(0);
+} return void;
+
+fill_particles(int i) {
+  while (i < particle_count()) {
+    add_particle(i);
+    i = i + 1;
+  }
+} return void;
+
+particle_count() {
+} return int 6000;

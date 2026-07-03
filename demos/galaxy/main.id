@@ -1,0 +1,20 @@
+// galaxy -- thousands of additively-blended, light-emitting particles
+// arranged into a swirling spiral galaxy, hardware-rendered via the native
+// GL backend (backends/gl). Opens an 1024x768 window, builds the whole
+// particle cloud once (see galaxy/particles), then runs a frame loop that
+// rigidly swirls the galaxy about its own axis while a tilted camera looks
+// down on it (see galaxy/render). Only gfx_open/gl_*/gfx_poll/gfx_close
+// cross into platform code -- the spiral shape, the sine table, the PRNG
+// and the frame loop are all portable id, the same split demos/gl3d and
+// demos/gl3dgame use.
+//
+//   ./idc.py demos/galaxy --backend backends/gl -o galaxy && ./galaxy
+//
+// Close the window (or press Esc / q) to quit. GFX_MAX_FRAMES lets a
+// headless build run N frames and exit on its own.
+
+main() {
+  int ok = gfx_open(1024, 768, "id galaxy -- spiral particle viewer");
+  scene_init();
+  loop();
+} return int 0;

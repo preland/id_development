@@ -1,0 +1,15 @@
+// Per-tick matrix composition. render() is called once per frame with the
+// tick counter t: it builds this frame's modelview (the swirl applied
+// first, then the fixed camera rig, see camera.id) and a freshly-rebuilt
+// projection (camera_proj rebuilds from the LIVE aspect every frame, per
+// backends/gl/README.md's resize recipe), then hands off to draw.id.
+
+render(int t) {
+  int mv = camera_view(t);
+  int proj = camera_proj();
+  draw_scene(mv, proj);
+} return void;
+
+camera_view(int t) {
+  int swirl = swirl_matrix(t);
+} return int gl_mat_mul(camera_rig(), swirl);

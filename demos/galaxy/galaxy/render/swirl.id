@@ -1,0 +1,19 @@
+// The rigid swirl: rather than recomputing all 6000 particles' angles every
+// frame, the whole cloud is built once (particles/gen) and the frame loop
+// just rotates it about its own Y axis a little further each tick --
+// cheap (one extra matrix multiply/frame, backends/gl/README.md's "known
+// rough edges" on the matrix pool being ring-buffered is a non-issue at
+// this rate), and visually identical to a real rigid rotation. swirl_deg
+// is in gl_mat_rotate_y's milli-degree scale (300 milli-deg/tick = 0.3
+// deg/frame => a full turn roughly every 20s at 60fps); status_line prints
+// it (in the same milli-degree units) alongside the particle count so a
+// headless run has proof the swirl is actually advancing.
+
+swirl_deg(int t) {
+} return int (t * 300) % 360000;
+
+swirl_matrix(int t) {
+} return int gl_mat_rotate_y(swirl_deg(t));
+
+status_line(int t) {
+} return string "frame " + t + " particles " + particle_count() + " swirl_millideg " + swirl_deg(t);
