@@ -3054,13 +3054,30 @@ def resolve_backend(dir_path, cc):
         src_path = os.path.join(dir_path, src)
         obj = os.path.splitext(src_path)[0] + ".gen.o"
         cmd = [cc, "-O2", "-c", src_path, "-o", obj] + list(plat.get("cflags", []))
-        res = subprocess.run(cmd)
+        res = subprocess.run(cmd, stderr=subprocess.PIPE, text=True)
+        if res.stderr:
+            sys.stderr.write(res.stderr)
         if res.returncode != 0:
             for o in objects:
                 if os.path.exists(o):
                     os.unlink(o)
-            raise CompileError(src_path, 0,
-                               f"backend compile failed (command: {' '.join(cmd)})")
+            msg = f"backend compile failed (command: {' '.join(cmd)})"
+            # A backend links native system libraries (OpenGL, X11, ...). On a
+            # system where their dev headers/libs aren't on the compiler's
+            # default search path -- notably NixOS -- the compile fails with a
+            # missing-header/library error. Point the user at the dev-shell,
+            # which provides them, rather than leaving a cryptic cc error.
+            low = (res.stderr or "").lower()
+            if ("no such file" in low or "not found" in low
+                    or "fatal error" in low or os.path.exists("/etc/NIXOS")):
+                bdir = dir_path.rstrip("/")
+                msg += ("\n  hint: this backend links native dev libraries (OpenGL, "
+                        "X11, ...) whose headers may not be on the compiler's default\n"
+                        "        search path (e.g. on NixOS). Build inside the dev-shell, "
+                        "which provides them:\n"
+                        f"          tools/devshell.sh './idc.py YOUR_PROJECT "
+                        f"--backend {bdir} -o OUT'")
+            raise CompileError(src_path, 0, msg)
         objects.append(obj)
     return objects, list(plat.get("link", []))
 
