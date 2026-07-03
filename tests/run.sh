@@ -427,4 +427,12 @@ echo "--- runtime-safety negative tests (tests/runtime_invalid/) ---"
 ./runtime_invalid.sh
 rneg=$?
 
-[ "$fail" -eq 0 ] && [ "$neg" -eq 0 ] && [ "$rneg" -eq 0 ]
+# --- self-hosted driver (bin/idc): builds several demos through the
+#     id-written lexer+parser (via the bin/idc bash driver) and checks the
+#     resulting binaries run identically to idc.py's. See tests/self_host_build.sh.
+echo
+echo "--- self-hosted driver build (bin/idc) ---"
+./self_host_build.sh
+shneg=$?
+
+[ "$fail" -eq 0 ] && [ "$neg" -eq 0 ] && [ "$rneg" -eq 0 ] && [ "$shneg" -eq 0 ]

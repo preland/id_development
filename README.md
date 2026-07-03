@@ -2,15 +2,17 @@
 
 `id` is a small C-flavored language. This repo contains its first program
 (`demos/hello`) and `idc`, a compiler that transpiles `id` to C and invokes the
-system C compiler.
+system C compiler. `idc` is **self-hosted**: its lexer and parser/C-emitter are
+themselves written in `id` (`demos/idc_in_id`, `demos/idc_in_id_parse`), and
+`bin/idc` is the driver that makes that self-hosted compiler a usable command.
 
 ## Quick start
 
-`idc` takes exactly one argument: a single `.id` file, or a **project
-directory**.
+`bin/idc`, the **primary** way to build `id` programs, takes exactly one
+argument: a single `.id` file, or a **project directory**.
 
 ```sh
-./idc.py demos/hello -o hello    # build the hello_world project
+bin/idc demos/hello -o hello    # build the hello_world project
 ./hello                          # usage: ./hello <message>
 ./hello hi                       # hello world: hi
 tests/run.sh                     # regression suite
@@ -23,13 +25,48 @@ exported variables resolve across the whole project. With no `-o`, the output is
 named after the project directory:
 
 ```sh
-./idc.py demos/adventure    # builds ./adventure from the whole project tree
+bin/idc demos/adventure    # builds ./adventure from the whole project tree
 ./adventure
 ```
 
-A single file is handy for tutorials (`./idc.py prog.id`); a project is how real
-programs grow. `./idc.py PATH --emit-c prog.c` writes the generated C instead of
+A single file is handy for tutorials (`bin/idc prog.id`); a project is how real
+programs grow. `bin/idc PATH --emit-c prog.c` writes the generated C instead of
 building.
+
+### `bin/idc`: the self-hosted driver, and what it actually does
+
+`bin/idc` is a small bash driver around the self-hosted compiler (`id` itself
+has no filesystem/dir-walk/subprocess builtins, so — like every self-hosting
+compiler — it needs a bootstrap layer living outside the language). On first
+use it builds the two self-hosted stages, `idlex` (lexer) and `idparse`
+(parser + C emitter), **using `idc.py`** and caches them under `.idc-cache/`
+(rebuilt automatically if their `id` source changes). From then on, building
+`PATH` means: collect its `.id` file(s) (a single file, or every `.id` under a
+project directory, sorted by full path — the same order `idc.py` uses), run
+`cat files | idlex | idparse` to get C, then hand that C to `cc` — exactly the
+pipeline `tools/parity.sh` differentially tests against `idc.py`. `-o`,
+`--emit-c`, `--keep-c`, `--cc`, and `--backend DIR` (reading `backend.json` and
+linking a native backend, mirroring `idc.py`'s `resolve_backend`) all work the
+same as in `idc.py`.
+
+**Honesty about coverage:** the self-hosted lexer/parser do not yet implement
+the *whole* language or *any* semantic checking (see "The compiler" below for
+the full list of what only `idc.py` does). Concretely today: float literals
+aren't lexed correctly (`0.8` splits into `0`, `.`, `8`), and a call to a
+function not defined anywhere in the project (the pattern every native
+backend and `demos/gfxdemo`-style program uses) doesn't get the `extern`
+forward declaration `idc.py` emits. Rather than fail on those, `bin/idc`
+**verifies its own output** with a `cc -fsyntax-only` check before trusting
+it, and if the self-hosted pipeline can't handle the input for any reason, it
+**transparently falls back to running `idc.py`** for that build — printing a
+clear note on stderr so this is never silent. So `bin/idc PATH` always
+produces a correct binary (identical to `idc.py PATH`) whether or not the
+self-hosted stages actually handled it; `tests/self_host_build.sh` checks
+exactly this end-to-end behavior on `demos/hello` (falls back, due to its
+float literal), `demos/calc`, `demos/control/flow.id`, and `demos/adventure`
+(the latter three build with the self-hosted stages directly, verified
+byte-identical to `idc.py --emit-c` by `tools/parity.sh` and `tests/run.sh`'s
+"codegen parity" checks).
 
 ## Language rules (as stated in hello_world.id)
 
@@ -140,16 +177,42 @@ resolves them as follows — revisit as the language evolves:
 The `id`-written compiler (`demos/idc_in_id` lexer + `demos/idc_in_id_parse`
 parser/codegen) **compiles its own source** to C that is byte-identical to
 `idc.py`, and the self-compiled binary reproduces itself exactly (a fixpoint).
-`tests/run.sh` checks both. See `demos/idc_in_id_parse/README.md`.
+`tests/run.sh` checks both. See `demos/idc_in_id_parse/README.md`. `bin/idc`
+is the driver that turns this pair of self-hosted binaries into `id`'s
+primary build command — see "`bin/idc`: the self-hosted driver" above.
 
-## The compiler
+## The compiler: two implementations, one frozen reference
 
-`idc.py` is a self-contained Python program: lexer → recursive-descent parser
-→ semantic checks (action limit, function-per-file limit, global name
-uniqueness, function-logic uniqueness, export/import access, light type
-checking) → C emission → `cc`.
+**`idc.py`** is the original, self-contained Python implementation: lexer →
+recursive-descent parser → semantic checks (action limit, function-per-file
+limit, project entry-count limit, global name uniqueness, function-logic
+uniqueness, export/import access, light type checking) → C/LLVM/WASM emission
+→ `cc`/`clang`/`wat2wasm`. It is now treated as the **frozen legacy/reference
+implementation**, kept unchanged, with three jobs:
 
-Generated code details:
+1. **Bootstrapping** the self-hosted stages (`idlex`, `idparse`) that `bin/idc`
+   caches and drives — see below.
+2. **Semantic checking.** The self-hosted lexer/parser do not implement *any*
+   of the checks listed above (action limit, function-per-file limit,
+   name-type consistency, function-logic uniqueness, export/import access,
+   etc.) — they parse and emit C, nothing more. `bin/idc` inherits that: a
+   program that violates one of these rules may build via `bin/idc` where
+   `idc.py` would have rejected it (or fail in a less friendly way, e.g. a
+   confusing `cc` error). If you need the language's rules enforced, run
+   `idc.py` on the program at least once.
+3. **The alternative codegen targets**, `--target llvm` and `--target wasm`
+   (and their `--emit-llvm`/`--emit-wasm`) — only `idc.py` implements these;
+   `bin/idc` only drives the C target.
+
+**`bin/idc`** (see "Quick start" above) is the **primary** way to build a
+program day to day: it drives the self-hosted `idlex`/`idparse` pair,
+falling back to `idc.py` transparently for the handful of things they don't
+yet cover (float literals; calls to functions resolved only at link time,
+e.g. native backends). It does not reimplement `idc.py`'s semantic checks —
+see point 2 above.
+
+Generated code details (true of both implementations — the self-hosted
+emitter mirrors these byte-for-byte where it's implemented at all):
 
 - `id` functions are prefixed `id_` in C (so `id` `main` becomes `id_main`,
   wrapped by a real C `main`). Exported variables become C globals.

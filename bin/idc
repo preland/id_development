@@ -1,0 +1,288 @@
+#!/usr/bin/env bash
+# idc -- the self-hosted `id` compiler driver.
+#
+# This is the PRIMARY way to build `id` programs. It bootstraps the two
+# id-written compiler stages -- the lexer (demos/idc_in_id -> idlex) and the
+# parser/C-emitter (demos/idc_in_id_parse -> idparse) -- using idc.py (the
+# reference/legacy implementation) ONE TIME, caches the resulting binaries,
+# and from then on builds every program by piping its concatenated source
+# through those two id-written binaries and handing the emitted C to `cc`.
+#
+# What this does NOT do (still idc.py's job -- see README.md):
+#   - Semantic checks: action-per-block limit, 3-functions-per-file,
+#     project entry-count limit, name-type consistency, export/import
+#     access, function-logic-uniqueness. idlex/idparse do not perform them,
+#     so invalid programs may build here that idc.py would reject (or may
+#     fail in less friendly ways, e.g. a C compile error or a crash in the
+#     id-written stages themselves).
+#   - --target llvm / --target wasm. Only the C target is self-hosted.
+#
+# Usage:
+#   bin/idc PATH [-o OUTPUT] [--emit-c FILE] [--keep-c] [--cc CC]
+#           [--backend DIR]...
+#
+# PATH is a single .id file or a project directory (its whole .id tree, in
+# the same sorted-full-path order idc.py uses).
+set -u
+
+# ---------------------------------------------------------------------------
+# locate the repo root (this script lives in <root>/bin/idc)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+IDC_PY="$ROOT/idc.py"
+
+usage() {
+    echo "usage: idc PATH [-o OUTPUT] [--emit-c FILE] [--keep-c] [--cc CC] [--backend DIR]..." >&2
+}
+
+PATH_ARG=""
+OUTPUT=""
+EMIT_C=""
+KEEP_C=0
+CC=cc
+BACKENDS=()
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -o|--output)
+            OUTPUT="${2:?idc: $1 needs an argument}"; shift 2 ;;
+        --emit-c)
+            EMIT_C="${2:?idc: --emit-c needs an argument}"; shift 2 ;;
+        --keep-c)
+            KEEP_C=1; shift ;;
+        --cc)
+            CC="${2:?idc: --cc needs an argument}"; shift 2 ;;
+        --backend)
+            BACKENDS+=("${2:?idc: --backend needs an argument}"); shift 2 ;;
+        --target)
+            echo "idc: --target is not supported by the self-hosted driver (only the C target is self-hosted); use idc.py --target ${2:-llvm|wasm} instead" >&2
+            exit 2 ;;
+        -h|--help)
+            usage; exit 0 ;;
+        --)
+            shift; break ;;
+        -*)
+            echo "idc: unknown option: $1" >&2; usage; exit 2 ;;
+        *)
+            if [ -n "$PATH_ARG" ]; then
+                echo "idc: unexpected extra argument: $1 (idc takes exactly one path)" >&2
+                usage; exit 2
+            fi
+            PATH_ARG="$1"; shift ;;
+    esac
+done
+if [ -n "${1:-}" ] && [ -z "$PATH_ARG" ]; then
+    PATH_ARG="$1"; shift
+fi
+if [ -z "$PATH_ARG" ]; then
+    echo "idc: missing PATH" >&2; usage; exit 2
+fi
+
+# ---------------------------------------------------------------------------
+# bootstrap idlex/idparse (build with idc.py, the legacy/bootstrap
+# implementation, only when missing or stale) and cache them
+CACHE_DIR="$ROOT/.idc-cache"
+mkdir -p "$CACHE_DIR" || { echo "idc: cannot create cache dir $CACHE_DIR" >&2; exit 1; }
+IDLEX="$CACHE_DIR/idlex"
+IDPARSE="$CACHE_DIR/idparse"
+
+stale() { # stale BIN SRC_DIR -- true if BIN is missing or older than any .id under SRC_DIR
+    local bin="$1" src="$2"
+    [ -x "$bin" ] || return 0
+    find "$src" -name '*.id' -newer "$bin" 2>/dev/null | grep -q . && return 0
+    return 1
+}
+
+if stale "$IDLEX" "$ROOT/demos/idc_in_id"; then
+    echo "idc: bootstrapping idlex from source (via idc.py)..." >&2
+    "$IDC_PY" "$ROOT/demos/idc_in_id" -o "$IDLEX" >&2 \
+        || { echo "idc: failed to bootstrap idlex" >&2; exit 1; }
+fi
+if stale "$IDPARSE" "$ROOT/demos/idc_in_id_parse"; then
+    echo "idc: bootstrapping idparse from source (via idc.py)..." >&2
+    "$IDC_PY" "$ROOT/demos/idc_in_id_parse" -o "$IDPARSE" >&2 \
+        || { echo "idc: failed to bootstrap idparse" >&2; exit 1; }
+fi
+
+# ---------------------------------------------------------------------------
+# collect .id source files, in idc.py's order: a single file is just itself;
+# a project directory is every .id file in it, sorted by full path (LC_ALL=C,
+# matching idc.py's Python string sort).
+SRC_FILES=()
+if [ -f "$PATH_ARG" ]; then
+    SRC_FILES=("$PATH_ARG")
+elif [ -d "$PATH_ARG" ]; then
+    while IFS= read -r f; do SRC_FILES+=("$f"); done \
+        < <(find "$PATH_ARG" -name '*.id' | LC_ALL=C sort)
+else
+    echo "idc: no such file or directory: '$PATH_ARG'" >&2
+    exit 1
+fi
+if [ ${#SRC_FILES[@]} -eq 0 ]; then
+    echo "idc: no .id files in this project" >&2
+    exit 1
+fi
+
+WORK=$(mktemp -d) || { echo "idc: mktemp failed" >&2; exit 1; }
+trap 'rm -rf "$WORK"' EXIT
+
+C_OUT="$WORK/out.c"
+LEX_ERR="$WORK/lex.err"
+PARSE_ERR="$WORK/parse.err"
+
+cat "${SRC_FILES[@]}" | "$IDLEX" 2>"$LEX_ERR" | "$IDPARSE" > "$C_OUT" 2>"$PARSE_ERR"
+rc=("${PIPESTATUS[@]}")
+lex_rc="${rc[1]}"
+parse_rc="${rc[2]}"
+
+# Fall back to idc.py (the reference/legacy implementation) transparently
+# when the self-hosted stages can't handle this input -- but say so loudly
+# on stderr, so this is never silent. Used both when idlex/idparse
+# themselves fail, and (below) when they "succeed" but emit C that isn't
+# actually valid (the self-hosted lexer's one known gap: float literals --
+# it still splits `0.8` into the tokens `0`, `.`, `8`; see README.md
+# "Self-hosting").
+do_fallback() { # do_fallback REASON
+    echo "idc: self-hosted compiler (idlex|idparse) could not build '$PATH_ARG'" \
+         "($1); falling back to idc.py (legacy/reference)" >&2
+    fallback_args=("$PATH_ARG")
+    [ -n "$OUTPUT" ] && fallback_args+=(-o "$OUTPUT")
+    [ -n "$EMIT_C" ] && fallback_args+=(--emit-c "$EMIT_C")
+    [ "$KEEP_C" -eq 1 ] && fallback_args+=(--keep-c)
+    fallback_args+=(--cc "$CC")
+    for b in "${BACKENDS[@]}"; do fallback_args+=(--backend "$b"); done
+    "$IDC_PY" "${fallback_args[@]}"
+    exit $?
+}
+
+if [ "$lex_rc" -ne 0 ] || [ "$parse_rc" -ne 0 ] || [ ! -s "$C_OUT" ]; then
+    [ -s "$LEX_ERR" ] && cat "$LEX_ERR" >&2
+    [ -s "$PARSE_ERR" ] && cat "$PARSE_ERR" >&2
+    do_fallback "idlex/idparse failed"
+fi
+
+# idlex/idparse can exit 0 while having silently mis-lexed something (e.g. a
+# float literal) into C that doesn't even parse. Since --emit-c has no cc
+# link step to catch that, and a build's later cc invocation would produce a
+# confusing error attributed to "C compilation failed" instead of the real
+# cause, gate on a real C compiler's syntax check now -- cheap (no linking)
+# and it's the one authoritative way to know the self-hosted output is sound.
+if ! "$CC" -std=c11 -fsyntax-only "$C_OUT" 2>"$WORK/syntax.err"; then
+    do_fallback "self-hosted compiler emitted invalid C (likely an unsupported language feature, e.g. float literals)"
+fi
+
+# ---------------------------------------------------------------------------
+# --emit-c: write the generated C and stop (matches idc.py --emit-c)
+if [ -n "$EMIT_C" ]; then
+    cp "$C_OUT" "$EMIT_C" || exit 1
+    echo "wrote $EMIT_C"
+    exit 0
+fi
+
+# does the program have a `main`? idc.py builds a real executable when it
+# does, and a .o (for linking into something else, e.g. demos/engine) when
+# it doesn't. The emitted C mirrors idc.py's byte-for-byte, so grepping for
+# the C main() wrapper it prints is an exact proxy for "have_main".
+have_main=0
+grep -q '^int main(' "$C_OUT" && have_main=1
+
+# default output name: the project directory's name, or the file's stem
+# (idc.py: os.path.basename(first if isdir else splitext(first)[0]))
+if [ -n "$OUTPUT" ]; then
+    OUT="$OUTPUT"
+else
+    first="${PATH_ARG%/}"
+    if [ -d "$first" ]; then
+        base="$(basename "$first")"
+    else
+        base="$(basename "$first")"
+        base="${base%.*}"
+    fi
+    if [ "$have_main" -eq 1 ]; then OUT="$base"; else OUT="$base.o"; fi
+fi
+
+# ---------------------------------------------------------------------------
+# --backend DIR: read backend.json for this platform, compile its sources,
+# and link the resulting objects in (mirrors idc.py's resolve_backend/build_c)
+BACKEND_OBJS=()
+BACKEND_LINK=()
+if [ "${#BACKENDS[@]}" -gt 0 ] && [ "$have_main" -eq 0 ]; then
+    echo "idc: --backend ignored: this project has no main (builds to a .o);" \
+         "link the backend into the final program" >&2
+elif [ "${#BACKENDS[@]}" -gt 0 ]; then
+    case "$(uname -s)" in
+        Linux*)  PLATKEY=linux ;;
+        Darwin*) PLATKEY=darwin ;;
+        *)       PLATKEY="$(uname -s)" ;;
+    esac
+    for d in "${BACKENDS[@]}"; do
+        manifest="$d/backend.json"
+        if [ ! -f "$manifest" ]; then
+            echo "idc: backend has no backend.json: $manifest" >&2
+            exit 1
+        fi
+        spec_out=$(python3 - "$manifest" "$PLATKEY" <<'PYEOF'
+import json, sys
+manifest, key = sys.argv[1], sys.argv[2]
+with open(manifest) as f:
+    spec = json.load(f)
+plat = (spec.get("platforms") or {}).get(key)
+if plat is None:
+    name = spec.get("name", "backend")
+    print("ERR", f"backend '{name}' has no support for platform '{key}'")
+    sys.exit(0)
+SEP = "\x1f"
+print("SOURCES", SEP.join(plat.get("sources", [])))
+print("CFLAGS", SEP.join(plat.get("cflags", [])))
+print("LINK", SEP.join(plat.get("link", [])))
+PYEOF
+) || { echo "idc: invalid backend.json: $manifest" >&2; exit 1; }
+        err_line=$(printf '%s\n' "$spec_out" | grep '^ERR ' | cut -d' ' -f2-)
+        if [ -n "$err_line" ]; then
+            echo "idc: $err_line" >&2
+            exit 1
+        fi
+        sources_line=$(printf '%s\n' "$spec_out" | grep '^SOURCES ' | cut -d' ' -f2-)
+        cflags_line=$(printf '%s\n' "$spec_out" | grep '^CFLAGS ' | cut -d' ' -f2-)
+        link_line=$(printf '%s\n' "$spec_out" | grep '^LINK ' | cut -d' ' -f2-)
+        IFS=$'\x1f' read -ra srcs <<< "$sources_line"
+        IFS=$'\x1f' read -ra cflags <<< "$cflags_line"
+        IFS=$'\x1f' read -ra link <<< "$link_line"
+        for src in "${srcs[@]}"; do
+            [ -z "$src" ] && continue
+            src_path="$d/$src"
+            obj="${src_path%.*}.gen.o"
+            if ! "$CC" -O2 -c "$src_path" -o "$obj" "${cflags[@]}"; then
+                echo "idc: backend compile failed for $src_path" >&2
+                for o in "${BACKEND_OBJS[@]}"; do rm -f "$o"; done
+                exit 1
+            fi
+            BACKEND_OBJS+=("$obj")
+        done
+        BACKEND_LINK+=("${link[@]}")
+    done
+fi
+
+# ---------------------------------------------------------------------------
+# hand the emitted C to cc (mirrors idc.py's build_c)
+c_path="$WORK/final.c"
+if [ "$KEEP_C" -eq 1 ]; then
+    c_path="${OUT%.*}.c"
+fi
+cp "$C_OUT" "$c_path" || exit 1
+
+cmd=("$CC")
+[ "$have_main" -eq 0 ] && cmd+=("-c")
+cmd+=("-std=c11" "-O2" "$c_path" "${BACKEND_OBJS[@]}" "-o" "$OUT" "${BACKEND_LINK[@]}")
+
+"${cmd[@]}"
+cc_rc=$?
+
+[ "$KEEP_C" -eq 1 ] || rm -f "$c_path"
+for o in "${BACKEND_OBJS[@]}"; do rm -f "$o"; done
+
+if [ "$cc_rc" -ne 0 ]; then
+    echo "idc: C compilation failed (command: ${cmd[*]})" >&2
+    exit 1
+fi
+exit 0
