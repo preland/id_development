@@ -1,0 +1,12 @@
+// A pure-integer triangle wave: 0 at t%period==0, ramps up to amp at the
+// half-period, back down to 0 at the full period. Used by motion.id for both
+// the altitude bob and the bank oscillation (two different (period, amp)
+// calls into this one function, not two copies of the same logic).
+
+triangle(int t, int period, int amp) {
+  int m = t % period;
+  int v = m;
+  if(m > period / 2) {
+    v = period - m;
+  }
+} return int (v * amp * 2) / period;

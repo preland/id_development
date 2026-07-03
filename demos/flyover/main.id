@@ -1,0 +1,18 @@
+// flyover -- a hardware-accelerated terrain flyover simulator in `id`. It opens
+// a window via the native GL backend (backends/gl), generates a rolling-hills
+// heightmap with an integer Park-Miller PRNG + a few smoothing passes (no
+// floats, no trig), builds one static triangle mesh from it, and then flies a
+// camera forward over the landscape forever (looping once it reaches the far
+// edge). See world/ for terrain generation + the frame loop's per-tick camera
+// math, and loop/ for the frame loop itself.
+//
+//   ./idc.py demos/flyover --backend backends/gl -o flyover && ./flyover
+//
+// Close the window (or press Esc / q) to quit. GFX_MAX_FRAMES lets a headless
+// build run N frames and exit on its own (see backends/gl).
+
+main() {
+  int ok = gfx_open(900, 560, "id flyover -- terrain flight");
+  world_init();
+  loop();
+} return int 0;

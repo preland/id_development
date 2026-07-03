@@ -1,0 +1,29 @@
+// Smooth the raw random heightmap into rolling hills: 3 passes of averaging
+// each interior cell with its 4 neighbors (cell.id). Only interior cells
+// (grid rows 1..38 of 0..39, columns 1..11 of 0..12) are touched, so every
+// neighbor read is in-bounds with no edge clamping needed -- the outermost
+// ring of the grid just keeps its raw random height, which is fine since it
+// sits at the very edges of the mesh. Passes are done in place (no second
+// buffer): each pass reads some already-updated neighbors from earlier in the
+// same pass, which if anything speeds up convergence into smooth hills --
+// pure integer arithmetic, no floats.
+
+smooth_heights() {
+  smooth_rows(1);
+  smooth_rows(1);
+  smooth_rows(1);
+} return void;
+
+smooth_rows(int gz) {
+  while(gz < 39) {
+    smooth_cols(gz, 1);
+    gz = gz + 1;
+  }
+} return void;
+
+smooth_cols(int gz, int gx) {
+  while(gx < 12) {
+    smooth_cell(gz, gx);
+    gx = gx + 1;
+  }
+} return void;

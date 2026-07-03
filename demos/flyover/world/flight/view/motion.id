@@ -1,0 +1,21 @@
+// The camera's motion, entirely as pure functions of the tick t -- no stored
+// state at all, so world/world.id's status print and view.id's matrix build
+// always agree, just by calling the same functions.
+//
+// flown: distance flown in milli-units, 90/tick (~5.6 units/sec at the
+// engine's 16ms tick), wrapped modulo the terrain's total depth (39 rows *
+// 1400 spacing = 54600) so the flyover loops forever once it reaches the far
+// edge -- the "scroll across a large heightmap" endless strategy.
+// altitude: a fixed cruise height plus a slow vertical bob (wave.id).
+// bank_deg: a slow +-3 degree roll for a bit of life, also via wave.id.
+
+flown(int t) {
+} return int (t * 90) % 54600;
+
+altitude(int t) {
+  int bob = triangle(t, 240, 400);
+} return int 2800 + bob;
+
+bank_deg(int t) {
+  int b = triangle(t, 480, 6000);
+} return int b - 3000;

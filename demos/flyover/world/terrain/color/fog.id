@@ -1,0 +1,14 @@
+// Cheap distance fog with no floats: scale a packed 0xRRGGBB color down
+// toward black as row gz (0..39, farthest last) increases, by extracting each
+// channel with integer / and %, scaling by an integer percentage, and
+// repacking. fog_scale ranges 100 (row 0, full brightness) down to 40 (row
+// 39, dimmed) -- a gentle depth cue instead of a full atmosphere blend.
+
+fog_scale(int gz) {
+} return int 100 - (gz * 60) / 39;
+
+apply_fog(int color, int gz) {
+  int s = fog_scale(gz);
+  int r = (color / 65536) * s / 100;
+  int g = ((color / 256) % 256) * s / 100;
+} return int r * 65536 + g * 256 + ((color % 256) * s / 100);

@@ -1,0 +1,23 @@
+// Decode a flattened mesh "vertex slot" back into a heightmap grid index, the
+// same shared-corner trick demos/gl3d/scene/mesh/geom/face.id uses for its
+// cube: rather than storing a giant per-triangle vertex list, every one of
+// the 936 triangles' 3*936=2808 vertex slots is computed from arithmetic on
+// the slot number. There are 12*39=468 quad cells (grid 13 wide, 40 deep);
+// slot/6 is the cell (6 vertex-slots per cell: 2 triangles * 3 corners),
+// slot%6 picks which of the cell's 4 corners via the tri-of-a-quad table
+// [0,1,2, 1,3,2] (corner 0=near-left,1=near-right,2=far-left,3=far-right).
+
+local_of(int sub) {
+  int[] tbl = [0, 1, 2, 1, 3, 2];
+} return int tbl[sub];
+
+corner_index(int cell, int local) {
+  int cgx = cell % 12;
+  int cgz = cell / 12;
+  int gx = cgx + local % 2;
+} return int (cgz + local / 2) * 13 + gx;
+
+slot_corner(int slot) {
+  int cell = slot / 6;
+  int local = local_of(slot % 6);
+} return int corner_index(cell, local);

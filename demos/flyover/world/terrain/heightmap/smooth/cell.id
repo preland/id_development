@@ -1,0 +1,24 @@
+// Average one interior cell (grid coordinate gz,gx, grid width 13) with its
+// left/right/up/down neighbors and write the result back. sum5 does the
+// 5-value sum (kept separate to stay under the 3-action limit); lset is the
+// generic "store into a list element" helper (an imported list can't be
+// index-assigned directly, but passing it as a parameter makes the lvalue an
+// identifier again, and lists are reference-semantic so the store is shared
+// -- same trick demos/gl3dgame/world/game/state/mutate.id uses). It's placed
+// here since this is its first user, but random/rng.id's set_seed reuses it
+// too -- functions link across the whole project, not just one file.
+
+smooth_cell(int gz, int gx) {
+  int i = gz * 13 + gx;
+  int sum = sum5(i);
+  lset((import heights), i, sum / 5);
+} return void;
+
+sum5(int i) {
+  int a = (import heights)[i] + (import heights)[i - 1];
+  int b = (import heights)[i + 1] + (import heights)[i - 13];
+} return int a + b + (import heights)[i + 13];
+
+lset(int[] xs, int i, int v) {
+  xs[i] = v;
+} return void;
