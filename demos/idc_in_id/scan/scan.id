@@ -12,16 +12,15 @@ scan_ident(string src, int i) {
   print(kindof(word) + " " + word);
 } return int i;
 
-// LIMITATION: digit runs only. A float like 3.14 lexes as `int 3` `op .`
-// `int 14`; recombining needs lookahead this stage does not attempt.
+// An integer digit run, optionally extended with a '.' + fraction digits
+// (see chars/numlit): num_end finds where the number ends and numkind picks
+// "int" or "float" for the printed token; the text is sliced verbatim from
+// the source, matching idc.py's float/int lexing exactly.
 scan_number(string src, int i) {
-  string num = "";
-  while(is_digit(charat(src, i))) {
-    num = num + chr(charat(src, i));
-    i = i + 1;
-  }
-  print("int " + num);
-} return int i;
+  int e = digit_run_end(src, i);
+  int fe = num_end(src, i, e);
+  print(numkind(e, fe) + " " + slice_str(src, i, fe));
+} return int fe;
 
 // Caller passes the index of the first char *after* the opening quote, so the
 // opening quote is already skipped; we return the index past the closing one.

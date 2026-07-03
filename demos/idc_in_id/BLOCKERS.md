@@ -96,5 +96,8 @@ stream into an AST held in parallel lists, threading a shared cursor:
   run, so the whole front+middle (lex → parse → emit C) is written in `id`.
 
 Remaining toward a fully self-hosting `idc`: the fuller expression grammar
-(indexing, array literals, `import`, float literals — the last needs lexer
-work) and a type pass (for `print` and string concatenation in emission).
+(indexing, array literals, `import`) and a type pass (for `print` and string
+concatenation in emission). Float literals are now lexed, parsed, and emitted
+byte-identically to idc.py (see chars/numlit/ here and the float leaf in
+demos/idc_in_id_parse), closing the self-hosting compiler's last known gap
+(tools/parity.sh demos/hello now MATCHes).
