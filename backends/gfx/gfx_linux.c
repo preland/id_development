@@ -6,14 +6,21 @@
  * backend it never blocks: id_gfx_poll drains the X event queue with XPending,
  * so `id` keeps driving its own frame loop.
  *
- * Status: this compiles and runs against a standard Xlib (`-lX11`). It is the
- * concrete proof that the seam is platform-agnostic; treat it as the reference
- * to validate when the project first builds on Linux. A Wayland backend would
+ * Status: validated on Linux (X11/XWayland) -- builds and runs demos/gfxdemo
+ * headlessly via the GFX_MAX_FRAMES self-terminate hook (see below). It is the
+ * concrete proof that the seam is platform-agnostic. A Wayland backend would
  * slot in the same way -- another object behind the same gfx.h.
+ *
+ * Headless/CI testing: if the environment variable GFX_MAX_FRAMES is set to a
+ * positive integer N, id_gfx_present counts calls and, once N presents have
+ * happened, makes the *next* id_gfx_poll() report quit (-2). This lets a build
+ * run a bounded number of frames and exit 0 with no human closing the window.
  */
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "gfx.h"
@@ -26,6 +33,22 @@ static uint32_t* g_px = NULL;          /* 0x00RRGGBB words, 32bpp            */
 static Atom     g_wm_delete = 0;
 static int      g_w = 0, g_h = 0;
 static int      g_quit = 0;
+
+/* GFX_MAX_FRAMES headless self-terminate hook (see file header). -1 = unset
+ * (never auto-quit), otherwise the number of id_gfx_present calls to allow
+ * before synthesizing a quit signal on the next id_gfx_poll. */
+static int g_max_frames = -1;
+static int g_max_frames_read = 0;
+static int g_frame_count = 0;
+
+static int max_frames(void) {
+    if (!g_max_frames_read) {
+        g_max_frames_read = 1;
+        const char* s = getenv("GFX_MAX_FRAMES");
+        if (s && *s) g_max_frames = atoi(s);
+    }
+    return g_max_frames;
+}
 
 /* tiny key ring, same contract as the macOS backend */
 #define GFX_KEYQ 256
@@ -89,6 +112,7 @@ int id_gfx_open(int w, int h, const char* title) {
     XFlush(g_dpy);
     g_w = w; g_h = h; g_quit = 0;
     g_keyhead = g_keytail = 0;
+    g_frame_count = 0;
     return 1;
 }
 
@@ -101,6 +125,13 @@ int id_gfx_present(IdList* fb) {
     XPutImage(g_dpy, g_win, g_gc, g_img, 0, 0, 0, 0, g_w, g_h);
     XFlush(g_dpy);
     pump();
+    g_frame_count++;
+    int max = max_frames();
+    if (max >= 0 && g_frame_count >= max) {
+        fprintf(stderr, "gfx_linux: GFX_MAX_FRAMES=%d reached, presented %d frame(s), "
+                        "synthesizing quit\n", max, g_frame_count);
+        g_quit = 1;
+    }
     return 0;
 }
 

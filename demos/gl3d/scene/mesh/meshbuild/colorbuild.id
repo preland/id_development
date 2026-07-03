@@ -1,0 +1,20 @@
+// Build the flattened per-vertex color list: one packed 0xRRGGBB int per
+// vertex slot, parallel to (import verts) from vertbuild.id -- exactly the
+// shape backends/gl/gl.h's gl_draw_tris expects for its "colors" argument.
+
+build_colors() {
+  export int[] colors = [];
+  fill_colors(0);
+} return void;
+
+fill_colors(int slot) {
+  while(slot < 36) {
+    push_color(slot);
+    slot = slot + 1;
+  }
+} return void;
+
+push_color(int slot) {
+  int c = face_corner(slot);
+  push((import colors), corner_color(c));
+} return void;

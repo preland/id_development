@@ -24,6 +24,12 @@ integer-returning functions:
 | `gfx_poll()`             | one event, non-blocking: `-2` quit, `-1` none, `>=0` key code |
 | `gfx_close()`            | tear the window down |
 
+Both backends also honor `GFX_MAX_FRAMES`: if that environment variable is set
+to a positive integer *N*, `gfx_present` counts calls and, once *N* have
+happened, makes the *next* `gfx_poll()` report quit (`-2`). This lets a build
+run headlessly (no human closing the window) for a bounded number of frames and
+exit 0 — the mechanism used to validate this backend in CI/dev-shell runs.
+
 `id` never names a platform API; it only calls these. That seam is exactly
 `id`'s segmentation philosophy applied to portability: the platform-specific
 code is quarantined behind a handful of names, and the whole rule-of-3 `id` tree
@@ -63,7 +69,11 @@ hard-coded in the compiler — a backend is self-describing:
   `nextEventMatchingMask:…distantPast` each frame. **Built and run.**
 - **Linux** ([`gfx_linux.c`](gfx_linux.c)) — Xlib `XPutImage` over a software
   framebuffer, `-lX11` only. Same header, same contract; this is the concrete
-  proof the seam is portable. **To be validated on first Linux build.**
+  proof the seam is portable. **Validated**: built and run inside
+  `tools/devshell.sh` against a live X server —
+  `GFX_MAX_FRAMES=60 ./gfxdemo` presents 60 frames and exits 0. (Earlier drafts
+  of this file were missing `#include <stdint.h>`, needed for the `uint32_t`
+  pixel buffer; fixed as part of validating this path.)
 
 Adding Windows (GDI/`StretchDIBits`) or a Wayland backend is one more source
 file plus a `backend.json` entry — no change to `id` code or to the compiler.
@@ -77,6 +87,16 @@ second tier *without breaking the first*: add entry points like `gfx_rect`,
 per-platform, while `gfx_present` stays as the always-available fallback. `id`
 programs opt into the faster path by calling the new names; the framebuffer path
 keeps working everywhere it always did.
+
+**This second tier now exists**: [`backends/gl`](../gl/README.md) is a sibling
+backend (same `gfx_open`/`gfx_poll`/`gfx_close`, a separate `backend.json`) that
+adds a real GPU pipeline via GLX/OpenGL — `demos/gl3d` drives it to render a
+spinning, per-vertex-shaded cube. It's a different backend directory rather
+than new entry points bolted onto *this* header, which keeps `gfx.h` exactly as
+simple as the day it validated the seam; a program picks its floor
+(`--backend backends/gfx`) or its ceiling (`--backend backends/gl`) at build
+time and the frame-loop shape (open → loop of draw/present/poll → close) is
+identical either way.
 
 ## Known rough edges (first slice)
 

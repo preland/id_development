@@ -1,0 +1,17 @@
+// gl3d -- the first hardware-accelerated 3D program in `id`. It opens a
+// 640x480 window via the native GL backend (backends/gl), builds a cube mesh
+// and its matrices once, then runs a frame loop that spins the cube and
+// presents it through a real GPU pipeline (see scene/render for the per-frame
+// work). Only gfx_open/gl_*/gfx_poll/gfx_close cross into platform code; the
+// mesh, the matrix composition order, and the frame loop are all portable id.
+//
+//   ./idc.py demos/gl3d --backend backends/gl -o gl3d && ./gl3d
+//
+// Close the window (or press Esc / q) to quit. GFX_MAX_FRAMES lets a headless
+// build run N frames and exit on its own (see backends/gfx and backends/gl).
+
+main() {
+  int ok = gfx_open(640, 480, "id gl3d -- spinning cube");
+  scene_init();
+  loop();
+} return int 0;

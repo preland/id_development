@@ -1,0 +1,24 @@
+// Per-tick matrix composition. render() is called once per frame with the
+// tick counter t; it builds this frame's modelview handle, loads the
+// (unchanging) projection built in init.id, and hands off to draw.id.
+//
+// modelview = translate(0,0,-5) * rotate_y(t) * rotate_x(t/2): rotate the
+// cube about both axes at different rates so the motion reads as 3D, then
+// push it 5 units down -Z so it sits in front of the camera (which looks
+// down -Z from the origin, the standard OpenGL convention).
+
+render(int t) {
+  int mv = modelview(t);
+  gl_set_projection((import proj));
+  draw_scene(mv);
+} return void;
+
+modelview(int t) {
+  int r = compose_rotation(t);
+  int tr = gl_mat_translate(0, 0, 0 - 5000);
+} return int gl_mat_mul(tr, r);
+
+compose_rotation(int t) {
+  int ry = gl_mat_rotate_y((t * 2000) % 360000);
+  int rx = gl_mat_rotate_x((t * 1000) % 360000);
+} return int gl_mat_mul(ry, rx);

@@ -1,0 +1,19 @@
+// The actual GL calls for one frame: clear + load the modelview, then submit
+// the mesh and present. Split into two so each function stays at or under the
+// 3-action limit (the same reason demos/gfxdemo/loop/frame.id keeps
+// presenting and polling in separate steps).
+
+draw_scene(int mv) {
+  clear_and_place(mv);
+  submit_tris();
+} return void;
+
+clear_and_place(int mv) {
+  gl_begin_frame(15, 15, 35);
+  gl_set_modelview(mv);
+} return void;
+
+submit_tris() {
+  gl_draw_tris((import verts), (import colors), tri_count());
+  gl_end_frame();
+} return void;
