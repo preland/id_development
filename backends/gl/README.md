@@ -33,6 +33,8 @@ New, GPU-specific primitives layer on top:
 | `gl_mat_identity()`, `gl_mat_perspective(...)`, `gl_mat_rotate_x/y/z(deg_x1000)`, `gl_mat_translate(...)`, `gl_mat_mul(a, b)` | build a 4x4 matrix, return an opaque **handle** |
 | `gl_set_projection(handle)`, `gl_set_modelview(handle)` | load a handle's matrix onto the GL projection/modelview stack |
 | `gl_draw_tris(verts, colors, count)` | draw `count` triangles from flattened `int[]` vertex/color lists |
+| `gl_draw_points(positions, colors, count, size_x1000)` | draw `count` additively-blended, glowing `GL_POINTS` (a particle/starfield primitive) |
+| `gl_width()`, `gl_height()`, `gl_aspect_x1000()` | the window's *live* pixel size and aspect ratio, tracking any runtime resize |
 | `gl_end_frame()`           | swap buffers, pump events, log a frame count, advance `GFX_MAX_FRAMES` |
 
 Like `gfx`, `GFX_MAX_FRAMES` (checked in `gl_end_frame` instead of `gfx_present`,
@@ -72,6 +74,53 @@ eight-corner cube and a 12-triangle face table with pure integer arithmetic and
 array literals, and drives the whole rotation/projection pipeline through
 `gl_mat_*` handles — no `id`-side float ever appears.
 
+## Window resize
+
+The window can be resized at runtime (by the user dragging an edge, or a
+window manager honoring some other resize request). `gl_linux.c`'s `pump()`
+now handles `ConfigureNotify` — the X event a resize generates — by tracking
+the new drawable size into `g_w`/`g_h` and re-issuing `glViewport(0, 0, g_w,
+g_h)` whenever it changes (it also logs a `"resized to WxH"` line to stderr,
+so a headless run has visible proof a resize was observed and handled). The
+window is created with `StructureNotifyMask` in its event mask specifically so
+these events arrive.
+
+That keeps the *viewport* correct automatically, but it can't fix a demo's
+*projection* matrix on its own — `gl_mat_perspective`'s aspect ratio is just
+whatever integer the `id` program passed it, typically once at startup. If a
+demo builds its projection once and never rebuilds it, a resize will still
+letterbox/stretch the image even though the viewport itself is right. The fix
+is on the `id` side: **rebuild the projection every frame from the live
+aspect**, using the two new query primitives:
+
+```
+// once per frame, before drawing:
+int proj = gl_mat_perspective(60000, gl_aspect_x1000(), 100, 10000);
+gl_set_projection(proj);
+```
+
+`gl_aspect_x1000()` returns `gl_width()*1000/gl_height()` (matrix-pool
+allocation is cheap — see "known rough edges" below — so rebuilding a
+perspective handle every frame is the intended usage, not a special case).
+`gl_width()`/`gl_height()` are also useful on their own, e.g. to recompute
+UI layout or a screen-space effect that depends on the window's pixel size.
+
+## Particles / points
+
+`gl_draw_points(positions, colors, count, size_x1000)` draws `count` points as
+`GL_POINTS` — the primitive to reach for when a scene wants a galaxy of
+thousands of glowing particles rather than shaded triangles. Unlike
+`gl_draw_tris`, colors are one packed `0xRRGGBB` per *point*, not per vertex.
+It renders with **additive blending** (`glBlendFunc(GL_SRC_ALPHA, GL_ONE)`) so
+overlapping particles accumulate into bright cores instead of the topmost
+point simply covering the rest, uses `GL_POINT_SMOOTH` for round sprites where
+the driver supports it, and disables depth *writes* (not depth *testing*) for
+the duration of the call so a glow never occludes geometry behind it while
+still being correctly hidden by solid geometry in front of it. All of this GL
+state is restored before the call returns, so it composes cleanly with
+`gl_draw_tris` in either order within the same frame — e.g. draw a scene's
+triangles, then its particle system, or vice versa.
+
 ## Platforms
 
 - **Linux** ([`gl_linux.c`](gl_linux.c)) — Xlib + GLX. Chooses a
@@ -110,8 +159,11 @@ dependencies, but not guaranteed here).
   demo that rebuilds a handful of matrices every frame and never holds a
   handle across frames; a long-lived-handle use case would need real
   allocation/refcounting.
-- No window-resize handling (fixed viewport at `open` size, like `gfx`).
-  Pointer/mouse events aren't surfaced, only keys and close.
+- Window resize now updates the viewport automatically (see "Window resize"
+  above), but a demo must still opt in to rebuilding its projection matrix
+  from `gl_aspect_x1000()` every frame, or its image will stretch even though
+  the viewport is correctly sized. Pointer/mouse events still aren't
+  surfaced, only keys and close.
 - `gl_draw_tris` assumes `verts`/`colors` are large enough for `count`
   triangles; it clamps to whatever's actually there rather than erroring, so a
   short list silently draws fewer triangles instead of crashing (matches

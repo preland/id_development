@@ -124,4 +124,54 @@ extern int id_gl_set_modelview(int handle);
  * gl_set_modelview. Returns 0. */
 extern int id_gl_draw_tris(IdList* verts, IdList* colors, int count);
 
+/* Draw `count` GL_POINTS as light-emitting particles (e.g. a starfield/galaxy
+ * of thousands of glowing points). `positions` holds 3 ints per point
+ * (x,y,z milli-units, same convention as gl_draw_tris' verts); `colors` holds
+ * 1 packed 0xRRGGBB per point (NOT per-vertex-per-triangle -- one color per
+ * point here). `size_x1000` is the point diameter in thousandths of a pixel
+ * (clamped to a sane minimum of 1.0 px).
+ *
+ * Rendered with additive blending (glBlendFunc(GL_SRC_ALPHA, GL_ONE)) so
+ * overlapping particles accumulate into bright cores instead of the last one
+ * drawn simply covering the rest, round point sprites via GL_POINT_SMOOTH
+ * where the driver supports it, and depth writes disabled for the duration
+ * of the call (glDepthMask(GL_FALSE)) so a glowing particle never occludes
+ * geometry behind it -- it's still depth-*tested*, so particles behind solid
+ * geometry are correctly hidden by it. All of this GL state is restored to
+ * whatever it was before the call returns, so gl_draw_points composes
+ * cleanly with gl_draw_tris in either order within the same frame.
+ *
+ * Uses whatever matrices are currently loaded via gl_set_projection /
+ * gl_set_modelview, exactly like gl_draw_tris. Returns 0. */
+extern int id_gl_draw_points(IdList* positions, IdList* colors, int count,
+                              int size_x1000);
+
+/* ---- live window size / aspect --------------------------------------------
+ * The window can be resized at runtime by the window manager/user (see
+ * gl_linux.c's ConfigureNotify handling); the viewport is kept in sync
+ * automatically, but a program's *projection* matrix (built once via
+ * gl_mat_perspective and cached) is NOT -- it was built from whatever aspect
+ * ratio was true at the time. To avoid a stretched image after a resize, a
+ * demo should rebuild its perspective matrix every frame (or at least after
+ * detecting a change) using the LIVE aspect from gl_aspect_x1000(), e.g.:
+ *
+ *   proj = gl_mat_perspective(60000, gl_aspect_x1000(), 100, 100000)
+ *   gl_set_projection(proj)
+ *
+ * done once per frame, this keeps the image correctly proportioned across
+ * any resize with no other code changes. */
+
+/* The window's current drawable width/height in pixels. Reflects the size
+ * given to gfx_open until a resize is observed (see gl_linux.c's
+ * ConfigureNotify handling), after which it tracks the live size. 0 if no
+ * window is open. */
+extern int id_gl_width(void);
+extern int id_gl_height(void);
+
+/* The window's current aspect ratio (width/height), in thousandths, suitable
+ * to pass straight as gl_mat_perspective's aspect_x1000 argument. Returns
+ * 1000 (1:1) if height is currently 0 (e.g. no window open yet) to avoid a
+ * divide-by-zero. */
+extern int id_gl_aspect_x1000(void);
+
 #endif /* ID_GL_H */

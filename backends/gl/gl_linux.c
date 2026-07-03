@@ -73,6 +73,21 @@ static void pump(void) {
             KeySym ks;
             int n = XLookupString(&ev.xkey, buf, sizeof(buf), &ks, NULL);
             if (n > 0) key_push((unsigned char)buf[0]);
+        } else if (ev.type == ConfigureNotify) {
+            /* The window's drawable size changed (interactive resize, or a
+             * window manager honoring a resize request). Track the new size
+             * and re-point the GL viewport at it so subsequent frames render
+             * into the full window instead of the stale open()-time
+             * rectangle. The id side is responsible for rebuilding its
+             * projection matrix's aspect ratio too -- see id_gl_aspect_x1000
+             * below -- otherwise the image stays correctly *sized* but
+             * stretched. */
+            int nw = ev.xconfigure.width, nh = ev.xconfigure.height;
+            if (nw > 0 && nh > 0 && (nw != g_w || nh != g_h)) {
+                g_w = nw; g_h = nh;
+                glViewport(0, 0, g_w, g_h);
+                fprintf(stderr, "gl_linux: resized to %dx%d, viewport updated\n", g_w, g_h);
+            }
         }
     }
 }
@@ -174,6 +189,16 @@ int id_gfx_close(void) {
     XCloseDisplay(g_dpy);
     g_dpy = NULL; g_w = g_h = 0;
     return 0;
+}
+
+/* ---- live window size / aspect --------------------------------------------- */
+
+int id_gl_width(void) { return g_w; }
+int id_gl_height(void) { return g_h; }
+
+int id_gl_aspect_x1000(void) {
+    if (g_h <= 0) return 1000; /* guard div-by-zero; 1:1 is a harmless fallback */
+    return (int)((long long)g_w * 1000 / g_h);
 }
 
 /* ---- per-frame ------------------------------------------------------------ */
@@ -347,5 +372,57 @@ int id_gl_draw_tris(IdList* verts, IdList* colors, int count) {
         glVertex3f(x, y, z);
     }
     glEnd();
+    return 0;
+}
+
+int id_gl_draw_points(IdList* positions, IdList* colors, int count, int size_x1000) {
+    if (!positions || !colors || count <= 0) return 0;
+    int have_p = positions->len / 3;  /* 3 ints (x,y,z) per point */
+    int have_c = colors->len;         /* 1 packed color per point */
+    int n = count;
+    if (n > have_p) n = have_p;
+    if (n > have_c) n = have_c;
+    if (n <= 0) return 0;
+
+    float size = (float)size_x1000 / 1000.0f;
+    if (size < 1.0f) size = 1.0f;
+
+    /* Additive-blended, unlit glow: enable blending with a src+dst additive
+     * function so overlapping particles accumulate into bright cores, turn
+     * off depth writes so a glow sprite never occludes geometry behind it
+     * (it still depth-*tests*, so particles behind solid geometry are
+     * correctly hidden), and round the point sprite where the driver
+     * supports it. All of this is restored before returning so this call
+     * composes cleanly with gl_draw_tris either before or after it in the
+     * same frame. */
+    GLboolean was_blend = glIsEnabled(GL_BLEND);
+    GLboolean was_point_smooth = glIsEnabled(GL_POINT_SMOOTH);
+    GLboolean depth_mask_was;
+    glGetBooleanv(GL_DEPTH_WRITEMASK, &depth_mask_was);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glEnable(GL_POINT_SMOOTH);
+    glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+    glDepthMask(GL_FALSE);
+    glPointSize(size);
+
+    glBegin(GL_POINTS);
+    for (int i = 0; i < n; i++) {
+        long long c = colors->data[i];
+        float r = (float)((c / 65536) % 256) / 255.0f;
+        float g = (float)((c / 256) % 256) / 255.0f;
+        float b = (float)(c % 256) / 255.0f;
+        glColor4f(r, g, b, 1.0f);
+        float x = (float)positions->data[i * 3 + 0] / 1000.0f;
+        float y = (float)positions->data[i * 3 + 1] / 1000.0f;
+        float z = (float)positions->data[i * 3 + 2] / 1000.0f;
+        glVertex3f(x, y, z);
+    }
+    glEnd();
+
+    glDepthMask(depth_mask_was ? GL_TRUE : GL_FALSE);
+    if (!was_point_smooth) glDisable(GL_POINT_SMOOTH);
+    if (!was_blend) glDisable(GL_BLEND);
     return 0;
 }
