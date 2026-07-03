@@ -324,6 +324,66 @@ other() { int y = (import x); } return void;
 EOF
 expect_error "import requires export" "$TMP/badimport.id" "is not exported"
 
+# --- alt codegen targets (--target llvm / --target wasm): a handful of
+# known-good demos must produce the SAME program output/exit code as the
+# default C target. Needs clang (llvm) and wat2wasm + wasmtime (wasm); skip
+# with a clear message if the toolchain isn't on PATH (it is inside
+# tools/devshell.sh, which is how this script is meant to be run for these
+# checks: `tools/devshell.sh bash tests/run.sh`).
+echo
+echo "--- alt targets (--target llvm / --target wasm) ---"
+have_alt=1
+for tool in clang wat2wasm wasmtime; do
+    command -v "$tool" >/dev/null 2>&1 || have_alt=0
+done
+if [ "$have_alt" -eq 0 ]; then
+    echo "SKIP: alt-target tests (need clang, wat2wasm, and wasmtime on PATH -- " \
+         "run via 'tools/devshell.sh bash tests/run.sh')"
+else
+    # argv[0] differs by target/binary path/name (and wasmtime reports it
+    # differently again), so exercise hello with an argument (its output
+    # doesn't embed argv[0]) rather than the no-arg "usage" branch.
+    for target in llvm wasm; do
+        if [ "$target" = wasm ]; then
+            bin="$TMP/hello_$target.wasm"
+        else
+            bin="$TMP/hello_$target"
+        fi
+        if ! "$IDC" ../demos/hello --target "$target" -o "$bin" 2>/dev/null; then
+            bad "hello builds ($target)"
+        else
+            if [ "$target" = wasm ]; then out=$(wasmtime "$bin" hi); else out=$("$bin" hi); fi
+            expect_output "hello world: hi ($target)" "hello world: hi" "$out"
+        fi
+
+        if [ "$target" = wasm ]; then
+            bin="$TMP/calc_$target.wasm"
+        else
+            bin="$TMP/calc_$target"
+        fi
+        if ! "$IDC" ../demos/calc --target "$target" -o "$bin" 2>/dev/null; then
+            bad "calc builds ($target)"
+        else
+            if [ "$target" = wasm ]; then out=$(wasmtime "$bin"); else out=$("$bin"); fi
+            rc=$?
+            expect_output "calc output ($target)" "total = 42 (positive)" "$out"
+            expect_output "calc exit code ($target)" "42" "$rc"
+        fi
+
+        if [ "$target" = wasm ]; then
+            bin="$TMP/flow_$target.wasm"
+        else
+            bin="$TMP/flow_$target"
+        fi
+        if ! "$IDC" ../demos/control/flow.id --target "$target" -o "$bin" 2>/dev/null; then
+            bad "control builds ($target)"
+        else
+            if [ "$target" = wasm ]; then out=$(wasmtime "$bin"); else out=$("$bin"); fi
+            expect_output "control output ($target)" "7 is a big odd / medium" "$out"
+        fi
+    done
+fi
+
 echo
 echo "$pass passed, $fail failed"
 
