@@ -1,0 +1,16 @@
+// Park-Miller minimal-standard PRNG via Schrage's method (same as
+// demos/gl3dgame/world/game/state/rng/rng2.id): state' = 16807*state mod
+// 2147483647, computed as 16807*(state mod 127773) - 2836*(state / 127773),
+// corrected if <= 0 (see rng3.id's fixup). Keeps every intermediate within
+// 32-bit signed range -- no overflow, no bitwise ops.
+
+rng_next() {
+  int st = (import rng_cell)[0];
+  int ns = schrage(st);
+  rng_lset(ns);
+} return int ns;
+
+schrage(int st) {
+  int hi = st / 127773;
+  int lo = st % 127773;
+} return int fixup(16807 * lo - 2836 * hi);

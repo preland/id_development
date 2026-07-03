@@ -1,0 +1,20 @@
+// One DFS step at frontier cell (x,z), given its already-gathered valid
+// neighbor directions: no options means a dead end, so backtrack
+// (core/stack/query.id's pop_room); otherwise pick one uniformly at random
+// (rng/rng2.id) and carve into it.
+
+do_step(int x, int z, int[] opts) {
+  if (len(opts) = 0) { pop_room(); } else { carve_random(x, z, opts); }
+} return void;
+
+carve_random(int x, int z, int[] opts) {
+  int pick = rng_next() % len(opts);
+  int dir = opts[pick];
+  do_carve(x, z, dir);
+} return void;
+
+do_carve(int x, int z, int dir) {
+  int nx = x + dir_dx(dir);
+  int nz = z + dir_dz(dir);
+  carve_between(x, z, nx, nz);
+} return void;

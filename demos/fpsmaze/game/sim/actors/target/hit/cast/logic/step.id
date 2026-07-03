@@ -1,0 +1,16 @@
+// One DDA step: walk (shoot_step() milli-units) further along the shooter's
+// facing direction (the same -sin/-cos forward vector as player movement,
+// see player/move/vec/fwd.id, but frozen at the yaw the shot was fired at --
+// yaw doesn't change mid-flight since this all happens within one frame).
+
+ray_advance() {
+  rc_set(0, rc_get(0) + (0 - sin_deg(ps_get(2))) * shoot_step() / 1000);
+  rc_set(1, rc_get(1) + (0 - cos_deg(ps_get(2))) * shoot_step() / 1000);
+  rc_set(2, rc_get(2) + 1);
+} return void;
+
+ray_hit_now() {
+} return int try_hit(cell_x(rc_get(0)), cell_z(rc_get(1)));
+
+ray_blocked_now() {
+} return int blocked_at(rc_get(0), rc_get(1));

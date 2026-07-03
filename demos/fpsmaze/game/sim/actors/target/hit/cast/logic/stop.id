@@ -1,0 +1,12 @@
+// Check hit before wall (a target sitting exactly on a wall cell can't
+// happen -- spawn.id only ever places them on room cells -- but if the
+// ray reaches a target's cell and a wall in the very same step, scoring it
+// takes priority): || short-circuits, so ray_blocked_now() only runs (and
+// only matters) when ray_hit_now() didn't already score.
+
+ray_should_stop() {
+} return int ray_hit_now() || ray_blocked_now();
+
+ray_check_stop() {
+  rc_set(3, ray_should_stop());
+} return void;

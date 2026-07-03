@@ -1,0 +1,18 @@
+// fixup: correct schrage's result into the valid positive range. rng_lset:
+// the generic "store into an imported list" trick (an imported list can't be
+// index-assigned directly, but passing it as a parameter makes the lvalue an
+// identifier again, and lists are reference-semantic so the store is shared
+// -- same idiom as demos/moonbuggy/engine/core/core-1/cell/cell.id).
+
+fixup(int v) {
+  int r = v;
+  if (v <= 0) { r = v + 2147483647; }
+} return int r;
+
+rng_lset(int v) {
+  rng_store((import rng_cell), v);
+} return void;
+
+rng_store(int[] xs, int v) {
+  xs[0] = v;
+} return void;

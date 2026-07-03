@@ -1,0 +1,19 @@
+// Quadrant-symmetry helpers for sincos.id's sin_by_quadrant: table_at only
+// covers 0..90, so each 90-degree quadrant reads the table forwards or
+// backwards and negates or not.
+
+neg(int v) {
+} return int 0 - v;
+
+// q is 0 or 1 here (dispatched by sin_by_quadrant): [0,90) reads the table
+// forward, [90,180) reads it backward (sin is symmetric about 90 deg).
+sin_q01(int q, int r) {
+  int v = table_at(r);
+  if (q = 1) { v = table_at(90 - r); }
+} return int v;
+
+// q is 2 or 3 here: [180,270) and [270,360) mirror the first half, negated.
+sin_q23(int q, int r) {
+  int v = neg(table_at(r));
+  if (q = 3) { v = neg(table_at(90 - r)); }
+} return int v;

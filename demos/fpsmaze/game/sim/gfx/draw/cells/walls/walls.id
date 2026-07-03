@@ -1,0 +1,22 @@
+// Walk the whole grid, drawing one wall cube per wall cell. Split into two
+// nested loop functions (z outer, x inner in wallrow.id) instead of one
+// function with a nested while, to stay within the block-nesting-depth-2
+// limit and each function's own 3-action budget.
+
+draw_walls(int view) {
+  walls_loop_z(view, 0);
+} return void;
+
+walls_loop_z(int view, int z) {
+  while (z < grid_h()) {
+    walls_loop_x(view, z, 0);
+    z = z + 1;
+  }
+} return void;
+
+walls_loop_x(int view, int z, int x) {
+  while (x < grid_w()) {
+    draw_wall_if_present(view, x, z);
+    x = x + 1;
+  }
+} return void;

@@ -1,0 +1,18 @@
+// Seeding the PRNG (same design as demos/gl3dgame/world/game/state/rng/rng.id
+// and demos/moonbuggy's copy): state lives in a one-element exported list so
+// it can be mutated across functions via lset (../maze/grid/access.id has
+// the generic helper, but this module keeps its own to stay self-contained).
+
+rng_seed(int st) {
+  export int[] rng_cell = [1];
+  rng_set_seed(st);
+} return void;
+
+rng_set_seed(int st) {
+  rng_lset(pos_seed(st % 2147483646));
+} return void;
+
+pos_seed(int v) {
+  int r = v + 1;
+  if (v < 0) { r = 0 - v + 1; }
+} return int r;

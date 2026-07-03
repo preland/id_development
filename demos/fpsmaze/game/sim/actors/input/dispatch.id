@@ -1,0 +1,21 @@
+// One key event -> game effect. Key codes are raw ASCII from XLookupString
+// (backends/gl/gl_linux.c), same convention demos/gl3dgame's input/keys.id
+// uses -- arrow keys don't reach `id` at all (XLookupString returns no
+// string for them), so turning uses Q/E instead, per the backend's own
+// limitation.
+
+apply_input_key(int ev) {
+  try_move(ev);
+  try_turn(ev);
+  try_shoot(ev);
+} return void;
+
+try_move(int ev) {
+  try_move_fwd(ev);
+  try_move_strafe(ev);
+} return void;
+
+// q=113 turn left, e=101 turn right.
+try_turn(int ev) {
+  if (ev = 113) { turn_left(); } else if (ev = 101) { turn_right(); }
+} return void;

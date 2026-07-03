@@ -1,0 +1,12 @@
+// The strafe (right) vector: forward rotated -90 degrees, i.e.
+// (cos(yaw), -sin(yaw)) -- see fwd.id's derivation comment. right.z is
+// exactly -sin(yaw)*speed, the same value fwd.x computes (rotating 90
+// degrees swaps and sign-flips the axes), so it's just a call to fwd_dx()
+// rather than a second copy of that expression (idc's duplicate-logic check
+// would reject a byte-for-byte second copy anyway).
+
+right_dx() {
+} return int cos_deg(ps_get(2)) * move_speed() / 1000;
+
+right_dz() {
+} return int fwd_dx();

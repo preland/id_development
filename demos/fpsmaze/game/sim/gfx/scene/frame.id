@@ -1,0 +1,10 @@
+// Per-frame matrix setup, then hand off to draw/dispatch.id. Both view and
+// projection are rebuilt fresh every frame (never held across frames, since
+// the native matrix pool is an unfreed ring buffer -- see
+// backends/gl/README.md's "known rough edges").
+
+render(int t) {
+  int view = build_view();
+  gl_set_projection(build_proj());
+  draw_frame(view);
+} return void;

@@ -1,0 +1,22 @@
+// Drain every buffered key this frame, applying each one (rather than
+// gl3dgame's "one event per frame") since key auto-repeat can queue several
+// between frames. The loop only keeps going while gfx_poll() reports an
+// actual key (>=0): -1 (no event) and -2 (quit) both stop it -- crucially,
+// -2 must stop the drain immediately rather than loop again, because
+// backends/gl/gl_linux.c's id_gfx_poll returns -2 on *every* subsequent call
+// once the quit flag is set (GFX_MAX_FRAMES or the close button), so
+// draining "until -1" would spin forever. The final ev (-1 or -2) still gets
+// handled once, after the loop, so a real quit is never missed.
+
+drain_input() {
+  int alive = 1;
+  alive = drain_loop(alive);
+} return int alive;
+
+drain_loop(int alive) {
+  int ev = gfx_poll();
+  while (ev >= 0) {
+    alive = handle_event(ev, alive);
+    ev = gfx_poll();
+  }
+} return int handle_event(ev, alive);

@@ -1,0 +1,24 @@
+// id has no sin/cos, so this is a hardcoded quarter-wave sine table: 91
+// entries, sin(0deg)*1000 .. sin(90deg)*1000, computed offline (Python:
+// round(1000*sin(radians(d))) for d in 0..90) and pasted as a literal. Every
+// other angle is reached via norm_deg (fold into 0..359) and the quadrant
+// symmetry in ../sincos.id.
+
+sin_table() {
+  int[] tbl = [0,17,35,52,70,87,105,122,139,156,174,191,208,225,242,259,276,
+    292,309,326,342,358,375,391,407,423,438,454,469,485,500,515,530,545,
+    559,574,588,602,616,629,643,656,669,682,695,707,719,731,743,755,766,
+    777,788,799,809,819,829,839,848,857,866,875,883,891,899,906,914,921,
+    927,934,940,946,951,956,961,966,970,974,978,982,985,988,990,993,995,
+    996,998,999,999,1000,1000];
+} return int[] tbl;
+
+table_at(int i) {
+  int[] tbl = sin_table();
+} return int tbl[i];
+
+// Fold any integer degree (negative or >359) into 0..359.
+norm_deg(int d) {
+  int r = d % 360;
+  if (r < 0) { r = r + 360; }
+} return int r;
