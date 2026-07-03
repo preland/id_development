@@ -381,6 +381,30 @@ else
             if [ "$target" = wasm ]; then out=$(wasmtime "$bin"); else out=$("$bin"); fi
             expect_output "control output ($target)" "7 is a big odd / medium" "$out"
         fi
+
+        # memory safety carries over to the alt targets too: an out-of-bounds
+        # list index must abort with the same clear message and nonzero exit
+        # as the C target (llvm reuses the C RUNTIME; wasm has its own traps).
+        if [ "$target" = wasm ]; then
+            bin="$TMP/oob_$target.wasm"
+        else
+            bin="$TMP/oob_$target"
+        fi
+        if ! "$IDC" runtime_invalid/list_get_oob.id --target "$target" -o "$bin" 2>/dev/null; then
+            bad "runtime_invalid/list_get_oob builds ($target)"
+        else
+            if [ "$target" = wasm ]; then
+                err=$(wasmtime "$bin" 2>&1 1>/dev/null); rc=$?
+            else
+                err=$("$bin" 2>&1 1>/dev/null); rc=$?
+            fi
+            expect_output "OOB index exit code ($target)" "1" "$rc"
+            if printf '%s' "$err" | grep -qF "id: index 5 out of bounds (len 3)"; then
+                ok "OOB index abort message ($target)"
+            else
+                bad "OOB index abort message ($target) (got: $err)"
+            fi
+        fi
     done
 fi
 
@@ -394,4 +418,13 @@ echo "--- negative tests (tests/invalid/) ---"
 ./invalid.sh
 neg=$?
 
-[ "$fail" -eq 0 ] && [ "$neg" -eq 0 ]
+# --- runtime-safety negative tests: every file in tests/runtime_invalid/
+#     compiles fine but must ABORT when run (bounds/empty-pop violations),
+#     printing the message named on its `// EXPECT:` line to stderr and
+#     exiting nonzero. Distinct from tests/invalid/ (compile-time errors).
+echo
+echo "--- runtime-safety negative tests (tests/runtime_invalid/) ---"
+./runtime_invalid.sh
+rneg=$?
+
+[ "$fail" -eq 0 ] && [ "$neg" -eq 0 ] && [ "$rneg" -eq 0 ]
