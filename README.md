@@ -68,6 +68,32 @@ float literal), `demos/calc`, `demos/control/flow.id`, and `demos/adventure`
 byte-identical to `idc.py --emit-c` by `tools/parity.sh` and `tests/run.sh`'s
 "codegen parity" checks).
 
+## Development environment (Nix)
+
+Building the C target needs only a C compiler. The **graphics backends**
+(`--backend backends/gfx|gl`) link native system libraries (OpenGL, X11), and
+the **`--target llvm|wasm`** paths need `clang`/`llc`/`wat2wasm`/`wasmtime`. On
+NixOS these aren't on the default search path, so the repo ships a
+[`flake.nix`](flake.nix) providing the whole toolchain in one dev shell:
+
+```sh
+nix develop              # drop into a shell with cc, X11/OpenGL, llvm, wasm tools
+# or, with direnv (a .envrc is included):
+direnv allow             # auto-enters the dev shell on cd into the repo
+```
+
+`tools/devshell.sh '<cmd>'` runs a single command in that same shell (it uses
+the flake, falling back to `nix-shell -p …`), which is how the graphics/alt-target
+builds and `tests/run.sh` are driven:
+
+```sh
+tools/devshell.sh 'bin/idc demos/gl3d --backend backends/gl -o gl3d' && ./gl3d
+```
+
+On a non-Nix system with the usual dev packages installed (e.g. `libgl-dev`,
+`libx11-dev`, `clang`, `wabt`, `wasmtime`), the plain commands work without any
+wrapper.
+
 ## Language rules (as stated in hello_world.id)
 
 - **`main` is the entrypoint.** `main(int argc, string[] argv)` receives the
