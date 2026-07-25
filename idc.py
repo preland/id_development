@@ -12,6 +12,7 @@ variables resolve across the whole project.
 """
 
 import argparse
+import difflib
 import json
 import os
 import re
@@ -23,6 +24,16 @@ from typing import List, Optional, Tuple
 ACTION_LIMIT = 3
 FUNCS_PER_FILE_LIMIT = 3
 NEST_LIMIT = 2  # how deeply blocks may nest; deeper code must become a function
+
+# The complete list of `id` builtins, in the order they should be advertised to
+# users -- kept in exactly one place so the "did you mean" hint and the
+# "available builtins" listing (used when a call resolves to neither a
+# defined function nor a builtin) can never drift from what the backends
+# actually implement.
+BUILTIN_NAMES = (
+    "print", "input", "read_all", "len", "push", "pop", "to_int", "charat",
+    "chr", "put", "flush", "getkey", "sleep_ms", "ticks",
+)
 
 BASE_TYPES = {"int", "float", "string", "void"}
 KEYWORDS = BASE_TYPES | {"if", "else", "while", "return", "export", "import"}
@@ -72,6 +83,24 @@ class CompileError(Exception):
 
 def warn(file, line, msg):
     print(f"{file}:{line}: warning: {msg}", file=sys.stderr)
+
+
+def builtin_hint(name) -> str:
+    """' did you mean the builtin '<X>'?' if `name` is a close match to a
+    known builtin, else ''. Shared by every diagnostic about a call to a
+    name that isn't a defined function or a builtin."""
+    matches = difflib.get_close_matches(name, BUILTIN_NAMES, n=1)
+    return f" did you mean the builtin '{matches[0]}'?" if matches else ""
+
+
+def no_such_function_msg(name) -> str:
+    """The full diagnostic for a call to a name that resolves to neither a
+    defined function nor a builtin: the "did you mean" hint (if any) plus
+    the complete list of builtins, so users guessing at a name (e.g.
+    `char_at` for `charat`) get pointed at the real one instead of a bare
+    linker error further down the pipeline."""
+    return (f"no such function '{name}';{builtin_hint(name)} "
+            f"available builtins: {', '.join(BUILTIN_NAMES)}")
 
 
 # ---------------------------------------------------------------- lexer
@@ -261,11 +290,27 @@ class Parser:
         t = self.peek()
         return t.kind == kind and (value is None or t.value == value)
 
-    def expect(self, kind, value=None) -> Tok:
+    # Human phrases for token *kinds*, used when a KIND (not a specific
+    # literal value) was expected -- newcomers can't decode raw kind names
+    # like 'kw' or 'op'.
+    KIND_PHRASES = {
+        "kw": "a keyword",
+        "ident": "an identifier (a name)",
+        "op": "an operator",
+        "int": "an integer literal",
+        "float": "a float literal",
+        "string": "a string literal",
+        "eof": "end of input",
+    }
+
+    def expect(self, kind, value=None, what=None) -> Tok:
         t = self.peek()
         if not self.at(kind, value):
-            want = value if value is not None else kind
-            raise CompileError(t.file, t.line, f"expected '{want}', found '{t.value or t.kind}'")
+            if value is not None:
+                want = f"'{value}'"
+            else:
+                want = what if what is not None else self.KIND_PHRASES.get(kind, kind)
+            raise CompileError(t.file, t.line, f"expected {want}, found '{t.value or t.kind}'")
         return self.next()
 
     def accept(self, kind, value=None) -> bool:
@@ -280,9 +325,10 @@ class Parser:
         return self.peek().kind == "kw" and self.peek().value in BASE_TYPES
 
     def parse_type(self) -> str:
-        t = self.expect("kw")
+        t = self.expect("kw", what="a type (int, string, void, or a T[] array type)")
         if t.value not in BASE_TYPES:
-            raise CompileError(t.file, t.line, f"expected a type, found '{t.value}'")
+            raise CompileError(t.file, t.line,
+                                f"expected a type (int, string, void, or a T[] array type), found '{t.value}'")
         typ = t.value
         while self.accept("op", "["):
             self.expect("op", "]")
@@ -759,11 +805,20 @@ def compatible(want, got):
 
 
 class Compiler:
-    def __init__(self, funcs_by_file):
+    def __init__(self, funcs_by_file, has_backend=False):
         self.funcs = {}            # name -> FuncDef
         self.exported = {}         # name -> (type, owner fn name)
         self.var_owner = {}        # var name -> (fn name, file, line)
         self.unknown_fns = {}      # name -> (file, line) of first call
+        # Whether this build was given --backend: native backends legitimately
+        # provide external functions, so a call to an undefined, non-builtin
+        # name should only become an `extern` forward declaration (with a
+        # warning) when a backend is in play. With no backend, the same call
+        # is almost always a typo (e.g. `char_at` for `charat`) and should be
+        # a hard error instead of a cryptic linker error later. See
+        # gen_expr's call-codegen (the C backend, the only one with an extern
+        # mechanism -- LLVM/wasm always reject undefined calls outright).
+        self.has_backend = has_backend
         self.lines = []
 
         for fname, funcs in funcs_by_file.items():
@@ -929,7 +984,9 @@ class Compiler:
             raise CompileError(file, line,
                                f"a block in '{fn.name}' performs {n} actions; the "
                                f"limit is {ACTION_LIMIT} (each statement, if, else, "
-                               f"and while is one action; return is free)")
+                               f"and while is one action; return is free) -- move "
+                               f"some statements into a helper function to stay "
+                               f"within the limit")
         for s in body:
             if isinstance(s, IfStmt):
                 cur = s
@@ -1217,10 +1274,19 @@ class Compiler:
         if callee is None:
             if e.name in self.var_owner:
                 raise CompileError(e.file, e.line, f"'{e.name}' is a variable, not a function")
+            if not self.has_backend:
+                # No --backend means there is nowhere this name could be
+                # resolved from at link time, so it's almost certainly a
+                # typo'd builtin or a forgotten function -- fail now with a
+                # helpful message instead of an `extern` that turns into a
+                # bare linker error.
+                raise CompileError(e.file, e.line, no_such_function_msg(e.name))
             if e.name not in self.unknown_fns:
+                hint = builtin_hint(e.name)
                 warn(e.file, e.line,
                      f"call to function '{e.name}' which is not defined in any input "
-                     f"file; it must be provided at link time")
+                     f"file; it must be provided at link time"
+                     + (f".{hint}" if hint else ""))
                 self.unknown_fns[e.name] = (e.file, e.line)
             return f"id_{e.name}({', '.join(c for c, _ in args)})", "int"
         if len(args) != len(callee.params):
@@ -1884,7 +1950,8 @@ class LLVMBackend:
             raise CompileError(e.file, e.line,
                                f"call to external function '{name}' is not "
                                f"supported for this --target (only functions "
-                               f"defined in the program are supported)")
+                               f"defined in the program are supported)."
+                               f"{builtin_hint(name)}")
         if len(args) != len(callee.params):
             raise CompileError(e.file, e.line,
                                f"function '{name}' takes {len(callee.params)} "
@@ -2762,7 +2829,8 @@ class WasmBackend:
             raise CompileError(e.file, e.line,
                                f"call to external function '{name}' is not "
                                f"supported for this --target (only functions "
-                               f"defined in the program are supported)")
+                               f"defined in the program are supported)."
+                               f"{builtin_hint(name)}")
         if len(args) != len(callee.params):
             raise CompileError(e.file, e.line,
                                f"function '{name}' takes {len(callee.params)} "
@@ -2889,6 +2957,15 @@ class WasmBackend:
             parts.append(f'  (global $g_{gname} (mut {wt}) {zero})')
         parts.append(wasm_runtime_funcs())
         parts.extend(func_bodies)
+        # Export every user-defined function so an embedder (e.g. a JS host
+        # driving an idml UI) can call id logic directly, and id_alloc so the
+        # host can place string/byte arguments into linear memory. These are
+        # additive: the WASI `_start`/`memory` exports (command-style execution
+        # under wasmtime) are unaffected, so a program with a `main` still runs
+        # as before while also exposing its functions to an embedder.
+        for name in self.compiler.funcs:
+            parts.append(f'  (export "{name}" (func $id_{name}))')
+        parts.append('  (export "id_alloc" (func $id_alloc))')
         entry = self.gen_entrypoint()
         if entry:
             parts.append(entry)
@@ -2997,6 +3074,12 @@ def canonical_function(fn):
 # compiles all .id files in the tree, in a deterministic sorted-path order.
 PROJECT_ENTRY_LIMIT = 3
 
+# A project may declare its dependencies (native backends, other id-source
+# directories) in a single manifest file at its root. It is NOT compiled as
+# source and does NOT count toward a directory's entry limit -- it's metadata,
+# the id-native replacement for the --backend flag. See parse_import_manifest.
+IMPORT_MANIFEST = "import.id"
+
 
 def collect_project(root):
     """Walk the project tree, enforce the per-directory entry limit, and return
@@ -3005,7 +3088,9 @@ def collect_project(root):
     for dirpath, dirnames, filenames in os.walk(root):
         # ignore hidden entries; they neither compile nor count
         dirnames[:] = [d for d in dirnames if not d.startswith(".")]
-        ids = [n for n in filenames if n.endswith(".id")]
+        # the dependency manifest is metadata, not source: never compiled, never
+        # counted toward the per-directory entry limit.
+        ids = [n for n in filenames if n.endswith(".id") and n != IMPORT_MANIFEST]
         entries = len(ids) + len(dirnames)
         if entries > PROJECT_ENTRY_LIMIT:
             raise CompileError(
@@ -3018,6 +3103,38 @@ def collect_project(root):
         raise CompileError(root, 1, "no .id files in this project")
     id_files.sort()
     return id_files
+
+
+def parse_import_manifest(root):
+    """Read <root>/import.id if present and return the dependency directories it
+    names. Each non-blank, non-comment line is `import "<relative-dir>"`; the
+    path is resolved relative to the manifest. This is the id-native way to
+    attach dependencies (replacing --backend): a dependency that carries a
+    backend.json is linked as a native backend, any other directory is merged in
+    as additional id source. Returns [] when there is no manifest."""
+    path = os.path.join(root, IMPORT_MANIFEST)
+    if not os.path.isfile(path):
+        return []
+    deps = []
+    with open(path) as f:
+        for lineno, raw in enumerate(f, 1):
+            line = raw.strip()
+            if not line or line.startswith("//"):
+                continue
+            m = re.match(r'^import\s+"([^"]+)"\s*$', line)
+            if not m:
+                raise CompileError(
+                    path, lineno,
+                    f'malformed import.id line: {raw.rstrip()!r}; each dependency '
+                    f'is a line of the form  import "relative/dir"')
+            dep = os.path.normpath(os.path.join(root, m.group(1)))
+            if not os.path.isdir(dep):
+                raise CompileError(
+                    path, lineno,
+                    f'import "{m.group(1)}" does not resolve to a directory '
+                    f'(looked for {dep})')
+            deps.append(dep)
+    return deps
 
 
 def platform_key():
@@ -3100,13 +3217,22 @@ def main(argv):
                     help="keep the generated C next to the output")
     ap.add_argument("--cc", default="cc", help="C compiler to use (default: cc)")
     ap.add_argument("--backend", action="append", default=[], metavar="DIR",
-                    help="link a native backend directory (reads its backend.json "
+                    help="DEPRECATED: prefer an import.id manifest in the project. "
+                         "Link a native backend directory (reads its backend.json "
                          "for this platform's sources and link flags); repeatable")
     args = ap.parse_args(argv)
 
     try:
         if os.path.isdir(args.path):
             source_files = collect_project(args.path)
+            # Dependencies declared in the project's import.id: a backend dir is
+            # linked (like --backend); any other dir is merged in as id source.
+            for dep in parse_import_manifest(args.path):
+                if os.path.isfile(os.path.join(dep, "backend.json")):
+                    args.backend.append(dep)
+                else:
+                    source_files.extend(collect_project(dep))
+            source_files = sorted(set(source_files))
         elif os.path.isfile(args.path):
             source_files = [args.path]
         else:
@@ -3118,7 +3244,7 @@ def main(argv):
             with open(path) as f:
                 src = f.read()
             funcs_by_file[path] = Parser(lex(src, path)).parse_file()
-        compiler = Compiler(funcs_by_file)
+        compiler = Compiler(funcs_by_file, has_backend=bool(args.backend))
         if args.target == "c":
             code = compiler.compile()
         elif args.target == "llvm":

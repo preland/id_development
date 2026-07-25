@@ -40,7 +40,8 @@ OUTPUT=""
 EMIT_C=""
 KEEP_C=0
 CC=cc
-BACKENDS=()
+BACKENDS=()          # from --backend flags (passed through on fallback)
+MANIFEST_BACKENDS=() # from the project's import.id (idc.py re-reads it on fallback)
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -112,8 +113,9 @@ SRC_FILES=()
 if [ -f "$PATH_ARG" ]; then
     SRC_FILES=("$PATH_ARG")
 elif [ -d "$PATH_ARG" ]; then
+    # import.id is a dependency manifest, not source -- never compiled.
     while IFS= read -r f; do SRC_FILES+=("$f"); done \
-        < <(find "$PATH_ARG" -name '*.id' | LC_ALL=C sort)
+        < <(find "$PATH_ARG" -name '*.id' ! -name 'import.id' | LC_ALL=C sort)
 else
     echo "idc: no such file or directory: '$PATH_ARG'" >&2
     exit 1
@@ -121,6 +123,39 @@ fi
 if [ ${#SRC_FILES[@]} -eq 0 ]; then
     echo "idc: no .id files in this project" >&2
     exit 1
+fi
+
+# Dependencies from the project's import.id: a backend dir (backend.json) is
+# linked; any other dir is merged in as additional id source. Mirrors idc.py's
+# parse_import_manifest. import.id lines are `import "relative/dir"`.
+MANIFEST="$PATH_ARG/import.id"
+if [ -d "$PATH_ARG" ] && [ -f "$MANIFEST" ]; then
+    lineno=0
+    while IFS= read -r line || [ -n "$line" ]; do
+        lineno=$((lineno + 1))
+        trimmed="${line#"${line%%[![:space:]]*}"}"
+        [ -z "$trimmed" ] && continue
+        case "$trimmed" in //*) continue ;; esac
+        dep=$(printf '%s' "$trimmed" \
+            | sed -n 's/^import[[:space:]]*"\([^"]*\)"[[:space:]]*$/\1/p')
+        if [ -z "$dep" ]; then
+            echo "idc: $MANIFEST:$lineno: malformed line: $trimmed" >&2
+            echo "idc: each dependency is a line:  import \"relative/dir\"" >&2
+            exit 2
+        fi
+        deppath="$PATH_ARG/$dep"
+        if [ ! -d "$deppath" ]; then
+            echo "idc: $MANIFEST:$lineno: import \"$dep\" is not a directory" >&2
+            exit 1
+        fi
+        deppath="$(cd "$deppath" && pwd)"
+        if [ -f "$deppath/backend.json" ]; then
+            MANIFEST_BACKENDS+=("$deppath")
+        else
+            while IFS= read -r df; do SRC_FILES+=("$df"); done \
+                < <(find "$deppath" -name '*.id' ! -name 'import.id' | LC_ALL=C sort)
+        fi
+    done < "$MANIFEST"
 fi
 
 WORK=$(mktemp -d) || { echo "idc: mktemp failed" >&2; exit 1; }
@@ -143,8 +178,15 @@ parse_rc="${rc[2]}"
 # it still splits `0.8` into the tokens `0`, `.`, `8`; see README.md
 # "Self-hosting").
 do_fallback() { # do_fallback REASON
-    echo "idc: self-hosted compiler (idlex|idparse) could not build '$PATH_ARG'" \
-         "($1); falling back to idc.py (legacy/reference)" >&2
+    # This is a note about the COMPILER's internals, not a complaint about the
+    # user's program: the self-hosted stages (idlex/idparse) are a partial
+    # reimplementation and don't cover every input yet, so this build is
+    # being redone with idc.py, the reference/legacy implementation. Anything
+    # printed after this line comes from idc.py evaluating the program and is
+    # about the program, not about this fallback.
+    echo "idc: note: using reference compiler idc.py for this build" \
+         "(self-hosted stages don't cover this input: $1);" \
+         "any diagnostics below are about your program." >&2
     fallback_args=("$PATH_ARG")
     [ -n "$OUTPUT" ] && fallback_args+=(-o "$OUTPUT")
     [ -n "$EMIT_C" ] && fallback_args+=(--emit-c "$EMIT_C")
@@ -206,16 +248,18 @@ fi
 # and link the resulting objects in (mirrors idc.py's resolve_backend/build_c)
 BACKEND_OBJS=()
 BACKEND_LINK=()
-if [ "${#BACKENDS[@]}" -gt 0 ] && [ "$have_main" -eq 0 ]; then
-    echo "idc: --backend ignored: this project has no main (builds to a .o);" \
+# backends come from both --backend flags and the import.id manifest.
+ALL_BACKENDS=("${BACKENDS[@]}" "${MANIFEST_BACKENDS[@]}")
+if [ "${#ALL_BACKENDS[@]}" -gt 0 ] && [ "$have_main" -eq 0 ]; then
+    echo "idc: backend(s) ignored: this project has no main (builds to a .o);" \
          "link the backend into the final program" >&2
-elif [ "${#BACKENDS[@]}" -gt 0 ]; then
+elif [ "${#ALL_BACKENDS[@]}" -gt 0 ]; then
     case "$(uname -s)" in
         Linux*)  PLATKEY=linux ;;
         Darwin*) PLATKEY=darwin ;;
         *)       PLATKEY="$(uname -s)" ;;
     esac
-    for d in "${BACKENDS[@]}"; do
+    for d in "${ALL_BACKENDS[@]}"; do
         manifest="$d/backend.json"
         if [ ! -f "$manifest" ]; then
             echo "idc: backend has no backend.json: $manifest" >&2
@@ -275,14 +319,24 @@ cmd=("$CC")
 [ "$have_main" -eq 0 ] && cmd+=("-c")
 cmd+=("-std=c11" "-O2" "$c_path" "${BACKEND_OBJS[@]}" "-o" "$OUT" "${BACKEND_LINK[@]}")
 
-"${cmd[@]}"
+"${cmd[@]}" 2>"$WORK/cc.err"
 cc_rc=$?
 
 [ "$KEEP_C" -eq 1 ] || rm -f "$c_path"
 for o in "${BACKEND_OBJS[@]}"; do rm -f "$o"; done
 
+# idlex/idparse do no semantic checking (see the header comment), so a
+# program calling an undefined/misspelled function -- something idc.py
+# rejects at compile time with a helpful "did you mean" message -- sails
+# through them unchecked. Usually that's already caught above by the
+# -fsyntax-only gate (an undeclared call is a hard error on a
+# standards-conforming C compiler), but a lenient `--cc` could still let it
+# through to here, where it would otherwise surface as a raw, unhelpful
+# linker error. Rather than show that, fall back to idc.py so the user sees
+# ITS diagnostic instead (do_fallback re-runs the whole build with idc.py,
+# which will fail the same way but with a much better message -- or, if
+# cc's failure was for some other reason, will simply reproduce it).
 if [ "$cc_rc" -ne 0 ]; then
-    echo "idc: C compilation failed (command: ${cmd[*]})" >&2
-    exit 1
+    do_fallback "cc failed to compile/link the self-hosted compiler's C output"
 fi
 exit 0
