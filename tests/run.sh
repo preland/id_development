@@ -324,6 +324,66 @@ other() { int y = (import x); } return void;
 EOF
 expect_error "import requires export" "$TMP/badimport.id" "is not exported"
 
+# --- systems programming: bitwise operators, hex literals, the `word` machine
+# word, and the flat bounds-checked store. These are what let a C-level
+# program (a kernel, say) be expressed in id at all; see
+# ../linux_id/docs/ID_EXTENSIONS.md for the rationale.
+mkdir -p "$TMP/bits"
+cat > "$TMP/bits/m.id" <<'EOF'
+main(int argc, string[] argv) {
+  int x = 0xf0;
+  print("" + (x & 0x3c) + " " + (x | 1) + " " + (x ^ 255) + " " + (~x));
+  print("" + (x << 2) + " " + (x >> 3) + " " + (0 - 16 >> 2));
+} return int 0;
+EOF
+$IDC "$TMP/bits" -o "$TMP/bits.out" >/dev/null 2>&1
+expect_output "bitwise operators + hex literals" "48 241 15 -241
+960 30 -4" "$("$TMP/bits.out")"
+
+# `flags & MASK != 0` groups as `(flags & MASK) != 0` -- deliberately unlike C,
+# whose precedence here is a well-known source of parenthesis bugs.
+mkdir -p "$TMP/prec"
+cat > "$TMP/prec/m.id" <<'EOF'
+main(int argc, string[] argv) {
+  int flags = 6;
+  print("" + (flags & 4 != 0));
+} return int 0;
+EOF
+$IDC "$TMP/prec" -o "$TMP/prec.out" >/dev/null 2>&1
+expect_output "bitwise binds tighter than comparison" "1" "$("$TMP/prec.out")"
+
+mkdir -p "$TMP/word"
+cat > "$TMP/word/m.id" <<'EOF'
+main(int argc, string[] argv) {
+  word big = 0xffffffffffff;
+  print("" + (big >> 32) + " " + ushr(0 - 16, 60) + " " + ult(0 - 1, 1));
+  print("" + udiv(0 - 2, 3) + " " + umod(100, 7) + " " + (big & 0xff));
+} return int 0;
+EOF
+$IDC "$TMP/word" -o "$TMP/word.out" >/dev/null 2>&1
+expect_output "word: 64-bit + unsigned builtins" "65535 15 0
+6148914691236517204 2 255" "$("$TMP/word.out")"
+
+# The store is little-endian and untyped: a 32-bit poke is readable as four
+# bytes, which is exactly what makes C structs and unions expressible.
+mkdir -p "$TMP/store"
+cat > "$TMP/store/m.id" <<'EOF'
+main(int argc, string[] argv) {
+  word p = alloc(64);
+  poke32(p, 0x04030201);
+  show(p);
+} return int 0;
+
+show(word p) {
+  poke16(p + 8, 0xbeef);
+  print("" + peek8(p) + peek8(p + 1) + peek8(p + 2) + peek8(p + 3));
+  print("" + peek16(p + 8) + " " + peek8(p + 8) + " " + str_of_mem(mem_of_str("hi"), 2));
+} return void;
+EOF
+$IDC "$TMP/store" -o "$TMP/store.out" >/dev/null 2>&1
+expect_output "flat store: poke/peek, widths, string bridge" "1234
+48879 239 hi" "$("$TMP/store.out")"
+
 # --- alt codegen targets (--target llvm / --target wasm): a handful of
 # known-good demos must produce the SAME program output/exit code as the
 # default C target. Needs clang (llvm) and wat2wasm + wasmtime (wasm); skip

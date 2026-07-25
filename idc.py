@@ -33,9 +33,23 @@ NEST_LIMIT = 2  # how deeply blocks may nest; deeper code must become a function
 BUILTIN_NAMES = (
     "print", "input", "read_all", "len", "push", "pop", "to_int", "charat",
     "chr", "put", "flush", "getkey", "sleep_ms", "ticks",
+    # systems builtins: a flat, bounds-checked byte store, and the four
+    # operations where unsigned genuinely differs from signed. See
+    # "The flat store" below.
+    "alloc", "store_size",
+    "peek8", "peek16", "peek32", "peek64",
+    "poke8", "poke16", "poke32", "poke64",
+    "udiv", "umod", "ult", "ushr",
+    "str_of_mem", "mem_of_str",
 )
 
-BASE_TYPES = {"int", "float", "string", "void"}
+# `word` is a 64-bit two's-complement machine word: the type of an address in
+# the flat store, and of any integer wider than `int`. It exists because a
+# language cannot describe a machine it has no word for -- see
+# ../linux_id/docs/ID_EXTENSIONS.md for the full rationale. Arithmetic on it
+# wraps rather than overflowing, which is what hardware does and what the code
+# being modelled assumes.
+BASE_TYPES = {"int", "float", "string", "void", "word"}
 KEYWORDS = BASE_TYPES | {"if", "else", "while", "return", "export", "import"}
 
 C_TYPES = {
@@ -43,9 +57,11 @@ C_TYPES = {
     "float": "double",
     "string": "char*",
     "void": "void",
+    "word": "long long",
     "int[]": "IdList*",
     "float[]": "IdList*",
     "string[]": "IdList*",
+    "word[]": "IdList*",
 }
 
 
@@ -60,6 +76,8 @@ def box(code, typ):
     """Wrap a value of id type `typ` into a uniform list cell (long long)."""
     if typ == "int":
         return f"(long long)({code})"
+    if typ == "word":
+        return f"({code})"          # a word already *is* the cell width
     if typ == "float":
         return f"id_box_f({code})"
     return f"(long long)(intptr_t)({code})"   # string or any list (pointer)
@@ -69,6 +87,8 @@ def unbox(code, typ):
     """Read a list cell back as id type `typ`."""
     if typ == "int":
         return f"(int)({code})"
+    if typ == "word":
+        return f"(long long)({code})"
     if typ == "float":
         return f"id_unbox_f({code})"
     if typ == "string":
@@ -113,14 +133,18 @@ class Tok:
     line: int
 
 
+# `hex` must precede `int`, or "0x1f" lexes as 0 followed by the identifier
+# "x1f". `<<`/`>>`/`&&`/`||` must precede the single-character class for the
+# same reason.
 TOKEN_RE = re.compile(
     r"""(?P<ws>\s+)
       | (?P<comment>//[^\n]*)
+      | (?P<hex>0[xX][0-9a-fA-F]+)
       | (?P<float>\d+\.\d+)
       | (?P<int>\d+)
       | (?P<string>"(?:\\.|[^"\\])*")
       | (?P<ident>[A-Za-z_]\w*)
-      | (?P<op>==|!=|<=|>=|&&|\|\||[+\-*/%<>=!(){}\[\],;])
+      | (?P<op><<|>>|==|!=|<=|>=|&&|\|\||[+\-*/%<>=!&|^~(){}\[\],;])
     """,
     re.VERBOSE,
 )
@@ -138,6 +162,12 @@ def lex(src: str, fname: str) -> List[Tok]:
         kind = m.lastgroup
         if kind == "ws" or kind == "comment":
             pass
+        elif kind == "hex":
+            # Hex is a spelling, not a type: 0xff is the int token 255. The
+            # rest of the compiler never has to know the literal was written
+            # in hex, which is why mask constants can be written the way the
+            # hardware documentation writes them.
+            toks.append(Tok("int", str(int(text, 16)), fname, line))
         elif kind == "ident":
             if text in KEYWORDS:
                 toks.append(Tok("kw", text, fname, line))
@@ -472,8 +502,42 @@ class Parser:
         return e
 
     def parse_relational(self) -> Expr:
-        e = self.parse_additive()
+        e = self.parse_bitor()
         while self.peek().kind == "op" and self.peek().value in ("<", ">", "<=", ">="):
+            t = self.next()
+            e = BinOp(t.file, t.line, t.value, e, self.parse_bitor())
+        return e
+
+    # The bitwise operators sit *below* the comparisons, so `flags & MASK != 0`
+    # means `(flags & MASK) != 0` -- what anyone reading it expects. C famously
+    # binds them the other way round, which is a historical accident that has
+    # been generating parenthesis bugs since 1972; `id` does not inherit it.
+    # Among themselves the levels follow C: | then ^ then & then shifts.
+
+    def parse_bitor(self) -> Expr:
+        e = self.parse_bitxor()
+        while self.at("op", "|"):
+            t = self.next()
+            e = BinOp(t.file, t.line, "|", e, self.parse_bitxor())
+        return e
+
+    def parse_bitxor(self) -> Expr:
+        e = self.parse_bitand()
+        while self.at("op", "^"):
+            t = self.next()
+            e = BinOp(t.file, t.line, "^", e, self.parse_bitand())
+        return e
+
+    def parse_bitand(self) -> Expr:
+        e = self.parse_shift()
+        while self.at("op", "&"):
+            t = self.next()
+            e = BinOp(t.file, t.line, "&", e, self.parse_shift())
+        return e
+
+    def parse_shift(self) -> Expr:
+        e = self.parse_additive()
+        while self.peek().kind == "op" and self.peek().value in ("<<", ">>"):
             t = self.next()
             e = BinOp(t.file, t.line, t.value, e, self.parse_additive())
         return e
@@ -494,7 +558,7 @@ class Parser:
 
     def parse_unary(self) -> Expr:
         t = self.peek()
-        if self.at("op", "-") or self.at("op", "!"):
+        if self.at("op", "-") or self.at("op", "!") or self.at("op", "~"):
             self.next()
             return UnOp(t.file, t.line, t.value, self.parse_unary())
         return self.parse_postfix()
@@ -704,6 +768,141 @@ static char* id_concat(const char* a, const char* b) {
 static char* id_str_of_int(int x) {
     char* r = (char*)id_alloc(32); snprintf(r, 32, "%d", x); return r;
 }
+static char* id_str_of_word(long long x) {
+    char* r = (char*)id_alloc(32); snprintf(r, 32, "%lld", x); return r;
+}
+
+/* ---- word arithmetic with no undefined behaviour ------------------------
+   C leaves division by zero, INT_MIN/-1, and shifts by 64-or-more undefined.
+   id gives all three a defined answer -- a loud abort for the first two,
+   which are always bugs, and the obvious result for the third -- on the same
+   principle as bounds-checked list indexing: a mistake stops the program
+   instead of quietly producing nonsense. */
+static void id_trap(const char* what) {
+    fprintf(stderr, "id: %s\n", what);
+    exit(1);
+}
+static long long id_sdiv(long long a, long long b) {
+    if (b == 0) id_trap("division by zero");
+    if (b == -1 && a == LLONG_MIN) id_trap("division overflow");
+    return a / b;
+}
+static long long id_smod(long long a, long long b) {
+    if (b == 0) id_trap("remainder by zero");
+    if (b == -1) return 0;              /* would overflow; the answer is 0 */
+    return a % b;
+}
+static long long id_shl(long long a, long long n) {
+    if (n < 0) id_trap("shift by a negative amount");
+    if (n >= 64) return 0;
+    return (long long)((unsigned long long)a << n);
+}
+static long long id_sar(long long a, long long n) {   /* arithmetic: `>>` */
+    if (n < 0) id_trap("shift by a negative amount");
+    if (n >= 64) return a < 0 ? -1 : 0;
+    return a >> n;
+}
+static long long id_ushr(long long a, long long n) {  /* logical: `ushr` */
+    if (n < 0) id_trap("shift by a negative amount");
+    if (n >= 64) return 0;
+    return (long long)((unsigned long long)a >> n);
+}
+static long long id_udiv(long long a, long long b) {
+    if (b == 0) id_trap("division by zero");
+    return (long long)((unsigned long long)a / (unsigned long long)b);
+}
+static long long id_umod(long long a, long long b) {
+    if (b == 0) id_trap("remainder by zero");
+    return (long long)((unsigned long long)a % (unsigned long long)b);
+}
+static long long id_ult(long long a, long long b) {
+    return (unsigned long long)a < (unsigned long long)b;
+}
+
+/* ---- the flat store -----------------------------------------------------
+   One flat, byte-addressed memory. An address is an ordinary word, so
+   structs become offsets, arrays become strides, and taking the address of
+   something is arithmetic -- none of which the language needs syntax for.
+
+   Address 0 is never handed out, so it can mean "null" the way it does
+   everywhere else. Every access is bounds-checked against the high-water
+   mark: the class of mistake that silently corrupts memory in C is a clean
+   abort here, which is the entire reason the store is a primitive rather
+   than a library. The store grows on demand and is freed at exit with the
+   rest of the arena. */
+static unsigned char* id_store = NULL;
+static long long id_store_used = 1;    /* 0 is reserved for null */
+static long long id_store_cap = 0;
+
+static void id_store_grow(long long need) {
+    long long cap = id_store_cap ? id_store_cap : 65536;
+    while (cap < need) {
+        if (cap > (long long)1 << 44) id_trap("store too large");
+        cap *= 2;
+    }
+    id_store = (unsigned char*)id_realloc(id_store, (size_t)cap);
+    memset(id_store + id_store_cap, 0, (size_t)(cap - id_store_cap));
+    id_store_cap = cap;
+}
+static long long id_mem_alloc(long long n) {
+    if (n < 0) id_trap("negative allocation size");
+    /* 8-align every allocation so a 64-bit field is never split awkwardly */
+    long long base = (id_store_used + 7) & ~(long long)7;
+    long long end = base + n;
+    if (end < base) id_trap("allocation size overflow");
+    if (end > id_store_cap) id_store_grow(end);
+    id_store_used = end;
+    return base;
+}
+static long long id_mem_size(void) { return id_store_used; }
+
+/* Every load and store funnels through this one check. */
+static unsigned char* id_at(long long addr, long long width) {
+    if (addr <= 0 || addr + width > id_store_used) {
+        fprintf(stderr, "id: store address %lld out of range (size %lld)\n",
+                addr, id_store_used);
+        exit(1);
+    }
+    return id_store + addr;
+}
+/* Little-endian, byte at a time: the same bytes on every host, and no
+   alignment requirement -- C code casts pointers to odd addresses freely. */
+static long long id_peek_n(long long addr, int width) {
+    unsigned char* p = id_at(addr, width);
+    unsigned long long v = 0;
+    for (int i = width - 1; i >= 0; i--) v = (v << 8) | p[i];
+    return (long long)v;
+}
+static void id_poke_n(long long addr, long long value, int width) {
+    unsigned char* p = id_at(addr, width);
+    unsigned long long v = (unsigned long long)value;
+    for (int i = 0; i < width; i++) { p[i] = (unsigned char)(v & 0xff); v >>= 8; }
+}
+static long long id_peek8(long long a)  { return id_peek_n(a, 1); }
+static long long id_peek16(long long a) { return id_peek_n(a, 2); }
+static long long id_peek32(long long a) { return id_peek_n(a, 4); }
+static long long id_peek64(long long a) { return id_peek_n(a, 8); }
+static void id_poke8(long long a, long long v)  { id_poke_n(a, v, 1); }
+static void id_poke16(long long a, long long v) { id_poke_n(a, v, 2); }
+static void id_poke32(long long a, long long v) { id_poke_n(a, v, 4); }
+static void id_poke64(long long a, long long v) { id_poke_n(a, v, 8); }
+
+/* Bridges between the store and id's own strings, so a program working in
+   the store can still print. */
+static char* id_str_of_mem(long long addr, long long n) {
+    if (n < 0) id_trap("negative length");
+    unsigned char* p = id_at(addr, n);
+    char* r = (char*)id_alloc((size_t)n + 1);
+    memcpy(r, p, (size_t)n);
+    r[n] = '\0';
+    return r;
+}
+static long long id_mem_of_str(const char* s) {
+    size_t n = strlen(s);
+    long long a = id_mem_alloc((long long)n + 1);
+    memcpy(id_store + a, s, n + 1);
+    return a;
+}
 static char* id_str_of_float(double x) {
     char* r = (char*)id_alloc(64); snprintf(r, 64, "%g", x); return r;
 }
@@ -794,8 +993,63 @@ static int id_ticks(void) {   /* monotonic milliseconds, for timing and seeding 
 """
 
 
+# -------------------------------------------------------- the flat store
+#
+# `id` models memory the way the machine does: one flat, byte-addressed store,
+# reached only through these builtins. An address is an ordinary `word`, so
+# structs are offsets, arrays are strides, and `&x` is arithmetic -- none of
+# which the language needs syntax for.
+#
+# Every access is bounds-checked against the live allocation set. That is the
+# whole point: the class of bug that turns into a CVE in real systems code
+# becomes a loud abort here, exactly as an out-of-range list index already
+# does.
+#
+# name -> (arity, C helper, id result type)
+STORE_BUILTINS = {
+    "alloc":      (1, "id_mem_alloc", "word"),
+    "store_size": (0, "id_mem_size", "word"),
+    "peek8":      (1, "id_peek8", "word"),
+    "peek16":     (1, "id_peek16", "word"),
+    "peek32":     (1, "id_peek32", "word"),
+    "peek64":     (1, "id_peek64", "word"),
+    "poke8":      (2, "id_poke8", "void"),
+    "poke16":     (2, "id_poke16", "void"),
+    "poke32":     (2, "id_poke32", "void"),
+    "poke64":     (2, "id_poke64", "void"),
+}
+
+# The four operations where unsigned genuinely differs from signed. The plain
+# operators keep their signed meaning; these spell out the unsigned one, so
+# the signedness of an operation is visible where it happens rather than
+# implied by a declaration in another file.
+WORD_BUILTINS = {
+    "udiv": (2, "id_udiv", "word"),
+    "umod": (2, "id_umod", "word"),
+    "ult":  (2, "id_ult", "int"),
+    "ushr": (2, "id_ushr", "word"),
+}
+
+
 def is_numeric(t):
-    return t in ("int", "float")
+    return t in ("int", "float", "word")
+
+
+def is_integral(t):
+    """int-like: the types bitwise operators and the flat store accept.
+    `float` is excluded -- shifting a double is not a thing."""
+    return t in ("int", "word")
+
+
+def arith_result(lt, rt):
+    """The type of an arithmetic expression mixing `lt` and `rt`. Widening
+    order is int < word < float, so mixing an index with an address gives an
+    address rather than silently truncating it to 32 bits."""
+    if "float" in (lt, rt):
+        return "float"
+    if "word" in (lt, rt):
+        return "word"
+    return "int"
 
 
 def compatible(want, got):
@@ -1116,6 +1370,10 @@ class Compiler:
 
     def gen_expr(self, e, fn, env, expected=None) -> Tuple[str, str]:
         if isinstance(e, IntLit):
+            # A literal too big for a 32-bit int is a word, not a silently
+            # truncated int -- so 0xffffffffffffffff means what it says.
+            if int(e.value) > 0x7fffffff:
+                return f"{e.value}LL", "word"
             return e.value, "int"
         if isinstance(e, FloatLit):
             return e.value, "float"
@@ -1170,8 +1428,15 @@ class Compiler:
             code, typ = self.gen_expr(e.operand, fn, env)
             if e.op == "-" and not is_numeric(typ):
                 raise CompileError(e.file, e.line, f"cannot negate a {typ}")
-            if e.op == "!" and typ != "int":
+            if e.op == "!" and not is_integral(typ):
                 raise CompileError(e.file, e.line, f"cannot apply '!' to a {typ}")
+            if e.op == "~":
+                if not is_integral(typ):
+                    raise CompileError(e.file, e.line,
+                                       f"cannot apply '~' to a {typ}")
+                return f"(~{code})", typ
+            if e.op == "!":
+                return f"(!{code})", "int"
             return f"({e.op}{code})", typ
         if isinstance(e, BinOp):
             return self.gen_binop(e, fn, env)
@@ -1269,6 +1534,27 @@ class Compiler:
             if len(e.args) != 0:
                 raise CompileError(e.file, e.line, "ticks takes no arguments")
             return "id_ticks()", "int"
+        if e.name in STORE_BUILTINS or e.name in WORD_BUILTINS:
+            return self.gen_systems_call(e, fn, env)
+        if e.name == "str_of_mem":
+            if len(e.args) != 2:
+                raise CompileError(e.file, e.line,
+                                   "str_of_mem takes exactly two arguments")
+            ac, at = self.gen_expr(e.args[0], fn, env)
+            nc, nt = self.gen_expr(e.args[1], fn, env)
+            if not is_integral(at) or not is_integral(nt):
+                raise CompileError(e.file, e.line,
+                                   "str_of_mem takes an address and a length")
+            return f"id_str_of_mem((long long)({ac}), (long long)({nc}))", "string"
+        if e.name == "mem_of_str":
+            if len(e.args) != 1:
+                raise CompileError(e.file, e.line,
+                                   "mem_of_str takes exactly one argument")
+            code, typ = self.gen_expr(e.args[0], fn, env)
+            if typ != "string":
+                raise CompileError(e.file, e.line,
+                                   f"mem_of_str expects a string, got {typ}")
+            return f"id_mem_of_str({code})", "word"
         args = [self.gen_expr(a, fn, env) for a in e.args]
         callee = self.funcs.get(e.name)
         if callee is None:
@@ -1300,9 +1586,31 @@ class Compiler:
                                    f"{ptype}, got {typ}")
         return f"id_{e.name}({', '.join(c for c, _ in args)})", callee.rettype
 
+    def gen_systems_call(self, e: CallExpr, fn, env) -> Tuple[str, str]:
+        """The flat-store and unsigned-word builtins. They all take and return
+        machine words, so one shared shape covers every one of them."""
+        arity, helper, restype = (STORE_BUILTINS.get(e.name)
+                                  or WORD_BUILTINS[e.name])
+        if len(e.args) != arity:
+            plural = "" if arity == 1 else "s"
+            raise CompileError(e.file, e.line,
+                               f"{e.name} takes exactly {arity} argument{plural}, "
+                               f"got {len(e.args)}")
+        codes = []
+        for arg in e.args:
+            code, typ = self.gen_expr(arg, fn, env)
+            if not is_integral(typ):
+                raise CompileError(arg.file, arg.line,
+                                   f"{e.name} expects int or word arguments, "
+                                   f"got {typ}")
+            codes.append(f"(long long)({code})")
+        return f"{helper}({', '.join(codes)})", restype
+
     def to_string(self, code, typ, e) -> str:
         if typ == "string":
             return code
+        if typ == "word":
+            return f"id_str_of_word({code})"
         if typ == "int":
             return f"id_str_of_int({code})"
         if typ == "float":
@@ -1327,14 +1635,37 @@ class Compiler:
                 return f"({lc} {op} {rc})", "int"
             raise CompileError(e.file, e.line, f"cannot order {lt} and {rt}")
         if op in ("&&", "||"):
-            if lt == "int" and rt == "int":
+            if is_integral(lt) and is_integral(rt):
                 return f"({lc} {op} {rc})", "int"
             raise CompileError(e.file, e.line, f"'{op}' requires int operands")
+        if op in ("&", "|", "^"):
+            if is_integral(lt) and is_integral(rt):
+                return f"({lc} {op} {rc})", arith_result(lt, rt)
+            raise CompileError(e.file, e.line,
+                               f"'{op}' requires int or word operands, got {lt} and {rt}")
+        if op in ("<<", ">>"):
+            # A shift by a count outside 0..63 is undefined behaviour in C, so
+            # it goes through a runtime helper that gives it a defined answer
+            # instead -- the same bargain id already makes for list indexing.
+            # `>>` is the *signed* (arithmetic) shift; `ushr` is the unsigned one.
+            if is_integral(lt) and is_integral(rt):
+                helper = "id_shl" if op == "<<" else "id_sar"
+                return f"{helper}({lc}, {rc})", arith_result(lt, rt)
+            raise CompileError(e.file, e.line,
+                               f"'{op}' requires int or word operands, got {lt} and {rt}")
         if op in ("+", "-", "*", "/", "%"):
             if is_numeric(lt) and is_numeric(rt):
                 if op == "%" and (lt == "float" or rt == "float"):
                     raise CompileError(e.file, e.line, "'%' requires int operands")
-                res = "float" if "float" in (lt, rt) else "int"
+                res = arith_result(lt, rt)
+                if op in ("/", "%") and res == "word":
+                    # Division by zero, and the LLONG_MIN/-1 overflow, are
+                    # undefined in C. On `word` -- which is new, so nothing
+                    # depends on the old behaviour -- trap them the way an
+                    # out-of-range list index traps. `int` division is left
+                    # exactly as it was: this extension is strictly additive.
+                    helper = "id_sdiv" if op == "/" else "id_smod"
+                    return f"{helper}({lc}, {rc})", res
                 return f"({lc} {op} {rc})", res
             raise CompileError(e.file, e.line, f"cannot apply '{op}' to {lt} and {rt}")
         raise AssertionError(op)
@@ -1449,7 +1780,37 @@ declare ptr @id_chr(i32)
 declare i32 @strcmp(ptr, ptr)
 """
 
-UNSUPPORTED_BUILTINS = ("put", "flush", "getkey", "sleep_ms", "ticks")
+# Builtins the LLVM and WASM backends do not implement. Real-time terminal I/O
+# was always C-only; the flat store and word arithmetic join it because a C
+# pointer, an LLVM `inttoptr`+`load`, and a WASM `i32.load8_u` into linear
+# memory are three genuinely different address spaces, and guessing wrong
+# would be worse than saying so.
+UNSUPPORTED_BUILTINS = (("put", "flush", "getkey", "sleep_ms", "ticks")
+                        + tuple(STORE_BUILTINS) + tuple(WORD_BUILTINS)
+                        + ("str_of_mem", "mem_of_str"))
+
+
+def unsupported_builtin_msg(name) -> str:
+    what = ("real-time I/O is C-only" if name in ("put", "flush", "getkey",
+                                                  "sleep_ms", "ticks")
+            else "the flat store and word arithmetic are C-only")
+    return (f"builtin '{name}' is not supported for this --target ({what})")
+
+
+def reject_word_type(funcs, target):
+    """The C target is the only one with a 64-bit machine word, so a program
+    using `word` is rejected up front with a clear message rather than
+    crashing somewhere inside instruction selection."""
+    for fn in funcs:
+        sites = [(fn.rettype, fn.file, fn.line)]
+        sites += [(t, fn.file, fn.line) for t, _ in fn.params]
+        sites += [(st.typ, st.file, st.line)
+                  for st in walk_stmts(fn.body) if isinstance(st, DeclStmt)]
+        for typ, file, line in sites:
+            if typ.startswith("word"):
+                raise CompileError(file, line,
+                                   f"type 'word' is not supported for "
+                                   f"--target {target} (it is C-only)")
 
 
 class LLVMBackend:
@@ -1764,6 +2125,12 @@ class LLVMBackend:
                 t2 = self.new_tmp()
                 self.emit(f"  {t2} = zext i1 {t1} to i32")
                 return t2, "int"
+            if e.op == "~":
+                if typ != "int":
+                    raise CompileError(e.file, e.line, f"cannot apply '~' to a {typ}")
+                t = self.new_tmp()
+                self.emit(f"  {t} = xor i32 {val}, -1")
+                return t, "int"
             raise AssertionError(e.op)
         if isinstance(e, BinOp):
             return self.gen_binop(e, fn)
@@ -1833,7 +2200,11 @@ class LLVMBackend:
                 self.emit(f"  {t2} = zext i1 {t1} to i32")
                 return t2, "int"
             raise CompileError(e.file, e.line, f"'{op}' requires int operands")
-        if op in ("+", "-", "*", "/", "%"):
+        if op in ("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>"):
+            if op in ("&", "|", "^", "<<", ">>") and not (lt == "int" and rt == "int"):
+                raise CompileError(e.file, e.line,
+                                   f"'{op}' requires int operands on --target llvm "
+                                   f"(word arithmetic is C-only)")
             if is_numeric(lt) and is_numeric(rt):
                 if op == "%" and (lt == "float" or rt == "float"):
                     raise CompileError(e.file, e.line, "'%' requires int operands")
@@ -1843,7 +2214,9 @@ class LLVMBackend:
                 t = self.new_tmp()
                 if res == "int":
                     instr = {"+": "add", "-": "sub", "*": "mul",
-                             "/": "sdiv", "%": "srem"}[op]
+                             "/": "sdiv", "%": "srem",
+                             "&": "and", "|": "or", "^": "xor",
+                             "<<": "shl", ">>": "ashr"}[op]
                     self.emit(f"  {t} = {instr} i32 {lc2}, {rc2}")
                 else:
                     instr = {"+": "fadd", "-": "fsub", "*": "fmul", "/": "fdiv"}[op]
@@ -1941,9 +2314,7 @@ class LLVMBackend:
             self.emit(f"  {t} = call ptr @id_chr(i32 {val})")
             return t, "string"
         if name in UNSUPPORTED_BUILTINS:
-            raise CompileError(e.file, e.line,
-                               f"builtin '{name}' is not supported for this "
-                               f"--target (real-time I/O is C-only)")
+            raise CompileError(e.file, e.line, unsupported_builtin_msg(name))
         args = [self.gen_expr(a, fn) for a in e.args]
         callee = self.compiler.funcs.get(name)
         if callee is None:
@@ -2691,6 +3062,10 @@ class WasmBackend:
                 if typ != "int":
                     raise CompileError(e.file, e.line, f"cannot apply '!' to a {typ}")
                 return f"(i32.eqz {val})", "int"
+            if e.op == "~":
+                if typ != "int":
+                    raise CompileError(e.file, e.line, f"cannot apply '~' to a {typ}")
+                return f"(i32.xor {val} (i32.const -1))", "int"
             raise AssertionError(e.op)
         if isinstance(e, BinOp):
             return self.gen_binop(e, fn, env)
@@ -2733,7 +3108,11 @@ class WasmBackend:
                 instr = "i32.and" if op == "&&" else "i32.or"
                 return f"({instr} {lb} {rb})", "int"
             raise CompileError(e.file, e.line, f"'{op}' requires int operands")
-        if op in ("+", "-", "*", "/", "%"):
+        if op in ("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>"):
+            if op in ("&", "|", "^", "<<", ">>") and not (lt == "int" and rt == "int"):
+                raise CompileError(e.file, e.line,
+                                   f"'{op}' requires int operands on --target wasm "
+                                   f"(word arithmetic is C-only)")
             if is_numeric(lt) and is_numeric(rt):
                 if op == "%" and (lt == "float" or rt == "float"):
                     raise CompileError(e.file, e.line, "'%' requires int operands")
@@ -2741,7 +3120,9 @@ class WasmBackend:
                 lc2, rc2 = self.coerce(lc, lt, res), self.coerce(rc, rt, res)
                 if res == "int":
                     instr = {"+": "i32.add", "-": "i32.sub", "*": "i32.mul",
-                             "/": "i32.div_s", "%": "i32.rem_s"}[op]
+                             "/": "i32.div_s", "%": "i32.rem_s",
+                             "&": "i32.and", "|": "i32.or", "^": "i32.xor",
+                             "<<": "i32.shl", ">>": "i32.shr_s"}[op]
                 else:
                     instr = {"+": "f64.add", "-": "f64.sub", "*": "f64.mul",
                              "/": "f64.div"}[op]
@@ -2820,9 +3201,7 @@ class WasmBackend:
                 raise CompileError(e.file, e.line, f"chr expects an int, got {typ}")
             return f"(call $id_chr {val})", "string"
         if name in UNSUPPORTED_BUILTINS:
-            raise CompileError(e.file, e.line,
-                               f"builtin '{name}' is not supported for this "
-                               f"--target (real-time I/O is C-only)")
+            raise CompileError(e.file, e.line, unsupported_builtin_msg(name))
         args = [self.gen_expr(a, fn, env) for a in e.args]
         callee = self.compiler.funcs.get(name)
         if callee is None:
@@ -3249,9 +3628,11 @@ def main(argv):
             code = compiler.compile()
         elif args.target == "llvm":
             compiler.validate()
+            reject_word_type(compiler.funcs.values(), "llvm")
             code = LLVMBackend(compiler).emit_module()
         else:
             compiler.validate()
+            reject_word_type(compiler.funcs.values(), "wasm")
             code = WasmBackend(compiler).emit_module()
     except CompileError as err:
         print(str(err), file=sys.stderr)
