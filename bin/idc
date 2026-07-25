@@ -120,6 +120,22 @@ else
     echo "idc: no such file or directory: '$PATH_ARG'" >&2
     exit 1
 fi
+# The 3-entries-per-directory rule. This is the one structural rule the
+# self-hosted compiler genuinely cannot check: it is a property of the
+# filesystem, and `id` has no directory access -- which is the same reason
+# this driver exists at all. Everything else belongs in idparse.
+if [ -d "$PATH_ARG" ]; then
+    while IFS= read -r d; do
+        n_id=$(find "$d" -maxdepth 1 -name '*.id' ! -name 'import.id' | wc -l)
+        n_dir=$(find "$d" -mindepth 1 -maxdepth 1 -type d | wc -l)
+        total=$((n_id + n_dir))
+        if [ "$total" -gt 3 ]; then
+            echo "$d:1: error: a project directory may contain at most 3 files and directories combined, but this one has $total (.id files and subdirectories); split it into subdirectories" >&2
+            exit 1
+        fi
+    done < <(find "$PATH_ARG" -type d)
+fi
+
 if [ ${#SRC_FILES[@]} -eq 0 ]; then
     echo "idc: no .id files in this project" >&2
     exit 1
