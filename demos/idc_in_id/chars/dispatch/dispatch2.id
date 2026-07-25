@@ -1,12 +1,13 @@
 // Dispatch chain, part 2: the tail of the per-character decision tree.
 
-// number, or hand off
+// hex literal, or hand off. Hex is tested before the decimal case because
+// `0x1f` starts with a digit and would otherwise scan as the number 0.
 scan_numop(string src, int i) {
   int ni = 0;
-  if(is_digit(charat(src, i))) {
-    ni = scan_number(src, i);
+  if(hex_start(src, i)) {
+    ni = scan_hex(src, i);
   } else {
-    ni = scan_strop(src, i);
+    ni = scan_decop(src, i);
   }
 } return int ni;
 
