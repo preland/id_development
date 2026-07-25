@@ -77,7 +77,12 @@ def box(code, typ):
     if typ == "int":
         return f"(long long)({code})"
     if typ == "word":
-        return f"({code})"          # a word already *is* the cell width
+        # The cast is not redundant. List cells are filled through
+        # id_list_lit's varargs and read back with va_arg(ap, long long), so an
+        # `int`-typed expression stored into a word[] must be widened *here* --
+        # default argument promotion only takes it to `int`, and reading those
+        # 4 bytes as 8 yields garbage in the top half.
+        return f"(long long)({code})"
     if typ == "float":
         return f"id_box_f({code})"
     return f"(long long)(intptr_t)({code})"   # string or any list (pointer)

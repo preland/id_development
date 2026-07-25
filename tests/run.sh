@@ -384,6 +384,23 @@ $IDC "$TMP/store" -o "$TMP/store.out" >/dev/null 2>&1
 expect_output "flat store: poke/peek, widths, string bridge" "1234
 48879 239 hi" "$("$TMP/store.out")"
 
+# A narrower value stored into a word[] must be widened at the point of the
+# store: list cells are filled through id_list_lit's varargs and read back as
+# `long long`, so without the cast an int element comes back with garbage in
+# its top 32 bits. This regressed once; it now has a test.
+mkdir -p "$TMP/wbox"
+cat > "$TMP/wbox/m.id" <<'EOF'
+wzero() {
+} return word 0;
+
+main(int argc, string[] argv) {
+  word[] xs = [wzero(), 0 - 1];
+  print("" + xs[1] + " " + xs[0]);
+} return int 0;
+EOF
+$IDC "$TMP/wbox" -o "$TMP/wbox.out" >/dev/null 2>&1
+expect_output "int element widened into a word[]" "-1 0" "$("$TMP/wbox.out")"
+
 # --- alt codegen targets (--target llvm / --target wasm): a handful of
 # known-good demos must produce the SAME program output/exit code as the
 # default C target. Needs clang (llvm) and wat2wasm + wasmtime (wasm); skip
