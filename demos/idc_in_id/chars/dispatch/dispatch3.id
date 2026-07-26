@@ -7,3 +7,25 @@ scan_decop(string src, int i) {
     ni = scan_strop(src, i);
   }
 } return int ni;
+
+// A `#file <path>` marker, injected between concatenated source files by the
+// driver. `id` has no filesystem access and the pipeline hands idparse one
+// stream, so without this the compiler cannot tell where one file ends and
+// the next begins -- which is what the 3-functions-per-file rule needs, and
+// what a diagnostic needs to name a file at all.
+//
+// A `#` cannot begin an id token otherwise, so nothing legal is shadowed.
+scan_hashop(string src, int i) {
+  int ni = 0;
+  if(charat(src, i) == 35) {
+    ni = scan_hash(src, i);
+  } else {
+    ni = scan_token(src, i);
+  }
+} return int ni;
+
+// i points at the '#'; the path starts 6 characters later, past "#file ".
+scan_hash(string src, int i) {
+  int e = skip_comment(src, i);
+  print("file " + slice_str(src, i + 6, e));
+} return int e;

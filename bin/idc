@@ -181,7 +181,20 @@ C_OUT="$WORK/out.c"
 LEX_ERR="$WORK/lex.err"
 PARSE_ERR="$WORK/parse.err"
 
-cat "${SRC_FILES[@]}" | "$IDLEX" 2>"$LEX_ERR" | "$IDPARSE" > "$C_OUT" 2>"$PARSE_ERR"
+# Feed the sources as one stream, with a `#file` marker between them. The
+# self-hosted stages see a single concatenated input, so without these markers
+# they cannot tell where one file ends and the next begins -- which is what
+# the 3-functions-per-file rule counts, and what lets a diagnostic name a file.
+emit_sources() {
+    local f
+    for f in "${SRC_FILES[@]}"; do
+        printf '#file %s\n' "$f"
+        cat "$f"
+        printf '\n'
+    done
+}
+
+emit_sources | "$IDLEX" 2>"$LEX_ERR" | "$IDPARSE" > "$C_OUT" 2>"$PARSE_ERR"
 rc=("${PIPESTATUS[@]}")
 lex_rc="${rc[1]}"
 parse_rc="${rc[2]}"

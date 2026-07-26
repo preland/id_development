@@ -1,0 +1,15 @@
+// A declaration is either an asm body or an ordinary function; a function is
+// recorded together with the file it came from, which is what the
+// 3-functions-per-file rule counts.
+parse_decl_top(int[] pos) {
+  if(cur_text(pos) == "asm") {
+    parse_asm(pos);
+  } else {
+    push_func(pos);
+  }
+} return void;
+
+push_func(int[] pos) {
+  push((import pfile), cur_file());
+  push((import prog), parse_func(pos));
+} return void;

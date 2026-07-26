@@ -1,0 +1,27 @@
+// Which source file the compiler is currently reading. The pipeline hands
+// idparse one concatenated stream, so the driver injects `#file <path>`
+// markers between files and the lexer turns each into a `file` token.
+//
+// The current file is the last one pushed -- a list rather than a mutable
+// cell, because only a declaring function may assign an exported scalar, and
+// a stack needs no assignment at all.
+//
+//   fseen  every file marker seen, in order
+//   pfile  the file each entry of `prog` came from, same length as `prog`
+
+init_files() {
+  export string[] fseen = [];
+  export string[] pfile = [];
+} return void;
+
+cur_file() {
+  string s = "<stdin>";
+  if(len((import fseen)) > 0) {
+    s = (import fseen)[len((import fseen)) - 1];
+  }
+} return string s;
+
+take_file(int[] pos) {
+  push((import fseen), cur_text(pos));
+  advance(pos);
+} return void;
