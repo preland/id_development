@@ -97,7 +97,11 @@ $IDC ../demos/idc_in_id -o "$TMP/idlex" 2>/dev/null || bad "idc-in-id lexer comp
 expect_output "id-lexer keyword"    "kw while"   "$(printf 'while' | "$TMP/idlex" | head -1)"
 expect_output "id-lexer two-char op" "op =="     "$(printf 'x == 2' | "$TMP/idlex" | sed -n 2p)"
 expect_output "id-lexer string lit" 'str "hi"'   "$(printf '"hi"'   | "$TMP/idlex" | head -1)"
-expect_output "id-lexer comment skip + eof" "eof" "$(printf '// just a comment\n' | "$TMP/idlex" | head -1)"
+# `line N` markers carry source positions for diagnostics; they are not
+# tokens, and the parser drops them. Filtered here so these assertions stay
+# about tokenisation.
+expect_output "id-lexer comment skip + eof" "eof" "$(printf '// just a comment\n' | "$TMP/idlex" | grep -v '^line ' | head -1)"
+expect_output "id-lexer tracks lines" "line 3" "$(printf 'a\n\nb' | "$TMP/idlex" | sed -n 3p)"
 
 # --- idc-in-id stage 2: the calculator (parser + evaluator + printer written
 #     in id), fed by the stage-1 lexer through a pipe

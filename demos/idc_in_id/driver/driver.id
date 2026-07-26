@@ -25,10 +25,20 @@
 //   classify2.id  is_alnum / is_kw / kindof
 
 main(int argc, string[] argv) {
-  string src = read_all();
-  lex(src);
+  export int[] lexline = [1];
+  lex(read_all());
   print("eof");
 } return int 0;
+
+// A `line N` marker is emitted whenever a newline is consumed, so every token
+// after it belongs to line N. Only one place in the whole lexer consumes a raw
+// newline -- the whitespace branch of scan_one -- which is why tracking costs
+// one function rather than a parameter threaded through the dispatch chain.
+eat_space(string src, int i) {
+  if(charat(src, i) == 10) {
+    bump_line();
+  }
+} return int i + 1;
 
 // One pass over the source: advance the cursor one token at a time. The whole
 // per-character decision tree lives in the scan_* chain, not here.
