@@ -12,9 +12,15 @@ else_body(int[] pos) {
   }
 } return int[] elsel;
 
+// 0 = no else arm, 1 = `else if`, 2 = a plain `else { ... }`. The third case
+// matters because an *empty* `else { }` still costs an action, and its else
+// list is empty too -- so the list alone cannot tell it from having no else.
 at_elif(int[] pos) {
   int ok = 0;
-  if(cur_text(pos) == "else" && cur2_text(pos) == "if") {
+  if(cur_text(pos) == "else") {
+    ok = 2;
+  }
+  if(ok == 2 && cur2_text(pos) == "if") {
     ok = 1;
   }
 } return int ok;

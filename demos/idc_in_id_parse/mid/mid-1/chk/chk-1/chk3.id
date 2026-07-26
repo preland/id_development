@@ -1,0 +1,27 @@
+// Checking one block, mirroring idc.py's check_block exactly.
+//
+// The depth test comes first and takes over the block completely: a block that
+// is too deep is reported for that and nothing else -- its action count is not
+// examined and its children are not visited, which is what idc.py does by
+// raising there. A block that is deep enough to check is then measured, and
+// its compound statements are walked one level down.
+
+check_block(int[] body, int depth, string fname) {
+  if(depth > 2) {
+    report_deep(fname, depth);
+  } else {
+    check_fits(body, depth, fname);
+  }
+} return void;
+
+check_fits(int[] body, int depth, string fname) {
+  check_count(body, fname);
+  check_children(body, depth, fname);
+} return void;
+
+check_count(int[] body, string fname) {
+  int n = count_actions(body);
+  if(n > 3) {
+    report_actions(fname, n);
+  }
+} return void;

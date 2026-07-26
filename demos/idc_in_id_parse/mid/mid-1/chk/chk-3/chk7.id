@@ -1,0 +1,21 @@
+// A trailing `else { ... }`, and the two diagnostics.
+//
+// The message text is idc.py's, word for word, so a program rejected by either
+// compiler is rejected with the same explanation. There is no file:line prefix
+// because the token stream reaching this compiler carries neither.
+
+check_plain_else(int[] els, int depth, string fname) {
+  if(len(els) > 0) {
+    check_block(els, depth + 1, fname);
+  }
+} return void;
+
+report_actions(string fname, int n) {
+  print("a block in '" + fname + "' performs " + n + " actions; the limit is 3 (each statement, if, else, and while is one action; return is free) -- move some statements into a helper function to stay within the limit");
+  note_failure();
+} return void;
+
+report_deep(string fname, int depth) {
+  print("code in '" + fname + "' is nested too deeply (" + depth + " levels); the maximum is 2. Split the inner block into its own function");
+  note_failure();
+} return void;

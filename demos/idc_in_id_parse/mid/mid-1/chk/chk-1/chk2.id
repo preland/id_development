@@ -1,0 +1,17 @@
+// The "something was rejected" flag. id has no stderr and no early exit, so
+// the checker accumulates instead: every reporter sets this cell, and the
+// driver decides what to do with it. An exported scalar may only be assigned
+// by the function that declares it, so the flag is a one-element list.
+
+check_failed() {
+} return int (import chkfail)[0];
+
+note_failure() {
+  chk_set((import chkfail), 0, 1);
+} return void;
+
+// Writing through an imported list needs the list as a parameter: an
+// index-assignment is only recognised when the target is a plain identifier.
+chk_set(int[] cell, int i, int v) {
+  cell[i] = v;
+} return void;
