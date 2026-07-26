@@ -1,0 +1,18 @@
+asm_error(string name, string triple) {
+  print("error: no 'asm' definition of '" + name + "' for target '" + triple + "'; defined for: " + asm_triples(name));
+} return void;
+
+emit_asm_one(int r) {
+  print(c_type((import afret)[r]) + " id_" + (import afname)[r] + "(" + list_params((import afparams)[r]) + ") {");
+  print("    " + c_type((import afret)[r]) + " " + (import afretn)[r] + ";");
+  asm_stmt(r);
+} return void;
+
+// GCC extended asm. Every block is volatile with a memory clobber: that is
+// conservative, but the alternative is trusting hand-written clobber lists,
+// and a wrong one is a miscompile that shows up under -O2 months later.
+asm_stmt(int r) {
+  print("    __asm__ __volatile__(" + asm_text(r) + " : [" + (import afretn)[r] + "] " + chr(34) + "=r" + chr(34) + " (" + (import afretn)[r] + ") : " + asm_in_ops((import afparams)[r]) + " : " + chr(34) + "memory" + chr(34) + ");");
+  print("    return " + (import afretn)[r] + ";");
+  print("}");
+} return void;

@@ -1,0 +1,20 @@
+asm_lines(int[] pos) {
+  string[] alines = [];
+  scan_asm(pos, alines);
+  push((import aflines), alines);
+} return int asm_tail(pos);
+
+scan_asm(int[] pos, string[] alines) {
+  advance(pos);
+  fill_asm(pos, alines);
+  advance(pos);
+} return void;
+
+// The body is a run of string literals and nothing else: an asm function is a
+// leaf, so there is no statement, call or import to read here.
+fill_asm(int[] pos, string[] alines) {
+  while(cur_kind(pos) == "str") {
+    push(alines, cur_text(pos));
+    advance(pos);
+  }
+} return void;
