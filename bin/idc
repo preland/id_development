@@ -226,6 +226,18 @@ do_fallback() { # do_fallback REASON
     exit $?
 }
 
+# Exit code 1 from idparse means the *program* broke a rule of the language,
+# not that the self-hosted stages could not cope. Those diagnostics are the
+# answer, so report them and stop -- falling back here would hand the program
+# to idc.py, which would either repeat the error or, for a rule it does not
+# check, quietly accept it.
+if [ "$parse_rc" -eq 1 ]; then
+    cat "$C_OUT" >&2
+    [ -s "$PARSE_ERR" ] && cat "$PARSE_ERR" >&2
+    rm -f "$C_OUT"
+    exit 1
+fi
+
 if [ "$lex_rc" -ne 0 ] || [ "$parse_rc" -ne 0 ] || [ ! -s "$C_OUT" ]; then
     [ -s "$LEX_ERR" ] && cat "$LEX_ERR" >&2
     [ -s "$PARSE_ERR" ] && cat "$PARSE_ERR" >&2

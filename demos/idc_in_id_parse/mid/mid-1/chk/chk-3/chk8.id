@@ -16,9 +16,14 @@ check_files() {
 } return void;
 
 // Reported once per file rather than once per function over the limit.
+//
+// The `len(fseen) > 0` guard matters: without `#file` markers every function
+// is attributed to the same placeholder, so a legal nine-function project
+// would look like one nine-function file. Absent markers the rule is simply
+// unknowable, and guessing is worse than not checking.
 check_file_at(int i) {
   int n = count_file((import pfile)[i]);
-  if(first_of_file(i) == 1 && n > 3) {
+  if(first_of_file(i) == 1 && n > 3 && len((import fseen)) > 0) {
     report_funcs((import pfile)[i], n);
   }
 } return void;
