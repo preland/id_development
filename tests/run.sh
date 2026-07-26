@@ -221,6 +221,34 @@ else
     bad "codegen parity with idc.py (demos/adventure)"
 fi
 
+# parity on `else if`, and on the `else { if }` that looks identical in the
+# AST but must emit differently: idc.py splices an else-if chain flat, and
+# nests a braced block. The self-hosted parser carries the distinction as a
+# flag on the if node, because by the time the else arm is parsed the tokens
+# that told them apart are gone.
+mkdir -p "$TMP/g_elif"
+cat > "$TMP/g_elif/m.id" <<'EOF'
+main(int argc, string[] argv) {
+  print(chain(0) + chain(1) + chain(2) + nested(0));
+} return int 0;
+
+chain(int n) {
+  string s = "z";
+  if(n == 0) { s = "a"; } else if(n == 1) { s = "b"; }
+} return string s;
+
+nested(int n) {
+  string s = "-";
+  if(n > 5) { s = "big"; } else { s = chain(n); }
+} return string s;
+EOF
+"$IDC" "$TMP/g_elif" --emit-c "$TMP/elif_py.c" >/dev/null 2>&1
+project_cat "$TMP/g_elif" | "$TMP/idlex" | "$TMP/idparse" > "$TMP/elif_id.c"
+if diff "$TMP/elif_py.c" "$TMP/elif_id.c" >/dev/null; then
+    ok "codegen parity with idc.py (else if vs else-block)"
+else
+    bad "codegen parity with idc.py (else if vs else-block)"
+fi
 # parity on the systems features: word, hex literals, all six bitwise
 # operators, the flat store, and the unsigned builtins. These are what the
 # kernel port is written in, so the self-hosted stages have to cover them --
