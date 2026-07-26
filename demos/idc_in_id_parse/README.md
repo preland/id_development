@@ -26,9 +26,17 @@ printf 'add(int x, int y) {\n  int sum = x + y;\n} return int sum;\n' | ./idlex 
 - **Statements:** declarations (`[export] type name = expr;`), assignments
   (`name = expr;`), `if`/`else`, `while`, and expression statements (calls).
 - **Expressions:** integer/string literals, variables, function calls with
-  arguments, parentheses, and binary operators across three precedence levels —
-  relational/equality (`== != < > <= >=`, and a bare `=` meaning equality),
-  additive (`+ -`), multiplicative (`* / %`). Left-associative.
+  arguments, parentheses, and left-associative binary operators across the full
+  precedence ladder — `||`, `&&`, relational/equality (`== != < > <= >=`, and a
+  bare `=` meaning equality), then the bitwise group `|`, `^`, `&`, `<< >>`,
+  then additive (`+ -`) and multiplicative (`* / %`), then unary (`- ! ~`).
+  As in `idc.py`, the bitwise levels sit *below* the comparisons — tighter, not
+  looser — so `flags & MASK != 0` groups the way it reads.
+- **Systems types:** the 64-bit `word`, integer literals wider than an `int`
+  (emitted with C's `LL` suffix), the flat-store builtins (`alloc`,
+  `store_size`, `peek8/16/32/64`, `poke8/16/32/64`), the unsigned operations
+  (`udiv`, `umod`, `ult`, `ushr`), and the store/string bridges (`str_of_mem`,
+  `mem_of_str`).
 
 The `classify` and `countdown` shapes from the other demos parse exactly.
 
@@ -71,10 +79,20 @@ type-dependent emission to match idc.py exactly:
   `/* exported variables */` block (not hoisted locals)
 - list types (`T[]`) map to `IdList*`; `main(int, string[])` gets the argv-
   marshalling wrapper
-- `||`/`&&` (above equality), unary `-`/`!`, array indexing `a[i]` and
+- `||`/`&&` (above equality), unary `-`/`!`/`~`, array indexing `a[i]` and
   index-assignment `a[i] = v`, array literals (`[]`, `[a, b]`), and the list
   builtins — `push` → `id_list_push` and `len` → `id_list_len`/`id_len` — all
   emit with the same boxing/unboxing casts idc.py uses for the uniform cells
+- `word` is C `long long`; `print(word)` → `id_str_of_word(x)`. Arithmetic and
+  bitwise operators widen their operands (`int` < `word` < `float`), and the
+  result type is what decides the shape: `a << b` and `a >> b` always become
+  `id_shl`/`id_sar`, while `/` and `%` become `id_sdiv`/`id_smod` **only** on a
+  `word` — plain `int` division keeps emitting `(a / b)`, so nothing that
+  compiled before changes. `& | ^` are plain C infix
+- the systems builtins emit as their C helper applied to arguments cast to
+  `(long long)` — `alloc` → `id_mem_alloc`, `store_size` → `id_mem_size`, and
+  `id_` + the name for the rest. `mem_of_str` takes a string, so it is the one
+  that emits with no cast
 
 Whole demos at parity today: **`demos/calc`** and **`demos/adventure`** (and the
 export/import roundtrip) emit byte-identical C under both compilers; checked in

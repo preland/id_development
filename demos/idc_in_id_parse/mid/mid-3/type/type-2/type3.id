@@ -2,7 +2,7 @@
 
 bt2(string name) {
   string t = "?";
-  if(name == "input" || name == "read_all" || name == "chr") {
+  if(name == "input" || name == "read_all" || name == "chr" || name == "str_of_mem") {
     t = "string";
   } else {
     t = bt3(name);
@@ -10,17 +10,17 @@ bt2(string name) {
 } return string t;
 
 bt3(string name) {
-  string t = "?";
-  if(name == "to_int" || name == "len" || name == "charat") {
+  string t = bt4(name);
+  if(name == "to_int" || name == "len" || name == "charat" || name == "ult") {
     t = "int";
   }
 } return string t;
 
-// `+` with a string operand is concatenation (-> string); everything else
-// (arithmetic, comparison) is int in this scalar+string subset.
+// `+` with a string operand is concatenation (-> string); anything else is an
+// arithmetic/bitwise widening or a predicate, which tb2 decides.
 type_bin(int id) {
-  string t = "int";
-  if(is_concat(id)) {
-    t = "string";
+  string t = "string";
+  if(is_concat(id) == 0) {
+    t = tb2(id);
   }
 } return string t;

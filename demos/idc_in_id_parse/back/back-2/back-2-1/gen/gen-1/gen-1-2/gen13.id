@@ -1,5 +1,6 @@
-// Binary expression. Three forms: id_concat for string `+`, a strcmp for
-// string equality, and ordinary infix otherwise.
+// Binary expression. Four forms: id_concat for string `+`, a strcmp for
+// string equality, a runtime-helper call for the shifts and word division
+// (see back-2-3), and ordinary infix otherwise.
 
 emit_bin(int id) {
   string s = emit_op2(id);
@@ -9,7 +10,7 @@ emit_bin(int id) {
 } return string s;
 
 emit_op2(int id) {
-  string s = emit_infix(id);
+  string s = emit_op3(id);
   if(is_strcmp(id)) {
     s = emit_strcmp(id);
   }

@@ -1,8 +1,18 @@
-// Last scalar type mapping: void stays void, everything else is int.
+// Last scalar type mappings. Each level names the type it handles instead of
+// falling through to a default, so an unknown type reaches cs4's `int` only
+// because `int` is genuinely the last case, not because it was forgotten.
 
 cs3(string t) {
-  string ct = "int";
+  string ct = cs4(t);
   if(t == "void") {
     ct = "void";
+  }
+} return string ct;
+
+// `word` is the 64-bit machine word; it is `long long` in C.
+cs4(string t) {
+  string ct = "int";
+  if(t == "word") {
+    ct = "long long";
   }
 } return string ct;

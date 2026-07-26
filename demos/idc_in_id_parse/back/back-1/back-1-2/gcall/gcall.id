@@ -2,6 +2,7 @@
 //   print -> id_print(to_string(...))   (in gen14)
 //   len   -> id_len (string) or id_list_len (list)
 //   push  -> id_list_push with the value boxed
+//   pop   -> id_list_pop unboxed to the element type (in gpop)
 //   everything else -> id_NAME(args)  (charat/chr/to_int/input/read_all and
 //   ordinary user calls all take this generic form, matching idc.py)
 
@@ -13,11 +14,15 @@ ec2(int id) {
 } return string s;
 
 ec3(int id) {
-  string s = emit_gcall(id);
+  string s = ec4(id);
   if(s1_of(id) == "push") {
     s = emit_push(id);
   }
 } return string s;
 
 emit_gcall(int id) {
-} return string "id_" + s1_of(id) + "(" + emit_args(l1_of(id)) + ")";
+  string s = "id_" + s1_of(id) + "(" + emit_args(l1_of(id)) + ")";
+  if(is_syscall(s1_of(id))) {
+    s = emit_syscall(id);
+  }
+} return string s;

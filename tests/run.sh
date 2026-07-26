@@ -221,6 +221,67 @@ else
     bad "codegen parity with idc.py (demos/adventure)"
 fi
 
+# parity on the systems features: word, hex literals, all six bitwise
+# operators, the flat store, and the unsigned builtins. These are what the
+# kernel port is written in, so the self-hosted stages have to cover them --
+# a gap here used to be invisible, because bin/idc would silently fall back to
+# idc.py rather than report it.
+mkdir -p "$TMP/g_sys"
+cat > "$TMP/g_sys/m.id" <<'EOF'
+main(int argc, string[] argv) {
+  word p = alloc(64);
+  poke32(p, 0xdeadbeef);
+  show(p);
+} return int 0;
+
+show(word p) {
+  word v = peek32(p);
+  print("" + (v & 0xffff) + (v | 1) + (v ^ 255) + (~v) + (v << 3) + (v >> 2));
+  print("" + udiv(v, 7) + umod(v, 7) + ult(v, 1) + ushr(0 - 16, 60) + str_of_mem(mem_of_str("k"), 1));
+} return void;
+EOF
+"$IDC" "$TMP/g_sys" --emit-c "$TMP/sys_py.c" >/dev/null 2>&1
+project_cat "$TMP/g_sys" | "$TMP/idlex" | "$TMP/idparse" > "$TMP/sys_id.c"
+if diff "$TMP/sys_py.c" "$TMP/sys_id.c" >/dev/null; then
+    ok "codegen parity with idc.py (word/bitwise/store)"
+else
+    bad "codegen parity with idc.py (word/bitwise/store)"
+fi
+# parity on pop, whose result type is the list's element type and so cannot be
+# derived from the callee name alone. The self-hosted emitter used to produce
+# a call to a runtime function that does not exist.
+mkdir -p "$TMP/g_pop"
+cat > "$TMP/g_pop/m.id" <<'EOF'
+main(int argc, string[] argv) {
+  int[] xs = [1, 2];
+  string[] ss = ["a", "b"];
+  print("" + pop(xs) + pop(ss));
+} return int 0;
+EOF
+"$IDC" "$TMP/g_pop" --emit-c "$TMP/pop_py.c" >/dev/null 2>&1
+project_cat "$TMP/g_pop" | "$TMP/idlex" | "$TMP/idparse" > "$TMP/pop_id.c"
+if diff "$TMP/pop_py.c" "$TMP/pop_id.c" >/dev/null; then
+    ok "codegen parity with idc.py (pop element type)"
+else
+    bad "codegen parity with idc.py (pop element type)"
+fi
+# the unsigned end of the hex range: 0xffffffffffffffff must lex to
+# 18446744073709551615, not -1
+mkdir -p "$TMP/g_hex"
+cat > "$TMP/g_hex/m.id" <<'EOF'
+main(int argc, string[] argv) {
+  word a = 0xffffffffffffffff;
+  print("" + a + " " + 0x7fffffffffffffff + " " + 0xff);
+} return int 0;
+EOF
+"$IDC" "$TMP/g_hex" --emit-c "$TMP/hex_py.c" >/dev/null 2>&1
+project_cat "$TMP/g_hex" | "$TMP/idlex" | "$TMP/idparse" > "$TMP/hex_id.c"
+if diff "$TMP/hex_py.c" "$TMP/hex_id.c" >/dev/null; then
+    ok "codegen parity with idc.py (wide hex literals)"
+else
+    bad "codegen parity with idc.py (wide hex literals)"
+fi
+
 # --- self-hosting: the id-written compiler emits byte-identical C for its OWN
 #     source (lexer + parser/codegen), and the self-compiled compiler is a
 #     fixpoint (compiling itself twice reproduces the same C exactly).

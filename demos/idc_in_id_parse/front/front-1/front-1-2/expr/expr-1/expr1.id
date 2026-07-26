@@ -2,17 +2,18 @@
 // then folds left-associative operators; each fold step is its own function so
 // the loop body stays within the 3-action limit.
 //
-//   expr -> or -> and -> rel -> add -> mul -> postfix -> primary
+//   expr -> or -> and -> rel -> bitor -> bitxor -> bitand -> shift
+//        -> add -> mul -> unary -> postfix -> primary
 //
-// (No unary minus: write `0 - x`. That keeps the grammar small; it is a
-// natural production to add later.)
+// The four bitwise levels are in bits/; the rest are here and in the
+// neighbouring files.
 
 parse_expr(int[] pos) {
 } return int parse_or(pos);
 
-// relational / equality: add (('=='|'!='|'<'|'>'|'<='|'>=') add)*
+// relational / equality: bitor (('=='|'!='|'<'|'>'|'<='|'>=') bitor)*
 parse_rel(int[] pos) {
-  int left = parse_add(pos);
+  int left = parse_bitor(pos);
   while(is_relop(cur_text(pos))) {
     left = fold_rel(pos, left);
   }
@@ -21,5 +22,5 @@ parse_rel(int[] pos) {
 fold_rel(int[] pos, int left) {
   string op = cur_text(pos);
   advance(pos);
-  int right = parse_add(pos);
+  int right = parse_bitor(pos);
 } return int node_bin(op, left, right);
