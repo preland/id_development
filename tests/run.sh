@@ -292,6 +292,16 @@ guard_reject "one name one type" 'main(int argc, string[] argv) {
 other() {
   string v = "x";
 } return void;' "must keep one type"
+guard_reject "type mismatch" 'main(int argc, string[] argv) {
+  int x = "hi";
+} return int 0;' "cannot initialize"
+guard_reject "asm return type is checked" 'asm "x86_64-unknown-linux-gnu" tk() {
+  "mov %%rax, %[ret]"
+} return word ret;
+
+main(int argc, string[] argv) {
+  string s = tk();
+} return int 0;' "cannot initialize string"
 guard_reject "unexported access" 'main(int argc, string[] argv) {
   int q = 1;
 } return int 0;

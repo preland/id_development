@@ -17,8 +17,10 @@
 //   * an empty list literal as a value, which has no type of its own -- it
 //     takes the one the context wants. chk_arr judges the context instead.
 
-// The one line added to check_program() calls this: mid-1's per-file rule and
-// mid-3's type rules, so check_program stays at its 3-action limit.
+// The entry point. check_program()'s own block is full -- the chkfail export
+// plus two calls -- so the check families chain instead of each taking a slot
+// there; mid-1's check_scopes() calls this one. It carries mid-1's per-file
+// rule along with it for the same reason.
 check_rest() {
   check_files();
   tc_all();

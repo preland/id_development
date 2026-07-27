@@ -1,3 +1,21 @@
+// The fifth and last place an expected type comes from: a return clause is
+// typed by the function's return type -- idc.py passes fn.rettype into
+// gen_expr there, exactly as it does for the other four.
+//
+// It cannot actually be reached today, in either compiler: parse_type takes
+// `[]` pairs greedily, so `} return int[] [];` reads the literal's brackets as
+// two more type levels and then finds a `;` where the expression should be.
+// It is here anyway because the alternative is a rule that is right for four
+// of idc.py's five cases, which is the kind of near-miss that becomes a false
+// diagnostic the moment the parser stops being greedy.
+// The func node keeps the return expression in ni1 and the return type in ns2.
+want_ret(int i, int id) {
+  int ok = 0;
+  if(k_of(i) == "func" && i1_of(i) == id && ty_is_list(s2_of(i)) == 1) {
+    ok = 1;
+  }
+} return int ok;
+
 // One step of that search: the name, if this function's node is at or after
 // the node being placed, and "" (keep looking) otherwise.
 
