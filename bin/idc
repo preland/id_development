@@ -206,24 +206,17 @@ parse_rc="${rc[2]}"
 # actually valid (the self-hosted lexer's one known gap: float literals --
 # it still splits `0.8` into the tokens `0`, `.`, `8`; see README.md
 # "Self-hosting").
-do_fallback() { # do_fallback REASON
-    # This is a note about the COMPILER's internals, not a complaint about the
-    # user's program: the self-hosted stages (idlex/idparse) are a partial
-    # reimplementation and don't cover every input yet, so this build is
-    # being redone with idc.py, the reference/legacy implementation. Anything
-    # printed after this line comes from idc.py evaluating the program and is
-    # about the program, not about this fallback.
-    echo "idc: note: using reference compiler idc.py for this build" \
-         "(self-hosted stages don't cover this input: $1);" \
-         "any diagnostics below are about your program." >&2
-    fallback_args=("$PATH_ARG")
-    [ -n "$OUTPUT" ] && fallback_args+=(-o "$OUTPUT")
-    [ -n "$EMIT_C" ] && fallback_args+=(--emit-c "$EMIT_C")
-    [ "$KEEP_C" -eq 1 ] && fallback_args+=(--keep-c)
-    fallback_args+=(--cc "$CC")
-    for b in "${BACKENDS[@]}"; do fallback_args+=(--backend "$b"); done
-    "$IDC_PY" "${fallback_args[@]}"
-    exit $?
+# The self-hosted stages cover the whole language, so a failure here is a bug
+# in this compiler, not an input it cannot reach. Falling back to idc.py would
+# hide that -- and worse, would hand the program to a compiler that does not
+# check nine of the language's rules. idc.py's only remaining job is
+# bootstrapping idlex/idparse above, on a cold cache.
+compiler_bug() { # compiler_bug REASON
+    echo "idc: internal error: $1" >&2
+    echo "idc: this is a bug in the self-hosted compiler; please report it." >&2
+    echo "idc: to compare against the reference implementation, run:" >&2
+    echo "idc:     python3 $IDC_PY $PATH_ARG" >&2
+    exit 1
 }
 
 # Exit code 1 from idparse means the *program* broke a rule of the language,
@@ -241,7 +234,7 @@ fi
 if [ "$lex_rc" -ne 0 ] || [ "$parse_rc" -ne 0 ] || [ ! -s "$C_OUT" ]; then
     [ -s "$LEX_ERR" ] && cat "$LEX_ERR" >&2
     [ -s "$PARSE_ERR" ] && cat "$PARSE_ERR" >&2
-    do_fallback "idlex/idparse failed"
+    compiler_bug "idlex or idparse failed on this input"
 fi
 
 # idlex/idparse can exit 0 while having silently mis-lexed something (e.g. a
@@ -251,7 +244,7 @@ fi
 # cause, gate on a real C compiler's syntax check now -- cheap (no linking)
 # and it's the one authoritative way to know the self-hosted output is sound.
 if ! "$CC" -std=c11 -fsyntax-only "$C_OUT" 2>"$WORK/syntax.err"; then
-    do_fallback "self-hosted compiler emitted invalid C (likely an unsupported language feature, e.g. float literals)"
+    compiler_bug "the self-hosted compiler emitted C that does not compile"
 fi
 
 # ---------------------------------------------------------------------------
@@ -374,10 +367,10 @@ for o in "${BACKEND_OBJS[@]}"; do rm -f "$o"; done
 # standards-conforming C compiler), but a lenient `--cc` could still let it
 # through to here, where it would otherwise surface as a raw, unhelpful
 # linker error. Rather than show that, fall back to idc.py so the user sees
-# ITS diagnostic instead (do_fallback re-runs the whole build with idc.py,
+# ITS diagnostic instead (the C compiler's error is about generated code,
 # which will fail the same way but with a much better message -- or, if
 # cc's failure was for some other reason, will simply reproduce it).
 if [ "$cc_rc" -ne 0 ]; then
-    do_fallback "cc failed to compile/link the self-hosted compiler's C output"
+    compiler_bug "cc failed on the self-hosted compiler's output"
 fi
 exit 0
