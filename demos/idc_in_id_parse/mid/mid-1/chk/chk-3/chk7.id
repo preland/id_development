@@ -1,21 +1,21 @@
 // A trailing `else { ... }`, and the two diagnostics.
 //
-// The message text is idc.py's, word for word, so a program rejected by either
-// compiler is rejected with the same explanation. There is no file:line prefix
-// because the token stream reaching this compiler carries neither.
+// The message text is idc.py's, word for word, and now so is the file:line
+// prefix -- the lexer emits line markers and the parser records, per
+// statement, the line it began on.
 
-check_plain_else(int[] els, int depth, string fname) {
+check_plain_else(int[] els, int depth, string fname, int ln) {
   if(len(els) > 0) {
-    check_block(els, depth + 1, fname);
+    check_block(els, depth + 1, fname, ln);
   }
 } return void;
 
-report_actions(string fname, int n) {
-  print(func_loc(fname) + "a block in '" + fname + "' performs " + n + " actions; the limit is 3 (each statement, if, else, and while is one action; return is free) -- move some statements into a helper function to stay within the limit");
+report_actions(string fname, int n, int ln) {
+  print(loc_at(fname, ln) + "a block in '" + fname + "' performs " + n + " actions; the limit is 3 (each statement, if, else, and while is one action; return is free) -- move some statements into a helper function to stay within the limit");
   note_failure();
 } return void;
 
-report_deep(string fname, int depth) {
-  print(func_loc(fname) + "code in '" + fname + "' is nested too deeply (" + depth + " levels); the maximum is 2. Split the inner block into its own function");
+report_deep(string fname, int depth, int ln) {
+  print(loc_at(fname, ln) + "code in '" + fname + "' is nested too deeply (" + depth + " levels); the maximum is 2. Split the inner block into its own function");
   note_failure();
 } return void;

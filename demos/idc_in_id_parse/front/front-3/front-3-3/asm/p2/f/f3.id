@@ -5,3 +5,20 @@ cur_ln(int[] pos) {
     n = (import tline)[pos[0]];
   }
 } return int n;
+
+//   pline  the line each entry of `prog` was declared on
+//   nline  the line each AST node began on, 0 where it is not a statement
+init_lines2() {
+  export int[] pline = [];
+  export int[] nline = [];
+} return void;
+
+// Writing a node's line goes through chk_set (mid/mid-1/chk/chk-1/chk2.id):
+// a second helper with the same body is a duplicate-logic error, and one
+// shared store-into-an-imported-list helper is the right answer anyway.
+
+stmt_at_line(int[] pos) {
+  int n = cur_ln(pos);
+  int id = parse_stmt(pos);
+  chk_set((import nline), id, n);
+} return int id;

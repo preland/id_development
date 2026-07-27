@@ -6,22 +6,26 @@
 // raising there. A block that is deep enough to check is then measured, and
 // its compound statements are walked one level down.
 
-check_block(int[] body, int depth, string fname) {
+// `ln` is the line of the construct that *owns* this block -- the function's
+// declaration for a body, the `if` or `while` for its arms -- not the line of
+// the first statement inside it. That is what idc.py reports, and pointing at
+// the owner is more useful anyway: it names the construct that is too long.
+check_block(int[] body, int depth, string fname, int ln) {
   if(depth > 2) {
-    report_deep(fname, depth);
+    report_deep(fname, depth, ln);
   } else {
-    check_fits(body, depth, fname);
+    check_fits(body, depth, fname, ln);
   }
 } return void;
 
-check_fits(int[] body, int depth, string fname) {
-  check_count(body, fname);
+check_fits(int[] body, int depth, string fname, int ln) {
+  check_count(body, fname, ln);
   check_children(body, depth, fname);
 } return void;
 
-check_count(int[] body, string fname) {
+check_count(int[] body, string fname, int ln) {
   int n = count_actions(body);
   if(n > 3) {
-    report_actions(fname, n);
+    report_actions(fname, n, ln);
   }
 } return void;
