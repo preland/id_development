@@ -1,0 +1,40 @@
+// The rest of the expression kinds. ce5 ends the chain, so its default is the
+// empty string: every expression node the parser can build is handled above it
+// or in it.
+
+ce4(int id) {
+  string out = ce5(id);
+  if(k_of(id) == "un") {
+    out = "u" + s1_of(id) + "(" + canon_expr(i1_of(id)) + ")";
+  }
+  if(k_of(id) == "index") {
+    out = "ix" + canon_pair(i1_of(id), i2_of(id));
+  }
+} return string out;
+
+// The end of the chain. Its default is reached only by an expression kind
+// nobody above recognised, which today cannot happen -- every kind the parser
+// builds is handled. It still answers with something unrepeatable (the kind
+// and the node's own id) rather than with the empty string, so that a kind
+// added later and forgotten here makes functions look *more* different than
+// they are. A missed duplicate is a gap; a duplicate reported against a legal
+// program stops work.
+ce5(int id) {
+  string out = "?" + k_of(id) + "#" + id;
+  if(k_of(id) == "call") {
+    out = "c(" + canon_callee(s1_of(id)) + ":" + canon_args(l1_of(id)) + ")";
+  }
+  if(k_of(id) == "arr") {
+    out = "ar(" + canon_args(l1_of(id)) + ")";
+  }
+} return string out;
+
+// A callee keeps its name -- except a call to the function being canonicalised
+// itself, which becomes a fixed marker so that two identical recursive
+// functions, each recursing into its own name, still collide.
+canon_callee(string name) {
+  string out = name;
+  if(name == cur_self()) {
+    out = "self";
+  }
+} return string out;

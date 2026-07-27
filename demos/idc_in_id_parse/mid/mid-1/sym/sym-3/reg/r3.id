@@ -1,0 +1,23 @@
+// An else arm is a statement list whichever way it was written: a plain
+// `else { ... }` is its statements, and an `else if` is a one-element list
+// holding the next if. Walking the list therefore follows the whole chain.
+
+reg_branches(int id, string owner) {
+  reg_decls(l1_of(id), owner);
+  reg_decls(l2_of(id), owner);
+} return void;
+
+reg_loop(int id, string owner) {
+  if(k_of(id) == "while") {
+    reg_decls(l1_of(id), owner);
+  }
+} return void;
+
+// One declaration: report whatever it conflicts with, then record it anyway.
+// idc.py raises at the first conflict; recording regardless is what lets this
+// checker go on to report the rest of the program's, and the row is needed by
+// the access pass afterwards, which has to know the name exists somewhere.
+reg_var(string name, string type, string owner, int exported, int ln) {
+  reg_report(name, type, owner, exported, ln);
+  reg_push(name, type, owner, exported);
+} return void;

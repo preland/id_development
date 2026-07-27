@@ -253,6 +253,53 @@ if diff "$TMP/elif_py.c" "$TMP/elif_id.c" >/dev/null; then
 else
     bad "codegen parity with idc.py (else if vs else-block)"
 fi
+# The self-hosted compiler must actually REJECT rule violations, not merely be
+# capable of noticing them. Each check family gets a guard here: the hook in
+# check_program() is a single shared block with room for three actions, so a
+# family can be unhooked by an unrelated edit and go silent with nothing else
+# failing. These catch that.
+guard_reject() { # name, source, expected-substring
+    mkdir -p "$TMP/g_rej"
+    printf '%s' "$2" > "$TMP/g_rej/m.id"
+    out=$({ printf '#file m.id\n'; cat "$TMP/g_rej/m.id"; } | "$TMP/idlex" | "$TMP/idparse" 2>&1)
+    rc=$?
+    if [ "$rc" -eq 1 ] && printf '%s' "$out" | grep -q "$3"; then
+        ok "self-hosted rejects: $1"
+    else
+        bad "self-hosted rejects: $1 (rc=$rc, got: $(printf '%s' "$out" | head -1))"
+    fi
+}
+guard_reject "action limit" 'main(int argc, string[] argv) {
+  int a = 1;
+  int b = 2;
+  int c = 3;
+  int d = 4;
+} return int 0;' "performs 4 actions"
+guard_reject "nesting depth" 'main(int argc, string[] argv) {
+  int i = 0;
+  while(i < 2) {
+    if(i > 0) {
+      while(i < 1) {
+        i = i + 1;
+      }
+    }
+  }
+} return int 0;' "nested too deeply"
+guard_reject "one name one type" 'main(int argc, string[] argv) {
+  int v = 1;
+} return int 0;
+
+other() {
+  string v = "x";
+} return void;' "must keep one type"
+guard_reject "unexported access" 'main(int argc, string[] argv) {
+  int q = 1;
+} return int 0;
+
+other() {
+  print("" + q);
+} return void;' "belongs to function"
+
 # parity on the systems features: word, hex literals, all six bitwise
 # operators, the flat store, and the unsigned builtins. These are what the
 # kernel port is written in, so the self-hosted stages have to cover them --

@@ -1,0 +1,21 @@
+// One name, one type. Exported names sit outside this rule -- an export is a
+// single global, so there is nothing for it to disagree with -- and first_type
+// skips their rows for the same reason.
+
+reg_report4(string name, string type, string owner, int exported, int ln) {
+  string prev = first_type(name);
+  if(exported == 0 && prev != "" && prev != type) {
+    report_var_type(name, type, prev, owner, ln);
+  }
+} return void;
+
+reg_push(string name, string type, string owner, int exported) {
+  push((import dvname), name);
+  push((import dvtype), type);
+  reg_push2(owner, exported);
+} return void;
+
+reg_push2(string owner, int exported) {
+  push((import dvfunc), owner);
+  push((import dvexp), exported);
+} return void;

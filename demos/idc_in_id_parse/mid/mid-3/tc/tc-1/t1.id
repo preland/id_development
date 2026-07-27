@@ -1,0 +1,38 @@
+// The type checks: idc.py's assertions from gen_stmt/gen_expr/gen_binop,
+// moved into the language. They are assertions on results ../type/ already
+// computes for codegen, and they get their type facts from ../reg/ rather
+// than from a new if-chain.
+//
+// The walk is over the whole node store, not over the function tree. That is
+// sound here and nowhere else: id's rule that a name has one type
+// program-wide means type_of(e) needs no scope, so a node can be judged
+// wherever it sits. It also means each node is judged exactly once, including
+// the ones inside `else if` chains, which a tree walk has to be careful about.
+//
+// Two things are NOT judged, deliberately:
+//   * a type the compiler could not work out (ty_known == 0). An asm
+//     function's return type is one, because the driver registers asm symbols
+//     after check_program() runs. Reporting on an unknown type is how a check
+//     invents diagnostics; staying quiet is how it stays trustworthy.
+//   * an empty list literal as a value, which has no type of its own -- it
+//     takes the one the context wants. chk_arr judges the context instead.
+
+// The one line added to check_program() calls this: mid-1's per-file rule and
+// mid-3's type rules, so check_program stays at its 3-action limit.
+check_rest() {
+  check_files();
+  tc_all();
+} return void;
+
+tc_all() {
+  init_tyreg();
+  tc_nodes();
+} return void;
+
+tc_nodes() {
+  int i = 0;
+  while(i < len((import nkind))) {
+    tc_node(i);
+    i = i + 1;
+  }
+} return void;

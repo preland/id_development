@@ -1,0 +1,29 @@
+// Filling the registry. The walk mirrors idc.py's register_var loop, and the
+// order is part of the rule rather than an implementation detail: the first
+// type a name is given is the one the rest of the program must agree with, and
+// the first function to declare it is the one the name belongs to.
+
+build_reg() {
+  int i = 0;
+  while(i < len((import prog))) {
+    reg_func((import prog)[i]);
+    i = i + 1;
+  }
+} return void;
+
+// Parameters are declarations too, and they are registered before the body's.
+// They carry no line of their own -- only statements do -- so they are
+// reported at the line of the function heading, which is where idc.py reports
+// them as well.
+reg_func(int id) {
+  reg_params(l1_of(id), s1_of(id), func_line(s1_of(id)));
+  reg_decls(l2_of(id), s1_of(id));
+} return void;
+
+reg_params(int[] params, string owner, int ln) {
+  int i = 0;
+  while(i < len(params)) {
+    reg_var(s2_of(params[i]), s1_of(params[i]), owner, 0, ln);
+    i = i + 1;
+  }
+} return void;

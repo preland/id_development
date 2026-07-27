@@ -1,0 +1,28 @@
+// The access pass: for every name a function mentions, is it a name that
+// function can see? A variable is private to the function that declares it,
+// and the only way across a function boundary is `export` paired with
+// `import`. Run after build_reg, since it answers both questions -- "does this
+// function declare the name" and "does anyone" -- from the registry.
+
+check_access() {
+  int i = 0;
+  while(i < len((import prog))) {
+    acc_func((import prog)[i]);
+    i = i + 1;
+  }
+} return void;
+
+acc_func(int id) {
+  acc_list(l2_of(id), s1_of(id));
+  acc_ret(id);
+} return void;
+
+// The return clause is not a statement of the body, so the body walk never
+// reaches it -- but it is an expression the function evaluates, and idc.py
+// resolves the names in it like any other. It is -1 for `return void`, and it
+// belongs to the function heading's line.
+acc_ret(int id) {
+  if(i1_of(id) >= 0) {
+    acc_expr(i1_of(id), s1_of(id), func_line(s1_of(id)));
+  }
+} return void;

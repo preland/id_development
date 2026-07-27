@@ -1,0 +1,27 @@
+// The assignment target is a name in its own right: writing to a variable the
+// function does not have is the same error as reading one.
+acc_assign(int id, string owner) {
+  acc_name(s1_of(id), owner, (import nline)[id]);
+  acc_expr(i1_of(id), owner, (import nline)[id]);
+} return void;
+
+// What is left is `decl`, `iassign` and `exprstmt`. A declaration and an
+// expression statement both keep their expression in the same field, so only
+// the index-assignment needs telling apart. A declaration's *name* is not
+// resolved here -- it is the thing being introduced, and build_reg has already
+// had its say about it.
+acc_stmt4(int id, string owner) {
+  if(k_of(id) == "iassign") {
+    acc_iassign(id, owner);
+  } else {
+    acc_expr(i1_of(id), owner, (import nline)[id]);
+  }
+} return void;
+
+// `base[index] = value`: the target was parsed as an index expression and its
+// two halves copied into the int fields, so all three parts are expressions.
+acc_iassign(int id, string owner) {
+  acc_expr(i1_of(id), owner, (import nline)[id]);
+  acc_expr(i2_of(id), owner, (import nline)[id]);
+  acc_elems(l1_of(id), owner, (import nline)[id]);
+} return void;
