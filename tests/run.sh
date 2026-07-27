@@ -302,6 +302,17 @@ guard_reject "asm return type is checked" 'asm "x86_64-unknown-linux-gnu" tk() {
 main(int argc, string[] argv) {
   string s = tk();
 } return int 0;' "cannot initialize string"
+guard_reject "duplicate logic" 'main(int argc, string[] argv) {
+  print("" + one(2) + two(3));
+} return int 0;
+
+one(int a) {
+  int r = a + 1;
+} return int r;
+
+two(int b) {
+  int v = b + 1;
+} return int v;' "same signature and logic"
 guard_reject "unexported access" 'main(int argc, string[] argv) {
   int q = 1;
 } return int 0;
