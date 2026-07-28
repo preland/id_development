@@ -1,0 +1,19 @@
+// A file's body runs from just past its marker line to the start of the next
+// marker, so opening one closes the previous.
+open_file(string src, int i, int e) {
+  close_last(i);
+  push((import paths), slice_str(src, i + 6, e));
+  push((import starts), e + 1);
+} return void;
+
+close_last(int e) {
+  if(len((import ends)) < len((import paths))) {
+    push((import ends), e);
+  }
+} return void;
+
+print_file(string src, int k) {
+  print("==== " + (import paths)[k]);
+  print("");
+  put(slice_str(src, (import starts)[k], (import ends)[k]));
+} return void;

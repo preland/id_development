@@ -1,0 +1,19 @@
+// Choosing one. `id` has no random builtin, so this is a 64-bit LCG seeded
+// from ticks() (monotonic milliseconds), with the high bits taken -- the low
+// bits of an LCG cycle far too regularly to index a small list with.
+show(string src) {
+  int n = len((import paths));
+  if(n > 0) {
+    print_file(src, pick(n));
+  } else {
+    print("idview: no id files on stdin");
+  }
+} return void;
+
+pick(int n) {
+} return int umod(rnd(), n);
+
+rnd() {
+  word s = ticks();
+  s = s * 6364136223846793005 + 1442695040888963407;
+} return word ushr(s, 33);

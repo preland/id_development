@@ -321,6 +321,18 @@ other() {
   print("" + q);
 } return void;' "belongs to function"
 
+# idview: a random source viewer written in id. It has no filesystem access,
+# so it splits a marker-delimited stream back into files -- the same protocol
+# the compiler uses for file boundaries.
+$IDC ../demos/idview -o "$TMP/idview" >/dev/null 2>&1
+view_out=$({ printf '#file a.id\n'; printf 'one\n'; printf '#file b.id\n'; printf 'two\n'; } | "$TMP/idview")
+case "$view_out" in
+    "==== a.id"*one*) ok "idview picks a file and prints its body" ;;
+    "==== b.id"*two*) ok "idview picks a file and prints its body" ;;
+    *) bad "idview picks a file and prints its body (got: $(printf '%s' "$view_out" | tr '\n' '|'))" ;;
+esac
+expect_output "idview on empty input" "idview: no id files on stdin" "$(printf '' | "$TMP/idview")"
+
 # parity on the systems features: word, hex literals, all six bitwise
 # operators, the flat store, and the unsigned builtins. These are what the
 # kernel port is written in, so the self-hosted stages have to cover them --
