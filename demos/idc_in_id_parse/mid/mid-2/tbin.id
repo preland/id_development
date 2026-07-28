@@ -19,10 +19,12 @@ is_arith(string s) {
 } return int ok;
 
 // Widening order is int < word < float, so mixing an index with an address
-// gives an address rather than silently truncating it to 32 bits.
+// gives an address rather than silently truncating it to 32 bits. The order
+// itself is the registry's (see ../mid-3/reg/look/w/wide.id); this only
+// decides that non-numeric operands are not widened.
 arith_result(string lt, string rt) {
-  string t = ar2(lt, rt);
-  if(lt == "float" || rt == "float") {
-    t = "float";
+  string t = "int";
+  if(ty_num(lt) == 1 && ty_num(rt) == 1) {
+    t = ty_wider(lt, rt);
   }
 } return string t;
