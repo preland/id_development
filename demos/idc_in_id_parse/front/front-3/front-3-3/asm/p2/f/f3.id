@@ -8,9 +8,14 @@ cur_ln(int[] pos) {
 
 //   pline  the line each entry of `prog` was declared on
 //   nline  the line each AST node began on, 0 where it is not a statement
+// chkfail lives here rather than in check_program() for two reasons: the
+// parser needs to record a syntax error long before the checks run, and
+// check_program()'s block was at its 3-action limit, which made its single
+// free slot a contended resource between everything that wanted to hook in.
 init_lines2() {
   export int[] pline = [];
   export int[] nline = [];
+  export int[] chkfail = [0];
 } return void;
 
 // Writing a node's line goes through chk_set (mid/mid-1/chk/chk-1/chk2.id):

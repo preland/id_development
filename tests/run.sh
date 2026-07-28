@@ -313,6 +313,15 @@ one(int a) {
 two(int b) {
   int v = b + 1;
 } return int v;' "same signature and logic"
+guard_reject "return inside a body" 'main(int argc, string[] argv) {
+  return 0;
+} return int 0;' "belongs after the function"
+guard_reject "missing brace" 'main(int argc, string[] argv)
+  int x = 1;
+} return int 0;' "expected .{."
+guard_reject "missing equals" 'main(int argc, string[] argv) {
+  int x 5;
+} return int 0;' "expected .=."
 guard_reject "unexported access" 'main(int argc, string[] argv) {
   int q = 1;
 } return int 0;

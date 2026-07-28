@@ -1,0 +1,28 @@
+// Syntax diagnostics. Without these the parser silently mis-parses malformed
+// input into a valid-looking AST, and the first thing to notice is a *later*
+// pass complaining about something unrelated -- `return 0;` inside a body
+// became a call to an undefined variable named `return`, which is true but
+// useless.
+//
+// Parsing continues after an error rather than stopping: the AST is already
+// wrong, but reporting every syntax problem in one run matches what the rest
+// of this compiler does, and nothing is emitted when any check has failed.
+
+syn_err(int[] pos, string msg) {
+  print(cur_file() + ":" + cur_ln(pos) + ": error: " + msg);
+  note_failure();
+} return void;
+
+expect_text(int[] pos, string want) {
+  if(cur_text(pos) != want) {
+    syn_err(pos, "expected '" + want + "', found '" + cur_text(pos) + "'");
+  }
+} return void;
+
+// `id` puts the return clause after the closing brace, so a `return` where a
+// statement belongs is always a mistake -- and a common one.
+no_return_here(int[] pos) {
+  if(cur_text(pos) == "return") {
+    syn_err(pos, "'return' belongs after the function's closing brace");
+  }
+} return void;
