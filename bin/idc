@@ -213,6 +213,7 @@ parse_rc="${rc[2]}"
 # bootstrapping idlex/idparse above, on a cold cache.
 compiler_bug() { # compiler_bug REASON
     echo "idc: internal error: $1" >&2
+    [ -s "${C_OUT:-}" ] && echo "idc: the generated C is at $C_OUT" >&2
     echo "idc: this is a bug in the self-hosted compiler; please report it." >&2
     echo "idc: to compare against the reference implementation, run:" >&2
     echo "idc:     python3 $IDC_PY $PATH_ARG" >&2
@@ -244,6 +245,11 @@ fi
 # cause, gate on a real C compiler's syntax check now -- cheap (no linking)
 # and it's the one authoritative way to know the self-hosted output is sound.
 if ! "$CC" -std=c11 -fsyntax-only "$C_OUT" 2>"$WORK/syntax.err"; then
+    # Show what the C compiler actually said. Without this the message is
+    # just "emitted C that does not compile", which is true and unusable --
+    # the real diagnostic (a name colliding with a libc symbol, say) is
+    # sitting right here.
+    sed 's/^/idc:   /' "$WORK/syntax.err" >&2
     compiler_bug "the self-hosted compiler emitted C that does not compile"
 fi
 
