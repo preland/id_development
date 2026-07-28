@@ -97,9 +97,47 @@ knowledge compiled into the emitter. It also removes the silent-default bug
 this codebase already had twice (`cs3` and `unbox3` both fell through to a
 wrong answer for an unknown type rather than reporting one).
 
+## Where this stands
+
+Done:
+
+* **All thirteen of `idc.py`'s rules are enforced by the self-hosted
+  compiler**, in `mid/`, reading only the AST and the symbol tables — no check
+  looks at emitted text, so none of them will need rewriting for a second
+  target.
+* **The registry exists** (`mid/mid-3/reg/`): `tyname` / `tykind` / `tywidth`
+  / `tysigned`, one row per scalar type, list types derived. It is the sole
+  source of type facts for every check, and now for the widening rule too,
+  which previously lived in two halves in two subtrees.
+* **`idc.py` no longer compiles anything** — `bin/idc` has no fallback, and
+  `idc.py`'s only remaining job is bootstrapping `idlex`/`idparse` on a cold
+  cache.
+
+Two deviations from the sketch below, both earned by contact with the code:
+
+* `tykind` separates `int` from `float` rather than lumping them as `num`. A
+  single `num` bucket cannot answer *is_integral*, which is what
+  `& | ^ << >> && || ! ~` need, and `is_numeric` is then just "int or float".
+* **Widening cannot be a width comparison.** `word` and `float` are both 8
+  wide. It needs kind *and* width — rank is width doubled plus one for float.
+
+Still to do, in order:
+
+1. **A per-target spelling column.** `c_type` → `c_scalar` → `cs2` → `cs3` →
+   `cs4` is now a chain that names each type explicitly rather than falling
+   through to a default, so it is no longer a correctness hazard — but adding
+   a type still means editing it. It should become a `tyc` column that the C
+   target owns, which is also the first thing a second target would need.
+2. **`box` / `unbox` / `to_str`** onto that column. `to_str` is in `mid/`
+   today but spells C helper names, so it belongs in `back/tgt/c/`.
+3. Then the directory move and the dispatch layer described below.
+
+`tywidth` and `tysigned` have exactly one consumer today (the widening rule)
+and are otherwise honest dead weight until step 1 lands.
+
 ## Order of work
 
-1. **Semantic checks into `mid/`.** In progress. They are backend-agnostic by
+1. **Semantic checks into `mid/`.** Done. They are backend-agnostic by
    construction and must stay that way — no check may look at emitted text.
 2. **The type registry.** Replace the if-chains with lookups, one target
    column at a time. Purely mechanical, and each step is verifiable by
