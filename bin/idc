@@ -501,7 +501,10 @@ emit_sources() {
     # Constants first: they belong to no file, need no initialiser, and must be
     # in scope for every source that follows.
     local c
-    for c in ${CONSTS[@]+"${CONSTS[@]}"}; do printf '#const %s\n' "$c"; done
+    # The marker on its own line, the declaration as ordinary source after it:
+    # that way the existing declaration parser reads the constant, instead of a
+    # second parser having to be written for a marker's payload.
+    for c in ${CONSTS[@]+"${CONSTS[@]}"}; do printf '#const\n%s\n' "$c"; done
     { printf '%s\n' "${SRC_ROOTS[@]}"; printf '%s\n' "${SRC_FILES[@]}"; } \
     | awk -v nroots="${#SRC_ROOTS[@]}" '
         NR <= nroots { root[NR - 1] = $0; next }
