@@ -3,6 +3,7 @@
 
 Usage:
     idc.py PATH [-o OUTPUT] [--emit-c FILE] [--keep-c] [--cc CC]
+                [--tests] [--require-tests]
 
 PATH is either a single .id file (handy for tutorials) or a project directory.
 A project is a directory *tree*: every directory in it may hold at most 3
@@ -14,10 +15,12 @@ variables resolve across the whole project.
 import argparse
 import difflib
 import json
+import math
 import os
 import re
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
@@ -138,18 +141,20 @@ class Tok:
     line: int
 
 
-# `hex` must precede `int`, or "0x1f" lexes as 0 followed by the identifier
-# "x1f". `<<`/`>>`/`&&`/`||` must precede the single-character class for the
-# same reason.
+# `hex` and `bin` must precede `int`, or "0x1f" lexes as 0 followed by the
+# identifier "x1f". `<<`/`>>`/`&&`/`||` must precede the single-character class
+# for the same reason.
 TOKEN_RE = re.compile(
     r"""(?P<ws>\s+)
       | (?P<comment>//[^\n]*)
+      | (?P<blockcomment>/\*)
       | (?P<hex>0[xX][0-9a-fA-F]+)
+      | (?P<bin>0[bB][01]+)
       | (?P<float>\d+\.\d+)
       | (?P<int>\d+)
       | (?P<string>"(?:\\.|[^"\\])*")
       | (?P<ident>[A-Za-z_]\w*)
-      | (?P<op><<|>>|==|!=|<=|>=|&&|\|\||[+\-*/%<>=!&|^~(){}\[\],;])
+      | (?P<op><<|>>|==|!=|<=|>=|&&|\|\||[+\-*/%<>=!&|^~(){}\[\],;:])
     """,
     re.VERBOSE,
 )
@@ -167,12 +172,24 @@ def lex(src: str, fname: str) -> List[Tok]:
         kind = m.lastgroup
         if kind == "ws" or kind == "comment":
             pass
+        elif kind == "blockcomment":
+            # `id` has line comments and nothing else. Without this the `/`
+            # and `*` lex as operators and the words inside the comment lex
+            # as identifiers, so one comment became a page of diagnostics
+            # about names nobody wrote.
+            raise CompileError(fname, line,
+                               "block comments are not supported; "
+                               "use // for a line comment")
         elif kind == "hex":
             # Hex is a spelling, not a type: 0xff is the int token 255. The
             # rest of the compiler never has to know the literal was written
             # in hex, which is why mask constants can be written the way the
             # hardware documentation writes them.
             toks.append(Tok("int", str(int(text, 16)), fname, line))
+        elif kind == "bin":
+            # Same deal as hex: 0b1010 is the int token 10, so a bit pattern
+            # can be written the way a register diagram draws it.
+            toks.append(Tok("int", str(int(text, 2)), fname, line))
         elif kind == "ident":
             if text in KEYWORDS:
                 toks.append(Tok("kw", text, fname, line))
@@ -295,6 +312,18 @@ class ExprStmt(Stmt):
 
 
 @dataclass
+class TestCase:
+    """One `(ARGS):(EXPECTED)[CONSTRAINTS]` line under a function. `expected`
+    is a single value for a function that returns one, and the arguments as
+    they must look *after* the call for a void function. See docs/TESTS.md."""
+    args: List[Expr]
+    expected: List[Expr]
+    constraints: List[Tuple[str, str]]   # ('time'|'mem', 'O(n)')
+    file: str
+    line: int
+
+
+@dataclass
 class FuncDef:
     name: str
     params: List[Tuple[str, str]]  # (type, name)
@@ -303,6 +332,62 @@ class FuncDef:
     retexpr: Optional[Expr]
     file: str
     line: int
+    cases: List[TestCase] = field(default_factory=list)
+
+
+# The scaling claims a test case may carry. Anything else is rejected by name
+# rather than silently ignored -- see docs/TESTS.md.
+BIG_O = ("O(1)", "O(log n)", "O(n)", "O(n log n)", "O(n^2)")
+
+
+def check_case_literal(e: Expr):
+    """A case's arguments and expected value are literals, so the harness can
+    build them without running any of the program. Anything else (a variable, a
+    call, arithmetic) is rejected here rather than at codegen, where the
+    diagnostic would be about a name that isn't in scope."""
+    if isinstance(e, (IntLit, FloatLit, StrLit)):
+        return
+    if isinstance(e, UnOp) and e.op == "-" and isinstance(e.operand, (IntLit, FloatLit)):
+        return
+    if isinstance(e, ArrayLit):
+        for el in e.elems:
+            check_case_literal(el)
+        return
+    raise CompileError(e.file, e.line,
+                       "a test case takes literals only (a number, a string, or "
+                       "a list of those)")
+
+
+def literal_text(e: Expr) -> str:
+    """A case literal written back out the way it was written, for diagnostics."""
+    if isinstance(e, (IntLit, FloatLit)):
+        return e.value
+    if isinstance(e, StrLit):
+        return e.raw
+    if isinstance(e, UnOp):
+        return "-" + literal_text(e.operand)
+    return "[" + ", ".join(literal_text(x) for x in e.elems) + "]"
+
+
+def c_string(s: str) -> str:
+    """`s` as a C string literal. Used for the harness's own messages, which
+    quote id source text verbatim."""
+    body = s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+    return f'"{body}"'
+
+
+def literal_size(e: Expr) -> int:
+    """The `n` a case's argument contributes: the length of a list or string,
+    or the value of an integer. A float has no size and contributes none."""
+    if isinstance(e, ArrayLit):
+        return len(e.elems)
+    if isinstance(e, StrLit):
+        return len(unescape_id_string(e.raw))
+    if isinstance(e, IntLit):
+        return int(e.value)
+    if isinstance(e, UnOp) and isinstance(e.operand, IntLit):
+        return -int(e.operand.value)
+    return 0
 
 
 # ---------------------------------------------------------------- parser
@@ -402,8 +487,71 @@ class Parser:
             rettype = self.parse_type()
             retexpr = self.parse_expr()
         self.accept("op", ";")
+        # Test cases follow the return clause, one per line. There is no
+        # ambiguity with the next function: a function starts `ident (`, a
+        # case starts `(`.
+        cases = []
+        while self.at("op", "("):
+            cases.append(self.parse_case())
         return FuncDef(name_tok.value, params, body, rettype, retexpr,
-                       name_tok.file, name_tok.line)
+                       name_tok.file, name_tok.line, cases)
+
+    # -- test cases: (ARGS):(EXPECTED)[CONSTRAINTS]
+
+    def parse_case(self) -> TestCase:
+        t = self.peek()
+        args = self.parse_case_tuple()
+        self.expect("op", ":",
+                    what="':' between a case's arguments and its expected value")
+        expected = self.parse_case_tuple()
+        constraints = self.parse_constraints() if self.at("op", "[") else []
+        return TestCase(args, expected, constraints, t.file, t.line)
+
+    def parse_case_tuple(self) -> List[Expr]:
+        self.expect("op", "(")
+        items = []
+        if not self.at("op", ")"):
+            while True:
+                items.append(self.parse_expr())
+                if not self.accept("op", ","):
+                    break
+        self.expect("op", ")")
+        for e in items:
+            check_case_literal(e)
+        return items
+
+    def parse_constraints(self) -> List[Tuple[str, str]]:
+        self.expect("op", "[")
+        out = []
+        while True:
+            k = self.expect("ident", what="'time' or 'mem'")
+            if k.value not in ("time", "mem"):
+                raise CompileError(k.file, k.line,
+                                   f"unknown constraint '{k.value}'; a case "
+                                   f"constrains 'time' or 'mem'")
+            self.expect("op", ":")
+            out.append((k.value, self.parse_big_o()))
+            if not self.accept("op", ","):
+                break
+        self.expect("op", "]")
+        return out
+
+    def parse_big_o(self) -> str:
+        o = self.expect("ident", what="a bound, e.g. O(n)")
+        self.expect("op", "(")
+        parts = []
+        while not self.at("op", ")"):
+            if self.at("eof"):
+                t = self.peek()
+                raise CompileError(t.file, t.line, "unterminated constraint bound")
+            parts.append(self.next().value)
+        self.expect("op", ")")
+        text = f"{o.value}(" + " ".join(parts).replace(" ^ ", "^") + ")"
+        if text not in BIG_O:
+            raise CompileError(o.file, o.line,
+                               f"unknown bound '{text}'; the bounds a case may "
+                               f"claim are {', '.join(BIG_O)}")
+        return text
 
     def parse_block(self) -> List[Stmt]:
         self.expect("op", "{")
@@ -686,6 +834,10 @@ static size_t id_mul_check(size_t a, size_t b, const char* what) {
     }
     return a * b;
 }
+/* id_charat's one-entry length memo (see id_charat). Declared here because
+   id_realloc, below, has to clear it. */
+static const char* id_ca_s = NULL;
+static size_t id_ca_n = 0;
 static void* id_alloc(size_t n) {
     IdAllocHdr* h = (IdAllocHdr*)malloc(id_add_check(n, sizeof(IdAllocHdr), "alloc"));
     if (!h) { fprintf(stderr, "id: out of memory (%zu bytes)\n", n); exit(1); }
@@ -694,6 +846,7 @@ static void* id_alloc(size_t n) {
 }
 static void* id_realloc(void* p, size_t n) {
     if (!p) return id_alloc(n);
+    id_ca_s = NULL;   /* this block may move; no cached length may outlive it */
     IdAllocHdr* h = (IdAllocHdr*)p - 1;
     id_arena_unlink(h);
     IdAllocHdr* nh = (IdAllocHdr*)realloc(h, id_add_check(n, sizeof(IdAllocHdr), "realloc"));
@@ -793,6 +946,22 @@ static long long id_sdiv(long long a, long long b) {
     return a / b;
 }
 static long long id_smod(long long a, long long b) {
+    if (b == 0) id_trap("remainder by zero");
+    if (b == -1) return 0;              /* would overflow; the answer is 0 */
+    return a % b;
+}
+/* The same two checks for `int`. They used to be word-only, on the grounds
+   that trapping was a new behaviour and `int` division should stay exactly as
+   it was -- but "exactly as it was" meant a SIGFPE and a core dump with no
+   message, while the identical mistake on a `word` printed one line and
+   exited 1. Two spellings of one bug do not deserve two failure modes, and
+   gcc folds the check away whenever the divisor is a nonzero constant. */
+static int id_idiv(int a, int b) {
+    if (b == 0) id_trap("division by zero");
+    if (b == -1 && a == INT_MIN) id_trap("division overflow");
+    return a / b;
+}
+static int id_imod(int a, int b) {
     if (b == 0) id_trap("remainder by zero");
     if (b == -1) return 0;              /* would overflow; the answer is 0 */
     return a % b;
@@ -943,8 +1112,19 @@ static char* id_read_all(void) {
     return r;
 }
 static int id_len(const char* s) { return (int)strlen(s); }
+/* charat's bounds check used to be a strlen per character, which makes walking
+   a string O(n^2) -- and walking a string with charat is how every id program
+   reads text, because there is no substr and no file I/O. Lexing a 128 KB
+   source took 378 ms; with the length of the last string remembered it takes
+   12 ms, and the answer is the same.
+   The memo is keyed on the pointer, which is sound because an id string is
+   immutable and its block is never released before exit. The one place a block
+   can be released early is id_realloc (list growth), whose freed address could
+   later be handed to a new string -- so it clears the memo. */
 static int id_charat(const char* s, int i) {
-    if (i < 0 || i >= (int)strlen(s)) return -1;   /* out of range -> -1 */
+    if (i < 0) return -1;
+    if (s != id_ca_s) { id_ca_s = s; id_ca_n = strlen(s); }
+    if ((size_t)i >= id_ca_n) return -1;           /* out of range -> -1 */
     return (unsigned char)s[i];
 }
 static char* id_chr(int code) {
@@ -996,6 +1176,86 @@ static int id_ticks(void) {   /* monotonic milliseconds, for timing and seeding 
     return (int)(ts.tv_sec * 1000 + ts.tv_nsec / 1000000);
 }
 """
+
+
+# Names an `id` program may not give a function, because the runtime prelude
+# above already defines a C function of that name.
+#
+# Every id function is emitted as `id_<name>`, so `str_of_int` in id becomes
+# `id_str_of_int` in C -- which the runtime declares. Left unchecked, that is a
+# C error attributed to nobody: `cc` says "conflicting types for
+# 'id_str_of_int'", idc.py reports a raw "C compilation failed", and bin/idc
+# reported it as "this is a bug in the self-hosted compiler; please report it"
+# -- telling a user to file a bug about their own typo.
+#
+# It matters more now than it used to. A standard library wants exactly these
+# names: idstd tried to provide `str_of_int` and `str_of_word` and could have
+# neither, and found this diagnostic while doing it.
+#
+# Derived from RUNTIME rather than listed, so the two cannot drift: adding a
+# helper to the prelude reserves its name in the same commit.
+# tools/gen_runtime_id.py regenerates the id-side copy of this list from here.
+RUNTIME_HELPERS = frozenset(re.findall(r"\bid_([a-z_0-9]+)\s*\(", RUNTIME))
+
+
+def instrumented_runtime() -> str:
+    """RUNTIME with the two test counters spliced in.
+
+    This is used ONLY by the test harness, which is a separate translation unit
+    built and run before the real output exists. A normal build must emit
+    RUNTIME verbatim, because tools/parity.sh compares that text byte for byte
+    against the self-hosted compiler's."""
+    rt = RUNTIME.replace(
+        "static void* id_alloc(size_t n) {",
+        "static long long id_ctr_time = 0;\n"
+        "static long long id_ctr_mem = 0;\n"
+        "static void* id_alloc(size_t n) {\n"
+        "    id_ctr_mem += (long long)n;", 1)
+    rt = rt.replace(
+        "static void* id_realloc(void* p, size_t n) {",
+        "static void* id_realloc(void* p, size_t n) {\n"
+        "    id_ctr_mem += (long long)n;", 1)
+    if rt.count("id_ctr_mem +=") != 2:
+        raise AssertionError("the allocation helpers moved; the mem counter "
+                             "is no longer being incremented")
+
+    # The runtime helpers have to be counted too, or the counter measures the
+    # wrong thing. An id-level loop that concatenates one character per
+    # iteration is one loop -- linear by the generated code's own arithmetic --
+    # while the work it causes is quadratic, because each concat copies the
+    # whole string so far. Counting only generated code would pass
+    # `[time:O(n)]` on exactly the regression this feature exists to catch
+    # (docs/GAPS.md 3: id_charat calling strlen per access made every text
+    # program quadratic, and nothing noticed for months).
+    #
+    # So each helper charges the work it actually does, in bytes touched.
+    rt = rt.replace(
+        "    size_t la = strlen(a), lb = strlen(b);",
+        "    size_t la = strlen(a), lb = strlen(b);\n"
+        "    id_ctr_time += (long long)(la + lb);", 1)
+    rt = rt.replace(
+        "static int id_len(const char* s) { return (int)strlen(s); }",
+        "static int id_len(const char* s) {\n"
+        "    size_t n = strlen(s); id_ctr_time += (long long)n; return (int)n;\n"
+        "}", 1)
+    # charat is memoised, so a miss is the only place it does O(n) work --
+    # which is precisely the thing that regressed before.
+    rt = rt.replace(
+        "    if (s != id_ca_s) { id_ca_s = s; id_ca_n = strlen(s); }",
+        "    if (s != id_ca_s) { id_ca_s = s; id_ca_n = strlen(s);\n"
+        "                        id_ctr_time += (long long)id_ca_n; }", 1)
+    if rt.count("id_ctr_time +=") != 3:
+        raise AssertionError("a counted runtime helper moved; the time "
+                             "counter no longer sees the work it does")
+    return rt
+
+
+def reserved_name_msg(name) -> str:
+    """The diagnostic for a function named after a runtime helper. Shared with
+    the self-hosted compiler, which must produce the same text."""
+    return (f"function '{name}' collides with a runtime helper: every id "
+            f"function is emitted as 'id_<name>', and the runtime already "
+            f"defines 'id_{name}'. Choose another name")
 
 
 # -------------------------------------------------------- the flat store
@@ -1064,7 +1324,14 @@ def compatible(want, got):
 
 
 class Compiler:
-    def __init__(self, funcs_by_file, has_backend=False):
+    def __init__(self, funcs_by_file, has_backend=False, instrument=False,
+                 units=None):
+        # Build the test harness instead of the program: count time/mem, keep
+        # every function (a tested function need not be reachable from main),
+        # and replace the user's entry point with one that runs the cases.
+        # Never set on the compiler whose output the user asked for.
+        self.instrument = instrument
+        self.tc_helpers = {}       # generated harness helper name -> its C code
         self.funcs = {}            # name -> FuncDef
         self.exported = {}         # name -> (type, owner fn name)
         self.var_owner = {}        # var name -> (fn name, file, line)
@@ -1092,9 +1359,16 @@ class Compiler:
                     raise CompileError(fn.file, fn.line,
                                        f"function '{fn.name}' already defined at "
                                        f"{prev.file}:{prev.line}")
+                if fn.name in RUNTIME_HELPERS:
+                    raise CompileError(fn.file, fn.line, reserved_name_msg(fn.name))
                 self.funcs[fn.name] = fn
 
-        self.var_types = {}        # non-exported name -> its single type
+        # Which compilation unit each source file belongs to: the program's own
+        # tree, or one imported dependency such as the standard library (see
+        # source_unit). None means one unit, which is what a build assembled
+        # by hand rather than by main() gets.
+        self.units = units or {}
+        self.var_types = {}        # (unit, non-exported name) -> its single type
 
         # pass 1: claim exported names (these become reserved globals)
         for fn in self.funcs.values():
@@ -1135,12 +1409,19 @@ class Compiler:
                                f"another variable cannot reuse that name -- read "
                                f"the global with 'import {name}'")
         if not exported:
-            if name in self.var_types and self.var_types[name] != typ:
+            # One name, one type -- within one unit. The rule exists so that a
+            # name cannot mean two things in the program someone is reading,
+            # and an imported library's internals are not that program: before
+            # this was per-unit, a local named `s` in a user's function was
+            # rejected because the standard library had a `string s`, and both
+            # diagnostics named library files the user had never opened.
+            key = (self.units.get(fn.file, 0), name)
+            if key in self.var_types and self.var_types[key] != typ:
                 raise CompileError(file, line,
                                    f"variable '{name}' is declared {typ} here but "
-                                   f"{self.var_types[name]} elsewhere; a name must "
+                                   f"{self.var_types[key]} elsewhere; a name must "
                                    f"keep one type across the whole program")
-            self.var_types[name] = typ
+            self.var_types[key] = typ
         self.var_owner.setdefault(name, (fn.name, file, line))
 
     # -- entry point
@@ -1168,8 +1449,156 @@ class Compiler:
         happens inline in each backend's own expression/statement codegen, and
         only diverge from the C backend at codegen itself."""
         self.check_unique_functions()
+        self.check_dead_exports()
         for fn in self.funcs.values():
             self.check_action_limit(fn)
+            self.check_discarded_comparison(fn)
+
+    # -- a statement that compares instead of assigning
+    #
+    # Assignment exists only as a statement, and only when the parser can see
+    # a statement-shaped assignment: `x = v` and `xs[i] = v` where the target
+    # starts with a plain identifier. Anything else the parser meets is an
+    # *expression* statement, and a bare `=` inside an expression is equality.
+    # So `(import xs)[i] = v;` compiles to a comparison whose result is thrown
+    # away -- it type-checks, it links, it runs, and it does nothing.
+    #
+    # That is the language's worst trap: the whole `lset` idiom exists to work
+    # around it, and every program in this tree that writes through a global
+    # already pays for it. Rejecting it costs nothing -- a comparison
+    # evaluated for no reason is never what anyone meant -- and turns a silent
+    # wrong answer into a message that names the fix.
+    #
+    # `=` and `==` are one op by the time the parser is done (parse_equality
+    # folds the first into the second), so both spellings are caught. That is
+    # the right net anyway: `x == 2;` as a statement is as pointless as the
+    # assignment it is usually a typo for.
+    def check_discarded_comparison(self, fn: FuncDef):
+        for stmt in walk_stmts(fn.body):
+            if not isinstance(stmt, ExprStmt):
+                continue
+            e = stmt.expr
+            if not (isinstance(e, BinOp) and e.op == "=="):
+                continue
+            hint = ""
+            if isinstance(e.left, IndexExpr):
+                hint = (" -- an imported list or a call result cannot be "
+                        "index-assigned directly; pass the list to a helper "
+                        "that takes it as a parameter, as "
+                        "lset(int[] xs, int i, int v) { xs[i] = v; }")
+            raise CompileError(stmt.file, stmt.line,
+                               "this statement compares instead of assigning: "
+                               "'=' in an expression is equality, so the "
+                               "statement has no effect" + hint)
+
+    # -- an export whose declaring function is never reached
+    #
+    # `export T name = v;` is a declaration *inside a function body*: the C
+    # global exists from the start, but its initializer is an assignment that
+    # runs only when that function runs. A function nothing calls therefore
+    # leaves every global it declares NULL/0, and every `(import name)`
+    # reading it gets that, silently, at run time.
+    #
+    # `id` has no function pointers, so the call graph is exact and this is
+    # decidable rather than approximate. It is worth deciding: allocation is
+    # one chain of small functions (a 3-action block caps it at two exports
+    # plus one call), so dropping a link is a one-line mistake -- and this
+    # repo shipped one. demos/fpsmaze defined scene_init(), nothing called it,
+    # and the game drew its maze with no walls and no targets.
+    #
+    # What is reported is the *read*, not the dead function: a file that
+    # declares an export and never wires it up is unfinished or illustrative,
+    # and demos/hello is deliberately the latter. A reachable `(import x)`
+    # whose owner is unreachable is neither -- it is a guaranteed read of an
+    # uninitialised global, at a place the program actually goes.
+    def check_dead_exports(self):
+        main = self.funcs.get("main")
+        if main is None:
+            return          # a library: every function is an entry point
+        reachable, stack = set(), ["main"]
+        while stack:
+            name = stack.pop()
+            if name in reachable:
+                continue
+            reachable.add(name)
+            fn = self.funcs.get(name)
+            if fn is None:
+                continue    # a builtin, or a link-time symbol
+            for e in walk_exprs_in(fn):
+                if isinstance(e, CallExpr) and e.name not in reachable:
+                    stack.append(e.name)
+        owner_of_export = {}
+        for fn in self.funcs.values():
+            for stmt in walk_stmts(fn.body):
+                if isinstance(stmt, DeclStmt) and stmt.exported:
+                    owner_of_export.setdefault(stmt.name, fn.name)
+        for fn in self.funcs.values():
+            if fn.name not in reachable:
+                continue
+            for e in walk_exprs_in(fn):
+                if not isinstance(e, ImportRef):
+                    continue
+                owner = owner_of_export.get(e.name)
+                if owner is None or owner in reachable:
+                    continue
+                raise CompileError(
+                    e.file, e.line,
+                    f"'{e.name}' is exported by '{owner}', which nothing "
+                    f"calls -- an export is initialised when its declaring "
+                    f"function runs, so this reads an uninitialised global. "
+                    f"Call '{owner}' from main's setup chain")
+
+    # -- dead-code elimination
+    #
+    # Emit only what the program can reach. This is not an optimisation, it is
+    # what makes a standard library affordable: idstd is merged into EVERY
+    # program, and without this a hello-world pays for all of it. Measured on a
+    # synthetic library of trivial functions, before this existed:
+    #
+    #     none          0.18 s   16 KB
+    #     243 functions 0.36 s   33 KB
+    #     729 functions 0.75 s   75 KB
+    #
+    # A real standard library is 500-700 functions with real bodies, so the tax
+    # on every program in the language was roughly +0.6 s and +60 KB.
+    #
+    # Two rules about what this may and may not do:
+    #
+    #   * It runs AFTER every check, never before. A dead function still has to
+    #     obey the action limit, the nesting limit and every type rule -- code
+    #     that stops being checked because nothing calls it is exactly how a
+    #     library rots, and it would silently stop checking a user's own dead
+    #     code too.
+    #   * A program with no `main` is a library, compiled to a .o, and every one
+    #     of its functions is an entry point. Nothing is pruned there.
+    #
+    # `asm` functions are held outside self.funcs and are unaffected.
+    def reachable_functions(self):
+        """The set of function names reachable from `main`, or None when the
+        program has no `main` (a library: everything is an entry point).
+
+        `id` has no function pointers, so the call graph is exact."""
+        if "main" not in self.funcs:
+            return None
+        reachable, stack = set(), ["main"]
+        while stack:
+            name = stack.pop()
+            if name in reachable:
+                continue
+            reachable.add(name)
+            fn = self.funcs.get(name)
+            if fn is None:
+                continue    # a builtin, or a link-time symbol
+            for e in walk_exprs_in(fn):
+                if isinstance(e, CallExpr) and e.name not in reachable:
+                    stack.append(e.name)
+        return reachable
+
+    def is_live(self, reachable, name):
+        """Should `name`'s definition be emitted? Everything is live in a
+        program with no `main` (reachable is None: a library, compiled to a .o,
+        where every function is an entry point)."""
+        return reachable is None or name in reachable
 
     def build_env(self, fn: FuncDef) -> dict:
         """name -> id type for every parameter and every declared local
@@ -1182,12 +1611,26 @@ class Compiler:
 
     def compile(self) -> str:
         self.check_unique_functions()
+        self.check_dead_exports()
+        live = None if self.instrument else self.reachable_functions()
+        # EVERY function is checked and generated, including the dead ones, and
+        # only then is the dead code dropped. That order is not incidental: a
+        # good deal of this compiler's checking (the export/import access rules
+        # above all) happens inside gen_function, so generating only the live
+        # functions silently stopped enforcing those rules on the rest --
+        # tests/invalid's `import_without_export` and `unexported_access` both
+        # started compiling clean, while bin/idc (whose checks all run before
+        # emission) still rejected them. Dead code is still code, and it is
+        # still checked; it is just not emitted.
         bodies = []
         for fn in self.funcs.values():
             self.check_action_limit(fn)
-            bodies.append(self.gen_function(fn))
+            self.check_discarded_comparison(fn)
+            code = self.gen_function(fn)
+            if self.is_live(live, fn.name):
+                bodies.append(code)
 
-        out = [RUNTIME]
+        out = [instrumented_runtime() if self.instrument else RUNTIME]
 
         if self.unknown_fns:
             out.append("/* functions not defined in any input file (resolved at link time) */")
@@ -1197,7 +1640,8 @@ class Compiler:
 
         out.append("/* forward declarations */")
         for fn in self.funcs.values():
-            out.append(self.signature(fn) + ";")
+            if self.is_live(live, fn.name):
+                out.append(self.signature(fn) + ";")
         out.append("")
 
         if self.exported:
@@ -1207,7 +1651,7 @@ class Compiler:
             out.append("")
 
         out.extend(bodies)
-        out.append(self.gen_entrypoint())
+        out.append(self.gen_test_main() if self.instrument else self.gen_entrypoint())
         return "\n".join(out) + "\n"
 
     # -- the 3-action rule: EVERY block (the function body and the body of each
@@ -1276,6 +1720,8 @@ class Compiler:
                    for stmt in walk_stmts(fn.body)
                    if isinstance(stmt, DeclStmt) and not stmt.exported]
         lines.extend(hoisted)
+        if self.instrument:
+            lines.append("    id_ctr_time++;")
 
         for stmt in fn.body:
             lines.extend(self.gen_stmt(stmt, fn, env, 1))
@@ -1349,6 +1795,8 @@ class Compiler:
             if ctyp == "void":
                 raise CompileError(stmt.file, stmt.line, "loop condition has type void")
             out = [f"{ind}while ({cond}) {{"]
+            if self.instrument:
+                out.append(f"{ind}    id_ctr_time++;")
             for s in stmt.body:
                 out.extend(self.gen_stmt(s, fn, env, depth + 1))
             out.append(f"{ind}}}")
@@ -1663,14 +2111,15 @@ class Compiler:
                 if op == "%" and (lt == "float" or rt == "float"):
                     raise CompileError(e.file, e.line, "'%' requires int operands")
                 res = arith_result(lt, rt)
-                if op in ("/", "%") and res == "word":
-                    # Division by zero, and the LLONG_MIN/-1 overflow, are
-                    # undefined in C. On `word` -- which is new, so nothing
-                    # depends on the old behaviour -- trap them the way an
-                    # out-of-range list index traps. `int` division is left
-                    # exactly as it was: this extension is strictly additive.
-                    helper = "id_sdiv" if op == "/" else "id_smod"
-                    return f"{helper}({lc}, {rc})", res
+                if op in ("/", "%") and res in ("int", "word"):
+                    # Division by zero, and the MIN/-1 overflow, are undefined
+                    # in C: on this machine the first is a SIGFPE and a core
+                    # dump with no message at all. Both go through a helper
+                    # that traps the way an out-of-range list index traps.
+                    # Float division is left alone -- IEEE gives it an answer.
+                    pfx = "id_s" if res == "word" else "id_i"
+                    return (f"{pfx}{'div' if op == '/' else 'mod'}"
+                            f"({lc}, {rc})"), res
                 return f"({lc} {op} {rc})", res
             raise CompileError(e.file, e.line, f"cannot apply '{op}' to {lt} and {rt}")
         raise AssertionError(op)
@@ -1701,6 +2150,180 @@ class Compiler:
         return (f"int main(int argc, char** argv) {{ (void)argc; (void)argv;\n    "
                 f"{prelude}{body} }}\n")
 
+    # ------------------------------------------------------------ test harness
+    #
+    # A second translation unit: the same functions, instrumented, plus an
+    # entry point of its own that runs every case. The user's `main` (if there
+    # is one) is compiled but never called -- the harness tests functions, it
+    # does not run the program. Emitted only when self.instrument is set, so
+    # none of this can reach the C the user asked for.
+
+    def tc_compare(self, a, b, typ) -> str:
+        """C expression: do `a` and `b`, both of id type `typ`, match?"""
+        if typ.endswith("[]"):
+            return f"{self.tc_eq_helper(typ[:-2])}({a}, {b})"
+        if typ == "string":
+            return f"(strcmp({a}, {b}) == 0)"
+        return f"({a} == {b})"
+
+    def tc_show(self, code, typ) -> str:
+        """C statement printing `code` to stderr the way a case writes it."""
+        if typ.endswith("[]"):
+            return f"{self.tc_show_helper(typ[:-2])}({code});"
+        if typ == "string":
+            return f'fprintf(stderr, "\\"%s\\"", {code});'
+        if typ == "float":
+            return f'fprintf(stderr, "%g", {code});'
+        if typ == "word":
+            return f'fprintf(stderr, "%lld", {code});'
+        return f'fprintf(stderr, "%d", {code});'
+
+    def tc_helper(self, name, make):
+        """Register a harness helper once, keyed by name. Reserved before the
+        body is built so a list of lists doesn't recurse forever."""
+        if name not in self.tc_helpers:
+            self.tc_helpers[name] = ""
+            self.tc_helpers[name] = make()
+        return name
+
+    def tc_eq_helper(self, elem) -> str:
+        name = "idtc_eq_" + elem.replace("[]", "_l")
+
+        def make():
+            cmp = self.tc_compare(unbox("a->data[i]", elem),
+                                  unbox("b->data[i]", elem), elem)
+            return "\n".join([
+                f"static int {name}(IdList* a, IdList* b) {{",
+                "    if (a->len != b->len) return 0;",
+                "    for (int i = 0; i < a->len; i++)",
+                f"        if (!{cmp}) return 0;",
+                "    return 1;",
+                "}",
+            ])
+        return self.tc_helper(name, make)
+
+    def tc_show_helper(self, elem) -> str:
+        name = "idtc_show_" + elem.replace("[]", "_l")
+
+        def make():
+            return "\n".join([
+                f"static void {name}(IdList* a) {{",
+                '    fputs("[", stderr);',
+                "    for (int i = 0; i < a->len; i++) {",
+                '        if (i) fputs(", ", stderr);',
+                "        " + self.tc_show(unbox("a->data[i]", elem), elem),
+                "    }",
+                '    fputs("]", stderr);',
+                "}",
+            ])
+        return self.tc_helper(name, make)
+
+    def tc_value(self, e, want) -> str:
+        """C code building a case literal at the id type the function declares.
+        The declared type is what the value is built at -- inferring it from the
+        literal instead would make `([1, 2]):(...)` on a `word[]` parameter a
+        type error about a list nobody wrote."""
+        if want.endswith("[]"):
+            if not isinstance(e, ArrayLit):
+                raise CompileError(e.file, e.line,
+                                   f"this case gives {literal_text(e)} where a "
+                                   f"{want} is required")
+            elem = want[:-2]
+            cells = [box(self.tc_value(el, elem), elem) for el in e.elems]
+            return "id_list_lit(" + ", ".join([str(len(cells))] + cells) + ")"
+        if isinstance(e, ArrayLit):
+            raise CompileError(e.file, e.line,
+                               f"this case gives a list where a {want} is required")
+        code, typ = self.gen_expr(e, None, {})
+        if not compatible(want, typ):
+            raise CompileError(e.file, e.line,
+                               f"this case gives a {typ} where a {want} is required")
+        return code
+
+    def gen_test_case(self, fn: FuncDef, idx: int, case: TestCase) -> List[str]:
+        if len(case.args) != len(fn.params):
+            raise CompileError(case.file, case.line,
+                               f"this case passes {len(case.args)} argument(s) to "
+                               f"'{fn.name}', which takes {len(fn.params)}")
+        out = ["    {"]
+        for i, (ptype, _) in enumerate(fn.params):
+            out.append(f"        {c_type(ptype)} idtc_a{i} = "
+                       f"{self.tc_value(case.args[i], ptype)};")
+        call = f"id_{fn.name}(" + ", ".join(f"idtc_a{i}" for i in
+                                            range(len(fn.params))) + ")"
+        out.append("        id_ctr_time = 0; id_ctr_mem = 0;")
+        if fn.rettype == "void":
+            out.append(f"        {call};")
+        else:
+            out.append(f"        {c_type(fn.rettype)} idtc_got = {call};")
+        # read the counters before building the expected values: id_list_lit
+        # allocates, and that allocation is not the function's.
+        out.append("        long long idtc_t = id_ctr_time, idtc_m = id_ctr_mem;")
+
+        if fn.rettype == "void":
+            # A void function is judged by what it left in its arguments, which
+            # the expected side describes positionally. It may stop early: only
+            # the arguments it names are checked.
+            if len(case.expected) > len(fn.params):
+                raise CompileError(case.file, case.line,
+                                   f"this case expects {len(case.expected)} "
+                                   f"argument(s) after the call, but '{fn.name}' "
+                                   f"takes {len(fn.params)}")
+            checked = [(f"idtc_a{i}", fn.params[i][0], e)
+                       for i, e in enumerate(case.expected)]
+        else:
+            if len(case.expected) != 1:
+                raise CompileError(case.file, case.line,
+                                   f"'{fn.name}' returns {fn.rettype}, so its case "
+                                   f"expects exactly one value, not "
+                                   f"{len(case.expected)}")
+            checked = [("idtc_got", fn.rettype, case.expected[0])]
+
+        conds = []
+        for j, (got, typ, e) in enumerate(checked):
+            out.append(f"        {c_type(typ)} idtc_e{j} = {self.tc_value(e, typ)};")
+            conds.append(self.tc_compare(got, f"idtc_e{j}", typ))
+        argtext = ", ".join(literal_text(a) for a in case.args)
+        exptext = ", ".join(literal_text(e) for e in case.expected)
+        if len(checked) != 1:
+            exptext = f"({exptext})"
+        out.append(f"        if (!({' && '.join(conds) or '1'})) {{")
+        out.append(f"            fputs({c_string(f'{case.file}:{case.line}: test failed: {fn.name}({argtext}) = ')}, stderr);")
+        if len(checked) != 1:
+            out.append('            fputs("(", stderr);')
+        for j, (got, typ, _) in enumerate(checked):
+            if j:
+                out.append('            fputs(", ", stderr);')
+            out.append("            " + self.tc_show(got, typ))
+        if len(checked) != 1:
+            out.append('            fputs(")", stderr);')
+        out.append(f"            fputs({c_string(f', expected {exptext}')}, stderr);")
+        out.append('            fputs("\\n", stderr);')
+        out.append("            exit(1);")
+        out.append("        }")
+        out.append(f'        if (idtc_out) fprintf(idtc_out, "%s %d %lld %lld\\n", '
+                   f'{c_string(fn.name)}, {idx}, idtc_t, idtc_m);')
+        out.append("    }")
+        return out
+
+    def gen_test_main(self) -> str:
+        """The harness entry point. Counts are written to the file named by
+        argv[1] (one line per case), so a case's own printing cannot be mistaken
+        for a measurement; failures go to stderr and stop the run."""
+        body = []
+        for fn in self.funcs.values():
+            for idx, case in enumerate(fn.cases):
+                body.extend(self.gen_test_case(fn, idx, case))
+        protos = [line.split(" {")[0] + ";" for line in
+                  (h.split("\n")[0] for h in self.tc_helpers.values())]
+        return "\n".join(
+            ["/* test harness (idc --tests) */", "static FILE* idtc_out = NULL;"]
+            + protos + [""] + list(self.tc_helpers.values()) + [""]
+            + ["int main(int argc, char** argv) {",
+               "    if (argc > 1) idtc_out = fopen(argv[1], \"w\");"]
+            + body
+            + ["    if (idtc_out) fclose(idtc_out);", "    return 0;", "}"]) + "\n"
+
 
 # ---------------------------------------------------------------- LLVM backend
 #
@@ -1720,6 +2343,8 @@ class Compiler:
 def ll_type(typ):
     if typ == "int":
         return "i32"
+    if typ == "word":
+        return "i64"
     if typ == "float":
         return "double"
     if typ == "void":
@@ -1783,29 +2408,54 @@ declare i32 @id_len(ptr)
 declare i32 @id_charat(ptr, i32)
 declare ptr @id_chr(i32)
 declare i32 @strcmp(ptr, ptr)
+declare i32 @id_idiv(i32, i32)
+declare i32 @id_imod(i32, i32)
+declare i64 @id_shl(i64, i64)
+declare i64 @id_sar(i64, i64)
+declare ptr @id_str_of_word(i64)
+declare i64 @id_sdiv(i64, i64)
+declare i64 @id_smod(i64, i64)
+declare i64 @id_mem_alloc(i64)
+declare i64 @id_mem_size()
+declare i64 @id_peek8(i64)
+declare i64 @id_peek16(i64)
+declare i64 @id_peek32(i64)
+declare i64 @id_peek64(i64)
+declare void @id_poke8(i64, i64)
+declare void @id_poke16(i64, i64)
+declare void @id_poke32(i64, i64)
+declare void @id_poke64(i64, i64)
+declare i64 @id_udiv(i64, i64)
+declare i64 @id_umod(i64, i64)
+declare i64 @id_ult(i64, i64)
+declare i64 @id_ushr(i64, i64)
+declare ptr @id_str_of_mem(i64, i64)
+declare i64 @id_mem_of_str(ptr)
 """
 
-# Builtins the LLVM and WASM backends do not implement. Real-time terminal I/O
-# was always C-only; the flat store and word arithmetic join it because a C
-# pointer, an LLVM `inttoptr`+`load`, and a WASM `i32.load8_u` into linear
-# memory are three genuinely different address spaces, and guessing wrong
-# would be worse than saying so.
-UNSUPPORTED_BUILTINS = (("put", "flush", "getkey", "sleep_ms", "ticks")
-                        + tuple(STORE_BUILTINS) + tuple(WORD_BUILTINS)
-                        + ("str_of_mem", "mem_of_str"))
+# Real-time terminal I/O is C-only on every target: put/flush/getkey/sleep_ms
+# and ticks have no LLVM- or WASM-portable representation.
+REALTIME_IO_BUILTINS = ("put", "flush", "getkey", "sleep_ms", "ticks")
+
+UNSUPPORTED_BUILTINS_WASM = REALTIME_IO_BUILTINS
+
+# The LLVM backend links the same C RUNTIME the C target does, so the flat
+# store and word arithmetic are just calls to its helpers -- only real-time
+# I/O stays out of scope.
+UNSUPPORTED_BUILTINS_LLVM = REALTIME_IO_BUILTINS
 
 
 def unsupported_builtin_msg(name) -> str:
-    what = ("real-time I/O is C-only" if name in ("put", "flush", "getkey",
-                                                  "sleep_ms", "ticks")
+    what = ("real-time I/O is C-only" if name in REALTIME_IO_BUILTINS
             else "the flat store and word arithmetic are C-only")
     return (f"builtin '{name}' is not supported for this --target ({what})")
 
 
 def reject_word_type(funcs, target):
-    """The C target is the only one with a 64-bit machine word, so a program
-    using `word` is rejected up front with a clear message rather than
-    crashing somewhere inside instruction selection."""
+    """WASM's linear memory model doesn't yet have a mapping for `word` and
+    the flat store, so a program using `word` there is rejected up front with
+    a clear message rather than crashing somewhere inside instruction
+    selection."""
     for fn in funcs:
         sites = [(fn.rettype, fn.file, fn.line)]
         sites += [(t, fn.file, fn.line) for t, _ in fn.params]
@@ -1870,9 +2520,17 @@ class LLVMBackend:
     def coerce(self, val, have, want):
         if have == want:
             return val
+        if have == "int" and want == "word":
+            t = self.new_tmp()
+            self.emit(f"  {t} = sext i32 {val} to i64")
+            return t
         if have == "int" and want == "float":
             t = self.new_tmp()
             self.emit(f"  {t} = sitofp i32 {val} to double")
+            return t
+        if have == "word" and want == "float":
+            t = self.new_tmp()
+            self.emit(f"  {t} = sitofp i64 {val} to double")
             return t
         return val
 
@@ -1881,6 +2539,8 @@ class LLVMBackend:
             t = self.new_tmp()
             self.emit(f"  {t} = sext i32 {val} to i64")
             return t
+        if typ == "word":
+            return val
         if typ == "float":
             t = self.new_tmp()
             self.emit(f"  {t} = call i64 @id_box_f(double {val})")
@@ -1894,6 +2554,8 @@ class LLVMBackend:
             t = self.new_tmp()
             self.emit(f"  {t} = trunc i64 {val} to i32")
             return t
+        if typ == "word":
+            return val
         if typ == "float":
             t = self.new_tmp()
             self.emit(f"  {t} = call double @id_unbox_f(i64 {val})")
@@ -1908,6 +2570,8 @@ class LLVMBackend:
             self.emit(f"  {t} = fcmp one double {val}, 0.0")
         elif typ == "int":
             self.emit(f"  {t} = icmp ne i32 {val}, 0")
+        elif typ == "word":
+            self.emit(f"  {t} = icmp ne i64 {val}, 0")
         else:
             self.emit(f"  {t} = icmp ne ptr {val}, null")
         return t
@@ -1918,6 +2582,10 @@ class LLVMBackend:
         if typ == "int":
             t = self.new_tmp()
             self.emit(f"  {t} = call ptr @id_str_of_int(i32 {val})")
+            return t
+        if typ == "word":
+            t = self.new_tmp()
+            self.emit(f"  {t} = call ptr @id_str_of_word(i64 {val})")
             return t
         if typ == "float":
             t = self.new_tmp()
@@ -2050,6 +2718,11 @@ class LLVMBackend:
 
     def gen_expr(self, e, fn, expected=None):
         if isinstance(e, IntLit):
+            # A literal too big for a 32-bit int is a word, not a silently
+            # truncated int -- matching the C backend's reading of the same
+            # literal (idc.py's Compiler.gen_expr).
+            if int(e.value) > 0x7fffffff:
+                return e.value, "word"
             return e.value, "int"
         if isinstance(e, FloatLit):
             return e.value, "float"
@@ -2119,23 +2792,27 @@ class LLVMBackend:
                 t = self.new_tmp()
                 if typ == "int":
                     self.emit(f"  {t} = sub i32 0, {val}")
+                elif typ == "word":
+                    self.emit(f"  {t} = sub i64 0, {val}")
                 else:
                     self.emit(f"  {t} = fneg double {val}")
                 return t, typ
             if e.op == "!":
-                if typ != "int":
+                if not is_integral(typ):
                     raise CompileError(e.file, e.line, f"cannot apply '!' to a {typ}")
+                width = "i64" if typ == "word" else "i32"
                 t1 = self.new_tmp()
-                self.emit(f"  {t1} = icmp eq i32 {val}, 0")
+                self.emit(f"  {t1} = icmp eq {width} {val}, 0")
                 t2 = self.new_tmp()
                 self.emit(f"  {t2} = zext i1 {t1} to i32")
                 return t2, "int"
             if e.op == "~":
-                if typ != "int":
+                if not is_integral(typ):
                     raise CompileError(e.file, e.line, f"cannot apply '~' to a {typ}")
+                width = "i64" if typ == "word" else "i32"
                 t = self.new_tmp()
-                self.emit(f"  {t} = xor i32 {val}, -1")
-                return t, "int"
+                self.emit(f"  {t} = xor {width} {val}, -1")
+                return t, typ
             raise AssertionError(e.op)
         if isinstance(e, BinOp):
             return self.gen_binop(e, fn)
@@ -2162,42 +2839,42 @@ class LLVMBackend:
                 self.emit(f"  {t3} = zext i1 {t2} to i32")
                 return t3, "int"
             if is_numeric(lt) and is_numeric(rt):
-                common = "float" if "float" in (lt, rt) else "int"
+                common = arith_result(lt, rt)
                 lc2 = self.coerce(lc, lt, common)
                 rc2 = self.coerce(rc, rt, common)
+                width = {"int": "i32", "word": "i64", "float": "double"}[common]
                 t1 = self.new_tmp()
-                if common == "int":
-                    cmp = "eq" if op == "==" else "ne"
-                    self.emit(f"  {t1} = icmp {cmp} i32 {lc2}, {rc2}")
-                else:
+                if common == "float":
                     cmp = "oeq" if op == "==" else "one"
-                    self.emit(f"  {t1} = fcmp {cmp} double {lc2}, {rc2}")
+                    self.emit(f"  {t1} = fcmp {cmp} {width} {lc2}, {rc2}")
+                else:
+                    cmp = "eq" if op == "==" else "ne"
+                    self.emit(f"  {t1} = icmp {cmp} {width} {lc2}, {rc2}")
                 t2 = self.new_tmp()
                 self.emit(f"  {t2} = zext i1 {t1} to i32")
                 return t2, "int"
             raise CompileError(e.file, e.line, f"cannot compare {lt} with {rt}")
         if op in ("<", "<=", ">", ">="):
             if is_numeric(lt) and is_numeric(rt):
-                common = "float" if "float" in (lt, rt) else "int"
+                common = arith_result(lt, rt)
                 lc2 = self.coerce(lc, lt, common)
                 rc2 = self.coerce(rc, rt, common)
+                width = {"int": "i32", "word": "i64", "float": "double"}[common]
                 imap = {"<": "slt", "<=": "sle", ">": "sgt", ">=": "sge"}
                 fmap = {"<": "olt", "<=": "ole", ">": "ogt", ">=": "oge"}
                 t1 = self.new_tmp()
-                if common == "int":
-                    self.emit(f"  {t1} = icmp {imap[op]} i32 {lc2}, {rc2}")
+                if common == "float":
+                    self.emit(f"  {t1} = fcmp {fmap[op]} {width} {lc2}, {rc2}")
                 else:
-                    self.emit(f"  {t1} = fcmp {fmap[op]} double {lc2}, {rc2}")
+                    self.emit(f"  {t1} = icmp {imap[op]} {width} {lc2}, {rc2}")
                 t2 = self.new_tmp()
                 self.emit(f"  {t2} = zext i1 {t1} to i32")
                 return t2, "int"
             raise CompileError(e.file, e.line, f"cannot order {lt} and {rt}")
         if op in ("&&", "||"):
-            if lt == "int" and rt == "int":
-                lb = self.new_tmp()
-                self.emit(f"  {lb} = icmp ne i32 {lc}, 0")
-                rb = self.new_tmp()
-                self.emit(f"  {rb} = icmp ne i32 {rc}, 0")
+            if is_integral(lt) and is_integral(rt):
+                lb = self.to_i1(lc, lt)
+                rb = self.to_i1(rc, rt)
                 t1 = self.new_tmp()
                 instr = "and" if op == "&&" else "or"
                 self.emit(f"  {t1} = {instr} i1 {lb}, {rb}")
@@ -2206,23 +2883,48 @@ class LLVMBackend:
                 return t2, "int"
             raise CompileError(e.file, e.line, f"'{op}' requires int operands")
         if op in ("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>"):
-            if op in ("&", "|", "^", "<<", ">>") and not (lt == "int" and rt == "int"):
+            if op in ("&", "|", "^", "<<", ">>") and not (is_integral(lt) and is_integral(rt)):
                 raise CompileError(e.file, e.line,
-                                   f"'{op}' requires int operands on --target llvm "
-                                   f"(word arithmetic is C-only)")
+                                   f"'{op}' requires int or word operands, got {lt} and {rt}")
             if is_numeric(lt) and is_numeric(rt):
                 if op == "%" and (lt == "float" or rt == "float"):
                     raise CompileError(e.file, e.line, "'%' requires int operands")
-                res = "float" if "float" in (lt, rt) else "int"
+                res = arith_result(lt, rt)
                 lc2 = self.coerce(lc, lt, res)
                 rc2 = self.coerce(rc, rt, res)
                 t = self.new_tmp()
-                if res == "int":
+                if res in ("int", "word"):
+                    # Division and shifts go through the same runtime helpers
+                    # the C target uses, because a raw `sdiv` by zero is a
+                    # SIGFPE and a raw `shl` by 32 is poison -- two behaviours
+                    # docs/SPEC.md gives defined answers for. The helpers are
+                    # in the C RUNTIME this target already links.
+                    width = "i32" if res == "int" else "i64"
+                    if op in ("/", "%"):
+                        if res == "int":
+                            helper = "id_idiv" if op == "/" else "id_imod"
+                        else:
+                            helper = "id_sdiv" if op == "/" else "id_smod"
+                        self.emit(f"  {t} = call {width} @{helper}"
+                                  f"({width} {lc2}, {width} {rc2})")
+                        return t, res
+                    if op in ("<<", ">>"):
+                        helper = "id_shl" if op == "<<" else "id_sar"
+                        if res == "int":
+                            a64, n64, r64 = (self.new_tmp(), self.new_tmp(),
+                                             self.new_tmp())
+                            self.emit(f"  {a64} = sext i32 {lc2} to i64")
+                            self.emit(f"  {n64} = sext i32 {rc2} to i64")
+                            self.emit(f"  {r64} = call i64 @{helper}"
+                                      f"(i64 {a64}, i64 {n64})")
+                            self.emit(f"  {t} = trunc i64 {r64} to i32")
+                        else:
+                            self.emit(f"  {t} = call i64 @{helper}"
+                                      f"(i64 {lc2}, i64 {rc2})")
+                        return t, res
                     instr = {"+": "add", "-": "sub", "*": "mul",
-                             "/": "sdiv", "%": "srem",
-                             "&": "and", "|": "or", "^": "xor",
-                             "<<": "shl", ">>": "ashr"}[op]
-                    self.emit(f"  {t} = {instr} i32 {lc2}, {rc2}")
+                             "&": "and", "|": "or", "^": "xor"}[op]
+                    self.emit(f"  {t} = {instr} {width} {lc2}, {rc2}")
                 else:
                     instr = {"+": "fadd", "-": "fsub", "*": "fmul", "/": "fdiv"}[op]
                     self.emit(f"  {t} = {instr} double {lc2}, {rc2}")
@@ -2318,7 +3020,34 @@ class LLVMBackend:
             t = self.new_tmp()
             self.emit(f"  {t} = call ptr @id_chr(i32 {val})")
             return t, "string"
-        if name in UNSUPPORTED_BUILTINS:
+        if name in STORE_BUILTINS or name in WORD_BUILTINS:
+            return self.gen_systems_call(e, fn)
+        if name == "str_of_mem":
+            if len(e.args) != 2:
+                raise CompileError(e.file, e.line,
+                                   "str_of_mem takes exactly two arguments")
+            ac, at = self.gen_expr(e.args[0], fn)
+            nc, nt = self.gen_expr(e.args[1], fn)
+            if not is_integral(at) or not is_integral(nt):
+                raise CompileError(e.file, e.line,
+                                   "str_of_mem takes an address and a length")
+            a64 = self.coerce(ac, at, "word")
+            n64 = self.coerce(nc, nt, "word")
+            t = self.new_tmp()
+            self.emit(f"  {t} = call ptr @id_str_of_mem(i64 {a64}, i64 {n64})")
+            return t, "string"
+        if name == "mem_of_str":
+            if len(e.args) != 1:
+                raise CompileError(e.file, e.line,
+                                   "mem_of_str takes exactly one argument")
+            val, typ = self.gen_expr(e.args[0], fn)
+            if typ != "string":
+                raise CompileError(e.file, e.line,
+                                   f"mem_of_str expects a string, got {typ}")
+            t = self.new_tmp()
+            self.emit(f"  {t} = call i64 @id_mem_of_str(ptr {val})")
+            return t, "word"
+        if name in UNSUPPORTED_BUILTINS_LLVM:
             raise CompileError(e.file, e.line, unsupported_builtin_msg(name))
         args = [self.gen_expr(a, fn) for a in e.args]
         callee = self.compiler.funcs.get(name)
@@ -2346,6 +3075,36 @@ class LLVMBackend:
         t = self.new_tmp()
         self.emit(f"  {t} = call {ll_type(callee.rettype)} @id_{name}({', '.join(argstrs)})")
         return t, callee.rettype
+
+    def gen_systems_call(self, e: CallExpr, fn) -> Tuple[str, str]:
+        """The flat-store and unsigned-word builtins. They all take and
+        return machine words, so one shared shape covers every one of them --
+        the same helpers the C target links, called with i64 arguments."""
+        arity, helper, restype = (STORE_BUILTINS.get(e.name)
+                                  or WORD_BUILTINS[e.name])
+        if len(e.args) != arity:
+            plural = "" if arity == 1 else "s"
+            raise CompileError(e.file, e.line,
+                               f"{e.name} takes exactly {arity} argument{plural}, "
+                               f"got {len(e.args)}")
+        argstrs = []
+        for arg in e.args:
+            val, typ = self.gen_expr(arg, fn)
+            if not is_integral(typ):
+                raise CompileError(arg.file, arg.line,
+                                   f"{e.name} expects int or word arguments, "
+                                   f"got {typ}")
+            argstrs.append(f"i64 {self.coerce(val, typ, 'word')}")
+        if restype == "void":
+            self.emit(f"  call void @{helper}({', '.join(argstrs)})")
+            return "0", "void"
+        t = self.new_tmp()
+        self.emit(f"  {t} = call i64 @{helper}({', '.join(argstrs)})")
+        if restype == "int":
+            t2 = self.new_tmp()
+            self.emit(f"  {t2} = trunc i64 {t} to i32")
+            return t2, "int"
+        return t, restype
 
     # -- C-ABI entrypoint (marshals argv into an id string[] the same way the
     #    C backend's gen_entrypoint does, then calls id_main)
@@ -2401,7 +3160,7 @@ class LLVMBackend:
         if self.compiler.exported:
             out.append("; exported variables")
             for name, (typ, owner) in self.compiler.exported.items():
-                zero = {"int": "0", "float": "0.0"}.get(typ, "null")
+                zero = {"int": "0", "word": "0", "float": "0.0"}.get(typ, "null")
                 out.append(f"@g_{name} = global {ll_type(typ)} {zero}  ; exported by {owner}()")
             out.append("")
 
@@ -2461,6 +3220,19 @@ _MSG_IDX_END = b")\n"
 _MSG_POP = b"id: pop from empty list\n"
 _MSG_OOM = b"id: out of memory\n"
 _MSG_CAP = b"id: list capacity overflow\n"
+# The four docs/SPEC.md §7 conditions arithmetic can raise. Without them a
+# `/` by zero was an opaque engine trap (exit 134) where the C target prints
+# a line and exits 1, and a shift past the width was silently count-masked.
+_MSG_DIV0 = b"id: division by zero\n"
+_MSG_MOD0 = b"id: remainder by zero\n"
+_MSG_DIVOV = b"id: division overflow\n"
+_MSG_SHNEG = b"id: shift by a negative amount\n"
+_MSG_STORE_PRE = b"id: store address "
+_MSG_STORE_MID = b" out of range (size "
+_MSG_STORE_END = b")\n"
+_MSG_NEGALLOC = b"id: negative allocation size\n"
+_MSG_ALLOCOV = b"id: allocation size overflow\n"
+_MSG_NEGLEN = b"id: negative length\n"
 
 _MSG_IDX_PRE_ADDR = 1152
 _MSG_IDX_MID_ADDR = _MSG_IDX_PRE_ADDR + len(_MSG_IDX_PRE)
@@ -2468,9 +3240,21 @@ _MSG_IDX_END_ADDR = _MSG_IDX_MID_ADDR + len(_MSG_IDX_MID)
 _MSG_POP_ADDR = _MSG_IDX_END_ADDR + len(_MSG_IDX_END)
 _MSG_OOM_ADDR = _MSG_POP_ADDR + len(_MSG_POP)
 _MSG_CAP_ADDR = _MSG_OOM_ADDR + len(_MSG_OOM)
+_MSG_DIV0_ADDR = _MSG_CAP_ADDR + len(_MSG_CAP)
+_MSG_MOD0_ADDR = _MSG_DIV0_ADDR + len(_MSG_DIV0)
+_MSG_DIVOV_ADDR = _MSG_MOD0_ADDR + len(_MSG_MOD0)
+_MSG_SHNEG_ADDR = _MSG_DIVOV_ADDR + len(_MSG_DIVOV)
+_MSG_STORE_PRE_ADDR = _MSG_SHNEG_ADDR + len(_MSG_SHNEG)
+_MSG_STORE_MID_ADDR = _MSG_STORE_PRE_ADDR + len(_MSG_STORE_PRE)
+_MSG_STORE_END_ADDR = _MSG_STORE_MID_ADDR + len(_MSG_STORE_MID)
+_MSG_NEGALLOC_ADDR = _MSG_STORE_END_ADDR + len(_MSG_STORE_END)
+_MSG_ALLOCOV_ADDR = _MSG_NEGALLOC_ADDR + len(_MSG_NEGALLOC)
+_MSG_NEGLEN_ADDR = _MSG_ALLOCOV_ADDR + len(_MSG_ALLOCOV)
 
 _RESERVED_END = 2048   # string constants (and then the heap) start here
-assert _MSG_CAP_ADDR + len(_MSG_CAP) <= _RESERVED_END
+assert _MSG_NEGLEN_ADDR + len(_MSG_NEGLEN) <= _RESERVED_END
+
+_STORE_BASE = 1 << 20
 
 
 def wat_bytes_literal(bs: bytes) -> str:
@@ -2537,6 +3321,47 @@ def wasm_runtime_funcs() -> str:
     (call $proc_exit (i32.const 1))
     (unreachable))
 
+  ;; ---- arithmetic with defined answers (docs/SPEC.md 2.2, 2.3). The raw
+  ;; wasm instructions are wrong twice over: i32.div_s by zero is an opaque
+  ;; engine trap where the C target prints a line and exits 1, and i32.shl
+  ;; masks the shift count to 5 bits, so `1 << 32` came out as 1 instead of 0.
+  (func $id_idiv (param $a i32) (param $b i32) (result i32)
+    (if (i32.eqz (local.get $b))
+      (then (call $id_die (i32.const {_MSG_DIV0_ADDR})
+                          (i32.const {len(_MSG_DIV0)}))))
+    (if (i32.and (i32.eq (local.get $b) (i32.const -1))
+                 (i32.eq (local.get $a) (i32.const -2147483648)))
+      (then (call $id_die (i32.const {_MSG_DIVOV_ADDR})
+                          (i32.const {len(_MSG_DIVOV)}))))
+    (i32.div_s (local.get $a) (local.get $b)))
+
+  ;; b == -1 would overflow for INT_MIN, and the answer is 0 either way.
+  (func $id_imod (param $a i32) (param $b i32) (result i32)
+    (if (i32.eqz (local.get $b))
+      (then (call $id_die (i32.const {_MSG_MOD0_ADDR})
+                          (i32.const {len(_MSG_MOD0)}))))
+    (if (i32.eq (local.get $b) (i32.const -1))
+      (then (return (i32.const 0))))
+    (i32.rem_s (local.get $a) (local.get $b)))
+
+  (func $id_shl (param $a i32) (param $n i32) (result i32)
+    (if (i32.lt_s (local.get $n) (i32.const 0))
+      (then (call $id_die (i32.const {_MSG_SHNEG_ADDR})
+                          (i32.const {len(_MSG_SHNEG)}))))
+    (if (i32.ge_s (local.get $n) (i32.const 32))
+      (then (return (i32.const 0))))
+    (i32.shl (local.get $a) (local.get $n)))
+
+  ;; Past the width an arithmetic right shift is the sign bit repeated, which
+  ;; is exactly what shifting by 31 produces.
+  (func $id_sar (param $a i32) (param $n i32) (result i32)
+    (if (i32.lt_s (local.get $n) (i32.const 0))
+      (then (call $id_die (i32.const {_MSG_SHNEG_ADDR})
+                          (i32.const {len(_MSG_SHNEG)}))))
+    (if (i32.ge_s (local.get $n) (i32.const 32))
+      (then (return (i32.shr_s (local.get $a) (i32.const 31)))))
+    (i32.shr_s (local.get $a) (local.get $n)))
+
   (func $id_pop_error
     (call $id_die (i32.const {_MSG_POP_ADDR}) (i32.const {len(_MSG_POP)})))
 
@@ -2559,6 +3384,14 @@ def wasm_runtime_funcs() -> str:
     (local $p i32) (local $need i32) (local $have i32) (local $want i32) (local $grown i32)
     (local.set $p (global.get $heap))
     (local.set $need (i32.add (local.get $p) (local.get $n)))
+    ;; The flat store is a fixed region at {_STORE_BASE} in this same linear
+    ;; memory, and this bump allocator grows toward it. Reaching it must be a
+    ;; clean abort: docs/SPEC.md 6 promises that the mistake which silently
+    ;; corrupts memory in C is a trap here, and without this check a program
+    ;; whose heap passed 1 MiB overwrote the store and read back garbage with
+    ;; nothing reported.
+    (if (i32.gt_u (local.get $need) (i32.const {_STORE_BASE}))
+      (then (call $id_oom_error) (unreachable)))
     (local.set $have (i32.mul (memory.size) (i32.const 65536)))
     (if (i32.gt_u (local.get $need) (local.get $have))
       (then
@@ -2690,11 +3523,18 @@ def wasm_runtime_funcs() -> str:
 
   (func $id_str_of_int (param $x i32) (result i32)
     (local $n i32) (local $neg i32) (local $i i32) (local $r i32) (local $j i32) (local $d i32)
+    ;; Fold into the NEGATIVE half of the range, not the positive one.
+    ;; Negating a negative overflows for INT_MIN -- it stays negative, every
+    ;; rem_s then yields a negative digit, and `d + 48` prints '0' - d, so
+    ;; -2147483648 came out as "-./,),(-*,(". Negating a positive is always
+    ;; representable, so the fold goes the other way and INT_MIN is never
+    ;; negated at all.
     (local.set $n (local.get $x))
     (local.set $neg (i32.const 0))
     (if (i32.lt_s (local.get $n) (i32.const 0))
-      (then (local.set $neg (i32.const 1))
-            (local.set $n (i32.sub (i32.const 0) (local.get $n)))))
+      (then (local.set $neg (i32.const 1))))
+    (if (i32.gt_s (local.get $n) (i32.const 0))
+      (then (local.set $n (i32.sub (i32.const 0) (local.get $n)))))
     (local.set $i (i32.const 0))
     (if (i32.eqz (local.get $n))
       (then
@@ -2703,7 +3543,9 @@ def wasm_runtime_funcs() -> str:
     (block $digits_done
       (loop $digits
         (br_if $digits_done (i32.eqz (local.get $n)))
-        (local.set $d (i32.rem_s (local.get $n) (i32.const 10)))
+        ;; $n is <= 0 here, so rem_s gives the digit negated; flip it back.
+        (local.set $d (i32.sub (i32.const 0)
+                               (i32.rem_s (local.get $n) (i32.const 10))))
         (i32.store8 (i32.add (i32.const {_STROI_BUF}) (local.get $i))
                     (i32.add (local.get $d) (i32.const 48)))
         (local.set $i (i32.add (local.get $i) (i32.const 1)))
@@ -2826,6 +3668,187 @@ def wasm_runtime_funcs() -> str:
     (call $id_memcopy (local.get $r) (local.get $buf) (local.get $n))
     (i32.store8 (i32.add (local.get $r) (local.get $n)) (i32.const 0))
     (local.get $r))
+
+  (func $id_str_of_word (param $x i64) (result i32)
+    (local $n i64) (local $neg i32) (local $i i32) (local $r i32) (local $j i32) (local $d i64)
+    (local.set $n (local.get $x))
+    (local.set $neg (i32.const 0))
+    (if (i64.lt_s (local.get $n) (i64.const 0))
+      (then (local.set $neg (i32.const 1))))
+    (if (i64.gt_s (local.get $n) (i64.const 0))
+      (then (local.set $n (i64.sub (i64.const 0) (local.get $n)))))
+    (local.set $i (i32.const 0))
+    (if (i64.eqz (local.get $n))
+      (then
+        (i32.store8 (i32.add (i32.const {_STROI_BUF}) (local.get $i)) (i32.const 48))
+        (local.set $i (i32.add (local.get $i) (i32.const 1)))))
+    (block $digits_done
+      (loop $digits
+        (br_if $digits_done (i64.eqz (local.get $n)))
+        (local.set $d (i64.sub (i64.const 0)
+                               (i64.rem_s (local.get $n) (i64.const 10))))
+        (i32.store8 (i32.add (i32.const {_STROI_BUF}) (local.get $i))
+                    (i32.add (i32.wrap_i64 (local.get $d)) (i32.const 48)))
+        (local.set $i (i32.add (local.get $i) (i32.const 1)))
+        (local.set $n (i64.div_s (local.get $n) (i64.const 10)))
+        (br $digits)))
+    (if (local.get $neg)
+      (then
+        (i32.store8 (i32.add (i32.const {_STROI_BUF}) (local.get $i)) (i32.const 45))
+        (local.set $i (i32.add (local.get $i) (i32.const 1)))))
+    (local.set $r (call $id_alloc (i32.add (local.get $i) (i32.const 1))))
+    (local.set $j (i32.const 0))
+    (block $rev_done
+      (loop $rev
+        (br_if $rev_done (i32.ge_s (local.get $j) (local.get $i)))
+        (i32.store8 (i32.add (local.get $r) (local.get $j))
+                    (i32.load8_u (i32.add (i32.const {_STROI_BUF})
+                                          (i32.sub (i32.sub (local.get $i) (local.get $j))
+                                                    (i32.const 1)))))
+        (local.set $j (i32.add (local.get $j) (i32.const 1)))
+        (br $rev)))
+    (i32.store8 (i32.add (local.get $r) (local.get $i)) (i32.const 0))
+    (local.get $r))
+
+  (func $id_store_error (param $addr i64)
+    (local $s i32)
+    (call $id_write_all (i32.const 2) (i32.const {_MSG_STORE_PRE_ADDR})
+                         (i32.const {len(_MSG_STORE_PRE)}))
+    (local.set $s (call $id_str_of_word (local.get $addr)))
+    (call $id_write_all (i32.const 2) (local.get $s) (call $id_strlen (local.get $s)))
+    (call $id_write_all (i32.const 2) (i32.const {_MSG_STORE_MID_ADDR})
+                         (i32.const {len(_MSG_STORE_MID)}))
+    (local.set $s (call $id_str_of_word (global.get $store_used)))
+    (call $id_write_all (i32.const 2) (local.get $s) (call $id_strlen (local.get $s)))
+    (call $id_write_all (i32.const 2) (i32.const {_MSG_STORE_END_ADDR})
+                         (i32.const {len(_MSG_STORE_END)}))
+    (call $proc_exit (i32.const 1))
+    (unreachable))
+
+  (func $id_store_addr (param $addr i64) (param $width i32) (result i32)
+    (if (i64.le_s (local.get $addr) (i64.const 0))
+      (then (call $id_store_error (local.get $addr)) (unreachable)))
+    (if (i64.gt_s (i64.add (local.get $addr) (i64.extend_i32_s (local.get $width)))
+                  (global.get $store_used))
+      (then (call $id_store_error (local.get $addr)) (unreachable)))
+    (i32.add (i32.const {_STORE_BASE}) (i32.wrap_i64 (local.get $addr))))
+
+  (func $id_mem_alloc (param $n i64) (result i64)
+    (local $base i64) (local $end i64)
+    (local $need i32) (local $have i32) (local $want i32) (local $grown i32)
+    (if (i64.lt_s (local.get $n) (i64.const 0))
+      (then (call $id_die (i32.const {_MSG_NEGALLOC_ADDR}) (i32.const {len(_MSG_NEGALLOC)}))))
+    (local.set $base (i64.and (i64.add (global.get $store_used) (i64.const 7)) (i64.const -8)))
+    (local.set $end (i64.add (local.get $base) (local.get $n)))
+    (if (i64.lt_s (local.get $end) (local.get $base))
+      (then (call $id_die (i32.const {_MSG_ALLOCOV_ADDR}) (i32.const {len(_MSG_ALLOCOV)}))))
+    (local.set $need (i32.add (i32.const {_STORE_BASE}) (i32.wrap_i64 (local.get $end))))
+    (local.set $have (i32.mul (memory.size) (i32.const 65536)))
+    (if (i32.gt_u (local.get $need) (local.get $have))
+      (then
+        (local.set $want
+          (i32.div_u (i32.add (i32.sub (local.get $need) (local.get $have)) (i32.const 65535))
+                     (i32.const 65536)))
+        (local.set $grown (memory.grow (local.get $want)))
+        (if (i32.eq (local.get $grown) (i32.const -1))
+          (then (call $id_oom_error) (unreachable)))))
+    (global.set $store_used (local.get $end))
+    (local.get $base))
+
+  (func $id_mem_size (result i64)
+    (global.get $store_used))
+
+  (func $id_peek8 (param $addr i64) (result i64)
+    (i64.extend_i32_u (i32.load8_u (call $id_store_addr (local.get $addr) (i32.const 1)))))
+
+  (func $id_peek16 (param $addr i64) (result i64)
+    (i64.extend_i32_u (i32.load16_u (call $id_store_addr (local.get $addr) (i32.const 2)))))
+
+  (func $id_peek32 (param $addr i64) (result i64)
+    (i64.extend_i32_u (i32.load (call $id_store_addr (local.get $addr) (i32.const 4)))))
+
+  (func $id_peek64 (param $addr i64) (result i64)
+    (i64.load (call $id_store_addr (local.get $addr) (i32.const 8))))
+
+  (func $id_poke8 (param $addr i64) (param $v i64)
+    (i32.store8 (call $id_store_addr (local.get $addr) (i32.const 1)) (i32.wrap_i64 (local.get $v))))
+
+  (func $id_poke16 (param $addr i64) (param $v i64)
+    (i32.store16 (call $id_store_addr (local.get $addr) (i32.const 2)) (i32.wrap_i64 (local.get $v))))
+
+  (func $id_poke32 (param $addr i64) (param $v i64)
+    (i32.store (call $id_store_addr (local.get $addr) (i32.const 4)) (i32.wrap_i64 (local.get $v))))
+
+  (func $id_poke64 (param $addr i64) (param $v i64)
+    (i64.store (call $id_store_addr (local.get $addr) (i32.const 8)) (local.get $v)))
+
+  (func $id_str_of_mem (param $addr i64) (param $n i64) (result i32)
+    (local $n32 i32) (local $real i32) (local $r i32)
+    (if (i64.lt_s (local.get $n) (i64.const 0))
+      (then (call $id_die (i32.const {_MSG_NEGLEN_ADDR}) (i32.const {len(_MSG_NEGLEN)}))))
+    (local.set $n32 (i32.wrap_i64 (local.get $n)))
+    (local.set $real (call $id_store_addr (local.get $addr) (local.get $n32)))
+    (local.set $r (call $id_alloc (i32.add (local.get $n32) (i32.const 1))))
+    (call $id_memcopy (local.get $r) (local.get $real) (local.get $n32))
+    (i32.store8 (i32.add (local.get $r) (local.get $n32)) (i32.const 0))
+    (local.get $r))
+
+  (func $id_mem_of_str (param $s i32) (result i64)
+    (local $n i32) (local $a i64) (local $real i32)
+    (local.set $n (call $id_strlen (local.get $s)))
+    (local.set $a (call $id_mem_alloc (i64.extend_i32_u (i32.add (local.get $n) (i32.const 1)))))
+    (local.set $real (i32.add (i32.const {_STORE_BASE}) (i32.wrap_i64 (local.get $a))))
+    (call $id_memcopy (local.get $real) (local.get $s) (i32.add (local.get $n) (i32.const 1)))
+    (local.get $a))
+
+  (func $id_udiv (param $a i64) (param $b i64) (result i64)
+    (if (i64.eqz (local.get $b))
+      (then (call $id_die (i32.const {_MSG_DIV0_ADDR}) (i32.const {len(_MSG_DIV0)}))))
+    (i64.div_u (local.get $a) (local.get $b)))
+
+  (func $id_umod (param $a i64) (param $b i64) (result i64)
+    (if (i64.eqz (local.get $b))
+      (then (call $id_die (i32.const {_MSG_MOD0_ADDR}) (i32.const {len(_MSG_MOD0)}))))
+    (i64.rem_u (local.get $a) (local.get $b)))
+
+  (func $id_ult (param $a i64) (param $b i64) (result i32)
+    (i64.lt_u (local.get $a) (local.get $b)))
+
+  (func $id_ushr (param $a i64) (param $b i64) (result i64)
+    (if (i64.lt_s (local.get $b) (i64.const 0))
+      (then (call $id_die (i32.const {_MSG_SHNEG_ADDR}) (i32.const {len(_MSG_SHNEG)}))))
+    (if (i64.ge_s (local.get $b) (i64.const 64))
+      (then (return (i64.const 0))))
+    (i64.shr_u (local.get $a) (local.get $b)))
+
+  (func $id_sdiv (param $a i64) (param $b i64) (result i64)
+    (if (i64.eqz (local.get $b))
+      (then (call $id_die (i32.const {_MSG_DIV0_ADDR}) (i32.const {len(_MSG_DIV0)}))))
+    (if (i32.and (i64.eq (local.get $b) (i64.const -1))
+                 (i64.eq (local.get $a) (i64.const -9223372036854775808)))
+      (then (call $id_die (i32.const {_MSG_DIVOV_ADDR}) (i32.const {len(_MSG_DIVOV)}))))
+    (i64.div_s (local.get $a) (local.get $b)))
+
+  (func $id_smod (param $a i64) (param $b i64) (result i64)
+    (if (i64.eqz (local.get $b))
+      (then (call $id_die (i32.const {_MSG_MOD0_ADDR}) (i32.const {len(_MSG_MOD0)}))))
+    (if (i64.eq (local.get $b) (i64.const -1))
+      (then (return (i64.const 0))))
+    (i64.rem_s (local.get $a) (local.get $b)))
+
+  (func $id_shl64 (param $a i64) (param $n i64) (result i64)
+    (if (i64.lt_s (local.get $n) (i64.const 0))
+      (then (call $id_die (i32.const {_MSG_SHNEG_ADDR}) (i32.const {len(_MSG_SHNEG)}))))
+    (if (i64.ge_s (local.get $n) (i64.const 64))
+      (then (return (i64.const 0))))
+    (i64.shl (local.get $a) (local.get $n)))
+
+  (func $id_sar64 (param $a i64) (param $n i64) (result i64)
+    (if (i64.lt_s (local.get $n) (i64.const 0))
+      (then (call $id_die (i32.const {_MSG_SHNEG_ADDR}) (i32.const {len(_MSG_SHNEG)}))))
+    (if (i64.ge_s (local.get $n) (i64.const 64))
+      (then (return (i64.shr_s (local.get $a) (i64.const 63)))))
+    (i64.shr_s (local.get $a) (local.get $n)))
 """
 
 
@@ -2842,6 +3865,8 @@ class WasmBackend:
     def wtype(self, typ):
         if typ == "int":
             return "i32"
+        if typ == "word":
+            return "i64"
         if typ == "float":
             return "f64"
         return "i32"   # string, or any list type: an address
@@ -2868,13 +3893,19 @@ class WasmBackend:
     def coerce(self, val, have, want):
         if have == want:
             return val
+        if have == "int" and want == "word":
+            return f"(i64.extend_i32_s {val})"
         if have == "int" and want == "float":
             return f"(f64.convert_i32_s {val})"
+        if have == "word" and want == "float":
+            return f"(f64.convert_i64_s {val})"
         return val
 
     def box(self, val, typ):
         if typ == "int":
             return f"(i64.extend_i32_s {val})"
+        if typ == "word":
+            return val
         if typ == "float":
             return f"(i64.reinterpret_f64 {val})"
         return f"(i64.extend_i32_u {val})"   # string/list address
@@ -2882,6 +3913,8 @@ class WasmBackend:
     def unbox(self, val, typ):
         if typ == "int":
             return f"(i32.wrap_i64 {val})"
+        if typ == "word":
+            return val
         if typ == "float":
             return f"(f64.reinterpret_i64 {val})"
         return f"(i32.wrap_i64 {val})"
@@ -2893,6 +3926,8 @@ class WasmBackend:
         used as-is)."""
         if typ == "int":
             return val
+        if typ == "word":
+            return f"(i64.ne {val} (i64.const 0))"
         if typ == "float":
             return f"(f64.ne {val} (f64.const 0))"
         return f"(i32.ne {val} (i32.const 0))"
@@ -2902,6 +3937,8 @@ class WasmBackend:
             return val
         if typ == "int":
             return f"(call $id_str_of_int {val})"
+        if typ == "word":
+            return f"(call $id_str_of_word {val})"
         raise CompileError(e.file, e.line,
                            f"cannot convert {typ} to string for --target wasm "
                            f"(float-to-string is not implemented for this target)")
@@ -2994,6 +4031,8 @@ class WasmBackend:
 
     def gen_expr(self, e, fn, env, expected=None):
         if isinstance(e, IntLit):
+            if int(e.value) > 0x7fffffff:
+                return f"(i64.const {e.value})", "word"
             return f"(i32.const {e.value})", "int"
         if isinstance(e, FloatLit):
             return f"(f64.const {e.value})", "float"
@@ -3062,14 +4101,20 @@ class WasmBackend:
                     raise CompileError(e.file, e.line, f"cannot negate a {typ}")
                 if typ == "int":
                     return f"(i32.sub (i32.const 0) {val})", "int"
+                if typ == "word":
+                    return f"(i64.sub (i64.const 0) {val})", "word"
                 return f"(f64.neg {val})", "float"
             if e.op == "!":
-                if typ != "int":
+                if not is_integral(typ):
                     raise CompileError(e.file, e.line, f"cannot apply '!' to a {typ}")
+                if typ == "word":
+                    return f"(i64.eqz {val})", "int"
                 return f"(i32.eqz {val})", "int"
             if e.op == "~":
-                if typ != "int":
+                if not is_integral(typ):
                     raise CompileError(e.file, e.line, f"cannot apply '~' to a {typ}")
+                if typ == "word":
+                    return f"(i64.xor {val} (i64.const -1))", "word"
                 return f"(i32.xor {val} (i32.const -1))", "int"
             raise AssertionError(e.op)
         if isinstance(e, BinOp):
@@ -3091,43 +4136,58 @@ class WasmBackend:
                     return f"(i32.eqz {inner})", "int"
                 return f"(i32.ne {inner} (i32.const 0))", "int"
             if is_numeric(lt) and is_numeric(rt):
-                common = "float" if "float" in (lt, rt) else "int"
+                common = arith_result(lt, rt)
                 lc2, rc2 = self.coerce(lc, lt, common), self.coerce(rc, rt, common)
                 instr = {"int": {"==": "i32.eq", "!=": "i32.ne"},
+                         "word": {"==": "i64.eq", "!=": "i64.ne"},
                          "float": {"==": "f64.eq", "!=": "f64.ne"}}[common][op]
                 return f"({instr} {lc2} {rc2})", "int"
             raise CompileError(e.file, e.line, f"cannot compare {lt} with {rt}")
         if op in ("<", "<=", ">", ">="):
             if is_numeric(lt) and is_numeric(rt):
-                common = "float" if "float" in (lt, rt) else "int"
+                common = arith_result(lt, rt)
                 lc2, rc2 = self.coerce(lc, lt, common), self.coerce(rc, rt, common)
                 imap = {"<": "i32.lt_s", "<=": "i32.le_s", ">": "i32.gt_s", ">=": "i32.ge_s"}
+                wmap = {"<": "i64.lt_s", "<=": "i64.le_s", ">": "i64.gt_s", ">=": "i64.ge_s"}
                 fmap = {"<": "f64.lt", "<=": "f64.le", ">": "f64.gt", ">=": "f64.ge"}
-                instr = imap[op] if common == "int" else fmap[op]
+                instr = {"int": imap, "word": wmap, "float": fmap}[common][op]
                 return f"({instr} {lc2} {rc2})", "int"
             raise CompileError(e.file, e.line, f"cannot order {lt} and {rt}")
         if op in ("&&", "||"):
-            if lt == "int" and rt == "int":
-                lb = f"(i32.ne {lc} (i32.const 0))"
-                rb = f"(i32.ne {rc} (i32.const 0))"
+            if is_integral(lt) and is_integral(rt):
+                lb = (f"(i64.ne {lc} (i64.const 0))" if lt == "word"
+                      else f"(i32.ne {lc} (i32.const 0))")
+                rb = (f"(i64.ne {rc} (i64.const 0))" if rt == "word"
+                      else f"(i32.ne {rc} (i32.const 0))")
                 instr = "i32.and" if op == "&&" else "i32.or"
                 return f"({instr} {lb} {rb})", "int"
-            raise CompileError(e.file, e.line, f"'{op}' requires int operands")
+            raise CompileError(e.file, e.line, f"'{op}' requires int or word operands")
         if op in ("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>"):
-            if op in ("&", "|", "^", "<<", ">>") and not (lt == "int" and rt == "int"):
+            if op in ("&", "|", "^", "<<", ">>") and not (is_integral(lt) and is_integral(rt)):
                 raise CompileError(e.file, e.line,
-                                   f"'{op}' requires int operands on --target wasm "
-                                   f"(word arithmetic is C-only)")
+                                   f"'{op}' requires int or word operands, got {lt} and {rt}")
             if is_numeric(lt) and is_numeric(rt):
                 if op == "%" and (lt == "float" or rt == "float"):
                     raise CompileError(e.file, e.line, "'%' requires int operands")
-                res = "float" if "float" in (lt, rt) else "int"
+                res = arith_result(lt, rt)
                 lc2, rc2 = self.coerce(lc, lt, res), self.coerce(rc, rt, res)
-                if res == "int":
-                    instr = {"+": "i32.add", "-": "i32.sub", "*": "i32.mul",
-                             "/": "i32.div_s", "%": "i32.rem_s",
-                             "&": "i32.and", "|": "i32.or", "^": "i32.xor",
-                             "<<": "i32.shl", ">>": "i32.shr_s"}[op]
+                if res in ("int", "word"):
+                    width = "i32" if res == "int" else "i64"
+                    if op in ("/", "%"):
+                        if res == "int":
+                            helper = "id_idiv" if op == "/" else "id_imod"
+                        else:
+                            helper = "id_sdiv" if op == "/" else "id_smod"
+                        return f"(call ${helper} {lc2} {rc2})", res
+                    if op in ("<<", ">>"):
+                        if res == "int":
+                            helper = "id_shl" if op == "<<" else "id_sar"
+                        else:
+                            helper = "id_shl64" if op == "<<" else "id_sar64"
+                        return f"(call ${helper} {lc2} {rc2})", res
+                    instr = {"+": f"{width}.add", "-": f"{width}.sub", "*": f"{width}.mul",
+                             "&": f"{width}.and", "|": f"{width}.or",
+                             "^": f"{width}.xor"}[op]
                 else:
                     instr = {"+": "f64.add", "-": "f64.sub", "*": "f64.mul",
                              "/": "f64.div"}[op]
@@ -3205,7 +4265,30 @@ class WasmBackend:
             if typ != "int":
                 raise CompileError(e.file, e.line, f"chr expects an int, got {typ}")
             return f"(call $id_chr {val})", "string"
-        if name in UNSUPPORTED_BUILTINS:
+        if name in STORE_BUILTINS or name in WORD_BUILTINS:
+            return self.gen_systems_call(e, fn, env)
+        if name == "str_of_mem":
+            if len(e.args) != 2:
+                raise CompileError(e.file, e.line,
+                                   "str_of_mem takes exactly two arguments")
+            ac, at = self.gen_expr(e.args[0], fn, env)
+            nc, nt = self.gen_expr(e.args[1], fn, env)
+            if not is_integral(at) or not is_integral(nt):
+                raise CompileError(e.file, e.line,
+                                   "str_of_mem takes an address and a length")
+            a64 = self.coerce(ac, at, "word")
+            n64 = self.coerce(nc, nt, "word")
+            return f"(call $id_str_of_mem {a64} {n64})", "string"
+        if name == "mem_of_str":
+            if len(e.args) != 1:
+                raise CompileError(e.file, e.line,
+                                   "mem_of_str takes exactly one argument")
+            val, typ = self.gen_expr(e.args[0], fn, env)
+            if typ != "string":
+                raise CompileError(e.file, e.line,
+                                   f"mem_of_str expects a string, got {typ}")
+            return f"(call $id_mem_of_str {val})", "word"
+        if name in UNSUPPORTED_BUILTINS_WASM:
             raise CompileError(e.file, e.line, unsupported_builtin_msg(name))
         args = [self.gen_expr(a, fn, env) for a in e.args]
         callee = self.compiler.funcs.get(name)
@@ -3228,6 +4311,25 @@ class WasmBackend:
             argstrs.append(self.coerce(val, typ, ptype))
         rettype = callee.rettype
         return f"(call $id_{name} {' '.join(argstrs)})", rettype
+
+    def gen_systems_call(self, e: CallExpr, fn, env) -> Tuple[str, str]:
+        arity, helper, restype = (STORE_BUILTINS.get(e.name)
+                                  or WORD_BUILTINS[e.name])
+        if len(e.args) != arity:
+            plural = "" if arity == 1 else "s"
+            raise CompileError(e.file, e.line,
+                               f"{e.name} takes exactly {arity} argument{plural}, "
+                               f"got {len(e.args)}")
+        argstrs = []
+        for arg in e.args:
+            val, typ = self.gen_expr(arg, fn, env)
+            if not is_integral(typ):
+                raise CompileError(arg.file, arg.line,
+                                   f"{e.name} expects int or word arguments, "
+                                   f"got {typ}")
+            argstrs.append(self.coerce(val, typ, "word"))
+        call = f"(call ${helper}{(' ' + ' '.join(argstrs)) if argstrs else ''})"
+        return call, restype
 
     # -- function codegen
 
@@ -3326,6 +4428,7 @@ class WasmBackend:
                      '(func $proc_exit (param i32)))')
         parts.append('  (memory (export "memory") 32)')
         parts.append(f'  (global $heap (mut i32) (i32.const {heap_base}))')
+        parts.append('  (global $store_used (mut i64) (i64.const 1))')
         parts.append(f'  (data (i32.const {_NEWLINE_BYTE}) "\\0a")')
         parts.append(f'  (data (i32.const {_MSG_IDX_PRE_ADDR}) "{wat_bytes_literal(_MSG_IDX_PRE)}")')
         parts.append(f'  (data (i32.const {_MSG_IDX_MID_ADDR}) "{wat_bytes_literal(_MSG_IDX_MID)}")')
@@ -3333,11 +4436,22 @@ class WasmBackend:
         parts.append(f'  (data (i32.const {_MSG_POP_ADDR}) "{wat_bytes_literal(_MSG_POP)}")')
         parts.append(f'  (data (i32.const {_MSG_OOM_ADDR}) "{wat_bytes_literal(_MSG_OOM)}")')
         parts.append(f'  (data (i32.const {_MSG_CAP_ADDR}) "{wat_bytes_literal(_MSG_CAP)}")')
+        parts.append(f'  (data (i32.const {_MSG_DIV0_ADDR}) "{wat_bytes_literal(_MSG_DIV0)}")')
+        parts.append(f'  (data (i32.const {_MSG_MOD0_ADDR}) "{wat_bytes_literal(_MSG_MOD0)}")')
+        parts.append(f'  (data (i32.const {_MSG_DIVOV_ADDR}) "{wat_bytes_literal(_MSG_DIVOV)}")')
+        parts.append(f'  (data (i32.const {_MSG_SHNEG_ADDR}) "{wat_bytes_literal(_MSG_SHNEG)}")')
+        parts.append(f'  (data (i32.const {_MSG_STORE_PRE_ADDR}) "{wat_bytes_literal(_MSG_STORE_PRE)}")')
+        parts.append(f'  (data (i32.const {_MSG_STORE_MID_ADDR}) "{wat_bytes_literal(_MSG_STORE_MID)}")')
+        parts.append(f'  (data (i32.const {_MSG_STORE_END_ADDR}) "{wat_bytes_literal(_MSG_STORE_END)}")')
+        parts.append(f'  (data (i32.const {_MSG_NEGALLOC_ADDR}) "{wat_bytes_literal(_MSG_NEGALLOC)}")')
+        parts.append(f'  (data (i32.const {_MSG_ALLOCOV_ADDR}) "{wat_bytes_literal(_MSG_ALLOCOV)}")')
+        parts.append(f'  (data (i32.const {_MSG_NEGLEN_ADDR}) "{wat_bytes_literal(_MSG_NEGLEN)}")')
         for bs, addr in self.str_table.items():
             parts.append(f'  (data (i32.const {addr}) "{wat_bytes_literal(bs)}")')
         for gname, (typ, owner) in self.compiler.exported.items():
             wt = self.wtype(typ)
-            zero = "(i32.const 0)" if wt == "i32" else "(f64.const 0)"
+            zero = {"i32": "(i32.const 0)", "i64": "(i64.const 0)",
+                    "f64": "(f64.const 0)"}[wt]
             parts.append(f'  (global $g_{gname} (mut {wt}) {zero})')
         parts.append(wasm_runtime_funcs())
         parts.extend(func_bodies)
@@ -3355,6 +4469,46 @@ class WasmBackend:
             parts.append(entry)
         parts.append(")")
         return "\n".join(parts) + "\n"
+
+
+def walk_exprs_in(fn):
+    """Yield every expression a function evaluates -- in its body, in its
+    return clause, and nested inside either."""
+    def in_expr(e):
+        if e is None:
+            return
+        yield e
+        if isinstance(e, CallExpr):
+            for a in e.args:
+                yield from in_expr(a)
+        elif isinstance(e, BinOp):
+            yield from in_expr(e.left)
+            yield from in_expr(e.right)
+        elif isinstance(e, UnOp):
+            yield from in_expr(e.operand)
+        elif isinstance(e, IndexExpr):
+            yield from in_expr(e.base)
+            yield from in_expr(e.index)
+        elif isinstance(e, ArrayLit):
+            for x in e.elems:
+                yield from in_expr(x)
+
+    for s in walk_stmts(fn.body):
+        if isinstance(s, DeclStmt):
+            yield from in_expr(s.expr)
+        elif isinstance(s, AssignStmt):
+            yield from in_expr(s.expr)
+        elif isinstance(s, IndexAssignStmt):
+            yield from in_expr(s.base)
+            yield from in_expr(s.index)
+            yield from in_expr(s.expr)
+        elif isinstance(s, ExprStmt):
+            yield from in_expr(s.expr)
+        elif isinstance(s, IfStmt):
+            yield from in_expr(s.cond)
+        elif isinstance(s, WhileStmt):
+            yield from in_expr(s.cond)
+    yield from in_expr(fn.retexpr)
 
 
 def walk_stmts(body):
@@ -3465,6 +4619,24 @@ PROJECT_ENTRY_LIMIT = 3
 IMPORT_MANIFEST = "import.id"
 
 
+def source_unit(path, roots):
+    """Which compilation unit `path` belongs to: the index of its source root.
+
+    A unit is one source root -- the program's own tree, or one imported
+    dependency such as the standard library -- and it is the scope of the
+    one-type-per-name rule (docs/IDSTD.md C4). A file's root is the LONGEST of
+    `roots` that prefixes it, so a dependency nested inside the project belongs
+    to the dependency; ties go to the earliest. bin/idc derives the unit the
+    same way and passes it to the self-hosted compiler in the `#file` marker,
+    and the two must agree or the same program draws different diagnostics from
+    the two compilers."""
+    best, unit = -1, 0
+    for i, root in enumerate(roots):
+        if len(root) > best and path.startswith(root):
+            best, unit = len(root), i
+    return unit
+
+
 def collect_project(root):
     """Walk the project tree, enforce the per-directory entry limit, and return
     every .id file in deterministic (sorted full-path) order."""
@@ -3475,6 +4647,17 @@ def collect_project(root):
         # the dependency manifest is metadata, not source: never compiled, never
         # counted toward the per-directory entry limit.
         ids = [n for n in filenames if n.endswith(".id") and n != IMPORT_MANIFEST]
+        # ...but only at a root, which is the only place one is read. A nested
+        # one is neither compiled nor parsed as a manifest, so it vanishes --
+        # and the only symptom is "no such function" at the caller, blaming a
+        # file that is fine. Say what actually happened instead.
+        if IMPORT_MANIFEST in filenames and os.path.abspath(dirpath) != os.path.abspath(root):
+            raise CompileError(
+                os.path.join(dirpath, IMPORT_MANIFEST), 1,
+                f"'{IMPORT_MANIFEST}' is the dependency manifest and is only "
+                f"read at the root of a project or a dependency. Here it is "
+                f"neither compiled nor read, so anything it defines silently "
+                f"does not exist; rename it")
         entries = len(ids) + len(dirnames)
         if entries > PROJECT_ENTRY_LIMIT:
             raise CompileError(
@@ -3521,6 +4704,108 @@ def parse_import_manifest(root):
     return deps
 
 
+# --------------------------------------------------------------- the stdlib
+#
+# `idstd` is the standard library, and it is imported by DEFAULT: a program
+# writes `print(fx_max(a, b))` with no import.id line and no flag. That is the
+# whole point of a standard library, and it is the one dependency a program
+# does not declare.
+#
+# It is merged exactly like a source dependency named in an import.id -- same
+# entry-count rule, same transitive manifest walk -- so a stdlib module that
+# needs a native backend (a framebuffer needs backends/gfx) declares it in the
+# stdlib's own import.id and every program gets it. That only works because
+# imports are transitive (resolve_deps); it is why the two landed together.
+#
+# THREE things must be able to turn it off, and all three are real:
+#   1. idstd itself, which cannot import itself.
+#   2. The bootstrap stages, demos/idc_in_id{,_parse}. They define their own
+#      helpers (`lset`, and a local vocabulary); implicitly importing a library
+#      that also defines them is a duplicate-logic error, and any change to
+#      their emitted C breaks self-hosting and byte-parity. bin/idc bootstraps
+#      them with --no-std for exactly this reason.
+#   3. tests/invalid/, whose diagnostics must not shift because a library
+#      appeared in the program.
+STDLIB_DIR_NAME = "idstd"
+
+
+def resolve_stdlib(explicit=None, no_std=False):
+    """Locate the standard library, or return None when there is none.
+
+    Order: --no-std / IDC_NO_STD wins over everything; then an explicit --std;
+    then $IDSTD_HOME; then a sibling of the compiler's own repository. A
+    checkout with no idstd beside it simply has no standard library -- that is
+    not an error, because the compiler has to keep building the language's own
+    bootstrap in a tree where the library does not exist yet."""
+    if no_std or os.environ.get("IDC_NO_STD"):
+        return None
+    for src, path in (("--std", explicit),
+                      ("$IDSTD_HOME", os.environ.get("IDSTD_HOME"))):
+        if path:
+            if not os.path.isdir(path):
+                raise CompileError(path, 1,
+                                   f"{src} does not name a directory")
+            return os.path.abspath(path)
+    sibling = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           os.pardir, STDLIB_DIR_NAME)
+    sibling = os.path.normpath(sibling)
+    return sibling if os.path.isdir(sibling) else None
+
+
+def resolve_deps(root):
+    """Resolve a project's dependency graph *transitively*, and return
+    (source_dirs, backend_dirs).
+
+    An imported directory's own `import.id` is read too. Without that, a
+    library cannot declare its own dependencies: the `gfx` library in a
+    standard library could not say it needs `backends/gfx`, so every program
+    that used one line of it had to name the backend itself -- which defeats
+    the point of a library, and defeats "imported by default" entirely.
+
+    Walked breadth-first from the project, so the order a project writes its
+    manifest in is the order its dependencies are merged in. Every directory
+    is visited once, keyed on its resolved path, which is also what makes a
+    cycle (a <-> b, or the diamond a -> b, a -> c, b -> d, c -> d) terminate
+    rather than recurse forever."""
+    seen = {os.path.realpath(root)}
+    queue = [root]
+    sources, backends = [], []
+    while queue:
+        cur = queue.pop(0)
+        for dep in parse_import_manifest(cur):
+            key = os.path.realpath(dep)
+            if key in seen:
+                continue
+            seen.add(key)
+            if os.path.isfile(os.path.join(dep, "backend.json")):
+                # A backend is a leaf: it is native source plus a manifest,
+                # and it has no import.id of its own to follow.
+                backends.append(dep)
+            else:
+                sources.append(dep)
+                queue.append(dep)
+    return sources, backends
+
+
+def dedupe_backends(dirs):
+    """One backend named twice is still one backend.
+
+    `--backend backends/fs` on a project whose import.id already imports it --
+    the two documented ways to attach the same dependency -- used to append the
+    directory twice, compile its sources twice, and hand cc the same object
+    file twice, which is a hard "multiple definition" error for every symbol
+    the backend exports. Collapse by resolved path, keeping the first mention
+    so the link order a project asked for is the link order it gets."""
+    seen, out = set(), []
+    for d in dirs:
+        key = os.path.realpath(d)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(d)
+    return out
+
+
 def platform_key():
     """Map sys.platform to a backend.json platform key."""
     if sys.platform == "darwin":
@@ -3528,6 +4813,33 @@ def platform_key():
     if sys.platform.startswith("linux"):
         return "linux"
     return sys.platform
+
+
+def backend_platforms(spec, target):
+    """The platform table a backend offers for one *compiler* target.
+
+    A backend describes itself twice. `abi` says which functions it provides
+    and what their id-level signatures are -- that part is about `id`, not
+    about C, and is the same however the program is compiled. `targets` says
+    how to obtain those functions for a given code generator: the C target
+    wants sources/cflags/link, an LLVM or wasm target or an interpreter will
+    want something else, and each can be added under its own key without a
+    single `.id` file changing.
+
+    A manifest with no `targets` is a pre-`targets` one (gfx, gl): its bare
+    `platforms` table is the C target's, and no other target is offered.
+
+    Returns the {platform: impl} mapping, or None if this backend has nothing
+    for this target."""
+    targets = spec.get("targets")
+    if targets is None:
+        if target != "c":
+            return None
+        return spec.get("platforms") or {}
+    entry = targets.get(target)
+    if entry is None:
+        return None
+    return entry.get("platforms") or {}
 
 
 def resolve_backend(dir_path, cc):
@@ -3544,9 +4856,15 @@ def resolve_backend(dir_path, cc):
         raise CompileError(manifest, 0, f"invalid backend.json: {e}")
 
     key = platform_key()
-    plat = spec.get("platforms", {}).get(key)
+    name = spec.get("name", os.path.basename(dir_path.rstrip("/")))
+    plats = backend_platforms(spec, "c")
+    if plats is None:
+        raise CompileError(manifest, 0,
+                           f"backend '{name}' has no implementation for the C target "
+                           f"(its manifest declares: "
+                           f"{', '.join(sorted(spec.get('targets') or {})) or 'none'})")
+    plat = plats.get(key)
     if plat is None:
-        name = spec.get("name", os.path.basename(dir_path.rstrip("/")))
         raise CompileError(manifest, 0,
                            f"backend '{name}' has no support for platform '{key}'")
 
@@ -3600,45 +4918,86 @@ def main(argv):
     ap.add_argument("--keep-c", action="store_true",
                     help="keep the generated C next to the output")
     ap.add_argument("--cc", default="cc", help="C compiler to use (default: cc)")
+    ap.add_argument("--no-std", action="store_true",
+                    help="do not import the standard library. Needed by idstd "
+                         "itself, by the bootstrap stages (which define their "
+                         "own helpers), and by diagnostic fixtures")
+    ap.add_argument("--std", metavar="DIR",
+                    help="use DIR as the standard library (default: $IDSTD_HOME, "
+                         "else an 'idstd' directory beside this repository)")
+    ap.add_argument("--tests", action="store_true",
+                    help="run every function's test cases (docs/TESTS.md) and "
+                         "fail the build if one fails; nothing is written until "
+                         "they pass, --emit-c included")
+    ap.add_argument("--require-tests", action="store_true",
+                    help="additionally reject any function carrying fewer than "
+                         "two cases (implies --tests)")
     ap.add_argument("--backend", action="append", default=[], metavar="DIR",
                     help="DEPRECATED: prefer an import.id manifest in the project. "
                          "Link a native backend directory (reads its backend.json "
                          "for this platform's sources and link flags); repeatable")
     args = ap.parse_args(argv)
+    if args.require_tests:
+        args.tests = True
 
     try:
+        # Every source root, in the order they are added: the program's own
+        # tree first, then each dependency, then the standard library and its
+        # own. One root is one compilation unit -- see source_unit.
+        roots = []
         if os.path.isdir(args.path):
+            roots.append(args.path)
             source_files = collect_project(args.path)
-            # Dependencies declared in the project's import.id: a backend dir is
-            # linked (like --backend); any other dir is merged in as id source.
-            for dep in parse_import_manifest(args.path):
-                if os.path.isfile(os.path.join(dep, "backend.json")):
-                    args.backend.append(dep)
-                else:
-                    source_files.extend(collect_project(dep))
-            source_files = sorted(set(source_files))
+            # Dependencies declared in the project's import.id, and in the
+            # import.id of every directory it reaches: a backend dir is linked
+            # (like --backend); any other dir is merged in as id source.
+            dep_sources, dep_backends = resolve_deps(args.path)
+            args.backend.extend(dep_backends)
+            for dep in dep_sources:
+                roots.append(dep)
+                source_files.extend(collect_project(dep))
         elif os.path.isfile(args.path):
+            roots.append(args.path)
             source_files = [args.path]
         else:
             print(f"idc: no such file or directory: '{args.path}'", file=sys.stderr)
             return 1
+
+        # The standard library, merged in unless turned off. A single file gets
+        # it too: `idc prog.id` is the tutorial path, and it is the one that
+        # most needs fx_max to already exist.
+        stdlib = resolve_stdlib(args.std, args.no_std)
+        if stdlib is not None:
+            roots.append(stdlib)
+            source_files.extend(collect_project(stdlib))
+            std_sources, std_backends = resolve_deps(stdlib)
+            args.backend.extend(std_backends)
+            for dep in std_sources:
+                roots.append(dep)
+                source_files.extend(collect_project(dep))
+        source_files = sorted(set(source_files))
+        units = {path: source_unit(path, roots) for path in source_files}
+        args.backend = dedupe_backends(args.backend)
 
         funcs_by_file = {}
         for path in source_files:
             with open(path) as f:
                 src = f.read()
             funcs_by_file[path] = Parser(lex(src, path)).parse_file()
-        compiler = Compiler(funcs_by_file, has_backend=bool(args.backend))
+        compiler = Compiler(funcs_by_file, has_backend=bool(args.backend),
+                            units=units)
         if args.target == "c":
             code = compiler.compile()
         elif args.target == "llvm":
             compiler.validate()
-            reject_word_type(compiler.funcs.values(), "llvm")
             code = LLVMBackend(compiler).emit_module()
         else:
             compiler.validate()
-            reject_word_type(compiler.funcs.values(), "wasm")
             code = WasmBackend(compiler).emit_module()
+        # The cases run before anything is written: a program whose cases fail
+        # must not produce output of any kind (docs/TESTS.md).
+        if args.tests and run_tests(funcs_by_file, compiler, args):
+            return 1
     except CompileError as err:
         print(str(err), file=sys.stderr)
         return 1
@@ -3671,6 +5030,13 @@ def main(argv):
                                 else os.path.splitext(first)[0])
         out = base + (".o" if not have_main else "")
 
+    out, note, err = choose_output_path(out, args.output is not None)
+    if err is not None:
+        print(f"idc: {err}", file=sys.stderr)
+        return 1
+    if note is not None:
+        print(f"idc: {note}", file=sys.stderr)
+
     if args.target != "c" and args.backend:
         warn(args.path, 0,
              f"--backend ignored: native graphics/real-time backends are C-only "
@@ -3681,6 +5047,143 @@ def main(argv):
     if args.target == "llvm":
         return build_llvm(code, args, out, have_main)
     return build_wasm(code, args, out, have_main)
+
+
+# A scaling claim is a comparison of two counts, and the smaller of the two
+# carries whatever fixed setup the function does. Without slack that fixed cost
+# reads as growth; 4x is enough to absorb it without hiding a change of order.
+CONSTRAINT_SLACK = 4
+
+
+def growth(bound, n) -> float:
+    """What `bound` predicts at size `n`, up to a constant."""
+    n = max(n, 1)
+    if bound == "O(1)":
+        return 1.0
+    if bound == "O(log n)":
+        return math.log2(max(n, 2))
+    if bound == "O(n)":
+        return float(n)
+    if bound == "O(n log n)":
+        return n * math.log2(max(n, 2))
+    return float(n) * n          # O(n^2)
+
+
+def case_size(case: TestCase) -> int:
+    """`n` for a case: the largest size among its arguments."""
+    return max((literal_size(a) for a in case.args), default=0)
+
+
+def run_tests(funcs_by_file, compiler, args) -> bool:
+    """Build the harness, run every case, and check every scaling claim.
+
+    Returns True when the build must stop because a case failed (the harness
+    has already said which). Anything the compiler decides for itself -- a
+    function with too few cases, a claim that cannot be checked, a claim that
+    does not hold -- is a CompileError."""
+    if args.require_tests:
+        for fn in compiler.funcs.values():
+            if len(fn.cases) < 2:
+                raise CompileError(fn.file, fn.line,
+                                   f"function '{fn.name}' has {len(fn.cases)} "
+                                   f"test case(s); --require-tests needs at "
+                                   f"least 2 (see docs/TESTS.md)")
+    tested = [fn for fn in compiler.funcs.values() if fn.cases]
+    if not tested:
+        return False
+
+    harness = Compiler(funcs_by_file, has_backend=bool(args.backend),
+                       instrument=True, units=compiler.units)
+    code = harness.compile()
+    with tempfile.TemporaryDirectory() as tmp:
+        c_path = os.path.join(tmp, "tests.c")
+        bin_path = os.path.join(tmp, "tests")
+        counts_path = os.path.join(tmp, "counts")
+        with open(c_path, "w") as f:
+            f.write(code)
+        cmd = [args.cc, "-std=c11", "-O0", c_path, "-o", bin_path]
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        if res.returncode != 0:
+            print(f"idc: the test harness did not build; this is a bug in idc "
+                  f"unless the program needs a native backend (command: "
+                  f"{' '.join(cmd)})", file=sys.stderr)
+            sys.stderr.write(res.stderr)
+            return True
+        if subprocess.run([bin_path, counts_path],
+                          stdin=subprocess.DEVNULL).returncode != 0:
+            return True
+        counts = read_counts(counts_path)
+    check_constraints(tested, counts)
+    return False
+
+
+def read_counts(path) -> dict:
+    """(function, case index) -> (time, mem), as the harness measured them."""
+    counts = {}
+    with open(path) as f:
+        for line in f:
+            name, idx, t, m = line.split()
+            counts[(name, int(idx))] = (int(t), int(m))
+    return counts
+
+
+def check_constraints(tested, counts):
+    for fn in tested:
+        claims = []
+        for case in fn.cases:
+            for claim in case.constraints:
+                if claim not in claims:
+                    claims.append(claim)
+        for kind, bound in claims:
+            group = [(i, c) for i, c in enumerate(fn.cases)
+                     if (kind, bound) in c.constraints]
+            head = group[0][1]
+            if len(group) < 2 or len({case_size(c) for _, c in group}) < 2:
+                raise CompileError(head.file, head.line,
+                                   f"[{kind}:{bound}] needs a second case with a "
+                                   f"different input size to compare against")
+            group.sort(key=lambda pair: case_size(pair[1]))
+            (i1, small), (i2, big) = group[0], group[-1]
+            n1, n2 = case_size(small), case_size(big)
+            col = 0 if kind == "time" else 1
+            c1 = counts.get((fn.name, i1), (0, 0))[col]
+            c2 = counts.get((fn.name, i2), (0, 0))[col]
+            allowed = (max(c1, 1) * growth(bound, n2) / growth(bound, n1)
+                       * CONSTRAINT_SLACK)
+            if c2 > allowed:
+                raise CompileError(big.file, big.line,
+                                   f"[{kind}:{bound}] does not hold for "
+                                   f"'{fn.name}': {kind} is {c1} at n={n1} and "
+                                   f"{c2} at n={n2}, where {bound} allows at most "
+                                   f"{int(allowed)}")
+
+
+def choose_output_path(out, explicit):
+    """Settle on a path the executable can actually be written to.
+
+    `idc PROJECT` names the output after the project directory, so building a
+    project from the directory that *contains* it asks for an output path that
+    already exists -- and is the project. `idc filedemo` wants to write
+    ./filedemo, which is ./filedemo/. cc then fails with "cannot open output
+    file: Is a directory", a message about the build that reads as a message
+    about the source (and which bin/idc used to blame on its own codegen).
+
+    Passing a project directory is the supported way to build one, so the
+    compiler does not refuse it: when the colliding name is the *compiler's*
+    choice, it picks another one and says so. An explicit -o is the user's
+    choice, and is reported rather than silently changed.
+
+    Returns (path, note, error); at most one of note/error is set."""
+    if not os.path.isdir(out):
+        return out, None, None
+    if explicit:
+        return out, None, f"-o '{out}' is a directory; choose a different output path"
+    alt = out + ".out"
+    if os.path.isdir(alt):
+        return out, None, (f"'{out}' and '{alt}' are both directories; "
+                           f"pass -o NAME to name the executable")
+    return alt, (f"'{out}' is the project directory, so the executable cannot take "
+                 f"its name; writing it to '{alt}' instead (pass -o NAME to choose)"), None
 
 
 def build_c(compiler, c_code, args, out, have_main):

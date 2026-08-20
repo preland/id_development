@@ -8,18 +8,22 @@
 # and from then on builds every program by piping its concatenated source
 # through those two id-written binaries and handing the emitted C to `cc`.
 #
-# What this does NOT do (still idc.py's job -- see README.md):
-#   - Semantic checks: action-per-block limit, 3-functions-per-file,
-#     project entry-count limit, name-type consistency, export/import
-#     access, function-logic-uniqueness. idlex/idparse do not perform them,
-#     so invalid programs may build here that idc.py would reject (or may
-#     fail in less friendly ways, e.g. a C compile error or a crash in the
-#     id-written stages themselves).
+# The semantic checks live in idparse, in id: the action-per-block limit,
+# nesting depth, 3-functions-per-file, name-type consistency, export/import
+# access, function-logic uniqueness, the type checks, and unresolved calls.
+# The one rule checked here instead is the 3-entries-per-directory limit --
+# it is a property of the filesystem, which `id` cannot see, which is also
+# why this driver exists.
+#
+# What this does NOT do (still idc.py's job -- see docs/GAPS.md):
 #   - --target llvm / --target wasm. Only the C target is self-hosted.
+#
+# Every case in tests/invalid/ is checked against BOTH compilers, so a
+# diagnostic idc.py gives and this one does not is a test failure.
 #
 # Usage:
 #   bin/idc PATH [-o OUTPUT] [--emit-c FILE] [--keep-c] [--cc CC]
-#           [--backend DIR]...
+#           [--backend DIR]... [--triple TRIPLE]
 #
 # PATH is a single .id file or a project directory (its whole .id tree, in
 # the same sorted-full-path order idc.py uses).
@@ -32,7 +36,7 @@ ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 IDC_PY="$ROOT/idc.py"
 
 usage() {
-    echo "usage: idc PATH [-o OUTPUT] [--emit-c FILE] [--keep-c] [--cc CC] [--backend DIR]..." >&2
+    echo "usage: idc PATH [-o OUTPUT] [--emit-c FILE] [--keep-c] [--cc CC] [--backend DIR]... [--triple TRIPLE]" >&2
 }
 
 PATH_ARG=""
@@ -40,6 +44,9 @@ OUTPUT=""
 EMIT_C=""
 KEEP_C=0
 CC=cc
+TRIPLE=""
+NO_STD=0
+STD_DIR=""
 BACKENDS=()          # from --backend flags (passed through on fallback)
 MANIFEST_BACKENDS=() # from the project's import.id (idc.py re-reads it on fallback)
 
@@ -55,6 +62,12 @@ while [ $# -gt 0 ]; do
             CC="${2:?idc: --cc needs an argument}"; shift 2 ;;
         --backend)
             BACKENDS+=("${2:?idc: --backend needs an argument}"); shift 2 ;;
+        --triple)
+            TRIPLE="${2:?idc: --triple needs an argument}"; shift 2 ;;
+        --no-std)
+            NO_STD=1; shift ;;
+        --std)
+            STD_DIR="${2:?idc: --std needs an argument}"; shift 2 ;;
         --target)
             echo "idc: --target is not supported by the self-hosted driver (only the C target is self-hosted); use idc.py --target ${2:-llvm|wasm} instead" >&2
             exit 2 ;;
@@ -94,28 +107,101 @@ stale() { # stale BIN SRC_DIR -- true if BIN is missing or older than any .id un
     return 1
 }
 
+# --no-std is not optional here. The bootstrap stages define their own helpers
+# and their own local vocabulary; implicitly importing a standard library that
+# also defines them is a duplicate-logic error, and ANY change to their emitted
+# C breaks self-hosting and the byte-parity gate. The compiler's own bootstrap
+# is the one program that must not depend on the library it ships with.
 if stale "$IDLEX" "$ROOT/demos/idc_in_id"; then
     echo "idc: bootstrapping idlex from source (via idc.py)..." >&2
-    "$IDC_PY" "$ROOT/demos/idc_in_id" -o "$IDLEX" >&2 \
+    "$IDC_PY" --no-std "$ROOT/demos/idc_in_id" -o "$IDLEX" >&2 \
         || { echo "idc: failed to bootstrap idlex" >&2; exit 1; }
 fi
 if stale "$IDPARSE" "$ROOT/demos/idc_in_id_parse"; then
     echo "idc: bootstrapping idparse from source (via idc.py)..." >&2
-    "$IDC_PY" "$ROOT/demos/idc_in_id_parse" -o "$IDPARSE" >&2 \
+    "$IDC_PY" --no-std "$ROOT/demos/idc_in_id_parse" -o "$IDPARSE" >&2 \
         || { echo "idc: failed to bootstrap idparse" >&2; exit 1; }
 fi
 
 # ---------------------------------------------------------------------------
-# collect .id source files, in idc.py's order: a single file is just itself;
-# a project directory is every .id file in it, sorted by full path (LC_ALL=C,
-# matching idc.py's Python string sort).
+# Hidden entries are invisible to a project, exactly as in idc.py's
+# collect_project, which prunes them from its os.walk: a `.git` beside three
+# source directories is not a fourth entry, and nothing under it is source.
+# This used to differ -- bin/idc counted and descended into them -- so a
+# project with a repository inside it built with one compiler and was rejected
+# by the other. Hidden *files* are not pruned; idc.py prunes only dirnames.
+#
+# collect_ids ROOT -- append every .id file under ROOT to SRC_FILES, in
+# idc.py's order (sorted full path, LC_ALL=C to match Python's string sort).
+# import.id is a dependency manifest, not source -- never compiled.
+#
+# ROOT is also recorded in SRC_ROOTS, in the order roots are added: one root is
+# one COMPILATION UNIT (the program's own tree, then each dependency, then the
+# standard library and its dependencies), and a unit is the scope of the
+# one-type-per-name rule. The compiler cannot see the filesystem, so the unit
+# travels to it in the `#file` marker -- see emit_sources.
+collect_ids() {
+    local root="$1" f
+    SRC_ROOTS+=("$root")
+    while IFS= read -r f; do SRC_FILES+=("$f"); done \
+        < <(find "$root" -mindepth 1 \
+                 \( -type d -name '.*' -prune \) -o \
+                 \( -name '*.id' ! -name 'import.id' -print \) \
+            | LC_ALL=C sort)
+}
+
+# check_nested_manifest ROOT -- reject an import.id below ROOT's own level.
+#
+# A nested one is neither compiled (collect_ids filters it out as metadata) nor
+# read as a manifest (only a root's is), so anything it defines silently does
+# not exist, and the only symptom is "no such function" at the caller --
+# blaming a file that is fine. Mirrors idc.py's collect_project.
+check_nested_manifest() {
+    local root="$1" nested
+    nested=$(find "$root" -mindepth 2 \
+                  \( -type d -name '.*' -prune \) -o \
+                  \( -name 'import.id' -print \) | LC_ALL=C sort | head -1)
+    [ -z "$nested" ] && return 0
+    echo "$nested:1: error: 'import.id' is the dependency manifest and is only read at the root of a project or a dependency. Here it is neither compiled nor read, so anything it defines silently does not exist; rename it" >&2
+    exit 1
+}
+
+# check_entry_limit ROOT -- the 3-entries-per-directory rule over ROOT's tree.
+#
+# One `find`, one `awk`. It used to be a loop that ran two `find`s and two
+# `wc`s per directory, which is four processes each: on a 200-directory tree
+# that was 800 forks and 4.4 seconds -- more than twice the whole compiler.
+# The rule is a tally of each directory's children, so the tree is listed once
+# and every entry is counted against its parent.
+#
+# Hidden directories are pruned rather than counted, and nothing under them is
+# reached; `-mindepth 1` keeps the prune from applying to ROOT itself, so a
+# project whose own directory is hidden still builds.
+check_entry_limit() {
+    local root="$1" over
+    over=$(find "$root" -mindepth 1 \
+                \( -type d -name '.*' -prune \) -o \
+                \( -type d -printf 'd|%h\n' \) -o \
+                \( -name '*.id' ! -name 'import.id' -printf 'f|%h\n' \) \
+           | awk -F'|' '{ n[$2]++ }
+                        END { for (d in n) if (n[d] > 3) print n[d] "|" d }' \
+           | LC_ALL=C sort -t'|' -k2 | head -1)
+    [ -z "$over" ] && return 0
+    local total="${over%%|*}" d="${over#*|}"
+    echo "$d:1: error: a project directory may contain at most 3 files and directories combined, but this one has $total (.id files and subdirectories); split it into subdirectories" >&2
+    exit 1
+}
+
+# ---------------------------------------------------------------------------
+# collect .id source files: a single file is just itself; a project directory
+# is its whole tree.
 SRC_FILES=()
+SRC_ROOTS=()
 if [ -f "$PATH_ARG" ]; then
     SRC_FILES=("$PATH_ARG")
+    SRC_ROOTS=("$PATH_ARG")
 elif [ -d "$PATH_ARG" ]; then
-    # import.id is a dependency manifest, not source -- never compiled.
-    while IFS= read -r f; do SRC_FILES+=("$f"); done \
-        < <(find "$PATH_ARG" -name '*.id' ! -name 'import.id' | LC_ALL=C sort)
+    collect_ids "$PATH_ARG"
 else
     echo "idc: no such file or directory: '$PATH_ARG'" >&2
     exit 1
@@ -125,15 +211,8 @@ fi
 # filesystem, and `id` has no directory access -- which is the same reason
 # this driver exists at all. Everything else belongs in idparse.
 if [ -d "$PATH_ARG" ]; then
-    while IFS= read -r d; do
-        n_id=$(find "$d" -maxdepth 1 -name '*.id' ! -name 'import.id' | wc -l)
-        n_dir=$(find "$d" -mindepth 1 -maxdepth 1 -type d | wc -l)
-        total=$((n_id + n_dir))
-        if [ "$total" -gt 3 ]; then
-            echo "$d:1: error: a project directory may contain at most 3 files and directories combined, but this one has $total (.id files and subdirectories); split it into subdirectories" >&2
-            exit 1
-        fi
-    done < <(find "$PATH_ARG" -type d)
+    check_entry_limit "$PATH_ARG"
+    check_nested_manifest "$PATH_ARG"
 fi
 
 if [ ${#SRC_FILES[@]} -eq 0 ]; then
@@ -141,12 +220,38 @@ if [ ${#SRC_FILES[@]} -eq 0 ]; then
     exit 1
 fi
 
-# Dependencies from the project's import.id: a backend dir (backend.json) is
-# linked; any other dir is merged in as additional id source. Mirrors idc.py's
-# parse_import_manifest. import.id lines are `import "relative/dir"`.
-MANIFEST="$PATH_ARG/import.id"
-if [ -d "$PATH_ARG" ] && [ -f "$MANIFEST" ]; then
-    lineno=0
+# Dependencies from the project's import.id, resolved TRANSITIVELY: a backend
+# dir (backend.json) is linked; any other dir is merged in as additional id
+# source and has its own import.id read in turn. Mirrors idc.py's
+# parse_import_manifest + resolve_deps. import.id lines are
+# `import "relative/dir"`.
+#
+# Transitivity is what lets a library declare its own dependencies. Without it
+# a graphics library cannot say it needs backends/gfx -- every program using
+# one line of it has to name the backend itself, which is not a library.
+#
+# SEEN_DEPS holds each resolved path once, which is also what makes a cycle
+# (a <-> b) and a diamond terminate rather than recurse forever.
+SEEN_DEPS=()
+
+seen_dep() { # seen_dep RESOLVED -- true if already visited
+    local d
+    for d in ${SEEN_DEPS+"${SEEN_DEPS[@]}"}; do
+        [ "$d" = "$1" ] && return 0
+    done
+    return 1
+}
+
+# read_manifest DIR -- process DIR/import.id, appending source dirs to the
+# queue and backends to MANIFEST_BACKENDS.
+read_manifest() {
+    # Separate statements, not one `local a=… b="$a/…"`: the whole `local`
+    # command word-expands before it runs, so the second assignment would read
+    # an unset `root` -- which under `set -u` is a hard error, not an empty
+    # string.
+    local root="$1" lineno=0 line trimmed dep deppath manifest
+    manifest="$root/import.id"
+    [ -f "$manifest" ] || return 0
     while IFS= read -r line || [ -n "$line" ]; do
         lineno=$((lineno + 1))
         trimmed="${line#"${line%%[![:space:]]*}"}"
@@ -155,23 +260,121 @@ if [ -d "$PATH_ARG" ] && [ -f "$MANIFEST" ]; then
         dep=$(printf '%s' "$trimmed" \
             | sed -n 's/^import[[:space:]]*"\([^"]*\)"[[:space:]]*$/\1/p')
         if [ -z "$dep" ]; then
-            echo "idc: $MANIFEST:$lineno: malformed line: $trimmed" >&2
+            echo "idc: $manifest:$lineno: malformed line: $trimmed" >&2
             echo "idc: each dependency is a line:  import \"relative/dir\"" >&2
             exit 2
         fi
-        deppath="$PATH_ARG/$dep"
+        # An absolute dependency path is used as it stands. It used to be
+        # pasted onto the project root unconditionally, which turned every
+        # absolute import into a path that does not exist -- reported, wrongly,
+        # as "is not a directory" about a directory that is one. idc.py accepts
+        # both forms (os.path.join drops the left side of an absolute right
+        # side), so this is the same rule, spelled out.
+        case "$dep" in
+            /*) deppath="$dep" ;;
+            *)  deppath="$root/$dep" ;;
+        esac
         if [ ! -d "$deppath" ]; then
-            echo "idc: $MANIFEST:$lineno: import \"$dep\" is not a directory" >&2
+            echo "idc: $manifest:$lineno: import \"$dep\": no such directory: $deppath" >&2
             exit 1
         fi
-        deppath="$(cd "$deppath" && pwd)"
+        deppath="$(cd "$deppath" && pwd -P)"
+        seen_dep "$deppath" && continue
+        SEEN_DEPS+=("$deppath")
         if [ -f "$deppath/backend.json" ]; then
+            # A backend is a leaf: native source plus a manifest, with no
+            # import.id of its own to follow.
             MANIFEST_BACKENDS+=("$deppath")
         else
-            while IFS= read -r df; do SRC_FILES+=("$df"); done \
-                < <(find "$deppath" -name '*.id' ! -name 'import.id' | LC_ALL=C sort)
+            check_entry_limit "$deppath"
+            check_nested_manifest "$deppath"
+            collect_ids "$deppath"
+            DEP_QUEUE+=("$deppath")
         fi
-    done < "$MANIFEST"
+    done < "$manifest"
+}
+
+# walk_deps ROOT -- read ROOT's manifest and every manifest it reaches.
+walk_deps() {
+    DEP_QUEUE=()
+    read_manifest "$1"
+    while [ "${#DEP_QUEUE[@]}" -gt 0 ]; do
+        local next="${DEP_QUEUE[0]}"
+        DEP_QUEUE=("${DEP_QUEUE[@]:1}")
+        read_manifest "$next"
+    done
+}
+
+if [ -d "$PATH_ARG" ]; then
+    SEEN_DEPS=("$(cd "$PATH_ARG" && pwd -P)")
+    walk_deps "$PATH_ARG"
+fi
+
+# ---------------------------------------------------------------------------
+# The standard library, imported by DEFAULT -- no import.id line, no flag. It
+# is merged exactly like a source dependency: same entry-count rule, and its
+# own import.id is followed, so a stdlib module that needs a native backend
+# declares it once and every program gets it.
+#
+# Resolution order: --no-std / IDC_NO_STD, then --std, then $IDSTD_HOME, then
+# an `idstd` directory beside this repository. A checkout with no idstd beside
+# it has no standard library, and that is not an error -- the compiler has to
+# keep building the language's own bootstrap in a tree where it does not exist.
+# Mirrors idc.py's resolve_stdlib.
+STDLIB=""
+if [ "$NO_STD" -eq 0 ] && [ -z "${IDC_NO_STD:-}" ]; then
+    if [ -n "$STD_DIR" ]; then
+        [ -d "$STD_DIR" ] || { echo "idc: --std: not a directory: $STD_DIR" >&2; exit 1; }
+        STDLIB="$STD_DIR"
+    elif [ -n "${IDSTD_HOME:-}" ]; then
+        [ -d "$IDSTD_HOME" ] || { echo "idc: \$IDSTD_HOME: not a directory: $IDSTD_HOME" >&2; exit 1; }
+        STDLIB="$IDSTD_HOME"
+    elif [ -d "$ROOT/../idstd" ]; then
+        STDLIB="$ROOT/../idstd"
+    fi
+fi
+if [ -n "$STDLIB" ]; then
+    STDLIB="$(cd "$STDLIB" && pwd -P)"
+    if ! seen_dep "$STDLIB"; then
+        SEEN_DEPS+=("$STDLIB")
+        check_entry_limit "$STDLIB"
+        collect_ids "$STDLIB"
+        walk_deps "$STDLIB"
+    fi
+fi
+
+# One global sort over every source file, project and dependencies together,
+# and one dedupe -- exactly idc.py's `sorted(set(source_files))`.
+#
+# This used to be a concatenation of per-root sorted lists, which agreed with
+# idc.py only as long as no project had a source dependency. It cannot stay
+# that way now that the standard library is a source dependency of EVERY
+# build: the project's paths arrive as the user spelled them (usually
+# relative) and a dependency's are resolved absolute, so '/' sorting before a
+# letter puts the stdlib first under a global sort and last under a
+# concatenation. File order decides the order of functions in the emitted C,
+# so the two compilers would stop being byte-identical on every program at
+# once. LC_ALL=C to match Python's byte-wise string sort.
+if [ "${#SRC_FILES[@]}" -gt 0 ]; then
+    mapfile -t SRC_FILES < <(printf '%s\n' "${SRC_FILES[@]}" | LC_ALL=C sort -u)
+fi
+
+# Is a native backend in play? A call that no input file defines is a typo
+# when there is nowhere it could be resolved from, and a link-time symbol when
+# there is -- exactly idc.py's rule. The self-hosted stages cannot see a
+# backend (it is a property of the build, not of the source), so the answer is
+# passed to idparse, which then emits the `extern int id_<name>();` block
+# instead of rejecting the call.
+PARSE_ARGS=()
+if [ "$((${#BACKENDS[@]} + ${#MANIFEST_BACKENDS[@]}))" -gt 0 ]; then
+    PARSE_ARGS+=(--extern-ok)
+fi
+# The target triple selects among a program's `asm` overloads. idparse has
+# always implemented it; it just had no way through this driver, so a
+# multi-platform asm program could not be cross-targeted with the command the
+# user actually runs.
+if [ -n "$TRIPLE" ]; then
+    PARSE_ARGS+=(--triple "$TRIPLE")
 fi
 
 WORK=$(mktemp -d) || { echo "idc: mktemp failed" >&2; exit 1; }
@@ -181,20 +384,40 @@ C_OUT="$WORK/out.c"
 LEX_ERR="$WORK/lex.err"
 PARSE_ERR="$WORK/parse.err"
 
-# Feed the sources as one stream, with a `#file` marker between them. The
-# self-hosted stages see a single concatenated input, so without these markers
-# they cannot tell where one file ends and the next begins -- which is what
-# the 3-functions-per-file rule counts, and what lets a diagnostic name a file.
+# Feed the sources as one stream, with a `#file N|PATH` marker between them.
+# The self-hosted stages see a single concatenated input, so without these
+# markers they cannot tell where one file ends and the next begins -- which is
+# what the 3-functions-per-file rule counts, and what lets a diagnostic name a
+# file.
+#
+# N is the file's compilation unit: the index of its source root in SRC_ROOTS.
+# It rides in the marker because that is the only channel to a compiler with no
+# filesystem access, and it costs the lexer nothing -- the marker's text is
+# already taken verbatim. A file's root is the LONGEST of SRC_ROOTS that
+# prefixes it (a dependency nested inside the project belongs to the
+# dependency), earliest on a tie. The unit is derived per file rather than per
+# run of files because SRC_FILES is sorted globally, so units interleave.
+#
+# One awk rather than a `cat` per file: a 400-file project forked 400 times
+# and spent 0.4 s doing it. The lexer resets its line counter at every
+# `#file`, so the blank line awk leaves after a file that does not end in a
+# newline changes no diagnostic.
 emit_sources() {
-    local f
-    for f in "${SRC_FILES[@]}"; do
-        printf '#file %s\n' "$f"
-        cat "$f"
-        printf '\n'
-    done
+    { printf '%s\n' "${SRC_ROOTS[@]}"; printf '%s\n' "${SRC_FILES[@]}"; } \
+    | awk -v nroots="${#SRC_ROOTS[@]}" '
+        NR <= nroots { root[NR - 1] = $0; next }
+        { best = -1; unit = 0
+          for (i = 0; i < nroots; i++) {
+              n = length(root[i])
+              if (n > best && substr($0, 1, n) == root[i]) { best = n; unit = i }
+          }
+          printf "#file %d|%s\n", unit, $0
+          while ((getline line < $0) > 0) print line
+          close($0)
+          print "" }'
 }
 
-emit_sources | "$IDLEX" 2>"$LEX_ERR" | "$IDPARSE" > "$C_OUT" 2>"$PARSE_ERR"
+emit_sources | "$IDLEX" 2>"$LEX_ERR" | "$IDPARSE" "${PARSE_ARGS[@]}" > "$C_OUT" 2>"$PARSE_ERR"
 rc=("${PIPESTATUS[@]}")
 lex_rc="${rc[1]}"
 parse_rc="${rc[2]}"
@@ -283,13 +506,48 @@ else
     if [ "$have_main" -eq 1 ]; then OUT="$base"; else OUT="$base.o"; fi
 fi
 
+# The output path may be a directory -- building a project from the directory
+# that contains it asks for exactly that, since the default name IS the project
+# directory's name (`idc filedemo` from beside ./filedemo/). cc then fails with
+# "cannot open output file: Is a directory", which this driver used to report
+# as "a bug in the self-hosted compiler". Passing a project directory is the
+# supported way to build one, so: a name this driver chose, it re-chooses; a
+# name the user chose with -o, it reports. Mirrors idc.py's choose_output_path.
+if [ -d "$OUT" ]; then
+    if [ -n "$OUTPUT" ]; then
+        echo "idc: -o '$OUT' is a directory; choose a different output path" >&2
+        exit 1
+    fi
+    if [ -d "$OUT.out" ]; then
+        echo "idc: '$OUT' and '$OUT.out' are both directories; pass -o NAME to name the executable" >&2
+        exit 1
+    fi
+    echo "idc: '$OUT' is the project directory, so the executable cannot take its name;" >&2
+    echo "idc: writing it to '$OUT.out' instead (pass -o NAME to choose)" >&2
+    OUT="$OUT.out"
+fi
+
 # ---------------------------------------------------------------------------
 # --backend DIR: read backend.json for this platform, compile its sources,
 # and link the resulting objects in (mirrors idc.py's resolve_backend/build_c)
 BACKEND_OBJS=()
 BACKEND_LINK=()
-# backends come from both --backend flags and the import.id manifest.
-ALL_BACKENDS=("${BACKENDS[@]}" "${MANIFEST_BACKENDS[@]}")
+# backends come from both --backend flags and the import.id manifest. The same
+# backend named both ways -- the two documented ways to attach one dependency --
+# must be linked once: twice compiles its sources twice and hands cc the same
+# object file twice, which is "multiple definition" for every symbol it
+# exports. Collapse by resolved path, first mention winning (idc.py:
+# dedupe_backends).
+ALL_BACKENDS=()
+for d in "${BACKENDS[@]}" "${MANIFEST_BACKENDS[@]}"; do
+    real=$(cd "$d" 2>/dev/null && pwd -P) || real="$d"
+    dup=0
+    for seen in "${ALL_BACKENDS[@]}"; do
+        s=$(cd "$seen" 2>/dev/null && pwd -P) || s="$seen"
+        [ "$s" = "$real" ] && dup=1 && break
+    done
+    [ "$dup" -eq 0 ] && ALL_BACKENDS+=("$d")
+done
 if [ "${#ALL_BACKENDS[@]}" -gt 0 ] && [ "$have_main" -eq 0 ]; then
     echo "idc: backend(s) ignored: this project has no main (builds to a .o);" \
          "link the backend into the final program" >&2
@@ -310,9 +568,23 @@ import json, sys
 manifest, key = sys.argv[1], sys.argv[2]
 with open(manifest) as f:
     spec = json.load(f)
-plat = (spec.get("platforms") or {}).get(key)
+name = spec.get("name", "backend")
+# Mirrors idc.py's backend_platforms: `targets` maps a *compiler* target to the
+# implementation it should build, so a future LLVM/wasm/interpreter target adds
+# a key there rather than anything changing in id. A manifest with no `targets`
+# (gfx, gl) has a bare `platforms` table, which is the C target's.
+targets = spec.get("targets")
+if targets is None:
+    plats = spec.get("platforms") or {}
+elif targets.get("c") is None:
+    have = ", ".join(sorted(targets)) or "none"
+    print("ERR", f"backend '{name}' has no implementation for the C target "
+                 f"(its manifest declares: {have})")
+    sys.exit(0)
+else:
+    plats = targets["c"].get("platforms") or {}
+plat = plats.get(key)
 if plat is None:
-    name = spec.get("name", "backend")
     print("ERR", f"backend '{name}' has no support for platform '{key}'")
     sys.exit(0)
 SEP = "\x1f"
@@ -365,18 +637,20 @@ cc_rc=$?
 [ "$KEEP_C" -eq 1 ] || rm -f "$c_path"
 for o in "${BACKEND_OBJS[@]}"; do rm -f "$o"; done
 
-# idlex/idparse do no semantic checking (see the header comment), so a
-# program calling an undefined/misspelled function -- something idc.py
-# rejects at compile time with a helpful "did you mean" message -- sails
-# through them unchecked. Usually that's already caught above by the
-# -fsyntax-only gate (an undeclared call is a hard error on a
-# standards-conforming C compiler), but a lenient `--cc` could still let it
-# through to here, where it would otherwise surface as a raw, unhelpful
-# linker error. Rather than show that, fall back to idc.py so the user sees
-# ITS diagnostic instead (the C compiler's error is about generated code,
-# which will fail the same way but with a much better message -- or, if
-# cc's failure was for some other reason, will simply reproduce it).
+# The generated C already passed -fsyntax-only above, so a failure here is a
+# *link* or environment failure -- a missing backend object, a library that
+# isn't installed, an unwritable output path -- and not evidence that the
+# self-hosted compiler emitted bad code. It used to be reported as exactly
+# that ("this is a bug in the self-hosted compiler; please report it"), with
+# cc's own stderr captured and then thrown away, so the one line that said
+# what actually went wrong was the one line the user never saw. Show it, and
+# describe the failure as what it is.
 if [ "$cc_rc" -ne 0 ]; then
-    compiler_bug "cc failed on the self-hosted compiler's output"
+    [ -s "$WORK/cc.err" ] && sed 's/^/idc:   /' "$WORK/cc.err" >&2
+    echo "idc: C compilation failed (command: ${cmd[*]})" >&2
+    echo "idc: the generated C passed a syntax check, so this is a link or environment" >&2
+    echo "idc: failure rather than bad codegen -- unless the errors above name id_*" >&2
+    echo "idc: symbols, which would be a bug in the self-hosted compiler worth reporting." >&2
+    exit 1
 fi
 exit 0
