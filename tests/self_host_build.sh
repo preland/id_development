@@ -56,6 +56,26 @@ check_output() {
     fi
 }
 
+# Every demo project, discovered rather than listed. A demo added to demos/
+# is covered from the moment it exists, with no script to remember to edit --
+# which is the failure this replaced: the list here named four demos while
+# demos/ held eighteen.
+#
+# A demo that needs a --backend or a standard library cannot build here (this
+# file is hermetic and passes no flags), so "both compilers refuse it" is a
+# pass: what is being checked is that the two compilers AGREE, and agreeing to
+# refuse is agreement. What would fail is one building and the other not.
+for prog in ../demos/*/; do
+    name=$(basename "$prog")
+    $IDC     "$prog" -o "$TMP/sweep_py"   >/dev/null 2>&1; py=$?
+    $BIN_IDC "$prog" -o "$TMP/sweep_self" >/dev/null 2>&1; self=$?
+    if [ "$py" -eq "$self" ]; then
+        ok "sweep: $name (both compilers agree: rc=$py)"
+    else
+        bad "sweep: $name (idc.py rc=$py, bin/idc rc=$self)"
+    fi
+done
+
 build_pair hello ../demos/hello && check_output hello hi
 build_pair calc ../demos/calc && check_output calc
 build_pair control ../demos/control/flow.id && check_output control

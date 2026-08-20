@@ -61,30 +61,39 @@ classify() { # PATH -> both | needs-std | broken | neither
 # rather than just the project.
 why() { "$BIN_IDC" "$1" --emit-c /dev/null 2>&1 | head -1; }
 
-seen=""
-while read -r name want; do
+# The GLOB drives, not the ledger. A project added to demos/ or compiler/ is
+# checked from the moment it exists; the ledger only supplies the expectation,
+# and a project with no line in it fails rather than going unnoticed. Anything
+# outside those two directories (nativeapp/id) is picked up from the ledger by
+# name, so the ledger stays the place to add a project living somewhere else.
+want_of() { sed -n "s|^$1  *\([a-z-]*\).*|\1|p" "$LEDGER" | head -1; }
+
+projects=""
+for d in ../demos/*/ ../compiler/*/; do
+    [ -d "$d" ] || continue
+    projects="$projects ${d#../}"
+done
+while read -r name _; do
     case "$name" in ''|\#*) continue ;; esac
-    if   [ -d "../demos/$name" ];  then path="../demos/$name"
-    elif [ -d "../$name" ];        then path="../$name"
-    else bad "$name: named in $LEDGER but no such project"; continue
-    fi
-    seen="$seen $name"
+    case " $projects " in *" $name/ "*|*" $name "*) continue ;; esac
+    [ -d "../$name" ] && projects="$projects $name"
+done < "$LEDGER"
+
+for p in $projects; do
+    name=${p%/}
+    path="../$name"
+    case "$name" in demos/*) name=${name#demos/} ;; esac
+    want=$(want_of "$name")
     got=$(classify "$path")
-    if [ "$got" = "$want" ]; then
+    if [ -z "$want" ]; then
+        bad "$name: a project with no line in $LEDGER (it is '$got')"
+    elif [ "$got" = "$want" ]; then
         ok "$name: $got"
     elif [ "$got" = broken ]; then
         bad "$name: expected '$want', the library now breaks it -- $(why "$path")"
     else
         bad "$name: expected '$want', got '$got' (update $LEDGER)"
     fi
-done < "$LEDGER"
-
-# A project added to the repo and not to the ledger is invisible to this file,
-# which would let the next collision land unnoticed.
-for d in ../demos/*/; do
-    n=$(basename "$d")
-    case " $seen " in *" $n "*) continue ;; esac
-    bad "$n: a project with no line in $LEDGER"
 done
 
 echo
