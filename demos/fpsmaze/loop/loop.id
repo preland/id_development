@@ -1,9 +1,13 @@
 // The frame loop: same shape as demos/gl3dgame/loop/loop.id. spin ticks
 // until a frame reports the window wants to close.
 
-loop() {
-  spin(1, 0);
-  gfx_close();
+// `ok` is threaded into the loop's live flag rather than discarded: with no
+// display glwin_open returns 0 and glwin_poll then returns -1 forever, so a loop
+// that starts unconditionally never ends. Every windowed demo in this tree had
+// that bug -- `DISPLAY= ./prog` ran until it was killed.
+loop(int ok) {
+  spin(ok, 0);
+  glwin_close();
 } return void;
 
 spin(int run, int t) {

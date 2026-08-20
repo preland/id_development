@@ -3,8 +3,12 @@
 // engine's terminal games use the same clear -> draw -> present -> poll -> sleep
 // shape.
 
-loop() {
-  spin(1, 0);
+// `ok` is threaded into the loop's live flag rather than discarded: with no
+// display gfx_open returns 0 and gfx_poll then returns -1 forever, so a loop
+// that starts unconditionally never ends. Every windowed demo in this tree had
+// that bug -- `DISPLAY= ./prog` ran until it was killed.
+loop(int ok) {
+  spin(ok, 0);
   gfx_close();
 } return void;
 

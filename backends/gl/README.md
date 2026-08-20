@@ -35,6 +35,9 @@ New, GPU-specific primitives layer on top:
 | `gl_draw_tris(verts, colors, count)` | draw `count` triangles from flattened `int[]` vertex/color lists |
 | `gl_draw_points(positions, colors, count, size_x1000)` | draw `count` additively-blended, glowing `GL_POINTS` (a particle/starfield primitive) |
 | `gl_width()`, `gl_height()`, `gl_aspect_x1000()` | the window's *live* pixel size and aspect ratio, tracking any runtime resize |
+| `glwin_open/poll/close` | the window, named apart from the software backend's `gfx_*` so both can live in one binary |
+| `glwin_mouse_x/y/buttons` | pointer state, same contract as `backends/gfx` |
+| `gl_read_pixels(fb)` | read the rendered frame back into an `int[]` of `0xRRGGBB`, top row first |
 | `gl_end_frame()`           | swap buffers, pump events, log a frame count, advance `GFX_MAX_FRAMES` |
 
 Like `gfx`, `GFX_MAX_FRAMES` (checked in `gl_end_frame` instead of `gfx_present`,
@@ -73,6 +76,20 @@ plain integers:
 eight-corner cube and a 12-triangle face table with pure integer arithmetic and
 array literals, and drives the whole rotation/projection pipeline through
 `gl_mat_*` handles — no `id`-side float ever appears.
+
+## The window entry points are `glwin_*`, not `gfx_*`
+
+They used to be `gfx_open`/`gfx_poll`/`gfx_close` -- the same names the
+software backend exports. Two objects defining one symbol do not link, so a
+program could have a software window or a GPU window and never both, which is
+exactly what an engine that wants a GPU scene and a software HUD needs.
+
+`-Wl,--allow-multiple-definition` is not the fix: it links, and then every
+`gfx_open` call binds to whichever object came first, so one of the two
+subsystems silently operates on a window it never opened.
+
+The fix is the rename. `tests/backends.sh` links both backends into one binary
+and drives two windows as the proof.
 
 ## Window resize
 
@@ -162,8 +179,7 @@ dependencies, but not guaranteed here).
 - Window resize now updates the viewport automatically (see "Window resize"
   above), but a demo must still opt in to rebuilding its projection matrix
   from `gl_aspect_x1000()` every frame, or its image will stretch even though
-  the viewport is correctly sized. Pointer/mouse events still aren't
-  surfaced, only keys and close.
+  the viewport is correctly sized.
 - `gl_draw_tris` assumes `verts`/`colors` are large enough for `count`
   triangles; it clamps to whatever's actually there rather than erroring, so a
   short list silently draws fewer triangles instead of crashing (matches

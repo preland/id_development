@@ -104,7 +104,26 @@ identical either way.
   prototype), so `cc` warns `-Wdeprecated-non-prototype` and a future C23-only
   toolchain would reject it. The clean fix is a small `idc` feature for typed
   external declarations; tracked as future work, not needed to run today.
-- No window-resize handling yet (the surface is fixed at `open` size; the image
-  scales to fit). Pointer/mouse events aren't surfaced — only keys and close.
+- Window resize is now followed: `pump()` handles `ConfigureNotify` and
+  reallocates the surface, and `gfx_width()`/`gfx_height()` report the live
+  size. An `id` program must ask each frame and re-init its framebuffer when
+  the answer changes — the surface follows the window, and a framebuffer that
+  no longer matches is drawn into the top-left corner with black margins.
+  There is no way to refuse a resize; a tiling window manager will impose one
+  on map, before the first frame.
+- Input now covers arrow keys, F-keys, Home/End/PgUp/PgDn/Insert/Delete, bare
+  modifiers, and **key release** — see the key-code block in `gfx.h`. Codes
+  0–255 are unchanged, so nothing written against the old contract moved.
+  Auto-repeat is filtered, so "is this key held" is answerable for the first
+  time.
+- Pointer state is `gfx_mouse_x()`, `gfx_mouse_y()`, `gfx_mouse_buttons()` —
+  state, not events, because a click is an edge and `id` can see an edge by
+  comparing frames.
+- **Audio: none.** There is no sound backend anywhere in the repo. It would be
+  a new `backend.json` beside these two (`snd_open`, `snd_queue(int[])`), and
+  it should be specified before it is built.
+- `gfx_macos.m` implements the same extended contract, but **it has not been
+  compiled or run**: the machine this work was done on is Linux. Treat it as a
+  faithful translation awaiting a machine.
 - `gfx.h`'s `IdList` must stay byte-identical to `idc.py`'s runtime `IdList`; if
   that layout ever changes, update both.

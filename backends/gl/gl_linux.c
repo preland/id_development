@@ -13,7 +13,7 @@
  *
  * Headless/CI testing: GFX_MAX_FRAMES works exactly like the gfx backend
  * (see gfx_linux.c's header comment): after N calls to id_gl_end_frame, the
- * next id_gfx_poll() reports quit (-2).
+ * next id_glwin_poll() reports quit (-2).
  */
 #include <GL/gl.h>
 #include <GL/glx.h>
@@ -49,6 +49,41 @@ static int          g_quit = 0;
 #define GFX_KEYQ 256
 static int g_keyq[GFX_KEYQ];
 static int g_keyhead = 0, g_keytail = 0;
+/* Key codes, pointer state and the auto-repeat filter are the software
+ * backend's, verbatim in behaviour: a program should not have to ask which
+ * window system it is talking to in order to know what Left means. See
+ * gfx.h's key-code block -- gl.h repeats the same constants. */
+static int g_mx = 0, g_my = 0, g_btn = 0;
+
+static int special_code(KeySym ks) {
+    switch (ks) {
+    case XK_Left:      return 256;
+    case XK_Right:     return 257;
+    case XK_Up:        return 258;
+    case XK_Down:      return 259;
+    case XK_Home:      return 260;
+    case XK_End:       return 261;
+    case XK_Page_Up:   return 262;
+    case XK_Page_Down: return 263;
+    case XK_Insert:    return 264;
+    case XK_Delete:    return 265;
+    case XK_Shift_L: case XK_Shift_R:     return 278;
+    case XK_Control_L: case XK_Control_R: return 279;
+    case XK_Alt_L: case XK_Alt_R:         return 280;
+    default: break;
+    }
+    if (ks >= XK_F1 && ks <= XK_F12) return 266 + (int)(ks - XK_F1);
+    return -1;
+}
+
+static int event_code(XKeyEvent* ke) {
+    char buf[8];
+    KeySym ks = 0;
+    int n = XLookupString(ke, buf, sizeof(buf), &ks, NULL);
+    if (n > 0) return (unsigned char)buf[0];
+    return special_code(ks);
+}
+
 static void key_push(int code) {
     int n = (g_keytail + 1) % GFX_KEYQ;
     if (n == g_keyhead) return;
@@ -69,10 +104,28 @@ static void pump(void) {
         if (ev.type == ClientMessage) {
             if ((Atom)ev.xclient.data.l[0] == g_wm_delete) g_quit = 1;
         } else if (ev.type == KeyPress) {
-            char buf[8];
-            KeySym ks;
-            int n = XLookupString(&ev.xkey, buf, sizeof(buf), &ks, NULL);
-            if (n > 0) key_push((unsigned char)buf[0]);
+            int code = event_code(&ev.xkey);
+            if (code >= 0) key_push(code);
+        } else if (ev.type == KeyRelease) {
+            /* X sends release+press at one timestamp while a key repeats;
+               reporting those releases makes a held key look like a tap. */
+            XEvent nxt;
+            int repeat = XPending(g_dpy) && (XPeekEvent(g_dpy, &nxt), 1)
+                       && nxt.type == KeyPress
+                       && nxt.xkey.time == ev.xkey.time
+                       && nxt.xkey.keycode == ev.xkey.keycode;
+            if (!repeat) {
+                int code = event_code(&ev.xkey);
+                if (code >= 0) key_push(code + GFX_RELEASED);
+            }
+        } else if (ev.type == ButtonPress || ev.type == ButtonRelease) {
+            if (ev.xbutton.button >= 1 && ev.xbutton.button <= 5) {
+                if (ev.type == ButtonPress) g_btn |=  1 << (ev.xbutton.button - 1);
+                else                        g_btn &= ~(1 << (ev.xbutton.button - 1));
+            }
+            g_mx = ev.xbutton.x; g_my = ev.xbutton.y;
+        } else if (ev.type == MotionNotify) {
+            g_mx = ev.xmotion.x; g_my = ev.xmotion.y;
         } else if (ev.type == ConfigureNotify) {
             /* The window's drawable size changed (interactive resize, or a
              * window manager honoring a resize request). Track the new size
@@ -107,7 +160,7 @@ static int max_frames(void) {
     return g_max_frames;
 }
 
-int id_gfx_open(int w, int h, const char* title) {
+int id_glwin_open(int w, int h, const char* title) {
     if (g_dpy) return 1;
     if (w <= 0 || h <= 0) return 0;
     g_dpy = XOpenDisplay(NULL);
@@ -129,12 +182,23 @@ int id_gfx_open(int w, int h, const char* title) {
     XSetWindowAttributes swa;
     memset(&swa, 0, sizeof(swa));
     swa.colormap = g_cmap;
-    swa.event_mask = ExposureMask | KeyPressMask | StructureNotifyMask;
+    swa.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask |
+                     ButtonPressMask | ButtonReleaseMask | PointerMotionMask |
+                     StructureNotifyMask;
 
     g_win = XCreateWindow(g_dpy, RootWindow(g_dpy, screen), 0, 0, w, h, 0,
                           g_vi->depth, InputOutput, g_vi->visual,
                           CWColormap | CWEventMask, &swa);
     XStoreName(g_dpy, g_win, title ? title : "id");
+    /* WM_CLASS, so a window manager can recognise an `id` program. Without it
+       the class is empty and every rule has to match on the title, which is
+       whatever the program passed to glwin_open. See tools/headless.sh. */
+    {
+        XClassHint ch;
+        ch.res_name = (char*)"id";
+        ch.res_class = (char*)"id-gl";
+        XSetClassHint(g_dpy, g_win, &ch);
+    }
     g_wm_delete = XInternAtom(g_dpy, "WM_DELETE_WINDOW", False);
     XSetWMProtocols(g_dpy, g_win, &g_wm_delete, 1);
 
@@ -172,14 +236,14 @@ int id_gfx_open(int w, int h, const char* title) {
     return 1;
 }
 
-int id_gfx_poll(void) {
+int id_glwin_poll(void) {
     if (!g_dpy) return -1;
     pump();
     if (g_quit) return -2;
     return key_pop();
 }
 
-int id_gfx_close(void) {
+int id_glwin_close(void) {
     if (!g_dpy) return 0;
     fprintf(stderr, "gl_linux: closing after %d frame(s) rendered\n", g_frame_count);
     if (g_ctx) { glXMakeCurrent(g_dpy, None, NULL); glXDestroyContext(g_dpy, g_ctx); g_ctx = NULL; }
@@ -192,6 +256,10 @@ int id_gfx_close(void) {
 }
 
 /* ---- live window size / aspect --------------------------------------------- */
+
+int id_glwin_mouse_x(void) { return g_mx; }
+int id_glwin_mouse_y(void) { return g_my; }
+int id_glwin_mouse_buttons(void) { return g_btn; }
 
 int id_gl_width(void) { return g_w; }
 int id_gl_height(void) { return g_h; }
@@ -225,6 +293,41 @@ int id_gl_end_frame(void) {
         g_quit = 1;
     }
     return g_frame_count;
+}
+
+/* Read the rendered frame back as 0xRRGGBB pixels, top row first.
+ *
+ * glReadPixels hands back the framebuffer bottom row first, so the rows are
+ * reversed on the way out: `id` has one pixel layout, the one gfx_present
+ * consumes, and a GL frame that came back upside down would silently be a
+ * different thing from a software frame.
+ *
+ * Reads GL_BACK -- the buffer the frame was just drawn into -- so this belongs
+ * between the last draw call and gl_end_frame. Reading GL_FRONT after the swap
+ * looks more natural and does not work: under a compositor the front buffer is
+ * the compositor's to define, and it comes back black. */
+int id_gl_read_pixels(IdList* fb) {
+    if (!g_dpy || !fb || g_w <= 0 || g_h <= 0) return 0;
+    size_t n = (size_t)g_w * (size_t)g_h;
+    unsigned char* rgb = (unsigned char*)malloc(n * 3);
+    if (!rgb) return 0;
+    glReadBuffer(GL_BACK);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadPixels(0, 0, g_w, g_h, GL_RGB, GL_UNSIGNED_BYTE, rgb);
+    int wrote = 0;
+    for (int y = 0; y < g_h; y++) {
+        const unsigned char* row = rgb + (size_t)(g_h - 1 - y) * g_w * 3;
+        for (int x = 0; x < g_w; x++) {
+            int i = y * g_w + x;
+            if (i >= fb->len) { free(rgb); return wrote; }
+            fb->data[i] = ((long long)row[x * 3] << 16)
+                        | ((long long)row[x * 3 + 1] << 8)
+                        |  (long long)row[x * 3 + 2];
+            wrote++;
+        }
+    }
+    free(rgb);
+    return wrote;
 }
 
 /* ---- matrix pool ----------------------------------------------------------

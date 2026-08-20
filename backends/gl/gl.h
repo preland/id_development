@@ -56,15 +56,37 @@ typedef struct { int len, cap; long long* data; } IdList;
 
 /* Open a w x h GPU-backed window with the given UTF-8 title. 1 on success, 0
  * on failure (e.g. no GLX-capable visual). Call once before any gl_* call. */
-extern int id_gfx_open(int w, int h, const char* title);
+/* -- key codes -------------------------------------------------------------
+ * Identical to the software backend's (see backends/gfx/gfx.h): 0..255 is a
+ * key that makes a character, 256..511 one that does not, and GFX_RELEASED
+ * added on top marks a release. A program should not have to ask which window
+ * system it is talking to in order to know what Left means. */
+#define GFX_RELEASED   65536
+
+#define GFX_KEY_LEFT   256
+#define GFX_KEY_RIGHT  257
+#define GFX_KEY_UP     258
+#define GFX_KEY_DOWN   259
+#define GFX_KEY_HOME   260
+#define GFX_KEY_END    261
+#define GFX_KEY_PGUP   262
+#define GFX_KEY_PGDN   263
+#define GFX_KEY_INSERT 264
+#define GFX_KEY_DELETE 265
+#define GFX_KEY_F1     266            /* F1..F12 are 266..277 */
+#define GFX_KEY_SHIFT  278
+#define GFX_KEY_CTRL   279
+#define GFX_KEY_ALT    280
+
+extern int id_glwin_open(int w, int h, const char* title);
 
 /* Poll one input event, non-blocking: -2 quit (close button, or the
  * GFX_MAX_FRAMES headless self-terminate hook firing), -1 no event this poll,
- * >=0 a key code. Same convention as gfx.h's id_gfx_poll. */
-extern int id_gfx_poll(void);
+ * >=0 a key code. Same convention as gfx.h's id_glwin_poll. */
+extern int id_glwin_poll(void);
 
 /* Tear down the GL context and window. Safe to call once at exit. Returns 0. */
-extern int id_gfx_close(void);
+extern int id_glwin_close(void);
 
 /* ---- per-frame primitives ------------------------------------------------ */
 
@@ -165,6 +187,32 @@ extern int id_gl_draw_points(IdList* positions, IdList* colors, int count,
  * given to gfx_open until a resize is observed (see gl_linux.c's
  * ConfigureNotify handling), after which it tracks the live size. 0 if no
  * window is open. */
+/* Pointer state, in window pixels, as of the last poll. Buttons are a bitmask:
+ * bit 0 left, bit 1 middle, bit 2 right. Same contract as the software
+ * backend. */
+extern int id_glwin_mouse_x(void);
+extern int id_glwin_mouse_y(void);
+extern int id_glwin_mouse_buttons(void);
+
+/* Read the rendered frame back into an int[] of w*h 0xRRGGBB pixels, row-major
+ * with the top row first -- the same layout gfx_present consumes, so a GL
+ * frame can be written out as a PPM by the very code that dumps a software
+ * one. Call between the last draw call and gl_end_frame: it reads the buffer
+ * being drawn into, because after the swap the front buffer belongs to the
+ * compositor and reads back black.
+ *
+ * This exists because the GL path had no off-screen verification at all: the
+ * software path could dump pixels from pure `id`, and GPU output could only be
+ * eyeballed through an external window grabber. `fb` must hold at least
+ * gl_width()*gl_height() elements; it is filled up to whichever is smaller.
+ * Returns the number of pixels written.
+ *
+ * The values are whatever the drawable actually holds, which is not always
+ * what was asked for: on a visual with fewer than 8 bits per channel, or with
+ * dithering, a clear to (20, 40, 160) can read back as (20, 38, 160). Compare
+ * with a tolerance, or use channel values that survive any format. */
+extern int id_gl_read_pixels(IdList* fb);
+
 extern int id_gl_width(void);
 extern int id_gl_height(void);
 
