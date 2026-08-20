@@ -1,0 +1,28 @@
+// average -- read numbers on stdin, one per line, and print their sum, how
+// many there were, and their average.
+//
+//   bin/idc demos/average -o average
+//   printf '1\n2\n3.5\n' | ./average
+//
+// Input ends at end-of-file OR at the first blank line: `input()` returns ""
+// for both and the language gives no way to tell them apart, which is also
+// what makes the program usable interactively.
+
+main(int argc, string[] argv) {
+  float[] acc = [0.0];
+  int count = gather(acc);
+  report(acc[0], count);
+} return int 0;
+
+// The running sum lives in a one-cell list, not in a local, because the loop
+// has to carry two accumulators and a function returns one value. A list
+// parameter is an lvalue, so `acc[0] = ...` writes through to main's list.
+gather(float[] acc) {
+  int count = 0;
+  string line = input();
+  while(line != "") {
+    count = count + 1;
+    acc[0] = acc[0] + str_to_float(line);
+    line = input();
+  }
+} return int count;
