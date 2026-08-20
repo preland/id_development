@@ -2,6 +2,18 @@
 # Regression tests for idc. Run from anywhere: tests/run.sh
 set -u
 cd "$(dirname "$0")"
+
+# Every check below this line predates the standard library, and all of them
+# assert on exact diagnostics, exact emitted C, or the demos' own sources. A
+# library implicitly merged into each of those programs would change what they
+# are, so this file is hermetic: it builds with no stdlib, and the stdlib's own
+# behaviour is tested in stdlib.sh against a fixture library instead.
+#
+# This is not a way of avoiding the question. Porting the demos onto idstd is
+# real work that has to happen -- it is C9 in docs/IDSTD.md -- and it cannot
+# happen until idstd has the functions to port them onto.
+export IDC_NO_STD=1
+
 IDC=../idc.py
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
@@ -667,6 +679,17 @@ else
     done
 fi
 
+# --- the compiler's own map. 212 of its 258 filenames say nothing about what
+#     is in them, so MAP.md is the only way to find code without already
+#     knowing a symbol to grep for -- which is why new work kept landing in
+#     idc.py instead. An index that goes stale is worse than none, so it is
+#     generated and checked. See docs/HACKING.md.
+if ../tools/mapgen.sh --check >/dev/null 2>&1; then
+    ok "MAP.md is current"
+else
+    bad "MAP.md is out of date -- run tools/mapgen.sh"
+fi
+
 echo
 echo "$pass passed, $fail failed"
 
@@ -694,4 +717,40 @@ echo "--- self-hosted driver build (bin/idc) ---"
 ./self_host_build.sh
 shneg=$?
 
-[ "$fail" -eq 0 ] && [ "$neg" -eq 0 ] && [ "$rneg" -eq 0 ] && [ "$shneg" -eq 0 ]
+# --- native backends: both backends compile and coexist in one binary, the
+#     graphics demos build at byte parity, and no windowed demo hangs when
+#     there is no display. Skips itself when the X11/GL headers are absent.
+echo
+echo "--- native backends (backends/gfx, backends/gl) ---"
+./backends.sh
+bend=$?
+
+# --- the standard library: implicit import, --no-std, $IDSTD_HOME, and the
+#     transitive dependency resolution it is built on. Runs against a fixture
+#     stdlib (tests/fixtures/idstd), so it says the same thing whether or not
+#     a real ../idstd exists. It unsets IDC_NO_STD itself.
+echo
+echo "--- standard library (implicit import) ---"
+./stdlib.sh
+std=$?
+
+# --- conformance: every code-generation target must agree about what a
+#     program means. tools/parity.sh compares emitted text, which is only a
+#     question while both compilers emit C; this compares behaviour, which is
+#     the question that survives a second target. See docs/SPEC.md.
+echo
+echo "--- conformance across targets (docs/SPEC.md) ---"
+./conform.sh
+conf=$?
+
+# --- test clauses: the cases written under a function, run by --tests, and the
+#     scaling claims they may carry. It sets IDC_NO_STD itself, because what a
+#     case measures must be the function under test and nothing else.
+echo
+echo "--- test clauses (docs/TESTS.md) ---"
+./tests_feature.sh
+tst=$?
+
+[ "$fail" -eq 0 ] && [ "$neg" -eq 0 ] && [ "$rneg" -eq 0 ] && [ "$shneg" -eq 0 ] \
+    && [ "$bend" -eq 0 ] && [ "$std" -eq 0 ] && [ "$conf" -eq 0 ] \
+    && [ "$tst" -eq 0 ]

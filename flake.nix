@@ -32,6 +32,11 @@
               gcc python3 pkg-config
               llvm clang lld wabt wasmtime
               xdotool
+              # A virtual X server, so a windowed demo can be built and run
+              # without a window ever reaching the real compositor -- see
+              # tools/headless.sh. Both graphics backends are X11, so one
+              # Xvfb covers gfx and gl alike.
+              xorg.xvfb
             ];
             buildInputs = gfxLibs;
             shellHook = ''

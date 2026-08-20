@@ -1,0 +1,365 @@
+#!/usr/bin/env bash
+# Test clauses: the cases written under a function, run by the compiler.
+# See docs/TESTS.md for what they mean; this file checks that idc.py does it.
+#
+# Every program here is written to $TMP and built with IDC_NO_STD=1, so what a
+# case measures is the function under test and nothing else -- a standard
+# library merged into the program would put its own functions (and its own
+# allocations) into the same harness.
+#
+# Run from anywhere: tests/tests_feature.sh
+set -u
+cd "$(dirname "$0")"
+
+# The environment must not leak in: a developer with IDSTD_HOME set would
+# otherwise get different results from this file than CI does.
+unset IDSTD_HOME
+export IDC_NO_STD=1
+
+IDC=../idc.py
+TMP=$(mktemp -d)
+trap 'rm -rf "$TMP"' EXIT
+pass=0 fail=0
+ok()  { pass=$((pass+1)); echo "PASS: $1"; }
+bad() { fail=$((fail+1)); echo "FAIL: $1"; }
+
+# The program under test is always $TMP/p.id, written by the heredoc above each
+# check; run_idc builds it with whatever flags the check passes.
+run_idc() {
+    $IDC "$TMP/p.id" "$@" -o "$TMP/out" >"$TMP/log" 2>&1
+}
+expect_build() {   # desc, flags...
+    local desc="$1"; shift
+    if run_idc "$@"; then ok "$desc"; else bad "$desc ($(head -1 "$TMP/log"))"; fi
+}
+expect_reject() {  # desc, expected message (fixed string), flags...
+    local desc="$1" want="$2"; shift 2
+    if run_idc "$@"; then
+        bad "$desc (built; it should not have)"
+    elif grep -qF "$want" "$TMP/log"; then
+        ok "$desc"
+    else
+        bad "$desc (wrong message: $(head -1 "$TMP/log"))"
+    fi
+}
+
+# --- a case that passes -------------------------------------------------------
+cat > "$TMP/p.id" <<'EOF'
+add(int a, int b) {
+  int s = a + b;
+} return int s;
+(1, 2):(3)
+(0, 0):(0)
+EOF
+expect_build "a passing case builds" --tests
+
+# --- a case that fails is a build failure, naming the case --------------------
+cat > "$TMP/p.id" <<'EOF'
+add(int a, int b) {
+  int s = a + b;
+} return int s;
+(1, 2):(4)
+(0, 0):(0)
+EOF
+expect_reject "a failing case fails the build" \
+    "p.id:4: test failed: add(1, 2) = 3, expected 4" --tests
+
+# --- ... and produces no output at all, --emit-c included ---------------------
+rm -f "$TMP/emitted.c"
+$IDC "$TMP/p.id" --tests --emit-c "$TMP/emitted.c" >/dev/null 2>&1
+[ ! -f "$TMP/emitted.c" ] \
+    && ok "a failing case blocks --emit-c too" \
+    || bad "a failing case blocks --emit-c too (the C was written anyway)"
+
+# --- cases are inert without --tests -----------------------------------------
+expect_build "cases are inert without --tests"
+$IDC "$TMP/p.id" --emit-c "$TMP/emitted.c" >/dev/null 2>&1
+grep -q "id_ctr_" "$TMP/emitted.c" \
+    && bad "no counters in a normal build" \
+    || ok "no counters in a normal build"
+
+# --- and they do not change the emitted C ------------------------------------
+# The self-hosted compiler is compared against this text byte for byte
+# (tools/parity.sh), so a case must be invisible to codegen.
+cat > "$TMP/q.id" <<'EOF'
+add(int a, int b) {
+  int s = a + b;
+} return int s;
+EOF
+$IDC "$TMP/q.id" --emit-c "$TMP/plain.c" >/dev/null 2>&1
+cmp -s "$TMP/emitted.c" "$TMP/plain.c" \
+    && ok "cases do not change the emitted C" \
+    || bad "cases do not change the emitted C"
+
+# --- --require-tests: 0, 1, and 2 cases --------------------------------------
+cat > "$TMP/p.id" <<'EOF'
+add(int a, int b) {
+  int s = a + b;
+} return int s;
+EOF
+expect_reject "--require-tests rejects a function with no cases" \
+    "function 'add' has 0 test case(s)" --require-tests
+
+cat > "$TMP/p.id" <<'EOF'
+add(int a, int b) {
+  int s = a + b;
+} return int s;
+(1, 2):(3)
+EOF
+expect_reject "--require-tests rejects a function with one case" \
+    "function 'add' has 1 test case(s)" --require-tests
+
+cat > "$TMP/p.id" <<'EOF'
+add(int a, int b) {
+  int s = a + b;
+} return int s;
+(1, 2):(3)
+(0, 0):(0)
+EOF
+expect_build "--require-tests accepts a function with two cases" --require-tests
+
+# --- a void function, judged by what it left in its list argument ------------
+cat > "$TMP/p.id" <<'EOF'
+fill(int[] xs, int n) {
+  int i = 0;
+  while(i < n) {
+    push(xs, i);
+    i = i + 1;
+  }
+} return void;
+([], 3):([0, 1, 2])
+([], 0):([])
+EOF
+expect_build "a void function is tested through its list argument" --tests
+
+cat > "$TMP/p.id" <<'EOF'
+fill(int[] xs, int n) {
+  int i = 0;
+  while(i < n) {
+    push(xs, i);
+    i = i + 1;
+  }
+} return void;
+([], 3):([0, 1, 3])
+([], 0):([])
+EOF
+expect_reject "a void function's arguments are compared after the call" \
+    "test failed: fill([], 3) = [0, 1, 2], expected [0, 1, 3]" --tests
+
+# --- strings -----------------------------------------------------------------
+cat > "$TMP/p.id" <<'EOF'
+greet(string who) {
+  string s = "hi " + who;
+} return string s;
+("bob"):("hi bob")
+(""):("hi ")
+EOF
+expect_build "a string case builds" --tests
+
+cat > "$TMP/p.id" <<'EOF'
+greet(string who) {
+  string s = "hi " + who;
+} return string s;
+("bob"):("hello bob")
+(""):("hi ")
+EOF
+expect_reject "a string case compares by content" \
+    'test failed: greet("bob") = "hi bob", expected "hello bob"' --tests
+
+# --- lists returned ----------------------------------------------------------
+cat > "$TMP/p.id" <<'EOF'
+grow(int[] xs) {
+  push(xs, 9);
+} return int[] xs;
+([1]):([1, 9])
+([]):([9])
+EOF
+expect_build "a list case builds" --tests
+
+cat > "$TMP/p.id" <<'EOF'
+grow(int[] xs) {
+  push(xs, 9);
+} return int[] xs;
+([1]):([1, 8])
+([]):([9])
+EOF
+expect_reject "a list case compares elementwise" \
+    "test failed: grow([1]) = [1, 9], expected [1, 8]" --tests
+
+# --- floats ------------------------------------------------------------------
+cat > "$TMP/p.id" <<'EOF'
+half(float x) {
+  float h = x / 2.0;
+} return float h;
+(3.0):(1.5)
+(1.0):(0.5)
+EOF
+expect_build "a float case builds" --tests
+
+cat > "$TMP/p.id" <<'EOF'
+half(float x) {
+  float h = x / 2.0;
+} return float h;
+(3.0):(1.4)
+(1.0):(0.5)
+EOF
+expect_reject "a float case compares by value" \
+    "test failed: half(3.0) = 1.5, expected 1.4" --tests
+
+# --- a constraint that holds -------------------------------------------------
+cat > "$TMP/p.id" <<'EOF'
+total(int[] xs) {
+  int t = 0;
+  int i = 0;
+  while(i < len(xs)) {
+    t = t + xs[i];
+    i = i + 1;
+  }
+} return int t;
+([1, 2, 3]):(6)[time:O(n), mem:O(1)]
+([1, 2, 3, 4, 5, 6]):(21)[time:O(n), mem:O(1)]
+EOF
+expect_build "a scaling claim that holds builds" --tests
+
+# --- a constraint that is violated -------------------------------------------
+# quad() runs inner() n times and inner() loops n times, so its count grows
+# with n^2 while the case claims O(n).
+cat > "$TMP/p.id" <<'EOF'
+quad(int n) {
+  int t = 0;
+  int i = 0;
+  while(i < n) {
+    t = t + inner(n);
+    i = i + 1;
+  }
+} return int t;
+(2):(4)[time:O(n)]
+(30):(900)[time:O(n)]
+
+inner(int n) {
+  int j = 0;
+  int t = 0;
+  while(j < n) {
+    t = t + 1;
+    j = j + 1;
+  }
+} return int t;
+(1):(1)
+(2):(2)
+EOF
+expect_reject "a quadratic function cannot claim O(n)" \
+    "[time:O(n)] does not hold for 'quad'" --tests
+
+# --- work done inside the runtime is counted too ------------------------------
+# The case above has nested loops, so counting only generated code already
+# catches it -- which means it does NOT cover the runtime counters, and would
+# still pass if they were removed. This one does cover them: build() is a
+# SINGLE loop, so by the generated code's own arithmetic it is linear. It is
+# quadratic only because each `+` on a string copies everything built so far,
+# and that copying happens inside id_concat. If instrumented_runtime() stops
+# charging the helpers for the bytes they touch, this is the test that fails.
+cat > "$TMP/p.id" <<'EOF'
+build(int n) {
+  string out = "";
+  int i = 0;
+  while(i < n) {
+    out = out + "x";
+    i = i + 1;
+  }
+} return string out;
+(4):("xxxx")[time:O(n)]
+(64):("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")[time:O(n)]
+EOF
+expect_reject "string building in a loop is caught as quadratic" \
+    "[time:O(n)] does not hold for 'build'" --tests
+
+# --- a constraint needs two cases to compare ---------------------------------
+cat > "$TMP/p.id" <<'EOF'
+total(int[] xs) {
+  int t = 0;
+  int i = 0;
+  while(i < len(xs)) {
+    t = t + xs[i];
+    i = i + 1;
+  }
+} return int t;
+([1, 2, 3]):(6)
+([1, 2, 3, 4, 5, 6]):(21)[time:O(n)]
+EOF
+expect_reject "a claim carried by one case is rejected" \
+    "[time:O(n)] needs a second case with a different input size to compare against" \
+    --tests
+
+cat > "$TMP/p.id" <<'EOF'
+total(int[] xs) {
+  int t = 0;
+  int i = 0;
+  while(i < len(xs)) {
+    t = t + xs[i];
+    i = i + 1;
+  }
+} return int t;
+([1, 2, 3]):(6)[time:O(n)]
+([4, 5, 6]):(15)[time:O(n)]
+EOF
+expect_reject "two cases of the same size cannot compare either" \
+    "[time:O(n)] needs a second case with a different input size to compare against" \
+    --tests
+
+# --- malformed cases ---------------------------------------------------------
+cat > "$TMP/p.id" <<'EOF'
+add(int a, int b) {
+  int s = a + b;
+} return int s;
+(a, 2):(3)
+EOF
+expect_reject "a case argument must be a literal" \
+    "a test case takes literals only"
+
+cat > "$TMP/p.id" <<'EOF'
+add(int a, int b) {
+  int s = a + b;
+} return int s;
+(1, 2)(3)
+EOF
+expect_reject "a case needs the ':' between its two sides" "expected ':'"
+
+cat > "$TMP/p.id" <<'EOF'
+add(int a, int b) {
+  int s = a + b;
+} return int s;
+(1, 2):(3)[time:O(n^3)]
+EOF
+expect_reject "an unknown bound is named" "unknown bound 'O(n^3)'"
+
+cat > "$TMP/p.id" <<'EOF'
+add(int a, int b) {
+  int s = a + b;
+} return int s;
+(1, 2):(3)[cpu:O(n)]
+EOF
+expect_reject "an unknown constraint is named" "unknown constraint 'cpu'"
+
+cat > "$TMP/p.id" <<'EOF'
+add(int a, int b) {
+  int s = a + b;
+} return int s;
+(1):(3)
+(0, 0):(0)
+EOF
+expect_reject "a case with the wrong number of arguments is rejected" \
+    "this case passes 1 argument(s) to 'add', which takes 2" --tests
+
+cat > "$TMP/p.id" <<'EOF'
+add(int a, int b) {
+  int s = a + b;
+} return int s;
+("x", 2):(3)
+(0, 0):(0)
+EOF
+expect_reject "a case argument of the wrong type is rejected" \
+    "this case gives a string where a int is required" --tests
+
+echo
+echo "$pass passed, $fail failed"
+[ "$fail" -eq 0 ]

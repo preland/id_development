@@ -5,17 +5,18 @@
 # output must be byte-identical to idc.py's for programs the self-hosted
 # compiler fully supports.
 #
-# Note: bin/idc transparently falls back to idc.py for input the self-hosted
-# stages can't yet handle (e.g. demos/hello, which has a float literal --
-# see README.md "Self-hosting"), printing a note on stderr when it does. This
-# suite checks END-TO-END CORRECTNESS of bin/idc as the build command, not
-# whether the self-hosted path specifically (rather than its fallback)
-# produced any particular binary -- tools/parity.sh and tests/run.sh's
-# "codegen parity" section already cover self-hosted/idc.py byte-parity
-# directly.
+# There is no fallback: bin/idc drives the self-hosted stages and nothing
+# else, so every check here is a check of them. tools/parity.sh and
+# tests/run.sh's "codegen parity" section cover self-hosted/idc.py byte-parity
+# on the emitted C; this suite covers the driver end to end.
 #
 # Run from anywhere: tests/self_host_build.sh
 set -u
+# Hermetic: these checks assert on exact diagnostics, exact emitted C, or the
+# compiler's own bootstrap, none of which may change because a standard library
+# happens to exist beside this repository. stdlib.sh covers that path instead.
+export IDC_NO_STD=1
+
 cd "$(dirname "$0")"
 IDC=../idc.py
 BIN_IDC=../bin/idc
@@ -91,6 +92,108 @@ else
     bad "engine (no main -> .o) builds via bin/idc"
 fi
 
+# -- link-time-resolved calls (native backends) ------------------------------
+# A call no input file defines is a typo when nothing could resolve it, and a
+# link-time symbol when a backend is attached. Both halves are checked, since
+# the same pass decides them and getting either wrong breaks the other.
+
+# (a) no backend: the name is rejected, by name, with the builtin list --
+#     NOT handed to cc as an implicit declaration.
+cat > "$TMP/typo.id" <<'EOF'
+main(int argc, string[] argv) {
+  print(to_flot("1"));
+} return int 0;
+EOF
+typo_out=$($BIN_IDC "$TMP/typo.id" -o "$TMP/typo.bin" 2>&1)
+if printf '%s' "$typo_out" | grep -q "error: no such function 'to_flot'" \
+   && printf '%s' "$typo_out" | grep -q "available builtins:" \
+   && ! printf '%s' "$typo_out" | grep -q "internal error"; then
+    ok "unresolved call with no backend is a 'no such function' error"
+else
+    bad "unresolved call with no backend is a 'no such function' error (got: $(printf '%s' "$typo_out" | head -1))"
+fi
+
+# (b) with a backend: the emitted C must carry `extern int id_<name>();` and
+#     be byte-identical to idc.py's, which is what makes the block's contents
+#     AND its order right.
+for prog in ../demos/gfxdemo ../nativeapp/id; do
+    be=../backends/gfx
+    if ! $IDC "$prog" --backend "$be" --emit-c "$TMP/be_py.c" >/dev/null 2>&1; then
+        bad "backend emit-c: idc.py failed on $prog"
+        continue
+    fi
+    if ! $BIN_IDC "$prog" --backend "$be" --emit-c "$TMP/be_self.c" >/dev/null 2>&1; then
+        bad "backend emit-c: bin/idc failed on $prog"
+        continue
+    fi
+    if grep -q '^extern int id_gfx_open();' "$TMP/be_self.c" \
+       && diff "$TMP/be_py.c" "$TMP/be_self.c" >/dev/null; then
+        ok "backend emit-c byte parity via bin/idc ($prog)"
+    else
+        bad "backend emit-c byte parity via bin/idc ($prog)"
+    fi
+done
+
+# -- the driver must agree with idc.py about what a project IS ---------------
+# These are filesystem questions, answered in bash rather than in id, so they
+# are the ones most likely to drift from idc.py. Each one did.
+
+# (a) hidden directories are neither counted toward the 3-entry limit nor
+#     descended into for source.
+proj="$TMP/hid"
+mkdir -p "$proj/.git" "$proj/a" "$proj/b"
+cat > "$proj/m.id" <<'EOF'
+main(int argc, string[] argv) { print(1); } return int 0;
+EOF
+cat > "$proj/.git/sneaky.id" <<'EOF'
+sneaky_fn() { int q = 1; } return int q;
+EOF
+$IDC     "$proj" --emit-c "$TMP/hid_py.c"   >/dev/null 2>&1; py_rc=$?
+$BIN_IDC "$proj" --emit-c "$TMP/hid_self.c" >/dev/null 2>&1; self_rc=$?
+if [ "$py_rc" -eq 0 ] && [ "$self_rc" -eq 0 ] \
+   && diff "$TMP/hid_py.c" "$TMP/hid_self.c" >/dev/null \
+   && ! grep -q id_sneaky_fn "$TMP/hid_self.c"; then
+    ok "hidden dirs: not counted, not compiled (matches idc.py)"
+else
+    bad "hidden dirs: not counted, not compiled (idc.py rc=$py_rc bin/idc rc=$self_rc)"
+fi
+
+# (b) an absolute path in import.id resolves, as it does under idc.py.
+lib="$TMP/implib"; app="$TMP/impapp"
+mkdir -p "$lib" "$app"
+cat > "$lib/h.id" <<'EOF'
+imp_helper() { int q = 5; } return int q;
+EOF
+cat > "$app/main.id" <<'EOF'
+main(int argc, string[] argv) { print(imp_helper()); } return int 0;
+EOF
+printf 'import "%s"\n' "$lib" > "$app/import.id"
+if $BIN_IDC "$app" -o "$TMP/imp.bin" >/dev/null 2>&1 \
+   && [ "$("$TMP/imp.bin")" = "5" ]; then
+    ok "import.id: an absolute dependency path resolves"
+else
+    bad "import.id: an absolute dependency path resolves"
+fi
+
+# (c) --triple reaches idparse, which is what selects among asm overloads.
+cat > "$TMP/asm.id" <<'EOF'
+main(int argc, string[] argv) {
+  print(dbl(21));
+} return int 0;
+asm "x86_64-unknown-linux-gnu" dbl(word a) {
+  "mov %[a], %[ret]"
+  "add %[ret], %[ret]"
+} return word ret;
+EOF
+if $BIN_IDC "$TMP/asm.id" --triple x86_64-unknown-linux-gnu -o "$TMP/asm.bin" >/dev/null 2>&1 \
+   && [ "$("$TMP/asm.bin")" = "42" ] \
+   && $BIN_IDC "$TMP/asm.id" --triple aarch64-unknown-linux-gnu -o "$TMP/asm2.bin" 2>&1 \
+      | grep -q "no 'asm' definition of 'dbl' for target 'aarch64-unknown-linux-gnu'"; then
+    ok "--triple selects the asm overload, and reports a missing one"
+else
+    bad "--triple selects the asm overload, and reports a missing one"
+fi
+
 # bootstrap caching: a second invocation must not rebuild idlex/idparse
 cache_before=$(stat -c %Y ../.idc-cache/idlex 2>/dev/null || stat -f %m ../.idc-cache/idlex 2>/dev/null)
 $BIN_IDC ../demos/calc -o "$TMP/calc_self2" >/dev/null 2>"$TMP/cache.err"
@@ -99,6 +202,54 @@ if [ "$cache_before" = "$cache_after" ] && ! grep -q "bootstrapping" "$TMP/cache
     ok "bin/idc caches idlex/idparse across runs (no rebuild)"
 else
     bad "bin/idc caches idlex/idparse across runs (no rebuild)"
+fi
+
+# A nested import.id is a source file that silently does not exist: it is
+# filtered out as metadata and only a ROOT's is read as a manifest, so anything
+# it defines vanishes and the caller is blamed with "no such function". Both
+# compilers must say what actually happened. Found by a rename that happened to
+# choose the name.
+mkdir -p "$TMP/nested/sub"
+cat > "$TMP/nested/main.id" <<'EOF'
+main(int argc, string[] argv) {
+  print(helper());
+} return int 0;
+EOF
+cat > "$TMP/nested/sub/import.id" <<'EOF'
+helper() {
+  int r = 42;
+} return int r;
+EOF
+nested_msg="is the dependency manifest and is only read at the root"
+if $BIN_IDC "$TMP/nested" -o "$TMP/nested.bin" 2>&1 | grep -q "$nested_msg" \
+   && $IDC "$TMP/nested" -o "$TMP/nested.bin" 2>&1 | grep -q "$nested_msg"; then
+    ok "a nested import.id is reported, by both compilers"
+else
+    bad "a nested import.id is reported, by both compilers"
+fi
+
+# Test clauses (docs/TESTS.md) are part of a declaration, so BOTH compilers
+# must accept them and both must ignore them in codegen. When only idc.py knew
+# the syntax, a program carrying cases was a syntax error in the primary
+# compiler -- two dialects, not one language. Byte parity is the assertion that
+# matters: the cases must leave no trace in the emitted C.
+cat > "$TMP/cases.id" <<'EOF'
+add(int a, int b) {
+  int sum = a + b;
+} return int sum;
+(1, 2):(3)
+(0, 0):(0)[time:O(1)]
+
+main(int argc, string[] argv) {
+  print(add(2, 3));
+} return int 0;
+EOF
+$IDC "$TMP/cases.id" --emit-c "$TMP/cases_py.c" >/dev/null 2>&1
+$BIN_IDC "$TMP/cases.id" --emit-c "$TMP/cases_self.c" >/dev/null 2>&1
+if [ -s "$TMP/cases_self.c" ] && cmp -s "$TMP/cases_py.c" "$TMP/cases_self.c"; then
+    ok "a program with test cases builds identically under both compilers"
+else
+    bad "a program with test cases builds identically under both compilers"
 fi
 
 echo
