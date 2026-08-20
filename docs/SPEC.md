@@ -1,5 +1,9 @@
 # What an `id` program means
 
+> **Status: normative, and executable.** Every claim here is a case under
+> `tests/conform/`, run on every target by `tests/conform.sh`. §10 records
+> where the targets do not meet it yet.
+
 This document says what `id` code *does*, independently of how it is compiled.
 Everything here is a promise every code-generation target must keep.
 

@@ -1,5 +1,9 @@
 # Making the self-hosted compiler backend-agnostic
 
+> **Status: a plan, partly executed.** The split below is the target shape,
+> not the current one. "Where this stands" says which steps have landed; the
+> retirement section is the reason the rest is urgent.
+
 `idc.py` emits C, LLVM IR and WAT from three near-duplicate code generators —
 `gen_expr`, `gen_binop`, `gen_call` and `gen_stmt` each exist three times. That
 is why adding one operator to the language meant five edits, and why the LLVM

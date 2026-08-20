@@ -1,5 +1,8 @@
 # `asm` functions
 
+> **Status: describes what is built.** `asm` functions with platform-triple
+> overloads work in both compilers; `--triple` selects among them.
+
 Some things cannot be written in a language — reading a timestamp counter,
 issuing a memory barrier, a system call. `id` gets to them through a function
 whose body is instructions rather than statements, and which is declared for

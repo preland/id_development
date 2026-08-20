@@ -1,5 +1,8 @@
 # Writing your first `id` program
 
+> **Status: current.** The program it builds is `demos/wordcount`, which the
+> suite builds on every run.
+
 We are going to build **wordcount**: it reads text on stdin and prints each
 distinct word with how many times it appeared.
 

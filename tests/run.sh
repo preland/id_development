@@ -706,6 +706,22 @@ else
     bad "idc.py grew to $idcpy_lines lines, over its $IDCPY_CEILING ceiling -- build it in the self-hosted compiler, or lower nothing and justify raising it"
 fi
 
+# --- every document says whether it describes reality. Three of the ten did;
+#     the other seven read as specifications whether they were one or not, and
+#     docs/DISPATCH.md -- 113 lines with nothing implemented anywhere -- read
+#     exactly like docs/SPEC.md, which is executable. A reader cannot tell a
+#     plan from a description without opening the code, so each doc opens with
+#     a `> **Status:` line and this refuses a new one that does not.
+undocumented=""
+for d in ../docs/*.md; do
+    grep -q '^> \*\*Status' "$d" || undocumented="$undocumented $(basename "$d")"
+done
+if [ -z "$undocumented" ]; then
+    ok "every doc states whether it describes reality"
+else
+    bad "no '> **Status:' line in:$undocumented -- say whether the doc is a description, a plan, or a proposal"
+fi
+
 echo
 echo "$pass passed, $fail failed"
 

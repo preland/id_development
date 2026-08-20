@@ -1,5 +1,8 @@
 # Running the graphics demos without losing your place
 
+> **Status: a working note for one compositor.** Not part of the language or
+> the build; nothing in the suite depends on it.
+
 A windowed `id` program is an ordinary X11 client, so a tiling compositor does
 what it does for any application: focuses the new window, warps the pointer to
 it, and drops whatever was fullscreen. That is right for an application and

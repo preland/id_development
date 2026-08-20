@@ -1,5 +1,10 @@
 # Calling a function chosen at run time
 
+> **Status: a proposal. Nothing here is implemented.** No `select` exists in
+> either compiler, in `docs/SPEC.md`, or in `tests/conform/`. It is written up
+> because four separate pieces of work are blocked on it and each invented the
+> same workaround; it is not a description of the language.
+
 `id` cannot express "call whichever function this is". Four separate pieces of
 work are blocked on it, and all four have independently invented the same
 workaround:

@@ -1,5 +1,8 @@
 # Changing the language
 
+> **Status: describes current practice.** The loop and the gates named here
+> are the ones `tests/run.sh` actually runs.
+
 **Language features are built in the self-hosted compiler**
 (`compiler/lex` + `compiler/parse`), not in `idc.py`.
 
