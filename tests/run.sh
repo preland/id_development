@@ -751,6 +751,16 @@ echo "--- test clauses (docs/TESTS.md) ---"
 ./tests_feature.sh
 tst=$?
 
+# --- the REAL standard library against the real projects. Everything above
+#     this line runs with IDC_NO_STD=1 or against a fixture library, which is
+#     what makes it hermetic and what made a whole class of breakage --
+#     a project colliding with a name idstd defines -- invisible to the suite.
+#     Skips itself when there is no ../idstd. See tests/idstd_expect.txt.
+echo
+echo "--- the real standard library (tests/idstd_expect.txt) ---"
+./idstd_real.sh
+real=$?
+
 [ "$fail" -eq 0 ] && [ "$neg" -eq 0 ] && [ "$rneg" -eq 0 ] && [ "$shneg" -eq 0 ] \
     && [ "$bend" -eq 0 ] && [ "$std" -eq 0 ] && [ "$conf" -eq 0 ] \
-    && [ "$tst" -eq 0 ]
+    && [ "$tst" -eq 0 ] && [ "$real" -eq 0 ]

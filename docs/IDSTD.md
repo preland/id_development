@@ -174,20 +174,31 @@ files and a tree about 5 levels deep. Plan the layout before writing code (§7).
 >
 > **Still outstanding: C5, C6, C7, the rest of C8, C9.** C7 is now the *only* thing keeping graphics out
 > of the default library — with DCE landed, an unused framebuffer costs nothing,
-> but an unused X11 dependency still costs every program a link line. C9 is
-> deferred until idstd has the functions to port the demos onto, and it is
-> **much smaller than it first looked**. Re-measured by building each demo both
-> ways, so that a demo needing `--backend` is not counted as a stdlib failure:
-> of 18 demos, 6 build either way, 6 already need flags or a backend, and
-> **only 6 are broken by the stdlib** — `engine`, `idview`, `moonbuggy`,
-> `solitaire`, and the two bootstrap stages `idc_in_id{,_parse}`. The bootstrap
-> pair is not work: `bin/idc` already builds them with `--no-std`, and building
-> them directly is the only way to see the failure. So C9 is four demos, one of
-> which (`demos/engine`) is the terminal engine whose functions are headed for
-> idstd anyway. Until then `tests/run.sh` and
-> every script it calls set `IDC_NO_STD=1` and are hermetic, and
+> but an unused X11 dependency still costs every program a link line.
+>
+> **C9 is now measured continuously rather than in prose.** Every project's
+> standing against the real library is a line in
+> [`tests/idstd_expect.txt`](../tests/idstd_expect.txt), checked by
+> `tests/idstd_real.sh` on every run, and a change in either direction fails —
+> a new collision, and a port that lands without the ledger being updated. The
+> re-measurement below used to live here and go stale; it is now the file.
+>
+> As of 2026-08-19 that ledger reads: 9 projects build either way or need the
+> library, 6 need `--backend` and are untested against it, and **6 are broken
+> by it** — `engine`, `moonbuggy`, `solitaire`, `nativeapp/id`, and the two
+> compiler stages `idc_in_id{,_parse}`. (`idview` was on this list and is no
+> longer; `nativeapp/id` was not and is.)
+>
+> The compiler stages are the interesting pair. `bin/idc` bootstraps them with
+> `--no-std`, so the build is not broken — but `bin/idc demos/idc_in_id_parse`
+> is how the README says to build them, and that fails. Whether the compiler
+> should depend on the library it ships, or be permanently a `--no-std`
+> project, is an open decision and the reason those two lines exist.
+>
+> Everything else in `tests/run.sh` sets `IDC_NO_STD=1` and is hermetic, and
 > `tests/stdlib.sh` covers the library path against a fixture library in
-> `tests/fixtures/idstd`.
+> `tests/fixtures/idstd`. That is deliberate, and it is also exactly why
+> `idstd_real.sh` had to exist: a hermetic suite cannot see the library.
 >
 > Two things were learned by getting them wrong, both now locked by tests:
 >
