@@ -52,6 +52,7 @@ NO_STD=0
 STD_DIR=""
 BACKENDS=()          # from --backend flags (passed through on fallback)
 MANIFEST_BACKENDS=() # from the project's conf.id (idc.py re-reads it on fallback)
+CONSTS=()            # constant declarations from every conf.id reached
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -324,7 +325,7 @@ read_manifest() {
     # command word-expands before it runs, so the second assignment would read
     # an unset `root` -- which under `set -u` is a hard error, not an empty
     # string.
-    local root="$1" lineno=0 line trimmed dep deppath manifest
+    local root="$1" lineno=0 line trimmed dep deppath manifest seen_const=0
     manifest="$root/conf.id"
     [ -f "$manifest" ] || return 0
     while IFS= read -r line || [ -n "$line" ]; do
@@ -332,11 +333,25 @@ read_manifest() {
         trimmed="${line#"${line%%[![:space:]]*}"}"
         [ -z "$trimmed" ] && continue
         case "$trimmed" in //*) continue ;; esac
+        # Constants come after imports: a reader sees where the code comes
+        # from before what it is configured with. They are collected here and
+        # injected into the source stream by emit_sources, because idparse is
+        # what checks and emits them and `id` cannot read a file.
+        if printf '%s' "$trimmed" | grep -qE '^(int|word|float|string)(\[\])?[[:space:]]+[A-Za-z_][A-Za-z0-9_]*[[:space:]]*=.*;$'; then
+            seen_const=1
+            CONSTS+=("$trimmed")
+            continue
+        fi
+        if [ "$seen_const" -eq 1 ]; then
+            echo "idc: $manifest:$lineno: imports come before constants in conf.id; '$trimmed' follows a constant declaration" >&2
+            exit 2
+        fi
         dep=$(printf '%s' "$trimmed" \
             | sed -n 's/^import[[:space:]]*"\([^"]*\)"[[:space:]]*$/\1/p')
         if [ -z "$dep" ]; then
             echo "idc: $manifest:$lineno: malformed line: $trimmed" >&2
-            echo "idc: each dependency is a line:  import \"relative/dir\"" >&2
+            echo "idc: each dependency is a line:  import \"relative/dir\", and each" >&2
+            echo "idc: constant a line:  int name = value;" >&2
             exit 2
         fi
         # An absolute dependency path is used as it stands. It used to be
@@ -483,6 +498,10 @@ PARSE_ERR="$WORK/parse.err"
 # `#file`, so the blank line awk leaves after a file that does not end in a
 # newline changes no diagnostic.
 emit_sources() {
+    # Constants first: they belong to no file, need no initialiser, and must be
+    # in scope for every source that follows.
+    local c
+    for c in ${CONSTS[@]+"${CONSTS[@]}"}; do printf '#const %s\n' "$c"; done
     { printf '%s\n' "${SRC_ROOTS[@]}"; printf '%s\n' "${SRC_FILES[@]}"; } \
     | awk -v nroots="${#SRC_ROOTS[@]}" '
         NR <= nroots { root[NR - 1] = $0; next }
