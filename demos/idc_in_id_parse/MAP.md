@@ -408,7 +408,7 @@ a new construct only once this compiler uses that construct on itself.
 | `reg_params` | `idc_in_id_parse/mid/names/symbols/check/declare/registry.id` | Filling the registry. The walk mirrors idc.py's register_var loop, and the |
 | `new_bucket` | `idc_in_id_parse/mid/names/symbols/lookup/index/hash/bucket.id` | One empty bucket. A list literal builds a fresh list on every call, which is |
 | `idx_n` | `idc_in_id_parse/mid/names/symbols/lookup/index/hash/bucket.id` | A prime, so that the final `%` mixes all sixteen bits of the hash rather |
-| `str_hash` | `idc_in_id_parse/mid/names/symbols/lookup/index/hash/bucket.id` | One empty bucket. A list literal builds a fresh list on every call, which is |
+| `name_bucket` | `idc_in_id_parse/mid/names/symbols/lookup/index/hash/bucket.id` | Which bucket a name belongs in -- not a hash. It was called str_hash, which |
 | `hash_loop` | `idc_in_id_parse/mid/names/symbols/lookup/index/hash/hash.id` | The usual polynomial string hash, kept inside 16 bits at every step so the |
 | `hash_step` | `idc_in_id_parse/mid/names/symbols/lookup/index/hash/hash.id` | The usual polynomial string hash, kept inside 16 bits at every step so the |
 | `find_ix` | `idc_in_id_parse/mid/names/symbols/lookup/index/hash/hash.id` | find_str's answer, over one bucket instead of the whole table. Same |
