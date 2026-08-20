@@ -1,0 +1,18 @@
+// Teardown, and the failure convention. Every entry point returns an int, so
+// a failure is -1 and the reason is fetched separately with fs_error.
+//
+// The two calls are deliberately in *separate statements* from the print that
+// reports them: fs_error reads state that fs_open sets, and operands of one
+// expression are not ordered, so `fs_open(...) + fs_error()` could ask for the
+// reason before there is one. (It did, in the first draft of this file: the
+// errno printed as 0.) One call per statement, and the order is the order.
+gone(string path) {
+  int rc = fs_remove(path);
+  int h = fs_open(path, "r");
+  report(path, rc, h);
+} return void;
+
+report(string path, int rc, int h) {
+  print("removed " + path + " (rc " + rc + "), exists now " + fs_exists(path));
+  print("reopening it gives " + h + ", errno " + fs_error());
+} return void;

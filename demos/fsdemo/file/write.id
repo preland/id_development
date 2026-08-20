@@ -1,0 +1,23 @@
+// Writing: turn the text into bytes, hand them to the backend, close.
+write_file(string path, string text) {
+  int h = fs_open(path, "w");
+  int n = fs_write(h, bytes_of(text), len(text));
+  wrote(path, h, n);
+} return void;
+
+wrote(string path, int h, int n) {
+  int rc = fs_close(h);
+  print("wrote " + n + " bytes to " + path + " (close " + rc + ")");
+} return void;
+
+// A string becomes one byte per cell. fs_write takes an int[] because the
+// backend is a separately compiled object and cannot reach id's flat store;
+// a list is a pointer this side already owns.
+bytes_of(string text) {
+  int[] buf = [];
+  int i = 0;
+  while(i < len(text)) {
+    push(buf, charat(text, i));
+    i = i + 1;
+  }
+} return int[] buf;

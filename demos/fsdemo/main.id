@@ -1,0 +1,19 @@
+// fsdemo -- reading and writing a file from `id`.
+//
+// `id` has no filesystem builtins: the whole of BUILTIN_NAMES gives a program
+// stdin (input/read_all) and stdout (print/put/flush) and nothing else, so
+// until now a "file program" in id was a filter and the caller chose the files
+// with `< in > out`. The backends/fs backend supplies the missing eight
+// functions at link time, exactly the way backends/gfx supplies a window.
+//
+//   bin/idc demos/fsdemo -o fsdemo && ./fsdemo
+//
+// Nothing below names C, a file descriptor, or a libc call -- fs_open and its
+// seven siblings are ordinary `id` calls that no `.id` file defines, and the
+// import.id beside this file is what says where they come from. Compile the
+// same source with a different code generator and the source does not change.
+main(int argc, string[] argv) {
+  string path = "fsdemo.txt";
+  write_file(path, "the quick brown fox\njumps over\nthe lazy dog\n");
+  show(path);
+} return int 0;
