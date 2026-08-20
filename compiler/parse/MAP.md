@@ -34,8 +34,8 @@ a new construct only once this compiler uses that construct on itself.
 | `skip_block` | `compiler/lex/chars/dispatch/more/block.id` | eat_space is reused for the step because it is exactly the right one: it |
 | `bump_line` | `compiler/lex/chars/dispatch/more/line.id` | Line tracking for diagnostics: the running line number. The store helper it |
 | `scan_decop` | `compiler/lex/chars/dispatch/more/number_or_op.id` | decimal number, or hand off |
-| `scan_hashop` | `compiler/lex/chars/dispatch/more/number_or_op.id` | A `#file <path>` marker, injected between concatenated source files by the |
-| `scan_hash` | `compiler/lex/chars/dispatch/more/number_or_op.id` | i points at the '#'; the path starts 6 characters later, past "#file ". |
+| `scan_hashop` | `compiler/lex/chars/dispatch/more/number_or_op.id` | A `#<word> <rest>` marker, injected into the stream by the driver. `id` has |
+| `scan_hash` | `compiler/lex/chars/dispatch/more/number_or_op.id` | The marker word is not parsed here: dropping the `#` and passing the rest of |
 | `is_bin` | `compiler/lex/chars/numlit/bin/bin.id` | Binary literals, the mirror of the hex case: `id` lexes 0b1010 to the |
 | `bin_start` | `compiler/lex/chars/numlit/bin/bin.id` | The trailing digit test is what keeps a bare `0` followed by an identifier |
 | `bin_end` | `compiler/lex/chars/numlit/bin/bin.id` | Binary literals, the mirror of the hex case: `id` lexes 0b1010 to the |

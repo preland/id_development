@@ -8,11 +8,16 @@ scan_decop(string src, int i) {
   }
 } return int ni;
 
-// A `#file <path>` marker, injected between concatenated source files by the
-// driver. `id` has no filesystem access and the pipeline hands idparse one
-// stream, so without this the compiler cannot tell where one file ends and
-// the next begins -- which is what the 3-functions-per-file rule needs, and
-// what a diagnostic needs to name a file at all.
+// A `#<word> <rest>` marker, injected into the stream by the driver. `id` has
+// no filesystem access and the pipeline hands idparse one concatenated stream,
+// so anything the compiler needs to know that is NOT in the source arrives
+// this way. Two exist:
+//
+//   #file N|PATH             where one source file ends and the next begins,
+//                            which the 3-functions-per-file rule needs and
+//                            which a diagnostic needs to name a file at all
+//   #const TYPE name = ...;  a constant from conf.id, which has no declaring
+//                            function because it needs no initialiser
 //
 // A `#` cannot begin an id token otherwise, so nothing legal is shadowed.
 scan_hashop(string src, int i) {
@@ -24,9 +29,13 @@ scan_hashop(string src, int i) {
   }
 } return int ni;
 
-// i points at the '#'; the path starts 6 characters later, past "#file ".
+// The marker word is not parsed here: dropping the `#` and passing the rest of
+// the line through is enough, and it means a third marker needs no change to
+// the lexer at all. `#file 0|a.id` emits `file 0|a.id` -- character for
+// character what slicing past a hard-coded "#file " used to produce, which is
+// what keeps this change invisible to byte-parity.
 scan_hash(string src, int i) {
   int e = skip_comment(src, i);
-  print("file " + slice_str(src, i + 6, e));
+  print(slice_str(src, i + 1, e));
   lset((import lexline), 0, 0);
 } return int e;
