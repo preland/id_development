@@ -88,14 +88,35 @@ This one is not free: `tests/backends.sh` drives `gfxdemo` and `gl3d`, and
 `tests/self_host_build.sh` sweeps `demos/*/`. Moving a demo out means deciding
 what replaces it as a fixture.
 
-## 8. `--target llvm|wasm` in `bin/idc`, then delete `idc.py`
+## 8. Work the `idc.py` lint budget down
+
+`tools/lint_idcpy.py` holds `idc.py` to a lightweight form of the rules the
+compiler enforces: 32 statements per function (`id` allows 3 actions per
+block), nesting depth 4 (`id` allows 2), and no two functions with the same
+logic up to renaming (`id`'s rule exactly, and it already passes).
+
+**19 functions exceed the statement limit and 7 the nesting limit.** They are
+named in `BUDGET`/`DEPTH_BUDGET`, so a new violation fails while the old ones
+stand, and an entry that stops being true also fails — a stale budget is how a
+ratchet quietly stops ratcheting.
+
+Almost all of them are the same four functions written three times:
+`gen_expr`, `gen_binop`, `gen_call` and `gen_stmt`, once per target, the
+largest at 128 statements. That is the duplication `docs/BACKENDS.md` exists to
+remove, so the budget falls as item 9 progresses rather than through separate
+cleanup.
+
+The one rule deliberately not checked is 3 functions per file: `idc.py` is one
+file with 160, and applying it means splitting the file, which is item 9.
+
+## 9. `--target llvm|wasm` in `bin/idc`, then delete `idc.py`
 
 43% of `idc.py` is the two targets `bin/idc` does not have; the rest is
 bootstrap that a checked-in bootstrap C artifact retires. `docs/BACKENDS.md`
 is the plan and `tests/run.sh` holds a line ceiling so the file cannot grow
 while the work is pending.
 
-## 9. String building is quadratic
+## 10. String building is quadratic
 
 A 60 000-character literal costs 1.77 GB and 1.4 s; 4× the input is ~14× the
 memory. The lexer accumulates tokens and the emitter builds each line of C
@@ -105,7 +126,7 @@ Measured, so it is not folklore — but it is **not** what makes the suite slow.
 The suite is 83 s; that was mismeasured as ~25 minutes once, under heavy
 parallel load, and the mistake is recorded here so it is not repeated.
 
-## 10. The suite is 83 s, over the 60 s budget
+## 11. The suite is 83 s, over the 60 s budget
 
 Mitigated rather than fixed: `tests/run.sh` runs by section (`--list`,
 `--from`, `--resume`) and every section is 6–36 s. A real fix would make the

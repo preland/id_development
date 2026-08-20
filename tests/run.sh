@@ -822,6 +822,18 @@ else
     bad "docs/TESTS.md adoption numbers are stale -- run tools/statusgen.sh"
 fi
 
+# --- idc.py obeys a lightweight form of the rules it enforces. A compiler
+#     that rejects long blocks, deep nesting and duplicated logic, in a file
+#     with a 128-statement function in it, is not a good argument for any of
+#     those rules. Relaxed limits (32 statements, depth 4) with a ratcheting
+#     budget for what already exceeded them. See tools/lint_idcpy.py.
+lint_out=$(cd .. && tools/lint_idcpy.py --check 2>&1)
+if [ $? -eq 0 ]; then
+    ok "idc.py passes its own lightweight lint"
+else
+    bad "idc.py lint: $(printf '%s' "$lint_out" | head -1)"
+fi
+
 echo
 echo "$pass passed, $fail failed"
 mark_done core

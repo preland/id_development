@@ -1597,36 +1597,7 @@ class Compiler:
              direct assignment, that is the same fact written repeatedly, and
              it belongs in conf.id too.
         """
-        sets = {}        # exported name -> [(canon_value, expr, file, line)]
-        mutated = set()  # written through a call, so not a constant
-        for fn in self.funcs.values():
-            names = {}
-            cn = lambda n: names.setdefault(n, n)
-            for stmt in walk_stmts(fn.body):
-                if isinstance(stmt, DeclStmt) and stmt.exported:
-                    where = stmt
-                elif isinstance(stmt, AssignStmt) and stmt.name in self.exported:
-                    where = stmt
-                else:
-                    continue
-                if where.expr is None:
-                    continue
-                sets.setdefault(where.name, []).append(
-                    (_canon_expr(where.expr, cn, fn.name), where.expr,
-                     getattr(where, "file", fn.file), getattr(where, "line", fn.line)))
-            # A call that writes THROUGH the export mutates it. `lset((import
-            # xs), i, v)` is exactly that, and it is the idiom the compiler's
-            # own diagnostic recommends, so it cannot be ignored. Only a direct
-            # argument at a position the callee actually writes counts:
-            # print("" + (import n)) passes n inside an expression to a builtin
-            # and changes nothing.
-            for e in walk_exprs_in(fn):
-                if not isinstance(e, CallExpr):
-                    continue
-                written = self._written_params(e.name)
-                for i, arg in enumerate(e.args):
-                    if isinstance(arg, ImportRef) and i in written:
-                        mutated.add(arg.name)
+        sets, mutated = self._export_writes()
         for name in sorted(sets):
             places = sets[name]
             if name in mutated:
@@ -1644,6 +1615,35 @@ class Compiler:
                 f"'{name}' is assigned once and never changed, so it is a "
                 f"constant, not state.{many} Declare it in {IMPORT_MANIFEST} "
                 f"instead of in a function that exists only to assign it")
+
+    def _export_writes(self):
+        """Every write to an exported name, and the set of names written
+        THROUGH a call. `lset((import xs), i, v)` is the second kind, and it is
+        the idiom the compiler's own diagnostic recommends -- without counting
+        it, every accumulator in the language looks like a constant."""
+        sets, mutated = {}, set()
+        for fn in self.funcs.values():
+            names = {}
+            cn = lambda n: names.setdefault(n, n)
+            for stmt in walk_stmts(fn.body):
+                if isinstance(stmt, DeclStmt) and stmt.exported:
+                    where = stmt
+                elif isinstance(stmt, AssignStmt) and stmt.name in self.exported:
+                    where = stmt
+                else:
+                    continue
+                if where.expr is not None:
+                    sets.setdefault(where.name, []).append(
+                        (_canon_expr(where.expr, cn, fn.name), where.expr,
+                         where.file, where.line))
+            for e in walk_exprs_in(fn):
+                if not isinstance(e, CallExpr):
+                    continue
+                written = self._written_params(e.name)
+                for i, arg in enumerate(e.args):
+                    if isinstance(arg, ImportRef) and i in written:
+                        mutated.add(arg.name)
+        return sets, mutated
 
     # -- dead-code elimination
     #
