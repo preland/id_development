@@ -22,19 +22,19 @@
 // to is the last one pushed onto `prog`, which is why this runs after it.
 take_cases(int[] pos) {
   while(cur_kind(pos) == "op" && cur_text(pos) == "(") {
-    skip_case(pos);
-    push((import casefn), (import prog)[len((import prog)) - 1]);
+    push_case(pos);
   }
 } return int 0;
 
-// (args) : (expected) [constraints]
-skip_case(int[] pos) {
-  skip_paren(pos);
-  advance(pos);
-  skip_case_rhs(pos);
+// A case is recorded as the half-open token range it occupies, so that two
+// cases can be compared without rebuilding their text.
+push_case(int[] pos) {
+  push((import casestart), pos[0]);
+  skip_case(pos);
+  end_case(pos);
 } return void;
 
-skip_case_rhs(int[] pos) {
-  skip_paren(pos);
-  skip_constraints(pos);
+end_case(int[] pos) {
+  push((import caseend), pos[0]);
+  push((import casefn), (import prog)[len((import prog)) - 1]);
 } return void;

@@ -12,3 +12,10 @@ report_cases(int i, int n) {
   print(prog_loc(i) + "function '" + s1_of((import prog)[i]) + "' has " + n + " test case(s); --require-tests needs at least 2 (see docs/TESTS.md)");
   note_failure();
 } return void;
+
+// Located by the case's own first token rather than by its function, because
+// the point of the message is the line the reader has to change.
+report_dup_case(int i) {
+  print(func_file(s1_of((import casefn)[i])) + ":" + (import tline)[(import casestart)[i]] + ": error: this test case is identical to an earlier one; two cases must describe two behaviours (see docs/TESTS.md)");
+  note_failure();
+} return void;

@@ -166,6 +166,55 @@ else
     bad "bin/idc accepts a function with two cases"
 fi
 
+# --- two cases must be two cases ---------------------------------------------
+# The cheapest way to satisfy a two-case minimum without producing any evidence
+# is to write the same case twice, so a duplicate is an error. Checked ALWAYS,
+# not only under --require-tests: it is wrong in a program that writes cases
+# voluntarily too. This rule lives only in the self-hosted compiler -- idc.py is
+# stage 0 and is being retired, so new rules do not go there.
+dup_case() { # desc, source, flags...
+    local desc="$1" src="$2"; shift 2
+    printf '%s' "$src" > "$TMP/p.id"
+    if ../bin/idc "$TMP/p.id" "$@" --emit-c /dev/null >"$TMP/log" 2>&1; then
+        bad "$desc (built; it should not have)"
+    elif grep -qF "identical to an earlier one" "$TMP/log"; then
+        ok "$desc"
+    else
+        bad "$desc (wrong message: $(head -1 "$TMP/log"))"
+    fi
+}
+dup_case "an identical case is rejected" 'add(int a, int b) {
+  int s = a + b;
+} return int s;
+(1, 2):(3)
+(1, 2):(3)
+'
+# Compared by tokens, so spacing cannot smuggle a duplicate past the rule.
+dup_case "whitespace does not hide a duplicate" 'add(int a, int b) {
+  int s = a + b;
+} return int s;
+(1,2):(3)
+(1, 2) : (3)
+'
+# Same case text under two DIFFERENT functions is not a duplicate.
+printf '%s' 'add(int a, int b) {
+  int s = a + b;
+} return int s;
+(1, 2):(3)
+(0, 0):(0)
+
+mul(int a, int b) {
+  int p = a * b;
+} return int p;
+(1, 2):(2)
+(0, 0):(0)
+' > "$TMP/p.id"
+if ../bin/idc "$TMP/p.id" --require-tests --emit-c /dev/null >/dev/null 2>&1; then
+    ok "the same case under two functions is not a duplicate"
+else
+    bad "the same case under two functions is not a duplicate"
+fi
+
 # --- a void function, judged by what it left in its list argument ------------
 cat > "$TMP/p.id" <<'EOF'
 fill(int[] xs, int n) {

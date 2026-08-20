@@ -52,6 +52,22 @@ After the `return` clause, one case per line:
 to describe behaviour. The compiler requires two and does not care which two,
 which is a floor rather than a target.
 
+**And they must be two different cases.** Writing the same case twice is the
+cheapest way to satisfy a two-case minimum without producing any evidence, so
+a duplicate is an error:
+
+```
+add.id:5: error: this test case is identical to an earlier one; two cases
+          must describe two behaviours (see docs/TESTS.md)
+```
+
+Cases are compared as tokens, so `(1,2):(3)` and `(1, 2) : (3)` are the same
+case and spacing cannot smuggle one past. The same case text under two
+*different* functions is not a duplicate. Unlike the two-case minimum, this is
+checked always rather than under `--require-tests`: it is wrong in a program
+that writes cases voluntarily too, and a program with no cases has no
+duplicates, so there is nothing to phase in.
+
 A `void` function is tested by what it leaves behind. Because a list has
 reference semantics, the expected side describes the arguments *after* the
 call:
@@ -218,6 +234,13 @@ already pinned by `tools/parity.sh` and `tests/conform.sh`.
 > this document. The syntax has existed on both sides for a while and nothing
 > in any of the three repositories uses it, which is the failure mode the rule
 > is meant to prevent, showing up in the rule's own rollout.
+>
+> **Duplicate cases are rejected, in the self-hosted compiler only.** `idc.py`
+> does not have this rule and will not get it: it is stage 0 of a bootstrap
+> being retired, and a new rule added there is a line that has to be deleted
+> later. This is the first rule where the two compilers deliberately differ,
+> so it is tested in `tests/tests_feature.sh` against `bin/idc` alone rather
+> than in `tests/invalid/`, which requires both to agree.
 >
 > **`--tests` is not yet in the self-hosted compiler.** Running a case needs a
 > generated entry point that calls each function and compares; only `idc.py`
