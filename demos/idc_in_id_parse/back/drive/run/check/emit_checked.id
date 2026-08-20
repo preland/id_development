@@ -5,18 +5,22 @@ push_asm_sym(int i) {
   }
 } return void;
 
+// -1 for the node id: an asm function is not in the node store at all, and
+// the call checks read that as "nothing here can be checked", which is the
+// truth -- its parameters live in the asm tables, and idc.py does not check
+// a call to one either.
 push_sym_row(int i) {
-  push((import fnames), (import afname)[i]);
-  push((import frets), (import afret)[i]);
+  add_func((import afname)[i], (import afret)[i], 0 - 1);
 } return void;
 
-// asm functions are registered in the symbol table *before* the checks run,
-// not inside emit(). They used to be registered after, which left every type
-// check silently inactive on asm-using code -- the checks saw an unknown
-// return type and, correctly, declined to guess, so a whole program could go
-// unchecked with no diagnostic at all.
+// Everything the checks need that is not in the AST is set up first -- see
+// arg_setup. It used to be just register_asm_syms(), and that call used to
+// sit inside emit(), which left every type check silently inactive on
+// asm-using code: the checks saw an unknown return type and, correctly,
+// declined to guess, so a whole program could go unchecked with no
+// diagnostic at all.
 emit_checked(int argc, string[] argv) {
-  register_asm_syms();
+  arg_setup(argc, argv);
   check_program();
   guarded_emit(argc, argv);
 } return void;

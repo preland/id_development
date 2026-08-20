@@ -1,5 +1,5 @@
 // Which source file the compiler is currently reading. The pipeline hands
-// idparse one concatenated stream, so the driver injects `#file <path>`
+// idparse one concatenated stream, so the driver injects `#file N|<path>`
 // markers between files and the lexer turns each into a `file` token.
 //
 // The current file is the last one pushed -- a list rather than a mutable
@@ -13,7 +13,7 @@ init_files() {
   export string[] fseen = [];
   export string[] pfile = [];
   init_files2();
-} return void;
+} return int init_units();
 
 cur_file() {
   string s = "<stdin>";
@@ -22,7 +22,11 @@ cur_file() {
   }
 } return string s;
 
+// The marker carries the unit as well as the path (see unit/split.id): the
+// path goes on the stack every diagnostic reads, the unit into the cell every
+// node created from here on is stamped with.
 take_file(int[] pos) {
-  push((import fseen), cur_text(pos));
+  push((import fseen), file_path(cur_text(pos)));
+  chk_set((import ucur), 0, file_unit(cur_text(pos)));
   advance(pos);
 } return void;

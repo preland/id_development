@@ -1,0 +1,31 @@
+// The extern table: names a program calls that no input file defines.
+//
+// It sits beside the export table because the two are the same kind of thing
+// -- a program-wide table of names that becomes a block of C declarations
+// ahead of the forward declarations -- and because they are emitted one after
+// the other, in the order idc.py emits them.
+//
+// A call that resolves to nothing is an error (it is almost always a typo'd
+// builtin), *unless* a native backend is attached, in which case it is a name
+// the linker will supply and the C needs `extern int id_<name>();` for it.
+// idc.py decides that from `--backend`; nothing below the driver can see a
+// backend, so the driver passes `--extern-ok` and this cell remembers it.
+//
+//   xnames  the unresolved names, in first-encounter order
+//   xokc    1 when unresolved calls are allowed (a backend is attached)
+//   bnames  the builtin names, split out of one literal (see builtin/more/)
+
+init_xtab() {
+  export string[] xnames = [];
+  export int[] xokc = [0];
+  init_bnames();
+} return void;
+
+// An exported scalar may only be assigned by its declaring function, so the
+// flag is a one-element list written through chk_set, like chkfail.
+xok_set(int v) {
+  chk_set((import xokc), 0, v);
+} return void;
+
+extern_ok() {
+} return int (import xokc)[0];

@@ -3,8 +3,8 @@ asm_error(string name, string triple) {
 } return void;
 
 emit_asm_one(int r) {
-  print(c_type((import afret)[r]) + " id_" + (import afname)[r] + "(" + list_params((import afparams)[r]) + ") {");
-  print("    " + c_type((import afret)[r]) + " " + (import afretn)[r] + ";");
+  emit_line(c_type((import afret)[r]) + " id_" + (import afname)[r] + "(" + list_params((import afparams)[r]) + ") {");
+  emit_line("    " + c_type((import afret)[r]) + " " + (import afretn)[r] + ";");
   asm_stmt(r);
 } return void;
 
@@ -12,7 +12,7 @@ emit_asm_one(int r) {
 // conservative, but the alternative is trusting hand-written clobber lists,
 // and a wrong one is a miscompile that shows up under -O2 months later.
 asm_stmt(int r) {
-  print("    __asm__ __volatile__(" + asm_text(r) + " : [" + (import afretn)[r] + "] " + chr(34) + "=r" + chr(34) + " (" + (import afretn)[r] + ") : " + asm_in_ops((import afparams)[r]) + " : " + chr(34) + "memory" + chr(34) + ");");
-  print("    return " + (import afretn)[r] + ";");
-  print("}");
+  emit_line("    __asm__ __volatile__(" + asm_text(r) + " : [" + (import afretn)[r] + "] " + chr(34) + "=r" + chr(34) + " (" + (import afretn)[r] + ") : " + asm_in_ops((import afparams)[r]) + " : " + chr(34) + "memory" + chr(34) + ");");
+  emit_line("    return " + (import afretn)[r] + ";");
+  emit_line("}");
 } return void;

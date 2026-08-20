@@ -50,7 +50,9 @@ Same techniques as the calculator, scaled up:
 - **Nodes are seven parallel lists** — `nkind`, two int fields, two string
   fields, and **two child-list fields** (`nl1`/`nl2` are `int[][]`) so a node can
   hold variable-arity children: a function's params and body, an `if`'s two
-  branches, a call's arguments.
+  branches, a call's arguments. Two more columns record where a node came from
+  rather than what it is: `nline` (its source line) and `nunit` (its
+  compilation unit, which is what keeps a name's type per-unit).
 - **Recursive descent** with the now-familiar split: every loop body that folds
   operators or collects list items is its own small function, to respect the
   3-action-per-block and 2-deep-nesting limits.

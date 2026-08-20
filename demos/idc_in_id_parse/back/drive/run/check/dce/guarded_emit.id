@@ -1,6 +1,13 @@
 // Emission happens only if every check passed.
+//
+// The prune is here, between the last check and the first line of output, and
+// that position is the contract: every rule of the language has been checked
+// over every function by now, so throwing the unreachable ones away cannot
+// stop anything from being checked. See dce.id.
 guarded_emit(int argc, string[] argv) {
   if(check_failed() == 0) {
+    dce_prune();
+    init_tyc();
     emit(argc, argv);
   }
 } return void;

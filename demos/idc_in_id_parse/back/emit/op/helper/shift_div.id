@@ -15,10 +15,11 @@ hop_sar(string op) {
   }
 } return string h;
 
-// Only a `word` result goes through the checked division helpers.
+// `int` and `word` division both go through the checked helpers; float
+// division does not, because IEEE gives it an answer rather than a signal.
 hop_div(int id) {
   string h = "";
-  if(type_bin(id) == "word") {
-    h = hop_dw(s1_of(id));
+  if(type_bin(id) == "word" || type_bin(id) == "int") {
+    h = hop_dw(s1_of(id), type_bin(id));
   }
 } return string h;

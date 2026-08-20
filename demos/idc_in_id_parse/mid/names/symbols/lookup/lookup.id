@@ -1,7 +1,14 @@
 // Lookups: variable type, function return type, and a linear name search.
+//
+// The two lookups go through the hash index (see index/); find_str stays for the
+// tables that are asked about rarely enough not to need one.
+//
+// A variable is looked up by name *and* unit, because that is the scope the
+// one-type-per-name rule covers. Function names stay program-wide: a call
+// resolves to one function wherever it was written.
 
-lookup_var(string name) {
-  int idx = find_str((import vnames), name);
+lookup_var(string name, int unit) {
+  int idx = find_vix((import vidx)[str_hash(name)], name, unit);
   string t = "";
   if(idx >= 0) {
     t = (import vtypes)[idx];
@@ -9,7 +16,7 @@ lookup_var(string name) {
 } return string t;
 
 lookup_func(string name) {
-  int idx = find_str((import fnames), name);
+  int idx = find_ix((import fnames), (import fidx)[str_hash(name)], name);
   string t = "";
   if(idx >= 0) {
     t = (import frets)[idx];

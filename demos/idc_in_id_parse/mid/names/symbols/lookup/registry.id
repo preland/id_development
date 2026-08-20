@@ -3,6 +3,7 @@
 init_reg2() {
   export string[] dvtype = [];
   export int[] dvexp = [];
+  init_didx();
 } return void;
 
 // How many registry rows declare `name` inside `owner`. One scan answers two
@@ -11,12 +12,9 @@ init_reg2() {
 // function cannot see the name at all. That second use is idc.py's build_env
 // -- parameters and hoisted locals -- which is exactly what the registry holds.
 declared_in(string name, string owner) {
-  int i = 0;
+  int[] bkt = (import didx)[str_hash(name)];
   int ok = 0;
-  while(i < len((import dvname))) {
-    ok = ok + dv_hit(i, name, owner);
-    i = i + 1;
-  }
+  ok = dv_count(bkt, name, owner, 0, ok);
 } return int ok;
 
 dv_hit(int i, string name, string owner) {

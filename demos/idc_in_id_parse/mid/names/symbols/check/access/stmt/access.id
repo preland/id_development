@@ -19,10 +19,16 @@ acc_func(int id) {
 
 // The return clause is not a statement of the body, so the body walk never
 // reaches it -- but it is an expression the function evaluates, and idc.py
-// resolves the names in it like any other. It is -1 for `return void`, and it
-// belongs to the function heading's line.
+// resolves the names in it like any other. It is -1 for `return void`.
+//
+// The line is the expression's own, taken from the line slot every node
+// carries. It used to be the function heading's line, which is a different
+// line whenever the clause is not on it -- `} return int f(x);` under a
+// multi-line signature, or any function whose body spans lines -- and idc.py
+// reports the clause. Nothing else in this pass needs it: a statement's names
+// are reported at the statement's line, and the clause is not a statement.
 acc_ret(int id) {
   if(i1_of(id) >= 0) {
-    acc_expr(i1_of(id), s1_of(id), func_line(s1_of(id)));
+    acc_expr(i1_of(id), s1_of(id), (import nline)[i1_of(id)]);
   }
 } return void;
