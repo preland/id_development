@@ -185,9 +185,9 @@ files and a tree about 5 levels deep. Plan the layout before writing code (§7).
 >
 > As of 2026-08-19 that ledger reads: 9 projects build either way or need the
 > library, 6 need `--backend` and are untested against it, and **6 are broken
-> by it** — `engine`, `moonbuggy`, `solitaire`, `nativeapp/id`, and the two
+> by it** — `engine`, `moonbuggy`, `solitaire`, and the two
 > compiler stages `idc_in_id{,_parse}`. (`idview` was on this list and is no
-> longer; `nativeapp/id` was not and is.)
+> longer. `nativeapp` has since moved to its own repository, `../id_nativeapp`.)
 >
 > The compiler stages are the interesting pair. `bin/idc` bootstraps them with
 > `--no-std`, so the build is not broken — but `bin/idc compiler/parse`

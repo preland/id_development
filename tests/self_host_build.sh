@@ -136,7 +136,7 @@ fi
 # (b) with a backend: the emitted C must carry `extern int id_<name>();` and
 #     be byte-identical to idc.py's, which is what makes the block's contents
 #     AND its order right.
-for prog in ../demos/gfxdemo ../nativeapp/id; do
+for prog in ../demos/gfxdemo; do
     be=../backends/gfx
     if ! $IDC "$prog" --backend "$be" --emit-c "$TMP/be_py.c" >/dev/null 2>&1; then
         bad "backend emit-c: idc.py failed on $prog"

@@ -64,7 +64,7 @@ why() { "$BIN_IDC" "$1" --emit-c /dev/null 2>&1 | head -1; }
 # The GLOB drives, not the ledger. A project added to demos/ or compiler/ is
 # checked from the moment it exists; the ledger only supplies the expectation,
 # and a project with no line in it fails rather than going unnoticed. Anything
-# outside those two directories (nativeapp/id) is picked up from the ledger by
+# outside those two directories is picked up from the ledger by
 # name, so the ledger stays the place to add a project living somewhere else.
 want_of() { sed -n "s|^$1  *\([a-z-]*\).*|\1|p" "$LEDGER" | head -1; }
 
