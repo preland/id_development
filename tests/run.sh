@@ -740,6 +740,18 @@ else
     bad "no '> **Status:' line in:$undocumented -- say whether the doc is a description, a plan, or a proposal"
 fi
 
+# --- and the numbers in a status block are measured, not remembered.
+#     docs/TESTS.md said "Cases written so far: 0, of 6816" -- true when
+#     written, false four commits later in the same session, and lying about
+#     the adoption of the rule it describes. The counts are generated now.
+#     Same discipline as MAP.md above, and as ../linux_id/docs/STATUS.md,
+#     which is where the idea comes from.
+if ../tools/statusgen.sh --check >/dev/null 2>&1; then
+    ok "docs/TESTS.md adoption numbers are current"
+else
+    bad "docs/TESTS.md adoption numbers are stale -- run tools/statusgen.sh"
+fi
+
 echo
 echo "$pass passed, $fail failed"
 
