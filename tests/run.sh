@@ -690,6 +690,22 @@ else
     bad "MAP.md is out of date -- run tools/mapgen.sh"
 fi
 
+# --- idc.py may not grow. It is stage 0 of a bootstrap being retired
+#     (docs/BACKENDS.md), and "language features are not built here" was a
+#     sentence in the README for a while before this line existed -- during
+#     which idc.py gained 1711 lines. A sentence is not a gate. This is.
+#
+#     The ceiling ratchets DOWN: port something out, lower the number in the
+#     same commit. It never goes up. If a change genuinely has to land here
+#     first, that is a decision worth having to write down, which is the point.
+IDCPY_CEILING=5285
+idcpy_lines=$(wc -l < ../idc.py)
+if [ "$idcpy_lines" -le "$IDCPY_CEILING" ]; then
+    ok "idc.py is $idcpy_lines lines (ceiling $IDCPY_CEILING)"
+else
+    bad "idc.py grew to $idcpy_lines lines, over its $IDCPY_CEILING ceiling -- build it in the self-hosted compiler, or lower nothing and justify raising it"
+fi
+
 echo
 echo "$pass passed, $fail failed"
 

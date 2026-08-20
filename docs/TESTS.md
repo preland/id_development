@@ -225,3 +225,32 @@ already pinned by `tools/parity.sh` and `tests/conform.sh`.
 > why the enforcing half landed first and the executing half has not.
 >
 > Next: `idstd`, per the order above.
+
+### What the case format cannot express
+
+Found by writing `idstd`'s cases rather than by reasoning about the syntax, so
+it is a measurement and not a worry. Two whole classes of function have no
+expressible case, and `--require-tests` would reject every one of them today
+with no way for the author to comply:
+
+- **Functions whose meaning is in module state.** All 13 of `sys/err` are
+  like this: `err_report` takes a string and returns `void`, and everything it
+  does lands in exported globals. A case can only compare the return value or
+  the arguments after the call, so `(args):(same args)` passes whether or not
+  the function did anything. Zero-parameter functions are worse — there is
+  nothing to compare at all, and the case is vacuously true.
+- **Functions taking a flat-store address.** All 6 of `core/data/buf`, and
+  `str_blit`, `fmt_pad_fill` and friends. An address is only valid once
+  `alloc()` has returned it, and a case argument must be a literal — no calls.
+  A literal address would also depend on how much every *other* case in the
+  build had already allocated, so it is not merely awkward but nondeterministic.
+
+Both are real limits of "a case is two literal tuples", not oversights. The
+rule cannot be turned on for a directory containing either kind until the
+format grows a way to say *set this up first* — which is a language design
+question, not a rollout question, and it is the thing standing between
+`--require-tests` and `idstd`.
+
+There is also a third, milder one: every case in a build runs as sequential
+calls in one shared `main`, with no isolation, so a case that corrupts state
+takes down every other module's cases with it.

@@ -36,6 +36,13 @@ Done means: `bin/idc` covers every target, the bootstrap C is checked in, and
 `git rm idc.py` breaks nothing. Anything that grows `idc.py` moves away from
 that and needs a reason.
 
+**That last sentence is a gate, not a hope.** `tests/run.sh` holds a line
+ceiling for `idc.py` and fails if it is exceeded. The ceiling only ever
+ratchets down: port something out, lower it in the same commit. It exists
+because "language features are not built here" was a sentence in the README
+for a while before the gate was, and `idc.py` gained 1711 lines during that
+time. Prose does not hold a line; a failing test does.
+
 ## The split
 
 ```
