@@ -1,0 +1,26 @@
+// id . todo -- a native, keyboard-driven to-do GUI. The UI is laid out in idml
+// (ui/todo.idml, compiled to todo/view/layout.gen.id) and drawn into a software
+// framebuffer in pure id; all state/logic is the same id todo model the web demo
+// uses. With no args it opens a window; `--shot` renders one seeded frame and
+// dumps a PPM for off-screen verification.
+
+main(int argc, string[] argv) {
+  boot();
+  route(argc, argv);
+} return int 0;
+
+route(int argc, string[] argv) {
+  if(argc > 1) {
+    route_arg(argv[1]);
+  } else {
+    run_window();
+  }
+} return void;
+
+route_arg(string a) {
+  if(a == "--shot") {
+    demo_shot();
+  } else {
+    run_window();
+  }
+} return void;

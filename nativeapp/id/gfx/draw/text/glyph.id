@@ -1,0 +1,33 @@
+// One 8x8 glyph from the generated font. glyph_row returns the packed row bits
+// for char `code` (row 0 = top), clamping non-printable codes to space so an
+// out-of-range index can never fault the list read. draw_glyph stamps the glyph
+// at (x,y) in colour c, magnified `scale`x (each lit font pixel becomes a
+// scale*scale block). The per-row column loop is split out so its if-body stays
+// within the 2-deep nesting limit.
+
+glyph_row(int code, int row) {
+  int cc = code;
+  if(code < 32 || code > 126) {
+    cc = 32;
+  }
+} return int (import glyphs)[(cc - 32) * 8 + row];
+
+draw_glyph(int x, int y, int code, int c, int scale) {
+  int row = 0;
+  while(row < 8) {
+    glyph_grow(x, y + row * scale, glyph_row(code, row), c, scale);
+    row = row + 1;
+  }
+} return void;
+
+glyph_grow(int x, int y, int bits, int c, int scale) {
+  int col = 0;
+  int bit = 128;
+  while(col < 8) {
+    if((bits / bit) % 2 == 1) {
+      fill_rect(x + col * scale, y, scale, scale, c);
+    }
+    col = col + 1;
+    bit = bit / 2;
+  }
+} return void;

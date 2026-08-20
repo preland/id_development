@@ -2,7 +2,7 @@
 # Generate the self-hosted compiler's map: every function, where it lives, and
 # what it is for.
 #
-#   tools/mapgen.sh            # rewrite demos/idc_in_id_parse/MAP.md
+#   tools/mapgen.sh            # rewrite compiler/parse/MAP.md
 #   tools/mapgen.sh --check    # fail if that file is out of date
 #
 # Why this exists: the compiler is 258 files and 9 directories deep, because
@@ -19,8 +19,8 @@
 set -u
 cd "$(dirname "$0")/.."
 
-SRC=demos/idc_in_id_parse
-LEX=demos/idc_in_id
+SRC=compiler/parse
+LEX=compiler/lex
 OUT=$SRC/MAP.md
 
 phase_of() {

@@ -21,8 +21,8 @@ TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 target="${1:?usage: parity.sh <file-or-project-dir>}"
 
 # build the two compilers (lexer + parser/codegen) once
-$IDC demos/idc_in_id       -o "$TMP/idlex"   2>/dev/null || { echo "lexer build failed"; exit 2; }
-$IDC demos/idc_in_id_parse -o "$TMP/idparse" 2>/dev/null || { echo "idparse build failed"; exit 2; }
+$IDC compiler/lex       -o "$TMP/idlex"   2>/dev/null || { echo "lexer build failed"; exit 2; }
+$IDC compiler/parse -o "$TMP/idparse" 2>/dev/null || { echo "idparse build failed"; exit 2; }
 
 # C from idc.py
 $IDC "$target" --emit-c "$TMP/py.c" >/dev/null 2>&1 || { echo "idc.py failed on input"; exit 2; }

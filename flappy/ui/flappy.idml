@@ -1,0 +1,46 @@
+# Flappy Bird. The page is nothing but a stack of layers over a fixed
+# 288x512 playfield, in back-to-front order: the town, the pipes, the ground,
+# the bird, then the screen furniture. Each Layer is an Overlay pinned to the
+# playfield (see style.idml), so none of them take up flow space and every one
+# of them is free to cover the whole board.
+#
+# The three panels are mutually exclusive and switch on values read from id:
+# @isReady, @isOver and @showScore. The white sheet is the hit flash, and the
+# transparent Tap button on top is the whole game's input -- one press, whose
+# meaning (start, flap, play again) is decided in id, not here.
+#
+# The pipe and ground layers are wider than the board and pinned to its right
+# edge: 150% and 200%. That overhang is what lets something scrolling off to
+# the left keep a positive offset inside its own layer, since a width can't be
+# negative -- see the pipe_lead and base_lead comments in id/view/geom.
+
+import "./parts.idml"
+
+./
+Page()[100,100,center] {
+  Stage()[100,100,center] {
+    Layer()[100,100,top-left] { Backdrop()[100,100,top-left]{} }
+    Layer()[100,100,top-left] { Pipes()[100,150,top-right]{} }
+    Layer()[100,100,top-left] { Base()[21.88,200,bottom-right]{} }
+    Layer()[100,100,top-left] { BirdBody()[100,100,top-left]{} }
+    Layer()[100,100,top-left] {
+      ScoreBar()[100,100,top-left]?@showScore{}
+    }
+    Layer()[100,100,top-left] {
+      ReadyPanel()[100,100,top-left]?@isReady{}
+    }
+    Layer()[100,100,top-left] {
+      OverPanel()[100,100,top-left]?@isOver{}
+    }
+    Layer()[100,100,top-left] {
+      NewBadge()[100,100,top-left]?@showNew{}
+    }
+    Layer()[100,100,top-left] {
+      Sheet()[100,100,top-left]?@flash{}
+    }
+    Layer()[100,100,top-left] { Tap("", press)[100,100,top-left]{} }
+    Layer()[100,100,top-left] {
+      PlayRow()[100,100,top-left]?@isOver{}
+    }
+  }
+}

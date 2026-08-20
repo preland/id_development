@@ -1,0 +1,202 @@
+/* The game's paint. idml owns every size and position; this file owns colour,
+   art and the handful of CSS properties idml has no prop for (backgrounds with
+   a repeat or a fit, transforms, shadows, cursors).
+
+   Two conventions worth knowing:
+
+   - `!important` appears only where idml sets the same property inline. That
+     is the stage's width/height (idml tiles it to 100% of the page, and the
+     game wants a fixed 288x512 aspect instead) and the buttons' background.
+     Everything else layers on cleanly with no fight.
+
+   - Sizes inside the playfield are in `cqh` -- percent of the stage's own
+     height -- so text, borders and radii scale with the board rather than with
+     the window. 1cqh is 5.12 playfield pixels.
+
+   Every url() below points at a sprite drawn by flappy/sprites, an id program.
+   There are no binary assets in this project. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: #12181c;
+  overflow: hidden;
+}
+
+/* idml turns a cell into a flex/grid container with the utility *classes*
+   `flex` and `grid` (every other flex property is inline). With no Tailwind
+   pipeline here, these two rules are the whole of what idml needs. */
+.flex {
+  display: flex;
+}
+.grid {
+  display: grid;
+}
+
+.fb-boot {
+  padding: 2rem;
+  font-family: system-ui, sans-serif;
+  color: #7dd3dc;
+}
+
+/* ==================== the board ==================== */
+
+/* The page behind the board. */
+.fb-page {
+  background: radial-gradient(120% 100% at 50% 0%, #24343b 0%, #12181c 70%);
+}
+
+/* The playfield: the original's 288x512, as large as the window allows, and
+   the containing block every layer is pinned to. Both dimensions are
+   !important because idml tiles this cell to 100% of the page inline.
+   96vh tall pairs with 54vh wide (54 / 96 = 288 / 512); the second term in
+   each min() takes over when the window is too narrow for that. */
+.fb-stage {
+  width: min(54vh, 94vw) !important;
+  height: min(96vh, 167.1vw) !important;
+  position: relative;
+  overflow: hidden;
+  container-type: size;
+  background: linear-gradient(180deg, #4ec0ca 0%, #4ec0ca 58%, #63ccd4 80%, #7bd6dc 100%);
+  border: 0.7cqh solid #543847;
+  border-radius: 1cqh;
+  box-shadow: 0 2cqh 6cqh rgba(0, 0, 0, 0.55);
+  user-select: none;
+}
+
+/* ==================== the town ==================== */
+
+/* Each of these is a tile repeated across the board. `auto 100%` sizes the
+   tile to the strip's height and lets its width follow, so the art keeps its
+   proportions however tall the strip is. */
+.fb-clouds {
+  background: url(/sprites/cloud.svg) repeat-x bottom left / auto 100%;
+}
+.fb-city {
+  background: url(/sprites/city.svg) repeat-x bottom left / auto 100%;
+}
+.fb-bush {
+  background: url(/sprites/bush.svg) repeat-x bottom left / auto 100%;
+}
+/* The ground. Its strip is scrolled by a dimension id recomputes every frame
+   (base_lead), and the tile's 48 px period is what makes the loop seamless. */
+.fb-base {
+  background: url(/sprites/base.svg) repeat-x top left / auto 100%;
+}
+
+/* ==================== the bird ==================== */
+
+/* id picks one of these twelve every frame (bird_rot -> "fb-r0".."fb-r11"):
+   nose-up while climbing, through to straight down in a dive. */
+.fb-bird {
+  transform-origin: 50% 50%;
+}
+.fb-r0  { transform: rotate(-20deg); }
+.fb-r1  { transform: rotate(-10deg); }
+.fb-r2  { transform: rotate(0deg); }
+.fb-r3  { transform: rotate(10deg); }
+.fb-r4  { transform: rotate(20deg); }
+.fb-r5  { transform: rotate(30deg); }
+.fb-r6  { transform: rotate(40deg); }
+.fb-r7  { transform: rotate(50deg); }
+.fb-r8  { transform: rotate(60deg); }
+.fb-r9  { transform: rotate(70deg); }
+.fb-r10 { transform: rotate(80deg); }
+.fb-r11 { transform: rotate(90deg); }
+
+/* ==================== lettering and screens ==================== */
+
+.fb-getready {
+  background: url(/sprites/t-getready.svg) no-repeat center / contain;
+}
+.fb-hint {
+  background: url(/sprites/t-tap.svg) no-repeat center / contain;
+  animation: fb-pulse 1.1s ease-in-out infinite;
+}
+.fb-gameover {
+  background: url(/sprites/t-gameover.svg) no-repeat center / contain;
+}
+.fb-lbl-score {
+  background: url(/sprites/t-score.svg) no-repeat right center / auto 82%;
+}
+.fb-lbl-best {
+  background: url(/sprites/t-best.svg) no-repeat right center / auto 82%;
+}
+.fb-badge {
+  background: url(/sprites/t-new.svg) no-repeat center / contain;
+}
+
+@keyframes fb-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+
+/* The scoreboard card. */
+.fb-panel {
+  background: #ded895;
+  border: 0.55cqh solid #543847;
+  border-radius: 0.8cqh;
+  box-shadow: inset 0 0 0 0.5cqh #f2e9b0, 0 0.6cqh 0 rgba(84, 56, 71, 0.35);
+}
+
+/* The two numbers on the card. idml has no outline or shadow prop, so the
+   sprite lettering's look is reproduced here with four offset shadows. */
+.fb-num {
+  font-family: ui-monospace, 'SFMono-Regular', 'Courier New', monospace;
+  font-weight: 800;
+  font-size: 4.4cqh;
+  color: #ffffff;
+  letter-spacing: 0.15cqh;
+  padding-right: 0.8cqh;
+  text-shadow:
+    -0.28cqh 0 #543847, 0.28cqh 0 #543847,
+    0 -0.28cqh #543847, 0 0.28cqh #543847;
+}
+
+/* The white sheet over everything for a few frames after a hit. */
+.fb-flash {
+  background: #ffffff;
+  opacity: 0.8;
+}
+
+/* ==================== input ==================== */
+
+/* The whole board is the button. It sits above every panel so a tap anywhere
+   reaches it, and it is invisible. */
+.fb-tap {
+  background: transparent !important;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fb-play {
+  background: #f0a02c !important;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 2.1cqh;
+  letter-spacing: 0.2cqh;
+  border: 0.5cqh solid #543847 !important;
+  border-radius: 0.8cqh !important;
+  box-shadow: 0 0.6cqh 0 #a8631a;
+  cursor: pointer;
+  text-shadow: 0 0.2cqh #a8631a;
+}
+.fb-play:hover {
+  background: #ffb44a !important;
+}
+.fb-play:active {
+  transform: translateY(0.3cqh);
+  box-shadow: 0 0.3cqh 0 #a8631a;
+}

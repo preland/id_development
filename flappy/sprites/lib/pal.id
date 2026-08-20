@@ -1,0 +1,41 @@
+// The palette. Every pixel of art in this program is one character, and this is
+// what each one is worth. '.' is transparent and is never drawn, so it holds
+// index 0 and its colour is never read.
+//
+//   k K   dark outline (the original's dark plum), true black for the pupil
+//   w W   white, white shade
+//   y Y   bird body, bird body shade
+//   o O   beak, beak shade
+//   g G l pipe green, pipe shade, pipe highlight
+//   n N   grass light, grass dark
+//   s S   sand, sand speckle
+//   b B   sky, sky light
+//   m M   distant building, building shade
+//   c     cloud
+//   e E   bronze, bronze light      i I  silver, silver light
+//   u U   gold, gold light          p P  platinum, platinum light
+//   r     ribbon red
+
+palette() {
+  export string pkeys = ".kKwWyYoOgGlnNsSbBmMceEiIuUpPr";
+  export string phex =
+    "000000" + "543847" + "000000" + "ffffff" + "dedede" +
+    "fad02c" + "e0a12a" + "f97d2b" + "e05a1f" + "74bf2c" +
+    "588c1e" + "b6f04f" + "7ec850" + "5faa30" + "ded895" +
+    "d0be7c" + "4ec0ca" + "8ce0e8" + "6cc0a0" + "4f9c80" +
+    "e8f6f6" + "cd7f32" + "f0b183" + "a8b0b8" + "e4ecf2" +
+    "edb92e" + "ffe98a" + "8fd8e0" + "dcf7fb" + "ff5555";
+} return void;
+
+pal_index(int c) {
+  int i = 0;
+  int r = 0;
+  while (i < len(import pkeys)) {
+    if (charat((import pkeys), i) == c) { r = i; }
+    i = i + 1;
+  }
+} return int r;
+
+pal_hex(int c) {
+  int a = pal_index(c) * 6;
+} return string "#" + sub((import phex), a, a + 6);

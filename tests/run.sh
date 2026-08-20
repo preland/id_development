@@ -105,7 +105,7 @@ $IDC "$TMP/listrun.id" -o "$TMP/listrun" 2>/dev/null || bad "list runtime compil
 expect_output "lists push/get/set/to_int" "len=4 xs[0]=99 xs[3]=9" "$("$TMP/listrun")"
 
 # --- idc-in-id: the lexer (written in id) tokenizes id source from stdin
-$IDC ../demos/idc_in_id -o "$TMP/idlex" 2>/dev/null || bad "idc-in-id lexer compiles"
+$IDC ../compiler/lex -o "$TMP/idlex" 2>/dev/null || bad "idc-in-id lexer compiles"
 expect_output "id-lexer keyword"    "kw while"   "$(printf 'while' | "$TMP/idlex" | head -1)"
 expect_output "id-lexer two-char op" "op =="     "$(printf 'x == 2' | "$TMP/idlex" | sed -n 2p)"
 expect_output "id-lexer string lit" 'str "hi"'   "$(printf '"hi"'   | "$TMP/idlex" | head -1)"
@@ -128,7 +128,7 @@ expect_output "calc precedence/parens/unary/%" "= 13" \
 # --- idc-in-id stage 2b/3: the function/statement parser + C emitter (written
 #     in id), fed by the lexer. `idparse ast` prints the AST as an S-expression;
 #     `idparse` (no arg) emits C.
-$IDC ../demos/idc_in_id_parse -o "$TMP/idparse" 2>/dev/null || bad "idc-in-id parser compiles"
+$IDC ../compiler/parse -o "$TMP/idparse" 2>/dev/null || bad "idc-in-id parser compiles"
 cat > "$TMP/p_fn.id" <<'EOF'
 add(int x, int y) {
   int sum = x + y;
@@ -418,20 +418,20 @@ fi
 # --- self-hosting: the id-written compiler emits byte-identical C for its OWN
 #     source (lexer + parser/codegen), and the self-compiled compiler is a
 #     fixpoint (compiling itself twice reproduces the same C exactly).
-for src in idc_in_id idc_in_id_parse; do
-    "$IDC" ../demos/$src --emit-c "$TMP/${src}_py.c" >/dev/null 2>&1
-    project_cat ../demos/$src | "$TMP/idlex" | "$TMP/idparse" > "$TMP/${src}_id.c"
+for src in lex parse; do
+    "$IDC" ../compiler/$src --emit-c "$TMP/${src}_py.c" >/dev/null 2>&1
+    project_cat ../compiler/$src | "$TMP/idlex" | "$TMP/idparse" > "$TMP/${src}_id.c"
     if diff "$TMP/${src}_py.c" "$TMP/${src}_id.c" >/dev/null; then
-        ok "self-hosting parity with idc.py (demos/$src)"
+        ok "self-hosting parity with idc.py (compiler/$src)"
     else
-        bad "self-hosting parity with idc.py (demos/$src)"
+        bad "self-hosting parity with idc.py (compiler/$src)"
     fi
 done
 # build the self-compiled compiler and check it reproduces its own C (fixpoint)
-cc "$TMP/idc_in_id_id.c"       -o "$TMP/idlex2"   2>/dev/null || bad "self-compiled lexer builds"
-cc "$TMP/idc_in_id_parse_id.c" -o "$TMP/idparse2" 2>/dev/null || bad "self-compiled parser builds"
-project_cat ../demos/idc_in_id_parse | "$TMP/idlex2" | "$TMP/idparse2" > "$TMP/idparse_fix.c"
-if diff "$TMP/idc_in_id_parse_id.c" "$TMP/idparse_fix.c" >/dev/null; then
+cc "$TMP/lex_id.c"   -o "$TMP/idlex2"   2>/dev/null || bad "self-compiled lexer builds"
+cc "$TMP/parse_id.c" -o "$TMP/idparse2" 2>/dev/null || bad "self-compiled parser builds"
+project_cat ../compiler/parse | "$TMP/idlex2" | "$TMP/idparse2" > "$TMP/idparse_fix.c"
+if diff "$TMP/parse_id.c" "$TMP/idparse_fix.c" >/dev/null; then
     ok "self-hosting fixpoint (self-compiled compiler reproduces itself)"
 else
     bad "self-hosting fixpoint (self-compiled compiler reproduces itself)"

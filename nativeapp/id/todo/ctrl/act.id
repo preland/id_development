@@ -1,0 +1,24 @@
+// The mutating actions the keyboard triggers. buf_str rebuilds the typed field
+// into a real string (chr() of each code) so the reused todo logic's add(string)
+// can consume it; do_add commits a non-empty field and clears it.
+
+buf_str() {
+  string s = "";
+  int i = 0;
+  while(i < len(import buf)) {
+    s = s + chr((import buf)[i]);
+    i = i + 1;
+  }
+} return string s;
+
+do_add() {
+  int n = len(import buf);
+  if(n > 0) {
+    add_and_clear();
+  }
+} return void;
+
+add_and_clear() {
+  add(buf_str());
+  buf_reset();
+} return void;

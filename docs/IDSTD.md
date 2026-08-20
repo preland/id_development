@@ -190,7 +190,7 @@ files and a tree about 5 levels deep. Plan the layout before writing code (§7).
 > longer; `nativeapp/id` was not and is.)
 >
 > The compiler stages are the interesting pair. `bin/idc` bootstraps them with
-> `--no-std`, so the build is not broken — but `bin/idc demos/idc_in_id_parse`
+> `--no-std`, so the build is not broken — but `bin/idc compiler/parse`
 > is how the README says to build them, and that fails. Whether the compiler
 > should depend on the library it ships, or be permanently a `--no-std`
 > project, is an open decision and the reason those two lines exist.
@@ -218,8 +218,8 @@ files and a tree about 5 levels deep. Plan the layout before writing code (§7).
 This is a workstream in *this* repo, and most of it should land before `idstd`
 grows past a prototype. Ordered by how much the library depends on it.
 
-Each change is built in the **self-hosted stages** (`demos/idc_in_id`,
-`demos/idc_in_id_parse`), and `tools/parity.sh` / `tests/run.sh` must still
+Each change is built in the **self-hosted stages** (`compiler/lex`,
+`compiler/parse`), and `tools/parity.sh` / `tests/run.sh` must still
 pass byte-identical output.
 
 > This paragraph used to read "every change must be made in **both**
@@ -239,7 +239,7 @@ pass byte-identical output.
   paths were tried, not "no such function".
 - `--no-std` must exist and must be honest, because three things need it:
   1. **`idstd` itself** cannot import itself.
-  2. **The bootstrap stages.** `demos/idc_in_id` and `demos/idc_in_id_parse`
+  2. **The bootstrap stages.** `compiler/lex` and `compiler/parse`
      define their own `lset`, their own helpers, and their own local vocabulary.
      Implicitly importing `idstd` into them will produce duplicate-logic and
      name-type errors and change their emitted C — which breaks self-hosting and

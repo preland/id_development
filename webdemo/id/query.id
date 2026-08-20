@@ -1,0 +1,21 @@
+// Read-only queries the UI binds to. `count`/`text` feed the list rows; `done`
+// recomputes an item's checked-state from the append-only toggle log by parity
+// (odd number of toggles == done). All reads go through `import`, so these
+// never need to own the state they read.
+
+count() {
+} return int len(import todos);
+
+text(int i) {
+} return string (import todos)[i];
+
+done(int i) {
+  int c = 0;
+  int k = 0;
+  while(k < len(import toggles)) {
+    if((import toggles)[k] == i) {
+      c = c + 1;
+    }
+    k = k + 1;
+  }
+} return int c % 2;

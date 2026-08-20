@@ -1,0 +1,162 @@
+# The pieces the page stacks up. Each one is a definition so that the page
+# itself stays a flat list of layers, and so each piece gets its own depth
+# budget to spend on structure.
+#
+# Every percentage here is a real measurement of the original 288x512
+# playfield. The ground is 112 px tall (21.88%), a pipe is 52 px wide of a
+# 172 px slot (30.23%), the gap between pipes is 100 px, a pipe's cap is 26 px
+# and the cap-gap-cap sandwich is a fixed 152 px (29.69%) whatever height the
+# pipe above it happens to have -- which is why that sandwich is its own
+# definition: inside a fixed-height box, the caps can be a fixed share of it.
+#
+# The dimensions written `@x!` are read from id every frame. The `!` marks
+# them live, so the browser applies each new value at once instead of easing
+# into it -- a transition is right for a sidebar and wrong for a falling bird.
+#
+# Nothing here decides anything. Where the bird is, how tall a pipe is and how
+# far the ground has slid are all read from the id module; this file only says
+# what that means on screen.
+
+import "./style.idml"
+
+define Backdrop() {
+  Spacer()[54.29,100,top-left]{}
+  Clouds()[9.38,100,top-left]{}
+  Skyline()[36.33,100,top-left]{}
+}
+
+define Skyline() {
+  City()[32.26,100,top-left]{}
+  Bush()[7.53,100,top-left]{}
+  Spacer()[60.21,100,top-left]{}
+}
+
+define Pipes() {
+  PipeField()[100,100,top-left] {
+    Spacer()[100,@pipeLead!,top-left]{}
+    Repeat(@pipes)[100,119.44,top-left] {
+      PipePair()[100,100,top-left]{}
+    }
+  }
+}
+
+define PipePair() {
+  Row()[100,100,top-left] {
+    Col()[100,30.23,top-left] {
+      PipeShaft()[@item.top!,100,top-left]{}
+      Neck()[29.69,100,top-left]{}
+      PipeShaft()[100,100,top-left,hug]{}
+    }
+    Spacer()[100,69.77,top-left]{}
+  }
+}
+
+define Neck() {
+  PipeCap()[17.10,100,top-left]{}
+  Spacer()[65.80,100,top-left]{}
+  PipeCapUp()[17.10,100,top-left]{}
+}
+
+define Base() {
+  BaseField()[100,100,top-left] {
+    Spacer()[100,@baseLead!,top-left]{}
+    BaseStrip()[100,100,top-left]{}
+  }
+}
+
+define BirdBody() {
+  Spacer()[@birdTop!,100,top-left]{}
+  Row()[4.69,100,top-left] {
+    Spacer()[100,19.79,top-left]{}
+    Bird(@birdSrc)[100,11.81,top-left]`@birdRot`{}
+    Spacer()[100,68.40,top-left]{}
+  }
+  Spacer()[100,100,top-left,hug]{}
+}
+
+define ScoreBar() {
+  Spacer()[7.81,100,top-left]{}
+  Row()[7.81,100,top-left] {
+    Spacer()[100,100,top-left,hug]{}
+    Repeat(@digits)[100,@scoreW!,top-left] {
+      Digit(@item.src)[100,100,top-left]{}
+    }
+    Spacer()[100,100,top-left,hug]{}
+  }
+  Spacer()[84.38,100,top-left]{}
+}
+
+define ReadyPanel() {
+  Spacer()[19,100,top-left]{}
+  ReadyArt()[17,100,top-left]{}
+  Spacer()[64,100,top-left]{}
+}
+
+define ReadyArt() {
+  GetReady()[47,100,top-left]{}
+  Spacer()[24,100,top-left]{}
+  Hint()[29,100,top-left]{}
+}
+
+define OverPanel() {
+  Spacer()[18,100,top-left]{}
+  GameOver()[9,100,top-left]{}
+  Board()[73,100,top-left]{}
+}
+
+define Board() {
+  Spacer()[3.2,100,top-left]{}
+  Row()[25.4,100,top-left] {
+    Spacer()[100,100,top-left,hug]{}
+    Panel()[100,78.5,top-left] {
+      Row()[100,100,top-left] {
+        MedalSlot()[100,33,center]{}
+        Nums()[100,67,top-left]{}
+      }
+    }
+    Spacer()[100,100,top-left,hug]{}
+  }
+  Spacer()[71.4,100,top-left]{}
+}
+
+define MedalSlot() {
+  Spacer()[22,100,top-left]{}
+  MedalPic(@medalSrc)[56,100,center]{}
+  Spacer()[22,100,top-left]{}
+}
+
+define Nums() {
+  Spacer()[10,100,top-left]{}
+  ScoreLine()[42,100,top-left]{}
+  BestLine()[48,100,top-left]{}
+}
+
+define ScoreLine() {
+  ScoreLbl()[42,100,top-left]{}
+  Num(@score)[58,100,center-right]{}
+}
+
+define BestLine() {
+  BestLbl()[42,100,top-left]{}
+  Num(@best)[58,100,center-right]{}
+}
+
+define NewBadge() {
+  Spacer()[43.2,100,top-left]{}
+  Row()[3.1,100,top-left] {
+    Spacer()[100,43,top-left]{}
+    Badge()[100,11,top-left]{}
+    Spacer()[100,46,top-left]{}
+  }
+  Spacer()[53.7,100,top-left]{}
+}
+
+define PlayRow() {
+  Spacer()[58.59,100,top-left]{}
+  Row()[7.03,100,top-left] {
+    Spacer()[100,100,top-left,hug]{}
+    PlayBtn("PLAY AGAIN", press)[100,44.44,center]{}
+    Spacer()[100,100,top-left,hug]{}
+  }
+  Spacer()[34.38,100,top-left]{}
+}

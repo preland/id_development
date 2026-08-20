@@ -1,0 +1,21 @@
+// The three entry points the host may call from outside a frame: two to seed
+// state that only the outside world can know (a random seed, the best score
+// persisted between visits), and `press` -- the game's single input.
+
+seed_with(int v) {
+  poke((import g), 8, 1 + v % 65536);
+} return void;
+
+set_best(int v) {
+  poke((import g), 4, v);
+} return void;
+
+// One button, three meanings, exactly as in the original: from the ready
+// screen it starts the run, in the air it flaps, and on the game-over screen
+// it plays again. A press while dying is ignored, so a panicked tap during the
+// death fall can't skip past the scoreboard.
+press() {
+  if ((import g)[0] == 0) { begin(); }
+  if ((import g)[0] == 1) { poke((import g), 2, 0 - 42000); }
+  if ((import g)[0] == 3) { reset(); }
+} return void;

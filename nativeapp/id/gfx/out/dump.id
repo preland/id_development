@@ -1,0 +1,23 @@
+// Dump the framebuffer as a P3 (ASCII) PPM on stdout -- one pixel per line,
+// row-major, top row first. This is the off-screen verification path: render a
+// frame in pure id, dump it, and convert PPM -> PNG with an image tool. No
+// window or display is needed, so it works headless.
+
+ppm_header() {
+  print("P3");
+  print((import gw) + " " + (import gh));
+  print("255");
+} return void;
+
+dump_ppm() {
+  ppm_header();
+  dump_rows();
+} return void;
+
+dump_rows() {
+  int y = 0;
+  while(y < (import gh)) {
+    dump_row(y);
+    y = y + 1;
+  }
+} return void;

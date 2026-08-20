@@ -1,0 +1,25 @@
+// view/ turns the playfield's pixels into the only thing idml lays out with:
+// percentages of a parent. Nothing here changes the game -- these are the
+// read-side functions the UI binds to.
+//
+// pct(v, t) renders v/t as a CSS percentage with two decimals ("35.42%"), which
+// is finer than one screen pixel at any realistic size, so motion computed in
+// whole centipixels arrives at the browser without a step in it.
+
+pct(int v, int t) {
+  int h = v * 10000 / t;
+  if (h < 0) { h = 0; }
+} return string "" + h / 100 + "." + two(h % 100) + "%";
+
+two(int n) {
+  string s = "" + n;
+  if (n < 10) { s = "0" + s; }
+} return string s;
+
+// The leftmost pipe still worth drawing: the first one whose trailing edge has
+// not yet passed the left edge of the pipe layer. Everything the view shows is
+// this pipe and the two behind it.
+first_pipe() {
+  int k = (dist_px() - 201) / 172;
+  if (k < 0) { k = 0; }
+} return int k;

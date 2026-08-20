@@ -1,0 +1,184 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Soft page backdrop; the idml card sits on top of this. */
+  background: linear-gradient(160deg, #eef2ff 0%, #f8fafc 45%, #eef2ff 100%);
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+}
+
+input,
+button,
+textarea {
+  font-family: inherit;
+}
+
+/* idml's LayoutRenderer activates flex/grid via the Tailwind utility *classes*
+   `flex`/`grid` (all other flex props — direction, justify, align, gap — are
+   inline styles). This demo has no Tailwind pipeline, so we supply just those
+   two rules; that's all idml needs for its percentage-tiled layouts to work. */
+.flex {
+  display: flex;
+}
+.grid {
+  display: grid;
+}
+
+/* ==================== app UI polish ====================
+   idml can only emit single-token inline props (bg/fg/size/radius/pad/
+   etc.) directly on the bound element. Everything below is either (a) a
+   CSS capability idml has no prop for at all (shadow, border, focus
+   ring, hover, transition, ::placeholder, custom scrollbar,
+   strikethrough), applied with NO !important since idml sets nothing
+   competing on that property, or (b) an override of something idml DID
+   set inline (background/height/width/border-radius), which needs
+   !important to win over the element's own inline style. Each rule
+   below is commented with which case it is. */
+
+/* CardWrap: idml has no max-width prop, so the ~48%-wide column is
+   capped here to a real card width on large viewports. No inline width
+   is overridden — max-width simply layers on top of the % width. */
+.app-card-wrap {
+  max-width: 460px;
+}
+
+/* Card: idml already sets bg/radius/pad inline; border + shadow are
+   properties idml never touches, so no !important is needed. */
+.app-card {
+  border: 1px solid #e2e8f0;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 16px 40px -12px rgba(15, 23, 42, 0.14);
+}
+
+/* Badge: the pill has no idml style props at all (empty variant body),
+   so background/padding/radius are set here with no conflict. */
+.app-badge {
+  background: #eef2ff;
+  padding: 0.3rem 0.85rem;
+  border-radius: 999px;
+  gap: 0.28rem;
+  align-items: baseline;
+}
+
+/* ListWrap: idml only sets overflow-y; the scrollbar cosmetics below
+   are additive. */
+.app-list {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+.app-list::-webkit-scrollbar {
+  width: 6px;
+}
+.app-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.app-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+.app-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Empty state: additive spacing/color only. */
+.app-empty {
+  color: #94a3b8;
+  padding-top: 2.6rem;
+}
+
+/* Input: idml sets bg/color/radius/size inline; border, focus ring and
+   placeholder colour are untouched by idml, so no !important needed
+   there. The focus background swap DOES override the inline bg, so
+   that one line needs !important. */
+.app-input {
+  border: 1px solid #e2e8f0;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+.app-input::placeholder {
+  color: #94a3b8;
+}
+.app-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+  background: #ffffff !important;
+}
+
+/* Add button: `hug-h` in the .idml already stops it from stretching to
+   the full row height (native idml fix, no CSS needed for that). Here
+   we only add breathing room, a hover/active state, and a resting
+   shadow. The hover background DOES override the inline bg, so that
+   line needs !important. */
+.app-add-btn {
+  padding: 0 1.15rem;
+  min-height: 2.65rem;
+  box-shadow: 0 1px 2px rgba(79, 70, 229, 0.15);
+  transition: background-color 0.15s ease, box-shadow 0.15s ease,
+    transform 0.05s ease;
+}
+.app-add-btn:hover {
+  background: #4f46e5 !important;
+  box-shadow: 0 6px 14px -4px rgba(79, 70, 229, 0.35);
+}
+.app-add-btn:active {
+  transform: scale(0.97);
+}
+
+/* Toggle circles: the Button builtin sets border-style:none and
+   width/height:100% inline as part of its own base reset, and idml
+   layers a percentage width + 999px radius on top — all of that needs
+   !important here to force a small fixed bordered circle instead. */
+.app-toggle {
+  width: 22px !important;
+  height: 22px !important;
+  min-width: 22px;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  font-size: 0.68rem !important;
+  line-height: 1;
+  flex: 0 0 auto;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    transform 0.1s ease;
+}
+.app-toggle:hover {
+  transform: scale(1.08);
+}
+.app-toggle-open {
+  background: #ffffff !important;
+  border: 2px solid #cbd5e1 !important;
+}
+.app-toggle-open:hover {
+  border-color: #6366f1 !important;
+}
+.app-toggle-done {
+  border: 2px solid #22c55e !important;
+}
+
+/* Done-item text: strikethrough is a property idml has no prop for. */
+.app-done-text {
+  text-decoration: line-through;
+}
+
+/* Todo rows: divider + hover highlight, both untouched by idml. */
+.app-row {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.12s ease;
+}
+.app-row:hover {
+  background-color: #f8fafc;
+}

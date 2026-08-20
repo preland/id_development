@@ -2,8 +2,8 @@
 # idc -- the self-hosted `id` compiler driver.
 #
 # This is the PRIMARY way to build `id` programs. It bootstraps the two
-# id-written compiler stages -- the lexer (demos/idc_in_id -> idlex) and the
-# parser/C-emitter (demos/idc_in_id_parse -> idparse) -- using idc.py (the
+# id-written compiler stages -- the lexer (compiler/lex -> idlex) and the
+# parser/C-emitter (compiler/parse -> idparse) -- using idc.py (the
 # reference/legacy implementation) ONE TIME, caches the resulting binaries,
 # and from then on builds every program by piping its concatenated source
 # through those two id-written binaries and handing the emitted C to `cc`.
@@ -116,14 +116,14 @@ stale() { # stale BIN SRC_DIR -- true if BIN is missing or older than any .id un
 # also defines them is a duplicate-logic error, and ANY change to their emitted
 # C breaks self-hosting and the byte-parity gate. The compiler's own bootstrap
 # is the one program that must not depend on the library it ships with.
-if stale "$IDLEX" "$ROOT/demos/idc_in_id"; then
+if stale "$IDLEX" "$ROOT/compiler/lex"; then
     echo "idc: bootstrapping idlex from source (via idc.py)..." >&2
-    "$IDC_PY" --no-std "$ROOT/demos/idc_in_id" -o "$IDLEX" >&2 \
+    "$IDC_PY" --no-std "$ROOT/compiler/lex" -o "$IDLEX" >&2 \
         || { echo "idc: failed to bootstrap idlex" >&2; exit 1; }
 fi
-if stale "$IDPARSE" "$ROOT/demos/idc_in_id_parse"; then
+if stale "$IDPARSE" "$ROOT/compiler/parse"; then
     echo "idc: bootstrapping idparse from source (via idc.py)..." >&2
-    "$IDC_PY" --no-std "$ROOT/demos/idc_in_id_parse" -o "$IDPARSE" >&2 \
+    "$IDC_PY" --no-std "$ROOT/compiler/parse" -o "$IDPARSE" >&2 \
         || { echo "idc: failed to bootstrap idparse" >&2; exit 1; }
 fi
 

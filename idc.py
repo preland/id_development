@@ -4719,7 +4719,7 @@ def parse_import_manifest(root):
 #
 # THREE things must be able to turn it off, and all three are real:
 #   1. idstd itself, which cannot import itself.
-#   2. The bootstrap stages, demos/idc_in_id{,_parse}. They define their own
+#   2. The bootstrap stages, compiler/lex{,_parse}. They define their own
 #      helpers (`lset`, and a local vocabulary); implicitly importing a library
 #      that also defines them is a duplicate-logic error, and any change to
 #      their emitted C breaks self-hosting and byte-parity. bin/idc bootstraps

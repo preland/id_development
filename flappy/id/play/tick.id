@@ -1,0 +1,23 @@
+// One frame of the world. The host calls tick(dt) once per animation frame
+// with the elapsed milliseconds; everything the game does happens under here.
+
+tick(int dt) {
+  poke((import g), 6, (import g)[6] + 1);
+  scroll_base(dt);
+  step(dt);
+} return void;
+
+// The ground keeps sliding on the ready screen, which is what makes the title
+// screen feel alive before the first tap -- but it stops dead the moment the
+// bird is hit (mode 2), like the original.
+scroll_base(int dt) {
+  if ((import g)[0] < 2) {
+    poke((import g), 11, (import g)[11] + 12000 * dt / 1000);
+  }
+} return void;
+
+step(int dt) {
+  if ((import g)[10] > 0) { poke((import g), 10, (import g)[10] - 1); }
+  if ((import g)[0] == 1) { play(dt); }
+  if ((import g)[0] == 2) { falling(dt); }
+} return void;

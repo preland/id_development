@@ -1,0 +1,40 @@
+// The whole game's state, and the two primitives that touch it.
+//
+// Everything the game knows lives in `g`, one flat int list owned by init():
+//
+//   0  mode     0 = get-ready, 1 = playing, 2 = dying (falling), 3 = game over
+//   1  y        bird's top edge, in centipixels (1/100 px) down from the sky
+//   2  vy       bird's vertical speed, in centipixels per second
+//   3  score    pipes cleared this run
+//   4  best     best score so far (the host restores it via set_best)
+//   5  dist     how far the pipes have scrolled, in centipixels
+//   6  frame    ticks since boot -- drives the wing flap and the ready bob
+//   7  next     index of the next pipe the bird has yet to score
+//   8  seed     LCG state for the gap heights
+//   9  fresh    1 when this run beat `best` (the NEW badge)
+//   10 flash    frames of white hit-flash left
+//   11 ground   how far the ground has scrolled, in centipixels
+//
+// `gaps` holds the y of each pipe gap's top edge, in playfield px, indexed by
+// pipe number and grown on demand (see grow_gaps).
+//
+// The playfield is the original Flappy Bird's: 288 x 512 px, ground at y=400.
+// Everything below works in that space; view/ converts it to percentages.
+
+init() {
+  export int[] g = [0, 20000, 0, 0, 0, 0, 0, 0, 7919, 0, 0, 0];
+  export int[] gaps = [];
+} return void;
+
+// The one mutation primitive. `g` is reachable everywhere as `(import g)`, but
+// an imported name can only be READ -- so a write goes through a list passed by
+// reference, which id lets a function mutate in place for its caller.
+poke(int[] q, int i, int v) {
+  q[i] = v;
+} return void;
+
+drain(int[] q) {
+  while (len(q) > 0) {
+    pop(q);
+  }
+} return void;

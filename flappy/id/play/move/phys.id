@@ -1,0 +1,30 @@
+// Flappy Bird's physics, in whole numbers. Speeds are centipixels per second
+// and dt is milliseconds, so `v * dt / 1000` is a centipixel step -- fine-
+// grained enough that motion is smooth without a single float.
+//
+//   gravity   1500 px/s^2   terminal fall 600 px/s   flap -420 px/s
+//
+// A flap lifts the bird about 59 px before gravity wins, which is what makes a
+// 100 px gap take a couple of taps to climb through.
+
+gravity(int dt) {
+  int v = (import g)[2] + 150000 * dt / 1000;
+  if (v > 60000) { v = 60000; }
+  poke((import g), 2, v);
+} return void;
+
+// The sky is a hard ceiling, not a kill: the bird stops dead against it and
+// falls back, exactly as in the original.
+fly(int dt) {
+  int y = (import g)[1] + (import g)[2] * dt / 1000;
+  if (y < 0) { y = 0; }
+  poke((import g), 1, y);
+} return void;
+
+// Pipes scroll at 120 px/s. The bird never actually moves sideways -- the world
+// does, and `dist` is the whole of it.
+advance(int dt) {
+  fly(dt);
+  poke((import g), 5, (import g)[5] + 12000 * dt / 1000);
+  pass_check();
+} return void;

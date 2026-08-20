@@ -1,0 +1,20 @@
+// The keyboard selection cursor. sel_set is the sole owner/writer of the `sel`
+// global (id allows one owner per exported global); sel_move advances it (Tab)
+// and reset writes 0 through the same door. sel_cur reads it wrapped onto a real
+// row, or -1 when the list is empty -- callers highlight/toggle by sel_cur.
+
+sel_set(int v) {
+  export int sel = v;
+} return void;
+
+sel_move(int d) {
+  sel_set((import sel) + d);
+} return void;
+
+sel_cur() {
+  int m = count();
+  int c = 0 - 1;
+  if(m > 0) {
+    c = (import sel) % m;
+  }
+} return int c;

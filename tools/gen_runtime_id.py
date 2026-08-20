@@ -24,9 +24,9 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, ROOT)
 import idc  # noqa: E402
 
-OUT = os.path.join(ROOT, "demos", "idc_in_id_parse",
+OUT = os.path.join(ROOT, "compiler", "parse",
                    "back", "out", "sink", "runtime.id")
-RESV_OUT = os.path.join(ROOT, "demos", "idc_in_id_parse",
+RESV_OUT = os.path.join(ROOT, "compiler", "parse",
                         "back", "out", "sink", "reserved.gen.id")
 
 

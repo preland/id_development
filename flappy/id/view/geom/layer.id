@@ -1,0 +1,29 @@
+// The two scrolling layers.
+//
+// Both are drawn wider than the playfield and pinned to its right edge, so that
+// something leaving to the left is still at a positive offset inside its own
+// layer -- a percentage can't be negative, and this is what buys the pipes and
+// the ground the room to slide off screen instead of vanishing at x=0.
+//
+//   pipe layer   432 px wide (150%), covering playfield x -144 .. 288
+//   ground layer 576 px wide (200%), covering playfield x -288 .. 288
+
+// The gap before the first pipe. 464 = 320 (where pipe 0 stands) + 144 (the
+// pipe layer's overhang), less how far the world has scrolled.
+pipe_lead() {
+  int x = 464 + first_pipe() * 172 - dist_px();
+} return string pct(x, 432);
+
+// The stem of slot i's upper pipe: everything above its cap, which is 26 px
+// tall and sits immediately on top of the gap.
+pipe_top(int i) {
+  int t = gap_of(first_pipe() + i) - 26;
+} return string pct(t, 512);
+
+// The ground tile is 336 px wide for a 288 px playfield, and its pattern
+// repeats every 48 px -- so sliding it back and forth across one 48 px period
+// scrolls forever without a seam. 240 = 288 - 48 puts its start just off the
+// left edge of the 576 px layer.
+base_lead() {
+  int o = (48 - (import g)[11] / 100 % 48) % 48;
+} return string pct(240 + o, 576);

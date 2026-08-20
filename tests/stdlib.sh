@@ -333,7 +333,7 @@ import os, re, sys
 root = sys.argv[1]
 sys.path.insert(0, root)
 import idc
-gen = os.path.join(root, "demos", "idc_in_id_parse",
+gen = os.path.join(root, "compiler", "parse",
                    "back", "out", "sink", "reserved.gen.id")
 listed = set(re.findall(r'"([a-z_0-9]+)"', open(gen).read()))
 if listed == set(idc.RUNTIME_HELPERS):

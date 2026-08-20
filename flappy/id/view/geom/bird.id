@@ -1,0 +1,21 @@
+// The bird: how far down it is, which wing frame it is on, and how far over it
+// has tipped.
+
+// The spacer above the bird. On the ready screen `bob` adds a gentle hover, so
+// the same expression serves both the title screen and the flight.
+bird_top() {
+  int y = (import g)[1] / 100 + bob();
+} return string pct(y, 512);
+
+// Three wing frames at ten a second while it flies; the wing locks flat the
+// moment the bird is hit, so the death fall reads as a dead weight.
+bird_src() {
+  int f = (import g)[6] / 6 % 3;
+  if ((import g)[0] > 1) { f = 1; }
+} return string "/sprites/bird-" + f + ".svg";
+
+// A class rather than an inline angle: idml styles elements through classes and
+// dimensions, so the twelve tilt steps live in the stylesheet and id just picks
+// one. Twelve steps is about what the original shows.
+bird_rot() {
+} return string "fb-r" + tilt();

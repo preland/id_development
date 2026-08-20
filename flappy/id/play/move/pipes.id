@@ -1,0 +1,24 @@
+// Where the gaps are. Pipe k stands at x = 320 + k * 172 in world coordinates,
+// so pipes are 172 px apart and the first is a screen-width ahead of the bird.
+// Only the height of its gap is random, and it is drawn once, the first time
+// anyone asks for pipe k -- so the same run always yields the same course no
+// matter how often the view reads it.
+
+gap_of(int k) {
+  grow_gaps(k);
+} return int (import gaps)[k];
+
+grow_gaps(int k) {
+  while (len(import gaps) <= k) {
+    push((import gaps), new_gap());
+  }
+} return void;
+
+// A 16-bit Lehmer generator (seed * 75 + 74 mod 65537) -- small enough that the
+// multiply can't overflow an int, long-period enough that the course never
+// visibly repeats. The gap's top edge lands between y=60 and y=240, which keeps
+// a 100 px gap at least 60 px clear of both the sky and the ground.
+new_gap() {
+  int v = ((import g)[8] * 75 + 74) % 65537;
+  poke((import g), 8, v);
+} return int 60 + v % 181;

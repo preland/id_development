@@ -3,7 +3,7 @@
 `id` is a small C-flavored language. This repo contains its first program
 (`demos/hello`) and `idc`, a compiler that transpiles `id` to C and invokes the
 system C compiler. `idc` is **self-hosted**: its lexer and parser/C-emitter are
-themselves written in `id` (`demos/idc_in_id`, `demos/idc_in_id_parse`), and
+themselves written in `id` (`compiler/lex`, `compiler/parse`), and
 `bin/idc` is the driver that makes that self-hosted compiler a usable command.
 
 ## Quick start
@@ -112,7 +112,7 @@ wrapper.
 - **Maximum nesting depth of 2.** Blocks may nest at most two deep; code below
   that must be split into its own function. Together with the 3-action rule this
   keeps every function shallow and small — deep dispatch is expressed as a chain
-  of named functions, not a pyramid of nested branches (see `demos/idc_in_id`).
+  of named functions, not a pyramid of nested branches (see `compiler/lex`).
 - **A name keeps one type.** A variable name may be reused across functions, but
   every declaration of it (parameters included) must have the *same* type —
   `i` is always an `int`, `src` always a `string`. Declaring one name with two
@@ -180,7 +180,7 @@ resolves them as follows — revisit as the language evolves:
   returns the byte code at index `i` (or `-1` past the end); `chr(n)` builds a
   one-character string from a byte code; `read_all()` reads all of stdin into
   one `string`; `to_int(s)` parses a string to an `int`. Together with `while`
-  these make text processing possible — see `demos/idc_in_id`, a lexer for `id`
+  these make text processing possible — see `compiler/lex`, a lexer for `id`
   **written in `id`**.
 - **Growable lists.** A `T[]` is a heap-allocated, growable list with
   **reference semantics** — passing one to a function and mutating it is visible
@@ -188,9 +188,9 @@ resolves them as follows — revisit as the language evolves:
   `[a, b, c]` builds a list and `[]` makes an empty one (in a typed context);
   `xs[i]` reads an element and `xs[i] = v` writes one; `push(xs, v)` appends;
   `len(xs)` is the length. An AST or symbol table is built as a few parallel
-  lists indexed by an integer id — see `demos/idc_in_id/BLOCKERS.md`,
+  lists indexed by an integer id — see `compiler/lex/BLOCKERS.md`,
   `demos/idc_in_id_calc` (an expression parser + evaluator written in `id`), and
-  `demos/idc_in_id_parse` (a parser for `id` functions and statements **plus a C
+  `compiler/parse` (a parser for `id` functions and statements **plus a C
   emitter** — lex → parse → emit C, all written in `id`, with the emitted C
   compiled by `cc` and run).
 - **List ops also include `pop(xs)`** — remove and return the last element (the
@@ -235,7 +235,7 @@ followed, so a stdlib module that needs a native backend declares it once
 instead of every program naming it.
 
 **Three things must build without it, and do.** `idstd` cannot import itself;
-the bootstrap stages (`demos/idc_in_id{,_parse}`) define their own helpers and
+the bootstrap stages (`compiler/lex{,_parse}`) define their own helpers and
 any change to their emitted C would break self-hosting, so `bin/idc` bootstraps
 them with `--no-std`; and `tests/invalid/`'s diagnostics must not shift because
 a library appeared in the program.
@@ -289,10 +289,10 @@ table, which is read as the C target's.
 
 ## Self-hosting
 
-The `id`-written compiler (`demos/idc_in_id` lexer + `demos/idc_in_id_parse`
+The `id`-written compiler (`compiler/lex` lexer + `compiler/parse`
 parser/codegen) **compiles its own source** to C that is byte-identical to
 `idc.py`, and the self-compiled binary reproduces itself exactly (a fixpoint).
-`tests/run.sh` checks both. See `demos/idc_in_id_parse/README.md`. `bin/idc`
+`tests/run.sh` checks both. See `compiler/parse/README.md`. `bin/idc`
 is the driver that turns this pair of self-hosted binaries into `id`'s
 primary build command — see "`bin/idc`: the self-hosted driver" above.
 
@@ -330,7 +330,7 @@ define the feature here and port it* — is why work kept landing in Python
 instead of in `id`. Stage 0 needs a construct only once the self-hosted
 compiler's own source uses that construct. Read
 [`docs/HACKING.md`](docs/HACKING.md) before changing the language;
-[`demos/idc_in_id_parse/MAP.md`](demos/idc_in_id_parse/MAP.md) is the index
+[`compiler/parse/MAP.md`](compiler/parse/MAP.md) is the index
 that makes the self-hosted tree navigable, which was the other half of the
 problem.
 

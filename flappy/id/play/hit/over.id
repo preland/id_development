@@ -1,0 +1,23 @@
+// Dying, landing, and what the run was worth.
+
+// A hit doesn't end the game, it ends the flying: the screen flashes white for
+// eight frames and the bird drops out of the sky under its own weight.
+strike() {
+  poke((import g), 0, 2);
+  poke((import g), 10, 8);
+  poke((import g), 2, 0);
+} return void;
+
+// 37600 centipixels = 376 px, the bird's top edge when its feet are on the
+// ground -- it comes to rest there rather than sinking into the base.
+finish() {
+  poke((import g), 0, 3);
+  poke((import g), 1, 37600);
+  record();
+} return void;
+
+// The NEW badge is set before `best` moves, so it can still see the old one.
+record() {
+  if ((import g)[3] > (import g)[4]) { poke((import g), 9, 1); }
+  if ((import g)[3] > (import g)[4]) { poke((import g), 4, (import g)[3]); }
+} return void;

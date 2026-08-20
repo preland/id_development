@@ -35,8 +35,8 @@ found all three, independently, as blockers. That is the shape of the work.
 **Parity is intact and should stay the gate.** Verified now:
 
 ```
-bin/idc   demos/idc_in_id_parse --emit-c a.c
-idc.py    demos/idc_in_id_parse --emit-c b.c
+bin/idc   compiler/parse --emit-c a.c
+idc.py    compiler/parse --emit-c b.c
 cmp a.c b.c        →  byte-identical
 tests/run.sh       →  74 + 38 + 7 + 15 pass, 0 fail
 ```
@@ -56,7 +56,7 @@ Nothing below may break that.
 | **A3** | **No "no such function" check.** A typo'd builtin reaches `cc`. The machinery exists — `is_unknown_fn` in `mid/names/symbols/check/access/report/more/call_var.id` — but it is only wired to the *"'x' is a variable, not a function"* case. | `print(to_flot("1"))` → raw `implicit declaration of function 'id_to_flot'; did you mean 'id_to_int'?` + "internal error". `idc.py` gives the real message with the full builtin list. |
 | **A4** | **Duplicate function name is not checked**; it surfaces as C `redefinition`, or — when the two bodies happen to match — as a *misleading* uniqueness error that names the function as a duplicate of itself at its own line. | Two `f(int)` with different bodies → `error: redefinition of 'id_f'` + "internal error". Two with identical bodies → `error: function 'f' has the same signature and logic as 'f' (defined at …:5)` pointing at line 5 for both. |
 | **A5** | **Duplicate `export` of one name (R10) is not checked at all — the program compiles silently.** The second `export` re-initialises the same C global. There is also **no test case** for this rule in `tests/invalid/`, in either compiler. | Two functions each `export int e = …` → `bin/idc` exit 0. `idc.py` → `error: 'e' is already an exported global (exported by 'main')`. |
-| **A6** | **33× slower than `idc.py`, and superlinear.** The checks scan the global parallel name tables (`find_str((import fnames), …)`) once per node. | Front-end only, `demos/idc_in_id_parse` (213 files / 4798 lines): `bin/idc` **4.66 s** vs `idc.py` **0.139 s**. Synthetic scaling 100 → 400 files: 371 ms → 1811 ms (4.9× for 4× input). Extrapolates to minutes on a 20 kLOC program, with no incremental build. |
+| **A6** | **33× slower than `idc.py`, and superlinear.** The checks scan the global parallel name tables (`find_str((import fnames), …)`) once per node. | Front-end only, `compiler/parse` (213 files / 4798 lines): `bin/idc` **4.66 s** vs `idc.py` **0.139 s**. Synthetic scaling 100 → 400 files: 371 ms → 1811 ms (4.9× for 4× input). Extrapolates to minutes on a 20 kLOC program, with no incremental build. |
 
 **Consequence of A1–A4 together:** of the 38 canonical invalid programs in
 `tests/invalid/`, `bin/idc` rejects all 38 (good) but gives the **wrong message
@@ -230,9 +230,9 @@ program size.
    change needed.
 2. Apply it to the four hot tables: `fnames`, `vnames`, `dvname`, and the export
    table.
-3. Re-measure at 100 / 200 / 400 / 800 files and on `demos/idc_in_id_parse`.
+3. Re-measure at 100 / 200 / 400 / 800 files and on `compiler/parse`.
 
-**Target:** linear scaling, and `demos/idc_in_id_parse` front-end under 1 s
+**Target:** linear scaling, and `compiler/parse` front-end under 1 s
 (from 4.66 s). Getting inside 3× of `idc.py` makes `bin/idc` a comfortable
 default; the current 33× does not. Record the numbers in the README so a
 regression is a number, not a feeling.
@@ -350,7 +350,7 @@ neither had the cause the guess assumed. Measured, `--emit-c`, best of three:
 
 | | before | after |
 | --- | --- | --- |
-| `demos/idc_in_id_parse` (213 files, 4798 lines) | 4661 ms | **664 ms** |
+| `compiler/parse` (213 files, 4798 lines) | 4661 ms | **664 ms** |
 | balanced tree, 100 files | 352 ms | **63 ms** |
 | balanced tree, 800 files | — | **215 ms** (`idc.py`: 98 ms) |
 | ratio to `idc.py` on the self-host build | 33× | **5.1×** |

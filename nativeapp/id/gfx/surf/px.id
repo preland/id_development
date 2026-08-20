@@ -1,0 +1,17 @@
+// Low-level pixel access. lset makes an imported list an lvalue identifier again
+// (pass-as-param, reference semantics) so a store into the shared framebuffer
+// works -- the same trick demos/gfxdemo uses. pset clips to the surface so every
+// higher-level draw can scribble freely without its own bounds checks.
+
+lset(int[] xs, int i, int v) {
+  xs[i] = v;
+} return void;
+
+px_idx(int x, int y) {
+} return int y * (import gw) + x;
+
+pset(int x, int y, int c) {
+  if(x >= 0 && x < (import gw) && y >= 0 && y < (import gh)) {
+    lset((import fb), px_idx(x, y), c);
+  }
+} return void;

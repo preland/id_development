@@ -3,7 +3,7 @@
 #
 # tests/stdlib.sh builds against tests/fixtures/idstd so it says the same thing
 # on a checkout with no library beside it. That makes it hermetic, and it also
-# makes it blind: it cannot see that `bin/idc demos/idc_in_id_parse` -- the
+# makes it blind: it cannot see that `bin/idc compiler/parse` -- the
 # compiler's own source, built the way the README tells you to build it -- fails
 # against the real ../idstd on a name the library also defines. Nothing in the
 # suite could see that, because tests/run.sh sets IDC_NO_STD=1 for everything.
