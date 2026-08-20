@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "d=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; s=$(git -C \"$d\" status --porcelain 2>/dev/null); n=$(printf \"%s\" \"$s\" | grep -c \"^[^?]\"); u=$(printf \"%s\" \"$s\" | grep -c \"^??\"); [ \"$n\" -gt 0 ] && printf '{\"systemMessage\":\"git: %s uncommitted tracked file(s), %s untracked path(s) — commit is part of done. This hook never commits for you.\"}\\n' \"$n\" \"$u\"; exit 0",
+            "timeout": 10,
+            "statusMessage": "Checking for uncommitted work..."
+          }
+        ]
+      }
+    ]
+  }
+}
