@@ -47,6 +47,7 @@ KEEP_C=0
 CC=cc
 TRIPLE=""
 REQUIRE_TESTS=0
+EMIT_SOURCES=0
 NO_STD=0
 STD_DIR=""
 BACKENDS=()          # from --backend flags (passed through on fallback)
@@ -68,6 +69,8 @@ while [ $# -gt 0 ]; do
             TRIPLE="${2:?idc: --triple needs an argument}"; shift 2 ;;
         --require-tests)
             REQUIRE_TESTS=1; shift ;;
+        --emit-sources)
+            EMIT_SOURCES=1; shift ;;
         --no-std)
             NO_STD=1; shift ;;
         --std)
@@ -104,6 +107,14 @@ mkdir -p "$CACHE_DIR" || { echo "idc: cannot create cache dir $CACHE_DIR" >&2; e
 IDLEX="$CACHE_DIR/idlex"
 IDPARSE="$CACHE_DIR/idparse"
 
+# --std, if given, points the bootstrap at the same library the build will use.
+# --no-std deliberately does NOT propagate: it says the user's program wants no
+# library, not that the compiler can be built without one. IDC_NO_STD is
+# likewise not honoured here, for the same reason -- tests/run.sh exports it for
+# every program it builds, and the compiler is not one of those programs.
+STD_ARGS=()
+[ -n "$STD_DIR" ] && STD_ARGS=(--std "$STD_DIR")
+
 stale() { # stale BIN SRC_DIR -- true if BIN is missing or older than any .id under SRC_DIR
     local bin="$1" src="$2"
     [ -x "$bin" ] || return 0
@@ -111,20 +122,26 @@ stale() { # stale BIN SRC_DIR -- true if BIN is missing or older than any .id un
     return 1
 }
 
-# --no-std is not optional here. The bootstrap stages define their own helpers
-# and their own local vocabulary; implicitly importing a standard library that
-# also defines them is a duplicate-logic error, and ANY change to their emitted
-# C breaks self-hosting and the byte-parity gate. The compiler's own bootstrap
-# is the one program that must not depend on the library it ships with.
+# The bootstrap stages are built WITH the standard library, because they use it:
+# both call idstd's `lset`, and each used to carry a private copy of it. The
+# rule that made those copies an error is the one-name-one-type rule doing its
+# job -- if a dependency already has the function, a program should not define
+# it again -- and the compiler does not get an exemption from its own rules.
+#
+# The cost is real and is the reason this comment is long: `id_development` now
+# needs an `idstd` checkout to build its own compiler, and a fresh clone without
+# one gets "no such function 'lset'" here rather than a working idc. That is the
+# trade taken deliberately. Resolution order is the same as for any program:
+# --std, then $IDSTD_HOME, then a sibling idstd/.
 if stale "$IDLEX" "$ROOT/compiler/lex"; then
     echo "idc: bootstrapping idlex from source (via idc.py)..." >&2
-    "$IDC_PY" --no-std "$ROOT/compiler/lex" -o "$IDLEX" >&2 \
-        || { echo "idc: failed to bootstrap idlex" >&2; exit 1; }
+    env -u IDC_NO_STD "$IDC_PY" "${STD_ARGS[@]}" "$ROOT/compiler/lex" -o "$IDLEX" >&2 \
+        || { echo "idc: failed to bootstrap idlex (needs idstd -- see --std)" >&2; exit 1; }
 fi
 if stale "$IDPARSE" "$ROOT/compiler/parse"; then
     echo "idc: bootstrapping idparse from source (via idc.py)..." >&2
-    "$IDC_PY" --no-std "$ROOT/compiler/parse" -o "$IDPARSE" >&2 \
-        || { echo "idc: failed to bootstrap idparse" >&2; exit 1; }
+    env -u IDC_NO_STD "$IDC_PY" "${STD_ARGS[@]}" "$ROOT/compiler/parse" -o "$IDPARSE" >&2 \
+        || { echo "idc: failed to bootstrap idparse (needs idstd -- see --std)" >&2; exit 1; }
 fi
 
 # ---------------------------------------------------------------------------
@@ -425,6 +442,18 @@ emit_sources() {
           close($0)
           print "" }'
 }
+
+# --emit-sources prints the marker-annotated stream the pipeline consumes and
+# stops. It exists because assembling that stream is now real work -- the
+# standard library's roots and unit numbers are part of it -- and a test that
+# re-implements the assembly (tests/run.sh's `project_cat` did) tests its own
+# copy rather than the compiler's. With it, the self-hosting and fixpoint
+# checks pipe the compiler's real input through whichever binaries they mean to
+# compare.
+if [ "$EMIT_SOURCES" -eq 1 ]; then
+    emit_sources
+    exit 0
+fi
 
 emit_sources | "$IDLEX" 2>"$LEX_ERR" | "$IDPARSE" "${PARSE_ARGS[@]}" > "$C_OUT" 2>"$PARSE_ERR"
 rc=("${PIPESTATUS[@]}")

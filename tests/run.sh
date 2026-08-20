@@ -105,7 +105,10 @@ $IDC "$TMP/listrun.id" -o "$TMP/listrun" 2>/dev/null || bad "list runtime compil
 expect_output "lists push/get/set/to_int" "len=4 xs[0]=99 xs[3]=9" "$("$TMP/listrun")"
 
 # --- idc-in-id: the lexer (written in id) tokenizes id source from stdin
-$IDC ../compiler/lex -o "$TMP/idlex" 2>/dev/null || bad "idc-in-id lexer compiles"
+# The compiler is built WITH the standard library -- both stages call idstd's
+# lset. IDC_NO_STD is exported at the top of this file for every program it
+# builds; the compiler is not one of those programs.
+env -u IDC_NO_STD $IDC ../compiler/lex -o "$TMP/idlex" 2>/dev/null || bad "idc-in-id lexer compiles"
 expect_output "id-lexer keyword"    "kw while"   "$(printf 'while' | "$TMP/idlex" | head -1)"
 expect_output "id-lexer two-char op" "op =="     "$(printf 'x == 2' | "$TMP/idlex" | sed -n 2p)"
 expect_output "id-lexer string lit" 'str "hi"'   "$(printf '"hi"'   | "$TMP/idlex" | head -1)"
@@ -128,7 +131,7 @@ expect_output "calc precedence/parens/unary/%" "= 13" \
 # --- idc-in-id stage 2b/3: the function/statement parser + C emitter (written
 #     in id), fed by the lexer. `idparse ast` prints the AST as an S-expression;
 #     `idparse` (no arg) emits C.
-$IDC ../compiler/parse -o "$TMP/idparse" 2>/dev/null || bad "idc-in-id parser compiles"
+env -u IDC_NO_STD $IDC ../compiler/parse -o "$TMP/idparse" 2>/dev/null || bad "idc-in-id parser compiles"
 cat > "$TMP/p_fn.id" <<'EOF'
 add(int x, int y) {
   int sum = x + y;
@@ -418,23 +421,38 @@ fi
 # --- self-hosting: the id-written compiler emits byte-identical C for its OWN
 #     source (lexer + parser/codegen), and the self-compiled compiler is a
 #     fixpoint (compiling itself twice reproduces the same C exactly).
-for src in lex parse; do
-    "$IDC" ../compiler/$src --emit-c "$TMP/${src}_py.c" >/dev/null 2>&1
-    project_cat ../compiler/$src | "$TMP/idlex" | "$TMP/idparse" > "$TMP/${src}_id.c"
-    if diff "$TMP/${src}_py.c" "$TMP/${src}_id.c" >/dev/null; then
-        ok "self-hosting parity with idc.py (compiler/$src)"
+#
+# The compiler is the one program in this file built WITH the standard library,
+# because it uses it: both stages call idstd's `lset`. So these three checks
+# unset IDC_NO_STD, and they get their input from `bin/idc --emit-sources`
+# rather than from project_cat -- assembling that stream now means resolving
+# idstd, ordering its roots and numbering its compilation units, and a test
+# that re-implements all that is testing its own copy of it. Skips itself when
+# there is no standard library to resolve, because then there is no compiler
+# to check.
+if env -u IDC_NO_STD "$IDC" ../compiler/lex --emit-c /dev/null >/dev/null 2>&1; then
+    for src in lex parse; do
+        env -u IDC_NO_STD "$IDC" ../compiler/$src --emit-c "$TMP/${src}_py.c" >/dev/null 2>&1
+        env -u IDC_NO_STD ../bin/idc ../compiler/$src --emit-sources 2>/dev/null \
+            | "$TMP/idlex" | "$TMP/idparse" > "$TMP/${src}_id.c"
+        if diff "$TMP/${src}_py.c" "$TMP/${src}_id.c" >/dev/null; then
+            ok "self-hosting parity with idc.py (compiler/$src)"
+        else
+            bad "self-hosting parity with idc.py (compiler/$src)"
+        fi
+    done
+    # build the self-compiled compiler and check it reproduces its own C
+    cc "$TMP/lex_id.c"   -o "$TMP/idlex2"   2>/dev/null || bad "self-compiled lexer builds"
+    cc "$TMP/parse_id.c" -o "$TMP/idparse2" 2>/dev/null || bad "self-compiled parser builds"
+    env -u IDC_NO_STD ../bin/idc ../compiler/parse --emit-sources 2>/dev/null \
+        | "$TMP/idlex2" | "$TMP/idparse2" > "$TMP/idparse_fix.c"
+    if diff "$TMP/parse_id.c" "$TMP/idparse_fix.c" >/dev/null; then
+        ok "self-hosting fixpoint (self-compiled compiler reproduces itself)"
     else
-        bad "self-hosting parity with idc.py (compiler/$src)"
+        bad "self-hosting fixpoint (self-compiled compiler reproduces itself)"
     fi
-done
-# build the self-compiled compiler and check it reproduces its own C (fixpoint)
-cc "$TMP/lex_id.c"   -o "$TMP/idlex2"   2>/dev/null || bad "self-compiled lexer builds"
-cc "$TMP/parse_id.c" -o "$TMP/idparse2" 2>/dev/null || bad "self-compiled parser builds"
-project_cat ../compiler/parse | "$TMP/idlex2" | "$TMP/idparse2" > "$TMP/idparse_fix.c"
-if diff "$TMP/parse_id.c" "$TMP/idparse_fix.c" >/dev/null; then
-    ok "self-hosting fixpoint (self-compiled compiler reproduces itself)"
 else
-    bad "self-hosting fixpoint (self-compiled compiler reproduces itself)"
+    echo "SKIP: self-hosting checks (no idstd resolvable; the compiler needs it)"
 fi
 
 # --- the game engine + the two games it drives build cleanly (real-time I/O

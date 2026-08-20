@@ -6,12 +6,11 @@
 check_failed() {
 } return int (import chkfail)[0];
 
-note_failure() {
-  chk_set((import chkfail), 0, 1);
-} return void;
-
 // Writing through an imported list needs the list as a parameter: an
 // index-assignment is only recognised when the target is a plain identifier.
-chk_set(int[] cell, int i, int v) {
-  cell[i] = v;
+// That helper used to live here under a private name; it is idstd's `lset`,
+// which this compiler's own diagnostic already names as the fix, so keeping a
+// second copy was exactly the duplication the uniqueness rule exists to catch.
+note_failure() {
+  lset((import chkfail), 0, 1);
 } return void;

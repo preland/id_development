@@ -36,7 +36,7 @@ dce_prune() {
 
 // Compact the program list over itself, keeping the reachable functions in
 // their original order, then drop the tail that is left over. `prog` is an
-// exported list, so it is rewritten in place through chk_set and pop rather
+// exported list, so it is rewritten in place through lset and pop rather
 // than rebuilt -- only its declaring function may assign it.
 //
 // The two loops are one function because a block may hold three actions and
@@ -56,7 +56,7 @@ dce_pack(int i, int n) {
 // something was kept, which is what makes this a compaction rather than a copy.
 dce_keep(int i, int n) {
   if(is_reach(s1_of((import prog)[i])) == 1) {
-    chk_set((import prog), n, (import prog)[i]);
+    lset((import prog), n, (import prog)[i]);
     n = n + 1;
   }
 } return int n;

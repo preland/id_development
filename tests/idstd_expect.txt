@@ -29,19 +29,22 @@ gl3d             neither
 gl3dgame         neither
 
 # ---------------------------------------------------------------------------
-# The work list. Each of these defines a name idstd also defines, or a function
-# whose logic idstd already has. Both are the one-name-one-type rule working:
-# the duplicate should go, not the rule.
+# The compiler's own two stages, PORTED. They each carried a private copy of
+# idstd's `lset`; both now call the library's. That is the rule working -- the
+# function existed in a dependency, so the program should not define it again --
+# and it means id_development needs an idstd checkout to build its own
+# compiler. Deliberate; see bin/idc's bootstrap comment.
+compiler/lex     needs-std
+compiler/parse   needs-std
+
+# ---------------------------------------------------------------------------
+# The work list, four left. Each defines a name idstd also defines, or a
+# function whose logic idstd already has. The duplicate should go, not the rule.
 #
 # engine, moonbuggy, solitaire -- the terminal engine and its two games, whose
 #   helpers are headed for idstd anyway.
-# compiler/lex, compiler/parse -- the compiler's own two stages. bin/idc
-#   bootstraps them with --no-std, so this does not break the build; it breaks
-#   `bin/idc compiler/parse`, which is how the README says to build them.
 # nativeapp/id -- the native-window demo.
 engine           broken
-compiler/lex     broken
-compiler/parse   broken
 moonbuggy        broken
 solitaire        broken
 nativeapp/id     broken
