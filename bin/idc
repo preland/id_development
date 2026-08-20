@@ -41,6 +41,7 @@ usage() {
 
 PATH_ARG=""
 OUTPUT=""
+BUILD_DIR="build"
 EMIT_C=""
 KEEP_C=0
 CC=cc
@@ -503,16 +504,14 @@ else
         base="$(basename "$first")"
         base="${base%.*}"
     fi
-    if [ "$have_main" -eq 1 ]; then OUT="$base"; else OUT="$base.o"; fi
+    if [ "$have_main" -eq 1 ]; then OUT="$BUILD_DIR/$base"; else OUT="$BUILD_DIR/$base.o"; fi
+    mkdir -p "$BUILD_DIR" || exit 1
 fi
 
-# The output path may be a directory -- building a project from the directory
-# that contains it asks for exactly that, since the default name IS the project
-# directory's name (`idc filedemo` from beside ./filedemo/). cc then fails with
-# "cannot open output file: Is a directory", which this driver used to report
-# as "a bug in the self-hosted compiler". Passing a project directory is the
-# supported way to build one, so: a name this driver chose, it re-chooses; a
-# name the user chose with -o, it reports. Mirrors idc.py's choose_output_path.
+# An explicit -o can still land on a directory, and cc then fails with "cannot
+# open output file: Is a directory", which this driver used to report as "a bug
+# in the self-hosted compiler". A name this driver chose, it re-chooses; a name
+# the user chose with -o, it reports. Mirrors idc.py's choose_output_path.
 if [ -d "$OUT" ]; then
     if [ -n "$OUTPUT" ]; then
         echo "idc: -o '$OUT' is a directory; choose a different output path" >&2

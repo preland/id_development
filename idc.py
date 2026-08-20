@@ -5028,7 +5028,8 @@ def main(argv):
         first = os.path.normpath(args.path)
         base = os.path.basename(first if os.path.isdir(first)
                                 else os.path.splitext(first)[0])
-        out = base + (".o" if not have_main else "")
+        out = os.path.join(BUILD_DIR, base + (".o" if not have_main else ""))
+        os.makedirs(BUILD_DIR, exist_ok=True)
 
     out, note, err = choose_output_path(out, args.output is not None)
     if err is not None:
@@ -5158,15 +5159,18 @@ def check_constraints(tested, counts):
                                    f"{int(allowed)}")
 
 
+BUILD_DIR = "build"
+
+
 def choose_output_path(out, explicit):
     """Settle on a path the executable can actually be written to.
 
-    `idc PROJECT` names the output after the project directory, so building a
-    project from the directory that *contains* it asks for an output path that
-    already exists -- and is the project. `idc filedemo` wants to write
-    ./filedemo, which is ./filedemo/. cc then fails with "cannot open output
-    file: Is a directory", a message about the build that reads as a message
-    about the source (and which bin/idc used to blame on its own codegen).
+    Default output goes to build/, which is what keeps the compiler's own
+    choice of name from colliding with the project directory it was named
+    after. An explicit -o can still land on a directory, and cc would then
+    fail with "cannot open output file: Is a directory" -- a message about
+    the build that reads as a message about the source (and which bin/idc
+    used to blame on its own codegen).
 
     Passing a project directory is the supported way to build one, so the
     compiler does not refuse it: when the colliding name is the *compiler's*

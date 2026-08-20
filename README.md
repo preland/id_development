@@ -12,22 +12,25 @@ themselves written in `id` (`demos/idc_in_id`, `demos/idc_in_id_parse`), and
 argument: a single `.id` file, or a **project directory**.
 
 ```sh
-bin/idc demos/hello -o hello    # build the hello_world project
-./hello                          # usage: ./hello <message>
-./hello hi                       # hello world: hi
-tests/run.sh                     # regression suite
+bin/idc demos/hello        # build the hello_world project
+./build/hello              # usage: ./build/hello <message>
+./build/hello hi           # hello world: hi
+tests/run.sh               # regression suite
 ```
 
 A **project** is a directory *tree*: every directory in it may hold at most 3
 entries (counting `.id` files and subdirectories combined), and *all* the `.id`
 files in the tree are compiled together as one program, so functions and
 exported variables resolve across the whole project. With no `-o`, the output is
-named after the project directory:
+named after the project directory and written into `build/`, which is
+`.gitignore`d — built binaries never land in the source tree:
 
 ```sh
-bin/idc demos/adventure    # builds ./adventure from the whole project tree
-./adventure
+bin/idc demos/adventure    # builds ./build/adventure from the whole project tree
+./build/adventure
 ```
+
+`-o` overrides both the name and the directory: `bin/idc demos/hello -o /tmp/hi`.
 
 A single file is handy for tutorials (`bin/idc prog.id`); a project is how real
 programs grow. `bin/idc PATH --emit-c prog.c` writes the generated C instead of
@@ -293,9 +296,15 @@ parser/codegen) **compiles its own source** to C that is byte-identical to
 is the driver that turns this pair of self-hosted binaries into `id`'s
 primary build command — see "`bin/idc`: the self-hosted driver" above.
 
-## The compiler: two implementations, one frozen reference
+## The compiler: one implementation, and a bootstrap being retired
 
-**`idc.py`** is the original, self-contained Python implementation: lexer →
+**`idc.py` is on its way out, as fast as the work can be done.** It is not a
+second supported compiler, not a fallback, and not a place to add anything. The
+goal is deleting it. Everything below describes what still holds it here, and
+each of those is a task, not a feature —
+[`docs/BACKENDS.md`](docs/BACKENDS.md) tracks the order.
+
+Until then it is the original, self-contained Python implementation: lexer →
 recursive-descent parser → semantic checks (action limit, function-per-file
 limit, project entry-count limit, global name uniqueness, function-logic
 uniqueness, export/import access, light type checking) → C/LLVM/WASM emission
@@ -314,10 +323,11 @@ compilers emit verbatim; `tools/gen_runtime_id.py` regenerates the `id`-side
 copy from it, so a runtime change is made in one place and parity keeps the two
 honest.
 
-**It is not where language features are built.** "Reference implementation" is
-what this section used to call it, and that reading — *the definition of
-correct, so define the feature here and port it* — is why work kept landing in
-Python instead of in `id`. Stage 0 needs a construct only once the self-hosted
+**It is not where language features are built**, and a change that grows it is
+a change in the wrong direction. "Reference implementation" is what this
+section used to call it, and that reading — *the definition of correct, so
+define the feature here and port it* — is why work kept landing in Python
+instead of in `id`. Stage 0 needs a construct only once the self-hosted
 compiler's own source uses that construct. Read
 [`docs/HACKING.md`](docs/HACKING.md) before changing the language;
 [`demos/idc_in_id_parse/MAP.md`](demos/idc_in_id_parse/MAP.md) is the index

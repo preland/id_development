@@ -106,22 +106,23 @@ for c in "$BIN_IDC" "$ROOT/idc.py"; do
     fi
 done
 
-# -- the output path may be the project directory ----------------------------
+# -- the default output goes to build/ ---------------------------------------
 # `idc PROJECT` names the executable after the project, so building from the
-# directory beside it asks cc to write over a directory. That used to fail as
-# "cannot open output file: Is a directory" -- reported by bin/idc as a bug in
-# the self-hosted compiler. The name is the compiler's choice, so it re-chooses.
+# directory beside it used to ask cc to write over a directory ("cannot open
+# output file: Is a directory", reported by bin/idc as a bug in the self-hosted
+# compiler). Defaulting into build/ makes that collision impossible, and keeps
+# built binaries out of the source tree.
 outdir="$TMP/outdir"; mkdir -p "$outdir"
 cp -r "$ROOT/demos/hello" "$outdir/proj"
 for c in "$ABS_ROOT/bin/idc" "$ABS_ROOT/idc.py"; do
     name=$(basename "$c")
     out=$(cd "$outdir" && "$c" proj 2>&1)
-    if [ -x "$outdir/proj.out" ]; then
-        ok "building a project from beside it produces proj.out ($name)"
+    if [ -x "$outdir/build/proj" ] && [ ! -e "$outdir/proj.out" ]; then
+        ok "a default build lands in build/ ($name)"
     else
-        bad "building a project from beside it produces proj.out ($name): $out"
+        bad "a default build lands in build/ ($name): $out"
     fi
-    rm -f "$outdir/proj.out"
+    rm -rf "$outdir/build"
     # An explicit -o is the user's choice and is reported, not second-guessed.
     if (cd "$outdir" && "$c" proj -o proj 2>&1) | grep -q "is a directory"; then
         ok "-o naming a directory is reported ($name)"
