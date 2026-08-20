@@ -1,7 +1,66 @@
 #!/usr/bin/env bash
 # Regression tests for idc. Run from anywhere: tests/run.sh
+#
+#   tests/run.sh                 everything (85s -- over the 60s budget)
+#   tests/run.sh --list          the sections, with their indices
+#   tests/run.sh core conform    just those, by name or index
+#   tests/run.sh --from 4        section 4 onward
+#   tests/run.sh --resume        continue after the last section that passed
+#
+# Why sections: no test or script should take longer than 60 seconds, because
+# a slow suite does not merely cost time -- it changes behaviour, batching work
+# and skipping verification. The whole suite is 85s and each SECTION is 6-36s,
+# so the budget is met by running it in pieces. --resume records progress after
+# each section, so an interrupted run continues rather than starting over.
 set -u
 cd "$(dirname "$0")"
+
+SECTIONS=(core invalid runtime_invalid self_host_build backends stdlib conform tests_feature idstd_real)
+STATE=../.idc-cache/run-state
+WANTED=()
+resume=0
+
+index_of() { local i=0 s; for s in "${SECTIONS[@]}"; do [ "$s" = "$1" ] && { echo "$i"; return 0; }; i=$((i+1)); done; return 1; }
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --list)
+            i=0; for s in "${SECTIONS[@]}"; do echo "$i  $s"; i=$((i+1)); done; exit 0 ;;
+        --from)
+            start=$(index_of "${2:?--from needs a section}" 2>/dev/null || echo "$2")
+            for j in $(seq "$start" $(( ${#SECTIONS[@]} - 1 )) ); do WANTED+=("${SECTIONS[$j]}"); done
+            shift 2 ;;
+        --resume)
+            resume=1; shift ;;
+        -h|--help)
+            sed -n '2,12p' "$0"; exit 0 ;;
+        *)
+            case "$1" in
+                [0-9]*) WANTED+=("${SECTIONS[$1]}") ;;
+                *)      index_of "$1" >/dev/null || { echo "run.sh: no such section: $1 (see --list)" >&2; exit 2; }
+                        WANTED+=("$1") ;;
+            esac
+            shift ;;
+    esac
+done
+
+if [ "$resume" -eq 1 ]; then
+    done_list=$( [ -f "$STATE" ] && cat "$STATE" || true )
+    for s in "${SECTIONS[@]}"; do
+        case " $done_list " in *" $s "*) continue ;; esac
+        WANTED+=("$s")
+    done
+    [ "${#WANTED[@]}" -eq 0 ] && { echo "run.sh: every section already passed; rm $STATE to start over"; exit 0; }
+    echo "run.sh: resuming with ${WANTED[*]}"
+fi
+
+[ "${#WANTED[@]}" -eq 0 ] && WANTED=("${SECTIONS[@]}")
+want() { case " ${WANTED[*]} " in *" $1 "*) return 0 ;; esac; return 1; }
+
+# Record a section as passed, so --resume skips it next time. A section that
+# fails is deliberately NOT recorded: resuming must retry it.
+mark_done() { mkdir -p "$(dirname "$STATE")"; printf '%s ' "$1" >> "$STATE"; }
+[ "${#WANTED[@]}" -eq "${#SECTIONS[@]}" ] && rm -f "$STATE"
 
 # Every check below this line predates the standard library, and all of them
 # assert on exact diagnostics, exact emitted C, or the demos' own sources. A
@@ -34,6 +93,9 @@ expect_error() { # name, file, pattern
     if $IDC "$2" -o "$TMP/x" 2>&1 | grep -q "$3"; then ok "$1"; else bad "$1"; fi
 }
 
+# The body below is NOT re-indented: wrapping 700 lines in an if would make
+# the diff unreadable for a change that only gates them. bash does not care.
+if want core; then
 # --- hello_world end to end (the demos/hello project bundles otherfn.id, which
 #     testfn calls, so the whole program resolves within one project)
 $IDC ../demos/hello -o "$TMP/hello" 2>/dev/null \
@@ -754,13 +816,19 @@ fi
 
 echo
 echo "$pass passed, $fail failed"
+mark_done core
+fi
 
 # --- negative tests: every file in tests/invalid/ must be rejected with the
 #     error named on its `// EXPECT:` line.
 echo
 echo "--- negative tests (tests/invalid/) ---"
-./invalid.sh
-neg=$?
+neg=0
+if want invalid; then
+    ./invalid.sh
+    neg=$?
+    [ "$neg" -eq 0 ] && mark_done invalid
+fi
 
 # --- runtime-safety negative tests: every file in tests/runtime_invalid/
 #     compiles fine but must ABORT when run (bounds/empty-pop violations),
@@ -768,24 +836,36 @@ neg=$?
 #     exiting nonzero. Distinct from tests/invalid/ (compile-time errors).
 echo
 echo "--- runtime-safety negative tests (tests/runtime_invalid/) ---"
-./runtime_invalid.sh
-rneg=$?
+rneg=0
+if want runtime_invalid; then
+    ./runtime_invalid.sh
+    rneg=$?
+    [ "$rneg" -eq 0 ] && mark_done runtime_invalid
+fi
 
 # --- self-hosted driver (bin/idc): builds several demos through the
 #     id-written lexer+parser (via the bin/idc bash driver) and checks the
 #     resulting binaries run identically to idc.py's. See tests/self_host_build.sh.
 echo
 echo "--- self-hosted driver build (bin/idc) ---"
-./self_host_build.sh
-shneg=$?
+shneg=0
+if want self_host_build; then
+    ./self_host_build.sh
+    shneg=$?
+    [ "$shneg" -eq 0 ] && mark_done self_host_build
+fi
 
 # --- native backends: both backends compile and coexist in one binary, the
 #     graphics demos build at byte parity, and no windowed demo hangs when
 #     there is no display. Skips itself when the X11/GL headers are absent.
 echo
 echo "--- native backends (backends/gfx, backends/gl) ---"
-./backends.sh
-bend=$?
+bend=0
+if want backends; then
+    ./backends.sh
+    bend=$?
+    [ "$bend" -eq 0 ] && mark_done backends
+fi
 
 # --- the standard library: implicit import, --no-std, $IDSTD_HOME, and the
 #     transitive dependency resolution it is built on. Runs against a fixture
@@ -793,8 +873,12 @@ bend=$?
 #     a real ../idstd exists. It unsets IDC_NO_STD itself.
 echo
 echo "--- standard library (implicit import) ---"
-./stdlib.sh
-std=$?
+std=0
+if want stdlib; then
+    ./stdlib.sh
+    std=$?
+    [ "$std" -eq 0 ] && mark_done stdlib
+fi
 
 # --- conformance: every code-generation target must agree about what a
 #     program means. tools/parity.sh compares emitted text, which is only a
@@ -802,16 +886,24 @@ std=$?
 #     the question that survives a second target. See docs/SPEC.md.
 echo
 echo "--- conformance across targets (docs/SPEC.md) ---"
-./conform.sh
-conf=$?
+conf=0
+if want conform; then
+    ./conform.sh
+    conf=$?
+    [ "$conf" -eq 0 ] && mark_done conform
+fi
 
 # --- test clauses: the cases written under a function, run by --tests, and the
 #     scaling claims they may carry. It sets IDC_NO_STD itself, because what a
 #     case measures must be the function under test and nothing else.
 echo
 echo "--- test clauses (docs/TESTS.md) ---"
-./tests_feature.sh
-tst=$?
+tst=0
+if want tests_feature; then
+    ./tests_feature.sh
+    tst=$?
+    [ "$tst" -eq 0 ] && mark_done tests_feature
+fi
 
 # --- the REAL standard library against the real projects. Everything above
 #     this line runs with IDC_NO_STD=1 or against a fixture library, which is
@@ -820,8 +912,12 @@ tst=$?
 #     Skips itself when there is no ../idstd. See tests/idstd_expect.txt.
 echo
 echo "--- the real standard library (tests/idstd_expect.txt) ---"
-./idstd_real.sh
-real=$?
+real=0
+if want idstd_real; then
+    ./idstd_real.sh
+    real=$?
+    [ "$real" -eq 0 ] && mark_done idstd_real
+fi
 
 [ "$fail" -eq 0 ] && [ "$neg" -eq 0 ] && [ "$rneg" -eq 0 ] && [ "$shneg" -eq 0 ] \
     && [ "$bend" -eq 0 ] && [ "$std" -eq 0 ] && [ "$conf" -eq 0 ] \
