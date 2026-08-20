@@ -37,7 +37,9 @@ building.
 
 `bin/idc` is a small bash driver around the self-hosted compiler (`id` itself
 has no filesystem/dir-walk/subprocess builtins, so — like every self-hosting
-compiler — it needs a bootstrap layer living outside the language). On first
+compiler — it needs a bootstrap layer living outside the language; the `fs`
+backend below adds *files*, but walking a directory tree is still outside the
+language, and walking one is exactly what this driver does). On first
 use it builds the two self-hosted stages, `idlex` (lexer) and `idparse`
 (parser + C emitter), **using `idc.py`** and caches them under `.idc-cache/`
 (rebuilt automatically if their `id` source changes). From then on, building
@@ -49,24 +51,22 @@ pipeline `tools/parity.sh` differentially tests against `idc.py`. `-o`,
 linking a native backend, mirroring `idc.py`'s `resolve_backend`) all work the
 same as in `idc.py`.
 
-**Honesty about coverage:** the self-hosted lexer/parser do not yet implement
-the *whole* language or *any* semantic checking (see "The compiler" below for
-the full list of what only `idc.py` does). Concretely today: float literals
-aren't lexed correctly (`0.8` splits into `0`, `.`, `8`), and a call to a
-function not defined anywhere in the project (the pattern every native
-backend and `demos/gfxdemo`-style program uses) doesn't get the `extern`
-forward declaration `idc.py` emits. Rather than fail on those, `bin/idc`
-**verifies its own output** with a `cc -fsyntax-only` check before trusting
-it, and if the self-hosted pipeline can't handle the input for any reason, it
-**transparently falls back to running `idc.py`** for that build — printing a
-clear note on stderr so this is never silent. So `bin/idc PATH` always
-produces a correct binary (identical to `idc.py PATH`) whether or not the
-self-hosted stages actually handled it; `tests/self_host_build.sh` checks
-exactly this end-to-end behavior on `demos/hello` (falls back, due to its
-float literal), `demos/calc`, `demos/control/flow.id`, and `demos/adventure`
-(the latter three build with the self-hosted stages directly, verified
-byte-identical to `idc.py --emit-c` by `tools/parity.sh` and `tests/run.sh`'s
-"codegen parity" checks).
+**Coverage:** there is no fallback — `bin/idc` drives the self-hosted stages
+and nothing else. They implement the whole language and all of its rules: the
+action-per-block limit, nesting depth, 3-functions-per-file, name-type
+consistency, export/import access, duplicate names, function-logic uniqueness,
+the type checks, and calls that resolve to nothing. Every case in
+`tests/invalid/` is checked against **both** compilers and must produce the
+same diagnostic, so a message `idc.py` gives and `bin/idc` does not is a test
+failure. `bin/idc` also gates on `cc -fsyntax-only` before trusting its own
+output; if that ever fires it means a bug in the compiler, and it says so.
+
+The one rule checked in the driver rather than in `id` is the
+3-entries-per-directory limit — it is a property of the filesystem, which `id`
+cannot see, which is also why the driver exists.
+
+What only `idc.py` still does: `--target llvm` and `--target wasm`. See
+[`docs/GAPS.md`](docs/GAPS.md) for the state of that and everything else.
 
 ## Development environment (Nix)
 
@@ -113,10 +113,13 @@ wrapper.
 - **A name keeps one type.** A variable name may be reused across functions, but
   every declaration of it (parameters included) must have the *same* type —
   `i` is always an `int`, `src` always a `string`. Declaring one name with two
-  different types anywhere in the program is a compile error. A name is one
-  variable *within* a function. (This prevents a vague name like `obj` meaning
-  different things in different places, while still letting natural names like
-  `i` or `src` recur.)
+  different types anywhere in the same source tree is a compile error. A name is
+  one variable *within* a function. (This prevents a vague name like `obj`
+  meaning different things in different places, while still letting natural
+  names like `i` or `src` recur.) The rule stops at the import boundary: your
+  tree and each imported tree (the standard library, a library) are separate
+  compilation units, so a library's `string s` does not make `int s` an error in
+  your program.
 - **Variables are function-private unless exported.** `export int value = …;`
   declares and publishes a variable; other functions read it with
   `(import value)`. Touching another function's variable any other way is a
@@ -197,6 +200,89 @@ resolves them as follows — revisit as the language evolves:
   `demos/engine` is a small full-screen game engine, and `demos/moonbuggy`
   (a real-time side-scroller) and `demos/solitaire` (Klondike) are games
   **written in `id`**.
+- **No file I/O among the builtins.** The list above is the whole of it: a
+  program gets stdin and stdout, so working on a file means being a filter and
+  letting the caller pick them (`./prog < in.txt > out.txt`). Files come from a
+  **native backend** instead — [`backends/fs`](backends/fs) links `fs_open`,
+  `fs_read`, `fs_write`, `fs_close`, `fs_size`, `fs_exists`, `fs_remove` and
+  `fs_error` at link time, and `demos/fsdemo` writes a file, reads it back and
+  removes it in ~40 lines of `id` that never name C.
+
+## The standard library (`idstd`)
+
+`idstd` is `id`'s standard library, and it is **imported by default**: a program
+calls `fx_max` with no `import.id` line and no flag. It lives in its own
+repository, beside this one.
+
+```sh
+bin/idc prog.id                  # idstd is already there
+bin/idc prog.id --no-std         # build without it
+bin/idc prog.id --std ../idstd   # build against a particular one
+```
+
+It is resolved from, in order: `--std DIR`, `$IDSTD_HOME`, then an `idstd`
+directory beside this repository. A checkout with none of those simply has no
+standard library, which is not an error — the compiler has to keep building its
+own bootstrap in a tree where the library does not exist. `IDC_NO_STD=1` is
+`--no-std` for scripts that cannot pass a flag.
+
+The library is merged exactly like a source dependency named in an `import.id`:
+the same 3-entries-per-directory rule applies to it, and its own `import.id` is
+followed, so a stdlib module that needs a native backend declares it once
+instead of every program naming it.
+
+**Three things must build without it, and do.** `idstd` cannot import itself;
+the bootstrap stages (`demos/idc_in_id{,_parse}`) define their own helpers and
+any change to their emitted C would break self-hosting, so `bin/idc` bootstraps
+them with `--no-std`; and `tests/invalid/`'s diagnostics must not shift because
+a library appeared in the program.
+
+**Dead code is not emitted.** Only functions reachable from `main` reach the
+generated C — which is what makes a library that is in every program
+affordable. Measured on a synthetic 729-function library where the program
+calls one function:
+
+| | build | binary |
+| --- | --- | --- |
+| no stdlib | 0.318 s | 16 408 B |
+| 729-function stdlib, before elimination | 0.75 s | 74 584 B |
+| 729-function stdlib, after | 0.325 s | 16 448 B |
+
+A project with no `main` is a library, compiles to a `.o`, and keeps every
+function — all of them are entry points. And **dead code is still checked**: a
+function nothing calls still obeys the action limit, the nesting limit and the
+export rules. Code that stopped being checked because nothing called it is how
+a library rots, and it would stop checking a user's own dead code too.
+
+See [`docs/IDSTD.md`](docs/IDSTD.md) for what the library contains and what is
+still outstanding.
+
+## Native backends
+
+A **backend** is a directory with a `backend.json` and some native source. It
+supplies functions no `.id` file defines; `idc` resolves those calls as
+link-time symbols and links the backend's objects into the program. Attach one
+with a project's `import.id` (preferred) or a `--backend DIR` flag.
+
+**Imports are transitive.** An imported directory's own `import.id` is read too,
+so a library can declare the backend it needs and every program that uses it
+gets one. Cycles and diamonds terminate — each directory is visited once, keyed
+on its resolved path.
+
+| backend | what it adds |
+| --- | --- |
+| [`backends/fs`](backends/fs) | files: open/read/write/close/size/exists/remove. Needs no system libraries |
+| [`backends/gfx`](backends/gfx) | a window and a software framebuffer (X11 / Cocoa) |
+| [`backends/gl`](backends/gl) | a hardware-accelerated OpenGL window |
+
+The manifest separates *what* a backend promises from *how* a given compiler
+obtains it: `abi` lists the functions in `id`'s own types, and `targets` maps a
+code generator (`"c"` today; an LLVM, wasm or interpreter target tomorrow) to
+the implementation it should use. Adding a target is a change to the manifest
+and the driver that reads it, never to a program's `id` source — see
+[`backends/fs/README.md`](backends/fs/README.md), which is written up as the
+worked example. `gfx` and `gl` predate `targets` and carry a bare `platforms`
+table, which is read as the C target's.
 
 ## Self-hosting
 
@@ -213,29 +299,35 @@ primary build command — see "`bin/idc`: the self-hosted driver" above.
 recursive-descent parser → semantic checks (action limit, function-per-file
 limit, project entry-count limit, global name uniqueness, function-logic
 uniqueness, export/import access, light type checking) → C/LLVM/WASM emission
-→ `cc`/`clang`/`wat2wasm`. It is now treated as the **frozen legacy/reference
-implementation**, kept unchanged, with three jobs:
+→ `cc`/`clang`/`wat2wasm`. It is **stage 0 of the bootstrap**, with two jobs
+left:
 
 1. **Bootstrapping** the self-hosted stages (`idlex`, `idparse`) that `bin/idc`
-   caches and drives — see below.
-2. **Semantic checking.** The self-hosted lexer/parser do not implement *any*
-   of the checks listed above (action limit, function-per-file limit,
-   name-type consistency, function-logic uniqueness, export/import access,
-   etc.) — they parse and emit C, nothing more. `bin/idc` inherits that: a
-   program that violates one of these rules may build via `bin/idc` where
-   `idc.py` would have rejected it (or fail in a less friendly way, e.g. a
-   confusing `cc` error). If you need the language's rules enforced, run
-   `idc.py` on the program at least once.
-3. **The alternative codegen targets**, `--target llvm` and `--target wasm`
+   caches and drives — see above. This happens once, on a cold cache.
+2. **The alternative codegen targets**, `--target llvm` and `--target wasm`
    (and their `--emit-llvm`/`--emit-wasm`) — only `idc.py` implements these;
    `bin/idc` only drives the C target.
+   [`docs/BACKENDS.md`](docs/BACKENDS.md) is the plan for moving them across.
+
+It is also where the **C runtime prelude** lives, as one string that both
+compilers emit verbatim; `tools/gen_runtime_id.py` regenerates the `id`-side
+copy from it, so a runtime change is made in one place and parity keeps the two
+honest.
+
+**It is not where language features are built.** "Reference implementation" is
+what this section used to call it, and that reading — *the definition of
+correct, so define the feature here and port it* — is why work kept landing in
+Python instead of in `id`. Stage 0 needs a construct only once the self-hosted
+compiler's own source uses that construct. Read
+[`docs/HACKING.md`](docs/HACKING.md) before changing the language;
+[`demos/idc_in_id_parse/MAP.md`](demos/idc_in_id_parse/MAP.md) is the index
+that makes the self-hosted tree navigable, which was the other half of the
+problem.
 
 **`bin/idc`** (see "Quick start" above) is the **primary** way to build a
-program day to day: it drives the self-hosted `idlex`/`idparse` pair,
-falling back to `idc.py` transparently for the handful of things they don't
-yet cover (float literals; calls to functions resolved only at link time,
-e.g. native backends). It does not reimplement `idc.py`'s semantic checks —
-see point 2 above.
+program: it drives the self-hosted `idlex`/`idparse` pair and does not fall
+back. It enforces every rule of the language, and its diagnostics are checked
+against `idc.py`'s, case by case, by `tests/invalid.sh`.
 
 Generated code details (true of both implementations — the self-hosted
 emitter mirrors these byte-for-byte where it's implemented at all):
