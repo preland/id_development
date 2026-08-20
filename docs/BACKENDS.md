@@ -8,6 +8,34 @@ and WASM targets were left behind when `word` and the flat store arrived.
 The self-hosted compiler should not repeat that. This document is the shape it
 should grow into, and the order to get there.
 
+## Why this is urgent: it is the plan for deleting `idc.py`
+
+`idc.py` is being retired as fast as the work can be done. It is stage 0 of a
+bootstrap and nothing more, and every line it keeps is a line the language does
+not own. What still holds it here, measured:
+
+| what | lines of `idc.py` (of 5285) | what removes it |
+|---|---|---|
+| LLVM target | ~851 | steps 1–5 below |
+| WASM target | ~1428 | steps 1–5 below |
+| everything else (lex/parse/check/C emit) | ~3000 | already duplicated in `id`; needed only to bootstrap `idlex`/`idparse` on a cold cache |
+
+**43% of `idc.py` exists only to serve two targets `bin/idc` does not have.**
+That is the whole of the retirement problem: this document is how it gets
+solved.
+
+The last ~3000 lines go a different way. They are not ported — they are already
+written in `id`, and `tools/parity.sh` proves it byte for byte. What keeps them
+alive is that a fresh checkout has no `idlex`/`idparse` and must build them from
+something. **A checked-in bootstrap C artifact retires that job**: commit the
+generated C for both stages, build it with `cc`, and stage 0 becomes a
+compiler, not a Python program. Regenerating it is then a normal commit, and
+parity is what says the commit is honest.
+
+Done means: `bin/idc` covers every target, the bootstrap C is checked in, and
+`git rm idc.py` breaks nothing. Anything that grows `idc.py` moves away from
+that and needs a reason.
+
 ## The split
 
 ```
