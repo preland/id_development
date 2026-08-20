@@ -3,7 +3,7 @@
 # resolution it is built on.
 #
 # `idstd` is imported by DEFAULT -- a program calls a library function with no
-# import.id line and no flag. That is a change to how every program is built,
+# conf.id line and no flag. That is a change to how every program is built,
 # so it needs its own file of checks, and every one of them runs against BOTH
 # compilers: bin/idc and idc.py must agree about what a program's sources are,
 # or they stop emitting byte-identical C for every program at once.
@@ -61,7 +61,7 @@ run_both() {
     fi
 }
 
-# -- 1. a program calls the stdlib with no import.id at all -----------------
+# -- 1. a program calls the stdlib with no conf.id at all -----------------
 rm -rf "$TMP/proj"; mkdir -p "$TMP/proj"
 cat > "$TMP/proj/main.id" <<'EOF'
 main(int argc, string[] argv) {
@@ -69,7 +69,7 @@ main(int argc, string[] argv) {
     print(tfx_abs(0 - 4));
 } return int 0;
 EOF
-run_both "a project reaches the stdlib with no import.id" "9
+run_both "a project reaches the stdlib with no conf.id" "9
 4"
 
 # -- 2. a nested stdlib directory is reached, not just its top level --------
@@ -160,9 +160,9 @@ done
 # landed, a library could not declare its own dependencies at all.
 rm -rf "$TMP/tr"; mkdir -p "$TMP/tr/app" "$TMP/tr/mid" "$TMP/tr/base"
 printf 'trbase_v() {\n} return int 41;\n'                        > "$TMP/tr/base/b.id"
-printf 'import "../base"\n'                                      > "$TMP/tr/mid/import.id"
+printf 'import "../base"\n'                                      > "$TMP/tr/mid/conf.id"
 printf 'trmid_v() {\n} return int trbase_v() + 1;\n'             > "$TMP/tr/mid/m.id"
-printf 'import "../mid"\n'                                       > "$TMP/tr/app/import.id"
+printf 'import "../mid"\n'                                       > "$TMP/tr/app/conf.id"
 printf 'main(int argc, string[] argv) {\n    print(trmid_v());\n} return int 0;\n' \
                                                                  > "$TMP/tr/app/main.id"
 tr_ok=1
@@ -170,14 +170,14 @@ for cc in "$BIN_IDC" "$IDC_PY"; do
     "$cc" --no-std "$TMP/tr/app" -o "$TMP/tr/out" >/dev/null 2>&1 || { tr_ok=0; break; }
     [ "$("$TMP/tr/out")" = "42" ] || { tr_ok=0; break; }
 done
-[ "$tr_ok" -eq 1 ] && ok "an imported directory's own import.id is followed" \
-                   || bad "an imported directory's own import.id is followed"
+[ "$tr_ok" -eq 1 ] && ok "an imported directory's own conf.id is followed" \
+                   || bad "an imported directory's own conf.id is followed"
 
 # -- 9. a cycle in the import graph terminates -----------------------------
 rm -rf "$TMP/cy"; mkdir -p "$TMP/cy/a" "$TMP/cy/b"
-printf 'import "../b"\n'                            > "$TMP/cy/a/import.id"
+printf 'import "../b"\n'                            > "$TMP/cy/a/conf.id"
 printf 'cya_v() {\n} return int cyb_v();\n'         > "$TMP/cy/a/a.id"
-printf 'import "../a"\n'                            > "$TMP/cy/b/import.id"
+printf 'import "../a"\n'                            > "$TMP/cy/b/conf.id"
 printf 'cyb_v() {\n} return int 7;\nmain(int argc, string[] argv) {\n    print(cya_v());\n} return int 0;\n' \
                                                     > "$TMP/cy/b/b.id"
 cy_ok=1
@@ -192,12 +192,12 @@ done
 # The reason transitivity had to land with the stdlib: a graphics module in a
 # library declares backends/gfx once, instead of every program naming it.
 rm -rf "$TMP/bk"; mkdir -p "$TMP/bk/lib" "$TMP/bk/app"
-printf 'import "%s"\n' "$(cd "$ROOT/backends/fs" && pwd)" > "$TMP/bk/lib/import.id"
+printf 'import "%s"\n' "$(cd "$ROOT/backends/fs" && pwd)" > "$TMP/bk/lib/conf.id"
 cat > "$TMP/bk/lib/l.id" <<'EOF'
 bklib_has(string path) {
 } return int fs_exists(path);
 EOF
-printf 'import "../lib"\n' > "$TMP/bk/app/import.id"
+printf 'import "../lib"\n' > "$TMP/bk/app/conf.id"
 cat > "$TMP/bk/app/main.id" <<'EOF'
 main(int argc, string[] argv) {
     print(bklib_has("/nonexistent-for-sure"));

@@ -76,7 +76,7 @@ its own source tree needs `readdir`, not `fopen`.
 ## Compiler-agnostic by construction
 
 Nothing about C appears above the object file. `demos/fsdemo` calls `fs_open`
-the way it calls any other function; `import.id` says where those functions
+the way it calls any other function; `conf.id` says where those functions
 come from; and `backend.json` declares the contract in `id`'s own types:
 
 ```json

@@ -46,7 +46,7 @@ else
     bad "backends/fs/fs_posix.c compiles ($(head -1 "$TMP/fs.err"))"
 fi
 
-# The demo attaches the backend through its own import.id, so no --backend
+# The demo attaches the backend through its own conf.id, so no --backend
 # flag: the id-native path is the one under test.
 expected='wrote 44 bytes to fsdemo.txt (close 0)
 read 44 bytes back (close 0):
@@ -69,16 +69,16 @@ for c in "$BIN_IDC" "$ROOT/idc.py"; do
     fi
 done
 
-# Naming one backend twice -- --backend *and* import.id, the two documented
+# Naming one backend twice -- --backend *and* conf.id, the two documented
 # ways -- used to compile its sources twice and hand cc the same object file
 # twice: "multiple definition" for every symbol it exports.
 for c in "$BIN_IDC" "$ROOT/idc.py"; do
     name=$(basename "$c")
     if $c "$ROOT/demos/fsdemo" --backend "$ROOT/backends/fs" -o "$fsout.dup.$name" \
          >"$TMP/fs.dup" 2>&1; then
-        ok "a backend named by both --backend and import.id links once ($name)"
+        ok "a backend named by both --backend and conf.id links once ($name)"
     else
-        bad "a backend named by both --backend and import.id links once ($name): $(grep -m1 -i 'multiple definition\|error' "$TMP/fs.dup" | cut -c1-90)"
+        bad "a backend named by both --backend and conf.id links once ($name): $(grep -m1 -i 'multiple definition\|error' "$TMP/fs.dup" | cut -c1-90)"
     fi
 done
 
@@ -156,7 +156,7 @@ done
 dual="$TMP/dual"
 mkdir -p "$dual/loop"
 printf 'import "%s"\nimport "%s"\n' \
-    "$(cd "$ROOT/backends/gfx" && pwd)" "$(cd "$ROOT/backends/gl" && pwd)" > "$dual/import.id"
+    "$(cd "$ROOT/backends/gfx" && pwd)" "$(cd "$ROOT/backends/gl" && pwd)" > "$dual/conf.id"
 cat > "$dual/main.id" <<'EOF'
 main(int argc, string[] argv) {
   int sw = gfx_open(64, 48, "dual soft");
@@ -263,7 +263,7 @@ else
     # Until gl_read_pixels existed there was no way to check GPU output
     # without an external window grabber.
     shot="$TMP/glshot"; mkdir -p "$shot/px"
-    printf 'import "%s"\n' "$(cd "$ROOT/backends/gl" && pwd)" > "$shot/import.id"
+    printf 'import "%s"\n' "$(cd "$ROOT/backends/gl" && pwd)" > "$shot/conf.id"
     cat > "$shot/main.id" <<'EOF'
 main(int argc, string[] argv) {
   int ok = glwin_open(32, 24, "glshot");

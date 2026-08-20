@@ -41,19 +41,41 @@ that reads module state — which is all 13 of `sys/err`, the trig half of
 `core/math`, and every flat-store writer. Adoption is stuck at ~3% because of
 it. See `docs/TESTS.md`, "What the case format cannot express".
 
-## 3. `--tests` in the self-hosted compiler
+## 3. Move `check_assigned_once` into the self-hosted compiler
+
+It is a semantic check on the AST — "this export is assigned once and never
+changed, so it is a constant" — and every other rule of the language lives in
+`compiler/parse/mid/`. This one is in `idc.py` because that is where it was
+written, which is precisely the drift the line ceiling exists to catch, and it
+did catch it: the ceiling had to be raised by 96 lines to land it. Moving it
+drops the ceiling by 96 again.
+
+It also cannot be turned on by default until item 4 below lands. `--strict-const`
+runs it today; with the flag, `idstd`'s `fx_sintab` is the first thing it names.
+
+## 4. `conf.id` constants are parsed but not emitted
+
+`conf.id` accepts `int name = value;` after its imports, and rejects an import
+that follows a constant. Nothing yet turns those lines into program globals, so
+a constant declared there does not exist at run time. Until it does,
+`--strict-const` names constants it has nowhere to put.
+
+Order: emit them, migrate `idstd`'s `fx_sintab` and friends across, then turn
+`--strict-const` on by default.
+
+## 5. `--tests` in the self-hosted compiler
 
 `bin/idc --require-tests` counts cases; only `idc.py` *runs* them, because
 running one needs a generated entry point. Until both halves are self-hosted,
 the rule is enforced by the compiler being retired.
 
-## 4. Port `engine`, `moonbuggy` and `solitaire` onto `idstd`
+## 6. Port `engine`, `moonbuggy` and `solitaire` onto `idstd`
 
 The three remaining `broken` lines in `tests/idstd_expect.txt`. Each defines a
 name or a body `idstd` already has. The compiler's own two stages were the
 first four and are done.
 
-## 5. The rest of the demos become their own repositories
+## 7. The rest of the demos become their own repositories
 
 `flappy`, `nativeapp` and `webdemo` are done (`../id_flappy`,
 `../id_nativeapp`, `../id_webdemo`). The applications still in `demos/` —
@@ -66,14 +88,14 @@ This one is not free: `tests/backends.sh` drives `gfxdemo` and `gl3d`, and
 `tests/self_host_build.sh` sweeps `demos/*/`. Moving a demo out means deciding
 what replaces it as a fixture.
 
-## 6. `--target llvm|wasm` in `bin/idc`, then delete `idc.py`
+## 8. `--target llvm|wasm` in `bin/idc`, then delete `idc.py`
 
 43% of `idc.py` is the two targets `bin/idc` does not have; the rest is
 bootstrap that a checked-in bootstrap C artifact retires. `docs/BACKENDS.md`
 is the plan and `tests/run.sh` holds a line ceiling so the file cannot grow
 while the work is pending.
 
-## 7. String building is quadratic
+## 9. String building is quadratic
 
 A 60 000-character literal costs 1.77 GB and 1.4 s; 4× the input is ~14× the
 memory. The lexer accumulates tokens and the emitter builds each line of C
@@ -83,7 +105,7 @@ Measured, so it is not folklore — but it is **not** what makes the suite slow.
 The suite is 83 s; that was mismeasured as ~25 minutes once, under heavy
 parallel load, and the mistake is recorded here so it is not repeated.
 
-## 8. The suite is 83 s, over the 60 s budget
+## 10. The suite is 83 s, over the 60 s budget
 
 Mitigated rather than fixed: `tests/run.sh` runs by section (`--list`,
 `--from`, `--resume`) and every section is 6–36 s. A real fix would make the

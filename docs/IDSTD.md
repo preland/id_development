@@ -27,7 +27,7 @@ compiler work that follows from it; §3–§7 are the library itself.
 ## 0. Scope, as requested
 
 - `idstd` is a **separate repository**, a sibling of `id_development` and `idem`.
-- It is **imported by default** — no `import.id` line, no flag. A program that
+- It is **imported by default** — no `conf.id` line, no flag. A program that
   writes `print(fx_max(a, b))` compiles.
 - It defines **types** (in the sense `id` allows: conventions, records-as-lists,
   and the fixed-point scales that give integers meaning) and **standard
@@ -94,8 +94,8 @@ is a small change with a large payoff. See §2.2.
 ### 1.4 Imports are not transitive — for source directories *or* backends
 
 ```
-app/import.id  ->  import "../mid"
-mid/import.id  ->  import "../base"
+app/conf.id  ->  import "../mid"
+mid/conf.id  ->  import "../base"
 mid/m.id:2: error: no such function 'bx_one'
 ```
 
@@ -126,7 +126,7 @@ lib:1: error: a project directory may contain at most 3 files and directories
 ```
 
 `idstd`'s own tree must obey the rule of 3 at every level including its root
-(`README.md` and `import.id` are not counted). A 600-function library is ~200
+(`README.md` and `conf.id` are not counted). A 600-function library is ~200
 files and a tree about 5 levels deep. Plan the layout before writing code (§7).
 
 ### 1.7 Two more facts worth carrying, from `../idem/docs`
@@ -261,7 +261,7 @@ program does not use.
 
 ### C3 — Transitive imports (§1.4) — **DONE**
 
-An imported directory's own `import.id` must be honoured, with cycle detection
+An imported directory's own `conf.id` must be honoured, with cycle detection
 and de-duplication by resolved path. This is what lets `idstd/gfx` declare its
 dependency on `backends/gfx` instead of every user program doing it.
 
@@ -605,13 +605,13 @@ Recorded so the boundary is a decision rather than an oversight.
 ## 7. Tree layout
 
 The rule of 3 binds at every level *including the repository root*, and it binds
-on imported trees (§1.6). `README.md` and `import.id` do not count. Sketch:
+on imported trees (§1.6). `README.md` and `conf.id` do not count. Sketch:
 
 ```
 idstd/
   README.md
   NAMES.md              the registry -- a build dependency, not documentation
-  import.id             backends/fs, backends/gfx   (needs C3)
+  conf.id             backends/fs, backends/gfx   (needs C3)
   core/
     math/   fx/  trig/  rnd/
     data/   lst/  buf/

@@ -88,7 +88,7 @@ the user's own type error. `tests/invalid.sh` does not catch it because it runs
 | # | issue | verified how |
 | --- | --- | --- |
 | **B1** | **Hidden directories count toward the 3-entries rule.** `bin/idc:127-137` walks `find … -type d` and counts every subdirectory; `idc.py` skips dotted ones. A project with 3 real entries plus a `.git` is rejected by one compiler and accepted by the other. | 3 entries + `.git/` → `bin/idc`: `has 4 (.id files and subdirectories)`. `idc.py`: builds. |
-| **B2** | **An absolute path in `import.id` is rejected, with a false message.** `bin/idc:162` builds `"$PATH_ARG/$dep"` unconditionally, so an absolute dep becomes a nonsense path and is reported as *"is not a directory"* — about a path that is a directory. | `import "/abs/path/lib"` → `bin/idc: import "/abs/…/lib" is not a directory`; `idc.py` builds and runs it. |
+| **B2** | **An absolute path in `conf.id` is rejected, with a false message.** `bin/idc:162` builds `"$PATH_ARG/$dep"` unconditionally, so an absolute dep becomes a nonsense path and is reported as *"is not a directory"* — about a path that is a directory. | `import "/abs/path/lib"` → `bin/idc: import "/abs/…/lib" is not a directory`; `idc.py` builds and runs it. |
 | **B3** | `--target llvm` / `--target wasm` are `idc.py`-only. `bin/idc` exits 2 with a pointer to `idc.py`. Honest, but it means `idc.py` cannot be retired. Note `docs/BACKENDS.md` already specifies the multi-target shape for the self-hosted back end. | `bin/idc x.id --target llvm` → exit 2. |
 | **B4** | **`--triple` is not plumbed through**, although `idparse` implements it (`back/drive/run/main.id`, `arg_triple`). So a multi-platform `asm` program cannot be cross-targeted through the driver. | `bin/idc` rejects any unknown option at `bin/idc:65`. |
 | **B5** | **README.md is stale on exactly the points a new user reads first** — it documents the removed `idc.py` fallback (lines 52-67, 233-238) and states float literals are unsupported. Both are wrong now. The report's §0 recommendation ("build with `idc.py`") was derived from it. | `grep -n "falls back" README.md` → line 61. |
@@ -140,14 +140,14 @@ copies from.
 
 | # | what was done | the test that keeps it done |
 | --- | --- | --- |
-| **A1** | `idparse` gained a call-resolution pass and an `--extern-ok` flag; under it an unresolved call is collected and emitted as `extern int id_<name>();` in idc.py's block, in idc.py's position and order. `bin/idc` passes the flag exactly when a backend is attached (`--backend` or an `import.id` dependency). `demos/gfxdemo`, `demos/gl3d`, `demos/gl3dgame`, `demos/fpsmaze` and `nativeapp/id` now build with `bin/idc`, byte-identical to `idc.py`. | `tests/self_host_build.sh`: backend emit-c byte parity for `demos/gfxdemo` and `nativeapp/id`, asserting the extern block is present |
+| **A1** | `idparse` gained a call-resolution pass and an `--extern-ok` flag; under it an unresolved call is collected and emitted as `extern int id_<name>();` in idc.py's block, in idc.py's position and order. `bin/idc` passes the flag exactly when a backend is attached (`--backend` or an `conf.id` dependency). `demos/gfxdemo`, `demos/gl3d`, `demos/gl3dgame`, `demos/fpsmaze` and `nativeapp/id` now build with `bin/idc`, byte-identical to `idc.py`. | `tests/self_host_build.sh`: backend emit-c byte parity for `demos/gfxdemo` and `nativeapp/id`, asserting the extern block is present |
 | **A2** | The symbol table carries a node id per function (`fnodes`), so a call site can reach the callee's parameter list. Call arity, argument types and the return-clause type are checked in `id`, with idc.py's wording. The builtins got the same treatment — arity and per-position argument types for all thirty, driven by three descriptions rather than thirty hand-written branches. | `tests/invalid.sh`, now run against **both** compilers |
 | **A3** | An unresolved call with no backend is `no such function 'X'; available builtins: …`. The builtin list is one literal, split at startup, and answers both "is this a builtin" and "what are they all", so the two cannot disagree. | `tests/invalid/no_such_function.id` (new) |
 | **A4** | Duplicate function names are checked before the logic-uniqueness scan, so `duplicate_function` reports `already defined at FILE:LINE` instead of naming a function as a duplicate of itself. | `tests/invalid/duplicate_function.id` |
 | **A5** | Duplicate `export` of one name is rejected. | `tests/invalid/duplicate_export.id` (new — neither compiler had a case) |
 | **A6** | See §3. | timings recorded below |
 | **B1** | Hidden directories are pruned from the project walk, matching `idc.py`: not counted toward the 3-entry limit, and nothing under them is compiled. | `tests/self_host_build.sh` |
-| **B2** | An absolute path in `import.id` resolves; a genuinely missing dependency says "no such directory" rather than "is not a directory". | `tests/self_host_build.sh` |
+| **B2** | An absolute path in `conf.id` resolves; a genuinely missing dependency says "no such directory" rather than "is not a directory". | `tests/self_host_build.sh` |
 | **B4** | `--triple` reaches `idparse`, so `asm` overloads can be selected through the command users actually run. | `tests/self_host_build.sh` |
 | **B5** | README rewritten: no fallback, no float gap, and one honest statement of what `idc.py` alone still does. | — |
 
@@ -185,7 +185,7 @@ attached, and an `extern` plus a warning when one is.
    with `extern int id_<name>();` for each — matching `idc.py:1190-1196`
    including the comment text, since parity is byte-level.
 4. **`bin/idc` passes `--extern-ok`** whenever `ALL_BACKENDS` is non-empty
-   (`bin/idc:292`), i.e. exactly when `--backend` or an `import.id` backend
+   (`bin/idc:292`), i.e. exactly when `--backend` or an `conf.id` backend
    dependency is in play.
 
 **Validation:** `bin/idc demos/gfxdemo --backend backends/gfx` builds and runs;
@@ -243,7 +243,7 @@ Small, independent, all in `bin/idc` and `README.md`.
 
 1. Skip hidden directories in the 3-entry walk (`bin/idc:127-137`), matching
    `idc.py`.
-2. Resolve `import.id` deps as absolute-if-absolute, relative-otherwise; and
+2. Resolve `conf.id` deps as absolute-if-absolute, relative-otherwise; and
    when a dep really is missing, say *"no such directory"*, not
    *"is not a directory"*.
 3. Accept `--triple T` and forward it to `idparse`.

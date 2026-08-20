@@ -135,7 +135,7 @@ The friction that makes people give up and edit `idc.py` instead:
 - **Two functions may not share a signature and a body** up to renaming. If a
   new helper is rejected as a duplicate, the one it duplicates is the one to
   call.
-- **Never name a file `import.id`.** That name is the dependency manifest, and
+- **Never name a file `conf.id`.** That name is the dependency manifest, and
   only a *root's* is read. One anywhere else is neither compiled nor read as a
   manifest, so everything it defines silently ceases to exist — and the only
   symptom is `no such function` at the caller, blaming a file that is fine.

@@ -1450,6 +1450,8 @@ class Compiler:
         only diverge from the C backend at codegen itself."""
         self.check_unique_functions()
         self.check_dead_exports()
+        if STRICT_CONST:
+            self.check_assigned_once()
         for fn in self.funcs.values():
             self.check_action_limit(fn)
             self.check_discarded_comparison(fn)
@@ -1548,6 +1550,101 @@ class Compiler:
                     f"function runs, so this reads an uninitialised global. "
                     f"Call '{owner}' from main's setup chain")
 
+    def _written_params(self, fname):
+        """Which parameter positions of `fname` are written through: assigned,
+        or index-assigned. A list parameter is a reference, so writing one is
+        how a function mutates its caller's list."""
+        # Builtins are not in self.funcs and some of them write through their
+        # first argument. push and pop are how a list grows and shrinks, so a
+        # missing entry here reports every accumulator in the language as a
+        # constant -- which is exactly what happened when this table did not
+        # exist: every project in the repository, idstd included.
+        if fname in ("push", "pop"):
+            return {0}
+        fn = self.funcs.get(fname)
+        if fn is None:
+            return set()            # another builtin, or a link-time symbol
+        pos = {pname: i for i, (_ptype, pname) in enumerate(fn.params)}
+        out = set()
+        for stmt in walk_stmts(fn.body):
+            if isinstance(stmt, IndexAssignStmt):
+                base = stmt.base
+                if isinstance(base, VarRef) and base.name in pos:
+                    out.add(pos[base.name])
+            elif isinstance(stmt, AssignStmt) and stmt.name in pos:
+                out.add(pos[stmt.name])
+        return out
+
+    def check_assigned_once(self):
+        """An exported value that never changes is a constant, and a constant
+        does not need a function to exist. Say so, and name conf.id.
+
+        Three questions, in order, because each only makes sense if the one
+        before it held:
+
+          1. Is the name SET exactly once across the whole project? A write
+             through a helper -- `lset((import xs), i, v)`, the idiom the
+             compiler's own diagnostic recommends -- counts as a set. Without
+             that, every stateful module in idstd looks constant: err_n is
+             `[0, 0]` at its declaration and incremented through lset on every
+             error, and telling someone to move a counter into configuration
+             would be exactly wrong.
+          2. Is that one set a DIRECT assignment -- no call in the value? A
+             value computed by calling something is not available before the
+             program runs. rnd_st is `[fx_abs(seed % 2147483646) + 1]`, one
+             assignment, and not a constant.
+          3. If it is set in several places but every one of them is the same
+             direct assignment, that is the same fact written repeatedly, and
+             it belongs in conf.id too.
+        """
+        sets = {}        # exported name -> [(canon_value, expr, file, line)]
+        mutated = set()  # written through a call, so not a constant
+        for fn in self.funcs.values():
+            names = {}
+            cn = lambda n: names.setdefault(n, n)
+            for stmt in walk_stmts(fn.body):
+                if isinstance(stmt, DeclStmt) and stmt.exported:
+                    where = stmt
+                elif isinstance(stmt, AssignStmt) and stmt.name in self.exported:
+                    where = stmt
+                else:
+                    continue
+                if where.expr is None:
+                    continue
+                sets.setdefault(where.name, []).append(
+                    (_canon_expr(where.expr, cn, fn.name), where.expr,
+                     getattr(where, "file", fn.file), getattr(where, "line", fn.line)))
+            # A call that writes THROUGH the export mutates it. `lset((import
+            # xs), i, v)` is exactly that, and it is the idiom the compiler's
+            # own diagnostic recommends, so it cannot be ignored. Only a direct
+            # argument at a position the callee actually writes counts:
+            # print("" + (import n)) passes n inside an expression to a builtin
+            # and changes nothing.
+            for e in walk_exprs_in(fn):
+                if not isinstance(e, CallExpr):
+                    continue
+                written = self._written_params(e.name)
+                for i, arg in enumerate(e.args):
+                    if isinstance(arg, ImportRef) and i in written:
+                        mutated.add(arg.name)
+        for name in sorted(sets):
+            places = sets[name]
+            if name in mutated:
+                continue
+            if len({v for v, _, _, _ in places}) != 1:
+                continue
+            if any(isinstance(sub, CallExpr)
+                   for _, expr, _, _ in places for sub in walk_expr(expr)):
+                continue
+            _, _, file, line = places[0]
+            many = (f" It is assigned identically in {len(places)} places, which "
+                    f"is one fact written {len(places)} times." if len(places) > 1 else "")
+            raise CompileError(
+                file, line,
+                f"'{name}' is assigned once and never changed, so it is a "
+                f"constant, not state.{many} Declare it in {IMPORT_MANIFEST} "
+                f"instead of in a function that exists only to assign it")
+
     # -- dead-code elimination
     #
     # Emit only what the program can reach. This is not an optimisation, it is
@@ -1612,6 +1709,8 @@ class Compiler:
     def compile(self) -> str:
         self.check_unique_functions()
         self.check_dead_exports()
+        if STRICT_CONST:
+            self.check_assigned_once()
         live = None if self.instrument else self.reachable_functions()
         # EVERY function is checked and generated, including the dead ones, and
         # only then is the dead code dropped. That order is not incidental: a
@@ -4471,27 +4570,31 @@ class WasmBackend:
         return "\n".join(parts) + "\n"
 
 
+def walk_expr(e):
+    """Yield an expression and every expression nested inside it."""
+    if e is None:
+        return
+    yield e
+    if isinstance(e, CallExpr):
+        for a in e.args:
+            yield from walk_expr(a)
+    elif isinstance(e, BinOp):
+        yield from walk_expr(e.left)
+        yield from walk_expr(e.right)
+    elif isinstance(e, UnOp):
+        yield from walk_expr(e.operand)
+    elif isinstance(e, IndexExpr):
+        yield from walk_expr(e.base)
+        yield from walk_expr(e.index)
+    elif isinstance(e, ArrayLit):
+        for x in e.elems:
+            yield from walk_expr(x)
+
+
 def walk_exprs_in(fn):
     """Yield every expression a function evaluates -- in its body, in its
     return clause, and nested inside either."""
-    def in_expr(e):
-        if e is None:
-            return
-        yield e
-        if isinstance(e, CallExpr):
-            for a in e.args:
-                yield from in_expr(a)
-        elif isinstance(e, BinOp):
-            yield from in_expr(e.left)
-            yield from in_expr(e.right)
-        elif isinstance(e, UnOp):
-            yield from in_expr(e.operand)
-        elif isinstance(e, IndexExpr):
-            yield from in_expr(e.base)
-            yield from in_expr(e.index)
-        elif isinstance(e, ArrayLit):
-            for x in e.elems:
-                yield from in_expr(x)
+    in_expr = walk_expr
 
     for s in walk_stmts(fn.body):
         if isinstance(s, DeclStmt):
@@ -4616,7 +4719,19 @@ PROJECT_ENTRY_LIMIT = 3
 # directories) in a single manifest file at its root. It is NOT compiled as
 # source and does NOT count toward a directory's entry limit -- it's metadata,
 # the id-native replacement for the --backend flag. See parse_import_manifest.
-IMPORT_MANIFEST = "import.id"
+IMPORT_MANIFEST = "conf.id"
+# The name a project used before conf.id. A file still called this is refused
+# rather than compiled as ordinary source, which is what would otherwise happen
+# and would report a parse error in a dependency list.
+LEGACY_MANIFEST = "import.id"
+
+# A constant declaration in conf.id: the same `TYPE name = value;` a function
+# body would write. Constants live here rather than in a function because a
+# value assigned once and never changed does not need a function to exist --
+# see the "assigned once" check in the semantic pass, which says so by name.
+STRICT_CONST = False
+
+CONST_DECL = re.compile(r'^(int|word|float|string)(\[\])?\s+[A-Za-z_]\w*\s*=.*;$')
 
 
 def source_unit(path, roots):
@@ -4647,6 +4762,14 @@ def collect_project(root):
         # the dependency manifest is metadata, not source: never compiled, never
         # counted toward the per-directory entry limit.
         ids = [n for n in filenames if n.endswith(".id") and n != IMPORT_MANIFEST]
+        # A file still called import.id would otherwise be compiled as source,
+        # and its `import "../lib"` lines would be reported as a syntax error in
+        # a file the author thinks is configuration. Name the rename instead.
+        if LEGACY_MANIFEST in filenames:
+            raise CompileError(
+                os.path.join(dirpath, LEGACY_MANIFEST), 1,
+                f"'{LEGACY_MANIFEST}' is now called '{IMPORT_MANIFEST}' -- it "
+                f"holds constants as well as dependencies. Rename it")
         # ...but only at a root, which is the only place one is read. A nested
         # one is neither compiled nor parsed as a manifest, so it vanishes --
         # and the only symptom is "no such function" at the caller, blaming a
@@ -4673,7 +4796,7 @@ def collect_project(root):
 
 
 def parse_import_manifest(root):
-    """Read <root>/import.id if present and return the dependency directories it
+    """Read <root>/conf.id if present and return the dependency directories it
     names. Each non-blank, non-comment line is `import "<relative-dir>"`; the
     path is resolved relative to the manifest. This is the id-native way to
     attach dependencies (replacing --backend): a dependency that carries a
@@ -4683,17 +4806,30 @@ def parse_import_manifest(root):
     if not os.path.isfile(path):
         return []
     deps = []
+    seen_const = False
     with open(path) as f:
         for lineno, raw in enumerate(f, 1):
             line = raw.strip()
             if not line or line.startswith("//"):
                 continue
+            # Constants come after imports, so a reader sees where the code
+            # comes from before what it is configured with. A constant is a
+            # declaration exactly as it would be written in a function body.
+            if CONST_DECL.match(line):
+                seen_const = True
+                continue
+            if seen_const:
+                raise CompileError(
+                    path, lineno,
+                    f'imports come before constants in {IMPORT_MANIFEST}; '
+                    f'{raw.strip()!r} follows a constant declaration')
             m = re.match(r'^import\s+"([^"]+)"\s*$', line)
             if not m:
                 raise CompileError(
                     path, lineno,
-                    f'malformed import.id line: {raw.rstrip()!r}; each dependency '
-                    f'is a line of the form  import "relative/dir"')
+                    f'malformed conf.id line: {raw.rstrip()!r}; each dependency '
+                    f'is a line of the form  import "relative/dir", and each '
+                    f'constant a line of the form  int name = value;')
             dep = os.path.normpath(os.path.join(root, m.group(1)))
             if not os.path.isdir(dep):
                 raise CompileError(
@@ -4707,14 +4843,14 @@ def parse_import_manifest(root):
 # --------------------------------------------------------------- the stdlib
 #
 # `idstd` is the standard library, and it is imported by DEFAULT: a program
-# writes `print(fx_max(a, b))` with no import.id line and no flag. That is the
+# writes `print(fx_max(a, b))` with no conf.id line and no flag. That is the
 # whole point of a standard library, and it is the one dependency a program
 # does not declare.
 #
-# It is merged exactly like a source dependency named in an import.id -- same
+# It is merged exactly like a source dependency named in an conf.id -- same
 # entry-count rule, same transitive manifest walk -- so a stdlib module that
 # needs a native backend (a framebuffer needs backends/gfx) declares it in the
-# stdlib's own import.id and every program gets it. That only works because
+# stdlib's own conf.id and every program gets it. That only works because
 # imports are transitive (resolve_deps); it is why the two landed together.
 #
 # THREE things must be able to turn it off, and all three are real:
@@ -4756,7 +4892,7 @@ def resolve_deps(root):
     """Resolve a project's dependency graph *transitively*, and return
     (source_dirs, backend_dirs).
 
-    An imported directory's own `import.id` is read too. Without that, a
+    An imported directory's own `conf.id` is read too. Without that, a
     library cannot declare its own dependencies: the `gfx` library in a
     standard library could not say it needs `backends/gfx`, so every program
     that used one line of it had to name the backend itself -- which defeats
@@ -4779,7 +4915,7 @@ def resolve_deps(root):
             seen.add(key)
             if os.path.isfile(os.path.join(dep, "backend.json")):
                 # A backend is a leaf: it is native source plus a manifest,
-                # and it has no import.id of its own to follow.
+                # and it has no conf.id of its own to follow.
                 backends.append(dep)
             else:
                 sources.append(dep)
@@ -4790,7 +4926,7 @@ def resolve_deps(root):
 def dedupe_backends(dirs):
     """One backend named twice is still one backend.
 
-    `--backend backends/fs` on a project whose import.id already imports it --
+    `--backend backends/fs` on a project whose conf.id already imports it --
     the two documented ways to attach the same dependency -- used to append the
     directory twice, compile its sources twice, and hand cc the same object
     file twice, which is a hard "multiple definition" error for every symbol
@@ -4929,16 +5065,27 @@ def main(argv):
                     help="run every function's test cases (docs/TESTS.md) and "
                          "fail the build if one fails; nothing is written until "
                          "they pass, --emit-c included")
+    ap.add_argument("--strict-const", action="store_true",
+                    help="reject an exported value that is assigned once and "
+                         "never changed; it belongs in conf.id")
     ap.add_argument("--require-tests", action="store_true",
                     help="additionally reject any function carrying fewer than "
                          "two cases (implies --tests)")
     ap.add_argument("--backend", action="append", default=[], metavar="DIR",
-                    help="DEPRECATED: prefer an import.id manifest in the project. "
+                    help="DEPRECATED: prefer an conf.id manifest in the project. "
                          "Link a native backend directory (reads its backend.json "
                          "for this platform's sources and link flags); repeatable")
     args = ap.parse_args(argv)
     if args.require_tests:
         args.tests = True
+    # Off by default, and the reason is not caution: it is correct today and
+    # every program fails it, because idstd's fx_sintab is a 91-entry literal
+    # assigned once in a function that does nothing else -- exactly what the
+    # check is for. It cannot be the default until conf.id constants are
+    # EMITTED (they are parsed and ordered, not yet declared as globals) and
+    # idstd has moved its own across. See docs/TODO.md.
+    global STRICT_CONST
+    STRICT_CONST = args.strict_const
 
     try:
         # Every source root, in the order they are added: the program's own
@@ -4948,8 +5095,8 @@ def main(argv):
         if os.path.isdir(args.path):
             roots.append(args.path)
             source_files = collect_project(args.path)
-            # Dependencies declared in the project's import.id, and in the
-            # import.id of every directory it reaches: a backend dir is linked
+            # Dependencies declared in the project's conf.id, and in the
+            # conf.id of every directory it reaches: a backend dir is linked
             # (like --backend); any other dir is merged in as id source.
             dep_sources, dep_backends = resolve_deps(args.path)
             args.backend.extend(dep_backends)

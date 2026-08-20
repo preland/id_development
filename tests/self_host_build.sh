@@ -178,7 +178,7 @@ else
     bad "hidden dirs: not counted, not compiled (idc.py rc=$py_rc bin/idc rc=$self_rc)"
 fi
 
-# (b) an absolute path in import.id resolves, as it does under idc.py.
+# (b) an absolute path in conf.id resolves, as it does under idc.py.
 lib="$TMP/implib"; app="$TMP/impapp"
 mkdir -p "$lib" "$app"
 cat > "$lib/h.id" <<'EOF'
@@ -187,12 +187,12 @@ EOF
 cat > "$app/main.id" <<'EOF'
 main(int argc, string[] argv) { print(imp_helper()); } return int 0;
 EOF
-printf 'import "%s"\n' "$lib" > "$app/import.id"
+printf 'import "%s"\n' "$lib" > "$app/conf.id"
 if $BIN_IDC "$app" -o "$TMP/imp.bin" >/dev/null 2>&1 \
    && [ "$("$TMP/imp.bin")" = "5" ]; then
-    ok "import.id: an absolute dependency path resolves"
+    ok "conf.id: an absolute dependency path resolves"
 else
-    bad "import.id: an absolute dependency path resolves"
+    bad "conf.id: an absolute dependency path resolves"
 fi
 
 # (c) --triple reaches idparse, which is what selects among asm overloads.
@@ -224,7 +224,7 @@ else
     bad "bin/idc caches idlex/idparse across runs (no rebuild)"
 fi
 
-# A nested import.id is a source file that silently does not exist: it is
+# A nested conf.id is a source file that silently does not exist: it is
 # filtered out as metadata and only a ROOT's is read as a manifest, so anything
 # it defines vanishes and the caller is blamed with "no such function". Both
 # compilers must say what actually happened. Found by a rename that happened to
@@ -235,7 +235,7 @@ main(int argc, string[] argv) {
   print(helper());
 } return int 0;
 EOF
-cat > "$TMP/nested/sub/import.id" <<'EOF'
+cat > "$TMP/nested/sub/conf.id" <<'EOF'
 helper() {
   int r = 42;
 } return int r;
@@ -243,9 +243,9 @@ EOF
 nested_msg="is the dependency manifest and is only read at the root"
 if $BIN_IDC "$TMP/nested" -o "$TMP/nested.bin" 2>&1 | grep -q "$nested_msg" \
    && $IDC "$TMP/nested" -o "$TMP/nested.bin" 2>&1 | grep -q "$nested_msg"; then
-    ok "a nested import.id is reported, by both compilers"
+    ok "a nested conf.id is reported, by both compilers"
 else
-    bad "a nested import.id is reported, by both compilers"
+    bad "a nested conf.id is reported, by both compilers"
 fi
 
 # Test clauses (docs/TESTS.md) are part of a declaration, so BOTH compilers

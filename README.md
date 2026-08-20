@@ -214,7 +214,7 @@ resolves them as follows — revisit as the language evolves:
 ## The standard library (`idstd`)
 
 `idstd` is `id`'s standard library, and it is **imported by default**: a program
-calls `fx_max` with no `import.id` line and no flag. It lives in its own
+calls `fx_max` with no `conf.id` line and no flag. It lives in its own
 repository, beside this one.
 
 ```sh
@@ -229,8 +229,8 @@ standard library, which is not an error — the compiler has to keep building it
 own bootstrap in a tree where the library does not exist. `IDC_NO_STD=1` is
 `--no-std` for scripts that cannot pass a flag.
 
-The library is merged exactly like a source dependency named in an `import.id`:
-the same 3-entries-per-directory rule applies to it, and its own `import.id` is
+The library is merged exactly like a source dependency named in an `conf.id`:
+the same 3-entries-per-directory rule applies to it, and its own `conf.id` is
 followed, so a stdlib module that needs a native backend declares it once
 instead of every program naming it.
 
@@ -265,9 +265,9 @@ still outstanding.
 A **backend** is a directory with a `backend.json` and some native source. It
 supplies functions no `.id` file defines; `idc` resolves those calls as
 link-time symbols and links the backend's objects into the program. Attach one
-with a project's `import.id` (preferred) or a `--backend DIR` flag.
+with a project's `conf.id` (preferred) or a `--backend DIR` flag.
 
-**Imports are transitive.** An imported directory's own `import.id` is read too,
+**Imports are transitive.** An imported directory's own `conf.id` is read too,
 so a library can declare the backend it needs and every program that uses it
 gets one. Cycles and diamonds terminate — each directory is visited once, keyed
 on its resolved path.
