@@ -48,13 +48,35 @@ runs it today; with the flag, `idstd`'s `fx_sintab` is the first thing it names.
 
 ## 4. `conf.id` constants are parsed but not emitted
 
-`conf.id` accepts `int name = value;` after its imports, and rejects an import
-that follows a constant. Nothing yet turns those lines into program globals, so
-a constant declared there does not exist at run time. Until it does,
-`--strict-const` names constants it has nowhere to put.
+`conf.id` accepts `int name = value;` after its imports and rejects an import
+that follows one. Nothing yet turns those lines into program globals, so a
+constant declared there does not exist at run time, and `--strict-const` names
+constants it has nowhere to put.
 
-Order: emit them, migrate `idstd`'s `fx_sintab` and friends across, then turn
+**The design, and the obstacle, both established.** A constant must reach
+`idparse`, which does the checking and the emission, and `id` cannot read a
+file — so it travels in the source stream as a marker, exactly as `#file N|PATH`
+already does. Four parts:
+
+1. `bin/idc` and `idc.py` read the constants from `conf.id` and inject
+   `#const int name = value;` ahead of the source, next to where they already
+   inject `#file`.
+2. The **lexer must learn a second marker**, and today it cannot: `scan_hash`
+   slices unconditionally past `"#file "`, six characters, so `#const int
+   max_depth = 3;` lexes as `file  int max_depth = 3;`. Verified. It has to
+   dispatch on the marker word instead.
+3. `mid/` registers the name as an export with no declaring function — which
+   is the entire point, since a constant needs no init call — so
+   `check_dead_exports` must not ask which function declares it.
+4. `back/` emits it at file scope with a static initialiser
+   (`long long id_max_depth = 3;`) rather than as an assignment inside a
+   function.
+
+Then migrate `idstd`'s `fx_sintab` across, delete `fx_trig_init`, and turn
 `--strict-const` on by default.
+
+Byte-parity is the gate throughout: both compilers must inject the same
+markers in the same order and emit the same C.
 
 ## 5. `--tests` in the self-hosted compiler
 
