@@ -200,3 +200,28 @@ The order that keeps the tree building: turn `--tests` on everywhere, then
 where an untested function costs the most), then new code, then the
 compiler's own source last — it is the largest and the one whose behaviour is
 already pinned by `tools/parity.sh` and `tests/conform.sh`.
+
+### Where the rollout actually stands
+
+> **Status, 2026-08-19.**
+>
+> **`--require-tests` is enforced by the primary compiler.** It used to exist
+> only in `idc.py` — the self-hosted compiler parsed cases and ignored them,
+> which meant the rule was not a rule of the language, only of the bootstrap
+> that is being retired. `bin/idc --require-tests` now applies it, with the
+> same diagnostic text, checked against `idc.py` case by case in
+> `tests/tests_feature.sh`. The check is
+> `mid/names/limits/shape/cases/`, a sibling of the action limit: a rule about
+> the shape of a declaration, and the only one of them that is a minimum.
+>
+> **Cases written so far: 0, of 6816.** That number is the honest state of
+> this document. The syntax has existed on both sides for a while and nothing
+> in any of the three repositories uses it, which is the failure mode the rule
+> is meant to prevent, showing up in the rule's own rollout.
+>
+> **`--tests` is not yet in the self-hosted compiler.** Running a case needs a
+> generated entry point that calls each function and compares; only `idc.py`
+> emits one. `--require-tests` needs no such thing — it is a count — which is
+> why the enforcing half landed first and the executing half has not.
+>
+> Next: `idstd`, per the order above.

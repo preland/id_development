@@ -118,6 +118,54 @@ add(int a, int b) {
 EOF
 expect_build "--require-tests accepts a function with two cases" --require-tests
 
+# --- and the PRIMARY compiler enforces it too --------------------------------
+# The rule is only real if bin/idc applies it: idc.py is stage 0 and is being
+# retired, so a check that lives only there is a check the language does not
+# have. Both compilers must also give the SAME text, as tests/invalid.sh
+# requires of every other diagnostic.
+self_reject() { # desc, source, expected-substring
+    local desc="$1" src="$2" want="$3" out_self out_py rc_self rc_py
+    printf '%s' "$src" > "$TMP/p.id"
+    out_self=$(../bin/idc "$TMP/p.id" --require-tests --emit-c /dev/null 2>&1); rc_self=$?
+    out_py=$($IDC     "$TMP/p.id" --require-tests --emit-c /dev/null 2>&1); rc_py=$?
+    if [ "$rc_self" -eq 0 ]; then
+        bad "$desc (bin/idc built it; it should not have)"
+    elif ! printf '%s' "$out_self" | grep -qF "$want"; then
+        bad "$desc (bin/idc wrong message: $(printf '%s' "$out_self" | head -1))"
+    elif [ "$out_self" != "$out_py" ]; then
+        bad "$desc (compilers disagree: bin/idc='$out_self' idc.py='$out_py')"
+    else
+        ok "$desc"
+    fi
+}
+self_reject "bin/idc rejects a function with no cases" \
+    'add(int a, int b) {
+  int s = a + b;
+} return int s;
+' "function 'add' has 0 test case(s)"
+self_reject "bin/idc rejects a function with one case" \
+    'add(int a, int b) {
+  int s = a + b;
+} return int s;
+(1, 2):(3)
+' "function 'add' has 1 test case(s)"
+if ../bin/idc "$TMP/p.id" --emit-c /dev/null >/dev/null 2>&1; then
+    ok "bin/idc ignores cases without the flag"
+else
+    bad "bin/idc ignores cases without the flag"
+fi
+printf '%s' 'add(int a, int b) {
+  int s = a + b;
+} return int s;
+(1, 2):(3)
+(0, 0):(0)
+' > "$TMP/p.id"
+if ../bin/idc "$TMP/p.id" --require-tests --emit-c /dev/null >/dev/null 2>&1; then
+    ok "bin/idc accepts a function with two cases"
+else
+    bad "bin/idc accepts a function with two cases"
+fi
+
 # --- a void function, judged by what it left in its list argument ------------
 cat > "$TMP/p.id" <<'EOF'
 fill(int[] xs, int n) {

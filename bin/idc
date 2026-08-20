@@ -36,7 +36,7 @@ ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 IDC_PY="$ROOT/idc.py"
 
 usage() {
-    echo "usage: idc PATH [-o OUTPUT] [--emit-c FILE] [--keep-c] [--cc CC] [--backend DIR]... [--triple TRIPLE]" >&2
+    echo "usage: idc PATH [-o OUTPUT] [--emit-c FILE] [--keep-c] [--cc CC] [--backend DIR]... [--triple TRIPLE] [--require-tests]" >&2
 }
 
 PATH_ARG=""
@@ -46,6 +46,7 @@ EMIT_C=""
 KEEP_C=0
 CC=cc
 TRIPLE=""
+REQUIRE_TESTS=0
 NO_STD=0
 STD_DIR=""
 BACKENDS=()          # from --backend flags (passed through on fallback)
@@ -65,6 +66,8 @@ while [ $# -gt 0 ]; do
             BACKENDS+=("${2:?idc: --backend needs an argument}"); shift 2 ;;
         --triple)
             TRIPLE="${2:?idc: --triple needs an argument}"; shift 2 ;;
+        --require-tests)
+            REQUIRE_TESTS=1; shift ;;
         --no-std)
             NO_STD=1; shift ;;
         --std)
@@ -376,6 +379,11 @@ fi
 # user actually runs.
 if [ -n "$TRIPLE" ]; then
     PARSE_ARGS+=(--triple "$TRIPLE")
+fi
+# Every function must carry at least two test cases (docs/TESTS.md). Off by
+# default while the rollout is under way; the self-hosted compiler checks it.
+if [ "$REQUIRE_TESTS" -eq 1 ]; then
+    PARSE_ARGS+=(--require-tests)
 fi
 
 WORK=$(mktemp -d) || { echo "idc: mktemp failed" >&2; exit 1; }
