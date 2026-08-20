@@ -115,6 +115,47 @@ IDPARSE="$CACHE_DIR/idparse"
 STD_ARGS=()
 [ -n "$STD_DIR" ] && STD_ARGS=(--std "$STD_DIR")
 
+# ---------------------------------------------------------------------------
+# One line of progress, rewritten in place.
+#
+# It goes to stderr and ONLY when stderr is a terminal. Both halves matter:
+# stdout carries real output (`--emit-c -`, and the idlex|idparse pipeline
+# itself), and a carriage return in the middle of emitted C would be a bug;
+# while a non-terminal stderr is a log or a test capture, and
+# tests/invalid.sh compares diagnostics byte for byte against idc.py, so a
+# single extra character there fails the whole negative suite. When stderr is
+# not a tty every function below is a no-op -- not "quieter", silent.
+#
+# The line is cleared before anything else is written, so a diagnostic never
+# lands on top of half a progress bar.
+PROGRESS=0
+[ -t 2 ] && [ -z "${IDC_NO_PROGRESS:-}" ] && PROGRESS=1
+PROGRESS_OPEN=0
+
+# "1 file", not "1 files": the line is read on every build, so it is worth
+# the two lines it costs.
+plural() { [ "$1" -eq 1 ] && printf '%s %s' "$1" "$2" || printf '%s %ss' "$1" "$2"; }
+
+progress() { # progress STAGE [DETAIL]
+    [ "$PROGRESS" -eq 1 ] || return 0
+    PROGRESS_OPEN=1
+    printf '\r\033[K  %-8s %s' "$1" "${2:-}" >&2
+}
+
+# Wipe the line. Called before any real output, and on exit, so nothing is
+# ever printed over a partial line and no terminal is left with one.
+progress_clear() {
+    [ "$PROGRESS" -eq 1 ] && [ "$PROGRESS_OPEN" -eq 1 ] || return 0
+    printf '\r\033[K' >&2
+    PROGRESS_OPEN=0
+}
+
+progress_done() { # progress_done SUMMARY
+    progress_clear
+    [ "$PROGRESS" -eq 1 ] || return 0
+    printf '  %s\n' "$1" >&2
+}
+
 stale() { # stale BIN SRC_DIR -- true if BIN is missing or older than any .id under SRC_DIR
     local bin="$1" src="$2"
     [ -x "$bin" ] || return 0
@@ -134,14 +175,14 @@ stale() { # stale BIN SRC_DIR -- true if BIN is missing or older than any .id un
 # trade taken deliberately. Resolution order is the same as for any program:
 # --std, then $IDSTD_HOME, then a sibling idstd/.
 if stale "$IDLEX" "$ROOT/compiler/lex"; then
-    echo "idc: bootstrapping idlex from source (via idc.py)..." >&2
+    progress bootstrap "idlex (first build, via idc.py)"
     env -u IDC_NO_STD "$IDC_PY" "${STD_ARGS[@]}" "$ROOT/compiler/lex" -o "$IDLEX" >&2 \
-        || { echo "idc: failed to bootstrap idlex (needs idstd -- see --std)" >&2; exit 1; }
+        || { progress_clear; echo "idc: failed to bootstrap idlex (needs idstd -- see --std)" >&2; exit 1; }
 fi
 if stale "$IDPARSE" "$ROOT/compiler/parse"; then
-    echo "idc: bootstrapping idparse from source (via idc.py)..." >&2
+    progress bootstrap "idparse (first build, via idc.py)"
     env -u IDC_NO_STD "$IDC_PY" "${STD_ARGS[@]}" "$ROOT/compiler/parse" -o "$IDPARSE" >&2 \
-        || { echo "idc: failed to bootstrap idparse (needs idstd -- see --std)" >&2; exit 1; }
+        || { progress_clear; echo "idc: failed to bootstrap idparse (needs idstd -- see --std)" >&2; exit 1; }
 fi
 
 # ---------------------------------------------------------------------------
@@ -468,6 +509,7 @@ if [ "$EMIT_SOURCES" -eq 1 ]; then
     exit 0
 fi
 
+progress compile "$(plural "${#SRC_FILES[@]}" file) -> tokens -> C"
 emit_sources | "$IDLEX" 2>"$LEX_ERR" | "$IDPARSE" "${PARSE_ARGS[@]}" > "$C_OUT" 2>"$PARSE_ERR"
 rc=("${PIPESTATUS[@]}")
 lex_rc="${rc[1]}"
@@ -486,6 +528,7 @@ parse_rc="${rc[2]}"
 # check nine of the language's rules. idc.py's only remaining job is
 # bootstrapping idlex/idparse above, on a cold cache.
 compiler_bug() { # compiler_bug REASON
+    progress_clear
     echo "idc: internal error: $1" >&2
     [ -s "${C_OUT:-}" ] && echo "idc: the generated C is at $C_OUT" >&2
     echo "idc: this is a bug in the self-hosted compiler; please report it." >&2
@@ -500,6 +543,7 @@ compiler_bug() { # compiler_bug REASON
 # to idc.py, which would either repeat the error or, for a rule it does not
 # check, quietly accept it.
 if [ "$parse_rc" -eq 1 ]; then
+    progress_clear
     cat "$C_OUT" >&2
     [ -s "$PARSE_ERR" ] && cat "$PARSE_ERR" >&2
     rm -f "$C_OUT"
@@ -507,6 +551,7 @@ if [ "$parse_rc" -eq 1 ]; then
 fi
 
 if [ "$lex_rc" -ne 0 ] || [ "$parse_rc" -ne 0 ] || [ ! -s "$C_OUT" ]; then
+    progress_clear
     [ -s "$LEX_ERR" ] && cat "$LEX_ERR" >&2
     [ -s "$PARSE_ERR" ] && cat "$PARSE_ERR" >&2
     compiler_bug "idlex or idparse failed on this input"
@@ -518,7 +563,9 @@ fi
 # confusing error attributed to "C compilation failed" instead of the real
 # cause, gate on a real C compiler's syntax check now -- cheap (no linking)
 # and it's the one authoritative way to know the self-hosted output is sound.
+progress verify "checking the emitted C"
 if ! "$CC" -std=c11 -fsyntax-only "$C_OUT" 2>"$WORK/syntax.err"; then
+    progress_clear
     # Show what the C compiler actually said. Without this the message is
     # just "emitted C that does not compile", which is true and unusable --
     # the real diagnostic (a name colliding with a libc symbol, say) is
@@ -530,6 +577,7 @@ fi
 # ---------------------------------------------------------------------------
 # --emit-c: write the generated C and stop (matches idc.py --emit-c)
 if [ -n "$EMIT_C" ]; then
+    progress_done "wrote $EMIT_C ($(plural "${#SRC_FILES[@]}" "source file"))"
     cp "$C_OUT" "$EMIT_C" || exit 1
     echo "wrote $EMIT_C"
     exit 0
@@ -680,6 +728,7 @@ cmd=("$CC")
 [ "$have_main" -eq 0 ] && cmd+=("-c")
 cmd+=("-std=c11" "-O2" "$c_path" "${BACKEND_OBJS[@]}" "-o" "$OUT" "${BACKEND_LINK[@]}")
 
+progress link "cc -> $(basename "$OUT")"
 "${cmd[@]}" 2>"$WORK/cc.err"
 cc_rc=$?
 
@@ -695,6 +744,7 @@ for o in "${BACKEND_OBJS[@]}"; do rm -f "$o"; done
 # what actually went wrong was the one line the user never saw. Show it, and
 # describe the failure as what it is.
 if [ "$cc_rc" -ne 0 ]; then
+    progress_clear
     [ -s "$WORK/cc.err" ] && sed 's/^/idc:   /' "$WORK/cc.err" >&2
     echo "idc: C compilation failed (command: ${cmd[*]})" >&2
     echo "idc: the generated C passed a syntax check, so this is a link or environment" >&2
@@ -702,4 +752,5 @@ if [ "$cc_rc" -ne 0 ]; then
     echo "idc: symbols, which would be a bug in the self-hosted compiler worth reporting." >&2
     exit 1
 fi
+progress_done "built $OUT ($(wc -c < "$OUT" | tr -d " ") bytes, $(plural "${#SRC_FILES[@]}" "source file"))"
 exit 0

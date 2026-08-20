@@ -8,30 +8,23 @@
 
 Ordered by what unblocks the most. Everything here is open as of 2026-08-19.
 
-## 1. A single line of build progress in `bin/idc`
+## ~~1. A single line of build progress in `bin/idc`~~ — done
 
-Today `bin/idc` prints nothing while it works and, on failure, whatever the
-stages wrote to stderr. For a project of any size that is a silent pause
-followed by a wall.
+`bin/idc` rewrites one line in place through `bootstrap`, `compile`, `verify`
+and `link`, then collapses to a summary:
 
-It should show **one line**, rewritten in place, in the spirit of `npm`:
-what it is doing now and how far along it is — bootstrap, collect, lex, parse,
-check, emit, `cc` — and on success collapse to a single summary line. On
-failure it should stop the line and print the errors **concisely**: the
-diagnostics themselves, grouped, without the C compiler's own noise unless
-that is genuinely the fault.
+```
+  built build/hello (16744 bytes, 51 source files)
+```
 
-Constraints worth stating before anyone builds it:
+On failure the line is **cleared** rather than written over, so a diagnostic
+never lands on top of half a progress bar.
 
-- The line goes to **stderr**, never stdout: `bin/idc PATH --emit-c -` and the
-  `idlex | idparse` pipeline both put real output on stdout, and a progress
-  animation in the middle of emitted C would be a bug.
-- It must **disable itself when stderr is not a terminal**, or every CI log
-  and every `2>` capture in `tests/` fills with carriage returns.
-- `tests/invalid.sh` compares diagnostics **byte for byte against `idc.py`**.
-  Progress output must not reach that comparison, and the error format must
-  not change, or the whole negative suite fails. This is the real constraint:
-  the pretty part is easy, keeping the diagnostics identical is the work.
+The constraint named below turned out to be the whole design: progress goes to
+stderr and only when stderr is a terminal, so a log, a pipe or a test capture
+sees **zero extra bytes**. `IDC_NO_PROGRESS=1` turns it off on a terminal too.
+Verified: `bin/idc` writes 0 bytes to a redirected stderr on success, and its
+error text is still byte-identical to `idc.py`'s.
 
 ## 2. Test cases that can set global state
 
