@@ -195,6 +195,52 @@ else
     bad "conf.id: an absolute dependency path resolves"
 fi
 
+# (b2) a conf.id constant becomes a program global, initialised before main
+#      runs rather than by a function nothing calls (docs/TODO.md item 4).
+#      bin/idc only: idc.py never learned conf.id constants and is not going
+#      to -- the compiler's own source declares none, so the bootstrap rule
+#      says it does not need them.
+proj="$TMP/consts"
+mkdir -p "$proj"
+cat > "$proj/conf.id" <<'EOF'
+int max_depth = 7;
+int fanout = 3;
+EOF
+cat > "$proj/main.id" <<'EOF'
+main(int argc, string[] argv) {
+  print((import max_depth) * (import fanout));
+} return int 0;
+EOF
+if $BIN_IDC "$proj" -o "$TMP/consts.bin" >/dev/null 2>&1 \
+   && [ "$("$TMP/consts.bin")" = "21" ]; then
+    ok "conf.id: a constant is a global, initialised before main"
+else
+    bad "conf.id: a constant is a global, initialised before main"
+fi
+
+# and it is emitted at file scope with its initialiser attached, which is what
+# makes "no function declares it" true rather than merely unreported.
+if $BIN_IDC "$proj" --emit-c "$TMP/consts.c" >/dev/null 2>&1 \
+   && grep -q '^int max_depth = 7;  /\* constant from conf.id \*/$' "$TMP/consts.c"; then
+    ok "conf.id: a constant is emitted with a static initialiser"
+else
+    bad "conf.id: a constant is emitted with a static initialiser"
+fi
+
+# a constant is an exported name, so a function may not export it again.
+cat > "$proj/main.id" <<'EOF'
+main(int argc, string[] argv) {
+  export int max_depth = 1;
+  print((import max_depth));
+} return int 0;
+EOF
+if $BIN_IDC "$proj" -o "$TMP/consts.bin" 2>&1 \
+   | grep -q "'max_depth' is already an exported global"; then
+    ok "conf.id: a constant reserves its name against a later export"
+else
+    bad "conf.id: a constant reserves its name against a later export"
+fi
+
 # (c) --triple reaches idparse, which is what selects among asm overloads.
 cat > "$TMP/asm.id" <<'EOF'
 main(int argc, string[] argv) {

@@ -1,7 +1,10 @@
-// Top level is now either an asm declaration or an ordinary function.
+// Top level is a marker the driver injected -- a file boundary or a conf.id
+// constant -- or an ordinary declaration.
 parse_top(int[] pos) {
   if(cur_kind(pos) == "file") {
     take_file(pos);
+  } else if(cur_kind(pos) == "const") {
+    take_const(pos);
   } else {
     parse_decl_top(pos);
   }

@@ -32,8 +32,12 @@ chk_dead() {
 //
 //   rfn     the reachable function names
 //   dphase  0 while reachability is still growing, 1 for the final sweep
+// "conf.id" is seeded alongside "main" because a constant has no declaring
+// function to reach: it is emitted as a static initialiser, so it holds its
+// value before main runs and can never be the uninitialised read this check
+// exists to find.
 init_reach() {
-  export string[] rfn = ["main"];
+  export string[] rfn = ["main", "conf.id"];
   export int[] dphase = [0];
 } return void;
 
