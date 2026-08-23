@@ -3,8 +3,8 @@
 
 Two files, both from the same source of truth:
 
-  back/out/sink/runtime.id       emit_runtime(), the prelude verbatim
-  back/out/sink/reserved.gen.id  resv_names(), the helper names it
+  back/tgt/c/runtime/runtime.id       emit_runtime(), the prelude verbatim
+  back/tgt/c/runtime/reserved.gen.id  resv_names(), the helper names it
                                         defines, which an id program may
                                         therefore not name a function after
 
@@ -25,9 +25,9 @@ sys.path.insert(0, ROOT)
 import idc  # noqa: E402
 
 OUT = os.path.join(ROOT, "compiler", "parse",
-                   "back", "out", "sink", "runtime.id")
+                   "back", "tgt", "c", "runtime", "runtime.id")
 RESV_OUT = os.path.join(ROOT, "compiler", "parse",
-                        "back", "out", "sink", "reserved.gen.id")
+                        "back", "tgt", "c", "runtime", "reserved.gen.id")
 
 
 def escape(s: str) -> str:
