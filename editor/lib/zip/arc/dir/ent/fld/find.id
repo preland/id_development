@@ -1,0 +1,35 @@
+// Looking an entry up, and the one slice helper the whole module shares.
+
+// -1 for a name that is not in the archive, which is a value rather than an
+// abort: a document reader asks for entries that are optional -- a thumbnail,
+// a settings file -- and has to be able to ask.
+//
+// xs is the archive the caller means. Only one archive is open at a time, so
+// nothing reads it; taking it keeps the call site honest about which one.
+zip_find(int[] xs, string name) {
+  int[] buf = [0, -1];
+  while (buf[0] < len((import zip_names)) && buf[1] < 0) {
+    zip_hit(buf, name);
+  }
+} return int buf[1];
+
+// buf is [where to look, what was found], the same pair zip_eocd uses, and
+// for the same reason: the loop condition has to stop on a hit.
+zip_hit(int[] buf, string name) {
+  if ((import zip_names)[buf[0]] == name) {
+    lset(buf, 1, buf[0]);
+  }
+  lset(buf, 0, buf[0] + 1);
+} return void;
+
+// A stretch of a byte buffer, copied. Written once and shared with the
+// inflater, which needs it to cut one run of code lengths into two alphabets:
+// a second function with this body could not be defined anywhere in the tree.
+zip_slice(int[] xs, int at, int n) {
+  int[] buf = [];
+  int i = 0;
+  while (i < n) {
+    push(buf, xs[at + i]);
+    i = i + 1;
+  }
+} return int[] buf;

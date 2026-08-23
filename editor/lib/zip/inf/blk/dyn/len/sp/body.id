@@ -1,0 +1,31 @@
+// The body of a Huffman block, fixed or dynamic: symbols until 256.
+
+// rows is the literal/length tree and grid the distance tree, each a
+// [counts, symbols] pair. dst is the end flag, in a list because the loop
+// condition has to see what the body wrote.
+inf_body(int[][] rows, int[][] grid) {
+  int[] dst = [0];
+  while (dst[0] == 0) {
+    inf_sym(rows, grid, dst);
+  }
+} return void;
+
+// 0-255 is a byte; everything above is the end of the block or a match.
+inf_sym(int[][] rows, int[][] grid, int[] dst) {
+  int n = inf_decode(rows[0], rows[1]);
+  if (n < 256) {
+    inf_emit(n);
+  } else {
+    inf_end(n, grid, dst);
+  }
+} return void;
+
+// 256 is end-of-block. It does not end the stream: BFINAL does, and a stream
+// of several blocks reaches this once per block.
+inf_end(int n, int[][] grid, int[] dst) {
+  if (n == 256) {
+    lset(dst, 0, 1);
+  } else {
+    inf_match(n, grid[0], grid[1]);
+  }
+} return void;

@@ -1,0 +1,15 @@
+rd_be16(int[] xs, int at) {
+} return int xs[at] * 256 + xs[at + 1];
+
+rd_be32(int[] xs, int at) {
+  word a = rd_be16(xs, at);
+} return word a * 65536 + rd_be16(xs, at + 2);
+
+// A TrueType coordinate is a signed 16-bit big-endian value, and there is no
+// narrower signed type to read it into -- so the sign is put back by hand.
+rd_i16(int[] xs, int at) {
+  int r = rd_be16(xs, at);
+  if(r > 32767) {
+    r = r - 65536;
+  }
+} return int r;

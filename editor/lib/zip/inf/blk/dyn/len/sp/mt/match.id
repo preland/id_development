@@ -1,0 +1,29 @@
+// LZ77 back-references: the length, then the distance, then the copy.
+
+// The length is taken first and into a local, because it reads extra bits and
+// the distance code that follows reads more; two statements are ordered where
+// two operands of one expression are not.
+inf_match(int n, int[] xs, int[] buf) {
+  int k = inf_len(n);
+  inf_back(inf_dist(inf_decode(xs, buf)), k);
+} return void;
+
+// `at` is a distance back from the end of the output, so the source index is
+// computed once, before anything is appended.
+inf_back(int at, int n) {
+  int[] xs = [len((import inf_out)) - at, n];
+  while (xs[1] > 0) {
+    inf_copy(xs);
+  }
+} return void;
+
+// One byte at a time, forwards, reading the output as it grows. That is not a
+// slow way of writing a block copy -- it is the definition: a match whose
+// distance is less than its length repeats what it has just written, which is
+// how DEFLATE spells a run, and a block move would read bytes that are not
+// there yet.
+inf_copy(int[] xs) {
+  inf_emit((import inf_out)[xs[0]]);
+  lset(xs, 0, xs[0] + 1);
+  lset(xs, 1, xs[1] - 1);
+} return void;

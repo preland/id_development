@@ -1,0 +1,23 @@
+// Reading integers out of a byte buffer.
+//
+// Every module here reads a file it did not write, so the bytes arrive as an
+// `int[]` -- one byte per cell, bounds-checked on every read. A wrong offset
+// aborts rather than returning a number from somewhere else in the document,
+// which is the whole reason not to put them in the flat store.
+//
+// Little endian is how ZIP and DEFLATE write; big endian is how TrueType
+// does. See ../../../NAMES.md.
+//
+// There is no `rd_u8`. It would be `xs[at]`, which is `idstd`'s `lget`, and
+// two functions with one body are a compile error -- correctly: a byte is
+// read by indexing, and a name for that is a name for nothing.
+
+rd_le16(int[] xs, int at) {
+} return int xs[at] + xs[at + 1] * 256;
+
+// A `word`, because a full 32-bit field does not fit an `int`: a CRC or a
+// size with the high bit set would come back negative, and the caller would
+// have no way to tell that from a small file.
+rd_le32(int[] xs, int at) {
+  word a = rd_le16(xs, at + 2);
+} return word rd_le16(xs, at) + a * 65536;

@@ -1,0 +1,38 @@
+// The ZIP archive: an .odt, a .docx and a .jar are all this format.
+//
+// The whole file is read into an `int[]`, one byte per cell. That is the
+// expensive choice and the right one: a ZIP is read from the end and then
+// jumped around in, so a streaming reader would need seeks the fs backend
+// does not offer, and a document is a few hundred kilobytes.
+//
+// The directory is parsed into exported parallel lists -- names, methods,
+// sizes, offsets -- so one archive is open at a time. zip_find and zip_read
+// take the byte buffer as well, because that is the argument that says *which*
+// archive the caller means even though only one can be current.
+
+// The bytes of any file, directory or not. inflate needs this too, for a raw
+// DEFLATE stream that never went through a ZIP.
+zip_bytes(string path) {
+  int[] xs = [];
+  zip_size(path, xs);
+  zip_load(path, xs);
+} return int[] xs;
+
+// The archive, ready for zip_find and zip_read.
+zip_open(string path) {
+  int[] xs = zip_bytes(path);
+  zip_dir(xs);
+} return int[] xs;
+
+// fs_size returns -1 for a file that is not there, and lst_fill of -1 cells
+// is silently an empty buffer -- so the size is checked here rather than
+// discovered later as an index trap with nothing naming the file. Nothing is
+// said here about how big an *archive* has to be: a raw DEFLATE stream is
+// four bytes, and this is also the way one is read.
+zip_size(string path, int[] xs) {
+  int n = fs_size(path);
+  if (n < 0) {
+    inf_fail("zip: cannot read " + path);
+  }
+  lst_fill(xs, n, 0);
+} return void;

@@ -1,0 +1,35 @@
+// Extracting one entry.
+
+// The local file header repeats the name, and may carry a *different* extra
+// field from the central directory's copy of it -- so the two lengths that say
+// where the data starts have to be read from the local header, not from the
+// entry this reader already parsed. Trusting the central directory's lengths
+// is the classic ZIP reader bug and it reads a few bytes into the data.
+zip_read(int[] xs, int i) {
+  int at = (import zip_off)[i];
+  int n = 30 + rd_le16(xs, at + 26) + rd_le16(xs, at + 28);
+  zip_sig(zip_u32(xs, at), 67324752);
+} return int[] zip_data(xs, at + n, i);
+
+// Method 0 is stored: the entry is its own compressed size of bytes.
+zip_data(int[] xs, int at, int i) {
+  int[] buf = [];
+  if ((import zip_meth)[i] == 0) {
+    buf = zip_slice(xs, at, (import zip_csz)[i]);
+  } else {
+    buf = zip_infl(xs, at, i);
+  }
+} return int[] buf;
+
+// Method 8 is DEFLATE, and those two are the whole of what an OpenDocument
+// or an OOXML file uses. The rest of the method numbers -- bzip2, LZMA, zstd
+// -- are reported rather than guessed at, because an editor that shows a
+// document decompressed with the wrong algorithm is worse than one that stops.
+zip_infl(int[] xs, int at, int i) {
+  int[] buf = [];
+  if ((import zip_meth)[i] == 8) {
+    buf = inf_inflate(xs, at);
+  } else {
+    inf_fail("zip: unsupported compression method " + (import zip_meth)[i]);
+  }
+} return int[] buf;

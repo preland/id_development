@@ -1,0 +1,25 @@
+// Splitting one run of code lengths into two alphabets, and the two small
+// tables that did not fit beside their neighbours.
+
+// zip_slice does the cutting because a copy of a stretch of a byte list is
+// wanted in three places, and two functions with one body do not coexist.
+inf_split(int[] buf, int n, int k) {
+  int[][] rows = inf_tree(zip_slice(buf, 0, n));
+  int[][] grid = inf_tree(zip_slice(buf, n, k));
+  inf_body(rows, grid);
+} return void;
+
+// The fixed distance alphabet: thirty five-bit codes. Two more codes exist in
+// the fixed tree and are never valid, and leaving them out means a stream that
+// uses one aborts here rather than indexing an empty entry in the base table.
+inf_fix_dist() {
+  int[] xs = [];
+  lst_fill(xs, 30, 5);
+} return int[] xs;
+
+// A length code is 257 + an index into the base and extra-bit tables, and the
+// extra bits follow the code immediately -- before the distance code, which is
+// why this is a statement of its own in inf_match.
+inf_len(int n) {
+  int i = n - 257;
+} return int (import inf_lb)[i] + inf_bits((import inf_le)[i]);

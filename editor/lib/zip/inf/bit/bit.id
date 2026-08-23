@@ -1,0 +1,37 @@
+// The bit reader, and the one place the two bit orders in DEFLATE meet.
+//
+// RFC 1951 packs the bits of a stream starting at the *least* significant bit
+// of each byte, so bit n of the stream is bit (n & 7) of byte (n >> 3). A
+// multi-bit field -- a block type, a length's extra bits -- is filled from
+// that stream least-significant bit first, which is what inf_bits does.
+//
+// Huffman codes are the exception and read the other way: their bits arrive in
+// the same order but are packed into the code most significant first, so
+// inf_decode shifts its accumulator left and adds, one bit at a time, rather
+// than calling inf_bits. Getting those two backwards produces a decoder that
+// reads a plausible number of bytes and returns rubbish, so they are kept in
+// separate functions and neither is written in terms of the other.
+
+// One bit, and the position moves on. The byte is fetched before the position
+// is bumped because `at` is wanted twice and there is no second name for it.
+inf_bit() {
+  int at = (import inf_bp)[0];
+  int b = (import inf_in)[at >> 3];
+  lset((import inf_bp), 0, at + 1);
+} return int (b >> (at & 7)) & 1;
+
+// n bits as an integer, first bit read becoming bit 0. n may be 0, which is
+// how a length or distance code with no extra bits is read without a case.
+inf_bits(int n) {
+  int[] xs = [0, 0];
+  while (xs[1] < n) {
+    inf_take(xs);
+  }
+} return int xs[0];
+
+// Cell 0 is the value so far and cell 1 is how many bits are in it; a pair of
+// plain locals cannot be used because the loop condition is outside the body.
+inf_take(int[] xs) {
+  lset(xs, 0, xs[0] + (inf_bit() << xs[1]));
+  lset(xs, 1, xs[1] + 1);
+} return void;

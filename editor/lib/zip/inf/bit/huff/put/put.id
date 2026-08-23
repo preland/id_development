@@ -1,0 +1,39 @@
+// Placing the symbols, and reading one back out of the stream.
+
+// Symbols in code order: ascending by length, and within a length ascending
+// by symbol, which falls out of walking the alphabet in order and handing
+// each symbol the next free slot for its length.
+inf_walk(int[] xs, int[] buf, int[] row) {
+  int i = 0;
+  while (i < len(xs)) {
+    inf_put(xs, buf, row, i);
+    i = i + 1;
+  }
+} return void;
+
+// Length 0 means the symbol has no code, and it is skipped rather than given
+// slot 0 -- otherwise every absent symbol would collide on the same cell.
+inf_put(int[] xs, int[] buf, int[] row, int i) {
+  int n = xs[i];
+  if (n > 0) {
+    lset(row, buf[n], i);
+    lset(buf, n, buf[n] + 1);
+  }
+} return void;
+
+// One symbol, bit by bit, most significant first within the code -- see
+// bit/bit.id for why this cannot go through inf_bits.
+//
+// xs is [code, first, index, length, symbol]: the code read so far, the first
+// code of this length, where this length's symbols start, how many bits are
+// in hand, and the answer once there is one. A symbol of -1 means "not yet",
+// which is what the loop tests, because there is no `break`. Fifteen is the
+// longest legal code, so a corrupt stream runs the length past the end of the
+// count list on the sixteenth pass and aborts rather than spinning.
+inf_decode(int[] tab, int[] row) {
+  int[] xs = [0, 0, 0, 1, -1];
+  while (xs[4] < 0) {
+    inf_dec_step(xs, tab, row);
+    lset(xs, 3, xs[3] + 1);
+  }
+} return int xs[4];
