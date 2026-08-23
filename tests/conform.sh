@@ -4,6 +4,12 @@
 #
 # `tools/parity.sh` compares the *text* two compilers emit, which is only a
 # question that exists while both of them emit C. It cannot say anything about
+# The `llvm` target here is `bin/idc --target llvm` -- the primary compiler's
+# own LLVM back end, which lowers to the SSA IR in compiler/parse/back/ir and
+# prints it (docs/LLVM.md). `idc.py --target llvm` is a separate, older code
+# generator that is being retired with the rest of that file; it is no longer
+# what this suite holds the language to.
+#
 # `--target llvm` or `--target wasm`, and it never will. This file asks the
 # question that survives a second target: build the same program every way the
 # toolchain can, run it, and require the same stdout, the same exit code and
@@ -83,7 +89,7 @@ run_case() {
         c)    bin="$TMP/$slug.c.bin"
               "$BIN_IDC" "$src" -o "$bin" >"$TMP/build.log" 2>&1 ;;
         llvm) bin="$TMP/$slug.llvm.bin"
-              python3 "$IDC_PY" "$src" --target llvm -o "$bin" \
+              "$BIN_IDC" "$src" --target llvm -o "$bin" \
                   >"$TMP/build.log" 2>&1 ;;
         wasm) bin="$TMP/$slug.wasm"
               python3 "$IDC_PY" "$src" --target wasm -o "$bin" \

@@ -1,0 +1,19 @@
+pred_wipe(int[] l) {
+  while(len(l) > 0) {
+    pop(l);
+  }
+} return void;
+
+// A block's successors are the blocks its terminator names, and its terminator
+// is its last instruction -- every block has one, because the lowering never
+// leaves a block open.
+pred_of(int b) {
+  pred_succ(b, blk_ins(b)[len(blk_ins(b)) - 1], 0);
+} return void;
+
+pred_succ(int b, int v, int i) {
+  while(i < len(ir_bl(v))) {
+    push(blk_pre(ir_bl(v)[i]), b);
+    i = i + 1;
+  }
+} return void;

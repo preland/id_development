@@ -36,13 +36,18 @@ ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 IDC_PY="$ROOT/idc.py"
 
 usage() {
-    echo "usage: idc PATH [-o OUTPUT] [--emit-c FILE] [--keep-c] [--cc CC] [--backend DIR]... [--triple TRIPLE] [--require-tests]" >&2
+    echo "usage: idc PATH [-o OUTPUT] [--target c|llvm] [--freestanding] [--runtime] [-O LEVEL] [--emit-c FILE] [--emit-llvm FILE] [--keep-c] [--cc CC] [--backend DIR]... [--triple TRIPLE] [--require-tests]" >&2
 }
 
 PATH_ARG=""
 OUTPUT=""
 BUILD_DIR="build"
 EMIT_C=""
+EMIT_LLVM=""
+TARGET=c
+OPT=1
+FREESTANDING=0
+RUNTIME=0
 KEEP_C=0
 CC=cc
 TRIPLE=""
@@ -77,8 +82,23 @@ while [ $# -gt 0 ]; do
         --std)
             STD_DIR="${2:?idc: --std needs an argument}"; shift 2 ;;
         --target)
-            echo "idc: --target is not supported by the self-hosted driver (only the C target is self-hosted); use idc.py --target ${2:-llvm|wasm} instead" >&2
-            exit 2 ;;
+            TARGET="${2:?idc: --target needs an argument}"
+            case "$TARGET" in
+                c|llvm) ;;
+                *) echo "idc: unknown --target '$TARGET' (this driver has 'c' and 'llvm'; for wasm use idc.py)" >&2
+                   exit 2 ;;
+            esac
+            shift 2 ;;
+        --freestanding)
+            FREESTANDING=1; TARGET=llvm; shift ;;
+        --runtime)
+            RUNTIME=1; FREESTANDING=1; TARGET=llvm; shift ;;
+        -O)
+            OPT="${2:?idc: -O needs a level}"; shift 2 ;;
+        -O0|-O1|-O2|-O3)
+            OPT="${1#-O}"; shift ;;
+        --emit-llvm)
+            EMIT_LLVM="${2:?idc: --emit-llvm needs an argument}"; TARGET=llvm; shift 2 ;;
         -h|--help)
             usage; exit 0 ;;
         --)
@@ -475,6 +495,12 @@ fi
 WORK=$(mktemp -d) || { echo "idc: mktemp failed" >&2; exit 1; }
 trap 'rm -rf "$WORK"' EXIT
 
+if [ "$TARGET" = llvm ]; then
+    PARSE_ARGS+=(--target llvm --opt "$OPT")
+    [ "$FREESTANDING" -eq 1 ] && PARSE_ARGS+=(--freestanding)
+    [ "$RUNTIME" -eq 1 ] && PARSE_ARGS+=(--runtime)
+fi
+
 C_OUT="$WORK/out.c"
 LEX_ERR="$WORK/lex.err"
 PARSE_ERR="$WORK/parse.err"
@@ -579,6 +605,121 @@ if [ "$lex_rc" -ne 0 ] || [ "$parse_rc" -ne 0 ] || [ ! -s "$C_OUT" ]; then
     compiler_bug "idlex or idparse failed on this input"
 fi
 
+# The output path, chosen the same way whichever target produced the code:
+# the project directory's name or the file's stem, an executable when the
+# program has a main and a .o when it does not. Reads have_main and OUTPUT.
+choose_output() {
+    # default output name: the project directory's name, or the file's stem
+    # (idc.py: os.path.basename(first if isdir else splitext(first)[0]))
+    if [ -n "$OUTPUT" ]; then
+        OUT="$OUTPUT"
+    else
+        first="${PATH_ARG%/}"
+        if [ -d "$first" ]; then
+            base="$(basename "$first")"
+        else
+            base="$(basename "$first")"
+            base="${base%.*}"
+        fi
+        if [ "$have_main" -eq 1 ]; then OUT="$BUILD_DIR/$base"; else OUT="$BUILD_DIR/$base.o"; fi
+        mkdir -p "$BUILD_DIR" || exit 1
+    fi
+
+    # An explicit -o can still land on a directory, and cc then fails with "cannot
+    # open output file: Is a directory", which this driver used to report as "a bug
+    # in the self-hosted compiler". A name this driver chose, it re-chooses; a name
+    # the user chose with -o, it reports. Mirrors idc.py's choose_output_path.
+    if [ -d "$OUT" ]; then
+        if [ -n "$OUTPUT" ]; then
+            echo "idc: -o '$OUT' is a directory; choose a different output path" >&2
+            exit 1
+        fi
+        if [ -d "$OUT.out" ]; then
+            echo "idc: '$OUT' and '$OUT.out' are both directories; pass -o NAME to name the executable" >&2
+            exit 1
+        fi
+        echo "idc: '$OUT' is the project directory, so the executable cannot take its name;" >&2
+        echo "idc: writing it to '$OUT.out' instead (pass -o NAME to choose)" >&2
+        OUT="$OUT.out"
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# --target llvm: the emitted text is LLVM IR, not C, so everything below --
+# the C syntax gate, the cc link, --emit-c -- is the wrong tool. The IR is
+# checked with llvm-as (the assembler is the only authority on whether a
+# module parses), the runtime is asked of the compiler itself (`--target crt`
+# prints the same prelude with external linkage), and clang links the two.
+#
+# This is the one place the LLVM target still touches C. The runtime written
+# in `id` replaces it -- see docs/LLVM.md.
+if [ "$TARGET" = llvm ]; then
+    LL_OUT="$WORK/out.ll"
+    mv "$C_OUT" "$LL_OUT"
+
+    if command -v llvm-as >/dev/null 2>&1; then
+        progress verify "checking the emitted LLVM IR"
+        if ! llvm-as "$LL_OUT" -o /dev/null 2>"$WORK/llas.err"; then
+            progress_clear
+            sed 's/^/idc:   /' "$WORK/llas.err" >&2
+            C_OUT="$LL_OUT"
+            compiler_bug "the self-hosted compiler emitted LLVM IR that does not assemble"
+        fi
+    fi
+
+    if [ -n "$EMIT_LLVM" ]; then
+        progress_done "wrote $EMIT_LLVM ($(plural "${#SRC_FILES[@]}" "source file"))"
+        cp "$LL_OUT" "$EMIT_LLVM" || exit 1
+        echo "wrote $EMIT_LLVM"
+        exit 0
+    fi
+
+    # Freestanding: there is no host to link against and no C runtime to
+    # compile beside the module, so the result is always an object file. What
+    # links it is a linker script and a boot stub -- see docs/KERNEL.md.
+    if [ "$FREESTANDING" -eq 1 ]; then
+        have_main=0
+        choose_output
+        LLVM_CC=clang
+        command -v clang >/dev/null 2>&1 || LLVM_CC="$CC"
+        cmd=("$LLVM_CC" -c -O2 -Wno-override-module -ffreestanding -fno-builtin
+             -mno-red-zone -fno-stack-protector -fno-asynchronous-unwind-tables -Wno-unused-command-line-argument
+             -target "${TRIPLE:-x86_64-unknown-none}" "$LL_OUT" -o "$OUT")
+        progress link "clang -> $(basename "$OUT")"
+        if ! "${cmd[@]}" 2>"$WORK/clang.err"; then
+            progress_clear
+            [ -s "$WORK/clang.err" ] && sed 's/^/idc:   /' "$WORK/clang.err" >&2
+            echo "idc: freestanding compilation failed (command: ${cmd[*]})" >&2
+            exit 1
+        fi
+        progress_done "built $OUT ($(wc -c < "$OUT" | tr -d " ") bytes, $(plural "${#SRC_FILES[@]}" "source file"))"
+        exit 0
+    fi
+
+    have_main=0
+    grep -q '^define i32 @main(' "$LL_OUT" && have_main=1
+    choose_output
+    RT_C="$WORK/runtime.c"
+    printf '' | "$IDLEX" | "$IDPARSE" --target crt > "$RT_C" || {
+        progress_clear; echo "idc: could not obtain the C runtime from idparse" >&2; exit 1; }
+
+    LLVM_CC=clang
+    command -v clang >/dev/null 2>&1 || LLVM_CC="$CC"
+    cmd=("$LLVM_CC" -O2 -Wno-override-module)
+    [ "$have_main" -eq 0 ] && cmd+=(-c "$LL_OUT") || cmd+=("$RT_C" "$LL_OUT")
+    cmd+=(-o "$OUT")
+
+    progress link "clang -> $(basename "$OUT")"
+    if ! "${cmd[@]}" 2>"$WORK/clang.err"; then
+        progress_clear
+        [ -s "$WORK/clang.err" ] && sed 's/^/idc:   /' "$WORK/clang.err" >&2
+        echo "idc: LLVM compilation failed (command: ${cmd[*]})" >&2
+        exit 1
+    fi
+    progress_done "built $OUT ($(wc -c < "$OUT" | tr -d " ") bytes, $(plural "${#SRC_FILES[@]}" "source file"))"
+    exit 0
+fi
+
 # idlex/idparse can exit 0 while having silently mis-lexed something (e.g. a
 # float literal) into C that doesn't even parse. Since --emit-c has no cc
 # link step to catch that, and a build's later cc invocation would produce a
@@ -612,39 +753,7 @@ fi
 have_main=0
 grep -q '^int main(' "$C_OUT" && have_main=1
 
-# default output name: the project directory's name, or the file's stem
-# (idc.py: os.path.basename(first if isdir else splitext(first)[0]))
-if [ -n "$OUTPUT" ]; then
-    OUT="$OUTPUT"
-else
-    first="${PATH_ARG%/}"
-    if [ -d "$first" ]; then
-        base="$(basename "$first")"
-    else
-        base="$(basename "$first")"
-        base="${base%.*}"
-    fi
-    if [ "$have_main" -eq 1 ]; then OUT="$BUILD_DIR/$base"; else OUT="$BUILD_DIR/$base.o"; fi
-    mkdir -p "$BUILD_DIR" || exit 1
-fi
-
-# An explicit -o can still land on a directory, and cc then fails with "cannot
-# open output file: Is a directory", which this driver used to report as "a bug
-# in the self-hosted compiler". A name this driver chose, it re-chooses; a name
-# the user chose with -o, it reports. Mirrors idc.py's choose_output_path.
-if [ -d "$OUT" ]; then
-    if [ -n "$OUTPUT" ]; then
-        echo "idc: -o '$OUT' is a directory; choose a different output path" >&2
-        exit 1
-    fi
-    if [ -d "$OUT.out" ]; then
-        echo "idc: '$OUT' and '$OUT.out' are both directories; pass -o NAME to name the executable" >&2
-        exit 1
-    fi
-    echo "idc: '$OUT' is the project directory, so the executable cannot take its name;" >&2
-    echo "idc: writing it to '$OUT.out' instead (pass -o NAME to choose)" >&2
-    OUT="$OUT.out"
-fi
+choose_output
 
 # ---------------------------------------------------------------------------
 # --backend DIR: read backend.json for this platform, compile its sources,

@@ -15,7 +15,7 @@
 set -u
 cd "$(dirname "$0")"
 
-SECTIONS=(core invalid runtime_invalid self_host_build backends stdlib conform tests_feature idstd_real)
+SECTIONS=(core invalid runtime_invalid self_host_build backends stdlib conform tests_feature idstd_real kernel)
 STATE=../.idc-cache/run-state
 WANTED=()
 resume=0
@@ -74,6 +74,7 @@ mark_done() { mkdir -p "$(dirname "$STATE")"; printf '%s ' "$1" >> "$STATE"; }
 export IDC_NO_STD=1
 
 IDC=../idc.py
+BIN_IDC=../bin/idc
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 pass=0 fail=0
@@ -694,13 +695,19 @@ else
     # argv[0] differs by target/binary path/name (and wasmtime reports it
     # differently again), so exercise hello with an argument (its output
     # doesn't embed argv[0]) rather than the no-arg "usage" branch.
+    # llvm is the self-hosted target (bin/idc); wasm is still idc.py's, and is
+    # the last thing holding that file here.
+    alt_cc() { # alt_cc TARGET SRC OUT
+        if [ "$1" = llvm ]; then "$BIN_IDC" "$2" --target llvm -o "$3" 2>/dev/null
+        else "$IDC" "$2" --target "$1" -o "$3" 2>/dev/null; fi
+    }
     for target in llvm wasm; do
         if [ "$target" = wasm ]; then
             bin="$TMP/hello_$target.wasm"
         else
             bin="$TMP/hello_$target"
         fi
-        if ! "$IDC" ../demos/hello --target "$target" -o "$bin" 2>/dev/null; then
+        if ! alt_cc "$target" ../demos/hello "$bin"; then
             bad "hello builds ($target)"
         else
             if [ "$target" = wasm ]; then out=$(wasmtime "$bin" hi); else out=$("$bin" hi); fi
@@ -712,7 +719,7 @@ else
         else
             bin="$TMP/calc_$target"
         fi
-        if ! "$IDC" ../demos/calc --target "$target" -o "$bin" 2>/dev/null; then
+        if ! alt_cc "$target" ../demos/calc "$bin"; then
             bad "calc builds ($target)"
         else
             if [ "$target" = wasm ]; then out=$(wasmtime "$bin"); else out=$("$bin"); fi
@@ -726,7 +733,7 @@ else
         else
             bin="$TMP/flow_$target"
         fi
-        if ! "$IDC" ../demos/control/flow.id --target "$target" -o "$bin" 2>/dev/null; then
+        if ! alt_cc "$target" ../demos/control/flow.id "$bin"; then
             bad "control builds ($target)"
         else
             if [ "$target" = wasm ]; then out=$(wasmtime "$bin"); else out=$("$bin"); fi
@@ -741,7 +748,7 @@ else
         else
             bin="$TMP/oob_$target"
         fi
-        if ! "$IDC" runtime_invalid/list_get_oob.id --target "$target" -o "$bin" 2>/dev/null; then
+        if ! alt_cc "$target" runtime_invalid/list_get_oob.id "$bin"; then
             bad "runtime_invalid/list_get_oob builds ($target)"
         else
             if [ "$target" = wasm ]; then
@@ -939,6 +946,18 @@ if want idstd_real; then
     [ "$real" -eq 0 ] && mark_done idstd_real
 fi
 
+# --- the kernel. Last because it is the only section that runs a whole machine,
+#     and because everything it exercises has already been checked hosted --
+#     what it adds is that none of it needed a C runtime to be true.
+echo
+echo "--- the kernel (docs/KERNEL.md) ---"
+kern=0
+if want kernel; then
+    ./kernel.sh
+    kern=$?
+    [ "$kern" -eq 0 ] && mark_done kernel
+fi
+
 [ "$fail" -eq 0 ] && [ "$neg" -eq 0 ] && [ "$rneg" -eq 0 ] && [ "$shneg" -eq 0 ] \
     && [ "$bend" -eq 0 ] && [ "$std" -eq 0 ] && [ "$conf" -eq 0 ] \
-    && [ "$tst" -eq 0 ] && [ "$real" -eq 0 ]
+    && [ "$tst" -eq 0 ] && [ "$real" -eq 0 ] && [ "$kern" -eq 0 ]
