@@ -81,13 +81,14 @@ must agree on those, and `tests/invalid.sh` enforces it).
 | the type registry (adding a type) | `mid/types/registry/` |
 | type checks, call checks | `mid/types/check/` |
 | what type an expression has | `mid/types/type_of/` |
-| emitted C for a statement | `back/emit/prog/code/body/stmt/` |
-| emitted C for an expression | `back/emit/prog/code/expr/` |
-| function signatures, forward declarations | `back/emit/prog/code/func/def/` |
-| the extern and exported-global blocks | `back/emit/prog/head/decl/` |
-| the C type spelling of an id type | `back/emit/prog/code/func/ctype/type_column.id` |
-| where emitted code leaves the compiler | `back/out/sink/emit_line.id` |
+| emitted C for a statement | `back/tgt/c/emit/prog/code/body/stmt/` |
+| emitted C for an expression | `back/tgt/c/emit/prog/code/expr/` |
+| function signatures, forward declarations | `back/tgt/c/emit/prog/code/func/def/` |
+| the extern and exported-global blocks | `back/tgt/c/emit/prog/head/decl/` |
+| the C type spelling of an id type | `back/tgt/c/emit/prog/code/func/ctype/type_column.id` |
+| where emitted code leaves the compiler | `back/drive/sink/emit_line.id` |
 | the C runtime prelude | `idc.py`'s `RUNTIME`, then `tools/gen_runtime_id.py` |
+| which target a build uses | `back/drive/run/output_mode.id` |
 
 `front/` and `mid/` **must not emit C**. That is currently true — verified —
 and it is what makes a second target possible. If a change wants to put a C
@@ -108,7 +109,7 @@ No `idc.py` change, unless the compiler's own source starts using the type.
 ## The loop
 
 ```sh
-IDC_NO_STD=1 tools/parity.sh compiler/parse   # MATCH: emitted C unchanged
+tools/parity.sh compiler/parse                       # MATCH: emitted C unchanged
 tools/devshell.sh 'tests/invalid.sh'                 # diagnostics, both compilers
 tools/devshell.sh 'tests/conform.sh'                 # behaviour, every target
 tools/devshell.sh 'tests/run.sh'                     # everything
@@ -118,6 +119,13 @@ tools/devshell.sh 'tests/run.sh'                     # everything
 change emitted C, it must still say MATCH. When you *do* mean to change it,
 `idc.py` has to change in the same commit, and that is the one case where
 "both compilers" is genuinely the rule.
+
+It feeds the self-hosted side `bin/idc --emit-sources` rather than
+concatenating the target's own tree, so both compilers see the same source
+stream — the project, everything its `conf.id` reaches, and the implicit
+standard library. `IDC_NO_STD=1` in front of it used to be written here and is
+wrong: the compiler's own source calls `idstd`'s `lset`, so a bootstrap without
+the library does not build at all.
 
 ## Writing `id` inside the rule of 3
 

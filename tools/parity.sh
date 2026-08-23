@@ -20,20 +20,21 @@ TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 
 target="${1:?usage: parity.sh <file-or-project-dir>}"
 
-# build the two compilers (lexer + parser/codegen) once
-$IDC compiler/lex       -o "$TMP/idlex"   2>/dev/null || { echo "lexer build failed"; exit 2; }
-$IDC compiler/parse -o "$TMP/idparse" 2>/dev/null || { echo "idparse build failed"; exit 2; }
+# build the two compilers (lexer + parser/codegen) once. Always with the
+# standard library, whatever IDC_NO_STD says about the program under test: the
+# compiler's own source calls idstd's lset, so a bootstrap without it does not
+# build at all.
+env -u IDC_NO_STD $IDC compiler/lex   -o "$TMP/idlex"   2>/dev/null || { echo "lexer build failed"; exit 2; }
+env -u IDC_NO_STD $IDC compiler/parse -o "$TMP/idparse" 2>/dev/null || { echo "idparse build failed"; exit 2; }
 
 # C from idc.py
 $IDC "$target" --emit-c "$TMP/py.c" >/dev/null 2>&1 || { echo "idc.py failed on input"; exit 2; }
-# C from the id-written compiler. For a project, feed every .id file in the tree
-# in the same order idc compiles them (sorted by full path); for a single file,
-# just that file.
-if [ -d "$target" ]; then
-    find "$target" -name '*.id' | LC_ALL=C sort | xargs cat | "$TMP/idlex" | "$TMP/idparse" > "$TMP/id.c"
-else
-    "$TMP/idlex" < "$target" | "$TMP/idparse" > "$TMP/id.c"
-fi
+# C from the id-written compiler, over the same source stream bin/idc feeds it:
+# every .id file of the project AND of everything its conf.id reaches,
+# including the implicit standard library, with the #file markers in place.
+# Concatenating the target's own tree is not the same stream and has not been
+# since the compiler started calling idstd's lset.
+./bin/idc "$target" --emit-sources 2>/dev/null | "$TMP/idlex" | "$TMP/idparse" > "$TMP/id.c"
 
 if diff "$TMP/py.c" "$TMP/id.c" >/dev/null; then
     echo "MATCH   $target"
