@@ -1,0 +1,32 @@
+// Strings.
+//
+// `"n=" + 42` is the whole point of the first line: concatenation and
+// number-to-text are two runtime calls the compiler emits for one `+`, and
+// neither of them exists until the runtime provides it.
+//
+// The second line ends on the two bridges between a string and the flat store,
+// which are one crossing rather than two copies here -- a string *is* an
+// address in the memory `alloc` hands out, so `mem_of_str` is the identity and
+// `str_of_mem` is the only one that has to build anything.
+//
+// The third line is string comparison, which is the one runtime call whose
+// *name* depends on the build: hosted it is libc's strcmp, freestanding it is
+// the runtime's own id_strcmp, and nothing here says which.
+
+show_str() {
+  string s = "n=" + 42;
+  print("str: " + s + " len=" + len(s) + " chr=" + chr(65));
+  show_str2(s);
+} return void;
+
+show_str2(string s) {
+  print("str: at=" + charat(s, 0) + " int=" + to_int("-123") + " mem=" + str_of_mem(mem_of_str(s), 3));
+  print("cmp: " + eqs(s, "n=42") + eqs(s, "n=43") + eqs("", ""));
+} return void;
+
+eqs(string s, string t) {
+  string r = "0";
+  if(s == t) {
+    r = "1";
+  }
+} return string r;

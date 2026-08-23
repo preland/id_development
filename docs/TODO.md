@@ -6,7 +6,7 @@
 > are generated elsewhere — see `docs/TESTS.md` for adoption and
 > `tests/idstd_expect.txt` for the port list.
 
-Ordered by what unblocks the most. Everything here is open as of 2026-08-19.
+Ordered by what unblocks the most. Everything here is open as of 2026-08-23.
 
 ## ~~1. A single line of build progress in `bin/idc`~~ — done
 
@@ -46,37 +46,39 @@ drops the ceiling by 96 again.
 It also cannot be turned on by default until item 4 below lands. `--strict-const`
 runs it today; with the flag, `idstd`'s `fx_sintab` is the first thing it names.
 
-## 4. `conf.id` constants are parsed but not emitted
+## ~~4. `conf.id` constants are parsed but not emitted~~ — done
 
-`conf.id` accepts `int name = value;` after its imports and rejects an import
-that follows one. Nothing yet turns those lines into program globals, so a
-constant declared there does not exist at run time, and `--strict-const` names
-constants it has nowhere to put.
+A constant declared in a project's `conf.id` is now a program global:
 
-**The design, and the obstacle, both established.** A constant must reach
-`idparse`, which does the checking and the emission, and `id` cannot read a
-file — so it travels in the source stream as a marker, exactly as `#file N|PATH`
-already does. Four parts:
+```sh
+$ cat proj/conf.id
+int max_depth = 7;
+$ cat proj/main.id
+main(int argc, string[] argv) { print((import max_depth)); } return int 0;
+$ bin/idc proj && ./build/proj
+7
+```
 
-1. `bin/idc` and `idc.py` read the constants from `conf.id` and inject
-   `#const int name = value;` ahead of the source, next to where they already
-   inject `#file`.
-2. The **lexer must learn a second marker**, and today it cannot: `scan_hash`
-   slices unconditionally past `"#file "`, six characters, so `#const int
-   max_depth = 3;` lexes as `file  int max_depth = 3;`. Verified. It has to
-   dispatch on the marker word instead.
-3. `mid/` registers the name as an export with no declaring function — which
-   is the entire point, since a constant needs no init call — so
-   `check_dead_exports` must not ask which function declares it.
-4. `back/` emits it at file scope with a static initialiser
-   (`long long id_max_depth = 3;`) rather than as an assignment inside a
-   function.
+All four parts landed as designed. The driver injects `#const` ahead of the
+source and the declaration after it is *ordinary* source, so `parse_decl` reads
+it and nothing re-implements declaration parsing for a marker payload
+(`front/parse/decl/top/marker/const/`). The constant is registered through
+`add_export2`, so it reserves its name program-wide and a later `export` of the
+same name is the existing duplicate error. Its owner is `"conf.id"` — a string
+no identifier can spell, so no function can claim to own a constant — and
+`init_reach` seeds the reachable set with it, which is how "an export whose
+declaring function is never called" stops being asked about something that has
+no declaring function. `back/emit/prog/head/const/` emits it at file scope with
+its initialiser attached (`int max_depth = 7;  /* constant from conf.id */`).
 
-Then migrate `idstd`'s `fx_sintab` across, delete `fx_trig_init`, and turn
-`--strict-const` on by default.
+**`idc.py` does not implement this, and will not.** The bootstrap rule
+(`docs/HACKING.md`) is that stage 0 needs a construct only once the compiler's
+own source uses it, and the compiler's own `conf.id` declares no constants. So
+byte-parity is not the gate here; `tests/self_host_build.sh` checks the three
+behaviours above against `bin/idc` alone.
 
-Byte-parity is the gate throughout: both compilers must inject the same
-markers in the same order and emit the same C.
+Still open, and unblocked by this: migrate `idstd`'s `fx_sintab` across, delete
+`fx_trig_init`, and turn `--strict-const` on by default. That also needs item 3.
 
 ## 5. `--tests` in the self-hosted compiler
 
@@ -124,12 +126,36 @@ cleanup.
 The one rule deliberately not checked is 3 functions per file: `idc.py` is one
 file with 160, and applying it means splitting the file, which is item 9.
 
-## 9. `--target llvm|wasm` in `bin/idc`, then delete `idc.py`
+## ~~9a. `--target llvm` in `bin/idc`~~ — done
 
-43% of `idc.py` is the two targets `bin/idc` does not have; the rest is
-bootstrap that a checked-in bootstrap C artifact retires. `docs/BACKENDS.md`
-is the plan and `tests/run.sh` holds a line ceiling so the file cannot grow
-while the work is pending.
+`bin/idc PATH --target llvm` compiles through an SSA IR of `id`'s own and an
+optimiser over it, passes all 62 conformance cases, compiles the compiler, and
+reproduces itself exactly. `tests/conform.sh`'s `llvm` target is now this one
+rather than `idc.py`'s. See [`docs/LLVM.md`](LLVM.md).
+
+## 9b. `--target wasm` in `bin/idc`, then delete `idc.py`
+
+The last target `bin/idc` does not have, and now the only thing besides the
+bootstrap holding `idc.py` here. The WASM back end is ~1428 lines of it.
+
+The shape is settled by the LLVM work: lower to the same IR
+(`compiler/parse/back/ir/`) and print WAT from it, rather than writing a third
+AST walk. Almost everything that was hard the first time -- the CFG, phis,
+argument evaluation order, the boxing contract -- is already in the IR and
+target-independent. What is genuinely new is that WASM has structured control
+flow rather than a CFG, so the printer has to rebuild `block`/`loop`/`br_if`
+from the branches, which is a real algorithm (relooper, or the simpler
+stackifier LLVM's own back end uses) and not a spelling.
+
+After that, `docs/BACKENDS.md`'s checked-in bootstrap C artifact retires the
+last job, and `git rm idc.py` breaks nothing.
+
+## 9c. Make the freestanding target trap
+
+`docs/KERNEL.md` lists three promises of `docs/SPEC.md` the kernel cannot keep,
+and all three are the same missing thing: a trap has nowhere to go. An IDT and
+a panic path that writes to the serial port turns every one of them back on --
+division by zero, an out-of-range index, a store past the arena.
 
 ## 10. String building is quadratic
 

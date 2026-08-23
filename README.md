@@ -36,6 +36,29 @@ A single file is handy for tutorials (`bin/idc prog.id`); a project is how real
 programs grow. `bin/idc PATH --emit-c prog.c` writes the generated C instead of
 building.
 
+### `conf.id`: what a project depends on, and what it holds constant
+
+A project's root may carry a `conf.id`. It names the directories to compile
+alongside this one, and then the constants the program should be built with:
+
+```
+import "../mylib"
+import "../../backends/fs"
+
+int max_depth = 7;
+int fanout = 3;
+```
+
+Imports come first; a constant is a `TYPE name = value;` line after them, and an
+import that follows one is an error. A constant becomes an ordinary exported
+global — read it with `(import max_depth)`, and no other variable may take that
+name — except that it needs no function to initialise it. It is emitted at file
+scope with its value attached, so it holds it before `main` runs, which is
+exactly what an `export` inside a function body cannot promise.
+
+Only a *root's* `conf.id` is read as a manifest; the name is reserved and a
+file called `conf.id` anywhere else is rejected rather than silently ignored.
+
 ### `bin/idc`: the self-hosted driver, and what it actually does
 
 `bin/idc` is a small bash driver around the self-hosted compiler (`id` itself
@@ -68,14 +91,49 @@ The one rule checked in the driver rather than in `id` is the
 3-entries-per-directory limit — it is a property of the filesystem, which `id`
 cannot see, which is also why the driver exists.
 
-What only `idc.py` still does: `--target llvm` and `--target wasm`. See
+### Two code generators, and one of them optimises
+
+`bin/idc PATH --target llvm` compiles through an SSA intermediate
+representation of `id`'s own -- a control-flow graph with phi nodes, a pass
+pipeline over it, and an LLVM IR printer at the end -- rather than through a
+second walk of the syntax tree. That is what makes optimisation possible at
+all, and `-O1` (the default) already removes a third of the emitted IR.
+
+```sh
+bin/idc demos/calc --target llvm -o calc     # through the IR and its passes
+bin/idc demos/calc --target llvm -O0         # with every pass off
+bin/idc demos/calc --target llvm --emit-llvm calc.ll
+```
+
+It compiles the compiler, and the compiler it builds reproduces itself exactly.
+See [`docs/LLVM.md`](docs/LLVM.md).
+
+### A kernel, to prove the language reaches the machine
+
+`id` also builds **freestanding**: no libc, no C runtime, nothing linked that
+this repository did not compile from `id` source. `kernel/` is a kernel and
+`runtime/` is the runtime under it, both written in `id` over a handful of
+one-instruction `asm` functions.
+
+```sh
+tools/devshell.sh 'tools/kbuild.sh'
+qemu-system-x86_64 -kernel build/kernel.elf -serial stdio -display none
+```
+
+`tests/kernel.sh` boots it, asserts the image has no undefined symbols, and
+runs the same source hosted to check the two runtimes agree line for line. See
+[`docs/KERNEL.md`](docs/KERNEL.md).
+
+What only `idc.py` still does: `--target wasm`. See
 [`docs/GAPS.md`](docs/GAPS.md) for the state of that and everything else.
 
 ## Development environment (Nix)
 
 Building the C target needs only a C compiler. The **graphics backends**
 (`--backend backends/gfx|gl`) link native system libraries (OpenGL, X11), and
-the **`--target llvm|wasm`** paths need `clang`/`llc`/`wat2wasm`/`wasmtime`. On
+the **`--target llvm`** and **`--target wasm`** paths need
+`clang`/`llc`/`wat2wasm`/`wasmtime`, and the kernel needs `ld.lld` and
+`qemu-system-x86_64`. On
 NixOS these aren't on the default search path, so the repo ships a
 [`flake.nix`](flake.nix) providing the whole toolchain in one dev shell:
 
@@ -313,10 +371,10 @@ left:
 
 1. **Bootstrapping** the self-hosted stages (`idlex`, `idparse`) that `bin/idc`
    caches and drives — see above. This happens once, on a cold cache.
-2. **The alternative codegen targets**, `--target llvm` and `--target wasm`
-   (and their `--emit-llvm`/`--emit-wasm`) — only `idc.py` implements these;
-   `bin/idc` only drives the C target.
-   [`docs/BACKENDS.md`](docs/BACKENDS.md) is the plan for moving them across.
+2. **The WASM codegen target**, `--target wasm` (and `--emit-wasm`) — the last
+   thing `bin/idc` does not have. `--target llvm` moved across and is now the
+   self-hosted compiler's own ([`docs/LLVM.md`](docs/LLVM.md)); WASM is what is
+   left.
 
 It is also where the **C runtime prelude** lives, as one string that both
 compilers emit verbatim; `tools/gen_runtime_id.py` regenerates the `id`-side

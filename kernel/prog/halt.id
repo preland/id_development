@@ -1,0 +1,17 @@
+// Powering the machine off.
+//
+// A kernel is the thing with nowhere to return to: `main`'s `return` reaches
+// the boot stub, which halts in a loop. This is the other ending, and the one
+// a test needs -- ACPI's shutdown register, which on QEMU's default machine is
+// port 0x604.
+//
+// The port does not fit in a byte, so it goes through dx, and the value is
+// read into ax before dx is written -- see runtime/io/serial.id for why that
+// ordering is what makes the block safe.
+
+asm "x86_64-unknown-none" poweroff() {
+  "movq $0x2000, %%rax"
+  "movq $0x604, %%rdx"
+  "outw %%ax, %%dx"
+  "xorq %[ret], %[ret]"
+} return word ret;

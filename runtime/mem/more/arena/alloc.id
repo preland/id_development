@@ -1,0 +1,34 @@
+// The arena: a bump pointer, and no way to give anything back.
+//
+// docs/SPEC.md 6 already says `alloc` is a bump pointer and that nothing is
+// released before the process exits. A kernel is the case where that stops
+// being a compromise -- there is no exit, so a free list would be the only
+// reclamation there is, and this runtime does not pretend to have one.
+//
+// The pointer lives in the first eight bytes of the arena rather than in an
+// exported global, because only a global's declaring function may assign it
+// and there is no function the runtime could hang that on. Reading zero there
+// means nobody has allocated yet: `heap_base` is 4 KiB aligned, so the first
+// hand-out is the aligned word just past the cell itself.
+
+arena_top(word a) {
+  word p = ld64(a);
+  if(p == 0) {
+    p = a + 8;
+  }
+} return word p;
+
+// Rounded with `&` rather than `%`: a mask is one instruction, while `%` is a
+// call back into this same runtime, and one that would run before the arena it
+// is being asked to extend exists.
+mem_alloc(word z) {
+  word a = heap_ptr();
+  word p = arena_top(a);
+  st64(a, p + ((z + 7) & 0xfffffffffffffff8));
+} return word p;
+
+// The high-water mark, as an address rather than as a count of bytes used --
+// the store here *is* the machine's memory, so the mark and the first address
+// past the last allocation are the same number.
+mem_size() {
+} return word arena_top(heap_ptr());

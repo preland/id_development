@@ -31,6 +31,10 @@
             nativeBuildInputs = with pkgs; [
               gcc python3 pkg-config
               llvm clang lld wabt wasmtime
+              # qemu, for booting the kernel (docs/KERNEL.md). tests/kernel.sh
+              # skips itself when it is absent, so a checkout without it still
+              # runs the rest of the suite.
+              qemu
               xdotool
               # A virtual X server, so a windowed demo can be built and run
               # without a window ever reaching the real compositor -- see

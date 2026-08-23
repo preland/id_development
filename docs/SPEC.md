@@ -284,6 +284,9 @@ Naming these keeps them from being discovered as bugs later:
   every other live allocation".
 - The order in which unrelated top-level definitions are emitted.
 - Timing: `ticks()` is monotonic milliseconds from an unspecified origin.
+- The order the operands of one operator are evaluated in. This is listed here
+  as a description of today rather than as a choice: §10's S11 says why, and
+  says it should stop being unspecified.
 - Anything reached through a native backend, which is by definition
   platform-specific — but see `backends/*/backend.json`, whose `abi` block is
   the contract in `id`'s own types.
@@ -314,6 +317,15 @@ feature, float-to-string on WASM, and they are all of it.
 | **S8** | Calls resolved at link time are refused, so no program using a native backend builds. | LLVM, WASM | open |
 | **S9** | Only the C target is reachable from `bin/idc`, the primary compiler; the other two exist only in `idc.py`. | — | open |
 | **S10** | The flat store sits at a fixed 1 MiB offset in the same linear memory the string/list heap grows through, so **the heap is capped at 1 MiB**. Passing it used to overwrite the store and read back garbage with nothing reported — a 400 000-element list made `peek64` return `71772820526333952` where C returned `123456789`. The heap now aborts with `id: out of memory` instead, which is §7-legal, but the cap is real and the other two targets do not have it. The proper fix is to place the store above the heap and grow it with `memory.grow`, checking the heap against its actual base rather than a constant. | WASM | mitigated |
+
+| **S11** | **The order the operands of one operator are evaluated in is not specified, and the targets differ.** The C target inherits C's, which is unspecified between the arguments of a call, so `"pop=" + pop(xs) + " len=" + len(xs)` prints the length before *or* after the pop depending on the C compiler. The LLVM target evaluates left to right, because its lowering emits instructions in the order it walks the tree. Found by `tests/kernel.sh`, which runs the same source on both runtimes and requires them to agree. | C, LLVM | open |
+
+**S11 needs a decision, not an implementation.** Left to right is the answer
+most readers expect and the one the LLVM target already gives; making the C
+target agree means sequencing every operand through a temporary, which changes
+the emitted C for every program and therefore every byte-parity check in the
+suite. Until it is decided, an expression whose operands have effects on each
+other means two things.
 
 S5–S8 are missing implementation, and are what `docs/BACKENDS.md` is the plan
 for. S6 is the one that matters most: it is 21 of the 30 builtins, it is what
