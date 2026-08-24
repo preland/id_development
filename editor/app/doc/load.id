@@ -1,0 +1,30 @@
+// Opening a document: the archive, the entry, and the parser.
+//
+// An .odt is a ZIP holding content.xml, so reading one is three modules in a
+// row -- `zip_` gets the bytes out, this turns them into text, and `odt_`
+// turns the text into paragraphs. Nothing here does any of that work; it
+// exists so that the three seams are in one place and named.
+
+ed_load(string path) {
+  int[] xs = zip_open(path);
+  int i = zip_find(xs, "content.xml");
+  ed_entry(xs, i);
+} return void;
+
+ed_entry(int[] xs, int i) {
+  if(i < 0) {
+    print("editor: no content.xml in the archive -- is this an .odt?");
+  } else {
+    odt_parse(ed_str(zip_read(xs, i)));
+  }
+} return void;
+
+// Bytes to text. The archive hands back an int[] of bytes, because a ZIP can
+// hold a NUL and a `string` cannot (docs/SPEC.md 4); content.xml is XML and
+// cannot, so the conversion is safe exactly here and nowhere else in the
+// program. It goes through the flat store rather than `+` per byte, because
+// the second is quadratic (docs/FRICTION.md 9).
+ed_str(int[] xs) {
+  word a = alloc(len(xs) + 1);
+  ed_poke(xs, a, 0);
+} return string str_of_mem(a, len(xs));

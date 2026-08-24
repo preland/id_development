@@ -1,0 +1,17 @@
+font_bits(int bits, word x, word y, word fg, word bg) {
+  int i = 0;
+  while(i < 8) {
+    fb_px(x + i, y, font_col(bits, i, fg, bg));
+    i = i + 1;
+  }
+} return void;
+
+// The bitwise operators bind tighter than the comparisons in this language
+// (README, "Rules the example implies"), so `bits >> n & 1 == 1` groups the
+// way it reads and needs no parentheses around the mask.
+font_col(int bits, int i, word fg, word bg) {
+  word c = bg;
+  if(bits >> (7 - i) & 1 == 1) {
+    c = fg;
+  }
+} return word c;

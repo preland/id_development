@@ -1,0 +1,25 @@
+ed_run(int r) {
+  string key = odt_run_style(r);
+  print("    " + ed_face(key) + " " + ed_pt(key) + "pt " + odt_font(key) + ": " + ed_clip(odt_run_text(r)));
+} return void;
+
+// Which face a style asks for, in one word, so a line of this listing is one
+// line wide.
+ed_face(string key) {
+  string s = "regular";
+  if(odt_bold(key) == 1) {
+    s = "bold";
+  } else if(odt_italic(key) == 1) {
+    s = "italic";
+  }
+} return string s;
+
+// A run's first sixty characters. A paragraph is one run and a run is a
+// paragraph's worth of text, so printing them whole makes the listing
+// unreadable rather than informative.
+ed_clip(string s) {
+  string t = s;
+  if(len(s) > 60) {
+    t = ed_cut(s, 0, 57) + "...";
+  }
+} return string t;

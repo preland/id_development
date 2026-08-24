@@ -1,0 +1,24 @@
+// `pwd`. The same text the prompt carries, which is the point: if one of them
+// is wrong they are both wrong, and there is one function that says it.
+sh_pwd() {
+  con_line(fs_pwd(fs_here()));
+} return void;
+
+// `cat`. A directory has an empty contents string, so `cat` of one prints a
+// blank line rather than complaining; the node lists have no way to say "is a
+// directory" that is not the `fs_dir` test `cd` already makes, and making it
+// twice for a case nobody hits was not worth a second function.
+sh_cat(string t) {
+  int at = fs_path(t);
+  if(at < 0) {
+    con_line("cat: no such file: " + t);
+  } else {
+    con_line((import fs_data)[at]);
+  }
+} return void;
+
+// `echo`. The argument text arrives with its leading spaces already gone and
+// its internal ones intact, which is as much quoting as this shell has.
+sh_echo(string t) {
+  con_line(t);
+} return void;

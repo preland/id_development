@@ -1,0 +1,39 @@
+// One segment of a path, against one directory.
+//
+// The child lookup runs first and is thrown away for `.` and `..`, which is
+// wasted work: the `if` and each chained `else` cost an action apiece, so a
+// three-way choice fills a block on its own and leaves nowhere to declare the
+// result. Paying for one list walk is cheaper than a fourth function.
+//
+// `..` at the root is the root, because the root's parent is itself.
+fs_seg(int at, string name) {
+  int got = fs_kid(at, name);
+  if(name == "..") {
+    got = (import fs_up)[at];
+  } else if(name == ".") {
+    got = at;
+  }
+} return int got;
+
+// The child of `at` called `name`, or -1. Every node is examined, because
+// there is no index from a directory to its children -- the parent is what is
+// stored, so finding children means asking every node who its parent is.
+//
+// Node 0 is skipped: it is the root, its name is "" and its parent is itself,
+// so it is its own child by this test and would answer to the empty path.
+fs_kid(int at, string name) {
+  int i = 1;
+  int got = 0 - 1;
+  while(i < len((import fs_name))) {
+    got = fs_hit(got, i, at, name);
+    i = i + 1;
+  }
+} return int got;
+
+// A removed node has -1 for a parent and so matches nothing, which is the
+// whole of what removal means here.
+fs_hit(int got, int i, int at, string name) {
+  if((import fs_up)[i] == at && (import fs_name)[i] == name) {
+    got = i;
+  }
+} return int got;

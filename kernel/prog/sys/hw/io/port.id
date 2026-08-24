@@ -1,0 +1,39 @@
+// Reading and writing an I/O port.
+//
+// A port is not memory, so these cannot be loads and stores -- `in` and `out`
+// are the only way there, and `id` reaches an instruction through `asm`
+// (docs/ASM.md). The port number does not fit a byte for anything here, so it
+// goes through dx, and both operands reach fixed registers.
+//
+// Both are pushed before either is popped. Writing one and then the other
+// would destroy an operand the allocator happened to put in the register being
+// written, and there is no clobber list in this language to prevent it. The
+// definitions are `noinline`, so rax and rdx are registers the ABI already
+// lets a call destroy.
+
+asm "x86_64-unknown-none" out16(word p, word v) {
+  "pushq %[p]"
+  "pushq %[v]"
+  "popq %%rax"
+  "popq %%rdx"
+  "outw %%ax, %%dx"
+  "xorq %[ret], %[ret]"
+} return word ret;
+
+asm "x86_64-unknown-none" out32(word p, word v) {
+  "pushq %[p]"
+  "pushq %[v]"
+  "popq %%rax"
+  "popq %%rdx"
+  "outl %%eax, %%dx"
+  "xorq %[ret], %[ret]"
+} return word ret;
+
+// One operand, so no ordering problem: if the allocator put it in rax, the
+// move into rdx reads it before the xor clears it.
+asm "x86_64-unknown-none" in16(word p) {
+  "movq %[p], %%rdx"
+  "xorq %%rax, %%rax"
+  "inw %%dx, %%ax"
+  "movq %%rax, %[ret]"
+} return word ret;

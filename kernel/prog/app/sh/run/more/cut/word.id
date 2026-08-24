@@ -1,0 +1,24 @@
+// The character codes, laid down as bytes.
+sh_pack(int[] xs, word p) {
+  int i = 0;
+  while(i < len(xs)) {
+    poke8(p + i, xs[i]);
+    i = i + 1;
+  }
+} return void;
+
+// Where the word starting at `at` ends: the next space, or the end of the
+// string. `charat` returns -1 past the end rather than trapping, which is what
+// lets a scanner stop without measuring first (docs/SPEC.md 4).
+sp_at(string s, int at) {
+  while(charat(s, at) != 32 && charat(s, at) != 0 - 1) {
+    at = at + 1;
+  }
+} return int at;
+
+// Past any run of spaces, so that `echo   hi` says `hi` and not `  hi`.
+sh_skip(string s, int at) {
+  while(charat(s, at) == 32) {
+    at = at + 1;
+  }
+} return int at;

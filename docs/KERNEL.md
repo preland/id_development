@@ -12,20 +12,35 @@ qemu-system-x86_64 -kernel build/kernel.elf -serial stdio -display none -no-rebo
 ```
 id kernel: booted
 hello from a language with no libc
-arith: sum=12 diff=2 prod=35
-div: 9 2 -9 -2
-udiv: 6148914691236517205 umod=0 ult=0
-word: -9223372036854775808 9223372036854775807 -1
-shift: 1024 -4 0 15
-shift: -1 0 1 0
-str: n=42 len=4 chr=A
-str: at=110 int=-123 mem=n=4
-cmp: 101
-list: len=6 [0]=10 [1]=99 [5]=60
-list: pop=60 len=5
-store: 64=1234605616436508552 32=287454020
-store: 16=51966 8=90
+...                                       (the language demonstrations)
+fb: 640x480 at 0x00000000fd000000
+id shell -- an in-memory filesystem, and no libc under it
+type help for the commands
+/ $ ls
+README
+bin/
+doc/
+/ $ cd bin
+/bin $ cat hello
+echo hello from a kernel with no operating system under it
+/bin $ uname
+id kernel -- x86_64, no libc, no operating system under it
+/ $ fault
+fault: reading 0x140000000, which has no page behind it
+
+*** fault: page fault (vector 14, error 0)
+*** at 0x0000000000100280
+*** halted
 ```
+
+That is a *graphical* shell: the same text is on a 640x480 framebuffer, drawn
+glyph by glyph from an 8x16 font, and `tools/fbtext.py` reads it back off the
+screen by matching each cell against that same font. `tests/kernel.sh` asserts
+on both -- a console that wrote to the serial port and drew nothing would pass
+every other check and fail that one.
+
+The shell reads the PS/2 keyboard and the serial port through one function, so
+a person types at it and a test types at it the same way.
 
 Everything after the first two lines is ordinary `id` that says nothing about
 where it runs -- so `tests/kernel.sh` builds the same source hosted, on the C

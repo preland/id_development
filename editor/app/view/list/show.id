@@ -1,0 +1,26 @@
+// The document as text, with what each run is meant to look like.
+//
+// This is the seam between reading a document and drawing one: everything
+// above it is the file, everything below is pixels. It stays because it is the
+// only view that says what the *model* holds, and a wrong font size is far
+// easier to see here than in an anti-aliased glyph.
+
+ed_show() {
+  int i = 0;
+  while(i < odt_paras()) {
+    ed_para(i);
+    i = i + 1;
+  }
+} return void;
+
+ed_para(int i) {
+  print("[" + i + "] " + odt_runs_of(i) + " run(s)");
+  ed_runs(i, 0);
+} return void;
+
+ed_runs(int i, int k) {
+  while(k < odt_runs_of(i)) {
+    ed_run(odt_run_at(i, k));
+    k = k + 1;
+  }
+} return void;

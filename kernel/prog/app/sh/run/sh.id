@@ -1,0 +1,41 @@
+// A Unix-shaped shell, over a filesystem that lives in this machine's memory
+// and nowhere else.
+//
+// It replaces `hold()`: the kernel used to end by spinning so that a
+// screenshot had something to photograph, and now it ends by asking. Nothing
+// under it is an operating system -- there is no process, no file descriptor
+// and no disk -- so "Unix-shaped" means the shapes a person recognises (a `$`
+// prompt, `..`, absolute and relative paths) rather than any of the mechanism
+// behind them.
+//
+// Everything it prints goes through `con_line`, which writes the framebuffer
+// console and the serial port at once, because a test reads the serial port
+// and a person reads the screen and they must not drift.
+
+// The screen is blanked first because `con_demo` has just scrolled forty lines
+// of test text past, and a shell that starts halfway down someone else's output
+// looks like it crashed.
+sh_run() {
+  fs_init();
+  con_blank();
+  sh_hi();
+} return void;
+
+// The banner is a separate function only because `sh_run` has three actions in
+// it already and the loop has to be called from somewhere.
+sh_hi() {
+  con_line("id shell -- an in-memory filesystem, and no libc under it");
+  con_line("type help for the commands");
+  sh_loop();
+} return void;
+
+// Never returns. The counter is a `word` and never changes, for the reason
+// `hold` records: an `int` incremented here reaches two billion in about a
+// second, wraps negative and leaves the loop, and the machine powers off in
+// the middle of someone typing.
+sh_loop() {
+  word spins = 0;
+  while(spins >= 0) {
+    sh_once();
+  }
+} return void;

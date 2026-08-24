@@ -1,0 +1,17 @@
+// `mkdir` and `touch` are one operation at two values of one flag, and are
+// two functions because the dispatch chain has to reach each by name.
+sh_mkdir(string t) {
+  fs_make(t, 1);
+} return void;
+
+sh_touch(string t) {
+  fs_make(t, 0);
+} return void;
+
+// `write NAME TEXT`, which exists because there is no editor: it is the only
+// way a person at this prompt can put bytes in a file. The name is the first
+// word and the text is the whole of the rest of the line, spaces and all.
+sh_write(string t) {
+  int at = sp_at(t, 0);
+  fs_put(cut(t, 0, at), cut(t, sh_skip(t, at), len(t)));
+} return void;

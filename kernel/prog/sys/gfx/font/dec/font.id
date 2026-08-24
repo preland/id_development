@@ -1,0 +1,22 @@
+// The font, decoded once.
+//
+// It arrives as hexadecimal text (see ../rom/rom0.id for why) and becomes a
+// byte per row in an int[]: ninety-five glyphs of sixteen rows each, indexed
+// by code point minus thirty-two. Anything outside that range draws blank,
+// because a console that faults on an unexpected byte is worse than one that
+// leaves a gap.
+
+font_init() {
+  export int[] font_px = [];
+  font_load(font_rom(), 0);
+} return int 0;
+
+font_load(string s, int i) {
+  while(i < len(s)) {
+    push((import font_px), font_byte(s, i));
+    i = i + 2;
+  }
+} return void;
+
+font_byte(string s, int i) {
+} return int font_nib(charat(s, i)) * 16 + font_nib(charat(s, i + 1));

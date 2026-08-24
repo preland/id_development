@@ -1,0 +1,28 @@
+// UTF-8, decoded.
+//
+// The parser emits UTF-8 bytes -- a character reference above 127 becomes its
+// encoding -- and a font is indexed by code point, so somewhere between the
+// two the bytes have to become numbers. This is that place.
+
+utf_len(int c) {
+  int n = 1;
+  if(c >= 240) {
+    n = 4;
+  } else {
+    n = utf_len2(c);
+  }
+} return int n;
+
+utf_len2(int c) {
+  int n = 1;
+  if(c >= 224) {
+    n = 3;
+  } else if(c >= 192) {
+    n = 2;
+  }
+} return int n;
+
+utf_at(string s, int at) {
+  int c = charat(s, at);
+  int n = utf_len(c);
+} return int utf_val(s, at, n);

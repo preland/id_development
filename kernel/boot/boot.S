@@ -51,7 +51,11 @@ mb2_end:
 .align 4096
 pml4:   .skip 4096
 pdpt:   .skip 4096
-pd:     .skip 4096
+/* Four page directories, because four gigabytes have to be mapped rather than
+   one: the framebuffer a PCI device exposes sits far above the first, and a
+   pixel written to an address with no page behind it is a page fault rather
+   than a pixel. */
+pd:     .skip 4096 * 4
 .align 16
 stack_bottom:
     .skip 65536
@@ -77,10 +81,19 @@ start:
     orl  $0x3, %eax
     movl %eax, pml4
 
-    movl $pd, %eax
+    /* pdpt[0..3] -> the four page directories */
+    xorl %ecx, %ecx
+2:  movl $4096, %eax
+    mul  %ecx
+    addl $pd, %eax
     orl  $0x3, %eax
-    movl %eax, pdpt
+    movl %eax, pdpt(,%ecx,8)
+    movl $0, pdpt+4(,%ecx,8)
+    incl %ecx
+    cmpl $4, %ecx
+    jne  2b
 
+    /* and 2048 two-megabyte pages, identity mapped: four gigabytes */
     xorl %ecx, %ecx
 1:  movl $0x200000, %eax
     mul  %ecx                    /* edx:eax = 2MiB * ecx */
@@ -88,7 +101,7 @@ start:
     movl %eax, pd(,%ecx,8)
     movl %edx, pd+4(,%ecx,8)
     incl %ecx
-    cmpl $512, %ecx
+    cmpl $2048, %ecx
     jne  1b
 
     /* PAE */

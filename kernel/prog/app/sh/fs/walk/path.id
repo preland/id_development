@@ -1,0 +1,32 @@
+// Resolving a path to a node index, or -1.
+//
+// A leading slash starts at the root and anything else starts at the working
+// directory, which is the whole of the difference between an absolute path and
+// a relative one.
+fs_path(string s) {
+  int at = fs_here();
+  if(charat(s, 0) == 47) {
+    at = 0;
+  }
+} return int fs_rel(at, s, 0);
+
+// One segment at a time, from `i` to the end of the string. An empty segment
+// resolves to where it started, which is what makes a leading slash, a
+// trailing slash and a doubled one all harmless rather than three cases.
+//
+// The walk stops as soon as a segment fails, because a lookup under -1 would
+// index the node lists out of range and trap.
+fs_rel(int at, string s, int i) {
+  while(i < len(s) && at >= 0) {
+    at = fs_step(at, s, i);
+    i = fs_end(s, i) + 1;
+  }
+} return int at;
+
+fs_step(int at, string s, int i) {
+  string name = cut(s, i, fs_end(s, i));
+  int got = at;
+  if(len(name) > 0) {
+    got = fs_seg(at, name);
+  }
+} return int got;

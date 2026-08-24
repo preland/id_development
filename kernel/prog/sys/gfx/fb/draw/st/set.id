@@ -1,0 +1,27 @@
+// A write through an exported `word[]`. `idstd`'s lset takes an `int[]` and
+// this list holds addresses, so there has to be one at this width too -- the
+// same function at a different type, which the uniqueness rule allows because
+// the signature differs. The list is named `cells` rather than `xs` for the
+// duller reason: `xs` is an `int[]` elsewhere in this program and a name may
+// not be two types.
+wset(word[] cells, int i, word a) {
+  cells[i] = a;
+} return void;
+
+// One pixel, at 32 bits per pixel: blue, green, red, unused. Out-of-range
+// coordinates are dropped rather than trapped, because a rasteriser clips by
+// drawing and asking a caller to clip first is how a kernel gets a page fault
+// from a rounding error.
+fb_px(word x, word y, word c) {
+  if(x < fb_w() && y < fb_h()) {
+    poke32(fb_base() + (y * fb_w() + x) * 4, c);
+  }
+} return void;
+
+// The same write at the other width. `idstd` has `lset`, and a freestanding
+// build has no `idstd` -- so the kernel carries its own, beside the one for
+// addresses. Two functions with one body, which the uniqueness rule allows
+// only because the signatures differ; there is no way to write it once.
+lset(int[] xs, int i, int v) {
+  xs[i] = v;
+} return void;

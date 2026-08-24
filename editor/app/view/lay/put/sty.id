@@ -1,0 +1,17 @@
+// What a run is drawn in. A run index rather than a style key, because every
+// caller has the first and would otherwise fetch the second three times.
+lay_pt(int r) {
+} return int ed_pt(odt_run_style(r));
+
+lay_size(int i) {
+  int n = 12;
+  if(odt_runs_of(i) > 0) {
+    n = lay_pt(odt_run_at(i, 0));
+  }
+} return int n;
+
+// Bold is bit 0 and italic bit 1, which is how the model stores them and how
+// the renderer wants them: one number to carry rather than two.
+lay_flag(int r) {
+  int n = odt_bold(odt_run_style(r));
+} return int n + odt_italic(odt_run_style(r)) * 2;

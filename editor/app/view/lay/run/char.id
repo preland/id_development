@@ -1,0 +1,18 @@
+// One character. A space is where a line may break, so it is remembered
+// rather than placed; everything else is placed and advances the pen.
+lay_char(int w, int r, string s, int at) {
+  int c = utf_at(s, at);
+  lay_put(w, r, c);
+} return int at + utf_len(charat(s, at));
+
+lay_put(int w, int r, int c) {
+  int g = tt_glyph(c);
+  lay_wrap(w, lay_adv(g, lay_pt(r)));
+  lay_emit(g, r, c);
+} return void;
+
+// The pen, in 64ths of a pixel: font units times the size, times 64, over the
+// units per em. The multiplication comes before the division so that a glyph
+// narrower than a pixel is not rounded to nothing.
+lay_adv(int g, int n) {
+} return int tt_advance(g) * n * 64 / tt_upem();

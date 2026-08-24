@@ -1,0 +1,23 @@
+// One turn of the loop: prompt, read, run.
+//
+// The prompt is written to the console only. The serial port gets the prompt
+// and the line together, once the line is known, because `print` is the only
+// way to the serial port and it always ends a line -- so a prompt sent there
+// on its own would put the command a person typed on the row below it and the
+// transcript a test reads would not look like a session.
+sh_once() {
+  string t = sh_prompt();
+  con_str(t);
+  sh_go(t, sh_line());
+} return void;
+
+// The echo of one command to the serial port, and then the command.
+sh_go(string t, string s) {
+  print(t + s);
+  sh_exec(s);
+} return void;
+
+// The prompt carries the working directory, which is the only thing on screen
+// that says `cd` did anything.
+sh_prompt() {
+} return string fs_pwd(fs_here()) + " $ ";

@@ -1,0 +1,30 @@
+// The console, once there is a framebuffer to put it on. Everything it writes
+// goes to the serial port too, so a headless run can read what the screen
+// says without a screenshot.
+con_demo() {
+  con_blank();
+  con_line("id kernel -- 80x30 console, 8x16 font, no libc");
+  con_rule();
+} return void;
+
+// Writing a line to the console and the serial port at once.
+//
+// The serial port is what a test reads and the console is what a person reads,
+// and until there is a keyboard those are the same text. Keeping them in one
+// function is what stops them drifting.
+con_line(string s) {
+  con_str(s);
+  con_ch(10);
+  print(s);
+} return void;
+
+// Enough lines to run past the bottom of the screen, because scrolling is the
+// part of a console most likely to be wrong and least likely to be noticed:
+// thirty rows fit, so forty are written.
+con_rule() {
+  int i = 0;
+  while(i < 40) {
+    con_line("line " + i + ": the quick brown fox jumps over the lazy dog");
+    i = i + 1;
+  }
+} return void;

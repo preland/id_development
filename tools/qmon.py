@@ -6,12 +6,17 @@ over a pipe drops input in a way that depends on timing. QMP is a socket and a
 JSON protocol, so a test can wait for the machine to be ready, send keys, ask
 for the framebuffer, and know each one happened.
 
-    tools/qmon.py build/kernel.elf --wait 2 --keys "l s enter" --shot out.ppm
+    tools/qmon.py build/kernel.elf --wait 2 --type "ls;uname" --shot out.ppm
 
-Keys are QEMU key names separated by spaces (`a`, `enter`, `spc`, `minus`),
-which is what `send-key` takes. Serial output goes to stdout.
+`--type` writes lines to the guest's serial port, which the kernel reads as
+keystrokes -- so a shell can be driven without emulating a keyboard, and the
+same run can photograph the screen the shell drew. `--keys` sends real key
+events instead, for testing the PS/2 path itself; they are QEMU key names
+(`a`, `ret`, `spc`, `minus`), which is what `send-key` takes.
+
+Serial output goes to stdout.
 """
-import argparse, json, os, socket, subprocess, sys, tempfile, time
+import argparse, json, os, socket, subprocess, sys, tempfile, threading, time
 
 
 class Qmp:
@@ -30,17 +35,27 @@ class Qmp:
         self.cmd("qmp_capabilities")
 
     def cmd(self, name, **args):
-        self.f.write(json.dumps({"execute": name, "arguments": args}) + "\n")
-        self.f.flush()
+        """Run a monitor command. Returns None if the machine has already
+        stopped -- a guest that powers itself off is a normal ending, and
+        losing the serial output because the screenshot came too late is not."""
+        try:
+            self.f.write(json.dumps({"execute": name, "arguments": args}) + "\n")
+            self.f.flush()
+        except (BrokenPipeError, OSError):
+            return None
         while True:
-            line = self.f.readline()
+            try:
+                line = self.f.readline()
+            except OSError:
+                return None
             if not line:
-                sys.exit(f"qmon: QEMU closed the connection during {name}")
+                return None
             msg = json.loads(line)
             if "event" in msg:
                 continue
             if "error" in msg:
-                sys.exit(f"qmon: {name}: {msg['error']['desc']}")
+                print(f"qmon: {name}: {msg['error']['desc']}", file=sys.stderr)
+                return None
             return msg.get("return")
 
 
@@ -51,6 +66,8 @@ def main():
                     help="seconds to let the machine boot before typing")
     ap.add_argument("--keys", default="",
                     help="QEMU key names, space separated; '|' pauses briefly")
+    ap.add_argument("--type", dest="text", default="",
+                    help="lines to send to the guest's serial port, ';' separated")
     ap.add_argument("--settle", type=float, default=1.0,
                     help="seconds to wait after the last key")
     ap.add_argument("--shot", help="write the framebuffer here, as PPM")
@@ -59,16 +76,26 @@ def main():
 
     tmp = tempfile.mkdtemp(prefix="qmon.")
     sock = os.path.join(tmp, "qmp")
-    serial = args.serial or os.path.join(tmp, "serial")
+    ser = os.path.join(tmp, "ser")
+    # A socket rather than a file, so the same port carries what the kernel
+    # says and what the test types at it.
     qemu = ["qemu-system-x86_64", "-kernel", args.kernel,
             "-display", "none", "-vga", "std", "-no-reboot",
-            "-serial", "file:" + serial,
+            "-chardev", f"socket,id=s0,path={ser},server=on,wait=off",
+            "-serial", "chardev:s0",
             "-qmp", f"unix:{sock},server,nowait"]
     proc = subprocess.Popen(qemu, stdout=subprocess.DEVNULL,
                             stderr=subprocess.DEVNULL)
+    out = []
     try:
         q = Qmp(sock)
+        s = connect(ser)
+        drain = threading.Thread(target=reader, args=(s, out), daemon=True)
+        drain.start()
         time.sleep(args.wait)
+        for line in args.text.split(";") if args.text else []:
+            s.sendall((line + "\n").encode())
+            time.sleep(0.25)
         for tok in args.keys.split():
             if tok == "|":
                 time.sleep(0.3)
@@ -84,8 +111,32 @@ def main():
             proc.wait(timeout=10)
         except subprocess.TimeoutExpired:
             proc.kill()
-    if os.path.exists(serial):
-        sys.stdout.write(open(serial, errors="replace").read())
+    text = b"".join(out).decode(errors="replace")
+    if args.serial:
+        open(args.serial, "w").write(text)
+    sys.stdout.write(text)
+
+
+def connect(path):
+    s = socket.socket(socket.AF_UNIX)
+    for _ in range(200):
+        try:
+            s.connect(path)
+            return s
+        except (FileNotFoundError, ConnectionRefusedError):
+            time.sleep(0.05)
+    sys.exit("qmon: QEMU never opened its serial socket")
+
+
+def reader(s, out):
+    while True:
+        try:
+            b = s.recv(4096)
+        except OSError:
+            return
+        if not b:
+            return
+        out.append(b)
 
 
 main()

@@ -1,0 +1,16 @@
+// Class 0x03 in the high byte of the class-code register at offset 8 is a
+// display controller. The first one found wins and the scan runs to the end
+// anyway -- a loop with no way to leave early is what `id` offers, and at
+// thirty-two devices the difference is not measurable.
+pci_at(word d, word a) {
+  word cls = pci_read(0, d, 0, 8);
+  if(a == 0 && ushr(cls, 24) == 3) {
+    a = d;
+  }
+} return word a;
+
+// Base address register zero, with the low four bits masked off: they are
+// flags saying how the region is decoded, not part of the address. On this
+// adapter BAR0 is the linear framebuffer.
+pci_bar0(word d) {
+} return word pci_read(0, d, 0, 0x10) & 0xfffffff0;

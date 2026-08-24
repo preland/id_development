@@ -1,0 +1,18 @@
+// The three instructions the interrupt table needs and `id` has no operator
+// for: where the stubs are, loading the table register, and turning interrupts
+// on. See ../../../boot/isr.S for what the stubs do and docs/ASM.md for why
+// these are `asm` functions rather than anything else.
+
+asm "x86_64-unknown-none" isr_base() {
+  "leaq isr_table(%%rip), %[ret]"
+} return word ret;
+
+asm "x86_64-unknown-none" lidt_load(word a) {
+  "lidt (%[a])"
+  "xorq %[ret], %[ret]"
+} return word ret;
+
+asm "x86_64-unknown-none" sti_on() {
+  "sti"
+  "xorq %[ret], %[ret]"
+} return word ret;

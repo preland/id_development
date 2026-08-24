@@ -1,0 +1,22 @@
+// Drawing one glyph at a pixel position.
+//
+// The background is painted as well as the foreground rather than left alone:
+// a console overwrites, and a glyph drawn over its predecessor without
+// clearing is how a terminal ends up with an `l` inside a `d`.
+//
+// The row within the glyph is a parameter rather than derived from the screen
+// line. Deriving it worked only while glyphs sat at multiples of sixteen, and
+// the moment anything drew text at an arbitrary offset it would have drawn a
+// different glyph's rows -- a bug that looks like a corrupted font.
+font_put(int ch, word x, word y, word fg, word bg) {
+  int ln = 0;
+  while(ln < 16) {
+    font_line(ch, ln, x, y, fg, bg);
+    ln = ln + 1;
+  }
+} return void;
+
+font_line(int ch, int ln, word x, word y, word fg, word bg) {
+  int bits = font_row(ch, ln);
+  font_bits(bits, x, y + ln, fg, bg);
+} return void;

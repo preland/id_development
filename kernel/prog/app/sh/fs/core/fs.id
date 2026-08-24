@@ -1,0 +1,35 @@
+// The filesystem: a tree of nodes, held as five parallel exported lists.
+//
+// `id` has no structs, so a record is one index into several lists that agree
+// about what that index means -- the idiom `compiler/parse/front/tree/` uses
+// for the syntax tree, at a much larger scale. Node `i` is:
+//
+//   fs_name  its name, "" for the root
+//   fs_up    its parent's index, 0 for the root, -1 once it is removed
+//   fs_dir   1 if it is a directory
+//   fs_data  its contents, "" for a directory
+//   fs_cwd   one cell, the working directory -- an exported scalar could only
+//            be assigned by the function that declared it, so a mutable one
+//            has to be a list of one written through `lset`
+//
+// It is a tree because the parent is stored rather than the path: `..` is a
+// read of `fs_up`, and two directories may hold files of the same name.
+//
+// Three functions to declare five lists, because a block holds three actions
+// and a declaration is one of them.
+fs_init() {
+  export string[] fs_name = [];
+  export string[] fs_data = [];
+  fs_init2();
+} return void;
+
+fs_init2() {
+  export int[] fs_up = [];
+  export int[] fs_dir = [];
+  fs_init3();
+} return void;
+
+fs_init3() {
+  export int[] fs_cwd = [];
+  fs_seed();
+} return void;

@@ -1,0 +1,20 @@
+// A glyph at the pen, and the pen moved past it. A space is emitted like
+// anything else -- it has an advance and no ink, and the rasteriser will find
+// no contours in it -- because dropping it here would lose the place a line
+// may break.
+lay_emit(int g, int r, int c) {
+  lay_row(g, r);
+  lset((import lay_pen), 0, (import lay_pen)[0] + lay_adv(g, lay_pt(r)));
+} return void;
+
+lay_row(int g, int r) {
+  push((import lay_g), g);
+  push((import lay_x), (import lay_pen)[0]);
+  lay_row2(g, r);
+} return void;
+
+lay_row2(int g, int r) {
+  push((import lay_y), (import lay_pen)[1]);
+  push((import lay_px), lay_pt(r));
+  push((import lay_st), lay_flag(r));
+} return void;

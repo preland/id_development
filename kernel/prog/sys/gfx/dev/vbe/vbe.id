@@ -1,0 +1,30 @@
+// Setting a graphics mode without a BIOS.
+//
+// The usual way to a linear framebuffer is a real-mode BIOS call, which a
+// kernel already in long mode cannot make. The Bochs VBE extension -- which
+// QEMU's standard adapter implements -- is the way that does not need one: an
+// index is written to 0x1ce and a value to 0x1cf, and the mode is a handful of
+// those pairs.
+//
+// The mode must be disabled while its dimensions change. Setting the width
+// while the adapter is scanning out is how you get a picture torn in a way no
+// amount of redrawing fixes.
+
+vbe_reg(word ix, word val) {
+  out16(0x1ce, ix);
+  out16(0x1cf, val);
+} return void;
+
+vbe_set(word w, word h) {
+  vbe_reg(4, 0);
+  vbe_dims(w, h);
+} return void;
+
+// Index 1 is width, 2 is height, 3 is bits per pixel; then index 4 turns the
+// mode on, with bit 6 asking for the linear framebuffer rather than the
+// windowed bank switching the extension also offers.
+vbe_dims(word w, word h) {
+  vbe_reg(1, w);
+  vbe_reg(2, h);
+  vbe_on();
+} return void;

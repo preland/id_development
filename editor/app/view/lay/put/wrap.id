@@ -1,0 +1,23 @@
+// Breaking a line when the next glyph would run past the page.
+//
+// This breaks *at* the glyph rather than at the last space, so a long word is
+// split rather than pushed onto a line of its own. That is the simple rule and
+// it is visibly wrong on a narrow page; doing it properly means remembering
+// the last space and moving everything after it, which needs the placed
+// glyphs to be mutable after the fact.
+lay_wrap(int w, int n) {
+  if((import lay_pen)[0] + n > w * 64) {
+    lay_break(lay_lead((import lay_px)[len((import lay_px)) - 1]));
+  }
+} return void;
+
+lay_break(int n) {
+  lset((import lay_pen), 0, 0);
+  lset((import lay_pen), 1, (import lay_pen)[1] + n);
+} return void;
+
+// The distance from one baseline to the next, from the font's own vertical
+// metrics rather than a guess: ascender above, descender below, and the gap
+// the designer asked for between.
+lay_lead(int n) {
+} return int (tt_ascent() - tt_descent() + tt_gap()) * n / tt_upem();

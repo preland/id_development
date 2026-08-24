@@ -1,0 +1,26 @@
+// `rm`. A node is removed by pointing its parent at -1, which no node has, so
+// every walk stops finding it. Nothing is reclaimed: the arena has no `free`
+// (docs/SPEC.md 6), and a hole punched in four parallel lists would move every
+// index after it -- including the one the working directory is remembered as.
+//
+// Removing a directory removes it and orphans its children rather than
+// refusing, because there is no `rmdir` here to refuse in favour of.
+sh_rm(string t) {
+  int at = fs_path(t);
+  if(at <= 0) {
+    con_line("rm: no such file: " + t);
+  } else {
+    lset((import fs_up), at, 0 - 1);
+  }
+} return void;
+
+sh_clear() {
+  con_blank();
+} return void;
+
+// `halt`. The line is written before the machine stops, because after it there
+// is no machine to write from.
+sh_halt() {
+  con_line("halt: stopping the machine");
+  poweroff();
+} return void;

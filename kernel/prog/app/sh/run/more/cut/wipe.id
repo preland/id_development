@@ -1,0 +1,33 @@
+// Erasing the character under the cursor. The console keeps a column and a row
+// in `con_st` and offers no way to move backwards, so the shell moves the
+// column itself -- the same `wset` the console uses on its own state, because
+// an exported list is the only mutable thing this language has.
+//
+// At column zero there is nothing to erase and nowhere to go; a wrapped line
+// loses its tail rather than backing up onto the row above, which is the one
+// place this is visibly not a terminal.
+sh_erase() {
+  word x = con_at(0);
+  if(x > 0) {
+    sh_wipe(x);
+  }
+} return void;
+
+// Back one, draw a space, back one again: drawing the space is what advances
+// the column, so the second write is not a repetition of the first.
+sh_wipe(word x) {
+  wset((import con_st), 0, x - 1);
+  con_ch(32);
+  wset((import con_st), 0, x - 1);
+} return void;
+
+// The typed characters as a string, in one copy rather than n of them: the
+// bytes are written into the flat store and `str_of_mem` takes the run.
+//
+// One byte more than the line is reserved because a zero-length line would
+// otherwise ask for nothing, and `alloc` promises an address rather than a
+// size (docs/SPEC.md 6).
+sh_str(int[] xs) {
+  word p = alloc(len(xs) + 1);
+  sh_pack(xs, p);
+} return string str_of_mem(p, len(xs));

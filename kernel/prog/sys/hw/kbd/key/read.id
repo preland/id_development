@@ -1,0 +1,22 @@
+// One character from the keyboard, or -1. Releases and modifiers change state
+// and produce nothing; everything else is a table lookup.
+kb_poll() {
+  int sc = kb_scan();
+  int ch = 0 - 1;
+  ch = kb_step(sc);
+} return int ch;
+
+kb_step(int sc) {
+  int ch = 0 - 1;
+  if(sc >= 0x80) {
+    kb_up(sc - 0x80);
+  } else if(sc >= 0) {
+    ch = kb_down(sc);
+  }
+} return int ch;
+
+kb_up(int sc) {
+  if(kb_shift(sc) == 1) {
+    lset((import kb_st), 0, 0);
+  }
+} return void;

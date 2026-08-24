@@ -1,0 +1,30 @@
+// A character from either input the machine has: the keyboard a person is
+// typing at, and the serial port a test is typing at.
+//
+// One function rather than two, because everything above this cares that a
+// character arrived and not where from -- and because a shell that can only be
+// driven by a human is a shell nothing can check.
+tty_getc() {
+  int ch = kb_poll();
+  if(ch < 0) {
+    ch = com1_poll();
+  }
+} return int ch;
+
+// The receive half of the same 16550 the console writes to. Bit 0 of the line
+// status register at 0x3fd says a byte is waiting.
+com1_poll() {
+  int ch = 0 - 1;
+  if(in8(0x3fd) & 1 == 1) {
+    ch = in8(0x3f8);
+  }
+} return int ch;
+
+// Blocking: halt until a key arrives rather than spinning on the ports, so an
+// idle shell costs nothing.
+tty_wait() {
+  int ch = 0 - 1;
+  while(ch < 0) {
+    ch = tty_getc();
+  }
+} return int ch;

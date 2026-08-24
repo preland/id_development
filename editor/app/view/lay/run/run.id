@@ -1,0 +1,23 @@
+// A paragraph ends with a line break and nothing else, which is what makes an
+// empty paragraph a blank line rather than nothing at all.
+lay_runs(int w, int i, int k) {
+  while(k < odt_runs_of(i)) {
+    lay_run(w, odt_run_at(i, k));
+    k = k + 1;
+  }
+  lay_break(lay_lead(lay_size(i)));
+} return void;
+
+// One run, character by character. The text is UTF-8, so a character is one to
+// four bytes and the loop advances by however many it read.
+lay_run(int w, int r) {
+  string s = odt_run_text(r);
+  int at = 0;
+  lay_chars(w, r, s, at);
+} return void;
+
+lay_chars(int w, int r, string s, int at) {
+  while(at < len(s)) {
+    at = lay_char(w, r, s, at);
+  }
+} return void;

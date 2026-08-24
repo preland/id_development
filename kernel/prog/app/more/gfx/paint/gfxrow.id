@@ -1,0 +1,24 @@
+// A row of three bands. The colour comes from which third of the screen the
+// pixel is in, which makes each boundary a straight vertical line a screenshot
+// can be checked against.
+gfx_row(word w, word y) {
+  word x = 0;
+  while(x < w) {
+    gfx_cell(x, y, w);
+    x = x + 1;
+  }
+} return void;
+
+gfx_cell(word x, word y, word w) {
+  word c = gfx_col(x, w);
+  fb_px(x, y, c);
+} return void;
+
+gfx_col(word x, word w) {
+  word c = 0x00cc4422;
+  if(x >= w / 3 && x < w - w / 3) {
+    c = 0x0022cc44;
+  } else if(x >= w - w / 3) {
+    c = 0x004422cc;
+  }
+} return word c;
