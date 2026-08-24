@@ -153,9 +153,27 @@ last job, and `git rm idc.py` breaks nothing.
 ## 9c. Make the freestanding target trap
 
 `docs/KERNEL.md` lists three promises of `docs/SPEC.md` the kernel cannot keep,
-and all three are the same missing thing: a trap has nowhere to go. An IDT and
-a panic path that writes to the serial port turns every one of them back on --
-division by zero, an out-of-range index, a store past the arena.
+and all three are the same missing thing: a trap has nowhere to go. The IDT and
+the panic path now exist, so this is smaller than it was -- what is left is
+routing `id`'s own traps (division by zero, an out-of-range index, a store past
+the arena) into it, which means the freestanding runtime calling `kpanic`
+rather than letting the CPU fault.
+
+## 9d. The eight things docs/FRICTION.md says are worth fixing
+
+Written up with the code that hit each one. Two of them are a few lines and
+close the entries that produce *wrong answers* rather than awkward code:
+
+* **A floor** in `idstd`. `fx_abs`, `fx_min`, `fx_max`, `fx_clamp` and
+  `fx_sign` exist; nothing floors, and division truncates toward zero. Every
+  program touching a negative coordinate writes it again or is quietly wrong.
+* **A `print` that writes to stderr.** A parser that meets a corrupt archive
+  currently writes "corrupt archive" onto the same stream as the data.
+
+The other six are real work: a record type, a `break`, a way to return a
+failure, an array literal that takes its type from its context, a decision on
+evaluation order (`docs/SPEC.md` S11), and a `string` that knows its own length
+-- which is the 767x one.
 
 ## 10. String building is quadratic
 

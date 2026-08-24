@@ -108,21 +108,40 @@ bin/idc demos/calc --target llvm --emit-llvm calc.ll
 It compiles the compiler, and the compiler it builds reproduces itself exactly.
 See [`docs/LLVM.md`](docs/LLVM.md).
 
-### A kernel, to prove the language reaches the machine
+### Two programs the language was stretched against
 
 `id` also builds **freestanding**: no libc, no C runtime, nothing linked that
-this repository did not compile from `id` source. `kernel/` is a kernel and
-`runtime/` is the runtime under it, both written in `id` over a handful of
-one-instruction `asm` functions.
+this repository did not compile from `id` source.
+
+**[`kernel/`](kernel) is a kernel with a graphical shell.** It boots under
+QEMU, sets a framebuffer mode through PCI and the Bochs VBE ports, draws an
+80x30 console with an 8x16 font, reads the PS/2 keyboard, and runs a shell over
+an in-memory filesystem — `ls`, `cd`, `cat`, `write`, `uname`. A fault names
+itself and stops the machine. [`docs/KERNEL.md`](docs/KERNEL.md).
 
 ```sh
 tools/devshell.sh 'tools/kbuild.sh'
 qemu-system-x86_64 -kernel build/kernel.elf -serial stdio -display none
 ```
 
-`tests/kernel.sh` boots it, asserts the image has no undefined symbols, and
-runs the same source hosted to check the two runtimes agree line for line. See
-[`docs/KERNEL.md`](docs/KERNEL.md).
+**[`editor/`](editor) reads an OpenDocument file and draws it.** A ZIP holding
+XML: inflate, parse, resolve the styles, read a TrueType font, turn glyph
+outlines into anti-aliased coverage, break lines against a page width.
+[`docs/EDITOR.md`](docs/EDITOR.md).
+
+```sh
+bin/idc editor -o editor && ./editor doc.odt font.ttf --ppm page.ppm
+```
+
+Both are tested rather than eyeballed. `tools/fbtext.py` reads the kernel's
+framebuffer back as text by matching each cell against the kernel's own font,
+so a console that wrote to the serial port and drew nothing fails; the editor's
+five suites check every module against a reference computed at test time.
+
+**What they were for** is [`docs/FRICTION.md`](docs/FRICTION.md): twenty-two
+places where the language costs more than it should, each naming the code that
+hit it — and the four rules that cost something and caught something, which is
+the difference worth keeping.
 
 What only `idc.py` still does: `--target wasm`. See
 [`docs/GAPS.md`](docs/GAPS.md) for the state of that and everything else.
