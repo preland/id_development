@@ -1,0 +1,38 @@
+// Looking a style up by the name a run gives.
+
+// Where a style name sits in the style table, or -1.
+//
+// A linear scan: an automatic-styles block holds one style per distinct run of
+// formatting, which is tens of entries in a real document, and a hash table
+// would be a second parallel structure to keep right for no measurable gain.
+// xml_pick2 does the comparison, because a second function with that body
+// would not compile.
+odt_key(string key) {
+  int i = 0;
+  int at = -1;
+  while(i < len((import odt_keys))) {
+    at = xml_pick2((import odt_keys)[i], i, key, at);
+    i = i + 1;
+  }
+} return int at;
+
+// The font family a style names, or "" if it names none or is not a style this
+// document declared.
+odt_font(string key) {
+  int i = odt_key(key);
+  string out = "";
+  if(i >= 0) {
+    out = (import odt_fonts)[i];
+  }
+} return string out;
+
+// The size in points, or 0 when the style does not set one. Zero rather than a
+// default: what a missing size falls back to is the renderer's decision, not
+// this model's.
+odt_size(string key) {
+  int i = odt_key(key);
+  int n = 0;
+  if(i >= 0) {
+    n = (import odt_nums)[i];
+  }
+} return int n;

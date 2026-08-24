@@ -1,0 +1,19 @@
+// One coordinate run. k is 2 for the x run and 4 for the y run -- the bit in
+// the flag that says "this delta is one byte" -- and v seeds the running sum,
+// which is how a composite component's translation is applied without a
+// second pass over the points.
+tt_coords(int[] tab, int[] row, int[] dst, int k, int v) {
+  int i = 0;
+  lset(row, 1, v);
+  while(i < len(tab)) {
+    i = tt_coord1(tab, row, dst, k, i);
+  }
+} return void;
+
+// tt_delta moves the cursor and the sum does not, so the order the two
+// operands of the + are evaluated in cannot matter here -- which is worth
+// saying, because docs/SPEC.md 9 leaves that order unspecified.
+tt_coord1(int[] tab, int[] row, int[] dst, int k, int i) {
+  lset(row, 1, row[1] + tt_delta(tab[i], k, row));
+  push(dst, row[1]);
+} return int i + 1;

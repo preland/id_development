@@ -1,0 +1,22 @@
+// CDATA and DOCTYPE.
+
+// A CDATA section, reported as a text event whose bytes start at i.
+xml_cdata(int i) {
+} return int xml_cdata2(i, xml_seek(i, "]]>"));
+
+// Text inside CDATA is exact: no entity is recognised in it. That is why the
+// raw flag rides along inside the event record rather than being worked out
+// later by whoever asks for the text -- by then the bytes have no context.
+xml_cdata2(int i, int j) {
+  int k = 5;
+  if(j < 0) {
+    k = xml_fail("unterminated CDATA section", i);
+  } else {
+    k = xml_span(i, j, 1, j + 3);
+  }
+} return int k;
+
+// A DOCTYPE declares entities and elements this parser does not read, so it is
+// stepped over whole.
+xml_doctype(int i) {
+} return int xml_skip(i, xml_dt_end(i), 1, "unterminated DOCTYPE");

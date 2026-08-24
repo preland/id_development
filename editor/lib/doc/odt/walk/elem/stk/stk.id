@@ -1,0 +1,33 @@
+// Closing an element, and the style stack.
+
+// An end element: finish the run, close the paragraph if this was one, and
+// drop the style this element contributed. The order matters -- the run being
+// flushed was written in this element's style, so the pop comes last.
+odt_shut() {
+  odt_flush();
+  odt_close();
+  odt_pop();
+} return void;
+
+odt_close() {
+  if(xml_name() == "text:p" || xml_name() == "text:h") {
+    odt_end();
+  }
+} return void;
+
+// A start element can change the style in force, so the run in progress ends
+// here -- in the style it was written in, which is why the flush comes before
+// the push. Every start element pushes, whether it names a style or not, so
+// that every end element can pop without knowing what was pushed; an element
+// with no text:style-name inherits the one already in force, which is what
+// makes a text:span inside a text:span come out right.
+//
+// An *empty* element does neither, and that is the point: <text:s/> and
+// <text:tab/> are part of the run they sit in, and flushing at one would split
+// "a    b" into two runs that say the same thing in the same style.
+odt_stack(int k) {
+  if(k == 1) {
+    odt_flush();
+    push((import odt_stk), odt_style_now());
+  }
+} return void;

@@ -1,0 +1,29 @@
+// Four glyphs prove the reader can be right; every glyph in the font proves
+// it is. The sweep folds the contour count, the point count and every
+// coordinate and on-curve bit of every glyph into one rolling hash, so a
+// reference implementation agreeing with it has agreed about several million
+// numbers -- including every composite with a real 2x2 in it, which no font's
+// letters go anywhere near.
+tt_report4() {
+  tt_shapes();
+  tt_sweep();
+  tt_more2();
+} return void;
+
+// tab is [hash, contours, points, glyph]. The bias keeps the hash
+// non-negative through a negative coordinate: `%` takes the sign of its
+// dividend in `id` (docs/SPEC.md 2.2) and floors in Python, and a hash that
+// means two things is not a cross-check.
+tt_sweep() {
+  int[] tab = [0, 0, 0, 0];
+  while(tab[3] < tt_nglyph()) {
+    tt_swp1(tab);
+  }
+  print("sweep " + tab[1] + " " + tab[2] + " " + tab[0]);
+} return void;
+
+tt_swp1(int[] tab) {
+  tt_outline(tab[3]);
+  lset(tab, 3, tab[3] + 1);
+  tt_swpg(tab);
+} return void;

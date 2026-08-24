@@ -1,0 +1,29 @@
+// Reading one style's properties.
+
+// Each property keeps what the row already had when the attribute is absent,
+// so a style split over more than one text-properties element accumulates
+// rather than being reset by the second.
+odt_props2(int i) {
+  sset((import odt_fonts), i, odt_or(xml_attr("style:font-name"), (import odt_fonts)[i]));
+  lset((import odt_nums), i, odt_pt(xml_attr("fo:font-size"), (import odt_nums)[i]));
+  lset((import odt_flags), i, (import odt_flags)[i] | odt_wt());
+} return void;
+
+// s if it says anything, otherwise t.
+odt_or(string s, string t) {
+  string out = t;
+  if(s != "") {
+    out = s;
+  }
+} return string out;
+
+// fo:font-size is written with its unit, "12pt", and to_int reads the leading
+// integer and stops. Only points are modelled: a size in another unit comes
+// back as its bare number, which is wrong, and is recorded here as a known
+// limitation rather than hidden behind a silent zero.
+odt_pt(string s, int n) {
+  int m = n;
+  if(s != "") {
+    m = to_int(s);
+  }
+} return int m;

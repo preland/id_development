@@ -1,0 +1,18 @@
+// The address of entry i in one of the four parallel segment arrays, where
+// k is 0 for endCode, 1 for startCode, 2 for idDelta and 3 for idRangeOffset.
+// endCode is followed by a two-byte pad that exists for no reason anyone has
+// written down, which is the whole of why the other three start two bytes
+// later than the multiplication alone would put them.
+tt_g4at(int at, int k, int i) {
+  int n = rd_be16((import ttbuf), at + 6) / 2;
+  int b = 14 + n * k * 2;
+  if(k > 0) {
+    b = b + 2;
+  }
+} return int at + b + i * 2;
+
+// idDelta is signed in the file and is read unsigned here on purpose: it is
+// only ever added to a glyph id and taken modulo 2^16, and the two readings
+// agree under that.
+tt_g4arr(int at, int k, int i) {
+} return int rd_be16((import ttbuf), tt_g4at(at, k, i));

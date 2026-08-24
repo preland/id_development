@@ -1,0 +1,25 @@
+// Where glyph g's outline starts inside `glyf`. `loca` has numGlyphs + 1
+// entries so that the last glyph has an end, and indexToLocFormat says
+// whether they are 16-bit halved offsets or plain 32-bit ones -- the 16-bit
+// form is why a font's glyf table has to be even-aligned.
+tt_loca(int g) {
+  int at = tt_table("loca");
+  int r = rd_be16((import ttbuf), at + g * 2) * 2;
+  if((import ttmet)[1] == 1) {
+    r = tt_u32((import ttbuf), at + g * 4);
+  }
+} return int r;
+
+// A simple glyph, laid out in the file as: the contour end indices, the
+// hinting program, the run-length-encoded flags, then all the x deltas and
+// then all the y deltas -- two separate runs over the same flags, which is
+// why the flags have to be expanded into a list first.
+//
+// row is the cursor: row[0] is the read position and row[1] the running
+// coordinate. `id` has no way to return two values, and a parameter is not an
+// out-parameter unless it is a list, so the cursor is a list.
+tt_simple(int at, int n, int x, int y) {
+  int[] tab = [];
+  int[] row = [tt_ends(at, n), 0];
+  tt_pts(tab, row, x, y);
+} return void;

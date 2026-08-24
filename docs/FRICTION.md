@@ -301,6 +301,162 @@ is a local that exists only to change the type. One reader of a ZIP file
 avoided it by reading the same four bytes twice as two 16-bit reads, which caps
 that reader at 2 GB.
 
+## 13. There is no way to empty a list, and the workaround changes its identity
+
+`id` has no `clear`. `lset` cannot shrink a list, `pop` removes one cell, and an
+exported list cannot be reassigned from outside the function that declared it.
+The only way to empty one is to run its declaration again:
+
+```
+tt_clear() {
+  export int[] ttends = [];
+  export int[] ttpx = [];
+  tt_clear2();
+} return void;
+```
+
+That works -- `docs/SPEC.md` §8 says an export is initialised when its declaring
+function runs -- but it does not empty the list. It makes a *new* list and
+rebinds the name. So a consumer that held `(import ttpx)` across a call is
+holding the previous glyph, silently, and the only thing saying so is a comment.
+
+For a font whose outline lists are refilled once per glyph, that is the most
+dangerous thing in the module, and it is dangerous because of an omission
+rather than a rule.
+
+## 14. Three exports per function, so a record of seven becomes a list and a comment
+
+A font has seven metrics that belong together: units per em, glyph count,
+ascender, descender, line gap, the number of horizontal metrics, and the
+`loca` format. What that wants to be is seven exported `int`s. The action limit
+allows three declarations per function, so it is one list and five accessors:
+
+```
+tt_upem() {
+} return int (import ttmet)[0];
+```
+
+`tt_upem` exists because there is no way to give the index `0` a name. This is
+§1 again, from the other end: not a record inside an algorithm, but a record
+that *is* the module's interface.
+
+## 15. A narrowing reader is nearly unwritable
+
+`rd_be32` returns a `word`, correctly -- a full 32-bit field does not fit an
+`int`. But a table offset is an `int`, and `word` is contagious: one `word` in
+an offset expression widens all of it. So the font module has its own:
+
+```
+tt_u32(int[] xs, int at) {
+} return int rd_be16(xs, at) * 65536 + rd_be16(xs, at + 2);
+```
+
+which is `rd_be32` with a different return type. It is legal only because
+`rd_be32` uses a local and this does not. **Had the two bodies matched, the
+duplicate-logic rule would have made a narrowing reader impossible to write** --
+and the choice would have been between widening every offset in the module to
+`word` or spelling the read out at every call site.
+
+The same rule makes `rd_i8` impossible for a different reason: reading one byte
+is `xs[at]`, which is already `idstd`'s `lget`, so the signed one-byte reader
+can only be the sign half, called as `tt_i8(xs[at])`. Two signed readers with
+different shapes for no reason a reader of the code can see.
+
+## 16. A library has no way to name a constant
+
+`conf.id` constants are read at a project root, so a *program* can name its
+magic numbers. A module inside one cannot: the whole vocabulary of a binary
+format -- `MORE_COMPONENTS` is 32, F2Dot14 1.0 is 16384, the x-or-y sign bit is
+a shifted 8 -- stays as bare numbers with the name in a comment beside it.
+
+```
+if(k & 32 > 0) {
+```
+
+`editor/`'s own root could declare them, at the cost of reserving a
+program-wide name for every flag in every format the editor reads. That is the
+choice the language offers: a constant is global or it does not exist.
+
+## 17. `charat` is O(n) on a long string, so text processing is quadratic
+
+This is the largest measured cost in either program, by a very long way.
+
+`id_charat` in the C runtime memoises the length of **one** string. A parser
+alternating between the document it is scanning and the strings it is building
+misses that memo on every call, and each miss is a `strlen` of the whole
+document. Scanning is therefore O(n²) in the length of the input, with a
+constant nobody would guess at from reading the code.
+
+Measured on an OpenDocument `content.xml`:
+
+| input | with `charat` | reading the flat store |
+| ---: | ---: | ---: |
+| 3.5 MB | **46.8 s** | **0.061 s** |
+| 14 MB | 1.76 s (parse only, before the rest of the fix) | linear |
+
+Scaling with `charat` was 4× per doubling. The fix was to stop using it on the
+input at all: copy the document into the flat store once with `mem_of_str`, and
+read it with `peek8`.
+
+```
+xml_ch(int i) {
+  int c = 0 - 1;
+  if(i >= 0 && i < xml_len()) {
+    c = peek8(xml_base() + i);
+  }
+} return int c;
+```
+
+`len(s)` had to go the same way -- it is an un-memoised `strlen`, and it was
+being evaluated three times per attribute as an end-of-input sentinel, so the
+length is cached too. **After both, the parse is exactly linear**: 4000, 8000
+and 16000 paragraphs take 0.060, 0.119 and 0.246 seconds.
+
+`idstd`'s `str_findat` is unusable on a document for the same reason -- it calls
+`str_eqat` at every position, and `str_eqat` alternates `charat` between the
+haystack and the needle, which is the worst case of the memo on every
+comparison.
+
+**This is a runtime property, not a language rule**, and it is the one entry
+here that makes correct, obvious code unusably slow rather than merely awkward.
+The workaround is documented practice (`demos/idview`, `compiler/lex` and now
+the XML parser all keep offsets and read the store), but it is a workaround: a
+`string` that knew its own length would remove the whole class. Changing that
+means changing the representation `docs/SPEC.md` §4 describes, which is why it
+is written down here rather than done.
+
+## 18. A dispatcher that returns a value can only ever be two-way
+
+§4 said three actions is one too few for a four-way choice. The XML parser
+found the sharper version: a function that *returns* something needs a local to
+assign into, and that local is the first action -- so `if / else if / else` is
+already 4 and a value-returning dispatcher is limited to **two** ways.
+
+```
+xml_mark(int i)  { int k = 0; if(xml_ch(i + 1) == 47) { k = xml_close(i + 2); } else { k = xml_mark2(i); } } return int k;
+xml_mark2(int i) { int k = 0; if(xml_ch(i + 1) == 33) { k = xml_bang(i + 2);  } else { k = xml_mark3(i); } } return int k;
+xml_mark3(int i) { int k = 0; if(xml_ch(i + 1) == 63) { k = xml_skip(i);      } else { k = xml_tag(i + 1); } } return int k;
+```
+
+Three functions to decide between four kinds of `<`. A `void` dispatcher gets
+three ways, because it needs no local -- so the same decision costs a different
+number of files depending on whether it produces a value.
+
+The five predefined XML entities cannot be a chain of comparisons at all: five
+branches is five actions, so they are a table and a search, rebuilt per call.
+
+## 19. The uniqueness rule reaches across modules
+
+The ODT layer needed a per-row comparison in a style-name lookup. It is
+character for character the XML layer's `xml_pick2`, so it could not be
+written -- and `odt_key` now calls `xml_pick2` directly, which is an ODT
+function reaching into the parser's internals for a three-line helper.
+
+The same rule merged decimal and hexadecimal character references into one
+loop, since two loops differing only in `10` versus `16` are the same logic.
+That one is the rule being right. The first is the rule being right and the
+answer being in the wrong place, which is §6 again at module scale.
+
 ---
 
 ## What this list is not
@@ -319,5 +475,16 @@ something, from the four that cost something and bought nothing:
   a discipline.
 * **§10**, unspecified evaluation order. `docs/SPEC.md` should choose.
 * **§12**, both diagnostics. A misparse should say what was misparsed.
+* **§13**, there is no way to empty a list. The workaround rebinds the name and
+  silently invalidates every reference to it, which is the only entry here that
+  can produce a wrong answer rather than an awkward one.
+* **§15**, a narrowing reader survives the uniqueness rule by accident. That is
+  luck, not design.
+* **§17**, `charat` is linear. This is the only entry that makes correct,
+  obvious code 767 times slower than it needs to be, and the only one whose
+  workaround every text-processing program in the language has had to
+  rediscover.
 
-Those four are the list worth acting on.
+Those seven are the list worth acting on. The rest are the cost of rules that
+also caught real mistakes -- a duplicate function, a name meaning two things, a
+block doing too much -- in both programs, more than once.

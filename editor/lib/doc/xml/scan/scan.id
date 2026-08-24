@@ -1,0 +1,40 @@
+// The scan loop: one call, one event.
+
+// Advance to the next event and answer its kind.
+//
+// The loop is here because a comment, a processing instruction and a DOCTYPE
+// are passed over rather than reported: xml_step answers -1 for "that was not
+// an event, ask again", and there is no other way to say it without recursion
+// that could run away on a file made entirely of comments.
+xml_next() {
+  int k = xml_step();
+  while(k < 0) {
+    k = xml_step();
+  }
+  lset((import xml_st), 1, k);
+} return int k;
+
+// One attempt. End of input is kind 0, and it is the only thing that stops the
+// caller's loop; a fault stops the scan by driving the position to the end.
+//
+// The read position is fetched twice rather than kept in a local, because a
+// local declaration plus an `if` plus an `else` is four actions and a block
+// performs three. This is the shape that limit produces most often.
+xml_step() {
+  int k = 0;
+  if(xml_ch((import xml_st)[0]) >= 0) {
+    k = xml_step2((import xml_st)[0]);
+  } else {
+    k = xml_eof();
+  }
+} return int k;
+
+// Markup or text: the only decision at the top of the grammar.
+xml_step2(int i) {
+  int k = 0;
+  if(xml_ch(i) == 60) {
+    k = xml_mark(i);
+  } else {
+    k = xml_run(i);
+  }
+} return int k;

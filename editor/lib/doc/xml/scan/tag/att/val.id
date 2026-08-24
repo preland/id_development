@@ -1,0 +1,28 @@
+// An attribute value: a quoted run, entities and all.
+
+// Both quote characters are legal in XML and each ends only on its own kind,
+// so which one opened the value is carried into the scan.
+xml_aval2(int j, int i) {
+  int hi = xml_len();
+  if(xml_ch(j) == 34 || xml_ch(j) == 39) {
+    hi = xml_aval3(j + 1, xml_ch(j), i);
+  } else {
+    xml_fail("expected a quoted attribute value", i);
+  }
+} return int hi;
+
+// j is the first byte of the value, c the quote that has to end it.
+xml_aval3(int j, int c, int i) {
+  int hi = xml_upto(j, c);
+} return int xml_aput(j, hi, i);
+
+// Running off the end of the input inside a value is a document that stops
+// mid-tag, and there is nothing sensible to do with what came before it.
+xml_aput(int j, int hi, int i) {
+  int m = xml_len();
+  if(xml_ch(hi) < 0) {
+    xml_fail("unterminated attribute value", i);
+  } else {
+    m = xml_aput2(j, hi);
+  }
+} return int m;

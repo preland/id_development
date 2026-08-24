@@ -1,0 +1,24 @@
+// Bold and italic.
+//
+// They share one integer column -- bit 0 bold, bit 1 italic -- so the style
+// table is four parallel lists rather than five. Nothing outside odt_bold and
+// odt_italic sees the packing.
+//
+// fo:font-weight also takes a number (100..900) and fo:font-style takes
+// "oblique"; neither is treated as bold or italic here, which is the same
+// choice as reading only "bold" and "italic" from a document that is generated
+// rather than hand-written.
+
+odt_wt() {
+  int v = 0;
+  if(xml_attr("fo:font-weight") == "bold") {
+    v = 1;
+  }
+} return int v + odt_it();
+
+odt_it() {
+  int v = 0;
+  if(xml_attr("fo:font-style") == "italic") {
+    v = 2;
+  }
+} return int v;

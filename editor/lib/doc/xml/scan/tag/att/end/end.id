@@ -1,0 +1,24 @@
+// Storing an attribute value, and requiring a single byte.
+
+// The value is decoded eagerly, unlike text, and the difference is deliberate:
+// an attribute is short, there are a handful per element, and the caller asks
+// for one by name -- so keeping offsets would mean keeping a pair of them per
+// attribute and re-finding the name later, for no saving.
+xml_aput2(int j, int hi) {
+  push((import xml_ats), xml_dec(j, hi, 0));
+} return int xml_ws(hi + 1);
+
+// Require byte c at i, step past it and answer kind k; or report msg.
+xml_need(int i, int c, int k, string msg) {
+  int m = 5;
+  if(xml_ch(i) == c) {
+    m = xml_pass(i, k);
+  } else {
+    m = xml_fail(msg, i);
+  }
+} return int m;
+
+// An end tag. i is the first byte of the name, just past '</'.
+xml_close(int i) {
+  int j = xml_ntok(i);
+} return int xml_close2(i, j);

@@ -1,0 +1,27 @@
+// The optional 2x2, in F2Dot14 where 16384 is 1.0. The three forms differ
+// only in how many values are stored -- one for a uniform scale, two for
+// separate x and y scales, four for the full matrix -- and in all three the
+// LAST value stored is d, which is why one offset expression serves them all.
+tt_scale(int[] row, int k) {
+  int n = tt_snum(k);
+  tt_sput(row, n);
+  lset(row, 0, row[0] + n * 2);
+} return void;
+
+// Reset to the identity every time: the same row is reused for every
+// component of the composite, and the previous one may have left a rotation
+// in cells 6 and 7 that this one never writes.
+tt_sput(int[] row, int n) {
+  tt_ident(row);
+  if(n > 0) {
+    tt_sput2(row, n);
+  }
+} return void;
+
+tt_sput2(int[] row, int n) {
+  lset(row, 5, rd_i16((import ttbuf), row[0]));
+  lset(row, 8, rd_i16((import ttbuf), row[0] + (n - 1) * 2));
+  if(n == 4) {
+    tt_sput4(row);
+  }
+} return void;

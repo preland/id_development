@@ -1,0 +1,25 @@
+// The 2x2 applied to the points from b on: x' = a*x + c*y and y' = b*x + d*y,
+// with the F2Dot14 scale divided back out by tt_fix.
+//
+// The identity goes through the same arithmetic rather than being skipped:
+// 16384 * x / 16384 is exactly x for every coordinate the format can hold, so
+// the branch would buy nothing but a place to be wrong.
+tt_xform(int[] row, int b) {
+  int i = b;
+  while(i < len((import ttpx))) {
+    i = tt_xform1(row, i);
+  }
+} return void;
+
+// x and y are read out before either is written, because the transform mixes
+// them: writing x first would feed the new x into the row for y.
+tt_xform1(int[] row, int i) {
+  int x = (import ttpx)[i];
+  int y = (import ttpy)[i];
+  tt_xput(row, i, x, y);
+} return int i + 1;
+
+tt_xput(int[] row, int i, int x, int y) {
+  lset((import ttpx), i, tt_fix(row[5] * x + row[7] * y));
+  lset((import ttpy), i, tt_fix(row[6] * x + row[8] * y));
+} return void;

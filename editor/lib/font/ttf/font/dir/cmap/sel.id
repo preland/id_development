@@ -1,0 +1,34 @@
+// `cmap`: which glyph draws a code point.
+//
+// A font carries several subtables for several platforms, and they do not
+// agree -- the Windows BMP one stops at U+FFFF, the Windows full one does
+// not, and the old Mac ones cover 256 code points. The best one is chosen
+// once at load time and remembered, because choosing it per lookup would put
+// a scan over the encoding records in front of every character on the page.
+//
+// ttcm, by index:
+//   0  the chosen subtable's byte offset in the file, or -1
+//   1  its format
+//   2  the rank that won, used only while choosing
+tt_cmap() {
+  export int[] ttcm = [0 - 1, 0, 0 - 1];
+  if(tt_table("cmap") >= 0) {
+    tt_cmscan(ttcm, (import ttbuf), tt_table("cmap"));
+  }
+} return void;
+
+// Each encoding record is platform (2), encoding (2), and the subtable's
+// offset from the start of `cmap` (4).
+tt_cmscan(int[] tab, int[] xs, int at) {
+  int i = 0;
+  while(i < rd_be16(xs, at + 2)) {
+    i = tt_cmone(tab, xs, at, i);
+  }
+} return void;
+
+tt_cmone(int[] tab, int[] xs, int at, int i) {
+  int k = tt_cmrank(rd_be16(xs, at + 4 + i * 8), rd_be16(xs, at + 6 + i * 8));
+  if(k > tab[2]) {
+    tt_cmput(tab, k, at + tt_u32(xs, at + 8 + i * 8));
+  }
+} return int i + 1;

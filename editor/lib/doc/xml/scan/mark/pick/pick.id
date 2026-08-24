@@ -1,0 +1,36 @@
+// What kind of markup starts at a '<'.
+
+// '</' is an end tag, '<!' a comment, CDATA or DOCTYPE; everything else is a
+// start or empty element.
+xml_mark(int i) {
+  int k = 0;
+  if(xml_ch(i + 1) == 47) {
+    k = xml_close(i + 2);
+  } else {
+    k = xml_mark2(i);
+  }
+} return int k;
+
+// The two remaining introducers. A three-way `if / else if / else` would fit a
+// block exactly, but only with nothing else in it -- and the `int k = 0` a
+// value-returning branch needs is that fourth action. So the chain is spread
+// over two functions instead.
+xml_mark2(int i) {
+  int k = 0;
+  if(xml_ch(i + 1) == 33) {
+    k = xml_bang(i + 2);
+  } else {
+    k = xml_mark3(i);
+  }
+} return int k;
+
+// A processing instruction, including the `<?xml ... ?>` declaration, carries
+// nothing a document model needs, so it is passed over rather than reported.
+xml_mark3(int i) {
+  int k = 0;
+  if(xml_ch(i + 1) == 63) {
+    k = xml_skip(i, xml_seek(i, "?>"), 2, "unterminated processing instruction");
+  } else {
+    k = xml_tag(i + 1);
+  }
+} return int k;

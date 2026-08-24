@@ -1,0 +1,35 @@
+// Turning a text event into a string, and deciding whether it needs decoding.
+
+// The text of the event just passed. Only a text event has any; asking after
+// anything else answers "".
+xml_text() {
+  string out = "";
+  if((import xml_st)[1] == 4) {
+    out = xml_dec((import xml_st)[2], (import xml_st)[3], (import xml_st)[4]);
+  }
+} return string out;
+
+// The bytes [lo, hi) as a string, with entities expanded unless raw.
+//
+// The common case -- a run of ordinary text with no '&' in it -- is one
+// xml_cut: one allocation of exactly the right size and one copy out of the
+// store, with no per-byte loop in `id` at all. Only a run that actually
+// contains an entity goes the long way round through the decoder.
+xml_dec(int lo, int hi, int raw) {
+  string out = "";
+  if(raw == 1 || xml_amp(lo, hi) == 0) {
+    out = xml_cut(lo, hi - lo);
+  } else {
+    out = xml_dec2(lo, hi);
+  }
+} return string out;
+
+// Whether an '&' falls inside [lo, hi). The search is bounded: an '&' further
+// down the document is not this text node's problem, and finding one before
+// saying so would mean walking the rest of the file per text node.
+xml_amp(int lo, int hi) {
+  int ok = 0;
+  if(xml_scan(lo, hi, 38) < hi) {
+    ok = 1;
+  }
+} return int ok;

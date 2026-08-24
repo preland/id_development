@@ -1,0 +1,47 @@
+// `glyf`: the outline of a glyph.
+//
+// tt_outline(g) refills four exported lists and returns 1 when the glyph has
+// any contour at all -- a space has none, and that is not an error.
+//
+//   ttends[k]   the index of the LAST point of contour k, counted from the
+//               start of ttpx. Contour k therefore runs from
+//               ttends[k-1] + 1 (or 0 for k = 0) through ttends[k], and the
+//               contour is closed: its last point joins its first.
+//   ttpx[i]     x of point i, in font units, absolute -- the file stores
+//   ttpy[i]     deltas, and they are summed here.
+//   ttpon[i]    1 if point i is on the curve, 0 if it is a control point.
+//
+// The number of contours is len(ttends) and the number of points len(ttpx).
+// g must be below tt_nglyph(); a glyph id from tt_glyph always is, and one
+// that is not runs off the end of `loca` and traps.
+//
+// IMPLIED ON-CURVE POINTS ARE NOT INSERTED. A TrueType contour is a run of
+// quadratic segments in which two consecutive off-curve points imply an
+// on-curve point at their midpoint, and a contour may even begin off-curve.
+// This parser leaves those implied points out and hands the rasteriser the
+// file's own points, because inserting them here would make ttpx a different
+// length from the font's point numbering -- which `gvar`, hinting and any
+// future point-matched composite are all indexed by -- and because the
+// midpoint is exact only in the rasteriser's own coordinates. The rasteriser
+// must therefore handle off-curve-to-off-curve by walking to the midpoint,
+// and a contour whose first point is off-curve.
+tt_outline(int g) {
+  tt_clear();
+  tt_glyf(g, 0, 0);
+} return int tt_any();
+
+// The four lists are declared here rather than at load time because
+// re-running a declaration re-initialises the export (docs/SPEC.md 8), and
+// that is the only way `id` gives to empty a list -- there is no clear, and
+// an exported list cannot be index-assigned or reassigned from outside the
+// function that declares it.
+tt_clear() {
+  export int[] ttends = [];
+  export int[] ttpx = [];
+  tt_clear2();
+} return void;
+
+tt_clear2() {
+  export int[] ttpy = [];
+  export int[] ttpon = [];
+} return void;

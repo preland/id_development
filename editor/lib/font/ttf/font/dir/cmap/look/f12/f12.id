@@ -1,0 +1,31 @@
+// Format 12: a sorted list of (first code point, last code point, first glyph
+// id) groups covering the whole of Unicode. Binary search rather than a scan,
+// because a font like DejaVu has thousands of groups and this runs once per
+// character laid out.
+//
+// tab is [glyph, lo, hi]: lo and hi are the search window, and lo converges
+// on the first group whose end is not below c.
+tt_g12(int c) {
+  int[] tab = [0, 0, 0];
+  tt_g12find(tab, (import ttcm)[0], c);
+  tt_g12get(tab, (import ttcm)[0], c);
+} return int tab[0];
+
+tt_g12find(int[] tab, int at, int c) {
+  lset(tab, 2, tt_u32((import ttbuf), at + 12));
+  while(tab[1] < tab[2]) {
+    tt_g12step(tab, at, c);
+  }
+} return void;
+
+// A group is 12 bytes at at + 16 + m * 12: startCharCode, endCharCode,
+// startGlyphID. The window shrinks every step because m is strictly below hi,
+// so lo + 1 and m are both progress.
+tt_g12step(int[] tab, int at, int c) {
+  int m = (tab[1] + tab[2]) / 2;
+  if(tt_u32((import ttbuf), at + 20 + m * 12) < c) {
+    lset(tab, 1, m + 1);
+  } else {
+    lset(tab, 2, m);
+  }
+} return void;

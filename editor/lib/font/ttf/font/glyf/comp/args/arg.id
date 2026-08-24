@@ -1,0 +1,30 @@
+// ARGS_ARE_XY_VALUES, bit 1, clear means the arguments are point NUMBERS: the
+// component is placed by matching one of its points onto one of the parent's.
+// This parser does not do that, and it says so by placing the component at
+// the parent's own origin -- reading the point numbers as an offset instead
+// would throw the accent across the em square and look like a delta bug.
+tt_sarg(int at, int n, int k) {
+  int r = 0;
+  if((k & 2) > 0) {
+    r = tt_sarg2(at, n);
+  }
+} return int r;
+
+tt_sarg2(int at, int n) {
+  int r = rd_i16((import ttbuf), at);
+  if(n == 1) {
+    r = tt_i8((import ttbuf)[at]);
+  }
+} return int r;
+
+// The sign of a one-byte argument, put back by hand. rd_i16 does this for the
+// two-byte form and there is no rd_i8 to pair with it, because a byte is read
+// by indexing and a function that only indexes is a duplicate of lget
+// (editor/NAMES.md) -- so the sign extension is what this function is, and
+// the read stays at the call site.
+tt_i8(int b) {
+  int r = b;
+  if(r > 127) {
+    r = r - 256;
+  }
+} return int r;

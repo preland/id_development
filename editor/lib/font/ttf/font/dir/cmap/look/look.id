@@ -1,0 +1,17 @@
+// The glyph id for a Unicode code point, or 0 -- glyph 0 is `.notdef`, the
+// box a font draws for a character it does not have, so "absent" and "draw
+// nothing special" are the same answer and no error path is needed.
+//
+// Formats 4 and 12 are the two that matter: 4 is the BMP subtable every font
+// has, 12 is the one anything above U+FFFF needs. A font whose best subtable
+// is neither maps everything to .notdef, which is visible on screen rather
+// than silent.
+tt_glyph(int c) {
+  int r = 0;
+  if((import ttcm)[1] == 4) {
+    r = tt_g4(c);
+  }
+  if((import ttcm)[1] == 12) {
+    r = tt_g12(c);
+  }
+} return int r;

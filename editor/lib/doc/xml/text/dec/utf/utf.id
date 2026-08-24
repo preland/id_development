@@ -1,0 +1,30 @@
+// A character above 127 becomes its UTF-8 bytes.
+//
+// `id` has no character type: a string is a sequence of bytes and len() counts
+// bytes, so `&#233;` cannot become "one character" -- it becomes the two bytes
+// that spell it. The width chain is written as three two-way choices because a
+// block holds one `if` plus one `else` plus the local they assign to.
+
+xml_utf8(int[] row, word a, int v) {
+  if(v < 128) {
+    xml_emit(row, a, v);
+  } else {
+    xml_utf8b(row, a, v);
+  }
+} return void;
+
+xml_utf8b(int[] row, word a, int v) {
+  if(v < 2048) {
+    xml_two(row, a, v);
+  } else {
+    xml_utf8c(row, a, v);
+  }
+} return void;
+
+xml_utf8c(int[] row, word a, int v) {
+  if(v < 65536) {
+    xml_three(row, a, v);
+  } else {
+    xml_four(row, a, v);
+  }
+} return void;

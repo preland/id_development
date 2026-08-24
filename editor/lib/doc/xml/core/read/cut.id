@@ -1,0 +1,26 @@
+// The three reads over the input that are more than one byte.
+//
+// Each of these exists because its idstd counterpart takes the input as a
+// `string` and would put charat back on the per-byte path -- see read.id for
+// what that costs. They read the store instead.
+
+// The bytes [i, i + n) as a string. One copy, in the runtime, with no per-byte
+// loop in `id` at all: this is the only way a run of text is ever built here.
+xml_cut(int i, int n) {
+} return string str_of_mem(xml_base() + i, n);
+
+// Past any whitespace at i.
+xml_ws(int i) {
+  while(chr_is_space(xml_ch(i)) == 1) {
+    i = i + 1;
+  }
+} return int i;
+
+// Does t appear at i? charat on t is fine -- t is a two- or seven-byte literal
+// and it is the *document* that must not be re-measured.
+xml_eqat(int i, string t) {
+  int j = 0;
+  while(charat(t, j) >= 0 && xml_ch(i + j) == charat(t, j)) {
+    j = j + 1;
+  }
+} return int charat(t, j) < 0;

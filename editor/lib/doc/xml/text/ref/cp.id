@@ -1,0 +1,32 @@
+// From a resolved code point to bytes.
+
+// A reference this parser does not know is reported, not passed through.
+//
+// A document that says `&nbsp;` has declared that name in a DTD, and this
+// parser does not read DTDs -- so emitting the six literal bytes would be
+// silently getting the text wrong. Zero and anything past the last code point
+// are refused for the same reason; zero could not be put in an `id` string in
+// any case, since a string cannot hold a NUL.
+xml_ent3(int[] row, int at, word a, int v) {
+  if(v < 1 || v > 1114111) {
+    xml_stop(row, "unknown or out-of-range entity reference");
+  } else {
+    xml_done(row, at, a, v);
+  }
+} return void;
+
+// The character's bytes, then the read cursor past the closing ';'.
+xml_done(int[] row, int at, word a, int v) {
+  xml_utf8(row, a, v);
+  lset(row, 0, at + 1);
+} return void;
+
+// The code point a reference name stands for, or -1.
+xml_cp(string t) {
+  int v = -1;
+  if(charat(t, 0) == 35) {
+    v = xml_num(t);
+  } else {
+    v = xml_five(t);
+  }
+} return int v;

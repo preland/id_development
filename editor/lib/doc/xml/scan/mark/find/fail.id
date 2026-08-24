@@ -1,0 +1,34 @@
+// A bounded search, and how a fault is reported.
+
+// The first index in [i, hi) holding byte c, or hi.
+//
+// Bounded rather than open-ended because the two callers are both asking about
+// one text node: an '&' or a ';' belonging to a later part of the document is
+// not an answer, and an unbounded search that then rejects its answer has
+// already walked the rest of the file to find it.
+xml_scan(int i, int hi, int c) {
+  while(i < hi && xml_ch(i) != c) {
+    i = i + 1;
+  }
+} return int i;
+
+// Stop on malformed input.
+//
+// The message and the byte offset are kept, and the read position is driven to
+// the end of the input so that the caller's `while (xml_next() != 0)` ends on
+// its own -- `id` has no break and no exception. Only the first fault is
+// recorded: everything after one is a guess about a document we have already
+// lost track of.
+xml_fail(string msg, int i) {
+  if(xml_err() == "") {
+    sset((import xml_strs), 1, msg);
+    lset((import xml_st), 5, i);
+  }
+  lset((import xml_st), 0, xml_len());
+} return int 5;
+
+// Step over the byte at i and answer kind k. The counterpart of xml_need's
+// success branch, and separate from it because the branch is a whole block.
+xml_pass(int i, int k) {
+  lset((import xml_st), 0, i + 1);
+} return int k;

@@ -1,0 +1,29 @@
+// Text runs, and the two-offset event they are reported as.
+
+// Text up to the next '<'.
+//
+// Nothing is copied here. The event is a pair of offsets into the input, and
+// xml_text() is what turns them into a string -- so a text node the caller
+// ignores, which in an ODT is every scrap of indentation between elements,
+// costs one comparison per byte and no allocation at all. Building the string
+// eagerly with `+` per character would be quadratic in time and in retained
+// memory (docs/TODO.md item 10); building it eagerly with str_slice would be
+// linear but would still allocate the whole file over again.
+xml_run(int i) {
+  int j = xml_upto(i, 60);
+} return int xml_span(i, j, 0, j);
+
+// Record a text event covering [lo, hi) and resume the scan at `at`. The two
+// differ for CDATA, whose terminator is three bytes past its text.
+xml_span(int lo, int hi, int raw, int at) {
+  lset((import xml_st), 2, lo);
+  lset((import xml_st), 3, hi);
+  xml_span2(raw, at);
+} return int 4;
+
+// The raw flag and the resume position. Split out only because setting four
+// list slots is four actions and a block may perform three.
+xml_span2(int raw, int at) {
+  lset((import xml_st), 4, raw);
+  lset((import xml_st), 0, at);
+} return void;

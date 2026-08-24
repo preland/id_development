@@ -1,0 +1,36 @@
+// A composite glyph: a list of components, each naming another glyph, an
+// offset, and optionally a 2x2 transform. This is how a font stores an
+// accented letter once rather than once per accent.
+//
+// row is the whole of a component's state, because `id` has no struct and a
+// function may not return two values:
+//   0  the read cursor          5  a, the 2x2 in F2Dot14
+//   1  1 once the last          6  b
+//      component is read        7  c
+//   2  the component's glyph    8  d
+//   3  its x offset
+//   4  its y offset
+tt_comp(int at, int x, int y) {
+  int[] row = [at, 0, 0, 0, 0, 16384, 0, 0, 16384];
+  while(row[1] == 0) {
+    tt_comp0(row, x, y);
+  }
+} return void;
+
+// MORE_COMPONENTS is bit 5. The loop's exit has to be computed before the
+// component is read, because the flags are the first thing in the record and
+// the cursor has moved past them by the time it is placed -- and because a
+// `while` in `id` carries its whole exit in the condition.
+tt_comp0(int[] row, int x, int y) {
+  int k = rd_be16((import ttbuf), row[0]);
+  lset(row, 1, 1 - (k & 32) / 32);
+  tt_comp1(row, k, x, y);
+} return void;
+
+// Order matters: the arguments come before the transform in the file, and the
+// cursor has to be past both before the next component is looked for.
+tt_comp1(int[] row, int k, int x, int y) {
+  tt_args(row, k);
+  tt_scale(row, k);
+  tt_place(row, x, y);
+} return void;

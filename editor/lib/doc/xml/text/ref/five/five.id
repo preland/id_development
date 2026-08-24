@@ -1,0 +1,33 @@
+// The five entities XML predefines, and the table search they share.
+
+// &amp; &lt; &gt; &quot; &apos; -- and nothing else, because every other name
+// comes from a DTD.
+//
+// A table plus a search rather than a chain of comparisons: five branches is
+// five actions and a block may perform three. The two lists are rebuilt per
+// call, which costs nothing measurable because a named entity is rare in a
+// document and this is not on the per-byte path.
+xml_five(string t) {
+  string[] names = ["amp", "lt", "gt", "quot", "apos"];
+  int[] xs = [38, 60, 62, 34, 39];
+} return int xml_pick(names, xs, t);
+
+// The value in xs whose name in `names` equals t, or -1.
+xml_pick(string[] names, int[] xs, string t) {
+  int i = 0;
+  int v = -1;
+  while(i < len(names)) {
+    v = xml_pick2(names[i], xs[i], t, v);
+    i = i + 1;
+  }
+} return int v;
+
+// One step of a table search: c if this row matches, otherwise the answer so
+// far. xml_find uses it too, over the flat attribute list -- one function
+// rather than two, because two functions with one body do not compile.
+xml_pick2(string name, int c, string t, int v) {
+  int m = v;
+  if(name == t) {
+    m = c;
+  }
+} return int m;

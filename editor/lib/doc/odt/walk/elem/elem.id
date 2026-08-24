@@ -1,0 +1,38 @@
+// Which elements this model knows about.
+
+// Paragraphs and headings both hold runs; a style opens a row in the style
+// table. Everything else falls through to odt_elem2.
+odt_elem(int k) {
+  if(xml_name() == "text:p" || xml_name() == "text:h") {
+    odt_para(k);
+  } else if(xml_name() == "style:style") {
+    odt_style();
+  } else {
+    odt_elem2();
+  }
+} return void;
+
+// text:s and text:tab exist because XML collapses literal whitespace, so ODT
+// spells a run of spaces and a tab as elements instead.
+//
+// Anything else is passed over deliberately rather than by accident: an
+// unmodelled element still lets its text through, because the text arrives as
+// its own event and lands in whatever run is open. A footnote's body would end
+// up inline; that is the honest consequence of not modelling footnotes.
+odt_elem2() {
+  if(xml_name() == "style:text-properties") {
+    odt_props();
+  } else if(xml_name() == "text:s") {
+    odt_add(str_repeat(" ", odt_count()));
+  } else if(xml_name() == "text:tab") {
+    odt_add(chr(9));
+  }
+} return void;
+
+// text:c counts the spaces a text:s stands for, and is absent when it is one.
+odt_count() {
+  int n = 1;
+  if(xml_attr("text:c") != "") {
+    n = to_int(xml_attr("text:c"));
+  }
+} return int n;
