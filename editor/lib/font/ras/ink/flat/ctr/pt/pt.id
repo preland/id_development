@@ -1,0 +1,29 @@
+// The walk: consume every point of the contour, then close it.
+//
+// A closed polygon is not an optimisation here, it is the winding rule's
+// input -- a scanline counts crossings, and an outline that does not come
+// back to where it started leaves a crossing unpaired and floods the row.
+ras_run(int[] buf) {
+  while(buf[0] < buf[1]) {
+    ras_next(buf);
+  }
+  ras_close(buf);
+} return void;
+
+// The cursor advances after the point is consumed rather than before,
+// because ras_pt reads the point out of the lists by index and the two
+// orders are not the same program. docs/SPEC.md leaves the order of a single
+// expression's operands unspecified (docs/FRICTION.md 10); two statements
+// have an order.
+ras_next(int[] buf) {
+  ras_pt(buf, buf[0]);
+  lset(buf, 0, buf[0] + 1);
+} return void;
+
+ras_pt(int[] buf, int m) {
+  if((import ttpon)[m] == 1) {
+    ras_on(buf, ras_dx(m), ras_dy(m));
+  } else {
+    ras_off(buf, ras_dx(m), ras_dy(m));
+  }
+} return void;

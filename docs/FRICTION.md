@@ -457,6 +457,77 @@ loop, since two loops differing only in `10` versus `16` are the same logic.
 That one is the rule being right. The first is the rule being right and the
 answer being in the wrong place, which is §6 again at module scale.
 
+## 20. A two-dimensional program has no two-dimensional value
+
+A point is two numbers that always move together, and there is no way to say
+so. In the rasteriser every one is two adjacent cells of an `int[]`, and
+setting the pen *and* the contour's home is four assignments -- which is one
+more than a block holds, so it is two functions:
+
+```
+ras_from(int[] buf, int x, int y) {
+  lset(buf, 2, x);
+  lset(buf, 3, y);
+  ras_home(buf, x, y);
+} return void;
+
+ras_home(int[] buf, int x, int y) {
+  lset(buf, 7, x);
+  lset(buf, 8, y);
+} return void;
+```
+
+`ras_home` exists because 4 is more than 3. Six functions in that module carry
+a point as two `int`s, and a quadratic pen carries eleven numbers at once:
+
+```
+ras_step(int[] buf, int x, int y, int j, int n) {
+  ras_line(buf, ras_bez(buf[9], buf[4], x, j, n), ras_bez(buf[10], buf[5], y, j, n));
+} return int j + 1;
+```
+
+`buf[9]`/`buf[10]` is where the curve started and `buf[4]`/`buf[5]` is the
+control point. Nothing in the line says so. This is §1, and geometry is where
+it hurts most.
+
+## 21. Division truncates toward zero, and there is no floor
+
+`docs/SPEC.md` §2.2 says so, and it is the right rule. What is missing is the
+other one. `idstd` has `fx_abs`, `fx_min`, `fx_max`, `fx_clamp` and `fx_sign`,
+and nothing that floors — so every program doing coordinate arithmetic writes
+this:
+
+```
+ras_flr(int v) {
+  int n = v / 64;
+  if(v < 0 && n * 64 != v) {
+    n = n - 1;
+  }
+} return int n;
+```
+
+A rasteriser is exactly where that bites, because it is the program where half
+the coordinates are negative on purpose: everything above a glyph's baseline
+is. Deleting those three lines costs 52 of the rasteriser's 74 assertions.
+Nothing in the language or the library warns you, and the failure is a glyph
+one pixel out rather than an error.
+
+## 22. §4 and §18 both understate the limit
+
+Neither said the number that matters is *branches plus shared setup*. The
+contour-start decision is three-way and returns nothing, so §18 says it should
+fit in one function. It does not, because the three branches share a line:
+
+```
+ras_open(int[] buf, int lo, int hi) {
+  lst_fill(buf, 11, 0);
+  if((import ttpon)[lo] == 1) { ... } else { ras_open2(buf, lo, hi); }
+} return void;
+```
+
+The `lst_fill` is the first action, so the budget for branches is two, and a
+three-way choice costs two functions.
+
 ---
 
 ## What this list is not
@@ -484,7 +555,29 @@ something, from the four that cost something and bought nothing:
   obvious code 767 times slower than it needs to be, and the only one whose
   workaround every text-processing program in the language has had to
   rediscover.
+* **§21**, there is no floor. One function in `idstd` closes it, and until it
+  is there every program that touches a negative coordinate writes it again or
+  is quietly wrong.
 
-Those seven are the list worth acting on. The rest are the cost of rules that
+Those eight are the list worth acting on. Two of them -- §21 and a stderr for
+§3 -- are a few lines each and would close the two entries that produce *wrong
+answers* rather than awkward code.
+
+## What cost nothing
+
+Worth recording, because a list of friction reads as a list of complaints
+otherwise. Across roughly nine thousand lines of `id` written for these two
+programs:
+
+* The **nesting-depth-2 rule** never once got in the way.
+* The **action limit** found real faults early and, after the fact, left zero
+  over-budget blocks to clean up — the shape it forces is a shape the code
+  keeps.
+* The **one-type-per-name rule** cost the rasteriser exactly one new name.
+  Every other local came out of the vocabulary already written down, which is
+  the whole argument for writing one down (§11).
+* The **uniqueness rule** caught genuine duplicates in both programs — a copy
+  loop written twice, two character-reference decoders differing only in their
+  base — and in each case the merged function was the better code. The rest are the cost of rules that
 also caught real mistakes -- a duplicate function, a name meaning two things, a
 block doing too much -- in both programs, more than once.

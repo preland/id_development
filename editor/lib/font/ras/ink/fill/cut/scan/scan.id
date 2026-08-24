@@ -1,0 +1,30 @@
+// Where edge i cuts the horizontal line y, in device sixty-fourths. The
+// caller has already established that it does, so the denominator is not
+// zero.
+//
+// The product is a horizontal extent times a vertical one, both in
+// sixty-fourths, which is what bounds this rasteriser's size: at 500 pixels
+// square it is about 10^9 and an int has 2 * 10^9.
+ras_xat(int i, int y) {
+  int lo = (import rasy0)[i];
+  int at = (import rasx0)[i];
+} return int at + ((import rasx1)[i] - at) * (y - lo) / ((import rasy1)[i] - lo);
+
+// The prefix sum across one sample line: a running winding number, and every
+// column where it is not zero is a column the glyph covers.
+//
+// buf is a two-cell cursor -- the column and the winding number -- because
+// the loop carries two values and `id` has no record to put them in
+// (docs/FRICTION.md 1).
+ras_scan(int[] tab, int[] row, int n) {
+  int[] buf = [0, 0];
+  while(buf[0] < n) {
+    ras_walk(tab, row, buf);
+  }
+} return void;
+
+ras_walk(int[] tab, int[] row, int[] buf) {
+  lset(buf, 1, buf[1] + tab[buf[0]]);
+  ras_hit(tab, row, buf);
+  lset(buf, 0, buf[0] + 1);
+} return void;

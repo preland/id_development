@@ -1,0 +1,23 @@
+ed_dark(int x, int y, int n, int v) {
+  if(v > n) {
+    ed_px(x, y, v);
+  }
+} return void;
+
+// One glyph of the laid-out page.
+//
+// ras_scale has to be called immediately before the coverage is read: it
+// replaces every list the rasteriser owns, so two glyphs cannot be in flight
+// at once (docs/FRICTION.md 13). That is why this draws rather than returning
+// a bitmap.
+ed_glyph(int i) {
+  int px = (import lay_px)[i];
+  int ok = ras_scale((import lay_g)[i], px);
+  ed_ink(i, ok);
+} return void;
+
+ed_ink(int i, int ok) {
+  if(ok == 1) {
+    ed_rows(i, 0);
+  }
+} return void;

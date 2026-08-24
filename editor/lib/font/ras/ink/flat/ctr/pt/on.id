@@ -1,0 +1,27 @@
+// An on-curve point ends whatever was open: a curve if a control point was
+// waiting, a straight line if not.
+ras_on(int[] buf, int x, int y) {
+  if(buf[6] == 1) {
+    ras_quad(buf, x, y);
+    lset(buf, 6, 0);
+  } else {
+    ras_line(buf, x, y);
+  }
+} return void;
+
+// An off-curve point following another off-curve point is the implied
+// on-curve case: the two control points share a midpoint that the font does
+// not store, the first curve ends there, and the second begins there with
+// the new point as its control.
+ras_off(int[] buf, int x, int y) {
+  if(buf[6] == 1) {
+    ras_quad(buf, (buf[4] + x) / 2, (buf[5] + y) / 2);
+  }
+  ras_ctl(buf, x, y);
+} return void;
+
+ras_ctl(int[] buf, int x, int y) {
+  lset(buf, 4, x);
+  lset(buf, 5, y);
+  lset(buf, 6, 1);
+} return void;

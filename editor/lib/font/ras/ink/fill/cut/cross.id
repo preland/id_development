@@ -1,0 +1,38 @@
+// Where one edge crosses the sample line, and which way.
+ras_cross(int i, int y, int[] tab) {
+  int v = ras_hits((import rasy0)[i], (import rasy1)[i], y);
+  if(v != 0) {
+    ras_add(i, y, tab, v);
+  }
+} return int i + 1;
+
+// A half-open test -- the top of an edge counts, the bottom does not -- so
+// that two edges meeting at a point are counted once between them and not
+// twice or not at all. This is also the whole of the nonzero winding rule's
+// input: an edge running downwards contributes +1 and one running upwards
+// -1, and TrueType winds a hole the opposite way from the shape around it,
+// which is what makes the counter of an 'o' cancel to zero. Even-odd would
+// agree about an 'o' and disagree about any glyph whose contours overlap,
+// which composites produce routinely.
+ras_hits(int lo, int hi, int y) {
+  int v = 0;
+  if(lo <= y && y < hi) {
+    v = 1;
+  } else if(hi <= y && y < lo) {
+    v = 0 - 1;
+  }
+} return int v;
+
+// The crossing is recorded as a difference: +1 or -1 at the column where the
+// edge cuts the line, and the prefix sum in ras_scan turns the whole row's
+// differences back into a winding number per column. That is what removes
+// the sort -- crossings may arrive in any order, and addition does not care.
+//
+// A crossing off the left of the bitmap is clamped onto column 0, which is
+// correct: the span it opens covers everything from the left edge. One off
+// the right is clamped onto the spare cell past the end, which the prefix
+// sum never reaches, and is equally correct.
+ras_add(int i, int y, int[] tab, int v) {
+  int n = fx_clamp(ras_xat(i, y) - ras_bx() * 64, 0, ras_w() * 64);
+  lset(tab, n, tab[n] + v);
+} return void;

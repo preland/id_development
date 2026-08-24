@@ -1,0 +1,23 @@
+// A straight segment: the edge the fill will cross, and the pen moved onto
+// its far end.
+ras_line(int[] buf, int x, int y) {
+  ras_edge(buf, x, y);
+  lset(buf, 2, x);
+  lset(buf, 3, y);
+} return void;
+
+// Both ends are pushed, rather than the far end alone with the near one
+// read back from the previous edge, because a contour ends by joining a
+// point the previous edge did not touch -- and because two contours meeting
+// in the middle of the list would otherwise be joined by an edge that is not
+// in the glyph.
+ras_edge(int[] buf, int x, int y) {
+  push((import rasx0), buf[2]);
+  push((import rasy0), buf[3]);
+  ras_to(x, y);
+} return void;
+
+ras_to(int x, int y) {
+  push((import rasx1), x);
+  push((import rasy1), y);
+} return void;

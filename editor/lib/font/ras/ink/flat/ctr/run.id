@@ -1,0 +1,23 @@
+// Start on the implied on-curve point between the contour's last point and
+// its first, and consume the whole ring. The halving truncates towards zero,
+// which moves the start by at most 1/64 of a pixel and is why it is done in
+// device units rather than in font units -- in font units the same rounding
+// would be a whole unit of the em square.
+ras_mid(int[] buf, int lo, int hi) {
+  ras_from(buf, (ras_dx(lo) + ras_dx(hi)) / 2, (ras_dy(lo) + ras_dy(hi)) / 2);
+  lset(buf, 0, lo);
+  lset(buf, 1, hi + 1);
+} return void;
+
+// The pen is put down: cells 2 and 3 are where it is, 7 and 8 are where it
+// must come back to.
+ras_from(int[] buf, int x, int y) {
+  lset(buf, 2, x);
+  lset(buf, 3, y);
+  ras_home(buf, x, y);
+} return void;
+
+ras_home(int[] buf, int x, int y) {
+  lset(buf, 7, x);
+  lset(buf, 8, y);
+} return void;

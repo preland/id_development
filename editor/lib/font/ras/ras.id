@@ -1,0 +1,73 @@
+// Glyph rasterisation: an outline in font units becomes anti-aliased
+// coverage a renderer can draw.
+//
+// The call sequence is:
+//
+//   tt_load(bytes)            once, and it must have returned 1
+//   g = tt_glyph(codepoint)
+//   ras_scale(g, px)          -> 1 when there is a bitmap, 0 when there is not
+//   ras_w() ras_h()           the bitmap's size in pixels
+//   ras_bx() ras_by()         where to put it: the left bearing in pixels,
+//                             and the number of rows standing above the
+//                             baseline
+//   ras_cov(x, y)             coverage 0..255, x in 0..ras_w()-1,
+//                             y in 0..ras_h()-1 counting down from the top
+//
+// A renderer draws the pixel (x, y) of the bitmap at screen column
+// pen + ras_bx() + x and screen row baseline - ras_by() + y, and advances the
+// pen by tt_advance(g) * px / tt_upem().
+//
+// ras_cov MUST NOT be called when ras_scale returned 0: a space has no
+// contour, so it has no bitmap, and the coverage list is empty rather than
+// full of zeros. There is no size to iterate either -- ras_w() is 0.
+//
+// EVERYTHING BELOW IS PER-GLYPH STATE. ras_scale replaces all of it, so a
+// caller may only hold ras_cov's answers, never the lists behind them, and
+// may not interleave two glyphs.
+//
+// The internal fixed point is 1/64 of a pixel, in both axes, and it is the
+// same 1/64 the sampling grid uses (see ink/fill/cut/cut.id) so that a
+// device x coordinate IS a column of that grid with no conversion at all.
+// 64 was chosen over a larger scale because the crossing solve multiplies a
+// horizontal extent by a vertical one, and at 1/256 a 300-pixel glyph would
+// overflow an int.
+ras_scale(int g, int px) {
+  int ok = tt_outline(g);
+  ras_reset(px);
+  if(ok == 1) {
+    ras_ink();
+  }
+} return int ras_w() > 0 && ras_h() > 0;
+
+// Every list this module owns is re-declared here, because re-running a
+// declaration is the only way `id` gives to empty a list (docs/FRICTION.md
+// 13). That also means nothing outside may hold one across a ras_scale --
+// the name is rebound, not the contents replaced.
+//
+// It runs even for a glyph with no contour, so that ras_w() and ras_cov()
+// answer for an empty bitmap rather than reading a list that was never
+// declared.
+ras_reset(int px) {
+  export int[] rasmet = [];
+  ras_met(rasmet, px);
+  ras_edge0();
+} return void;
+
+// The six numbers that describe the transform and its result, in one list
+// for the reason editor/lib/font/ttf/font/dir/met/met.id gives: an export is
+// initialised by the function that declares it, and a block declares at most
+// three things, so six scalars would be six functions.
+//
+//   0  px     pixels per em asked for
+//   1  upem   font units per em
+//   2  w      bitmap width in pixels
+//   3  h      bitmap height in pixels
+//   4  bx     left bearing: the bitmap's left edge, in pixels from the pen
+//   5  by     rows of the bitmap standing above the baseline
+//
+// 2..5 stay 0 until ras_box has seen the flattened outline.
+ras_met(int[] tab, int px) {
+  lst_fill(tab, 6, 0);
+  lset(tab, 0, px);
+  lset(tab, 1, tt_upem());
+} return void;

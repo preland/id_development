@@ -13,7 +13,7 @@ and one compile error to everybody else.
 
 | name | type | means |
 | --- | --- | --- |
-| `i` `j` `n` `r` `at` `lo` `hi` `v` `b` `c` `x` `y` `w` `h` `k` `m` | `int` | counters, indices, byte values, coordinates |
+| `i` `j` `n` `r` `at` `lo` `hi` `v` `b` `c` `x` `y` `w` `h` `k` `m` `px` | `int` | counters, indices, byte values, coordinates; `px` is a size in pixels per em |
 | `g` | `int` | a glyph id -- the font module's central noun, so it gets a row of its own rather than being spelled differently in every file that touches one |
 | `ok` `sign` `count` `total` | `int` | flags and tallies |
 | `a` `p` `addr` `end` | `word` | addresses in the flat store |

@@ -1,0 +1,16 @@
+// Where the page goes. With --ppm it is an image and the program exits, which
+// is how it is tested; without, the listing is all there is to see until there
+// is a window.
+ed_save(int argc, string[] argv) {
+  if(argc > 4 && argv[3] == "--ppm") {
+    ed_write(argv[4]);
+  } else {
+    ed_win();
+  }
+} return void;
+
+ed_write(string path) {
+  ed_fd_set(fs_open(path, "w"));
+  ed_head(ed_fd());
+  ed_body(ed_fd(), 0);
+} return void;

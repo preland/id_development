@@ -15,7 +15,7 @@
 set -u
 cd "$(dirname "$0")"
 
-SECTIONS=(core invalid runtime_invalid self_host_build backends stdlib conform tests_feature idstd_real kernel)
+SECTIONS=(core invalid runtime_invalid self_host_build backends stdlib conform tests_feature idstd_real kernel editor)
 STATE=../.idc-cache/run-state
 WANTED=()
 resume=0
@@ -958,6 +958,18 @@ if want kernel; then
     [ "$kern" -eq 0 ] && mark_done kernel
 fi
 
+# --- the document editor. Last with the kernel, because the two of them are
+#     what the language was stretched against: everything above this line is
+#     the compiler checking itself, and these two are it being used.
+echo
+echo "--- the document editor (docs/EDITOR.md) ---"
+edit=0
+if want editor; then
+    ./editor.sh
+    edit=$?
+    [ "$edit" -eq 0 ] && mark_done editor
+fi
+
 [ "$fail" -eq 0 ] && [ "$neg" -eq 0 ] && [ "$rneg" -eq 0 ] && [ "$shneg" -eq 0 ] \
     && [ "$bend" -eq 0 ] && [ "$std" -eq 0 ] && [ "$conf" -eq 0 ] \
-    && [ "$tst" -eq 0 ] && [ "$real" -eq 0 ] && [ "$kern" -eq 0 ]
+    && [ "$tst" -eq 0 ] && [ "$real" -eq 0 ] && [ "$kern" -eq 0 ] && [ "$edit" -eq 0 ]

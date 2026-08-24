@@ -1,0 +1,14 @@
+// The contour closed: back onto the point it started from, as a curve if a
+// control point is still waiting and as a straight line if not.
+//
+// It sits with the segment emitters rather than with the walk that calls it
+// because the walk's file already holds three functions -- which is the
+// three-per-file rule putting a function one directory away from the only
+// thing that calls it.
+ras_close(int[] buf) {
+  if(buf[6] == 1) {
+    ras_quad(buf, buf[7], buf[8]);
+  } else {
+    ras_line(buf, buf[7], buf[8]);
+  }
+} return void;

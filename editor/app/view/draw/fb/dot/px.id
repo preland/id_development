@@ -1,0 +1,18 @@
+ed_w() {
+} return int (import ed_dim)[0];
+
+ed_h() {
+} return int (import ed_dim)[1];
+
+// One pixel, darkened by coverage. Coverage is how much of the pixel the glyph
+// covers, so it is a blend rather than a write: a stem that lands between two
+// columns darkens both, which is the whole of what anti-aliasing is.
+//
+// Off the page is dropped rather than trapped. A descender on the last line
+// and a glyph wider than its advance both put ink outside, and a renderer that
+// aborted on either would be a renderer that could not draw a page.
+ed_px(int x, int y, int v) {
+  if(x >= 0 && x < ed_w() && y >= 0 && y < ed_h()) {
+    lset((import ed_fb), y * ed_w() + x, ed_grey(v));
+  }
+} return void;

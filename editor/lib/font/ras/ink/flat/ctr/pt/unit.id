@@ -1,0 +1,19 @@
+// The transform, and the only place the em square is divided out.
+//
+// A font unit becomes 1/64 of a pixel: v * px * 64 / upem. The division
+// truncates towards zero, so a coordinate is placed to within 1/64 pixel,
+// which is finer than the sampling grid it feeds and therefore invisible.
+//
+// The multiplication is the reason the fixed point is 64 and not 256: at
+// 2048 units per em and 400 pixels, v * px * 64 is already 5 * 10^7, and
+// ras_xat later multiplies a horizontal extent by a vertical one.
+ras_fu(int v) {
+} return int v * (import rasmet)[0] * 64 / (import rasmet)[1];
+
+ras_dx(int m) {
+} return int ras_fu((import ttpx)[m]);
+
+// Font y points up and a raster row index counts down, so the sign flips
+// here, once, and the baseline stays at device y = 0.
+ras_dy(int m) {
+} return int 0 - ras_fu((import ttpy)[m]);

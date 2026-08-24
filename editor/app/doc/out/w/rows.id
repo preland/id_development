@@ -1,0 +1,21 @@
+ed_out_init() {
+  export int[] ed_out = [0];
+  export int[] ed_line = [];
+} return int 0;
+
+ed_body(int fd, int y) {
+  while(y < ed_h()) {
+    ed_prow(y);
+    y = y + 1;
+  }
+  fs_close(fd);
+} return void;
+
+// One row: three bytes a pixel, into the same buffer every time. The buffer is
+// filled on the first row and overwritten on every one after, because `id` has
+// no way to empty a list and re-declaring it would rebind a name held above.
+ed_prow(int y) {
+  ed_grow(ed_w() * 3, len((import ed_line)));
+  ed_fill(y, 0);
+  fs_write(ed_fd(), (import ed_line), ed_w() * 3);
+} return void;
