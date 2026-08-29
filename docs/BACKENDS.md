@@ -156,11 +156,11 @@ Done:
   case, and being the other side of the differential suites.
 * **`front/` and `mid/` no longer emit C.** Six `emit_*` functions that print
   the export and extern blocks lived in `mid/` and were called from `back/`;
-  they are now `back/emit/prog/head/decl/`. What stayed in `mid/` is
+  they are now `back/tgt/c/emit/prog/head/decl/`. What stayed in `mid/` is
   `note_extern` — whether a name resolves is a property of the program, and
   only the C those names turn into is codegen. `front/` was already clean.
 * **Emission has one boundary.** Every line of generated code goes through
-  `emit_line` (`back/out/sink/`) instead of 33 scattered `print`
+  `emit_line` (`back/drive/sink/`) instead of 33 scattered `print`
   calls. Diagnostics deliberately still use `print`: they are `mid/`'s, they
   go out whether or not anything is emitted, and a buffered emitter would
   reorder them behind the code they complain about. The boundary is a

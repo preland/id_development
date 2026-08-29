@@ -68,7 +68,7 @@ same name is the existing duplicate error. Its owner is `"conf.id"` — a string
 no identifier can spell, so no function can claim to own a constant — and
 `init_reach` seeds the reachable set with it, which is how "an export whose
 declaring function is never called" stops being asked about something that has
-no declaring function. `back/emit/prog/head/const/` emits it at file scope with
+no declaring function. `back/tgt/c/emit/prog/head/const/` emits it at file scope with
 its initialiser attached (`int max_depth = 7;  /* constant from conf.id */`).
 
 **`idc/idc.py` does not implement this, and will not.** The bootstrap rule
@@ -163,9 +163,9 @@ produces is not merely reducible, it is *structured*, because `if` and `while`
 are the only control flow the language has. So a stackifier (LLVM's approach,
 which assumes reducibility) is enough and a full relooper is not. What the IR
 does not have and the stackifier needs: an RPO numbering and back-edge
-detection. It has predecessors (`opt/cfg/pred/`) and reads successors live off
+detection. It has predecessors (`back/ir/opt/cfg/pred/`) and reads successors live off
 a terminator's `iblk`; it has no dominator tree, and deliberately so
-(`opt/mem/init/init.id` explains why mem2reg does not need one).
+(`back/ir/opt/mem/init/init.id` explains why mem2reg does not need one).
 
 The other half is not new: `runtime.wat` is 578 lines of hand-written WAT in
 `wasm_runtime_funcs()` (`idc/idc.py:3414`) with no libc, importing

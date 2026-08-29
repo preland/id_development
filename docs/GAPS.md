@@ -20,6 +20,11 @@ Every "verified" line below was re-run on this checkout, not copied from the
 report. Where the report is now **stale**, it is marked so: the compiler moved
 between the report being written and now.
 
+`../id_nativeapp` appears below as evidence from when it lived here. It became
+its own repository in `c1d6d62`, and no test in this tree has covered it since,
+so it is left in the historical rows and taken out of the coverage claims in
+§4 -- a program this suite cannot build is not a program this suite proves.
+
 ---
 
 ## 0. The premise
@@ -51,9 +56,9 @@ Nothing below may break that.
 
 | # | issue | verified how |
 | --- | --- | --- |
-| **A1** | **No `extern` declarations for link-time-resolved calls, so no program with a native backend builds.** `idc/idc.py` collects unresolved call names and emits `extern int id_<name>();` (idc/idc.py:1195); `idparse` emits nothing, and `idc/bin/idc`'s `cc -fsyntax-only` gate then rejects its own output as an "internal error". | `idc/bin/idc demos/gfxdemo --backend idc/backends/gfx` → `implicit declaration of function 'id_gfx_present'` ×4, then `idc: internal error: the self-hosted compiler emitted C that does not compile`. Same for `nativeapp/id`, `demos/gl3d`. |
+| **A1** | **No `extern` declarations for link-time-resolved calls, so no program with a native backend builds.** `idc/idc.py` collects unresolved call names and emits `extern int id_<name>();` (idc/idc.py:1195); `idparse` emits nothing, and `idc/bin/idc`'s `cc -fsyntax-only` gate then rejects its own output as an "internal error". | `idc/bin/idc demos/gfxdemo --backend idc/backends/gfx` → `implicit declaration of function 'id_gfx_present'` ×4, then `idc: internal error: the self-hosted compiler emitted C that does not compile`. Same for `../id_nativeapp/id`, `demos/gl3d`. |
 | **A2** | **No call-site checking: arity, argument type, return type.** The symbol table (`mid/names/symbols/build/add.id`) stores function name → *return type only*. There are no parameter types anywhere in `mid/`, so `chk_call` can only check `push`. | `h(int a)` called as `h(1,2)` → raw `too many arguments to function 'id_h'` + "internal error". `k(int a)` called as `k("s")` → raw `-Wint-conversion`. `} return int s;` on a `string` → raw `-Wint-conversion`. |
-| **A3** | **No "no such function" check.** A typo'd builtin reaches `cc`. The machinery exists — `is_unknown_fn` in `mid/names/symbols/check/access/report/more/call_var.id` — but it is only wired to the *"'x' is a variable, not a function"* case. | `print(to_flot("1"))` → raw `implicit declaration of function 'id_to_flot'; did you mean 'id_to_int'?` + "internal error". `idc/idc.py` gives the real message with the full builtin list. |
+| **A3** | **No "no such function" check.** A typo'd builtin reaches `cc`. The machinery exists — `is_unknown_fn` in `mid/names/symbols/check/access/report/more/callvar/call_var.id` — but it is only wired to the *"'x' is a variable, not a function"* case. | `print(to_flot("1"))` → raw `implicit declaration of function 'id_to_flot'; did you mean 'id_to_int'?` + "internal error". `idc/idc.py` gives the real message with the full builtin list. |
 | **A4** | **Duplicate function name is not checked**; it surfaces as C `redefinition`, or — when the two bodies happen to match — as a *misleading* uniqueness error that names the function as a duplicate of itself at its own line. | Two `f(int)` with different bodies → `error: redefinition of 'id_f'` + "internal error". Two with identical bodies → `error: function 'f' has the same signature and logic as 'f' (defined at …:5)` pointing at line 5 for both. |
 | **A5** | **Duplicate `export` of one name (R10) is not checked at all — the program compiles silently.** The second `export` re-initialises the same C global. There is also **no test case** for this rule in `idc/tests/invalid/`, in either compiler. | Two functions each `export int e = …` → `idc/bin/idc` exit 0. `idc/idc.py` → `error: 'e' is already an exported global (exported by 'main')`. |
 | **A6** | **33× slower than `idc/idc.py`, and superlinear.** The checks scan the global parallel name tables (`find_str((import fnames), …)`) once per node. | Front-end only, `idc/compiler/parse` (213 files / 4798 lines): `idc/bin/idc` **4.66 s** vs `idc/idc.py` **0.139 s**. Synthetic scaling 100 → 400 files: 371 ms → 1811 ms (4.9× for 4× input). Extrapolates to minutes on a 20 kLOC program, with no incremental build. |
@@ -90,7 +95,7 @@ the user's own type error. `idc/tests/invalid.sh` does not catch it because it r
 | **B1** | **Hidden directories count toward the 3-entries rule.** `idc/bin/idc:127-137` walks `find … -type d` and counts every subdirectory; `idc/idc.py` skips dotted ones. A project with 3 real entries plus a `.git` is rejected by one compiler and accepted by the other. | 3 entries + `.git/` → `idc/bin/idc`: `has 4 (.id files and subdirectories)`. `idc/idc.py`: builds. |
 | **B2** | **An absolute path in `conf.id` is rejected, with a false message.** `idc/bin/idc:162` builds `"$PATH_ARG/$dep"` unconditionally, so an absolute dep becomes a nonsense path and is reported as *"is not a directory"* — about a path that is a directory. | `import "/abs/path/lib"` → `idc/bin/idc: import "/abs/…/lib" is not a directory`; `idc/idc.py` builds and runs it. |
 | **B3** | `--target llvm` / `--target wasm` are `idc/idc.py`-only. `idc/bin/idc` exits 2 with a pointer to `idc/idc.py`. Honest, but it means `idc/idc.py` cannot be retired. Note `docs/BACKENDS.md` already specifies the multi-target shape for the self-hosted back end. | `idc/bin/idc x.id --target llvm` → exit 2. |
-| **B4** | **`--triple` is not plumbed through**, although `idparse` implements it (`back/drive/run/main.id`, `arg_triple`). So a multi-platform `asm` program cannot be cross-targeted through the driver. | `idc/bin/idc` rejects any unknown option at `idc/bin/idc:65`. |
+| **B4** | **`--triple` is not plumbed through**, although `idparse` implements it (`back/drive/run/output_mode.id`, `arg_triple`). So a multi-platform `asm` program cannot be cross-targeted through the driver. | `idc/bin/idc` rejects any unknown option at `idc/bin/idc:65`. |
 | **B5** | **idc/README.md is stale on exactly the points a new user reads first** — it documents the removed `idc/idc.py` fallback (lines 52-67, 233-238) and states float literals are unsupported. Both are wrong now. The report's §0 recommendation ("build with `idc/idc.py`") was derived from it. | `grep -n "falls back" idc/README.md` → line 61. |
 
 ### Tier C — language / runtime hazards (both compilers)
@@ -140,7 +145,7 @@ copies from.
 
 | # | what was done | the test that keeps it done |
 | --- | --- | --- |
-| **A1** | `idparse` gained a call-resolution pass and an `--extern-ok` flag; under it an unresolved call is collected and emitted as `extern int id_<name>();` in idc/idc.py's block, in idc/idc.py's position and order. `idc/bin/idc` passes the flag exactly when a backend is attached (`--backend` or an `conf.id` dependency). `demos/gfxdemo`, `demos/gl3d`, `demos/gl3dgame`, `demos/fpsmaze` and `nativeapp/id` now build with `idc/bin/idc`, byte-identical to `idc/idc.py`. | `idc/tests/self_host_build.sh`: backend emit-c byte parity for `demos/gfxdemo` and `nativeapp/id`, asserting the extern block is present |
+| **A1** | `idparse` gained a call-resolution pass and an `--extern-ok` flag; under it an unresolved call is collected and emitted as `extern int id_<name>();` in idc/idc.py's block, in idc/idc.py's position and order. `idc/bin/idc` passes the flag exactly when a backend is attached (`--backend` or an `conf.id` dependency). `demos/gfxdemo`, `demos/gl3d`, `demos/gl3dgame`, `demos/fpsmaze` and `../id_nativeapp/id` now build with `idc/bin/idc`, byte-identical to `idc/idc.py`. | `idc/tests/self_host_build.sh`: backend emit-c byte parity for `demos/gfxdemo`, asserting the extern block is present |
 | **A2** | The symbol table carries a node id per function (`fnodes`), so a call site can reach the callee's parameter list. Call arity, argument types and the return-clause type are checked in `id`, with idc/idc.py's wording. The builtins got the same treatment — arity and per-position argument types for all thirty, driven by three descriptions rather than thirty hand-written branches. | `idc/tests/invalid.sh`, now run against **both** compilers |
 | **A3** | An unresolved call with no backend is `no such function 'X'; available builtins: …`. The builtin list is one literal, split at startup, and answers both "is this a builtin" and "what are they all", so the two cannot disagree. | `idc/tests/invalid/no_such_function.id` (new) |
 | **A4** | Duplicate function names are checked before the logic-uniqueness scan, so `duplicate_function` reports `already defined at FILE:LINE` instead of naming a function as a duplicate of itself. | `idc/tests/invalid/duplicate_function.id` |
@@ -189,7 +194,7 @@ attached, and an `extern` plus a warning when one is.
    dependency is in play.
 
 **Validation:** `idc/bin/idc demos/gfxdemo --backend idc/backends/gfx` builds and runs;
-same for `nativeapp/id`, `demos/gl3d`, `demos/gl3dgame` (via
+same for `../id_nativeapp/id`, `demos/gl3d`, `demos/gl3dgame` (via
 `idc/tools/devshell.sh`). `idc/bin/idc x.id` with a typo'd builtin gives `idc/idc.py`'s
 message. `idc/tools/parity.sh` still MATCH on every demo. Add
 `idc/tests/self_host_build.sh` cases for a backend build and for the typo message.
@@ -390,7 +395,7 @@ That is the next real performance step, and it is its own piece of work.
 
 `idc/bin/idc` is the only compiler a user ever runs when all of these hold:
 
-- ✅ Every program in `demos/`, `nativeapp/`, and `idc/backends/`-using trees builds
+- ✅ Every program in `demos/` and the `idc/backends/`-using trees builds
   with `idc/bin/idc`, including native backends.
 - ✅ All 40 cases in `idc/tests/invalid/` produce their expected message under
   **both** compilers, and `compiler_bug()` fires only for a genuine compiler
@@ -399,8 +404,8 @@ That is the next real performance step, and it is its own piece of work.
   800 files) and scales near-linearly. It is 5.1× on the self-host build, which
   is the densest program in the tree; closing that is the string-building work
   in §3.
-- ✅ `idc/tools/parity.sh` is MATCH — checked on every demo, `nativeapp/id`, and
-  both graphics backends.
+- ✅ `idc/tools/parity.sh` is MATCH — checked on every demo and both graphics
+  backends.
 - ✅ Every diagnostic either compiler gives, both give. `idc/tests/invalid.sh` and
   `idc/tests/runtime_invalid.sh` both run both.
 - ⬜ `idc/idc.py`'s only remaining job is `--target llvm|wasm`. Bootstrapping is

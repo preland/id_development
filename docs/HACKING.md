@@ -26,7 +26,7 @@ Anyone optimising for effort — human or model — takes the one-step path. Tha
 is not a discipline problem, so it did not get a discipline fix:
 
 - **Every file was renamed.** 0 of 258 filenames are now meaningless. The
-  same lookup is `front/parse/decl/top/decl_top.id` — the path *is* the
+  same lookup is `front/parse/decl/top/decl/decl_top.id` — the path *is* the
   answer. Directories are named after the stage of work: `front/{tokens,
   tree,parse}`, `mid/{names,types,unique}`, `back/{drive,emit,out}`.
 - **Two indexes**, below, for when the path is not enough.
