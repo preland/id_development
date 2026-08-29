@@ -4,15 +4,22 @@
 // written down, which is the whole of why the other three start two bytes
 // later than the multiplication alone would put them.
 tt_g4at(int at, int k, int i) {
+  int b = tt_g4at_b(at, k);
+  int ret_i = at + b + i * 2;
+} return int ret_i;
+
+tt_g4at_b(int at, int k) {
   int n = rd_be16((import ttbuf), at + 6) / 2;
   int b = 14 + n * k * 2;
   if(k > 0) {
     b = b + 2;
   }
-} return int at + b + i * 2;
+} return int b;
 
 // idDelta is signed in the file and is read unsigned here on purpose: it is
 // only ever added to a glyph id and taken modulo 2^16, and the two readings
 // agree under that.
 tt_g4arr(int at, int k, int i) {
-} return int rd_be16((import ttbuf), tt_g4at(at, k, i));
+  int tt_g4at_v = tt_g4at(at, k, i);
+  int ret_i = rd_be16((import ttbuf), tt_g4at_v);
+} return int ret_i;

@@ -1,0 +1,24 @@
+// One DDA step: walk (shoot_step() milli-units) further along the shooter's
+// facing direction (the same -sin/-cos forward vector as player movement,
+// see player/move/vec/fwd.id, but frozen at the yaw the shot was fired at --
+// yaw doesn't change mid-flight since this all happens within one frame).
+// Split across cast/advance/x.id, z.id and step.id: 12 native calls is 4
+// times a block's budget.
+
+ray_advance() {
+  ray_advance_x();
+  ray_advance_z();
+  ray_advance_step();
+} return void;
+
+ray_hit_now() {
+  int rc_get_v = rc_get(0);
+  int cell_x_v = cell_x(rc_get_v);
+  int ret_i = ray_hit_now_z(cell_x_v);
+} return int ret_i;
+
+ray_blocked_now() {
+  int rc_get_v = rc_get(0);
+  int rc_get_v2 = rc_get(1);
+  int ret_i = blocked_at(rc_get_v, rc_get_v2);
+} return int ret_i;

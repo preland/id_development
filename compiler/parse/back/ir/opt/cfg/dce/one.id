@@ -1,5 +1,7 @@
+
 dce_one(int f, int id, int n) {
-  if(dce_pure(ir_op(id)) == 1 && dce_used(f, id) == 0) {
+  string ir_op_v = ir_op(id);
+  if(dce_pure(ir_op_v) == 1 && dce_used(f, id) == 0) {
     ir_kill(id);
     n = n + 1;
   }
@@ -22,8 +24,9 @@ dce_pure(string op) {
 dce_used(int f, int id) {
   int n = 0;
   int i = 0;
-  while(i < len(irf_blk(f))) {
-    n = dce_used_b(irf_blk(f)[i], id, n);
+  while(i < blk_count(f)) {
+    int[] irf_blk_v = irf_blk(f);
+    n = dce_used_b(irf_blk_v[i], id, n);
     i = i + 1;
   }
 } return int n;

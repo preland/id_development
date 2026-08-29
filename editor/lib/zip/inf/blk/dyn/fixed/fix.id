@@ -1,0 +1,28 @@
+// Fixed Huffman blocks -- BTYPE 01, whose two code tables are in the standard
+// rather than in the stream.
+
+// Neither table reads a bit, so the order the two arguments are built in does
+// not matter and they can share a statement.
+inf_fixed() {
+  int[] inf_fix_lit_v = inf_fix_lit();
+  int[][] inf_tree_v = inf_tree(inf_fix_lit_v);
+  inf_fixed2(inf_tree_v);
+} return void;
+
+// The distance table is built, then the two trees are handed to the body
+// together, since inf_body's own signature is the only thing that needs both.
+inf_fixed2(int[][] inf_tree_v) {
+  int[] inf_fix_dist_v = inf_fix_dist();
+  int[][] inf_tree_v2 = inf_tree(inf_fix_dist_v);
+  inf_body(inf_tree_v, inf_tree_v2);
+} return void;
+
+// RFC 1951 section 3.2.6 gives the literal/length alphabet as code lengths,
+// which is all inf_tree wants: 8 bits for 0-143, 9 for 144-255, 7 for
+// 256-279, 8 for 280-287. The last eight symbols have no meaning and exist
+// only to make the code lengths add up to a complete tree.
+inf_fix_lit() {
+  int[] xs = [];
+  lst_fill(xs, 144, 8);
+  inf_fix_tail(xs);
+} return int[] xs;

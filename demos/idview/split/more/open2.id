@@ -1,0 +1,15 @@
+// open_file already spends its 3 actions closing the previous file and
+// naming the new path, so recording its start/end offsets is a tail call.
+register_file(string src, int i, int e) {
+  string slice_str_v = slice_str(src, i + 6, e);
+  push((import paths), slice_str_v);
+  push((import starts), e + 1);
+} return void;
+
+// print_file already spends its 3 actions on the header line, so the blank
+// line and the body slice/print are a tail call.
+print_body(string src, int k) {
+  print("");
+  string slice_str_v = slice_str(src, (import starts)[k], (import ends)[k]);
+  put(slice_str_v);
+} return void;

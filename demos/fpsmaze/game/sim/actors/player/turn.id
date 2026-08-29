@@ -2,9 +2,17 @@
 // degrees and fold back into 0..359 (game/util/trig/table.id's norm_deg).
 
 turn_left() {
-  ps_set(2, norm_deg(ps_get(2) - turn_speed()));
+  int turn_speed_v = turn_speed();
+  turn_by(0 - turn_speed_v);
 } return void;
 
 turn_right() {
-  ps_set(2, norm_deg(ps_get(2) + turn_speed()));
+  int turn_speed_v = turn_speed();
+  turn_by(turn_speed_v);
+} return void;
+
+turn_by(int delta) {
+  int ps_get_v = ps_get(2);
+  int norm_deg_v = norm_deg(ps_get_v + delta);
+  ps_set(2, norm_deg_v);
 } return void;

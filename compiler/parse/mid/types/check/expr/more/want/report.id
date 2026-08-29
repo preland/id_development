@@ -1,18 +1,8 @@
-// The last two positions, and reporting.
-
-want_push(int i, int id) {
-  int ok = 0;
-  if(is_push2(i) == 1 && l1_of(i)[1] == id) {
-    ok = ty_is_list(elem_type(type_of(l1_of(i)[0])));
-  } else {
-    ok = want_ret(i, id);
-  }
-} return int ok;
-
 // Message text is idc.py's, word for word, so the two compilers explain a
 // rejected program the same way.
 tc_err(int id, string msg) {
-  print(loc_at(node_fn(id), tc_line(id)) + msg);
+  string loc = tc_loc(id);
+  print(loc + msg);
   note_failure();
 } return void;
 
@@ -27,3 +17,11 @@ node_fn(int id) {
     i = i + 1;
   }
 } return string s;
+
+// The reporting location: which function a node belongs to, and which line
+// within it.
+tc_loc(int id) {
+  string node_fn_v = node_fn(id);
+  int tc_line_v = tc_line(id);
+  string loc = loc_at(node_fn_v, tc_line_v);
+} return string loc;

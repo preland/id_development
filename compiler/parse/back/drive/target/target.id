@@ -7,9 +7,12 @@
 
 emit_target(int argc, string[] argv) {
   if(arg_target(argc, argv, 1, "c") == "llvm") {
-    emit_llvm(arg_triple(argc, argv), arg_opt(argc, argv, 1, 1));
+    string arg_triple_v = arg_triple(argc, argv);
+    int arg_opt_v = arg_opt(argc, argv, 1, 1);
+    emit_llvm(arg_triple_v, arg_opt_v);
   } else {
-    emit_target2(arg_target(argc, argv, 1, "c"), argc, argv);
+    string arg_target_v = arg_target(argc, argv, 1, "c");
+    emit_target2(arg_target_v, argc, argv);
   }
 } return void;
 
@@ -20,7 +23,8 @@ emit_target2(string t, int argc, string[] argv) {
   if(t == "crt") {
     emit_crt();
   } else {
-    emit_program(arg_triple(argc, argv));
+    string arg_triple_v = arg_triple(argc, argv);
+    emit_program(arg_triple_v);
   }
 } return void;
 

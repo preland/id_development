@@ -4,17 +4,19 @@
 // may break.
 lay_emit(int g, int r, int c) {
   lay_row(g, r);
-  lset((import lay_pen), 0, (import lay_pen)[0] + lay_adv(g, lay_pt(r)));
+  lay_emit_out(g, r);
+} return void;
+
+// The advance ed_place needs found, and the pen moved past it. Split out of
+// lay_emit so that function's own actions stay under the limit.
+lay_emit_out(int g, int r) {
+  int lay_pt_v = lay_pt(r);
+  int lay_adv_v = lay_adv(g, lay_pt_v);
+  lset((import lay_pen), 0, (import lay_pen)[0] + lay_adv_v);
 } return void;
 
 lay_row(int g, int r) {
   push((import lay_g), g);
   push((import lay_x), (import lay_pen)[0]);
   lay_row2(g, r);
-} return void;
-
-lay_row2(int g, int r) {
-  push((import lay_y), (import lay_pen)[1]);
-  push((import lay_px), lay_pt(r));
-  push((import lay_st), lay_flag(r));
 } return void;

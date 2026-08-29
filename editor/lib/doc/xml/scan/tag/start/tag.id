@@ -1,0 +1,26 @@
+// Start and empty elements.
+
+// i is the first byte of the name, just past '<'.
+xml_tag(int i) {
+  int j = xml_ntok(i);
+  int ret_i = xml_tag2(i, j);
+} return int ret_i;
+
+// A '<' with nothing name-shaped after it is not markup this parser will
+// guess at: '<' is not legal as data in XML, so the document is wrong.
+xml_tag2(int i, int j) {
+  int k = 5;
+  if(j == i) {
+    k = xml_fail("expected an element name after '<'", i);
+  } else {
+    k = xml_tag3(i, j);
+  }
+} return int k;
+
+// The name is sliced once, here, and the attribute list is emptied before the
+// attributes are read into it.
+xml_tag3(int i, int j) {
+  string xml_cut_v = xml_cut(i, j - i);
+  sset((import xml_strs), 0, xml_cut_v);
+  int ret_i = xml_tag4(j);
+} return int ret_i;

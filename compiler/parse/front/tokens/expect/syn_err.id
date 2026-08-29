@@ -9,13 +9,15 @@
 // of this compiler does, and nothing is emitted when any check has failed.
 
 syn_err(int[] pos, string msg) {
-  print(cur_file() + ":" + cur_ln(pos) + ": error: " + msg);
-  note_failure();
+  string cur_file_v = cur_file();
+  int cur_ln_v = cur_ln(pos);
+  syn_err_tail(cur_file_v, cur_ln_v, msg);
 } return void;
 
 expect_text(int[] pos, string want) {
   if(cur_text(pos) != want) {
-    syn_err(pos, "expected '" + want + "', found '" + cur_text(pos) + "'");
+    string cur_text_v = cur_text(pos);
+    syn_err(pos, "expected '" + want + "', found '" + cur_text_v + "'");
   }
 } return void;
 

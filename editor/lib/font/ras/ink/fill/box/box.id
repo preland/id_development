@@ -1,0 +1,24 @@
+// The bitmap's size and where it sits relative to the pen.
+//
+// The box is taken from the flattened edges rather than from the font's own
+// bounding box, for two reasons: the font's box is in font units and would
+// have to be rounded outwards twice, and a composite glyph's stored box is
+// allowed to be wrong -- several fonts ship one that is simply the first
+// component's.
+//
+// Only the START of each edge is measured. Every contour is closed, so the
+// starts and the ends are the same set of points; measuring both would read
+// twice as much to get the same four numbers.
+ras_box() {
+  ras_box_x();
+  ras_box_y();
+  ras_box_fill();
+} return void;
+
+// The coverage list is sized from ras_w()/ras_h(), which read rasmet back,
+// so it cannot run until both spans above have been written.
+ras_box_fill() {
+  int ras_w_v = ras_w();
+  int ras_h_v = ras_h();
+  lst_fill((import rascov), ras_w_v * ras_h_v, 0);
+} return void;

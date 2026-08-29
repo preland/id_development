@@ -1,0 +1,37 @@
+// Paragraph boundaries.
+
+// A paragraph boundary always ends the run in progress, whether or not the
+// element that opens it is a start element -- which is why the flush is here
+// as well as in odt_stack.
+//
+// <text:p/> with nothing in it opens and closes here, and survives as a
+// paragraph owning no runs. That is the point: a blank line between two
+// paragraphs is not whitespace to be tidied away, it is a line the author put
+// there, and a renderer that drops it lays the page out wrongly.
+odt_para(int k) {
+  odt_flush();
+  odt_begin();
+  if(k == 3) {
+    odt_end();
+  }
+} return void;
+
+// A paragraph starts owning no runs; its end index is corrected when it
+// closes. Storing both ends rather than only the start means a consumer can
+// ask about paragraph i without knowing whether i + 1 exists.
+odt_begin() {
+  int len_v = len((import odt_txts));
+  push((import odt_plo), len_v);
+  odt_begin2();
+} return void;
+
+// The guard is for an end tag with no start: a document may be malformed in
+// ways the XML scanner cannot see, and a list write at -1 aborts the process.
+odt_end() {
+  if(len((import odt_phi)) > 0) {
+    int len_v = len((import odt_phi));
+    int len_v2 = len((import odt_txts));
+    lset((import odt_phi), len_v - 1, len_v2);
+  }
+  lset((import odt_st), 0, 0);
+} return void;

@@ -11,3 +11,12 @@ ed_page_out(int argc, string[] argv) {
   ed_show();
   ed_save(argc, argv);
 } return void;
+
+// The font, read and loaded, before the page that needs its metrics is laid
+// out. Split out of ed_go so that function's own actions stay under the
+// limit.
+ed_go_font(int argc, string[] argv) {
+  int[] ed_read_v = ed_read(argv[2]);
+  tt_load(ed_read_v);
+  ed_render(argc, argv);
+} return void;

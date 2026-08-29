@@ -2,7 +2,7 @@
 
 parse_mul(int[] pos) {
   int left = parse_unary(pos);
-  while(is_mulop(cur_text(pos))) {
+  while(is_mulop_at(pos)) {
     left = fold_mul(pos, left);
   }
 } return int left;
@@ -10,8 +10,8 @@ parse_mul(int[] pos) {
 fold_mul(int[] pos, int left) {
   string op = cur_text(pos);
   advance(pos);
-  int right = parse_unary(pos);
-} return int node_bin(op, left, right);
+  int ret_i = fold_mul_tail(pos, left, op);
+} return int ret_i;
 
 // unary: '-' unary | primary
 parse_unary(int[] pos) {

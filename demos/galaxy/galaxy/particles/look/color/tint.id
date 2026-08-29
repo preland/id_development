@@ -6,4 +6,13 @@
 tint_channel(int frac, int core, int edge) {
   int v = core + (edge - core) * frac / 1000;
   int j = noise_range(20);
-} return int clamp255(v + j);
+  int ret_i = clamp255(v + j);
+} return int ret_i;
+
+// pack.id's build_color needs a fourth action (the blue channel plus the
+// final pack) once its first two channels are named, one more than a block
+// gets -- so the tail lands here instead, beside the channel math it uses.
+build_color_b(int frac, int r, int g) {
+  int b = tint_channel(frac, 180, 255);
+  int ret_i = pack_rgb(r, g, b);
+} return int ret_i;

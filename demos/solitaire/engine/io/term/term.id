@@ -1,0 +1,24 @@
+// Enter and leave full-screen mode. Setup clears the screen and hides the
+// cursor; done shows the cursor, resets color, and clears. (Raw, non-blocking
+// keyboard mode is entered lazily by the first getkey and restored at exit by
+// the runtime.)
+
+term_setup() {
+  string chr_v = chr(27);
+  put(chr_v + "[2J");
+  term_setup_tail();
+} return void;
+
+// term_setup already spends its 3 actions clearing the screen, so hiding
+// the cursor and flushing is a tail call.
+term_setup_tail() {
+  string chr_v2 = chr(27);
+  put(chr_v2 + "[?25l");
+  flush();
+} return void;
+
+term_done() {
+  string chr_v = chr(27);
+  string sgr_v = sgr(0);
+  term_reset(chr_v, sgr_v);
+} return void;

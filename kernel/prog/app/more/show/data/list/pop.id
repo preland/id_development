@@ -1,9 +1,18 @@
 // The popped value is a parameter rather than the first operand of the same
-// `+` chain that also reads the new length. `id` does not say what order the
-// two sides of a `+` are evaluated in, and the two targets answer differently
-// -- the C one inherits C's, the LLVM one is left to right -- so an expression
-// that pops and measures at once prints a different length on each. That is
-// docs/SPEC.md 10, S11, and this line is what found it.
+// `+` chain that also reads the new length. docs/SPEC.md 7 says the two sides
+// of a `+` are evaluated left to right, which the LLVM target this kernel is
+// built with obeys and the C target does not yet -- so an expression that pops
+// and measures at once prints a different length on each. That is
+// docs/SPEC.md 11, S11, and this line is what found it.
 pop_line(int v, int[] xs) {
-  print("list: pop=" + v + " len=" + len(xs));
+  int len_v = len(xs);
+  print("list: pop=" + v + " len=" + len_v);
+} return void;
+
+// len_v is read before the pop so the printed count is the list's size at
+// the point list_line measured it, not the size after pop shrinks it.
+list_tail(int[] xs, int len_v) {
+  print("list: len=" + len_v + " [0]=" + xs[0] + " [1]=" + xs[1] + " [5]=" + xs[5]);
+  int popped = pop(xs);
+  pop_line(popped, xs);
 } return void;

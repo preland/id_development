@@ -29,21 +29,22 @@ cp -r "$ROOT/editor/lib/doc" "$P/doc"
 
 cat > "$P/main.id" <<'IDEOF'
 main(int argc, string[] argv) {
-  odt_parse(read_all());
+  string src = read_all();
+  odt_parse(src);
   tst_show();
 } return int 0;
 IDEOF
 
 cat > "$P/show/show.id" <<'IDEOF'
 tst_show() {
-  print("paras " + odt_paras());
+  show_paras();
   tst_p(0);
   tst_more();
 } return void;
 
 tst_p(int i) {
   while(i < odt_paras()) {
-    print("p" + i + " " + odt_runs_of(i) + " at " + odt_run_at(i, 0));
+    show_p_line(i);
     i = i + 1;
   }
 } return void;
@@ -51,14 +52,33 @@ tst_p(int i) {
 tst_more() {
   tst_r(0);
   tst_keys();
-  print("err |" + odt_err() + "| at " + odt_at());
+  show_err();
+} return void;
+IDEOF
+
+cat > "$P/show/helpers.id" <<'IDEOF'
+show_paras() {
+  int n = odt_paras();
+  print("paras " + n);
+} return void;
+
+show_p_line(int i) {
+  int runs = odt_runs_of(i);
+  int at = odt_run_at(i, 0);
+  print("p" + i + " " + runs + " at " + at);
+} return void;
+
+show_err() {
+  string e = odt_err();
+  int at = odt_at();
+  print("err |" + e + "| at " + at);
 } return void;
 IDEOF
 
 cat > "$P/show/more/more.id" <<'IDEOF'
 tst_r(int r) {
   while(r < odt_runs()) {
-    print("r" + r + " " + odt_run_style(r) + " |" + odt_run_text(r) + "|");
+    show_r_line(r);
     r = r + 1;
   }
 } return void;
@@ -73,7 +93,23 @@ tst_keys() {
 } return void;
 
 tst_key(string key) {
-  print("s " + key + " |" + odt_font(key) + "| " + odt_size(key) + "pt b" + odt_bold(key) + " i" + odt_italic(key));
+  string font = odt_font(key);
+  int size = odt_size(key);
+  show_key_line(key, font, size);
+} return void;
+IDEOF
+
+cat > "$P/show/more/helpers.id" <<'IDEOF'
+show_r_line(int r) {
+  string style = odt_run_style(r);
+  string text = odt_run_text(r);
+  print("r" + r + " " + style + " |" + text + "|");
+} return void;
+
+show_key_line(string key, string font, int size) {
+  int b = odt_bold(key);
+  int it = odt_italic(key);
+  print("s " + key + " |" + font + "| " + size + "pt b" + b + " i" + it);
 } return void;
 IDEOF
 

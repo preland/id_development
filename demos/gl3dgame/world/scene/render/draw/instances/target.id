@@ -1,0 +1,15 @@
+// The target is drawn at its position *relative to the player* (world/game/
+// state's tx,tz minus px,pz, scaled to milli-units by the 1600 grid
+// spacing) and spins for visibility -- see compose.id for the matrix math.
+
+draw_target(int view, int t) {
+  int mv = target_mv(view, t);
+  gl_set_modelview(mv);
+  gl_draw_tris((import target_verts), (import target_colors), 12);
+} return void;
+
+target_mv(int view, int t) {
+  int dx = (gs_get(2) - gs_get(0)) * 1600;
+  int dz = (gs_get(3) - gs_get(1)) * 1600;
+  int ret_i = target_finish(view, dx, dz, t);
+} return int ret_i;

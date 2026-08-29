@@ -834,10 +834,42 @@ static size_t id_mul_check(size_t a, size_t b, const char* what) {
     }
     return a * b;
 }
-/* id_charat's one-entry length memo (see id_charat). Declared here because
-   id_realloc, below, has to clear it. */
-static const char* id_ca_s = NULL;
-static size_t id_ca_n = 0;
+/* String lengths, remembered.
+   A `string` is a NUL-terminated char*, so its length is a strlen -- and every
+   id program walks text with charat, which needs the length to know where the
+   end is. One remembered length made a single scan O(n) instead of O(n^2). It
+   did not make *two* scans O(n): a parser that reads its input and builds a
+   string alternates between two pointers, misses the memo on every call, and
+   pays a strlen of the whole input per character. Measured on an OpenDocument
+   content.xml, that was 46.8 seconds for 3.5 MB.
+   So the memo holds several. ID_LEN_MEMO is the number of strings that may be
+   walked at once before the cost comes back; eight covers a parser reading one
+   input while building a name and comparing against a keyword, with room over.
+   Raising it costs one pointer comparison per miss.
+   The real answer is a string that carries its own length, which would remove
+   the question rather than bound it -- and which means changing how a literal
+   is emitted, so it is a decision about the language rather than about this
+   file. See docs/FRICTION.md. */
+#define ID_LEN_MEMO 8
+static const char* id_lm_s[ID_LEN_MEMO];
+static size_t id_lm_n[ID_LEN_MEMO];
+static unsigned id_lm_at = 0;
+static size_t id_slen(const char* s) {
+    unsigned i;
+    for (i = 0; i < ID_LEN_MEMO; i++) if (id_lm_s[i] == s) return id_lm_n[i];
+    i = id_lm_at;
+    id_lm_at = (id_lm_at + 1) % ID_LEN_MEMO;
+    id_lm_s[i] = s;
+    id_lm_n[i] = strlen(s);
+    return id_lm_n[i];
+}
+/* A block that moved may be reused by a later string at the same address, so
+   every remembered length has to go with it. Only when it actually moved: a
+   realloc that grows in place invalidates nothing. */
+static void id_lm_forget(void) {
+    unsigned i;
+    for (i = 0; i < ID_LEN_MEMO; i++) id_lm_s[i] = NULL;
+}
 static void* id_alloc(size_t n) {
     IdAllocHdr* h = (IdAllocHdr*)malloc(id_add_check(n, sizeof(IdAllocHdr), "alloc"));
     if (!h) { fprintf(stderr, "id: out of memory (%zu bytes)\n", n); exit(1); }
@@ -846,11 +878,11 @@ static void* id_alloc(size_t n) {
 }
 static void* id_realloc(void* p, size_t n) {
     if (!p) return id_alloc(n);
-    id_ca_s = NULL;   /* this block may move; no cached length may outlive it */
     IdAllocHdr* h = (IdAllocHdr*)p - 1;
     id_arena_unlink(h);
     IdAllocHdr* nh = (IdAllocHdr*)realloc(h, id_add_check(n, sizeof(IdAllocHdr), "realloc"));
     if (!nh) { fprintf(stderr, "id: out of memory (%zu bytes)\n", n); exit(1); }
+    if (nh != h) id_lm_forget();
     id_arena_link(nh);
     return (void*)(nh + 1);
 }
@@ -1111,7 +1143,7 @@ static char* id_read_all(void) {
     r[n] = '\0';
     return r;
 }
-static int id_len(const char* s) { return (int)strlen(s); }
+static int id_len(const char* s) { return (int)id_slen(s); }
 /* charat's bounds check used to be a strlen per character, which makes walking
    a string O(n^2) -- and walking a string with charat is how every id program
    reads text, because there is no substr and no file I/O. Lexing a 128 KB
@@ -1123,8 +1155,7 @@ static int id_len(const char* s) { return (int)strlen(s); }
    later be handed to a new string -- so it clears the memo. */
 static int id_charat(const char* s, int i) {
     if (i < 0) return -1;
-    if (s != id_ca_s) { id_ca_s = s; id_ca_n = strlen(s); }
-    if ((size_t)i >= id_ca_n) return -1;           /* out of range -> -1 */
+    if ((size_t)i >= id_slen(s)) return -1;        /* out of range -> -1 */
     return (unsigned char)s[i];
 }
 static char* id_chr(int code) {
@@ -1206,11 +1237,17 @@ def instrumented_runtime() -> str:
     RUNTIME verbatim, because tools/parity.sh compares that text byte for byte
     against the self-hosted compiler's."""
     rt = RUNTIME.replace(
-        "static void* id_alloc(size_t n) {",
+        "#define ID_LEN_MEMO 8",
         "static long long id_ctr_time = 0;\n"
         "static long long id_ctr_mem = 0;\n"
+        "#define ID_LEN_MEMO 8", 1)
+    rt = rt.replace(
+        "static void* id_alloc(size_t n) {",
         "static void* id_alloc(size_t n) {\n"
         "    id_ctr_mem += (long long)n;", 1)
+    if "id_ctr_time = 0" not in rt:
+        raise AssertionError("the length memo moved; the counters are no "
+                             "longer declared before the helper that uses them")
     rt = rt.replace(
         "static void* id_realloc(void* p, size_t n) {",
         "static void* id_realloc(void* p, size_t n) {\n"
@@ -1234,16 +1271,17 @@ def instrumented_runtime() -> str:
         "    size_t la = strlen(a), lb = strlen(b);\n"
         "    id_ctr_time += (long long)(la + lb);", 1)
     rt = rt.replace(
-        "static int id_len(const char* s) { return (int)strlen(s); }",
+        "static int id_len(const char* s) { return (int)id_slen(s); }",
         "static int id_len(const char* s) {\n"
         "    size_t n = strlen(s); id_ctr_time += (long long)n; return (int)n;\n"
         "}", 1)
     # charat is memoised, so a miss is the only place it does O(n) work --
-    # which is precisely the thing that regressed before.
+    # which is precisely the thing that regressed before. The memo is in
+    # id_slen, so that is where the miss is charged.
     rt = rt.replace(
-        "    if (s != id_ca_s) { id_ca_s = s; id_ca_n = strlen(s); }",
-        "    if (s != id_ca_s) { id_ca_s = s; id_ca_n = strlen(s);\n"
-        "                        id_ctr_time += (long long)id_ca_n; }", 1)
+        "    id_lm_n[i] = strlen(s);",
+        "    id_lm_n[i] = strlen(s);\n"
+        "    id_ctr_time += (long long)id_lm_n[i];", 1)
     if rt.count("id_ctr_time +=") != 3:
         raise AssertionError("a counted runtime helper moved; the time "
                              "counter no longer sees the work it does")

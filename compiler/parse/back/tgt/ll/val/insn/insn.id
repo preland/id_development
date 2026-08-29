@@ -18,15 +18,18 @@ ll_text(int id) {
 ll_ret(int id) {
   string s = "ret void";
   if(ir_a(id) >= 0) {
-    s = "ret " + ll_op(ir_a(id));
+    int ir_a_v = ir_a(id);
+    s = "ret " + ll_op(ir_a_v);
   }
 } return string s;
 
 ll_t2(int id) {
   string s = ll_t3(id);
   if(ir_op(id) == "cbr") {
-    s = "br i1 " + ll_val(ir_a(id)) + ", label %b" + ir_bl(id)[0] + ", label %b" + ir_bl(id)[1];
+    int ir_a_v = ir_a(id);
+    s = "br i1 " + ll_val(ir_a_v) + ", label %b" + ir_bl(id)[0] + ", label %b" + ir_bl(id)[1];
   } else if(ir_op(id) == "alloca") {
-    s = "%v" + id + " = alloca " + ll_ty(ir_ty(id));
+    string ir_ty_v = ir_ty(id);
+    s = "%v" + id + " = alloca " + ll_ty(ir_ty_v);
   }
 } return string s;

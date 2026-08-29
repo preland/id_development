@@ -8,12 +8,13 @@
 // built, advancing `pos` past the tokens it consumed.
 
 parse_expr(int[] pos) {
-} return int parse_add(pos);
+  int ret_i = parse_add(pos);
+} return int ret_i;
 
 // additive: mul (('+' | '-') mul)*
 parse_add(int[] pos) {
   int left = parse_mul(pos);
-  while(is_addop(cur_text(pos))) {
+  while(is_addop_at(pos)) {
     left = fold_add(pos, left);
   }
 } return int left;
@@ -21,5 +22,5 @@ parse_add(int[] pos) {
 fold_add(int[] pos, int left) {
   string op = cur_text(pos);
   advance(pos);
-  int right = parse_mul(pos);
-} return int node_bin(op, left, right);
+  int ret_i = fold_add_tail(pos, left, op);
+} return int ret_i;

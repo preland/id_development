@@ -1,0 +1,27 @@
+// One pixel row: four sample heights accumulated into row, then written out
+// as coverage.
+ras_rast(int r, int[] tab, int[] row) {
+  int j = 0;
+  while(j < 4) {
+    j = ras_samp(r, j, tab, row);
+  }
+  int ret_i = ras_rast_out(r, row);
+} return int ret_i;
+
+// Sample j of row r is at device y = (r - by) * 64 + j * 16 + 8: the row's
+// top edge in device sixty-fourths, plus the centre of the j-th of four
+// equal bands. Sampling the centres rather than the edges is what keeps a
+// horizontal stroke exactly one pixel high from ever landing on two rows at
+// half strength each.
+ras_samp(int r, int j, int[] tab, int[] row) {
+  ras_samp_cuts(r, j, tab);
+  ras_samp_scan(tab, row);
+  int ret_i = j + 1;
+} return int ret_i;
+
+ras_cuts(int y, int[] tab) {
+  int i = 0;
+  while(i < len((import rasy0))) {
+    i = ras_cross(i, y, tab);
+  }
+} return void;

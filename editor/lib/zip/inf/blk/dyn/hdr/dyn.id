@@ -1,0 +1,30 @@
+// Dynamic Huffman blocks -- BTYPE 10, where the stream carries its own code
+// tables, themselves Huffman-coded.
+
+// Three counts, then a tree to read the code lengths with, then the lengths,
+// then the two real trees. xs is [HLIT, HDIST, HCLEN] after inf_hdr.
+inf_dynamic() {
+  int[] xs = [0, 0, 0];
+  inf_hdr(xs);
+  inf_dyn(xs);
+} return void;
+
+// The three header fields, as separate statements: each one consumes bits, so
+// putting them in a list literal would leave the order to the code generator.
+// The constants are the biases RFC 1951 section 3.2.7 gives -- there are
+// always at least 257 literal codes, one distance code and four code-length
+// codes, so those are not transmitted.
+inf_hdr(int[] xs) {
+  inf_hdr_lit(xs);
+  inf_hdr_dist(xs);
+  inf_hdr_clen(xs);
+} return void;
+
+// The literal and distance lengths arrive as one run, split afterwards, which
+// is what the format does: a repeat code may straddle the boundary between
+// the two alphabets.
+inf_dyn(int[] xs) {
+  int[] inf_clens_v = inf_clens(xs[2]);
+  int[][] rows = inf_tree(inf_clens_v);
+  inf_dyn2(xs, rows);
+} return void;

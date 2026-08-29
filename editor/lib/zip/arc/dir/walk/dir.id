@@ -1,0 +1,30 @@
+// Reading the file in, and walking the central directory it ends with.
+
+// One read of the whole file. The buffer is sized first and passed in, so the
+// caller owns it -- fs_read clamps to len(xs) and never grows a list.
+zip_load(string path, int[] xs) {
+  int h = fs_open(path, "r");
+  int len_v = len(xs);
+  zip_load2(h, xs, len_v);
+} return void;
+
+// A short read is not recoverable here: every offset in the archive is
+// relative to the start of the file, so a truncated buffer gives a directory
+// that points into nothing.
+zip_grab(int h, int n, int k) {
+  fs_close(h);
+  if (n != k) {
+    inf_fail("zip: short read");
+  }
+} return void;
+
+// A ZIP is read backwards. The end-of-central-directory record gives the
+// number of entries and where the directory starts; the directory gives every
+// entry. Nothing at the front of the file is trusted, which is what lets a
+// ZIP be appended to another file -- and what makes a self-extracting archive
+// and a .odt the same format.
+zip_dir(int[] xs) {
+  int at = zip_eocd(xs);
+  zip_init();
+  zip_dir2(xs, at);
+} return void;

@@ -17,3 +17,11 @@ ed_puts(int fd, string s) {
   int[] buf = [];
   ed_bytes(buf, s, 0);
 } return void;
+
+// The row buffer ed_prow filled, flushed to the open file. Split out of
+// ed_prow so that function's own three actions stay under the limit.
+ed_prow_out() {
+  int ed_fd_v = ed_fd();
+  int ed_w_v = ed_w();
+  fs_write(ed_fd_v, (import ed_line), ed_w_v * 3);
+} return void;

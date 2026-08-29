@@ -136,6 +136,13 @@ split.
 The limit is doing its job everywhere else. This is the one shape where the
 number is wrong rather than the code.
 
+> **Deferred, deliberately.** This is a naming problem rather than a structural
+> one: `sp/` and `mt/` are bad names, not evidence that nine levels is wrong.
+> The intended answer is stricter requirements on what a file or a directory
+> may be called, which is a rule that does not exist yet. Recorded here so that
+> the depth the §7.1 sweep added is understood as a known cost and not a
+> surprise.
+
 ## 5. Three entries per directory produces depth that stops meaning anything
 
 Forty-nine functions of DEFLATE is seventeen files, and seventeen files under a
@@ -153,6 +160,14 @@ The kernel hit the same wall from the other side. `kernel/prog/sys/gfx/` needed
 device access, a framebuffer, a font and a console — four things — so one of
 them had to become a child of another, and `con/` living inside `fb/` says
 something about the code that is not true.
+
+> **Answered, and it is the design.** Functions are global in `id` precisely so
+> that logic which is the same across codebases is the same function. Where the
+> function ends up matters much less than whether its *name* reflects the
+> general thing it does rather than the particular caller that needed it first.
+> `arc_cut` living six directories from one of its callers is not the problem;
+> a name that says "cut an archive field" when the function cuts any run of
+> bytes is.
 
 ## 6. The uniqueness rule is right, and there is nowhere to put the answer
 
@@ -194,14 +209,21 @@ is quadratic (§9). The decode is another twenty lines. In C it is one array.
 
 ## 8. An array literal cannot say what type it is
 
-`[]` is typed from its context, so `word[] xs = []` works. `[0, 0, 0]` takes
-its type from its first element, so `word[] xs = [0, 0, 0]` is rejected:
+> **Fixed.** A literal now takes its type from the slot it is going into and
+> never from its first element (`docs/SPEC.md` §5), so `word[] xs = [0, 0, 0]`
+> is a `word[]` literal. The elements are judged against that type's element
+> type -- element 0 included, which is what makes a wrong first element
+> reportable instead of definitional. The rest of this entry is what the
+> problem was.
+
+`[]` is typed from its context, so `word[] xs = []` works. `[0, 0, 0]` took
+its type from its first element, so `word[] xs = [0, 0, 0]` was rejected:
 
 ```
 error: cannot initialize word[] 'fb_st' with a int[] value
 ```
 
-There is no way to write a `word[]` literal at all. Every one in the kernel
+There was no way to write a `word[]` literal at all. Every one in the kernel
 starts empty and is filled by pushing, which turns a declaration into two
 functions.
 
@@ -232,9 +254,9 @@ choice: the obvious code is unusably slow, and nothing says so until it is.
 
 ## 10. Evaluation order is unspecified, and a bit reader cannot live with that
 
-`docs/SPEC.md` §10 S11 records that the two targets disagree about the order
-the operands of one operator are evaluated in. For most code that is a
-curiosity. For a bit reader it is the format:
+`docs/SPEC.md` §7 now **chooses**: operands are evaluated left to right. It was
+unwritten until these two programs found it, and the targets disagreed --
+which for most code is a curiosity, and for a bit reader is the format:
 
 ```
 lset(xs, 0, inf_bits(5) + 257);
@@ -247,8 +269,12 @@ the stream and the order *is* the meaning. `inf_match` had to pull a length out
 into a local before decoding the distance for the same reason. The natural
 one-liner would decode correctly for a while and then produce garbage.
 
-This is the rule the inflater's author reported being most afraid of, and it is
-the one this repository should fix rather than document.
+This is the rule the inflater's author reported being most afraid of. It is now
+decided rather than documented: §7 says left to right, `tests/conform/order/`
+holds the cases, and the LLVM and WASM targets pass them. The C target does not
+yet -- it emits one C expression per `id` expression and C does not sequence
+the arguments of a call -- and `tests/conform.sh` names that rather than failing
+on it, so removing the exemption is how the fix gets noticed.
 
 ## 11. A name has one type across a whole program, and that is a coordination cost
 
@@ -281,8 +307,16 @@ error: undefined variable '{'
 Four errors, none of them the mistake, in a file the mistake is not in. This
 one cost time twice in one afternoon.
 
-**A `word` may be assigned to an `int` but not used as an index.** These are
-both legal:
+**A `word` may be assigned to an `int` but not used as an index.**
+
+> **Decided, in the strict direction.** `docs/SPEC.md` §1 now says a narrowing
+> conversion is written down: legal in a declaration, where the target type is
+> on the same line, and rejected at an argument, where it is in another file.
+> So `take(a)` is now an error like `xs[a]`, and the inconsistency is gone by
+> tightening rather than by loosening. Across this repository and `idstd` the
+> rule found exactly **two** narrowings, both in `idstd`, and both were real.
+
+These were both legal:
 
 ```
 int n = a;          // a is a word -- narrows, correctly
@@ -295,11 +329,12 @@ and this is not:
 print(xs[a]);       // error: array index must be int, got word
 ```
 
-Both compilers agree, so it is the language's rule rather than a bug — but it
-is inconsistent with assignment and with argument passing, and the workaround
-is a local that exists only to change the type. One reader of a ZIP file
-avoided it by reading the same four bytes twice as two 16-bit reads, which caps
-that reader at 2 GB.
+Both compilers agreed, so it was the language's rule rather than a bug — but
+it was inconsistent with assignment and with argument passing, and the
+workaround is a local that exists only to change the type. One reader of a ZIP
+file avoided it by reading the same four bytes twice as two 16-bit reads, which
+caps that reader at 2 GB. That local is now the answer everywhere rather than
+in one of the three places, and naming it is the point rather than the cost.
 
 ## 13. There is no way to empty a list, and the workaround changes its identity
 
@@ -323,6 +358,11 @@ holding the previous glyph, silently, and the only thing saying so is a comment.
 For a font whose outline lists are refilled once per glyph, that is the most
 dangerous thing in the module, and it is dangerous because of an omission
 rather than a rule.
+
+> **Answered, by a rule rather than by a feature.** `docs/SPEC.md` §7.1: a
+> return clause is a name or a literal, and a call may not be an argument to a
+> call. Both entries below were symptoms of an expression being allowed to hide
+> how many steps it took. What that cost is measured at the end of §15.
 
 ## 14. Three exports per function, so a record of seven becomes a list and a comment
 
@@ -362,6 +402,58 @@ is `xs[at]`, which is already `idstd`'s `lget`, so the signed one-byte reader
 can only be the sign half, called as `tt_i8(xs[at])`. Two signed readers with
 different shapes for no reason a reader of the code can see.
 
+### What §7.1 cost, measured
+
+The rules arrived after the code, so every violation had to be repaired. The
+mechanical part -- naming the value a return clause computed, and hoisting a
+call out of another call's arguments -- was done by `tools/flatten.py` across
+1141 files. Everything else was done by hand, because the action limit did not
+move: a block that gains a name may have to give up a statement, and a
+function that gains a statement may have to become two.
+
+| tree | files | functions | directories |
+| --- | ---: | ---: | ---: |
+| `compiler/parse` | 419 → 550 | 1121 → 1399 | 236 → 318 |
+| `demos` | 334 → 393 | 805 → 921 | 219 → 247 |
+| `editor` | 175 → 240 | 480 → 608 | 103 → 149 |
+| `kernel` | 83 → 105 | 214 → 255 | 55 → 70 |
+| `runtime` | 36 → 46 | 83 → 102 | 20 → 26 |
+| `compiler/lex` | 18 → 25 | 50 → 65 | 11 → 15 |
+| **total** | **1065 → 1359** | **2753 → 3350** | **644 → 825** |
+
+About 1600 values gained names, 597 functions were created, and the tree is
+28% wider in both files and directories. **That is §5 getting materially
+worse as the direct price of §14 and §15**, and it is worth saying in one
+place rather than leaving it to be discovered.
+
+Three things the sweep taught that were not visible before it:
+
+* **The rules pull with the uniqueness rule, and that is good.**
+  `len(irf_blk(f))` appeared at 11 call sites and `len(blk_ins(b))` at 7.
+  Naming each would have produced 18 identical two-line compositions, and the
+  duplicate-logic rule refuses the second of those -- so the two rules together
+  forced one shared `blk_count`/`insn_count` in the file where the accessors
+  already live. The composition wanted a name, and the name wanted one home.
+
+* **Where they hurt, they hurt by fragmenting a narrative.** `tt_shape1` in
+  the font tests had twelve actions: ten independent calls feeding one `print`.
+  It became a five-function chain whose parameter lists reach ten, purely to
+  relay values nothing touches until the last stage. The obvious escape --
+  carry the values in a list instead of in parameters -- costs *more*
+  statements, because `lset` cannot take a nested call either. The rule that
+  forces the split also closes the exit from it. `ll_asm_body` and `ll_func` in
+  the LLVM target tell the same story: each printed a piece of LLVM text in one
+  continuous function that mirrored the text's own shape, and each is now three
+  functions across two files, split where the count ran out rather than where
+  the logic divides.
+
+* **§7 lost most of its content.** If a call can never be an argument to a
+  call, two calls can never be arguments of the *same* call, so the order a
+  call's arguments are evaluated in is no longer observable by any `id`
+  program. `tests/conform/order/03-argument-order` was deleted rather than
+  rewritten. What is left observable is operands, and the C target still gets
+  those wrong (§11, S11).
+
 ## 16. A library has no way to name a constant
 
 `conf.id` constants are read at a project root, so a *program* can name its
@@ -379,7 +471,13 @@ choice the language offers: a constant is global or it does not exist.
 
 ## 17. `charat` is O(n) on a long string, so text processing is quadratic
 
-This is the largest measured cost in either program, by a very long way.
+> **Fixed, as far as a memo can fix it.** Both runtimes now remember the
+> lengths of eight strings rather than one. Walking a megabyte while another
+> string is in hand went from **8398 ms to 6 ms**, and the scaling from
+> quadratic to linear. The rest of this entry is what the problem was and what
+> a complete fix would still take.
+
+This was the largest measured cost in either program, by a very long way.
 
 `id_charat` in the C runtime memoises the length of **one** string. A parser
 alternating between the document it is scanning and the strings it is building
@@ -445,6 +543,50 @@ number of files depending on whether it produces a value.
 The five predefined XML entities cannot be a chain of comparisons at all: five
 branches is five actions, so they are a table and a search, rebuilt per call.
 
+### Looked into, as asked
+
+**How big is it.** Before the §7.1 sweep, **279 of 1854 functions** across the
+compiler, the editor and the kernel — **15%** — were named `<something>2`,
+`<something>3`, `<something>4`. A numbered function is one that exists only
+because the chain above it ran out of actions: `bt2` through `bt5`, `ce2`
+through `ce5`, `tc_g1` through `tc_g3`, `acc_expr2` through `acc_expr5`. None
+of them is a step in the algorithm; each is a continuation.
+
+**§7.1 made it sharper, not milder.** A value-returning function now *always*
+needs a local, because the return clause has to name one. Before, a two-way
+dispatcher could sometimes end `} return int f(x);` and spend nothing on the
+local. Now it cannot, so the budget for branches in a value-returning function
+is fixed at two, permanently.
+
+**The options, and what each costs.**
+
+* **Raise the limit to 4.** Closes §4, §18 and §22 in one edit, and closes
+  nothing else. It weakens the rule everywhere, including where §22 shows it
+  working, and 4 is exactly as arbitrary as 3. Cheapest to do, hardest to
+  argue for.
+* **Make the returned local free.** Narrow: exactly one declaration per
+  function, the one the return clause names, does not count. It restores the
+  symmetry between a `void` dispatcher and a value-returning one — three ways
+  each — without touching any other block in the language. It is a rule with an
+  exception, which is what it costs.
+* **A dispatch form.** A `when`/`match` construct that counts as one action
+  however many arms it has. It answers §4, §18 and §22 completely and it is the
+  only option that makes a five-way choice readable. It is also new syntax, and
+  the largest thing in this list.
+* **Nothing.** Chains of numbered continuations are not wrong, they are only
+  dull, and 15% is the price. Every reader of this codebase has followed one
+  and none has been confused by one.
+
+The second is the recommendation, if one is wanted: it is the smallest change
+that removes the *asymmetry*, which is the part of §18 that is genuinely
+surprising. The first and third both change the language for everybody in order
+to fix a problem that only value-returning dispatchers have.
+
+> **Intended behaviour, confirmed.** When the same logic turns up in two
+> modules, the answer is that it belongs in `idstd`. The rule is doing its job;
+> what §6 records is that `id` has nowhere *else* to put the answer, and a
+> library is that somewhere.
+
 ## 19. The uniqueness rule reaches across modules
 
 The ODT layer needed a per-row comparison in a style-name lookup. It is
@@ -492,6 +634,17 @@ it hurts most.
 
 ## 21. Division truncates toward zero, and there is no floor
 
+> **Fixed.** `idstd` now has `fx_fdiv(a, b)`, division that rounds toward
+> negative infinity, beside `fx_abs`/`fx_min`/`fx_max`/`fx_clamp`/`fx_sign`.
+> The rasteriser's own `ras_flr` is now one line that calls it, and all 74 of
+> its assertions still pass.
+>
+> A note on the premise: this entry is **not** about floating point, which
+> `id` has had all along -- `docs/SPEC.md` §1 and §3 specify `float` as
+> IEEE-754 binary64, both backends emit it, and `tests/conform/float/` covers
+> it. The one real float gap is float-to-string on the WASM target (§11, S5).
+
+
 `docs/SPEC.md` §2.2 says so, and it is the right rule. What is missing is the
 other one. `idstd` has `fx_abs`, `fx_min`, `fx_max`, `fx_clamp` and `fx_sign`,
 and nothing that floors — so every program doing coordinate arithmetic writes
@@ -528,6 +681,61 @@ ras_open(int[] buf, int lo, int hi) {
 The `lst_fill` is the first action, so the budget for branches is two, and a
 three-way choice costs two functions.
 
+## 23. A local declared in one branch is readable from the next
+
+Found by the §7.1 sweep, in the worst possible way: a tool put a declaration
+inside an `if` branch and used it from the `else if` beside it, and **the
+compiler accepted the program**.
+
+```
+probe(int argc) {
+  int n = 0;
+  if(argc > 99) {
+    int hidden = 7;
+  } else if(hidden == 7) {
+    n = 1;
+  }
+} return int n;
+```
+
+This compiles and prints `0`. `id` gives a local function-wide scope, so
+`hidden` exists in the `else if` whether or not the branch that declares it
+ever ran, and it holds whatever the storage held. There is no diagnostic, no
+trap, and nothing in `docs/SPEC.md` that says which it should be.
+
+Every other rule in this language is about making a mistake impossible to
+write. This one lets a mistake compile, run, and give an answer. It is the
+only entry in this document that is a **soundness** problem rather than an
+ergonomics one.
+
+**The same fault has a second face**, found in the same afternoon and from the
+opposite direction. Writing
+
+```
+  n = f(x);          // no `int` in front of it
+} return int n;
+```
+
+does not declare `n`. `id` resolves the bare name outward until it finds one,
+lands on some *other* function's local of the same name, and only complains
+much later, about that other function -- "'n' is not exported" -- naming
+neither the file nor the mistake. Twenty-one of these were written by accident
+during the §7.1 sweep and every one of them took a compile to find. A
+declaration in the wrong scope and a missing declaration are the same bug:
+**a name is resolved far more widely than a reader would expect, and the
+diagnostic that eventually fires describes somewhere else.**
+
+Neither is visible to any structural check -- the action limits, the nesting
+limit, the file and directory counts, the call-nesting rule and
+one-name-one-type all pass. The fault is in name resolution, downstream of
+every rule this document has otherwise been about.
+
+**What would fix it:** a name is in scope from its declaration to the end of
+the block that declares it, and reading it elsewhere is a compile error --
+which is what a reader already assumes the rule is. The cost is finding
+whatever in the existing tree relies on the current behaviour, which is
+unknown and may well be nothing.
+
 ---
 
 ## What this list is not
@@ -544,17 +752,19 @@ something, from the four that cost something and bought nothing:
   writing "corrupt archive" onto the same stream as the data.
 * **§8**, an array literal cannot say what type it is. This is an omission, not
   a discipline.
-* **§10**, unspecified evaluation order. `docs/SPEC.md` should choose.
+* **§10**, unspecified evaluation order. **Done**: `docs/SPEC.md` §7 chooses
+  left to right, and what is left is making the C target obey it.
 * **§12**, both diagnostics. A misparse should say what was misparsed.
 * **§13**, there is no way to empty a list. The workaround rebinds the name and
   silently invalidates every reference to it, which is the only entry here that
   can produce a wrong answer rather than an awkward one.
 * **§15**, a narrowing reader survives the uniqueness rule by accident. That is
   luck, not design.
-* **§17**, `charat` is linear. This is the only entry that makes correct,
-  obvious code 767 times slower than it needs to be, and the only one whose
-  workaround every text-processing program in the language has had to
-  rediscover.
+* **§17**, `charat` is linear. **Done**: the length memo holds eight strings
+  instead of one, in both runtimes. A megabyte walked while another string is
+  in hand went from 8398 ms to 6 ms, and the scaling from quadratic to linear.
+  What is left is the complete answer -- a string that carries its own length --
+  which means changing how a literal is emitted.
 * **§21**, there is no floor. One function in `idstd` closes it, and until it
   is there every program that touches a negative coordinate writes it again or
   is quietly wrong.

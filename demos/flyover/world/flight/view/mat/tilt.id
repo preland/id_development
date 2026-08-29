@@ -1,0 +1,15 @@
+// The rotation half of build_view's modelview: bank first (so it reads
+// innermost-out with the fixed tilt applied to the banked frame), then the
+// fixed 18-degree downward tilt. Split from the bank roll's own lookup so
+// this block stays within the 3-action limit.
+
+compose_tilt_bank(int t) {
+  int bank = bank_rot(t);
+  int tilt = gl_mat_rotate_x(18000);
+  int ret_i = gl_mat_mul(bank, tilt);
+} return int ret_i;
+
+bank_rot(int t) {
+  int bank_deg_v = bank_deg(t);
+  int ret_i = gl_mat_rotate_z(bank_deg_v);
+} return int ret_i;

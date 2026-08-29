@@ -5,7 +5,8 @@
 xml_aval2(int j, int i) {
   int hi = xml_len();
   if(xml_ch(j) == 34 || xml_ch(j) == 39) {
-    hi = xml_aval3(j + 1, xml_ch(j), i);
+    int xml_ch_v = xml_ch(j);
+    hi = xml_aval3(j + 1, xml_ch_v, i);
   } else {
     xml_fail("expected a quoted attribute value", i);
   }
@@ -14,7 +15,8 @@ xml_aval2(int j, int i) {
 // j is the first byte of the value, c the quote that has to end it.
 xml_aval3(int j, int c, int i) {
   int hi = xml_upto(j, c);
-} return int xml_aput(j, hi, i);
+  int ret_i = xml_aput(j, hi, i);
+} return int ret_i;
 
 // Running off the end of the input inside a value is a document that stops
 // mid-tag, and there is nothing sensible to do with what came before it.

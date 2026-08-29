@@ -121,7 +121,8 @@ fi
 #     NOT handed to cc as an implicit declaration.
 cat > "$TMP/typo.id" <<'EOF'
 main(int argc, string[] argv) {
-  print(to_flot("1"));
+  string s = to_flot("1");
+  print(s);
 } return int 0;
 EOF
 typo_out=$($BIN_IDC "$TMP/typo.id" -o "$TMP/typo.bin" 2>&1)
@@ -178,6 +179,26 @@ else
     bad "hidden dirs: not counted, not compiled (idc.py rc=$py_rc bin/idc rc=$self_rc)"
 fi
 
+# (a2) ...including a conf.id inside one. A hidden directory is outside the
+#      project entirely, so its conf.id is not a NESTED manifest -- it is not a
+#      manifest at all, and reporting it stops a project from being built for a
+#      file it never reads. bin/idc excluded the root's own conf.id with
+#      `find -mindepth 2`, which also stops `-prune` from firing at depth 1, so
+#      every hidden directory directly under a root was walked into. idstd's
+#      whole test suite lives in `.tests/` and could not be built.
+mkdir -p "$proj/.git"
+cat > "$proj/.git/conf.id" <<'EOF'
+int sneaky_depth = 7;
+EOF
+$IDC     "$proj" --emit-c "$TMP/hidconf_py.c"   >/dev/null 2>&1; py_rc=$?
+$BIN_IDC "$proj" --emit-c "$TMP/hidconf_self.c" >/dev/null 2>&1; self_rc=$?
+if [ "$py_rc" -eq 0 ] && [ "$self_rc" -eq 0 ] \
+   && diff "$TMP/hidconf_py.c" "$TMP/hidconf_self.c" >/dev/null; then
+    ok "a conf.id inside a hidden dir is not a nested manifest (matches idc.py)"
+else
+    bad "a conf.id inside a hidden dir is not a nested manifest (idc.py rc=$py_rc bin/idc rc=$self_rc)"
+fi
+
 # (b) an absolute path in conf.id resolves, as it does under idc.py.
 lib="$TMP/implib"; app="$TMP/impapp"
 mkdir -p "$lib" "$app"
@@ -185,7 +206,7 @@ cat > "$lib/h.id" <<'EOF'
 imp_helper() { int q = 5; } return int q;
 EOF
 cat > "$app/main.id" <<'EOF'
-main(int argc, string[] argv) { print(imp_helper()); } return int 0;
+main(int argc, string[] argv) { int r = imp_helper(); print(r); } return int 0;
 EOF
 printf 'import "%s"\n' "$lib" > "$app/conf.id"
 if $BIN_IDC "$app" -o "$TMP/imp.bin" >/dev/null 2>&1 \
@@ -244,7 +265,8 @@ fi
 # (c) --triple reaches idparse, which is what selects among asm overloads.
 cat > "$TMP/asm.id" <<'EOF'
 main(int argc, string[] argv) {
-  print(dbl(21));
+  word r = dbl(21);
+  print(r);
 } return int 0;
 asm "x86_64-unknown-linux-gnu" dbl(word a) {
   "mov %[a], %[ret]"
@@ -278,7 +300,8 @@ fi
 mkdir -p "$TMP/nested/sub"
 cat > "$TMP/nested/main.id" <<'EOF'
 main(int argc, string[] argv) {
-  print(helper());
+  int r = helper();
+  print(r);
 } return int 0;
 EOF
 cat > "$TMP/nested/sub/conf.id" <<'EOF'
@@ -307,7 +330,8 @@ add(int a, int b) {
 (0, 0):(0)[time:O(1)]
 
 main(int argc, string[] argv) {
-  print(add(2, 3));
+  int r = add(2, 3);
+  print(r);
 } return int 0;
 EOF
 $IDC "$TMP/cases.id" --emit-c "$TMP/cases_py.c" >/dev/null 2>&1
@@ -316,6 +340,54 @@ if [ -s "$TMP/cases_self.c" ] && cmp -s "$TMP/cases_py.c" "$TMP/cases_self.c"; t
     ok "a program with test cases builds identically under both compilers"
 else
     bad "a program with test cases builds identically under both compilers"
+fi
+
+# -- stage 0 is C, and nothing here runs idc.py ------------------------------
+#
+# bootstrap/*.c is the compiler as C (bootstrap/README.md). Two things have to
+# hold, and they fail in different ways: the snapshot has to still BE the
+# compiler, and the driver has to still not need Python to get one.
+
+# The gate. A cold cache, against a ROOT whose idc.py is a DIRECTORY -- which
+# no shebang can execute -- so anything that still shells out to it fails here
+# rather than passing on a file that merely happens to be present. The root is
+# symlinks rather than a copy because the tree is 30 MB and only its names
+# matter: bin/idc derives ROOT from its own path, so a linked bin/idc under
+# $BOOTROOT sees $BOOTROOT as the repository.
+#
+# --std is passed explicitly: the bootstrap needs the library (both stages call
+# lset) and deliberately ignores IDC_NO_STD, and $BOOTROOT has no sibling to
+# find one beside.
+REAL_ROOT=$(cd .. && pwd)
+STD_REAL=""
+for cand in "${IDSTD_HOME:-}" "$REAL_ROOT/../idstd"; do
+    [ -n "$cand" ] && [ -d "$cand" ] && { STD_REAL=$(cd "$cand" && pwd); break; }
+done
+if [ -z "$STD_REAL" ]; then
+    echo "SKIP: bootstrap/*.c currency (no idstd checkout to build the compiler against)"
+elif IDSTD_HOME="$STD_REAL" ../tools/regen_bootstrap.sh --check >"$TMP/regen.out" 2>&1; then
+    ok "bootstrap/*.c is what compiler/{lex,parse} emits"
+else
+    bad "bootstrap/*.c is stale (run tools/regen_bootstrap.sh): $(head -1 "$TMP/regen.out")"
+fi
+
+BOOTROOT="$TMP/bootroot"
+mkdir -p "$BOOTROOT"
+for e in "$REAL_ROOT"/*; do
+    [ "$(basename "$e")" = "idc.py" ] && continue
+    ln -s "$e" "$BOOTROOT/$(basename "$e")"
+done
+mkdir -p "$BOOTROOT/idc.py"
+printf 'main(int argc, string[] argv) {\n  print("bootstrapped");\n} return int 0;\n' \
+    > "$TMP/hello_boot.id"
+if [ -z "$STD_REAL" ]; then
+    echo "SKIP: cold bootstrap (no idstd checkout to build the compiler against)"
+elif IDC_CACHE_DIR="$TMP/bootcache" "$BOOTROOT/bin/idc" --std "$STD_REAL" \
+         "$TMP/hello_boot.id" -o "$TMP/hello_boot" >"$TMP/boot.err" 2>&1 \
+     && [ "$("$TMP/hello_boot")" = "bootstrapped" ]; then
+    ok "a cold cache bootstraps from bootstrap/*.c with idc.py unreachable"
+else
+    bad "a cold cache bootstraps from bootstrap/*.c with idc.py unreachable: $(head -2 "$TMP/boot.err" | tr '\n' ' ')"
 fi
 
 echo

@@ -1,0 +1,25 @@
+// Splitting one run of code lengths into two alphabets, and the two small
+// tables that did not fit beside their neighbours.
+
+// zip_slice does the cutting because a copy of a stretch of a byte list is
+// wanted in three places, and two functions with one body do not coexist.
+inf_split(int[] buf, int n, int k) {
+  int[] zip_slice_v = zip_slice(buf, 0, n);
+  int[][] rows = inf_tree(zip_slice_v);
+  inf_split2(buf, n, k, rows);
+} return void;
+
+// The distance alphabet's slice, once the literal/length one is already cut.
+inf_split2(int[] buf, int n, int k, int[][] rows) {
+  int[] zip_slice_v2 = zip_slice(buf, n, k);
+  int[][] grid = inf_tree(zip_slice_v2);
+  inf_body(rows, grid);
+} return void;
+
+// A length code is 257 + an index into the base and extra-bit tables, and the
+// extra bits follow the code immediately -- before the distance code, which is
+// why this is a statement of its own in inf_match.
+inf_len(int n) {
+  int i = n - 257;
+  int ret_i = (import inf_lb)[i] + inf_bits((import inf_le)[i]);
+} return int ret_i;

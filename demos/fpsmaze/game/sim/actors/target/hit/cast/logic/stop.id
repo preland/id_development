@@ -5,8 +5,19 @@
 // only matters) when ray_hit_now() didn't already score.
 
 ray_should_stop() {
-} return int ray_hit_now() || ray_blocked_now();
+  int ret_i = ray_hit_now() || ray_blocked_now();
+} return int ret_i;
 
 ray_check_stop() {
-  rc_set(3, ray_should_stop());
+  int ray_should_stop_v = ray_should_stop();
+  rc_set(3, ray_should_stop_v);
 } return void;
+
+// step.id's ray_hit_now needs a fourth action (the z lookup plus try_hit)
+// once its x half is named, one more than a block gets -- so the tail
+// lands here instead, beside the rest of the stop-checking logic.
+ray_hit_now_z(int cell_x_v) {
+  int rc_get_v2 = rc_get(1);
+  int cell_z_v = cell_z(rc_get_v2);
+  int ret_i = try_hit(cell_x_v, cell_z_v);
+} return int ret_i;

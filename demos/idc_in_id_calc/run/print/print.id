@@ -1,0 +1,33 @@
+// AST pretty-printer: renders a node subtree as an S-expression.
+// Dispatch on kind via a chain of helpers (one decision each), like the parser.
+//
+//   print_ast -> print_op -> print_bin
+//
+// INT   -> the integer's digits
+// UNOP  -> (op operand)
+// BINOP -> (op left right)
+
+print_ast(int id) {
+  string s = "";
+  if(node_kind(id) == 1) {
+    s = "" + node_a(id);
+  } else {
+    s = print_op(id);
+  }
+} return string s;
+
+print_op(int id) {
+  string s = "";
+  if(node_kind(id) == 3) {
+    int node_a_v = node_a(id);
+    s = "(" + node_s(id) + " " + print_ast(node_a_v) + ")";
+  } else {
+    s = print_bin(id);
+  }
+} return string s;
+
+print_bin(int id) {
+  int node_a_v = node_a(id);
+  int node_b_v = node_b(id);
+  string s = "(" + node_s(id) + " " + print_ast(node_a_v) + " " + print_ast(node_b_v) + ")";
+} return string s;

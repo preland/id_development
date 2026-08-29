@@ -8,3 +8,18 @@ apply4(string op, int l, int r) {
     v = l % r;
   }
 } return int v;
+
+// eval_bin's own block already spends its 3 actions naming the AST node
+// and evaluating the left operand, so the right operand and the apply are
+// split off here -- and split again, since naming both the right operand
+// and the operator string still leaves the apply call over the limit.
+eval_bin_right(int id, int l) {
+  int node_b_v = node_b(id);
+  int r = eval_expr(node_b_v);
+  int ret_i = eval_bin_apply(id, l, r);
+} return int ret_i;
+
+eval_bin_apply(int id, int l, int r) {
+  string node_s_v = node_s(id);
+  int ret_i = apply(node_s_v, l, r);
+} return int ret_i;

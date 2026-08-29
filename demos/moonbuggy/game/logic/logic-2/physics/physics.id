@@ -1,0 +1,20 @@
+// Vertical physics: height += velocity, velocity -= gravity (1 per tick). When
+// the height returns to the ground the buggy settles (height and velocity 0),
+// giving a clean parabolic hop.
+
+physics() {
+  int off = gs_get(1) + gs_get(2);
+  physics_tail(off);
+} return void;
+
+land(int off) {
+  gs_set(1, off);
+  if(off <= 0) {
+    settle();
+  }
+} return void;
+
+settle() {
+  gs_set(1, 0);
+  gs_set(2, 0);
+} return void;

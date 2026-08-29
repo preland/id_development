@@ -1,8 +1,9 @@
+
 asm_lines(int[] pos) {
   string[] alines = [];
   scan_asm(pos, alines);
-  push((import aflines), alines);
-} return int asm_tail(pos);
+  int ret_i = asm_lines_tail(pos, alines);
+} return int ret_i;
 
 scan_asm(int[] pos, string[] alines) {
   advance(pos);
@@ -14,7 +15,8 @@ scan_asm(int[] pos, string[] alines) {
 // leaf, so there is no statement, call or import to read here.
 fill_asm(int[] pos, string[] alines) {
   while(cur_kind(pos) == "str") {
-    push(alines, cur_text(pos));
+    string cur_text_v = cur_text(pos);
+    push(alines, cur_text_v);
     advance(pos);
   }
 } return void;

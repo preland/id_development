@@ -1,0 +1,33 @@
+// The attribute list of one tag.
+
+// Attributes until something that is not a name, then the closing delimiter.
+//
+// There is no break, so a fault inside an attribute has to end the loop by
+// returning a position at the end of the input, where charat answers -1 and
+// xml_isname says no. The second report xml_endtag then makes is discarded,
+// because xml_fail keeps only the first.
+xml_attrs(int i) {
+  int j = xml_ws(i);
+  while(xml_isname_at(j) == 1) {
+    j = xml_attr1(j);
+  }
+  int ret_i = xml_endtag(j);
+} return int ret_i;
+
+// One name="value" pair, pushed onto the flat list as name then value.
+xml_attr1(int i) {
+  int j = xml_attr_name(i);
+  int ret_i = xml_attr2(j, i);
+} return int ret_i;
+
+// The '=' between a name and its value. `i` is the start of the attribute and
+// is where the diagnostic points, because that is the thing a reader can find.
+xml_aval(int j, int i) {
+  int hi = xml_len();
+  if(xml_ch(j) == 61) {
+    int xml_ws_v = xml_ws(j + 1);
+    hi = xml_aval2(xml_ws_v, i);
+  } else {
+    xml_fail("expected '=' after an attribute name", i);
+  }
+} return int hi;

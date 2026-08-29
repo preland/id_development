@@ -67,8 +67,13 @@ compiler — it needs a bootstrap layer living outside the language; the `fs`
 backend below adds *files*, but walking a directory tree is still outside the
 language, and walking one is exactly what this driver does). On first
 use it builds the two self-hosted stages, `idlex` (lexer) and `idparse`
-(parser + C emitter), **using `idc.py`** and caches them under `.idc-cache/`
-(rebuilt automatically if their `id` source changes). From then on, building
+(parser + C emitter), **from `bootstrap/idlex.c` and `bootstrap/idparse.c` —
+the C those two stages emitted about themselves** — and caches them under
+`.idc-cache/` (rebuilt automatically if their `id` source changes). `cc` turns
+that C back into a compiler, which is then used to rebuild both stages from the
+working tree, so nothing but that snapshot is ever frozen and no compiler for
+`id` has to exist on the machine beforehand. See
+[`bootstrap/README.md`](bootstrap/README.md). From then on, building
 `PATH` means: collect its `.id` file(s) (a single file, or every `.id` under a
 project directory, sorted by full path — the same order `idc.py` uses), run
 `cat files | idlex | idparse` to get C, then hand that C to `cc` — exactly the
@@ -132,6 +137,9 @@ outlines into anti-aliased coverage, break lines against a page width.
 ```sh
 bin/idc editor -o editor && ./editor doc.odt font.ttf --ppm page.ppm
 ```
+
+To watch either of them rather than test it -- a window, a shell to type at, a
+rendered page -- see [`docs/RUNNING.md`](docs/RUNNING.md).
 
 Both are tested rather than eyeballed. `tools/fbtext.py` reads the kernel's
 framebuffer back as text by matching each cell against the kernel's own font,
@@ -385,15 +393,20 @@ Until then it is the original, self-contained Python implementation: lexer →
 recursive-descent parser → semantic checks (action limit, function-per-file
 limit, project entry-count limit, global name uniqueness, function-logic
 uniqueness, export/import access, light type checking) → C/LLVM/WASM emission
-→ `cc`/`clang`/`wat2wasm`. It is **stage 0 of the bootstrap**, with two jobs
-left:
+→ `cc`/`clang`/`wat2wasm`. It **used to be stage 0 of the bootstrap**; that job
+went to [`bootstrap/`](bootstrap) — the compiler as C, compiled by `cc` — and
+`bin/idc` no longer executes `idc.py` at all. What is left:
 
-1. **Bootstrapping** the self-hosted stages (`idlex`, `idparse`) that `bin/idc`
-   caches and drives — see above. This happens once, on a cold cache.
-2. **The WASM codegen target**, `--target wasm` (and `--emit-wasm`) — the last
+1. **The WASM codegen target**, `--target wasm` (and `--emit-wasm`) — the last
    thing `bin/idc` does not have. `--target llvm` moved across and is now the
    self-hosted compiler's own ([`docs/LLVM.md`](docs/LLVM.md)); WASM is what is
    left.
+2. **Running** a `docs/TESTS.md` case. `bin/idc --require-tests` counts cases;
+   only `idc.py` builds the entry point that executes one.
+3. **Being the other side of a differential test.** `tools/parity.sh` and half
+   of `tests/` build with both compilers on purpose. That is a use, not a
+   dependency: it ends when it is decided that one implementation plus
+   `docs/SPEC.md` is enough.
 
 It is also where the **C runtime prelude** lives, as one string that both
 compilers emit verbatim; `tools/gen_runtime_id.py` regenerates the `id`-side
@@ -405,7 +418,10 @@ a change in the wrong direction. "Reference implementation" is what this
 section used to call it, and that reading — *the definition of correct, so
 define the feature here and port it* — is why work kept landing in Python
 instead of in `id`. Stage 0 needs a construct only once the self-hosted
-compiler's own source uses that construct. Read
+compiler's own source uses that construct — and since `bootstrap/` landed,
+"stage 0" means the checked-in C rather than the Python, so teaching the
+language a construct is `tools/regen_bootstrap.sh` and not a second
+implementation. Read
 [`docs/HACKING.md`](docs/HACKING.md) before changing the language;
 [`compiler/parse/MAP.md`](compiler/parse/MAP.md) is the index
 that makes the self-hosted tree navigable, which was the other half of the

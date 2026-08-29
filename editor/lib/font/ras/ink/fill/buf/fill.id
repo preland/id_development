@@ -1,0 +1,46 @@
+// Scanline fill, nonzero winding, anti-aliased.
+//
+// WHICH ANTI-ALIASING AND WHY. Each pixel row is sampled at 4 heights, and
+// along each of those the coverage is measured in 64 columns per pixel --
+// supersampling in both axes, at 4 by 64. It is not a square grid because
+// the two axes cost different things: another y sample is another pass over
+// every edge in the glyph, while another x column is one more cell of a
+// prefix sum. So x is made fine enough that it is effectively exact -- 1/64
+// of a pixel is the same resolution the coordinates themselves carry, so
+// nothing finer exists to measure -- and y is kept at the 4 that a body of
+// text actually needs.
+//
+// 4 times 64 is 256, which is also why the two numbers are these two: a
+// pixel's accumulator runs 0..256 and the coverage a caller sees is
+// acc * 255 / 256, so every level from 0 to 255 is reachable and the whole
+// range is used. The only pair of accumulator states that share an answer is
+// 0 and 1 -- a pixel touched in one of 256 places reads as untouched, which
+// is the right way round for the one collision to fall.
+//
+// Exact x coverage per span was the alternative, and it needs the crossings
+// of a scanline sorted before the winding can be accumulated. A sort with no
+// break, no swap of a pair, and no record is a great deal of code for a
+// result that at 1/64 pixel is not visibly different.
+ras_fill() {
+  int[] tab = [];
+  int[] row = [];
+  ras_rows(tab, row);
+} return void;
+
+// tab is the crossing accumulator, one cell per 1/64 pixel column plus one
+// for crossings that fall off the right-hand end. row is one pixel row's
+// coverage. Both are allocated once for the whole glyph and left zeroed by
+// the code that reads them, because `id` has no way to empty a list and
+// re-declaring these would rebind names that ras_rows' callees are holding.
+ras_rows(int[] tab, int[] row) {
+  ras_rows_tab(tab);
+  ras_rows_row(row);
+  ras_each(tab, row);
+} return void;
+
+ras_each(int[] tab, int[] row) {
+  int r = 0;
+  while(r < ras_h()) {
+    r = ras_rast(r, tab, row);
+  }
+} return void;

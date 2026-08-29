@@ -14,13 +14,15 @@ eval_expr(int id) {
 eval_op(int id) {
   int v = 0;
   if(node_kind(id) == 3) {
-    v = 0 - eval_expr(node_a(id));
+    int node_a_v = node_a(id);
+    v = 0 - eval_expr(node_a_v);
   } else {
     v = eval_bin(id);
   }
 } return int v;
 
 eval_bin(int id) {
-  int l = eval_expr(node_a(id));
-  int r = eval_expr(node_b(id));
-} return int apply(node_s(id), l, r);
+  int node_a_v = node_a(id);
+  int l = eval_expr(node_a_v);
+  int ret_i = eval_bin_right(id, l);
+} return int ret_i;

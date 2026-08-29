@@ -1,0 +1,14 @@
+// The x half of ray_advance's DDA step (step.id): -sin(yaw) is the
+// shooter's local x-direction, frozen at the yaw the shot was fired at.
+
+ray_advance_x() {
+  int rc_get_v = rc_get(0);
+  int ps_get_v = ps_get(2);
+  ray_advance_x_apply(rc_get_v, ps_get_v);
+} return void;
+
+ray_advance_x_apply(int rc_get_v, int ps_get_v) {
+  int sin_deg_v = sin_deg(ps_get_v);
+  int shoot_step_v = shoot_step();
+  rc_set(0, rc_get_v + (0 - sin_deg_v) * shoot_step_v / 1000);
+} return void;

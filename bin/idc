@@ -3,10 +3,12 @@
 #
 # This is the PRIMARY way to build `id` programs. It bootstraps the two
 # id-written compiler stages -- the lexer (compiler/lex -> idlex) and the
-# parser/C-emitter (compiler/parse -> idparse) -- using idc.py (the
-# reference/legacy implementation) ONE TIME, caches the resulting binaries,
-# and from then on builds every program by piping its concatenated source
-# through those two id-written binaries and handing the emitted C to `cc`.
+# parser/C-emitter (compiler/parse -> idparse) -- from the CHECKED-IN C in
+# bootstrap/, which those same two stages emitted; `cc` turns that C back into
+# a working compiler with no other compiler involved. It caches the resulting
+# binaries, and from then on builds every program by piping its concatenated
+# source through those two id-written binaries and handing the emitted C to
+# `cc`. See bootstrap/README.md.
 #
 # The semantic checks live in idparse, in id: the action-per-block limit,
 # nesting depth, 3-functions-per-file, name-type consistency, export/import
@@ -121,12 +123,18 @@ if [ -z "$PATH_ARG" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# bootstrap idlex/idparse (build with idc.py, the legacy/bootstrap
-# implementation, only when missing or stale) and cache them
-CACHE_DIR="$ROOT/.idc-cache"
+# bootstrap idlex/idparse (from the checked-in C in bootstrap/, only when
+# missing or stale) and cache them
+# IDC_CACHE_DIR moves the bootstrap cache elsewhere, so two builds running at
+# once cannot write the same idlex/idparse. The default is the one everybody
+# shares, which is right when there is one build.
+CACHE_DIR="${IDC_CACHE_DIR:-$ROOT/.idc-cache}"
 mkdir -p "$CACHE_DIR" || { echo "idc: cannot create cache dir $CACHE_DIR" >&2; exit 1; }
 IDLEX="$CACHE_DIR/idlex"
 IDPARSE="$CACHE_DIR/idparse"
+BOOT_DIR="$ROOT/bootstrap"
+STAGE0_LEX="$CACHE_DIR/idlex0"
+STAGE0_PARSE="$CACHE_DIR/idparse0"
 
 # --std, if given, points the bootstrap at the same library the build will use.
 # --no-std deliberately does NOT propagate: it says the user's program wants no
@@ -195,15 +203,51 @@ stale() { # stale BIN SRC_DIR -- true if BIN is missing or older than any .id un
 # one gets "no such function 'lset'" here rather than a working idc. That is the
 # trade taken deliberately. Resolution order is the same as for any program:
 # --std, then $IDSTD_HOME, then a sibling idstd/.
-if stale "$IDLEX" "$ROOT/compiler/lex"; then
-    progress bootstrap "idlex (first build, via idc.py)"
-    env -u IDC_NO_STD "$IDC_PY" "${STD_ARGS[@]}" "$ROOT/compiler/lex" -o "$IDLEX" >&2 \
-        || { progress_clear; echo "idc: failed to bootstrap idlex (needs idstd -- see --std)" >&2; exit 1; }
-fi
-if stale "$IDPARSE" "$ROOT/compiler/parse"; then
-    progress bootstrap "idparse (first build, via idc.py)"
-    env -u IDC_NO_STD "$IDC_PY" "${STD_ARGS[@]}" "$ROOT/compiler/parse" -o "$IDPARSE" >&2 \
-        || { progress_clear; echo "idc: failed to bootstrap idparse (needs idstd -- see --std)" >&2; exit 1; }
+#
+# Two stages, and the split is the whole point.
+#
+# STAGE 0 is bootstrap/idlex.c and bootstrap/idparse.c compiled by `cc`. That C
+# was emitted by these same two programs, so stage 0 is a working `id` compiler
+# obtained without any other compiler -- which is what lets `id` stop shipping
+# one. It is a SNAPSHOT: it understands the language as of the commit that
+# regenerated it, not as of the working tree.
+#
+# STAGE 1 is compiler/lex and compiler/parse rebuilt FROM SOURCE through stage
+# 0, and it is what every later build actually runs. Nothing but stage 0 is
+# frozen, so a change to the compiler takes effect on the next build -- and a
+# NEW construct is added in two commits, one teaching the compiler to compile
+# it and regenerating stage 0, the next using it.
+#
+# Stage 1 is this same script, re-entered with the stage pinned, so the source
+# is collected, checked and piped exactly as it is for any other project rather
+# than through a second copy of that logic. IDC_STAGE_LEX/PARSE at the top of
+# the file is where the recursion stops.
+if [ -z "${IDC_STAGE_LEX:-}" ]; then
+    if [ ! -x "$STAGE0_LEX" ] || [ "$BOOT_DIR/idlex.c" -nt "$STAGE0_LEX" ]; then
+        progress bootstrap "idlex0 (from bootstrap/idlex.c)"
+        "$CC" -std=c11 -O2 -o "$STAGE0_LEX" "$BOOT_DIR/idlex.c" >&2 \
+            || { progress_clear; echo "idc: failed to compile $BOOT_DIR/idlex.c" >&2; exit 1; }
+    fi
+    if [ ! -x "$STAGE0_PARSE" ] || [ "$BOOT_DIR/idparse.c" -nt "$STAGE0_PARSE" ]; then
+        progress bootstrap "idparse0 (from bootstrap/idparse.c)"
+        "$CC" -std=c11 -O2 -o "$STAGE0_PARSE" "$BOOT_DIR/idparse.c" >&2 \
+            || { progress_clear; echo "idc: failed to compile $BOOT_DIR/idparse.c" >&2; exit 1; }
+    fi
+    if stale "$IDLEX" "$ROOT/compiler/lex" || [ "$STAGE0_LEX" -nt "$IDLEX" ]; then
+        progress bootstrap "idlex (from source, via stage 0)"
+        env -u IDC_NO_STD IDC_STAGE_LEX="$STAGE0_LEX" IDC_STAGE_PARSE="$STAGE0_PARSE" \
+            "$SCRIPT_DIR/idc" --cc "$CC" "${STD_ARGS[@]}" "$ROOT/compiler/lex" -o "$IDLEX" >&2 \
+            || { progress_clear; echo "idc: failed to bootstrap idlex (needs idstd -- see --std)" >&2; exit 1; }
+    fi
+    if stale "$IDPARSE" "$ROOT/compiler/parse" || [ "$STAGE0_PARSE" -nt "$IDPARSE" ]; then
+        progress bootstrap "idparse (from source, via stage 0)"
+        env -u IDC_NO_STD IDC_STAGE_LEX="$STAGE0_LEX" IDC_STAGE_PARSE="$STAGE0_PARSE" \
+            "$SCRIPT_DIR/idc" --cc "$CC" "${STD_ARGS[@]}" "$ROOT/compiler/parse" -o "$IDPARSE" >&2 \
+            || { progress_clear; echo "idc: failed to bootstrap idparse (needs idstd -- see --std)" >&2; exit 1; }
+    fi
+else
+    IDLEX="$IDC_STAGE_LEX"
+    IDPARSE="$IDC_STAGE_PARSE"
 fi
 
 # ---------------------------------------------------------------------------
@@ -251,11 +295,17 @@ check_legacy_manifest() {
 # read as a manifest (only a root's is), so anything it defines silently does
 # not exist, and the only symptom is "no such function" at the caller --
 # blaming a file that is fine. Mirrors idc.py's collect_project.
+#
+# The root's own conf.id is excluded by PATH rather than by `-mindepth 2`,
+# because `-mindepth` suppresses the whole expression at depth 1 -- prune
+# included -- so a hidden directory directly under ROOT was walked into and
+# every conf.id below it reported. idc.py compares the directory against the
+# root for the same reason.
 check_nested_manifest() {
-    local root="$1" nested
-    nested=$(find "$root" -mindepth 2 \
+    local root="${1%/}" nested
+    nested=$(find "$root" -mindepth 1 \
                   \( -type d -name '.*' -prune \) -o \
-                  \( -name 'conf.id' -print \) | LC_ALL=C sort | head -1)
+                  \( -name 'conf.id' ! -path "$root/conf.id" -print \) | LC_ALL=C sort | head -1)
     [ -z "$nested" ] && return 0
     echo "$nested:1: error: 'conf.id' is the dependency manifest and is only read at the root of a project or a dependency. Here it is neither compiled nor read, so anything it defines silently does not exist; rename it" >&2
     exit 1
@@ -563,18 +613,13 @@ rc=("${PIPESTATUS[@]}")
 lex_rc="${rc[1]}"
 parse_rc="${rc[2]}"
 
-# Fall back to idc.py (the reference/legacy implementation) transparently
-# when the self-hosted stages can't handle this input -- but say so loudly
-# on stderr, so this is never silent. Used both when idlex/idparse
-# themselves fail, and (below) when they "succeed" but emit C that isn't
-# actually valid (the self-hosted lexer's one known gap: float literals --
-# it still splits `0.8` into the tokens `0`, `.`, `8`; see README.md
-# "Self-hosting").
 # The self-hosted stages cover the whole language, so a failure here is a bug
 # in this compiler, not an input it cannot reach. Falling back to idc.py would
 # hide that -- and worse, would hand the program to a compiler that does not
-# check nine of the language's rules. idc.py's only remaining job is
-# bootstrapping idlex/idparse above, on a cold cache.
+# check nine of the language's rules. There is no fallback, and since stage 0
+# became bootstrap/*.c there is no bootstrap either: this driver does not run
+# idc.py at all. It is named below only as something a human can compare
+# against by hand.
 compiler_bug() { # compiler_bug REASON
     progress_clear
     echo "idc: internal error: $1" >&2

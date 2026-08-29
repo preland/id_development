@@ -1,0 +1,14 @@
+// The camera's own position, undone by translating everything the other
+// way -- split across two functions because it takes four native calls
+// (three ps_get reads plus eye_y), one more than build.id's block budget.
+
+view_trans() {
+  int camx = ps_get(0);
+  int camz = ps_get(1);
+  int ret_i = view_trans_finish(camx, camz);
+} return int ret_i;
+
+view_trans_finish(int camx, int camz) {
+  int eye_y_v = eye_y();
+  int ret_i = gl_mat_translate(0 - camx, 0 - eye_y_v, 0 - camz);
+} return int ret_i;

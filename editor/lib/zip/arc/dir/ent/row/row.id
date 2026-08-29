@@ -1,0 +1,26 @@
+// One central directory entry.
+
+// 33639248 is 0x02014b50. Checking it every time is what stops a wrong entry
+// count or a wrong directory offset from walking off into the file data and
+// inventing entries out of whatever bytes it lands on.
+zip_ent(int[] xs, int[] buf) {
+  int at = buf[0];
+  int n = zip_ent_prep(xs, at);
+  zip_step(xs, buf, at, n);
+} return void;
+
+// The fixed part of an entry is 46 bytes, followed by the name, the extra
+// field and the comment -- so the next entry is that far on.
+zip_step(int[] xs, int[] buf, int at, int n) {
+  zip_row(xs, at);
+  lset(buf, 0, at + n);
+  lset(buf, 1, buf[1] + 1);
+} return void;
+
+// The name and the method. The name is at offset 46, its length at 28; the
+// compression method is at 10.
+zip_row(int[] xs, int at) {
+  zip_row_name(xs, at);
+  zip_row_meth(xs, at);
+  zip_row2(xs, at);
+} return void;

@@ -1,0 +1,15 @@
+// The z half of ray_advance's DDA step (step.id): -cos(yaw) is the
+// shooter's local z-direction, the same forward vector player movement uses
+// (player/move/vec/fwd.id).
+
+ray_advance_z() {
+  int rc_get_v2 = rc_get(1);
+  int ps_get_v2 = ps_get(2);
+  ray_advance_z_apply(rc_get_v2, ps_get_v2);
+} return void;
+
+ray_advance_z_apply(int rc_get_v2, int ps_get_v2) {
+  int cos_deg_v = cos_deg(ps_get_v2);
+  int shoot_step_v2 = shoot_step();
+  rc_set(1, rc_get_v2 + (0 - cos_deg_v) * shoot_step_v2 / 1000);
+} return void;

@@ -11,16 +11,18 @@ op_dce(int f) {
 } return void;
 
 dce_sweep(int f, int i, int n) {
-  while(i < len(irf_blk(f))) {
-    n = dce_blk(f, irf_blk(f)[i], n);
+  while(i < blk_count(f)) {
+    int[] irf_blk_v = irf_blk(f);
+    n = dce_blk(f, irf_blk_v[i], n);
     i = i + 1;
   }
 } return int n;
 
 dce_blk(int f, int b, int n) {
   int i = 0;
-  while(i < len(blk_ins(b))) {
-    n = dce_one(f, blk_ins(b)[i], n);
+  while(i < insn_count(b)) {
+    int[] blk_ins_v = blk_ins(b);
+    n = dce_one(f, blk_ins_v[i], n);
     i = i + 1;
   }
 } return int n;

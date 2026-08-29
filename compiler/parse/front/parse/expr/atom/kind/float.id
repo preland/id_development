@@ -16,4 +16,14 @@ parse_atom_float(int[] pos) {
 parse_float(int[] pos) {
   string text = cur_text(pos);
   advance(pos);
-} return int node_float(text);
+  int ret_i = node_float(text);
+} return int ret_i;
+
+// Shared by parse_ident_or_call and parse_import (atom.id, import_expr.id):
+// both read the current token's text and advance past it before doing
+// anything else with the name. Neither of those files has room left for a
+// fourth function, and this one does.
+read_name(int[] pos) {
+  string name = cur_text(pos);
+  advance(pos);
+} return string name;

@@ -1,0 +1,17 @@
+// One pixel of the scroll copy, and the tail of con_scroll that clears the
+// row the copy leaves behind -- both cut out here for the action limit.
+con_scroll_tail() {
+  word fb_h_v = fb_h();
+  con_clear(fb_h_v - 16);
+} return void;
+
+con_copy_px(word x, word y) {
+  word peek32_v = con_copy_read(x, y);
+  fb_px(x, y, peek32_v);
+} return void;
+
+con_copy_read(word x, word y) {
+  word fb_base_v = fb_base();
+  word fb_w_v = fb_w();
+  word ret_w = peek32(fb_base_v + ((y + 16) * fb_w_v + x) * 4);
+} return word ret_w;

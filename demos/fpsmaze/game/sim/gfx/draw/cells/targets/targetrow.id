@@ -1,3 +1,4 @@
+
 draw_one_target(int view, int i) {
   int mv = target_mv(view, i);
   gl_set_modelview(mv);
@@ -5,6 +6,13 @@ draw_one_target(int view, int i) {
 } return void;
 
 target_mv(int view, int i) {
-  int wx = world_x_of_cell(tgx_get(i));
-  int wz = world_z_of_cell(tgz_get(i));
-} return int gl_mat_mul(view, gl_mat_translate(wx, 0, wz));
+  int tgx_get_v = tgx_get(i);
+  int wx = world_x_of_cell(tgx_get_v);
+  int ret_i = target_mv_z(view, wx, i);
+} return int ret_i;
+
+target_mv_z(int view, int wx, int i) {
+  int tgz_get_v = tgz_get(i);
+  int wz = world_z_of_cell(tgz_get_v);
+  int ret_i = cell_compose(view, wx, wz);
+} return int ret_i;

@@ -7,7 +7,8 @@
 
 init_bnames() {
   export string[] bnames = [];
-  split_bnames(builtin_src(), 0);
+  string builtin_src_v = builtin_src();
+  split_bnames(builtin_src_v, 0);
 } return void;
 
 split_bnames(string src, int i) {
@@ -17,6 +18,7 @@ split_bnames(string src, int i) {
 } return void;
 
 take_bname(string src, int i) {
-  int e = find_space(src, i, len(src));
-  push((import bnames), slice(src, i, e));
-} return int e + 1;
+  int e = bname_end(src, i);
+  push_bname(src, i, e);
+  int ret_i = e + 1;
+} return int ret_i;

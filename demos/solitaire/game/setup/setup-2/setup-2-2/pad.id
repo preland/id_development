@@ -8,5 +8,14 @@ pad3(string s) {
 } return string out;
 
 draw_card_at(int x, int y, int c) {
-  draw_text(x, y, pad3(card_str(c)), card_attr(c));
+  string card_str_v = card_str(c);
+  string pad3_v = pad3(card_str_v);
+  draw_card_tail(x, y, c, pad3_v);
+} return void;
+
+// draw_card_at already spends its 3 actions naming the padded label, so
+// looking up the attribute and drawing it is a tail call.
+draw_card_tail(int x, int y, int c, string pad3_v) {
+  int card_attr_v = card_attr(c);
+  draw_text(x, y, pad3_v, card_attr_v);
 } return void;

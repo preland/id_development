@@ -186,14 +186,21 @@ spin(int t) {
 } return void;
 
 one(int t) {
-  gfx_present((import fb));
-  gl_begin_frame(200, 30, 30);
-  finish();
-} return int t + 1;
+  render();
+  int next = t + 1;
+} return int next;
 
 finish() {
   gl_end_frame();
-  print("soft " + gfx_width() + " gpu " + gl_width());
+  string msg = "soft " + gfx_width() + " gpu " + gl_width();
+  print(msg);
+} return void;
+EOF
+cat > "$dual/loop/more.id" <<'EOF'
+render() {
+  gfx_present((import fb));
+  gl_begin_frame(200, 30, 30);
+  finish();
 } return void;
 EOF
 if $BIN_IDC "$dual" -o "$TMP/dual.bin" >"$TMP/dual.err" 2>&1; then

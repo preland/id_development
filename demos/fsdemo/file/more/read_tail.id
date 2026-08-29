@@ -1,0 +1,22 @@
+// show() already spends its 3 actions sizing the buffer, so opening the
+// file and finishing the read/report/cleanup sequence is a tail call.
+show_tail(string path, int[] buf) {
+  int fs_open_v = fs_open(path, "r");
+  render(fs_open_v, buf);
+  gone(path);
+} return void;
+
+// render() already spends its 3 actions reading into the buffer, so
+// closing the handle and reporting is a tail call -- and split again,
+// since naming the close result and printing the byte count still leaves
+// the text print over the limit.
+render_tail(int h, int n, int[] buf) {
+  int fs_close_v = fs_close(h);
+  print("read " + n + " bytes back (close " + fs_close_v + "):");
+  render_text(buf);
+} return void;
+
+render_text(int[] buf) {
+  string text_of_v = text_of(buf);
+  print(text_of_v);
+} return void;

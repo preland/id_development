@@ -3,16 +3,19 @@
 // explanation.
 
 report_var_is_func(string name, string owner, int ln) {
-  print(loc_at(owner, ln) + "'" + name + "' is already the name of a function");
+  string loc_at_v = loc_at(owner, ln);
+  print(loc_at_v + "'" + name + "' is already the name of a function");
   note_failure();
 } return void;
 
 report_var_twice(string name, string owner, int ln) {
-  print(loc_at(owner, ln) + "variable '" + name + "' is declared twice in function '" + owner + "'");
+  string loc_at_v = loc_at(owner, ln);
+  print(loc_at_v + "variable '" + name + "' is declared twice in function '" + owner + "'");
   note_failure();
 } return void;
 
 report_var_exported(string name, string owner, int ln) {
-  print(loc_at(owner, ln) + "'" + name + "' is an exported global (by '" + export_owner(name) + "'); another variable cannot reuse that name -- read the global with 'import " + name + "'");
-  note_failure();
+  string loc_at_v = loc_at(owner, ln);
+  string export_owner_v = export_owner(name);
+  var_report(loc_at_v + "'" + name + "' is an exported global (by '" + export_owner_v + "'); another variable cannot reuse that name -- read the global with 'import " + name + "'");
 } return void;

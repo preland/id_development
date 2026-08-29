@@ -9,8 +9,10 @@ chk_push(int id) {
 // Pushing onto something that is not a list is idc.py's "push expects a list"
 // -- a different check -- so a non-list first argument is left alone here.
 chk_push2(int id, int[] args, string lt) {
-  if(ty_is_list(lt) == 1 && bad_store(elem_type(lt), args[1]) == 1) {
-    tc_err(id, "cannot push a " + type_of(args[1]) + " onto a " + lt);
+  string et = elem_type(lt);
+  if(ty_is_list(lt) == 1 && bad_store(et, args[1]) == 1) {
+    string type_of_v = type_of(args[1]);
+    tc_err(id, "cannot push a " + type_of_v + " onto a " + lt);
   }
 } return void;
 
@@ -18,7 +20,8 @@ chk_push2(int id, int[] args, string lt) {
 // supplies one. arr_ok asks whether any node in the program uses this literal
 // in such a position.
 chk_arr(int id) {
-  if(len(l1_of(id)) == 0 && arr_ok(id) == 0) {
+  int[] l1_of_v = l1_of(id);
+  if(len(l1_of_v) == 0 && arr_ok(id) == 0) {
     tc_err(id, "an empty list literal needs a known list type here (e.g. on a typed declaration)");
   }
 } return void;

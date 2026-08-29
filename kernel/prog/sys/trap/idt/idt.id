@@ -16,11 +16,13 @@
 idt_init() {
   word a = alloc(4096);
   idt_fill(a, 0);
-} return word idt_load(a);
+  word ret_w = idt_load(a);
+} return word ret_w;
 
 idt_fill(word a, int i) {
   while(i < 32) {
-    idt_gate(a + i * 16, peek64(isr_base() + i * 8));
+    word peek64_v = idt_read(i);
+    idt_gate(a + i * 16, peek64_v);
     i = i + 1;
   }
 } return void;

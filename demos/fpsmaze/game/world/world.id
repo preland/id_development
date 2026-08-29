@@ -1,0 +1,25 @@
+// Top-level one-time setup: seed the PRNG from the real clock (a fresh maze
+// every run), carve the maze, then build the world -- actors and GPU meshes.
+
+game_init() {
+  seed_rng();
+  maze_build();
+  init_world();
+} return void;
+
+// scene_init used to be defined and never called, so wall_verts/wall_colors/
+// target_verts/target_colors were NULL at every `(import ...)` site and
+// gl_draw_tris rejected them: the maze rendered with no walls and no targets,
+// silently. An export does not exist until its declaring function runs, and
+// each link of an init chain is capped at 3 actions, so dropping one is easy
+// and nothing complains -- which is why this chain has one root and every
+// exporting function is reachable from it.
+init_world() {
+  init_actors();
+  scene_init();
+} return void;
+
+init_actors() {
+  player_init();
+  targets_init();
+} return void;

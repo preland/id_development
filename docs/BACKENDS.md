@@ -28,17 +28,19 @@ not own. What still holds it here, measured:
 That is the whole of the retirement problem: this document is how it gets
 solved.
 
-The last ~3000 lines go a different way. They are not ported — they are already
-written in `id`, and `tools/parity.sh` proves it byte for byte. What keeps them
-alive is that a fresh checkout has no `idlex`/`idparse` and must build them from
-something. **A checked-in bootstrap C artifact retires that job**: commit the
-generated C for both stages, build it with `cc`, and stage 0 becomes a
-compiler, not a Python program. Regenerating it is then a normal commit, and
-parity is what says the commit is honest.
+The last ~3000 lines went a different way. They were not ported — they are
+already written in `id`, and `tools/parity.sh` proves it byte for byte. What
+kept them alive is that a fresh checkout has no `idlex`/`idparse` and must
+build them from something. **A checked-in bootstrap C artifact retires that
+job**, and it is checked in: `bootstrap/idlex.c` and `bootstrap/idparse.c`,
+built with `cc`, so stage 0 is a compiler and not a Python program.
+Regenerating it is a normal commit (`tools/regen_bootstrap.sh`), and
+`tests/self_host_build.sh` is what says the commit is honest — it re-emits both
+files and fails if they are not what the tree emits.
 
 Done means: `bin/idc` covers every target, the bootstrap C is checked in, and
-`git rm idc.py` breaks nothing. Anything that grows `idc.py` moves away from
-that and needs a reason.
+`git rm idc.py` breaks nothing. The middle clause is done. Anything that grows
+`idc.py` moves away from the rest and needs a reason.
 
 **That last sentence is a gate, not a hope.** `tests/run.sh` holds a line
 ceiling for `idc.py` and fails if it is exceeded. The ceiling only ever
@@ -148,9 +150,10 @@ Done:
   / `tysigned`, one row per scalar type, list types derived. It is the sole
   source of type facts for every check, and now for the widening rule too,
   which previously lived in two halves in two subtrees.
-* **`idc.py` no longer compiles anything** — `bin/idc` has no fallback, and
-  `idc.py`'s only remaining job is bootstrapping `idlex`/`idparse` on a cold
-  cache.
+* **`idc.py` no longer compiles anything, and no longer bootstraps** —
+  `bin/idc` has no fallback and does not execute it. Stage 0 is
+  `bootstrap/*.c`; what `idc.py` still has is `--target wasm`, running a test
+  case, and being the other side of the differential suites.
 * **`front/` and `mid/` no longer emit C.** Six `emit_*` functions that print
   the export and extern blocks lived in `mid/` and were called from `back/`;
   they are now `back/emit/prog/head/decl/`. What stayed in `mid/` is

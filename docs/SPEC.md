@@ -56,6 +56,15 @@ where assignment does not copy.
 Width is a promise, not an implementation note: `int` is 32 bits on every
 target, including targets whose natural word is wider.
 
+**A narrowing conversion is written down.** A declaration or an assignment may
+narrow -- `int n = a;` where `a` is a `word` -- because the type it narrows to
+is named on the line that does it. An **argument may not**: the parameter's
+type is in another file, so `take(a)` would read as if nothing happened while
+dropping half of a `word`. Declare a local of the parameter's type and pass
+that. Widening is exact and needs no ceremony in either place. This is the
+same strictness `xs[a]` has always had, which used to look inconsistent with
+both of the others.
+
 ## 2. Integer arithmetic
 
 ### 2.0 How an integer is written
@@ -107,7 +116,7 @@ rule and the one most readers expect.
 (0 - 7) / (0 - 2) ==  3
 ```
 
-Division and remainder by zero **trap** (§7). So does the one division that
+Division and remainder by zero **trap** (§8). So does the one division that
 overflows, `MIN / -1`; `MIN % -1` is `0` rather than a trap, because the
 answer is representable even though the quotient is not.
 
@@ -195,7 +204,13 @@ one target and not another is the thing this document exists to prevent.
 
 ## 5. Lists
 
-- `[a, b, c]` builds a list; `[]` builds an empty one where the type is known.
+- `[a, b, c]` builds a list. **A list literal has no type of its own**: it
+  takes the type of the slot it is going into -- the declared type, the
+  parameter's type, or the function's return type -- and every element is
+  checked against that type's element type, the first no differently from the
+  rest. So `word[] xs = [0, 0, 0]` is a `word[]` literal, and
+  `int[] xs = ["a"]` names element 0. `[]` is the same rule with no elements
+  to check.
 - `xs[i]` reads, `xs[i] = v` writes; both **trap** on an index outside
   `0 <= i < len(xs)`. There is no silent drop and no growth by assignment.
 - `push(xs, v)` appends; `pop(xs)` removes and returns the last element and
@@ -236,7 +251,98 @@ on one target and not another has no portable memory behaviour at all. Fixing
 this is the open question in `docs/GAPS.md`; until it is fixed it is a promise,
 and it is the reason `id` is currently a language for programs that exit.
 
-## 7. Traps
+## 7. Evaluation order
+
+**The operands of an operator, and the arguments of a call, are evaluated left
+to right.** So are the elements of a list literal, and the two sides of an
+index assignment: the list, then the index, then the value.
+
+```
+"a=" + bump(c) + " b=" + bump(c)      the first bump runs first
+"pop=" + pop(xs) + " len=" + len(xs)  len sees the shorter list
+f(step(c), step(c))                   the first argument is the first step
+```
+
+Most expressions give the same answer whichever order they are evaluated in,
+which is why this was unwritten for a long time. It stops being true the moment
+two operands share state -- and the two programs that found it are the two that
+would: a DEFLATE bit reader, where every read advances the stream so the order
+*is* the format, and a line of a document that pops a list and then measures
+it.
+
+This is a **choice**, made here rather than left to each target, and it is the
+one the majority of languages a reader will have used make. The alternative --
+declaring the order unspecified and requiring programmers to avoid the
+situation -- was rejected for a specific reason: `id` has no way to *say* that
+an expression has an effect, so a rule the programmer must obey is a rule
+nothing can check. An order everything obeys needs no checking.
+
+It is deliberately a property of the language and not of a flag. If it ever
+needs to be configurable, the thing to configure is the target, not the
+program: a program that reads differently depending on a build setting is
+worse than either order.
+
+### 7.1 The shape of an expression
+
+Two rules, and one idea behind both: **a value that takes a step to compute is
+given a name, and the name is what the reader of the line sees.**
+
+**A call may not be an argument to a call.** Not at any depth: the argument
+expression must contain no call anywhere inside it.
+
+```
+int n = lm_len(s2w(s));        rejected
+word a = s2w(s);               the same thing, said in two steps
+int n = lm_len(a);
+
+int n = f(x) + g(y);           fine -- neither call is inside the other's
+                               argument list
+```
+
+**A return clause is a name or a literal.** Nothing else: no call, no
+operator, no index, no list literal.
+
+```
+} return int n;                a name
+} return int 0;                a literal
+} return string "";            a literal
+} return void;                 nothing
+
+} return int i + 1;            rejected -- name it
+} return int lm_len(a);        rejected
+} return int xs[0];            rejected
+} return int[][] [tab, row];   rejected, and it never parsed anyway: the `[`
+                               after the type reads as another dimension of it
+```
+
+Neither rule buys the compiler anything. Both are about the reader. `id` fixes
+the order operands are evaluated in (§7) precisely because two operands can
+share state — and the expression that most easily hides shared state from a
+reader is the one with a call buried inside another call's arguments, where
+neither the order nor the fact that there are two steps is visible. Naming the
+intermediate makes both visible, in the order they happen.
+
+The cost is real and is not hidden here: **the action limit is unchanged**, so
+a block that gains a name may have to give up a statement, and a function that
+gains a statement may have to become two. Across this repository the two rules
+cost about 1600 new names and several hundred new functions. That is the trade,
+made deliberately: `docs/FRICTION.md` §14 and §15 are what the other side of it
+was costing.
+
+Two shapes cannot be repaired by naming, and both become a function instead:
+
+* a nested call in a `while` condition — a name bound before the loop is
+  computed once where the loop needs it every iteration;
+* a nested call to the right of `&&` or `||` — a name bound before the `if` is
+  computed even when the operator skips it.
+
+```
+while(is_alnum(charat(src, i))) {     rejected
+
+while(is_alnum_at(src, i)) {          the composition, as a function
+```
+
+## 8. Traps
 
 A trap writes one line to **stderr** and exits with status **1**. It is not
 catchable; `id` has no exceptions.
@@ -257,7 +363,7 @@ The exact text is part of the specification, not an implementation detail:
 these messages are what a user sees when their program fails, and a target
 that words them differently makes the language feel different.
 
-## 8. Program structure and I/O
+## 9. Program structure and I/O
 
 - `main(int argc, string[] argv)` is the entry point. Its `int` return is the
   process exit status. `argv[0]` is the program name, whose spelling depends on
@@ -271,7 +377,7 @@ that words them differently makes the language feel different.
   function is unreachable from `main`, and is otherwise the programmer's
   responsibility.
 
-## 9. Deliberately unspecified
+## 10. Deliberately unspecified
 
 Naming these keeps them from being discovered as bugs later:
 
@@ -284,14 +390,12 @@ Naming these keeps them from being discovered as bugs later:
   every other live allocation".
 - The order in which unrelated top-level definitions are emitted.
 - Timing: `ticks()` is monotonic milliseconds from an unspecified origin.
-- The order the operands of one operator are evaluated in. This is listed here
-  as a description of today rather than as a choice: §10's S11 says why, and
-  says it should stop being unspecified.
+- Nothing about the order operands are evaluated in: §7 chooses it.
 - Anything reached through a native backend, which is by definition
   platform-specific — but see `backends/*/backend.json`, whose `abi` block is
   the contract in `id`'s own types.
 
-## 10. Where the targets do not meet this specification today
+## 11. Where the targets do not meet this specification today
 
 Found by writing this document and running `tests/conform.sh`. Each is a bug
 against the spec, not a permitted variation.
@@ -318,14 +422,23 @@ feature, float-to-string on WASM, and they are all of it.
 | **S9** | Only the C target is reachable from `bin/idc`, the primary compiler; the other two exist only in `idc.py`. | — | open |
 | **S10** | The flat store sits at a fixed 1 MiB offset in the same linear memory the string/list heap grows through, so **the heap is capped at 1 MiB**. Passing it used to overwrite the store and read back garbage with nothing reported — a 400 000-element list made `peek64` return `71772820526333952` where C returned `123456789`. The heap now aborts with `id: out of memory` instead, which is §7-legal, but the cap is real and the other two targets do not have it. The proper fix is to place the store above the heap and grow it with `memory.grow`, checking the heap against its actual base rather than a constant. | WASM | mitigated |
 
-| **S11** | **The order the operands of one operator are evaluated in is not specified, and the targets differ.** The C target inherits C's, which is unspecified between the arguments of a call, so `"pop=" + pop(xs) + " len=" + len(xs)` prints the length before *or* after the pop depending on the C compiler. The LLVM target evaluates left to right, because its lowering emits instructions in the order it walks the tree. Found by `tests/kernel.sh`, which runs the same source on both runtimes and requires them to agree. | C, LLVM | open |
+| **S11** | **The C target does not evaluate operands left to right**, which §7 now requires. It emits one C expression per `id` expression, and C does not sequence the arguments of a call: gcc evaluates them right to left, so `"pop=" + pop(xs) + " len=" + len(xs)` prints the length *before* the pop. The LLVM and WASM targets both conform, because both emit instructions in the order they walk the tree. Found by `tests/kernel.sh`, which runs the same source on both runtimes and requires them to agree. | C | open |
 
-**S11 needs a decision, not an implementation.** Left to right is the answer
-most readers expect and the one the LLVM target already gives; making the C
-target agree means sequencing every operand through a temporary, which changes
-the emitted C for every program and therefore every byte-parity check in the
-suite. Until it is decided, an expression whose operands have effects on each
-other means two things.
+**S11 is now an implementation, not a decision.** §7 chose. Making the C target
+conform means hoisting an operand into a temporary whenever two operands of one
+expression both contain a call -- which is expressible as a pure expression
+rewrite, through the comma operator and a depth-indexed array of temporaries in
+the runtime prelude, so it needs no restructuring of the emitter. What it costs
+is byte-parity: every emitted line with two calls in it changes, and `idc.py`
+would have to change with it to stay identical.
+
+The other way there is `docs/LLVM.md`'s: the C target printed from the IR,
+whose lowering is already left to right. That fixes it for free and abandons
+byte-parity deliberately rather than as a side effect.
+
+`tests/conform/order/` holds the cases. `tests/conform.sh` names the C target's
+non-conformance rather than failing on it, so that removing the exemption is
+how the fix gets noticed.
 
 S5–S8 are missing implementation, and are what `docs/BACKENDS.md` is the plan
 for. S6 is the one that matters most: it is 21 of the 30 builtins, it is what

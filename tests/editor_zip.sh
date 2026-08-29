@@ -56,7 +56,9 @@ cat > "$TMP/main.id" <<'IDEOF'
 // ziptest FILE         -- the file inflated as a raw DEFLATE stream.
 main(int argc, string[] argv) {
   if (argc == 2) {
-    show(inf_inflate(zip_bytes(argv[1]), 0));
+    int[] xs = zip_bytes(argv[1]);
+    int[] buf = inf_inflate(xs, 0);
+    show(buf);
   } else {
     ent(argv[1], argv[2]);
   }
@@ -72,7 +74,8 @@ pick(int[] xs, int i) {
   if (i < 0) {
     print("MISSING");
   } else {
-    show(zip_read(xs, i));
+    int[] buf = zip_read(xs, i);
+    show(buf);
   }
 } return void;
 IDEOF
@@ -81,9 +84,15 @@ cat > "$TMP/t/show.id" <<'IDEOF'
 // repeated string concatenation, which is quadratic and would put a 200 KB
 // entry well outside this suite's time budget.
 show(int[] buf) {
-  word a = alloc(len(buf) + 1);
+  int n = len(buf);
+  word a = alloc(n + 1);
+  fill_and_emit(buf, a, n);
+} return void;
+
+fill_and_emit(int[] buf, word a, int n) {
   blit(buf, a);
-  put(str_of_mem(a, len(buf)));
+  string out = str_of_mem(a, n);
+  put(out);
 } return void;
 
 blit(int[] buf, word a) {

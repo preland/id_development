@@ -1,0 +1,39 @@
+// Building a Huffman decoder from nothing but code lengths.
+//
+// RFC 1951 section 3.2.2: a DEFLATE stream never transmits the codes, only
+// how many bits each symbol's code has. The codes follow from that, because
+// the canonical construction fixes them -- shorter codes first, and within a
+// length, ascending by symbol. So a decoder needs exactly two things: how many
+// codes there are of each length, and the symbols in the order the codes run.
+//
+// A tree is those two lists, returned as an `int[][]` of [counts, symbols],
+// because `id` has no struct and a pair is the smallest thing that is not one.
+// counts has 16 cells (a DEFLATE code is at most 15 bits, and cell 0 counts
+// the symbols that do not appear); symbols has one cell per symbol, of which
+// only the coded ones are ever read.
+
+// The pair has to be grown one cell at a time and filled afterwards: a list
+// literal cannot appear in a return clause, and `[tab, row]` after `int[][]`
+// parses as a third dimension rather than as a value.
+inf_tree(int[] xs) {
+  int[][] rows = [];
+  push(rows, []);
+  inf_grow(xs, rows);
+} return int[][] rows;
+
+// Splitting the sizing across two functions is the action limit talking: the
+// two pushes, the two sizings and the fill are five statements and no two of
+// them can be merged without hiding one inside the other.
+inf_grow(int[] xs, int[][] rows) {
+  push(rows, []);
+  lst_fill(rows[0], 16, 0);
+  inf_fill(xs, rows[0], rows[1]);
+} return void;
+
+// The symbol list is sized to the alphabet rather than to the number of coded
+// symbols, which wastes a few cells and saves a pass counting them.
+inf_fill(int[] xs, int[] tab, int[] row) {
+  int len_v = len(xs);
+  lst_fill(row, len_v, 0);
+  inf_fill2(xs, tab, row);
+} return void;

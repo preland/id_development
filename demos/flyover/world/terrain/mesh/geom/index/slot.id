@@ -1,0 +1,14 @@
+// The vertex-slot side of the shared-corner trick (see cell.id): pick the
+// cell's local corner via the tri-of-a-quad table, then let cell.id turn
+// (cell, local) into a heightmap grid index.
+
+local_of(int sub) {
+  int[] tbl = [0, 1, 2, 1, 3, 2];
+  int ret_i = tbl[sub];
+} return int ret_i;
+
+slot_corner(int slot) {
+  int cell = slot / 6;
+  int local = local_of(slot % 6);
+  int ret_i = corner_index(cell, local);
+} return int ret_i;

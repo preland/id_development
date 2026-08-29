@@ -65,8 +65,9 @@ run_both() {
 rm -rf "$TMP/proj"; mkdir -p "$TMP/proj"
 cat > "$TMP/proj/main.id" <<'EOF'
 main(int argc, string[] argv) {
-    print(tfx_max(3, 9));
-    print(tfx_abs(0 - 4));
+    int a = tfx_max(3, 9);
+    int b = tfx_abs(0 - 4);
+    print("" + a + "\n" + b);
 } return int 0;
 EOF
 run_both "a project reaches the stdlib with no conf.id" "9
@@ -76,7 +77,8 @@ run_both "a project reaches the stdlib with no conf.id" "9
 rm -rf "$TMP/proj"; mkdir -p "$TMP/proj"
 cat > "$TMP/proj/main.id" <<'EOF'
 main(int argc, string[] argv) {
-    print(tstr_twice("ab"));
+    string r = tstr_twice("ab");
+    print(r);
 } return int 0;
 EOF
 run_both "the whole stdlib tree is merged, not just its root" "abab"
@@ -86,7 +88,8 @@ run_both "the whole stdlib tree is merged, not just its root" "abab"
 # already exist, so it must not be the one path that misses out.
 cat > "$TMP/single.id" <<'EOF'
 main(int argc, string[] argv) {
-    print(tfx_max(2, 7));
+    int r = tfx_max(2, 7);
+    print(r);
 } return int 0;
 EOF
 sf_ok=1
@@ -105,7 +108,8 @@ done
 rm -rf "$TMP/proj"; mkdir -p "$TMP/proj"
 cat > "$TMP/proj/main.id" <<'EOF'
 main(int argc, string[] argv) {
-    print(tfx_max(3, 9));
+    int r = tfx_max(3, 9);
+    print(r);
 } return int 0;
 EOF
 ns_ok=1
@@ -135,7 +139,8 @@ done
 rm -rf "$TMP/proj"; mkdir -p "$TMP/proj"
 cat > "$TMP/proj/main.id" <<'EOF'
 main(int argc, string[] argv) {
-    print(tfx_max(1, 5));
+    int r = tfx_max(1, 5);
+    print(r);
 } return int 0;
 EOF
 home_ok=1
@@ -161,9 +166,9 @@ done
 rm -rf "$TMP/tr"; mkdir -p "$TMP/tr/app" "$TMP/tr/mid" "$TMP/tr/base"
 printf 'trbase_v() {\n} return int 41;\n'                        > "$TMP/tr/base/b.id"
 printf 'import "../base"\n'                                      > "$TMP/tr/mid/conf.id"
-printf 'trmid_v() {\n} return int trbase_v() + 1;\n'             > "$TMP/tr/mid/m.id"
+printf 'trmid_v() {\n  int v = trbase_v() + 1;\n} return int v;\n' > "$TMP/tr/mid/m.id"
 printf 'import "../mid"\n'                                       > "$TMP/tr/app/conf.id"
-printf 'main(int argc, string[] argv) {\n    print(trmid_v());\n} return int 0;\n' \
+printf 'main(int argc, string[] argv) {\n    int v = trmid_v();\n    print(v);\n} return int 0;\n' \
                                                                  > "$TMP/tr/app/main.id"
 tr_ok=1
 for cc in "$BIN_IDC" "$IDC_PY"; do
@@ -176,9 +181,9 @@ done
 # -- 9. a cycle in the import graph terminates -----------------------------
 rm -rf "$TMP/cy"; mkdir -p "$TMP/cy/a" "$TMP/cy/b"
 printf 'import "../b"\n'                            > "$TMP/cy/a/conf.id"
-printf 'cya_v() {\n} return int cyb_v();\n'         > "$TMP/cy/a/a.id"
+printf 'cya_v() {\n  int v = cyb_v();\n} return int v;\n' > "$TMP/cy/a/a.id"
 printf 'import "../a"\n'                            > "$TMP/cy/b/conf.id"
-printf 'cyb_v() {\n} return int 7;\nmain(int argc, string[] argv) {\n    print(cya_v());\n} return int 0;\n' \
+printf 'cyb_v() {\n} return int 7;\nmain(int argc, string[] argv) {\n    int v = cya_v();\n    print(v);\n} return int 0;\n' \
                                                     > "$TMP/cy/b/b.id"
 cy_ok=1
 for cc in "$BIN_IDC" "$IDC_PY"; do
@@ -195,12 +200,14 @@ rm -rf "$TMP/bk"; mkdir -p "$TMP/bk/lib" "$TMP/bk/app"
 printf 'import "%s"\n' "$(cd "$ROOT/backends/fs" && pwd)" > "$TMP/bk/lib/conf.id"
 cat > "$TMP/bk/lib/l.id" <<'EOF'
 bklib_has(string path) {
-} return int fs_exists(path);
+  int found = fs_exists(path);
+} return int found;
 EOF
 printf 'import "../lib"\n' > "$TMP/bk/app/conf.id"
 cat > "$TMP/bk/app/main.id" <<'EOF'
 main(int argc, string[] argv) {
-    print(bklib_has("/nonexistent-for-sure"));
+    int has = bklib_has("/nonexistent-for-sure");
+    print(has);
 } return int 0;
 EOF
 bk_ok=1
@@ -232,7 +239,8 @@ done
 rm -rf "$TMP/proj"; mkdir -p "$TMP/proj"
 cat > "$TMP/proj/main.id" <<'EOF'
 main(int argc, string[] argv) {
-    print(tfx_max(3, 9));
+    int r = tfx_max(3, 9);
+    print(r);
 } return int 0;
 EOF
 dce_ok=1
@@ -260,10 +268,12 @@ cmp -s "$TMP/p1.c" "$TMP/p2.c" \
 rm -rf "$TMP/lib"; mkdir -p "$TMP/lib"
 cat > "$TMP/lib/l.id" <<'EOF'
 libx_a(int a) {
-} return int a + 1;
+  int r = a + 1;
+} return int r;
 
 libx_b(int a) {
-} return int a + 2;
+  int r = a + 2;
+} return int r;
 EOF
 lib_ok=1
 for cc in "$BIN_IDC" "$IDC_PY"; do
@@ -357,7 +367,10 @@ cat > "$TMP/proj/main.id" <<'EOF'
 total(int a, int b) {
   int s = a + b;
 } return int s;
-main(int argc, string[] argv) { print(total(2, 3)); } return int 0;
+main(int argc, string[] argv) {
+  int n = total(2, 3);
+  print(n);
+} return int 0;
 EOF
 run_both "a library name does not reserve the user's local name" "5"
 

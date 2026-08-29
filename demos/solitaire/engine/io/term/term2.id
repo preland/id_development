@@ -1,0 +1,14 @@
+// term_done already spends its 3 actions naming the escape and SGR reset
+// strings, so showing the cursor is a tail call -- and split again, since
+// the show-cursor put and the clear-screen put together are still one
+// action too many.
+term_reset(string chr_v, string sgr_v) {
+  put(chr_v + "[?25h" + sgr_v);
+  term_clear();
+} return void;
+
+term_clear() {
+  string chr_v2 = chr(27);
+  put(chr_v2 + "[2J" + chr_v2 + "[H");
+  flush();
+} return void;

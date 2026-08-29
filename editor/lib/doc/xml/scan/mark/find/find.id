@@ -20,11 +20,9 @@ xml_upto(int i, int c) {
 // The first index at or after i where the string t occurs, or -1.
 xml_seek(int i, string t) {
   int c = charat(t, 0);
-  int j = xml_upto(i, c);
-  while(xml_ch(j) >= 0 && xml_eqat(j, t) == 0) {
-    j = xml_upto(j + 1, c);
-  }
-} return int xml_seek2(j);
+  int j = xml_find_from(i, t, c);
+  int ret_i = xml_seek2(j);
+} return int ret_i;
 
 // The loop above stops on a match or on the end of the input, and only the end
 // of the input means "not found".

@@ -8,13 +8,17 @@
 chr(int n) {
   word p = mem_alloc(2);
   st8(p, n);
-  st8(p + 1, 0);
-} return string w2s(p);
+  string ret_s = chr_term(p);
+} return string ret_s;
 
 // `copy_bytes` answers with the count it copied, so the address just past each
 // half falls out of the copy rather than being computed twice.
 concat(string s, string r) {
-  word p = mem_alloc(len(s) + len(r) + 1);
-  word a = p + copy_bytes(s2w(s), p, len(s));
-  st8(a + copy_bytes(s2w(r), a, len(r)), 0);
-} return string w2s(p);
+  word p = concat_alloc(s, r);
+  string ret_s = concat_at(s, r, p);
+} return string ret_s;
+
+chr_term(word p) {
+  st8(p + 1, 0);
+  string ret_s = w2s(p);
+} return string ret_s;

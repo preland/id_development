@@ -3,7 +3,8 @@
 parse_decl(int[] pos) {
   int exported = take_export(pos);
   string type = parse_type(pos);
-} return int finish_decl(pos, type, exported);
+  int ret_i = finish_decl(pos, type, exported);
+} return int ret_i;
 
 take_export(int[] pos) {
   int e = 0;
@@ -16,5 +17,5 @@ take_export(int[] pos) {
 finish_decl(int[] pos, string type, int exported) {
   string name = cur_text(pos);
   advance(pos);
-  eat_eq(pos);
-} return int decl_rhs(pos, type, name, exported);
+  int ret_i = finish_decl_tail(pos, type, name, exported);
+} return int ret_i;

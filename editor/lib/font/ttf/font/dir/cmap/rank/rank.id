@@ -1,0 +1,35 @@
+// The format is read here rather than after the scan, so that a font with no
+// cmap at all -- a subset embedded in a document, whose glyphs are reached by
+// id -- leaves ttcm untouched and maps every code point to .notdef, instead
+// of reading a format out of offset -1.
+tt_cmput(int[] tab, int k, int at) {
+  lset(tab, 2, k);
+  lset(tab, 0, at);
+  tt_cmput_fmt(tab, at);
+} return void;
+
+// Platform 3 encoding 10 is Windows UCS-4 and is the only encoding that can
+// name a code point above U+FFFF; 3/1 is Windows BMP and is what almost every
+// font has; platform 0 is Unicode and says the same thing without the Windows
+// spelling of it. Platform 3 encoding 0 is a symbol font, whose "code points"
+// are private-use and mean nothing outside the font, so it ranks below all of
+// them but above nothing at all.
+tt_cmrank(int v, int k) {
+  int r = 0;
+  if(v == 3) {
+    r = tt_cmr3(k);
+  }
+  if(v == 0) {
+    r = 2;
+  }
+} return int r;
+
+tt_cmr3(int k) {
+  int r = 1;
+  if(k == 10) {
+    r = 4;
+  }
+  if(k == 1) {
+    r = 3;
+  }
+} return int r;

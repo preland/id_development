@@ -12,8 +12,8 @@
 init_files() {
   export string[] fseen = [];
   export string[] pfile = [];
-  init_files2();
-} return int init_units();
+  int ret_i = init_files_rest();
+} return int ret_i;
 
 cur_file() {
   string s = "<stdin>";
@@ -26,7 +26,7 @@ cur_file() {
 // path goes on the stack every diagnostic reads, the unit into the cell every
 // node created from here on is stamped with.
 take_file(int[] pos) {
-  push((import fseen), file_path(cur_text(pos)));
-  lset((import ucur), 0, file_unit(cur_text(pos)));
-  advance(pos);
+  string cur_text_v = cur_text(pos);
+  string file_path_v = file_path(cur_text_v);
+  take_file_mid(pos, file_path_v);
 } return void;

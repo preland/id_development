@@ -13,13 +13,15 @@
 
 // The address of the input in the flat store.
 xml_base() {
-} return word (import xml_mem)[0];
+  word ret_w = (import xml_mem)[0];
+} return word ret_w;
 
 // The length of the input, measured once at xml_open and kept. len(s) is a
 // strlen every time it is evaluated and is not memoised, so a scanner that
 // asks for it per attribute is scanning the whole document per attribute.
 xml_len() {
-} return int (import xml_st)[6];
+  int ret_i = (import xml_st)[6];
+} return int ret_i;
 
 // One byte of the input, or -1 at either end -- the same contract charat has,
 // so that a scan can detect its own end without a separate bound. peek8 traps
@@ -27,6 +29,7 @@ xml_len() {
 xml_ch(int i) {
   int c = -1;
   if(i >= 0 && i < xml_len()) {
-    c = peek8(xml_base() + i);
+    word xml_base_v = xml_base();
+    c = peek8(xml_base_v + i);
   }
 } return int c;

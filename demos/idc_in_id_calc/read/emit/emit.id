@@ -1,0 +1,14 @@
+// Turning one non-empty line's [i, e) span into a token: kind text, then
+// value text, then the push. Naming both slices and the kind code is 4
+// actions on its own, so the value slice and the push are a tail call.
+
+emit_tok(string src, int i, int sp, int e) {
+  string slice_v = slice(src, i, sp);
+  int kindcode_v = kindcode(slice_v);
+  emit_tok_tail(src, sp, e, kindcode_v);
+} return void;
+
+emit_tok_tail(string src, int sp, int e, int kindcode_v) {
+  string slice_v2 = slice(src, sp + 1, e);
+  push_tok(kindcode_v, slice_v2);
+} return void;

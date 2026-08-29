@@ -15,7 +15,9 @@ ed_entry(int[] xs, int i) {
   if(i < 0) {
     print("editor: no content.xml in the archive -- is this an .odt?");
   } else {
-    odt_parse(ed_str(zip_read(xs, i)));
+    int[] zip_read_v = zip_read(xs, i);
+    string ed_str_v = ed_str(zip_read_v);
+    odt_parse(ed_str_v);
   }
 } return void;
 
@@ -25,6 +27,7 @@ ed_entry(int[] xs, int i) {
 // program. It goes through the flat store rather than `+` per byte, because
 // the second is quadratic (docs/FRICTION.md 9).
 ed_str(int[] xs) {
-  word a = alloc(len(xs) + 1);
-  ed_poke(xs, a, 0);
-} return string str_of_mem(a, len(xs));
+  int len_v = len(xs);
+  word a = alloc(len_v + 1);
+  string ret_s = ed_str_out(xs, a, len_v);
+} return string ret_s;

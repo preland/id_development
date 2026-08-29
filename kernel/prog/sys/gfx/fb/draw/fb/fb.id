@@ -1,0 +1,35 @@
+// The framebuffer: where it is, how wide it is, and one pixel.
+//
+// Three numbers that every drawing function needs and no drawing function
+// owns, so they are exported state -- which in `id` means a list with one cell
+// and a write through `lset`, because only a declaring function may assign an
+// exported scalar.
+//
+//   fb_st  base address, width, height
+//
+// Three zeros pushed rather than written as `[0, 0, 0]`, because a `word[]`
+// literal cannot be written: an array literal takes its element type from its
+// first element, `0` is an `int`, and `word[] fb_st = [0, 0, 0]` is rejected.
+// An empty literal *is* typed from its context, so the list starts empty and
+// is filled. Recorded in docs/GAPS.md.
+
+fb_init() {
+  export word[] fb_st = [];
+  fb_zero();
+} return int 0;
+
+// Returns the width, or zero when there is no adapter to talk to -- which the
+// caller must check, because every drawing call after this one would otherwise
+// be a store to address zero plus an offset.
+fb_open(word w, word h) {
+  int ok = vbe_ok();
+  fb_start(ok, w, h);
+  word ret_w = fb_w();
+} return word ret_w;
+
+fb_start(int ok, word w, word h) {
+  if(ok == 1) {
+    vbe_set(w, h);
+    fb_start_note(w, h);
+  }
+} return void;

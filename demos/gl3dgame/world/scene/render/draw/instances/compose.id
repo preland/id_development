@@ -1,0 +1,14 @@
+// Split off target.id's matrix build: a translate to the target's relative
+// position, a spin for visibility, and the view composed on last -- more
+// steps than the 3-action limit lets one block do.
+
+target_local_mv(int dx, int dz, int t) {
+  int rel = gl_mat_translate(dx, 0, dz);
+  int gl_mat_rotate_y_v = gl_mat_rotate_y((t * 3000) % 360000);
+  int ret_i = gl_mat_mul(rel, gl_mat_rotate_y_v);
+} return int ret_i;
+
+target_finish(int view, int dx, int dz, int t) {
+  int local = target_local_mv(dx, dz, t);
+  int ret_i = gl_mat_mul(view, local);
+} return int ret_i;

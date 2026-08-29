@@ -1,8 +1,8 @@
 // Writing: turn the text into bytes, hand them to the backend, close.
 write_file(string path, string text) {
   int h = fs_open(path, "w");
-  int n = fs_write(h, bytes_of(text), len(text));
-  wrote(path, h, n);
+  int[] bytes_of_v = bytes_of(text);
+  write_tail(path, h, bytes_of_v, text);
 } return void;
 
 wrote(string path, int h, int n) {
@@ -17,7 +17,8 @@ bytes_of(string text) {
   int[] buf = [];
   int i = 0;
   while(i < len(text)) {
-    push(buf, charat(text, i));
+    int charat_v = charat(text, i);
+    push(buf, charat_v);
     i = i + 1;
   }
 } return int[] buf;

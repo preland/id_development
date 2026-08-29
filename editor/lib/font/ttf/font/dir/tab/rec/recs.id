@@ -1,0 +1,23 @@
+// The table directory: three parallel lists indexed by the same record
+// number, which is how `id` spells a record (docs/TUTORIAL.md 5).
+tt_tabs() {
+  export string[] ttnames = [];
+  export int[] ttoff = [];
+  export int[] ttlen = [];
+} return void;
+
+// One 16-byte record per table: tag, checksum, offset, length. The checksum
+// is skipped deliberately -- verifying it means summing the whole file, and a
+// font that fails it still renders exactly as well as one that passes.
+tt_recs(int[] xs, int n) {
+  int i = 0;
+  while(i < n) {
+    i = tt_rec(xs, i);
+  }
+} return void;
+
+tt_rec(int[] xs, int i) {
+  tt_rec_name(xs, i);
+  tt_rec_off(xs, i);
+  int ret_i = tt_rec_len(xs, i);
+} return int ret_i;

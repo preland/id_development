@@ -8,7 +8,9 @@
 
 no_op_atom(int[] pos) {
   if(cur_kind(pos) == "op") {
-    syn_err(pos, unexpected_msg(cur_text(pos)));
+    string cur_text_v = cur_text(pos);
+    string unexpected_msg_v = unexpected_msg(cur_text_v);
+    syn_err(pos, unexpected_msg_v);
   }
 } return void;
 
@@ -20,3 +22,9 @@ unexpected_msg(string t) {
     s = "block comments are not supported; use // for a line comment";
   }
 } return string s;
+
+// The tail of syn_err.id's syn_err -- that file is already full.
+syn_err_tail(string cur_file_v, int cur_ln_v, string msg) {
+  print(cur_file_v + ":" + cur_ln_v + ": error: " + msg);
+  note_failure();
+} return void;

@@ -78,7 +78,7 @@ want_serial "an unknown command says so"          "frobnicate: not a command -- 
 
 # A fault names itself rather than resetting the machine. Without an IDT this
 # is a triple fault and a silent reboot; with one it is three lines naming the
-# vector, the error code and the instruction. docs/SPEC.md §7's traps have
+# vector, the error code and the instruction. docs/SPEC.md §8's traps have
 # nowhere to go in a kernel, and this is what replaces them.
 python3 "$ROOT/tools/qmon.py" "$ELF" --wait 4 --type "fault" --settle 2 \
         >"$TMP/fault.txt" 2>/dev/null

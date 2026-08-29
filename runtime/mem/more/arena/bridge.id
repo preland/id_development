@@ -8,15 +8,18 @@
 copy_bytes(word a, word p, word z) {
   word d = 0;
   while(d < z) {
-    st8(p + d, ld8(a + d));
+    word ld8_v = ld8(a + d);
+    st8(p + d, ld8_v);
     d = d + 1;
   }
 } return word z;
 
 str_of_mem(word a, word z) {
   word p = mem_alloc(z + 1);
-  st8(p + copy_bytes(a, p, z), 0);
-} return string w2s(p);
+  word copy_bytes_v = copy_bytes(a, p, z);
+  string ret_s = str_of_mem_at(p, copy_bytes_v);
+} return string ret_s;
 
 mem_of_str(string s) {
-} return word s2w(s);
+  word ret_w = s2w(s);
+} return word ret_w;

@@ -1,19 +1,27 @@
+
 ll_t5(int id) {
   string s = ll_t6(id);
   if(ir_op(id) == "icmp" || ir_op(id) == "fcmp") {
-    s = "%v" + id + " = " + ir_op(id) + " " + ll_pred(ir_s(id), ll_vty(ir_a(id))) + " " + ll_op(ir_a(id)) + ", " + ll_val(ir_b(id));
-  } else if(ll_iscast(ir_op(id)) == 1) {
-    s = "%v" + id + " = " + ir_op(id) + " " + ll_op(ir_a(id)) + " to " + ll_ty(ir_ty(id));
+    string sym = ir_s(id);
+    int a = ir_a(id);
+    s = ll_t5_cmp(id, sym, a);
+  } else if(ll_t5_isc(id) == 1) {
+    int a2 = ir_a(id);
+    string ty = ir_ty(id);
+    s = "%v" + id + " = " + ir_op(id) + " " + ll_op(a2) + " to " + ll_ty(ty);
   }
 } return string s;
 
 // `neg` and `not` have no LLVM opcode of their own: negation is a subtraction
 // from zero and complement is an exclusive-or with all ones.
 ll_t6(int id) {
-  string s = "%v" + id + " = " + ir_op(id) + " " + ll_op(ir_a(id)) + ", " + ll_val(ir_b(id));
+  string s = ll_t6_bin(id);
   if(ir_op(id) == "neg") {
-    s = "%v" + id + " = " + ll_negop(ir_ty(id)) + " " + ll_ty(ir_ty(id)) + " " + ll_zero(ir_ty(id)) + ", " + ll_val(ir_a(id));
+    string ty = ir_ty(id);
+    int a = ir_a(id);
+    s = "%v" + id + " = " + ll_negop(ty) + " " + ll_ty(ty) + " " + ll_zero(ty) + ", " + ll_val(a);
   } else if(ir_op(id) == "not") {
-    s = "%v" + id + " = xor " + ll_op(ir_a(id)) + ", -1";
+    int a2 = ir_a(id);
+    s = "%v" + id + " = xor " + ll_op(a2) + ", -1";
   }
 } return string s;

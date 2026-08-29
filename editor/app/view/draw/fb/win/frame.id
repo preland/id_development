@@ -1,4 +1,13 @@
+
 ed_frame() {
   gfx_present((import ed_fb));
   sleep_ms(16);
-} return int gfx_poll();
+  int ret_i = gfx_poll();
+} return int ret_i;
+
+// The window opened, and the frame loop started. Split out of ed_win so
+// that function's own actions stay under the limit.
+ed_win_out(int w, int h) {
+  int ok = gfx_open(w, h, "id editor");
+  ed_frames(ok, 0);
+} return void;

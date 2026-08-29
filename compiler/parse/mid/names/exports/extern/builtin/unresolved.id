@@ -8,10 +8,22 @@
 // builtin and nobody's variable.
 
 acc_callee2(int id, string owner, int ln) {
-  if(k_of(id) == "call" && unresolved_fn(s1_of(id)) == 1) {
-    report_unknown_fn(s1_of(id), owner, ln);
+  if(is_unresolved_call(id) == 1) {
+    string s1_of_v = s1_of(id);
+    report_unknown_fn(s1_of_v, owner, ln);
   }
 } return void;
+
+// Naming the composition, not just the call inside it: a call to the right
+// of && only runs when the kind check already passed, and hoisting it before
+// the if would run it on every node, resolved or not.
+is_unresolved_call(int id) {
+  int ok = 0;
+  if(k_of(id) == "call") {
+    string s1_of_v = s1_of(id);
+    ok = unresolved_fn(s1_of_v);
+  }
+} return int ok;
 
 // Deliberately not is_unknown_fn: that one names the builtins it knows about
 // and is allowed to fall behind, because falling behind only makes *its*

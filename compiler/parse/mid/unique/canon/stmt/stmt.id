@@ -10,7 +10,9 @@ canon_stmt(int id) {
     out = canon_decl(id);
   }
   if(k_of(id) == "assign") {
-    out = "a:" + cn(s1_of(id)) + "=" + canon_expr(i1_of(id));
+    string s1_of_v = s1_of(id);
+    int i1_of_v = i1_of(id);
+    out = "a:" + cn(s1_of_v) + "=" + canon_expr(i1_of_v);
   }
 } return string out;
 
@@ -20,7 +22,8 @@ cst2(int id) {
     out = canon_iassign(id);
   }
   if(k_of(id) == "exprstmt") {
-    out = "e:" + canon_expr(i1_of(id));
+    int i1_of_v = i1_of(id);
+    out = "e:" + canon_expr(i1_of_v);
   }
 } return string out;
 
@@ -32,9 +35,11 @@ cst2(int id) {
 cst3(int id) {
   string out = "?" + k_of(id) + "#" + id;
   if(k_of(id) == "if") {
-    out = "if(" + canon_expr(i1_of(id)) + "){" + canon_body(l1_of(id)) + "}" + canon_else2(l2_of(id), i2_of(id));
+    out = cst_if(id);
   }
   if(k_of(id) == "while") {
-    out = "wh(" + canon_expr(i1_of(id)) + "){" + canon_body(l1_of(id)) + "}";
+    int i1_of_v2 = i1_of(id);
+    int[] l1_of_v2 = l1_of(id);
+    out = "wh(" + canon_expr(i1_of_v2) + "){" + canon_body(l1_of_v2) + "}";
   }
 } return string out;

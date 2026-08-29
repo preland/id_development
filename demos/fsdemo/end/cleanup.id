@@ -13,6 +13,12 @@ gone(string path) {
 } return void;
 
 report(string path, int rc, int h) {
-  print("removed " + path + " (rc " + rc + "), exists now " + fs_exists(path));
-  print("reopening it gives " + h + ", errno " + fs_error());
+  int fs_exists_v = fs_exists(path);
+  print("removed " + path + " (rc " + rc + "), exists now " + fs_exists_v);
+  report_reopen(h);
+} return void;
+
+report_reopen(int h) {
+  int fs_error_v = fs_error();
+  print("reopening it gives " + h + ", errno " + fs_error_v);
 } return void;

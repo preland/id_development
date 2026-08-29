@@ -2,8 +2,10 @@
 // the arguments are evaluated in cannot matter -- worth saying because
 // docs/SPEC.md leaves that order unspecified (docs/FRICTION.md 10).
 ras_step(int[] buf, int x, int y, int j, int n) {
-  ras_line(buf, ras_bez(buf[9], buf[4], x, j, n), ras_bez(buf[10], buf[5], y, j, n));
-} return int j + 1;
+  int ras_bez_v = ras_bez(buf[9], buf[4], x, j, n);
+  int ras_bez_v2 = ras_bez(buf[10], buf[5], y, j, n);
+  int ret_i = ras_step_out(buf, ras_bez_v, ras_bez_v2, j);
+} return int ret_i;
 
 // The quadratic itself, at t = j/n, with the division done once at the end
 // so that the whole thing stays in integers: (n-j)^2 b + 2 (n-j) j c + j^2 v,
@@ -12,7 +14,8 @@ ras_step(int[] buf, int x, int y, int j, int n) {
 // of magnitude short of overflowing.
 ras_bez(int b, int c, int v, int j, int n) {
   int m = n - j;
-} return int (m * m * b + 2 * m * j * c + j * j * v) / (n * n);
+  int ret_i = (m * m * b + 2 * m * j * c + j * j * v) / (n * n);
+} return int ret_i;
 
 // One segment per two pixels of control polygon. The distance a quadratic
 // strays from its chord over one of n equal pieces is |p0 - 2c + p1| / 8n^2,
@@ -25,4 +28,5 @@ ras_bez(int b, int c, int v, int j, int n) {
 // segments it saves.
 ras_nseg(int[] buf, int x, int y) {
   int n = fx_abs(buf[4] - buf[2]) + fx_abs(buf[5] - buf[3]) + fx_abs(x - buf[4]) + fx_abs(y - buf[5]);
-} return int fx_clamp(n / 128 + 1, 1, 32);
+  int ret_i = fx_clamp(n / 128 + 1, 1, 32);
+} return int ret_i;

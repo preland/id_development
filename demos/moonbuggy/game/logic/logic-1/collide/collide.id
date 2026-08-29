@@ -1,0 +1,21 @@
+// Crash test and scoring. The buggy crashes if it is on the ground (height 0)
+// over a crater at its fixed column. Surviving a tick adds to the score.
+
+collide() {
+  if(in_pit()) {
+    gs_set(3, 0);
+  }
+} return void;
+
+in_pit() {
+  int ok = 0;
+  if(gs_get(1) <= 0 && (import ground)[bx()] == 0) {
+    ok = 1;
+  }
+} return int ok;
+
+bump_score() {
+  int gs_get_v = gs_get(0);
+  gs_set(0, gs_get_v + 1);
+  bump_tick();
+} return void;

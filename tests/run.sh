@@ -133,10 +133,16 @@ main() {
   string s = "aZ9";
   int i = 0;
   while(i < len(s)) {
-    print(i + ":" + charat(s, i) + ":" + chr(charat(s, i)));
+    int c = charat(s, i);
+    show_char(i, c);
     i = i + 1;
   }
 } return int 0;
+
+show_char(int i, int c) {
+  string ch = chr(c);
+  print(i + ":" + c + ":" + ch);
+} return void;
 EOF
 $IDC "$TMP/scan.id" -o "$TMP/scan" 2>/dev/null || bad "while/len/charat/chr compiles"
 expect_output "string builtins walk" "0:97:a 1:90:Z 2:57:9" "$("$TMP/scan" | tr '\n' ' ' | sed 's/ $//')"
@@ -155,7 +161,8 @@ seed(int[] xs) {
 
 done(int[] xs) {
   xs[0] = to_int("99");
-  print("len=" + len(xs) + " xs[0]=" + xs[0] + " xs[3]=" + xs[3]);
+  int n = len(xs);
+  print("len=" + n + " xs[0]=" + xs[0] + " xs[3]=" + xs[3]);
 } return void;
 
 main() {
@@ -311,7 +318,8 @@ fi
 mkdir -p "$TMP/g_elif"
 cat > "$TMP/g_elif/m.id" <<'EOF'
 main(int argc, string[] argv) {
-  print(chain(0) + chain(1) + chain(2) + nested(0));
+  string msg = build_msg();
+  print(msg);
 } return int 0;
 
 chain(int n) {
@@ -323,6 +331,13 @@ nested(int n) {
   string s = "-";
   if(n > 5) { s = "big"; } else { s = chain(n); }
 } return string s;
+EOF
+cat > "$TMP/g_elif/more.id" <<'EOF'
+build_msg() {
+  string a = chain(0) + chain(1) + chain(2);
+  string b = nested(0);
+  string msg = a + b;
+} return string msg;
 EOF
 "$IDC" "$TMP/g_elif" --emit-c "$TMP/elif_py.c" >/dev/null 2>&1
 project_cat "$TMP/g_elif" | "$TMP/idlex" | "$TMP/idparse" > "$TMP/elif_id.c"
@@ -347,6 +362,76 @@ guard_reject() { # name, source, expected-substring
         bad "self-hosted rejects: $1 (rc=$rc, got: $(printf '%s' "$out" | head -1))"
     fi
 }
+# The other direction: a program the self-hosted compiler must ACCEPT. Only
+# worth a helper for rules that used to reject something, where the evidence
+# is that the rejection is gone rather than that a message changed.
+guard_accept() { # name, source
+    mkdir -p "$TMP/g_acc"
+    printf '%s' "$2" > "$TMP/g_acc/m.id"
+    out=$({ printf '#file m.id\n'; cat "$TMP/g_acc/m.id"; } | "$TMP/idlex" | "$TMP/idparse" 2>&1)
+    rc=$?
+    if [ "$rc" -eq 0 ]; then
+        ok "self-hosted accepts: $1"
+    else
+        bad "self-hosted accepts: $1 (rc=$rc, got: $(printf '%s' "$out" | head -1))"
+    fi
+}
+
+# docs/FRICTION.md 8: an array literal's type comes from the slot it is going
+# into, never from its first element, so these three are the same literal at
+# three types and none of them is an int[] being refused.
+guard_accept "a word[] literal" 'main(int argc, string[] argv) {
+  word[] xs = [0, 0, 0];
+  print(xs[0]);
+} return int 0;'
+guard_accept "a float[] literal" 'main(int argc, string[] argv) {
+  float[] xs = [1.0, 2.0];
+  print(xs[0]);
+} return int 0;'
+guard_accept "a literal of literals" 'main(int argc, string[] argv) {
+  int[][] rows = [[1, 2], [3]];
+  print(rows[1][0]);
+} return int 0;'
+guard_reject "a wrong first element" 'main(int argc, string[] argv) {
+  int[] xs = ["a", "b"];
+  int n = len(xs);
+  print(n);
+} return int 0;' "element 0 of a int\[\] literal is a string"
+guard_reject "a wrong later element" 'main(int argc, string[] argv) {
+  word[] xs = [0, "a"];
+  int n = len(xs);
+  print(n);
+} return int 0;' "element 1 of a word\[\] literal is a string"
+guard_reject "a literal in a scalar slot" 'main(int argc, string[] argv) {
+  int x = [1, 2];
+  print(x);
+} return int 0;' "cannot initialize int"
+
+# docs/FRICTION.md 12: a declaration may narrow, because it names the type it
+# is narrowing to on the line that does it. An argument may not -- the
+# parameter's type is in another file.
+guard_accept "a declaration that narrows" 'main(int argc, string[] argv) {
+  word a = 7;
+  int n = a;
+  print(n);
+} return int 0;'
+guard_reject "an argument that narrows" 'main(int argc, string[] argv) {
+  word a = 7;
+  take(a);
+} return int 0;
+
+take(int n) {
+  print(n);
+} return void;' "narrows word to int"
+guard_accept "an argument that widens" 'main(int argc, string[] argv) {
+  int n = 7;
+  take(n);
+} return int 0;
+
+take(word a) {
+  print(a);
+} return void;'
+
 guard_reject "action limit" 'main(int argc, string[] argv) {
   int a = 1;
   int b = 2;
@@ -381,7 +466,9 @@ main(int argc, string[] argv) {
   string s = tk();
 } return int 0;' "cannot initialize string"
 guard_reject "duplicate logic" 'main(int argc, string[] argv) {
-  print("" + one(2) + two(3));
+  int one_v = one(2);
+  int two_v = two(3);
+  print("" + one_v + two_v);
 } return int 0;
 
 one(int a) {
@@ -436,8 +523,20 @@ main(int argc, string[] argv) {
 show(word p) {
   word v = peek32(p);
   print("" + (v & 0xffff) + (v | 1) + (v ^ 255) + (~v) + (v << 3) + (v >> 2));
-  print("" + udiv(v, 7) + umod(v, 7) + ult(v, 1) + ushr(0 - 16, 60) + str_of_mem(mem_of_str("k"), 1));
+  show2(v);
 } return void;
+EOF
+cat > "$TMP/g_sys/more.id" <<'EOF'
+show2(word v) {
+  string t = "" + udiv(v, 7) + umod(v, 7) + ult(v, 1) + ushr(0 - 16, 60);
+  string s = mem_str();
+  print(t + s);
+} return void;
+
+mem_str() {
+  word m = mem_of_str("k");
+  string s = str_of_mem(m, 1);
+} return string s;
 EOF
 "$IDC" "$TMP/g_sys" --emit-c "$TMP/sys_py.c" >/dev/null 2>&1
 project_cat "$TMP/g_sys" | "$TMP/idlex" | "$TMP/idparse" > "$TMP/sys_id.c"
@@ -454,8 +553,14 @@ cat > "$TMP/g_pop/m.id" <<'EOF'
 main(int argc, string[] argv) {
   int[] xs = [1, 2];
   string[] ss = ["a", "b"];
-  print("" + pop(xs) + pop(ss));
+  show_pop(xs, ss);
 } return int 0;
+
+show_pop(int[] xs, string[] ss) {
+  int px = pop(xs);
+  string sy = pop(ss);
+  print("" + px + sy);
+} return void;
 EOF
 "$IDC" "$TMP/g_pop" --emit-c "$TMP/pop_py.c" >/dev/null 2>&1
 project_cat "$TMP/g_pop" | "$TMP/idlex" | "$TMP/idparse" > "$TMP/pop_id.c"
@@ -631,9 +736,19 @@ mkdir -p "$TMP/word"
 cat > "$TMP/word/m.id" <<'EOF'
 main(int argc, string[] argv) {
   word big = 0xffffffffffff;
-  print("" + (big >> 32) + " " + ushr(0 - 16, 60) + " " + ult(0 - 1, 1));
-  print("" + udiv(0 - 2, 3) + " " + umod(100, 7) + " " + (big & 0xff));
+  show1(big);
+  show2(big);
 } return int 0;
+
+show1(word big) {
+  string line1 = "" + (big >> 32) + " " + ushr(0 - 16, 60) + " " + ult(0 - 1, 1);
+  print(line1);
+} return void;
+
+show2(word big) {
+  string line2 = "" + udiv(0 - 2, 3) + " " + umod(100, 7) + " " + (big & 0xff);
+  print(line2);
+} return void;
 EOF
 $IDC "$TMP/word" -o "$TMP/word.out" >/dev/null 2>&1
 expect_output "word: 64-bit + unsigned builtins" "65535 15 0
@@ -651,9 +766,22 @@ main(int argc, string[] argv) {
 
 show(word p) {
   poke16(p + 8, 0xbeef);
-  print("" + peek8(p) + peek8(p + 1) + peek8(p + 2) + peek8(p + 3));
-  print("" + peek16(p + 8) + " " + peek8(p + 8) + " " + str_of_mem(mem_of_str("hi"), 2));
+  string out = full_line(p);
+  print(out);
 } return void;
+EOF
+cat > "$TMP/store/more.id" <<'EOF'
+full_line(word p) {
+  string line1 = "" + peek8(p) + peek8(p + 1) + peek8(p + 2) + peek8(p + 3);
+  string line2 = words_line(p);
+  string out = line1 + "\n" + line2;
+} return string out;
+
+words_line(word p) {
+  word m = mem_of_str("hi");
+  string s = str_of_mem(m, 2);
+  string out = "" + peek16(p + 8) + " " + peek8(p + 8) + " " + s;
+} return string out;
 EOF
 $IDC "$TMP/store" -o "$TMP/store.out" >/dev/null 2>&1
 expect_output "flat store: poke/peek, widths, string bridge" "1234
@@ -782,6 +910,15 @@ fi
 #     sentence in the README for a while before this line existed -- during
 #     which idc.py gained 1711 lines. A sentence is not a gate. This is.
 #
+#     Raised once, by 38, for the string-length memo in RUNTIME: `charat` and
+#     `len` remembered one string's length, so a parser alternating between its
+#     input and the strings it builds paid a strlen of the whole input per
+#     character -- 46.8 seconds for a 3.5 MB document. That is the runtime, not
+#     a language feature, and tools/gen_runtime_id.py regenerates the id side
+#     from it, so both compilers still emit the same prelude. Six of those
+#     lines are in instrumented_runtime, which has to declare the test
+#     counters before the helper that now charges them. See docs/FRICTION.md.
+#
 #     The ceiling ratchets DOWN: port something out, lower the number in the
 #     same commit. It never goes up. If a change genuinely has to land here
 #     first, that is a decision worth having to write down, which is the point.
@@ -793,7 +930,7 @@ fi
 # here; moving it is item 3 in docs/TODO.md and the ceiling drops by 96 when
 # it lands. The gate did its job: it caught a rule going into the wrong
 # compiler, which is exactly the drift it exists to stop.
-IDCPY_CEILING=5432
+IDCPY_CEILING=5470
 idcpy_lines=$(wc -l < ../idc.py)
 if [ "$idcpy_lines" -le "$IDCPY_CEILING" ]; then
     ok "idc.py is $idcpy_lines lines (ceiling $IDCPY_CEILING)"

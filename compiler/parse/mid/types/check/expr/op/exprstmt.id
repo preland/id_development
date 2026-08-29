@@ -12,8 +12,12 @@
 // what anybody meant.
 
 chk_exprstmt(int id) {
-  if(k_of(i1_of(id)) == "bin" && is_asgop(s1_of(i1_of(id))) == 1) {
-    tc_err(id, "this statement compares instead of assigning: '=' in an expression is equality, so the statement has no effect" + disc_hint(i1_of(id)));
+  int i1_of_v = i1_of(id);
+  string op = s1_of(i1_of_v);
+  if(k_of(i1_of_v) == "bin" && is_asgop(op) == 1) {
+    int i1_of_v2 = i1_of(id);
+    string disc_hint_v = disc_hint(i1_of_v2);
+    tc_err(id, "this statement compares instead of assigning: '=' in an expression is equality, so the statement has no effect" + disc_hint_v);
   }
 } return void;
 
@@ -33,7 +37,8 @@ is_asgop(string op) {
 // case that actually bites -- gets told what to write instead.
 disc_hint(int id) {
   string s = "";
-  if(k_of(i1_of(id)) == "index") {
+  int i1_of_v = i1_of(id);
+  if(k_of(i1_of_v) == "index") {
     s = " -- an imported list or a call result cannot be index-assigned directly; pass the list to a helper that takes it as a parameter, as lset(int[] xs, int i, int v) { xs[i] = v; }";
   }
 } return string s;

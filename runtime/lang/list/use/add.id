@@ -6,19 +6,20 @@
 // leaves every earlier array of cells behind it in the arena.
 
 list_push(int[] xs, word v) {
-  word p = list_room(l2w(xs));
-  st64(ld64(p + 16) + ld64(p) * 8, v);
-  st64(p, ld64(p) + 1);
+  word l2w_v = l2w(xs);
+  word p = list_room(l2w_v);
+  list_push_at(p, v);
 } return void;
 
 list_room(word p) {
   if(ld64(p) >= ld64(p + 8)) {
-    list_grow(p, ld64(p + 8) * 2);
+    word ld64_v = ld64(p + 8);
+    list_grow(p, ld64_v * 2);
   }
 } return word p;
 
 list_grow(word p, word z) {
   word a = mem_alloc(z * 8);
-  copy_bytes(ld64(p + 16), a, ld64(p) * 8);
-  list_wide(p, a, z);
+  word ld64_v = ld64(p + 16);
+  list_grow_copy(p, a, z, ld64_v);
 } return void;

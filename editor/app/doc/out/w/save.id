@@ -10,7 +10,13 @@ ed_save(int argc, string[] argv) {
 } return void;
 
 ed_write(string path) {
-  ed_fd_set(fs_open(path, "w"));
-  ed_head(ed_fd());
-  ed_body(ed_fd(), 0);
+  int fs_open_v = fs_open(path, "w");
+  ed_fd_set(fs_open_v);
+  ed_write_out();
+} return void;
+
+ed_write_out() {
+  int ed_fd_v = ed_fd();
+  ed_head(ed_fd_v);
+  ed_body(ed_fd_v, 0);
 } return void;

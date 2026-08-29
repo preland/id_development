@@ -1,0 +1,23 @@
+// The contour ends, each pushed with the number of points already recorded
+// added in, so that a composite's second component continues one point list
+// rather than starting a second numbering. The return is the address just
+// past the hinting program, where the flags begin.
+tt_ends(int at, int n) {
+  int b = len((import ttpx));
+  tt_ends_loop(at, b, n);
+  int ret_i = tt_ends_after(at, n);
+} return int ret_i;
+
+tt_end1(int at, int b, int i) {
+  int rd_be16_v = rd_be16((import ttbuf), at + i * 2);
+  push((import ttends), b + rd_be16_v);
+  int ret_i = i + 1;
+} return int ret_i;
+
+// How many points the contours just pushed cover: the last contour's end,
+// which is counted from the start of the whole point list, minus the points
+// that were already in it.
+tt_npts() {
+  int n = (import ttends)[len((import ttends)) - 1];
+  int ret_i = n + 1 - len((import ttpx));
+} return int ret_i;

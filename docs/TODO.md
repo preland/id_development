@@ -133,10 +133,43 @@ optimiser over it, passes all 62 conformance cases, compiles the compiler, and
 reproduces itself exactly. `tests/conform.sh`'s `llvm` target is now this one
 rather than `idc.py`'s. See [`docs/LLVM.md`](LLVM.md).
 
+## ~~9b-0. Check in the bootstrap C~~ — done
+
+`bootstrap/idlex.c` and `bootstrap/idparse.c` are the C `compiler/lex` and
+`compiler/parse` emit about themselves. `bin/idc` compiles them with `cc` to
+get stage 0, then rebuilds both stages from the working tree through it, so
+`idc.py` is no longer executed by the driver at all —
+`tests/self_host_build.sh` proves it by running a cold-cache build against a
+root whose `idc.py` is a directory.
+
+This is the item that unblocks every *additive* language feature (`break`, a
+record, `clear`, a binary literal): the frozen thing that could not be taught a
+new construct is now a snapshot, moved forward by `tools/regen_bootstrap.sh` in
+the same commit that teaches it. `bootstrap/README.md` states the two-commit
+rule. `docs/RELIANCES.md` §1 is the argument for why this went first.
+
 ## 9b. `--target wasm` in `bin/idc`, then delete `idc.py`
 
-The last target `bin/idc` does not have, and now the only thing besides the
-bootstrap holding `idc.py` here. The WASM back end is ~1428 lines of it.
+The last target `bin/idc` does not have. The WASM back end is ~1428 lines of
+`idc.py`.
+
+**What the port is, precisely.** `idc.py`'s `WasmBackend` (`idc.py:3316-4610`)
+is a third AST walk, and it gets structured control flow for free because it
+reads `if`/`while` directly: an `IfStmt` is `(if (then) (else))` and a
+`WhileStmt` is `(block $b (loop $c (br_if $b (i32.eqz cond)) ... (br $c)))`.
+Lowering to `compiler/parse/back/ir/` instead loses that and has to rebuild it,
+which is the one genuinely new algorithm here — but the CFG the front end
+produces is not merely reducible, it is *structured*, because `if` and `while`
+are the only control flow the language has. So a stackifier (LLVM's approach,
+which assumes reducibility) is enough and a full relooper is not. What the IR
+does not have and the stackifier needs: an RPO numbering and back-edge
+detection. It has predecessors (`opt/cfg/pred/`) and reads successors live off
+a terminator's `iblk`; it has no dominator tree, and deliberately so
+(`opt/mem/init/init.id` explains why mem2reg does not need one).
+
+The other half is not new: `runtime.wat` is 578 lines of hand-written WAT in
+`wasm_runtime_funcs()` (`idc.py:3414`) with no libc, importing
+`wasi_snapshot_preview1` directly, and it moves across as data.
 
 The shape is settled by the LLVM work: lower to the same IR
 (`compiler/parse/back/ir/`) and print WAT from it, rather than writing a third
@@ -147,8 +180,9 @@ flow rather than a CFG, so the printer has to rebuild `block`/`loop`/`br_if`
 from the branches, which is a real algorithm (relooper, or the simpler
 stackifier LLVM's own back end uses) and not a spelling.
 
-After that, `docs/BACKENDS.md`'s checked-in bootstrap C artifact retires the
-last job, and `git rm idc.py` breaks nothing.
+After that, and after items 5 (running a test case) and the decision to stop
+differential-testing against a second implementation, `git rm idc.py` breaks
+nothing. The bootstrap half of that sentence is already true.
 
 ## 9c. Make the freestanding target trap
 

@@ -16,12 +16,11 @@ arg_setup(int argc, string[] argv) {
 // does not.
 arg_flags(int argc, string[] argv) {
   reqtests_init();
-  xok_set(arg_xok(argc, argv, 1, 0));
-  arg_flags2(argc, argv);
+  int arg_xok_v = arg_xok(argc, argv, 1, 0);
+  arg_flags_tail(argc, argv, arg_xok_v);
 } return void;
 
-arg_flags2(int argc, string[] argv) {
-  reqtests_set(arg_reqtests(argc, argv, 1, 0));
-  rt_set(arg_flag(argc, argv, 1, "--runtime"));
-  fs_set(arg_flag(argc, argv, 1, "--freestanding"));
+arg_flags_tail(int argc, string[] argv, int arg_xok_v) {
+  xok_set(arg_xok_v);
+  arg_flags2(argc, argv);
 } return void;

@@ -1,8 +1,14 @@
 // The assignment target is a name in its own right: writing to a variable the
 // function does not have is the same error as reading one.
 acc_assign(int id, string owner) {
-  acc_name(s1_of(id), owner, (import nline)[id]);
-  acc_expr(i1_of(id), owner, (import nline)[id]);
+  string s1_of_v = s1_of(id);
+  acc_name(s1_of_v, owner, (import nline)[id]);
+  acc_assign_val(id, owner);
+} return void;
+
+acc_assign_val(int id, string owner) {
+  int i1_of_v = i1_of(id);
+  acc_expr(i1_of_v, owner, (import nline)[id]);
 } return void;
 
 // What is left is `decl`, `iassign` and `exprstmt`. A declaration and an
@@ -14,14 +20,7 @@ acc_stmt4(int id, string owner) {
   if(k_of(id) == "iassign") {
     acc_iassign(id, owner);
   } else {
-    acc_expr(i1_of(id), owner, (import nline)[id]);
+    int i1_of_v = i1_of(id);
+    acc_expr(i1_of_v, owner, (import nline)[id]);
   }
-} return void;
-
-// `base[index] = value`: the target was parsed as an index expression and its
-// two halves copied into the int fields, so all three parts are expressions.
-acc_iassign(int id, string owner) {
-  acc_expr(i1_of(id), owner, (import nline)[id]);
-  acc_expr(i2_of(id), owner, (import nline)[id]);
-  acc_elems(l1_of(id), owner, (import nline)[id]);
 } return void;
