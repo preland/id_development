@@ -1,7 +1,7 @@
 # What an `id` program means
 
 > **Status: normative, and executable.** Every claim here is a case under
-> `tests/conform/`, run on every target by `tests/conform.sh`. §10 records
+> `idc/tests/conform/`, run on every target by `idc/tests/conform.sh`. §10 records
 > where the targets do not meet it yet.
 
 This document says what `id` code *does*, independently of how it is compiled.
@@ -11,21 +11,21 @@ Everything here is a promise every code-generation target must keep.
 
 Until now the answer to "what does this program do" was "whatever the C the
 compiler emitted does". That was workable while there was one target. There is
-not: `idc.py` has emitted LLVM IR and WebAssembly since `f229d52`, and the
+not: `idc/idc.py` has emitted LLVM IR and WebAssembly since `f229d52`, and the
 three have **already drifted**. A shift wider than the type gives three
 different answers today — the C target defines it through a runtime helper,
 the LLVM target emits a raw instruction whose result is poison, and the WASM
 target masks the shift count. Nothing reports this, because nothing was
 looking.
 
-Nothing *could* have been looking. `tools/parity.sh`, which has caught almost
+Nothing *could* have been looking. `idc/tools/parity.sh`, which has caught almost
 every bug in this compiler, compares the **text** two compilers emit. That is
 only a question that exists while both of them emit C, and it says nothing
 about a target that emits something else. It stays exactly as useful as it has
 always been for the two C-emitting compilers, and it is structurally incapable
 of growing into the cross-target gate.
 
-`tests/conform.sh` is that gate: it builds each case in `tests/conform/` every
+`idc/tests/conform.sh` is that gate: it builds each case in `idc/tests/conform/` every
 way the toolchain allows, runs it, and requires the same stdout, exit code and
 stderr from each. This document is what those cases are checking, written down
 so that a disagreement has a right answer instead of a majority vote.
@@ -392,15 +392,15 @@ Naming these keeps them from being discovered as bugs later:
 - Timing: `ticks()` is monotonic milliseconds from an unspecified origin.
 - Nothing about the order operands are evaluated in: §7 chooses it.
 - Anything reached through a native backend, which is by definition
-  platform-specific — but see `backends/*/backend.json`, whose `abi` block is
+  platform-specific — but see `idc/backends/*/backend.json`, whose `abi` block is
   the contract in `id`'s own types.
 
 ## 11. Where the targets do not meet this specification today
 
-Found by writing this document and running `tests/conform.sh`. Each is a bug
+Found by writing this document and running `idc/tests/conform.sh`. Each is a bug
 against the spec, not a permitted variation.
 
-On its first run `tests/conform.sh` reported **61 cases, 142 passed, 9 failed,
+On its first run `idc/tests/conform.sh` reported **61 cases, 142 passed, 9 failed,
 32 gaps**. Every one of the nine was previously invisible, and three of them
 were wrong answers rather than missing features.
 
@@ -419,24 +419,24 @@ feature, float-to-string on WASM, and they are all of it.
 | **S6** | `word`, the flat store and the unsigned builtins were rejected — 21 of 30 builtins, making §6 unimplementable. LLVM now calls the C runtime's helpers (which it already links); WASM implements the store in its own WAT over linear memory, which is its natural home. Only the real-time I/O builtins remain C-only, and those are genuinely platform-bound. | LLVM, WASM | fixed |
 | **S7** | Because of S6, `idstd` did not build — `core/data/buf/buf.id` uses `word`. Fixed with S6. | LLVM, WASM | fixed |
 | **S8** | Calls resolved at link time are refused, so no program using a native backend builds. | LLVM, WASM | open |
-| **S9** | Only the C target is reachable from `bin/idc`, the primary compiler; the other two exist only in `idc.py`. | — | open |
+| **S9** | Only the C target is reachable from `idc/bin/idc`, the primary compiler; the other two exist only in `idc/idc.py`. | — | open |
 | **S10** | The flat store sits at a fixed 1 MiB offset in the same linear memory the string/list heap grows through, so **the heap is capped at 1 MiB**. Passing it used to overwrite the store and read back garbage with nothing reported — a 400 000-element list made `peek64` return `71772820526333952` where C returned `123456789`. The heap now aborts with `id: out of memory` instead, which is §7-legal, but the cap is real and the other two targets do not have it. The proper fix is to place the store above the heap and grow it with `memory.grow`, checking the heap against its actual base rather than a constant. | WASM | mitigated |
 
-| **S11** | **The C target does not evaluate operands left to right**, which §7 now requires. It emits one C expression per `id` expression, and C does not sequence the arguments of a call: gcc evaluates them right to left, so `"pop=" + pop(xs) + " len=" + len(xs)` prints the length *before* the pop. The LLVM and WASM targets both conform, because both emit instructions in the order they walk the tree. Found by `tests/kernel.sh`, which runs the same source on both runtimes and requires them to agree. | C | open |
+| **S11** | **The C target does not evaluate operands left to right**, which §7 now requires. It emits one C expression per `id` expression, and C does not sequence the arguments of a call: gcc evaluates them right to left, so `"pop=" + pop(xs) + " len=" + len(xs)` prints the length *before* the pop. The LLVM and WASM targets both conform, because both emit instructions in the order they walk the tree. Found by `idc/tests/kernel.sh`, which runs the same source on both runtimes and requires them to agree. | C | open |
 
 **S11 is now an implementation, not a decision.** §7 chose. Making the C target
 conform means hoisting an operand into a temporary whenever two operands of one
 expression both contain a call -- which is expressible as a pure expression
 rewrite, through the comma operator and a depth-indexed array of temporaries in
 the runtime prelude, so it needs no restructuring of the emitter. What it costs
-is byte-parity: every emitted line with two calls in it changes, and `idc.py`
+is byte-parity: every emitted line with two calls in it changes, and `idc/idc.py`
 would have to change with it to stay identical.
 
 The other way there is `docs/LLVM.md`'s: the C target printed from the IR,
 whose lowering is already left to right. That fixes it for free and abandons
 byte-parity deliberately rather than as a side effect.
 
-`tests/conform/order/` holds the cases. `tests/conform.sh` names the C target's
+`idc/tests/conform/order/` holds the cases. `idc/tests/conform.sh` names the C target's
 non-conformance rather than failing on it, so that removing the exemption is
 how the fix gets noticed.
 

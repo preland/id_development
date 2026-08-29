@@ -24,25 +24,25 @@ not own. What still holds it here, measured:
 | WASM target | ~1428 | steps 1–5 below |
 | everything else (lex/parse/check/C emit) | ~3000 | already duplicated in `id`; needed only to bootstrap `idlex`/`idparse` on a cold cache |
 
-**43% of `idc.py` exists only to serve two targets `bin/idc` does not have.**
+**43% of `idc.py` exists only to serve two targets `idc/bin/idc` does not have.**
 That is the whole of the retirement problem: this document is how it gets
 solved.
 
 The last ~3000 lines went a different way. They were not ported — they are
-already written in `id`, and `tools/parity.sh` proves it byte for byte. What
+already written in `id`, and `idc/tools/parity.sh` proves it byte for byte. What
 kept them alive is that a fresh checkout has no `idlex`/`idparse` and must
 build them from something. **A checked-in bootstrap C artifact retires that
-job**, and it is checked in: `bootstrap/idlex.c` and `bootstrap/idparse.c`,
+job**, and it is checked in: `idc/bootstrap/idlex.c` and `idc/bootstrap/idparse.c`,
 built with `cc`, so stage 0 is a compiler and not a Python program.
-Regenerating it is a normal commit (`tools/regen_bootstrap.sh`), and
-`tests/self_host_build.sh` is what says the commit is honest — it re-emits both
+Regenerating it is a normal commit (`idc/tools/regen_bootstrap.sh`), and
+`idc/tests/self_host_build.sh` is what says the commit is honest — it re-emits both
 files and fails if they are not what the tree emits.
 
-Done means: `bin/idc` covers every target, the bootstrap C is checked in, and
-`git rm idc.py` breaks nothing. The middle clause is done. Anything that grows
+Done means: `idc/bin/idc` covers every target, the bootstrap C is checked in, and
+`git rm idc/idc.py` breaks nothing. The middle clause is done. Anything that grows
 `idc.py` moves away from the rest and needs a reason.
 
-**That last sentence is a gate, not a hope.** `tests/run.sh` holds a line
+**That last sentence is a gate, not a hope.** `idc/tests/run.sh` holds a line
 ceiling for `idc.py` and fails if it is exceeded. The ceiling only ever
 ratchets down: port something out, lower it in the same commit. It exists
 because "language features are not built here" was a sentence in the README
@@ -151,8 +151,8 @@ Done:
   source of type facts for every check, and now for the widening rule too,
   which previously lived in two halves in two subtrees.
 * **`idc.py` no longer compiles anything, and no longer bootstraps** —
-  `bin/idc` has no fallback and does not execute it. Stage 0 is
-  `bootstrap/*.c`; what `idc.py` still has is `--target wasm`, running a test
+  `idc/bin/idc` has no fallback and does not execute it. Stage 0 is
+  `idc/bootstrap/*.c`; what `idc.py` still has is `--target wasm`, running a test
   case, and being the other side of the differential suites.
 * **`front/` and `mid/` no longer emit C.** Six `emit_*` functions that print
   the export and extern blocks lived in `mid/` and were called from `back/`;
@@ -168,8 +168,8 @@ Done:
   WASM module needs its type and function sections written before the bodies
   that determine them.
 * **The language has a written specification and a cross-target gate**
-  ([`docs/SPEC.md`](SPEC.md), `tests/conform.sh`). This is the prerequisite
-  the plan below did not have: `tools/parity.sh` compares emitted *text*,
+  ([`docs/SPEC.md`](SPEC.md), `idc/tests/conform.sh`). This is the prerequisite
+  the plan below did not have: `idc/tools/parity.sh` compares emitted *text*,
   which is only a question while both compilers emit C, so it cannot say
   anything about a second target. The first conformance run found nine
   divergences between the three existing targets, three of them wrong
@@ -203,7 +203,7 @@ and are otherwise honest dead weight until step 1 lands.
    construction and must stay that way — no check may look at emitted text.
 2. **The type registry.** Replace the if-chains with lookups, one target
    column at a time. Purely mechanical, and each step is verifiable by
-   `tools/parity.sh` staying at MATCH.
+   `idc/tools/parity.sh` staying at MATCH.
 3. **Rename `back/` to `back/tgt/c/` and add the dispatch layer**, with C as
    the only target. No behaviour change; parity proves it.
 4. **A second target.** Python first, not LLVM: it is the one that most
@@ -216,7 +216,7 @@ and are otherwise honest dead weight until step 1 lands.
 
 Two different things are called a backend in this repo: a **compiler target**
 (the code generator this document is about) and a **native backend** (a
-directory under `backends/` that supplies functions at link time — `gfx`, `gl`,
+directory under `idc/backends/` that supplies functions at link time — `gfx`, `gl`,
 `fs`). A second compiler target must not drag the second kind along with it.
 
 It does not have to. A native backend's `backend.json` declares itself twice:
@@ -240,7 +240,7 @@ they gain the layer when a second target needs them to.
 
 ## The rule that keeps this honest
 
-Every step keeps `tools/parity.sh` at MATCH for the C target. Byte-identical
+Every step keeps `idc/tools/parity.sh` at MATCH for the C target. Byte-identical
 output against a known-good compiler is the only cheap evidence available that
 a refactor changed nothing, and it stops being available the moment the C
 emitter is restructured without it.

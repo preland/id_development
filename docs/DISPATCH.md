@@ -1,7 +1,7 @@
 # Calling a function chosen at run time
 
 > **Status: a proposal. Nothing here is implemented.** No `select` exists in
-> either compiler, in `docs/SPEC.md`, or in `tests/conform/`. It is written up
+> either compiler, in `docs/SPEC.md`, or in `idc/tests/conform/`. It is written up
 > because four separate pieces of work are blocked on it and each invented the
 > same workaround; it is not a description of the language.
 
@@ -11,7 +11,7 @@ workaround:
 
 - **`idstd`** cannot write a sort that takes a comparator, so `lst_sort` is
   int-only and there is no `string[]` sort at all.
-- **`c2id`** (`../linux_id`) needs C function pointers, and its plan is a
+- **`c2id`** (`../c2id`) needs C function pointers, and its plan is a
   `crt_callN` helper dispatching on an integer id — listed as "planned: needs
   the emitter" since the front end was finished.
 - **`docs/BACKENDS.md`** proposes selecting a code-generation target with
@@ -106,12 +106,12 @@ twice, have (`cs3` and `unbox3`, recorded in `docs/BACKENDS.md`).
 ## Order of work
 
 1. `docs/SPEC.md` gains the trap and the index rule.
-2. `tests/conform/select/` cases first, so all three targets are held to the
+2. `idc/tests/conform/select/` cases first, so all three targets are held to the
    same behaviour from the beginning rather than after the fact.
-3. `idc.py`: parse, check the signature agreement, emit for C. Byte-parity is
+3. `idc/idc.py`: parse, check the signature agreement, emit for C. Byte-parity is
    not a gate here — the construct is new, so there is nothing to be identical
    to; the gate is the conformance suite.
-4. The self-hosted compiler, with `tools/parity.sh` back as the gate once
+4. The self-hosted compiler, with `idc/tools/parity.sh` back as the gate once
    both emit it.
 5. LLVM and WASM.
 6. Then `idstd` gets a real sort, and `docs/BACKENDS.md`'s dispatch layer

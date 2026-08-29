@@ -1,12 +1,12 @@
 # The kernel, and the runtime under it
 
-> **Status: it boots.** `tools/kbuild.sh` builds it and QEMU runs it; the
+> **Status: it boots.** `idc/tools/kbuild.sh` builds it and QEMU runs it; the
 > serial output below is copied from a run. "What is not there yet" is the
 > honest list.
 
 ```sh
-tools/devshell.sh 'tools/kbuild.sh'
-qemu-system-x86_64 -kernel build/kernel.elf -serial stdio -display none -no-reboot
+idc/tools/devshell.sh 'idc/tools/kbuild.sh'
+qemu-system-x86_64 -kernel idc/build/kernel.elf -serial stdio -display none -no-reboot
 ```
 
 ```
@@ -34,8 +34,8 @@ fault: reading 0x140000000, which has no page behind it
 ```
 
 That is a *graphical* shell: the same text is on a 640x480 framebuffer, drawn
-glyph by glyph from an 8x16 font, and `tools/fbtext.py` reads it back off the
-screen by matching each cell against that same font. `tests/kernel.sh` asserts
+glyph by glyph from an 8x16 font, and `idc/tools/fbtext.py` reads it back off the
+screen by matching each cell against that same font. `idc/tests/kernel.sh` asserts
 on both -- a console that wrote to the serial port and drew nothing would pass
 every other check and fail that one.
 
@@ -43,7 +43,7 @@ The shell reads the PS/2 keyboard and the serial port through one function, so
 a person types at it and a test types at it the same way.
 
 Everything after the first two lines is ordinary `id` that says nothing about
-where it runs -- so `tests/kernel.sh` builds the same source hosted, on the C
+where it runs -- so `idc/tests/kernel.sh` builds the same source hosted, on the C
 runtime, and requires the two to print the same thing line for line. That is
 the check that says the `id`-written runtime is *right* rather than merely
 present: a wrong `str_of_int` produces a kernel that boots and lies.
@@ -74,17 +74,17 @@ than in a demo.
 | piece | written in | why |
 | --- | --- | --- |
 | `kernel/prog/` | `id` | the kernel |
-| `runtime/` | `id`, over a handful of `asm` functions | strings, lists, the arena, arithmetic, serial output |
+| `idc/runtime/` | `id`, over a handful of `asm` functions | strings, lists, the arena, arithmetic, serial output |
 | `kernel/boot/boot.S` | assembly | the boot protocol: a stack, paging, long mode |
 | `kernel/boot/kernel.ld` | a linker script | where the pieces land |
 
-`clang` appears twice in `tools/kbuild.sh` — once assembling `boot.S`, once
+`clang` appears twice in `idc/tools/kbuild.sh` — once assembling `boot.S`, once
 compiling the emitted LLVM IR — and never as a C compiler. `ld.lld` links.
 Nothing else runs, and no object in the image came from C source.
 
 ### The floor
 
-`runtime/` is ordinary `id` down to a small number of `asm` functions, and
+`idc/runtime/` is ordinary `id` down to a small number of `asm` functions, and
 those are one instruction each. They exist because below them there is no `id`
 left to write:
 

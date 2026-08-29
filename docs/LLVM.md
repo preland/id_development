@@ -2,15 +2,15 @@
 
 > **Status: a plan, being executed.** "Where this stands" is the only section
 > that describes reality; everything else is the shape being built toward.
-> Each step lands with `tools/parity.sh` still MATCH on the C target and
-> `tests/conform.sh` green on every target.
+> Each step lands with `idc/tools/parity.sh` still MATCH on the C target and
+> `idc/tests/conform.sh` green on every target.
 
-`bin/idc` has one code generator, and it emits C. This document is the second
+`idc/bin/idc` has one code generator, and it emits C. This document is the second
 one, and the reason it is not simply a third copy of `gen_expr`.
 
 ## Why an IR, and not an AST walk
 
-`idc.py` emits C, LLVM IR and WAT from three near-duplicate AST walks. Copying
+`idc/idc.py` emits C, LLVM IR and WAT from three near-duplicate AST walks. Copying
 that shape into the self-hosted compiler would be the obvious move and it is
 the wrong one, for a reason that has nothing to do with duplication:
 
@@ -30,7 +30,7 @@ AST  ──lower──▶  IR (SSA, CFG)  ──passes──▶  IR  ──print
 ```
 
 and the C target stays exactly where it is, an AST walk, byte-parity-locked
-against `idc.py`. The two do not share a spelling layer, because they are not
+against `idc/idc.py`. The two do not share a spelling layer, because they are not
 doing the same job. If the C target is ever rebuilt on the IR, it will be
 because the IR earned it, not because an interface was declared first.
 
@@ -41,7 +41,7 @@ the interface being built.
 ## Where the code lives
 
 ```
-compiler/parse/
+idc/compiler/parse/
   front/            lex, parse                        → AST      (unchanged)
   mid/              checks, types                     → tables   (unchanged)
   back/
@@ -171,7 +171,7 @@ algorithm, and it is a page of code rather than three.
 
 ## The runtime, and why builtins are inlined rather than called
 
-`idc.py`'s LLVM target links the C runtime: every builtin is a `call` to an
+`idc/idc.py`'s LLVM target links the C runtime: every builtin is a `call` to an
 external `id_*` symbol implemented in C and compiled by `clang` alongside the
 `.ll`. That is the fastest way to a working target and it is where this one
 starts too — but it cannot be where it ends, because it makes the LLVM target
@@ -197,27 +197,27 @@ A trap is a `call` to `id_trap`, which the freestanding runtime provides.
 
 ## Where this stands
 
-**The target works, self-hosts, and is the one `tests/conform.sh` holds the
+**The target works, self-hosts, and is the one `idc/tests/conform.sh` holds the
 language to.** Measured on this checkout:
 
 ```sh
-bin/idc PATH --target llvm -o OUT        # build through the LLVM target
-bin/idc PATH --target llvm -O0           # ... with every pass off
-bin/idc PATH --target llvm --emit-llvm F # ... writing the IR instead
+idc/bin/idc PATH --target llvm -o OUT        # build through the LLVM target
+idc/bin/idc PATH --target llvm -O0           # ... with every pass off
+idc/bin/idc PATH --target llvm --emit-llvm F # ... writing the IR instead
 ```
 
 * **`back/` restructured** into `drive/ ir/ tgt/`, with the C emitter moved
   unchanged into `back/tgt/c/` and the S-expression dump into `back/tgt/ast/`.
-  `tools/parity.sh` MATCH on `compiler/parse`, `compiler/lex` and every demo
+  `idc/tools/parity.sh` MATCH on `idc/compiler/parse`, `idc/compiler/lex` and every demo
   across the move.
 * **The IR exists** (`back/ir/core/`), the lowering produces alloca form
   (`back/ir/build/`), and the printer emits LLVM IR (`back/tgt/ll/`).
-* **62 of 62 conformance cases pass** through `bin/idc --target llvm`, first
+* **62 of 62 conformance cases pass** through `idc/bin/idc --target llvm`, first
   run -- integers, floats, strings, lists, the flat store, `word`, and all five
-  traps with their exact messages and exit codes. `tests/conform.sh`'s `llvm`
-  target is now this one rather than `idc.py`'s.
-* **It compiles the compiler, and the result is a fixpoint.** `bin/idc
-  compiler/{lex,parse} --target llvm` builds both stages; the LLVM-built pair
+  traps with their exact messages and exit codes. `idc/tests/conform.sh`'s `llvm`
+  target is now this one rather than `idc/idc.py`'s.
+* **It compiles the compiler, and the result is a fixpoint.** `idc/bin/idc
+  idc/compiler/{lex,parse} --target llvm` builds both stages; the LLVM-built pair
   emits C byte-identical to the C-built pair's, and LLVM IR byte-identical to
   it too.
 * **The optimiser runs by default** (`-O1`): predecessors, mem2reg, the
@@ -253,7 +253,7 @@ visible in a program's *output*:
 * **`asm` is not lowered.** `docs/ASM.md` maps it onto `call asm sideeffect`;
   nothing does that yet, and the kernel is what needs it.
 * **The runtime is still C.** `--target llvm` asks the compiler for the C
-  prelude with external linkage (`--target crt`, generated from `idc.py`'s
-  `RUNTIME` by `tools/gen_runtime_id.py`) and links it with clang. That file
+  prelude with external linkage (`--target crt`, generated from `idc/idc.py`'s
+  `RUNTIME` by `idc/tools/gen_runtime_id.py`) and links it with clang. That file
   exists only until the runtime is written in `id`; see `docs/KERNEL.md`.
 * **Native backends** (`--backend`) are C-target only, as they were.

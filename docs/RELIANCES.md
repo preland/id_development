@@ -11,22 +11,22 @@ it is, why it is there, and what moving it would cost.
 
 | what | lines | why it is not `id` | cost to move |
 | --- | ---: | --- | --- |
-| `idc.py` | 5 470 | ~~the bootstrap compiler~~ (that job is retired: `bootstrap/`) — now the reference implementation, the WASM target and the test runner | **medium**, and now unblocking rather than blocking |
-| shell (`bin/idc`, `tests/`, `tools/`) | 6 203 | no way to run a process from `id` | **large**, and blocked on one builtin |
+| `idc/idc.py` | 5 470 | ~~the bootstrap compiler~~ (that job is retired: `idc/bootstrap/`) — now the reference implementation, the WASM target and the test runner | **medium**, and now unblocking rather than blocking |
+| shell (`idc/bin/idc`, `idc/tests/`, `idc/tools/`) | 6 203 | no way to run a process from `id` | **large**, and blocked on one builtin |
 | the C runtime prelude | 433 | hosted programs need libc | **medium**, and an `id` twin already exists |
-| `tools/*.py` (not `idc.py`) | 1 286 | sockets, ZIP, binary packing | **medium**, mixed |
-| `backends/*.c` + `*.h` | 1 380 | this is the FFI boundary, by design | **should not move** |
+| `idc/tools/*.py` (not `idc/idc.py`) | 1 286 | sockets, ZIP, binary packing | **medium**, mixed |
+| `idc/backends/*.c` + `*.h` | 1 380 | this is the FFI boundary, by design | **should not move** |
 | `kernel/boot/*.S` | 234 | code that runs before a calling convention exists | **mostly irreducible** |
-| `editors/vscode-id/extension.js` | 259 | VS Code's extension host runs JavaScript | **medium**, and a shim survives |
+| `vscode/extension.js` | 259 | VS Code's extension host runs JavaScript | **medium**, and a shim survives |
 | `flake.nix`, `.envrc` | 52 | declaring an environment is not programming | **not a reliance** |
 | `backend.json` ×3, etc. | 293 | data | **small**, and low value |
 
 ---
 
-## 1. `idc.py` — 5 470 lines of Python
+## 1. `idc/idc.py` — 5 470 lines of Python
 
 **What it is.** The original compiler. It was the bootstrap until
-`bootstrap/*.c` took that job; what is left is the reference implementation
+`idc/bootstrap/*.c` took that job; what is left is the reference implementation
 that every differential suite builds against, the only implementation of
 `--target wasm`, and the only thing that *runs* a `docs/TESTS.md` case.
 
@@ -36,36 +36,36 @@ compiler needs a compiler to exist first — but only once, and the answer to
 
 **Cost to move.** Two separable pieces.
 
-*Retiring the bootstrap* is **done.** `bootstrap/idlex.c` and
-`bootstrap/idparse.c` are the C those two stages emit about themselves, and
-`bin/idc` builds stage 0 out of them with `cc`, then rebuilds both stages from
-the working tree through it. Verified by `tests/self_host_build.sh`, which runs
-a cold-cache build against a root whose `idc.py` is a directory: **this driver
-no longer executes `idc.py` at all.** See `bootstrap/README.md`.
+*Retiring the bootstrap* is **done.** `idc/bootstrap/idlex.c` and
+`idc/bootstrap/idparse.c` are the C those two stages emit about themselves, and
+`idc/bin/idc` builds stage 0 out of them with `cc`, then rebuilds both stages from
+the working tree through it. Verified by `idc/tests/self_host_build.sh`, which runs
+a cold-cache build against a root whose `idc/idc.py` is a directory: **this driver
+no longer executes `idc/idc.py` at all.** See `idc/bootstrap/README.md`.
 
 That was the piece worth doing first, for a reason beyond tidiness: **every
 additive language feature was blocked on it.** `break`, `clear`, structs, a
-binary literal — none of them could be used in `compiler/` while a frozen
-`idc.py` had to compile that tree. The frozen thing is now a snapshot, and
-`tools/regen_bootstrap.sh` moves it forward in one command, so a new construct
+binary literal — none of them could be used in `idc/compiler/` while a frozen
+`idc/idc.py` had to compile that tree. The frozen thing is now a snapshot, and
+`idc/tools/regen_bootstrap.sh` moves it forward in one command, so a new construct
 costs two commits (teach it, regenerate; then use it) instead of being
 impossible.
 
-What still holds `idc.py` here is `--target wasm`, the differential suites
-(`tools/parity.sh`, `tests/invalid.sh`, `tests/self_host_build.sh` and the rest
-build with both compilers on purpose), `--tests` — only `idc.py` *runs* a test
-case — and §4's `tools/gen_runtime_id.py`, which does `import idc` and is the
-one place `idc.py` is a Python library rather than a subprocess.
+What still holds `idc/idc.py` here is `--target wasm`, the differential suites
+(`idc/tools/parity.sh`, `idc/tests/invalid.sh`, `idc/tests/self_host_build.sh` and the rest
+build with both compilers on purpose), `--tests` — only `idc/idc.py` *runs* a test
+case — and §4's `idc/tools/gen_runtime_id.py`, which does `import idc` and is the
+one place `idc/idc.py` is a Python library rather than a subprocess.
 
 *Porting the WASM target* is **medium**: the LLVM target is 28 files of `id`,
-and WASM is a comparable job. Anchor: `compiler/parse/back/tgt/ll/`.
+and WASM is a comparable job. Anchor: `idc/compiler/parse/back/tgt/ll/`.
 
 ## 2. Shell — 6 203 lines, and the single biggest lever
 
-**What it is.** `bin/idc` (890 lines) is the driver: it walks a project tree,
+**What it is.** `idc/bin/idc` (890 lines) is the driver: it walks a project tree,
 enforces the three-entries-per-directory rule, reads `conf.id`, injects `#file`
 markers, pipes source through `idlex | idparse`, and invokes `cc`, `clang`,
-`llc` or `ld.lld`. The other 5 313 lines are `tests/*.sh` and `tools/*.sh`.
+`llc` or `ld.lld`. The other 5 313 lines are `idc/tests/*.sh` and `idc/tools/*.sh`.
 
 **Why.** One reason, and it is not a small one: **`id` cannot run a process.**
 There is no `exec`, no `spawn`, no `system`. A compiler driver that cannot
@@ -80,7 +80,7 @@ environment access.
 `spawn(argv, stdin) -> (status, stdout)` builtin and a `readdir`, and every one
 of these scripts becomes an ordinary `id` program. Without them, none of them
 can be. The volume is real — 6 200 lines is twice the editor — but it is
-mechanical, and `tests/*.sh` is the least interesting code in the repository.
+mechanical, and `idc/tests/*.sh` is the least interesting code in the repository.
 
 The honest ordering: **the builtin is the work; the port is typing.** And the
 driver should go first, because a driver written in `id` is the strongest
@@ -91,8 +91,8 @@ possible argument the language can make for itself.
 **What it is.** 63 helpers emitted verbatim at the top of every generated C
 file: the allocation arena, growable lists, the flat store with its bounds
 checks, defined division and shifts, string building, and terminal I/O. It
-lives as one string in `idc.py` and is regenerated into
-`compiler/parse/back/tgt/c/runtime/runtime.id` by `tools/gen_runtime_id.py`,
+lives as one string in `idc/idc.py` and is regenerated into
+`idc/compiler/parse/back/tgt/c/runtime/runtime.id` by `idc/tools/gen_runtime_id.py`,
 so both compilers emit the same bytes.
 
 **Why.** Two different reasons that are easy to conflate:
@@ -104,7 +104,7 @@ so both compilers emit the same bytes.
   `fprintf`, `snprintf`, `fgets`, `fflush`, `read`, `write`, `exit`,
   `clock_gettime`.
 
-**Cost to move: medium, and most of it is done.** `runtime/` — 46 files, about
+**Cost to move: medium, and most of it is done.** `idc/runtime/` — 46 files, about
 100 functions, 21 of them `asm` blocks — already implements the same
 primitives in `id` with no libc at all. That is what the kernel runs on:
 `list_push`, `list_get`, `concat`, `charat`, `str_of_int`, `peek8`/`poke64`,
@@ -117,15 +117,15 @@ are five `asm` blocks of about four instructions each. Terminal raw mode
 (`termios`) is an `ioctl` and is the fiddliest.
 
 Estimate: **one file of syscalls plus wiring the LLVM target to link
-`runtime/` instead of the C prelude.** The pieces exist; nobody has connected
+`idc/runtime/` instead of the C prelude.** The pieces exist; nobody has connected
 them, because the C target was the only target when the prelude was written.
 
-## 4. `tools/*.py` — 1 286 lines, mixed
+## 4. `idc/tools/*.py` — 1 286 lines, mixed
 
 | tool | lines | what blocks it |
 | --- | ---: | --- |
 | `flatten.py` | 565 | nothing — it is a one-off migration tool and should be deleted, not ported |
-| `lint_idcpy.py` | 150 | nothing — it dies with `idc.py` |
+| `lint_idcpy.py` | 150 | nothing — it dies with `idc/idc.py` |
 | `qmon.py` | 142 | **sockets**. It drives QEMU over QMP, a JSON protocol on a TCP socket |
 | `gen_runtime_id.py` | 121 | nothing — it dies with the C prelude |
 | `mkfont.py` | 90 | file I/O only; portable today via the `fs` backend |
@@ -133,7 +133,7 @@ them, because the C target was the only target when the prelude was written.
 | `mkodt.py` | 82 | ZIP writing, which the editor already does in `id` |
 | `mkkeymap.py` | 50 | file I/O only; portable today |
 
-**Cost.** Three of these (308 lines) evaporate when `idc.py` and the C prelude
+**Cost.** Three of these (308 lines) evaporate when `idc/idc.py` and the C prelude
 go. Four more (308 lines) are portable **today** with no new language feature —
 `mkfont`, `fbtext`, `mkkeymap`, `mkodt` are byte-shuffling programs and the
 editor proves `id` does that well. Only `qmon.py` is genuinely blocked, on a
@@ -142,7 +142,7 @@ socket builtin.
 Anchor: `editor/lib/zip/` is 28 files of `id` that inflate DEFLATE and read a
 ZIP central directory. `mkodt.py` is easier than that.
 
-## 5. `backends/` — 1 380 lines of C, and the one place to leave alone
+## 5. `idc/backends/` — 1 380 lines of C, and the one place to leave alone
 
 **What it is.** Three native backends: `gfx` (X11 window and framebuffer),
 `gl` (OpenGL), `fs` (POSIX file I/O). Each is a `.h` declaring the ABI, a `.c`
@@ -188,7 +188,7 @@ addresses*, and the ELF note has to land in a specific section.
   60 of the 91 lines, and is worth doing mostly because it would prove the
   binary literal's worth.
 
-## 7. `editors/vscode-id/extension.js` — 259 lines
+## 7. `vscode/extension.js` — 259 lines
 
 **Why.** VS Code loads extensions into a JavaScript host. There is no
 arrangement under which that file is not JavaScript.
@@ -196,7 +196,7 @@ arrangement under which that file is not JavaScript.
 **Cost. Medium, and a shim survives.** The real move is to make the extension a
 thin client of a **language server** written in `id` — LSP is JSON over stdin
 and stdout, and `id` has `read_all` and `print`. The parser, the diagnostics
-and the structural rules are all already in `compiler/parse/mid/` and are
+and the structural rules are all already in `idc/compiler/parse/mid/` and are
 exactly what a language server reports. Estimate comparable to the editor's
 XML layer: 40–50 files. The `.js` shrinks to perhaps 40 lines that launch the
 server.
@@ -218,15 +218,15 @@ hurts.
 
 ## The order that matters
 
-1. ~~**Retire the bootstrap.**~~ Done: `bootstrap/*.c` is stage 0 and `bin/idc`
-   never runs `idc.py`. This was the gate on every additive language feature,
-   and it is open. What is left of `idc.py` — `--target wasm`, the differential
+1. ~~**Retire the bootstrap.**~~ Done: `idc/bootstrap/*.c` is stage 0 and `idc/bin/idc`
+   never runs `idc/idc.py`. This was the gate on every additive language feature,
+   and it is open. What is left of `idc/idc.py` — `--target wasm`, the differential
    suites, `--tests` — blocks nothing; it only keeps a second implementation
    alive, which is worth something until the first one has a written spec it
    cannot drift from.
 2. **Add `spawn` and `readdir`.** Two builtins that convert 6 200 lines of
-   shell from impossible to merely tedious, starting with `bin/idc`.
-3. **Wire the LLVM target to `runtime/` and add the syscall file.** The
+   shell from impossible to merely tedious, starting with `idc/bin/idc`.
+3. **Wire the LLVM target to `idc/runtime/` and add the syscall file.** The
    hosted C prelude then becomes the C target's business alone.
 4. **Move `fs_posix.c` into `id`.** Small, and it proves a backend need not be
    C when the platform speaks syscalls.

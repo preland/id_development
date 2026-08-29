@@ -23,7 +23,7 @@ down.
 ## 1. There is no record, so there are magic indices
 
 `id` has no struct. Structured data is parallel exported lists indexed by an
-integer, which is the idiom the compiler itself uses (`compiler/parse/front/tree/`)
+integer, which is the idiom the compiler itself uses (`idc/compiler/parse/front/tree/`)
 and which works well when the lists are named after what they hold.
 
 It works much less well for a handful of values that belong together *inside*
@@ -270,10 +270,10 @@ into a local before decoding the distance for the same reason. The natural
 one-liner would decode correctly for a while and then produce garbage.
 
 This is the rule the inflater's author reported being most afraid of. It is now
-decided rather than documented: §7 says left to right, `tests/conform/order/`
+decided rather than documented: §7 says left to right, `idc/tests/conform/order/`
 holds the cases, and the LLVM and WASM targets pass them. The C target does not
 yet -- it emits one C expression per `id` expression and C does not sequence
-the arguments of a call -- and `tests/conform.sh` names that rather than failing
+the arguments of a call -- and `idc/tests/conform.sh` names that rather than failing
 on it, so removing the exemption is how the fix gets noticed.
 
 ## 11. A name has one type across a whole program, and that is a coordination cost
@@ -406,19 +406,19 @@ different shapes for no reason a reader of the code can see.
 
 The rules arrived after the code, so every violation had to be repaired. The
 mechanical part -- naming the value a return clause computed, and hoisting a
-call out of another call's arguments -- was done by `tools/flatten.py` across
+call out of another call's arguments -- was done by `idc/tools/flatten.py` across
 1141 files. Everything else was done by hand, because the action limit did not
 move: a block that gains a name may have to give up a statement, and a
 function that gains a statement may have to become two.
 
 | tree | files | functions | directories |
 | --- | ---: | ---: | ---: |
-| `compiler/parse` | 419 → 550 | 1121 → 1399 | 236 → 318 |
+| `idc/compiler/parse` | 419 → 550 | 1121 → 1399 | 236 → 318 |
 | `demos` | 334 → 393 | 805 → 921 | 219 → 247 |
 | `editor` | 175 → 240 | 480 → 608 | 103 → 149 |
 | `kernel` | 83 → 105 | 214 → 255 | 55 → 70 |
-| `runtime` | 36 → 46 | 83 → 102 | 20 → 26 |
-| `compiler/lex` | 18 → 25 | 50 → 65 | 11 → 15 |
+| `idc/runtime` | 36 → 46 | 83 → 102 | 20 → 26 |
+| `idc/compiler/lex` | 18 → 25 | 50 → 65 | 11 → 15 |
 | **total** | **1065 → 1359** | **2753 → 3350** | **644 → 825** |
 
 About 1600 values gained names, 597 functions were created, and the tree is
@@ -450,7 +450,7 @@ Three things the sweep taught that were not visible before it:
 * **§7 lost most of its content.** If a call can never be an argument to a
   call, two calls can never be arguments of the *same* call, so the order a
   call's arguments are evaluated in is no longer observable by any `id`
-  program. `tests/conform/order/03-argument-order` was deleted rather than
+  program. `idc/tests/conform/order/03-argument-order` was deleted rather than
   rewritten. What is left observable is operands, and the C target still gets
   those wrong (§11, S11).
 
@@ -517,7 +517,7 @@ comparison.
 
 **This is a runtime property, not a language rule**, and it is the one entry
 here that makes correct, obvious code unusably slow rather than merely awkward.
-The workaround is documented practice (`demos/idview`, `compiler/lex` and now
+The workaround is documented practice (`demos/idview`, `idc/compiler/lex` and now
 the XML parser all keep offsets and read the store), but it is a workaround: a
 `string` that knew its own length would remove the whole class. Changing that
 means changing the representation `docs/SPEC.md` §4 describes, which is why it
@@ -641,7 +641,7 @@ it hurts most.
 >
 > A note on the premise: this entry is **not** about floating point, which
 > `id` has had all along -- `docs/SPEC.md` §1 and §3 specify `float` as
-> IEEE-754 binary64, both backends emit it, and `tests/conform/float/` covers
+> IEEE-754 binary64, both backends emit it, and `idc/tests/conform/float/` covers
 > it. The one real float gap is float-to-string on the WASM target (§11, S5).
 
 

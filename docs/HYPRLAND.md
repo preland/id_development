@@ -12,24 +12,24 @@ There are two situations and they want different answers.
 
 ## Running them as tests: no window at all
 
-`tools/headless.sh` starts a private Xvfb on a free display, runs the command
+`idc/tools/headless.sh` starts a private Xvfb on a free display, runs the command
 against it, and tears it down:
 
 ```sh
-tools/headless.sh ./gl3d
-GFX_MAX_FRAMES=3 tools/headless.sh /tmp/gl3d
+idc/tools/headless.sh ./gl3d
+GFX_MAX_FRAMES=3 idc/tools/headless.sh /tmp/gl3d
 ```
 
 The window is real, the GLX context is real, the frames are real — the
-compositor never learns it exists. `tests/backends.sh` uses this for its two
+compositor never learns it exists. `idc/tests/backends.sh` uses this for its two
 windowed checks, so the suite no longer touches your session, and the graphics
 tests now run on a machine with no session at all.
 
 Xvfb comes from the dev shell (`flake.nix`), so this works under
-`nix develop` or `tools/devshell.sh` and says so clearly when it doesn't.
+`nix develop` or `idc/tools/devshell.sh` and says so clearly when it doesn't.
 
 **Caveat:** Xvfb has no GPU, so GL runs on llvmpipe (software Mesa). That is
-correct for behaviour — `tests/backends.sh` reads pixels back and checks
+correct for behaviour — `idc/tests/backends.sh` reads pixels back and checks
 them — but it is not a GPU test. Use the rules below when you need real
 hardware.
 
@@ -41,8 +41,8 @@ program passed to `gfx_open`. The classes are:
 
 | backend | `WM_CLASS` |
 | --- | --- |
-| `backends/gfx` (software framebuffer) | `id-gfx` |
-| `backends/gl` (OpenGL) | `id-gl` |
+| `idc/backends/gfx` (software framebuffer) | `id-gfx` |
+| `idc/backends/gl` (OpenGL) | `id-gl` |
 
 On this machine Hyprland's user rules live in
 `~/.config/hypr-user/rules.lua`, which is loaded *after* ML4W's own rules and

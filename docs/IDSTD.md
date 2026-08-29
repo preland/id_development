@@ -39,7 +39,7 @@ compiler work that follows from it; §3–§7 are the library itself.
 
 ## 1. Six facts about the compiler, verified on this checkout
 
-Each was tested directly against `bin/idc`, not inferred. The commands are worth
+Each was tested directly against `idc/bin/idc`, not inferred. The commands are worth
 re-running, because every one of them is a constraint on the library.
 
 **§1.1, §1.3 and §1.4 are now fixed** (C4, C2 and C3) and are kept as written,
@@ -80,15 +80,15 @@ Every function in an imported directory reaches the emitted C whether or not
 anything calls it. Measured, hello-world plus a synthetic stdlib of trivial
 functions:
 
-| stdlib size | `bin/idc` wall time | binary |
+| stdlib size | `idc/bin/idc` wall time | binary |
 | --- | --- | --- |
 | none | 0.18 s | 16 KB |
 | 243 functions | 0.36 s | 33 KB |
 | 729 functions | 0.75 s | 75 KB |
 
 A realistic `idstd` is 500–700 functions of *real* bodies, so every `id` program
-would pay roughly +0.6 s and +60 KB minimum. `idc.py` already computes the
-reachable-function set (`idc.py:1278`) for the unreachable-export check, so this
+would pay roughly +0.6 s and +60 KB minimum. `idc/idc.py` already computes the
+reachable-function set (`idc/idc.py:1278`) for the unreachable-export check, so this
 is a small change with a large payoff. See §2.2.
 
 ### 1.4 Imports are not transitive — for source directories *or* backends
@@ -101,7 +101,7 @@ mid/m.id:2: error: no such function 'bx_one'
 
 and the same for a native backend named in an imported directory's manifest.
 Consequences: `idstd` cannot be layered into sub-libraries that import each
-other, and **`idstd`'s graphics half cannot attach `backends/gfx` on its own** —
+other, and **`idstd`'s graphics half cannot attach `idc/backends/gfx` on its own** —
 today every user program would have to name the backend itself, which defeats
 "imported by default". See §2.3.
 
@@ -145,7 +145,7 @@ files and a tree about 5 levels deep. Plan the layout before writing code (§7).
 > **Status, 2026-08-04.** **C1, C2 and C3 are done and green** — the standard
 > library is imported by default, imports are transitive, and dead code is not
 > emitted. The suite is 242 passing, 0 failing (231 pre-existing + 16 new in
-> `tests/stdlib.sh`, which replaced a count of 11 as DCE tests were added), with
+> `idc/tests/stdlib.sh`, which replaced a count of 11 as DCE tests were added), with
 > byte-parity between the two compilers intact on the compiler's own source.
 >
 > The measured result is the one that mattered: a 729-function library where the
@@ -155,12 +155,12 @@ files and a tree about 5 levels deep. Plan the layout before writing code (§7).
 > **C8 is partly done**, on a defect `idstd` found by hitting it: a function
 > named after a runtime helper (`str_of_int`, `concat`, `print`, ...) is a C
 > redefinition, and neither compiler checked for it. `cc` reported "conflicting
-> types for 'id_str_of_int'", `idc.py` passed through a bare "C compilation
-> failed", and **`bin/idc` reported a user's own name clash as "this is a bug in
+> types for 'id_str_of_int'", `idc/idc.py` passed through a bare "C compilation
+> failed", and **`idc/bin/idc` reported a user's own name clash as "this is a bug in
 > the self-hosted compiler; please report it"** — inviting a bug report about
 > their own typo. Both compilers now reject it by name. The reserved list is
-> generated from `RUNTIME` by `tools/gen_runtime_id.py` so it cannot drift, and
-> `tests/stdlib.sh` asserts that it hasn't.
+> generated from `RUNTIME` by `idc/tools/gen_runtime_id.py` so it cannot drift, and
+> `idc/tests/stdlib.sh` asserts that it hasn't.
 >
 > **C4 is done.** The one-type-per-name rule is now per compilation unit — the
 > program's own tree, and each imported tree — so a library's `string s` no
@@ -168,9 +168,9 @@ files and a tree about 5 levels deep. Plan the layout before writing code (§7).
 > forced it: writing the obvious `str_cmp(string a, string b)` against `idstd`
 > produced **28 errors, 25 of them inside `core/math/fx/`**, pointing at code
 > that had not changed, and the message naming the cause was the 26th. The
-> unit travels from `bin/idc` to the self-hosted compiler in the `#file`
+> unit travels from `idc/bin/idc` to the self-hosted compiler in the `#file`
 > marker, which now reads `#file N|PATH`; the rule is unchanged *within* a
-> unit, and `tests/stdlib.sh` holds both halves of that.
+> unit, and `idc/tests/stdlib.sh` holds both halves of that.
 >
 > **Still outstanding: C5, C6, C7, the rest of C8, C9.** C7 is now the *only* thing keeping graphics out
 > of the default library — with DCE landed, an unused framebuffer costs nothing,
@@ -178,8 +178,8 @@ files and a tree about 5 levels deep. Plan the layout before writing code (§7).
 >
 > **C9 is now measured continuously rather than in prose.** Every project's
 > standing against the real library is a line in
-> [`tests/idstd_expect.txt`](../tests/idstd_expect.txt), checked by
-> `tests/idstd_real.sh` on every run, and a change in either direction fails —
+> [`idc/tests/idstd_expect.txt`](../idc/tests/idstd_expect.txt), checked by
+> `idc/tests/idstd_real.sh` on every run, and a change in either direction fails —
 > a new collision, and a port that lands without the ledger being updated. The
 > re-measurement below used to live here and go stale; it is now the file.
 >
@@ -189,70 +189,70 @@ files and a tree about 5 levels deep. Plan the layout before writing code (§7).
 > compiler stages `idc_in_id{,_parse}`. (`idview` was on this list and is no
 > longer. `nativeapp` has since moved to its own repository, `../id_nativeapp`.)
 >
-> The compiler stages are the interesting pair. `bin/idc` bootstraps them with
-> `--no-std`, so the build is not broken — but `bin/idc compiler/parse`
+> The compiler stages are the interesting pair. `idc/bin/idc` bootstraps them with
+> `--no-std`, so the build is not broken — but `idc/bin/idc idc/compiler/parse`
 > is how the README says to build them, and that fails. Whether the compiler
 > should depend on the library it ships, or be permanently a `--no-std`
 > project, is an open decision and the reason those two lines exist.
 >
-> Everything else in `tests/run.sh` sets `IDC_NO_STD=1` and is hermetic, and
-> `tests/stdlib.sh` covers the library path against a fixture library in
-> `tests/fixtures/idstd`. That is deliberate, and it is also exactly why
+> Everything else in `idc/tests/run.sh` sets `IDC_NO_STD=1` and is hermetic, and
+> `idc/tests/stdlib.sh` covers the library path against a fixture library in
+> `idc/tests/fixtures/idstd`. That is deliberate, and it is also exactly why
 > `idstd_real.sh` had to exist: a hermetic suite cannot see the library.
 >
 > Two things were learned by getting them wrong, both now locked by tests:
 >
-> - **Dead code must still be checked.** A good deal of `idc.py`'s checking
+> - **Dead code must still be checked.** A good deal of `idc/idc.py`'s checking
 >   happens inside `gen_function`, so generating only the reachable functions
 >   silently stopped enforcing the export/import access rules on the rest —
->   `tests/invalid`'s `import_without_export` and `unexported_access` both began
->   compiling clean, while `bin/idc` still rejected them. Everything is now
+>   `idc/tests/invalid`'s `import_without_export` and `unexported_access` both began
+>   compiling clean, while `idc/bin/idc` still rejected them. Everything is now
 >   checked and generated; only emission is filtered.
-> - **The two compilers disagreed about source order.** `idc.py` globally sorts
->   every source file; `bin/idc` concatenated per-root sorted lists. That agreed
+> - **The two compilers disagreed about source order.** `idc/idc.py` globally sorts
+>   every source file; `idc/bin/idc` concatenated per-root sorted lists. That agreed
 >   only as long as no project had a source dependency — and the stdlib is a
 >   source dependency of every build, with absolute paths sorting before the
 >   project's relative ones. It would have broken byte-parity on every program
->   at once. `bin/idc` now does one global `LC_ALL=C sort -u`.
+>   at once. `idc/bin/idc` now does one global `LC_ALL=C sort -u`.
 
 This is a workstream in *this* repo, and most of it should land before `idstd`
 grows past a prototype. Ordered by how much the library depends on it.
 
-Each change is built in the **self-hosted stages** (`compiler/lex`,
-`compiler/parse`), and `tools/parity.sh` / `tests/run.sh` must still
+Each change is built in the **self-hosted stages** (`idc/compiler/lex`,
+`idc/compiler/parse`), and `idc/tools/parity.sh` / `idc/tests/run.sh` must still
 pass byte-identical output.
 
 > This paragraph used to read "every change must be made in **both**
-> `idc.py` and the self-hosted stages", and that sentence turned out to be
-> the single most load-bearing cause of new work landing in `idc.py` first:
-> it names `idc.py` before the compiler, and it frames the self-hosted side
-> as cost. It is also not true. `idc.py` is stage 0 of the bootstrap, so it
+> `idc/idc.py` and the self-hosted stages", and that sentence turned out to be
+> the single most load-bearing cause of new work landing in `idc/idc.py` first:
+> it names `idc/idc.py` before the compiler, and it frames the self-hosted side
+> as cost. It is also not true. `idc/idc.py` is stage 0 of the bootstrap, so it
 > needs a construct only once *this tree's own source* uses it. What must
-> genuinely agree in both is **diagnostics**, which `tests/invalid.sh`
+> genuinely agree in both is **diagnostics**, which `idc/tests/invalid.sh`
 > enforces by running every case through both compilers. See
 > [`HACKING.md`](HACKING.md).
 
 ### C1 — Implicit import of `idstd` (the headline feature) — **DONE**
 
 - Resolve the library by, in order: `$IDSTD_HOME`, a sibling `../idstd`
-  directory, a path baked into `bin/idc`. Fail with a diagnostic that says which
+  directory, a path baked into `idc/bin/idc`. Fail with a diagnostic that says which
   paths were tried, not "no such function".
 - `--no-std` must exist and must be honest, because three things need it:
   1. **`idstd` itself** cannot import itself.
-  2. **The bootstrap stages.** `compiler/lex` and `compiler/parse`
+  2. **The bootstrap stages.** `idc/compiler/lex` and `idc/compiler/parse`
      define their own `lset`, their own helpers, and their own local vocabulary.
      Implicitly importing `idstd` into them will produce duplicate-logic and
      name-type errors and change their emitted C — which breaks self-hosting and
-     byte-parity. `bin/idc` must build them with `--no-std`.
-  3. `tests/invalid/`, whose diagnostics must not shift because a library
+     byte-parity. `idc/bin/idc` must build them with `--no-std`.
+  3. `idc/tests/invalid/`, whose diagnostics must not shift because a library
      appeared in the program.
-- Decide and document whether a *single-file* build (`bin/idc prog.id`) gets the
+- Decide and document whether a *single-file* build (`idc/bin/idc prog.id`) gets the
   stdlib. Recommendation: **yes** — that is the tutorial path and the one that
   most needs `fx_max` to exist.
 
 ### C2 — Dead-code elimination (§1.3) — **DONE**
 
-Emit only functions reachable from `main` (plus their exports). `idc.py:1278`
+Emit only functions reachable from `main` (plus their exports). `idc/idc.py:1278`
 already builds the set. Without this, `idstd` is a tax on every program.
 
 Note the interaction with §1.5: with DCE, an unused stateful module's `*_init`
@@ -263,16 +263,16 @@ program does not use.
 
 An imported directory's own `conf.id` must be honoured, with cycle detection
 and de-duplication by resolved path. This is what lets `idstd/gfx` declare its
-dependency on `backends/gfx` instead of every user program doing it.
+dependency on `idc/backends/gfx` instead of every user program doing it.
 
 ### C4 — Stop the library from reserving the user's local names (§1.1) — **DONE**
 
 Option (a), per-unit name-type checking, was taken. A unit is one source root:
-the program's own tree, and each imported dependency tree. `bin/idc` numbers
+the program's own tree, and each imported dependency tree. `idc/bin/idc` numbers
 the roots and puts the number in the `#file N|PATH` marker (the lexer is
 unchanged — the marker's text was always taken verbatim); the self-hosted
 compiler stamps every AST node with its unit, and both the one-type check and
-the variable-type table are keyed by unit and name. `idc.py` knows which root
+the variable-type table are keyed by unit and name. `idc/idc.py` knows which root
 each file came from directly and keys `var_types` the same way. Exported names
 are untouched: an export is one global for the whole program, reserved
 program-wide, and is still found from every unit.
@@ -306,7 +306,7 @@ Keep the check — "we already have one, call it" is the right answer — but:
 
 A user's `main` must not have to call `idstd_init()`. Either:
 
-- the generated C `main` wrapper (`idc.py:1841`) calls a fixed `idstd` init chain
+- the generated C `main` wrapper (`idc/idc.py:1841`) calls a fixed `idstd` init chain
   before `id_main`, for the modules actually reachable; or
 - `idstd` is built with no exported state at all, which is not achievable for a
   sin table, a framebuffer or a font.
@@ -323,11 +323,11 @@ graphics cannot be in the default-imported library and §0's last bullet fails.
 
 ### C8 — Versioning and diagnostics hygiene — outstanding
 
-- `bin/idc --version` should report the `idstd` it resolved.
+- `idc/bin/idc --version` should report the `idstd` it resolved.
 - A stdlib frame in a diagnostic should be visually distinguishable from user
   code, because most compile errors a beginner hits will now name a library file.
 
-### C9 — Re-measure `tests/run.sh` and the demos — outstanding
+### C9 — Re-measure `idc/tests/run.sh` and the demos — outstanding
 
 Every demo in this repo defines helpers that `idstd` will also define
 (`demos/engine`'s `lset`, the games' `rng_*`, `fpsmaze`'s sin table). They will
@@ -437,7 +437,7 @@ stdout, a generated file) cannot print a diagnostic without corrupting it.
 
 ### 3.5 `sys/io` — `file_`, `term_`
 
-**Files** wrap `id_development/backends/fs` (`fs_open`, `fs_read`, `fs_write`,
+**Files** wrap `id_development/idc/backends/fs` (`fs_open`, `fs_read`, `fs_write`,
 `fs_close`, `fs_size`, `fs_exists`, `fs_remove`, `fs_error`, plus `fs_run`).
 Bytes cross that seam as an `int[]`, which is what makes binary files possible —
 a `string` is NUL-terminated. To write new: `file_read_all` (chunked into the
@@ -456,7 +456,7 @@ Every one needs a `term_` prefix, and `lset` must become the shared one from
 
 ### 3.6 `sys/win` — `sys_`, `inp_`
 
-The window and input seam over `backends/gfx`, from `idem/engine/core/sys/`:
+The window and input seam over `idc/backends/gfx`, from `idem/engine/core/sys/`:
 
 - `sys_open`, `sys_sync`, `sys_present`, `sys_fit`, `sys_alive`, `sys_quit`
 - `sys_stage`, `sys_sx`/`sy`/`sw`/`sh`, `sys_vp_init` — the aspect-preserved,
@@ -504,7 +504,7 @@ From `idem/engine/gfx/d2/`:
   `txt_number`, `txt_cell`, `txt_cellh`, `txt_align`, `txt_ui`
 
 **The bitmap font is one of the highest-value things in the whole brief.** `idem`
-carries the IBM VGA 8×16 face generated into `id` source by `tools/mkfont.py`
+carries the IBM VGA 8×16 face generated into `id` source by `idc/tools/mkfont.py`
 from `test_assets/vga8x16.psf`, plus `psf_load` to replace it at runtime with any
 PC Screen Font. Text on a framebuffer, for free, in every `id` program.
 `../idem/docs/research/id-patterns.md` §6 documents the whole thing, and
@@ -597,7 +597,7 @@ Recorded so the boundary is a decision rather than an oversight.
 | `lex_`, `par_`, `ast_` | these are *idml*'s lexer and parser, not general ones. A general tokeniser toolkit is a fair v2 idea; a specific language's parser is not. |
 | `png_`, `jpg_`, `inf_`, `zst_`, `bl_`, `psf_` | image, DEFLATE, zstd, `.blend` and font decoders — ~600 functions of genuinely general code, and far too much to link into hello-world before DCE (§2.2) exists. **Strong v2 candidates**, probably as a separate opt-in `idfmt`. `psf_load` is the exception worth reconsidering for v1: it is small and the font table is already there. |
 | `pack_`, `imp_`, `ed_` | tools, not library. |
-| anything needing a filesystem *walk* | `id` cannot see directories; that is why `bin/idc` and `tools/idem` are shell drivers. A stdlib cannot fix it. |
+| anything needing a filesystem *walk* | `id` cannot see directories; that is why `idc/bin/idc` and `tools/idem` are shell drivers. A stdlib cannot fix it. |
 | audio | there is no audio backend anywhere in either repo. Do not stub it. |
 
 ---
@@ -611,7 +611,7 @@ on imported trees (§1.6). `README.md` and `conf.id` do not count. Sketch:
 idstd/
   README.md
   NAMES.md              the registry -- a build dependency, not documentation
-  conf.id             backends/fs, backends/gfx   (needs C3)
+  conf.id             idc/backends/fs, idc/backends/gfx   (needs C3)
   core/
     math/   fx/  trig/  rnd/
     data/   lst/  buf/
@@ -678,7 +678,7 @@ reinvented (`../idem/docs/ARCHITECTURE.md` §10):
   about one input. `idem` shipped a zstd decoder that hashed correctly on two
   fixtures while decoding wrongly, because an over-long copy was clipped at
   exactly the right byte. Test properties, not just goldens.
-- Run the whole suite through **both** compilers (`idc.py` and `bin/idc`); it is
+- Run the whole suite through **both** compilers (`idc/idc.py` and `idc/bin/idc`); it is
   the cheapest parity check available, and `idstd` is now in every program's
   build so a parity break is a break everywhere.
 - Add a **cost regression**: hello-world's build time and binary size, asserted.
@@ -713,5 +713,5 @@ reinvented (`../idem/docs/ARCHITECTURE.md` §10):
 | `../idem/docs/NAMES.md` | the registry `idstd`'s own must be modelled on, including §6's traps |
 | `../idem/docs/ARCHITECTURE.md` | §3 (rasteriser), §4 (fixed point), §5 (data model), §10 (verification), §13 (known gaps — read before copying anything) |
 | `id_development/README.md` | the language rules as the compiler states them |
-| `id_development/docs/GAPS.md` | what `bin/idc` still cannot do |
-| `id_development/backends/fs/README.md` | the worked example of a backend manifest |
+| `id_development/docs/GAPS.md` | what `idc/bin/idc` still cannot do |
+| `id_development/idc/backends/fs/README.md` | the worked example of a backend manifest |

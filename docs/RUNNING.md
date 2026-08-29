@@ -10,7 +10,7 @@ Everything below needs the dev shell, which carries the toolchain — `clang`,
 nix develop                      # or `direnv allow` once, then it is automatic
 ```
 
-`tools/devshell.sh '<cmd>'` runs a single command in that shell if you would
+`idc/tools/devshell.sh '<cmd>'` runs a single command in that shell if you would
 rather not stay in it. Every command here assumes the repository root.
 
 ---
@@ -20,10 +20,10 @@ rather not stay in it. Every command here assumes the repository root.
 ### Build it
 
 ```sh
-tools/kbuild.sh                  # -> build/kernel.elf
+idc/tools/kbuild.sh              # -> idc/build/kernel.elf
 ```
 
-That compiles `runtime/` and `kernel/prog/` through the LLVM target, assembles
+That compiles `idc/runtime/` and `kernel/prog/` through the LLVM target, assembles
 `kernel/boot/{boot,isr}.S`, and links with `ld.lld` over `kernel/boot/kernel.ld`.
 No C compiler is involved: `clang` appears twice, once as an assembler and once
 as an LLVM IR compiler.
@@ -31,7 +31,7 @@ as an LLVM IR compiler.
 ### Look at it
 
 ```sh
-qemu-system-x86_64 -kernel build/kernel.elf -vga std -serial stdio
+qemu-system-x86_64 -kernel idc/build/kernel.elf -vga std -serial stdio
 ```
 
 A window opens with a 640×480 framebuffer. It prints its boot lines, runs its
@@ -48,7 +48,7 @@ anything you can type you can also pipe:
 
 ```sh
 printf 'help\nls\ncd bin\ncat hello\nuname\nmem\nhalt\n' \
-  | qemu-system-x86_64 -kernel build/kernel.elf -display none -serial stdio
+  | qemu-system-x86_64 -kernel idc/build/kernel.elf -display none -serial stdio
 ```
 
 Commands: `help ls cd pwd cat echo mkdir touch write rm clear uname mem halt
@@ -66,15 +66,15 @@ fault: reading 0x140000000, which has no page behind it
 
 ### Photograph it
 
-`tools/qmon.py` boots it, types at it over the serial port, and captures the
-framebuffer; `tools/fbtext.py` reads that capture back as text by matching each
+`idc/tools/qmon.py` boots it, types at it over the serial port, and captures the
+framebuffer; `idc/tools/fbtext.py` reads that capture back as text by matching each
 8×16 cell against the kernel's own font. That pair is how the shell is tested,
 and it is the fastest way to see what is on screen without a window:
 
 ```sh
-python3 tools/qmon.py build/kernel.elf --wait 4 --type "ls;cd bin;uname" \
+python3 idc/tools/qmon.py idc/build/kernel.elf --wait 4 --type "ls;cd bin;uname" \
         --settle 2 --shot /tmp/screen.ppm
-python3 tools/fbtext.py /tmp/screen.ppm
+python3 idc/tools/fbtext.py /tmp/screen.ppm
 ```
 
 `--keys "l s ret"` sends real PS/2 key events instead, which is how to exercise
@@ -83,7 +83,7 @@ the keyboard path rather than the serial one.
 ### Check it
 
 ```sh
-tests/kernel.sh                  # 15 checks
+idc/tests/kernel.sh              # 15 checks
 ```
 
 ---
@@ -93,7 +93,7 @@ tests/kernel.sh                  # 15 checks
 ### Build it
 
 ```sh
-bin/idc editor -o editor
+idc/bin/idc editor -o editor
 ```
 
 That is the whole thing: `editor/lib/{zip,doc,font}` and `editor/app`, plus the
@@ -103,7 +103,7 @@ That is the whole thing: `editor/lib/{zip,doc,font}` and `editor/app`, plus the
 
 ```sh
 FONT=$(fc-match -f '%{file}' 'DejaVu Sans')
-./editor tests/fixtures/sample.odt "$FONT"
+./editor idc/tests/fixtures/sample.odt "$FONT"
 ```
 
 A window opens with the document rendered at 640×480. Escape or `q` closes it.
@@ -132,7 +132,7 @@ is the faux italic `docs/EDITOR.md` describes.
 ### Render it to a file
 
 ```sh
-./editor tests/fixtures/sample.odt "$FONT" --ppm /tmp/page.ppm
+./editor idc/tests/fixtures/sample.odt "$FONT" --ppm /tmp/page.ppm
 ```
 
 A PPM, which most viewers open directly. To read it in a terminal:
@@ -159,12 +159,12 @@ Any `.odt` LibreOffice writes:
 It will show you what it made of it. What it does *not* do is listed at the end
 of [`docs/EDITOR.md`](EDITOR.md) — no tables, images, lists or footnotes, one
 font face at a time, and no scrolling, so only the first page's worth is drawn.
-`tools/mkodt.py` regenerates the fixture if you want a smaller thing to poke at.
+`idc/tools/mkodt.py` regenerates the fixture if you want a smaller thing to poke at.
 
 ### Check it
 
 ```sh
-tests/editor.sh                  # 163 checks across five suites
+idc/tests/editor.sh              # 163 checks across five suites
 ```
 
 ---
@@ -172,8 +172,8 @@ tests/editor.sh                  # 163 checks across five suites
 ## Everything at once
 
 ```sh
-tools/devshell.sh 'tests/run.sh'          # the whole suite, ~4 minutes
-tools/devshell.sh 'tests/run.sh --list'   # the sections, to run one
+idc/tools/devshell.sh 'idc/tests/run.sh'          # the whole suite, ~4 minutes
+idc/tools/devshell.sh 'idc/tests/run.sh --list'   # the sections, to run one
 ```
 
 ## Where to look for what to work on next

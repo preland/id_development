@@ -1,11 +1,11 @@
 # The document editor
 
 > **Status: it reads and draws.** Everything below is checked by
-> `tests/editor.sh` — 163 assertions across five suites, none of them against a
+> `idc/tests/editor.sh` — 163 assertions across five suites, none of them against a
 > golden blob.
 
 ```sh
-bin/idc editor -o editor
+idc/bin/idc editor -o editor
 ./editor DOC.odt FONT.ttf                  # a window
 ./editor DOC.odt FONT.ttf --ppm page.ppm   # an image, which is how it is tested
 ```
