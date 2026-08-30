@@ -1,7 +1,8 @@
 # What still stands between `idc/bin/idc` and being the only compiler
 
 > **Status, 2026-07-30.** Tiers A, B, D and E are **done**, and Tier C is done
-> apart from two cosmetic items (C5, C6). Every fix is locked by a test. §3
+> apart from two cosmetic items (C5, C6). Every fix is locked by a test.
+> One later divergence is **open** and is recorded after Tier B's table. §3
 > records the performance numbers, §4 what each tier turned into. What remains
 > is `--target llvm|wasm`, audio (D6, which needs specifying before building),
 > and the string-building rewrite in §3.
@@ -97,6 +98,23 @@ the user's own type error. `idc/tests/invalid.sh` does not catch it because it r
 | **B3** | `--target llvm` / `--target wasm` are `idc/idc.py`-only. `idc/bin/idc` exits 2 with a pointer to `idc/idc.py`. Honest, but it means `idc/idc.py` cannot be retired. Note `docs/BACKENDS.md` already specifies the multi-target shape for the self-hosted back end. | `idc/bin/idc x.id --target llvm` → exit 2. |
 | **B4** | **`--triple` is not plumbed through**, although `idparse` implements it (`back/drive/run/output_mode.id`, `arg_triple`). So a multi-platform `asm` program cannot be cross-targeted through the driver. | `idc/bin/idc` rejects any unknown option at `idc/bin/idc:65`. |
 | **B5** | **idc/README.md is stale on exactly the points a new user reads first** — it documents the removed `idc/idc.py` fallback (lines 52-67, 233-238) and states float literals are unsupported. Both are wrong now. The report's §0 recommendation ("build with `idc/idc.py`") was derived from it. | `grep -n "falls back" idc/README.md` → line 61. |
+
+### Found later — a rule with no test, and no agreement
+
+Not from the original report. Added when it was met head-on, because the whole
+point of this file is that a divergence found is a divergence written down.
+
+| # | issue | verified how |
+| --- | --- | --- |
+| **B6** | **A call as an argument to a call is rejected by `idc/bin/idc` and accepted by `idc/idc.py`.** The rule is real and deliberate -- it is implemented in `idc/compiler/parse/mid/names/limits/expr/nest.id` -- but the reference compiler never learned it, so the primary compiler is *stricter* than the one it is checked against. **There is no fixture for it in `idc/tests/invalid/`**, which is exactly the corpus that would have caught this: every case there is run through both compilers and must produce the same diagnostic. A rule with no case cannot fail that check. | `int v = sq(dbl(3));` -> `idc/bin/idc`: `error: argument 0 of 'sq' contains a call; give that value a name and pass the name`. `idc/idc.py`: exit 0. |
+
+This one is not academic. `c2id` is built with `idc.py` and its *output* is
+built with `bin/idc`, so the two ends of that pipeline disagree about what `id`
+is -- and `c2id/docs/EMITTER.md` section 3 specifies emitted locals as
+`sx32(peek32(fp + OFF))`, which is a call inside a call. The emitter's
+specification is therefore not legal `id` under the compiler that has to build
+what it emits. Either the fixture and the check land in `idc.py`, or the rule
+goes; leaving them disagreeing is the one option that keeps costing.
 
 ### Tier C — language / runtime hazards (both compilers)
 
