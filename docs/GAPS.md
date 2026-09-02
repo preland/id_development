@@ -2,10 +2,11 @@
 
 > **Status, 2026-07-30.** Tiers A, B, D and E are **done**, and Tier C is done
 > apart from two cosmetic items (C5, C6). Every fix is locked by a test.
-> One later divergence is **open** and is recorded after Tier B's table. §3
-> records the performance numbers, §4 what each tier turned into. What remains
-> is `--target llvm|wasm`, audio (D6, which needs specifying before building),
-> and the string-building rewrite in §3.
+> Three later divergences (B6, B7, B8) are **open** and are recorded after Tier
+> B's table, with what they have cost measured. §3 records the performance numbers,
+> §4 what each tier turned into. What remains is `--target llvm|wasm`, audio
+> (D6, which needs specifying before building), and the string-building rewrite
+> in §3.
 >
 > The issue list is kept as written, with each fixed item marked, because the
 > report it came from is the reason any of it was found.
@@ -107,14 +108,48 @@ point of this file is that a divergence found is a divergence written down.
 | # | issue | verified how |
 | --- | --- | --- |
 | **B6** | **A call as an argument to a call is rejected by `idc/bin/idc` and accepted by `idc/idc.py`.** The rule is real and deliberate -- it is implemented in `idc/compiler/parse/mid/names/limits/expr/nest.id` -- but the reference compiler never learned it, so the primary compiler is *stricter* than the one it is checked against. **There is no fixture for it in `idc/tests/invalid/`**, which is exactly the corpus that would have caught this: every case there is run through both compilers and must produce the same diagnostic. A rule with no case cannot fail that check. | `int v = sq(dbl(3));` -> `idc/bin/idc`: `error: argument 0 of 'sq' contains a call; give that value a name and pass the name`. `idc/idc.py`: exit 0. |
+| **B7** | **A return clause that is a call or an expression is rejected by `idc/bin/idc` and accepted by `idc/idc.py`.** The same shape of divergence as B6, found by the same measurement, and with no fixture in `idc/tests/invalid/` either. | `} return int i + 1;` -> `idc/bin/idc`: `error: the return clause of 'f' is an expression; it must be a name or a literal`. `idc/idc.py`: exit 0. |
+| **B8** | **A list literal is typed by the slot it goes into in `idc/bin/idc`, and by its own elements in `idc/idc.py`.** So `word[] xs = [1, a, 3]` builds and runs under the primary compiler and is refused by the reference one -- the reverse direction to B6 and B7, and again with no fixture in `idc/tests/invalid/`. | `word a = 7; word[] xs = [1, a, 3];` -> `idc/bin/idc`: builds, runs, prints 3. `idc/idc.py`: `error: cannot initialize word[] 'xs' with a int[] value`. |
 
-This one is not academic. `c2id` is built with `idc.py` and its *output* is
-built with `bin/idc`, so the two ends of that pipeline disagree about what `id`
-is -- and `c2id/docs/EMITTER.md` section 3 specifies emitted locals as
-`sx32(peek32(fp + OFF))`, which is a call inside a call. The emitter's
-specification is therefore not legal `id` under the compiler that has to build
-what it emits. Either the fixture and the check land in `idc.py`, or the rule
-goes; leaving them disagreeing is the one option that keeps costing.
+**`docs/SPEC.md` settles all three, and every time in `bin/idc`'s favour.** §5
+says a list literal "has no type of its own: it takes the type of the slot it is
+going into", with `word[] xs = [0, 0, 0]` given as the worked example — so B8 is
+`idc.py` drifting too, in the opposite direction. The reference compiler is not
+a second opinion about what `id` is; on these three it is simply behind.
+
+B6 and B7's rules are written there too, together, under one idea -- "a value
+that takes a step to compute is given a name" -- with worked examples of what is
+rejected (SPEC 290 and 302). So `bin/idc` implements the specification and
+`idc.py` is missing the checks. None of this is a design fork; it is a reference
+compiler that never caught up, and a corpus that could not notice because it has
+no case for any of the three.
+
+What it has cost, measured 2026-08-29 by building each tree with `bin/idc`:
+
+| tree | errors | which |
+| --- | --- | --- |
+| `c2id/c2id/` | 518 | 334 call-in-call, 171 return clause, 13 word->int narrowing |
+| `c2id/crt/` | 77 | the same two rules, in hand-written runtime code -- now 0, and `c2id/tests/crt/run.sh` keeps it there |
+| every project `c2id` emits | 19 and up | the emitter emits what its own source is written in |
+| `idc/compiler/`, `idstd`, `editor`, `kernel` | 0 | — |
+
+`c2id` is built with `idc.py` and its *output* is built with `bin/idc`, so the
+two ends of that pipeline disagree about what `id` is. `c2id/tools/c2id.sh` even
+records the belief that made this possible -- "idc.py, not bin/idc, because only
+the reference compiler enforces id's structural rules" -- which is true of the
+rule of 3 and false of these two. Nobody wrote 518 violations carelessly; they
+wrote them against the only compiler that was ever run over that tree.
+
+The work, then, is in two parts, and the first is what stops it growing:
+
+1. **Three fixtures in `idc/tests/invalid/`, and the checks in `idc.py`.**
+   Every case there runs through both compilers and must produce the same
+   diagnostic, so this is what makes the rules enforceable at all. `idc.py` is
+   at its 5470-line ceiling (`tests/core.sh`), so the checks have to fit or the
+   ceiling has to move -- deliberately, in its own commit.
+2. **Port `c2id` onto the rules.** Mechanical per site, but not free: naming a
+   value costs an action, and a block gets three, so a fair number of these
+   need a function split rather than an extra line.
 
 ### Tier C — language / runtime hazards (both compilers)
 

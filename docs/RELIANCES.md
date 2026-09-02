@@ -67,23 +67,45 @@ enforces the three-entries-per-directory rule, reads `conf.id`, injects `#file`
 markers, pipes source through `idlex | idparse`, and invokes `cc`, `clang`,
 `llc` or `ld.lld`. The other 5 313 lines are `idc/tests/*.sh` and `idc/tools/*.sh`.
 
-**Why.** One reason, and it is not a small one: **`id` cannot run a process.**
-There is no `exec`, no `spawn`, no `system`. A compiler driver that cannot
-invoke `cc` cannot be written in `id` at all, and neither can a test runner
-that compares two compilers' output.
+**Why it was.** Two things `id` could not do: run a process, and list a
+directory. Both are now in the `fs` backend.
 
-Secondary reasons: no directory listing (the `fs` backend does `open`, `read`,
-`write`, `close`, `size`, `exists`, `remove` — and no `readdir`), and no
-environment access.
+* `fs_run(cmd)` is `system`, and has been there since the backend shipped.
+* `fs_list(path, buf, n)` was added 2026-08-29. It answers a directory's
+  entries, newline-separated, sorted in byte order with a `/` on the ones that
+  are directories.
 
-**Cost to move.** **Large in volume, but gated on one small thing.** Add a
-`spawn(argv, stdin) -> (status, stdout)` builtin and a `readdir`, and every one
-of these scripts becomes an ordinary `id` program. Without them, none of them
-can be. The volume is real — 6 200 lines is twice the editor — but it is
-mechanical, and `idc/tests/*.sh` is the least interesting code in the repository.
+`idc/driver/` is the proof that the second is enough: it is the tree walk
+`idc/bin/idc` does with `find`, written in `id`, and `idc/tests/backends.sh`
+requires the two to agree byte for byte over `idc/compiler/` and `editor/`.
+The orders agree by construction rather than by luck — a directory's name sorts
+with its `/`, and `/` is 0x2F, below every letter and digit, so descending the
+moment a directory is reached is exactly a byte-order sort of the full paths.
 
-The honest ordering: **the builtin is the work; the port is typing.** And the
-driver should go first, because a driver written in `id` is the strongest
+Still missing: environment access (`getenv`), which the driver uses for
+`IDSTD_HOME`, `IDC_NO_STD` and `CC`.
+
+**Cost to move.** **Large in volume, and no longer gated.** 6 200 lines is twice
+the editor, and it is mechanical; `idc/tests/*.sh` is the least interesting code
+in the repository. What remains before `idc/bin/idc` itself can be an `id`
+program:
+
+1. `getenv`, or a decision that the driver takes those three as flags instead.
+2. The three structural checks the driver does over the tree — the
+   3-entries-per-directory rule, the legacy `import.id` name, and a nested
+   `conf.id` — all of which are the same walk `idc/driver/` already does.
+3. `conf.id` parsing, dependency resolution, and the `#file N|PATH` stream.
+   `idc/bin/idc --emit-sources` prints exactly that stream, so it is an oracle
+   to diff against rather than a specification to interpret.
+4. Bootstrap. A compiled `bin/idc` needs a compiler to build it, which is the
+   problem the shell driver exists to avoid. `idc/bootstrap/` already answers
+   the same question for the two compiler stages by checking in the C they
+   emitted about themselves, so the same answer applies: check in the generated
+   C, and `cc` it with no `id` compiler present. That also means the driver may
+   not use `idstd`, since a compiler that needs the library it compiles cannot
+   bootstrap — `idc/driver/` already holds to that.
+
+The driver should go first, because a driver written in `id` is the strongest
 possible argument the language can make for itself.
 
 ## 3. The C runtime prelude — 433 lines, and an `id` twin that already exists
@@ -224,8 +246,11 @@ hurts.
    suites, `--tests` — blocks nothing; it only keeps a second implementation
    alive, which is worth something until the first one has a written spec it
    cannot drift from.
-2. **Add `spawn` and `readdir`.** Two builtins that convert 6 200 lines of
-   shell from impossible to merely tedious, starting with `idc/bin/idc`.
+2. ~~**Add `spawn` and `readdir`.**~~ Done, as backend calls rather than
+   builtins: `fs_run` and `fs_list`. That converted 6 200 lines of shell from
+   impossible to merely tedious. `idc/driver/` is the first piece of it and
+   matches `find | sort` byte for byte; the rest of `idc/bin/idc` is section 2's
+   list, and `getenv` is the one hole left.
 3. **Wire the LLVM target to `idc/runtime/` and add the syscall file.** The
    hosted C prelude then becomes the C target's business alone.
 4. **Move `fs_posix.c` into `id`.** Small, and it proves a backend need not be

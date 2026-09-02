@@ -143,9 +143,36 @@ one is empty and shows as a gap, that the 18 pt heading is taller than the
 12 pt body, that nothing is drawn past the page width, and that rendering the
 same document twice gives the same page.
 
-## Not done
+## Editing
 
-* **No editing.** It reads and draws; nothing writes an `.odt` back.
+The window is editable. A printable key inserts at the caret, Backspace removes
+the character before it, Delete the one under it, and the arrows move it;
+Escape or the close button quits. `q` used to quit and no longer does — it is a
+letter now.
+
+The caret is **one number: the index of the code point it sits before**, counted
+over the document's runs in reading order. That works because layout emits
+exactly one glyph per code point, so glyph number *k* is code point number *k*
+and the caret's pixel position is a lookup rather than a second walk. A code
+point rather than a byte, so the caret cannot land inside a two-byte letter and
+delete half of it.
+
+Editing changes the model (`odt_txts`), never the pixels: a keystroke marks the
+page stale and the next frame lays it out and draws it again. That is the same
+path a resize takes, which is why a resize and a keystroke cannot disagree
+about what is on screen.
+
+What editing does *not* yet do:
+
+* **Nothing writes an `.odt` back.** The ZIP layer decompresses and does not
+  compress; writing one means emitting stored (uncompressed) entries.
+* **Enter does not split a paragraph.** A paragraph break is a change to the
+  run table's shape, not to a run's text, which is the next piece of work.
+* **No selection, and no undo.**
+* **An empty paragraph cannot hold the caret**, because it owns no run for the
+  caret to be an offset into.
+
+## Not done
 * **One font file at a time.** `tt_load` fills exported lists, so a second font
   replaces the first. Real bold and italic faces need a glyph cache keyed by
   face, which is the obvious next piece.
