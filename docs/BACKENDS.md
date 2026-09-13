@@ -219,15 +219,19 @@ Two different things are called a backend in this repo: a **compiler target**
 directory under `idc/backends/` that supplies functions at link time — `gfx`, `gl`,
 `fs`). A second compiler target must not drag the second kind along with it.
 
-It does not have to. A native backend declares itself twice — once in `id`, and
-once in its `backend.json`:
+It does not have to. A native backend declares itself twice, both times in
+`id` — once as what it provides, and once in its `backend.id` as how to link it:
 
 ```
 native fs_open(string path, string mode) return int;
 ```
 
-```json
-{ "targets": { "c": { "header": "fs.h", "platforms": { "linux": { "sources": ["fs_posix.c"] } } } } }
+```
+string name = "fs";
+string c_header = "fs.h";
+string[] c_linux_sources = ["fs_posix.c"];
+string[] c_linux_cflags = [];
+string[] c_linux_link = [];
 ```
 
 The `native` declarations are what the backend *promises*, in `id`'s own types.
@@ -237,15 +241,60 @@ there is no unresolved-call mode and no `extern int` guess — and the same
 however the program is compiled. They are also the only machine-readable form
 of the contract (a Python or LLVM target cannot parse `fs.h` to learn it); the
 C target emits each as a prototype and the LLVM target as a typed `declare`.
-`targets` is what a
+`backend.id` is what a
 given code generator needs in order to *deliver* it: sources and link flags for
 C, a module to import for the Python target of step 4, whatever LLVM wants.
 
-So step 4 adds a `"py"` key to three manifests and a reader for it. It does not
-touch `demos/fsdemo`, `demos/gfxdemo`, or any other `.id` file — which is the
-test of whether the seam is in the right place. `gfx` and `gl` predate the
-`targets` layer and carry a bare `platforms` table, read as the C target's;
-they gain the layer when a second target needs them to.
+### `backend.id`
+
+Every line is a constant declaration with a literal value, in one of three
+shapes, and the target of a name is the text before its first underscore:
+
+| declaration | means |
+|---|---|
+| `string name = "gfx";` | the backend's name, used in diagnostics (`backend` if absent) |
+| `string TARGET_FIELD = "...";` | one fact about a target as a whole, e.g. `c_header` |
+| `string[] TARGET_PLATFORM_sources = [...];` | the sources to compile for that target on that platform key; declaring it is what declares the platform |
+| `string[] TARGET_PLATFORM_cflags = [...];` | flags for compiling those sources (empty if absent) |
+| `string[] TARGET_PLATFORM_link = [...];` | flags for the final link (empty if absent) |
+
+Platform keys are the ones the triple maps to (`linux`, `darwin`, `none`, or
+the triple's last field). The C target is `c`. **The LLVM target is not
+served yet** (it declares natives and links no backend); it would read the same
+shape under `llvm_`: `llvm_linux_sources` compiled with `clang -target TRIPLE`
+and `llvm_linux_cflags`, and `llvm_linux_link` handed to the `clang` that links
+the module.
+
+**It is never compiled.** A `conf.id` constant is an exported global: its name
+is reserved program-wide and it is emitted in every build. Declared that way, a
+backend's facts would cost every program that attaches it — including, once a
+standard library names every backend, hello-world — and two backends could not
+both say `c_linux_sources`. So `backend.id` is skipped by source collection and
+by the 3-entries rule exactly as `conf.id` is, and `idc/bin/idc`
+(`backend_decls`) reads it, one backend at a time, only when a native of that
+backend is reached. The names need no backend prefix, because no two backends'
+files are ever read into one namespace.
+
+It is read by the shell rather than emitted by `idparse` because `idparse`
+only sees what is in the source stream, and putting it there would make the
+facts constants again. The grammar is small enough to check completely: a
+`string` or a `string[]` of string literals without escapes. Any other line —
+another type, a list where a string belongs, a `_cflags` with no `_sources`, a
+name declared twice — stops the build at its line:
+
+```
+idc: backends/toy/backend.id:3: invalid backend declarations: 'c_linux_sources' is a string[], not a string
+```
+
+`tests/backends.sh` parses and type-checks each backend's `backend.id` as a
+project's `conf.id` with the compiler itself (`--fingerprints`, which stops
+before C), so the shell reader cannot drift into accepting something that is
+not `id`. It stops before C because a list constant in a `conf.id` does not
+yet emit C that `cc` accepts — an emitter gap, separate from this file.
+
+So step 4 adds `py_...` declarations to three backends and a reader for them.
+It does not touch `demos/fsdemo`, `demos/gfxdemo`, or any other compiled `.id`
+file — which is the test of whether the seam is in the right place.
 
 ### A backend is linked only when a native of it is reached
 
@@ -267,8 +316,8 @@ decides what is emitted:
   — for the harness from the `harness` rows, for the program from the
   `program` rows. An attached backend nothing reaches costs no compile, no
   object and no link flag.
-* **What provides a native is where it is declared**, not `backend.json`'s
-  `abi` (a bare header name for `gfx` and `gl`, typed in nothing, read by
+* **What provides a native is where it is declared**, not a list of names in
+  `backend.id` (a second copy of the declarations, typed in nothing, read by
   nothing) and not the object's symbols (which exist only after the compile
   this avoids). A name is declared once per build, and the declaration is the
   one every call was checked against.
@@ -286,11 +335,11 @@ twin.id:5: error: native 'twin_a', reached from main by this call, has no
 
 What still treats a backend differently from other source: the emitters give
 a native a prototype and no body; its parameters register no names; its
-fingerprint includes its name; it needs no test cases; the manifest is read
-with an inline Python snippet in `bin/idc` and its C is compiled into
-`*.gen.o` beside the source; the LLVM target declares natives but links no
-backend; a project with no `main` links none; and `idc/idc.py` still links
-every attached backend whether or not anything calls it.
+fingerprint includes its name; it needs no test cases; its `backend.id` is
+read by `bin/idc` rather than compiled, and its C is compiled into `*.gen.o`
+beside the source; the LLVM target declares natives but links no backend; a
+project with no `main` links none; and `idc/idc.py`, which reads the
+`backend.json` that `backend.id` replaced, links no backend at all.
 
 ## The rule that keeps this honest
 

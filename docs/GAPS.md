@@ -189,7 +189,7 @@ them.
 | **D3** ✅ | **`idc/backends/gfx` cannot resize or scale.** No `StructureNotifyMask`, so `ConfigureNotify` never arrives; `XPutImage` blits 1:1; there is no `gfx_width()`/`gfx_height()`. Under a tiling WM the image sits in the top-left corner with black margins. `idc/backends/gl` already does all of this correctly. | |
 | **D4** ✅ | **The two backends cannot coexist in one binary** — both define `id_gfx_open`/`poll`/`close`. Renaming GL's three window symbols fixes it (verified in the report, two recipes). | |
 | **D5** ✅ | **`idc/backends/gl` has no `glReadPixels`**, so there is no headless verification path for GPU output — the software path has PPM dumps, the GL path has nothing. | |
-| **D6** | **No audio backend anywhere in the repo.** Would be a new `backend.json` (`id_snd_open`, `id_snd_queue(int[])`). | |
+| **D6** | **No audio backend anywhere in the repo.** Would be a new `backend.id` (`id_snd_open`, `id_snd_queue(int[])`). | |
 
 ### Tier E — bugs the report found *in this repo's demos*
 

@@ -295,7 +295,7 @@ resolves them as follows — revisit as the language evolves:
   [`idc/README.md`](idc/README.md) for how a backend attaches.
 - **Which implementation of a backend you get is chosen for you.** A build
   carries a target triple, derived from the machine you are on unless
-  `--triple` says otherwise, and a backend's `backend.json` is indexed by the
+  `--triple` says otherwise, and a backend's `backend.id` is indexed by the
   platform in it — so the source does not change when the platform does. A
   backend with nothing for the platform you asked for stops the build and says
   so by name (`backend 'gl' has no support for platform 'darwin' …; it is
