@@ -570,20 +570,20 @@ functions. `id` has no structs; this is what a struct is here.
 
 ---
 
-## 5. Constants: the `base() + n` rule is mandatory
+## 5. Constants: `conf.id` globals, prefixed
 
-A zero-action function returning a bare `int` literal has the same *logic* as
-every other zero-action function returning that literal, program-wide. `idem`'s
-first whole-engine build failed exactly this way — `ast_k_repeat()` and
-`inp_hold()` both returned `120`, in modules whose authors had never met.
+A function that only returns a constant is a compile error (`docs/SPEC.md`
+§7.2). `idstd`'s constants are declared in its own `conf.id` and read with
+`(import name)`, and like every export their names carry the module prefix,
+because the name is reserved program-wide.
 
-An always-imported library makes this dramatically worse: **every bare integer
-constant `idstd` defines makes that literal unavailable to every user program.**
-So every family of constants is `<prefix>_base() + n`, with one base function per
-family holding the unique bare literal, and the base table is registered in
-`idstd`'s `NAMES.md`. Reserve `idstd`'s base values in a block far from anything
-a user program would pick (`idem` uses 400, 3100, 3900, 4000, 5200, 6000, 6400 —
-do not collide with those either, since `idem` will import `idstd`).
+This replaces the `<prefix>_base() + n` rule this section used to mandate. That
+rule existed because a zero-action function returning a bare literal had the
+same *logic* as every other one returning it — `idem`'s first whole-engine
+build failed on `ast_k_repeat()` and `inp_hold()` both returning `120` — so a
+library constant function took its literal away from every user program. A
+`conf.id` constant is a global with no fingerprint, so the collision class is
+gone; see `idstd`'s `NAMES.md` §4.
 
 ---
 
