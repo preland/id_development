@@ -372,6 +372,10 @@ while(is_alnum_at(src, i)) {          the composition, as a function
 function is a constant under a function's name: every caller has to open it to
 learn that it never changes. A value that never changes is declared as one, in
 the project's `conf.id` (`docs/PROJECT.md` §5), and read with `(import name)`.
+A directory imported on its own, with no `conf.id` of its own, reads the
+constants of its enclosing root -- the nearest directory above it that has a
+`conf.id` -- and none of that root's imports, so the constant has one home
+however much of its tree a program imports.
 
 ```
 ch_nl() {                      rejected
