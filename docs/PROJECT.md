@@ -365,10 +365,18 @@ import "../../idc/backends/fs"
 ```
 
 and then `fs_open`, `fs_read`, `fs_write`, `fs_close`, `fs_size`, `fs_exists`,
-`fs_list`, `fs_remove` and `fs_error` are ordinary calls that no `.id` file
-defines. `demos/fsdemo` is ~40 lines of `id` that never names C. `--backend
-DIR` does the same thing from the command line; naming one both ways links it
-once.
+`fs_list`, `fs_remove` and `fs_error` are ordinary calls. The backend declares
+each of them in `id`, as a function whose body is native code:
+
+```
+native fs_open(string path, string mode) return int;
+```
+
+Its directory is merged into your build like any dependency, so a call into it
+is checked like any call: the wrong number or type of arguments, or a
+misspelled name, is the same error it would be for a function you wrote.
+`demos/fsdemo` is ~40 lines of `id` that never names C. `--backend DIR` does the
+same thing from the command line; naming one both ways links it once.
 
 **Which implementation you get is chosen for you.** The build has a target
 triple, derived from the machine you are on unless you say otherwise, and the
@@ -408,9 +416,12 @@ idc: pass --cc with a cross compiler for 'darwin', or use --target llvm, which
   hands the triple to clang.
 ```
 
-> **Pitfall 7.** A backend is a property of the *build*, not of the source. If
-> a call resolves to nothing and no backend is attached, the error is
-> `no such function` — attaching the backend is the fix, not renaming the call.
+> **Pitfall 7.** A backend's functions exist in a build only when the backend
+> is attached. Call one without it and the error is `no such function` — the
+> same error a misspelling gets, because either way nothing in the build
+> declares that name. If the spelling is right, attaching the backend is the
+> fix. A backend's parameter names are not variables and reserve nothing, so
+> no name your program exports or declares can collide with one of them.
 
 ## 8. When you do not believe the compiler
 

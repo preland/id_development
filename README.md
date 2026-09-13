@@ -230,8 +230,9 @@ resolves them as follows — revisit as the language evolves:
 - **Functions link across files implicitly.** `testfn()` calls `otherfn()`,
   defined in a separate file of the same project — and the export/import rule
   is stated only for *variables*. So function calls resolve across every file in
-  the project automatically; a call with no definition anywhere in the project
-  is a warning and must be satisfied at link time (see `demos/hello`, which
+  the project automatically; a call with no definition anywhere in the build
+  is an error, `no such function` — and that includes a native backend's
+  functions, which the backend declares in `id` (see `demos/hello`, which
   bundles `otherfn.id`).
 - **Array literals**: `["hello_world", "hi"]` builds a `string[]`.
 - **`+` on strings concatenates**, and a numeric operand mixed with a string
@@ -281,9 +282,10 @@ resolves them as follows — revisit as the language evolves:
 - **No file I/O among the builtins.** The list above is the whole of it: a
   program gets stdin and stdout, so working on a file means being a filter and
   letting the caller pick them (`./prog < in.txt > out.txt`). Files come from a
-  **native backend** instead — [`idc/backends/fs`](idc/backends/fs) links
+  **native backend** instead — [`idc/backends/fs`](idc/backends/fs) declares
   `fs_open`, `fs_read`, `fs_write`, `fs_close`, `fs_size`, `fs_exists`,
-  `fs_remove` and `fs_error` at link time, and `demos/fsdemo` writes a file,
+  `fs_remove` and `fs_error` as `native` functions (a signature in `id`, a body
+  in C), so every call is checked like any call and the C is linked in; `demos/fsdemo` writes a file,
   reads it back and removes it in ~40 lines of `id` that never name C. See
   [`idc/README.md`](idc/README.md) for how a backend attaches.
 - **Which implementation of a backend you get is chosen for you.** A build
