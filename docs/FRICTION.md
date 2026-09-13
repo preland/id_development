@@ -407,7 +407,7 @@ different shapes for no reason a reader of the code can see.
 The rules arrived after the code, so every violation had to be repaired. The
 mechanical part -- naming the value a return clause computed, and hoisting a
 call out of another call's arguments -- was done by `idc/tools/flatten.py` across
-1141 files. Everything else was done by hand, because the action limit did not
+1141 files, a one-off migration tool deleted once it had run. Everything else was done by hand, because the action limit did not
 move: a block that gains a name may have to give up a statement, and a
 function that gains a statement may have to become two.
 

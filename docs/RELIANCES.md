@@ -146,24 +146,24 @@ them, because the C target was the only target when the prelude was written.
 
 | tool | lines | what blocks it |
 | --- | ---: | --- |
-| `flatten.py` | 565 | nothing — it is a one-off migration tool and should be deleted, not ported |
+| `flatten.py` | 565 | **deleted**: it was a one-off migration tool, not something to port |
 | `lint_idcpy.py` | 150 | nothing — it dies with `idc/idc.py` |
 | `qmon.py` | 142 | **sockets and processes**. It starts QEMU, drives it over QMP (a JSON protocol) on a Unix-domain socket, reads while the child runs, and kills it |
 | `gen_runtime_id.py` | 121 | nothing — it dies with the C prelude |
 | `mkfont.py` | 90 | **ported**: `idc/tools/mkfont/`, run by `tools/mkfont.sh`, which unpacks the gzipped font |
 | `fbtext.py` | 86 | **ported**: `idc/tools/fbtext/`, run by `tools/fbtext.sh` |
-| `mkodt.py` | 82 | ZIP *writing* and CRC-32, which no `id` code does yet — the editor only reads ZIP; stored (uncompressed) entries avoid needing a compressor |
+| `mkodt.py` | 82 | **ported**: `idc/tools/mkodt/`, run by `tools/mkodt.sh` — a ZIP writer with stored entries and a fixed timestamp, and CRC-32 |
 | `mkkeymap.py` | 50 | **ported**: `idc/tools/mkkeymap/`, run by `tools/mkkeymap.sh` |
 
 **Cost.** Three of these (308 lines) evaporate when `idc/idc.py` and the C prelude
-go. Four more (308 lines) were portable with no new language feature, and three
-of them — `mkfont`, `fbtext`, `mkkeymap` — are now `id` programs, sharing
-`idc/tools/lib/` for whole-file reads and hexadecimal text; `mkodt` is the one
-left. Only `qmon.py` is genuinely blocked: it needs a backend for Unix-domain
+go. Four more (308 lines) were portable with no new language feature, and all
+four are now `id` programs: `mkfont`, `fbtext` and `mkkeymap` share
+`idc/tools/lib/` for whole-file reads and hexadecimal text, and `mkodt` writes
+through the `fs` backend on its own. Only `qmon.py` is genuinely blocked: it needs a backend for Unix-domain
 sockets and for starting, reading from and killing a child process.
 
 Anchor: `editor/lib/zip/` is 28 files of `id` that inflate DEFLATE and read a
-ZIP central directory. `mkodt.py` is easier than that.
+ZIP central directory. `mkodt` was easier than that.
 
 ## 5. `idc/backends/` — 1 380 lines of C, and the one place to leave alone
 
