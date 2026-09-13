@@ -247,6 +247,51 @@ test of whether the seam is in the right place. `gfx` and `gl` predate the
 `targets` layer and carry a bare `platforms` table, read as the C target's;
 they gain the layer when a second target needs them to.
 
+### A backend is linked only when a native of it is reached
+
+Attaching a backend — a `conf.id` import, `--backend`, or the standard
+library's own `conf.id` — merges its declarations and nothing else. What is
+compiled and linked is decided by reachability, the same computation that
+decides what is emitted:
+
+* `idparse --natives` appends a list to its output, after the program and
+  behind `/* ---- natives ---- */`, one row per native per kind:
+  `KIND|NAME|CALLFILE:LINE|DECLFILE`. `program` rows are the natives called by
+  a function the program keeps (every function, with no `main` or
+  `--freestanding`); `harness` rows are the natives the test cases reach. The
+  program part of the stream is byte for byte what it is without the flag
+  (`compiler/parse/back/drive/sink/natives/`). A call's line is recorded as it
+  is parsed (`cnode`/`cline`), because only statements carry one in `nline`.
+* `idc/bin/idc` (`backends_for`) maps each row's declaring file to the attached
+  backend whose directory holds it, and compiles and links only those backends
+  — for the harness from the `harness` rows, for the program from the
+  `program` rows. An attached backend nothing reaches costs no compile, no
+  object and no link flag.
+* **What provides a native is where it is declared**, not `backend.json`'s
+  `abi` (a bare header name for `gfx` and `gl`, typed in nothing, read by
+  nothing) and not the object's symbols (which exist only after the compile
+  this avoids). A name is declared once per build, and the declaration is the
+  one every call was checked against.
+* A reached native that nothing attached can link is reported at the call that
+  reaches it, never by the linker:
+
+```
+main.id:2: error: native 'gl_width', reached from main by this call, is implemented
+  by backend 'gl', which has no support for platform 'darwin' (building for
+  'aarch64-apple-darwin'); it is implemented for: linux
+twin.id:5: error: native 'twin_a', reached from main by this call, has no
+  implementation for platform 'linux' (building for 'x86_64-unknown-linux-gnu'):
+  it is declared in twin.id, which is not in an attached backend
+```
+
+What still treats a backend differently from other source: the emitters give
+a native a prototype and no body; its parameters register no names; its
+fingerprint includes its name; it needs no test cases; the manifest is read
+with an inline Python snippet in `bin/idc` and its C is compiled into
+`*.gen.o` beside the source; the LLVM target declares natives but links no
+backend; a project with no `main` links none; and `idc/idc.py` still links
+every attached backend whether or not anything calls it.
+
 ## The rule that keeps this honest
 
 Every step keeps `idc/tools/parity.sh` at MATCH for the C target. Byte-identical
