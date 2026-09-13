@@ -95,11 +95,14 @@ Both halves are self-hosted, and the two-case minimum is the default: every
 build of `idc/bin/idc` counts cases, and every written case runs, each in a
 process of its own, with a failing case failing the build (`docs/TESTS.md`,
 "How it runs"). What remains is deleting `--allow-untested`, the deprecated
-opt-out every build in these repositories still passes. That waits on two
-things: the cases themselves (item 2; `idc/tests/run.sh` fails once adoption
-has no function short of two cases while the flag exists), and a decision about freestanding builds,
-which refuse cases and so cannot meet the minimum at all (`docs/TESTS.md`, "An
-open question: a freestanding build cannot comply").
+opt-out every build in these repositories still passes. That waits on the
+cases themselves (item 2; `idc/tests/run.sh` fails once adoption has no
+function short of two cases while the flag exists). Freestanding builds are no
+longer in the way: their cases run on the build host against the same source,
+and a function that reaches an `asm` body with no host row, a native, or a
+`--runtime` helper is exempt with a note (`docs/TESTS.md`, "A freestanding
+build runs its cases on the build host"). The kernel and the runtime still pass
+`--allow-untested` until their testable functions have cases.
 
 ## 6. Port `engine`, `moonbuggy` and `solitaire` onto `idstd`
 

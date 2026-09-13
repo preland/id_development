@@ -120,6 +120,18 @@ Two flags, and nothing else:
   no `declare` block, because a declaration beside a definition of one symbol
   is not something LLVM accepts.
 
+Test cases are the one place a freestanding build touches the host. They run
+there, in a harness built from the same source for the machine doing the build,
+and the object is built only if every one passes (`docs/TESTS.md`, "A
+freestanding build runs its cases on the build host"). A function that reaches
+something with no host implementation cannot run there: an `asm` function with
+no body for the host's triple (`in8`, `lidt_load`, `cpu_halt`), a native, or,
+in `--runtime`, a function named after a runtime helper. Such a function is
+exempt from the two-case minimum, with a note naming what it reaches, and a case
+under it is an error. What it does is checked by `idc/tests/kernel.sh`, which
+boots the image. The kernel and the runtime still build with `--allow-untested`
+until their other functions have their cases.
+
 String comparison is the one lowering that differs: hosted it calls `strcmp`
 and gets libc's, freestanding it calls `id_strcmp` and gets the runtime's. A
 freestanding module links nothing unprefixed.

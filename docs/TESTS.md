@@ -344,12 +344,12 @@ A case has 10 seconds of wall time and 1 GiB of address space; a case that
 runs out of either fails the same way. Scaling claims are judged once every
 case has passed, since a count from a case that failed measures nothing.
 
-The harness is built for and run on the machine doing the build. A build whose
-cases cannot run there — `--freestanding`, or a `--triple` other than the
-host's — is refused with that reason rather than built without them. A build
-with no cases anywhere has no harness to refuse, so a tree that writes none
-(the kernel, the runtime) still builds freestanding — but only with
-`--allow-untested`, now that cases are required ("An open question", below).
+The harness is built for and run on the machine doing the build. A
+`--freestanding` build's harness is too: the same source, built for the host,
+with the object built for its own triple only once every case has passed ("A
+freestanding build runs its cases on the build host", below). A hosted build
+for a `--triple` other than the host's, with cases, is refused with that reason
+rather than built without them.
 A program that uses a native backend gets the
 backend linked into its harness as well, so a tested function that calls into
 one really runs.
@@ -413,7 +413,11 @@ all have their cases still needs `--allow-untested`, or `--no-std`, to build.
 and `idc/bin/idc` still has `--allow-untested`, saying to delete it. The count
 is functions, not cases — each case is credited to the function it is written
 under — so functions with many cases cannot hide one with none. It covers every
-tree a build here passes the flag for, the kernel and runtime included.
+tree a build here passes the flag for, the kernel and runtime included. A
+function that cannot be tested on the build host needs no cases and is not
+counted short; which functions those are is asked of `idc/bin/idc
+--list-untested`, not guessed from the text ("A freestanding build runs its
+cases on the build host", below).
 
 The order that gets there: `idstd` first (a standard library is where an
 untested function costs the most, and today it holds back every other build),
@@ -421,39 +425,111 @@ then new code, then the compiler's own source last — it is the largest and the
 one whose behaviour is already pinned by `idc/tools/parity.sh` and
 `idc/tests/conform.sh`.
 
-### An open question: a freestanding build cannot comply
+### A freestanding build runs its cases on the build host
 
-A `--freestanding` build (and `--runtime`, which implies it) refuses a build
-that has any case, because the harness runs on the machine doing the build and
-a freestanding program has none to run on ("How it runs"). With two cases
-required, that leaves a freestanding program no state that builds without the
-flag. Without cases:
+A `--freestanding` build (and `--runtime`, which implies it) has no host of its
+own, so its cases run on the machine doing the build, against the same source.
+`idc/bin/idc` passes `idparse --host-triple` with that machine's triple, and the
+harness is emitted for it -- the hosted C target, built with `cc`, one process
+per case, the same limits -- while the program is still emitted for `--triple`.
+The harness runs first, exactly as a hosted build's does, and the object is
+built only if every case passes. A failing case fails the build at its own
+line, and no object is written.
+
+This was an open question, with three answers on the table. Running the cases
+hosted is the one taken. Exempting freestanding builds from the minimum for
+good would have made the kernel the one place a function may drift. Accepting
+cases without running them would be a way to get output from a program whose
+cases have never passed.
+
+**Some functions cannot run on the build host.** A function reaches, through
+the call graph (a call, or its name passed as a value), one of:
+
+- an `asm` function with no body for the host's triple -- `in8`, `lidt_load`,
+  `cpu_halt`;
+- a `native`: a freestanding build links no backend, so what implements one is
+  whatever the object is finally linked with, which the build cannot name;
+- in a `--runtime` build, a function named after a runtime helper (`len`,
+  `concat`, `peek8`, ...): it is that helper's definition, and a harness on the
+  build host already has one, from the host's C runtime, so it would run the
+  host's and never this one.
+
+A function that reaches any of these cannot run in the harness. It is **exempt
+from the two-case minimum**. It is decided from the source and the host's
+triple alone, in `mid/names/limits/shape/cases/report/host/`, and each exemption
+is a note on stderr rather than applied silently:
 
 ```
-u.id:1: error: function 'add' has 0 test case(s); --require-tests needs at least 2 (see docs/TESTS.md)
+io.id:12: note: function 'kbd_scan' cannot be tested on the build host (x86_64-unknown-linux-gnu): it calls 'port_byte', which reaches asm 'in8', which has no body for that triple (defined for: x86_64-unknown-none); it is exempt from the two-case minimum
 ```
 
-and with them, whether or not `--allow-untested` is passed:
+The note names the callee a function reaches the thing through, or the thing
+itself when it is called directly (`it reaches asm 'in8', ...`) or when the
+function is it (`it is the runtime helper 'len', ...`). What a function is
+reported as reaching is the first such call in source order, found by the
+nearest sweep. Notes are printed when the minimum is on, which is when an
+exemption does anything. Under `--allow-untested` there is nothing to exempt a
+function from.
+
+**A case under such a function is an error**, because it would never run. It
+is decided whether or not the minimum is on, like the other case checks:
 
 ```
-idc: this build has 2 test cases, and a --freestanding build has no host to run them on
+io.id:11: error: 'kbd_scan' cannot be tested on the build host (x86_64-unknown-linux-gnu): it reaches asm 'in8', which has no body for that triple (defined for: x86_64-unknown-none); this case would never run, and a function that cannot be tested needs none
 ```
 
-So the kernel (`kernel/prog`) and the `id`-written runtime (`idc/runtime`),
-which `idc/tools/kbuild.sh` builds freestanding, pass `--allow-untested` with no
-cases — the one use of the flag that writing cases cannot remove. Their
-functions are counted in the table below, so the removal check cannot demand
-the flag's deletion while they are short of cases; but writing those cases
-would not let the kernel build without the flag either, so this question has
-to be settled before the count can reach zero.
+and the same for a setup, a check or a function value a case names:
+`'given' names 'st', which cannot be tested on the build host (...)`,
+`'then' names ...`, `this case passes ...`.
 
-This is not decided. The shapes visible from here: run a freestanding tree's
-cases hosted, against the same source built for the host (what
-`idc/tests/kernel.sh` already does by hand for the shell's demonstrations);
-exempt freestanding builds from the minimum permanently, which makes the kernel
-the one place a function may drift; or accept cases in a freestanding build and
-not run them, which is a way to get output from a program whose cases have
-never passed. Deleting `--allow-untested` waits on this as well as on adoption.
+**An `asm` function with a body for the host's triple is runnable.** Overloads
+are one function declared once per platform, with signatures that must agree,
+and a build selects the body for its triple exactly (`docs/ASM.md`). The harness
+is a build for the host, so selecting the host's body is that same rule, not a
+guess: a case under a function that calls it runs that body. What the body does
+on the host is as much the author's declaration as what it does on the target.
+
+**Everything else follows the normal rule.** The two-case minimum applies to
+every function that reaches none of these. Two limits:
+
+- Builtins keep their host meaning in the harness. `peek8`, `poke8` and friends
+  read the harness's flat store, `print` writes to the harness's stderr. A
+  function whose freestanding meaning differs through a builtin is tested
+  against the hosted one.
+- A hosted build exempts nothing, because its harness is built for its own
+  triple, and a hosted build for another `--triple` with cases is still
+  refused.
+
+Only `idc/bin/idc` has this; `idc/idc.py` has no freestanding target.
+
+**The adoption count asks the compiler.** `idc/bin/idc PATH FLAGS --list-untested`
+builds nothing and prints one row per function the minimum would name:
+
+```
+short|kernel/prog/sys/.../x.id:4|name|0
+exempt|kernel/prog/sys/hw/kbd/scan/hex.id:12|kbd_scan
+```
+
+The rows are the build's own diagnostics for the two rules, re-spelled, so the
+list cannot disagree with what a build prints. Any other diagnostic fails the
+listing. `idc/tools/statusgen.sh` lists `kernel/prog` and `idc/runtime` with the
+flags `idc/tools/kbuild.sh` builds them with, and does not count a function it
+names as exempt as short. `statusgen.sh --count PATH FLAGS` prints one tree's
+counts, which is how `idc/tests/tests_feature.sh` checks the exclusion.
+
+Measured 2026-09-13:
+
+| tree | functions | exempt | short of two cases, testable on the host |
+| --- | ---: | ---: | ---: |
+| `kernel/prog` | 237 | 52 | 185 |
+| `idc/runtime` | 81 | 79 | 2 |
+
+"Testable" here means reaching nothing in the list above; whether each one
+behaves the same hosted is known only once its cases are written. Of the
+runtime's 79, 40 are or reach a runtime helper and the rest reach its `asm`
+floor. The kernel's reach `poweroff`, `in8`, `out16`, `out32`, `lidt_load`,
+`isr_base`, `in16` and `cpu_halt`. `idc/tools/kbuild.sh` still passes
+`--allow-untested` for both until those 187 functions have their cases.
 
 ### Where the rollout actually stands
 
@@ -477,13 +553,13 @@ never passed. Deleting `--allow-untested` waits on this as well as on adoption.
 <!-- generated: adoption -->
 | repository | functions | cases written | functions short of two cases |
 | --- | ---: | ---: | ---: |
-| `id_development` (with editor, idem, kernel) | 5883 | 231 | 5782 |
-| `idstd` | 156 | 230 | 59 |
+| `id_development` (with editor, idem, kernel) | 5922 | 231 | 5690 |
+| `idstd` | 207 | 332 | 59 |
 | `c2id` | 1051 | 0 | 1051 |
 | `linux_id` | 0 | 0 | 0 |
-| **total** | **7090** | **461** | **6892** |
+| **total** | **7180** | **563** | **6800** |
 
-**Functions short of two cases: 6892 of 7090 (2.8% complete).** Generated by
+**Functions short of two cases: 6800 of 7180 (5.3% complete).** Generated by
 `idc/tools/statusgen.sh`; `idc/tests/run.sh` fails if it is stale. A repository
 with no `.id` beside this checkout counts zero.
 <!-- end generated -->
