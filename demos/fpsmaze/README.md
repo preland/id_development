@@ -39,7 +39,7 @@ as a stack via `id`'s own `push`/`pop` — no hand-rolled stack pointer needed:
 2. At the top of the stack, gather which of the 4 neighboring rooms (2 grid
    steps away) are still un-carved (`game/sim/maze/gen/logic/valid`).
 3. If any exist, pick one uniformly at random (the Park-Miller PRNG in
-   `game/util/rng`, seeded from `ticks()` so every run gets a different
+   idstd's `rnd_*`, seeded from `ticks()` so every run gets a different
    maze), knock down the wall between, and push the new room.
 4. If none exist, pop (backtrack).
 5. Repeat until the stack empties — every reachable room has been visited

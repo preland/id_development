@@ -45,8 +45,8 @@ holds) to make real-time terminal games possible:
 - **Input**: `last_key()` drains all keys buffered since the last frame and
   returns the most recent (or `-1`), so input never lags the animation.
 - **Terminal**: `term_setup()` / `term_done()` enter and leave full-screen mode.
-- **PRNG**: `rng_seed`, `rng_next`, `rng_range(n)` — a Park-Miller generator via
-  Schrage's method (no overflow, no bitwise ops, which `id` lacks).
+- **PRNG**: none of its own — idstd's `rnd_init`, `rnd_next` and
+  `rnd_range(lo, hi)`, a Park-Miller generator.
 
 ## The frame loop
 

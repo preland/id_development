@@ -40,10 +40,9 @@ angle math is table-driven integer arithmetic:
   (`sin_q` -> `sin_q01`/`sin_q23`) rather than one long `if`/`else if`
   chain, to keep every block at or under the 3-action limit. `cos_deg(d)`
   is just `sin_deg(d + 90)` -- no separate table.
-- **PRNG** (`galaxy/math/rng/{rng,rng2,lset}.id`): the same Park-Miller
-  minimal-standard generator (Schrage's method, no overflow, no bitwise
-  ops) copied from `demos/moonbuggy`/`demos/gl3dgame`. `rng_range(n)` is a
-  uniform pick in `0..n-1`; `noise_range(half)` is symmetric jitter in
+- **PRNG** (`galaxy/math/rng/lset.id`): idstd's `rnd_init`/`rnd_next`/
+  `rnd_range`, the Park-Miller minimal-standard generator. `rnd_range(0, n - 1)`
+  is a uniform pick in `0..n-1`; `noise_range(half)` is symmetric jitter in
   `-half..+half`, reused for angle jitter, disk-height jitter, and
   color-channel noise alike.
 - **Per-particle shape** (`galaxy/particles/shape/{radius,theta}.id`):

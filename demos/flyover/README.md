@@ -107,10 +107,8 @@ demos/flyover/
     ├── terrain/                  -- generate once, static thereafter
     │   ├── heightmap/
     │   │   ├── gen.id            (terrain_init, alloc_heights, generate_heights)
-    │   │   ├── random/           -- PRNG + raw fill
-    │   │   │   ├── fill.id       (raw_fill, push_height, rng_height)
-    │   │   │   ├── rng.id        (rng_seed, set_seed, pos_seed)
-    │   │   │   └── rng2.id       (rng_next, schrage, fixup)
+    │   │   ├── random/           -- raw fill from idstd's rnd_*
+    │   │   │   └── fill.id       (raw_fill, push_height, rng_height)
     │   │   └── smooth/           -- neighbor-averaging passes
     │   │       ├── smooth.id     (smooth_heights, smooth_rows, smooth_cols)
     │   │       └── cell.id       (smooth_cell, sum5, lset)
