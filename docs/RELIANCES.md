@@ -148,7 +148,7 @@ them, because the C target was the only target when the prelude was written.
 | --- | ---: | --- |
 | `flatten.py` | 565 | **deleted**: it was a one-off migration tool, not something to port |
 | `lint_idcpy.py` | 150 | nothing — it dies with `idc/idc.py` |
-| `qmon.py` | 142 | **sockets and processes**. It starts QEMU, drives it over QMP (a JSON protocol) on a Unix-domain socket, reads while the child runs, and kills it |
+| `qmon.py` | 142 | **ported**: `idc/tools/qmon/`, run by `tools/qmon.sh`, on two new native backends (`backends/proc`, `backends/sock`) |
 | `gen_runtime_id.py` | 121 | nothing — it dies with the C prelude |
 | `mkfont.py` | 90 | **ported**: `idc/tools/mkfont/`, run by `tools/mkfont.sh`, which unpacks the gzipped font |
 | `fbtext.py` | 86 | **ported**: `idc/tools/fbtext/`, run by `tools/fbtext.sh` |
@@ -156,11 +156,13 @@ them, because the C target was the only target when the prelude was written.
 | `mkkeymap.py` | 50 | **ported**: `idc/tools/mkkeymap/`, run by `tools/mkkeymap.sh` |
 
 **Cost.** Three of these (308 lines) evaporate when `idc/idc.py` and the C prelude
-go. Four more (308 lines) were portable with no new language feature, and all
-four are now `id` programs: `mkfont`, `fbtext` and `mkkeymap` share
-`idc/tools/lib/` for whole-file reads and hexadecimal text, and `mkodt` writes
-through the `fs` backend on its own. Only `qmon.py` is genuinely blocked: it needs a backend for Unix-domain
-sockets and for starting, reading from and killing a child process.
+go. Five more (450 lines) were portable, four with no new language feature and
+one — `qmon` — once it had one, and all five are now `id` programs: `mkfont`,
+`fbtext` and `mkkeymap` share `idc/tools/lib/` for whole-file reads and
+hexadecimal text, `mkodt` writes through the `fs` backend on its own, and
+`qmon` is built on `backends/proc` and `backends/sock` (a child process, and a
+Unix-domain socket, were the two things `id` could not do that this tool
+needed).
 
 Anchor: `editor/lib/zip/` is 28 files of `id` that inflate DEFLATE and read a
 ZIP central directory. `mkodt` was easier than that.
