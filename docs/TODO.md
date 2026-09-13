@@ -297,23 +297,58 @@ What that means concretely, to be designed rather than assumed:
 Measure first: where the seconds go today for a small project and for
 `idc/compiler/parse`, so the design targets the real cost.
 
-## 14. Move `idem`'s game seam onto function values
+## ~~14. Move `idem`'s game seam onto function values~~ — done
 
-`idem/engine/` calls six functions each game defines — `g_init`, `g_stage`,
-`g_step`, `g_draw`, `g_ref`, `g_act` — so every program that links the engine
-without being a game (the unit tests, the editor) imports `idem/stub/`: six
-no-ops that each touch a counter, because six identical no-ops would be one
-function under the duplicate-logic rule. Function values
-([`SPEC.md`](SPEC.md) §1.1) are the replacement the design chose: the engine
-takes the seam as values — exports its setup stores, read with
-`(import NAME)` where a frame calls them — and a game hands its functions in,
-so `stub/` and the name collision it exists to avoid both go away. Not done
-yet; what it has to settle:
+`idem/engine/` used to call six functions each game defines — `g_init`,
+`g_stage`, `g_step`, `g_draw`, `g_ref`, `g_act` — by fixed name, so every
+program that links the engine without being a game (the unit tests, the
+editor, a document-model game like flappy or fps) had to import `idem/stub/`:
+six no-ops that each touch a counter, because six identical no-ops would be
+one function under the duplicate-logic rule. Function values
+([`SPEC.md`](SPEC.md) §1.1) are the replacement:
 
-* each seam function's current signature becomes a function type, fixed in
-  the engine;
-* every place the engine calls a `g_*` name reads the export into a local
-  first, since a call is only through a parameter, local or export by name;
-* the values must be stored before the first frame, and nothing checks that
-  an export of a function type was stored before it is called;
-* `IDEM_COMPILER=idc.py` cannot build it: `idc/idc.py` has no function values.
+* `idem_app` (`idem/engine/game/run/loop/go/sim/step/app/app.id`) takes the
+  six as arguments — `func() return void`, `func(int) return int`,
+  `func(int) return void`, `func() return void`, `func(string) return int`,
+  `func(string) return void` — and cannot be called without them.
+* Its first action stores them with `eng_seam`, a three-function chain (two
+  `export` stores each, the most one block's action limit allows) ending in
+  six exports: `eng_init`, `eng_stage`, `eng_step`, `eng_draw`, `eng_ref`,
+  `eng_act`. Every place the engine used to call a `g_*` name now reads the
+  matching export with `(import ...)` into a local first and calls that —
+  `open.id`, `loop.id`, `sh/run.id` (the `app/` subtree) and
+  `game/load/ui/leaf/arg/t/v/val.id` (`ui_val`, which every `@ref` goes
+  through, game or editor).
+* **Before-set decision:** nothing checks that an export of a function type
+  was stored before it is called, so the guarantee is structural, not a
+  runtime check. `idem_app`'s first action is `eng_seam`, and everything that
+  can reach a seam read — `idem_alay` and everything under it, including
+  `ui_val` — is only reachable *through* `idem_app`, so it is reachable only
+  after that first action ran. A host program that is not a game (the editor)
+  gets the same guarantee by construction rather than by a parameter: its own
+  `eng_seam` call is the last, unconditional step of its boot chain
+  (`editor/ui/st/more/boot/b/scn.id`, `ed_boot11`), before the loop that could
+  ever call `ed_draw` (→ `ui_val`) is reached. The unit tests reach neither
+  `idem_app` nor `ui_val`, so they need no seam call at all — `stub/`'s import
+  is simply gone from their manifests, nothing replaces it.
+* `games/pong/id/` needed no changes: its functions were already named
+  `g_init`/`g_stage`/`g_step`/`g_draw`/`g_ref`/`g_act`, and the packer
+  (`idem/packer/emit/emit.id`) passes exactly those names into the generated
+  `idem_app(...)` call when a game has an `id/` — mechanically, since the
+  packer cannot see what a game called its own functions and a fixed
+  convention is what lets it stay generic.
+* `idem/stub/` is deleted, along with its imports from the nine unit test
+  manifests that named it and from `tools/idem pack`'s fallback for a
+  document-model game with no `id/`.
+* `IDEM_COMPILER=idc.py` cannot build any of this: `idc/idc.py` has no
+  function values, noted where `tools/idem` documents the variable.
+
+Diagnostics before and after (`idc/bin/idc . --emit-c /dev/null
+--allow-untested`, `IDSTD_HOME` pinned): every `no such function 'g_*'` error
+under `engine/` is gone (5 of them), one `argument 0 of 'g_step' contains a
+call` is gone as a side effect of reading the stage into a local first, and
+one pre-existing `argument 0 of 'idem_alay' contains a call` moved from
+`app.id` to `go.id` with the code it names (unchanged violation, not fixed,
+not new). `idem/engine`, `idem/editor` and every `idem/tests/unit/*` target
+still do not build — about 1090-1120 errors each from unrelated, pre-existing
+language-rule violations, same count and shape before and after.
