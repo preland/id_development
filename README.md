@@ -281,7 +281,7 @@ resolves them as follows — revisit as the language evolves:
   `flush()` flushes stdout, `getkey()` polls one key **without blocking**
   (`-1` if none; raw mode is entered lazily and restored at exit),
   `sleep_ms(n)` sleeps, and `ticks()` returns monotonic milliseconds. On these,
-  `demos/engine` is a small full-screen game engine, and `demos/moonbuggy`
+  idstd's `sys/io/term` is a small full-screen game engine, and `demos/moonbuggy`
   (a real-time side-scroller) and `demos/solitaire` (Klondike) are games
   **written in `id`**.
 - **No file I/O among the builtins.** The list above is the whole of it: a

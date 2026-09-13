@@ -68,12 +68,11 @@ width walls, fully connected, matches the odd/even grid convention):
 ## The sine-table trick
 
 `id` has no `sin`/`cos` builtin and no reliable float literals to compute
-one at runtime, so `game/util/trig/table.id` hardcodes a **91-entry quarter
-wave** (`sin(0deg)*1000 .. sin(90deg)*1000`, computed offline in Python and
-pasted as an `int[]` literal — the same "precompute it, paste it" idiom
-`game/sim/maze/gen/core/dirs`'s direction table and `demos/moonbuggy`'s
-craters use). `game/util/trig/sincos.id` + `quadhelp.id` fold any integer
-degree into the table via quadrant symmetry:
+one at runtime, so a **91-entry quarter wave** (`sin(0deg)*1000 ..
+sin(90deg)*1000`) is hardcoded and every integer degree is folded into it
+via quadrant symmetry. The table and the fold are idstd's `fx_sin_deg` /
+`fx_cos_deg` now: this demo and `demos/galaxy` each carried a copy, and a
+function written in two projects lives in idstd. The fold:
 
 ```
 q = (d mod 360) / 90         r = (d mod 360) mod 90
@@ -234,8 +233,8 @@ demos/fpsmaze/
   game/                        (3 entries)
     world.id                 -- game_init()/init_actors(): seed, carve, spawn
     util/                       (2 entries)
-      trig/                       (3 files: table.id, sincos.id, quadhelp.id
-                                    -- the sine table, see above)
+      trig/                       (1 file: table.id -- norm_deg, the yaw
+                                    fold; sin/cos are idstd's, see above)
       rng/                        (3 files: Park-Miller PRNG, same generator
                                     demos/gl3dgame and demos/moonbuggy use)
     sim/                         (3 entries)

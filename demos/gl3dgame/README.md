@@ -84,13 +84,10 @@ demos/gl3dgame/
       input/                        (2 files: keys.id, move.id)
       target/                       (2 files: hit.id, respawn.id)
     scene/                        (2 entries: mesh/, render/)
-      mesh/                         (3 entries)
-        geom/                         (2 files: corners.id, face.id --
-                                        cube geometry parameterized by a
-                                        half-extent, generalized from
-                                        demos/gl3d's fixed-size cube)
-        meshbuild/                    (3 files: vertbuild.id, vertpush.id,
-                                        colorbuild.id)
+      mesh/                         (1 entry -- the cube geometry, parameterized
+                                      by a half-extent, is idstd's
+                                      d3_cube_verts/d3_cube_colors, shared
+                                      with demos/fpsmaze)
         objects/                      (3 files: player.id, target.id,
                                         pillars.id -- one mesh-init function
                                         per object kind + the static pillar

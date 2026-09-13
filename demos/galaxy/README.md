@@ -27,19 +27,11 @@ matrix multiply and resubmits it -- see "Swirl" below.
 `id` has no float literals worth relying on and no bitwise ops, so all
 angle math is table-driven integer arithmetic:
 
-- **Sine table** (`galaxy/math/trig/table.id`): `sin(0..90 deg) * 1000`,
-  computed offline in Python and pasted in as a 91-entry `int[]` literal.
-  `sin90(i)` looks a value up directly.
-- **Quadrant reduction** (`galaxy/math/trig/norm.id` +
-  `galaxy/math/trig/angle/{sin,quad,cos}.id`): `sin_deg(d)` normalizes any
-  integer degree into `0..359` (`norm_deg`/`fix_neg`, since `%` follows C
-  truncating semantics and can go negative), splits it into quadrant
-  `q = n/90` and remainder `r = n%90`, and reflects `r` through the table
-  per quadrant (`sin(90+r)=cos(r)=sin90(90-r)`, `sin(180+r)=-sin(r)`,
-  `sin(270+r)=-cos(r)`). The dispatch is a small tree of 2-function calls
-  (`sin_q` -> `sin_q01`/`sin_q23`) rather than one long `if`/`else if`
-  chain, to keep every block at or under the 3-action limit. `cos_deg(d)`
-  is just `sin_deg(d + 90)` -- no separate table.
+- **Sine and cosine**: idstd's `fx_sin_deg(d)`/`fx_cos_deg(d)`, integer
+  degrees in, x1000 out, over idstd's 91-entry quarter-wave table
+  (`fx_trig_init`). This demo carried its own copy of that table and its
+  quadrant fold until the same code turned up in `demos/fpsmaze`; a function
+  written in two projects lives in idstd.
 - **PRNG** (`galaxy/math/rng/lset.id`): idstd's `rnd_init`/`rnd_next`/
   `rnd_range`, the Park-Miller minimal-standard generator. `rnd_range(0, n - 1)`
   is a uniform pick in `0..n-1`; `noise_range(half)` is symmetric jitter in
@@ -53,8 +45,8 @@ angle math is table-driven integer arithmetic:
   3 arms 120 degrees apart, plus a winding term proportional to radius (so
   the angle sweeps further round the further out a particle sits -- the
   actual "spiral"), plus +-20 degrees of scatter.
-- **Cartesian + color** (`galaxy/particles/look/`): `x = r*cos_deg(theta)/1000`,
-  `z = r*sin_deg(theta)/1000` (`position/xz.id`); `y` is a PRNG sample
+- **Cartesian + color** (`galaxy/particles/look/`): `x = r*fx_cos_deg(theta)/1000`,
+  `z = r*fx_sin_deg(theta)/1000` (`position/xz.id`); `y` is a PRNG sample
   within a radius-dependent thickness that shrinks from 300 milli-units at
   the core to 60 at the rim (`position/y.id`, "thin disk, thicker core").
   Color interpolates from a hot yellow-white core `(255,240,180)` to a
@@ -120,9 +112,6 @@ demos/galaxy/
   loop/{loop,frame}.id                 -- frame loop + periodic status line
   galaxy/
     math/
-      trig/table.id                    -- the 91-entry sine table
-      trig/norm.id                     -- angle normalization
-      trig/angle/{sin,quad,cos}.id     -- quadrant-reduced sin/cos
       rng/{rng,rng2,lset}.id           -- Park-Miller PRNG + range helpers
     particles/
       gen/{gen,add}.id                 -- build the pos[]/col[] lists

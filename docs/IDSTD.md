@@ -444,15 +444,13 @@ a `string` is NUL-terminated. To write new: `file_read_all` (chunked into the
 flat store; `idem/engine/game/load/asset/io/` is the worked example, 64 KB
 staging), `file_write_all`, `file_lines`, `file_slurp_text`.
 
-**Terminal**, from `id_development/demos/engine`: `term_setup`/`term_done`, raw
-mode, SGR colour, the character-cell screen model, `draw_text`, `draw_box`,
-`draw_hline`/`draw_vline`, dirty-cell rendering, `finish_frame`.
-
-⚠️ **`demos/engine` cannot be lifted as-is.** Its functions are named `clear()`,
-`render()`, `drain()`, `fixup()`, `set_cell()`, `lset()` — bare, unprefixed
-names, which is exactly the collision class an always-on library must not create.
-Every one needs a `term_` prefix, and `lset` must become the shared one from
-§3.2 rather than a second copy (which would be a duplicate-logic error).
+**Terminal** — **built**, as `sys/io/term`: `demos/engine`, which
+`demos/moonbuggy` and `demos/solitaire` each bundled, lifted with every function
+given the `term_` prefix (`term_init`, `term_set`, `term_text`, `term_box`,
+`term_hline`/`term_vline`, `term_clear`, `term_render`, `term_key`,
+`term_setup`/`term_done`) and its exports renamed `term_w`, `term_h`,
+`term_scr`, `term_attr`, `term_pal`. `demos/engine` itself is gone; see
+idstd's `NAMES.md` §1.10.
 
 ### 3.6 `sys/win` — `sys_`, `inp_`
 

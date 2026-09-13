@@ -55,7 +55,8 @@ corner_z(int i) { } return int (((i / 4) % 2) * 2 - 1) * 1000;
 ```
 
 The 6 faces are a 36-entry table of corner indices (12 triangles * 3,
-`geom/face.id`), one color per corner (`geom/color.id`), and
+idstd's `d3_cube_corner`, shared with demos/fpsmaze and demos/gl3dgame), one
+color per corner (`geom/color.id`), and
 `scene/mesh/meshbuild/` walks vertex slots 0..35 to flatten both into the
 `int[]` lists `backends/gl`'s `gl_draw_tris(verts, colors, count)` expects: 9
 milli-unit ints per triangle for `verts`, 3 packed `0xRRGGBB` ints per triangle
@@ -72,7 +73,7 @@ demos/gl3d/
     frame.id                  -- one frame: render(t), then poll
   scene/                       (2 entries)
     mesh/                        (3 entries)
-      geom/                        (3 files: corners.id, face.id, color.id)
+      geom/                        (2 files: corners.id, color.id)
       meshbuild/                   (3 files: vertbuild.id, vertpush.id, colorbuild.id)
       api.id                    -- mesh_init()
     render/                      (3 files: init.id, frame.id, draw.id)
