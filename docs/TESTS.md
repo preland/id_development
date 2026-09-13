@@ -186,11 +186,44 @@ none:
 ## How it runs
 
 `id` has no interpreter yet (`docs/BACKENDS.md` step 4), so the cases cannot
-be folded at compile time. Instead `idc` builds a **harness**: the program's
-functions, plus a generated entry point that runs every case and reports the
-first failure. It runs the harness, and only if it passes does it produce the
-program the user asked for. `--emit-c` runs the tests too — the point is that
-there is no way to get output from a program whose cases fail.
+be folded at compile time. Instead `idc/bin/idc` builds a **harness** on every
+build: every case in the build — in the program's own tree, its dependencies
+and the standard library — together with the functions those cases can reach,
+their work counted, and a generated entry point that runs every case. It runs the harness first, and only if every case passes
+does it produce what was asked for. `--emit-c` and `--emit-llvm` run the cases
+too, and there is no flag that turns them off: the point is that there is no
+way to get output from a program whose cases fail.
+
+**Each case runs in a process of its own.** A case that traps, crashes or
+corrupts module state takes no other case with it, and the flat-store
+addresses a case sees are the ones it would see alone — they do not depend on
+what the cases before it allocated. Every failing case is reported at its own
+line, and the build stops:
+
+```
+add.id:4: test failed: add(1, 2) = 3, expected 4
+quot.id:6: test failed: quot(7, 0) trapped: id: division by zero
+down.id:4: test failed: down(0) was killed by signal 11 (Segmentation fault)
+```
+
+A case has 10 seconds of wall time and 1 GiB of address space; a case that
+runs out of either fails the same way. Scaling claims are judged once every
+case has passed, since a count from a case that failed measures nothing.
+
+The harness is built for and run on the machine doing the build. A build whose
+cases cannot run there — `--freestanding`, or a `--triple` other than the
+host's — is refused with that reason rather than built without them. A build
+with no cases anywhere has no harness, so a tree that writes none (the kernel,
+the runtime) is not affected. A program that uses a native backend gets the
+backend linked into its harness as well, so a tested function that calls into
+one really runs.
+
+`idparse --harness` writes the harness ahead of the program on the same
+stream, so one parse produces both, and the program is emitted exactly as it is
+without the flag — `idc/tools/parity.sh` still compares it with `idc/idc.py`
+byte for byte. The harness's code is
+`idc/compiler/parse/back/tgt/c/emit/prog/test/`. `idc/idc.py` runs cases only
+under `--tests`, in one process.
 
 When the interpreter target lands, the harness stops being a subprocess and
 becomes an evaluation inside the compiler; the syntax and the diagnostics do
@@ -204,22 +237,23 @@ today**, and the reason is arithmetic: this repository has 1828 functions,
 without writing 6816 cases first would mean nothing in any of the three
 repositories compiles.
 
-So there are two switches:
+So running a case and requiring one are separate:
 
-- `--tests` runs every case that *is* written, and fails the build on a
-  failure. This is safe to turn on everywhere immediately, and should be.
+- Every case that *is* written runs on every build of `idc/bin/idc`, and a
+  failure fails the build. There is no switch for this, in either direction.
+  (`idc/idc.py` still spells it `--tests` and runs nothing without it.)
 - `--require-tests` additionally rejects a function that has fewer than two.
   This is the end state, and it is reached one directory at a time.
 
-The order that keeps the tree building: turn `--tests` on everywhere, then
-`--require-tests` on `idstd` first (201 functions, and a standard library is
-where an untested function costs the most), then new code, then the
-compiler's own source last — it is the largest and the one whose behaviour is
-already pinned by `idc/tools/parity.sh` and `idc/tests/conform.sh`.
+The order that keeps the tree building: `--require-tests` on `idstd` first
+(201 functions, and a standard library is where an untested function costs
+the most), then new code, then the compiler's own source last — it is the
+largest and the one whose behaviour is already pinned by
+`idc/tools/parity.sh` and `idc/tests/conform.sh`.
 
 ### Where the rollout actually stands
 
-> **Status, 2026-08-19.**
+> **Status, 2026-09-13.**
 >
 > **`--require-tests` is enforced by the primary compiler.** It used to exist
 > only in `idc/idc.py` — the self-hosted compiler parsed cases and ignored them,
@@ -239,13 +273,13 @@ already pinned by `idc/tools/parity.sh` and `idc/tests/conform.sh`.
 <!-- generated: adoption -->
 | repository | functions | cases written | cases needed (2 each) |
 | --- | ---: | ---: | ---: |
-| `id_development` | 2159 | 0 | 4318 |
+| `id_development` | 2346 | 0 | 4692 |
 | `idstd` | 156 | 230 | 312 |
 | `c2id` | 877 | 0 | 1754 |
 | `linux_id` | 0 | 0 | 0 |
-| **total** | **3192** | **230** | **6384** |
+| **total** | **3379** | **230** | **6758** |
 
-**Adoption: 3.6%.** Generated by `idc/tools/statusgen.sh`; `idc/tests/run.sh` fails
+**Adoption: 3.4%.** Generated by `idc/tools/statusgen.sh`; `idc/tests/run.sh` fails
 if it is stale. A repository with no `.id` beside this checkout counts zero.
 <!-- end generated -->
 
@@ -257,12 +291,16 @@ if it is stale. A repository with no `.id` beside this checkout counts zero.
 > so it is tested in `idc/tests/tests_feature.sh` against `idc/bin/idc` alone rather
 > than in `idc/tests/invalid/`, which requires both to agree.
 >
-> **`--tests` is not yet in the self-hosted compiler.** Running a case needs a
-> generated entry point that calls each function and compares; only `idc/idc.py`
-> emits one. `--require-tests` needs no such thing — it is a count — which is
-> why the enforcing half landed first and the executing half has not.
+> **Every written case runs on every build of the primary compiler.**
+> `idc/bin/idc` builds a harness beside the program and runs it before it
+> produces anything (see "How it runs"), so a case that does not pass is a
+> compile error, with no flag either way. Whether a case fits its function —
+> its argument count, its expected values, the types of its literals — is
+> checked on every build as well, in
+> `mid/names/limits/shape/cases/more/fit/`. `idstd`'s 230 cases all pass
+> under it.
 >
-> Next: `idstd`, per the order above.
+> Next: `--require-tests` on `idstd`, per the order above.
 
 ### What the case format cannot express
 
@@ -280,8 +318,10 @@ with no way for the author to comply:
 - **Functions taking a flat-store address.** All 6 of `core/data/buf`, and
   `str_blit`, `fmt_pad_fill` and friends. An address is only valid once
   `alloc()` has returned it, and a case argument must be a literal — no calls.
-  A literal address would also depend on how much every *other* case in the
-  build had already allocated, so it is not merely awkward but nondeterministic.
+  A literal address is at least deterministic now — each case runs in a
+  process of its own, so what it is handed does not depend on what the other
+  cases allocated — but writing one down still means knowing the allocator's
+  layout, which no case should have to.
 
 Both are real limits of "a case is two literal tuples", not oversights. The
 rule cannot be turned on for a directory containing either kind until the
@@ -289,6 +329,7 @@ format grows a way to say *set this up first* — which is a language design
 question, not a rollout question, and it is the thing standing between
 `--require-tests` and `idstd`.
 
-There is also a third, milder one: every case in a build runs as sequential
-calls in one shared `main`, with no isolation, so a case that corrupts state
-takes down every other module's cases with it.
+There used to be a third, milder one: every case in a build ran as sequential
+calls in one shared `main`, with no isolation, so a case that corrupted state
+took down every other module's cases with it. `idc/bin/idc` runs each case in a
+process of its own, which ends that; `idc/idc.py --tests` still does not.
