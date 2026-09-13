@@ -526,8 +526,8 @@ Measured 2026-09-13:
 
 "Testable" here means reaching nothing in the list above; whether each one
 behaves the same hosted is known only once its cases are written. Of the
-runtime's 79, 40 are or reach a runtime helper and the rest reach its `asm`
-floor. The kernel's reach `poweroff`, `in8`, `out16`, `out32`, `lidt_load`,
+runtime's 79, 41 are or reach a runtime helper (34 are one) and 38 reach its
+`asm` floor. The kernel's reach `poweroff`, `in8`, `out16`, `out32`, `lidt_load`,
 `isr_base`, `in16` and `cpu_halt`. `idc/tools/kbuild.sh` still passes
 `--allow-untested` for both until those 187 functions have their cases.
 
