@@ -35,7 +35,9 @@ fault: reading 0x140000000, which has no page behind it
 
 That is a *graphical* shell: the same text is on a 640x480 framebuffer, drawn
 glyph by glyph from an 8x16 font, and `idc/tools/fbtext` reads it back off the
-screen by matching each cell against that same font. `idc/tests/kernel.sh` asserts
+screen by matching each cell against that same font. `idc/tools/qmon` is what
+gets both out of QEMU in the first place -- it boots the kernel, types at its
+serial port, and asks QMP for a screenshot -- and `idc/tests/kernel.sh` asserts
 on both -- a console that wrote to the serial port and drew nothing would pass
 every other check and fail that one.
 

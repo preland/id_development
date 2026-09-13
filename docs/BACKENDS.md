@@ -217,7 +217,8 @@ and are otherwise honest dead weight until step 1 lands.
 Two different things are called a backend in this repo: a **compiler target**
 (the code generator this document is about) and a **native backend** (a
 directory under `idc/backends/` that supplies functions at link time — `gfx`, `gl`,
-`fs`). A second compiler target must not drag the second kind along with it.
+`fs`, `proc`, `sock`). A second compiler target must not drag the second kind
+along with it.
 
 It does not have to. A native backend declares itself twice, both times in
 `id` — once as what it provides, and once in its `backend.id` as how to link it:
