@@ -14,7 +14,7 @@ git submodules, each its own repository.
 
 | path | what it is |
 | --- | --- |
-| [`docs/`](docs) | the specification and design docs (18 files — see "Further reading" below) |
+| [`docs/`](docs) | the specification and design docs (19 files — see "Further reading" below) |
 | [`demos/`](demos) | example `id` programs |
 | `flake.nix`, `.envrc` | the Nix devshell |
 | [`idc/`](idc) (submodule) | the toolchain: `bin/idc`, the self-hosted compiler, the bootstrap, `idc.py`, the native backends, the dev tools, and the test suite — see [`idc/README.md`](idc/README.md) |
@@ -284,6 +284,16 @@ resolves them as follows — revisit as the language evolves:
   `fs_remove` and `fs_error` at link time, and `demos/fsdemo` writes a file,
   reads it back and removes it in ~40 lines of `id` that never name C. See
   [`idc/README.md`](idc/README.md) for how a backend attaches.
+- **Which implementation of a backend you get is chosen for you.** A build
+  carries a target triple, derived from the machine you are on unless
+  `--triple` says otherwise, and a backend's `backend.json` is indexed by the
+  platform in it — so the source does not change when the platform does. A
+  backend with nothing for the platform you asked for stops the build and says
+  so by name (`backend 'gl' has no support for platform 'darwin' …; it is
+  implemented for: linux`), as does an `asm` function with no body for that
+  triple. `--triple` picks sources and `asm` overloads, not a code generator:
+  the C target still compiles with your `cc`, so a platform it cannot target is
+  refused rather than faked. [`docs/PROJECT.md`](docs/PROJECT.md) §7.
 
 ## The standard library (`idstd`)
 
@@ -336,7 +346,7 @@ still outstanding.
 
 ## Further reading
 
-`docs/` holds 18 files. The toolchain internals — native backends, the two
+`docs/` holds 19 files. The toolchain internals — native backends, the two
 code generators, self-hosting, `idc.py`'s retirement — are in
 [`idc/README.md`](idc/README.md) instead of here.
 
@@ -344,6 +354,7 @@ code generators, self-hosting, `idc.py`'s retirement — are in
 | --- | --- |
 | [`SPEC.md`](docs/SPEC.md) | the language specification — normative and executable |
 | [`TUTORIAL.md`](docs/TUTORIAL.md) | writing your first `id` program |
+| [`PROJECT.md`](docs/PROJECT.md) | starting a project, and the seven things that go wrong |
 | [`TESTS.md`](docs/TESTS.md) | tests as part of a function's definition |
 | [`KERNEL.md`](docs/KERNEL.md) | the kernel and the runtime under it |
 | [`EDITOR.md`](docs/EDITOR.md) | the document editor |
