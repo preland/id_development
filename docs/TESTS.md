@@ -56,6 +56,19 @@ Most cases are just `(ARGS):(EXPECTED)`:
 to describe behaviour. The compiler requires two and does not care which two,
 which is a floor rather than a target.
 
+**`main` is a function like any other, and needs its two as well.** Its cases
+are usually about parameter handling and edge cases — no arguments, too many,
+an argument that does not parse:
+
+```
+main(int argc, string[] argv) {
+  int n = len(argv);
+  int r = n - argc;
+} return int r;
+(1, ["prog"]):(0)
+(3, ["prog", "a", "b"]):(0)
+```
+
 **And they must be two different cases.** Writing the same case twice is the
 cheapest way to satisfy a two-case minimum without producing any evidence, so
 a duplicate is an error:
