@@ -366,6 +366,54 @@ while(is_alnum(charat(src, i))) {     rejected
 while(is_alnum_at(src, i)) {          the composition, as a function
 ```
 
+### 7.2 A function is not a constant
+
+**A function that only returns one scalar constant is rejected.** Such a
+function is a constant under a function's name: every caller has to open it to
+learn that it never changes. A value that never changes is declared as one, in
+the project's `conf.id` (`docs/PROJECT.md` §5), and read with `(import name)`.
+
+```
+ch_nl() {                      rejected
+} return int 10;
+
+funcs_per_file() {             rejected -- a local initialised to a literal
+  int n = 3;
+} return int n;
+
+zero(int a) {                  rejected -- the parameter is never used
+} return int 0;
+
+k() {                          rejected -- 2 * 1000 folds to 2000
+  int n = 2 * 1000;
+} return int n;
+```
+
+```
+p.id:1: error: 'ch_nl' only returns the constant 10; declare it in conf.id as
+  'int ch_nl = 10;' and read it with (import ch_nl)
+```
+
+Precisely, a function is rejected when it is not `main`, not a `native`
+declaration, and returns `int`, `word`, `float` or `string`; when every
+statement of its body declares a local of its own (not an `export`) or assigns
+one, each time to a value that is a literal or an operator over literals the
+compiler folds; and when its return clause is such a literal or one of those
+locals. A call, an `import`, a parameter, a loop, a branch or a write through
+an index anywhere in the body makes it a function. So do these, deliberately:
+
+- **A list.** `} return int[] ps;` over `int[] ps = [2, 3, 5];` builds a fresh
+  list on every call, so each caller owns what it got. A shared constant could
+  not behave that way.
+- **Assigning a parameter.** `reset(int a) { a = 5; } return int a;` uses its
+  parameter; a parameter is not one of the function's own locals.
+
+Folding is the compiler's existing constant fold for integers, and only it: a
+value it does not reduce -- `-1` written with the unary operator, a float
+expression, a local initialised from another local -- is not recognised as a
+constant, and such a function is accepted. A negative result is spelled in the
+diagnostic as the subtraction that folds (`int n = 0 - 1;`).
+
 ## 8. Traps
 
 A trap writes one line to **stderr** and exits with status **1**. It is not

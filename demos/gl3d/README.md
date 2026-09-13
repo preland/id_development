@@ -74,7 +74,7 @@ demos/gl3d/
     mesh/                        (3 entries)
       geom/                        (3 files: corners.id, face.id, color.id)
       meshbuild/                   (3 files: vertbuild.id, vertpush.id, colorbuild.id)
-      api.id                    -- mesh_init(), tri_count()
+      api.id                    -- mesh_init()
     render/                      (3 files: init.id, frame.id, draw.id)
 ```
 

@@ -113,7 +113,7 @@ demos/flyover/
     │   │       ├── smooth.id     (smooth_heights, smooth_rows, smooth_cols)
     │   │       └── cell.id       (smooth_cell, sum5, lset)
     │   ├── mesh/
-    │   │   ├── build.id          (mesh_init, tri_count)
+    │   │   ├── build.id          (mesh_init)
     │   │   ├── geom/             -- corner index/coordinate/color math
     │   │   │   ├── index.id      (local_of, corner_index, slot_corner)
     │   │   │   ├── coords.id     (corner_x, corner_y, corner_z)

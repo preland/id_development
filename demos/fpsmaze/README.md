@@ -27,7 +27,7 @@ for turning instead.
 
 ## The maze: randomized DFS on an odd/even grid
 
-`game/sim/maze` represents the maze as a flat `grid_w() x grid_h()` (15x13)
+`game/sim/maze` represents the maze as a flat `(import grid_w) x (import grid_h)` (15x13)
 `int[]` (`1` = wall, `0` = open), using the classic "maze on a grid" trick:
 **even** coordinates are always-wall pillars, **odd** coordinates are either
 carvable *room* cells or the *wall* cell exactly between two adjacent rooms.
@@ -108,7 +108,7 @@ diagonal bump instead of stopping dead. The player is treated as a point,
 not an AABB (a scope cut, see below).
 
 **Shooting** (`game/sim/actors/target/hit/cast`): Space fires an integer
-DDA — walk `shoot_step()` (150 milli-units) at a time along the facing
+DDA — walk `(import shoot_step)` (150 milli-units) at a time along the facing
 direction, up to 60 steps, checking each step's cell for a target (score +
 respawn elsewhere) or a wall (stop). This is the same "step and check" loop
 shape as the collision check, just iterated instead of one-shot.
@@ -233,13 +233,11 @@ demos/fpsmaze/
                                   since auto-repeat can queue more than one)
   game/                        (3 entries)
     world.id                 -- game_init()/init_actors(): seed, carve, spawn
-    util/                       (3 entries)
+    util/                       (2 entries)
       trig/                       (3 files: table.id, sincos.id, quadhelp.id
                                     -- the sine table, see above)
       rng/                        (3 files: Park-Miller PRNG, same generator
                                     demos/gl3dgame and demos/moonbuggy use)
-      config/                     (3 files: dims.id, tune.id, tune2.id --
-                                    every tunable constant, centralized)
     sim/                         (3 entries)
       maze/                        (3 entries: grid/, gen/, coords/ --
                                      storage, randomized-DFS generation, and
@@ -258,16 +256,17 @@ existing convention).
 
 - **The player is a point, not an AABB** — collision only checks the
   destination cell of the player's exact position, not a footprint radius.
-  Fine at this grid spacing (walls are a full grid cell wide, `wall_half()`
-  is half that), but a corner-clip is theoretically possible right at a
-  cell boundary; not observed in testing.
+  Fine at this grid spacing (walls are a full grid cell wide,
+  `(import wall_half)` is half that), but a corner-clip is theoretically
+  possible right at a cell boundary; not observed in testing.
 - **No floor/ceiling distinction in the walls** — wall cubes span from
-  `-wall_half()` to `+wall_half()` in Y and the camera sits at `eye_y()=0`,
+  `0 - (import wall_half)` to `(import wall_half)` in Y and the camera sits at
+  `(import eye_y)=0`,
   dead center; there's a single floor plane (`game/sim/gfx/mesh/objects/floor`)
   for depth grounding but no separate ceiling mesh.
 - **Target respawn doesn't exclude the player's current cell or other
   targets' cells** — same scope cut `demos/gl3dgame`'s README notes for its
-  own single target; with `num_targets()=3` a rare double-occupied cell is
+  own single target; with `(import num_targets)=3` a rare double-occupied cell is
   cosmetic at worst.
 - **Arrow keys don't work** (see Controls above) — a `backends/gl` platform
   limitation (`XLookupString` returns no string for them under the default

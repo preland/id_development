@@ -199,12 +199,12 @@ says a string cannot contain a NUL — so a font cannot be a string.
 Both travel as hexadecimal text and are decoded at boot:
 
 ```
-font_rom0() {
-} return string "00000000000000000000000000000000...";
+// kernel/prog/conf.id
+string font_rom0 = "00000000000000000000000000000000...";
 ```
 
 That is 6 000 characters of hex for 95 glyphs, and it is split across four
-functions because the lexer builds a string literal by concatenation and that
+constants because the lexer builds a string literal by concatenation and that
 is quadratic (§9). The decode is another twenty lines. In C it is one array.
 
 ## 8. An array literal cannot say what type it is
