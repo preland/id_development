@@ -41,12 +41,16 @@ the declaration makes three things true that a suite cannot:
 After the `return` clause, one case per line:
 
 ```
-(ARGS):(EXPECTED)[CONSTRAINTS]
+given SETUP (ARGS):(EXPECTED) then CHECK:(VALUE) [CONSTRAINTS]
 ```
+
+Most cases are just `(ARGS):(EXPECTED)`:
 
 - **`ARGS`** — the arguments, as `id` literals, in order. `()` for none.
 - **`EXPECTED`** — the value the call must produce, as an `id` literal.
 - **`CONSTRAINTS`** — optional, in square brackets. See below.
+- **`given SETUP`** and **`then CHECK:(VALUE)`** — optional, for functions
+  whose behaviour is module state. See "Module state" below.
 
 **At least two cases per function.** One case documents an example; two start
 to describe behaviour. The compiler requires two and does not care which two,
@@ -83,6 +87,100 @@ fill(int[] xs, int n) {
 ([], 3):([0, 1, 2])
 ([], 0):([])
 ```
+
+## Module state: `given`, `then`, `(import NAME)`
+
+Some functions do their work somewhere a case's two tuples cannot see.
+`err_report` returns `void` and changes exported globals; a buffer function
+takes an address that only exists once `alloc()` has returned it. Three
+optional parts of a case cover them:
+
+```
+err_setup() {
+  export int[] err_n = [0];
+} return void;
+
+err_report(string msg) {
+  int[] c = (import err_n);
+  c[0] = c[0] + 1;
+} return void;
+given err_setup ("x"):("x") then count:(1)
+given err_setup ("y"):() then count:(1)
+
+count() {
+  int n = (import err_n)[0];
+} return int n;
+```
+
+- **`given SETUP`**, before the arguments, names a function in the build that
+  takes no parameters and returns `void`. The case's process calls it first —
+  before the arguments are built and before the counters are zeroed, so
+  `[time:…]` and `[mem:…]` count only the call under test.
+- **`then CHECK:(VALUE)`**, after the expected values and before the
+  constraints, as many as the case needs, names a function in the build that
+  takes no parameters and returns a value. It is called after the call and
+  after the counters are read, and its result is compared with `VALUE` at its
+  return type exactly as an expected value is. A check that does not hold
+  fails the case:
+
+  ```
+  err.id:9: test failed: err_report("x") then count() = 1, expected 2
+  ```
+
+- **`(import NAME)`** may be an element of `ARGS` or `EXPECTED` — at the top
+  of the tuple, not inside a list literal, and never a check's value — in a
+  case that has `given`. It is the export's value where it is read: after the
+  setup for an argument, after the call for an expected value. So an address
+  can be handed in by name:
+
+  ```
+  buf_setup() {
+    export word gb = alloc(8);
+  } return void;
+
+  fill3(word p) {
+    poke8(p, 3);
+  } return void;
+  given buf_setup ((import gb)):((import gb)) then first_byte:(3)
+  given buf_setup ((import gb)):() then first_byte:(3)
+  ```
+
+Every rule about these is decided from the case line and the declarations it
+names — nothing is discovered by running the case — and each is an error at
+the case's line:
+
+| written | error |
+| --- | --- |
+| `given` naming no function | `'given' names 'nope', which is not a function in this build` |
+| `given` naming a function with parameters | `'given' names 'f', which takes 1 parameter(s); a setup takes none and returns void` |
+| `given` naming a function that returns a value | `'given' names 'ret1', which returns int; a setup takes none and returns void` |
+| `then` naming no function | `'then' names 'nope', which is not a function in this build` |
+| `then` naming a function with parameters | `'then' names 'f', which takes 1 parameter(s); a check takes none and returns the value it compares` |
+| `then` naming a `void` function | `'then' names 'st', which returns void; a check takes none and returns the value it compares` |
+| a check with more or fewer than one value | `a 'then' check compares exactly one value, not 2` |
+| `(import NAME)` as a check's value | `a 'then' check compares a literal; (import g) may only be an argument or an expected value` |
+| `(import NAME)` in a case without `given` | `(import g) needs a 'given': an export has no value in a case until a setup has run` |
+| `(import NAME)` of a name nothing exports | `(import zz): 'zz' is not an exported variable` |
+| `(import NAME)` exported by a function the setup does not reach through the call graph | `(import h): 'h' is exported by 'other', which the setup 'st' does not reach, so nothing sets it before the call` |
+| `(import NAME)` whose type is not exactly the one at that position | `this case gives (import xs), a int[], where a int is required` |
+
+The reachability is the dead-export check's, seeded from the setup instead of
+`main`: the setup itself, or anything it calls, may be what exports the name.
+The type must match exactly because an export already has a type; a literal is
+built at whatever type it is given, but an export used as another type is a
+conversion nobody wrote.
+
+Setups and checks are ordinary functions. The two-case minimum applies to them
+as to anything else, and their own cases can use `then`. The duplicate rule
+compares the whole case, `given` and every `then` included, so two cases that
+differ only in a check are two cases. `given` and `then` are keywords, and
+cannot be the name of a function, a variable or a parameter.
+
+An `(import NAME)` argument adds nothing to a case's `n` (below): `n` is
+written into the harness from the literals, before anything runs.
+
+These are rules of `idc/bin/idc` only; `idc/idc.py` does not parse the form
+(see the status below). They are tested in `idc/tests/tests_feature.sh`.
 
 ## Constraints are counted, not timed
 
@@ -175,13 +273,12 @@ none:
   is the price of being reproducible, and it is the right trade: a
   regression in asymptotics is a bug, and a regression in constant factor is
   a benchmark's job.
-- **It cannot test a `void` function that only writes exports.** The expected
-  side describes arguments, and an export is not one. Such a function needs a
-  wrapper that returns what it wrote, which is usually the better shape
-  anyway.
-- **It cannot test a function whose inputs are not literals** — anything
-  taking a file handle, a window, or a backend resource. Those are exempt and
-  the compiler says which, rather than pretending.
+- **It reads module state only through functions.** A `then` check is a call
+  to a function that returns something, so state that no function returns
+  needs one written to return it — which is usually the better shape anyway.
+- **It cannot test a function whose inputs are neither literals nor made by a
+  setup** — anything taking a file handle, a window, or a backend resource.
+  Those are exempt and the compiler says which, rather than pretending.
 
 ## How it runs
 
@@ -197,8 +294,9 @@ way to get output from a program whose cases fail.
 **Each case runs in a process of its own.** A case that traps, crashes or
 corrupts module state takes no other case with it, and the flat-store
 addresses a case sees are the ones it would see alone — they do not depend on
-what the cases before it allocated. Every failing case is reported at its own
-line, and the build stops:
+what the cases before it allocated. A case's `given` setup runs in that same
+process, so what it builds is the case's alone. Every failing case is
+reported at its own line, and the build stops:
 
 ```
 add.id:4: test failed: add(1, 2) = 3, expected 4
@@ -273,13 +371,13 @@ largest and the one whose behaviour is already pinned by
 <!-- generated: adoption -->
 | repository | functions | cases written | cases needed (2 each) |
 | --- | ---: | ---: | ---: |
-| `id_development` | 2297 | 0 | 4594 |
+| `id_development` | 2348 | 0 | 4696 |
 | `idstd` | 156 | 230 | 312 |
 | `c2id` | 877 | 0 | 1754 |
 | `linux_id` | 0 | 0 | 0 |
-| **total** | **3330** | **230** | **6660** |
+| **total** | **3381** | **230** | **6762** |
 
-**Adoption: 3.5%.** Generated by `idc/tools/statusgen.sh`; `idc/tests/run.sh` fails
+**Adoption: 3.4%.** Generated by `idc/tools/statusgen.sh`; `idc/tests/run.sh` fails
 if it is stale. A repository with no `.id` beside this checkout counts zero.
 <!-- end generated -->
 
@@ -300,34 +398,56 @@ if it is stale. A repository with no `.id` beside this checkout counts zero.
 > `mid/names/limits/shape/cases/more/fit/`. `idstd`'s 230 cases all pass
 > under it.
 >
-> Next: `--require-tests` on `idstd`, per the order above.
+> **`given`, `then` and `(import NAME)` are understood by the primary compiler
+> only.** `idc/idc.py` lexes `given` as an ordinary identifier, and after a
+> return clause it reads one as the start of the next function, so any file
+> containing the form fails there: `expected '(', found 'SETUP'`. That does not
+> matter to a program built with `idc/bin/idc`, but it keeps the form out of
+> `idstd`. `idc/idc.py` merges `idstd` into everything it compiles by default,
+> and the suite still builds the compiler itself that way —
+> `idc/tests/run.sh` (section `core`), `idc/tools/parity.sh` and
+> `idc/tests/backends.sh` — so a single `given` in `idstd` fails every one of
+> them. Measured rather than inferred: a copy of `idstd` with one `given` case
+> added to `core/data/lst/lst.id` makes `idc/idc.py --std COPY` fail on a
+> program that only prints, at that line, while the real `idstd` builds.
+>
+> Next: `--require-tests` on `idstd`, per the order above — for `sys/err` and
+> `core/data/buf`, only once those builds no longer go through `idc/idc.py`.
 
 ### What the case format cannot express
 
 Found by writing `idstd`'s cases rather than by reasoning about the syntax, so
-it is a measurement and not a worry. Two whole classes of function have no
-expressible case, and `--require-tests` would reject every one of them today
-with no way for the author to comply:
+it is a measurement and not a worry. Two whole classes of function had no
+expressible case while a case was only two literal tuples:
 
-- **Functions whose meaning is in module state.** All 13 of `sys/err` are
-  like this: `err_report` takes a string and returns `void`, and everything it
-  does lands in exported globals. A case can only compare the return value or
-  the arguments after the call, so `(args):(same args)` passes whether or not
-  the function did anything. Zero-parameter functions are worse — there is
-  nothing to compare at all, and the case is vacuously true.
+- **Functions whose meaning is in module state.** All 13 of `sys/err`:
+  `err_report` takes a string and returns `void`, and everything it does lands
+  in exported globals. A case could compare only the return value or the
+  arguments after the call, so `(args):(same args)` passed whether or not the
+  function did anything, and a zero-parameter function had nothing to compare
+  at all.
 - **Functions taking a flat-store address.** All 6 of `core/data/buf`, and
   `str_blit`, `fmt_pad_fill` and friends. An address is only valid once
-  `alloc()` has returned it, and a case argument must be a literal — no calls.
-  A literal address is at least deterministic now — each case runs in a
-  process of its own, so what it is handed does not depend on what the other
-  cases allocated — but writing one down still means knowing the allocator's
-  layout, which no case should have to.
+  `alloc()` has returned it, and a case argument had to be a literal.
 
-Both are real limits of "a case is two literal tuples", not oversights. The
-rule cannot be turned on for a directory containing either kind until the
-format grows a way to say *set this up first* — which is a language design
-question, not a rollout question, and it is the thing standing between
-`--require-tests` and `idstd`.
+Both are expressible now ("Module state", above): a setup makes the state or
+the allocation, `(import NAME)` passes the address in, and a `then` check reads
+back what the function left. What remains:
+
+- **`idstd` cannot use the form yet.** `idc/idc.py` does not parse it and still
+  compiles `idstd` in the suite (the status above), so `sys/err` and
+  `core/data/buf` can have their cases written but not committed, and
+  `--require-tests` cannot be turned on for them until those builds move off
+  `idc/idc.py`.
+- **A check reads state only through a function.** There is no way to compare
+  an export directly except as an argument or expected value of the function
+  under test, so state that no function returns needs a function written to
+  return it.
+- **A setup takes no arguments.** Cases that need different state need
+  different setups. A setup with arguments would need literals again, which is
+  the limit the form exists to get past.
+- **An `(import NAME)` argument has no size**, so a scaling claim on a case
+  that passes an address takes `n` from its other arguments only.
 
 There used to be a third, milder one: every case in a build ran as sequential
 calls in one shared `main`, with no isolation, so a case that corrupted state
