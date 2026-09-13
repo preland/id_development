@@ -129,19 +129,28 @@ What it has cost, measured 2026-08-29 by building each tree with `bin/idc`:
 
 | tree | errors | which |
 | --- | --- | --- |
-| `c2id/c2id/` | 518 | 334 call-in-call, 171 return clause, 13 word->int narrowing |
+| `c2id/c2id/` | 518 | 334 call-in-call, 171 return clause, 13 word->int narrowing (519 when re-measured 2026-09-13: 335, 171, 13) -- now 0; every `c2id` script and CI step builds it with `bin/idc` |
 | `c2id/crt/` | 77 | the same two rules, in hand-written runtime code -- now 0, and `c2id/tests/crt/run.sh` keeps it there |
-| every project `c2id` emits | 19 and up | the emitter emits what its own source is written in |
+| every project `c2id` emits | 19 and up | the emitter emits what its own source is written in -- now every emitted call is bound to a temporary; across `c2id/tests/c/` 010, 020, 030, 070 and three further C files the naming-rule errors went 1380 -> 6, all six a C assignment or `++` used as a value (a void `pokeN` inside an expression) |
 | `idc/compiler/`, `idstd`, `editor`, `kernel` | 0 | — |
 
-`c2id` is built with `idc.py` and its *output* is built with `bin/idc`, so the
-two ends of that pipeline disagree about what `id` is. `c2id/tools/c2id.sh` even
-records the belief that made this possible -- "idc.py, not bin/idc, because only
-the reference compiler enforces id's structural rules" -- which is true of the
-rule of 3 and false of these two. Nobody wrote 518 violations carelessly; they
-wrote them against the only compiler that was ever run over that tree.
+`c2id` was built with `idc.py` and its *output* with `bin/idc`, so the two ends
+of that pipeline disagreed about what `id` is. `c2id/tools/c2id.sh` recorded the
+belief that made this possible -- "idc.py, not bin/idc, because only the
+reference compiler enforces id's structural rules" -- which is true of the rule
+of 3 and false of these two. Nobody wrote 518 violations carelessly; they wrote
+them against the only compiler that was ever run over that tree.
 
-The work, then, is in two parts, and the first is what stops it growing:
+That is paid off on `c2id`'s side. Its source builds with 0 errors under
+`bin/idc`, and a `bin/idc` build of it produces byte-identical output to the
+`idc.py` build it replaced on every C input measured. The port took `c2id/c2id/` from
+723 functions in 252 files and 135 directories to 882 in 329 and 196, because
+naming a value costs an action and most blocks had none spare. No `c2id` script runs `idc.py` any
+more. What went with it is a second implementation's opinion on the lowering
+reference and on `crt`; no rule lost its check, since `bin/idc` enforces
+everything `idc.py` does.
+
+The work, then, was in two parts, and the first is what stops it growing:
 
 1. **Three fixtures in `idc/tests/invalid/`, and the checks in `idc.py`.**
    Every case there runs through both compilers and must produce the same
