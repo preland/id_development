@@ -22,6 +22,7 @@ git submodules, each its own repository.
 | [`kernel/`](kernel) (submodule) | a freestanding kernel written in `id` |
 | [`vscode/`](vscode) (submodule) | the VS Code extension for `id` |
 | [`c2id/`](c2id) (submodule) | a C-to-`id` compiler, written in `id` |
+| [`idem/`](idem) (submodule) | a 2D/3D game engine written in `id` and idml |
 
 `idstd`, `id`'s standard library, lives in its own repository beside this one
 (`~/git/idstd`) — it is not a submodule. See "The standard library" below.
@@ -34,7 +35,7 @@ git clone --recursive <url>          # clone with every submodule checked out
 git submodule update --init
 ```
 
-Each of `idc/`, `editor/`, `kernel/`, `vscode/`, and `c2id/` is its own git
+Each of `idc/`, `editor/`, `kernel/`, `vscode/`, `c2id/` and `idem/` is its own git
 repository with its own history and its own remote; this repository only
 records which commit of each it currently points at. Committing inside one of
 them is a commit in that submodule's repo, and the umbrella notices it moved.
