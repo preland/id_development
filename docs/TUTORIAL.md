@@ -349,6 +349,21 @@ Put `int grid_w = 15;` in the `conf.id` at the root of your project and write
 `conf.id`; a program that needs a constant is a directory. See
 [`SPEC.md`](SPEC.md) §7.2 for exactly what counts.
 
+**A function value is a named function, and it goes only three places.** A
+function that needs to call code it does not know takes it as a parameter:
+
+```
+run_frame(func(int) return void step, int dt) {
+  step(dt);
+} return void;
+```
+
+and `run_frame(tick, 16)` hands it `tick`, whose signature must be exactly
+`func(int) return void`. Store one in a local or an export; do not put one in a
+list, return one, compare one, or `print` one -- each of those is an error
+that names the type. There are no lambdas: write the function, name it, pass
+the name. [`SPEC.md`](SPEC.md) §1.1 has the rules.
+
 ## 9. Where to go next
 
 - Read [`demos/adventure`](../demos/adventure) (120 lines, 3 files) for input

@@ -370,6 +370,23 @@ file lib.o        # ELF 64-bit LSB relocatable
 Nothing is pruned — every function is an entry point — and everything is still
 checked.
 
+A library that needs code from the program using it takes that code as a
+function value ([`SPEC.md`](SPEC.md) §1.1), not as a name the program must
+define:
+
+```
+run_frame(func(int) return void step, int dt) {
+  step(dt);
+} return void;
+```
+
+A library that calls a name its user defines instead makes every program that
+links it define that name, games or not — which is why `idem`'s engine, calling
+`g_step` and five siblings, needs `idem/stub/` for everything that is not a
+game ([`TODO.md`](TODO.md) 13). A function value is passed or stored where the
+reader can see it, and a program that does not need the seam does not supply
+one.
+
 ## 7. When the language does not have it
 
 `id` has no file I/O. The builtins are stdin and stdout and nothing else, so a
