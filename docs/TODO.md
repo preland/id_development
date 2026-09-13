@@ -224,3 +224,35 @@ parallel load, and the mistake is recorded here so it is not repeated.
 Mitigated rather than fixed: `idc/tests/run.sh` runs by section (`--list`,
 `--from`, `--resume`) and every section is 6–36 s. A real fix would make the
 whole thing fit, and `conform.sh` at 36 s is where the time is.
+
+## 12. Link a native backend only when its symbols are reachable (idstd C7)
+
+The direction this repo is pointed: `idc/backends/` stops being a thing a
+program names, and becomes implementation detail inside `idstd` — a program
+calls a high-level `id` function and the library decomposes it differently per
+platform. `idstd/COMPILER-ASKS.md` C7 is the whole of what stands in the way,
+and dead-code elimination landing has already removed the other half of the
+argument: a framebuffer nothing calls costs nothing, but **an X11 dependency
+nothing calls still costs every program a link line**. That is why `sys/io`,
+`sys/win` and all of `gfx/` are still marked "not built" in `idstd/README.md`
+while `core/` is finished.
+
+What it needs is smaller than it looks, and the pieces are already in place:
+
+* The driver already knows the set of names the program could not resolve —
+  they are the `extern int id_<name>();` block in the emitted C
+  (`idc/compiler/parse/back/tgt/c/emit/prog/head/decl/externs.id`).
+* A backend already declares what it provides, in `id`'s own types, as
+  `backend.json`'s `abi` — which **nothing reads today**. `fs` carries the
+  list; `gfx` and `gl` carry a bare `"abi": "gfx.h"` and would have to declare
+  theirs before they could be matched.
+
+So: intersect the two, compile and link only the backends that provide a name
+the program actually needs, and skip the rest without compiling their sources.
+A name no attached backend provides becomes a diagnostic naming the name,
+rather than a linker error naming a mangled symbol — which is the same standard
+[`PROJECT.md`](PROJECT.md) §7 already holds platform selection to.
+
+Once that works, `idstd`'s own `conf.id` can name every backend without making
+`hello_world` link X11, and `--backend` becomes the override rather than the
+mechanism.
