@@ -59,11 +59,25 @@ main(int argc, string[] argv) {
 ```
 
 ```sh
-idc/bin/idc add.id -o add && ./add     # 5
+idc/bin/idc add.id --allow-untested -o add && ./add     # 5
 ```
 
 `main` is the entry point, its `int` return becomes the exit code, and
 `idc/bin/idc` takes exactly one argument: a file, or a project directory.
+
+`--allow-untested` is there because neither function has test cases, and the
+compiler requires two per function ([`TESTS.md`](TESTS.md)). The flag is
+deprecated, says so on every build, and goes once every function — yours and
+the standard library's — has its cases. A case is written under the return
+clause, arguments then expected result:
+
+```
+add(int a, int b) {
+  int s = a + b;
+} return int s;
+(2, 3):(5)
+(0, 0):(0)
+```
 
 ## 2. The rule of 3, and your first compile error
 
@@ -269,7 +283,7 @@ your own files. So the tree is purely about *reading*: the path to a function
 is a sentence about where it belongs.
 
 ```sh
-idc/bin/idc demos/wordcount -o wordcount
+idc/bin/idc demos/wordcount --allow-untested -o wordcount
 printf 'the cat and the hat\nthe cat sat\n' | ./wordcount
 ```
 
@@ -357,7 +371,7 @@ Put `int grid_w = 15;` in the `conf.id` at the root of your project and write
 - [`README.md`](../README.md) has the complete list of builtins and rules.
 - [`SPEC.md`](SPEC.md) is what the language guarantees, independent of which
   backend you compile with.
-- `idc/bin/idc PATH --emit-c out.c` shows you the C your program became, which is
+- `idc/bin/idc PATH --allow-untested --emit-c out.c` shows you the C your program became, which is
   the fastest way to understand what a construct actually costs.
 
 ### An exercise

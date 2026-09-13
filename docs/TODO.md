@@ -33,10 +33,10 @@ The chosen form is a named setup and named checks,
 as an argument once a setup has exported `g`. It has landed (`docs/TESTS.md`,
 "Module state"), and no build in `idc/tests/run.sh` that merges `idstd` goes
 through `idc/idc.py` any more, so `idstd` can hold cases written with it. What
-remains is writing them: `--require-tests` cannot be turned on for any
-directory containing a function that reads module state — which is all 13 of
-`sys/err`, the trig half of `core/math`, and every flat-store writer — until
-they have them. `c2id` still builds itself with `idc/idc.py` and `idstd`
+remains is writing them: the two-case minimum is on by default, and every
+build that merges `idstd` passes the deprecated `--allow-untested` until they
+exist — 59 of its functions lack them, among them all 13 of `sys/err`, the trig
+half of `core/math`, and every flat-store writer. `c2id` still builds itself with `idc/idc.py` and `idstd`
 merged, so a `given` in `idstd` breaks that build (`docs/TESTS.md`, the status
 block). See `docs/TESTS.md`, "What the case format cannot express".
 
@@ -91,11 +91,15 @@ Still open, and unblocked by this: migrate `idstd`'s `fx_sintab` across, delete
 
 ## 5. `--tests` in the self-hosted compiler
 
-Both halves are self-hosted. `idc/bin/idc --require-tests` counts cases, and
-every written case runs on every build of `idc/bin/idc`, each in a process of
-its own, with a failing case failing the build (`docs/TESTS.md`, "How it
-runs"). What remains is making `--require-tests` the default, which waits on
-item 2.
+Both halves are self-hosted, and the two-case minimum is the default: every
+build of `idc/bin/idc` counts cases, and every written case runs, each in a
+process of its own, with a failing case failing the build (`docs/TESTS.md`,
+"How it runs"). What remains is deleting `--allow-untested`, the deprecated
+opt-out every build in these repositories still passes. That waits on two
+things: the cases themselves (item 2; `idc/tests/run.sh` fails once adoption
+reaches 100% while the flag exists), and a decision about freestanding builds,
+which refuse cases and so cannot meet the minimum at all (`docs/TESTS.md`, "An
+open question: a freestanding build cannot comply").
 
 ## 6. Port `engine`, `moonbuggy` and `solitaire` onto `idstd`
 

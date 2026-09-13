@@ -311,8 +311,10 @@ case has passed, since a count from a case that failed measures nothing.
 The harness is built for and run on the machine doing the build. A build whose
 cases cannot run there — `--freestanding`, or a `--triple` other than the
 host's — is refused with that reason rather than built without them. A build
-with no cases anywhere has no harness, so a tree that writes none (the kernel,
-the runtime) is not affected. A program that uses a native backend gets the
+with no cases anywhere has no harness to refuse, so a tree that writes none
+(the kernel, the runtime) still builds freestanding — but only with
+`--allow-untested`, now that cases are required ("An open question", below).
+A program that uses a native backend gets the
 backend linked into its harness as well, so a tested function that calls into
 one really runs.
 
@@ -329,25 +331,92 @@ not change.
 
 ## Enforcement, and the migration
 
-The rule "every function has at least two cases" is **not on by default
-today**, and the reason is arithmetic: this repository has 1828 functions,
-`idstd` has 201, and `c2id` has 1379. Turning the requirement on
-without writing 6816 cases first would mean nothing in any of the three
-repositories compiles.
+The rule "every function has at least two cases" is **on by default** in
+`idc/bin/idc`, on every build and every compilation unit — the program, its
+dependencies and the standard library. A function with fewer is a compile
+error, with the diagnostic `--require-tests` has always given:
 
-So running a case and requiring one are separate:
+```
+err.id:27: error: function 'err_init' has 0 test case(s); --require-tests needs at least 2 (see docs/TESTS.md)
+```
 
-- Every case that *is* written runs on every build of `idc/bin/idc`, and a
-  failure fails the build. There is no switch for this, in either direction.
-  (`idc/idc.py` still spells it `--tests` and runs nothing without it.)
-- `--require-tests` additionally rejects a function that has fewer than two.
-  This is the end state, and it is reached one directory at a time.
+It is the default because a case is the only record of what a function did
+when it was written. A function without one can drift — start returning
+something else for an input nobody wrote down — and nothing notices; a function
+with two carries a static statement of its behaviour, checked on every build,
+to diagnose unexpected behaviour against later. `--require-tests` is still
+accepted, and restates the default.
 
-The order that keeps the tree building: `--require-tests` on `idstd` first
-(201 functions, and a standard library is where an untested function costs
-the most), then new code, then the compiler's own source last — it is the
-largest and the one whose behaviour is already pinned by
-`idc/tools/parity.sh` and `idc/tests/conform.sh`.
+The tree does not have its cases yet (the table below), so there is a way out:
+
+- **`--allow-untested`** turns the minimum off for one build. It is deprecated
+  from the day it exists: a build that passes it prints, once, on stderr,
+
+  ```
+  idc: warning: --allow-untested is deprecated and will be removed once every function has its test cases
+  ```
+
+  and nothing else changes — not the exit status, not stdout, not any other
+  diagnostic. It is a command-line flag only, so every build that relies on it
+  says so where it is invoked, and `grep -r -- --allow-untested` is the list of
+  builds still to fix.
+- Every case that *is* written runs on every build either way, and a failure
+  fails the build. `--allow-untested` skips no case; it only stops counting
+  them. (`idc/idc.py` has neither the default nor the flag, and still spells
+  running cases `--tests`.)
+
+**Every build in these repositories passes the flag today**, and not only for
+want of cases in its own code: `idstd` is merged into every build that does not
+say `--no-std`, and 59 of its functions have fewer than two (measured
+2026-09-13 — all of `sys/err` and `core/data/buf`, and the trig half of
+`core/math`, among them). Until they have them, a program whose own functions
+all have their cases still needs `--allow-untested`, or `--no-std`, to build.
+
+**The flag is deleted when adoption reaches 100%.** `idc/tests/run.sh` (`core`)
+reads the adoption figure below and fails while it is 100% and `idc/bin/idc`
+still has `--allow-untested`, saying to delete it. That figure is cases written
+against two per function, summed over repositories, so it can reach 100% while
+a function with no cases is balanced by others with more than two; the builds
+themselves, without the flag, are what the deletion has to be checked against.
+
+The order that gets there: `idstd` first (a standard library is where an
+untested function costs the most, and today it holds back every other build),
+then new code, then the compiler's own source last — it is the largest and the
+one whose behaviour is already pinned by `idc/tools/parity.sh` and
+`idc/tests/conform.sh`.
+
+### An open question: a freestanding build cannot comply
+
+A `--freestanding` build (and `--runtime`, which implies it) refuses a build
+that has any case, because the harness runs on the machine doing the build and
+a freestanding program has none to run on ("How it runs"). With two cases
+required, that leaves a freestanding program no state that builds without the
+flag. Without cases:
+
+```
+u.id:1: error: function 'add' has 0 test case(s); --require-tests needs at least 2 (see docs/TESTS.md)
+```
+
+and with them, whether or not `--allow-untested` is passed:
+
+```
+idc: this build has 2 test cases, and a --freestanding build has no host to run them on
+```
+
+So the kernel (`kernel/prog`) and the `id`-written runtime (`idc/runtime`),
+which `idc/tools/kbuild.sh` builds freestanding, pass `--allow-untested` with no
+cases — the one use of the flag that writing cases cannot remove. The removal
+check above does not know this: `kernel/` and `idc/runtime/` are not in the
+adoption table, so it can reach 100% and demand the flag's deletion while the
+kernel build still needs it.
+
+This is not decided. The shapes visible from here: run a freestanding tree's
+cases hosted, against the same source built for the host (what
+`idc/tests/kernel.sh` already does by hand for the shell's demonstrations);
+exempt freestanding builds from the minimum permanently, which makes the kernel
+the one place a function may drift; or accept cases in a freestanding build and
+not run them, which is a way to get output from a program whose cases have
+never passed. Deleting `--allow-untested` waits on this as well as on adoption.
 
 ### Where the rollout actually stands
 
@@ -436,8 +505,12 @@ if it is stale. A repository with no `.id` beside this checkout counts zero.
 > (`docs/GAPS.md` B6/B7), and `idem`'s `IDEM_COMPILER=idc.py` switch selects it
 > on request. A `given` in `idstd` breaks both.
 >
-> Next: `--require-tests` on `idstd`, per the order above, starting with
-> `sys/err` and `core/data/buf`, whose cases can be committed now.
+> **The two-case minimum is the default, as of 2026-09-13.** A build that lacks
+> cases passes the deprecated `--allow-untested` ("Enforcement, and the
+> migration", above), and every build in these repositories does.
+>
+> Next: cases for `idstd`'s 59 functions that lack them, per the order above,
+> starting with `sys/err` and `core/data/buf`, whose cases can be committed now.
 
 ### What the case format cannot express
 
