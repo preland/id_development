@@ -93,8 +93,8 @@ natural next step if the budget allows revisiting this file.
 degrees and pulls the view back 12 units on `-Z`
 (`gl_mat_mul(gl_mat_translate(0,0,-12000), gl_mat_rotate_x(55000))`), the
 same translate-then-rotate composition `demos/gl3dgame`'s `build_view`
-uses, so the ~5-unit-radius disk (`particles/shape/radius.id`'s
-`max_radius()`) sits well inside the frustum and reads as a disk seen
+uses, so the ~5-unit-radius disk (`conf.id`'s
+`max_radius`) sits well inside the frustum and reads as a disk seen
 from above rather than edge-on. `camera_proj()` rebuilds the perspective
 matrix from `gl_aspect_x1000()` **every frame** (rather than caching it
 once like `demos/gl3d` does) specifically so a runtime window resize
