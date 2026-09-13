@@ -683,6 +683,10 @@ three-way choice costs two functions.
 
 ## 23. A local declared in one branch is readable from the next
 
+**Done** for the first face below: `bin/idc` rejects a use of a variable
+outside the block that declares it, or before its declaration, naming both
+lines. idc.py does not have the rule.
+
 Found by the §7.1 sweep, in the worst possible way: a tool put a declaration
 inside an `if` branch and used it from the `else if` beside it, and **the
 compiler accepted the program**.
