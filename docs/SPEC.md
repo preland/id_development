@@ -578,6 +578,14 @@ that words them differently makes the language feel different.
   before. Reading one earlier is rejected at compile time when the exporting
   function is unreachable from `main`, and is otherwise the programmer's
   responsibility.
+- An exported variable whose declaring function is unreachable from `main` is
+  not emitted at all, in a build that has a `main` and is not
+  `--freestanding` -- the self-hosted compiler only; `idc.py` does not prune
+  (docs/HACKING.md). Safe for the reason above: nothing reachable can read an
+  export a check has already rejected reading. A no-main library, a
+  `--freestanding` build, and the test harness's own unit each keep exactly
+  what they already keep nothing else from (docs/HACKING.md, "the exported-
+  global block").
 - A variable exists from its declaration to the end of the block that declares
   it; a function's return clause sees the body's top-level declarations. A use
   anywhere else, including before the declaration, is rejected at compile time.
