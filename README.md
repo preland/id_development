@@ -236,9 +236,11 @@ resolves them as follows — revisit as the language evolves:
 - **Array literals**: `["hello_world", "hi"]` builds a `string[]`.
 - **`+` on strings concatenates**, and a numeric operand mixed with a string
   is converted (`"lucky " + 7` → `"lucky 7"`).
-- **Variables are function-scoped, not block-scoped** — `processresult`'s
-  `processed` is assigned inside `if`/`else` branches and returned after the
-  brace, so declarations are hoisted to function scope.
+- **Variables are block-scoped** — a variable exists from its declaration to
+  the end of the block that declares it, and using it anywhere else is a
+  compile error. `processresult`'s `processed` is declared at the top of the
+  function body, assigned inside the `if`/`else` branches, and read by the
+  return clause, which sees what the body declares at its own top level.
 - **Types**: `int`, `float`, `string`, `void`, and arrays `T[]`. They map to
   C `int`, `double`, `char*`, `void`, and pointers respectively.
 - **`print(x)`** is a builtin that prints any value followed by a newline.

@@ -376,6 +376,9 @@ that words them differently makes the language feel different.
   before. Reading one earlier is rejected at compile time when the exporting
   function is unreachable from `main`, and is otherwise the programmer's
   responsibility.
+- A variable exists from its declaration to the end of the block that declares
+  it; a function's return clause sees the body's top-level declarations. A use
+  anywhere else, including before the declaration, is rejected at compile time.
 
 ## 10. Deliberately unspecified
 
