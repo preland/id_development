@@ -101,7 +101,7 @@ demos/flyover/
 ├── main.id                       (main)
 ├── loop/                         -- the frame loop
 │   ├── loop.id                   (loop, spin)
-│   └── frame.id                  (frame, alive)
+│   └── frame.id                  (frame; the keep-going test is idstd's inp_live)
 └── world/                        -- orchestration + the two subsystems
     ├── world.id                  (world_init, world_update, world_render)
     ├── terrain/                  -- generate once, static thereafter
