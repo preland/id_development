@@ -30,12 +30,15 @@ error text is still byte-identical to `idc/idc.py`'s.
 
 The chosen form is a named setup and named checks,
 `given SETUP (args):(expected) then CHECK:(literal)`, with `(import g)` allowed
-as an argument once a setup has exported `g`; it is being built on `wt/cases`
-and is not in `docs/TESTS.md` until it lands. Until it exists,
-`--require-tests` cannot be turned on for any directory containing a function
-that reads module state — which is all 13 of `sys/err`, the trig half of
-`core/math`, and every flat-store writer. Adoption is stuck at ~3% because of
-it. See `docs/TESTS.md`, "What the case format cannot express".
+as an argument once a setup has exported `g`. It has landed (`docs/TESTS.md`,
+"Module state"), and no build in `idc/tests/run.sh` that merges `idstd` goes
+through `idc/idc.py` any more, so `idstd` can hold cases written with it. What
+remains is writing them: `--require-tests` cannot be turned on for any
+directory containing a function that reads module state — which is all 13 of
+`sys/err`, the trig half of `core/math`, and every flat-store writer — until
+they have them. `c2id` still builds itself with `idc/idc.py` and `idstd`
+merged, so a `given` in `idstd` breaks that build (`docs/TESTS.md`, the status
+block). See `docs/TESTS.md`, "What the case format cannot express".
 
 ## 3. Move `check_assigned_once` into the self-hosted compiler
 

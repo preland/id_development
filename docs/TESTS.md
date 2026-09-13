@@ -319,7 +319,7 @@ one really runs.
 `idparse --harness` writes the harness ahead of the program on the same
 stream, so one parse produces both, and the program is emitted exactly as it is
 without the flag — `idc/tools/parity.sh` still compares it with `idc/idc.py`
-byte for byte. The harness's code is
+byte for byte, for a program built without `idstd`. The harness's code is
 `idc/compiler/parse/back/tgt/c/emit/prog/test/`. `idc/idc.py` runs cases only
 under `--tests`, in one process.
 
@@ -401,18 +401,43 @@ if it is stale. A repository with no `.id` beside this checkout counts zero.
 > **`given`, `then` and `(import NAME)` are understood by the primary compiler
 > only.** `idc/idc.py` lexes `given` as an ordinary identifier, and after a
 > return clause it reads one as the start of the next function, so any file
-> containing the form fails there: `expected '(', found 'SETUP'`. That does not
-> matter to a program built with `idc/bin/idc`, but it keeps the form out of
-> `idstd`. `idc/idc.py` merges `idstd` into everything it compiles by default,
-> and the suite still builds the compiler itself that way —
-> `idc/tests/run.sh` (section `core`), `idc/tools/parity.sh` and
-> `idc/tests/backends.sh` — so a single `given` in `idstd` fails every one of
-> them. Measured rather than inferred: a copy of `idstd` with one `given` case
-> added to `core/data/lst/lst.id` makes `idc/idc.py --std COPY` fail on a
-> program that only prints, at that line, while the real `idstd` builds.
+> containing the form fails there: `expected '(', found 'SETUP'`. `idc/idc.py`
+> merges `idstd` into everything it compiles by default, so that used to keep
+> the form out of `idstd`: the suite built the compiler, the demos that use the
+> library and the graphics demos through `idc/idc.py` with `idstd` merged, and
+> one `given` in `idstd` failed all of them.
 >
-> Next: `--require-tests` on `idstd`, per the order above — for `sys/err` and
-> `core/data/buf`, only once those builds no longer go through `idc/idc.py`.
+> **No build in the suite that merges `idstd` goes through `idc/idc.py` any
+> more.** They are `idc/bin/idc` builds; `idc/idc.py` runs only with
+> `IDC_NO_STD=1`, or in `idc/tests/stdlib.sh` against the fixture library,
+> which never reads the real one. What moved, and what was lost with it:
+>
+> - `idc/tests/run.sh` (`core`): the lexer, parser, calculator and `idview`
+>   builds, and `moonbuggy` and `solitaire`, are `idc/bin/idc` builds. The
+>   checks that compared `idc/idc.py`'s C for `compiler/lex` and
+>   `compiler/parse` with the self-hosted compiler's are now "self-hosting
+>   parity with bin/idc": `idc/bin/idc --emit-c` against the lexer and parser
+>   it built, run over the same source. Lost: an independent implementation
+>   agreeing with the compiler on the compiler's own source and `idstd`.
+>   What is left of that is `idc/idc.py` agreeing on programs without the
+>   library — the parity checks in `core`, `idc/tests/self_host_build.sh`,
+>   `idc/tests/stdlib.sh` and `idc/tests/invalid.sh`.
+> - `idc/tests/backends.sh`: the six "backend build (idc.py)" checks on the
+>   graphics demos are gone; the six `idc/bin/idc` builds beside them stay.
+> - `idc/tools/parity.sh` builds its stages with `idc/bin/idc` and compiles the
+>   program under test without the library on both sides, so it can no longer
+>   be pointed at the compiler. `idc/tools/regen_bootstrap.sh --check` is what
+>   says the compiler's own C did not change.
+> - `idc/tools/idtest.sh` runs a module's cases with `idc/bin/idc`.
+>
+> Outside this suite, two builds still put `idstd` through `idc/idc.py`:
+> `c2id` builds itself with it (`c2id/tools/c2id.sh`, `c2id/tests/run.sh`),
+> because it does not yet obey two rules `idc/bin/idc` enforces
+> (`docs/GAPS.md` B6/B7), and `idem`'s `IDEM_COMPILER=idc.py` switch selects it
+> on request. A `given` in `idstd` breaks both.
+>
+> Next: `--require-tests` on `idstd`, per the order above, starting with
+> `sys/err` and `core/data/buf`, whose cases can be committed now.
 
 ### What the case format cannot express
 
@@ -434,11 +459,6 @@ Both are expressible now ("Module state", above): a setup makes the state or
 the allocation, `(import NAME)` passes the address in, and a `then` check reads
 back what the function left. What remains:
 
-- **`idstd` cannot use the form yet.** `idc/idc.py` does not parse it and still
-  compiles `idstd` in the suite (the status above), so `sys/err` and
-  `core/data/buf` can have their cases written but not committed, and
-  `--require-tests` cannot be turned on for them until those builds move off
-  `idc/idc.py`.
 - **A check reads state only through a function.** There is no way to compare
   an export directly except as an argument or expected value of the function
   under test, so state that no function returns needs a function written to
