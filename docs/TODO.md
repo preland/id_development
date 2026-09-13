@@ -28,7 +28,10 @@ error text is still byte-identical to `idc/idc.py`'s.
 
 ## 2. Test cases that can set global state
 
-`docs/TESTS.md` specifies `[globals](args):(expected)`. Until it exists,
+The chosen form is a named setup and named checks,
+`given SETUP (args):(expected) then CHECK:(literal)`, with `(import g)` allowed
+as an argument once a setup has exported `g`; it is being built on `wt/cases`
+and is not in `docs/TESTS.md` until it lands. Until it exists,
 `--require-tests` cannot be turned on for any directory containing a function
 that reads module state — which is all 13 of `sys/err`, the trig half of
 `core/math`, and every flat-store writer. Adoption is stuck at ~3% because of
@@ -82,9 +85,11 @@ Still open, and unblocked by this: migrate `idstd`'s `fx_sintab` across, delete
 
 ## 5. `--tests` in the self-hosted compiler
 
-`idc/bin/idc --require-tests` counts cases; only `idc/idc.py` *runs* them, because
-running one needs a generated entry point. Until both halves are self-hosted,
-the rule is enforced by the compiler being retired.
+Both halves are self-hosted. `idc/bin/idc --require-tests` counts cases, and
+every written case runs on every build of `idc/bin/idc`, each in a process of
+its own, with a failing case failing the build (`docs/TESTS.md`, "How it
+runs"). What remains is making `--require-tests` the default, which waits on
+item 2.
 
 ## 6. Port `engine`, `moonbuggy` and `solitaire` onto `idstd`
 
