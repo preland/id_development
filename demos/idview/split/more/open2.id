@@ -1,15 +1,18 @@
 // open_file already spends its 3 actions closing the previous file and
 // naming the new path, so recording its start/end offsets is a tail call.
+// is_marker checks only "#f", so a marker line can be shorter than the 6-byte
+// "#file " prefix; holding the path's start at e names such a file "".
 register_file(string src, int i, int e) {
-  string slice_str_v = slice_str(src, i + 6, e);
-  push((import paths), slice_str_v);
-  push((import starts), e + 1);
+  int start_v = fx_min(i + 6, e);
+  register_path(src, start_v, e);
 } return void;
 
 // print_file already spends its 3 actions on the header line, so the blank
-// line and the body slice/print are a tail call.
+// line and the body slice/print are a tail call. A marker on the last line with
+// no newline after it records a start one past the end of the input; holding
+// the start at the end makes that body "".
 print_body(string src, int k) {
   print("");
-  string slice_str_v = slice_str(src, (import starts)[k], (import ends)[k]);
-  put(slice_str_v);
+  int start_v = fx_min((import starts)[k], (import ends)[k]);
+  print_span(src, start_v, (import ends)[k]);
 } return void;
