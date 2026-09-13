@@ -250,6 +250,8 @@ resolves them as follows — revisit as the language evolves:
 - **Types**: `int`, `float`, `string`, `void`, and arrays `T[]`. They map to
   C `int`, `double`, `char*`, `void`, and pointers respectively.
 - **`print(x)`** is a builtin that prints any value followed by a newline.
+- **`eprint(x)`** prints the same thing to stderr. It flushes stdout first, so
+  the two streams keep the order the program wrote them in.
 - **`input()`** is a builtin that reads one line from stdin and returns it as a
   `string` (the trailing newline is stripped; end-of-input yields `""`). It
   takes no arguments. Branch on the result with ordinary string comparison —
@@ -285,7 +287,7 @@ resolves them as follows — revisit as the language evolves:
   (a real-time side-scroller) and `demos/solitaire` (Klondike) are games
   **written in `id`**.
 - **No file I/O among the builtins.** The list above is the whole of it: a
-  program gets stdin and stdout, so working on a file means being a filter and
+  program gets stdin, stdout and stderr, so working on a file means being a filter and
   letting the caller pick them (`./prog < in.txt > out.txt`). Files come from a
   **native backend** instead — [`idc/backends/fs`](idc/backends/fs) declares
   `fs_open`, `fs_read`, `fs_write`, `fs_close`, `fs_size`, `fs_exists`,

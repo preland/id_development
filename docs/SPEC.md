@@ -564,6 +564,14 @@ that words them differently makes the language feel different.
   how the program was launched and is therefore **not** specified.
 - `print(x)` writes a value and a newline to stdout; `put(s)` writes without
   one; `flush()` flushes.
+- `eprint(x)` writes to stderr exactly what `print(x)` writes to stdout: it
+  takes the same argument, spells the value the same way and ends it with a
+  newline. **It flushes stdout first**, so when both streams reach the same
+  place the lines appear in the order the program wrote them, a `put` line
+  left unfinished included. Inside a test case it writes where the case's
+  `print` does, never into the channel the harness reports through
+  (`docs/TESTS.md`, "How it runs"). A `--freestanding` build has one output,
+  and `eprint` writes there as `print` does: the `id` runtime's serial port.
 - `input()` reads one line from stdin, without its newline, and returns `""` at
   end of input. `read_all()` reads the whole of stdin.
 - An exported variable is initialised when its declaring function runs, not
