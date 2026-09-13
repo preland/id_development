@@ -150,16 +150,16 @@ them, because the C target was the only target when the prelude was written.
 | `lint_idcpy.py` | 150 | nothing — it dies with `idc/idc.py` |
 | `qmon.py` | 142 | **sockets**. It drives QEMU over QMP, a JSON protocol on a TCP socket |
 | `gen_runtime_id.py` | 121 | nothing — it dies with the C prelude |
-| `mkfont.py` | 90 | file I/O only; portable today via the `fs` backend |
-| `fbtext.py` | 86 | file I/O only; portable today |
+| `mkfont.py` | 90 | **ported**: `idc/tools/mkfont/`, run by `tools/mkfont.sh`, which unpacks the gzipped font |
+| `fbtext.py` | 86 | **ported**: `idc/tools/fbtext/`, run by `tools/fbtext.sh` |
 | `mkodt.py` | 82 | ZIP writing, which the editor already does in `id` |
-| `mkkeymap.py` | 50 | file I/O only; portable today |
+| `mkkeymap.py` | 50 | **ported**: `idc/tools/mkkeymap/`, run by `tools/mkkeymap.sh` |
 
 **Cost.** Three of these (308 lines) evaporate when `idc/idc.py` and the C prelude
-go. Four more (308 lines) are portable **today** with no new language feature —
-`mkfont`, `fbtext`, `mkkeymap`, `mkodt` are byte-shuffling programs and the
-editor proves `id` does that well. Only `qmon.py` is genuinely blocked, on a
-socket builtin.
+go. Four more (308 lines) were portable with no new language feature, and three
+of them — `mkfont`, `fbtext`, `mkkeymap` — are now `id` programs, sharing
+`idc/tools/lib/` for whole-file reads and hexadecimal text; `mkodt` is the one
+left. Only `qmon.py` is genuinely blocked, on a socket builtin.
 
 Anchor: `editor/lib/zip/` is 28 files of `id` that inflate DEFLATE and read a
 ZIP central directory. `mkodt.py` is easier than that.

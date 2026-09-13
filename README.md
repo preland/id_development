@@ -127,7 +127,7 @@ idc/bin/idc editor -o editor && ./editor doc.odt font.ttf --ppm page.ppm
 To watch either of them rather than test it -- a window, a shell to type at, a
 rendered page -- see [`docs/RUNNING.md`](docs/RUNNING.md).
 
-Both are tested rather than eyeballed. `idc/tools/fbtext.py` reads the
+Both are tested rather than eyeballed. `idc/tools/fbtext`, in `id`, reads the
 kernel's framebuffer back as text by matching each cell against the kernel's
 own font, so a console that wrote to the serial port and drew nothing fails;
 the editor's five suites check every module against a reference computed at

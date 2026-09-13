@@ -67,14 +67,15 @@ fault: reading 0x140000000, which has no page behind it
 ### Photograph it
 
 `idc/tools/qmon.py` boots it, types at it over the serial port, and captures the
-framebuffer; `idc/tools/fbtext.py` reads that capture back as text by matching each
-8×16 cell against the kernel's own font. That pair is how the shell is tested,
-and it is the fastest way to see what is on screen without a window:
+framebuffer; `idc/tools/fbtext.sh` builds `idc/tools/fbtext`, in `id`, and reads
+that capture back as text by matching each 8×16 cell against the kernel's own
+font. That pair is how the shell is tested, and it is the fastest way to see
+what is on screen without a window:
 
 ```sh
 python3 idc/tools/qmon.py idc/build/kernel.elf --wait 4 --type "ls;cd bin;uname" \
         --settle 2 --shot /tmp/screen.ppm
-python3 idc/tools/fbtext.py /tmp/screen.ppm
+idc/tools/fbtext.sh /tmp/screen.ppm
 ```
 
 `--keys "l s ret"` sends real PS/2 key events instead, which is how to exercise
