@@ -152,6 +152,30 @@ rejected at compile time. `&& || !` likewise take integral operands and yield
 
 Mixing `int` and `word` in one operation widens to `word`.
 
+**A comparison and a bitwise operator in one expression must be grouped with
+parentheses.** The bitwise operators bind tighter than the comparisons in `id`
+and looser in C, so an expression that relies on either table can only be read
+by someone who knows which one applies. A comparison (`== != < <= > >=`, and
+the bare `=` that means equality inside an expression) whose left or right
+operand is an unparenthesized bitwise operation (`& | ^ << >>`) is a compile
+error, and so is a bitwise operation whose operand is an unparenthesized
+comparison. The diagnostic shows how the current precedence groups it:
+
+```
+flags & 4 == 4       error: 'flags & 4 == 4' mixes a bitwise '&' with a comparison '==';
+                     parenthesize it as the current precedence reads it: '(flags & 4) == 4'
+(flags & 4) == 4     ok
+flags & (4 == 4)     ok
+```
+
+The second form cannot be written without parentheses today, because a
+comparison binds looser and only reaches a bitwise operand through them; the
+rule names it anyway, since it is about the reader and not about this table.
+The parentheses are grouping only: they change neither the emitted code nor a
+function's fingerprint for the uniqueness rule. Unary `~` is out of scope -- it
+binds tighter than every binary operator and cannot be misread -- and so are
+`&&` and `||` next to a bitwise operator. `idc.py` does not have this rule.
+
 ## 3. Floats
 
 `float` is IEEE-754 binary64 with the usual arithmetic. `%` on a float is a
