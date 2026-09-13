@@ -38,7 +38,8 @@ to change.
 
 ## 1. Types
 
-Five scalar types and one type constructor. `T[]` is a list of `T`, and nests.
+Five scalar types and two type constructors. `T[]` is a list of `T`, and
+nests. `func(T1, T2) return R` is a function type (§1.1).
 
 | type | width | representation |
 | --- | ---: | --- |
@@ -64,6 +65,123 @@ dropping half of a `word`. Declare a local of the parameter's type and pass
 that. Widening is exact and needs no ceremony in either place. This is the
 same strictness `xs[a]` has always had, which used to look inconsistent with
 both of the others.
+
+### 1.1 Function values
+
+A library sometimes needs code from its user: an engine runs a frame by calling
+the game's step. `id` says that with a value whose type is a function type,
+rather than by having the library call a name every user must define.
+
+```
+tick(int n) {
+  print("tick " + n);
+} return void;
+
+run_frame(func(int) return void step, int dt) {
+  step(dt);
+} return void;
+
+main(int argc, string[] argv) {
+  run_frame(tick, 16);
+} return int 0;
+```
+
+**The type.** `func(T1, T2) return R` lists parameter types only, with no
+names; `R` may be `void`, and `func() return void` takes nothing. A parameter
+type may itself be a function type. Brackets after the return type belong to
+the return type: `func(int) return int[]` returns a list. `func` is a keyword
+and cannot be a name. However it is spaced, a function type is one type: two
+spellings are the same type exactly when they list the same types in the same
+order, and a name that is a function type in one place has that same type
+everywhere in its unit, as every name does (§1).
+
+**The values.** A value of a function type is a named top-level function
+written in `id` -- one of the program's, the standard library's, or a `native`
+declaration. Nothing else is: there are no lambdas, no closures and no partial
+application, and a builtin (`print`, `len`, ...) or an `asm` function is not a
+value. A function's name where a value is expected denotes that function, and
+its signature must be the type exactly: the same parameter types in the same
+order and the same return type. There is no conversion between function types;
+`func(int) return void` does not accept a function taking a `word`.
+
+**Where one may be.** A parameter, a local, and an export read with
+`(import NAME)` -- which is how a library stores a value its user hands it:
+
+```
+eng_setup() {
+  export func(int) return void eng_step = tock;
+} return void;
+
+frame() {
+  func(int) return void g = (import eng_step);
+  g(16);
+} return void;
+```
+
+Nowhere else. Not an element of a list, and so not in a list type (there is no
+way to spell one); not a function's return type; not an operand of any
+operator, comparisons included; not an argument to a builtin; not a condition.
+A test case passes one by naming the function where the argument goes --
+`(tick, 16):(tick, 16)` -- or through `(import NAME)` after a `given` setup has
+stored it (docs/TESTS.md).
+
+**Calling one.** `step(dt)`, where `step` is a parameter, local or export of a
+function type. The arguments are checked against the type -- how many, and each
+against its parameter type, with the narrowing rule above -- and every rule of
+§7.1 applies unchanged: no call inside an argument, a return clause is a name or
+a literal.
+
+**Why this much and no more.** A call through a value hides which function
+runs, which is the one thing `id`'s rules otherwise never hide. What stays
+visible is the type: it is written on the declaration of the name being called,
+in the same function or in the export, and every diagnostic about a call
+through one names it. Values that could be built at run time, returned, or kept
+in a list would let a call's function come from anywhere the value travelled;
+a named function stored or passed at a line the reader can find cannot.
+
+**What the compiler says.** Where a function type is expected, the message
+names both signatures; where no function value may be at all, it names the
+value's type.
+
+| written | error |
+| --- | --- |
+| `func(int) return void f = pair;` where `pair` takes two ints | `cannot initialize func(int) return void 'f' with a func(int, int) return void value` |
+| `f = twice;` where `twice` returns int | `cannot assign a func(int) return int value to func(int) return void 'f'` |
+| `run_frame(shout, 16)` where `shout` takes a string | `argument 'step' of 'run_frame' expects func(int) return void, got func(string) return void` |
+| `step(dt, dt)` | `'step' is a func(int) return void, which takes 1 argument(s), got 2` |
+| `step(label)` with a string | `argument 0 of 'step' (a func(int) return void) expects int, got string` |
+| `step(w)` with a word | `argument 0 of 'step' (a func(int) return void) narrows word to int; declare a int local and pass that` |
+| `int[] xs = [tick];` | `a function value cannot be an element of a list: element 0 is func(int) return void` |
+| `func(int) return void[] fs` | `'func(int) return void[]': brackets after a function type's return type belong to the return type, and void[] is not a type; a function value cannot be an element of a list` |
+| `} return func(int) return void f;` | `'pick' returns func(int) return void; a function value cannot be a function's return type -- store it in an export, or pass it to the function that calls it` |
+| `func(int) return func(int) return void` | `a function type cannot return a function value; pass the function, or store it in a local or an export` |
+| `func(int dt) return void` | `a function type lists parameter types only: write 'int', not 'int dt'` |
+| `tick + 1` | `'+' cannot take a function value: its left operand is func(int) return void; a function value can only be passed, stored or called` |
+| `print(tick)` | `'print' cannot take a function value: argument 0 is func(int) return void; a function value can only be passed to a function written in id, stored or called` |
+| `if(step)` | `a condition cannot be a function value (func(int) return void); call it, and test what it returns` |
+| `func(string) return void f = print;` | `'print' is a builtin, not a function defined in id; only a function written in id can be a value -- write one that calls 'print' and pass that` |
+| `int func = 1;` | `'func' is a keyword (it begins a function type, see docs/SPEC.md) and cannot be used as a name` |
+| `int thing = 1; thing();` | `'thing' is a variable, not a function` -- unchanged: only a variable of a function type can be called |
+
+`-tick`, `!tick` and `tick[0]` draw the existing unary and index messages,
+which name the type.
+
+**Uniqueness and reachability.** A function named as a value keeps its name in
+the fingerprint the duplicate-logic rule compares (docs/HACKING.md), as a
+called function does, so two functions that differ only in which function they
+pass are different logic. A call through a parameter or local is that
+variable's position, like any other use of it, so renaming the parameter does
+not make a second function. A function named as a value is reachable exactly as
+a called one is: it is emitted, and an export it declares is live.
+
+**On the targets.** The C target spells a function type as a pointer to
+function through `__typeof__` -- `__typeof__(void (*)(int)) step` -- names a
+function value `id_NAME`, and calls through the variable, whose prototype
+converts the arguments. The LLVM target, `--freestanding` included, spells it
+`ptr`, names a function value by its symbol (`ptr @id_tick`) and calls through a
+loaded pointer (`call void %v7(i32 16)`), converting each argument to the
+parameter type the function type spells. WASM does not have function values
+(§11, S12).
 
 ## 2. Integer arithmetic
 
@@ -518,6 +636,8 @@ byte-parity deliberately rather than as a side effect.
 `idc/tests/conform/order/` holds the cases. `idc/tests/conform.sh` names the C target's
 non-conformance rather than failing on it, so that removing the exemption is
 how the fix gets noticed.
+
+| **S12** | **Function values (§1.1) do not exist on WASM.** They are implemented in `idc/bin/idc`, whose targets are C and LLVM; the WASM target is still built by `idc/idc.py`, which is being retired and refuses `func` as a type. `idc/tests/conform.sh` names `wasm:fn` as known apart, so the gap is counted rather than hidden. It closes with `docs/TODO.md` 9b, `--target wasm` in `idc/bin/idc`. | WASM | open |
 
 S5–S8 are missing implementation, and are what `docs/BACKENDS.md` is the plan
 for. S6 is the one that matters most: it is 21 of the 30 builtins, it is what

@@ -293,3 +293,24 @@ What that means concretely, to be designed rather than assumed:
 
 Measure first: where the seconds go today for a small project and for
 `idc/compiler/parse`, so the design targets the real cost.
+
+## 14. Move `idem`'s game seam onto function values
+
+`idem/engine/` calls six functions each game defines — `g_init`, `g_stage`,
+`g_step`, `g_draw`, `g_ref`, `g_act` — so every program that links the engine
+without being a game (the unit tests, the editor) imports `idem/stub/`: six
+no-ops that each touch a counter, because six identical no-ops would be one
+function under the duplicate-logic rule. Function values
+([`SPEC.md`](SPEC.md) §1.1) are the replacement the design chose: the engine
+takes the seam as values — exports its setup stores, read with
+`(import NAME)` where a frame calls them — and a game hands its functions in,
+so `stub/` and the name collision it exists to avoid both go away. Not done
+yet; what it has to settle:
+
+* each seam function's current signature becomes a function type, fixed in
+  the engine;
+* every place the engine calls a `g_*` name reads the export into a local
+  first, since a call is only through a parameter, local or export by name;
+* the values must be stored before the first frame, and nothing checks that
+  an export of a function type was stored before it is called;
+* `IDEM_COMPILER=idc.py` cannot build it: `idc/idc.py` has no function values.

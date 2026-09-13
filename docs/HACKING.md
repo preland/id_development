@@ -97,7 +97,7 @@ spelling in `mid/`, the change is in the wrong place.
 
 The shortest real example, and the shape most changes take:
 
-1. `mid/types/registry/rows.id` — one `ty_row(name, kind, width, signed)` call.
+1. `mid/types/registry/table/rows.id` — one `ty_row(name, kind, width, signed)` call.
 2. `back/.../type_column.id` — one `push((import tyc), "<C spelling>")`, **in the
    same position**, because the spelling column is indexed by the registry's
    row number.
