@@ -267,3 +267,29 @@ rather than a linker error naming a mangled symbol — which is the same standar
 Once that works, `idstd`'s own `conf.id` can name every backend without making
 `hello_world` link X11, and `--backend` becomes the override rather than the
 mechanism.
+
+## 13. An interpreted mode, so iterating in `id` costs what it costs in Python
+
+A goal set 2026-09-13: choosing `id` must not mean giving up edit-run speed.
+Today every run is lex, parse, check, emit C, run every test case, and a C
+compile and link — seconds for a small program, and much longer for a large
+one. The user wants the same iterability as Python, so that there is no
+tradeoff between the rules `id` enforces and how fast a change can be tried.
+
+What that means concretely, to be designed rather than assumed:
+
+* `idc run PATH [ARGS]` executes a program without producing a binary, with
+  every compile-time rule still enforced — an interpreter that skipped the
+  checks would be a second, laxer language.
+* Test cases run in the same mode, so the default build's case run gets cheaper
+  too.
+* The interpreter is a target of the self-hosted compiler, not a separate
+  implementation: `docs/BACKENDS.md` (the type registry, and "it also gives an
+  interpreted mode") and `docs/DISPATCH.md` (a function reference as an index
+  into a vector of bodies) already describe where it plugs in.
+* Native backends and `asm` need an answer — calling the C backend from the
+  interpreter, or refusing by name, as `docs/ASM.md` already notes for an
+  interpreted target.
+
+Measure first: where the seconds go today for a small project and for
+`idc/compiler/parse`, so the design targets the real cost.
