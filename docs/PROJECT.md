@@ -227,6 +227,20 @@ document: **fix the first error and rebuild.** Do not work down the list.
 
 > **Pitfall 3.** One real error produces a cascade. Read the top line only.
 
+**The other direction is a rule too: a function written in two projects moves
+into `idstd`.** Once the same function exists in any two projects, for any
+reason — copied, vendored, or written twice independently — it is added to
+`idstd` with its cases, and every project deletes its copy and calls the
+library's. Two copies drift apart, and a reader can no longer tell which one a
+call means. The compiler cannot see across projects, so this is found with
+`idc/tools/dupscan.sh`, listing each project root separately:
+
+```sh
+idc/tools/dupscan.sh "$PWD/demos/moonbuggy" "$PWD/demos/solitaire" "$PWD/../idstd"
+```
+
+Run it whenever a change touches more than one project.
+
 ### The trap with no line number of its own
 
 Two `idstd` modules hold state, and state in `id` is an `export` inside a
