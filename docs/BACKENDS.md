@@ -156,9 +156,9 @@ Done:
   case, and being the other side of the differential suites.
 * **`front/` and `mid/` no longer emit C.** Six `emit_*` functions that print
   the export and extern blocks lived in `mid/` and were called from `back/`;
-  they are now `back/tgt/c/emit/prog/head/decl/`. What stayed in `mid/` is
-  `note_extern` — whether a name resolves is a property of the program, and
-  only the C those names turn into is codegen. `front/` was already clean.
+  they are now `back/tgt/c/emit/prog/head/decl/`. The extern block has since
+  gone altogether: a backend's functions are `native` declarations in its own
+  source, so an unresolved call is always an error. `front/` was already clean.
 * **Emission has one boundary.** Every line of generated code goes through
   `emit_line` (`back/drive/sink/`) instead of 33 scattered `print`
   calls. Diagnostics deliberately still use `print`: they are `mid/`'s, they
@@ -219,16 +219,25 @@ Two different things are called a backend in this repo: a **compiler target**
 directory under `idc/backends/` that supplies functions at link time — `gfx`, `gl`,
 `fs`). A second compiler target must not drag the second kind along with it.
 
-It does not have to. A native backend's `backend.json` declares itself twice:
+It does not have to. A native backend declares itself twice — once in `id`, and
+once in its `backend.json`:
 
-```json
-{ "abi":     [ { "name": "fs_open", "params": ["string","string"], "returns": "int" } ],
-  "targets": { "c": { "header": "fs.h", "platforms": { "linux": { "sources": ["fs_posix.c"] } } } } }
+```
+native fs_open(string path, string mode) return int;
 ```
 
-`abi` is in `id`'s types and is what the backend *promises* — the same however
-the program is compiled, and the only machine-readable form of the contract (a
-Python or LLVM target cannot parse `fs.h` to learn it). `targets` is what a
+```json
+{ "targets": { "c": { "header": "fs.h", "platforms": { "linux": { "sources": ["fs_posix.c"] } } } } }
+```
+
+The `native` declarations are what the backend *promises*, in `id`'s own types.
+They are ordinary source: the backend's directory is merged into the build like
+any dependency, so every call into it is resolved and checked like any call —
+there is no unresolved-call mode and no `extern int` guess — and the same
+however the program is compiled. They are also the only machine-readable form
+of the contract (a Python or LLVM target cannot parse `fs.h` to learn it); the
+C target emits each as a prototype and the LLVM target as a typed `declare`.
+`targets` is what a
 given code generator needs in order to *deliver* it: sources and link flags for
 C, a module to import for the Python target of step 4, whatever LLVM wants.
 

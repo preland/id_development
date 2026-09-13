@@ -84,7 +84,7 @@ must agree on those, and `idc/tests/invalid.sh` enforces it).
 | emitted C for a statement | `back/tgt/c/emit/prog/code/body/stmt/` |
 | emitted C for an expression | `back/tgt/c/emit/prog/code/expr/` |
 | function signatures, forward declarations | `back/tgt/c/emit/prog/code/func/def/` |
-| the extern and exported-global blocks | `back/tgt/c/emit/prog/head/decl/` |
+| the exported-global block | `back/tgt/c/emit/prog/head/decl/` |
 | the C type spelling of an id type | `back/tgt/c/emit/prog/code/func/ctype/type_column.id` |
 | where emitted code leaves the compiler | `back/drive/sink/emit_line.id` |
 | the C runtime prelude | `idc.py`'s `RUNTIME`, then `idc/tools/gen_runtime_id.py` |

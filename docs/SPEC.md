@@ -392,8 +392,8 @@ Naming these keeps them from being discovered as bugs later:
 - Timing: `ticks()` is monotonic milliseconds from an unspecified origin.
 - Nothing about the order operands are evaluated in: §7 chooses it.
 - Anything reached through a native backend, which is by definition
-  platform-specific — but see `idc/backends/*/backend.json`, whose `abi` block is
-  the contract in `id`'s own types.
+  platform-specific — but see the `native` declarations in `idc/backends/*/`,
+  which are the contract in `id`'s own types.
 
 ## 11. Where the targets do not meet this specification today
 
