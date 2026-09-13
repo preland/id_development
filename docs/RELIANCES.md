@@ -163,7 +163,7 @@ through the `fs` backend on its own. Only `qmon.py` is genuinely blocked: it nee
 sockets and for starting, reading from and killing a child process.
 
 Anchor: `editor/lib/zip/` is 28 files of `id` that inflate DEFLATE and read a
-ZIP central directory. `mkodt.py` is easier than that.
+ZIP central directory. `mkodt` was easier than that.
 
 ## 5. `idc/backends/` — 1 380 lines of C, and the one place to leave alone
 

@@ -504,7 +504,7 @@ From `idem/engine/gfx/d2/`:
   `txt_number`, `txt_cell`, `txt_cellh`, `txt_align`, `txt_ui`
 
 **The bitmap font is one of the highest-value things in the whole brief.** `idem`
-carries the IBM VGA 8×16 face generated into `id` source by `idem/tools/mkfont.py`
+carries the IBM VGA 8×16 face generated into `id` source by `idem/tools/mkfont.sh`
 from `test_assets/vga8x16.psf`, plus `psf_load` to replace it at runtime with any
 PC Screen Font. Text on a framebuffer, for free, in every `id` program.
 `../idem/docs/research/id-patterns.md` §6 documents the whole thing, and
