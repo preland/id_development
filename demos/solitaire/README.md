@@ -1,9 +1,9 @@
 # Klondike Solitaire — in id
 
-A full Klondike solitaire on the id game engine (bundled under `engine/`, since a
-project links no other project): stock, waste, four foundations, seven tableau
-columns, with colored cards and a cursor-driven, real-time interface. The project
-is laid out as `engine/` (the bundled engine) and `game/` (the solitaire code).
+A full Klondike solitaire on the id terminal engine, idstd's `sys/io/term`: stock,
+waste, four foundations, seven tableau columns, with colored cards and a
+cursor-driven, real-time interface. The engine used to be bundled here under
+`engine/`; the project is now only `game/` (the solitaire code).
 
 ```sh
 ./idc.py demos/solitaire -o solitaire
