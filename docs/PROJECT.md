@@ -441,14 +441,26 @@ source changes when the platform does.
 idc/bin/idc demos/fsdemo --allow-untested            # x86_64-unknown-linux-gnu here
 ```
 
-`--triple` overrides it, and when a backend has no implementation for the
-platform you asked for, the build stops and says exactly that:
+**A backend costs nothing until you call it.** Attaching one merges its
+declarations; it is compiled and linked only when something reachable from
+`main` calls one of its natives (and, for the test harness, only when a case
+reaches one). A library can name `gfx` in its `conf.id`, and a program that
+never draws still links no X11.
+
+`--triple` overrides the platform, and when a native you reach has no
+implementation for the platform you asked for, the build stops at the call
+that reaches it:
 
 ```sh
 idc/bin/idc demos/gl3d --allow-untested --backend idc/backends/gl --triple aarch64-apple-darwin
-idc: backend 'gl' has no support for platform 'darwin' (building for
-  'aarch64-apple-darwin'); it is implemented for: linux
+demos/gl3d/loop/frame.id:8: error: native 'glwin_poll', reached from main by
+  this call, is implemented by backend 'gl', which has no support for platform
+  'darwin' (building for 'aarch64-apple-darwin'); it is implemented for: linux
 ```
+
+A native declared outside any attached backend is the same kind of error — it
+names the call and the platform, and says the declaring file is not in an
+attached backend — rather than a linker error about `id_<name>`.
 
 The same applies to `asm` functions, which are selected by exact triple with no
 wildcard and no fallback:
