@@ -46,7 +46,7 @@ them is a commit in that submodule's repo, and the umbrella notices it moved.
 argument: a single `.id` file, or a **project directory**.
 
 ```sh
-idc/bin/idc demos/hello        # build the hello_world project
+idc/bin/idc demos/hello --allow-untested   # build the hello_world project
 ./build/hello                  # usage: ./build/hello <message>
 ./build/hello hi               # hello world: hi
 idc/tests/run.sh --list        # the regression suite's sections
@@ -56,6 +56,11 @@ The suite (`idc/tests/run.sh`) is 85s in total and each section is 6-36s, so
 it is run in pieces: `--list` shows the sections, a section name or index runs
 just that one, and `--resume` continues after the last one that passed.
 
+`--allow-untested` is there because `demos/hello` has no test cases, and the
+compiler requires two per function ([`docs/TESTS.md`](docs/TESTS.md)). The
+flag is deprecated and warns on every build; it goes once every function in
+these repositories, the standard library's included, has its cases.
+
 A **project** is a directory *tree*: every directory in it may hold at most 3
 entries (counting `.id` files and subdirectories combined), and *all* the `.id`
 files in the tree are compiled together as one program, so functions and
@@ -64,11 +69,11 @@ named after the project directory and written into `build/`, which is
 `.gitignore`d — built binaries never land in the source tree:
 
 ```sh
-idc/bin/idc demos/adventure    # builds ./build/adventure from the whole project tree
+idc/bin/idc demos/adventure --allow-untested   # builds ./build/adventure from the whole project tree
 ./build/adventure
 ```
 
-`-o` overrides both the name and the directory: `idc/bin/idc demos/hello -o /tmp/hi`.
+`-o` overrides both the name and the directory: `idc/bin/idc demos/hello --allow-untested -o /tmp/hi`.
 
 A single file is handy for tutorials (`idc/bin/idc prog.id`); a project is how
 real programs grow. `idc/bin/idc PATH --emit-c prog.c` writes the generated C

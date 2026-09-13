@@ -39,8 +39,15 @@ main(int argc, string[] argv) {
 ```
 
 ```sh
-idc/bin/idc caesar.id -o caesar
+idc/bin/idc caesar.id --allow-untested -o caesar
 ```
+
+Every build in this document passes `--allow-untested`. The compiler requires
+two test cases per function (§9), and neither this program nor the standard
+library it merges has them all yet; the flag is the deprecated way to build
+anyway. Each such build prints `idc: warning: --allow-untested is deprecated
+and will be removed once every function has its test cases` first, and the
+transcripts below leave that line out.
 
 Three errors, and they are worth reading in order:
 
@@ -135,7 +142,7 @@ shifted(int c, int base) {
 ```
 
 ```sh
-idc/bin/idc caesar
+idc/bin/idc caesar --allow-untested
 printf 'Attack at dawn!\n' | ./build/caesar
 Dwwdfn dw gdzq!
 ```
@@ -202,8 +209,8 @@ from, in order, `--std DIR`, `$IDSTD_HOME`, then an `idstd` directory beside
 this repository.
 
 ```sh
-idc/bin/idc caesar --no-std      # build without it
-idc/bin/idc caesar --std ../idstd
+idc/bin/idc caesar --allow-untested --no-std      # build without it
+idc/bin/idc caesar --allow-untested --std ../idstd
 ```
 
 The habit to build is: **before writing a small helper, assume `idstd` has
@@ -295,7 +302,7 @@ int off = c - base + (import rot);
 ```
 
 ```sh
-idc/bin/idc caesar && printf 'Attack at dawn!\n' | ./build/caesar
+idc/bin/idc caesar --allow-untested && printf 'Attack at dawn!\n' | ./build/caesar
 Dwwdfn dw gdzq!
 ```
 
@@ -392,7 +399,7 @@ however little of its tree you import.
 ## 6. A project with no `main` is a library
 
 ```sh
-idc/bin/idc lib -o lib.o
+idc/bin/idc lib --allow-untested -o lib.o
 file lib.o        # ELF 64-bit LSB relocatable
 ```
 
@@ -431,14 +438,14 @@ backend's `backend.json` is indexed by the platform in it. Nothing in your
 source changes when the platform does.
 
 ```sh
-idc/bin/idc demos/fsdemo            # x86_64-unknown-linux-gnu here
+idc/bin/idc demos/fsdemo --allow-untested            # x86_64-unknown-linux-gnu here
 ```
 
 `--triple` overrides it, and when a backend has no implementation for the
 platform you asked for, the build stops and says exactly that:
 
 ```sh
-idc/bin/idc demos/gl3d --backend idc/backends/gl --triple aarch64-apple-darwin
+idc/bin/idc demos/gl3d --allow-untested --backend idc/backends/gl --triple aarch64-apple-darwin
 idc: backend 'gl' has no support for platform 'darwin' (building for
   'aarch64-apple-darwin'); it is implemented for: linux
 ```
@@ -456,7 +463,7 @@ overloads; the C target still compiles with your `cc`, so asking for a platform
 your compiler does not target is refused rather than faked:
 
 ```sh
-idc/bin/idc demos/fsdemo --triple aarch64-apple-darwin
+idc/bin/idc demos/fsdemo --allow-untested --triple aarch64-apple-darwin
 idc: cannot build for 'aarch64-apple-darwin' here: the C target compiles with
   the host's cc, which targets 'linux', not 'darwin'.
 idc: pass --cc with a cross compiler for 'darwin', or use --target llvm, which
@@ -473,7 +480,7 @@ idc: pass --cc with a cross compiler for 'darwin', or use --target llvm, which
 ## 8. When you do not believe the compiler
 
 ```sh
-idc/bin/idc caesar --emit-c caesar.c
+idc/bin/idc caesar --allow-untested --emit-c caesar.c
 ```
 
 writes the generated C instead of building. It is the fastest way to find out
@@ -491,9 +498,24 @@ same idea one layer down.
 
 ## 9. Tests
 
-A test case lives beside the function it tests; `--require-tests` makes the
-compiler count them. See [`TESTS.md`](TESTS.md) — the format cannot yet express
-a case that needs global state, which is why the flag is off by default.
+A test case lives beside the function it tests, under its return clause, and
+the compiler requires at least two per function on every build. Two for
+`shifted`, whose body is in §2:
+
+```
+shifted(int c, int base) {
+  ...
+} return string out;
+(97, 97):("d")
+(120, 97):("a")
+```
+
+A function with fewer is a compile error. `--allow-untested` turns that off
+for a build that does not have its cases yet — every build above — and is
+deprecated: it warns on every build, and goes once every function has its
+cases. While the standard library still lacks some, a build that merges it
+needs the flag even when its own functions are all tested. See
+[`TESTS.md`](TESTS.md), "Enforcement, and the migration".
 
 ---
 

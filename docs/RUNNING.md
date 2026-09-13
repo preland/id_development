@@ -93,8 +93,11 @@ idc/tests/kernel.sh              # 15 checks
 ### Build it
 
 ```sh
-idc/bin/idc editor -o editor
+idc/bin/idc editor --allow-untested -o editor
 ```
+
+`--allow-untested` because neither the editor nor `idstd` has all its test
+cases yet; it is deprecated ([`TESTS.md`](TESTS.md)).
 
 That is the whole thing: `editor/lib/{zip,doc,font}` and `editor/app`, plus the
 `fs` and `gfx` backends its `conf.id` names.
