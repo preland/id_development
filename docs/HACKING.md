@@ -47,24 +47,23 @@ The indexes answer different questions:
 
 ## The bootstrap rule, stated exactly
 
-`idc.py` is **stage 0**. Its only permanent job is to compile the self-hosted
-compiler's own `.id` source on a cold cache.
+**Stage 0 is `idc/bootstrap/idlex.c` and `idc/bootstrap/idparse.c`**: the C
+the compiler emits about itself, checked in. `idc/bin/idc` compiles them with
+`cc`, then rebuilds both stages from the working tree through them. `idc.py`
+is not part of the bootstrap and is never run by the driver.
 
-That means `idc.py` needs to understand a new construct **only once the
-compiler's own source uses that construct**. Not when the language gains it —
-when this tree starts using it on itself.
+That means stage 0 has to understand a new construct **only once the
+compiler's own source uses that construct** — and it moves forward in exactly
+one commit: the one that teaches the compiler the construct, regenerated with
+`idc/tools/regen_bootstrap.sh`. Use the construct in the compiler's own source
+in a later commit, once stage 0 can read it. `regen_bootstrap.sh --check` fails
+the suite when stage 0 is not what the tree emits.
 
-So the question to ask before touching `idc.py` is:
-
-> Does `idc/compiler/lex{,_parse}` now contain this construct in its own source?
-
-If no, `idc.py` does not need the feature and adding it there is work that
-will have to be deleted. If yes, `idc.py` needs *just enough* to compile it —
-usually parsing, sometimes emission, rarely the checks.
-
-This is much less than "every change must be made in both", which is what
-`docs/IDSTD.md` says and which is true only of *diagnostics* (both compilers
-must agree on those, and `idc/tests/invalid.sh` enforces it).
+`idc.py` does not need new constructs at all. It is the retiring reference
+compiler, kept for one job: agreeing with `idc/bin/idc` on diagnostics and
+emitted C for programs built without `idstd` (`idc/tests/invalid.sh`, the
+hermetic parity checks in `idc/tests/run.sh`). No build that merges `idstd`
+goes through it, because `idstd` may hold syntax it cannot parse.
 
 ## Where things are
 
