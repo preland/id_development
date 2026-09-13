@@ -79,9 +79,12 @@ its initialiser attached (`int max_depth = 7;  /* constant from conf.id */`).
 
 **`idc/idc.py` does not implement this, and will not.** The bootstrap rule
 (`docs/HACKING.md`) is that stage 0 needs a construct only once the compiler's
-own source uses it, and the compiler's own `conf.id` declares no constants. So
+own source uses it. It now does: a function that only returns a constant is an
+error (`docs/SPEC.md` §7.2), so `compiler/parse/conf.id` declares `idx_n` and
+`builtin_src`, and stage 0 is the bootstrap C regenerated from that source. So
 byte-parity is not the gate here; `idc/tests/self_host_build.sh` checks the three
-behaviours above against `idc/bin/idc` alone.
+behaviours above against `idc/bin/idc` alone, and idc.py can no longer build
+the parser stage.
 
 Still open, and unblocked by this: migrate `idstd`'s `fx_sintab` across, delete
 `fx_trig_init`, and turn `--strict-const` on by default. That also needs item 3.

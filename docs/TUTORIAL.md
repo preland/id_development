@@ -331,6 +331,24 @@ uses short, boring, consistent names — and why picking `s` for a string in one
 function and a struct-ish index in another will not compile. An imported tree
 is a separate unit and keeps its own vocabulary.
 
+**A function that only returns a constant is an error.** The obvious way to
+name a magic number is the one `id` refuses:
+
+```
+grid_w() {
+} return int 15;
+```
+
+```
+game/dims.id:1: error: 'grid_w' only returns the constant 15; declare it in
+  conf.id as 'int grid_w = 15;' and read it with (import grid_w)
+```
+
+Put `int grid_w = 15;` in the `conf.id` at the root of your project and write
+`(import grid_w)` where you called `grid_w()`. A single `.id` file has no
+`conf.id`; a program that needs a constant is a directory. See
+[`SPEC.md`](SPEC.md) §7.2 for exactly what counts.
+
 ## 9. Where to go next
 
 - Read [`demos/adventure`](../demos/adventure) (120 lines, 3 files) for input

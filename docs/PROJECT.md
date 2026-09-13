@@ -303,6 +303,10 @@ caesar/clash.id:2: error: 'rot' is an exported global (by 'conf.id'); another
 
 and imports must come before constants; an `import` after one is an error.
 
+This is also the only place a constant can live. A function whose whole job is
+to return one -- `rot() { } return int 3;` -- is rejected with the declaration
+to write here instead (`docs/SPEC.md` §7.2).
+
 **Only a root's `conf.id` is a manifest.** The name is reserved everywhere else
 rather than silently ignored:
 
