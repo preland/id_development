@@ -152,6 +152,10 @@ Two things happened that were not asked for.
 **The binary went to `build/`.** With no `-o`, the output is named after the
 project directory and written into `build/`, which is `.gitignore`d — built
 binaries never land in the source tree. `-o` overrides both: `-o /tmp/caesar`.
+That makes `build/` at a project's root **output, never source**: nothing under
+it is compiled and it does not count toward the 3-entry limit, so a tree that
+has been built in place compiles exactly as a clean one does. Do not put `.id`
+files there.
 
 **`chr_is_lower` and `chr_is_upper` were never defined.** They are `idstd`'s,
 and `idstd` is in every build already. See §4.
