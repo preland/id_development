@@ -109,23 +109,28 @@ No `idc.py` change, unless the compiler's own source starts using the type.
 ## The loop
 
 ```sh
-idc/tools/parity.sh compiler/parse                    # MATCH: emitted C unchanged
+idc/tools/regen_bootstrap.sh --check                  # ok: the compiler's own C unchanged
+idc/tools/parity.sh demos/calc                         # MATCH: same C as idc.py, no idstd
 idc/tools/devshell.sh 'idc/tests/invalid.sh'           # diagnostics, both compilers
 idc/tools/devshell.sh 'idc/tests/conform.sh'           # behaviour, every target
 idc/tools/devshell.sh 'idc/tests/run.sh'               # everything
 ```
 
-`parity.sh` is the cheap one and catches most mistakes: if you did not mean to
-change emitted C, it must still say MATCH. When you *do* mean to change it,
-`idc.py` has to change in the same commit, and that is the one case where
-"both compilers" is genuinely the rule.
+`regen_bootstrap.sh --check` is the cheap one and catches most mistakes: it
+emits the compiler's own C through `idc/bin/idc` and compares it with
+`idc/bootstrap/*.c`, so if you did not mean to change emitted C, it must still
+say ok. When you *do* mean to change it, see `idc/bootstrap/README.md`.
 
-It feeds the self-hosted side `idc/bin/idc --emit-sources` rather than
-concatenating the target's own tree, so both compilers see the same source
-stream — the project, everything its `conf.id` reaches, and the implicit
-standard library. `IDC_NO_STD=1` in front of it used to be written here and is
-wrong: the compiler's own source calls `idstd`'s `lset`, so a bootstrap without
-the library does not build at all.
+`parity.sh` compares `idc/idc.py`'s C with the self-hosted compiler's, and
+where both emit C, a change to emitted C means `idc.py` has to change in the
+same commit, the one case where "both compilers" is genuinely the rule. It
+compiles the program under test **without** the standard library, on both
+sides, and builds the self-hosted stages with `idc/bin/idc`: `idc.py` cannot
+parse an `idstd` that holds a `given` case, so no build that merges `idstd`
+goes through it. That is why `parity.sh compiler/parse`, which used to be the
+first line of this loop, is gone: the compiler's own source calls `idstd`'s
+`lset` and cannot be built without the library, so there is no way to show
+it to `idc.py` any more.
 
 ## Writing `id` inside the rule of 3
 
