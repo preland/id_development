@@ -2,8 +2,9 @@
 
 > **Status, 2026-07-30.** Tiers A, B, D and E are **done**, and Tier C is done
 > apart from two cosmetic items (C5, C6). Every fix is locked by a test.
-> Three later divergences (B6, B7, B8) are **open** and are recorded after Tier
-> B's table, with what they have cost measured. §3 records the performance numbers,
+> Three later divergences (B6, B7, B8) are recorded after Tier B's table, with
+> what they have cost measured. `idc.py` will not be changed to match, so each
+> is pinned by a test that fails if either compiler changes its answer. §3 records the performance numbers,
 > §4 what each tier turned into. What remains is `--target llvm|wasm`, audio
 > (D6, which needs specifying before building), and the string-building rewrite
 > in §3.
@@ -107,9 +108,9 @@ point of this file is that a divergence found is a divergence written down.
 
 | # | issue | verified how |
 | --- | --- | --- |
-| **B6** | **A call as an argument to a call is rejected by `idc/bin/idc` and accepted by `idc/idc.py`.** The rule is real and deliberate -- it is implemented in `idc/compiler/parse/mid/names/limits/expr/nest.id` -- but the reference compiler never learned it, so the primary compiler is *stricter* than the one it is checked against. **There is no fixture for it in `idc/tests/invalid/`**, which is exactly the corpus that would have caught this: every case there is run through both compilers and must produce the same diagnostic. A rule with no case cannot fail that check. | `int v = sq(dbl(3));` -> `idc/bin/idc`: `error: argument 0 of 'sq' contains a call; give that value a name and pass the name`. `idc/idc.py`: exit 0. |
-| **B7** | **A return clause that is a call or an expression is rejected by `idc/bin/idc` and accepted by `idc/idc.py`.** The same shape of divergence as B6, found by the same measurement, and with no fixture in `idc/tests/invalid/` either. | `} return int i + 1;` -> `idc/bin/idc`: `error: the return clause of 'f' is an expression; it must be a name or a literal`. `idc/idc.py`: exit 0. |
-| **B8** | **A list literal is typed by the slot it goes into in `idc/bin/idc`, and by its own elements in `idc/idc.py`.** So `word[] xs = [1, a, 3]` builds and runs under the primary compiler and is refused by the reference one -- the reverse direction to B6 and B7, and again with no fixture in `idc/tests/invalid/`. | `word a = 7; word[] xs = [1, a, 3];` -> `idc/bin/idc`: builds, runs, prints 3. `idc/idc.py`: `error: cannot initialize word[] 'xs' with a int[] value`. |
+| **B6** | **A call as an argument to a call is rejected by `idc/bin/idc` and accepted by `idc/idc.py`.** The rule is real and deliberate -- it is implemented in `idc/compiler/parse/mid/names/limits/expr/nest.id` -- but the reference compiler never learned it, so the primary compiler is *stricter* than the one it is checked against. Pinned by `idc/tests/invalid/call_as_argument.id`, marked `IDCPY-ACCEPTS`. | `int v = sq(dbl(3));` -> `idc/bin/idc`: `error: argument 0 of 'sq' contains a call; give that value a name and pass the name`. `idc/idc.py`: exit 0. |
+| **B7** | **A return clause that is a call or an expression is rejected by `idc/bin/idc` and accepted by `idc/idc.py`.** The same shape of divergence as B6, found by the same measurement. Pinned by `idc/tests/invalid/return_clause_call.id` and `return_clause_expression.id`, both `IDCPY-ACCEPTS`. | `} return int i + 1;` -> `idc/bin/idc`: `error: the return clause of 'f' is an expression; it must be a name or a literal`. `idc/idc.py`: exit 0. |
+| **B8** | **A list literal is typed by the slot it goes into in `idc/bin/idc`, and by its own elements in `idc/idc.py`.** So `word[] xs = [1, a, 3]` builds and runs under the primary compiler and is refused by the reference one -- the reverse direction to B6 and B7. Pinned by the `a word[] literal` guard in `idc/tests/run.sh`, which asserts `bin/idc` accepts it. | `word a = 7; word[] xs = [1, a, 3];` -> `idc/bin/idc`: builds, runs, prints 3. `idc/idc.py`: `error: cannot initialize word[] 'xs' with a int[] value`. |
 
 **`docs/SPEC.md` settles all three, and every time in `bin/idc`'s favour.** §5
 says a list literal "has no type of its own: it takes the type of the slot it is
