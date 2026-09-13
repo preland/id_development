@@ -360,6 +360,35 @@ somewhere else in the tree.
 > **Pitfall 6.** A name has one type across your whole tree. Breaking that
 > reports the error everywhere *except* where you broke it.
 
+### Importing part of a tree
+
+A dependency does not have to be a root. `import "../engine/gfx"` merges that
+one directory -- which is how a test gets a renderer without the window backend
+the whole engine names. The directory has no `conf.id` of its own, but its code
+reads the engine's constants, so it takes them from its **enclosing root: the
+nearest directory above it that has a `conf.id`**. A constant keeps one home
+however little of its tree you import.
+
+- **Only the constants come along.** The enclosing root's `import` lines are not
+  followed: leaving the rest of the tree out is why you imported part of it.
+  Whatever the part needs, name in your own `conf.id`.
+- **A root's constants are taken once**, however it is reached -- whole, through
+  one subdirectory, or through several. Importing `engine/core/util` and
+  `engine/gfx` side by side declares nothing twice.
+- **A directory with its own `conf.id` is a root**, and reads only that one.
+- **One name, two `conf.id`s, is an error** that names both declarations:
+
+  ```
+  app/conf.id:2: error: constant 'lib_k' is already declared at
+    /home/me/lib/conf.id:2; a constant has one home -- rename one of them
+  ```
+
+- **A `conf.id` below the directory you import is still nested**, and still an
+  error. Nesting is judged against the tree being built or imported, never
+  against the directories above it.
+- The rule is for `conf.id` imports. The project you build, a `--backend`
+  directory and the standard library read only their own `conf.id`.
+
 ## 6. A project with no `main` is a library
 
 ```sh
