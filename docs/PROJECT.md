@@ -455,8 +455,13 @@ same thing from the command line; naming one both ways links it once.
 
 **Which implementation you get is chosen for you.** The build has a target
 triple, derived from the machine you are on unless you say otherwise, and the
-backend's `backend.json` is indexed by the platform in it. Nothing in your
+backend's `backend.id` is indexed by the platform in it. Nothing in your
 source changes when the platform does.
+
+`backend.id` is how a backend says what to link, in `id`'s own constant
+declarations — `string[] c_linux_sources = ["fs_posix.c"];` — and it is the
+one `.id` file in a backend that is never compiled: the driver reads it, so
+none of its names reaches your program (`docs/BACKENDS.md`).
 
 ```sh
 idc/bin/idc demos/fsdemo --allow-untested            # x86_64-unknown-linux-gnu here

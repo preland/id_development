@@ -19,7 +19,7 @@ it is, why it is there, and what moving it would cost.
 | `kernel/boot/*.S` | 234 | code that runs before a calling convention exists | **mostly irreducible** |
 | `vscode/extension.js` | 259 | VS Code's extension host runs JavaScript | **medium**, and a shim survives |
 | `flake.nix`, `.envrc` | 52 | declaring an environment is not programming | **not a reliance** |
-| `backend.json` ×3, etc. | 293 | data | **small**, and low value |
+| data files, etc. | 293 | data | **small**, and low value |
 
 ---
 
@@ -169,7 +169,9 @@ ZIP central directory. `mkodt.py` is easier than that.
 
 **What it is.** Three native backends: `gfx` (X11 window and framebuffer),
 `gl` (OpenGL), `fs` (POSIX file I/O). Each is a `.h` declaring the ABI, a `.c`
-implementing it, and a `backend.json` stating the contract in `id`'s own types.
+implementing it, `native` declarations stating the contract in `id`'s own
+types, and a `backend.id` saying, in `id` constant declarations, what to
+compile and link per platform.
 
 **Why.** This is the FFI boundary and it is **deliberate**. `docs/SPEC.md` §10
 lists "anything reached through a native backend" as unspecified precisely
@@ -234,9 +236,10 @@ hurts.
 * **`flake.nix`, `.envrc`** — declaring a toolchain is not programming, and Nix
   is the right language for it.
 * **Markdown** — 9 044 lines of documentation.
-* **JSON** — `backend.json` is data. It *could* be a `conf.id`, which would be
-  a small, tidy win and would let the compiler read a backend's ABI with its
-  own parser instead of a shell `awk` — but nothing is blocked on it.
+* **JSON** — none left in the build path. `backend.json` became `backend.id`,
+  `id` constant declarations, and the inline `python3` heredoc `idc/bin/idc`
+  read it with is gone: the driver reads the declarations with shell, as it
+  reads `conf.id`.
 * **LLVM IR, WAT, C output** — emitted, never written.
 
 ## The order that matters
