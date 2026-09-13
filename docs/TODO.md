@@ -97,7 +97,7 @@ process of its own, with a failing case failing the build (`docs/TESTS.md`,
 "How it runs"). What remains is deleting `--allow-untested`, the deprecated
 opt-out every build in these repositories still passes. That waits on two
 things: the cases themselves (item 2; `idc/tests/run.sh` fails once adoption
-reaches 100% while the flag exists), and a decision about freestanding builds,
+has no function short of two cases while the flag exists), and a decision about freestanding builds,
 which refuse cases and so cannot meet the minimum at all (`docs/TESTS.md`, "An
 open question: a freestanding build cannot comply").
 
