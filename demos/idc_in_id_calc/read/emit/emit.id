@@ -8,7 +8,11 @@ emit_tok(string src, int i, int sp, int e) {
   emit_tok_tail(src, sp, e, kindcode_v);
 } return void;
 
+// A line with no space ("eof") has sp == e, so the value would start one past
+// the line's end. Holding the start at e makes that value "", the same answer
+// a line with nothing after its space gives.
 emit_tok_tail(string src, int sp, int e, int kindcode_v) {
-  string slice_v2 = slice(src, sp + 1, e);
+  int start_v = fx_min(sp + 1, e);
+  string slice_v2 = str_slice(src, start_v, e - start_v);
   push_tok(kindcode_v, slice_v2);
 } return void;
