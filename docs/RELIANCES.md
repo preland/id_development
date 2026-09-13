@@ -146,7 +146,7 @@ them, because the C target was the only target when the prelude was written.
 
 | tool | lines | what blocks it |
 | --- | ---: | --- |
-| `flatten.py` | 565 | nothing — it is a one-off migration tool and should be deleted, not ported |
+| `flatten.py` | 565 | **deleted**: it was a one-off migration tool, not something to port |
 | `lint_idcpy.py` | 150 | nothing — it dies with `idc/idc.py` |
 | `qmon.py` | 142 | **sockets and processes**. It starts QEMU, drives it over QMP (a JSON protocol) on a Unix-domain socket, reads while the child runs, and kills it |
 | `gen_runtime_id.py` | 121 | nothing — it dies with the C prelude |
