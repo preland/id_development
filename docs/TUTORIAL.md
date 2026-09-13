@@ -137,18 +137,25 @@ export, reading it is a compile error.
 ## 4. Scanning text without a substring
 
 `id` gives you `len(s)`, `charat(s, i)` (the byte at `i`, or `-1` past the
-end), and `chr(n)`. There is no `substr`, no `split`, and no regex. A word is
-extracted a character at a time:
+end), and `chr(n)`. The standard library adds `str_slice(s, start, count)`,
+and a word is taken out with it once its end is known:
 
 ```
-slice(string s, int a, int b) {
-  string out = "";
-  while(a < b) {
-    out = out + chr(charat(s, a));
-    a = a + 1;
-  }
-} return string out;
+take_word(string text, int i) {
+  int e = word_end(text, i);
+  string slice_v = str_slice(text, i, e - i);
+  bump(slice_v);
+} return int e;
 ```
+
+**Do not write your own `slice`.** It is the first helper everyone reaches for,
+and a function that already exists in `idstd` must never be defined again in a
+project: two copies drift, and a reader can no longer tell which one a call
+means. Look in `idstd/NAMES.md` before writing any small helper.
+
+Notice `slice_v`: the result is named before it is passed. A call is never an
+argument to another call — `bump(str_slice(text, i, e - i))` is a compile
+error — so every intermediate value gets a name.
 
 Note there is no `break` and no `continue`. A loop runs until its condition is
 false, so the condition has to carry everything — which is why the walk is
@@ -165,7 +172,7 @@ tally(string text) {
 
 step(string text, int i) {
   int j = i;
-  if(is_space(charat(text, i)) == 1) {
+  if(is_space_at(text, i) == 1) {
     j = i + 1;
   } else {
     j = take_word(text, i);
@@ -247,7 +254,8 @@ wordcount/
 ├── scan/
 │   ├── scan.id        tally, step, is_space
 │   └── word/
-│       └── word.id    take_word, word_end, slice
+│       ├── word.id    take_word, word_end
+│       └── word2.id   is_space_at
 └── tally/
     ├── tally.id       bump, find, maybe
     └── add/
@@ -295,8 +303,8 @@ files are.
 **String `+` in a loop is quadratic, and nothing is ever freed.** `id` has no
 garbage collection and no `free`; the arena is released when the process
 exits. Building a 200 000-character string one character at a time costs about
-20 GB and 9 seconds. `slice` above is fine because a word is short — but never
-do it over a whole file. For big text, write bytes into the flat store with
+20 GB and 9 seconds. Never grow a string one character at a time over a whole
+file. For big text, write bytes into the flat store with
 `poke8` and call `str_of_mem` once.
 
 **There is no `break`, no `continue`, no early `return`, and no `for`.** Loops
