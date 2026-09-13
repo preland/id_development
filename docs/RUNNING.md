@@ -163,7 +163,7 @@ Any `.odt` LibreOffice writes:
 It will show you what it made of it. What it does *not* do is listed at the end
 of [`docs/EDITOR.md`](EDITOR.md) — no tables, images, lists or footnotes, one
 font face at a time, and no scrolling, so only the first page's worth is drawn.
-`idc/tools/mkodt.py` regenerates the fixture if you want a smaller thing to poke at.
+`idc/tools/mkodt.sh` regenerates the fixture if you want a smaller thing to poke at.
 
 ### Check it
 
