@@ -420,9 +420,8 @@ idc: pass --cc with a cross compiler for 'darwin', or use --target llvm, which
 > is attached. Call one without it and the error is `no such function` — the
 > same error a misspelling gets, because either way nothing in the build
 > declares that name. If the spelling is right, attaching the backend is the
-> fix. A backend's parameter names are declarations too, and an exported name
-> is reserved across the whole program: export a name one of them uses and the
-> build stops at the backend's declaration with `'NAME' is an exported global`.
+> fix. A backend's parameter names are not variables and reserve nothing, so
+> no name your program exports or declares can collide with one of them.
 
 ## 8. When you do not believe the compiler
 
