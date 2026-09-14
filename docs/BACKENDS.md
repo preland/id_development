@@ -12,42 +12,28 @@ and WASM targets were left behind when `word` and the flat store arrived.
 The self-hosted compiler should not repeat that. This document is the shape it
 should grow into, and the order to get there.
 
-## Why this is urgent: it is the plan for deleting `idc.py`
+## idc.py is frozen; only the WASM target still uses it
 
-`idc.py` is being retired as fast as the work can be done. It is stage 0 of a
-bootstrap and nothing more, and every line it keeps is a line the language does
-not own. What still holds it here, measured:
+`idc.py` is frozen (`idc/README.md`, `idc/docs/HACKING.md`): it takes no new
+work of any kind, not a line, not a rule, not a lint fix. It is stage 0 of a
+bootstrap that has already been retired — `idc/bin/idc` bootstraps from the
+checked-in C in `idc/bootstrap/`, not from `idc.py` — and it no longer compiles
+anything else either: the differential parity checks that used to run it
+alongside the self-hosted compiler across `idc/tests/`, `idc/tools/parity.sh`,
+the reserved-name and C-runtime generation, and idem's and idstd's own test
+runners have all been moved off it.
 
-| what | lines of `idc.py` (of 5285) | what removes it |
-|---|---|---|
-| LLVM target | ~851 | steps 1–5 below |
-| WASM target | ~1428 | steps 1–5 below |
-| everything else (lex/parse/check/C emit) | ~3000 | already duplicated in `id`; needed only to bootstrap `idlex`/`idparse` on a cold cache |
+What still reaches it is **the WASM codegen target** (`--target wasm`), which
+`idc/bin/idc` does not have: `idc/tests/conform.sh`'s wasm lane and the wasm
+half of `idc/tests/run.sh`'s alt-target checks still build with `idc.py` for
+that reason. Porting `--target wasm` to the self-hosted compiler is what would
+let `idc.py` be deleted; nothing else in this document is on that path any
+more.
 
-**43% of `idc.py` exists only to serve two targets `idc/bin/idc` does not have.**
-That is the whole of the retirement problem: this document is how it gets
-solved.
-
-The last ~3000 lines went a different way. They were not ported — they are
-already written in `id`, and `idc/tools/parity.sh` proves it byte for byte. What
-kept them alive is that a fresh checkout has no `idlex`/`idparse` and must
-build them from something. **A checked-in bootstrap C artifact retires that
-job**, and it is checked in: `idc/bootstrap/idlex.c` and `idc/bootstrap/idparse.c`,
-built with `cc`, so stage 0 is a compiler and not a Python program.
-Regenerating it is a normal commit (`idc/tools/regen_bootstrap.sh`), and
-`idc/tests/self_host_build.sh` is what says the commit is honest — it re-emits both
-files and fails if they are not what the tree emits.
-
-Done means: `idc/bin/idc` covers every target, the bootstrap C is checked in, and
-`git rm idc/idc.py` breaks nothing. The middle clause is done. Anything that grows
-`idc.py` moves away from the rest and needs a reason.
-
-**That last sentence is a gate, not a hope.** `idc/tests/run.sh` holds a line
-ceiling for `idc.py` and fails if it is exceeded. The ceiling only ever
-ratchets down: port something out, lower it in the same commit. It exists
-because "language features are not built here" was a sentence in the README
-for a while before the gate was, and `idc.py` gained 1711 lines during that
-time. Prose does not hold a line; a failing test does.
+**The freeze is a gate, not a hope.** `idc/tests/run.sh` checks `idc.py`'s
+sha256 against a recorded value and fails if it does not match — the file may
+not change at all, not even to shrink. This replaces the line-count ceiling
+that used to ratchet down as work was ported out of it.
 
 ## The split
 
@@ -152,8 +138,8 @@ Done:
   which previously lived in two halves in two subtrees.
 * **`idc.py` no longer compiles anything, and no longer bootstraps** —
   `idc/bin/idc` has no fallback and does not execute it. Stage 0 is
-  `idc/bootstrap/*.c`; what `idc.py` still has is `--target wasm`, running a test
-  case, and being the other side of the differential suites.
+  `idc/bootstrap/*.c`; `idc.py` is frozen, and what still reaches it is
+  `--target wasm`.
 * **`front/` and `mid/` no longer emit C.** Six `emit_*` functions that print
   the export and extern blocks lived in `mid/` and were called from `back/`;
   they are now `back/tgt/c/emit/prog/head/decl/`. The extern block has since
@@ -169,9 +155,10 @@ Done:
   that determine them.
 * **The language has a written specification and a cross-target gate**
   ([`docs/SPEC.md`](SPEC.md), `idc/tests/conform.sh`). This is the prerequisite
-  the plan below did not have: `idc/tools/parity.sh` compares emitted *text*,
-  which is only a question while both compilers emit C, so it cannot say
-  anything about a second target. The first conformance run found nine
+  the plan below did not have: comparing emitted *text* against `idc.py`,
+  which the tree used to do, is only a question while both compilers emit C,
+  so it cannot say anything about a second target. The first conformance run
+  found nine
   divergences between the three existing targets, three of them wrong
   answers rather than missing features.
 

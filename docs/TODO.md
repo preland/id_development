@@ -40,14 +40,15 @@ half of `core/math`, and every flat-store writer. `c2id` still builds itself wit
 merged, so a `given` in `idstd` breaks that build (`docs/TESTS.md`, the status
 block). See `docs/TESTS.md`, "What the case format cannot express".
 
-## 3. Move `check_assigned_once` into the self-hosted compiler
+## 3. Add `check_assigned_once` to the self-hosted compiler
 
 It is a semantic check on the AST — "this export is assigned once and never
 changed, so it is a constant" — and every other rule of the language lives in
 `idc/compiler/parse/mid/`. This one is in `idc/idc.py` because that is where it was
-written, which is precisely the drift the line ceiling exists to catch, and it
-did catch it: the ceiling had to be raised by 96 lines to land it. Moving it
-drops the ceiling by 96 again.
+written, which was precisely the drift the line ceiling used to catch (it had
+to be raised by 96 lines to land it). `idc/idc.py` is frozen now
+(`docs/HACKING.md`), so its copy can never be removed regardless — what is
+still open is giving the self-hosted compiler its own version of the check.
 
 It also cannot be turned on by default until item 4 below lands. `--strict-const`
 runs it today; with the flag, `idstd`'s `fx_sintab` is the first thing it names.
@@ -139,26 +140,13 @@ This one is not free: `idc/tests/backends.sh` drives `gfxdemo` and `gl3d`, and
 `idc/tests/self_host_build.sh` sweeps `demos/*/`. Moving a demo out means deciding
 what replaces it as a fixture.
 
-## 8. Work the `idc/idc.py` lint budget down
+## ~~8. Work the `idc/idc.py` lint budget down~~ — moot
 
-`idc/tools/lint_idcpy.py` holds `idc/idc.py` to a lightweight form of the rules the
-compiler enforces: 32 statements per function (`id` allows 3 actions per
-block), nesting depth 4 (`id` allows 2), and no two functions with the same
-logic up to renaming (`id`'s rule exactly, and it already passes).
-
-**19 functions exceed the statement limit and 7 the nesting limit.** They are
-named in `BUDGET`/`DEPTH_BUDGET`, so a new violation fails while the old ones
-stand, and an entry that stops being true also fails — a stale budget is how a
-ratchet quietly stops ratcheting.
-
-Almost all of them are the same four functions written three times:
-`gen_expr`, `gen_binop`, `gen_call` and `gen_stmt`, once per target, the
-largest at 128 statements. That is the duplication `docs/BACKENDS.md` exists to
-remove, so the budget falls as item 9 progresses rather than through separate
-cleanup.
-
-The one rule deliberately not checked is 3 functions per file: `idc/idc.py` is one
-file with 160, and applying it means splitting the file, which is item 9.
+`idc/idc.py` is frozen (`docs/HACKING.md`): `idc/tests/run.sh` checks its
+sha256 against a recorded value, and nothing may land in it again, not even a
+cleanup. `idc/tools/lint_idcpy.py`, which held it to a lightweight form of the
+compiler's own rules while it could still change, is deleted; there is no
+budget left to work down.
 
 ## ~~9a. `--target llvm` in `idc/bin/idc`~~ — done
 
@@ -214,9 +202,11 @@ flow rather than a CFG, so the printer has to rebuild `block`/`loop`/`br_if`
 from the branches, which is a real algorithm (relooper, or the simpler
 stackifier LLVM's own back end uses) and not a spelling.
 
-After that, and after items 5 (running a test case) and the decision to stop
-differential-testing against a second implementation, `git rm idc/idc.py` breaks
-nothing. The bootstrap half of that sentence is already true.
+After that, and after item 5 (running a test case), `git rm idc/idc.py` breaks
+nothing. The bootstrap half of that sentence is already true, and so is the
+decision to stop differential-testing against a second implementation:
+`idc/idc.py` is frozen (`docs/HACKING.md`) and no longer built against by
+anything but this item's own `--target wasm` lanes.
 
 ## 9c. Make the freestanding target trap
 
@@ -377,8 +367,9 @@ one function under the duplicate-logic rule. Function values
 * `idem/stub/` is deleted, along with its imports from the nine unit test
   manifests that named it and from `tools/idem pack`'s fallback for a
   document-model game with no `id/`.
-* `IDEM_COMPILER=idc.py` cannot build any of this: `idc/idc.py` has no
-  function values, noted where `tools/idem` documents the variable.
+* `idem`'s `IDEM_COMPILER=idc.py` switch is gone: `idc/idc.py` has no function
+  values and could not have built any of this anyway, and it is frozen
+  (`docs/HACKING.md`) and no longer an idem build option at all.
 
 Diagnostics before and after (`idc/bin/idc . --emit-c /dev/null
 --allow-untested`, `IDSTD_HOME` pinned): every `no such function 'g_*'` error
