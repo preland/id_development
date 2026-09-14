@@ -79,6 +79,11 @@ add(int a, int b) {
 (0, 0):(0)
 ```
 
+A case can also check what a call *did*, not just what it returned: `then
+prints:("...")` / `then eprints:("...")` compare what the call wrote to
+stdout/stderr, and `then calls NAME:(...)` / `then calls NAME:[N]` compare a
+call it made along the way. [`TESTS.md`](TESTS.md) has the full form.
+
 ## 2. The rule of 3, and your first compile error
 
 Here is the natural way to write the top of wordcount:
