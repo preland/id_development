@@ -291,8 +291,9 @@ idc: backends/toy/backend.id:3: invalid backend declarations: 'c_linux_sources' 
 `tests/backends.sh` parses and type-checks each backend's `backend.id` as a
 project's `conf.id` with the compiler itself (`--fingerprints`, which stops
 before C), so the shell reader cannot drift into accepting something that is
-not `id`. It stops before C because a list constant in a `conf.id` does not
-yet emit C that `cc` accepts — an emitter gap, separate from this file.
+not `id`. It stops before C because `--fingerprints` never reaches emission for
+any conf.id, list-typed fields included -- not because a list constant cannot
+reach C, which it now can (`docs/PROJECT.md` §5).
 
 So step 4 adds `py_...` declarations to three backends and a reader for them.
 It does not touch `demos/fsdemo`, `demos/gfxdemo`, or any other compiled `.id`

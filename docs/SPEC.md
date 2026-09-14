@@ -365,6 +365,11 @@ one target and not another is the thing this document exists to prevent.
   recognised through a plain identifier, so writing through an imported global
   directly used to compile to a discarded comparison and do nothing; pass the
   list to a helper that takes it as a parameter.
+- A list constant from `conf.id` (`docs/PROJECT.md` §5) is locked once built.
+  `push`, `pop` or an index-assignment against it **traps**, whether reached
+  directly or through an alias that took it from `(import name)` first; a
+  direct `push`/`pop` on `(import name)` is instead rejected at compile time,
+  naming the constant.
 
 ## 6. `word` and the flat store
 
@@ -509,26 +514,40 @@ zero(int a) {                  rejected -- the parameter is never used
 k() {                          rejected -- 2 * 1000 folds to 2000
   int n = 2 * 1000;
 } return int n;
+
+names() {                      rejected -- 1, 2 and 3 are literals
+  int[] out = [1, 2, 3];
+} return int[] out;
 ```
 
 ```
 p.id:1: error: 'ch_nl' only returns the constant 10; declare it in conf.id as
   'int ch_nl = 10;' and read it with (import ch_nl)
+
+p.id:1: error: 'names' only returns the constant [1, 2, 3]; declare it in
+  conf.id as 'int[] names = [1, 2, 3];' and read it with (import names)
 ```
 
 Precisely, a function is rejected when it is not `main`, not a `native`
-declaration, and returns `int`, `word`, `float` or `string`; when every
-statement of its body declares a local of its own (not an `export`) or assigns
-one, each time to a value that is a literal or an operator over literals the
+declaration, and returns `int`, `word`, `float`, `string`, or one of their list
+types; when every statement of its body declares a local of its own (not an
+`export`) or assigns one, each time to a value that is a literal, a non-empty
+list literal of nothing but literal elements, or an operator over literals the
 compiler folds; and when its return clause is such a literal or one of those
 locals. A call, an `import`, a parameter, a loop, a branch or a write through
 an index anywhere in the body makes it a function. So do these, deliberately:
 
-- **A list.** `} return int[] ps;` over `int[] ps = [2, 3, 5];` builds a fresh
-  list on every call, so each caller owns what it got. A shared constant could
-  not behave that way. The inverse case — a conf.id constant whose type is a
-  list — is rejected at the conf.id declaration; see docs/PROJECT.md §5 for the
-  diagnostic and the supported alternative.
+- **A list, built from anything but literals.** `names() { int[] out =
+  [(import x), "b"]; } return int[] out;` depends on something other than a
+  literal, so it is a function, not a constant wrapper — the fold this rule
+  relies on (below) does not look inside a list literal's elements for
+  anything but a literal read straight off it.
+- **`[]`.** `new_bucket() { int[] b = []; } return int[] b;` is not a
+  constant wrapper even though it is vacuously "nothing but literals": an
+  empty list carries no values a conf.id constant could hold instead of it,
+  and every caller needs its *own* fresh list -- the reason a list return type
+  was excluded from this rule in the first place. A conf.id constant would
+  give every caller the same list.
 - **Assigning a parameter.** `reset(int a) { a = 5; } return int a;` uses its
   parameter; a parameter is not one of the function's own locals.
 
@@ -550,6 +569,7 @@ catchable; `id` has no exceptions.
 | shift by a negative count | `id: shift by a negative amount` |
 | list index outside the list | `id: index N out of bounds (len M)` |
 | `pop` of an empty list | `id: pop from empty list` |
+| mutating a conf.id list constant (`push`, `pop`, index-assignment) | `id: cannot mutate a constant list` |
 | flat-store access outside the store | `id: store address N out of range (size M)` |
 | a list grown past its capacity limit | `id: list capacity overflow` |
 | a size computation that overflows | `id: allocation size overflow (WHAT)` |

@@ -370,10 +370,13 @@ Change the one line to `int rot = 13;`, rebuild, and nothing else moves:
 Nggnpx ng qnja!
 ```
 
-A constant is an ordinary exported global that needs no function to initialise
-it — it is emitted at file scope with its value attached, so it holds it before
-`main` runs, which is exactly what §4's `export` cannot promise. Two rules
-follow from "ordinary exported global":
+A constant is an ordinary exported global that needs no function of the
+project's own to initialise it — a scalar is emitted at file scope with its
+value attached, so it holds it before `main` runs; a list is built by the
+compiler's own generated code, the first thing every entry point runs (below).
+Either way it is exactly what §4's `export` cannot promise: readable from
+`main`'s first statement on, with nothing the project wrote required to make
+that true. Two rules follow from "ordinary exported global":
 
 ```
 caesar/clash.id:2: error: 'rot' is an exported global (by 'conf.id'); another
@@ -386,17 +389,41 @@ This is also the only place a constant can live. A function whose whole job is
 to return one -- `rot() { } return int 3;` -- is rejected with the declaration
 to write here instead (`docs/SPEC.md` §7.2).
 
-A constant whose type is a list (`int[]`, `string[]`, etc.) is rejected at the
-conf.id declaration: a list is mutable, heap-allocated state with no constant
-form in C or LLVM. To get a "table of values", write a function that returns a
-fresh list each call instead (`docs/SPEC.md` §7.2):
+A constant whose type is a list (`int[]`, `string[]`, etc.) is allowed too:
 
 ```
-conf.id:1: error: 'names' is a list constant; conf.id constants may not be
-  lists -- a list is mutable, heap-allocated state with no constant form in C
-  or LLVM. Write a function that returns 'string[]' and builds the list fresh
-  each call instead (docs/SPEC.md §7.2).
+string[] names = ["a", "b", "c"];
 ```
+
+A list has no constant form in C or LLVM -- building one allocates, which is
+work, and work runs in a function -- so the declaration still holds no
+initialiser at file scope. Every kept list constant is instead built by one
+function, `idc_const_init`, that every entry point calls before anything else
+runs: `id_main`'s first statement on every target, hosted or freestanding, and
+a test case's first statement in the harness, since each case is a process of
+its own. The declaration order in conf.id is the build order.
+
+A conf.id list constant is still a constant: it is locked once built, and
+mutating it -- `push`, `pop`, or an index-assignment, whether directly or
+through an alias -- traps (`docs/SPEC.md` §8). Writing through `(import
+names)` directly is caught at compile time, naming the constant:
+
+```
+conf.id:1: error: 'push' cannot mutate 'names', a list constant; pass it to a
+  function that takes the list as a parameter instead
+```
+
+An alias cannot be caught that way (`int[] xs = (import names); push(xs, "z");`
+type-checks -- `xs` is an ordinary local, and the compiler cannot always tell
+where a list came from), so the runtime traps instead:
+
+```
+id: cannot mutate a constant list
+```
+
+A function whose whole job is to build and return a list is rejected the same
+way a scalar-returning one is, now that the list has a legitimate home in
+conf.id (`docs/SPEC.md` §7.2).
 
 **Only a root's `conf.id` is a manifest.** The name is reserved everywhere else
 rather than silently ignored:
