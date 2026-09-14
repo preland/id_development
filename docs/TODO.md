@@ -89,6 +89,22 @@ the parser stage.
 Still open, and unblocked by this: migrate `idstd`'s `fx_sintab` across, delete
 `fx_trig_init`, and turn `--strict-const` on by default. That also needs item 3.
 
+A list-typed constant (`string[] names = ["a", "b"];`) was accepted here too,
+and emitted the same way -- at file scope, with its initialiser attached. That
+initialiser is `id_list_lit(...)`, a runtime allocator, not a C constant
+expression, so `cc` failed on it with "initializer element is not constant"
+instead of a compiler diagnostic. Three separate agents hit this before it was
+caught. `bin/idc` now refuses to build a project with a list-typed conf.id
+constant, by name, with the real `conf.id` path and line -- the same place
+every other conf.id-manifest-level rule (a duplicate name, imports after a
+constant) is already enforced. It still lets `idparse` parse and type-check one
+(`--fingerprints`, `tests/backends.sh`'s "backend.id is valid id constant
+declarations": a backend's `string[] c_linux_sources` is read as a conf.id to
+check it is real `id`, and must still pass); only a build that would reach the
+C or LLVM emitter is refused, before it gets there. A table of values is still
+available as a function that returns a fresh list literal each call
+(`docs/SPEC.md` §7.2); it just cannot be named as a constant.
+
 ## 5. `--tests` in the self-hosted compiler
 
 Both halves are self-hosted, and the two-case minimum is the default: every
