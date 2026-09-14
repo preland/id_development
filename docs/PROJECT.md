@@ -205,6 +205,64 @@ caesar/dead.id:1: error: a block in 'never_called' performs 4 actions; the
 That is deliberate — code that stopped being checked because nothing called it
 is how a library rots.
 
+### Decomposition warnings
+
+Three more things are reported, but a build with one still succeeds — they are
+**warnings**, `FILE:LINE: warning: ...` on stderr, both from a normal build and
+from `--check`. Each is a shape the 3-action and 3-function limits produce
+often enough, once code is split to fit them, that it is worth naming rather
+than leaving for a reader to notice by hand.
+
+**A pure forwarder** — a function whose body is exactly one statement that
+calls another function with its own parameters, all of them, unchanged, in
+the same order, and returns that call's result (or returns void right after):
+
+```
+helper.id:5: warning: 'forwarder' only forwards to 'callee'; call 'callee' directly
+```
+
+The fix is to delete `forwarder` and call `callee` at every site that used to
+call it. Not reported: `main`; a `native`; a function whose name is also read
+as a function value elsewhere in the unit (it may exist only to adapt to a
+`func(...)` type there); and a forwarder whose signature does not match its
+callee's — it narrows, widens or drops a parameter, which is adapting, not
+forwarding.
+
+**A literal-only near-duplicate** — two functions the duplicate-logic rule
+(`mid/form/unique/`, checked on every build) does *not* already reject,
+because that rule keeps a literal's value in its fingerprint
+(`add10` and `add16` differ, to it, exactly the way two calls to different
+functions would), but which are otherwise the same function with a different
+constant:
+
+```
+work.id:5: warning: 'add16' and 'add10' differ only in a literal value; parameterise one function
+```
+
+The fix is the one the message says: give the constant a parameter and call
+one function from both former call sites. Two functions identical in every
+way, literals included, are still the existing duplicate-logic **error**, not
+this warning — this is only the gap that rule leaves.
+
+**A generated parameter name** — a parameter whose name ends in `_v` or
+`_v<digits>` (the name `--fix` gives a call it hoists into a local, above) or
+matches this compiler's own `ret_i`/`ret_s`/`ret_li`/... return-local
+convention:
+
+```
+helper.id:1: warning: parameter 'asset_at_v' of 'helper' has a generated name; name it for what it holds
+```
+
+the parameter carries a mechanically-generated spelling into every caller
+that reads it, rather than a name chosen for what the value is. A local
+named this way is not reported — it never leaves the function, so it costs a
+reader nothing. Measured across idstd, 8 of its own public functions forward
+a `--fix`-hoisted local this way (`lset`'s `idstd_v` being the one every
+program calls); that is a real instance of the same question the exclusions
+above ask for the other two warnings — is the public name worth carrying, or
+should the library rename the parameter — left to a human rather than
+decided by the checker.
+
 ### Every rule at once: `--check` and `--fix`
 
 ```sh
