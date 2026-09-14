@@ -526,7 +526,9 @@ an index anywhere in the body makes it a function. So do these, deliberately:
 
 - **A list.** `} return int[] ps;` over `int[] ps = [2, 3, 5];` builds a fresh
   list on every call, so each caller owns what it got. A shared constant could
-  not behave that way.
+  not behave that way. The inverse case — a conf.id constant whose type is a
+  list — is rejected at the conf.id declaration; see docs/PROJECT.md §5 for the
+  diagnostic and the supported alternative.
 - **Assigning a parameter.** `reset(int a) { a = 5; } return int a;` uses its
   parameter; a parameter is not one of the function's own locals.
 

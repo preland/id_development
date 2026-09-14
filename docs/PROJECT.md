@@ -332,6 +332,18 @@ This is also the only place a constant can live. A function whose whole job is
 to return one -- `rot() { } return int 3;` -- is rejected with the declaration
 to write here instead (`docs/SPEC.md` §7.2).
 
+A constant whose type is a list (`int[]`, `string[]`, etc.) is rejected at the
+conf.id declaration: a list is mutable, heap-allocated state with no constant
+form in C or LLVM. To get a "table of values", write a function that returns a
+fresh list each call instead (`docs/SPEC.md` §7.2):
+
+```
+conf.id:1: error: 'names' is a list constant; conf.id constants may not be
+  lists -- a list is mutable, heap-allocated state with no constant form in C
+  or LLVM. Write a function that returns 'string[]' and builds the list fresh
+  each call instead (docs/SPEC.md §7.2).
+```
+
 **Only a root's `conf.id` is a manifest.** The name is reserved everywhere else
 rather than silently ignored:
 
