@@ -269,7 +269,9 @@ through `id_shl`/`id_sar`. It does **not** match the other two targets — see
 
 `& | ^ ~ << >>` require integral operands (`int` or `word`); `float` is
 rejected at compile time. `&& || !` likewise take integral operands and yield
-`int` `0` or `1`.
+`int` `0` or `1`. `&&` and `||` short-circuit: the right operand is evaluated
+only when the left one does not already decide the result, so
+`i < len(xs) && xs[i] == 2` never reads past the end of `xs`.
 
 Mixing `int` and `word` in one operation widens to `word`.
 
