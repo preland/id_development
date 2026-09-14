@@ -3,11 +3,11 @@
 The GPU counterpart to `demos/gfxdemo`: instead of painting an `int[]`
 framebuffer pixel by pixel, this program builds a cube mesh once, then every
 frame composes rotation/projection matrices and hands triangles straight to
-the GPU through `backends/gl` (see [its README](../../backends/gl/README.md)
+the GPU through `backends/gl` (see its README, idstd's `sys/win/gl/README.md`
 for the native side of this seam).
 
 ```sh
-./idc.py demos/gl3d --backend backends/gl -o gl3d && ./gl3d
+idc/bin/idc demos/gl3d --allow-untested -o gl3d && ./gl3d
 # a 640x480 window with a spinning, per-vertex-shaded cube. Close it (or Esc / q) to quit.
 ```
 
@@ -89,7 +89,7 @@ flattening instead of framebuffer fills.
 Inside `tools/devshell.sh` (X11 + GLX + mesa on the `PATH`):
 
 ```
-$ ./idc.py demos/gl3d --backend backends/gl -o /tmp/gl3d
+$ idc/bin/idc demos/gl3d --allow-untested -o /tmp/gl3d
 $ GFX_MAX_FRAMES=120 /tmp/gl3d
 gl_linux: opened 640x480 window, GL_RENDERER=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 7.0.10) GL_VERSION=4.6 (Compatibility Profile) Mesa 26.1.1
 gl_linux: rendered 1 frame(s)

@@ -6,7 +6,7 @@ obstacles for depth, and score you rack up, all driven by real WASD input
 polled once per frame.
 
 ```sh
-./idc.py demos/gl3dgame --backend backends/gl -o gl3dgame && ./gl3dgame
+idc/bin/idc demos/gl3dgame --allow-untested -o gl3dgame && ./gl3dgame
 ```
 
 ## The game
@@ -111,7 +111,7 @@ stateful, input-driven scene instead of a single static mesh.
 Inside `tools/devshell.sh` (X11 + GLX + mesa on the `PATH`):
 
 ```
-$ ./idc.py demos/gl3dgame --backend backends/gl -o /tmp/gl3dgame
+$ idc/bin/idc demos/gl3dgame --allow-untested -o /tmp/gl3dgame
 $ GFX_MAX_FRAMES=200 /tmp/gl3dgame
 gl_linux: opened 800x600 window, GL_RENDERER=AMD Radeon RX 7900 XTX (radeonsi, navi31, ACO, DRM 3.64, 7.0.10) GL_VERSION=4.6 (Compatibility Profile) Mesa 26.1.1
 gl_linux: rendered 1 frame(s)

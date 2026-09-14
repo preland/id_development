@@ -15,7 +15,7 @@ it is, why it is there, and what moving it would cost.
 | shell (`idc/bin/idc`, `idc/tests/`, `idc/tools/`) | 6 203 | no way to run a process from `id` | **large**, and blocked on one builtin |
 | the C runtime prelude | 433 | hosted programs need libc | **medium**, and an `id` twin already exists |
 | `idc/tools/*.py` (not `idc/idc.py`) | 1 286 | sockets, ZIP, binary packing | **medium**, mixed |
-| `idc/backends/*.c` + `*.h` | 1 380 | this is the FFI boundary, by design | **should not move** |
+| idstd's native backends (`sys/io/fs`, `sys/win/gfx`, `sys/win/gl`) | 1 380 | this is the FFI boundary, by design | **should not move** |
 | `kernel/boot/*.S` | 234 | code that runs before a calling convention exists | **mostly irreducible** |
 | `vscode/extension.js` | 259 | VS Code's extension host runs JavaScript | **medium**, and a shim survives |
 | `flake.nix`, `.envrc` | 52 | declaring an environment is not programming | **not a reliance** |
@@ -148,7 +148,7 @@ them, because the C target was the only target when the prelude was written.
 | --- | ---: | --- |
 | `flatten.py` | 565 | **deleted**: it was a one-off migration tool, not something to port |
 | `lint_idcpy.py` | 150 | nothing — it dies with `idc/idc.py` |
-| `qmon.py` | 142 | **ported**: `idc/tools/qmon/`, run by `tools/qmon.sh`, on two new native backends (`backends/proc`, `backends/sock`) |
+| `qmon.py` | 142 | **ported**: `idc/tools/qmon/`, run by `tools/qmon.sh`, on two idstd backends (idstd's `sys/io/ipc/proc`, idstd's `sys/io/ipc/sock`) |
 | `gen_runtime_id.py` | 121 | nothing — it dies with the C prelude |
 | `mkfont.py` | 90 | **ported**: `idc/tools/mkfont/`, run by `tools/mkfont.sh`, which unpacks the gzipped font |
 | `fbtext.py` | 86 | **ported**: `idc/tools/fbtext/`, run by `tools/fbtext.sh` |
@@ -160,14 +160,14 @@ go. Five more (450 lines) were portable, four with no new language feature and
 one — `qmon` — once it had one, and all five are now `id` programs: `mkfont`,
 `fbtext` and `mkkeymap` share `idc/tools/lib/` for whole-file reads and
 hexadecimal text, `mkodt` writes through the `fs` backend on its own, and
-`qmon` is built on `backends/proc` and `backends/sock` (a child process, and a
-Unix-domain socket, were the two things `id` could not do that this tool
-needed).
+`qmon` is built on idstd's `sys/io/ipc/proc` and idstd's `sys/io/ipc/sock` (a
+child process, and a Unix-domain socket, were the two things `id` could not do
+that this tool needed).
 
 Anchor: `editor/lib/zip/` is 28 files of `id` that inflate DEFLATE and read a
 ZIP central directory. `mkodt` was easier than that.
 
-## 5. `idc/backends/` — 1 380 lines of C, and the one place to leave alone
+## 5. idstd's native backends — 1 380 lines of C, and the one place to leave alone
 
 **What it is.** Three native backends: `gfx` (X11 window and framebuffer),
 `gl` (OpenGL), `fs` (POSIX file I/O). Each is a `.h` declaring the ABI, a `.c`

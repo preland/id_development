@@ -216,9 +216,10 @@ and are otherwise honest dead weight until step 1 lands.
 
 Two different things are called a backend in this repo: a **compiler target**
 (the code generator this document is about) and a **native backend** (a
-directory under `idc/backends/` that supplies functions at link time — `gfx`, `gl`,
-`fs`, `proc`, `sock`). A second compiler target must not drag the second kind
-along with it.
+directory with a `backend.id` that supplies functions at link time — `idstd`'s
+`sys/io/fs`, `sys/io/ipc/proc`, `sys/io/ipc/sock`, `sys/win/gfx` and
+`sys/win/gl`). A second compiler target must not drag the second kind along
+with it.
 
 It does not have to. A native backend declares itself twice, both times in
 `id` — once as what it provides, and once in its `backend.id` as how to link it:
@@ -299,10 +300,9 @@ file — which is the test of whether the seam is in the right place.
 
 ### A backend is linked only when a native of it is reached
 
-Attaching a backend — a `conf.id` import, `--backend`, or the standard
-library's own `conf.id` — merges its declarations and nothing else. What is
-compiled and linked is decided by reachability, the same computation that
-decides what is emitted:
+Attaching a backend — being in the build, however its directory got there —
+merges its declarations and nothing else. What is compiled and linked is
+decided by reachability, the same computation that decides what is emitted:
 
 * `idparse --natives` appends a list to its output, after the program and
   behind `/* ---- natives ---- */`, one row per native per kind:
@@ -333,6 +333,50 @@ twin.id:5: error: native 'twin_a', reached from main by this call, has no
   implementation for platform 'linux' (building for 'x86_64-unknown-linux-gnu'):
   it is declared in twin.id, which is not in an attached backend
 ```
+
+### Where the backends live, and how a platform chooses
+
+**In the standard library, inside the modules that wrap them**: `sys/io/fs`,
+`sys/io/ipc/proc`, `sys/io/ipc/sock`, `sys/win/gfx`, `sys/win/gl`. A program calls a library function (or, until the
+functions over them exist, the native) and never names a backend.
+
+**Attachment is by `backend.id`, not by manifest.** `idc/bin/idc`'s
+`collect_ids` records every directory holding a `backend.id` in any tree it
+collects — the library, a `conf.id` import, the project, a `--backend`
+directory. The alternative was a self-relative `import "sys/io/fs"` in the
+library's own `conf.id`. That is a second copy of the layout to keep in step
+with the tree, and every imported root is a compilation unit of its own, so
+each backend directory would have become a unit apart from the library that
+wraps it. Discovery costs one `find` pattern, and a backend nothing reaches
+still costs nothing: hello-world's cc commands are the three they were.
+
+**A native has one declaration; the platform chooses its sources.** One
+`idstd` function that needs a different implementation per platform calls one
+native, and that native's `backend.id` lists sources per platform key —
+`c_linux_sources`, `c_darwin_sources` — which may sit in per-platform
+subdirectories. The driver picks by the triple. The other design, `native`
+declarations selected by triple the way `asm` overloads are, was rejected:
+`asm` matches a triple exactly with no wildcard, so every architecture of every
+platform would repeat the declaration — the contract — for C that does not
+change; it needs a new construct in the compiler and a bootstrap regeneration;
+and it moves the unsupported-platform diagnostic into the compiler, in `asm`'s
+words. Selecting sources gives the same determinism with none of that: the
+source a reader sees names one function with one signature, and `backend.id`
+says, per platform, what implements it.
+
+**`--triple` moves the platform; `--backend` overrides one backend.** A
+`--backend DIR` whose `backend.id` declares the `name` of an attached backend,
+and which holds its sources but no declarations, replaces how that backend is
+linked for that build — another windowing system on the same platform, or a
+port in progress. Two for one backend is refused. A `--backend` directory that
+declares natives of its own is attached like any tree.
+
+**The platform question is asked first.** A reached native the platform cannot
+link stops the build at its call before the refusal to run another triple's
+test cases on this machine, because the library always has cases and that
+refusal would otherwise be all a cross build ever says. The check reads
+`backend.id` files and compiles nothing. `--emit-c` and the LLVM target do not
+ask it; neither links a backend.
 
 What still treats a backend differently from other source: the emitters give
 a native a prototype and no body; its parameters register no names; its

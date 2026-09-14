@@ -6,7 +6,7 @@ red target cubes for score. Walls block movement — you can't walk through
 them.
 
 ```sh
-./idc.py demos/fpsmaze --backend backends/gl -o fpsmaze && ./fpsmaze
+idc/bin/idc demos/fpsmaze --allow-untested -o fpsmaze && ./fpsmaze
 ```
 
 ## Controls
@@ -118,7 +118,7 @@ Clean build (only the expected backend-extern-linking warnings, same as
 every `--backend` demo in this repo):
 
 ```
-$ tools/devshell.sh './idc.py demos/fpsmaze --backend backends/gl -o /tmp/fpsmaze'
+$ tools/devshell.sh 'idc/bin/idc demos/fpsmaze --allow-untested -o /tmp/fpsmaze'
 demos/fpsmaze/game/sim/gfx/draw/cells/targets/targetrow.id:3: warning: call to function 'gl_set_modelview' which is not defined in any input file; it must be provided at link time
 ... (11 more identical-shape warnings, one per gl_*/gfx_* call -- expected, see backends/gl/README.md)
 ```
