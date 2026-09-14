@@ -191,8 +191,22 @@ the point the compiler forces the issue. If you find yourself making a
 directory called `utils/` you have already lost — it will fill up in a week and
 tell you nothing.
 
+**A directory may not have the same name as its parent directory.** Names like
+`engine/engine/` or `parse/parse/` are rejected: the inner directory says
+nothing about why it exists or what it holds. Name it after the stage of
+processing or the concept it groups, not the root. `engine/opt/` (optimization),
+`parse/emit/` (code emission), or `engine/debug/` say what the directory holds.
+
+**A file may not have a generic name.** Names like `helper.id`, `util.id`,
+`misc.id`, `common.id`, `stuff.id`, or `temp.id` are rejected. These names do
+not indicate what the file holds, making it impossible to name what you are
+importing and encouraging developers to dump unrelated functions into a single
+file. Name the file after what it contains: `arith_helper.id` for arithmetic
+helpers, `string_util.id` for string utilities, etc.
+
 > **Pitfall 2.** The entry limit fires on a directory you did not touch, at the
-> moment you add one file. Leave room.
+> moment you add one file. Leave room. Name directories and files for what they
+> hold, not their data type or role in the project.
 
 **Dead code is still checked.** A function nothing calls is not emitted, but it
 still obeys every rule:
