@@ -62,7 +62,10 @@ narrow -- `int n = a;` where `a` is a `word` -- because the type it narrows to
 is named on the line that does it. An **argument may not**: the parameter's
 type is in another file, so `take(a)` would read as if nothing happened while
 dropping half of a `word`. Declare a local of the parameter's type and pass
-that. Widening is exact and needs no ceremony in either place. This is the
+that. **Nor may a return clause**: `} return int w;` hands a `word` across the
+function's boundary exactly as an argument does, so declare an `int` local,
+assign it, and return that. Widening is exact and needs no ceremony in any of
+these places. This is the
 same strictness `xs[a]` has always had, which used to look inconsistent with
 both of the others.
 
