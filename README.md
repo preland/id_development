@@ -88,7 +88,6 @@ alongside this one, and then the constants the program should be built with:
 
 ```
 import "../mylib"
-import "../../backends/fs"
 
 int max_depth = 7;
 int fanout = 3;
@@ -150,7 +149,8 @@ What only `idc.py` still does: `--target wasm`. See
 ## Development environment (Nix)
 
 Building the C target needs only a C compiler. The **graphics backends**
-(`--backend idc/backends/gfx|gl`) link native system libraries (OpenGL, X11),
+(idstd's `sys/win/gfx`/`sys/win/gl`, attached by default and linked only when
+a build reaches their natives) link native system libraries (OpenGL, X11),
 and the **`--target llvm`** and **`--target wasm`** paths need
 `clang`/`llc`/`wat2wasm`/`wasmtime`, and the kernel needs `ld.lld` and
 `qemu-system-x86_64`. On
@@ -168,7 +168,7 @@ uses the flake, falling back to `nix-shell -p …`), which is how the
 graphics/alt-target builds and `idc/tests/run.sh` are driven:
 
 ```sh
-idc/tools/devshell.sh 'idc/bin/idc demos/gl3d --backend idc/backends/gl -o gl3d' && ./gl3d
+idc/tools/devshell.sh 'idc/bin/idc demos/gl3d --allow-untested -o gl3d' && ./gl3d
 ```
 
 On a non-Nix system with the usual dev packages installed (e.g. `libgl-dev`,
@@ -289,7 +289,7 @@ resolves them as follows — revisit as the language evolves:
 - **No file I/O among the builtins.** The list above is the whole of it: a
   program gets stdin, stdout and stderr, so working on a file means being a filter and
   letting the caller pick them (`./prog < in.txt > out.txt`). Files come from a
-  **native backend** instead — [`idc/backends/fs`](idc/backends/fs) declares
+  **native backend** instead — the standard library's `sys/io/fs` declares
   `fs_open`, `fs_read`, `fs_write`, `fs_close`, `fs_size`, `fs_exists`,
   `fs_remove` and `fs_error` as `native` functions (a signature in `id`, a body
   in C), so every call is checked like any call and the C is linked in; `demos/fsdemo` writes a file,

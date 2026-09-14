@@ -15,7 +15,7 @@ it is, why it is there, and what moving it would cost.
 | shell (`idc/bin/idc`, `idc/tests/`, `idc/tools/`) | 6 203 | no way to run a process from `id` | **large**, and blocked on one builtin |
 | the C runtime prelude | 433 | hosted programs need libc | **medium**, and an `id` twin already exists |
 | `idc/tools/*.py` (not `idc/idc.py`) | 1 286 | sockets, ZIP, binary packing | **medium**, mixed |
-| `idc/backends/*.c` + `*.h` | 1 380 | this is the FFI boundary, by design | **should not move** |
+| idstd's native backends (`sys/io/fs`, `sys/win/gfx`, `sys/win/gl`) | 1 380 | this is the FFI boundary, by design | **should not move** |
 | `kernel/boot/*.S` | 234 | code that runs before a calling convention exists | **mostly irreducible** |
 | `vscode/extension.js` | 259 | VS Code's extension host runs JavaScript | **medium**, and a shim survives |
 | `flake.nix`, `.envrc` | 52 | declaring an environment is not programming | **not a reliance** |
@@ -165,7 +165,7 @@ sockets and for starting, reading from and killing a child process.
 Anchor: `editor/lib/zip/` is 28 files of `id` that inflate DEFLATE and read a
 ZIP central directory. `mkodt` was easier than that.
 
-## 5. `idc/backends/` — 1 380 lines of C, and the one place to leave alone
+## 5. idstd's native backends — 1 380 lines of C, and the one place to leave alone
 
 **What it is.** Three native backends: `gfx` (X11 window and framebuffer),
 `gl` (OpenGL), `fs` (POSIX file I/O). Each is a `.h` declaring the ABI, a `.c`

@@ -432,16 +432,12 @@ one.
 `id` has no file I/O. The builtins are stdin and stdout and nothing else, so a
 "file program" in `id` is a filter and the caller picks the files with
 `< in > out`. When that is not enough, a **native backend** supplies functions
-at link time. Name it in the root `conf.id`:
-
-```
-// conf.id
-import "../../idc/backends/fs"
-```
-
-and then `fs_open`, `fs_read`, `fs_write`, `fs_close`, `fs_size`, `fs_exists`,
-`fs_list`, `fs_remove` and `fs_error` are ordinary calls. The backend declares
-each of them in `id`, as a function whose body is native code:
+at link time, and the standard library carries three: files (`sys/io/fs`), a
+software window (`sys/win/gfx`) and an OpenGL window (`sys/win/gl`). There is
+nothing to name: `fs_open`, `fs_read`, `fs_write`, `fs_close`, `fs_size`,
+`fs_exists`, `fs_list`, `fs_remove` and `fs_error` are ordinary calls in every
+program. The backend declares each of them in `id`, as a function whose body
+is native code:
 
 ```
 native fs_open(string path, string mode) return int;
@@ -450,8 +446,11 @@ native fs_open(string path, string mode) return int;
 Its directory is merged into your build like any dependency, so a call into it
 is checked like any call: the wrong number or type of arguments, or a
 misspelled name, is the same error it would be for a function you wrote.
-`demos/fsdemo` is ~40 lines of `id` that never names C. `--backend DIR` does the
-same thing from the command line; naming one both ways links it once.
+`demos/fsdemo` is ~40 lines of `id` that never names C, and has no `conf.id`.
+
+A backend of your own is a directory with a `backend.id`, its sources and its
+`native` declarations, anywhere in a tree the build collects — your project, or
+a `conf.id` import. The driver finds it by its `backend.id`.
 
 **Which implementation you get is chosen for you.** The build has a target
 triple, derived from the machine you are on unless you say otherwise, and the
@@ -470,15 +469,15 @@ idc/bin/idc demos/fsdemo --allow-untested            # x86_64-unknown-linux-gnu 
 **A backend costs nothing until you call it.** Attaching one merges its
 declarations; it is compiled and linked only when something reachable from
 `main` calls one of its natives (and, for the test harness, only when a case
-reaches one). A library can name `gfx` in its `conf.id`, and a program that
+reaches one). The standard library carries `gfx` and `gl`, and a program that
 never draws still links no X11.
 
 `--triple` overrides the platform, and when a native you reach has no
 implementation for the platform you asked for, the build stops at the call
-that reaches it:
+that reaches it, before anything else about the build is refused:
 
 ```sh
-idc/bin/idc demos/gl3d --allow-untested --backend idc/backends/gl --triple aarch64-apple-darwin
+idc/bin/idc demos/gl3d --allow-untested --triple aarch64-apple-darwin
 demos/gl3d/loop/frame.id:8: error: native 'glwin_poll', reached from main by
   this call, is implemented by backend 'gl', which has no support for platform
   'darwin' (building for 'aarch64-apple-darwin'); it is implemented for: linux
@@ -487,6 +486,12 @@ demos/gl3d/loop/frame.id:8: error: native 'glwin_poll', reached from main by
 A native declared outside any attached backend is the same kind of error — it
 names the call and the platform, and says the declaring file is not in an
 attached backend — rather than a linker error about `id_<name>`.
+
+`--backend DIR` chooses another implementation of one backend for one build:
+DIR holds a `backend.id` whose `name` is that backend's, and its sources, and no
+declarations. The declarations every call was checked against stay where they
+are, and DIR's sources for the platform are compiled and linked instead. Two
+for one backend is an error.
 
 The same applies to `asm` functions, which are selected by exact triple with no
 wildcard and no fallback:
@@ -508,12 +513,13 @@ idc: pass --cc with a cross compiler for 'darwin', or use --target llvm, which
   hands the triple to clang.
 ```
 
-> **Pitfall 7.** A backend's functions exist in a build only when the backend
-> is attached. Call one without it and the error is `no such function` — the
-> same error a misspelling gets, because either way nothing in the build
-> declares that name. If the spelling is right, attaching the backend is the
-> fix. A backend's parameter names are not variables and reserve nothing, so
-> no name your program exports or declares can collide with one of them.
+> **Pitfall 7.** A native's *name* is reserved like any function's, in every
+> program: the standard library declares `fs_open`, `gfx_open`, `gl_width` and
+> the rest, so a program that defines one collides with it. Its parameter names
+> are not variables and reserve nothing, so no name your program exports or
+> declares can collide with one of them. A native of a backend of your own
+> exists only when its directory is in the build; call one without it and the
+> error is `no such function`, the same error a misspelling gets.
 
 ## 8. When you do not believe the compiler
 

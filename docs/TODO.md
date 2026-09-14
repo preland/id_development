@@ -267,9 +267,30 @@ the time it was built: the `extern int` block no longer exists (natives are
 declared in `id` and every call is resolved), and `backend.json`'s `abi` is
 still read by nothing — the `native` declarations are the contract instead.
 
-Still open, and not part of this item: the `idstd` `conf.id` does not import
-the backends yet (see `idstd/COMPILER-ASKS.md` C7 for why), `idc/idc.py` still
-links every attached backend, and the LLVM target links none.
+**The backends moved into `idstd`** (2026-09-13). `fs` is `sys/io/fs`, `gfx`
+and `gl` are `sys/win/gfx` and `sys/win/gl`, each with its C and its
+`backend.id`; `idc/backends/` is gone, and no project names a backend.
+`idc/bin/idc` attaches any directory holding a `backend.id` in a collected tree,
+so the library's `conf.id` imports nothing. `--backend DIR` is now the override:
+a directory with a `backend.id` of the same `name` and its sources replaces how
+that backend is linked for one build. A reached native the platform cannot
+link is checked before the refusal to run another triple's cases, which the
+library's cases otherwise always hit first. See
+[`BACKENDS.md`](BACKENDS.md), "Where the backends live".
+
+Still open:
+
+* The `idstd` functions over the natives are not written: the six groups that
+  call graphics natives (`loop`, `draw_scene`/`submit_tris`, `cell_compose`,
+  `draw_one_target`, `render_proj`) still live in the projects that carry
+  them. Every program's test harness runs the library's cases, so a case that
+  reaches a native links that backend into every build's harness; those
+  functions need cases that reach no native, or the harness has to take only
+  the cases of what the program reaches.
+* `idc/idc.py` cannot build against the library at all (it cannot parse a
+  `given` case, and it counts a `backend.id` toward the 3-entries rule).
+* The LLVM target links no backend: a program reaching a native builds with
+  `--target llvm` only as far as the link.
 
 ## 13. An interpreted mode, so iterating in `id` costs what it costs in Python
 
