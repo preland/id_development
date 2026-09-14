@@ -14,7 +14,7 @@ self-terminate after `N` frames.
 
 ## What it does
 
-At startup (`galaxy/render/init.id`) the sine table is built, the PRNG is
+At startup (`scene/render/init.id`) the sine table is built, the PRNG is
 seeded, and the entire particle cloud -- 6000 points -- is generated once
 into two flat `int[]` lists, `pos` (3 milli-unit ints per point) and `col`
 (1 packed `0xRRGGBB` per point), exactly the shape
@@ -32,12 +32,12 @@ angle math is table-driven integer arithmetic:
   (`fx_trig_init`). This demo carried its own copy of that table and its
   quadrant fold until the same code turned up in `demos/fpsmaze`; a function
   written in two projects lives in idstd.
-- **PRNG** (`galaxy/math/rng/lset.id`): idstd's `rnd_init`/`rnd_next`/
+- **PRNG** (`scene/math/rng/lset.id`): idstd's `rnd_init`/`rnd_next`/
   `rnd_range`, the Park-Miller minimal-standard generator. `rnd_range(0, n - 1)`
   is a uniform pick in `0..n-1`; `noise_range(half)` is symmetric jitter in
   `-half..+half`, reused for angle jitter, disk-height jitter, and
   color-channel noise alike.
-- **Per-particle shape** (`galaxy/particles/shape/{radius,theta}.id`):
+- **Per-particle shape** (`scene/particles/shape/{radius,theta}.id`):
   radius `r` is `u*u/1000` for `u` uniform in `0..1000` -- squaring a
   uniform variable compresses its mass toward zero, giving the "denser
   toward the core" distribution with no floats and no real inverse-CDF
@@ -45,7 +45,7 @@ angle math is table-driven integer arithmetic:
   3 arms 120 degrees apart, plus a winding term proportional to radius (so
   the angle sweeps further round the further out a particle sits -- the
   actual "spiral"), plus +-20 degrees of scatter.
-- **Cartesian + color** (`galaxy/particles/look/`): `x = r*fx_cos_deg(theta)/1000`,
+- **Cartesian + color** (`scene/particles/look/`): `x = r*fx_cos_deg(theta)/1000`,
   `z = r*fx_sin_deg(theta)/1000` (`position/xz.id`); `y` is a PRNG sample
   within a radius-dependent thickness that shrinks from 300 milli-units at
   the core to 60 at the rim (`position/y.id`, "thin disk, thicker core").
@@ -57,7 +57,7 @@ angle math is table-driven integer arithmetic:
 ## The additive-particle look
 
 All 6000 points are submitted in one `gl_draw_points` call
-(`galaxy/render/pipeline/draw.id`), which the backend renders with
+(`scene/render/pipeline/draw.id`), which the backend renders with
 additive blending (`glBlendFunc(GL_SRC_ALPHA, GL_ONE)`) -- overlapping
 particles accumulate into bright glowing cores instead of the topmost
 point simply covering the rest, which is what makes the dense core and
@@ -70,7 +70,7 @@ to pop against.
 The task's two options were a cheap rigid whole-cloud rotation, or a
 nicer but pricier differential shear (inner particles orbiting faster
 than outer ones, positions rebuilt every frame). This demo takes the
-rigid option (`galaxy/render/swirl.id`): the cloud is built once and every
+rigid option (`scene/render/swirl.id`): the cloud is built once and every
 frame just composes one extra `gl_mat_rotate_y(swirl_deg(t))` into the
 modelview, `swirl_deg(t) = (t * 300) % 360000` milli-degrees -- 0.3
 deg/frame, a full turn roughly every 20s at 60fps. At 6000 static points
@@ -81,7 +81,7 @@ natural next step if the budget allows revisiting this file.
 
 ## Camera
 
-`galaxy/render/pipeline/camera.id`'s `camera_rig()` tilts the disk 55
+`scene/render/pipeline/camera.id`'s `camera_rig()` tilts the disk 55
 degrees and pulls the view back 12 units on `-Z`
 (`gl_mat_mul(gl_mat_translate(0,0,-12000), gl_mat_rotate_x(55000))`), the
 same translate-then-rotate composition `demos/gl3dgame`'s `build_view`
@@ -138,7 +138,7 @@ input file" `extern` warnings for backend calls):
 ```
 $ tools/devshell.sh 'idc/bin/idc demos/galaxy --allow-untested -o /tmp/galaxy'
 id dev shell: cc=.../gcc-wrapper-15.2.0/bin/cc  python3=Python 3.13.13
-demos/galaxy/galaxy/render/pipeline/camera.id:12: warning: call to function 'gl_mat_translate' which is not defined in any input file; it must be provided at link time
+demos/galaxy/scene/render/pipeline/camera.id:12: warning: call to function 'gl_mat_translate' which is not defined in any input file; it must be provided at link time
 ... (backend extern warnings only, no errors)
 ```
 
@@ -173,7 +173,7 @@ no extra code; and the process exits 0 after `GFX_MAX_FRAMES` fires.
 - The swirl is a rigid whole-cloud rotation, not a differential shear --
   every particle currently orbits at the same rate, so the arms don't
   visibly "wind up" further over time the way a real differential
-  rotation curve would. `galaxy/render/swirl.id` is where that upgrade
+  rotation curve would. `scene/render/swirl.id` is where that upgrade
   would go (rebuild `pos` each frame from each particle's stored radius
   and an angle that decreases with radius, instead of one shared matrix).
 - Headless runs can't show pixels, so correctness here rests on the
