@@ -378,6 +378,18 @@ list, return one, compare one, or `print` one -- each of those is an error
 that names the type. There are no lambdas: write the function, name it, pass
 the name. [`SPEC.md`](SPEC.md) §1.1 has the rules.
 
+**The rules about the shape of an expression arrive one build at a time.**
+`print(len(s))` is an error, and so are `} return int n + 1;` and
+`flags & 4 == 4`. A tree written before you knew can hold hundreds of them.
+`idc/bin/idc PATH --check` lists every one without building anything, and
+`idc/bin/idc PATH --fix` rewrites the ones with a single right answer --
+`int len_v = len(s); print(len_v);` -- keeping the order the calls ran in. It
+leaves alone a call in a `while` condition or to the right of `&&`, where a
+name bound first would change when the call runs, and says so; those want a
+function (see [`SPEC.md`](SPEC.md) §7.1). Each name it adds is a statement, so
+a block can go over the limit of 3, which `--fix` reports rather than guesses
+how to split.
+
 ## 9. Where to go next
 
 - Read [`demos/adventure`](../demos/adventure) (120 lines, 3 files) for input
