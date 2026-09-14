@@ -229,6 +229,7 @@ change what the program does:
 | violation | what `--fix` writes |
 | --- | --- |
 | a call inside a call's argument | the call as a new local just before the statement, `<callee>_v`, and the name in its place |
+| an argument that is not itself a call but has one somewhere inside it | the whole argument as a new local, `<callee>_a0` (`_a1`, ...) for the callee it is an argument of, and the name in its place -- not one local per call inside it |
 | a return clause that is not a name or a literal | the value as the body's last statement, `ret_i` (`ret_s`, `ret_w`, `ret_li` ...), returned by name |
 | an argument that narrows (`word` to `int`) | a local of the parameter's type, which converts exactly as the argument would |
 | a comparison beside a bare bitwise operator | the parentheses the diagnostic names |
@@ -240,10 +241,14 @@ edit.
 What it keeps, and what it refuses:
 
 - **Order.** Operands and arguments run left to right (SPEC §7). When a call
-  has to be named, everything evaluated before it that could observe or cause
-  an effect — another call, an index, a division, a shift, an `import` of
-  something that call could re-initialise — is named before it too, in order.
-  `bump(c) * 10 + twice(bump(c))` becomes two locals, not one.
+  has to be named, every other call, division or shift evaluated before it
+  moves too, in order, since a name bound early must not skip past one:
+  `bump(c) * 10 + twice(bump(c))` becomes two locals, not one. An index read
+  or an `import` evaluated before it moves only when some call that also
+  moves could write (`fix/plan/decide/touch/`) — otherwise it is read exactly
+  where it stood, and reads whatever the calls before it left there, same as
+  before the rewrite. The accepted cost: two reads that would both trap may
+  now report in a different order than they did before `--fix`.
 - **A `while` condition, the right of `&&` or `||`, an `else if` condition.**
   Refused: a name bound first would run when the original did not, or only
   once. The composition wants a function.
