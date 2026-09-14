@@ -218,6 +218,103 @@ adds nothing to `n`. A failing case prints a function value as
 These are rules of `idc/bin/idc` only; `idc/idc.py` does not parse the form
 (see the status below). They are tested in `idc/tests/tests_feature.sh`.
 
+## What a function printed, and what it called
+
+Two more kinds of `then` clause, usable on any case, `given` or not:
+
+```
+greet(string name) {
+  print("hi " + name);
+} return void;
+("a"):() then prints:("hi a\n")
+("b"):() then prints:("hi b\n")
+
+warn(string msg) {
+  eprint("warning: " + msg);
+} return void;
+("full"):() then eprints:("warning: full\n")
+("low"):() then eprints:("warning: low\n")
+```
+
+- **`then prints:("text")`** -- the exact bytes the call under test writes to
+  **stdout** must equal the string literal, same escapes as a string literal
+  anywhere else. `print` always ends a line, so a case comparing one `print`
+  call writes the trailing `\n` in its expectation, exactly like the example
+  above; a function that writes nothing is tested against `prints:("")`.
+- **`then eprints:("text")`** -- the same, for what `eprint` writes. Only
+  `eprint`'s own output is captured; a runtime trap's message (`docs/TESTS.md`,
+  "How it runs") ends the case before any `then` clause runs, so there is
+  nothing here for it to be confused with.
+- **Only the call under test is captured.** A `given` setup's own output, and
+  a `then` check's, run outside the window that is compared -- before it is
+  opened and after it is closed, respectively -- so neither reaches
+  `prints`/`eprints` at all, the same way neither is counted toward `time` or
+  `mem`.
+- A mismatch is reported the way a check's is, with both sides escaped so a
+  newline is visible instead of splitting the line:
+
+  ```
+  greet.id:4: test failed: greet("a") prints = "hi a\n", expected "bye a\n"
+  ```
+
+```
+helper(int x) {
+  int y = x + 1;
+} return int y;
+(1):(2)
+(5):(6)
+
+runner(int n) {
+  int h = helper(n);
+} return int h;
+(1):(2) then calls helper:(1)
+(2):(3) then calls helper:(2)
+```
+
+- **`then calls NAME:(ARGS)`** -- at least one call to `NAME`, made during the
+  call under test (directly, or by anything it calls, however deep), received
+  exactly these arguments, compared the same way a case's own arguments are.
+  **Several `then calls` clauses**, naming the same function or different
+  ones, are matched **in order, as a subsequence** of the calls actually
+  made: each clause must find a match that happened after the one before it.
+- **`then calls NAME:[N]`** -- exactly `N` calls to `NAME` were made during
+  the call under test, regardless of their arguments or when they happened.
+- `NAME` must be a function of the build with a body to record into: a
+  builtin is rejected, pointing at `prints`/`eprints` instead (a builtin's
+  effect is its output, not a call the harness can see into), and so is a
+  `native` (its body belongs to a backend, not to `id`). The argument count
+  and types of the `:(ARGS)` form are checked against `NAME`'s own
+  parameters, exactly like a case's own arguments are against the function
+  under test's.
+- **Recording starts when the call under test starts and stops when it
+  returns.** A `given` setup's calls and a `then` check's calls are never
+  recorded, the same reasoning as `prints`/`eprints`: only the window under
+  test is observed.
+- A call through a function value is recorded under the name of the function
+  it resolves to at run time, because the harness instruments the callee, not
+  the call site -- it does not need to know where a call came from.
+- A mismatch on the `:(ARGS)` form names how many calls to `NAME` were
+  recorded in total, rather than showing each one:
+
+  ```
+  runner.id:9: test failed: runner(1) calls helper(...) did not match; 1 call(s) to 'helper' were recorded
+  ```
+
+  and the `:[N]` form shows the count directly:
+
+  ```
+  runner.id:11: test failed: runner(1) calls helper[2], expected 3
+  ```
+
+Like `given`/`then`/`(import NAME)`, these are rules of `idc/bin/idc` only:
+`idc/idc.py` does not parse `prints`, `eprints` or `calls` (they read as
+ordinary identifiers, and the form fails the same way `given` does -- see the
+status below). Recording happens only in harness builds: the C a normal build
+emits is unaffected, whether or not any case in the unit uses `calls` --
+proved by comparing `--emit-c` before and after this feature, byte for byte.
+Tested in `idc/tests/tests_feature.sh`; the compile errors above (unknown
+name, a builtin, a native, wrong arity) are in `idc/tests/invalid/`.
+
 ## Constraints are counted, not timed
 
 A constraint states how the function scales:
@@ -477,13 +574,13 @@ never passed. Deleting `--allow-untested` waits on this as well as on adoption.
 <!-- generated: adoption -->
 | repository | functions | cases written | functions short of two cases |
 | --- | ---: | ---: | ---: |
-| `id_development` (with editor, idem, kernel) | 6939 | 467 | 6589 |
+| `id_development` (with editor, idem, kernel) | 7023 | 467 | 6673 |
 | `idstd` | 213 | 346 | 59 |
 | `c2id` | 1051 | 0 | 1051 |
 | `linux_id` | 0 | 0 | 0 |
-| **total** | **8203** | **813** | **7699** |
+| **total** | **8287** | **813** | **7783** |
 
-**Functions short of two cases: 7699 of 8203 (6.1% complete).** Generated by
+**Functions short of two cases: 7783 of 8287 (6.1% complete).** Generated by
 `idc/tools/statusgen.sh`; `idc/tests/run.sh` fails if it is stale. A repository
 with no `.id` beside this checkout counts zero.
 <!-- end generated -->
