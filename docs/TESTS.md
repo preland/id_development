@@ -453,10 +453,11 @@ one really runs.
 
 `idparse --harness` writes the harness ahead of the program on the same
 stream, so one parse produces both, and the program is emitted exactly as it is
-without the flag — `idc/tools/parity.sh` still compares it with `idc/idc.py`
-byte for byte, for a program built without `idstd`. The harness's code is
-`idc/compiler/parse/back/tgt/c/emit/prog/test/`. `idc/idc.py` runs cases only
-under `--tests`, in one process.
+without the flag. The harness's code is
+`idc/compiler/parse/back/tgt/c/emit/prog/test/`. `idc/idc.py` is frozen
+(`docs/HACKING.md`) and, as before the freeze, runs cases only under
+`--tests`, in one process, if invoked with it -- nothing in this repository
+does any more.
 
 When the interpreter target lands, the harness stops being a subprocess and
 becomes an evaluation inside the compiler; the syntax and the diagnostics do
@@ -515,8 +516,7 @@ tree a build here passes the flag for, the kernel and runtime included.
 The order that gets there: `idstd` first (a standard library is where an
 untested function costs the most, and today it holds back every other build),
 then new code, then the compiler's own source last — it is the largest and the
-one whose behaviour is already pinned by `idc/tools/parity.sh` and
-`idc/tests/conform.sh`.
+one whose behaviour is already pinned by `idc/tests/conform.sh`.
 
 ### An open question: a freestanding build cannot comply
 
@@ -646,6 +646,17 @@ with no `.id` beside this checkout counts zero.
 >
 > Next: cases for `idstd`'s 59 functions that lack them, per the order above,
 > starting with `sys/err` and `core/data/buf`, whose cases can be committed now.
+
+> **Update: `idc.py` is now frozen (`docs/HACKING.md`).** It takes no new
+> work of any kind, and nothing in this suite differentially tests against it
+> any more -- what is left of that above (`idc/tests/self_host_build.sh`,
+> `idc/tests/stdlib.sh`, `idc/tests/invalid.sh`, `idc/tools/parity.sh`) has
+> been removed or ported to `idc/bin/idc` alone; `idc/tools/parity.sh` itself
+> is deleted. The only thing still built with `idc.py` is `--target wasm`
+> (`idc/tests/conform.sh`'s wasm lane, and the wasm half of
+> `idc/tests/run.sh`'s alt-target checks). `idem`'s `IDEM_COMPILER=idc.py`
+> switch is gone with it; `c2id` is unaffected by this freeze and still
+> builds itself with `idc.py` as described above.
 
 ### What the case format cannot express
 

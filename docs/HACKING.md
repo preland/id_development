@@ -59,11 +59,13 @@ one commit: the one that teaches the compiler the construct, regenerated with
 in a later commit, once stage 0 can read it. `regen_bootstrap.sh --check` fails
 the suite when stage 0 is not what the tree emits.
 
-`idc.py` does not need new constructs at all. It is the retiring reference
-compiler, kept for one job: agreeing with `idc/bin/idc` on diagnostics and
-emitted C for programs built without `idstd` (`idc/tests/invalid.sh`, the
-hermetic parity checks in `idc/tests/run.sh`). No build that merges `idstd`
-goes through it, because `idstd` may hold syntax it cannot parse.
+`idc.py` does not need new constructs at all. It is frozen — `idc/tests/run.sh`
+checks its sha256 against a recorded value and fails if it has changed — and
+kept for one job now: `--target wasm`, which `idc/bin/idc` does not have.
+`idc/tests/conform.sh`'s wasm lane and the wasm half of `idc/tests/run.sh`'s
+alt-target checks are the only things that still build with it. No build that
+merges `idstd` goes through it, because `idstd` may hold syntax it cannot
+parse.
 
 ## Where things are
 
@@ -87,7 +89,7 @@ goes through it, because `idstd` may hold syntax it cannot parse.
 | the exported-global block | `back/tgt/c/emit/prog/head/decl/` (LLVM: `back/tgt/ll/mod/sect/glob/`); which exports survive pruning: `back/drive/run/check/dce/export/keep.id` |
 | the C type spelling of an id type | `back/tgt/c/emit/prog/code/func/ctype/type_column.id` |
 | where emitted code leaves the compiler | `back/drive/sink/emit_line.id` |
-| the C runtime prelude | `idc.py`'s `RUNTIME`, then `idc/tools/gen_runtime_id.py` |
+| the C runtime prelude | `idc/compiler/parse/back/tgt/c/runtime/runtime.id` (external linkage: `extern.id`), hand-maintained |
 | which target a build uses | `back/drive/run/output_mode.id` |
 
 `front/` and `mid/` **must not emit C**. That is currently true — verified —
@@ -104,15 +106,14 @@ The shortest real example, and the shape most changes take:
    row number.
 3. `idc/tests/conform/` — a case, so every target is held to the same behaviour.
 
-No `idc.py` change, unless the compiler's own source starts using the type.
+No `idc.py` change: it is frozen and never changes.
 
 ## The loop
 
 ```sh
 idc/bin/idc idc/compiler/parse --check --allow-untested  # the rules only, before a full build
 idc/tools/regen_bootstrap.sh --check                  # ok: the compiler's own C unchanged
-idc/tools/parity.sh demos/calc                         # MATCH: same C as idc.py, no idstd
-idc/tools/devshell.sh 'idc/tests/invalid.sh'           # diagnostics, both compilers
+idc/tools/devshell.sh 'idc/tests/invalid.sh'           # diagnostics, bin/idc
 idc/tools/devshell.sh 'idc/tests/conform.sh'           # behaviour, every target
 idc/tools/devshell.sh 'idc/tests/run.sh'               # everything
 ```
@@ -122,16 +123,13 @@ emits the compiler's own C through `idc/bin/idc` and compares it with
 `idc/bootstrap/*.c`, so if you did not mean to change emitted C, it must still
 say ok. When you *do* mean to change it, see `idc/bootstrap/README.md`.
 
-`parity.sh` compares `idc/idc.py`'s C with the self-hosted compiler's, and
-where both emit C, a change to emitted C means `idc.py` has to change in the
-same commit, the one case where "both compilers" is genuinely the rule. It
-compiles the program under test **without** the standard library, on both
-sides, and builds the self-hosted stages with `idc/bin/idc`: `idc.py` cannot
-parse an `idstd` that holds a `given` case, so no build that merges `idstd`
-goes through it. That is why `parity.sh compiler/parse`, which used to be the
-first line of this loop, is gone: the compiler's own source calls `idstd`'s
-`lset` and cannot be built without the library, so there is no way to show
-it to `idc.py` any more.
+There is no differential check against `idc.py` any more: it is frozen, and a
+change to emitted C no longer means anything has to change in it. The one
+place it still has to agree with `idc/bin/idc` is `--target wasm`
+(`idc/tests/conform.sh`'s wasm lane, and the wasm half of `idc/tests/run.sh`'s
+alt-target checks), which builds the program under test without the standard
+library on both sides: `idc.py` cannot parse an `idstd` that holds a `given`
+case, so no build that merges `idstd` goes through it.
 
 ## Writing `id` inside the rule of 3
 
@@ -156,16 +154,16 @@ The friction that makes people give up and edit `idc.py` instead:
   Both compilers now reject it by name; before they did, it cost a rename
   half an hour of looking in the wrong place.
 
-## What `idc.py` is still for, and what it should shrink to
+## What `idc.py` is still for, now that it is frozen
 
-Today it is 5224 lines, of which about **1569 (30%) are not needed to
-bootstrap anything**: the LLVM backend (789), the WASM backend (619), and the
-test-clause machinery (161). Every one of those makes `idc.py` a more capable
-and therefore more tempting place to put the next feature — a ratchet that has
-to be turned the other way.
+It no longer shrinks. The line-count ceiling that used to ratchet down as work
+was ported out of it is gone, replaced by a hash check
+(`idc/tests/run.sh`) that fails on any change at all, including one that
+removes lines. `idc.py` is 5470 lines, exactly what they are today and what
+they will stay: the LLVM backend, the WASM backend, and the test-clause
+machinery are all still in the file, but only `--target wasm` is still built
+against by anything (`docs/BACKENDS.md`).
 
-The end state, from `docs/BACKENDS.md`: `idc.py` compiles the self-hosted
-compiler's source to C and does nothing else. Alternate targets move into
-`back/tgt/`, and the test harness follows the interpreter target. Until then,
-anything landing in `idc.py` that is not required by the rule above should
-come with a note saying when it moves.
+The end state, from `docs/BACKENDS.md`, has not changed: porting `--target
+wasm` to `back/tgt/` is what would let `idc.py` be deleted outright. Until
+then, nothing lands in `idc.py` — not a line, not a rule, not a lint fix.

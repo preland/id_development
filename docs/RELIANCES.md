@@ -11,10 +11,10 @@ it is, why it is there, and what moving it would cost.
 
 | what | lines | why it is not `id` | cost to move |
 | --- | ---: | --- | --- |
-| `idc/idc.py` | 5 470 | ~~the bootstrap compiler~~ (that job is retired: `idc/bootstrap/`) — now the reference implementation, the WASM target and the test runner | **medium**, and now unblocking rather than blocking |
+| `idc/idc.py` | 5 470 | ~~the bootstrap compiler~~ (that job is retired: `idc/bootstrap/`) — frozen (`docs/HACKING.md`); all that still reaches it is the WASM target | **medium**, and now unblocking rather than blocking |
 | shell (`idc/bin/idc`, `idc/tests/`, `idc/tools/`) | 6 203 | no way to run a process from `id` | **large**, and blocked on one builtin |
 | the C runtime prelude | 433 | hosted programs need libc | **medium**, and an `id` twin already exists |
-| `idc/tools/*.py` (not `idc/idc.py`) | 1 286 | sockets, ZIP, binary packing | **medium**, mixed |
+| `idc/tools/*.py` (not `idc/idc.py`) | 865 | sockets, ZIP, binary packing | **medium**, mixed |
 | idstd's native backends (`sys/io/fs`, `sys/win/gfx`, `sys/win/gl`) | 1 380 | this is the FFI boundary, by design | **should not move** |
 | `kernel/boot/*.S` | 234 | code that runs before a calling convention exists | **mostly irreducible** |
 | `vscode/extension.js` | 259 | VS Code's extension host runs JavaScript | **medium**, and a shim survives |
@@ -26,9 +26,9 @@ it is, why it is there, and what moving it would cost.
 ## 1. `idc/idc.py` — 5 470 lines of Python
 
 **What it is.** The original compiler. It was the bootstrap until
-`idc/bootstrap/*.c` took that job; what is left is the reference implementation
-that every differential suite builds against, the only implementation of
-`--target wasm`, and the only thing that *runs* a `docs/TESTS.md` case.
+`idc/bootstrap/*.c` took that job; it is now frozen (`docs/HACKING.md`) --
+`idc/tests/run.sh` checks its sha256 against a recorded value -- and all that
+still reaches it is the only implementation of `--target wasm`.
 
 **Why.** History, and a chicken-and-egg that is now cooked: a self-hosted
 compiler needs a compiler to exist first — but only once, and the answer to
@@ -51,11 +51,12 @@ binary literal — none of them could be used in `idc/compiler/` while a frozen
 costs two commits (teach it, regenerate; then use it) instead of being
 impossible.
 
-What still holds `idc/idc.py` here is `--target wasm`, the differential suites
-(`idc/tools/parity.sh`, `idc/tests/invalid.sh`, `idc/tests/self_host_build.sh` and the rest
-build with both compilers on purpose), `--tests` — only `idc/idc.py` *runs* a test
-case — and §4's `idc/tools/gen_runtime_id.py`, which does `import idc` and is the
-one place `idc/idc.py` is a Python library rather than a subprocess.
+What still holds `idc/idc.py` here is `--target wasm`: `idc/tests/conform.sh`'s
+wasm lane and the wasm half of `idc/tests/run.sh`'s alt-target checks build
+with it for that reason, and nothing else does. The differential suites that
+used to build with both compilers, and §4's `idc/tools/gen_runtime_id.py`
+(which did `import idc` and was the one place `idc/idc.py` was a Python
+library rather than a subprocess), are gone.
 
 *Porting the WASM target* is **medium**: the LLVM target is 28 files of `id`,
 and WASM is a comparable job. Anchor: `idc/compiler/parse/back/tgt/ll/`.
@@ -113,9 +114,11 @@ possible argument the language can make for itself.
 **What it is.** 63 helpers emitted verbatim at the top of every generated C
 file: the allocation arena, growable lists, the flat store with its bounds
 checks, defined division and shifts, string building, and terminal I/O. It
-lives as one string in `idc/idc.py` and is regenerated into
-`idc/compiler/parse/back/tgt/c/runtime/runtime.id` by `idc/tools/gen_runtime_id.py`,
-so both compilers emit the same bytes.
+lives as one string in hand-maintained `id` source,
+`idc/compiler/parse/back/tgt/c/runtime/runtime.id` (and `extern.id`, the same
+prelude with external linkage for the LLVM target) -- previously generated
+from `idc/idc.py`'s `RUNTIME`, before the freeze made `idc.py` unable to take
+the change that added list-constant locking to it.
 
 **Why.** Two different reasons that are easy to conflate:
 
@@ -142,27 +145,29 @@ Estimate: **one file of syscalls plus wiring the LLVM target to link
 `idc/runtime/` instead of the C prelude.** The pieces exist; nobody has connected
 them, because the C target was the only target when the prelude was written.
 
-## 4. `idc/tools/*.py` — 1 286 lines, mixed
+## 4. `idc/tools/*.py` — 865 lines, mixed
 
 | tool | lines | what blocks it |
 | --- | ---: | --- |
 | `flatten.py` | 565 | **deleted**: it was a one-off migration tool, not something to port |
-| `lint_idcpy.py` | 150 | nothing — it dies with `idc/idc.py` |
+| `lint_idcpy.py` | 150 | **deleted**: it died with `idc/idc.py`'s freeze |
 | `qmon.py` | 142 | **ported**: `idc/tools/qmon/`, run by `tools/qmon.sh`, on two idstd backends (idstd's `sys/io/ipc/proc`, idstd's `sys/io/ipc/sock`) |
-| `gen_runtime_id.py` | 121 | nothing — it dies with the C prelude |
+| `gen_runtime_id.py` | 121 | **deleted**: it died with the C prelude becoming hand-maintained `id` source |
 | `mkfont.py` | 90 | **ported**: `idc/tools/mkfont/`, run by `tools/mkfont.sh`, which unpacks the gzipped font |
 | `fbtext.py` | 86 | **ported**: `idc/tools/fbtext/`, run by `tools/fbtext.sh` |
 | `mkodt.py` | 82 | **ported**: `idc/tools/mkodt/`, run by `tools/mkodt.sh` — a ZIP writer with stored entries and a fixed timestamp, and CRC-32 |
 | `mkkeymap.py` | 50 | **ported**: `idc/tools/mkkeymap/`, run by `tools/mkkeymap.sh` |
 
-**Cost.** Three of these (308 lines) evaporate when `idc/idc.py` and the C prelude
-go. Five more (450 lines) were portable, four with no new language feature and
-one — `qmon` — once it had one, and all five are now `id` programs: `mkfont`,
-`fbtext` and `mkkeymap` share `idc/tools/lib/` for whole-file reads and
-hexadecimal text, `mkodt` writes through the `fs` backend on its own, and
-`qmon` is built on idstd's `sys/io/ipc/proc` and idstd's `sys/io/ipc/sock` (a
-child process, and a Unix-domain socket, were the two things `id` could not do
-that this tool needed).
+**Cost.** Three of these (836 lines) are gone: `flatten.py` was a one-off
+migration tool, and `lint_idcpy.py` and `gen_runtime_id.py` evaporated with
+`idc/idc.py`'s freeze and the C prelude becoming hand-maintained `id` source,
+respectively. Five more (450 lines) were portable, four with no new language
+feature and one — `qmon` — once it had one, and all five are now `id`
+programs: `mkfont`, `fbtext` and `mkkeymap` share `idc/tools/lib/` for
+whole-file reads and hexadecimal text, `mkodt` writes through the `fs` backend
+on its own, and `qmon` is built on idstd's `sys/io/ipc/proc` and idstd's
+`sys/io/ipc/sock` (a child process, and a Unix-domain socket, were the two
+things `id` could not do that this tool needed).
 
 Anchor: `editor/lib/zip/` is 28 files of `id` that inflate DEFLATE and read a
 ZIP central directory. `mkodt` was easier than that.
@@ -248,10 +253,8 @@ hurts.
 
 1. ~~**Retire the bootstrap.**~~ Done: `idc/bootstrap/*.c` is stage 0 and `idc/bin/idc`
    never runs `idc/idc.py`. This was the gate on every additive language feature,
-   and it is open. What is left of `idc/idc.py` — `--target wasm`, the differential
-   suites, `--tests` — blocks nothing; it only keeps a second implementation
-   alive, which is worth something until the first one has a written spec it
-   cannot drift from.
+   and it is open. `idc/idc.py` is now frozen; what is left of it —
+   `--target wasm` — blocks nothing.
 2. ~~**Add `spawn` and `readdir`.**~~ Done, as backend calls rather than
    builtins: `fs_run` and `fs_list`. That converted 6 200 lines of shell from
    impossible to merely tedious. `idc/driver/` is the first piece of it and
