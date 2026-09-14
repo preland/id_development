@@ -76,7 +76,8 @@ goes through it, because `idstd` may hold syntax it cannot parse.
 | the symbol tables | `mid/names/symbols/` |
 | naming, scope, export/import checks | `mid/names/` |
 | the action/nesting/file-count limits | `mid/names/limits/` |
-| function-logic uniqueness | `mid/unique/` |
+| function-logic uniqueness | `mid/form/unique/` |
+| what `bin/idc --fix` rewrites, and what it refuses | `mid/form/fix/` (token columns: `front/tokens/load/more/pos/`; applied by `idc/tools/fixapply.awk`) |
 | the type registry (adding a type) | `mid/types/registry/` |
 | type checks, call checks | `mid/types/check/` |
 | what type an expression has | `mid/types/type_of/` |
@@ -108,6 +109,7 @@ No `idc.py` change, unless the compiler's own source starts using the type.
 ## The loop
 
 ```sh
+idc/bin/idc idc/compiler/parse --check --allow-untested  # the rules only, before a full build
 idc/tools/regen_bootstrap.sh --check                  # ok: the compiler's own C unchanged
 idc/tools/parity.sh demos/calc                         # MATCH: same C as idc.py, no idstd
 idc/tools/devshell.sh 'idc/tests/invalid.sh'           # diagnostics, both compilers

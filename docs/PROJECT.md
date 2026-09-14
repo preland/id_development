@@ -205,6 +205,60 @@ caesar/dead.id:1: error: a block in 'never_called' performs 4 actions; the
 That is deliberate — code that stopped being checked because nothing called it
 is how a library rots.
 
+### Every rule at once: `--check` and `--fix`
+
+```sh
+idc/bin/idc caesar --check --allow-untested
+```
+
+runs the lexer, the parser and every rule over the tree and stops: no C, no
+`cc`, no test cases, no link. It prints exactly what a build prints before it
+emits anything, and exits 1 if there was a diagnostic. On a tree that breaks
+rules a build stops there too, so the two take the same time; on one that
+does not, `--check` skips the rest — 9 s against 14.5 s for the compiler's
+own parser, 0.15 s against 1.5 s for `demos/solitaire`.
+
+```sh
+idc/bin/idc caesar --fix --allow-untested
+```
+
+rewrites the tree's own `.id` files — not a dependency, not the standard
+library — where a violation has exactly one mechanical repair that cannot
+change what the program does:
+
+| violation | what `--fix` writes |
+| --- | --- |
+| a call inside a call's argument | the call as a new local just before the statement, `<callee>_v`, and the name in its place |
+| a return clause that is not a name or a literal | the value as the body's last statement, `ret_i` (`ret_s`, `ret_w`, `ret_li` ...), returned by name |
+| an argument that narrows (`word` to `int`) | a local of the parameter's type, which converts exactly as the argument would |
+| a comparison beside a bare bitwise operator | the parentheses the diagnostic names |
+
+It prints each edit as `FILE:LINE` with the lines before and after, then each
+violation it refused and why, then what is left by kind. A second run makes no
+edit.
+
+What it keeps, and what it refuses:
+
+- **Order.** Operands and arguments run left to right (SPEC §7). When a call
+  has to be named, everything evaluated before it that could observe or cause
+  an effect — another call, an index, a division, a shift, an `import` of
+  something that call could re-initialise — is named before it too, in order.
+  `bump(c) * 10 + twice(bump(c))` becomes two locals, not one.
+- **A `while` condition, the right of `&&` or `||`, an `else if` condition.**
+  Refused: a name bound first would run when the original did not, or only
+  once. The composition wants a function.
+- **Names.** A new name is free across the unit — no function, export or
+  builtin by that name, not declared in the function, and not a different type
+  anywhere in the unit — so `len_v` may become `len_v2`. In a tree whose every
+  local carries the `idstd_` prefix, or the standard library itself, new names
+  carry it too.
+- **The action limit.** A name is a statement, so a block can go over 3. The
+  edit is still made and the limit reported, because splitting a block is a
+  design decision and the named steps are what a person splits.
+
+Everything else — the limits, constant functions, type errors — is left as it
+is and listed.
+
 ## 4. The standard library is already there
 
 `idstd` is imported by default. You do not name it, and you did not above:
