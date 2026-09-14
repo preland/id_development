@@ -7,7 +7,7 @@ needs real numbers (the PRNG excepted, which is pure integer Park-Miller)
 lives in `backends/gl/gl_linux.c`, exactly as `gl.h` intends.
 
 ```sh
-tools/devshell.sh './idc.py demos/flyover --backend backends/gl -o flyover'
+tools/devshell.sh 'idc/bin/idc demos/flyover --allow-untested -o flyover'
 ./flyover
 ```
 
@@ -142,7 +142,7 @@ expected — every backend call is an undeclared-until-link-time symbol, same
 as `demos/gl3d`/`demos/gl3dgame`):
 
 ```
-$ tools/devshell.sh './idc.py demos/flyover --backend backends/gl -o /tmp/flyover'
+$ tools/devshell.sh 'idc/bin/idc demos/flyover --allow-untested -o /tmp/flyover'
 id dev shell: cc=.../gcc-wrapper-15.2.0/bin/cc  python3=Python 3.13.13
 demos/flyover/loop/frame.id:10: warning: call to function 'gfx_poll' which is not defined in any input file; it must be provided at link time
 ... (13 more of the same, one per backend/extern call) ...

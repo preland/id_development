@@ -1,7 +1,7 @@
 # `galaxy` -- a spiral-galaxy particle viewer, written in `id`
 
 ```sh
-tools/devshell.sh './idc.py demos/galaxy --backend backends/gl -o galaxy'
+tools/devshell.sh 'idc/bin/idc demos/galaxy --allow-untested -o galaxy'
 ./galaxy
 ```
 
@@ -136,7 +136,7 @@ Built clean inside the dev shell (only the expected "not defined in any
 input file" `extern` warnings for backend calls):
 
 ```
-$ tools/devshell.sh './idc.py demos/galaxy --backend backends/gl -o /tmp/galaxy'
+$ tools/devshell.sh 'idc/bin/idc demos/galaxy --allow-untested -o /tmp/galaxy'
 id dev shell: cc=.../gcc-wrapper-15.2.0/bin/cc  python3=Python 3.13.13
 demos/galaxy/galaxy/render/pipeline/camera.id:12: warning: call to function 'gl_mat_translate' which is not defined in any input file; it must be provided at link time
 ... (backend extern warnings only, no errors)
