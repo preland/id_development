@@ -249,7 +249,7 @@ default; you just call it.
 If you do write your own, you get this:
 
 ```
-add.id:16: error: function 'lset' already defined at .../idstd/core/data/lst/lst.id:21
+add.id:16: error: function 'lset' already defined at .../idstd/core/data/lst/access.id:21
 add.id:16: error: function 'lset' has the same signature and logic as 'lset'
 ```
 

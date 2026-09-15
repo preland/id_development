@@ -354,7 +354,7 @@ it.** It has about 128 functions — `fx_min`, `fx_max`, `str_split`, `lst_sort`
 
 ```
 caesar/mine.id:1: error: function 'chr_is_lower' already defined at
-  /home/you/git/idstd/core/text/chr/cls.id:28
+  /home/you/git/idstd/core/text/chr/range.id:28
 caesar/mine.id:4: error: cannot assign a int value to string 'r'
 caesar/mine.id:6: error: function 'chr_is_lower' returns int but the expression
   has type string
