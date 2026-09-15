@@ -149,7 +149,7 @@ Forty-nine functions of DEFLATE is seventeen files, and seventeen files under a
 three-entry rule is nine levels:
 
 ```
-editor/lib/zip/inf/blk/dyn/len/sp/mt/match.id
+editor/lib/zip/inf/blk/dyn/len/sp/mt/copy.id
 ```
 
 `sp/` is "split" and `mt/` is "match" because at that depth a directory exists
