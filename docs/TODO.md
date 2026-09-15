@@ -170,43 +170,61 @@ new construct is now a snapshot, moved forward by `idc/tools/regen_bootstrap.sh`
 the same commit that teaches it. `idc/bootstrap/README.md` states the two-commit
 rule. `docs/RELIANCES.md` §1 is the argument for why this went first.
 
-## 9b. `--target wasm` in `idc/bin/idc`, then delete `idc/idc.py`
+## ~~9b. `--target wasm` in `idc/bin/idc`~~ — done, by a different route than planned
 
-The last target `idc/bin/idc` does not have. The WASM back end is ~1428 lines of
-`idc/idc.py`.
+`idc/bin/idc` has `--target wasm` now. The plan below (an IR-based stackifier
+printing WAT, mirroring `--target llvm`'s route through `back/ir/`) turned out
+to be the wrong shape and was not built: `id`'s own low-level runtime
+primitives (`ld8`/`st8`/`sdiv`/`heap_ptr`/... in `idc/runtime/`) are `asm`
+blocks with a body only for `x86_64-unknown-none`, and the standard library's
+own test cases cannot be proven runnable on the build host once a `--runtime`
+build removes the host C runtime they normally borrow from -- porting either
+one is real language-level work this item did not need, once a second route
+was verified to work.
 
-**What the port is, precisely.** `idc/idc.py`'s `WasmBackend` (`idc/idc.py:3316-4610`)
-is a third AST walk, and it gets structured control flow for free because it
-reads `if`/`while` directly: an `IfStmt` is `(if (then) (else))` and a
-`WhileStmt` is `(block $b (loop $c (br_if $b (i32.eqz cond)) ... (br $c)))`.
-Lowering to `idc/compiler/parse/back/ir/` instead loses that and has to rebuild it,
-which is the one genuinely new algorithm here — but the CFG the front end
-produces is not merely reducible, it is *structured*, because `if` and `while`
-are the only control flow the language has. So a stackifier (LLVM's approach,
-which assumes reducibility) is enough and a full relooper is not. What the IR
-does not have and the stackifier needs: an RPO numbering and back-edge
-detection. It has predecessors (`back/ir/opt/cfg/pred/`) and reads successors live off
-a terminator's `iblk`; it has no dominator tree, and deliberately so
-(`back/ir/opt/mem/init/init.id` explains why mem2reg does not need one).
+**What was built instead.** `--target wasm` is the C target's own emitted C
+(`compiler/parse/back/tgt/c/`), unmodified, recompiled for `wasm32-wasi`
+instead of the host, and linked as a WASI *reactor* module (no `_start`; JS
+calls the exported `_initialize` once, then any exported function it likes).
+That works because wasi-libc supplies everything the emitted C assumes libc
+provides (`malloc`, `snprintf`, `fprintf`, ...), so wasm32 needed no new
+runtime port at all -- only two small fixes in
+`compiler/parse/back/tgt/c/runtime/runtime.id`:
 
-The other half is not new: `runtime.wat` is 578 lines of hand-written WAT in
-`wasm_runtime_funcs()` (`idc/idc.py:3414`) with no libc, importing
-`wasi_snapshot_preview1` directly, and it moves across as data.
+* the raw-terminal functions (`id_term_raw`/`id_getkey`/...) `#include
+  <termios.h>` and call `tcgetattr`/`tcsetattr`, which wasi-libc does not
+  provide; they are now `#ifndef __wasi__`, with a `#else` branch that makes
+  raw mode a no-op (`id_getkey` always returns "no key") under WASI.
+* `id_alloc` was `static` (deliberately -- every other arena/store helper
+  still is), so nothing outside the generated translation unit could ever
+  reach it to export it. It lost the `static`; nothing else did.
 
-The shape is settled by the LLVM work: lower to the same IR
-(`idc/compiler/parse/back/ir/`) and print WAT from it, rather than writing a third
-AST walk. Almost everything that was hard the first time -- the CFG, phis,
-argument evaluation order, the boxing contract -- is already in the IR and
-target-independent. What is genuinely new is that WASM has structured control
-flow rather than a CFG, so the printer has to rebuild `block`/`loop`/`br_if`
-from the branches, which is a real algorithm (relooper, or the simpler
-stackifier LLVM's own back end uses) and not a spelling.
+Linking uses `-Wl,--gc-sections` plus an explicit `-Wl,--export=` list (never
+`--export-all`) built from the program's own top-level function names --
+`SRC_FILES` filtered to exclude anything under `$STDLIB` (idstd) or
+`$ROOT/runtime`, since idstd is merged into every build's `SRC_FILES`
+unconditionally (`idc/bin/idc`, "imported by DEFAULT -- no conf.id line, no
+flag") and its functions are not something a web app's JS should be calling
+or need to see. Without `--gc-sections` a one-function program still links in
+and exports all of idstd (427 exports, 117 KB, measured on `greet.id`); with
+it and the explicit export list, the same program is 4 exports and 27 KB.
 
-After that, and after item 5 (running a test case), `git rm idc/idc.py` breaks
-nothing. The bootstrap half of that sentence is already true, and so is the
-decision to stop differential-testing against a second implementation:
-`idc/idc.py` is frozen (`docs/HACKING.md`) and no longer built against by
-anything but this item's own `--target wasm` lanes.
+The toolchain (`clang-unwrapped`, `wasilibc` + its `.dev` headers, wasm32
+`compiler-rt`) is provided by the umbrella `flake.nix` devshell as
+`IDC_WASI_CLANG`/`IDC_WASI_SYSROOT_INCLUDE`/`IDC_WASI_LIBDIR`/
+`IDC_WASI_COMPILER_RT`, which `--target wasm` reads rather than hard-coding a
+store path -- so it only runs inside `nix develop`.
+
+**What this item did not do.** `idc/idc.py`'s `WasmBackend`
+(`idc/idc.py:3316-4610`) is untouched, and `idc/idc.py` was not deleted --
+it no longer builds against the current `idstd` at all (a 3-entries-per-
+directory violation in `sys/win/gfx` idc.py also enforces, unrelated to
+wasm), so there is nothing left to differentially test it against and no
+argument yet that it is safe to remove. A stackifier-based, no-libc,
+`back/ir/`-driven WAT printer -- the thing the paragraphs above described --
+would still be worth having for a freestanding (kernel-style) wasm target,
+since that one cannot link wasi-libc; it is not needed for a browser web app,
+which is what this item was for.
 
 ## 9c. Make the freestanding target trap
 
