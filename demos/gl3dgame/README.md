@@ -71,13 +71,13 @@ frame from `world/world.id`'s `world_update`.
 demos/gl3dgame/
   main.id                        -- opens the window, world_init(), loop()
   loop/                           (2 files)
-    loop.id                      -- spin/tick, same shape as demos/gl3d/loop
+    mainloop.id                   -- spin/tick, same shape as demos/gl3d/loop
     frame.id                     -- one frame: poll -> update -> render
   world/                          (3 entries)
     world.id                     -- world_init/world_update/world_render
     game/                         (3 entries: state/, input/, target/)
       state/                        (3 entries)
-        state.id                 -- the `mb` state list (px,pz,tx,tz,score) + gs_get
+        gsinit.id                 -- the `mb` state list (px,pz,tx,tz,score) + gs_get
         mutate.id                -- gs_set + the generic lset helper
         rng/                       (2 files: rng.id, rng2.id -- Park-Miller PRNG,
                                      the same generator demos/moonbuggy uses)
@@ -96,7 +96,7 @@ demos/gl3dgame/
         init.id                   -- scene_init(): build all 3 meshes
         frame.id                  -- render(t): rebuild view+proj, dispatch draw
         draw/                        (3 entries)
-          draw.id                  -- draw_all/draw_foreground/draw_dynamic
+          drawchain.id              -- draw_all/draw_foreground/draw_dynamic
           instances.id              -- draw_player/draw_target/target_mv
           pillars/                     (2 files: loop.id, instance.id)
 ```

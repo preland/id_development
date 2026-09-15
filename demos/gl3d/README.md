@@ -69,12 +69,12 @@ for `colors`. This is the same "build the buffer, flush once" shape
 demos/gl3d/
   main.id                    -- opens the window, builds the scene once, loops
   loop/                       (2 files)
-    loop.id                   -- spin/tick, same shape as demos/gfxdemo/loop
+    mainloop.id                -- spin/tick, same shape as demos/gfxdemo/loop
     frame.id                  -- one frame: render(t), then poll
   scene/                       (2 entries)
     mesh/                        (3 entries)
       geom/                        (2 files: corners.id, color.id)
-      meshbuild/                   (3 files: vertbuild.id, vertpush.id, colorbuild.id)
+      meshbuild/                   (3 files: vertbuild.id, vertpush/pushvertex.id, colorbuild.id)
       api.id                    -- mesh_init()
     render/                      (3 files: init.id, frame.id, draw.id)
 ```
