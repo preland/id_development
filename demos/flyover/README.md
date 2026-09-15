@@ -100,7 +100,7 @@ nesting at most 2 deep — enforced by `idc.py`. The tree:
 demos/flyover/
 ├── main.id                       (main)
 ├── loop/                         -- the frame loop
-│   ├── loop.id                   (loop, spin)
+│   ├── mainloop.id                (loop, spin)
 │   └── frame.id                  (frame; the keep-going test is idstd's inp_live)
 └── world/                        -- orchestration + the two subsystems
     ├── world.id                  (world_init, world_update, world_render)
@@ -110,7 +110,7 @@ demos/flyover/
     │   │   ├── random/           -- raw fill from idstd's rnd_*
     │   │   │   └── fill.id       (raw_fill, push_height, rng_height)
     │   │   └── smooth/           -- neighbor-averaging passes
-    │   │       ├── smooth.id     (smooth_heights, smooth_rows, smooth_cols)
+    │   │       ├── smoothpass.id (smooth_heights, smooth_rows, smooth_cols)
     │   │       └── cell.id       (smooth_cell, sum5, lset)
     │   ├── mesh/
     │   │   ├── build.id          (mesh_init)
@@ -219,7 +219,7 @@ state to drift out of sync).
   some already-updated neighbors from earlier in the same pass (no second
   heights buffer is allocated). This is a deliberate simplification — it
   still converges to smooth rolling hills, just asymmetrically, and avoids a
-  second exported list purely for correctness. See `heightmap/smooth/smooth.id`.
+  second exported list purely for correctness. See `heightmap/smooth/smoothpass.id`.
 - **Fog is a brightness scale, not a sky-blend.** `color/fog.id` darkens
   distant colors toward black rather than blending them toward the sky-blue
   clear color, per the task's "scale color by distance" suggestion — cheaper

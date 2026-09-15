@@ -223,15 +223,15 @@ just calls it instead of repeating the expression).
 demos/fpsmaze/
   main.id                    -- gfx_open, game_init(), loop()
   loop/                       (2 entries)
-    loop.id                  -- spin/tick, same shape as demos/gl3dgame/loop
+    mainloop.id               -- spin/tick, same shape as demos/gl3dgame/loop
     run/                       (3 entries)
       frame.id               -- frame(t): drain input -> render -> status
-      status.id              -- throttled "cell/xz/yaw/score" stdout line
+      statuspoll.id          -- throttled "cell/xz/yaw/score" stdout line
       input/                    (2 files: drain.id, handle.id --
                                   drains every buffered key per frame,
                                   since auto-repeat can queue more than one)
   game/                        (3 entries)
-    world.id                 -- game_init()/init_actors(): seed, carve, spawn
+    gameinit.id               -- game_init()/init_actors(): seed, carve, spawn
     util/                       (2 entries)
       trig/                       (1 file: table.id -- norm_deg, the yaw
                                     fold; sin/cos are idstd's, see above)

@@ -8,7 +8,7 @@ Neither touches the lists directly, and they do not call each other.
 ## Node model
 
 A node is identified by an integer id. Its fields are read with these accessors
-(already implemented, in `ast2.id` / `ast3.id`):
+(already implemented, in `nodebuild.id` / `nodefields.id`):
 
 | accessor | returns | meaning |
 |----------|---------|---------|

@@ -114,7 +114,7 @@ demos/galaxy/
     math/
       rng/{rng,rng2,lset}.id           -- Park-Miller PRNG + range helpers
     particles/
-      gen/{gen,add}.id                 -- build the pos[]/col[] lists
+      gen/{buildparticles,add}.id      -- build the pos[]/col[] lists
       shape/{radius,theta}.id          -- polar placement (radius/angle)
       look/position/{xz,y,push}.id     -- polar -> Cartesian + disk thickness
       look/color/{pack,tint,util}.id   -- radius -> color
