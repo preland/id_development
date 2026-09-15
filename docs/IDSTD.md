@@ -489,7 +489,7 @@ Two rules that are the whole reason this is worth lifting rather than rewriting:
 `ppm_dump` is disproportionately valuable: it is how graphics gets tested with no
 display (§9).
 
-### 3.8 `gfx/d2` — `d2_`, `txt_`
+### 3.8 `gfx/plane` — `d2_`, `txt_`
 
 From `idem/engine/gfx/d2/`:
 
@@ -513,7 +513,7 @@ Note `../idem/docs/ARCHITECTURE.md` §13 records the editor's row pitch still
 assuming an 8-pixel glyph — check the constants on the way across rather than
 copying the bug.
 
-### 3.9 `gfx/d3` — `m4_`, `d3_`
+### 3.9 `gfx/space` — `m4_`, `d3_`
 
 From `idem/engine/gfx/d3/`:
 
