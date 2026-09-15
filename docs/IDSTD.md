@@ -491,7 +491,7 @@ display (§9).
 
 ### 3.8 `gfx/plane` — `d2_`, `txt_`
 
-From `idem/engine/gfx/d2/`:
+From `idem/engine/gfx/plane/`:
 
 - colour: `d2_rgb`, `d2_cr`/`cg`/`cb`, `d2_shade`, `d2_blend`
 - shapes: `d2_hline`, `d2_vline`, `d2_line` (Bresenham), `d2_frame`,
@@ -515,7 +515,7 @@ copying the bug.
 
 ### 3.9 `gfx/space` — `m4_`, `d3_`
 
-From `idem/engine/gfx/d3/`:
+From `idem/engine/gfx/space/`:
 
 - `m4_new`, `m4_ident`, `m4_mul`, `m4_translate`, `m4_scale`, `m4_rot_x/y/z`,
   `m4_perspective`, `m4_apply`, `m4_pt` — 16-entry row-major `int[]`, entries
@@ -624,7 +624,7 @@ idstd/
     d3/     m4/    tri/   view/
 ```
 
-Nine leaves, each of which becomes its own 3-deep tree — `idem`'s `engine/gfx/d3`
+Nine leaves, each of which becomes its own 3-deep tree — `idem`'s `engine/gfx/space`
 alone is ~90 functions across ~30 files. Expect ~200 files at 600 functions.
 Lay the skeleton out *first*: `idem` records that parallel workstreams repeatedly
 broke each other's builds because the 3-entry rule was violated mid-restructure
