@@ -483,17 +483,12 @@ accepted, and restates the default.
 
 The tree does not have its cases yet (the table below), so there is a way out:
 
-- **`--allow-untested`** turns the minimum off for one build. It is deprecated
-  from the day it exists: a build that passes it prints, once, on stderr,
-
-  ```
-  idc: warning: --allow-untested is deprecated and will be removed once every function has its test cases
-  ```
-
-  and nothing else changes — not the exit status, not stdout, not any other
-  diagnostic. It is a command-line flag only, so every build that relies on it
-  says so where it is invoked, and `grep -r -- --allow-untested` is the list of
-  builds still to fix.
+- **`--allow-untested`** turns the minimum off for one build, silently — `id`
+  has no warnings: something is allowed or it is not, and this is allowed
+  until the tree has its cases. Nothing else changes — not the exit status,
+  not stdout, not any other diagnostic. It is a command-line flag only, so
+  every build that relies on it says so where it is invoked, and
+  `grep -r -- --allow-untested` is the list of builds still to fix.
 - Every case that *is* written runs on every build either way, and a failure
   fails the build. `--allow-untested` skips no case; it only stops counting
   them. (`idc/idc.py` has neither the default nor the flag, and still spells
