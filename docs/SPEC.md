@@ -597,6 +597,9 @@ that words them differently makes the language feel different.
   segments are all still in scope. The restated parameter list must match the
   original exactly, in both type and name, and each segment is held to the
   three-action limit on its own rather than the segments being counted together.
+  A chain may only follow a segment that spent all three of its actions: a
+  segment that still had room should have kept writing rather than starting a
+  new one, so there is one way to continue a function rather than two.
   A function and its chains are one function: they do not count separately
   toward the three-functions-per-file limit, and one pair of test cases covers
   them all, because the segments execute as a unit.
