@@ -56,6 +56,13 @@ Most cases are just `(ARGS):(EXPECTED)`:
 to describe behaviour. The compiler requires two and does not care which two,
 which is a floor rather than a target.
 
+**A function and its `chain` continuations share one pair.** The segments are
+one function and execute as a unit, so a case exercises all of them and the
+cases go after the final `return` clause as usual — not a pair per segment. The
+converse is worth knowing when you edit: giving an existing function a chain, or
+folding a function into one as a chain, changes what the pair has to describe,
+so its cases need rewriting rather than carrying over.
+
 **`main` is a function like any other, and needs its two as well.** Its cases
 are usually about parameter handling and edge cases — no arguments, too many,
 an argument that does not parse:

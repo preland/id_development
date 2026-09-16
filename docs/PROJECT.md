@@ -185,6 +185,27 @@ caesar/
         └── tail.id
 ```
 
+The *function* limit has a second remedy, and often the better one. A function
+that has run out of actions can continue into a `chain` instead of handing the
+rest of its work to a helper:
+
+```
+parse_line(string src, int i) {
+  int a = skip_space(src, i);
+  int b = read_word(src, a);
+  int c = skip_space(src, b);
+} chain (string src, int i) {
+  int d = read_word(src, c);
+} return int d;
+```
+
+Each segment gets its own three actions, the parameters are restated exactly as
+written the first time, and everything the earlier segments declared is still in
+scope. A function and its chains count as **one** function against the file's
+three — so continuing does not push a file over the limit, while splitting out a
+helper does. Reach for a chain when the next step is only ever used here, and
+for a real function when it is worth a name a caller elsewhere could use.
+
 Plan for this. A project that will have twelve functions needs three levels,
 and deciding what the levels *mean* early is much cheaper than renaming them at
 the point the compiler forces the issue. If you find yourself making a
@@ -739,7 +760,8 @@ Seven things, in the order you will meet them.
 
 1. **A call cannot be an argument to a call.** Name every intermediate value.
 2. **3 functions per file, 3 entries per directory.** The directory limit fires
-   on a directory you were not editing. Plan the levels early.
+   on a directory you were not editing. Plan the levels early. A `chain`
+   continues a function without adding to the file's three.
 3. **Read the first error only.** One mistake produces a cascade; the lines
    below the first are consequences.
 4. **Anything that exports state needs its initialiser called from `main`** —

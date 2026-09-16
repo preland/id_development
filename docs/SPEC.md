@@ -476,7 +476,8 @@ intermediate makes both visible, in the order they happen.
 
 The cost is real and is not hidden here: **the action limit is unchanged**, so
 a block that gains a name may have to give up a statement, and a function that
-gains a statement may have to become two. Across this repository the two rules
+gains a statement may have to continue into a `chain` or become two. Across
+this repository the two rules
 cost about 1600 new names and several hundred new functions. That is the trade,
 made deliberately: `docs/FRICTION.md` §14 and §15 are what the other side of it
 was costing.
@@ -589,6 +590,16 @@ that words them differently makes the language feel different.
 - `main(int argc, string[] argv)` is the entry point. Its `int` return is the
   process exit status. `argv[0]` is the program name, whose spelling depends on
   how the program was launched and is therefore **not** specified.
+- A function may **continue into a `chain`** rather than split: `} chain (the
+  same parameters, restated) {`, followed by up to three more actions, and the
+  `return` clause at the end belongs to the whole function. A chain is a literal
+  continuation — the parameters, the imports, and the locals declared by earlier
+  segments are all still in scope. The restated parameter list must match the
+  original exactly, in both type and name, and each segment is held to the
+  three-action limit on its own rather than the segments being counted together.
+  A function and its chains are one function: they do not count separately
+  toward the three-functions-per-file limit, and one pair of test cases covers
+  them all, because the segments execute as a unit.
 - `print(x)` writes a value and a newline to stdout; `put(s)` writes without
   one; `flush()` flushes.
 - `eprint(x)` writes to stderr exactly what `print(x)` writes to stdout: it
