@@ -602,7 +602,12 @@ that words them differently makes the language feel different.
   new one, so there is one way to continue a function rather than two.
   A function and its chains are one function: they do not count separately
   toward the three-functions-per-file limit, and one pair of test cases covers
-  them all, because the segments execute as a unit.
+  them all, because the segments execute as a unit. The duplicate rule (§7.2's
+  neighbour: two functions with the same signature and the same logic are one
+  function written twice) is the exception — there each segment is weighed on
+  its own, so a chain whose logic matches a function defined elsewhere is
+  rejected. A continuation that could have stood alone was not continuing
+  anything.
 - `print(x)` writes a value and a newline to stdout; `put(s)` writes without
   one; `flush()` flushes.
 - `eprint(x)` writes to stderr exactly what `print(x)` writes to stdout: it
