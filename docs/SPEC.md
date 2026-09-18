@@ -600,6 +600,14 @@ that words them differently makes the language feel different.
   A chain may only follow a segment that spent all three of its actions: a
   segment that still had room should have kept writing rather than starting a
   new one, so there is one way to continue a function rather than two.
+- `blank` is a statement that costs one action and does nothing. It exists to
+  pad a segment up to three actions when, and only when, a chain follows and
+  the chain's first statement costs more actions than the segment had room for.
+  Only an `if` with an `else` costs more than one action, so that is the only
+  statement a `blank` can stand in for; anywhere else the segment had room to
+  keep writing, and the padding is rejected. A `blank` is invisible to the
+  duplicate rule: a function padded with one is the same function as the one
+  written without it, because it performs the same work.
   A function and its chains are one function: they do not count separately
   toward the three-functions-per-file limit, and one pair of test cases covers
   them all, because the segments execute as a unit. The duplicate rule (§7.2's
