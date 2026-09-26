@@ -6,10 +6,15 @@
 // display glwin_open returns 0 and glwin_poll then returns -1 forever, so a loop
 // that starts unconditionally never ends. Every windowed demo in this tree had
 // that bug -- `DISPLAY= ./prog` ran until it was killed.
+// Only the run <= 0 branch is cased: run > 0 only terminates through a real
+// GFX_MAX_FRAMES-bounded present/poll cycle, which a case cannot set up --
+// see main.id's note.
 loop(int ok) {
   spin(ok, 0);
   glwin_close();
 } return void;
+given init_math given build_particles (0):() then particle_state:("397,18000000,14802607,6000000")
+given init_math given build_particles (-3):() then particle_state:("397,18000000,14802607,6000000")
 
 spin(int run, int t) {
   while(run > 0) {
@@ -18,3 +23,5 @@ spin(int run, int t) {
     t = sys_next(t);
   }
 } return void;
+given init_math given build_particles (0, 0):() then particle_state:("397,18000000,14802607,6000000")
+given init_math given build_particles (-1, 5):() then particle_state:("397,18000000,14802607,6000000")

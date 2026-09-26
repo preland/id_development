@@ -4,11 +4,15 @@ write_file(string path, string text) {
   int[] bytes_of_v = bytes_of(text);
   write_tail(path, h, bytes_of_v, text);
 } return void;
+("fsdemo_case_wf1.txt", "hi"):() then prints:("wrote 2 bytes to fsdemo_case_wf1.txt (close 0)\n")
+("fsdemo_case_wf2.txt", ""):() then prints:("wrote 0 bytes to fsdemo_case_wf2.txt (close 0)\n")
 
 wrote(string path, int h, int n) {
   int rc = fs_close(h);
   print("wrote " + n + " bytes to " + path + " (close " + rc + ")");
 } return void;
+("test.txt", -1, 5):() then prints:("wrote 5 bytes to test.txt (close -1)\n")
+("x.txt", -1, 0):() then prints:("wrote 0 bytes to x.txt (close -1)\n")
 
 // A string becomes one byte per cell. fs_write takes an int[] because the
 // backend is a separately compiled object and cannot reach id's flat store;
@@ -22,3 +26,5 @@ bytes_of(string text) {
     i = i + 1;
   }
 } return int[] buf;
+("AB"):([65, 66])
+(""):([])

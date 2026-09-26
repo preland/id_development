@@ -11,14 +11,20 @@ gone(string path) {
   int h = fs_open(path, "r");
   report(path, rc, h);
 } return void;
+given fsdemo_t_setup ("fsdemo_case.txt"):() then prints:("removed fsdemo_case.txt (rc 0), exists now 0\nreopening it gives -1, errno 2\n")
+("fsdemo_case_missing4.txt"):() then prints:("removed fsdemo_case_missing4.txt (rc -1), exists now 0\nreopening it gives -1, errno 2\n")
 
 report(string path, int rc, int h) {
   int fs_exists_v = fs_exists(path);
   print("removed " + path + " (rc " + rc + "), exists now " + fs_exists_v);
   report_reopen(h);
 } return void;
+("nope.txt", 0, -1):() then prints:("removed nope.txt (rc 0), exists now 0\nreopening it gives -1, errno 0\n")
+("nope2.txt", -1, 5):() then prints:("removed nope2.txt (rc -1), exists now 0\nreopening it gives 5, errno 0\n")
 
 report_reopen(int h) {
   int fs_error_v = fs_error();
   print("reopening it gives " + h + ", errno " + fs_error_v);
 } return void;
+(5):() then prints:("reopening it gives 5, errno 0\n")
+(-1):() then prints:("reopening it gives -1, errno 0\n")

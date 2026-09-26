@@ -11,6 +11,11 @@
 // Close the window (or press Esc / q) to quit. GFX_MAX_FRAMES lets a headless
 // build run N frames and exit on its own (see sys/win/gl).
 
+// main() is not cased: glwin_open() succeeds whenever a real X display is
+// reachable (true here -- see demos/gl3d/main.id's note, the same check),
+// and a successful open makes loop(ok) enter spin's live polling loop,
+// which only ends via GFX_MAX_FRAMES, an environment variable no case can
+// set and this build does not export.
 main(int argc, string[] argv) {
   int ok = glwin_open(900, 560, "id flyover -- terrain flight");
   world_init();

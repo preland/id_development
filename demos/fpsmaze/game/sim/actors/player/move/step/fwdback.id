@@ -4,9 +4,22 @@ move_forward() {
   int fwd_dz_v = fwd_dz();
   try_apply_delta(fwd_dx_v, fwd_dz_v);
 } return void;
+given player_init given maze_init given fx_trig_init ():() then ps_z:(-10000)
+given open_room_setup given fx_trig_init ():() then ps_z:(-10070)
 
 move_backward() {
   int fwd_dx_v = fwd_dx();
   int fwd_dz_v = fwd_dz();
   try_apply_delta(0 - fwd_dx_v, 0 - fwd_dz_v);
 } return void;
+given player_init given maze_init given fx_trig_init ():() then ps_z:(-10000)
+given open_room_setup given fx_trig_init ():() then ps_z:(-9930)
+
+// Test check: the player's world-z (see state.id's index layout), read
+// through a zero-argument wrapper since ps_get itself takes an index and
+// 'then' checks take none.
+ps_z() {
+  int ret_i = ps_get(1);
+} return int ret_i;
+given player_init ():(-10000)
+given open_room_setup given fx_trig_init given move_forward ():(-10070)

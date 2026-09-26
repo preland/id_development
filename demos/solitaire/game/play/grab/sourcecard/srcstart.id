@@ -5,3 +5,25 @@ set_src_tail() {
   int src_start_v = src_start();
   ui_set(2, src_start_v);
 } return void;
+given apply_board_setup ():() then ui2_check:(0)
+given apply_board_setup given fd0_one ():() then ui2_check:(1)
+
+// A reader for ui[2] (the source start index), same reasoning as
+// stock_len_check and friends -- ui is only otherwise read through
+// ui_get, which takes an index and so cannot be a check itself. setsrc.id
+// and srcb.id are both full, and this index is exactly what src_start and
+// set_src_tail (above) write, so it belongs beside them rather than in
+// cardsetup/checks.id, which is also full.
+ui2_check() {
+  int ret_i = (import ui)[2];
+} return int ret_i;
+given apply_board_setup ():(0)
+given apply_board_setup given fd0_one given set_src_tail ():(1)
+
+// A second waste card, distinct from apply_board_setup's, for the cases in
+// srcb.id (full) that need to tell the top of the waste from its bottom.
+push_waste_card2() {
+  push((import waste), 8);
+} return void;
+given apply_board_setup ():() then waste_len_check:(2)
+given make_sw ():() then waste_len_check:(1)

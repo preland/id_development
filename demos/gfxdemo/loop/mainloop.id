@@ -7,10 +7,15 @@
 // display gfx_open returns 0 and gfx_poll then returns -1 forever, so a loop
 // that starts unconditionally never ends. Every windowed demo in this tree had
 // that bug -- `DISPLAY= ./prog` ran until it was killed.
+// Only the run <= 0 branch is cased: run > 0 only terminates through a real
+// GFX_MAX_FRAMES-bounded present/poll cycle (frame.id), which a case cannot
+// set up -- see main.id's note.
 loop(int ok) {
   spin(ok, 0);
   gfx_close();
 } return void;
+given gfx_big_setup (0):() then idstd_sf_l_t_sum:(0)
+given gfx_big_setup (-3):() then idstd_sf_l_t_sum:(0)
 
 spin(int run, int t) {
   while(run > 0) {
@@ -19,3 +24,5 @@ spin(int run, int t) {
     t = sys_next(t);
   }
 } return void;
+given gfx_big_setup (0, 0):() then idstd_sf_l_t_sum:(0)
+given gfx_big_setup (-1, 5):() then idstd_sf_l_t_sum:(0)

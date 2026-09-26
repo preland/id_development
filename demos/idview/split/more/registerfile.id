@@ -6,6 +6,8 @@ register_file(string src, int i, int e) {
   int start_v = fx_min(i + 6, e);
   register_path(src, start_v, e);
 } return void;
+given init_view ("#file a.id\n", 0, 10):() then iv_path_start:("a.id,11")
+given init_view ("#f\n", 0, 2):() then iv_path_start:(",3")
 
 // print_file already spends its 3 actions on the header line, so the blank
 // line and the body slice/print are a tail call. A marker on the last line with
@@ -16,3 +18,5 @@ print_body(string src, int k) {
   int start_v = fx_min((import starts)[k], (import ends)[k]);
   print_span(src, start_v, (import ends)[k]);
 } return void;
+given iv2_setup ("#file a.id\nBODY\nTAIL", 0):() then prints:("\nBODY\n")
+given iv2_setup ("#file a.id\nHELLO\nZZZZ", 0):() then prints:("\nHELLO")

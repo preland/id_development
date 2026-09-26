@@ -8,6 +8,8 @@ main(int argc, string[] argv) {
   float testvar = 0.8;
   // 3 action limit reached (if, else, testvar assignment)
 } return int 0; // return does not contribute to action limit
+(1, ["prog"]):(0) then prints:("usage: prog <message>\n")
+(2, ["prog", "hi"]):(0) then prints:("hello world: hi\n")
 
 //a variable name may recur across functions but must keep one type;
 //exported names are reserved globally
@@ -17,7 +19,9 @@ testfn() {
   //otherwise, the usage is a compiler error
   export int value = main(2, ["hello_world", "hi"]);
   string result = processresult();
-} return string result; 
+} return string result;
+():("nominal performance") then prints:("otherfn was called\nhello world: hi\n")
+():("nominal performance") then calls otherfn:()
 
 processresult() {
   string processed = "";
@@ -27,5 +31,7 @@ processresult() {
     processed = "error detected";
   }
 } return string processed; // in the case of a void function, this would be "return void;"
+given value_setup ():("nominal performance")
+given value_setup ():("nominal performance") then prints:("")
 
 //maximum of 3 functions per file

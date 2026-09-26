@@ -4,14 +4,20 @@ open_file(string src, int i, int e) {
   close_last(i);
   register_file(src, i, e);
 } return void;
+given init_view ("#file a.id\n", 0, 10):() then iv_len:(1)
+given iv2_setup ("#file b.id\n", 0, 10):() then iv_len:(2)
 
 close_last(int e) {
   if(len((import ends)) < len((import paths))) {
     push((import ends), e);
   }
 } return void;
+given init_view (5):() then iv_ends_len:(0)
+given iv1_setup (5):() then iv_ends_len:(1)
 
 print_file(string src, int k) {
   print("==== " + (import paths)[k]);
   print_body(src, k);
 } return void;
+given iv2_setup ("#file a.id\nBODY\nTAIL", 0):() then prints:("==== a.id\n\nBODY\n")
+given iv2_setup ("#file a.id\nHELLO\nZZZZ", 0):() then prints:("==== a.id\n\nHELLO")

@@ -5,6 +5,8 @@ show_tail(string path, int[] buf) {
   render(fs_open_v, buf);
   gone(path);
 } return void;
+given fsdemo_t_setup ("fsdemo_case.txt", [0, 0, 0]):() then prints:("read 3 bytes back (close 0):\nhi\n\nremoved fsdemo_case.txt (rc 0), exists now 0\nreopening it gives -1, errno 2\n")
+("fsdemo_case_missing2.txt", []):() then prints:("read -1 bytes back (close -1):\n\nremoved fsdemo_case_missing2.txt (rc -1), exists now 0\nreopening it gives -1, errno 2\n")
 
 // render() already spends its 3 actions reading into the buffer, so
 // closing the handle and reporting is a tail call -- and split again,
@@ -15,8 +17,12 @@ render_tail(int h, int n, int[] buf) {
   print("read " + n + " bytes back (close " + fs_close_v + "):");
   render_text(buf);
 } return void;
+(-1, 3, [104, 105, 10]):() then prints:("read 3 bytes back (close -1):\nhi\n\n")
+(-1, 0, []):() then prints:("read 0 bytes back (close -1):\n\n")
 
 render_text(int[] buf) {
   string text_of_v = text_of(buf);
   print(text_of_v);
 } return void;
+([104, 105, 10]):() then prints:("hi\n\n")
+([]):() then prints:("\n")

@@ -4,9 +4,13 @@ show(string path) {
   int[] buf = zeros(fs_size_v);
   show_tail(path, buf);
 } return void;
+given fsdemo_t_setup ("fsdemo_case.txt"):() then prints:("read 3 bytes back (close 0):\nhi\n\nremoved fsdemo_case.txt (rc 0), exists now 0\nreopening it gives -1, errno 2\n")
+("fsdemo_case_missing.txt"):() then prints:("read -1 bytes back (close -1):\n\nremoved fsdemo_case_missing.txt (rc -1), exists now 0\nreopening it gives -1, errno 2\n")
 
 render(int h, int[] buf) {
   int len_v = len(buf);
   int n = fs_read(h, buf, len_v);
   render_tail(h, n, buf);
 } return void;
+(-1, [0, 0, 0]):() then prints:("read -1 bytes back (close -1):\n\n")
+(-1, []):() then prints:("read -1 bytes back (close -1):\n\n")

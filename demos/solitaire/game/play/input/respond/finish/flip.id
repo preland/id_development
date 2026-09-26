@@ -6,6 +6,8 @@ finish_move() {
   ui_set(1, 0 - 1);
   check_win();
 } return void;
+given apply_board_setup given select_tab0_as_src ():() then calls maybe_flip:(0) then calls ui_set:(1, -1)
+given apply_board_setup given select_waste_found ():() then calls maybe_flip:[0] then calls ui_set:(1, -1)
 
 flip_src() {
   if(ui_get(1) >= 6) {
@@ -13,9 +15,13 @@ flip_src() {
     maybe_flip(ui_get_v - 6);
   }
 } return void;
+given apply_board_setup ():() then calls maybe_flip:[0]
+given apply_board_setup given select_tab0_as_src ():() then calls maybe_flip:(0)
 
 maybe_flip(int col) {
   if(needs_flip(col)) {
     lset((import fd), col, (import fd)[col] - 1);
   }
 } return void;
+given init_piles (0):() then fd0_check:(0)
+given init_piles given push_tab0_card given fd0_one (0):() then fd0_check:(0)

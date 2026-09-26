@@ -6,15 +6,21 @@ load() {
   string src = read_all();
   load_at(src, 0);
 } return void;
+given setup stdin "int 5\neof\n" ():() then tok0:("3,5")
+given setup stdin "" ():()
 
 load_at(string src, int i) {
   while(i < len(src)) {
     i = take_line(src, i);
   }
 } return void;
+given setup ("int 5\neof\n", 0):() then tok0:("3,5")
+given setup ("", 0):()
 
 take_line(string src, int i) {
   int e = str_eol(src, i);
   proc_line(src, i, e);
   int ret_i = e + 1;
 } return int ret_i;
+given setup ("int 5\n", 0):(6)
+given setup ("eof\n", 0):(4)

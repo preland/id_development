@@ -1,0 +1,25 @@
+// Read-back helpers and a populated-table setup for tally/'s own cases.
+// bump/find/maybe/add/inc/report/line all need words/counts declared
+// (main.id's init() is their sole export), and inc/report/line need a
+// non-empty table too, which wc2_setup gives them through bump() itself
+// rather than a second export of the same names.
+
+wc_len() {
+  int n = len((import words));
+} return int n;
+given init ():(0)
+given wc2_setup ():(2)
+
+wc2_setup() {
+  init();
+  bump("a");
+  bump("b");
+} return void;
+():() then wc_len:(2)
+():() then wc_count0:(1)
+
+wc_count0() {
+  int c = (import counts)[0];
+} return int c;
+given wc2_setup ():(1)
+given wc2_setup ():(1) then wc_len:(2)

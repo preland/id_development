@@ -5,9 +5,8 @@
 > Three later divergences (B6, B7, B8) are recorded after Tier B's table, with
 > what they have cost measured. `idc.py` will not be changed to match, so each
 > is pinned by a test that fails if either compiler changes its answer. §3 records the performance numbers,
-> §4 what each tier turned into. What remains is `--target llvm|wasm`, audio
-> (D6, which needs specifying before building), and the string-building rewrite
-> in §3.
+> §4 what each tier turned into. What is still open is marked ⬜ in the tables below; this banner does
+> not repeat it.
 >
 > The issue list is kept as written, with each fixed item marked, because the
 > report it came from is the reason any of it was found.
@@ -472,6 +471,5 @@ That is the next real performance step, and it is its own piece of work.
   backends.
 - ✅ Every diagnostic either compiler gives, both give. `idc/tests/invalid.sh` and
   `idc/tests/runtime_invalid.sh` both run both.
-- ⬜ `idc/idc.py`'s only remaining job is `--target llvm|wasm`. Bootstrapping is
-  unavoidable and stays. `docs/BACKENDS.md` describes how the targets move
-  across.
+- ✅ `idc/bin/idc` builds all three targets itself (`--target c|llvm|wasm`);
+  `idc/tests/conform.sh` runs every conformance case on each.

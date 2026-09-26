@@ -7,14 +7,25 @@ draw_scene(int mv) {
   clear_and_place(mv);
   submit_tris();
 } return void;
+given mesh_init (0):()
+given mesh_init (5):()
 
+// The three real GL calls in this file take no case-observable state (no
+// exported global they leave a trace in, and glClear/glLoadMatrixf/
+// glDrawArrays have nothing an `id` check could read back), so all a case
+// can honestly prove is that the call completes rather than trapping -- a
+// no-op probe build first confirmed these run safely with no window open.
 clear_and_place(int mv) {
   gl_begin_frame(15, 15, 35);
   gl_set_modelview(mv);
 } return void;
+(0):()
+(5):()
 
 submit_tris() {
   int tri_count_v = (import tri_count);
   gl_draw_tris((import verts), (import colors), tri_count_v);
   gl_end_frame();
 } return void;
+given mesh_init ():()
+given mesh_init ():() then eprints:("")

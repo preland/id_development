@@ -9,6 +9,8 @@ do_action() {
     do_move();
   }
 } return void;
+given apply_board_setup ():() then calls do_select:()
+given apply_board_setup given select_waste_found ():() then calls do_move:()
 
 do_select() {
   if(ui_get(0) == 0) {
@@ -17,9 +19,13 @@ do_select() {
     select_src();
   }
 } return void;
+given apply_board_setup given select_stock_cursor ():() then calls draw_stock:()
+given apply_board_setup given select_same_pile ():() then calls select_src:()
 
 select_src() {
   if(can_select()) {
     set_src();
   }
 } return void;
+given apply_board_setup ():() then calls set_src:[0]
+given apply_board_setup given select_same_pile ():() then calls set_src:()

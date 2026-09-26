@@ -5,9 +5,22 @@ register_path(string src, int a, int e) {
   push((import paths), str_slice_v);
   push((import starts), e + 1);
 } return void;
+given init_view ("#file a.id\n", 6, 10):() then iv_path_start:("a.id,11")
+given init_view ("xxxxxxab", 6, 8):() then iv_path_start:("ab,9")
 
 // print_body's tail: [a, b) is already in order and within the input.
 print_span(string src, int a, int b) {
   string str_slice_v = str_slice(src, a, b - a);
   put(str_slice_v);
 } return void;
+("hello world", 0, 5):() then prints:("hello")
+("hello world", 6, 11):() then prints:("world")
+
+// A file open but not yet closed: one path/start pushed, no end pushed --
+// the state close_last's "there is an unclosed file" branch needs.
+iv1_setup() {
+  init_view();
+  register_path("#file a.id\nBODY", 6, 10);
+} return void;
+():() then iv_len:(1)
+():() then iv_ends_len:(0)

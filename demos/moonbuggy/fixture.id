@@ -1,0 +1,26 @@
+// The two declaring chains every game/ case needs: term_init (term_w/h/
+// scr/attr/pal, and it seeds rnd_ -- sys/io/term/scr/init.id) and mb_init
+// (mb, and ground via init_ground). term_setup_mb is split out on its own
+// for mb_init's own cases, which must not call mb_init from their given.
+// A fixed seed (42) makes every crater/cooldown roll elsewhere reproducible.
+term_setup_mb() {
+  term_init(60, 20, 42);
+} return void;
+():()
+():() then eprints:("")
+
+mb_setup() {
+  term_setup_mb();
+  mb_init();
+} return void;
+():()
+():() then eprints:("")
+
+// All 8 `mb` slots together (score, height, vy, alive, tick, crater_left,
+// cooldown, quit -- game/core/engine/mb.id), for every case elsewhere that
+// changes game state.
+mb_state() {
+  string st = (import mb)[0] + "," + (import mb)[1] + "," + (import mb)[2] + "," + (import mb)[3] + "," + (import mb)[4] + "," + (import mb)[5] + "," + (import mb)[6] + "," + (import mb)[7];
+} return string st;
+given mb_setup ():("0,0,0,1,0,0,20,0")
+given mb_setup ():("0,0,0,1,0,0,20,0") then eprints:("")

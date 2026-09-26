@@ -1,0 +1,18 @@
+// A foundation state with the top two suits complete but not the bottom two
+// -- found0_check (apply/removecard/checks.id) reads the write back, and
+// all_done reads the pair alone as still short of a win.
+found_top_pair() {
+  lset((import found), 0, 13);
+  lset((import found), 1, 13);
+} return void;
+given init_piles ():() then found0_check:(13)
+given init_piles ():() then all_done:(0)
+
+// The remaining two suits, completing the board found_top_pair started --
+// all_done's own win condition is the witness that both halves landed.
+found_bottom_pair() {
+  lset((import found), 2, 13);
+  lset((import found), 3, 13);
+} return void;
+given init_piles given found_top_pair ():() then found0_check:(13)
+given init_piles given found_top_pair ():() then all_done:(1)

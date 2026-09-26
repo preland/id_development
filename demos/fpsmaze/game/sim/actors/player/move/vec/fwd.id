@@ -8,8 +8,23 @@ fwd_dx() {
   int ps_get_v = ps_get(2);
   int ret_i = (0 - fx_sin_deg(ps_get_v)) * (import move_speed) / 1000;
 } return int ret_i;
+given player_init given fx_trig_init ():(0)
+given yaw90_setup ():(-70)
 
 fwd_dz() {
   int ps_get_v = ps_get(2);
   int ret_i = (0 - fx_cos_deg(ps_get_v)) * (import move_speed) / 1000;
 } return int ret_i;
+given player_init given fx_trig_init ():(-70)
+given yaw90_setup ():(0)
+
+// Test fixture: player state plus the trig table, with yaw forced to 90 --
+// gives fwd_dx/fwd_dz/right_dx/right_dz a second, orthogonal facing to check
+// against yaw 0's (player_init's default facing).
+yaw90_setup() {
+  player_init();
+  fx_trig_init();
+  ps_set(2, 90);
+} return void;
+():() then ps_yaw:(90)
+():() then ps_x:(-12000)

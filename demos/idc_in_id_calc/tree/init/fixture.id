@@ -1,0 +1,46 @@
+// A ten-token stream, "2 + 3 * 4 - ( 5 )" then eof, loaded once here so
+// every parser/cursor case elsewhere just names a starting index into it
+// rather than building its own stream -- indices 0,2,4,7 are INT, 1,3,5,6,8
+// are the operators/parens, 9 is eof.
+tok_setup() {
+  setup();
+  push_tok(3, "2");
+  push_tok(5, "+");
+} chain () {
+  push_tok(3, "3");
+  push_tok(5, "*");
+  push_tok(3, "4");
+} chain () {
+  push_tok(5, "-");
+  push_tok(5, "(");
+  push_tok(3, "5");
+} chain () {
+  push_tok(5, ")");
+  push_tok(6, "");
+} return void;
+():()
+():() then eprints:("")
+
+// tkind[0]/ttext[0] together, for push_tok/emit_tok's own cases (which
+// start from setup()'s empty store) to confirm they pushed the right code
+// and text, not just that len(tkind) grew.
+tok0() {
+  string s = (import tkind)[0] + "," + (import ttext)[0];
+} return string s;
+given tok_setup ():("3,2")
+given tok_setup ():("3,2") then eprints:("")
+
+// A small tree, "2 + 3" (root id 2) plus a UNOP "-2" (id 3), for the
+// evaluator and printer: a fresh process creates AST nodes in order, so
+// node_int(2) is always id 0, node_int(3) id 1, the "+" node id 2, and the
+// "-" node id 3.
+ast_setup() {
+  setup();
+  int a = node_int(2);
+  int b = node_int(3);
+} chain () {
+  int root = node_bin("+", a, b);
+  int neg = node_un("-", a);
+} return void;
+():()
+():() then eprints:("")

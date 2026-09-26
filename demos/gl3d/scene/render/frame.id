@@ -12,15 +12,26 @@ render(int t) {
   gl_set_projection((import proj));
   draw_scene(mv);
 } return void;
+given scene_init (0):()
+given scene_init (100):()
 
+// gl_mat_*'s return is an opaque slot in the GL backend's own matrix pool
+// (backends/gl/gl_linux.c's mat_alloc), not a computed geometry value, so a
+// case can only pin it by asking a fresh process what the first few
+// allocations actually come back as -- confirmed against the real build
+// rather than assumed.
 modelview(int t) {
   int r = compose_rotation(t);
   int tr = gl_mat_translate(0, 0, 0 - 5000);
   int ret_i = gl_mat_mul(tr, r);
 } return int ret_i;
+(0):(4)
+(100):(4)
 
 compose_rotation(int t) {
   int ry = gl_mat_rotate_y((t * 2000) % 360000);
   int rx = gl_mat_rotate_x((t * 1000) % 360000);
   int ret_i = gl_mat_mul(ry, rx);
 } return int ret_i;
+(0):(2)
+(100):(2)

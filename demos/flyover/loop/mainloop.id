@@ -6,10 +6,16 @@
 // display glwin_open returns 0 and glwin_poll then returns -1 forever, so a loop
 // that starts unconditionally never ends. Every windowed demo in this tree had
 // that bug -- `DISPLAY= ./prog` ran until it was killed.
+// Only the run <= 0 branch is cased: run > 0 only terminates through a real
+// GFX_MAX_FRAMES-bounded present/poll cycle, which a case cannot set up --
+// see main.id's note. spin_tick itself is a single real tick, not gated by
+// run, so it is cased directly below.
 loop(int ok) {
   spin(ok, 0);
   glwin_close();
 } return void;
+given world_init (0):() then heights_state:("614,520")
+given world_init (-3):() then heights_state:("614,520")
 
 spin(int run, int t) {
   while(run > 0) {
@@ -17,9 +23,13 @@ spin(int run, int t) {
     t = t + 1;
   }
 } return void;
+given world_init (0, 0):() then heights_state:("614,520")
+given world_init (-1, 5):() then heights_state:("614,520")
 
 spin_tick(int t) {
   int frame_v = frame(t);
   int run = inp_live(frame_v);
   sleep_ms(16);
 } return int run;
+given world_init (0):(1)
+given world_init (60):(1)

@@ -8,11 +8,15 @@ draw_stock() {
     recycle();
   }
 } return void;
+given apply_board_setup ():() then stock_len_check:(1) then waste_len_check:(0) then calls recycle:()
+given apply_board_setup given recycle ():() then stock_len_check:(0) then waste_len_check:(1) then calls stock_to_waste:()
 
 stock_to_waste() {
   int pop_v = pop((import stock));
   push((import waste), pop_v);
 } return void;
+given apply_board_setup given recycle ():() then stock_len_check:(0) then waste_len_check:(1) then top_waste:(0)
+given idstd_rnd_t_setup given build_deck given deal_and_ui ():() then stock_len_check:(23) then waste_len_check:(1)
 
 recycle() {
   while(len((import waste)) > 0) {
@@ -20,3 +24,6 @@ recycle() {
     push((import stock), pop_v);
   }
 } return void;
+given make_sw ():() then stock_len_check:(0) then waste_len_check:(0)
+given apply_board_setup ():() then stock_len_check:(1) then waste_len_check:(0)
+given apply_board_setup given push_waste_card2 ():() then stock_len_check:(2) then waste_len_check:(0)

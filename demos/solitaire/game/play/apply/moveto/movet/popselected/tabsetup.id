@@ -1,0 +1,27 @@
+// Puts one card (a red 2, suit 1 rank 2) on tableau column 0 so this
+// batch's tab_* cases have a non-empty destination/source column to test
+// the sequence rule and the pop-from-tableau path against.
+push_tab0_card() {
+  int[] col0 = col_of(0);
+  push(col0, 5);
+} return void;
+given init_piles ():() then calls col_of:(0)
+given init_piles ():() then tab0_top_check:(5)
+
+// A second card on top of the first (an ace of clubs), so top_of and the
+// pop/push cases have a two-card column to distinguish bottom from top.
+push_tab0_card2() {
+  int[] col0 = col_of(0);
+  push(col0, 0);
+} return void;
+given init_piles ():() then tab0_top_check:(0)
+given init_piles given push_tab0_card ():() then tab0_top_check:(0)
+
+// Cursor on tableau column 0, source pile the waste -- the selection a
+// "move waste card onto a tableau column" turn leaves in ui.
+select_tab0_waste_src() {
+  ui_set(0, 6);
+  ui_set(1, 1);
+} return void;
+given apply_board_setup ():() then calls ui_set:(0, 6)
+given apply_board_setup ():() then calls ui_set:(1, 1)

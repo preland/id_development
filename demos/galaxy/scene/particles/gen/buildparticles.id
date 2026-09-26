@@ -7,10 +7,30 @@ build_particles() {
   export int[] col = [];
   fill_particles(0);
 } return void;
+given init_math ():() then particle_state:("397,18000000,14802607,6000000")
+given init_math ():() then particle_state:("397,18000000,14802607,6000000") then eprints:("")
 
+// The only case that does not need pos/col declared: at or past
+// particle_count the loop makes zero add_particle() calls, so nothing here
+// ever runs build_particles() a second time (see particles/gen/add.id's
+// note -- build_particles is pos/col's one legal declarer, and its own fill
+// touches all 6,000,000 particles, too expensive to pay for twice more).
 fill_particles(int i) {
   while (i < (import particle_count)) {
     add_particle(i);
     i = i + 1;
   }
 } return void;
+(6000000):()
+(6000001):()
+
+// pos/col are declared only by build_particles(), whose own fill touches
+// every one of (import particle_count)'s 6,000,000 particles -- a real cost
+// (confirmed against the actual build: a few seconds, not the 10s case
+// cap), paid once here by every case elsewhere in this tree that needs pos
+// or col populated, rather than duplicated per check.
+particle_state() {
+  string s = (import pos)[0] + "," + len((import pos)) + "," + (import col)[0] + "," + len((import col));
+} return string s;
+given init_math given build_particles ():("397,18000000,14802607,6000000")
+given init_math given build_particles ():("397,18000000,14802607,6000000") then eprints:("")

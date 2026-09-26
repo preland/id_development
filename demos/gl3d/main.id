@@ -10,6 +10,13 @@
 // Close the window (or press Esc / q) to quit. GFX_MAX_FRAMES lets a headless
 // build run N frames and exit on its own (see sys/win/gfx and sys/win/gl).
 
+// main() is not cased: glwin_open() succeeds whenever a real X display is
+// reachable (true here -- a standalone XOpenDisplay probe confirmed it, the
+// same check made for demos/gfxdemo/main.id), and a successful open makes
+// loop(ok) enter spin's live polling loop, which only ends via
+// GFX_MAX_FRAMES, an environment variable no case can set and this build
+// does not export. Casing it would hang for the 10s case cap on any machine
+// with a reachable display and pass by accident on any machine without one.
 main(int argc, string[] argv) {
   int ok = glwin_open(640, 480, "id gl3d -- spinning cube");
   scene_init();

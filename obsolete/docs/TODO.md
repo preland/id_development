@@ -6,7 +6,7 @@
 > are generated elsewhere — see `docs/TESTS.md` for adoption and
 > `idc/tests/idstd_expect.txt` for the port list.
 
-Ordered by what unblocks the most. Everything here is open as of 2026-08-23.
+Ordered by what unblocks the most. An item is open unless struck through.
 
 ## ~~1. A single line of build progress in `idc/bin/idc`~~ — done
 
@@ -35,10 +35,8 @@ as an argument once a setup has exported `g`. It has landed (`docs/TESTS.md`,
 through `idc/idc.py` any more, so `idstd` can hold cases written with it. What
 remains is writing them: the two-case minimum is on by default, and every
 build that merges `idstd` passes the deprecated `--allow-untested` until they
-exist — 59 of its functions lack them, among them all 13 of `sys/err`, the trig
-half of `core/math`, and every flat-store writer. `c2id` still builds itself with `idc/idc.py` and `idstd`
-merged, so a `given` in `idstd` breaks that build (`docs/TESTS.md`, the status
-block). See `docs/TESTS.md`, "What the case format cannot express".
+exist; `idc/bin/idc ../idstd --list-untested` lists the ones that still lack
+them. See `docs/TESTS.md`, "What the case format cannot express".
 
 ## 3. Add `check_assigned_once` to the self-hosted compiler
 

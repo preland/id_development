@@ -5,3 +5,14 @@ show_tail(int root) {
   int eval_expr_v = eval_expr(root);
   print("= " + eval_expr_v);
 } return void;
+given ast_setup (2):() then prints:("= 5\n")
+given ast_setup (0):() then prints:("= 2\n")
+
+// nkind[0]/na[0]/nb[0] together, for store_ints/newnode's own cases: safe
+// to read once store_ints has run, even before ns (a fourth, separate list)
+// has its own entry pushed.
+store_state() {
+  string s = (import nkind)[0] + "," + (import na)[0] + "," + (import nb)[0];
+} return string s;
+given ast_setup ():("1,2,0")
+given ast_setup ():("1,2,0") then eprints:("")

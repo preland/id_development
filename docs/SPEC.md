@@ -131,8 +131,8 @@ stored it (docs/TESTS.md).
 **Calling one.** `step(dt)`, where `step` is a parameter, local or export of a
 function type. The arguments are checked against the type -- how many, and each
 against its parameter type, with the narrowing rule above -- and every rule of
-§7.1 applies unchanged: no call inside an argument, a return clause is a name or
-a literal.
+§7.1 applies unchanged: calls nest at most one level inside an argument, and a
+return clause is a name or a literal.
 
 **Why this much and no more.** A call through a value hides which function
 runs, which is the one thing `id`'s rules otherwise never hide. What stays
@@ -439,17 +439,27 @@ worse than either order.
 Two rules, and one idea behind both: **a value that takes a step to compute is
 given a name, and the name is what the reader of the line sees.**
 
-**A call may not be an argument to a call.** Not at any depth: the argument
-expression must contain no call anywhere inside it.
+**A call's argument may hold at most one level of call nesting.** Counted by
+call depth, not by expression depth: an operator or an index wrapped around a
+call adds no depth of its own. A call inside a call is fine; a call inside a
+call inside a call is not.
 
 ```
-int n = lm_len(s2w(s));        rejected
+int n = lm_len(s2w(s));        fine -- one call, one level down
+int n = f(g(x) + 1);           fine -- the operator adds no depth
+
+int n = lm_len(w2n(s2w(s)));   rejected -- two levels
 word a = s2w(s);               the same thing, said in two steps
-int n = lm_len(a);
+int n = lm_len(w2n(a));
 
 int n = f(x) + g(y);           fine -- neither call is inside the other's
                                argument list
 ```
+
+This was "no call inside an argument at all" until 2026-09-22. It existed to
+stop call chains ten deep on one line, and one level of nesting does not
+produce those. Arguments are evaluated left to right on every target (§7;
+§11, S11).
 
 **A return clause is a name or a literal.** Nothing else: no call, no
 operator, no index, no list literal.
@@ -482,18 +492,49 @@ cost about 1600 new names and several hundred new functions. That is the trade,
 made deliberately: `docs/FRICTION.md` §14 and §15 are what the other side of it
 was costing.
 
-Two shapes cannot be repaired by naming, and both become a function instead:
+Two places cannot be repaired by naming, so nesting beyond one level there
+becomes a function instead:
 
-* a nested call in a `while` condition — a name bound before the loop is
-  computed once where the loop needs it every iteration;
-* a nested call to the right of `&&` or `||` — a name bound before the `if` is
-  computed even when the operator skips it.
+* a `while` condition — a name bound before the loop is computed once where the
+  loop needs it every iteration;
+* the right of `&&` or `||` — a name bound before the `if` is computed even when
+  the operator skips it.
 
 ```
-while(is_alnum(charat(src, i))) {     rejected
+while(is_alnum(charat(src, i))) {          fine -- one level
+while(ok(is_alnum(charat(src, i)))) {      rejected -- two levels
 
-while(is_alnum_at(src, i)) {          the composition, as a function
+while(ok(is_alnum_at(src, i))) {           the composition, as a function
 ```
+
+### 7.3 Leaving a loop or a function early
+
+**`break;` leaves the innermost enclosing `while`.** Outside every `while` it is
+rejected where it is written. Nesting is limited to two levels, so a `break`
+inside a `while` inside a `while` leaves only the inner one.
+
+**`return NAME;`, `return LITERAL;` and `return;` leave the function.** An early
+return takes the same shape as the return clause (§7.1) — a name or a literal —
+and is checked against the function's declared type the same way: a value in a
+`void` function, or `return;` in a function that returns one, is rejected. From
+inside a `chain` segment it leaves the whole function, not just the segment.
+
+```
+first_even(int[] xs) {
+  int i = 0;
+  int none = 0 - 1;
+  while(i < len(xs)) {
+    if(xs[i] % 2 == 0) {
+      int found = xs[i];
+      return found;
+    }
+    i = i + 1;
+  }
+} return int none;
+```
+
+**Neither costs an action.** They end work rather than doing it, so the action
+limit counts neither; a block may hold three actions and a `break` or `return`.
 
 ### 7.2 A function is not a constant
 
@@ -580,6 +621,7 @@ catchable; `id` has no exceptions.
 | a list grown past its capacity limit | `id: list capacity overflow` |
 | a size computation that overflows | `id: allocation size overflow (WHAT)` |
 | allocation refused by the host | `id: out of memory (N bytes)` |
+| reading an export whose declaring function has not run: a list anywhere; any type in a test case | `id: read of an uninitialised export (its declaring function has not run)` |
 
 The exact text is part of the specification, not an implementation detail:
 these messages are what a user sees when their program fails, and a target
@@ -663,57 +705,47 @@ Naming these keeps them from being discovered as bugs later:
   `sys/io/fs/`, `sys/win/gfx/`, and `sys/win/gl/`, which are the contract in
   `id`'s own types.
 
-## 11. Where the targets do not meet this specification today
+## 11. Where the targets have diverged from this specification
 
-Found by writing this document and running `idc/tests/conform.sh`. Each is a bug
-against the spec, not a permitted variation.
+Found by writing this document and running the conformance suite
+(`idc/tests/conform.sh` today). Each is a bug against the spec, not a permitted
+variation. Which of them still apply is not recorded here: the conformance
+suite prints every remaining divergence under "gaps", so run it and read that.
+The rows below say what each one was and why it happened.
 
-On its first run `idc/tests/conform.sh` reported **61 cases, 142 passed, 9 failed,
-32 gaps**. Every one of the nine was previously invisible, and three of them
-were wrong answers rather than missing features.
+| # | what | affected |
+| --- | --- | --- |
+| **S1** | Overflow wraps only because gcc chooses to; C calls it undefined. Needs `-fwrapv` or unsigned-routed arithmetic. Not currently observable, which is exactly why it is worth fixing before an optimiser makes it so. | C |
+| **S2** | Shifts with a count outside `0..W` gave three different answers: `(0 - 8) >> 32` was `-1` (§2.3) on C, `0` on LLVM, and `-8` on WASM, which masks the count to 5 bits. Both now route through helpers that give §2.3's answer. | LLVM, WASM |
+| **S3** | `str_of_int` was wrong for `INT_MIN`: `2147483647 + 1` printed `-./,),(-*,(`, because the digit loop negated a negative value, which overflows, and every digit then came out as `'0' - d`. It now folds into the negative half of the range, which is always representable. | WASM |
+| **S4** | `int` division and remainder by zero did not trap: LLVM raised SIGFPE (exit 136) and WASM aborted (exit 134) where C prints a line and exits 1. The checked-division fix recorded as C2 in `docs/GAPS.md` had been applied to the C runtime only. | LLVM, WASM |
+| **S5** | Float-to-string is not implemented, so printing or concatenating a float fails to compile — the 10 remaining gaps, and now the only one left. | WASM |
+| **S6** | `word`, the flat store and the unsigned builtins were rejected — 21 of 30 builtins, making §6 unimplementable. LLVM now calls the C runtime's helpers (which it already links); WASM implements the store in its own WAT over linear memory, which is its natural home. Only the real-time I/O builtins remain C-only, and those are genuinely platform-bound. | LLVM, WASM |
+| **S7** | Because of S6, `idstd` did not build — `core/data/buf/buf.id` uses `word`. Fixed with S6. | LLVM, WASM |
+| **S8** | Calls resolved at link time are refused, so no program using a native backend builds. LLVM now links the same backends as C (`idc/tests/backends.sh` compares the two). WASM still links none: `bin/idc`'s wasm branch never collects backends, no `backend.id` declares WASI sources, and WASI's preopened directories change what a path means. | WASM |
+| **S9** | Only the C target is reachable from `idc/bin/idc`, the primary compiler; the other two exist only in `idc/idc.py`. | — |
+| **S10** | The flat store sits at a fixed 1 MiB offset in the same linear memory the string/list heap grows through, so **the heap is capped at 1 MiB**. Passing it used to overwrite the store and read back garbage with nothing reported — a 400 000-element list made `peek64` return `71772820526333952` where C returned `123456789`. The heap now aborts with `id: out of memory` instead, which is §7-legal, but the cap is real and the other two targets do not have it. The proper fix is to place the store above the heap and grow it with `memory.grow`, checking the heap against its actual base rather than a constant. | WASM |
 
-It now reports **173 passed, 0 failed, 10 gaps**. The three wrong answers are
-fixed, and `word` and the flat store — 21 of the 30 builtins, and everything
-in §6 — work on all three targets. The 10 remaining gaps are one missing
-feature, float-to-string on WASM, and they are all of it.
+| **S11** | **The C target does not evaluate operands left to right**, which §7 now requires. It emits one C expression per `id` expression, and C does not sequence the arguments of a call: gcc evaluates them right to left, so `"pop=" + pop(xs) + " len=" + len(xs)` prints the length *before* the pop. The LLVM and WASM targets both conform, because both emit instructions in the order they walk the tree. Found by `idc/tests/kernel.sh`, which runs the same source on both runtimes and requires them to agree. | C |
 
-| # | what | affected | state |
-| --- | --- | --- | --- |
-| **S1** | Overflow wraps only because gcc chooses to; C calls it undefined. Needs `-fwrapv` or unsigned-routed arithmetic. Not currently observable, which is exactly why it is worth fixing before an optimiser makes it so. | C | open |
-| **S2** | Shifts with a count outside `0..W` gave three different answers: `(0 - 8) >> 32` was `-1` (§2.3) on C, `0` on LLVM, and `-8` on WASM, which masks the count to 5 bits. Both now route through helpers that give §2.3's answer. | LLVM, WASM | fixed |
-| **S3** | `str_of_int` was wrong for `INT_MIN`: `2147483647 + 1` printed `-./,),(-*,(`, because the digit loop negated a negative value, which overflows, and every digit then came out as `'0' - d`. It now folds into the negative half of the range, which is always representable. | WASM | fixed |
-| **S4** | `int` division and remainder by zero did not trap: LLVM raised SIGFPE (exit 136) and WASM aborted (exit 134) where C prints a line and exits 1. The checked-division fix recorded as C2 in `docs/GAPS.md` had been applied to the C runtime only. | LLVM, WASM | fixed |
-| **S5** | Float-to-string is not implemented, so printing or concatenating a float fails to compile — the 10 remaining gaps, and now the only one left. | WASM | open |
-| **S6** | `word`, the flat store and the unsigned builtins were rejected — 21 of 30 builtins, making §6 unimplementable. LLVM now calls the C runtime's helpers (which it already links); WASM implements the store in its own WAT over linear memory, which is its natural home. Only the real-time I/O builtins remain C-only, and those are genuinely platform-bound. | LLVM, WASM | fixed |
-| **S7** | Because of S6, `idstd` did not build — `core/data/buf/buf.id` uses `word`. Fixed with S6. | LLVM, WASM | fixed |
-| **S8** | Calls resolved at link time are refused, so no program using a native backend builds. | LLVM, WASM | open |
-| **S9** | Only the C target is reachable from `idc/bin/idc`, the primary compiler; the other two exist only in `idc/idc.py`. | — | open |
-| **S10** | The flat store sits at a fixed 1 MiB offset in the same linear memory the string/list heap grows through, so **the heap is capped at 1 MiB**. Passing it used to overwrite the store and read back garbage with nothing reported — a 400 000-element list made `peek64` return `71772820526333952` where C returned `123456789`. The heap now aborts with `id: out of memory` instead, which is §7-legal, but the cap is real and the other two targets do not have it. The proper fix is to place the store above the heap and grow it with `memory.grow`, checking the heap against its actual base rather than a constant. | WASM | mitigated |
+**How S11 was fixed.** An expression in which two operands each contain a
+*unit* -- a call, an index read, an `import`, a division that can trap, or an
+`&&`/`||` -- binds the units to temporaries left to right, children before
+parents, with the comma operator: `int idsq_8;` on the line before the
+statement, then `(idsq_8 = id_bump(c), id_pair(idsq_8, id_bump(c)))`. For an
+`if` / `else if` chain every temporary is declared before the first `if`.
+Everything else is pure, so only the order of units is observable. A `while`
+or `else if` condition stays where it was written, so it is still evaluated on
+every iteration and only when reached; `&&` and `||` keep C's own
+short-circuit. The emitter is `back/tgt/c/emit/prog/code/expr/atom/order/`.
 
-| **S11** | **The C target does not evaluate operands left to right**, which §7 now requires. It emits one C expression per `id` expression, and C does not sequence the arguments of a call: gcc evaluates them right to left, so `"pop=" + pop(xs) + " len=" + len(xs)` prints the length *before* the pop. The LLVM and WASM targets both conform, because both emit instructions in the order they walk the tree. Found by `idc/tests/kernel.sh`, which runs the same source on both runtimes and requires them to agree. | C | open |
+The output stays ISO C11, which matters because the compiler's own C is the
+stage-0 bootstrap. Names beginning `idsq_` are reserved for these temporaries
+and rejected in source. Byte-parity with `idc/idc.py` is gone for every
+statement that needed sequencing.
 
-**S11 is now an implementation, not a decision.** §7 chose. Making the C target
-conform means hoisting an operand into a temporary whenever two operands of one
-expression both contain a call -- which is expressible as a pure expression
-rewrite, through the comma operator and a depth-indexed array of temporaries in
-the runtime prelude, so it needs no restructuring of the emitter. What it costs
-is byte-parity: every emitted line with two calls in it changes, and `idc/idc.py`
-would have to change with it to stay identical.
+`idc/tests/conform/order/` holds the cases, now passing on all three targets.
 
-The other way there is `docs/LLVM.md`'s: the C target printed from the IR,
-whose lowering is already left to right. That fixes it for free and abandons
-byte-parity deliberately rather than as a side effect.
-
-`idc/tests/conform/order/` holds the cases. `idc/tests/conform.sh` names the C target's
-non-conformance rather than failing on it, so that removing the exemption is
-how the fix gets noticed.
-
-| **S12** | **Function values (§1.1) do not exist on WASM.** They are implemented in `idc/bin/idc`, whose targets are C and LLVM; the WASM target is still built by `idc/idc.py`, which is being retired and refuses `func` as a type. `idc/tests/conform.sh` names `wasm:fn` as known apart, so the gap is counted rather than hidden. It closes with `docs/TODO.md` 9b, `--target wasm` in `idc/bin/idc`. | WASM | open |
-
-S5–S8 are missing implementation, and are what `docs/BACKENDS.md` is the plan
-for. S6 is the one that matters most: it is 21 of the 30 builtins, it is what
-makes S7 true, and the flat store is the primitive an `id`-written runtime
-would be built on — so closing it is what turns a second target from a
-translation of the C emitter into a target in its own right.
+| **S12** | **Function values (§1.1) do not exist on WASM.** They are implemented in `idc/bin/idc`, whose targets are C and LLVM; the WASM target is still built by `idc/idc.py`, which is being retired and refuses `func` as a type. `idc/tests/conform.sh` names `wasm:fn` as known apart, so the gap is counted rather than hidden. It closes with `docs/TODO.md` 9b, `--target wasm` in `idc/bin/idc`. | WASM |
 
 `docs/BACKENDS.md` is the plan for the compiler restructuring these imply.

@@ -49,21 +49,32 @@ On this machine Hyprland's user rules live in
 so overrides them. Add:
 
 ```lua
--- id graphics demos: open on workspace 10 without going there, and never
+-- id graphics windows: open on workspace 20 without going there, and never
 -- take focus. `silent` is the part that stops the workspace switch.
 hl.window_rule({
-    name  = "id-gfx-demos",
-    match = { class = "^(id-gfx|id-gl)$" },
-    workspace = "10 silent",
+    name  = "id-gfx-windows",
+    match = { class = "id-gfx" },
+    workspace = "20 silent",
+    no_initial_focus = true,
+})
+
+hl.window_rule({
+    name  = "id-gl-windows",
+    match = { class = "id-gl" },
+    workspace = "20 silent",
     no_initial_focus = true,
 })
 ```
+
+One rule per class: on Hyprland 0.55.2 the regex form
+`class = "^(id-gfx|id-gl)$"` loaded without error and matched nothing.
+`hyprctl clients` on a live window is how to check.
 
 The equivalent in raw hyprlang, if you would rather put it in
 `~/.config/hypr/conf/custom.conf`:
 
 ```
-windowrulev2 = workspace 10 silent, class:^(id-gfx|id-gl)$
+windowrulev2 = workspace 20 silent, class:^(id-gfx|id-gl)$
 windowrulev2 = noinitialfocus,      class:^(id-gfx|id-gl)$
 ```
 

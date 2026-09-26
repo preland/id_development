@@ -7,6 +7,8 @@ build_verts() {
   export int[] verts = [];
   fill_verts(0);
 } return void;
+():() then verts_state:("-1000,108,1000")
+():() then verts_state:("-1000,108,1000") then eprints:("")
 
 fill_verts(int slot) {
   while(slot < 36) {
@@ -14,3 +16,15 @@ fill_verts(int slot) {
     slot = slot + 1;
   }
 } return void;
+given build_verts (36):() then verts_state:("-1000,108,1000")
+given build_verts (35):() then verts_state:("-1000,111,1000")
+
+// The last coordinate pushed, not only the count, so a case that pushes the
+// wrong value (rather than the wrong number of values) still goes red -- a
+// mutation check on push_z caught this the first way round (mutate.id
+// house rule: strengthen a case that stays green).
+verts_state() {
+  string s = (import verts)[0] + "," + len((import verts)) + "," + (import verts)[len((import verts)) - 1];
+} return string s;
+given build_verts ():("-1000,108,1000")
+given build_verts ():("-1000,108,1000") then eprints:("")

@@ -1,0 +1,24 @@
+// The quit-requested state play() (game/core/engine/mb.id) needs to end its
+// own loop in a case: mb_setup alone never sets it (term_key() always
+// returns -1 headlessly, so 'q' is never read), and play()'s real loop has
+// no other way to stop -- see mb.id's note on why play/start are cased only
+// through this.
+quit_setup() {
+  mb_setup();
+  gs_set(7, 1);
+} return void;
+():()
+():() then eprints:("")
+
+// Non-zero height/velocity/tick -- the state reset_phys (clearstate.id)
+// needs to prove it actually zeroes them, which mb_setup's own already-zero
+// defaults could never distinguish from doing nothing.
+dirty_setup() {
+  mb_setup();
+  gs_set(1, 5);
+  gs_set(2, 3);
+} chain () {
+  gs_set(4, 7);
+} return void;
+():()
+():() then eprints:("")

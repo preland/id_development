@@ -4,3 +4,14 @@ win_banner() {
   term_box(20, 10, 24, 5, 3);
   term_text(24, 12, "YOU WIN!   q to quit", 3);
 } return void;
+given idstd_term_t_setup ():() then calls term_box:(20, 10, 24, 5, 3)
+given idstd_term_t_setup ():() then calls term_text:(24, 12, "YOU WIN!   q to quit", 3)
+
+// draw_win's true-branch case needs ui[4] already 1 (won) before it calls
+// win_banner, and a setup's case has no arguments to carry that in with.
+win_flag_setup() {
+  ui_init();
+  ui_set(4, 1);
+} return void;
+():() then calls ui_init:()
+():() then calls ui_set:(4, 1)

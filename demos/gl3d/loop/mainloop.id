@@ -6,10 +6,15 @@
 // display glwin_open returns 0 and glwin_poll then returns -1 forever, so a loop
 // that starts unconditionally never ends. Every windowed demo in this tree had
 // that bug -- `DISPLAY= ./prog` ran until it was killed.
+// Only the run <= 0 branch is cased: run > 0 only terminates through a real
+// GFX_MAX_FRAMES-bounded present/poll cycle, which a case cannot set up --
+// see main.id's note.
 loop(int ok) {
   spin(ok, 0);
   glwin_close();
 } return void;
+given scene_init (0):() then mesh_state:("-1000,108,2631720,36")
+given scene_init (-3):() then mesh_state:("-1000,108,2631720,36")
 
 spin(int run, int t) {
   while(run > 0) {
@@ -18,3 +23,5 @@ spin(int run, int t) {
     t = sys_next(t);
   }
 } return void;
+given scene_init (0, 0):() then mesh_state:("-1000,108,2631720,36")
+given scene_init (-1, 5):() then mesh_state:("-1000,108,2631720,36")

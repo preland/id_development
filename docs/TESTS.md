@@ -165,6 +165,13 @@ count() {
   given buf_setup ((import gb)):() then first_byte:(3)
   ```
 
+  A case's process starts with every export unset, so a function under test
+  that reads an export its `given` does not set -- or a case with no `given`
+  at all -- traps with `id: read of an uninitialised export (its declaring
+  function has not run)`, whatever the export's type, rather than reading 0 or
+  crashing; `then traps:("uninitialised export")` pins that down. The check is
+  in the test harness only: a program's own C has none (docs/SPEC.md 8).
+
 Every rule about these is decided from the case line and the declarations it
 names — nothing is discovered by running the case — and each is an error at
 the case's line:
@@ -300,17 +307,46 @@ runner(int n) {
 - A call through a function value is recorded under the name of the function
   it resolves to at run time, because the harness instruments the callee, not
   the call site -- it does not need to know where a call came from.
-- A mismatch on the `:(ARGS)` form names how many calls to `NAME` were
-  recorded in total, rather than showing each one:
+- A mismatch on the `:(ARGS)` form shows the expected call, then the calls
+  to `NAME` it was compared against, written the way a clause writes them --
+  at most five, then how many more:
 
   ```
-  runner.id:9: test failed: runner(1) calls helper(...) did not match; 1 call(s) to 'helper' were recorded
+  runner.id:9: test failed: runner(1) calls helper(2) did not match any of the 1 recorded call(s) to 'helper': helper(1)
   ```
 
-  and the `:[N]` form shows the count directly:
+  When an earlier clause on the same case already matched, only the calls
+  after that match could have matched this one; those are the ones listed
+  first, and the calls before it are listed apart as skipped:
+
+  ```
+  runner.id:12: test failed: runner(1) calls helper(1) did not match any of the 1 recorded call(s) to 'helper' after the previous clause's match: helper(3); 2 earlier call(s) were skipped: helper(1), helper(2)
+  ```
+
+  A list argument is recorded by reference, not copied, so it is compared
+  and shown in the state the case left it in -- the message says so
+  whenever it shows one -- and a list longer than 16 elements is cut
+  short with `...`:
+
+  ```
+  runner.id:12: test failed: runner(1) calls helper([0, 0], 1) did not match any of the 1 recorded call(s) to 'helper': helper([7, 0], 1) (list arguments show their final state)
+  ```
+
+  The `:[N]` form shows the count directly:
 
   ```
   runner.id:11: test failed: runner(1) calls helper[2], expected 3
+  ```
+
+- **Every call is counted, but only the first 65536 calls to a name keep
+  their arguments**, so a function called millions of times inside a case
+  cannot run the case out of memory. `:[N]` is exact however many calls
+  there were. A `:(ARGS)` clause that finds no match among the kept calls,
+  when later calls went uncaptured, fails saying so rather than passing or
+  claiming the call was never made:
+
+  ```
+  runner.id:15: test failed: runner(70000) calls helper(65536) did not match any of the 65536 recorded call(s) to 'helper': helper(0), helper(1), helper(2), helper(3), helper(4), ... (65531 more); recording overflowed: 4464 later call(s) were counted but their arguments were not kept (at most 65536 per function)
   ```
 
 Like `given`/`then`/`(import NAME)`, these are rules of `idc/bin/idc` only:
@@ -321,6 +357,49 @@ emits is unaffected, whether or not any case in the unit uses `calls` --
 proved by comparing `--emit-c` before and after this feature, byte for byte.
 Tested in `idc/tests/tests_feature.sh`; the compile errors above (unknown
 name, a builtin, a native, wrong arity) are in `idc/tests/invalid/`.
+
+## What a function reads, and a function whose job is to stop
+
+**`stdin "TEXT"`**, after any `given` and before the argument tuple, is the
+case's standard input:
+
+```
+load() {
+  string src = read_all();
+  load_at(src, 0);
+} return void;
+given full_env stdin "op =\nkw return\n" ():() then last_tkind:("kw")
+given full_env stdin "ident x\n" ():() then last_tkind:("ident")
+```
+
+TEXT is an ordinary string literal. Before the function runs, the case's own
+process gets TEXT as its whole stdin: `read_all()` returns it, and `input()`
+returns its lines in order and then `""`. It is done at the process level, so
+every reader behaves as it does in production. A case without the clause gets
+empty stdin. At most one per case: `a case may have at most one 'stdin'
+clause`; a non-string is `stdin's value must be a string literal, found '...'`.
+
+**`then traps:("TEXT")`** is for a function whose correct behaviour is to stop
+the program:
+
+```
+try_fault() {
+  peek64(0x140000000);
+} return void;
+():() then traps:("out of range")
+():() then traps:("5368709120")
+```
+
+The case passes only if the call stops its process with a trap whose message
+contains TEXT. A runtime trap is matched against its `id: ...` line; death by
+a signal counts too, matched against `killed by signal N (NAME)`. Running out
+of time, or exiting with no message, is not a trap. If the call returns, the
+case fails (`... expected a trap containing X, but it returned`); if it traps
+differently, both messages are shown. The expected side must be `()`, and no
+other `then` may accompany `traps`, because nothing after a trap is captured.
+`given` works as usual. One `traps` per case, with one string; each misuse is
+an error at the case's line, tested in `idc/tests/invalid/traps_*.id`.
+`stdin` and `traps` are keywords, like `prints` and `calls`.
 
 ## Constraints are counted, not timed
 
@@ -424,11 +503,37 @@ none:
 
 `id` has no interpreter yet (`docs/BACKENDS.md` step 4), so the cases cannot
 be folded at compile time. Instead `idc/bin/idc` builds a **harness** on every
-build: every case in the build — in the program's own tree, its dependencies
-and the standard library — together with the functions those cases can reach,
-their work counted, and a generated entry point that runs every case. It runs the harness first, and only if every case passes
-does it produce what was asked for. `--emit-c` and `--emit-llvm` run the cases
-too, and there is no flag that turns them off: the point is that there is no
+build: every case in the program's own tree and its `conf.id` dependencies,
+together with the functions those cases can reach, their work counted, and a
+generated entry point that runs every case. It runs the harness first, and
+only if every case passes does it produce what was asked for.
+
+**Libraries are checked on their own first.** The standard library, and any
+attached native backend directory that holds `id` code with cases, is a
+library unit: its cases run once, as a check of the library itself, before
+the program's harness, and are left out of the program's. A failure there
+fails the build with a message that names the library and says it is not the
+program's fault:
+
+```
+idc: the standard library at /path/idstd failed its own test cases (this is not an error in your program):
+```
+
+That result is cached by the library's content and the compiler and `cc`
+identity, so a warm build pays nothing for it. A library function the
+program's cases call is still compiled into the harness as a callee; only its
+own cases move. `--no-std` skips the standard library's check.
+
+**A case runs in the root of the source tree that owns its function**: the
+project root for the program's own cases, and a dependency's root for the
+cases of a library imported through `conf.id`. So a case or a setup can name a
+file by a path relative to its own tree, and it finds the same file however
+that tree is built — alone, or imported by another project (the editor's font
+cases load `test_assets/DejaVuSans.ttf`; idem's engine cases load `../test_assets/…`
+from beside the engine). A library's pre-check runs from its own root, the
+same place. And **every case gets empty standard input** unless it supplies
+its own (`stdin`, below): a case never reads the terminal or the harness's
+input. `--emit-c` and `--emit-llvm` run the cases too, and there is no flag that turns them off: the point is that there is no
 way to get output from a program whose cases fail.
 
 **Each case runs in a process of its own.** A case that traps, crashes or
@@ -444,16 +549,26 @@ quot.id:6: test failed: quot(7, 0) trapped: id: division by zero
 down.id:4: test failed: down(0) was killed by signal 11 (Segmentation fault)
 ```
 
-A case has 10 seconds of wall time and 1 GiB of address space; a case that
+**Cases run callees first.** The harness orders cases by the call graph: a
+function's cases run after the cases of every function it calls, and
+functions in one recursive cycle keep their source order. Once a function has
+a failing case, the cases of every function that calls it, directly or
+through others, are not run. Each is reported at its own line as `not run`,
+naming the callee whose case failed, and the summary counts them. So the
+first failure in the output is the deepest one, and a broken leaf does not
+bury itself under its callers' failures. A case that was not run never
+counts as passed, and the build still fails. A function named only by
+`given` or `then` is not a dependency.
+
+A case has 30 seconds of wall time and 4 GiB of address space; a case that
 runs out of either fails the same way. Scaling claims are judged once every
 case has passed, since a count from a case that failed measures nothing.
 
-The harness is built for and run on the machine doing the build. A build whose
-cases cannot run there — `--freestanding`, or a `--triple` other than the
-host's — is refused with that reason rather than built without them. A build
-with no cases anywhere has no harness to refuse, so a tree that writes none
-(the kernel, the runtime) still builds freestanding — but only with
-`--allow-untested`, now that cases are required ("An open question", below).
+The harness is built for and run on the machine doing the build. A
+`--freestanding` tree's cases run there too, against the same source compiled
+for the host: the kernel's cases run on every kernel build, and a failing one
+stops it. Functions that reach an `asm` body cannot run on the host and are
+exempt from the minimum; the compiler names each one.
 A program that uses a native backend gets the
 backend linked into its harness as well, so a tested function that calls into
 one really runs.
@@ -525,39 +640,12 @@ untested function costs the most, and today it holds back every other build),
 then new code, then the compiler's own source last — it is the largest and the
 one whose behaviour is already pinned by `idc/tests/conform.sh`.
 
-### An open question: a freestanding build cannot comply
+### A freestanding build's cases
 
-A `--freestanding` build (and `--runtime`, which implies it) refuses a build
-that has any case, because the harness runs on the machine doing the build and
-a freestanding program has none to run on ("How it runs"). With two cases
-required, that leaves a freestanding program no state that builds without the
-flag. Without cases:
-
-```
-u.id:1: error: function 'add' has 0 test case(s); --require-tests needs at least 2 (see docs/TESTS.md)
-```
-
-and with them, whether or not `--allow-untested` is passed:
-
-```
-idc: this build has 2 test cases, and a --freestanding build has no host to run them on
-```
-
-So the kernel (`kernel/prog`) and the `id`-written runtime (`idc/runtime`),
-which `idc/tools/kbuild.sh` builds freestanding, pass `--allow-untested` with no
-cases — the one use of the flag that writing cases cannot remove. Their
-functions are counted in the table below, so the removal check cannot demand
-the flag's deletion while they are short of cases; but writing those cases
-would not let the kernel build without the flag either, so this question has
-to be settled before the count can reach zero.
-
-This is not decided. The shapes visible from here: run a freestanding tree's
-cases hosted, against the same source built for the host (what
-`idc/tests/kernel.sh` already does by hand for the shell's demonstrations);
-exempt freestanding builds from the minimum permanently, which makes the kernel
-the one place a function may drift; or accept cases in a freestanding build and
-not run them, which is a way to get output from a program whose cases have
-never passed. Deleting `--allow-untested` waits on this as well as on adoption.
+This used to be an open question: whether a `--freestanding` build could
+comply at all. It is settled the first way it listed. A freestanding tree's
+cases run hosted, against the same source built for the host ("How it
+runs"), so a freestanding tree can be cased like any other.
 
 ### Where the rollout actually stands
 
@@ -572,26 +660,11 @@ never passed. Deleting `--allow-untested` waits on this as well as on adoption.
 > `mid/names/limits/shape/cases/`, a sibling of the action limit: a rule about
 > the shape of a declaration, and the only one of them that is a minimum.
 >
-> **How far adoption has actually got**, measured rather than remembered —
-> this paragraph used to read "Cases written so far: 0, of 6816", which was
-> true when written and false four commits later in the same session. A status
-> block a human maintains is a status block that lies, and this one was lying
-> about the adoption of the rule it describes. So the numbers are generated:
-
-<!-- generated: adoption -->
-| repository | functions | cases written | functions short of two cases |
-| --- | ---: | ---: | ---: |
-| `id_development` (with editor, idem, kernel) | 7569 | 5558 | 4697 |
-| `idstd` | 225 | 486 | 0 |
-| `c2id` | 1051 | 0 | 1051 |
-| `linux_id` | 0 | 0 | 0 |
-| **total** | **8845** | **6044** | **5748** |
-
-**Functions short of two cases: 5748 of 8845 (35.0% complete).** Generated by
-`idc/tools/statusgen.sh`; `idc/tests/run.sh` fails if it is stale. A repository
-with no `.id` beside this checkout counts zero.
-<!-- end generated -->
-
+> **How far adoption has actually got** is not written here, because any
+> number written here is out of date by the next merge. Ask for it:
+> `idc/tools/statusgen.sh` prints functions and cases per repository, and
+> `idc/bin/idc TREE --list-untested` lists every function in one tree that is
+> still short of two cases.
 >
 > **Duplicate cases are rejected, in the self-hosted compiler only.** `idc/idc.py`
 > does not have this rule and will not get it: it is stage 0 of a bootstrap

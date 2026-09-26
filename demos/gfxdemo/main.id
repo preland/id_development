@@ -8,8 +8,33 @@
 // Close the window (or press Esc / q) to quit. Like the terminal engine, every
 // function obeys id's rules -- 3 actions, 2-deep nesting, 3 functions per file.
 
+// main() is not cased: gfx_open() succeeds whenever a real X display is
+// reachable (true here -- a standalone XOpenDisplay probe confirmed it), and
+// a successful open makes loop(ok) enter spin's live polling loop, which only
+// ends via GFX_MAX_FRAMES, an environment variable no case can set and this
+// build does not export. Casing it would hang for the 10s case cap on any
+// machine with a reachable display and pass by accident on any machine
+// without one -- not the same behaviour "on every machine, every run" that
+// docs/TESTS.md's constraints section asks for, so it is left uncased rather
+// than cased dishonestly.
 main(int argc, string[] argv) {
   int ok = gfx_open(320, 200, "hey look ma i made it");
   sf_l_init(320, 200);
   loop(ok);
 } return int 0;
+
+// anim/box/box_paint draw a 40x30 box, so a surface smaller than that would
+// turn their x0/y0 modulo arithmetic against a non-positive divisor; 80x60
+// is the smallest round size that keeps it positive and leaves gfx_big_w a
+// clean value to check.
+gfx_big_setup() {
+  sf_l_init(80, 60);
+} return void;
+():() then gfx_big_w:(80)
+():() then idstd_sf_l_t_sum:(0)
+
+gfx_big_w() {
+  int w = (import sf_l_w);
+} return int w;
+given gfx_big_setup ():(80)
+given gfx_big_setup ():(80) then idstd_sf_l_t_sum:(0)

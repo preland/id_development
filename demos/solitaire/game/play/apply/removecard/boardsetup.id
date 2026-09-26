@@ -1,0 +1,30 @@
+// Minimal board fixtures for this batch's apply/ cases: an empty tableau
+// and foundations (init_piles), a fresh selection (ui_init), and one card
+// already sitting in the waste so src_bottom (which always reads the waste
+// top first, even for a tableau source) never indexes an empty list.
+apply_board_setup() {
+  init_piles();
+  ui_init();
+  push((import waste), 0);
+} return void;
+():() then found0_check:(0)
+():() then waste_len_check:(1)
+
+// Same board, but the waste card is one that never matches foundation 0's
+// next-card rule, for the false-path cases of the found_* functions.
+apply_board_setup_badcard() {
+  init_piles();
+  ui_init();
+  push((import waste), 8);
+} return void;
+():() then waste_len_check:(1)
+():() then found0_check:(0)
+
+// Cursor on foundation 0, source pile the waste -- the selection a real
+// "move waste card onto a foundation" turn leaves in ui.
+select_waste_found() {
+  ui_set(0, 2);
+  ui_set(1, 1);
+} return void;
+given apply_board_setup ():() then calls ui_set:(0, 2)
+given apply_board_setup ():() then calls ui_set:(1, 1)

@@ -13,6 +13,13 @@
 //   6 cooldown (ticks until another crater may start)   7 quit
 // The terrain is the exported list `ground`: ground[x] = 1 solid, 0 crater.
 
+// main() and start() are not cased: main() seeds from ticks() (wall clock,
+// not a literal a case can pin -- the same reason demos/idview/pick.id's
+// rnd() is skipped), and start() calls mb_init() itself, right before
+// play(), so no given can leave quit set when play()'s loop starts -- it is
+// always freshly 0, and nothing inside start() ever sets it, so the loop
+// never ends. play() is cased directly below via quit_setup, which sets
+// quit before play() runs and nothing after it resets it.
 main(int argc, string[] argv) {
   word ticks_v = ticks();
   int seed = ticks_v;
@@ -31,3 +38,5 @@ play() {
     running = frame();
   }
 } return void;
+given quit_setup ():() then mb_state:("1,0,0,1,1,0,19,1")
+given quit_setup ():() then mb_state:("1,0,0,1,1,0,19,1") then eprints:("")

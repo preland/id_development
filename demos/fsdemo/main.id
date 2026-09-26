@@ -17,3 +17,20 @@ main(int argc, string[] argv) {
   write_file(path, "the quick brown fox\njumps over\nthe lazy dog\n");
   show(path);
 } return int 0;
+(1, ["prog"]):(0) then prints:("wrote 44 bytes to fsdemo.txt (close 0)\nread 44 bytes back (close 0):\nthe quick brown fox\njumps over\nthe lazy dog\n\nremoved fsdemo.txt (rc 0), exists now 0\nreopening it gives -1, errno 2\n")
+(3, ["prog", "a", "b"]):(0) then prints:("wrote 44 bytes to fsdemo.txt (close 0)\nread 44 bytes back (close 0):\nthe quick brown fox\njumps over\nthe lazy dog\n\nremoved fsdemo.txt (rc 0), exists now 0\nreopening it gives -1, errno 2\n")
+
+// show/render/show_tail/gone/report's own cases read this file back for real
+// (rather than only exercising the not-found path), so this writes one with
+// known, fixed content -- 3 bytes, "hi\n" -- that they can size a buffer to.
+fsdemo_t_setup() {
+  write_file("fsdemo_case.txt", "hi\n");
+} return void;
+():() then prints:("wrote 3 bytes to fsdemo_case.txt (close 0)\n")
+():() then fsdemo_t_size:(3)
+
+fsdemo_t_size() {
+  int n = fs_size("fsdemo_case.txt");
+} return int n;
+given fsdemo_t_setup ():(3)
+given fsdemo_t_setup ():(3) then prints:("")

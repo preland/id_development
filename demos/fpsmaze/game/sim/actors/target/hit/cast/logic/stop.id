@@ -4,14 +4,21 @@
 // takes priority): || short-circuits, so ray_blocked_now() only runs (and
 // only matters) when ray_hit_now() didn't already score.
 
+// hit_now is always 0 at rc_setup's position (advance.id's comment), so ||
+// falls through to blocked_now every time; open_room_setup's grid is all
+// wall except room (1,1), so blocked_at(1000,2000) is deterministically 1.
 ray_should_stop() {
   int ret_i = ray_hit_now() || ray_blocked_now();
 } return int ret_i;
+given open_room_setup given idstd_rnd_t_setup given targets_init given rc_setup ():(1)
+given open_room_setup given idstd_rnd_t_setup given targets_init given rc_setup ():(1) then calls ray_hit_now:[1]
 
 ray_check_stop() {
   int ray_should_stop_v = ray_should_stop();
   rc_set(3, ray_should_stop_v);
 } return void;
+given open_room_setup given idstd_rnd_t_setup given targets_init given rc_setup ():() then calls rc_set:(3, 1)
+given open_room_setup given idstd_rnd_t_setup given targets_init given rc_setup ():() then calls ray_should_stop:[1]
 
 // advance.id's ray_hit_now needs a fourth action (the z lookup plus try_hit)
 // once its x half is named, one more than a block gets -- so the tail
@@ -21,3 +28,5 @@ ray_hit_now_z(int cell_x_v) {
   int cell_z_v = cell_z(rc_get_v2);
   int ret_i = try_hit(cell_x_v, cell_z_v);
 } return int ret_i;
+given open_room_setup given idstd_rnd_t_setup given targets_init given rc_setup (8):(0)
+given open_room_setup given idstd_rnd_t_setup given targets_init given rc_setup (2):(0) then calls try_hit:(2, 7)

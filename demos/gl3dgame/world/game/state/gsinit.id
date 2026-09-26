@@ -10,7 +10,20 @@ state_init() {
   export int[] mb = [0, 0, 3, 3, 0];
   rnd_init(42);
 } return void;
+():() then mb_state:("0,0,3,3,0")
+():() then mb_state:("0,0,3,3,0") then eprints:("")
 
 gs_get(int i) {
   int ret_i = (import mb)[i];
 } return int ret_i;
+given state_init (0):(0)
+given state_init (2):(3)
+
+// One check for the whole 5-slot state, so every function elsewhere that
+// mutates `mb` (world/game/*) can confirm the slot it touched -- and only
+// that slot -- moved, the same shape as demos/gl3d's mesh_state.
+mb_state() {
+  string s = (import mb)[0] + "," + (import mb)[1] + "," + (import mb)[2] + "," + (import mb)[3] + "," + (import mb)[4];
+} return string s;
+given state_init ():("0,0,3,3,0")
+given state_init ():("0,0,3,3,0") then eprints:("")

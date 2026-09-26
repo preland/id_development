@@ -7,6 +7,8 @@ gen_state_init(int sx, int sz) {
   export int[] stackz = [];
   push_room(sx, sz);
 } return void;
+given maze_init (3, 5):() then top_x:(3)
+given maze_init (7, 9):() then top_z:(9)
 
 // Visit (x,z): mark it open in the grid and push it as the new frontier top.
 push_room(int x, int z) {
@@ -14,3 +16,18 @@ push_room(int x, int z) {
   push((import stackz), z);
   grid_set(x, z, 0);
 } return void;
+given stack_t_empty_setup (3, 5):() then top_x:(3)
+given stack_t_empty_setup (7, 9):() then top_z:(9)
+
+// Test fixture: the frontier lists exported and emptied back out again (only
+// gen_state_init may declare their export, so this reuses it and pops the
+// seed room back off) -- pair wherever a case needs the real exports to push
+// into but no frontier of its own (see stack_t_full_setup, query.id, for the
+// non-empty case).
+stack_t_empty_setup() {
+  maze_init();
+  gen_state_init(3, 5);
+  pop_room();
+} return void;
+():() then stack_empty:(1)
+():() then eprints:("")

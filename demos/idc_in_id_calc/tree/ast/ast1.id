@@ -10,13 +10,19 @@ store_ints(int nk, int a, int b) {
   push((import na), a);
   push((import nb), b);
 } return void;
+given setup (1, 2, 0):() then store_state:("1,2,0")
+given setup (2, 5, 7):() then store_state:("2,5,7")
 
 newnode(int nk, int a, int b, string s) {
   store_ints(nk, a, b);
   push((import ns), s);
   int ret_i = len((import ns)) - 1;
 } return int ret_i;
+given setup (1, 2, 0, ""):(0) then store_state:("1,2,0")
+given setup (2, 0, 1, "+"):(0) then store_state:("2,0,1")
 
 node_int(int value) {
   int ret_i = newnode(1, value, 0, "");
 } return int ret_i;
+given setup (2):(0) then store_state:("1,2,0")
+given setup (9):(0) then store_state:("1,9,0")
