@@ -89,7 +89,7 @@ parse.
 | the exported-global block | `back/tgt/c/emit/prog/head/decl/` (LLVM: `back/tgt/ll/mod/sect/glob/`); which exports survive pruning: `back/drive/run/check/dce/export/keep.id` |
 | the C type spelling of an id type | `back/tgt/c/emit/prog/code/func/ctype/type_column.id` |
 | where emitted code leaves the compiler | `back/drive/sink/emit_line.id` |
-| the C runtime prelude | `idc/compiler/parse/back/tgt/c/runtime/runtime.id` (external linkage: `extern.id`), hand-maintained |
+| the C runtime prelude | `idc/compiler/parse/back/tgt/c/runtime/prelude.id` (external linkage: `extern.id`), hand-maintained |
 | which target a build uses | `back/drive/run/output_mode.id` |
 
 `front/` and `mid/` **must not emit C**. That is currently true — verified —

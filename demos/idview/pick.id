@@ -1,6 +1,15 @@
 // Choosing one. `id` has no random builtin, so this is a 64-bit LCG seeded
 // from ticks() (monotonic milliseconds), with the high bits taken -- the low
 // bits of an LCG cycle far too regularly to index a small list with.
+//
+// show()'s n > 0 branch is not cased: it calls pick(), which calls rnd(),
+// which seeds straight from ticks() with no parameter a case could pin --
+// unlike idstd's core/math/rnd (rnd_init(seed)), there is no literal-seed
+// path here, so the file it prints differs every run. The n == 0 branch does
+// not reach pick()/rnd() at all and is cased below. rnd() itself is skipped
+// for the same reason: its return is the one thing a case must give as a
+// literal, and it is never the same value twice. pick() is not: umod(x, 1)
+// is 0 for every x, so pick(1) is pinned regardless of what rnd() answers.
 show(string src) {
   int n = len((import paths));
   if(n > 0) {
@@ -10,11 +19,15 @@ show(string src) {
     print("idview: no id files on stdin");
   }
 } return void;
+given init_view ("a.id"):() then prints:("idview: no id files on stdin\n")
+given init_view ("b.id"):() then prints:("idview: no id files on stdin\n")
 
 pick(int n) {
   word rnd_v = rnd();
   int ret_i = umod(rnd_v, n);
 } return int ret_i;
+(1):(0)
+(0):() then traps:("remainder by zero")
 
 rnd() {
   word s = ticks();
