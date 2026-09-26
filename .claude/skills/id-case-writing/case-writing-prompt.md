@@ -34,6 +34,28 @@ the right export but leaves the state in a shape that does not actually
 support the concrete example you want to write, do not force it. Say so and
 either pick a different candidate or refuse the function.
 
+## Where a new fixture goes
+
+A `given` may name any function anywhere in the program, so a fixture you
+write does not have to sit beside the function under test. Put it in the
+nearest file with fewer than 3 functions, or the nearest directory with fewer
+than 3 entries. To find them, run (after any build, which keeps the binary
+current):
+
+```sh
+idc/.idc-cache/idlayout --room {PROJECT_PATH} DIR
+```
+
+It prints up to 10 rows, nearest to DIR first: `file PATH N` (N more
+functions fit) and `dir PATH N` (N more entries fit). `idc/.idc-cache/idlayout
+{PROJECT_PATH} build` lists every layout violation at once, where a build
+stops at the first. Only if nothing reasonable has room, group two or more related
+existing files into a new subdirectory named for what they share. Never name
+it after one of the moved files: `x/x.id` (a file named like its directory),
+`x.id` beside `x2.id` (numbered siblings), directories named like their parent,
+and generic names (helper, util, misc, common, stuff, tmp, temp) are all
+compile errors.
+
 ## The case syntax
 
 A case goes directly below a function's `return` clause, one per line, at
@@ -53,6 +75,9 @@ name(int a, int b) {
 - A `void` function is tested by what it leaves behind. Because a list has
   reference semantics, the expected side describes the argument *after* the
   call: `([], 3):([0, 1, 2])`.
+- Scalar parameters (`int`, `string`, ...) are passed by value: on the
+  expected side their positions always echo the literal you passed, never a
+  value the function computed. Only list arguments carry changes back.
 - `main` needs two cases like any other function.
 
 **Module state — `given`, `then`, `(import NAME)`** (only when the packet
@@ -65,6 +90,9 @@ given SETUP (ARGS):(EXPECTED) then CHECK:(VALUE)
 - `given SETUP` names a zero-parameter `void` function from the packet's
   candidate list (or a nearby fixture) that runs before the call, before
   arguments are built.
+- Setups compose: `given A given B (ARGS):(EXPECTED)` runs `A`, then `B`,
+  before the call. A later setup that re-exports a name replaces what an
+  earlier one left there.
 - `then CHECK:(VALUE)` names a zero-parameter value-returning function
   (from the packet's candidate list, or one you write) called after the call
   under test; its result is compared to `VALUE`. Several `then` clauses are
@@ -88,6 +116,20 @@ given SETUP (ARGS):(EXPECTED) then CHECK:(VALUE)
   subsequence of the calls actually made.
 - `then calls NAME:[N]` — exactly `N` calls to `NAME` were made, regardless
   of arguments.
+- A list argument in `then calls NAME:(ARGS)` is compared in its state at
+  the end of the case, not its state when `NAME` was called.
+
+**What a function reads, and a function whose job is to stop:**
+
+- `stdin "TEXT"`, after any `given`s and before the argument tuple, is the
+  case's whole standard input: `read_all()` returns it, `input()` returns its
+  lines in order and then `""`. Without it a case gets empty stdin. One per
+  case, and TEXT must be a string literal:
+  `given full_env stdin "ident x\n" ():() then last_tkind:("ident")`
+- `then traps:("TEXT")` passes only if the call stops its process with a
+  runtime trap (or a signal) whose message contains TEXT. The expected side
+  must be `()`, and no other `then` may accompany it:
+  `():() then traps:("out of range")`
 
 ## Writing cases that mean something
 
@@ -99,6 +141,9 @@ Specific patterns that have wasted real time and must not recur:
 
 - `then prints:("")` on a function that does not print is a tautology — true
   of nearly every function whether or not it works.
+- `then traps:("uninitialised export")` in a case with no `given` proves only
+  that the runtime guards an unset export, which is true of any function that
+  reads one. It is not one of a function's two behaviours.
 - A bare `():()` on a `void` function asserts nothing. Give it a `then` that
   reads something the function actually changed, or arguments/state whose
   after-value the call actually affects.
@@ -134,11 +179,13 @@ After writing a function's two (or more) cases:
 
 1. Build and run every case in the project:
    ```sh
-   idc/bin/idc {PROJECT_PATH} --allow-untested --emit-c /tmp/idxcheck.c
+   idc/bin/idc {PROJECT_PATH} --allow-untested --emit-c SCRATCH/idxcheck.c; echo EXIT $?
    ```
-   (from the repo root that contains `idc/`). A clean run prints nothing but
-   the deprecation warning; a failing case prints `FILE:LINE: test failed: ...`
-   naming it.
+   (from the repo root that contains `idc/`; SCRATCH is a directory of your
+   own, never a fixed `/tmp` name another agent could be writing too). A
+   clean run is EXIT 0 and prints nothing but warnings; a failing case prints
+   `FILE:LINE: test failed: ...` naming it. A dead build can print nothing at
+   all, so always check EXIT.
 2. **Falsify by hand** — this is required, not optional, for every function
    you mark DONE. Temporarily break the function's actual logic in a way
    your new cases are supposed to catch (flip a comparison, change a
@@ -157,17 +204,16 @@ After writing a function's two (or more) cases:
 Some functions cannot be honestly cased. Refuse with a one-line reason
 instead of writing a decorative case:
 
-- The function reads `read_all()`/`input()` (stdin) and the case format has
-  no way to supply input.
-- The state it needs is the composition of two fixtures and there is no
-  slot in a `given` (a setup takes no arguments — docs/TESTS.md) to combine
-  them.
+- The state it needs can only be made by a function that takes parameters,
+  or only exists partway through the function itself, so no chain of
+  zero-parameter `given`s can build it.
+- An honest case would need a program outside the project's Nix devshell,
+  would leave files behind, or would push the project's build past 60
+  seconds.
 - The packet's candidate `given`/`then` lists are both empty for an import
   this function genuinely needs, and you cannot justify writing a new
   zero-parameter setup/check yourself within this batch's file/directory
   slot budget.
-- It is a rule-6 fold candidate the packet flagged (should not appear in
-  your batch, but if it does: do not case it, report it instead).
 
 A refusal with a stated reason is a better result than a case that passes
 for the wrong reason.

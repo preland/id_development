@@ -35,14 +35,18 @@ needs is fixed, and `case-writing-prompt.md` already expects it — but not
 yet implemented; step 2 below is a manual stand-in until they land. Do not
 claim `select`/`pack` work; they do not exist as commands yet.**
 
-1. **Build the index and query one target.** This rebuilds `idxpack` and
-   runs `idc PATH --calls` on every call — the expensive part, up to ~1
-   minute for something the size of `compiler/parse` — so query several
-   targets in one sitting rather than spacing them out:
+1. **Build the index and query one target.** `build` rebuilds `idxpack` and
+   runs `idc PATH --calls` — the expensive part, about 8s cold and 2s warm
+   for something the size of `compiler/parse` (measured 2026-09-26) — so
+   build once and query several targets:
 
    ```sh
-   idc/tools/idxpack.sh <PROJECT_PATH> <TARGET_FUNCTION_NAME>
+   idc/tools/idxpack.sh build <PROJECT_PATH> <OUTDIR>
+   idc/tools/idxpack.sh query <OUTDIR> <TARGET_FUNCTION_NAME>
    ```
+
+   `build` is the expensive step, once per project; `query` is cheap, once
+   per target.
 
    Prints three blank-line-separated lists: `TARGET`'s transitive call
    closure (BFS over `call` edges), the exported names that closure reads
@@ -55,9 +59,10 @@ claim `select`/`pack` work; they do not exist as commands yet.**
 
 2. **Pick targets, and assemble a packet, by hand for now.**
    `idc/tools/casework.sh list <PROJECT_PATH>` still gives the uncased-function
-   list (excluding fold candidates is on you — cross-reference
-   `idc/tools/chainfind.sh <PROJECT_PATH>` and drop any name it lists as a
-   callee). For each target, run step 1, then hand-build a packet section
+   list. Do not drop names `idc/tools/chainfind.sh` lists as fold candidates:
+   its list is unsound (it cannot count call sites, among other gaps) and rule
+   6 is not shipping, so a fold candidate is cased like any other function —
+   if it is folded later, its cases are rewritten then. For each target, run step 1, then hand-build a packet section
    combining `idxpack.sh`'s three lists with `casework.sh packet`'s source
    and structural-slot output (it still has both, even though its own
    import-list line is the thing you should ignore in favour of `idxpack`'s).
@@ -68,10 +73,19 @@ claim `select`/`pack` work; they do not exist as commands yet.**
    concurrently. Build each prompt from `case-writing-prompt.md` in this
    skill's directory: substitute `{PROJECT_PATH}` and paste your packet in as
    `{PACKET}`. That file states the case syntax and the anti-patterns
-   inline — the agent must not need to open docs/TESTS.md. Also tell it, in
-   an environment note before the packet (see the validation transcript for
-   the exact wording that worked), which `IDSTD_HOME`/working directory to
-   use if you are not running from the umbrella's normal layout.
+   inline — the agent must not need to open docs/TESTS.md.
+
+   **Each agent needs a private workspace.** A PreToolUse hook blocks every
+   subagent write under `/home/preland/git`, so an agent pointed at the real
+   tree cannot edit anything. Before spawning, copy into a scratch directory
+   per agent: `idc/` (with `.idc-cache/`, which holds the built compiler
+   stages, but without `.idc-cache/units/` or `build/`), `idstd/`, and the
+   project tree if it lives outside `idc/`, keeping the umbrella's relative
+   layout. Tell the agent, in an environment note before the packet, its
+   workspace path, to `export IDSTD_HOME=<workspace>/idstd`, and to run every
+   command from `<workspace>` (where the prompt says "the repo root"). Give
+   agents whose targets are in the same directory separate workspaces, and
+   merge each one back yourself (`git mv` for any moves, then copy files).
 
 4. **Collect and verify.** Each agent's report says, per function, DONE
    (with the verification and falsification output), or FAILED with a
@@ -86,9 +100,10 @@ claim `select`/`pack` work; they do not exist as commands yet.**
    by the file:line the failure names and re-open that one case.
 
 5. **Refusals are data, not failure.** An agent that refuses a function with
-   a stated reason (reads stdin with no way to supply it in a case; needs
-   two fixtures composed with no slot to combine them; is itself a fold
-   candidate that slipped through) has done its job correctly. Collect
+   a stated reason (the state it needs can only be built by a function that
+   takes parameters; an honest case would need a program outside the Nix
+   devshell, leave files behind, or push the build past 60 seconds) has done
+   its job correctly. Collect
    refusals; do not re-assign them to another Haiku agent expecting a
    different answer — escalate to a human or a more capable agent only if
    the reason looks wrong.
@@ -114,8 +129,6 @@ claim `select`/`pack` work; they do not exist as commands yet.**
   `idxpack` returning nothing for it is correct.
 - **`select`/`pack`/multi-target batching are not implemented.** Do the
   batch-selection and packet-assembly steps above by hand until they land.
-- **Fold-candidate detection (`idc/tools/chainfind.sh`) is not wired into
-  `idxpack.sh`.** Cross-reference it yourself before handing out a target.
 
 ## Common mistakes (from earlier unassisted batches)
 
