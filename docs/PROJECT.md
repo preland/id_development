@@ -44,10 +44,8 @@ idc/bin/idc caesar.id --allow-untested -o caesar
 
 Every build in this document passes `--allow-untested`. The compiler requires
 two test cases per function (§9), and neither this program nor the standard
-library it merges has them all yet; the flag is the deprecated way to build
-anyway. Each such build prints `idc: warning: --allow-untested is deprecated
-and will be removed once every function has its test cases` first, and the
-transcripts below leave that line out.
+library it merges has them all yet; the flag is the way to build anyway, and
+it says nothing about it -- `id` has no warnings, only errors.
 
 Three errors, and they are worth reading in order:
 
@@ -249,6 +247,35 @@ not indicate what the file holds, making it impossible to name what you are
 importing and encouraging developers to dump unrelated functions into a single
 file. Name the file after what it contains: `arith_helper.id` for arithmetic
 helpers, `string_util.id` for string utilities, etc.
+
+**An entry may not be a numbered copy of its sibling.** In one directory, a
+name that is another entry's name followed by digits is rejected --
+`chunk2.id` beside `chunk.id`, `pane2/` beside `pane/`, and `x_2.id` beside
+`x.id` all name the same thing twice instead of saying what the second one
+holds:
+
+```
+a: error: file 'a/chunk2.id' is a numbered copy of 'a/chunk.id'; name it for
+  what it holds
+```
+
+Two numbered entries with no un-numbered sibling -- `x2.id` beside `x3.id`,
+with no `x.id` -- are rejected too, as numbered siblings of each other:
+neither is more "the real one" than the other. An entry with digits but no
+sibling that strips to the same stem, like `md5.id` or `d3/` alone, is fine.
+
+**A file may not have the same name as its own directory.** `a/loop/loop.id`
+is rejected the same way `engine/engine/` is: the file says nothing the
+directory didn't already say.
+
+```
+a: error: file 'a/loop/loop.id' has the same name as its directory; name it
+  for what it holds
+```
+
+This does not apply to a file directly in the project's own root --
+`caesar/caesar.id` is fine -- because the root's name is just where the
+project was checked out, not a level of the tree it wrote.
 
 > **Pitfall 2.** The entry limit fires on a directory you did not touch, at the
 > moment you add one file. Leave room. Name directories and files for what they
@@ -771,11 +798,11 @@ shifted(int c, int base) {
 ```
 
 A function with fewer is a compile error. `--allow-untested` turns that off
-for a build that does not have its cases yet — every build above — and is
-deprecated: it warns on every build, and goes once every function has its
-cases. While the standard library still lacks some, a build that merges it
-needs the flag even when its own functions are all tested. See
-[`TESTS.md`](TESTS.md), "Enforcement, and the migration".
+for a build that does not have its cases yet — every build above — silently,
+and goes once every function has its cases. While the standard library still
+lacks some, a build that merges it needs the flag even when its own
+functions are all tested. See [`TESTS.md`](TESTS.md), "Enforcement, and the
+migration".
 
 ---
 
