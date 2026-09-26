@@ -51,6 +51,9 @@
             # skips itself when it is absent, so a checkout without it still
             # runs the rest of the suite.
             qemu
+            # Stand-in QMP and serial peers for idc/tools/qmon's cases:
+            # idstd's sockets are client-only, so a case cannot listen itself.
+            socat netcat
             xdotool
             # A virtual X server, so a windowed demo can be built and run
             # without a window ever reaching the real compositor -- see
