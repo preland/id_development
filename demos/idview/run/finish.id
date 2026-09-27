@@ -7,3 +7,18 @@ finish(string src, int len_v) {
 } return void;
 given init_view ("x", 0):() then prints:("idview: no id files on stdin\n")
 given init_view ("y", 5):() then prints:("idview: no id files on stdin\n")
+
+// pick.id's rnd() state: a literal seed, so a case can pin what rnd() next
+// answers instead of ticks() picking a fresh one every run.
+iv_rnd_init(word seed) {
+  export word[] iv_rnd_st = [seed];
+} return void;
+(7):() then rnd:(1059165278)
+(3):() then rnd:(243117059)
+
+// rnd()'s own first-call case: a freshly seeded state, no prior rnd() call.
+iv_rnd_seed7() {
+  iv_rnd_init(7);
+} return void;
+():() then rnd:(1059165278)
+():() then eprints:("")

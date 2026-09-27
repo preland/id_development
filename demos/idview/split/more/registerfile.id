@@ -20,3 +20,12 @@ print_body(string src, int k) {
 } return void;
 given iv2_setup ("#file a.id\nBODY\nTAIL", 0):() then prints:("\nBODY\n")
 given iv2_setup ("#file a.id\nHELLO\nZZZZ", 0):() then prints:("\nHELLO")
+
+// rnd()'s own second-call case: seeded, then already advanced one call, so a
+// further call proves the state persists instead of resetting each time.
+iv_rnd_seed7_primed() {
+  iv_rnd_init(7);
+  rnd();
+} return void;
+():() then rnd:(2052263231)
+():() then eprints:("")
