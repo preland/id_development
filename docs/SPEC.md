@@ -395,13 +395,16 @@ address is arithmetic — none of which needs syntax.
 - `udiv`, `umod`, `ult`, `ushr` are the unsigned readings of `/ % < >>`. The
   plain operators keep their signed meaning.
 
-**There is no way to release memory.** `alloc` is a bump pointer; the arena
-behind lists and strings is freed only at process exit. This is a property of
-the language today, not of the C target, and every target must be honest about
-it rather than quietly collecting garbage — a program whose memory is reclaimed
-on one target and not another has no portable memory behaviour at all. Fixing
-this is the open question in `docs/GAPS.md`; until it is fixed it is a promise,
-and it is the reason `id` is currently a language for programs that exit.
+**Memory is meant to be freed before exit, and today it is not.** `alloc` is a
+bump pointer, and the arena behind lists and strings is freed only at process
+exit — a gap in the implementation, not a property of the language: a program
+that allocates in a loop grows until it exits or runs out. The intended rule
+(decided 2026-09-26) is that the compiler frees a list or string it can prove
+never escapes — never returned, exported, stored in another list, or kept by
+a callee — when the scope that made it ends, and keeps anything it cannot
+prove, so freeing can never cause a use-after-free. No syntax marks it. Every
+target must free the same allocations: a program whose memory is reclaimed on
+one target and not another has no portable memory behaviour at all.
 
 ## 7. Evaluation order
 
