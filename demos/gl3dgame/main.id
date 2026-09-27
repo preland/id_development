@@ -11,13 +11,36 @@
 // and loop/ for the frame loop. GFX_MAX_FRAMES lets a headless build run N
 // frames and exit on its own (see sys/win/gl).
 
-// main() is not cased: glwin_open() succeeds whenever a real X display is
-// reachable (true here -- see demos/gl3d/main.id's note, the same check),
-// and a successful open makes loop(ok) enter spin's live polling loop,
-// which only ends via GFX_MAX_FRAMES, an environment variable no case can
-// set and this build does not export.
+// main()'s no-display path: force_no_display (below) forces glwin_open() to
+// fail the same way on every machine, whatever its own DISPLAY is, so ok=0
+// and loop(ok) returns through spin's run<=0 branch without ever calling
+// frame -- the one path that does not depend on GFX_MAX_FRAMES, an
+// environment variable this build does not export.
 main(int argc, string[] argv) {
   int ok = glwin_open(800, 600, "id gl3dgame -- cube hunter");
   world_init();
   loop(ok);
 } return int 0;
+given force_no_display (0, []):(0) then mb_state:("0,0,3,3,0")
+given force_no_display (0, []):(0) then calls frame:[0]
+
+// Forces glwin_open() to fail deterministically -- on every machine, whatever
+// its own DISPLAY is -- so main()'s no-display path can be cased. idstd's
+// env_set (sys/io/ipc/env/write.id) reaches only this one case's own
+// process (each case runs in a process of its own).
+force_no_display() {
+  int r = env_set("DISPLAY", "id-case-no-display");
+} return void;
+():() then display_probe:(18)
+():() then env_error:(0)
+
+// env_get's return is the value's exact byte length, or -1 if the name is
+// not set at all -- so this is both "is DISPLAY forced" and "to exactly
+// what", in one int. Dropping force_no_display's env_set call turns this
+// from 18 into -1, not 0, so it cannot pass by coincidence.
+display_probe() {
+  int[] buf = [];
+  int b = env_get("DISPLAY", buf, 0);
+} return int b;
+given force_no_display ():(18)
+given force_no_display ():(18) then env_error:(0)
