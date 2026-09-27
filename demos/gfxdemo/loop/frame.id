@@ -10,3 +10,25 @@ frame(int t) {
 } return int ev;
 given gfx_big_setup (0):(-1)
 given gfx_big_setup (5):(-1)
+
+// Forces gfx_open() to fail deterministically -- on every machine, whatever
+// its own DISPLAY is -- so main()'s no-display path can be cased. id had no
+// setenv; env_set (idstd/sys/io/ipc/env/write.id) exists for exactly this,
+// and only reaches this one case's own process (docs/TESTS.md: each case
+// runs in a process of its own).
+gfx_force_no_display() {
+  int r = env_set("DISPLAY", "id-case-no-display");
+} return void;
+():() then gfx_display_probe:(18)
+():() then env_error:(0)
+
+// env_get's return is the value's exact byte length, or -1 if the name is
+// not set at all (env.h) -- so this is both "is DISPLAY forced" and "to
+// exactly what", in one int. Dropping gfx_force_no_display's env_set call
+// turns this from 18 into -1, not 0, so it cannot pass by coincidence.
+gfx_display_probe() {
+  int[] buf = [];
+  int b = env_get("DISPLAY", buf, 0);
+} return int b;
+given gfx_force_no_display ():(18)
+given gfx_force_no_display ():(18) then env_error:(0)
