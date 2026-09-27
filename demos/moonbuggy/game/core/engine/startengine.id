@@ -1,11 +1,12 @@
-// Not cased: start_engine calls start(), whose play() loop never ends in a
-// case for the reason mb.id's note gives (start() re-initialises mb itself,
-// so no given's quit setting survives to play()'s loop).
 // term_init's seed parameter is int, and ticks() returns word: passing
 // the word straight through narrows it inline, which the compiler now
 // rejects, so main() names an int local first and calls this with it.
+// Cased with stdin "q" so start()'s play() loop reads a real quit keystroke
+// and the run completes (see mb.id's note).
 start_engine(int seed) {
   term_init(60, 20, seed);
   term_setup();
   start();
 } return void;
+stdin "q" (42):() then calls term_init:(60, 20, 42)
+stdin "q" (7):() then calls start:[1]

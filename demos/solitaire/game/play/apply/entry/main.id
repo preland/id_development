@@ -1,17 +1,26 @@
 // Entry point and the frame loop. Solitaire isn't animated, so the loop just
 // polls for a key, applies it, repaints, and idles briefly.
-
+//
+// main() seeds start_engine from ticks() (wall clock), not a literal a case
+// can pin, but a case can still feed the process a real quit keystroke via
+// stdin: term_key() reads whatever stdin gives it, "q" quits through the
+// ordinary key path (actionkey/action.id), and the run completes -- so
+// main()/sol_start() are witnessed by what they call rather than by the seed.
 main(int argc, string[] argv) {
   word ticks_v = ticks();
   int seed = ticks_v;
   start_engine(seed);
 } return int 0;
+stdin "q" (1, ["prog"]):(0) then calls start_engine:[1]
+stdin "q" (2, ["prog", "x"]):(0) then calls term_done:[1]
 
 sol_start() {
   sol_init();
   sol_loop();
   term_done();
 } return void;
+given ui_init given term_and_quit_setup stdin "q" ():() then calls sol_init:[1] then calls term_done:[1]
+given ui_init given term_and_quit_setup stdin "q" ():() then calls sol_loop:[1]
 
 sol_loop() {
   int running = 1;

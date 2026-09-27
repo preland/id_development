@@ -1,11 +1,15 @@
 // term_init's seed parameter is int, and ticks() returns word: passing
 // the word straight through narrows it inline, which the compiler now
 // rejects, so main() names an int local first and calls this with it.
+// Cased with stdin "q" so sol_start()'s sol_loop reads a real quit
+// keystroke and the run completes (see main.id's note).
 start_engine(int seed) {
   term_init(64, 24, seed);
   term_setup();
   sol_start();
 } return void;
+stdin "q" (42):() then calls term_init:(64, 24, 42)
+stdin "q" (7):() then calls sol_start:[1]
 
 // sol_loop's own case can't call it through sol_start (sol_start reaches
 // sol_init, which resets the quit flag ui[5] on every call, so the loop

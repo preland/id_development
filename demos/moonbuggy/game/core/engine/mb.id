@@ -13,24 +13,28 @@
 //   6 cooldown (ticks until another crater may start)   7 quit
 // The terrain is the exported list `ground`: ground[x] = 1 solid, 0 crater.
 
-// main() and start() are not cased: main() seeds from ticks() (wall clock,
-// not a literal a case can pin -- the same reason demos/idview/pick.id's
-// rnd() is skipped), and start() calls mb_init() itself, right before
-// play(), so no given can leave quit set when play()'s loop starts -- it is
-// always freshly 0, and nothing inside start() ever sets it, so the loop
-// never ends. play() is cased directly below via quit_setup, which sets
-// quit before play() runs and nothing after it resets it.
+// main() seeds start_engine from ticks() (wall clock), so the seed itself
+// is not a literal a case can pin -- the same reason demos/idview/pick.id's
+// rnd() is skipped -- but a case can still feed the process a real quit
+// keystroke via stdin: term_key() (idstd's getkey()) reads whatever stdin
+// gives it, "q" ends play()'s loop through the ordinary key path (see
+// keydispatch.id), and the run completes, so main()/start() are witnessed by
+// what they call rather than by the seed.
 main(int argc, string[] argv) {
   word ticks_v = ticks();
   int seed = ticks_v;
   start_engine(seed);
 } return int 0;
+stdin "q" (1, ["prog"]):(0) then calls start_engine:[1]
+stdin "q" (2, ["prog", "x"]):(0) then calls term_done:[1]
 
 start() {
   mb_init();
   play();
   term_done();
 } return void;
+given term_setup_mb stdin "q" ():() then calls mb_init:[1] then calls term_done:[1]
+given term_setup_mb stdin "q" ():() then calls play:[1]
 
 play() {
   int running = 1;
