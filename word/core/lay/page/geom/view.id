@@ -1,0 +1,23 @@
+// A view of document lgd: no pages yet and an empty face cache at zoom 100, the document's layout to be made by lay_all and lay_paginate. Pages and the face cache keep lists of their own.
+lay_view(Doc lgd) {
+  int[] lgxs = [];
+  int[] lgkeys = [];
+  int[] lgstarts = [];
+} chain (Doc lgd) {
+  int[] lgtops = [];
+  Pages lgpages = Pages(lgstarts, lgtops, 0);
+  Face lgfaces = Face(lgxs, lgkeys, 100);
+} chain (Doc lgd) {
+  View lgview = View(lgd, lgpages, lgfaces);
+} return View lgview;
+given lp_t_new ((import lp_t_d)):(View((import lp_t_d), Pages([], [], 0), Face([], [], 100)))
+given lp_t_new given lp_t_paras(3) ((import lp_t_d)):(View((import lp_t_d), Pages([], [], 0), Face([], [], 100)))
+
+// Test check: how many keys the face cache of a fresh view holds after a paragraph's top was pushed into its pages: 0 when the two are separate lists.
+lg_t_split() {
+  View lgv = lay_view((import lp_t_d));
+  push(lgv.pages.tops, 5);
+  int lgn = len(lgv.faces.key);
+} return int lgn;
+given lp_t_new ():(0)
+given lp_t_new given lp_t_paras(2) ():(0)

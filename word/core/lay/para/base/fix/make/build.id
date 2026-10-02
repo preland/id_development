@@ -1,0 +1,46 @@
+// Test setup: a new document, an empty face cache and a view over them, exported as lp_t_d, lp_t_f and lp_t_v. No font is touched, so a case that needs only the document can stay independent of the machine.
+lp_t_new() {
+  Doc d = doc_new();
+  int[] hnd = [];
+  int[] keys = [];
+} chain () {
+  int[] starts = [];
+  int[] tops = [];
+  Face fa = Face(hnd, keys, 100);
+} chain () {
+  Pages pgs = Pages(starts, tops, 0);
+  View v = View(d, pgs, fa);
+  export Doc lp_t_d = d;
+} chain () {
+  export Face lp_t_f = fa;
+  export View lp_t_v = v;
+} return void;
+():() then lp_t_c0:([])
+():() then lp_t_h0:(-1)
+
+// Test setup: lp_t_new, then the font layer started and the face cache seeded with Liberation Sans Regular at 9, 16, 32 and 18 px (12 pt is 16 px, 24 pt is 32 px, a 12 pt superscript is 9 px and a 24 pt one is 18), so layout in a case never asks the machine for a font.
+lp_t_font() {
+  lp_t_new();
+  gui_font_init();
+  Face fa = (import lp_t_f);
+} chain () {
+  lp_t_seed(fa, 9);
+  lp_t_seed(fa, 16);
+  lp_t_seed(fa, 32);
+} chain () {
+  lp_t_seed(fa, 18);
+  export int lp_t_h9 = fa.hnd[0];
+  export int lp_t_h16 = fa.hnd[1];
+} chain () {
+  export int lp_t_h32 = fa.hnd[2];
+} return void;
+():() then calls lp_t_seed:[4]
+():() then calls gui_font_init:[1]
+
+// Test setup: deletes code points lo..hi-1 of paragraph i of the test document, as a user's Delete does.
+lp_t_cut(int i, int lo, int hi) {
+  Doc d = (import lp_t_d);
+  text_delete(d.body.paras[i].txt, lo, hi);
+} return void;
+given lp_t_new given lp_t_ins(0, "BBBB EEEE") (0, 0, 5):(0, 0, 5) then lp_t_c0:([69, 69, 69, 69])
+given lp_t_new given lp_t_ins(0, "BB") (0, 0, 2):(0, 0, 2) then lp_t_c0:([])

@@ -1,0 +1,40 @@
+// Places paragraph lgi on the pages. lgs is the state of the walk, [y, used, base]: where the next paragraph starts on the current page, whether the page holds a line yet, and the y on the page of the current paragraph's own top. A paragraph that asks for a page break starts a new page unless the page is empty; its lines are then placed one by one, and the next paragraph starts where it ends.
+lay_place(View lgv, int lgi, int[] lgs) {
+  lay_brk(lgv, lgi, lgs);
+  lset(lgs, 2, lgs[0]);
+  push(lgv.pages.tops, 0);
+} chain (View lgv, int lgi, int[] lgs) {
+  lay_lines(lgv, lgi, lgs);
+  lset(lgs, 0, lgs[2] + lgv.doc.body.paras[lgi].lay.h);
+} return void;
+given lp_t_font given lp_t_paras(2) given lay_all((import lp_t_v)) given lay_pages_reset((import lp_t_v)) given lg_t_s0(0, 0, 0) ((import lp_t_v), 0, (import lg_t_s)):() then lg_t_state:("1600,1,0,") then lg_t_tops:("6144,")
+given lp_t_font given lp_t_paras(2) given lay_all((import lp_t_v)) given lay_pages_reset((import lp_t_v)) given lg_t_s0(1600, 1, 0) given lg_t_zeros(1) ((import lp_t_v), 1, (import lg_t_s)):() then lg_t_state:("3200,1,1600,") then lg_t_tops:("0,7744,")
+
+
+// A paragraph whose row says break before starts a new page, unless the page is empty already.
+lay_brk(View lgv, int lgi, int[] lgs) {
+  Para lgpa = lgv.doc.body.paras[lgi];
+  int lgb = style_eff_p(lgv.doc.fmt, lgpa.pprop, (import word_p_brk));
+  if(lgb == 1 && lgs[1] == 1) {
+    lay_page_open(lgv, lgi, 0);
+    lset(lgs, 0, 0);
+    lset(lgs, 1, 0);
+  }
+} return void;
+given lp_t_new given lp_t_paras(2) given lg_t_brk(1) given lay_pages_reset((import lp_t_v)) given lg_t_s0(500, 1, 500) ((import lp_t_v), 1, (import lg_t_s)):() then lg_t_state:("0,0,500,") then lg_t_starts:("0,0,1,0,")
+given lp_t_new given lp_t_paras(2) given lg_t_brk(1) given lay_pages_reset((import lp_t_v)) given lg_t_s0(500, 0, 500) ((import lp_t_v), 1, (import lg_t_s)):() then lg_t_state:("500,0,500,") then lg_t_starts:("0,0,")
+given lp_t_new given lp_t_paras(2) given lg_t_brk(1) given lay_pages_reset((import lp_t_v)) given lg_t_s0(500, 1, 500) ((import lp_t_v), 0, (import lg_t_s)):() then lg_t_state:("500,1,500,") then lg_t_starts:("0,0,")
+
+
+// Places the lines of paragraph lgi one by one.
+lay_lines(View lgv, int lgi, int[] lgs) {
+  int lgn = len(lgv.doc.body.paras[lgi].lay.lines) / (import word_ln_stride);
+  int lgj = 0;
+  while(lgj < lgn) {
+    lay_line(lgv, lgi, lgj, lgs);
+    lgj = lgj + 1;
+  }
+} return void;
+given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_ins(0, "AAAAAA") given lay_all((import lp_t_v)) given lay_pages_reset((import lp_t_v)) given lg_t_s0(0, 0, 0) given lg_t_zeros(1) ((import lp_t_v), 0, (import lg_t_s)):() then lg_t_starts:("0,0,") then lg_t_state:("0,1,0,") then lg_t_tops:("640,")
+given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_ins(0, "AAAAAA") given lay_all((import lp_t_v)) given lay_pages_reset((import lp_t_v)) given lg_t_s0(0, 1, 9000) given lg_t_zeros(1) ((import lp_t_v), 0, (import lg_t_s)):() then lg_t_starts:("0,0,0,1,") then lg_t_state:("0,1,-1088,") then lg_t_tops:("9640,")
+

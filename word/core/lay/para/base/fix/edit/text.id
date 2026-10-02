@@ -1,0 +1,28 @@
+// Test helper: the ASCII bytes of s as code points.
+lp_t_cps(string text) {
+  int[] cps = [];
+  int j = 0;
+  while(j < len(text)) {
+    push(cps, charat(text, j));
+    j = j + 1;
+  }
+} return int[] cps;
+("AB"):([65, 66])
+(""):([])
+
+// Test setup: appends s, in character row 0, to paragraph i of the test document.
+lp_t_ins(int i, string text) {
+  Doc d = (import lp_t_d);
+  Text t = d.body.paras[i].txt;
+  text_insert(t, len(t.cps), lp_t_cps(text), 0);
+} return void;
+given lp_t_new (0, "AB"):(0, "AB") then lp_t_c0:([65, 66])
+given lp_t_new given lp_t_ins(0, "x") (0, "yz"):(0, "yz") then lp_t_c0:([120, 121, 122])
+
+// Test setup: splits paragraph i of the test document at code point off.
+lp_t_split(int i, int off) {
+  Doc d = (import lp_t_d);
+  body_split(d.body, i, off);
+} return void;
+given lp_t_new given lp_t_ins(0, "ABCD") (0, 2):(0, 2) then lp_t_c0:([65, 66]) then lp_t_np:(2)
+given lp_t_new given lp_t_ins(0, "ABCD") (0, 4):(0, 4) then lp_t_c0:([65, 66, 67, 68]) then lp_t_np:(2)

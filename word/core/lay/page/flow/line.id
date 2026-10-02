@@ -1,0 +1,40 @@
+// The height in lu that line lgj of paragraph lgi takes on the page: the ascent and the descent of the line, or the whole box for an object.
+// By hand: a 16 px line is 896 + 192 = 1088 lu; an object is word_lay_obj, 4608.
+lay_line_h(View lgv, int lgi, int lgj) {
+  int[] lgln = lgv.doc.body.paras[lgi].lay.lines;
+  int lgb = lay_obj_h(lgv.doc, lgi);
+  int lgh = lgln[lgj * (import word_ln_stride) + (import word_ln_asc)] + lgln[lgj * (import word_ln_stride) + (import word_ln_desc)];
+} chain (View lgv, int lgi, int lgj) {
+  if(lgb > 0) {
+    lgh = lgb;
+  }
+} return int lgh;
+given lp_t_font given lp_t_ins(0, "AB") given lp_t_lay(6000) ((import lp_t_v), 0, 0):(1088)
+given lp_t_font given lg_t_obj(0) given lp_t_lay(6000) ((import lp_t_v), 0, 0):(4608)
+
+// 1 when line lgj of paragraph lgi, placed with the paragraph's top at lgb on a page whose text area is lga lu high, would end below the bottom of the page.
+lay_over(View lgv, int lgi, int lgj, int lgb) {
+  int lga = lay_area(lgv.doc, 1);
+  int lgy = lgv.doc.body.paras[lgi].lay.lines[lgj * (import word_ln_stride) + (import word_ln_y)];
+  int lgh = lay_line_h(lgv, lgi, lgj);
+} chain (View lgv, int lgi, int lgj, int lgb) {
+  int lgo = lgb + lgy + lgh > lga;
+} return int lgo;
+given lp_t_font given lp_t_ins(0, "A") given lp_t_lay(6000) ((import lp_t_v), 0, 0, 0):(0)
+given lp_t_font given lp_t_ins(0, "A") given lp_t_lay(6000) ((import lp_t_v), 0, 0, 59000):(1)
+
+// Places line lgj of paragraph lgi on the walk lgs ([y, used, base], see lay_place): a line that would end below the page, on a page that already holds a line, opens the next page and goes to its top (the paragraph's own top moves up so that the line sits at y 0). The first line also records where the paragraph is.
+lay_line(View lgv, int lgi, int lgj, int[] lgs) {
+  int lgy = lgv.doc.body.paras[lgi].lay.lines[lgj * (import word_ln_stride) + (import word_ln_y)];
+  int lgc = lay_over(lgv, lgi, lgj, lgs[2]) * lgs[1];
+  if(lgc == 1) {
+    lay_page_open(lgv, lgi, lgj);
+    lset(lgs, 2, 0 - lgy);
+  }
+} chain (View lgv, int lgi, int lgj, int[] lgs) {
+  lay_top(lgv, lgi, lgj, lgs);
+  lset(lgs, 1, 1);
+} return void;
+given lp_t_font given lp_t_ins(0, "A") given lay_all((import lp_t_v)) given lay_pages_reset((import lp_t_v)) given lg_t_s0(0, 0, 0) given lg_t_zeros(1) ((import lp_t_v), 0, 0, (import lg_t_s)):() then lg_t_tops:("6144,") then lg_t_state:("0,1,0,")
+given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_ins(0, "A") given lay_all((import lp_t_v)) given lay_pages_reset((import lp_t_v)) given lg_t_s0(9800, 1, 9800) given lg_t_zeros(1) ((import lp_t_v), 0, 0, (import lg_t_s)):() then lg_t_starts:("0,0,0,0,") then lg_t_state:("9800,1,0,") then lg_t_tops:("14976,")
+

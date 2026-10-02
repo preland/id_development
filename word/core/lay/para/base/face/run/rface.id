@@ -1,0 +1,36 @@
+// The face of run ri of paragraph i at layout zoom 100.
+lp_rface(View v, int i, int ri) {
+  Para p = v.doc.body.paras[i];
+  int pstyle = tab_get(v.doc.fmt.paras, p.pprop, (import word_p_style));
+  int fh = face_for(v.faces, v.doc, pstyle, p.txt.runs[ri].cprop, (import word_lay_zoom));
+} return int fh;
+given lp_t_font given lp_t_ins(0, "AB") ((import lp_t_v), 0, 0):(1)
+given lp_t_font given lp_t_ins(0, "AB") given lp_t_bits(0, 1, 2, 16) ((import lp_t_v), 0, 1):(0)
+
+// How far run ri of paragraph i is raised (positive) or dropped, in lu.
+lp_rlift(View v, int i, int ri) {
+  Para p = v.doc.body.paras[i];
+  int pstyle = tab_get(v.doc.fmt.paras, p.pprop, (import word_p_style));
+  int lift = face_lift(v.doc, pstyle, p.txt.runs[ri].cprop);
+} return int lift;
+given lp_t_font given lp_t_ins(0, "AB") given lp_t_bits(0, 1, 2, 16) ((import lp_t_v), 0, 1):(337)
+given lp_t_font given lp_t_ins(0, "AB") given lp_t_bits(0, 1, 2, 32) ((import lp_t_v), 0, 1):(-337)
+given lp_t_font given lp_t_ins(0, "AB") ((import lp_t_v), 0, 0):(0)
+
+// The ascent (which 0) or descent (which 1) of run ri of paragraph i in lu: the face's own whole pixels times 64, then a raised run gains its lift as ascent and loses it as descent (a dropped run the reverse), never going below 0.
+lp_rm(View v, int i, int ri, int which) {
+  int fh = lp_rface(v, i, ri);
+  int lift = lp_rlift(v, i, ri);
+  int m = 0;
+} chain (View v, int i, int ri, int which) {
+  if(which == 0) {
+    m = gui_font_ascent(fh) * 64 + lift;
+  } else {
+    m = gui_font_descent(fh) * 64 - lift;
+  }
+  m = fx_max(m, 0);
+} return int m;
+given lp_t_font given lp_t_ins(0, "AB") ((import lp_t_v), 0, 0, 0):(896)
+given lp_t_font given lp_t_ins(0, "AB") ((import lp_t_v), 0, 0, 1):(192)
+given lp_t_font given lp_t_ins(0, "AB") given lp_t_bits(0, 1, 2, 16) ((import lp_t_v), 0, 1, 0):(849)
+given lp_t_font given lp_t_ins(0, "AB") given lp_t_bits(0, 1, 2, 16) ((import lp_t_v), 0, 1, 1):(0)

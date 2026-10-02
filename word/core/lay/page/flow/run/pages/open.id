@@ -1,0 +1,29 @@
+// A page starts at paragraph lgi, line lgj: its start is kept in starts (two cells, the paragraph then the line) and the page is counted.
+lay_page_open(View lgv, int lgi, int lgj) {
+  push(lgv.pages.starts, lgi);
+  push(lgv.pages.starts, lgj);
+  lgv.pages.count = lgv.pages.count + 1;
+} return void;
+given lp_t_new ((import lp_t_v), 3, 2):() then lg_t_starts:("3,2,") then lg_t_count:(1)
+given lp_t_new given lay_page_open((import lp_t_v), 0, 0) ((import lp_t_v), 5, 1):() then lg_t_starts:("0,0,5,1,") then lg_t_count:(2)
+
+
+// Forgets the pages and opens the first one, at the first line of the first paragraph.
+lay_pages_reset(View lgv) {
+  lp_clear(lgv.pages.starts);
+  lp_clear(lgv.pages.tops);
+  lgv.pages.count = 0;
+} chain (View lgv) {
+  lay_page_open(lgv, 0, 0);
+} return void;
+given lp_t_new given lay_page_open((import lp_t_v), 4, 4) ((import lp_t_v)):() then lg_t_starts:("0,0,") then lg_t_count:(1)
+given lp_t_new given lg_t_zeros(2) ((import lp_t_v)):() then lg_t_tops:("")
+
+
+// How many pages the document has: at least one, even when it holds no text.
+lay_page_count(View lgv) {
+  int lgn = fx_max(lgv.pages.count, 1);
+} return int lgn;
+given lp_t_new ((import lp_t_v)):(1)
+given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_paras(8) given lay_all((import lp_t_v)) given lay_paginate((import lp_t_v), 0) ((import lp_t_v)):(2)
+

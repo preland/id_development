@@ -1,0 +1,21 @@
+// How far code point k of paragraph p moves the pen, in 64ths: its face's advance with kerning against the next code point, or up to the next tab stop for a tab, which needs pen[k] (the pen where it starts) to be filled already.
+// By hand at 16 px: A is 683; A before V kerns by -76, so 607; a tab at pen 683 moves 3072 - 683 = 2389.
+lp_cpadv(Para p, int fh, int k) {
+  int cp = p.txt.cps[k];
+  int got = gui_cp_adv(fh, cp, lp_nx(p.txt.cps, k));
+  if(cp == (import word_cp_tab)) {
+    got = lp_tab(p.lay.pen[k]);
+  }
+} return int got;
+given lp_t_font (Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [0, 683, 1366], -1), 0), (import lp_t_h16), 0):(683)
+given lp_t_font (Para(Text([65, 86], [Run(2, 0, -1)], 0), Lay([], [0, 683, 1290], -1), 0), (import lp_t_h16), 0):(607)
+given lp_t_font (Para(Text([65, 9, 66], [Run(3, 0, -1)], 0), Lay([], [0, 683, 3072, 3755], -1), 0), (import lp_t_h16), 1):(2389)
+
+// Places code point k: fills pen[k + 1] with pen[k] plus its advance, so a line is scanned left to right with every earlier pen entry final.
+// By hand: A at pen 0 ends at 683; the tab at pen 100 ends on the first stop, 3072.
+lp_step(Para p, int fh, int k) {
+  int got = lp_cpadv(p, fh, k);
+  lp_put(p.lay.pen, k + 1, p.lay.pen[k] + got);
+} return void;
+given lp_t_font (Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [0, 999], -1), 0), (import lp_t_h16), 0):(Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [0, 683], -1), 0), (import lp_t_h16), 0)
+given lp_t_font (Para(Text([65, 9, 66], [Run(3, 0, -1)], 0), Lay([], [0, 100], -1), 0), (import lp_t_h16), 1):(Para(Text([65, 9, 66], [Run(3, 0, -1)], 0), Lay([], [0, 100, 3072], -1), 0), (import lp_t_h16), 1)

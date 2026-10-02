@@ -1,0 +1,20 @@
+// 1 when paragraph lgi stands for an object the model keeps untouched: an opaque block (paragraph kind 1) or a paragraph that holds nothing but an inline object's marker, a picture on a line of its own.
+lay_is_obj(Doc lgd, int lgi) {
+  Para lgpa = lgd.body.paras[lgi];
+  int lgk = tab_get(lgd.fmt.paras, lgpa.pprop, (import word_p_kind));
+  int lgn = len(lgpa.txt.cps);
+} chain (Doc lgd, int lgi) {
+  int lgo = lgk == 1 || (lgn == 1 && lgpa.txt.cps[0] >= (import word_o_marker));
+} return int lgo;
+given lp_t_new given lp_t_ins(0, "A") ((import lp_t_d), 0):(0)
+given lp_t_new given lg_t_obj(0) ((import lp_t_d), 0):(1)
+given lp_t_new given lg_t_mark(0) ((import lp_t_d), 0):(1)
+given lp_t_new given lg_t_mark(0) given lp_t_ins(0, "A") ((import lp_t_d), 0):(0)
+
+// The height in lu of the box that stands for paragraph lgi in the flow: word_lay_obj for an object, 0 for any other paragraph.
+lay_obj_h(Doc lgd, int lgi) {
+  int lgo = lay_is_obj(lgd, lgi);
+  int lgh = lgo * (import word_lay_obj);
+} return int lgh;
+given lp_t_new given lg_t_obj(0) ((import lp_t_d), 0):(4608)
+given lp_t_new given lp_t_ins(0, "AB") ((import lp_t_d), 0):(0)

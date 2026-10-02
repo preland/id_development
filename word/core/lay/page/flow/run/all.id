@@ -1,0 +1,24 @@
+// Lays out every paragraph of the document in the text area's width, and gives an object paragraph the height of its box: the space before, the box, the space after. Layout is always at 100 percent, so this does not depend on the window or the zoom.
+lay_all(View lgv) {
+  int lgw = lay_area(lgv.doc, 0);
+  int lgi = 0;
+  while(lgi < len(lgv.doc.body.paras)) {
+    lay_one(lgv, lgi, lgw);
+    lgi = lgi + 1;
+  }
+} return void;
+given lp_t_font given lp_t_paras(3) ((import lp_t_v)):() then lg_t_hs:("1600,1600,1600,")
+given lp_t_font given lp_t_paras(2) given lg_t_obj(1) ((import lp_t_v)):() then lg_t_hs:("1600,5120,")
+
+// Lays out paragraph lgi in a text area lgw lu wide, and resizes an object paragraph's height to the box that stands for it.
+lay_one(View lgv, int lgi, int lgw) {
+  lay_para(lgv, lgi, lgw);
+  int lgb = lay_obj_h(lgv.doc, lgi);
+  Para lgpa = lgv.doc.body.paras[lgi];
+} chain (View lgv, int lgi, int lgw) {
+  if(lgb > 0) {
+    lgpa.lay.h = lp_space(lgv, lgi, (import word_p_before)) + lgb + lp_space(lgv, lgi, (import word_p_after));
+  }
+} return void;
+given lp_t_font given lp_t_ins(0, "A") ((import lp_t_v), 0, 6000):() then lg_t_hs:("1600,")
+given lp_t_font given lg_t_obj(0) ((import lp_t_v), 0, 6000):() then lg_t_hs:("5120,")

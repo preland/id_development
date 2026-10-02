@@ -1,0 +1,38 @@
+// Pixel size of a face at a zoom: half-points are 1/144 in and a pixel is 1/96 in, so px = hp * zoom / 150 rounded to nearest; unset sizes (-1) take word_lay_size and super/sub text (bits 16 and 32) takes word_lay_script percent of its size first. Kept within the 1..512 the font layer accepts.
+// By hand: 24 hp at 100 = 2400 / 150 = 16 px; at 150 = 24 px; 48 hp is 32 px; 24 hp as a superscript is 24 * 58 / 100 = 13 hp, (1300 + 75) / 150 = 9 px.
+face_px(int hp, int bits, int zoom) {
+  if(hp < 0) {
+    hp = (import word_lay_size);
+  }
+  if((bits & 48) != 0) {
+    hp = hp * (import word_lay_script) / 100;
+  }
+  int px = fx_max(fx_min((hp * zoom + 75) / 150, 512), 1);
+} return int px;
+(24, 0, 100):(16)
+(24, 0, 150):(24)
+(48, 0, 100):(32)
+(-1, 0, 100):(16)
+(24, 16, 100):(9)
+(24, 32, 100):(9)
+(1, 0, 100):(1)
+(9999, 0, 100):(512)
+
+// The index into ext.fonts a character row's font field means: a negative or too large index is the document's first font.
+lp_fi(Doc d, int fi) {
+  int ok = fi >= 0 && fi < len(d.ext.fonts);
+  int at = fi * ok;
+} return int at;
+(Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["serif", "Liberation Sans"], [], [])), 1):(1)
+(Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["serif", "Liberation Sans"], [], [])), -1):(0)
+(Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["serif", "Liberation Sans"], [], [])), 2):(0)
+
+// The family name of font index fi, or the default family when the document lists none.
+lp_family(Doc d, int fi) {
+  string family = (import word_font_default);
+  if(fi < len(d.ext.fonts)) {
+    family = d.ext.fonts[fi];
+  }
+} return string family;
+(Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["serif", "Liberation Sans"], [], [])), 1):("Liberation Sans")
+(Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], [])), 0):("serif")

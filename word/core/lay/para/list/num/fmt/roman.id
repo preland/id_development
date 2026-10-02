@@ -1,0 +1,29 @@
+// Appends roman symbol j (an index into word_lay_rv and word_lay_rc) to lbl, one or two code points, upper case when up is 1.
+lp_sym(int[] lbl, int j, int up) {
+  int c1 = (import word_lay_rc)[j * 2];
+  int c2 = (import word_lay_rc)[j * 2 + 1];
+  push(lbl, c1 - up * 32);
+} chain (int[] lbl, int j, int up) {
+  if(c2 > 0) {
+    push(lbl, c2 - up * 32);
+  }
+} return void;
+([], 0, 0):([109])
+([], 1, 0):([99, 109])
+([], 9, 1):([73, 88])
+
+// Appends n (1 to 3999) as a roman numeral to lbl by taking the largest symbol that still fits, as many times as it fits.
+// By hand: 4 is iv; 1994 is 1000 + 900 + 90 + 4, mcmxciv.
+lp_roman(int[] lbl, int n, int up) {
+  int j = 0;
+  while(j < len((import word_lay_rv))) {
+    while(n >= (import word_lay_rv)[j]) {
+      lp_sym(lbl, j, up);
+      n = n - (import word_lay_rv)[j];
+    }
+    j = j + 1;
+  }
+} return void;
+([], 4, 0):([105, 118])
+([], 1994, 0):([109, 99, 109, 120, 99, 105, 118])
+([], 8, 1):([86, 73, 73, 73])

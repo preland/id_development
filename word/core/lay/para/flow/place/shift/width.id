@@ -1,0 +1,43 @@
+// The end of the visible text of the line lo..hi-1: hi with the trailing spaces taken off, because they hang past the edge and count in no width, no alignment and no justification.
+lp_wend(Para p, int lo, int hi) {
+  int we = hi;
+  while(we > lo && p.txt.cps[we - 1] == (import word_cp_space)) {
+    we = we - 1;
+  }
+} return int we;
+(Para(Text([65, 32, 32], [Run(3, 0, -1)], 0), Lay([], [], -1), 0), 0, 3):(1)
+(Para(Text([32, 32], [Run(2, 0, -1)], 0), Lay([], [], -1), 0), 0, 2):(0)
+(Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [], -1), 0), 0, 2):(2)
+(Para(Text([65, 32, 66, 32], [Run(4, 0, -1)], 0), Lay([], [], -1), 0), 2, 4):(3)
+
+// How far alignment al moves a line of used width w inside avail: 0 for left and justified, half the slack for centred, all of it for right, never negative (a line that overflowed stays at its start).
+// By hand: slack 1000 - 400 = 600, so centre 300 and right 600; slack 1001 - 400 = 601 centres at 300 (truncated).
+lp_dx(int al, int avail, int w) {
+  int dx = 0;
+  if(al == (import word_al_center)) {
+    dx = (avail - w) / 2;
+  }
+  if(al == (import word_al_right)) {
+    dx = avail - w;
+  }
+} chain (int al, int avail, int w) {
+  dx = fx_max(dx, 0);
+} return int dx;
+(0, 1000, 400):(0)
+(1, 1000, 400):(300)
+(2, 1000, 400):(600)
+(2, 100, 400):(0)
+(1, 1001, 400):(300)
+(3, 1000, 400):(0)
+
+// Adds dx to the pen entries lo..hi of a line, which is how alignment moves it.
+lp_shift(Para p, int lo, int hi, int dx) {
+  int[] pen = p.lay.pen;
+  int k = lo;
+  while(k <= hi) {
+    pen[k] = pen[k] + dx;
+    k = k + 1;
+  }
+} return void;
+(Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [0, 683, 1366], -1), 0), 0, 2, 100):(Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [100, 783, 1466], -1), 0), 0, 2, 100)
+(Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [0, 683, 1366], -1), 0), 1, 2, -5):(Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [0, 678, 1361], -1), 0), 1, 2, -5)

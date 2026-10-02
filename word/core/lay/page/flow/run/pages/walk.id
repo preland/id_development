@@ -1,0 +1,41 @@
+// The first line of a paragraph records where the paragraph's top is in the continuous document: pages one sheet and one gap apart, the top margin down to the text area, then the paragraph's own top on its page.
+lay_top(View lgv, int lgi, int lgj, int[] lgs) {
+  int lgp = lgv.pages.count - 1;
+  int lgm = lay_margin(lgv.doc, 0);
+  int lgt = lgp * (lay_sheet(lgv.doc, 1) + (import word_lay_gap)) + lgm + lgs[2];
+} chain (View lgv, int lgi, int lgj, int[] lgs) {
+  if(lgj == 0) {
+    lset(lgv.pages.tops, lgi, lgt);
+  }
+} return void;
+given lp_t_new given lg_t_s0(0, 0, 300) given lay_page_open((import lp_t_v), 0, 0) given lg_t_zeros(1) ((import lp_t_v), 0, 0, (import lg_t_s)):() then lg_t_tops:("6444,")
+given lp_t_new given lg_t_s0(0, 0, 300) given lay_page_open((import lp_t_v), 0, 0) given lg_t_zeros(1) ((import lp_t_v), 0, 1, (import lg_t_s)):() then lg_t_tops:("0,")
+given lp_t_new given lg_t_s0(0, 0, 300) given lay_page_open((import lp_t_v), 0, 0) given lay_page_open((import lp_t_v), 0, 5) given lg_t_zeros(1) ((import lp_t_v), 0, 0, (import lg_t_s)):() then lg_t_tops:("79822,")
+
+
+// Paginates the document: pages are filled with paragraphs in order, a paragraph is split between pages at a line, and a paragraph that asks for a break starts a page. Every paragraph must have been laid out (lay_all). starts then holds the start of every page, and one more entry (the paragraph count, line 0) that ends the last; tops holds each paragraph's top in the continuous document. From is the paragraph the change began at, kept for the incremental pass that B3b adds; this one always walks everything.
+lay_paginate(View lgv, int lgfrom) {
+  lay_pages_reset(lgv);
+  int[] lgs = [0, 0, 0];
+  int lgi = 0;
+} chain (View lgv, int lgfrom) {
+  while(lgi < len(lgv.doc.body.paras)) {
+    lay_place(lgv, lgi, lgs);
+    lgi = lgi + 1;
+  }
+  lay_pages_close(lgv);
+} return void;
+given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_paras(8) given lay_all((import lp_t_v)) ((import lp_t_v), 0):() then lg_t_starts:("0,0,6,0,8,0,") then lg_t_tops:("640,2240,3840,5440,7040,8640,14976,16576,")
+given lp_t_font given lp_t_paras(3) given lg_t_brk(1) given lay_all((import lp_t_v)) ((import lp_t_v), 0):() then lg_t_starts:("0,0,1,0,3,0,") then lg_t_tops:("6144,79522,81122,")
+given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_ins(0, "AAAAAAAAAAAAAAAAAAAAAAAAAAAA") given lay_all((import lp_t_v)) ((import lp_t_v), 0):() then lg_t_starts:("0,0,0,9,1,0,") then lg_t_tops:("640,")
+given lp_t_font given lay_all((import lp_t_v)) ((import lp_t_v), 0):() then lg_t_starts:("0,0,1,0,") then lg_t_count:(1)
+
+
+// The sentinel that ends the last page: the paragraph count and line 0.
+lay_pages_close(View lgv) {
+  push(lgv.pages.starts, len(lgv.doc.body.paras));
+  push(lgv.pages.starts, 0);
+} return void;
+given lp_t_new given lp_t_paras(3) ((import lp_t_v)):() then lg_t_starts:("3,0,")
+given lp_t_new ((import lp_t_v)):() then lg_t_starts:("1,0,")
+

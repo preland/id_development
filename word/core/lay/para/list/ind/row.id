@@ -1,0 +1,32 @@
+// One cell of list definition lid's level lvl (offsets word_l_kind ... word_l_hang), or 0 when there is no such list or level: list 0 means no list, and a level the definition does not have reads as 0.
+lp_lrow(View v, int lid, int lvl, int off) {
+  int val = 0;
+  if(lid > 0 && lid < len(v.doc.fmt.sty.lists)) {
+    val = lp_cell(v.doc.fmt.sty.lists[lid].levels, fx_max(lvl, 0) * (import word_l_stride) + off);
+  }
+} return int val;
+given lp_t_new ((import lp_t_v), 1, 0, 3):(720)
+given lp_t_new ((import lp_t_v), 1, 1, 3):(1440)
+given lp_t_new ((import lp_t_v), 2, 1, 1):(1)
+given lp_t_new ((import lp_t_v), 0, 0, 3):(0)
+given lp_t_new ((import lp_t_v), 9, 0, 3):(0)
+given lp_t_new ((import lp_t_v), 1, 7, 3):(0)
+
+// The indent (field word_p_left or word_p_first) a paragraph that is not set directly gets, in twips: a list item takes its level's left indent, and its hanging as a negative first-line indent; anything else takes what its style chain says. The right indent never comes from a list.
+lp_lind(View v, int i, int field) {
+  Para p = v.doc.body.paras[i];
+  int tw = style_eff_p(v.doc.fmt, p.pprop, field);
+  int lid = lp_list(v, i);
+} chain (View v, int i, int field) {
+  int lvl = lp_level(v, i);
+  if(lid > 0 && field == (import word_p_left)) {
+    tw = lp_lrow(v, lid, lvl, (import word_l_left));
+  }
+  if(lid > 0 && field == (import word_p_first)) {
+    tw = 0 - lp_lrow(v, lid, lvl, (import word_l_hang));
+  }
+} return int tw;
+given lp_t_new given lp_t_row(0, 9, 1) ((import lp_t_v), 0, 2):(720)
+given lp_t_new given lp_t_row(0, 9, 1) ((import lp_t_v), 0, 4):(-360)
+given lp_t_new given lp_t_row(0, 9, 1) ((import lp_t_v), 0, 3):(0)
+given lp_t_new ((import lp_t_v), 0, 2):(0)

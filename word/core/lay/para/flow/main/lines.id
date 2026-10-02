@@ -1,0 +1,31 @@
+// Lays out one line of paragraph i from code point lo, starting at x0 and ending at the right edge xr, and returns the offset where the next line starts.
+// By hand at 16 px (B and E 683): from 0 to 3500 "BBBB EEEE" breaks after the space, at 5, and the line is 2732 wide. From 1000 to 3500 only 2500 lu are left, so the fourth B (2732) does not fit and the word breaks at the glyph, at 3, with a line 2049 wide whose pen starts at 1000.
+lp_one(View v, int i, int lo, int x0, int xr) {
+  int avail = xr - x0;
+  int hi = lp_scan(v, i, lo, x0, avail);
+  lp_close(v, i, lo, hi, avail);
+} return int hi;
+given lp_t_font given lp_t_ins(0, "BBBB EEEE") given lp_t_hset(0) ((import lp_t_v), 0, 0, 0, 3500):(5) then lp_t_l0:([0, 5, 0, 896, 192, 2732])
+given lp_t_font given lp_t_ins(0, "BBBB EEEE") given lp_t_hset(0) ((import lp_t_v), 0, 0, 1000, 3500):(3) then lp_t_l0:([0, 3, 0, 896, 192, 2049]) then lp_t_p0:([1000, 1683, 2366, 3049, 3732])
+given lp_t_font given lp_t_ins(0, "BBBB EEEE") given lp_t_hset(0) ((import lp_t_v), 0, 0, 0, 9999):(9) then lp_t_l0:([0, 9, 0, 896, 192, 5749])
+
+// Lays out every line of paragraph i inside a text area wd lu wide: the first line starts at lp_xfirst, the others at the left indent, all end at the width minus the right indent. An empty paragraph gets its one line. lay.h must hold the running height the lines start at.
+// By hand at 16 px (B and E 683, line height 1088): in 3500 lu "BBBB EEEE" is the lines "BBBB " and "EEEE", each 2732 wide, the second 1088 lower. A left indent of 720 twips (3072 lu) with a first-line indent of 360 (1536) starts the first line at 4608 with 3392 left, so the break is the same, and the second line starts at 3072. A right indent of 720 twips in 6500 lu leaves 3428 and breaks a line that would have fit whole. An empty paragraph is one line at the first-line start.
+lp_lines(View v, int i, int wd) {
+  Para p = v.doc.body.paras[i];
+  int xl = lp_ind(v, i, (import word_p_left));
+  int xr = wd - lp_ind(v, i, (import word_p_right));
+} chain (View v, int i, int wd) {
+  int x0 = lp_xfirst(v, i);
+  int lo = 0;
+  int n = len(p.txt.cps);
+} chain (View v, int i, int wd) {
+  while(lo < n || len(p.lay.lines) == 0) {
+    lo = lp_one(v, i, lo, x0, xr);
+    x0 = xl;
+  }
+} return void;
+given lp_t_font given lp_t_ins(0, "BBBB EEEE") given lp_t_hset(0) ((import lp_t_v), 0, 3500):((import lp_t_v), 0, 3500) then lp_t_l0:([0, 5, 0, 896, 192, 2732, 5, 9, 1088, 896, 192, 2732]) then lp_t_p0:([0, 683, 1366, 2049, 2732, 0, 683, 1366, 2049, 2732]) then lp_t_h0:(2176)
+given lp_t_font given lp_t_ins(0, "BBBB EEEE") given lp_t_row(0, 2, 720) given lp_t_row(0, 4, 360) given lp_t_hset(0) ((import lp_t_v), 0, 8000):((import lp_t_v), 0, 8000) then lp_t_p0:([4608, 5291, 5974, 6657, 7340, 3072, 3755, 4438, 5121, 5804]) then lp_t_l0:([0, 5, 0, 896, 192, 2732, 5, 9, 1088, 896, 192, 2732])
+given lp_t_font given lp_t_ins(0, "BBBB EEEE") given lp_t_row(0, 3, 720) given lp_t_hset(0) ((import lp_t_v), 0, 6500):((import lp_t_v), 0, 6500) then lp_t_l0:([0, 5, 0, 896, 192, 2732, 5, 9, 1088, 896, 192, 2732])
+given lp_t_font given lp_t_hset(0) ((import lp_t_v), 0, 3500):((import lp_t_v), 0, 3500) then lp_t_l0:([0, 0, 0, 896, 192, 0]) then lp_t_p0:([0]) then lp_t_h0:(1088)

@@ -1,0 +1,23 @@
+// Test check: the paragraph kind of paragraph 0 of the test document.
+lg_t_kind() {
+  Doc lgd = (import lp_t_d);
+  int lgk = tab_get(lgd.fmt.paras, lgd.body.paras[0].pprop, (import word_p_kind));
+} return int lgk;
+given lp_t_new ():(0)
+given lp_t_new given lg_t_obj(0) ():(1)
+
+// Test setup: paragraph lgi of the test document holds one inline object's marker, a picture on a line of its own.
+lg_t_mark(int lgi) {
+  Doc lgd = (import lp_t_d);
+  int[] lgmk = [(import word_o_marker)];
+  text_insert(lgd.body.paras[lgi].txt, 0, lgmk, 0);
+} return void;
+given lp_t_new (0):() then lp_t_c0:([983040])
+given lp_t_new given lp_t_ins(0, "x") (0):() then lp_t_c0:([983040, 120])
+
+// Test setup: paragraph lgi of the test document asks for a page break before it.
+lg_t_brk(int lgi) {
+  lp_t_row(lgi, (import word_p_brk), 1);
+} return void;
+given lp_t_new given lp_t_paras(2) (0):() then lg_t_brkof:(1)
+given lp_t_new given lp_t_paras(2) (1):() then lg_t_brkof:(0)

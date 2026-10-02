@@ -1,0 +1,32 @@
+// Test setup: character rows built from the test document's own table and exported by id, so a case can name them: lp_t_cb bold, lp_t_cs superscript, lp_t_cd subscript, lp_t_cz 24 pt (48 half-points).
+lp_t_rows() {
+  Doc d = (import lp_t_d);
+  int bold = tab_with_bits(d.fmt.chars, 0, 1, 1);
+  int sup = tab_with_bits(d.fmt.chars, 0, 16, 1);
+} chain () {
+  int sub = tab_with_bits(d.fmt.chars, 0, 32, 1);
+  int big = tab_with(d.fmt.chars, 0, (import word_c_size), 48);
+  export int lp_t_cb = bold;
+} chain () {
+  export int lp_t_cs = sup;
+  export int lp_t_cd = sub;
+  export int lp_t_cz = big;
+} return void;
+given lp_t_new ():() then lp_t_cinfo:([1, 16, 32, 48])
+given lp_t_new ():() then calls tab_with:[1]
+
+// Test setup: starts the pen of paragraph 0 of the test view at xp, so a case can place code points from offset 0.
+lp_t_pen0(int xp) {
+  Doc d = (import lp_t_d);
+  lp_put(d.body.paras[0].lay.pen, 0, xp);
+} return void;
+given lp_t_new (7):(7) then lp_t_p0:([7])
+given lp_t_new (0):(0) then lp_t_p0:([0])
+
+// Test setup: sets the running height of paragraph 0 of the test view, which lp_close appends lines at.
+lp_t_hset(int h) {
+  Doc d = (import lp_t_d);
+  d.body.paras[0].lay.h = h;
+} return void;
+given lp_t_new (500):(500) then lp_t_h0:(500)
+given lp_t_new (0):(0) then lp_t_h0:(0)

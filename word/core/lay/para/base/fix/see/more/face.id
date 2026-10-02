@@ -1,0 +1,23 @@
+// Test check: how many faces the test view has cached.
+lp_t_nf() {
+  Face fa = (import lp_t_f);
+  int n = len(fa.hnd);
+} return int n;
+given lp_t_new ():(0)
+given lp_t_font ():(4)
+
+// Test check: 1 when the three handles lp_t_font seeded are distinct and open.
+lp_t_hd() {
+  int ok = (import lp_t_h9) >= 0 && (import lp_t_h9) != (import lp_t_h16) && (import lp_t_h16) != (import lp_t_h32) && (import lp_t_h9) != (import lp_t_h32);
+} return int ok;
+given lp_t_font ():(1)
+given lp_t_font given lp_t_ins(0, "x") ():(1)
+
+// Test helper: 1 when face_for answers the handle it has just cached, which is how a case checks the miss path without knowing what handle the machine's font layer gives.
+lp_t_same(Face fa, Doc d, int cprop) {
+  int fh = face_for(fa, d, 0, cprop, 100);
+  int last = fa.hnd[len(fa.hnd) - 1];
+  int same = fh == last;
+} return int same;
+given lp_t_new given gui_font_init given lp_t_rows given lp_t_marks ((import lp_t_f), (import lp_t_d), (import lp_t_cs)):(1) then calls gui_face:("serif", 9, 0) then lp_t_nf:(7)
+given lp_t_new given gui_font_init given lp_t_rows given lp_t_marks ((import lp_t_f), (import lp_t_d), 0):(0) then lp_t_nf:(6)

@@ -1,0 +1,19 @@
+// The number of the numbered item i of its list: its level's start value plus the items of the same list at the same level before it, counted backwards until an item of the same list at a shallower level, so a deeper item neither counts nor breaks the count and a shallower one restarts it. Nothing is stored; the count is recomputed from the paragraphs.
+lay_number(View v, int i) {
+  int lid = lp_list(v, i);
+  int lvl = lp_level(v, i);
+  int cnt = lp_lrow(v, lid, lvl, (import word_l_start));
+} chain (View v, int i) {
+  int j = i - 1;
+  int res = 0;
+  while(j >= 0 && res < 2) {
+    res = lp_nd(v, j, lid, lvl);
+    cnt = cnt + (res == 1);
+    j = j - 1;
+  }
+} return int cnt;
+given lp_t_new given lp_t_paras(5) given lp_t_item(0, 2, 0) given lp_t_item(1, 2, 0) given lp_t_item(2, 2, 0) given lp_t_item(3, 2, 1) given lp_t_item(4, 2, 0) ((import lp_t_v), 4):(4)
+given lp_t_new given lp_t_paras(5) given lp_t_item(0, 2, 0) given lp_t_item(1, 2, 0) given lp_t_item(2, 2, 0) given lp_t_item(3, 2, 1) given lp_t_item(4, 2, 0) ((import lp_t_v), 3):(1)
+given lp_t_new given lp_t_paras(5) given lp_t_item(0, 2, 0) given lp_t_item(1, 2, 0) given lp_t_item(2, 2, 0) given lp_t_item(3, 2, 1) given lp_t_item(4, 2, 0) ((import lp_t_v), 0):(1)
+given lp_t_new given lp_t_paras(5) given lp_t_item(0, 2, 0) given lp_t_item(1, 2, 1) given lp_t_item(2, 2, 1) given lp_t_item(3, 2, 0) given lp_t_item(4, 2, 1) ((import lp_t_v), 4):(1)
+given lp_t_new given lp_t_paras(5) given lp_t_item(0, 2, 0) given lp_t_item(1, 2, 1) given lp_t_item(2, 2, 1) given lp_t_item(3, 2, 0) given lp_t_item(4, 2, 1) ((import lp_t_v), 2):(2)

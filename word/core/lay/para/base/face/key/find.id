@@ -1,0 +1,26 @@
+// The handle cached for (font index, pixel size, style bits), or -1 when there is none. fa.key holds three ints per face, in the order of fa.hnd.
+face_find(Face fa, int fi, int px, int fs) {
+  int j = 0;
+  int got = -1;
+  while(j < len(fa.hnd) && got < 0) {
+    if(fa.key[j * 3] == fi && fa.key[j * 3 + 1] == px && fa.key[j * 3 + 2] == fs) {
+      got = fa.hnd[j];
+    }
+    j = j + 1;
+  }
+} return int got;
+(Face([7, 9], [0, 16, 0, 1, 16, 2], 100), 1, 16, 2):(9)
+(Face([7, 9], [0, 16, 0, 1, 16, 2], 100), 1, 16, 0):(-1)
+(Face([7, 9], [0, 16, 0, 1, 16, 2], 100), 0, 16, 0):(7)
+(Face([], [], 100), 0, 16, 0):(-1)
+
+// Remembers handle fh for (font index, pixel size, style bits), so the next face_find answers with it.
+face_add(Face fa, int fh, int fi, int px, int fs) {
+  push(fa.hnd, fh);
+  push(fa.key, fi);
+  push(fa.key, px);
+} chain (Face fa, int fh, int fi, int px, int fs) {
+  push(fa.key, fs);
+} return void;
+(Face([], [], 100), 5, 0, 16, 1):(Face([5], [0, 16, 1], 100), 5, 0, 16, 1)
+(Face([5], [0, 16, 1], 100), 6, 2, 9, 3):(Face([5, 6], [0, 16, 1, 2, 9, 3], 100), 6, 2, 9, 3)

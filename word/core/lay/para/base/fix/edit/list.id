@@ -1,0 +1,27 @@
+// Test setup: n paragraphs, each holding the letter A, in the test document.
+lp_t_paras(int n) {
+  int j = 1;
+  lp_t_ins(0, "A");
+  while(j < n) {
+    lp_t_split(j - 1, 1);
+    lp_t_ins(j, "A");
+    j = j + 1;
+  }
+} return void;
+given lp_t_new (3):(3) then lp_t_np:(3)
+given lp_t_new (1):(1) then lp_t_np:(1)
+
+// Test setup: makes paragraph i an item of list lid at level lvl.
+lp_t_item(int i, int lid, int lvl) {
+  lp_t_row(i, (import word_p_list), lid);
+  lp_t_row(i, (import word_p_level), lvl);
+} return void;
+given lp_t_new (0, 2, 1):(0, 2, 1) then lp_t_pr0:([0, -1, -1, -1, -1, -1, -1, -1, 0, 2, 1, 0])
+given lp_t_new (0, 1, 0):(0, 1, 0) then lp_t_pr0:([0, -1, -1, -1, -1, -1, -1, -1, 0, 1, 0, 0])
+
+// Test setup: lays out paragraph 0 of the test view in a text area wd lu wide.
+lp_t_lay(int wd) {
+  lay_para((import lp_t_v), 0, wd);
+} return void;
+given lp_t_font given lp_t_ins(0, "AB") (6000):(6000) then lp_t_l0:([0, 2, 0, 896, 192, 1366])
+given lp_t_font given lp_t_ins(0, "AB") (6000):(6000) then calls lay_para:[1]

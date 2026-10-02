@@ -1,0 +1,30 @@
+// Test setup: the test document's sheet is w by h twips with the margins t, r, b and l (top, right, bottom, left), in the exported test document lp_t_d.
+lg_t_page(int lgw, int lgh, int lgt, int lgr, int lgb, int lgl) {
+  Doc lgd = (import lp_t_d);
+  lset(lgd.body.page.size, 0, lgw);
+  lset(lgd.body.page.size, 1, lgh);
+} chain (int lgw, int lgh, int lgt, int lgr, int lgb, int lgl) {
+  lset(lgd.body.page.margin, 0, lgt);
+  lset(lgd.body.page.margin, 1, lgr);
+  lset(lgd.body.page.margin, 2, lgb);
+} chain (int lgw, int lgh, int lgt, int lgr, int lgb, int lgl) {
+  lset(lgd.body.page.margin, 3, lgl);
+} return void;
+given lp_t_new (1, 2, 3, 4, 5, 6):() then lg_t_page_dump:("1,2,3,4,5,6")
+given lp_t_new (11906, 16838, 1440, 1440, 1440, 1440):() then lg_t_page_dump:("11906,16838,1440,1440,1440,1440")
+
+// Test check: the sheet and the margins of the test document as w,h,top,right,bottom,left.
+lg_t_page_dump() {
+  Doc lgd = (import lp_t_d);
+  int[] lgsz = lgd.body.page.size;
+  string lgz = lgsz[0] + "," + lgsz[1] + "," + lgd.body.page.margin[0] + "," + lgd.body.page.margin[1] + "," + lgd.body.page.margin[2] + "," + lgd.body.page.margin[3];
+} return string lgz;
+given lp_t_new ():("11906,16838,1440,1440,1440,1440")
+given lp_t_new given lg_t_page(1, 2, 3, 4, 5, 6) ():("1,2,3,4,5,6")
+
+// Test setup: paragraph lgi of the test document is an opaque block (paragraph kind 1), as a table is.
+lg_t_obj(int lgi) {
+  lp_t_row(lgi, (import word_p_kind), 1);
+} return void;
+given lp_t_new (0):() then lg_t_kind:(1)
+given lp_t_new given lp_t_paras(2) (1):() then lg_t_kind:(0)

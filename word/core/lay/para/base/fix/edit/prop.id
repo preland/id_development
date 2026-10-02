@@ -1,0 +1,26 @@
+// Test setup: sets field of paragraph i's property row to value (the row is interned again, never edited).
+lp_t_row(int i, int field, int value) {
+  Doc d = (import lp_t_d);
+  Para p = d.body.paras[i];
+  p.pprop = tab_with(d.fmt.paras, p.pprop, field, value);
+} return void;
+given lp_t_new (0, 5, 600):(0, 5, 600) then lp_t_pr0:([0, -1, -1, -1, -1, 600, -1, -1, 0, 0, 0, 0])
+given lp_t_new (0, 7, 150):(0, 7, 150) then lp_t_pr0:([0, -1, -1, -1, -1, -1, -1, 150, 0, 0, 0, 0])
+
+// Test setup: turns character flag bits on over lo..hi-1 of paragraph i, as the bold button would.
+lp_t_bits(int i, int lo, int hi, int bits) {
+  Doc d = (import lp_t_d);
+  Text t = d.body.paras[i].txt;
+  text_patch_bits(t, lo, hi, d.fmt.chars, bits, 1);
+} return void;
+given lp_t_new given lp_t_ins(0, "ABCD") (0, 1, 3, 1):(0, 1, 3, 1) then lp_t_nr0:(3)
+given lp_t_new given lp_t_ins(0, "ABCD") (0, 0, 4, 2):(0, 0, 4, 2) then lp_t_nr0:(1)
+
+// Test setup: sets the font size to hp half-points over lo..hi-1 of paragraph i.
+lp_t_size(int i, int lo, int hi, int hp) {
+  Doc d = (import lp_t_d);
+  Text t = d.body.paras[i].txt;
+  text_patch(t, lo, hi, d.fmt.chars, (import word_c_size), hp);
+} return void;
+given lp_t_new given lp_t_ins(0, "ABCD") (0, 1, 3, 48):(0, 1, 3, 48) then lp_t_nr0:(3)
+given lp_t_new given lp_t_ins(0, "ABCD") (0, 0, 4, 24):(0, 0, 4, 24) then lp_t_nr0:(1)

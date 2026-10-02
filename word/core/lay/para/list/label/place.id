@@ -1,0 +1,21 @@
+// Where the label of paragraph i starts, in lu from the left edge of the text area: the left indent plus the first-line indent, which for a hanging list item is the left indent minus the hanging, so the label sits at left - hanging.
+lay_label_x(View v, int i) {
+  int xp = lp_ind(v, i, (import word_p_left)) + lp_ind(v, i, (import word_p_first));
+} return int xp;
+given lp_t_new given lp_t_row(0, 9, 1) ((import lp_t_v), 0):(1536)
+given lp_t_new given lp_t_row(0, 2, 720) given lp_t_row(0, 4, 360) ((import lp_t_v), 0):(4608)
+given lp_t_new ((import lp_t_v), 0):(0)
+
+// Where the first line's text starts: left + first, and for a list item no earlier than the left indent and no earlier than the end of the label, so the label never overlaps the text.
+// By hand: a bullet item at level 0 has left 3072 and hanging 1536, so the label is at 1536 and the text at 3072 as long as the label is narrower than 1536.
+lp_xfirst(View v, int i) {
+  int xl = lp_ind(v, i, (import word_p_left));
+  int xp = lay_label_x(v, i);
+  if(lp_list(v, i) > 0) {
+    xp = fx_max(xl, xp + lp_lw(v, i));
+  }
+} return int xp;
+given lp_t_font given lp_t_ins(0, "B") given lp_t_row(0, 9, 1) ((import lp_t_v), 0):(3072)
+given lp_t_font given lp_t_ins(0, "B") given lp_t_row(0, 9, 2) given lp_t_row(0, 4, -100) ((import lp_t_v), 0):(3501)
+given lp_t_font given lp_t_ins(0, "B") given lp_t_row(0, 4, 360) ((import lp_t_v), 0):(1536)
+given lp_t_font given lp_t_ins(0, "B") given lp_t_row(0, 2, 720) given lp_t_row(0, 4, -360) ((import lp_t_v), 0):(1536)
