@@ -1,0 +1,26 @@
+// An Enter or page break as one undo step: the selection is replaced, the paragraph split (see ed_split), and the step closed.
+ed_enter_do(Doc d, Ctl ctl, int brk) {
+  ed_begin_over(d, ctl);
+  ed_split(d, ctl, brk);
+  ed_close(ctl);
+} return void;
+given fx_setup("abcd") given fx_at(0, 1, 0, 3) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("a|d") then fx_hist:("u1 r0 o-1 n2")
+given fx_setup("abcd") given fx_at(0, 2, 0, 2) ((import fxd), (import fxc), 1):((import fxd), (import fxc), 1) then fx_show:("ab|{9}cd")
+
+// Enter: the selection is replaced by a paragraph break. The new paragraph keeps the row of the one it was split from, except that at the end of a paragraph it takes the style that follows (Heading 1 then Normal). Ignored in a block the model does not edit.
+ed_enter(Doc d, Ctl ctl) {
+  if(ed_solid(d, ctl.sel.caret.para) == 0) {
+    ed_enter_do(d, ctl, 0);
+  }
+} return void;
+given fx_setup("ab") given fx_at(0, 1, 0, 1) ((import fxd), (import fxc)):((import fxd), (import fxc)) then fx_show:("a|b") then fx_sel:("1:0-1:0")
+given fx_setup("ab") given fx_opaque(0) ((import fxd), (import fxc)):((import fxd), (import fxc)) then fx_hist:("u0 r0 o-1 n0")
+
+// Ctrl+Enter: a page break before the text after the caret, which starts a new paragraph with the break flag set.
+ed_page_break(Doc d, Ctl ctl) {
+  if(ed_solid(d, ctl.sel.caret.para) == 0) {
+    ed_enter_do(d, ctl, 1);
+  }
+} return void;
+given fx_setup("abcd") given fx_at(0, 2, 0, 2) ((import fxd), (import fxc)):((import fxd), (import fxc)) then fx_show:("ab|{9}cd")
+given fx_setup("ab") given fx_opaque(0) ((import fxd), (import fxc)):((import fxd), (import fxc)) then fx_hist:("u0 r0 o-1 n0")

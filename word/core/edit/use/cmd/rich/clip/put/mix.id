@@ -1,0 +1,21 @@
+// Pastes the fragment when rich is 1 and the plain text otherwise, in the open undo step.
+ed_paste_mix(Doc d, Ctl ctl, string text, int rich) {
+  if(rich == 1) {
+    ed_paste_rich(d, ctl);
+  } else {
+    ed_paste_plain(d, ctl, text);
+  }
+} return void;
+given fx_setup("ab") given fx_at(0, 0, 0, 1) given fx_copied given fx_at(0, 2, 0, 2) given txn_begin((import fxc)) ((import fxd), (import fxc), "zz", 1):((import fxd), (import fxc), "zz", 1) then fx_show:("aba")
+given fx_setup("ab") given fx_at(0, 0, 0, 1) given fx_copied given fx_at(0, 2, 0, 2) given txn_begin((import fxc)) ((import fxd), (import fxc), "zz", 0):((import fxd), (import fxc), "zz", 0) then fx_show:("abzz")
+
+// A paste as one undo step: the selection is replaced, by the copied fragment when text is what that fragment's plain text says (the user pasted what was copied here) and by text as plain text otherwise.
+ed_paste_do(Doc d, Ctl ctl, string text) {
+  int rich = len(ctl.clip.txts) > 0 && text == frag_plain(ctl.clip);
+  ed_begin_over(d, ctl);
+  ed_paste_mix(d, ctl, text, rich);
+} chain (Doc d, Ctl ctl, string text) {
+  ed_close(ctl);
+} return void;
+given fx_setup("a*b*c") given fx_at(0, 1, 0, 2) given fx_copied given fx_at(0, 3, 0, 3) ((import fxd), (import fxc), "b"):((import fxd), (import fxc), "b") then fx_show:("a*b*c*b*") then fx_hist:("u1 r0 o-1 n1")
+given fx_setup("a*b*c") given fx_at(0, 1, 0, 2) given fx_copied given fx_at(0, 3, 0, 3) ((import fxd), (import fxc), "c"):((import fxd), (import fxc), "c") then fx_show:("a*b*cc")

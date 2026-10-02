@@ -1,0 +1,23 @@
+// Test fixture: the fixture selection as "para:off-para:off", anchor first.
+fx_sel() {
+  Ctl ctl = (import fxc);
+  string text = fx_sel_of(ctl.sel);
+} return string text;
+given fx_blank ():("0:0-0:0")
+given fx_blank given fx_at(1, 2, 3, 4) ():("1:2-3:4")
+
+// Test fixture: puts the fixture selection at para, off (anchor) to para2, off2 (caret).
+fx_at(int para, int off, int para2, int off2) {
+  Ctl ctl = (import fxc);
+  Sel sel = sel_make(para, off, para2, off2);
+  sel_load(ctl.sel, sel);
+} return void;
+given fx_blank (0, 1, 2, 3):() then fx_sel:("0:1-2:3")
+given fx_blank (4, 4, 4, 4):() then fx_sel:("4:4-4:4")
+
+// Test fixture: the canonical dump of the fixture document, which an edit and its undo must leave unchanged.
+fx_dump() {
+  string text = doc_dump((import fxd));
+} return string text;
+given fx_setup("a") ():("G 11906,16838,0, 1440,1440,1440,1440, 0,0,0,\nP0 97, 1:0:-1,")
+given fx_setup("") ():("G 11906,16838,0, 1440,1440,1440,1440, 0,0,0,\nP0  0:0:-1,")

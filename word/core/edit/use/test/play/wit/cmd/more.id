@@ -1,0 +1,17 @@
+// Test fixture: for the paste command of the table: copies the selection and then puts the caret at paragraph row[5], offset row[6], which is what the user did before pressing paste. None of that is an edit, so the witness takes its first snapshot after it.
+fx_pre_copy(Doc d, Ctl ctl, int[] row) {
+  Pos ps = pos_new(row[5], row[6]);
+  ed_copy(d, ctl);
+  ed_place(d, ctl, ps, 0);
+} return void;
+given fx_rich given fx_at(0, 1, 1, 1) ((import fxd), (import fxc), [20, 0, 1, 1, 1, 2, 1, 0]):((import fxd), (import fxc), [20, 0, 1, 1, 1, 2, 1, 0]) then fx_sel:("2:1-2:1") then fx_clip:("b*cd*e|f")
+given fx_rich given fx_at(0, 1, 0, 3) ((import fxd), (import fxc), [20, 0, 1, 0, 3, 3, 0, 0]):((import fxd), (import fxc), [20, 0, 1, 0, 3, 3, 0, 0]) then fx_sel:("3:0-3:0") then fx_clip:("b*c*")
+
+// Test fixture: replaces every code point row[5] by two of row[6], matching case, as Replace All.
+fx_swap_two(Doc d, Ctl ctl, int[] row) {
+  int[] needle = [row[5]];
+  int[] with = [row[6], row[6]];
+  find_replace_all(d, ctl, needle, with, 1);
+} return void;
+given fx_rich ((import fxd), (import fxc), [21, 0, 0, 0, 0, 98, 90, 0]):((import fxd), (import fxc), [21, 0, 0, 0, 0, 98, 90, 0]) then fx_show:("aZZ*cd*e|fgh|ij*k*|**")
+given fx_rich ((import fxd), (import fxc), [21, 0, 0, 0, 0, 122, 90, 0]):((import fxd), (import fxc), [21, 0, 0, 0, 0, 122, 90, 0]) then fx_hist:("u0 r0 o-1 n0")

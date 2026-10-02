@@ -1,0 +1,43 @@
+// A copy of code points lo..hi-1 of text t with their runs, sharing nothing with t. Its revision counter starts at 0, since a fragment is not edited.
+clip_text(Text t, int lo, int hi) {
+  Text nt = text_copy(t);
+  text_delete(nt, hi, len(nt.cps));
+  text_delete(nt, 0, lo);
+} chain (Text t, int lo, int hi) {
+  nt.rev = 0;
+} return Text nt;
+(Text([1, 2, 3, 4], [Run(2, 0, -1), Run(2, 5, -1)], 3), 1, 3):(Text([2, 3], [Run(1, 0, -1), Run(1, 5, -1)], 0))
+(Text([1, 2], [Run(2, 7, -1)], 0), 1, 1):(Text([], [Run(0, 7, -1)], 0))
+
+// Adds paragraph i's share of the selection pa to pb (see clip_frag) to the lists txts and pprops.
+clip_para(Doc d, int i, Pos pa, Pos pb, Text[] txts, int[] pprops) {
+  int lo = 0;
+  int hi = para_len(d.body.paras[i]);
+  if(i == pa.para) {
+    lo = pa.off;
+  }
+} chain (Doc d, int i, Pos pa, Pos pb, Text[] txts, int[] pprops) {
+  if(i == pb.para) {
+    hi = pb.off;
+  }
+  push(txts, clip_text(d.body.paras[i].txt, lo, hi));
+  push(pprops, d.body.paras[i].pprop);
+} return void;
+given fx_setup("abc|def") ((import fxd), 1, Pos(0, 1), Pos(1, 2), [], []):((import fxd), 1, Pos(0, 1), Pos(1, 2), [Text([100, 101], [Run(2, 0, -1)], 0)], [0])
+given fx_setup("abc|def") ((import fxd), 0, Pos(0, 1), Pos(1, 2), [], []):((import fxd), 0, Pos(0, 1), Pos(1, 2), [Text([98, 99], [Run(2, 0, -1)], 0)], [0])
+
+// The fragment of the selection from pa to pb: one copy of text per paragraph (the first from pa.off, the last up to pb.off) and each paragraph's row. partial is 1 when the copy lies inside one paragraph and so carries no paragraph break.
+clip_frag(Doc d, Pos pa, Pos pb) {
+  Text[] txts = [];
+  int[] pprops = [];
+  int i = pa.para;
+} chain (Doc d, Pos pa, Pos pb) {
+  while(i <= pb.para) {
+    clip_para(d, i, pa, pb, txts, pprops);
+    i = i + 1;
+  }
+  int one = pa.para == pb.para;
+  Frag frag = Frag(txts, pprops, one);
+} return Frag frag;
+given fx_setup("abc|def") ((import fxd), Pos(0, 1), Pos(0, 2)):(Frag([Text([98], [Run(1, 0, -1)], 0)], [0], 1))
+given fx_setup("abc|def") ((import fxd), Pos(0, 1), Pos(1, 2)):(Frag([Text([98, 99], [Run(2, 0, -1)], 0), Text([100, 101], [Run(2, 0, -1)], 0)], [0, 0], 0))

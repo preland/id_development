@@ -1,0 +1,28 @@
+// Find: the nearest match of needle (code points) from from, forward, or backward with ed_f_back in flags; ed_f_case in flags matches case. Answers 1 and writes the start of the match into spot, or answers 0. A match lies in one paragraph, and an empty needle matches nothing. To wrap around, the caller searches again from the start (or end) of the document.
+find_next(Doc d, Pos from, int[] needle, int flags, Pos spot) {
+  int res = 0;
+  if(len(needle) > 0) {
+    res = find_scan(d, from, needle, flags, spot);
+  }
+} return int res;
+given fx_setup("one two one") given fx_hit(9, 9) ((import fxd), Pos(0, 1), [111, 110, 101], 0, (import fxh)):(1) then fx_hit_str:("0:8")
+given fx_setup("one two one") given fx_hit(9, 9) ((import fxd), Pos(0, 0), [], 0, (import fxh)):(0) then fx_hit_str:("9:9")
+given fx_setup("One two") given fx_hit(9, 9) ((import fxd), Pos(0, 0), [111, 110, 101], 1, (import fxh)):(0)
+given fx_setup("One two") given fx_hit(9, 9) ((import fxd), Pos(0, 0), [111, 110, 101], 0, (import fxh)):(1) then fx_hit_str:("0:0")
+
+// The offsets of the matches of needle in paragraph p, ascending and not overlapping (the next search starts after the last match), ignoring ed_f_back. An empty needle has none.
+find_all(Para p, int[] needle, int flags) {
+  int[] ofs = [];
+  int fw = flags & ~(import ed_f_back);
+  int at = find_in(p, needle, 0, fw);
+} chain (Para p, int[] needle, int flags) {
+  while(at >= 0 && len(needle) > 0) {
+    push(ofs, at);
+    at = find_in(p, needle, at + len(needle), fw);
+  }
+} return int[] ofs;
+(Para(Text([97, 97, 97, 97, 97], [Run(5, 0, -1)], 0), Lay([], [], -1), 0), [97, 97], 0):([0, 2])
+(Para(Text([97, 98, 65, 66], [Run(4, 0, -1)], 0), Lay([], [], -1), 0), [97, 98], 0):([0, 2])
+(Para(Text([97, 98, 65, 66], [Run(4, 0, -1)], 0), Lay([], [], -1), 0), [97, 98], 1):([0])
+(Para(Text([97, 98], [Run(2, 0, -1)], 0), Lay([], [], -1), 0), [], 0):([])
+(Para(Text([97, 98, 97], [Run(3, 0, -1)], 0), Lay([], [], -1), 0), [97], 2):([0, 2])

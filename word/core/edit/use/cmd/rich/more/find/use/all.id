@@ -1,0 +1,33 @@
+// Cuts position ps (in place) into the document: a paragraph past the last becomes the last, an offset past the end of its paragraph becomes the end.
+pos_fit(Doc d, Pos ps) {
+  ps.para = fx_clamp(ps.para, 0, len(d.body.paras) - 1);
+  ps.off = fx_clamp(ps.off, 0, para_len(d.body.paras[ps.para]));
+} return void;
+given fx_setup("ab|c") ((import fxd), Pos(5, 9)):((import fxd), Pos(1, 1))
+given fx_setup("ab|c") ((import fxd), Pos(0, 1)):((import fxd), Pos(0, 1))
+
+// Cuts both ends of a selection into the document (see pos_fit), for after an edit that made text shorter.
+sel_fit(Doc d, Sel sel) {
+  pos_fit(d, sel.anchor);
+  pos_fit(d, sel.caret);
+} return void;
+given fx_setup("ab|c") ((import fxd), Sel(Pos(0, 9), Pos(7, 7), 5)):((import fxd), Sel(Pos(0, 2), Pos(1, 1), 5))
+given fx_setup("ab|c") ((import fxd), Sel(Pos(0, 1), Pos(1, 0), -1)):((import fxd), Sel(Pos(0, 1), Pos(1, 0), -1))
+
+// Replace All: every match of needle in the document becomes with, as one undo step (even when there are many); answers how many it replaced, and leaves no step at all when there is none. flags is as for find_next, except that the direction is ignored. The selection is cut into the shortened document.
+find_replace_all(Doc d, Ctl ctl, int[] needle, int[] with, int flags) {
+  txn_end(ctl);
+  int count = 0;
+  int i = 0;
+} chain (Doc d, Ctl ctl, int[] needle, int[] with, int flags) {
+  while(i < len(d.body.paras)) {
+    count = count + rep_para(d, ctl, i, needle, with, flags);
+    i = i + 1;
+  }
+  sel_fit(d, ctl.sel);
+  ed_close(ctl);
+} return int count;
+given fx_setup("ab ab|ab") ((import fxd), (import fxc), [97, 98], [120], 0):(3) then fx_show:("x x|x") then fx_hist:("u1 r0 o-1 n6")
+given fx_setup("ab ab|ab") ((import fxd), (import fxc), [122], [120], 0):(0) then fx_show:("ab ab|ab") then fx_hist:("u0 r0 o-1 n0")
+given fx_setup("Ab aB") ((import fxd), (import fxc), [97, 98], [], 1):(0) then fx_show:("Ab aB")
+given fx_setup("Ab aB") ((import fxd), (import fxc), [97, 98], [], 0):(2) then fx_show:(" ")

@@ -1,0 +1,33 @@
+// 1 when the code point at off in paragraph p starts a word: it is not a space (word-rule class 0) and the one before is a space or there is none.
+word_start(Para p, int off) {
+  int res = para_cls(p, off) != 0 && (off == 0 || para_cls(p, off - 1) == 0);
+} return int res;
+(Para(Text([97, 32, 98], [Run(3, 0, -1)], 0), Lay([], [], -1), 0), 0):(1)
+(Para(Text([97, 32, 98], [Run(3, 0, -1)], 0), Lay([], [], -1), 0), 1):(0)
+(Para(Text([97, 32, 98], [Run(3, 0, -1)], 0), Lay([], [], -1), 0), 2):(1)
+(Para(Text([97, 46], [Run(2, 0, -1)], 0), Lay([], [], -1), 0), 1):(0)
+
+// The words of paragraph p: runs of characters that are not spaces, so "well-known" and "-" are one word each, as Word counts them.
+para_words(Para p) {
+  int n = 0;
+  int i = 0;
+  while(i < para_len(p)) {
+    n = n + word_start(p, i);
+    i = i + 1;
+  }
+} return int n;
+(Para(Text([97, 32, 98, 46, 32, 32, 45], [Run(7, 0, -1)], 0), Lay([], [], -1), 0)):(3)
+(Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 0)):(0)
+
+// The number of words in the document (see para_words); a paragraph break separates words.
+count_words(Doc d) {
+  int n = 0;
+  int i = 0;
+  while(i < len(d.body.paras)) {
+    n = n + para_words(d.body.paras[i]);
+    i = i + 1;
+  }
+} return int n;
+given fx_setup("one two|three") ((import fxd)):(3)
+given fx_setup("a|b|") ((import fxd)):(2)
+given fx_setup("") ((import fxd)):(0)

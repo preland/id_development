@@ -1,0 +1,20 @@
+// Test fixture: 1 when the fixture document is what the long session must leave, built here from the cycle's paragraphs alone ("hello world" and "zz" ed_t_rounds times, then an empty paragraph), 0 otherwise.
+fx_session_ok() {
+  string want = str_repeat("hello world|zz|", (import ed_t_rounds));
+  string actual = fx_show();
+  int ok = actual == want;
+} return int ok;
+given fx_session ():(1)
+given fx_setup("hello world|zz|") ():(0)
+
+// Test fixture: 1 when the fixture document and its selection are those of a new document, 0 otherwise.
+fx_is_blank() {
+  Doc nd = doc_new();
+  string want = doc_dump(nd);
+  string actual = doc_dump((import fxd));
+} chain () {
+  int ok = actual == want && fx_sel() == "0:0-0:0";
+} return int ok;
+given fx_blank ():(1)
+given fx_setup("a") ():(0)
+given fx_session given fx_unwind ():(1)

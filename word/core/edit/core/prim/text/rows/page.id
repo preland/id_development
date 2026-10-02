@@ -1,0 +1,34 @@
+// The list of the page a SET_PAGE field lives in: 0 to 2 are Page.size, ed_g_margin and above are Page.margin.
+page_list(Page pg, int field) {
+  int[] cells = pg.size;
+  if(field >= (import ed_g_margin)) {
+    cells = pg.margin;
+  }
+} return int[] cells;
+(Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 1):([1, 2, 0])
+(Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 4):([3, 4, 5, 6])
+
+// The index inside page_list's list of a SET_PAGE field.
+page_ix(int field) {
+  int ix = field;
+  if(field >= (import ed_g_margin)) {
+    ix = field - (import ed_g_margin);
+  }
+} return int ix;
+(1):(1)
+(6):(3)
+
+// SET_PAGE, at = [field], data = [the new value]: a page size entry (0 width, 1 height, 2 orientation) or a margin (3 top, 4 right, 5 bottom, 6 left). The inverse sets the old value.
+ap_page(Doc d, Op eo) {
+  int[] cells = page_list(d.body.page, eo.at[0]);
+  int ix = page_ix(eo.at[0]);
+  int[] old = [cells[ix]];
+} chain (Doc d, Op eo) {
+  cells[ix] = eo.data[0];
+  d.body.rev = d.body.rev + 1;
+  int[] loc = lst_copy(eo.at);
+} chain (Doc d, Op eo) {
+  Op inv = op_make((import ed_k_page), loc, old);
+} return Op inv;
+given fx_setup("") ((import fxd), Op(9, [0], [5000])):(Op(9, [0], [11906])) then fx_dump:("G 5000,16838,0, 1440,1440,1440,1440, 0,0,0,\nP0  0:0:-1,")
+given fx_setup("") ((import fxd), Op(9, [6], [720])):(Op(9, [6], [1440])) then fx_dump:("G 11906,16838,0, 1440,1440,1440,720, 0,0,0,\nP0  0:0:-1,")

@@ -1,0 +1,41 @@
+// Test fixture: one character of a spec. "*" turns bold on or off (togg[0]), "|" starts a paragraph, anything else is appended to the last paragraph with the bold setting in force.
+fx_char(Doc d, int cp, int[] togg) {
+  int last = len(d.body.paras) - 1;
+  Para p = d.body.paras[last];
+  int cprop = tab_with_bits(d.fmt.chars, 0, (import word_f_bold), 2 * togg[0] - 1);
+} chain (Doc d, int cp, int[] togg) {
+  if(cp == 42) {
+    togg[0] = 1 - togg[0];
+  }
+  if(cp == 124) {
+    body_split(d.body, last, para_len(p));
+  }
+  if(cp != 42 && cp != 124) {
+    text_insert(p.txt, para_len(p), [cp], cprop);
+  }
+} return void;
+given fx_blank ((import fxd), 97, [0]):((import fxd), 97, [0]) then fx_show:("a")
+given fx_blank ((import fxd), 42, [0]):((import fxd), 42, [1]) then fx_show:("")
+given fx_blank ((import fxd), 124, [0]):((import fxd), 124, [0]) then fx_show:("|")
+given fx_blank ((import fxd), 98, [1]):((import fxd), 98, [1]) then fx_show:("*b*")
+
+// Test fixture: appends the paragraphs and bold runs of spec (see fx_char) to d.
+fx_fill(Doc d, string spec) {
+  int[] togg = [0];
+  int i = 0;
+  while(i < len(spec)) {
+    fx_char(d, charat(spec, i), togg);
+    i = i + 1;
+  }
+} return void;
+given fx_blank ((import fxd), "ab"):((import fxd), "ab") then fx_show:("ab")
+given fx_blank ((import fxd), "a*b*|c"):((import fxd), "a*b*|c") then fx_show:("a*b*|c")
+
+// Test fixture: gives paragraph para of the fixture document the paragraph style sid.
+fx_style(int para, int sid) {
+  Doc d = (import fxd);
+  Para p = d.body.paras[para];
+  p.pprop = tab_with(d.fmt.paras, p.pprop, (import word_p_style), sid);
+} return void;
+given fx_setup("ab") (0, 3):() then fx_show:("{9}ab")
+given fx_setup("a|b") (1, 0):() then fx_show:("a|b")

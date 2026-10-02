@@ -1,0 +1,37 @@
+// After a SPLIT: when data is [new paragraph row, left keep cprop, left keep link, right keep cprop, right keep link], the new paragraph takes that row and either half that is empty takes its kept properties. Shorter data changes nothing.
+split_fix(Doc d, int para, int[] dat) {
+  Para[] pl = d.body.paras;
+  if(len(dat) >= 5) {
+    pl[para + 1].pprop = dat[0];
+    empty_fix(pl[para].txt, dat[1], dat[2]);
+    empty_fix(pl[para + 1].txt, dat[3], dat[4]);
+  }
+} return void;
+given fx_setup("ab|cd") ((import fxd), 0, [3, -1, -1, -1, -1]):((import fxd), 0, [3, -1, -1, -1, -1]) then fx_show:("ab|{3}cd")
+given fx_setup("ab|cd") ((import fxd), 0, []):((import fxd), 0, []) then fx_show:("ab|cd")
+given fx_setup("|") ((import fxd), 0, [0, 5, -1, 6, -1]):((import fxd), 0, [0, 5, -1, 6, -1]) then fx_show:("[5:]|[6:]")
+
+// After a JOIN: when data is [cprop, link], a joined paragraph that came out empty takes those properties for its one empty run. Shorter data changes nothing.
+join_fix(Doc d, int para, int[] dat) {
+  if(len(dat) >= 2) {
+    empty_fix(d.body.paras[para].txt, dat[0], dat[1]);
+  }
+} return void;
+given fx_setup("") ((import fxd), 0, [5, -1]):((import fxd), 0, [5, -1]) then fx_show:("[5:]")
+given fx_setup("") ((import fxd), 0, []):((import fxd), 0, []) then fx_show:("")
+given fx_setup("ab") ((import fxd), 0, [5, -1]):((import fxd), 0, [5, -1]) then fx_show:("ab")
+
+// SPLIT, at = [para, off], data as split_fix reads it (or none: the new paragraph keeps the row). The inverse is the JOIN of the two halves, carrying the empty-run properties the paragraph had if it was empty.
+ap_split(Doc d, Op eo) {
+  int para = eo.at[0];
+  int[] kp = text_keep(d.body.paras[para].txt);
+  body_split(d.body, para, eo.at[1]);
+} chain (Doc d, Op eo) {
+  split_fix(d, para, eo.data);
+  int[] loc = [para];
+  Op inv = op_make((import ed_k_join), loc, kp);
+} return Op inv;
+given fx_setup("abcd") ((import fxd), Op(3, [0, 2], [])):(Op(4, [0], [-1, -1])) then fx_show:("ab|cd")
+given fx_setup("abcd") ((import fxd), Op(3, [0, 2], [3, -1, -1, -1, -1])):(Op(4, [0], [-1, -1])) then fx_show:("ab|{3}cd")
+given fx_setup("*ab*") given fx_at(0, 0, 0, 0) ((import fxd), Op(3, [0, 2], [])):(Op(4, [0], [-1, -1])) then fx_show:("*ab*|**")
+given fx_setup("") ((import fxd), Op(3, [0, 0], [1, 5, -1, 6, -1])):(Op(4, [0], [0, -1])) then fx_show:("[5:]|{1}[6:]")

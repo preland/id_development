@@ -1,0 +1,32 @@
+// INS_PARA, at = [index], data = a para_snap: the paragraph goes in at index. The inverse is the DEL_PARA of it.
+ap_inspara(Doc d, Op eo) {
+  Para np = para_unsnap(eo.data);
+  body_insert(d.body, eo.at[0], np);
+  int[] loc = lst_copy(eo.at);
+} chain (Doc d, Op eo) {
+  int[] none = [];
+  Op inv = op_make((import ed_k_delpara), loc, none);
+} return Op inv;
+given fx_setup("ab|cd") ((import fxd), Op(7, [1], [0, 2, 120, 121, 2, 0, -1])):(Op(8, [1], [])) then fx_show:("ab|xy|cd")
+given fx_setup("ab") ((import fxd), Op(7, [1], [3, 0, 0, 8, -1])):(Op(8, [1], [])) then fx_show:("ab|{3}**")
+
+// DEL_PARA, at = [index]: the paragraph is removed, and the inverse INS_PARA carries its snapshot. The only paragraph of a document is never removed (the answer is the operation that does nothing).
+ap_delpara(Doc d, Op eo) {
+  Op inv = ap_nop();
+  if(len(d.body.paras) > 1) {
+    inv = ap_delpara_do(d, eo.at[0]);
+  }
+} return Op inv;
+given fx_setup("ab|cd") ((import fxd), Op(8, [1], [])):(Op(7, [1], [0, 2, 99, 100, 2, 0, -1])) then fx_show:("ab")
+given fx_setup("ab") ((import fxd), Op(8, [0], [])):(Op(0, [], [])) then fx_show:("ab")
+
+// Removes paragraph index and returns the INS_PARA that puts it back.
+ap_delpara_do(Doc d, int index) {
+  int[] snap = para_snap(d.body.paras[index]);
+  body_remove(d.body, index);
+  int[] loc = [index];
+} chain (Doc d, int index) {
+  Op inv = op_make((import ed_k_inspara), loc, snap);
+} return Op inv;
+given fx_setup("ab|c*d*") ((import fxd), 1):(Op(7, [1], [0, 2, 99, 100, 1, 0, -1, 1, 8, -1])) then fx_show:("ab")
+given fx_setup("ab|cd|ef") ((import fxd), 0):(Op(7, [0], [0, 2, 97, 98, 2, 0, -1])) then fx_show:("cd|ef")

@@ -1,0 +1,39 @@
+// The effective value of a character field for text with character row cprop in paragraph para: the flag fields (ed_s_flag plus a flag bit) give 1 when the flag is on after the character style and the paragraph style are resolved, else 0; the others give the resolved value, -1 when nothing sets it.
+sel_sample(Doc d, int para, int cprop, int field) {
+  Para p = d.body.paras[para];
+  int sid = tab_get(d.fmt.paras, p.pprop, (import word_p_style));
+  int got = 0;
+} chain (Doc d, int para, int cprop, int field) {
+  if(field >= (import ed_s_flag)) {
+    got = (style_bits(d.fmt, sid, cprop) & (field - (import ed_s_flag))) != 0;
+  } else {
+    got = style_eff_c(d.fmt, sid, cprop, field);
+  }
+} return int got;
+given fx_setup("a*b*") ((import fxd), 0, 8, 101):(1)
+given fx_setup("a*b*") ((import fxd), 0, 0, 101):(0)
+given fx_setup("ab") given fx_style(0, 3) ((import fxd), 0, 0, 101):(1)
+given fx_setup("ab") ((import fxd), 0, 0, 2):(24)
+
+// Folds one sample into acc = [field, samples seen, result]: the first sample is the result, and a later one that differs makes it -2 (mixed).
+smp_fold(int[] acc, int got) {
+  if(acc[1] == 0) {
+    acc[2] = got;
+  }
+  if(acc[2] != got) {
+    acc[2] = -2;
+  }
+  acc[1] = 1;
+} return void;
+([5, 0, 0], 7):([5, 1, 7], 7)
+([5, 1, 7], 7):([5, 1, 7], 7)
+([5, 1, 7], 8):([5, 1, -2], 8)
+([5, 1, -2], 7):([5, 1, -2], 7)
+
+// Samples one character row of paragraph para into acc (see sel_sample and smp_fold).
+smp_add(Doc d, int para, int cprop, int[] acc) {
+  int got = sel_sample(d, para, cprop, acc[0]);
+  smp_fold(acc, got);
+} return void;
+given fx_setup("a*b*") ((import fxd), 0, 8, [101, 0, 0]):((import fxd), 0, 8, [101, 1, 1])
+given fx_setup("a*b*") ((import fxd), 0, 0, [101, 1, 1]):((import fxd), 0, 0, [101, 1, -2])

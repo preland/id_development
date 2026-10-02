@@ -1,0 +1,45 @@
+// The value to write for a character-format change in paragraph para: value itself, except that -2 means "off, as plainly as possible": unset, unless the paragraph's style turns the flag on, when it must be an explicit 0.
+fmt_val(Doc d, int para, int field, int value) {
+  Para p = d.body.paras[para];
+  int sid = tab_get(d.fmt.paras, p.pprop, (import word_p_style));
+  int val = value;
+} chain (Doc d, int para, int field, int value) {
+  if(value == -2) {
+    val = -1;
+  }
+  if(value == -2 && (style_bits(d.fmt, sid, 0) & (field - (import ed_s_flag))) != 0) {
+    val = 0;
+  }
+} return int val;
+given fx_setup("ab") ((import fxd), 0, 101, -2):(-1)
+given fx_setup("ab") ((import fxd), 0, 101, 1):(1)
+given fx_setup("ab") given fx_style(0, 3) ((import fxd), 0, 101, -2):(0)
+given fx_setup("ab") given fx_style(0, 3) ((import fxd), 0, 102, -2):(-1)
+
+// The character row equal to row cprop with field changed: a flag (field from ed_s_flag, the flag bit added) is turned on by 1, off by 0, unset by -1, off plainly by -2 (see fmt_val); any other field is set to value.
+fmt_row(Doc d, int para, int cprop, int field, int value) {
+  int val = fmt_val(d, para, field, value);
+  int nc = cprop;
+  blank;
+} chain (Doc d, int para, int cprop, int field, int value) {
+  if(field >= (import ed_s_flag)) {
+    nc = tab_with_bits(d.fmt.chars, cprop, field - (import ed_s_flag), val);
+  } else {
+    nc = tab_with(d.fmt.chars, cprop, field, val);
+  }
+} return int nc;
+given fx_setup("ab") ((import fxd), 0, 0, 101, 1):(8)
+given fx_setup("ab") ((import fxd), 0, 0, 2, 24):(8)
+given fx_setup("a*b*") ((import fxd), 0, 8, 101, -2):(0)
+
+// Applies the change fmt_row describes to code points lo..hi-1 of text t (a copy of paragraph para's), splitting and merging runs as the model does.
+fmt_text(Doc d, int para, Text t, int lo, int hi, int field, int value) {
+  int val = fmt_val(d, para, field, value);
+  if(field >= (import ed_s_flag)) {
+    text_patch_bits(t, lo, hi, d.fmt.chars, field - (import ed_s_flag), val);
+  } else {
+    text_patch(t, lo, hi, d.fmt.chars, field, val);
+  }
+} return void;
+given fx_setup("ab") ((import fxd), 0, Text([1, 2, 3], [Run(3, 0, -1)], 0), 1, 2, 101, 1):((import fxd), 0, Text([1, 2, 3], [Run(1, 0, -1), Run(1, 8, -1), Run(1, 0, -1)], 1), 1, 2, 101, 1)
+given fx_setup("ab") ((import fxd), 0, Text([1, 2, 3], [Run(3, 0, -1)], 0), 0, 3, 2, 24):((import fxd), 0, Text([1, 2, 3], [Run(3, 8, -1)], 1), 0, 3, 2, 24)

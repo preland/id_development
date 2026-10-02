@@ -1,0 +1,36 @@
+// Ctrl+Up and Ctrl+Down: up goes to the start of the paragraph, or of the one before when already there; down goes to the start of the next, or to the end of the last paragraph.
+pos_para(Doc d, Pos ps, int dir) {
+  int para = ps.para;
+  int off = 0;
+  int n = len(d.body.paras);
+} chain (Doc d, Pos ps, int dir) {
+  if(dir < 0 && ps.off == 0 && para > 0) {
+    para = para - 1;
+  }
+  if(dir > 0 && para + 1 < n) {
+    para = para + 1;
+  }
+  if(dir > 0 && para == ps.para) {
+    off = para_len(d.body.paras[para]);
+  }
+} chain (Doc d, Pos ps, int dir) {
+  Pos pq = pos_new(para, off);
+} return Pos pq;
+given fx_setup("ab|cde|f") ((import fxd), Pos(1, 2), -1):(Pos(1, 0))
+given fx_setup("ab|cde|f") ((import fxd), Pos(1, 0), -1):(Pos(0, 0))
+given fx_setup("ab|cde|f") ((import fxd), Pos(1, 2), 1):(Pos(2, 0))
+given fx_setup("ab|cde|f") ((import fxd), Pos(2, 0), 1):(Pos(2, 1))
+
+// The start of the document for dir -1, the end of it for dir 1.
+pos_edge(Doc d, int dir) {
+  int para = len(d.body.paras) - 1;
+  int off = para_len(d.body.paras[para]);
+  if(dir < 0) {
+    para = 0;
+    off = 0;
+  }
+} chain (Doc d, int dir) {
+  Pos pq = pos_new(para, off);
+} return Pos pq;
+given fx_setup("ab|cde|f") ((import fxd), -1):(Pos(0, 0))
+given fx_setup("ab|cde|f") ((import fxd), 1):(Pos(2, 1))

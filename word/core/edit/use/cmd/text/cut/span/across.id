@@ -1,0 +1,33 @@
+// Removes the text from pa to pb, which lie in different paragraphs, in the open undo step: the head of the last paragraph, the paragraphs between, the tail of the first one, and then the join of the two ends. The joined paragraph keeps the first one's row.
+ed_del_across(Doc d, Ctl ctl, Pos pa, Pos pb) {
+  ed_del_in(d, ctl, pb.para, 0, pb.off);
+  ed_del_mid(d, ctl, pa.para + 1, pb.para);
+  ed_del_in(d, ctl, pa.para, pa.off, para_len(d.body.paras[pa.para]) - pa.off);
+} chain (Doc d, Ctl ctl, Pos pa, Pos pb) {
+  ed_one(d, ctl, (import ed_k_join), pa.para);
+} return void;
+given fx_setup("abc|def|ghi") given txn_begin((import fxc)) ((import fxd), (import fxc), Pos(0, 1), Pos(2, 2)):((import fxd), (import fxc), Pos(0, 1), Pos(2, 2)) then fx_show:("ai") then fx_hist:("u1 r0 o0 n4")
+given fx_setup("abc|def") given txn_begin((import fxc)) ((import fxd), (import fxc), Pos(0, 3), Pos(1, 0)):((import fxd), (import fxc), Pos(0, 3), Pos(1, 0)) then fx_show:("abcdef")
+
+// Removes the selection of ctl, in the open undo step, and puts the caret where it began.
+ed_erase_do(Doc d, Ctl ctl, Pos pa, Pos pb) {
+  if(pa.para == pb.para) {
+    ed_del_in(d, ctl, pa.para, pa.off, pb.off - pa.off);
+  } else {
+    ed_del_across(d, ctl, pa, pb);
+  }
+  sel_put(ctl.sel, pa.para, pa.off, 0);
+} return void;
+given fx_setup("abcd") given txn_begin((import fxc)) ((import fxd), (import fxc), Pos(0, 1), Pos(0, 3)):((import fxd), (import fxc), Pos(0, 1), Pos(0, 3)) then fx_show:("ad") then fx_sel:("0:1-0:1")
+given fx_setup("ab|cd") given txn_begin((import fxc)) ((import fxd), (import fxc), Pos(0, 1), Pos(1, 1)):((import fxd), (import fxc), Pos(0, 1), Pos(1, 1)) then fx_show:("ad") then fx_sel:("0:1-0:1")
+
+// Removes the selected text in the open undo step; with nothing selected it does nothing.
+ed_erase(Doc d, Ctl ctl) {
+  Pos pa = sel_lo(ctl.sel);
+  Pos pb = sel_hi(ctl.sel);
+  if(sel_empty(ctl.sel) == 0) {
+    ed_erase_do(d, ctl, pa, pb);
+  }
+} return void;
+given fx_setup("abcd") given fx_at(0, 3, 0, 1) given txn_begin((import fxc)) ((import fxd), (import fxc)):((import fxd), (import fxc)) then fx_show:("ad") then fx_sel:("0:1-0:1")
+given fx_setup("abcd") given fx_at(0, 2, 0, 2) given txn_begin((import fxc)) ((import fxd), (import fxc)):((import fxd), (import fxc)) then fx_show:("abcd") then fx_hist:("u1 r0 o0 n0")

@@ -1,0 +1,67 @@
+// The movement, selection and formatting verbs of ed_play, with flds the argument split at ":": M<dir>:<unit>:<extend> moves, A selects all, S<para>:<off>:<para>:<off> selects, G<bit> toggles a flag, O<field>:<value> sets a character field, L<field>:<value> a paragraph field, Y<style> applies a style, Z clears formatting, K is a page break, H<needle>:<with> replaces all matching case.
+ed_play_fmt(Doc d, Ctl ctl, int verb, string[] flds) {
+  if(verb == 77) {
+    ed_move(d, ctl, to_int(flds[0]), to_int(flds[1]), to_int(flds[2]));
+  }
+  if(verb == 65) {
+    ed_select_all(d, ctl);
+  }
+  if(verb == 83) {
+    ed_play_pick(d, ctl, flds);
+  }
+} chain (Doc d, Ctl ctl, int verb, string[] flds) {
+  if(verb == 71) {
+    ed_toggle(d, ctl, to_int(flds[0]));
+  }
+  if(verb == 79) {
+    ed_set_char(d, ctl, to_int(flds[0]), to_int(flds[1]));
+  }
+  if(verb == 76) {
+    ed_set_para(d, ctl, to_int(flds[0]), to_int(flds[1]));
+  }
+} chain (Doc d, Ctl ctl, int verb, string[] flds) {
+  if(verb == 89) {
+    ed_set_style(d, ctl, to_int(flds[0]));
+  }
+  if(verb == 90) {
+    ed_clear_format(d, ctl);
+  }
+  if(verb == 75) {
+    ed_page_break(d, ctl);
+  }
+} chain (Doc d, Ctl ctl, int verb, string[] flds) {
+  if(verb == 72) {
+    ed_play_swap(d, ctl, flds);
+  }
+} return void;
+given fx_setup("abc") ((import fxd), (import fxc), 77, ["1", "0", "0"]):((import fxd), (import fxc), 77, ["1", "0", "0"]) then fx_sel:("0:1-0:1")
+given fx_setup("abc") ((import fxd), (import fxc), 65, []):((import fxd), (import fxc), 65, []) then fx_sel:("0:0-0:3")
+given fx_setup("abc") ((import fxd), (import fxc), 83, ["0", "1", "0", "2"]):((import fxd), (import fxc), 83, ["0", "1", "0", "2"]) then fx_sel:("0:1-0:2")
+given fx_setup("abc") given fx_at(0, 0, 0, 3) ((import fxd), (import fxc), 71, ["1"]):((import fxd), (import fxc), 71, ["1"]) then fx_show:("*abc*")
+given fx_setup("abc") given fx_at(0, 0, 0, 3) ((import fxd), (import fxc), 79, ["2", "24"]):((import fxd), (import fxc), 79, ["2", "24"]) then fx_show:("[8:abc]")
+given fx_setup("abc") ((import fxd), (import fxc), 76, ["1", "1"]):((import fxd), (import fxc), 76, ["1", "1"]) then fx_show:("{9}abc")
+given fx_setup("abc") ((import fxd), (import fxc), 89, ["3"]):((import fxd), (import fxc), 89, ["3"]) then fx_show:("{9}abc")
+given fx_setup("a*b*c") given fx_at(0, 0, 0, 3) ((import fxd), (import fxc), 90, []):((import fxd), (import fxc), 90, []) then fx_show:("abc")
+given fx_setup("abc") given fx_at(0, 1, 0, 1) ((import fxd), (import fxc), 75, []):((import fxd), (import fxc), 75, []) then fx_show:("a|{9}bc")
+given fx_setup("abab") ((import fxd), (import fxc), 72, ["ab", "x"]):((import fxd), (import fxc), 72, ["ab", "x"]) then fx_show:("xx")
+given fx_setup("abc") ((import fxd), (import fxc), 0, []):((import fxd), (import fxc), 0, []) then fx_show:("abc")
+
+// S<para>:<off>:<para>:<off>: the first position becomes the anchor and the second the caret, as a click and a drag would.
+ed_play_pick(Doc d, Ctl ctl, string[] flds) {
+  Pos pa = pos_new(to_int(flds[0]), to_int(flds[1]));
+  Pos pb = pos_new(to_int(flds[2]), to_int(flds[3]));
+  ed_place(d, ctl, pa, 0);
+} chain (Doc d, Ctl ctl, string[] flds) {
+  ed_place(d, ctl, pb, 1);
+} return void;
+given fx_setup("ab|cd") ((import fxd), (import fxc), ["0", "1", "1", "1"]):((import fxd), (import fxc), ["0", "1", "1", "1"]) then fx_sel:("0:1-1:1")
+given fx_setup("ab|cd") ((import fxd), (import fxc), ["1", "2", "0", "0"]):((import fxd), (import fxc), ["1", "2", "0", "0"]) then fx_sel:("1:2-0:0")
+
+// H<needle>:<with>: Replace All of the typable code points of the first field by the second, matching case.
+ed_play_swap(Doc d, Ctl ctl, string[] flds) {
+  int[] needle = cps_typable(flds[0]);
+  int[] with = cps_typable(flds[1]);
+  find_replace_all(d, ctl, needle, with, 1);
+} return void;
+given fx_setup("aBaB") ((import fxd), (import fxc), ["B", "-"]):((import fxd), (import fxc), ["B", "-"]) then fx_show:("a-a-")
+given fx_setup("aBab") ((import fxd), (import fxc), ["b", ""]):((import fxd), (import fxc), ["b", ""]) then fx_show:("aBa")

@@ -1,0 +1,33 @@
+// A new editing state: the caret at the start of the document, empty history, and an empty fragment. It also resets the pending typing properties and installs the paragraph-granular line and page movement, so call ed_layout_hooks after it to use real layout.
+ctl_new() {
+  Sel sel = sel_make(0, 0, 0, 0);
+  Txn[] undo = [];
+  Txn[] redo = [];
+} chain () {
+  Hist hs = Hist(undo, redo, -1);
+  Text[] txts = [];
+  int[] pprops = [];
+} chain () {
+  Frag frag = Frag(txts, pprops, 1);
+  Ctl ctl = Ctl(sel, hs, frag);
+  export int[] ed_typing = [-1];
+} chain () {
+  ed_layout_hooks(ed_hook_para);
+} return Ctl ctl;
+():(Ctl(Sel(Pos(0, 0), Pos(0, 0), -1), Hist([], [], -1), Frag([], [], 1)))
+():(Ctl(Sel(Pos(0, 0), Pos(0, 0), -1), Hist([], [], -1), Frag([], [], 1))) then typing_get:(-1)
+
+// The character row the next typed character takes instead of its neighbour's, or -1 when there is none pending.
+typing_get() {
+  int val = (import ed_typing)[0];
+} return int val;
+given fx_blank ():(-1)
+given fx_blank given typing_set(7) ():(7)
+
+// Sets the pending typing row (-1 clears it); any caret move, undo or edit that is not typing clears it.
+typing_set(int val) {
+  int[] pend = (import ed_typing);
+  pend[0] = val;
+} return void;
+given fx_blank (3):() then typing_get:(3)
+given fx_blank (-1):() then typing_get:(-1)

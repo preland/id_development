@@ -1,0 +1,48 @@
+// Test fixture: the verdict for command k of the table (see fx_code) when it is run, undone and redone on the fixture document: the document and the selection are compared as one string (fx_dumpsel) before the command, after its undo (must equal the first) and after its redo (must equal the one after the command), and the document invariants must hold at the end.
+fx_cmd_wit(int k) {
+  Doc d = (import fxd);
+  Ctl ctl = (import fxc);
+  fx_arm(d, ctl, k);
+} chain (int k) {
+  string dump0 = fx_dumpsel(d);
+  fx_cmd(d, ctl, k);
+  string dump1 = fx_dumpsel(d);
+} chain (int k) {
+  hist_undo(d, ctl);
+  string dump2 = fx_dumpsel(d);
+  hist_redo(d, ctl);
+} chain (int k) {
+  string dump3 = fx_dumpsel(d);
+  int code = fx_code(dump0, dump1, dump2, dump3);
+  if(code == 0 && doc_check(d) != 0) {
+    code = 4;
+  }
+} return int code;
+given fx_rich (0):(0)
+given fx_rich (1):(0)
+given fx_rich (2):(0)
+given fx_rich (3):(0)
+given fx_rich (4):(0)
+given fx_rich (5):(0)
+given fx_rich (6):(0)
+given fx_rich (7):(0)
+given fx_rich (8):(0)
+given fx_rich (9):(0)
+given fx_rich (10):(0)
+given fx_rich (11):(0)
+given fx_rich (12):(0)
+given fx_rich (13):(0)
+given fx_rich (14):(0)
+given fx_rich (15):(0)
+given fx_rich (16):(0)
+given fx_rich (17):(0)
+given fx_rich (18):(0)
+given fx_rich (19):(0)
+given fx_rich (20):(0)
+given fx_rich (21):(0)
+given fx_rich (22):(0)
+given fx_rich (23):(0)
+given fx_rich (24):(0)
+given fx_rich (25):(0)
+given fx_rich (26):(0)
+given fx_rich (27):(0)

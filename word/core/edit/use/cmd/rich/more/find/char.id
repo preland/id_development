@@ -1,0 +1,41 @@
+// The code point folded to lower case for a match that ignores case: the ASCII capitals and the Latin-1 capitals (but not the multiplication sign). Other scripts compare exactly.
+cp_fold(int cp) {
+  int low = cp;
+  if(cp >= 65 && cp <= 90) {
+    low = cp + 32;
+  }
+  if(cp >= 192 && cp <= 222 && cp != 215) {
+    low = cp + 32;
+  }
+} return int low;
+(65):(97)
+(97):(97)
+(201):(233)
+(215):(215)
+(1040):(1040)
+
+// 1 when code points a and b match: equal, or equal after cp_fold unless flags has ed_f_case.
+cp_same(int lcp, int rcp, int flags) {
+  int res = lcp == rcp;
+  if(res == 0 && (flags & (import ed_f_case)) == 0) {
+    res = cp_fold(lcp) == cp_fold(rcp);
+  }
+} return int res;
+(97, 97, 1):(1)
+(65, 97, 0):(1)
+(65, 97, 1):(0)
+(97, 98, 0):(0)
+
+// 1 when the code points of needle are the ones of paragraph p from off on, compared by cp_same. The needle must fit before the end of the paragraph.
+find_at(Para p, int[] needle, int off, int flags) {
+  int ok = 1;
+  int j = 0;
+  while(j < len(needle) && ok == 1) {
+    ok = cp_same(p.txt.cps[off + j], needle[j], flags);
+    j = j + 1;
+  }
+} return int ok;
+(Para(Text([97, 66, 99], [Run(3, 0, -1)], 0), Lay([], [], -1), 0), [66, 99], 1, 1):(1)
+(Para(Text([97, 66, 99], [Run(3, 0, -1)], 0), Lay([], [], -1), 0), [98, 99], 1, 1):(0)
+(Para(Text([97, 66, 99], [Run(3, 0, -1)], 0), Lay([], [], -1), 0), [98, 99], 1, 0):(1)
+(Para(Text([97, 66, 99], [Run(3, 0, -1)], 0), Lay([], [], -1), 0), [97], 0, 1):(1)

@@ -1,0 +1,31 @@
+// Ctrl+Right inside a paragraph: past the rest of the run the offset is in, then past the spaces after it. From a space that is just the spaces.
+para_word_next(Para p, int off) {
+  int cl = para_cls(p, off);
+  int ia = para_run_next(p, off, cl);
+  int iz = para_run_next(p, ia, 0);
+} return int iz;
+(Para(Text([102, 111, 111, 32, 98, 97, 114], [Run(7, 0, -1)], 0), Lay([], [], -1), 0), 0):(4)
+(Para(Text([102, 111, 111, 32, 98, 97, 114], [Run(7, 0, -1)], 0), Lay([], [], -1), 0), 4):(7)
+(Para(Text([102, 111, 111, 32, 32], [Run(5, 0, -1)], 0), Lay([], [], -1), 0), 1):(5)
+(Para(Text([102, 111, 111, 46, 98], [Run(5, 0, -1)], 0), Lay([], [], -1), 0), 0):(3)
+
+// Ctrl+Left inside a paragraph: back over spaces, then to the start of the run that ends there.
+para_word_prev(Para p, int off) {
+  int ia = para_run_prev(p, off, 0);
+  int cl = para_cls(p, ia - 1);
+  int iz = para_run_prev(p, ia, cl);
+} return int iz;
+(Para(Text([102, 111, 111, 32, 98, 97, 114], [Run(7, 0, -1)], 0), Lay([], [], -1), 0), 7):(4)
+(Para(Text([102, 111, 111, 32, 98, 97, 114], [Run(7, 0, -1)], 0), Lay([], [], -1), 0), 4):(0)
+(Para(Text([102, 111, 111, 46, 98], [Run(5, 0, -1)], 0), Lay([], [], -1), 0), 4):(3)
+
+// The offset a double click at off means: the code point after it, unless that is a space or the end and the one before is not, when it is the one before, so a click at the edge of a word picks the word.
+para_pivot(Para p, int off) {
+  int at = off;
+  if(para_cls(p, off) <= 0 && para_cls(p, off - 1) >= 1) {
+    at = off - 1;
+  }
+} return int at;
+(Para(Text([102, 111, 111, 32, 98, 97, 114], [Run(7, 0, -1)], 0), Lay([], [], -1), 0), 3):(2)
+(Para(Text([102, 111, 111, 32, 98, 97, 114], [Run(7, 0, -1)], 0), Lay([], [], -1), 0), 4):(4)
+(Para(Text([97, 32, 32, 32, 98], [Run(5, 0, -1)], 0), Lay([], [], -1), 0), 2):(2)

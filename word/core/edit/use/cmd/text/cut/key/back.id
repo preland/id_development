@@ -1,0 +1,29 @@
+// Backspace at a bare caret: removes the code points ed_key_n counts as one undo step, or at the start of a paragraph joins it to the one before, which keeps its own row.
+ed_back_one(Doc d, Ctl ctl, int word) {
+  int para = ctl.sel.caret.para;
+  int off = ctl.sel.caret.off;
+  int n = ed_key_n(d, para, off, word, -1);
+} chain (Doc d, Ctl ctl, int word) {
+  if(n > 0) {
+    ed_del_txn(d, ctl, para, off - n, n);
+  }
+  if(n == 0 && para > 0) {
+    ed_join_txn(d, ctl, para - 1);
+  }
+} return void;
+given fx_setup("abc|de") given fx_at(0, 2, 0, 2) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("ac|de") then fx_sel:("0:1-0:1")
+given fx_setup("abc|de") given fx_at(1, 0, 1, 0) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("abcde") then fx_sel:("0:3-0:3")
+given fx_setup("abc") ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("abc") then fx_hist:("u0 r0 o-1 n0")
+given fx_setup("ab|cd") given fx_opaque(1) given fx_at(1, 1, 1, 1) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("ab")
+
+// Backspace: removes the selection when there is one, else a code point, or with word 1 (Ctrl+Backspace) back to the start of the word. It is one undo step, and does nothing at the very start of the document.
+ed_back(Doc d, Ctl ctl, int word) {
+  if(sel_empty(ctl.sel) == 0) {
+    ed_erase_txn(d, ctl);
+  } else {
+    ed_back_one(d, ctl, word);
+  }
+} return void;
+given fx_setup("abc") given fx_at(0, 1, 0, 3) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("a")
+given fx_setup("foo bar") given fx_at(0, 7, 0, 7) ((import fxd), (import fxc), 1):((import fxd), (import fxc), 1) then fx_show:("foo ")
+given fx_setup("foo bar") given fx_at(0, 7, 0, 7) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("foo ba")

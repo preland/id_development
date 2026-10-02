@@ -1,0 +1,24 @@
+// 1 when paragraph para is a block the model does not edit (a table, a text box: paragraph row kind 1), 0 for text and for an index that is no paragraph.
+ed_solid(Doc d, int para) {
+  int res = 0;
+  if(para >= 0 && para < len(d.body.paras)) {
+    Para p = d.body.paras[para];
+    int kind = tab_get(d.fmt.paras, p.pprop, (import word_p_kind));
+    res = kind == 1;
+  }
+} return int res;
+given fx_setup("ab") ((import fxd), 0):(0)
+given fx_setup("ab") given fx_opaque(0) ((import fxd), 0):(1)
+given fx_setup("ab") given fx_opaque(0) ((import fxd), 1):(0)
+given fx_setup("ab") given fx_opaque(0) ((import fxd), -1):(0)
+
+// Splits the paragraph at the caret in the open undo step with row pn for the new paragraph, and puts the caret at its start.
+ed_split_row(Doc d, Ctl ctl, int pn) {
+  int[] loc = [ctl.sel.caret.para, ctl.sel.caret.off];
+  int[] dat = [pn, -1, -1, -1, -1];
+  ed_run(d, ctl, op_make((import ed_k_split), loc, dat));
+} chain (Doc d, Ctl ctl, int pn) {
+  sel_put(ctl.sel, ctl.sel.caret.para + 1, 0, 0);
+} return void;
+given fx_setup("abcd") given fx_at(0, 2, 0, 2) given txn_begin((import fxc)) ((import fxd), (import fxc), 5):((import fxd), (import fxc), 5) then fx_show:("ab|{5}cd") then fx_sel:("1:0-1:0") then fx_hist:("u1 r0 o0 n1")
+given fx_setup("abcd") given fx_at(0, 4, 0, 4) given txn_begin((import fxc)) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("abcd|")

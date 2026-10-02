@@ -1,0 +1,45 @@
+// One code point to the left: across the paragraph start to the end of the previous paragraph, and not past the start of the document.
+pos_back(Doc d, Pos ps) {
+  int para = ps.para;
+  int off = ps.off - 1;
+  if(off < 0 && para > 0) {
+    para = para - 1;
+    off = para_len(d.body.paras[para]);
+  }
+} chain (Doc d, Pos ps) {
+  off = fx_max(off, 0);
+  Pos pq = pos_new(para, off);
+} return Pos pq;
+given fx_setup("ab|cde") ((import fxd), Pos(1, 0)):(Pos(0, 2))
+given fx_setup("ab|cde") ((import fxd), Pos(0, 0)):(Pos(0, 0))
+given fx_setup("ab|cde") ((import fxd), Pos(1, 2)):(Pos(1, 1))
+
+// One code point to the right: across the paragraph end to the start of the next paragraph, and not past the end of the document.
+pos_fwd(Doc d, Pos ps) {
+  int para = ps.para;
+  int off = ps.off + 1;
+  if(off > para_len(d.body.paras[para]) && para + 1 < len(d.body.paras)) {
+    para = para + 1;
+    off = 0;
+  }
+} chain (Doc d, Pos ps) {
+  off = fx_min(off, para_len(d.body.paras[para]));
+  Pos pq = pos_new(para, off);
+} return Pos pq;
+given fx_setup("ab|cde") ((import fxd), Pos(0, 2)):(Pos(1, 0))
+given fx_setup("ab|cde") ((import fxd), Pos(1, 3)):(Pos(1, 3))
+given fx_setup("ab|cde") ((import fxd), Pos(0, 0)):(Pos(0, 1))
+
+// The position dir code points from ps: -1 left, 1 right, anything else stays.
+pos_char(Doc d, Pos ps, int dir) {
+  Pos pq = pos_new(ps.para, ps.off);
+  if(dir < 0) {
+    pq = pos_back(d, ps);
+  }
+  if(dir > 0) {
+    pq = pos_fwd(d, ps);
+  }
+} return Pos pq;
+given fx_setup("ab|cde") ((import fxd), Pos(1, 0), -1):(Pos(0, 2)) then calls pos_back:[1]
+given fx_setup("ab|cde") ((import fxd), Pos(0, 2), 1):(Pos(1, 0)) then calls pos_fwd:[1]
+given fx_setup("ab|cde") ((import fxd), Pos(0, 1), 0):(Pos(0, 1))

@@ -1,0 +1,20 @@
+// Test fixture: the whole fixture document as text, paragraphs joined by "|".
+fx_show() {
+  Doc d = (import fxd);
+  string text = fx_para(d, 0);
+  int i = 1;
+} chain () {
+  while(i < len(d.body.paras)) {
+    text = text + "|" + fx_para(d, i);
+    i = i + 1;
+  }
+} return string text;
+given fx_setup("ab*cd*e|x") ():("ab*cd*e|x")
+given fx_setup("") ():("")
+
+// Test fixture: copies the fixture selection, as a setup (a setup returns nothing, ed_copy answers the text).
+fx_copied() {
+  ed_copy((import fxd), (import fxc));
+} return void;
+given fx_setup("ab") given fx_at(0, 0, 0, 1) ():() then fx_clip:("a")
+given fx_setup("ab") ():() then fx_clip:("")

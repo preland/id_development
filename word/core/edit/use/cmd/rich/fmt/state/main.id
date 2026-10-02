@@ -1,0 +1,50 @@
+// Samples what sel_state asks about into acc: a paragraph field over the paragraphs of the selection, a character field over its runs, or at the caret when nothing is selected.
+sel_walk(Doc d, Ctl ctl, int[] acc) {
+  int empty = sel_empty(ctl.sel);
+  if(acc[0] >= (import ed_s_para)) {
+    ed_over(d, ctl, smp_para, acc);
+  }
+  if(acc[0] < (import ed_s_para) && empty == 1) {
+    smp_caret(d, ctl, acc);
+  }
+} chain (Doc d, Ctl ctl, int[] acc) {
+  if(acc[0] < (import ed_s_para) && empty == 0) {
+    ed_over(d, ctl, smp_run, acc);
+  }
+} return void;
+given fx_setup("a*bc*d") given fx_at(0, 0, 0, 4) ((import fxd), (import fxc), [101, 0, 0]):((import fxd), (import fxc), [101, 1, -2])
+given fx_setup("a*bc*d") given fx_at(0, 2, 0, 2) ((import fxd), (import fxc), [101, 0, 0]):((import fxd), (import fxc), [101, 1, 1])
+given fx_setup("ab|cd") given fx_at(0, 0, 1, 1) ((import fxd), (import fxc), [201, 0, 0]):((import fxd), (import fxc), [201, 1, 0])
+
+// The answer of sel_state from the samples: for a flag 0 off, 1 on, 2 mixed (and 0 when nothing was sampled); for any other field its value, -2 for mixed, -1 when nothing was sampled.
+sel_out(int[] acc) {
+  int res = acc[2];
+  int isflag = acc[0] >= (import ed_s_flag) && acc[0] < (import ed_s_para);
+  if(isflag == 1 && res == -2) {
+    res = 2;
+  }
+} chain (int[] acc) {
+  if(acc[1] == 0) {
+    res = isflag - 1;
+  }
+} return int res;
+([101, 1, 1]):(1)
+([101, 1, 0]):(0)
+([101, 1, -2]):(2)
+([101, 0, 0]):(0)
+([2, 1, 24]):(24)
+([2, 1, -2]):(-2)
+([2, 0, 0]):(-1)
+
+// What is true of the selection, for the ribbon to show (docs/WORD.md 4.3): for a flag (ed_s_flag plus a word_f_* bit) 0 off, 1 on, 2 mixed; for a character field (a word_c_* offset) its effective value or -2 when the selection mixes values; for a paragraph field (ed_s_para plus a word_p_* offset) likewise. With nothing selected it describes the text the next typed character takes.
+sel_state(Doc d, Ctl ctl, int field) {
+  int[] acc = [field, 0, 0];
+  sel_walk(d, ctl, acc);
+  int res = sel_out(acc);
+} return int res;
+given fx_setup("a*bc*d") given fx_at(0, 0, 0, 4) ((import fxd), (import fxc), 101):(2)
+given fx_setup("a*bc*d") given fx_at(0, 1, 0, 3) ((import fxd), (import fxc), 101):(1)
+given fx_setup("a*bc*d") given fx_at(0, 3, 0, 4) ((import fxd), (import fxc), 101):(0)
+given fx_setup("a*bc*d") given fx_at(0, 2, 0, 2) ((import fxd), (import fxc), 101):(1)
+given fx_setup("ab") given fx_at(0, 0, 0, 2) ((import fxd), (import fxc), 2):(24)
+given fx_setup("ab|cd") given fx_at(0, 0, 1, 1) ((import fxd), (import fxc), 201):(0)

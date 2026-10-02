@@ -1,0 +1,40 @@
+// The code points of a line of pasted text that may be typed (see cp_typable): carriage returns, other controls and invalid code points are dropped.
+cps_typable(string line) {
+  int[] cps = [];
+  int i = 0;
+  while(charat(line, i) >= 0) {
+    int cp = utf8_cp(line, i);
+    if(cp_typable(cp) == 1) {
+      push(cps, cp);
+    }
+    i = utf8_next(line, i);
+  }
+} return int[] cps;
+("a\tb\r"):([97, 9, 98])
+("é\x01x"):([233, 120])
+(""):([])
+
+// Line k of pasted text: after the first, the paragraph is split at the caret; then the line goes in, in the typing properties.
+ed_paste_line(Doc d, Ctl ctl, string[] pieces, int k) {
+  if(k > 0) {
+    ed_split(d, ctl, 0);
+  }
+  int[] cps = cps_typable(pieces[k]);
+  if(len(cps) > 0) {
+    ed_put_cps(d, ctl, cps);
+  }
+} return void;
+given fx_setup("ab") given txn_begin((import fxc)) ((import fxd), (import fxc), ["xy", "z"], 0):((import fxd), (import fxc), ["xy", "z"], 0) then fx_show:("xyab")
+given fx_setup("ab") given fx_at(0, 1, 0, 1) given txn_begin((import fxc)) ((import fxd), (import fxc), ["xy", "z"], 1):((import fxd), (import fxc), ["xy", "z"], 1) then fx_show:("a|zb")
+
+// Pastes text that did not come from ctl.clip as plain text: line feeds start paragraphs, everything is in the typing properties. The step must already be open.
+ed_paste_plain(Doc d, Ctl ctl, string text) {
+  string[] pieces = str_split(text, "\n");
+  int k = 0;
+  while(k < len(pieces)) {
+    ed_paste_line(d, ctl, pieces, k);
+    k = k + 1;
+  }
+} return void;
+given fx_setup("ab") given fx_at(0, 1, 0, 1) given txn_begin((import fxc)) ((import fxd), (import fxc), "x\ny\r\nz"):((import fxd), (import fxc), "x\ny\r\nz") then fx_show:("ax|y|zb") then fx_sel:("2:1-2:1")
+given fx_setup("ab") given txn_begin((import fxc)) ((import fxd), (import fxc), "q"):((import fxd), (import fxc), "q") then fx_show:("qab")

@@ -1,0 +1,40 @@
+// Test fixture: the fixture history as "u<undo steps> r<redo steps> o<open index> n<operations in the newest undo step>".
+fx_hist() {
+  Ctl ctl = (import fxc);
+  int n = len(ctl.hist.undo);
+  int top = 0;
+} chain () {
+  if(n > 0) {
+    top = len(ctl.hist.undo[n - 1].ops);
+  }
+  string text = "u" + n + " r" + len(ctl.hist.redo) + " o" + ctl.hist.open + " n" + top;
+} return string text;
+given fx_blank ():("u0 r0 o-1 n0")
+given fx_blank given txn_begin((import fxc)) ():("u1 r0 o0 n0")
+
+// Test fixture: the selections of the newest undo step, "before after", each as fx_sel writes one.
+fx_txsel() {
+  Ctl ctl = (import fxc);
+  Txn tx = ctl.hist.undo[len(ctl.hist.undo) - 1];
+  string text = fx_sel_of(tx.before) + " " + fx_sel_of(tx.after);
+} return string text;
+given fx_blank given txn_begin((import fxc)) ():("0:0-0:0 0:0-0:0")
+given fx_blank given fx_at(2, 1, 2, 3) given txn_begin((import fxc)) ():("2:1-2:3 2:1-2:3")
+
+// Test fixture: the fragment last copied as text: its paragraphs joined by "|", each written as fx_runs writes it.
+fx_clip() {
+  Doc d = (import fxd);
+  Ctl ctl = (import fxc);
+  string text = "";
+} chain () {
+  int i = 0;
+  while(i < len(ctl.clip.txts)) {
+    text = text + "|" + fx_runs(d, ctl.clip.txts[i]);
+    i = i + 1;
+  }
+  if(len(text) > 0) {
+    text = str_slice(text, 1, len(text) - 1);
+  }
+} return string text;
+given fx_blank ():("")
+given fx_setup("ab*cd*|e") given fx_at(0, 1, 1, 1) given fx_copied ():("b*cd*|e")

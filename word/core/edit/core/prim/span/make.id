@@ -1,0 +1,60 @@
+// A primitive operation of the given kind: loc says where, dat carries what it inserts, sets or restores (the layouts are in docs/WORD.md 3.2.2, as built by the ed_inv_* helpers).
+op_make(int kind, int[] loc, int[] dat) {
+  Op eo = Op(kind, loc, dat);
+} return Op eo;
+(1, [0, 1], [5]):(Op(1, [0, 1], [5]))
+(6, [], []):(Op(6, [], []))
+
+// The operation that does nothing, which is also what a primitive that cannot apply (a join after the last paragraph) answers with as its own inverse.
+ap_nop() {
+  int[] none = [];
+  Op eo = op_make((import ed_k_nop), none, none);
+} return Op eo;
+():(Op(0, [], []))
+():(Op(0, [], [])) then calls op_make:[1]
+
+// Applies one operation to the document and returns the operation that undoes it; applying that one returns an operation equal to this one in effect, which is what makes undo and redo one mechanism.
+op_apply(Doc d, Op eo) {
+  Op inv = ap_nop();
+  int k = eo.kind;
+  if(k == (import ed_k_ins)) {
+    inv = ap_ins(d, eo);
+  }
+} chain (Doc d, Op eo) {
+  if(k == (import ed_k_del)) {
+    inv = ap_del(d, eo);
+  }
+  if(k == (import ed_k_split)) {
+    inv = ap_split(d, eo);
+  }
+  if(k == (import ed_k_join)) {
+    inv = ap_join(d, eo);
+  }
+} chain (Doc d, Op eo) {
+  if(k == (import ed_k_runs)) {
+    inv = ap_runs(d, eo);
+  }
+  if(k == (import ed_k_pprop)) {
+    inv = ap_pprop(d, eo);
+  }
+  if(k == (import ed_k_inspara)) {
+    inv = ap_inspara(d, eo);
+  }
+} chain (Doc d, Op eo) {
+  if(k == (import ed_k_delpara)) {
+    inv = ap_delpara(d, eo);
+  }
+  if(k == (import ed_k_page)) {
+    inv = ap_page(d, eo);
+  }
+} return Op inv;
+given fx_setup("ab|cd") ((import fxd), Op(0, [], [])):(Op(0, [], [])) then fx_show:("ab|cd")
+given fx_setup("ab|cd") ((import fxd), Op(1, [0, 1, 0, 0], [120])):(Op(2, [0, 1, 1, -1, -1], [])) then fx_show:("axb|cd")
+given fx_setup("ab|cd") ((import fxd), Op(2, [0, 1, 1, -1, -1], [])):(Op(1, [0, 1, 0, 1], [98, 1, 0, -1])) then fx_show:("a|cd")
+given fx_setup("ab|cd") ((import fxd), Op(3, [0, 1], [])):(Op(4, [0], [-1, -1])) then fx_show:("a|b|cd")
+given fx_setup("ab|cd") ((import fxd), Op(4, [0], [])):(Op(3, [0, 2], [0, -1, -1, -1, -1])) then fx_show:("abcd")
+given fx_setup("ab|cd") ((import fxd), Op(5, [0, 0, 1], [1, 8, -1])):(Op(5, [0, 0, 1], [1, 0, -1])) then fx_show:("*a*b|cd")
+given fx_setup("ab|cd") ((import fxd), Op(6, [1], [3])):(Op(6, [1], [0])) then fx_show:("ab|{3}cd")
+given fx_setup("ab|cd") ((import fxd), Op(7, [1], [0, 1, 120, 1, 0, -1])):(Op(8, [1], [])) then fx_show:("ab|x|cd")
+given fx_setup("ab|cd") ((import fxd), Op(8, [0], [])):(Op(7, [0], [0, 2, 97, 98, 2, 0, -1])) then fx_show:("cd")
+given fx_setup("ab|cd") ((import fxd), Op(9, [1], [9000])):(Op(9, [1], [16838])) then fx_dump:("G 11906,9000,0, 1440,1440,1440,1440, 0,0,0,\nP0 97,98, 2:0:-1,\nP0 99,100, 2:0:-1,")

@@ -1,0 +1,45 @@
+// Ends an edit that is not typing: the open undo step is closed, so the next character starts a new step, and the pending typing row is dropped.
+ed_close(Ctl ctl) {
+  txn_end(ctl);
+  typing_set(-1);
+} return void;
+given fx_blank given txn_begin((import fxc)) given hist_note((import fxc), Op(6, [0], [1])) ((import fxc)):((import fxc)) then fx_hist:("u1 r0 o-1 n1")
+given fx_blank given typing_set(6) ((import fxc)):((import fxc)) then typing_get:(-1)
+
+// An undo step of its own that removes n code points of paragraph para from off and leaves the caret there.
+ed_del_txn(Doc d, Ctl ctl, int para, int off, int n) {
+  txn_begin(ctl);
+  ed_del_in(d, ctl, para, off, n);
+  sel_put(ctl.sel, para, off, 0);
+} chain (Doc d, Ctl ctl, int para, int off, int n) {
+  ed_close(ctl);
+} return void;
+given fx_setup("abcd") ((import fxd), (import fxc), 0, 1, 2):((import fxd), (import fxc), 0, 1, 2) then fx_show:("ad") then fx_sel:("0:1-0:1") then fx_hist:("u1 r0 o-1 n1")
+given fx_setup("abcd") ((import fxd), (import fxc), 0, 1, 0):((import fxd), (import fxc), 0, 1, 0) then fx_hist:("u0 r0 o-1 n0")
+
+// An undo step of its own that joins paragraph para with the next one and leaves the caret at the seam. When either is a block the model does not edit nothing is joined: the block is removed as a unit instead (the next paragraph's, if both are blocks) and the caret goes where it was.
+ed_join_txn(Doc d, Ctl ctl, int para) {
+  int off = para_len(d.body.paras[para]);
+  int victim = para + ed_solid(d, para + 1);
+  int sol = ed_solid(d, para) + ed_solid(d, para + 1);
+} chain (Doc d, Ctl ctl, int para) {
+  int kind = (import ed_k_join);
+  int at = para;
+  if(sol > 0) {
+    kind = (import ed_k_delpara);
+    at = victim;
+  }
+} chain (Doc d, Ctl ctl, int para) {
+  if(sol > 0 && victim == para) {
+    off = 0;
+  }
+  txn_begin(ctl);
+  ed_one(d, ctl, kind, at);
+} chain (Doc d, Ctl ctl, int para) {
+  sel_put(ctl.sel, para, off, 0);
+  ed_close(ctl);
+} return void;
+given fx_setup("ab|cd") ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("abcd") then fx_sel:("0:2-0:2") then fx_hist:("u1 r0 o-1 n1")
+given fx_setup("ab") ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("ab") then fx_hist:("u0 r0 o-1 n0")
+given fx_setup("ab|cd") given fx_opaque(1) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("ab") then fx_sel:("0:2-0:2")
+given fx_setup("ab|cd") given fx_opaque(0) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("cd") then fx_sel:("0:0-0:0")

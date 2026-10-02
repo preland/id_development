@@ -1,0 +1,28 @@
+// Applies op eo to the document and records its inverse in the open undo step.
+ed_run(Doc d, Ctl ctl, Op eo) {
+  Op inv = op_apply(d, eo);
+  hist_note(ctl, inv);
+} return void;
+given fx_setup("ab") given txn_begin((import fxc)) ((import fxd), (import fxc), Op(2, [0, 0, 1, -1, -1], [])):((import fxd), (import fxc), Op(2, [0, 0, 1, -1, -1], [])) then fx_show:("b") then fx_hist:("u1 r0 o0 n1")
+given fx_setup("ab") given txn_begin((import fxc)) ((import fxd), (import fxc), Op(6, [0], [1])):((import fxd), (import fxc), Op(6, [0], [1])) then fx_show:("{1}ab") then fx_hist:("u1 r0 o0 n1")
+given fx_setup("ab") given txn_begin((import fxc)) ((import fxd), (import fxc), Op(0, [], [])):((import fxd), (import fxc), Op(0, [], [])) then fx_show:("ab") then fx_hist:("u1 r0 o0 n0")
+
+// Opens a new undo step and removes the selection in it, so that what is typed or pasted next replaces the selection and undoes with it.
+ed_begin_over(Doc d, Ctl ctl) {
+  txn_begin(ctl);
+  ed_erase(d, ctl);
+} return void;
+given fx_setup("abc") given fx_at(0, 1, 0, 2) ((import fxd), (import fxc)):((import fxd), (import fxc)) then fx_show:("ac") then fx_hist:("u1 r0 o0 n1") then fx_sel:("0:1-0:1")
+given fx_setup("abc") ((import fxd), (import fxc)):((import fxd), (import fxc)) then fx_show:("abc") then fx_hist:("u1 r0 o0 n0")
+
+// Inserts the code points cps at the caret in the character row ed_cprop gives, and moves the caret after them; the pending typing row is used up. The step must already be open.
+ed_put_cps(Doc d, Ctl ctl, int[] cps) {
+  int cprop = ed_cprop(d, ctl);
+  int[] loc = [ctl.sel.caret.para, ctl.sel.caret.off, cprop, 0];
+  ed_run(d, ctl, op_make((import ed_k_ins), loc, cps));
+} chain (Doc d, Ctl ctl, int[] cps) {
+  sel_put(ctl.sel, ctl.sel.caret.para, ctl.sel.caret.off + len(cps), 0);
+  typing_set(-1);
+} return void;
+given fx_setup("ab") given fx_at(0, 1, 0, 1) given txn_begin((import fxc)) ((import fxd), (import fxc), [120, 121]):((import fxd), (import fxc), [120, 121]) then fx_show:("axyb") then fx_sel:("0:3-0:3")
+given fx_setup("ab") given txn_begin((import fxc)) given typing_set(4) ((import fxd), (import fxc), [120]):((import fxd), (import fxc), [120]) then fx_show:("[4:x]ab") then typing_get:(-1)

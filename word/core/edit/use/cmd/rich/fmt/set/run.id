@@ -1,0 +1,39 @@
+// Sets every run triple's character row to 0 (nothing set); lengths and links stay.
+runs_zero(int[] runs) {
+  int i = 1;
+  while(i < len(runs)) {
+    runs[i] = 0;
+    i = i + 3;
+  }
+} return void;
+([2, 5, -1, 1, 8, 3]):([2, 0, -1, 1, 0, 3])
+([]):([])
+
+// For ed_over: in code points lo..hi-1 of paragraph para, applies the character change acc = [field, value] (see fmt_row) as one SET_RUNS in the open undo step, or does nothing when the runs would come out unchanged.
+fmt_runs(Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
+  Para p = d.body.paras[para];
+  Text t = text_copy(p.txt);
+  fmt_text(d, para, t, lo, hi, acc[0], acc[1]);
+} chain (Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
+  int[] runs = runs_span(t, lo, hi);
+  int[] old = runs_span(p.txt, lo, hi);
+  if(ints_eq(runs, old) == 0) {
+    int[] loc = [para, lo, hi];
+    ed_run(d, ctl, op_make((import ed_k_runs), loc, runs));
+  }
+} return void;
+given fx_setup("abcd") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 1, 3, [101, 1]):((import fxd), (import fxc), 0, 1, 3, [101, 1]) then fx_show:("a*bc*d") then fx_hist:("u1 r0 o0 n1")
+given fx_setup("a*bc*d") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 1, 3, [101, 1]):((import fxd), (import fxc), 0, 1, 3, [101, 1]) then fx_hist:("u1 r0 o0 n0")
+given fx_setup("") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 0, 0, [101, 1]):((import fxd), (import fxc), 0, 0, 0, [101, 1]) then fx_show:("**")
+given fx_setup("abcd") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 2, 2, [101, 1]):((import fxd), (import fxc), 0, 2, 2, [101, 1]) then fx_hist:("u1 r0 o0 n0")
+
+// Sets the pending typing row, the one row the next typed character takes: the row at the caret with the change [field, value]. Any caret move or edit drops it. The open undo step is closed.
+ed_set_pending(Doc d, Ctl ctl, int field, int value) {
+  txn_end(ctl);
+  int cprop = ed_cprop(d, ctl);
+  int nc = fmt_row(d, ctl.sel.caret.para, cprop, field, value);
+} chain (Doc d, Ctl ctl, int field, int value) {
+  typing_set(nc);
+} return void;
+given fx_setup("ab") ((import fxd), (import fxc), 101, 1):((import fxd), (import fxc), 101, 1) then typing_get:(8)
+given fx_setup("a*b*") given fx_at(0, 2, 0, 2) ((import fxd), (import fxc), 101, -2):((import fxd), (import fxc), 101, -2) then typing_get:(0)

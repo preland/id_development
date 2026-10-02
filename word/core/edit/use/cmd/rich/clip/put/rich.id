@@ -1,0 +1,34 @@
+// Inserts text t with its runs at the caret in the open undo step and moves the caret after it. An empty text changes nothing.
+ed_put_text(Doc d, Ctl ctl, Text t) {
+  int n = len(t.cps);
+  int[] runs = runs_span(t, 0, n);
+  Op eo = ed_inv_ins(ctl.sel.caret.para, ctl.sel.caret.off, t.cps, runs);
+} chain (Doc d, Ctl ctl, Text t) {
+  if(n > 0) {
+    ed_run(d, ctl, eo);
+    sel_put(ctl.sel, ctl.sel.caret.para, ctl.sel.caret.off + n, 0);
+  }
+} return void;
+given fx_setup("a*b*c") given fx_at(0, 1, 0, 1) given txn_begin((import fxc)) ((import fxd), (import fxc), Text([120, 121], [Run(1, 0, -1), Run(1, 8, -1)], 0)):((import fxd), (import fxc), Text([120, 121], [Run(1, 0, -1), Run(1, 8, -1)], 0)) then fx_show:("ax*yb*c") then fx_sel:("0:3-0:3")
+given fx_setup("ab") given txn_begin((import fxc)) ((import fxd), (import fxc), Text([], [Run(0, 0, -1)], 0)):((import fxd), (import fxc), Text([], [Run(0, 0, -1)], 0)) then fx_hist:("u1 r0 o0 n0")
+
+// Piece k of a fragment: after the first, the paragraph is split at the caret and the new paragraph gets the row the copied one had; then the piece's text goes in.
+ed_paste_piece(Doc d, Ctl ctl, Frag frag, int k) {
+  if(k > 0) {
+    ed_split_row(d, ctl, frag.pprops[k]);
+  }
+  ed_put_text(d, ctl, frag.txts[k]);
+} return void;
+given fx_setup("ab") given txn_begin((import fxc)) ((import fxd), (import fxc), Frag([Text([120], [Run(1, 0, -1)], 0), Text([121], [Run(1, 0, -1)], 0)], [0, 5], 0), 1):((import fxd), (import fxc), Frag([Text([120], [Run(1, 0, -1)], 0), Text([121], [Run(1, 0, -1)], 0)], [0, 5], 0), 1) then fx_show:("|{5}yab")
+given fx_setup("ab") given txn_begin((import fxc)) ((import fxd), (import fxc), Frag([Text([120], [Run(1, 0, -1)], 0)], [0], 1), 0):((import fxd), (import fxc), Frag([Text([120], [Run(1, 0, -1)], 0)], [0], 1), 0) then fx_show:("xab")
+
+// Pastes the fragment ctl.clip at the caret in the open undo step: its first text joins the paragraph at the caret and every later one starts a new paragraph, with the character and paragraph rows they were copied with.
+ed_paste_rich(Doc d, Ctl ctl) {
+  int k = 0;
+  while(k < len(ctl.clip.txts)) {
+    ed_paste_piece(d, ctl, ctl.clip, k);
+    k = k + 1;
+  }
+} return void;
+given fx_setup("ab*cd*|e") given fx_at(0, 1, 1, 1) given fx_copied given fx_at(1, 1, 1, 1) given txn_begin((import fxc)) ((import fxd), (import fxc)):((import fxd), (import fxc)) then fx_show:("ab*cd*|eb*cd*|e")
+given fx_setup("abc") given fx_at(0, 1, 0, 2) given fx_copied given fx_at(0, 3, 0, 3) given txn_begin((import fxc)) ((import fxd), (import fxc)):((import fxd), (import fxc)) then fx_show:("abcb")

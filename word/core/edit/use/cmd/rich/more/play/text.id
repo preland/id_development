@@ -1,0 +1,57 @@
+// The typing and deleting verbs of ed_play: T types argt, E is Enter, B Backspace, W Ctrl+Backspace, D Delete, F Ctrl+Delete.
+ed_play_text(Doc d, Ctl ctl, int verb, string argt) {
+  if(verb == 84) {
+    ed_type_str(d, ctl, argt);
+  }
+  if(verb == 69) {
+    ed_enter(d, ctl);
+  }
+  if(verb == 66) {
+    ed_back(d, ctl, 0);
+  }
+} chain (Doc d, Ctl ctl, int verb, string argt) {
+  if(verb == 87) {
+    ed_back(d, ctl, 1);
+  }
+  if(verb == 68) {
+    ed_delete(d, ctl, 0);
+  }
+  if(verb == 70) {
+    ed_delete(d, ctl, 1);
+  }
+} return void;
+given fx_setup("foo bar") given fx_at(0, 7, 0, 7) ((import fxd), (import fxc), 87, ""):((import fxd), (import fxc), 87, "") then fx_show:("foo ")
+given fx_setup("foo bar") ((import fxd), (import fxc), 70, ""):((import fxd), (import fxc), 70, "") then fx_show:("bar")
+given fx_setup("foo bar") ((import fxd), (import fxc), 84, "x"):((import fxd), (import fxc), 84, "x") then fx_show:("xfoo bar")
+given fx_setup("foo bar") given fx_at(0, 3, 0, 3) ((import fxd), (import fxc), 66, ""):((import fxd), (import fxc), 66, "") then fx_show:("fo bar")
+given fx_setup("foo bar") given fx_at(0, 3, 0, 3) ((import fxd), (import fxc), 68, ""):((import fxd), (import fxc), 68, "") then fx_show:("foobar")
+given fx_setup("foo bar") given fx_at(0, 3, 0, 3) ((import fxd), (import fxc), 69, ""):((import fxd), (import fxc), 69, "") then fx_show:("foo| bar")
+
+// The history and clipboard verbs of ed_play: U undo, R redo, C copy, X cut, V paste what was copied (through its plain text, as the system clipboard would), P paste argt as foreign text.
+ed_play_hist(Doc d, Ctl ctl, int verb, string argt) {
+  if(verb == 85) {
+    hist_undo(d, ctl);
+  }
+  if(verb == 82) {
+    hist_redo(d, ctl);
+  }
+  if(verb == 67) {
+    ed_copy(d, ctl);
+  }
+} chain (Doc d, Ctl ctl, int verb, string argt) {
+  if(verb == 88) {
+    ed_cut(d, ctl);
+  }
+  if(verb == 86) {
+    ed_paste(d, ctl, frag_plain(ctl.clip));
+  }
+  if(verb == 80) {
+    ed_paste(d, ctl, argt);
+  }
+} return void;
+given fx_setup("ab") given fx_at(0, 0, 0, 1) ((import fxd), (import fxc), 88, ""):((import fxd), (import fxc), 88, "") then fx_show:("b")
+given fx_setup("ab") given fx_at(0, 0, 0, 1) given fx_copied given fx_at(0, 2, 0, 2) ((import fxd), (import fxc), 86, ""):((import fxd), (import fxc), 86, "") then fx_show:("aba")
+given fx_setup("ab") ((import fxd), (import fxc), 80, "zz"):((import fxd), (import fxc), 80, "zz") then fx_show:("zzab")
+given fx_setup("ab") given fx_at(0, 0, 0, 1) ((import fxd), (import fxc), 67, ""):((import fxd), (import fxc), 67, "") then fx_clip:("a")
+given fx_setup("ab") given ed_type((import fxd), (import fxc), 120) given fx_undo ((import fxd), (import fxc), 82, ""):((import fxd), (import fxc), 82, "") then fx_show:("xab")
+given fx_setup("ab") given ed_type((import fxd), (import fxc), 120) ((import fxd), (import fxc), 85, ""):((import fxd), (import fxc), 85, "") then fx_show:("ab")

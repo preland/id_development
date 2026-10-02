@@ -1,0 +1,43 @@
+// Test fixture: run k of text t (which starts at code point at) as text: plain when its row is 0, between "*" when it is the bold-only row, else "[row:text]".
+fx_run(Doc d, Text t, int k, int at) {
+  string text = text_str(t, at, at + t.runs[k].len);
+  int cprop = t.runs[k].cprop;
+  int bold = tab_with_bits(d.fmt.chars, 0, (import word_f_bold), 1);
+} chain (Doc d, Text t, int k, int at) {
+  if(cprop == bold) {
+    text = "*" + text + "*";
+  }
+  if(cprop != 0 && cprop != bold) {
+    text = "[" + cprop + ":" + text + "]";
+  }
+} return string text;
+given fx_setup("ab") ((import fxd), Text([97, 98, 99], [Run(1, 0, -1), Run(2, 8, -1)], 0), 1, 1):("*bc*")
+given fx_setup("ab") ((import fxd), Text([97, 98, 99], [Run(1, 0, -1), Run(2, 3, -1)], 0), 1, 1):("[3:bc]")
+given fx_setup("ab") ((import fxd), Text([97, 98, 99], [Run(1, 0, -1), Run(2, 3, -1)], 0), 0, 0):("a")
+
+// Test fixture: the runs of text t as text, each as fx_run writes it.
+fx_runs(Doc d, Text t) {
+  string text = "";
+  int k = 0;
+  int at = 0;
+} chain (Doc d, Text t) {
+  while(k < len(t.runs)) {
+    text = text + fx_run(d, t, k, at);
+    at = at + t.runs[k].len;
+    k = k + 1;
+  }
+} return string text;
+given fx_setup("ab") ((import fxd), Text([97, 98, 99], [Run(1, 0, -1), Run(2, 3, -1)], 0)):("a[3:bc]")
+given fx_setup("ab") ((import fxd), Text([], [Run(0, 0, -1)], 0)):("")
+
+// Test fixture: paragraph i as text: its runs behind "{row}" when its paragraph row is not 0.
+fx_para(Doc d, int i) {
+  Para p = d.body.paras[i];
+  string text = fx_runs(d, p.txt);
+  if(p.pprop != 0) {
+    text = "{" + p.pprop + "}" + text;
+  }
+} return string text;
+given fx_setup("ab*cd*e") ((import fxd), 0):("ab*cd*e")
+given fx_setup("x|y") ((import fxd), 1):("y")
+given fx_setup("x") given fx_opaque(0) ((import fxd), 0):("{9}x")

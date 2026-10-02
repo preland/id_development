@@ -1,0 +1,45 @@
+// Where an Up, Down, Home or End goes when no layout is installed, one paragraph being one line: dir 1 and -1 are the next and previous paragraph at the same offset (cut to its length), dir 2 and -2 the end and the start of the paragraph.
+ed_line_para(Doc d, Pos ps, int dir) {
+  int para = ps.para;
+  int n = len(d.body.paras);
+  int off = ps.off;
+} chain (Doc d, Pos ps, int dir) {
+  if(dir == 1 && para + 1 < n) {
+    para = para + 1;
+  }
+  if(dir == -1 && para > 0) {
+    para = para - 1;
+  }
+  off = fx_min(off, para_len(d.body.paras[para]));
+} chain (Doc d, Pos ps, int dir) {
+  if(dir == 2) {
+    off = para_len(d.body.paras[para]);
+  }
+  if(dir == -2) {
+    off = 0;
+  }
+  Pos pq = pos_new(para, off);
+} return Pos pq;
+given fx_setup("ab|cde|f") ((import fxd), Pos(1, 2), 1):(Pos(2, 1))
+given fx_setup("ab|cde|f") ((import fxd), Pos(1, 2), -1):(Pos(0, 2))
+given fx_setup("ab|cde|f") ((import fxd), Pos(0, 1), -1):(Pos(0, 1))
+given fx_setup("ab|cde|f") ((import fxd), Pos(1, 1), 2):(Pos(1, 3))
+given fx_setup("ab|cde|f") ((import fxd), Pos(1, 1), -2):(Pos(1, 0))
+
+// The layout hook used until real layout is installed: it moves the caret of sel as ed_line_para says for the line unit and to the document edge for the page unit; the anchor stays.
+ed_hook_para(Doc d, Sel sel, int dir, int unit) {
+  Pos ps = ed_line_para(d, sel.caret, dir);
+  if(unit == (import ed_u_page)) {
+    ps = pos_edge(d, dir);
+  }
+  sel_put(sel, ps.para, ps.off, 1);
+} return void;
+given fx_setup("ab|cde|f") ((import fxd), Sel(Pos(1, 2), Pos(1, 2), -1), 1, 2):((import fxd), Sel(Pos(1, 2), Pos(2, 1), -1), 1, 2)
+given fx_setup("ab|cde|f") ((import fxd), Sel(Pos(1, 2), Pos(1, 2), -1), -1, 4):((import fxd), Sel(Pos(1, 2), Pos(0, 0), -1), -1, 4)
+
+// Installs the function the line and page moves of ed_move call: mv(doc, sel, dir, unit) moves sel.caret (and may set sel.goal) for dir 1 and -1 (down and up a line or a page) and dir 2 and -2 (the end and the start of the line), as the layout does.
+ed_layout_hooks(func(Doc, Sel, int, int) return void mv) {
+  export func(Doc, Sel, int, int) return void ed_mv = mv;
+} return void;
+(ed_hook_para):(ed_hook_para) then ed_hook_probe:(0)
+(fx_hook_mark):(fx_hook_mark) then ed_hook_probe:(7005)

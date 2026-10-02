@@ -1,0 +1,37 @@
+// Appends to dat what a SPLIT needs to undo the join of paragraph para and the one after it: the row of the one that goes away, then the kept empty-run properties of each side.
+join_note(Doc d, int para, int[] dat) {
+  int[] kl = text_keep(d.body.paras[para].txt);
+  int[] kr = text_keep(d.body.paras[para + 1].txt);
+  push(dat, d.body.paras[para + 1].pprop);
+} chain (Doc d, int para, int[] dat) {
+  lst_extend(dat, kl);
+  lst_extend(dat, kr);
+} return void;
+given fx_setup("ab|cd") ((import fxd), 0, []):((import fxd), 0, [0, -1, -1, -1, -1])
+given fx_setup("|cd") ((import fxd), 0, [7]):((import fxd), 0, [7, 0, 0, -1, -1, -1])
+
+// Joins paragraph para and the next one (fix is JOIN's data, see join_fix), and returns the SPLIT that undoes it.
+ap_join_do(Doc d, int para, int[] fix) {
+  int[] dat = [];
+  int off = para_len(d.body.paras[para]);
+  join_note(d, para, dat);
+} chain (Doc d, int para, int[] fix) {
+  body_join(d.body, para);
+  join_fix(d, para, fix);
+  int[] loc = [para, off];
+} chain (Doc d, int para, int[] fix) {
+  Op inv = op_make((import ed_k_split), loc, dat);
+} return Op inv;
+given fx_setup("ab|cd") ((import fxd), 0, []):(Op(3, [0, 2], [0, -1, -1, -1, -1])) then fx_show:("abcd")
+given fx_setup("a|b|c") ((import fxd), 1, []):(Op(3, [1, 1], [0, -1, -1, -1, -1])) then fx_show:("a|bc")
+given fx_setup("|") ((import fxd), 0, [5, -1]):(Op(3, [0, 0], [0, 0, -1, 0, -1])) then fx_show:("[5:]")
+
+// JOIN, at = [para], data none or [cprop, link]: paragraph para takes in the next one and keeps its own row. Past the last paragraph it does nothing.
+ap_join(Doc d, Op eo) {
+  Op inv = ap_nop();
+  if(eo.at[0] + 1 < len(d.body.paras)) {
+    inv = ap_join_do(d, eo.at[0], eo.data);
+  }
+} return Op inv;
+given fx_setup("ab|cd") ((import fxd), Op(4, [0], [])):(Op(3, [0, 2], [0, -1, -1, -1, -1])) then fx_show:("abcd")
+given fx_setup("ab|cd") ((import fxd), Op(4, [1], [])):(Op(0, [], [])) then fx_show:("ab|cd")

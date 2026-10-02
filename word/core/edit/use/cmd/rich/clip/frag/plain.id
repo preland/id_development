@@ -1,0 +1,22 @@
+// Paragraph i of a fragment as text, behind a line feed unless it is the first.
+frag_line(Frag frag, int i) {
+  string text = text_str(frag.txts[i], 0, len(frag.txts[i].cps));
+  if(i > 0) {
+    text = "\n" + text;
+  }
+} return string text;
+(Frag([Text([97, 98], [Run(2, 0, -1)], 0), Text([99], [Run(1, 0, -1)], 0)], [0, 0], 0), 1):("\nc")
+(Frag([Text([97, 98], [Run(2, 0, -1)], 0)], [0], 1), 0):("ab")
+
+// The plain text of a fragment, paragraphs joined by a line feed: what goes to the system clipboard.
+frag_plain(Frag frag) {
+  string text = "";
+  int i = 0;
+  while(i < len(frag.txts)) {
+    text = text + frag_line(frag, i);
+    i = i + 1;
+  }
+} return string text;
+(Frag([Text([97, 98], [Run(2, 0, -1)], 0), Text([99], [Run(1, 0, -1)], 0)], [0, 0], 0)):("ab\nc")
+(Frag([Text([97], [Run(1, 0, -1)], 0)], [0], 1)):("a")
+(Frag([], [], 1)):("")

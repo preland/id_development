@@ -1,0 +1,29 @@
+// For ed_over: samples the character rows of the runs that cover code points lo..hi-1 of paragraph para (an empty paragraph gives its one empty run).
+smp_run(Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
+  int[] runs = runs_span(d.body.paras[para].txt, lo, hi);
+  int i = 1;
+  while(i < len(runs)) {
+    smp_add(d, para, runs[i], acc);
+    i = i + 3;
+  }
+} return void;
+given fx_setup("a*bc*d") ((import fxd), (import fxc), 0, 0, 4, [101, 0, 0]):((import fxd), (import fxc), 0, 0, 4, [101, 1, -2])
+given fx_setup("a*bc*d") ((import fxd), (import fxc), 0, 1, 3, [101, 0, 0]):((import fxd), (import fxc), 0, 1, 3, [101, 1, 1])
+given fx_setup("ab") ((import fxd), (import fxc), 0, 1, 1, [101, 0, 0]):((import fxd), (import fxc), 0, 1, 1, [101, 0, 0])
+
+// For ed_over: samples the paragraph field acc[0] - ed_s_para of paragraph para, resolved through its style.
+smp_para(Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
+  Para p = d.body.paras[para];
+  int got = style_eff_p(d.fmt, p.pprop, acc[0] - (import ed_s_para));
+  smp_fold(acc, got);
+} return void;
+given fx_setup("ab") ((import fxd), (import fxc), 0, 0, 2, [201, 0, 0]):((import fxd), (import fxc), 0, 0, 2, [201, 1, 0])
+given fx_setup("ab") ((import fxd), (import fxc), 0, 0, 2, [202, 0, 0]):((import fxd), (import fxc), 0, 0, 2, [202, 1, 0])
+
+// Samples the character row a typed character would take at the caret (a bare caret has no selected text).
+smp_caret(Doc d, Ctl ctl, int[] acc) {
+  int cprop = ed_cprop(d, ctl);
+  smp_add(d, ctl.sel.caret.para, cprop, acc);
+} return void;
+given fx_setup("a*b*") given fx_at(0, 2, 0, 2) ((import fxd), (import fxc), [101, 0, 0]):((import fxd), (import fxc), [101, 1, 1])
+given fx_setup("a*b*") given fx_at(0, 2, 0, 2) given typing_set(0) ((import fxd), (import fxc), [101, 0, 0]):((import fxd), (import fxc), [101, 1, 0])
