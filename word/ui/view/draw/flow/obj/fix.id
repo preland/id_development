@@ -1,0 +1,16 @@
+// Test setup: the test document holds one part, an element of the given name, that the marker of paragraph 0 stands for.
+vw_t_part(string vws_n) {
+  Doc vwd = (import lp_t_d);
+  Part vwpt = Part(vws_n, [60, 120, 47, 62], 0);
+  push(vwd.ext.parts, vwpt);
+} return void;
+given lp_t_new ("a"):() then vw_t_np:(1)
+given lp_t_new given vw_t_part("a") ("b"):() then vw_t_np:(2)
+
+// Test check: how many parts the test document keeps.
+vw_t_np() {
+  Doc vwd = (import lp_t_d);
+  int vwi_n = len(vwd.ext.parts);
+} return int vwi_n;
+given lp_t_new ():(0)
+given lp_t_new given vw_t_part("a") ():(1)

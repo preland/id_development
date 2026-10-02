@@ -1,0 +1,28 @@
+// The screen x in pixels of a pen position (lu from the left edge of the text area) on the page whose geometry is vwl_g: the sheet's left, the margin and the pen, at the page's zoom.
+// By hand: with the sheet at x 10, a 6144 lu margin (96 px) and a pen of 683 lu at 100 percent, 10 + (6144 + 683) * 100 / 6400 = 10 + 106 = 116.
+vw_x(int[] vwl_g, int vwi_pen) {
+  int vwi_x = vwl_g[(import vw_g_x)] + vw_px(vwl_g[(import vw_g_l)] + vwi_pen, vwl_g[(import vw_g_z)]);
+} return int vwi_x;
+([10, 0, 100, 6144, 0], 683):(116)
+([10, 0, 200, 0, 0], 683):(31)
+
+// The highlight of a run segment: a rectangle of the highlight colour from vwi_x0 to vwi_x1, as tall as the face (its ascent above the baseline vwi_b, its descent below). Nothing when the look has no highlight.
+vw_hl(int[] vwl_q, int vwi_x0, int vwi_x1, int vwi_b) {
+  int vwi_c = vwl_q[(import vw_q_hl)];
+  int vwi_a = vwl_q[(import vw_q_asc)];
+  if(vwi_c >= 0) {
+    d2_l_rect(vwi_x0, vwi_b - vwi_a, vwi_x1 - vwi_x0, vwi_a + vwl_q[(import vw_q_desc)], vwi_c);
+  }
+} return void;
+given sf_l_init(30, 30) given vw_t_at(10, 12) ([0, 0, 255, 0, 10, 4], 5, 15, 20):() then vw_t_px:(255)
+given sf_l_init(30, 30) given vw_t_at(10, 12) ([0, 0, -1, 0, 10, 4], 5, 15, 20):() then vw_t_px:(0)
+given sf_l_init(30, 30) given vw_t_at(10, 25) ([0, 0, 255, 0, 10, 4], 5, 15, 20):() then vw_t_px:(0)
+
+// A horizontal rule of the look's colour from vwi_x0 to vwi_x1 at vwi_y, as thick as the face is tall over eighteen, at least one pixel: an underline or a strike.
+vw_rule(int[] vwl_q, int vwi_x0, int vwi_x1, int vwi_y) {
+  int vwi_h = fx_max(1, (vwl_q[(import vw_q_asc)] + vwl_q[(import vw_q_desc)]) / 18);
+  d2_l_rect(vwi_x0, vwi_y, vwi_x1 - vwi_x0, vwi_h, vwl_q[(import vw_q_col)]);
+} return void;
+given sf_l_init(30, 30) given vw_t_at(10, 20) ([0, 255, -1, 0, 14, 4], 5, 15, 20):() then vw_t_px:(255)
+given sf_l_init(30, 40) given vw_t_at(10, 21) ([0, 255, -1, 0, 36, 0], 5, 15, 20):() then vw_t_px:(255)
+given sf_l_init(30, 30) given vw_t_at(10, 21) ([0, 255, -1, 0, 14, 4], 5, 15, 20):() then vw_t_px:(0)

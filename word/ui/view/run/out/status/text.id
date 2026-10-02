@@ -1,0 +1,25 @@
+// The page the viewer shows, counted from 0: the one under the middle of the page area, which is vwi_ch pixels tall and scrolled to vwi_y at zoom vwi_z. It is the last page that starts at or above that line.
+// By hand: with 300 px of page area the middle is 150 px down at no scroll, above the second page's top at 248, so page 0; scrolled 172 it is 322, past it, so page 1.
+vw_cur(View vwv, int vwi_z, int vwi_y, int vwi_ch) {
+  int vwi_mid = vwi_y + vwi_ch / 2;
+  int vwi_k = 0;
+  int vwi_n = lay_page_count(vwv);
+} chain (View vwv, int vwi_z, int vwi_y, int vwi_ch) {
+  while(vwi_k + 1 < vwi_n && vw_top(vwv, vwi_k + 1, vwi_z) <= vwi_mid) {
+    vwi_k = vwi_k + 1;
+  }
+} return int vwi_k;
+given vw_t_two () ((import lp_t_v), 100, 0, 300):(0)
+given vw_t_two () ((import lp_t_v), 100, 172, 300):(1)
+given vw_t_two () ((import lp_t_v), 200, 100, 300):(0)
+
+// What the status bar says: the page shown out of the pages there are, the words in the document and the zoom, for a page area vwi_ch pixels tall.
+vw_status_text(View vwv, int vwi_ch) {
+  int[] vwl_st = (import vw_st);
+  int vwi_k = vw_cur(vwv, vwl_st[(import vw_s_z)], vwl_st[(import vw_s_y)], vwi_ch);
+  int vwi_w = count_words(vwv.doc);
+} chain (View vwv, int vwi_ch) {
+  string vws_t = "Page " + (vwi_k + 1) + " of " + lay_page_count(vwv) + "    " + vwi_w + " words    " + vwl_st[(import vw_s_z)] + "%";
+} return string vws_t;
+given vw_t_two given vw_state_new ((import lp_t_v), 300):("Page 1 of 2    8 words    100%")
+given vw_t_two given vw_t_at_y(300, 150) ((import lp_t_v), 300):("Page 2 of 2    8 words    150%")

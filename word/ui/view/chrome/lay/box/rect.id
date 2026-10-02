@@ -1,0 +1,30 @@
+// Field k (0 x, 1 y, 2 width, 3 height) of the rectangle the class vws_c got in the last layout.
+vw_box(string vws_c, int vwi_k) {
+  int vwi_nd = gui_find_cls((import vw_t), (import vw_s), vws_c);
+  int vwi_v = gui_rect_get((import vw_rc), vwi_nd, vwi_k);
+} return int vwi_v;
+given vw_t_up(800, 600) ("canvas", 2):(784)
+given vw_t_up(800, 600) ("status", 1):(578)
+given vw_t_up(800, 600) ("vbar", 0):(784)
+
+
+// 1 when the point (x, y) is inside the rectangle of class vws_c.
+vw_in(string vws_c, int vwi_x, int vwi_y) {
+  int vwi_bx = vw_box(vws_c, 0);
+  int vwi_by = vw_box(vws_c, 1);
+  int vwi_bw = vw_box(vws_c, 2);
+} chain (string vws_c, int vwi_x, int vwi_y) {
+  int vwi_bh = vw_box(vws_c, 3);
+  int vwi_o = vwi_x >= vwi_bx && vwi_x < vwi_bx + vwi_bw && vwi_y >= vwi_by && vwi_y < vwi_by + vwi_bh;
+} return int vwi_o;
+given vw_t_up(800, 600) ("canvas", 10, 130):(1)
+given vw_t_up(800, 600) ("canvas", 790, 130):(0)
+given vw_t_up(800, 600) ("vbar", 790, 577):(1)
+
+
+// Test check: the rectangle of the ribbon band as x,y,w,h.
+vw_t_box() {
+  string vws_z = vw_box("ribbon", 0) + "," + vw_box("ribbon", 1) + "," + vw_box("ribbon", 2) + "," + vw_box("ribbon", 3);
+} return string vws_z;
+given vw_t_up(800, 600) ():("0,0,800,128")
+given vw_t_up(640, 480) ():("0,0,640,128")

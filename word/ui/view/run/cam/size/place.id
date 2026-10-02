@@ -1,0 +1,31 @@
+// The left of the sheets in the page area, in pixels from its left edge, at zoom vwi_z: centred when the sheet and a gap on each side fit in the area vwi_cw pixels wide, else a gap from the left edge less the horizontal scroll vwi_sx.
+// By hand: a 100 px sheet in a 384 px area starts at (384 - 100) / 2 = 142; at 400 percent it is 400 px wide, which does not fit, and starts 96 px in at no scroll or 46 px with 50 scrolled.
+vw_sx(View vwv, int vwi_z, int vwi_cw, int vwi_sx) {
+  int vwi_w = vw_px(lay_sheet(vwv.doc, 0), vwi_z);
+  int vwi_gap = vw_px((import word_lay_gap), vwi_z);
+  int vwi_x = vwi_gap - vwi_sx;
+} chain (View vwv, int vwi_z, int vwi_cw, int vwi_sx) {
+  if(vwi_w + 2 * vwi_gap <= vwi_cw) {
+    vwi_x = (vwi_cw - vwi_w) / 2;
+  }
+} return int vwi_x;
+given vw_t_two () ((import lp_t_v), 100, 384, 0):(142)
+given vw_t_two () ((import lp_t_v), 400, 384, 0):(96)
+given vw_t_two () ((import lp_t_v), 400, 384, 50):(46)
+
+// The geometry list a page is drawn with: its sheet's left and top on the surface in pixels, the zoom, and the left and top margins of the text area in lu.
+vw_geom(View vwv, int vwi_x, int vwi_y, int vwi_z) {
+  int vwi_l = lay_margin(vwv.doc, 3);
+  int vwi_t = lay_margin(vwv.doc, 0);
+  int[] vwl_g = [vwi_x, vwi_y, vwi_z, vwi_l, vwi_t];
+} return int[] vwl_g;
+given vw_t_two () ((import lp_t_v), 10, 20, 100):([10, 20, 100, 2560, 640])
+given vw_t_two () ((import lp_t_v), 0, -5, 200):([0, -5, 200, 2560, 640])
+
+// 1 when a sheet at vwi_top, vwi_ph pixels tall, shows in a page area from vwi_cy, vwi_ch pixels tall.
+vw_vis(int vwi_top, int vwi_ph, int vwi_cy, int vwi_ch) {
+  int vwi_v = vwi_top < vwi_cy + vwi_ch && vwi_top + vwi_ph > vwi_cy;
+} return int vwi_v;
+(10, 200, 0, 100):(1)
+(100, 200, 0, 100):(0)
+(-250, 200, 0, 100):(0)

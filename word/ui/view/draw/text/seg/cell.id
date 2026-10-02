@@ -1,0 +1,31 @@
+// Draws one code point if it has a glyph: its pen position (lu from the left of the text area) is placed on the page at the page's zoom, in 64ths of a pixel, and the glyph is drawn there on the baseline vwi_base in the look's face and colour.
+vw_glyph(int[] vwl_g, int[] vwl_q, int vwi_cp, int vwi_pen, int vwi_base) {
+  int vwi_ok = vw_ok(vwi_cp);
+  int vwi_x = vwl_g[(import vw_g_x)] * 64 + vw_x64(vwl_g[(import vw_g_l)] + vwi_pen, vwl_g[(import vw_g_z)]);
+  if(vwi_ok == 1) {
+    gui_cp_draw(vwl_q[(import vw_q_fh)], vwi_x, vwi_base, vwi_cp, vwl_q[(import vw_q_col)]);
+  }
+} return void;
+given lp_t_font given lp_t_ins(0, "B") given vw_t_box0(10, 19, 21, 31) given sf_l_init(60, 40) ([10, 0, 100, 0, 0], [1, 255, -1, 0, 14, 3], 65, 0, 30):() then vw_t_inked:(1)
+given lp_t_font given lp_t_ins(0, "B") given vw_t_box0(10, 19, 21, 31) given sf_l_init(60, 40) ([10, 0, 100, 0, 0], [1, 255, -1, 0, 14, 3], 32, 0, 30):() then vw_t_inked:(0)
+given lp_t_font given lp_t_ins(0, "B") given vw_t_box0(30, 19, 41, 31) given sf_l_init(60, 40) ([10, 0, 100, 0, 0], [1, 255, -1, 0, 14, 3], 65, 0, 30):() then vw_t_inked:(0)
+
+
+// Test check: how many pixels of one row, from vwi_x0 to vwi_x1 - 1 at vwi_y, are not the colour vwi_bg on the list surface.
+vw_t_row(int vwi_x0, int vwi_x1, int vwi_y, int vwi_bg) {
+  int vwi_n = 0;
+  int vwi_x = vwi_x0;
+  while(vwi_x < vwi_x1) {
+    vwi_n = vwi_n + (lget((import sf_l_px), sf_l_idx(vwi_x, vwi_y)) != vwi_bg);
+    vwi_x = vwi_x + 1;
+  }
+} return int vwi_n;
+given sf_l_init(8, 8) given d2_l_rect(2, 2, 2, 2, 5) (0, 8, 2, 0):(2)
+given sf_l_init(8, 8) given d2_l_rect(2, 2, 2, 2, 5) (4, 8, 2, 0):(0)
+
+// Test setup: the colour that vw_t_inked counts as background in the remembered box.
+vw_t_bg(int vwi_c) {
+  lset((import vw_t_bx), 4, vwi_c);
+} return void;
+given vw_t_box0(0, 0, 1, 1) (7):() then vw_t_bxs:("0,0,1,1,7,")
+given sf_l_init(4, 4) given d2_l_rect(0, 0, 4, 4, 9) given vw_t_box0(0, 0, 4, 4) (9):() then vw_t_inked:(0)

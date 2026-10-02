@@ -1,0 +1,41 @@
+// What a turn of the wheel does, for a page area vwi_ch tall and vwi_cw wide: with Ctrl it zooms by a step a notch (away from you zooms in), with Shift it scrolls sideways, else it scrolls the page area by vw_wheel_px a notch, down positive (vwi_dx is the sideways notches, vwi_dy the vertical ones).
+vw_wheel(View vwv, int vwi_dx, int vwi_dy, int vwi_mods, int vwi_ch, int vwi_cw) {
+  int[] vwl_st = (import vw_st);
+  int vwi_z = vwl_st[(import vw_s_z)];
+  int vwi_sh = (vwi_mods & 1) != 0;
+} chain (View vwv, int vwi_dx, int vwi_dy, int vwi_mods, int vwi_ch, int vwi_cw) {
+  if((vwi_mods & 2) != 0) {
+    vw_zoom(vwv, vwi_z - vwi_dy * (import vw_zoom_step), vwi_ch);
+  } else {
+    vw_pan(vwv, vwi_dx + vwi_dy * vwi_sh, vwi_dy * (1 - vwi_sh), vwi_ch, vwi_cw);
+  }
+} return void;
+given vw_t_two given vw_t_at_y(0, 100) ((import lp_t_v), 0, 1, 0, 100, 384):() then vw_t_sts:("0,48,100,1,")
+given vw_t_two given vw_t_at_y(0, 100) ((import lp_t_v), 0, -1, 2, 100, 384):() then vw_t_sts:("0,0,110,1,")
+given vw_t_two given vw_t_at_y(0, 100) ((import lp_t_v), 0, 1, 2, 100, 384):() then vw_t_sts:("0,0,90,1,")
+
+// Moves the page area by whole notches: vwi_nx sideways and vwi_ny down, each vw_wheel_px pixels.
+vw_pan(View vwv, int vwi_nx, int vwi_ny, int vwi_ch, int vwi_cw) {
+  vw_scroll(vwv, vwi_ny * (import vw_wheel_px), vwi_ch);
+  vw_scroll_x(vwv, vwi_nx * (import vw_wheel_px), vwi_cw);
+} return void;
+given vw_t_two given vw_t_at_y(0, 100) ((import lp_t_v), 0, 2, 100, 384):() then vw_t_sts:("0,96,100,1,")
+given vw_t_two given vw_t_at_y(0, 400) ((import lp_t_v), 1, 0, 100, 384):() then vw_t_sts:("48,0,400,1,")
+
+// Scrolls the sheets sideways by vwi_dx pixels (right positive) when they are wider than the page area (vwi_cw pixels wide), never before the left edge or past the right one; the picture is stale when that moved them.
+vw_scroll_x(View vwv, int vwi_dx, int vwi_cw) {
+  int[] vwl_st = (import vw_st);
+  int vwi_z = vwl_st[(import vw_s_z)];
+  int vwi_w = vw_px(lay_sheet(vwv.doc, 0), vwi_z);
+} chain (View vwv, int vwi_dx, int vwi_cw) {
+  int vwi_g = vw_px((import word_lay_gap), vwi_z);
+  int vwi_m = fx_max(vwi_w + 2 * vwi_g - vwi_cw, 0);
+  int vwi_x = fx_clamp(vwl_st[(import vw_s_x)] + vwi_dx, 0, vwi_m);
+} chain (View vwv, int vwi_dx, int vwi_cw) {
+  if(vwi_x != vwl_st[(import vw_s_x)]) {
+    lset(vwl_st, (import vw_s_x), vwi_x);
+    lset(vwl_st, (import vw_s_d), 1);
+  }
+} return void;
+given vw_t_two given vw_t_at_y(0, 400) ((import lp_t_v), 500, 384):() then vw_t_sts:("208,0,400,1,")
+given vw_t_two given vw_t_at_y(0, 100) ((import lp_t_v), 50, 384):() then vw_t_sts:("0,0,100,0,")

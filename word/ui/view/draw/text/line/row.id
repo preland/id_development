@@ -1,0 +1,34 @@
+// Paints the runs of line vwi_j of paragraph vwi_p on the baseline vwi_b, run by run while they start before the end of the line.
+vw_runs(View vwv, int vwi_p, int[] vwl_g, int vwi_j, int vwi_b) {
+  Para vwp = vwv.doc.body.paras[vwi_p];
+  int vwi_hi = vwp.lay.lines[vwi_j * (import word_ln_stride) + (import word_ln_hi)];
+  int vwi_ri = 0;
+} chain (View vwv, int vwi_p, int[] vwl_g, int vwi_j, int vwi_b) {
+  int vwi_rs = 0;
+  while(vwi_ri < len(vwp.txt.runs) && vwi_rs < vwi_hi) {
+    vwi_rs = vw_run(vwv, vwi_p, vwl_g, vwi_j, vwi_ri, vwi_rs, vwi_b);
+    vwi_ri = vwi_ri + 1;
+  }
+} return void;
+given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given sf_l_init(60, 40) given vw_t_set(0, 0, 2, 3, 255) given vw_t_box0(21, 19, 31, 31) ((import lp_t_v), 0, [10, 0, 100, 0, 0], 0, 30):() then vw_t_inked:(1)
+given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given sf_l_init(60, 40) given lp_t_split(0, 1) given lay_all((import lp_t_v)) given vw_t_box0(21, 19, 31, 31) ((import lp_t_v), 0, [10, 0, 100, 0, 0], 0, 30):() then vw_t_inked:(0)
+
+// The baseline of line vwi_j of paragraph vwi_p in pixels on the surface, when the paragraph's own top is vwi_base lu down the page: the margin, the paragraph's top, the line's y and its ascent down the sheet, at the page's zoom.
+// By hand: a 16 px line has its baseline 14 px (896 lu) below its top; on a sheet at y 16 that is 30, and a paragraph 1600 lu (25 px) further down puts it at 55.
+vw_bline(View vwv, int vwi_p, int[] vwl_g, int vwi_base, int vwi_j) {
+  int[] vwl_ln = vwv.doc.body.paras[vwi_p].lay.lines;
+  int vwi_o = vwi_j * (import word_ln_stride);
+  int vwi_d = vwl_g[(import vw_g_t)] + vwi_base + vwl_ln[vwi_o + (import word_ln_y)] + vwl_ln[vwi_o + (import word_ln_asc)];
+} chain (View vwv, int vwi_p, int[] vwl_g, int vwi_base, int vwi_j) {
+  int vwi_b = vwl_g[(import vw_g_y)] + vw_px(vwi_d, vwl_g[(import vw_g_z)]);
+} return int vwi_b;
+given lp_t_font given lp_t_ins(0, "A") given lay_all((import lp_t_v)) ((import lp_t_v), 0, [0, 16, 100, 0, 0], 0, 0):(30)
+given lp_t_font given lp_t_ins(0, "A") given lay_all((import lp_t_v)) ((import lp_t_v), 0, [0, 16, 100, 0, 0], 1600, 0):(55)
+
+// Paints line vwi_j of paragraph vwi_p, whose own top is vwi_base lu down the page, on the baseline vw_bline gives it.
+vw_line(View vwv, int vwi_p, int[] vwl_g, int vwi_base, int vwi_j) {
+  int vwi_b = vw_bline(vwv, vwi_p, vwl_g, vwi_base, vwi_j);
+  vw_runs(vwv, vwi_p, vwl_g, vwi_j, vwi_b);
+} return void;
+given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given sf_l_init(60, 40) given vw_t_set(0, 0, 2, 3, 255) given vw_t_box0(10, 19, 21, 31) ((import lp_t_v), 0, [10, 16, 100, 0, 0], 0, 0):() then vw_t_inked:(1)
+given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given sf_l_init(60, 40) given vw_t_set(0, 0, 2, 3, 255) given vw_t_box0(10, 19, 21, 31) ((import lp_t_v), 0, [10, 16, 100, 0, 0], 1600, 0):() then vw_t_inked:(0)

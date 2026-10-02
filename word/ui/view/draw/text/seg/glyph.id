@@ -1,0 +1,36 @@
+// The underline and the strike of a run segment from vwi_x0 to vwi_x1 over the baseline vwi_b, when the flag bits of its look ask for them: the underline a sixteenth of the face below the baseline, the strike three tenths of the ascent above it.
+vw_decor(int[] vwl_q, int vwi_x0, int vwi_x1, int vwi_b) {
+  int vwi_f = vwl_q[(import vw_q_asc)] + vwl_q[(import vw_q_desc)];
+  if((vwl_q[(import vw_q_bits)] & 4) != 0) {
+    vw_rule(vwl_q, vwi_x0, vwi_x1, vwi_b + 1 + vwi_f / 16);
+  }
+  if((vwl_q[(import vw_q_bits)] & 8) != 0) {
+    vw_rule(vwl_q, vwi_x0, vwi_x1, vwi_b - vwl_q[(import vw_q_asc)] * 3 / 10);
+  }
+} return void;
+given sf_l_init(30, 40) given vw_t_at(10, 22) ([0, 255, -1, 4, 14, 3], 5, 15, 20):() then vw_t_px:(255)
+given sf_l_init(30, 40) given vw_t_at(10, 16) ([0, 255, -1, 8, 14, 3], 5, 15, 20):() then vw_t_px:(255)
+given sf_l_init(30, 40) given vw_t_at(10, 22) ([0, 255, -1, 8, 14, 3], 5, 15, 20):() then vw_t_px:(0)
+
+// 1 when a code point is drawn as a glyph: not a space or a control, and not the marker of an object, which is drawn as a box of its own.
+vw_ok(int vwi_cp) {
+  int vwi_y = vwi_cp > 32 && vwi_cp < (import word_o_marker);
+} return int vwi_y;
+(65):(1)
+(32):(0)
+(983041):(0)
+
+// Draws the code points vwi_a to vwi_b - 1 of paragraph vwi_p on the baseline vwi_base, each at its own pen position, in the face and the colour of the look vwl_q.
+vw_glyphs(View vwv, int vwi_p, int[] vwl_g, int[] vwl_q, int vwi_a, int vwi_b, int vwi_base) {
+  int[] vwl_pen = vwv.doc.body.paras[vwi_p].lay.pen;
+  int[] vwl_cps = vwv.doc.body.paras[vwi_p].txt.cps;
+  int vwi_k = vwi_a;
+} chain (View vwv, int vwi_p, int[] vwl_g, int[] vwl_q, int vwi_a, int vwi_b, int vwi_base) {
+  while(vwi_k < vwi_b) {
+    vw_glyph(vwl_g, vwl_q, vwl_cps[vwi_k], vwl_pen[vwi_k], vwi_base);
+    vwi_k = vwi_k + 1;
+  }
+} return void;
+given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given vw_t_box0(21, 19, 31, 31) given sf_l_init(60, 40) ((import lp_t_v), 0, [10, 0, 100, 0, 0], [1, 255, -1, 0, 14, 3], 0, 2, 30):() then vw_t_inked:(1)
+given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given vw_t_box0(21, 19, 31, 31) given sf_l_init(60, 40) ((import lp_t_v), 0, [10, 0, 100, 0, 0], [1, 255, -1, 0, 14, 3], 0, 1, 30):() then vw_t_inked:(0)
+

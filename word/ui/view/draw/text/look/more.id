@@ -1,0 +1,16 @@
+// Test setup: the single run of paragraph vwi_p of the test document is inside hyperlink vwi_k.
+vw_t_link(int vwi_p, int vwi_k) {
+  Doc vwd = (import lp_t_d);
+  Run vwr = vwd.body.paras[vwi_p].txt.runs[0];
+  vwr.link = vwi_k;
+} return void;
+given lp_t_new given lp_t_ins(0, "A") (0, 3):() then vw_t_lk:(3)
+given lp_t_new given lp_t_ins(0, "A") (0, 0):() then vw_t_lk:(0)
+
+// Test check: the hyperlink of the first run of paragraph 0 of the test document.
+vw_t_lk() {
+  Doc vwd = (import lp_t_d);
+  int vwi_k = vwd.body.paras[0].txt.runs[0].link;
+} return int vwi_k;
+given lp_t_new given lp_t_ins(0, "A") ():(-1)
+given lp_t_new given lp_t_ins(0, "A") given vw_t_link(0, 5) ():(5)

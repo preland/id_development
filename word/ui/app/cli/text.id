@@ -1,0 +1,40 @@
+// word --text IN.odt and word --dump IN.odt: loads the document and prints its paragraphs, one per line (dump 0), or its normalised dump (dump 1, docs/WORD.md 4.9a). Answers 0, or 1 after naming on stderr what went wrong and how to fix it.
+cli_doc(string path, int dump) {
+  Doc d = doc_new();
+  int code = odt_load(path, d);
+  int rc = code != 0;
+} chain (string path, int dump) {
+  string text = cli_form(d, dump);
+  if(code == 0) {
+    put(text);
+  } else {
+    eprint(odt_error(code));
+  }
+} return int rc;
+given orc_t_zip("<r><office:text><text:p>Hi</text:p><text:p>Yo</text:p></office:text></r>", "") given orc_t_save ((import orc_tp), 0):(0) then prints:("Hi\nYo\n") then orc_t_gone:(0)
+given orc_t_zip("<r><office:text><text:p>Hi</text:p></office:text></r>", "") given orc_t_save ((import orc_tp), 1):(0) then prints:("page w=11906 h=16838 orient=0 top=1440 right=1440 bottom=1440 left=1440\npara 0 style=\"Normal\" align=0 left=0 right=0 first=0 before=0 after=120 line=100 brk=0 level=0 list=-\nrun b=0 i=0 u=0 s=0 sup=0 sub=0 size=24 color=- hl=- link=- font=\"serif\" text=\"Hi\"\n") then orc_t_gone:(0)
+given orc_t_file("not a zip") ((import orc_tp), 0):(1) then eprints:("ODT: this is not a readable zip archive; open a .odt file, or re-download or re-save it [zip: no end-of-central-directory record, so this is not a zip archive or it was cut short; open an archive written by a zip tool, or re-download it]\n") then orc_t_gone:(0)
+("/nonexistent/none.odt", 1):(1) then eprints:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/none.odt]\n")
+
+// What the document prints as: its paragraphs one per line with a line feed at the end (dump 0), or the normalised dump (dump 1).
+cli_form(Doc d, int dump) {
+  string[] texts = cli_lines(d);
+  string text = str_join(texts, "\n") + "\n";
+  if(dump == 1) {
+    text = ndump_doc(d);
+  }
+} return string text;
+given orc_t_open("<r><office:text><text:p>Hi</text:p><text:p>x</text:p></office:text></r>") given orc_t_load ((import orc_td), 0):("Hi\nx\n")
+given orc_t_open("<r><office:text><text:p>Hi</text:p></office:text></r>") given orc_t_load ((import orc_td), 1):("page w=11906 h=16838 orient=0 top=1440 right=1440 bottom=1440 left=1440\npara 0 style=\"Normal\" align=0 left=0 right=0 first=0 before=0 after=120 line=100 brk=0 level=0 list=-\nrun b=0 i=0 u=0 s=0 sup=0 sub=0 size=24 color=- hl=- link=- font=\"serif\" text=\"Hi\"\n")
+
+// The text of every paragraph of the document, in order.
+cli_lines(Doc d) {
+  string[] texts = [];
+  int i = 0;
+  while(i < len(d.body.paras)) {
+    push(texts, cli_para(d.body.paras[i]));
+    i = i + 1;
+  }
+} return string[] texts;
+given orc_t_open("<r><office:text><text:p>Hi</text:p><text:p/><text:p>x</text:p></office:text></r>") given orc_t_load ((import orc_td)):(["Hi", "", "x"])
+given orc_t_open("<a/>") ((import orc_td)):([""])

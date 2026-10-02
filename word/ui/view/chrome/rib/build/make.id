@@ -1,0 +1,36 @@
+// The ribbon's Home tab for the preview: the model B7a builds for it, kept in the export vw_rb, an empty list of the buttons that stand for its items (vw_bt), and the vector icons registered once.
+vw_rib_make() {
+  export Ribbon vw_rb = rib_build((import rib_tab_home));
+  export GuiButton[] vw_bt = [];
+  vec_init();
+} chain () {
+  vec_load((import ic_cmd), (import ic_path));
+} return void;
+():() then vw_t_nb:(0)
+():() then vw_t_nit:(29)
+
+// Puts the ribbon's items in the ribbon band the chrome gave it (below the tab strip, a margin in from the sides) and makes a disabled button for each at the place it got.
+vw_rib_fit() {
+  int[] vwl_r = vw_rib_rect();
+  rib_place((import vw_rb), vwl_r[0] + 4, vwl_r[1] + (import vw_tab_px), vwl_r[2] - 8, vwl_r[3] - (import vw_tab_px));
+  vw_rib_btns();
+} return void;
+given vw_t_up(800, 600) given vw_rib_make () ():() then vw_t_nb:(29)
+given vw_t_up(800, 600) given vw_rib_make () ():() then vw_t_rect:("12,32,52,74")
+
+// Makes one disabled button for every item of the ribbon, each at the rectangle the item got, replacing the old ones.
+vw_rib_btns() {
+  GuiButton[] vwl_bt = (import vw_bt);
+  int vwi_i = 0;
+  while(len(vwl_bt) > 0) {
+    pop(vwl_bt);
+  }
+} chain () {
+  while(vwi_i < len((import vw_rb).items)) {
+    vw_rib_btn(vwi_i);
+    vwi_i = vwi_i + 1;
+  }
+} return void;
+given vw_t_up(800, 600) given vw_rib_make given vw_rib_fit ():() then vw_t_nb:(29)
+given vw_t_up(800, 600) given vw_rib_make given vw_rib_fit given vw_rib_btn(0) ():() then vw_t_nb:(29)
+

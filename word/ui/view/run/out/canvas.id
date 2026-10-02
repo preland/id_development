@@ -1,0 +1,39 @@
+// Paints the page area: the desk, then every sheet that shows in it, cut to the area. The rectangle of the area is the chrome's, the scroll and the zoom are the viewer's state.
+vw_canvas(View vwv) {
+  int[] vwl_r = [vw_box("canvas", 0), vw_box("canvas", 1), vw_box("canvas", 2), vw_box("canvas", 3)];
+  sf_l_clip(vwl_r[0], vwl_r[1], vwl_r[2], vwl_r[3]);
+  d2_l_rect(vwl_r[0], vwl_r[1], vwl_r[2], vwl_r[3], (import vw_c_desk));
+} chain (View vwv) {
+  vw_pages(vwv, vwl_r);
+  sf_l_unclip();
+} return void;
+given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(5, 140) ((import lp_t_v)):() then vw_t_px:(13619151)
+given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(150, 160) ((import lp_t_v)):() then vw_t_px:(16777215)
+given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(150, 290) ((import lp_t_v)):() then vw_t_px:(0)
+
+// Paints every page from the first, each when it shows in the page area vwl_r (x, y, width, height).
+vw_pages(View vwv, int[] vwl_r) {
+  int vwi_k = 0;
+  int vwi_n = lay_page_count(vwv);
+  while(vwi_k < vwi_n) {
+    vw_pk(vwv, vwi_k, vwl_r);
+    vwi_k = vwi_k + 1;
+  }
+} return void;
+given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(150, 160) ((import lp_t_v), [0, 128, 384, 150]):() then vw_t_px:(16777215)
+given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(150, 160) ((import lp_t_v), [0, 400, 384, 150]):() then vw_t_px:(0)
+
+// Paints page vwi_k when its sheet shows in the page area vwl_r: where it lies is the page's top in the document less the scroll, centred across the area.
+vw_pk(View vwv, int vwi_k, int[] vwl_r) {
+  int[] vwl_st = (import vw_st);
+  int vwi_z = vwl_st[(import vw_s_z)];
+  int vwi_ph = vw_px(lay_sheet(vwv.doc, 1), vwi_z);
+} chain (View vwv, int vwi_k, int[] vwl_r) {
+  int vwi_top = vwl_r[1] + vw_top(vwv, vwi_k, vwi_z) - vwl_st[(import vw_s_y)];
+  int vwi_v = vw_vis(vwi_top, vwi_ph, vwl_r[1], vwl_r[3]);
+  if(vwi_v == 1) {
+    vw_show(vwv, vwi_k, vwl_r, vwi_top);
+  }
+} return void;
+given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(150, 160) ((import lp_t_v), 0, [0, 128, 384, 150]):() then vw_t_px:(16777215)
+given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(150, 160) ((import lp_t_v), 1, [0, 128, 384, 150]):() then vw_t_px:(0)

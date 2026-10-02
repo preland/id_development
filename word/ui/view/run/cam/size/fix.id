@@ -1,0 +1,29 @@
+// Test setup: a view of eight one-line paragraphs on a small sheet, so that it has two pages, laid out and paginated, in the exported lp_t_v.
+vw_t_two() {
+  lp_t_font();
+  lg_t_page(1500, 3000, 150, 300, 450, 600);
+  lp_t_paras(8);
+} chain () {
+  lay_all((import lp_t_v));
+  lay_paginate((import lp_t_v), 0);
+} return void;
+():() then lg_t_count:(2)
+():() then lg_t_starts:("0,0,6,0,8,0,")
+
+// Test check: the viewer's state list, comma separated: scroll x, scroll y, zoom, stale.
+vw_t_sts() {
+  string vws_z = dump_ints((import vw_st));
+} return string vws_z;
+given vw_state_new ():("0,0,100,1,")
+given vw_state_new given lset((import vw_st), 1, 7) ():("0,7,100,1,")
+
+// Test setup: the state is current (nothing stale) with the page area scrolled to vwi_y pixels at the zoom vwi_z.
+vw_t_at_y(int vwi_y, int vwi_z) {
+  vw_state_new();
+  lset((import vw_st), (import vw_s_y), vwi_y);
+  lset((import vw_st), (import vw_s_z), vwi_z);
+} chain (int vwi_y, int vwi_z) {
+  lset((import vw_st), (import vw_s_d), 0);
+} return void;
+(5, 100):() then vw_t_sts:("0,5,100,0,")
+(9, 150):() then vw_t_sts:("0,9,150,0,")

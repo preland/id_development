@@ -1,0 +1,31 @@
+// The text of one paragraph as plain text: an opaque block shows its label and an object inside a paragraph shows nothing, because their markers are not text; a line break is a newline.
+cli_para(Para p) {
+  string[] pieces = [];
+  int i = 0;
+  while(i < len(p.txt.cps)) {
+    push(pieces, cli_cp(p.txt.cps[i]));
+    i = i + 1;
+  }
+} chain (Para p) {
+  string text = str_join(pieces, "");
+} return string text;
+(Para(Text([72, 105], [Run(2, 0, -1)], 0), Lay([], [], -1), 0)):("Hi")
+(Para(Text([97, 983040, 98], [Run(3, 0, -1)], 0), Lay([], [], -1), 0)):("ab")
+(Para(Text([983041, 91, 84, 93], [Run(4, 0, -1)], 0), Lay([], [], -1), 9)):("[T]")
+(Para(Text([97, 11, 98], [Run(3, 0, -1)], 0), Lay([], [], -1), 0)):("a\nb")
+(Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 0)):("")
+
+// One code point as plain text.
+cli_cp(int cp) {
+  string s = utf8_str(cp);
+  if(cp >= (import word_o_marker)) {
+    s = "";
+  }
+  if(cp == (import orc_cp_break)) {
+    s = "\n";
+  }
+} return string s;
+(65):("A")
+(233):("é")
+(983040):("")
+(11):("\n")

@@ -1,0 +1,27 @@
+// What a key does: 1 when it asks to quit (Esc, or q without Ctrl), else it scrolls (Page Up and Down by a screenful less 40 pixels, the arrows by 40, Home and End to the ends of the document) or, with Ctrl, zooms (plus and minus by 10 percent, 0 back to 100). The page area is vwi_ch pixels tall.
+vw_key(View vwv, int vwi_key, int vwi_mods, int vwi_ch) {
+  int vwi_ctl = (vwi_mods & 2) != 0;
+  int vwi_q = vwi_ctl == 0 && (vwi_key == 1011 || vwi_key == 113);
+  vw_nav(vwv, vwi_key, vwi_ctl, vwi_ch);
+} return int vwi_q;
+given vw_t_two given vw_state_new ((import lp_t_v), 1011, 0, 300):(1)
+given vw_t_two given vw_state_new ((import lp_t_v), 113, 2, 300):(0)
+given vw_t_two given vw_state_new ((import lp_t_v), 1013, 0, 300):(0)
+
+// The scroll or the zoom a key makes: without Ctrl the navigation keys move the page area (vwi_ch pixels tall), with Ctrl plus and equals zoom in, minus zooms out and 0 resets the zoom.
+vw_nav(View vwv, int vwi_key, int vwi_ctl, int vwi_ch) {
+  int[] vwl_st = (import vw_st);
+  int vwi_z = vwl_st[(import vw_s_z)];
+  if(vwi_ctl == 0) {
+    vw_scroll(vwv, vw_step(vwi_key, vwi_ch), vwi_ch);
+  }
+} chain (View vwv, int vwi_key, int vwi_ctl, int vwi_ch) {
+  if(vwi_ctl == 1) {
+    vw_zoom(vwv, vw_zstep(vwi_key, vwi_z), vwi_ch);
+  }
+} return void;
+given vw_t_two given vw_t_at_y(0, 100) ((import lp_t_v), 1013, 0, 100):() then vw_t_sts:("0,60,100,1,")
+given vw_t_two given vw_t_at_y(0, 100) ((import lp_t_v), 61, 1, 100):() then vw_t_sts:("0,0,110,1,")
+given vw_t_two given vw_t_at_y(0, 100) ((import lp_t_v), 45, 1, 100):() then vw_t_sts:("0,0,90,1,")
+given vw_t_two given vw_t_at_y(0, 150) ((import lp_t_v), 48, 1, 100):() then vw_t_sts:("0,0,100,1,")
+given vw_t_two given vw_t_at_y(30, 100) ((import lp_t_v), 1005, 0, 100):() then vw_t_sts:("0,0,100,1,")

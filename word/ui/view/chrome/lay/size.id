@@ -1,0 +1,35 @@
+// The chrome's @references for a window w by h pixels, in basis points (hundredths of a percent) in the order of vw_names: the ribbon band and the status bar by their fixed pixels, the page row what they leave, the scrollbar by its fixed width, the page area what it leaves. Rounded up, so that a fixed size never comes out a pixel short.
+// By hand at 800 by 600: the ribbon band is 128 / 600 = 2133.4, so 2134; the status bar 22 / 600 = 366.7, so 367; the row takes the rest, 10000 - 2134 - 367 = 7499; the bar is 16 / 800 = 200 and the page area 9800.
+vw_dims(int vwi_w, int vwi_h) {
+  int vwi_hh = fx_max(vwi_h, 1);
+  int vwi_r = ((import vw_rib_px) * 10000 + vwi_hh - 1) / vwi_hh;
+  int vwi_s = ((import vw_st_px) * 10000 + vwi_hh - 1) / vwi_hh;
+} chain (int vwi_w, int vwi_h) {
+  int vwi_ww = fx_max(vwi_w, 1);
+  int vwi_b = ((import vw_bar_px) * 10000 + vwi_ww - 1) / vwi_ww;
+  int[] vwl_d = [vwi_r, 10000 - vwi_r - vwi_s, 10000 - vwi_b, vwi_b, vwi_s];
+} return int[] vwl_d;
+(800, 600):([2134, 7499, 9800, 200, 367])
+(1000, 800):([1600, 8125, 9840, 160, 275])
+
+// What the idml asks for by name (@rib_h and the others, see vw_names) as the last fit left it, in basis points; 0 for a name nobody knows.
+vw_dim(string vws_n) {
+  int vwi_k = lst_str_index((import vw_names), vws_n);
+  int[] vwl_d = (import vw_dims_now);
+  int vwi_v = 0;
+} chain (string vws_n) {
+  if(vwi_k >= 0) {
+    vwi_v = vwl_d[vwi_k];
+  }
+} return int vwi_v;
+given vw_t_up(800, 600) ("cv_w"):(9800)
+given vw_t_up(800, 600) ("nothing"):(0)
+
+// Fits the chrome to the surface: the answers for the surface's size, then the idml bound to them and laid out again. Call it after every change of the surface.
+vw_fit() {
+  export int[] vw_dims_now = vw_dims((import sf_l_w), (import sf_l_h));
+  gui_bind((import vw_t), (import vw_s), vw_dim);
+  gui_layout((import vw_t), (import vw_rc), (import sf_l_w), (import sf_l_h));
+} return void;
+given sf_l_init(800, 600) given vw_t_make () ():() then vw_t_box:("0,0,800,128")
+given sf_l_init(1000, 800) given vw_t_make () ():() then vw_t_box:("0,0,1000,128")

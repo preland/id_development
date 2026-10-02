@@ -1,0 +1,38 @@
+// How far a navigation key scrolls in pixels, down positive, for a page area vwi_ch tall: a screenful less 40 for Page Up and Down, 40 for the arrows, as far as can be for Home and End, 0 for any other key.
+vw_step(int vwi_key, int vwi_ch) {
+  int vwi_s = 0;
+  if(vwi_key == 1012 || vwi_key == 1013) {
+    vwi_s = (vwi_ch - (import vw_key_px)) * (1 - 2 * (vwi_key == 1012));
+  }
+  if(vwi_key == 1003 || vwi_key == 1004) {
+    vwi_s = (import vw_key_px) * (1 - 2 * (vwi_key == 1003));
+  }
+} chain (int vwi_key, int vwi_ch) {
+  if(vwi_key == 1005 || vwi_key == 1006) {
+    vwi_s = 1000000 * (1 - 2 * (vwi_key == 1005));
+  }
+} return int vwi_s;
+(1013, 300):(260)
+(1012, 300):(-260)
+(1003, 300):(-40)
+(1006, 300):(1000000)
+(65, 300):(0)
+
+// The zoom a Ctrl key asks for from the current zoom vwi_z: plus or equals add one step, minus takes one off, 0 is 100 percent; any other key leaves it.
+vw_zstep(int vwi_key, int vwi_z) {
+  int vwi_n = vwi_z;
+  if(vwi_key == 61 || vwi_key == 43) {
+    vwi_n = vwi_z + (import vw_zoom_step);
+  }
+  if(vwi_key == 45) {
+    vwi_n = vwi_z - (import vw_zoom_step);
+  }
+} chain (int vwi_key, int vwi_z) {
+  if(vwi_key == 48) {
+    vwi_n = 100;
+  }
+} return int vwi_n;
+(61, 100):(110)
+(45, 100):(90)
+(48, 250):(100)
+(97, 100):(100)

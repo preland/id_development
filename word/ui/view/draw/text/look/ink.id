@@ -1,0 +1,41 @@
+// Fills the face and the metrics of the look list vwl_q for run vwi_ri of paragraph vwi_p at zoom vwi_z percent: the face (the face cache's, at that zoom) and its ascent and descent in pixels.
+vw_look(View vwv, int vwi_p, int vwi_ri, int vwi_z, int[] vwl_q) {
+  Para vwp = vwv.doc.body.paras[vwi_p];
+  int vwi_ps = tab_get(vwv.doc.fmt.paras, vwp.pprop, (import word_p_style));
+  int vwi_fh = face_for(vwv.faces, vwv.doc, vwi_ps, vwp.txt.runs[vwi_ri].cprop, vwi_z);
+} chain (View vwv, int vwi_p, int vwi_ri, int vwi_z, int[] vwl_q) {
+  int vwi_a = gui_font_ascent(vwi_fh);
+  int vwi_d = gui_font_descent(vwi_fh);
+  lset(vwl_q, (import vw_q_fh), vwi_fh);
+} chain (View vwv, int vwi_p, int vwi_ri, int vwi_z, int[] vwl_q) {
+  lset(vwl_q, (import vw_q_asc), vwi_a);
+  lset(vwl_q, (import vw_q_desc), vwi_d);
+} return void;
+given lp_t_font given lp_t_ins(0, "AB") given vw_t_q0 ((import lp_t_v), 0, 0, 100, (import vw_t_q)):() then vw_t_qs:("1,0,0,0,14,3,")
+given lp_t_font given lp_t_ins(0, "AB") given vw_t_q0 ((import lp_t_v), 0, 0, 200, (import vw_t_q)):() then vw_t_qs:("2,0,0,0,29,7,")
+
+// Fills the ink of the look list vwl_q for run vwi_ri of paragraph vwi_p: its colour (black when nothing sets one, the link colour inside a hyperlink), its highlight (-1 for none) and its flag bits (a hyperlink is underlined).
+vw_ink(View vwv, int vwi_p, int vwi_ri, int[] vwl_q) {
+  Para vwp = vwv.doc.body.paras[vwi_p];
+  int vwi_ps = tab_get(vwv.doc.fmt.paras, vwp.pprop, (import word_p_style));
+  int vwi_cr = vwp.txt.runs[vwi_ri].cprop;
+} chain (View vwv, int vwi_p, int vwi_ri, int[] vwl_q) {
+  int vwi_col = style_eff_c(vwv.doc.fmt, vwi_ps, vwi_cr, (import word_c_color));
+  int vwi_hl = style_eff_c(vwv.doc.fmt, vwi_ps, vwi_cr, (import word_c_hl));
+  int vwi_bits = style_eff_c(vwv.doc.fmt, vwi_ps, vwi_cr, (import word_c_on));
+} chain (View vwv, int vwi_p, int vwi_ri, int[] vwl_q) {
+  if(vwi_col < 0) {
+    vwi_col = 0;
+  }
+  if(vwp.txt.runs[vwi_ri].link >= 0) {
+    vwi_col = (import vw_c_link);
+    vwi_bits = vwi_bits | 4;
+  }
+  lset(vwl_q, (import vw_q_col), vwi_col);
+} chain (View vwv, int vwi_p, int vwi_ri, int[] vwl_q) {
+  lset(vwl_q, (import vw_q_hl), vwi_hl);
+  lset(vwl_q, (import vw_q_bits), vwi_bits);
+} return void;
+given lp_t_new given lp_t_ins(0, "AB") given vw_t_q0 ((import lp_t_v), 0, 0, (import vw_t_q)):() then vw_t_qs:("0,0,-1,0,0,0,")
+given lp_t_new given lp_t_ins(0, "AB") given vw_t_set(0, 0, 2, 3, 255) given vw_t_set(0, 0, 2, 4, 65280) given lp_t_bits(0, 0, 2, 4) given vw_t_q0 ((import lp_t_v), 0, 0, (import vw_t_q)):() then vw_t_qs:("0,255,65280,4,0,0,")
+given lp_t_new given lp_t_ins(0, "AB") given vw_t_link(0, 0) given vw_t_q0 ((import lp_t_v), 0, 0, (import vw_t_q)):() then vw_t_qs:("0,353217,-1,4,0,0,")

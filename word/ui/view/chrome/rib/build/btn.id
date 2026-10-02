@@ -1,0 +1,28 @@
+// Makes the disabled button for item vwi_i of the ribbon, at the rectangle the item was placed at, with the item's icon and command and no label (the ribbon preview writes its own), and keeps it after the others in vw_bt.
+vw_rib_btn(int vwi_i) {
+  Ribbon vwrb = (import vw_rb);
+  int vwi_row = vwrb.items[vwi_i];
+  int vwi_q = vwi_i * 4;
+} chain (int vwi_i) {
+  GuiButton vwbt = gui_btn_new("", (import rb_icon)[vwi_row], (import rb_cmd)[vwi_row]);
+  gui_btn_place(vwbt, vwrb.rects[vwi_q], vwrb.rects[vwi_q + 1], vwrb.rects[vwi_q + 2], vwrb.rects[vwi_q + 3]);
+  gui_btn_enable(vwbt, 0);
+} chain (int vwi_i) {
+  push((import vw_bt), vwbt);
+} return void;
+given vw_t_up(800, 600) given vw_rib_make given vw_rib_fit (2):() then vw_t_nb:(30)
+given vw_t_up(800, 600) given vw_rib_make given vw_rib_fit (2):() then vw_t_lastrect:("66,56,24,24")
+
+// Test check: how many buttons the ribbon preview has.
+vw_t_nb() {
+  int vwi_n = len((import vw_bt));
+} return int vwi_n;
+given vw_rib_make ():(0)
+given vw_t_up(800, 600) given vw_rib_make given vw_rib_fit ():(29)
+
+// Test check: how many items the ribbon preview's Home tab has.
+vw_t_nit() {
+  int vwi_n = len((import vw_rb).items);
+} return int vwi_n;
+given vw_rib_make ():(29)
+given vw_t_up(800, 600) given vw_rib_make given vw_rib_fit ():(29)

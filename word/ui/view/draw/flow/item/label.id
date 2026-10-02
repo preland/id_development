@@ -1,0 +1,43 @@
+// Draws the label of list item vwi_p, a bullet or a number, in the face and the colour of the paragraph's first run, at the label's x and on the baseline of the paragraph's first line. A paragraph that is not an item has no label and nothing is drawn.
+vw_label(View vwv, int vwi_p, int[] vwl_g, int vwi_base) {
+  int[] vwl_lb = [];
+  int[] vwl_q = [0, 0, 0, 0, 0, 0];
+  lay_label(vwv, vwi_p, vwl_lb);
+} chain (View vwv, int vwi_p, int[] vwl_g, int vwi_base) {
+  vw_look(vwv, vwi_p, 0, vwl_g[(import vw_g_z)], vwl_q);
+  vw_ink(vwv, vwi_p, 0, vwl_q);
+  int vwi_lx = lay_label_x(vwv, vwi_p);
+} chain (View vwv, int vwi_p, int[] vwl_g, int vwi_base) {
+  int vwi_b = vw_bline(vwv, vwi_p, vwl_g, vwi_base, 0);
+  int vwi_x = vwl_g[(import vw_g_x)] * 64 + vw_x64(vwl_g[(import vw_g_l)] + vwi_lx, vwl_g[(import vw_g_z)]);
+  vw_marks(vwl_lb, vwl_q, vwi_x, vwi_b);
+} return void;
+given lp_t_font given lp_t_ins(0, "A") given lp_t_item(0, 1, 0) given lay_all((import lp_t_v)) given sf_l_init(80, 40) given vw_t_set(0, 0, 1, 3, 255) given vw_t_box0(34, 19, 40, 31) ((import lp_t_v), 0, [10, 16, 100, 0, 0], 0):() then vw_t_inked:(1)
+given lp_t_font given lp_t_ins(0, "A") given lp_t_item(0, 1, 0) given lay_all((import lp_t_v)) given sf_l_init(80, 40) given vw_t_set(0, 0, 1, 3, 255) given vw_t_box0(34, 19, 40, 31) ((import lp_t_v), 0, [10, 16, 100, 0, 0], 1600):() then vw_t_inked:(0)
+
+// Draws the code points of a label one after another from x (in 64ths of a pixel) on the baseline vwi_b, in the look vwl_q.
+vw_marks(int[] vwl_lb, int[] vwl_q, int vwi_x, int vwi_b) {
+  int vwi_k = 0;
+  int vwi_nx = vwi_x;
+  while(vwi_k < len(vwl_lb)) {
+    vwi_nx = vw_mark(vwl_lb, vwl_q, vwi_k, vwi_nx, vwi_b);
+    vwi_k = vwi_k + 1;
+  }
+} return void;
+given lp_t_font given sf_l_init(60, 40) given vw_t_box0(4, 19, 40, 31) ([8226, 8226], [1, 255, -1, 0, 14, 3], 256, 30):() then vw_t_inked:(1)
+given lp_t_font given sf_l_init(60, 40) given vw_t_box0(4, 19, 40, 31) ([], [1, 255, -1, 0, 14, 3], 256, 30):() then vw_t_inked:(0)
+
+// Draws code point vwi_k of a label at x (64ths of a pixel) and answers where the next one starts: its advance on, kerned against the code point after it.
+vw_mark(int[] vwl_lb, int[] vwl_q, int vwi_k, int vwi_x, int vwi_b) {
+  int vwi_cp = vwl_lb[vwi_k];
+  int vwi_after = 0;
+  if(vwi_k + 1 < len(vwl_lb)) {
+    vwi_after = vwl_lb[vwi_k + 1];
+  }
+} chain (int[] vwl_lb, int[] vwl_q, int vwi_k, int vwi_x, int vwi_b) {
+  gui_cp_draw(vwl_q[(import vw_q_fh)], vwi_x, vwi_b, vwi_cp, vwl_q[(import vw_q_col)]);
+  int vwi_adv = gui_cp_adv(vwl_q[(import vw_q_fh)], vwi_cp, vwi_after);
+  int vwi_nx = vwi_x + vwi_adv;
+} return int vwi_nx;
+given lp_t_font given sf_l_init(60, 40) ([65, 86], [1, 255, -1, 0, 14, 3], 0, 256, 30):(863)
+given lp_t_font given sf_l_init(60, 40) ([65], [1, 255, -1, 0, 14, 3], 0, 0, 30):(683)

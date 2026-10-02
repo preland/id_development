@@ -1,0 +1,37 @@
+// A new state: scrolled to the top left, at 100 percent, with the picture stale so that the first frame paints. It is kept in the export vw_st.
+vw_state_new() {
+  export int[] vw_st = [0, 0, 100, 1];
+} return void;
+():() then vw_t_sts:("0,0,100,1,")
+given vw_t_at_y(9, 150) ():() then vw_t_sts:("0,0,100,1,")
+
+// Scrolls the page area by vwi_dy pixels (down is positive), never past the top or the end of the document for a page area vwi_ch pixels tall, and marks the picture stale when that moved it.
+vw_scroll(View vwv, int vwi_dy, int vwi_ch) {
+  int[] vwl_st = (import vw_st);
+  int vwi_m = vw_ymax(vwv, vwl_st[(import vw_s_z)], vwi_ch);
+  int vwi_y = fx_clamp(vwl_st[(import vw_s_y)] + vwi_dy, 0, vwi_m);
+} chain (View vwv, int vwi_dy, int vwi_ch) {
+  if(vwi_y != vwl_st[(import vw_s_y)]) {
+    lset(vwl_st, (import vw_s_y), vwi_y);
+    lset(vwl_st, (import vw_s_d), 1);
+  }
+} return void;
+given vw_t_two given vw_t_at_y(0, 100) ((import lp_t_v), 50, 300):() then vw_t_sts:("0,50,100,1,")
+given vw_t_two given vw_t_at_y(0, 100) ((import lp_t_v), 500, 300):() then vw_t_sts:("0,172,100,1,")
+given vw_t_two given vw_t_at_y(0, 100) ((import lp_t_v), -10, 300):() then vw_t_sts:("0,0,100,0,")
+
+// Sets the zoom to vwi_z percent, kept between the least and the most, and keeps the same part of the document in view: the scroll is scaled with the zoom, then held inside the document for a page area vwi_ch pixels tall. The picture is stale.
+vw_zoom(View vwv, int vwi_z, int vwi_ch) {
+  int[] vwl_st = (import vw_st);
+  int vwi_n = fx_clamp(vwi_z, (import vw_zoom_min), (import vw_zoom_max));
+  int vwi_y = vwl_st[(import vw_s_y)] * vwi_n / vwl_st[(import vw_s_z)];
+} chain (View vwv, int vwi_z, int vwi_ch) {
+  int vwi_m = vw_ymax(vwv, vwi_n, vwi_ch);
+  lset(vwl_st, (import vw_s_z), vwi_n);
+  lset(vwl_st, (import vw_s_y), fx_min(vwi_y, vwi_m));
+} chain (View vwv, int vwi_z, int vwi_ch) {
+  lset(vwl_st, (import vw_s_d), 1);
+} return void;
+given vw_t_two given vw_t_at_y(100, 100) ((import lp_t_v), 150, 300):() then vw_t_sts:("0,150,150,1,")
+given vw_t_two given vw_t_at_y(0, 100) ((import lp_t_v), 1000, 300):() then vw_t_sts:("0,0,400,1,")
+given vw_t_two given vw_t_at_y(0, 100) ((import lp_t_v), 5, 300):() then vw_t_sts:("0,0,25,1,")
