@@ -1,0 +1,36 @@
+// Keeps the paragraph and run counters of a dump walk, owcnt = [paragraph index, run index within it]: a "para N" line sets the paragraph and resets the run to -1, a "run" line counts one more.
+ofd_ctx(string owline, int[] owcnt) {
+  if(str_starts(owline, "para ") == 1) {
+    owcnt[0] = ofd_pnum(owline);
+    owcnt[1] = 0 - 1;
+  }
+  if(str_starts(owline, "run ") == 1) {
+    owcnt[1] = owcnt[1] + 1;
+  }
+} return void;
+("para 7 style=\"A\"", [0, 3]):("para 7 style=\"A\"", [7, -1])
+("run b=0", [7, -1]):("run b=0", [7, 0])
+("page w=1", [4, 2]):("page w=1", [4, 2])
+
+// What a report line says a difference is in: "page" for the page record, "pN" for a paragraph record and "pN rM" for a run record.
+ofd_cname(string owline, int[] owcnt) {
+  string owname = "p" + owcnt[0];
+  if(str_starts(owline, "page ") == 1) {
+    owname = "page";
+  }
+  if(str_starts(owline, "run ") == 1) {
+    owname = "p" + owcnt[0] + " r" + owcnt[1];
+  }
+} return string owname;
+("page w=1", [4, 2]):("page")
+("para 4 x=1", [4, -1]):("p4")
+("run b=0", [4, 2]):("p4 r2")
+
+// The number after "para " in a paragraph record line.
+ofd_pnum(string owline) {
+  int owlen = len(owline) - 5;
+  string owtail = str_slice(owline, 5, owlen);
+  int owi = to_int(owtail);
+} return int owi;
+("para 7 style=\"A\""):(7)
+("para 12"):(12)

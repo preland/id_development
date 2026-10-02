@@ -1,0 +1,48 @@
+// Line k of a list of lines, "" past the end.
+ofd_at(string[] owrows, int owik) {
+  string owline = "";
+  if(owik < len(owrows)) {
+    owline = owrows[owik];
+  }
+} return string owline;
+(["a", "b"], 1):("b")
+(["a", "b"], 2):("")
+
+// The report lines for line owik of two dumps, "" when the lines are equal; the counters in owcnt follow the lines.
+ofd_kdiff(string[] owrowa, string[] owrowb, int owik, int[] owcnt) {
+  string owx = ofd_at(owrowa, owik);
+  string owy = ofd_at(owrowb, owik);
+  string owline = owx;
+} chain (string[] owrowa, string[] owrowb, int owik, int[] owcnt) {
+  if(owx == "") {
+    owline = owy;
+  }
+  ofd_ctx(owline, owcnt);
+  string owout = ofd_diffline(owx, owy, ofd_cname(owline, owcnt));
+} return string owout;
+(["para 0 x=1"], ["para 0 x=2"], 0, [-1, -1]):("p0 x: ours=1 theirs=2")
+(["para 0 x=1"], ["para 0 x=1"], 0, [-1, -1]):("")
+
+// How two dumps differ: one report line per differing field, each naming the paragraph, the run and the field, as "p3 r1 color: ours=#ff0000 theirs=-"; "" when they are equal. A line only one of them has is reported as records that differ.
+ofd_diff(string owours, string owtheirs) {
+  string[] owrowa = str_split(owours, "\n");
+  string[] owrowb = str_split(owtheirs, "\n");
+  int[] owcnt = [0 - 1, 0 - 1];
+} chain (string owours, string owtheirs) {
+  string[] owlout = [];
+  int owik = 0;
+  int owcount = fx_max(len(owrowa), len(owrowb));
+} chain (string owours, string owtheirs) {
+  while(owik < owcount) {
+    string owrep = ofd_kdiff(owrowa, owrowb, owik, owcnt);
+    if(owrep != "") {
+      push(owlout, owrep);
+    }
+    owik = owik + 1;
+  }
+  string owout = str_join(owlout, "\n");
+} return string owout;
+("page w=1\npara 0 x=1\n", "page w=1\npara 0 x=1\n"):("")
+("page w=1\npara 0 x=1\nrun b=1\n", "page w=1\npara 0 x=1\nrun b=0\n"):("p0 r0 b: ours=1 theirs=0")
+("page w=1\n", "page w=2\n"):("page w: ours=1 theirs=2")
+("a\nb\n", "a\n"):("p-1: records differ: ours=b theirs=")

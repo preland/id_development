@@ -1,0 +1,42 @@
+// The name the dump gives a named style key: "Normal" for LibreOffice's "Standard" and for the default style, else its display name, else the name with each _20_ (an encoded space) read as a space.
+ofd_sname(OfdSty owst, string owk) {
+  int owlen = fx_max(len(owk) - 2, 0);
+  string owname = str_slice(owk, 2, owlen);
+  string owdisp = ofd_own(owst, owk, "d");
+} chain (OfdSty owst, string owk) {
+  string owout = str_join(str_split(owname, "_20_"), " ");
+  if(owdisp != "") {
+    owout = owdisp;
+  }
+  if(owname == "Standard" || owname == "") {
+    owout = "Normal";
+  }
+} return string owout;
+(OfdSty(["p:Heading_20_1"], [""], ["", "", ""]), "p:Heading_20_1"):("Heading 1")
+(OfdSty(["p:Text_20_body"], ["|d=Text body"], ["", "", ""]), "p:Text_20_body"):("Text body")
+(OfdSty(["p:Standard"], [""], ["", "", ""]), "p:Standard"):("Normal")
+(OfdSty(["p:"], [""], ["", "", ""]), "p:"):("Normal")
+(OfdSty([], [], []), ""):("Normal")
+
+// The named style a paragraph sits on: its own when it is a named style, the style it names as its parent when it is automatic (the default style when it names none).
+ofd_named(OfdSty owst, string owpk) {
+  string owk = owpk;
+  if(ofd_own(owst, owpk, "a") == "1") {
+    owk = ofd_up(owst, owpk);
+  }
+} return string owk;
+(OfdSty(["p:P1", "p:Standard"], ["|a=1", ""], ["p:Standard", "", "", "", "", ""]), "p:P1"):("p:Standard")
+(OfdSty(["p:Standard"], [""], ["", "", ""]), "p:Standard"):("p:Standard")
+(OfdSty(["p:P1"], ["|a=1"], ["", "", ""]), "p:P1"):("p:")
+
+// The list style name entry owk's own meta says, "" when the entry is unknown or has none.
+ofd_listof(OfdSty owst, string owk) {
+  int owi = ofd_idx(owst, owk);
+  string owlist = "";
+  if(owi >= 0) {
+    owlist = owst.meta[owi * 3 + 1];
+  }
+} return string owlist;
+(OfdSty(["p:A"], [""], ["", "L1", ""]), "p:A"):("L1")
+(OfdSty(["p:A"], [""], ["", "L1", ""]), "p:Z"):("")
+

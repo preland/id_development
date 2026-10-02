@@ -1,14 +1,21 @@
-// The ASSETS argument when there is one, the default corpus directory otherwise.
-cli_assets(int argc, string[] argv) {
+// The ASSETS argument when there is one (the last word of the command line, which sits at a different place for each mode), the default corpus directory otherwise.
+cli_assets(int argc, string[] argv, int mode) {
   string dir = (import assets_dir);
-  if (argc == 3) {
+  if (argc == 3 && mode >= (import mode_run) && mode <= (import mode_count)) {
     dir = argv[2];
   }
+  if ((argc == 4 && mode == (import mode_oracle)) || (argc == 5 && mode == (import mode_dump))) {
+    dir = argv[argc - 1];
+  }
 } return string dir;
-(2, ["wordcheck", "1"]):("word/test_assets")
-(3, ["wordcheck", "1", "x/y"]):("x/y")
+(2, ["wordcheck", "1"], 1):("wordcorpus")
+(3, ["wordcheck", "1", "x/y"], 1):("x/y")
+(3, ["wordcheck", "--oracle", "7"], 4):("wordcorpus")
+(4, ["wordcheck", "--oracle", "7", "a/b"], 4):("a/b")
+(5, ["wordcheck", "--dump", "7", "bin", "c/d"], 5):("c/d")
+(4, ["wordcheck", "--dump", "7", "bin"], 5):("wordcorpus")
 
-// Carries out a mode: runs one fixture, lists them, counts them, or says how to ask. The exit status.
+// Carries out a mode: runs one fixture, lists them, counts them, prints the oracle's dump of one, compares a word binary's dump of one, or says how to ask. The exit status.
 cli_go(int mode, string[] argv, string assets) {
   int code = 0;
   string odt_dir = assets + "/" + (import odt_sub);
@@ -27,17 +34,25 @@ cli_go(int mode, string[] argv, string assets) {
     int total = fixt_count(odt_dir);
     print(total);
   }
+} chain (int mode, string[] argv, string assets) {
+  if (mode == (import mode_oracle)) {
+    code = dump_go((import soffice_bin), "", to_int(argv[2]), assets);
+  }
+  if (mode == (import mode_dump)) {
+    code = dump_go((import soffice_bin), argv[3], to_int(argv[2]), assets);
+  }
 } return int code;
-(0, ["wordcheck"], "../word/test_assets"):(2) then eprints:("usage: wordcheck N [ASSETS] | wordcheck --list [ASSETS] | wordcheck --count [ASSETS]  (N is a fixture index from --list; ASSETS defaults to word/test_assets)\n")
-(2, ["wordcheck", "--list"], "../word/test_assets"):(0) then prints:("1 01_plain\n2 02_headings\n3 03_inline\n4 04_colours\n5 05_lists\n6 06_pagebreak\n7 07_pages\n8 08_long\n9 09_unicode\n10 10_empty\n11 11_table\n12 12_image\n")
-(3, ["wordcheck", "--count"], "../word/test_assets"):(0) then prints:("12\n")
-(1, ["wordcheck", "99"], "../word/test_assets"):(2) then eprints:("wordcheck: no fixture 99 in ../word/test_assets/odt; list the fixtures with: wordcheck --list\n")
+(0, ["wordcheck"], "../wordcorpus"):(2) then eprints:("usage: wordcheck N [ASSETS] | wordcheck --list [ASSETS] | wordcheck --count [ASSETS] | wordcheck --oracle N [ASSETS] | wordcheck --dump N WORDBIN [ASSETS]  (N is a fixture index from --list; ASSETS defaults to wordcorpus)\n")
+(2, ["wordcheck", "--list"], "../wordcorpus"):(0) then prints:("1 01_plain\n2 02_headings\n3 03_inline\n4 04_colours\n5 05_lists\n6 06_pagebreak\n7 07_pages\n8 08_long\n9 09_unicode\n10 10_empty\n11 11_table\n12 12_image\n")
+(3, ["wordcheck", "--count"], "../wordcorpus"):(0) then prints:("12\n")
+(1, ["wordcheck", "99"], "../wordcorpus"):(2) then eprints:("wordcheck: no fixture 99 in ../wordcorpus/odt; list the fixtures with: wordcheck --list\n")
+(4, ["wordcheck", "--oracle", "99"], "../wordcorpus"):(2) then eprints:("wordcheck: no fixture 99 in ../wordcorpus/odt; list the fixtures with: wordcheck --list\n")
 
-// Entry point: wordcheck N [ASSETS], wordcheck --list [ASSETS], wordcheck --count [ASSETS].
+// Entry point: wordcheck N [ASSETS], wordcheck --list [ASSETS], wordcheck --count [ASSETS], wordcheck --oracle N [ASSETS], wordcheck --dump N WORDBIN [ASSETS].
 main(int argc, string[] argv) {
   int mode = cli_mode(argc, argv);
-  string assets = cli_assets(argc, argv);
+  string assets = cli_assets(argc, argv, mode);
   int code = cli_go(mode, argv, assets);
 } return int code;
-(1, ["wordcheck"]):(2) then eprints:("usage: wordcheck N [ASSETS] | wordcheck --list [ASSETS] | wordcheck --count [ASSETS]  (N is a fixture index from --list; ASSETS defaults to word/test_assets)\n")
-(2, ["wordcheck", "--bogus"]):(2) then eprints:("usage: wordcheck N [ASSETS] | wordcheck --list [ASSETS] | wordcheck --count [ASSETS]  (N is a fixture index from --list; ASSETS defaults to word/test_assets)\n")
+(1, ["wordcheck"]):(2) then eprints:("usage: wordcheck N [ASSETS] | wordcheck --list [ASSETS] | wordcheck --count [ASSETS] | wordcheck --oracle N [ASSETS] | wordcheck --dump N WORDBIN [ASSETS]  (N is a fixture index from --list; ASSETS defaults to wordcorpus)\n")
+(2, ["wordcheck", "--bogus"]):(2) then eprints:("usage: wordcheck N [ASSETS] | wordcheck --list [ASSETS] | wordcheck --count [ASSETS] | wordcheck --oracle N [ASSETS] | wordcheck --dump N WORDBIN [ASSETS]  (N is a fixture index from --list; ASSETS defaults to wordcorpus)\n")

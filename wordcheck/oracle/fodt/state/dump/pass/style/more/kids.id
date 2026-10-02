@@ -1,0 +1,34 @@
+// Appends the property pairs of a text-properties or paragraph-properties element the reader is at to the bag of entry owi; any other element adds nothing.
+ofd_style_part(OfdSty owst, XmlR owr, int owi) {
+  string owname = xr_name(owr);
+  string[] owlp = owst.props;
+  if(owname == "style:text-properties") {
+    owlp[owi] = owlp[owi] + ofd_attrs("t.", (import ow_tattr), owr);
+  }
+} chain (OfdSty owst, XmlR owr, int owi) {
+  if(owname == "style:paragraph-properties") {
+    owlp[owi] = owlp[owi] + ofd_attrs("p.", (import ow_pattr), owr);
+  }
+} return void;
+given ofd_t_open("<style:text-properties fo:color=\"#0000ff\"/>") given ofd_t_steps(1) (OfdSty(["t:A"], [""], ["", "", ""]), (import ofd_t_r), 0):(OfdSty(["t:A"], ["|t.fo:color=#0000ff"], ["", "", ""]), (import ofd_t_r), 0)
+given ofd_t_open("<style:paragraph-properties fo:text-align=\"center\"/>") given ofd_t_steps(1) (OfdSty(["p:A"], [""], ["", "", ""]), (import ofd_t_r), 0):(OfdSty(["p:A"], ["|p.fo:text-align=center"], ["", "", ""]), (import ofd_t_r), 0)
+given ofd_t_open("<style:tab-stops fo:color=\"#0000ff\"/>") given ofd_t_steps(1) (OfdSty(["p:A"], [""], ["", "", ""]), (import ofd_t_r), 0):(OfdSty(["p:A"], [""], ["", "", ""]), (import ofd_t_r), 0)
+
+// Reads a style:style (or the default paragraph style) from its start event through its end: the entry from ofd_style_open, then every properties element inside it. The default style has the key "p:", which no style:style can have since it has a name.
+ofd_style_read(OfdSty owst, XmlR owr, int owev, string owfam, int owauto) {
+  int owid = xr_depth(owr);
+  int owi = ofd_style_open(owst, owr, owfam, owauto);
+  int owe = 0;
+} chain (OfdSty owst, XmlR owr, int owev, string owfam, int owauto) {
+  if(owi >= 0 && owev == 1) {
+    owe = xr_next(owr);
+  }
+  int owmore = xr_inside(owr, owe, owid);
+  while(owmore == 1) {
+    ofd_style_part(owst, owr, owi);
+    owe = xr_next(owr);
+    owmore = xr_inside(owr, owe, owid);
+  }
+} return void;
+given ofd_t_open("<style:style style:name=\"A\" style:family=\"text\"><style:text-properties fo:color=\"#ff0000\"/></style:style>") given ofd_t_steps(1) (OfdSty([], [], []), (import ofd_t_r), 1, "text", 1):(OfdSty(["t:A"], ["|a=1|t.fo:color=#ff0000"], ["", "", ""]), (import ofd_t_r), 1, "text", 1)
+given ofd_t_open("<style:style style:name=\"A\" style:family=\"graphic\"><style:text-properties fo:color=\"#ff0000\"/></style:style>") given ofd_t_steps(1) (OfdSty([], [], []), (import ofd_t_r), 1, "graphic", 0):(OfdSty([], [], []), (import ofd_t_r), 1, "graphic", 0)

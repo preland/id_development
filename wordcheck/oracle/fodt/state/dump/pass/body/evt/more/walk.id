@@ -1,0 +1,63 @@
+// A text:list's effect on the nesting: the depth goes up when it starts and down when it ends, and the outermost one's style name is kept while it is open.
+ofd_list(OfdAcc owacc, XmlR owr, int owev) {
+  string[] owlss = owacc.ss;
+  if(owev == 1) {
+    owacc.st[1] = owacc.st[1] + 1;
+  }
+  if(owev == 1 && owacc.st[1] == 1) {
+    owlss[1] = xr_attr(owr, "text:style-name");
+  }
+} chain (OfdAcc owacc, XmlR owr, int owev) {
+  if(owev == 2) {
+    owacc.st[1] = owacc.st[1] - 1;
+  }
+} return void;
+given ofd_t_open("<text:list text:style-name=\"L1\"/>") given ofd_t_steps(1) (OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 1):(OfdAcc([-1, 1, 0, 0], ["", "L1", "", "", ""], []), (import ofd_t_r), 1)
+given ofd_t_open("<text:list text:style-name=\"L2\"/>") given ofd_t_steps(1) (OfdAcc([-1, 1, 0, 0], ["", "L1", "", "", ""], []), (import ofd_t_r), 1):(OfdAcc([-1, 2, 0, 0], ["", "L1", "", "", ""], []), (import ofd_t_r), 1)
+given ofd_t_open("<text:list/>") given ofd_t_steps(1) (OfdAcc([-1, 2, 0, 0], ["", "L1", "", "", ""], []), (import ofd_t_r), 2):(OfdAcc([-1, 1, 0, 0], ["", "L1", "", "", ""], []), (import ofd_t_r), 2)
+
+// A paragraph or heading event: its start (or an empty one) begins the paragraph, its end (or an empty one) finishes it.
+ofd_pdisp(OfdSty owst, OfdAcc owacc, XmlR owr, int owev, string[] owspans) {
+  if(owev == 1 || owev == 4) {
+    ofd_pstart(owacc, owr, owspans);
+  }
+  if(owev == 2 || owev == 4) {
+    ofd_pend(owst, owacc);
+  }
+} return void;
+given ofd_t_open("<text:p text:style-name=\"Standard\"/>") given ofd_t_steps(1) (OfdSty(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 4, []):(OfdSty(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), OfdAcc([-1, 0, 0, 1], ["p:Standard", "", "", "\npara 0 style=\"Normal\" align=- left=- right=- first=- before=- after=- line=- brk=0 level=0 list=-", "p:Standard"], []), (import ofd_t_r), 4, [])
+given ofd_t_open("<text:p text:style-name=\"Standard\"/>") given ofd_t_steps(1) (OfdSty(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 1, []):(OfdSty(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:Standard", "", "", "", "p:Standard"], []), (import ofd_t_r), 1, [])
+
+// What one event of the document body does, outside any skipped subtree: text goes into the paragraph it is in, a paragraph or heading starts or ends one, a span or a link or a list changes what the text is in, a space, tab, line break or frame adds its character, and a table outside a paragraph becomes an opaque block.
+ofd_live(OfdSty owst, XmlR owr, int owev, OfdAcc owacc, string[] owspans) {
+  string owname = xr_name(owr);
+  if(owev == 3 && owacc.st[2] == 1) {
+    ofd_text(owst, owacc, owspans, xr_text(owr));
+  }
+  if(owname == "text:p" || owname == "text:h") {
+    ofd_pdisp(owst, owacc, owr, owev, owspans);
+  }
+} chain (OfdSty owst, XmlR owr, int owev, OfdAcc owacc, string[] owspans) {
+  if(owname == "text:span") {
+    ofd_span(owspans, owr, owev);
+  }
+  if(owname == "text:a") {
+    ofd_link(owacc, owr, owev);
+  }
+  if(owname == "text:list") {
+    ofd_list(owacc, owr, owev);
+  }
+} chain (OfdSty owst, XmlR owr, int owev, OfdAcc owacc, string[] owspans) {
+  if((owname == "text:s" || owname == "text:tab" || owname == "text:line-break") && owev != 2) {
+    ofd_special(owst, owacc, owr, owspans);
+  }
+  if(owname == "draw:frame" && owev != 2) {
+    ofd_frame(owst, owacc, owr, owev, owspans);
+  }
+  if(str_starts(owname, "table:") == 1 && owacc.st[2] == 0 && owev != 2) {
+    ofd_opaque(owacc, owr, owev);
+  }
+} return void;
+given ofd_t_open("<text:tab/>") given ofd_t_steps(1) (OfdSty(["p:"], [""], ["", "", ""]), (import ofd_t_r), 4, OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], []), []):(OfdSty(["p:"], [""], ["", "", ""]), (import ofd_t_r), 4, OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", "\t"]), [])
+given ofd_t_open("<table:table/>") given ofd_t_steps(1) (OfdSty(["p:"], [""], ["", "", ""]), (import ofd_t_r), 4, OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), []):(OfdSty(["p:"], [""], ["", "", ""]), (import ofd_t_r), 4, OfdAcc([-1, 0, 0, 1], ["", "", "", "\npara 0 opaque", ""], []), [])
+given ofd_t_open("<a>x</a>") given ofd_t_steps(2) (OfdSty(["p:"], [""], ["", "", ""]), (import ofd_t_r), 3, OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), []):(OfdSty(["p:"], [""], ["", "", ""]), (import ofd_t_r), 3, OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), [])

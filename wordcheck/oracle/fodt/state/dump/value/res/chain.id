@@ -1,0 +1,44 @@
+// The style a style inherits from: its parent, else the default paragraph style "p:" for a paragraph style, else "" (a text style has nothing above it, its text takes what the paragraph gives).
+ofd_up(OfdSty owst, string owk) {
+  int owi = ofd_idx(owst, owk);
+  string owup = "";
+  if(owi >= 0) {
+    owup = owst.meta[owi * 3];
+  }
+} chain (OfdSty owst, string owk) {
+  if(owup == "" && str_starts(owk, "p:") == 1 && owk != "p:") {
+    owup = "p:";
+  }
+} return string owup;
+(OfdSty(["p:A", "p:B", "p:"], ["", "", ""], ["p:B", "", "", "", "", "", "", "", ""]), "p:A"):("p:B")
+(OfdSty(["p:A", "p:"], ["", ""], ["", "", "", "", "", ""]), "p:A"):("p:")
+(OfdSty(["t:A", "p:"], ["", ""], ["", "", "", "", "", ""]), "t:A"):("")
+(OfdSty(["p:"], [""], ["", "", ""]), "p:"):("")
+
+// The value of a property for a style: its own, else its parent's and so on up the chain, "" when none sets it. The chain is cut after 24 steps, which only a cycle reaches.
+ofd_get(OfdSty owst, string owk, string own) {
+  string owkc = owk;
+  string owv = "";
+  int owi = 0;
+} chain (OfdSty owst, string owk, string own) {
+  while(owkc != "" && owv == "" && owi < 24) {
+    owv = ofd_own(owst, owkc, own);
+    owkc = ofd_up(owst, owkc);
+    owi = owi + 1;
+  }
+} return string owv;
+(OfdSty(["p:A", "p:B", "p:"], ["|p.x=1", "|p.x=2|p.y=3", "|p.z=4"], ["p:B", "", "", "", "", "", "", "", ""]), "p:A", "p.x"):("1")
+(OfdSty(["p:A", "p:B", "p:"], ["", "|p.x=2|p.y=3", "|p.z=4"], ["p:B", "", "", "", "", "", "", "", ""]), "p:A", "p.y"):("3")
+(OfdSty(["p:A", "p:B", "p:"], ["", "|p.x=2|p.y=3", "|p.z=4"], ["p:B", "", "", "", "", "", "", "", ""]), "p:A", "p.z"):("4")
+(OfdSty(["p:A"], [""], ["p:A", "", ""]), "p:A", "p.x"):("")
+
+// The value of a property in a style's own bag, "" when the style is not known or does not set it.
+ofd_own(OfdSty owst, string owk, string own) {
+  int owi = ofd_idx(owst, owk);
+  string owv = "";
+  if(owi >= 0) {
+    owv = ofd_val(owst.props[owi], own);
+  }
+} return string owv;
+(OfdSty(["p:A"], ["|p.x=1"], ["", "", ""]), "p:A", "p.x"):("1")
+(OfdSty(["p:A"], ["|p.x=1"], ["", "", ""]), "p:B", "p.x"):("")

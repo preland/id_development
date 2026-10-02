@@ -1,0 +1,28 @@
+// The --text lane: runs the word binary on the fixture and compares what it prints with the paragraph text of the fodt that soffice wrote from the same file (the txt export is not the oracle: it carries a byte-order mark, list labels, and table cells joined by tabs). 1 equal, 0 different (the first difference goes to stderr), 2 when the binary does not exist.
+wlane_text(string wbin, string root, string src, string stem) {
+  int[] sout = [];
+  int code = wlane_exec(wbin, (import text_mode), src, sout);
+  string said = exec_text(sout);
+} chain (string wbin, string root, string src, string stem) {
+  string norm = ofodt_norm_file(lane_out(root, stem, (import r_fodt)));
+  string wanted = ofodt_lines(norm);
+  int v = wlane_cmp(code, said, wanted);
+} chain (string wbin, string root, string src, string stem) {
+  if (v == (import lane_fail)) {
+    wlane_diff(said, wanted, code);
+  }
+} return int v;
+given wlane_t_script("printf 'A4 portrait, 21 by 29.7 cm, margins 2 cm.\\nUS Letter portrait, 8.5 by 11 in, margins 2 cm.\\nA4 landscape, 29.7 by 21 cm, margins 2 cm.\\n'") ((import wl_script), "../wordcorpus/oracle", "x.odt", "07_pages"):(1) then wlane_t_gone:(0)
+given wlane_t_script("echo 'A4 portrait, 21 by 29.7 cm, margins 2 cm.'") ((import wl_script), "../wordcorpus/oracle", "x.odt", "07_pages"):(0) then eprints:("wordcheck: word --text (exit 0) differs from the fodt at paragraph 2: word printed '', the fodt has 'US Letter portrait, 8.5 by 11 in, margins 2 cm.'; fix the ODT reader (word/io/odt/read/content), or the fodt walker (wordcheck/oracle/fodt) when the fodt is the one that is wrong\n") then wlane_t_gone:(0)
+("/nonexistent/word", "../wordcorpus/oracle", "x.odt", "07_pages"):(2)
+
+// Runs the word binary in one mode on one file and answers its exit status (127 for a binary that does not exist); its standard output is appended to sout.
+wlane_exec(string wbin, string wmode, string src, int[] sout) {
+  string cmd = wbin + "\n" + wmode + "\n" + src + "\n";
+  int[] sin = [];
+  int[] serr = [];
+} chain (string wbin, string wmode, string src, int[] sout) {
+  int code = exec_run(cmd, 0, 0, sin, sout, serr, (import word_ms));
+} return int code;
+("echo", "-n", "x.odt", []):(0)
+("/nonexistent/word", "--text", "x.odt", []):(127)

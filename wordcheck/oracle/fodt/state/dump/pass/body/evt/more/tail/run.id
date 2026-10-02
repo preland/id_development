@@ -1,0 +1,22 @@
+// Handles one event of the document body: inside a skipped subtree only its end is looked for, anywhere else ofd_live.
+ofd_body_one(OfdSty owst, XmlR owr, int owev, OfdAcc owacc, string[] owspans) {
+  if(owacc.st[0] >= 0) {
+    ofd_skipping(owacc, owr, owev);
+  } else {
+    ofd_live(owst, owr, owev, owacc, owspans);
+  }
+} return void;
+given ofd_t_open("<a><b/></a>") given ofd_t_steps(1) (OfdSty(["p:"], [""], ["", "", ""]), (import ofd_t_r), 1, OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), []):(OfdSty(["p:"], [""], ["", "", ""]), (import ofd_t_r), 1, OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), [])
+given ofd_t_open("<a><b></b></a>") given ofd_t_steps(3) (OfdSty(["p:"], [""], ["", "", ""]), (import ofd_t_r), 2, OfdAcc([1, 0, 0, 0], ["", "", "", "", ""], []), []):(OfdSty(["p:"], [""], ["", "", ""]), (import ofd_t_r), 2, OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), [])
+
+// Reads the document body from the reader's position to the end: every event goes through ofd_body_one.
+ofd_body(OfdSty owst, XmlR owr, OfdAcc owacc) {
+  string[] owspans = [];
+  int owev = xr_next(owr);
+  while(owev > 0) {
+    ofd_body_one(owst, owr, owev, owacc, owspans);
+    owev = xr_next(owr);
+  }
+} return void;
+given ofd_t_open("<text:p text:style-name=\"Standard\">hi</text:p>") (OfdSty(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), (import ofd_t_r), OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], [])):(OfdSty(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), (import ofd_t_r), OfdAcc([-1, 0, 0, 1], ["p:Standard", "", "", "\npara 0 style=\"Normal\" align=- left=- right=- first=- before=- after=- line=- brk=0 level=0 list=-\nrun b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=- text=\"hi\"", "p:Standard"], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", "hi"]))
+given ofd_t_open("<a/>") (OfdSty([], [], []), (import ofd_t_r), OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], [])):(OfdSty([], [], []), (import ofd_t_r), OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []))

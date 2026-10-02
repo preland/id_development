@@ -1,0 +1,27 @@
+// Test fixture: a reader over a string kept in an export, so a case can `given` it, step it and hand it to the function under test.
+ofd_t_open(string owss) {
+  int[] owlsrc = exec_bytes(owss);
+  export XmlR ofd_t_r = xr_open(owlsrc);
+} return void;
+("<a/>"):() then ofd_t_name:("")
+("<a><b/></a>"):() then ofd_t_name:("")
+
+// Test fixture: steps the fixture reader over n events.
+ofd_t_steps(int owi) {
+  XmlR owr = (import ofd_t_r);
+  int owik = 0;
+  while(owik < owi) {
+    xr_next(owr);
+    owik = owik + 1;
+  }
+} return void;
+given ofd_t_open("<a/>") (1):() then ofd_t_name:("a")
+given ofd_t_open("<a/>") (0):() then ofd_t_name:("")
+
+// Test fixture: the name of the fixture reader's element.
+ofd_t_name() {
+  XmlR owr = (import ofd_t_r);
+  string own = xr_name(owr);
+} return string own;
+given ofd_t_open("<ab/>") given ofd_t_steps(1) ():("ab")
+given ofd_t_open("<a><b/></a>") given ofd_t_steps(2) ():("b")

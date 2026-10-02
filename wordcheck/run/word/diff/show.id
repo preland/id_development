@@ -1,0 +1,12 @@
+// Says on stderr where word's text and the fodt's first differ, and what to fix.
+wlane_diff(string said, string wanted, int code) {
+  string[] gl = str_split(said, "\n");
+  string[] wl = str_split(wanted, "\n");
+  int at = wlane_first(gl, wl);
+} chain (string said, string wanted, int code) {
+  string gs = wlane_line(gl, at);
+  string ws = wlane_line(wl, at);
+  eprint("wordcheck: word --text (exit " + code + ") differs from the fodt at paragraph " + (at + 1) + ": word printed '" + gs + "', the fodt has '" + ws + "'; fix the ODT reader (word/io/odt/read/content), or the fodt walker (wordcheck/oracle/fodt) when the fodt is the one that is wrong");
+} return void;
+("", "a\n", 0):() then eprints:("wordcheck: word --text (exit 0) differs from the fodt at paragraph 1: word printed '', the fodt has 'a'; fix the ODT reader (word/io/odt/read/content), or the fodt walker (wordcheck/oracle/fodt) when the fodt is the one that is wrong\n")
+("a\nb\n", "a\nc\n", 3):() then eprints:("wordcheck: word --text (exit 3) differs from the fodt at paragraph 2: word printed 'b', the fodt has 'c'; fix the ODT reader (word/io/odt/read/content), or the fodt walker (wordcheck/oracle/fodt) when the fodt is the one that is wrong\n")

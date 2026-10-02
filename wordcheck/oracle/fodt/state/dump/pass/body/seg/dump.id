@@ -1,0 +1,47 @@
+// The fields of a page layout bag as a dump prints them: "w= h= orient= top= right= bottom= left=", in twips (the orientation 0 portrait, 1 landscape); an absent or unreadable size or margin is A4 with one-inch margins.
+ofd_pgfields(string owbag) {
+  int owfw = ofd_dim(owbag, "fo:page-width", 11906);
+  int owfh = ofd_dim(owbag, "fo:page-height", 16838);
+  string owor = ofd_val(owbag, "style:print-orientation");
+} chain (string owbag) {
+  int owland = owfw > owfh;
+  if(owor != "") {
+    owland = owor == "landscape";
+  }
+  string owsa = "w=" + owfw + " h=" + owfh + " orient=" + owland;
+} chain (string owbag) {
+  string owsm = "top=" + ofd_dim(owbag, "fo:margin-top", 1440) + " right=" + ofd_dim(owbag, "fo:margin-right", 1440);
+  string owsn = "bottom=" + ofd_dim(owbag, "fo:margin-bottom", 1440) + " left=" + ofd_dim(owbag, "fo:margin-left", 1440);
+  string owout = owsa + " " + owsm + " " + owsn;
+} return string owout;
+("|fo:page-width=8.2681in|fo:page-height=11.6929in|style:print-orientation=portrait|fo:margin-top=0.7874in|fo:margin-right=0.7874in|fo:margin-bottom=0.7874in|fo:margin-left=0.7874in"):("w=11906 h=16838 orient=0 top=1134 right=1134 bottom=1134 left=1134")
+("|fo:page-width=29.7cm|fo:page-height=21cm"):("w=16838 h=11906 orient=1 top=1440 right=1440 bottom=1440 left=1440")
+(""):("w=11906 h=16838 orient=0 top=1440 right=1440 bottom=1440 left=1440")
+
+// A length in a layout bag in twips, owdefault when it is absent or does not read.
+ofd_dim(string owbag, string own, int owdefault) {
+  int owtw = ofd_tw(ofd_val(owbag, own));
+  if(owtw == (import ow_bad)) {
+    owtw = owdefault;
+  }
+} return int owtw;
+("|fo:margin-left=1in", "fo:margin-left", 5):(1440)
+("|fo:margin-left=1in", "fo:margin-top", 5):(5)
+("|fo:margin-left=big", "fo:margin-left", 7):(7)
+
+// The normalised dump of a fodt document, as docs/WORD.md 4.9 defines it: the page record (the page layout of the first paragraph's master page), then every paragraph's records, each line ending in a line feed.
+ofd_dump(string owraw) {
+  int[] owlbytes = exec_bytes(owraw);
+  XmlR owr = xr_open(owlbytes);
+  OfdSty owst = ofd_new();
+} chain (string owraw) {
+  ofd_styles(owst, owr);
+  OfdAcc owacc = ofd_acc_new();
+  ofd_body(owst, owr, owacc);
+} chain (string owraw) {
+  string owmast = ofd_walk(owst, owacc.ss[4], ofd_master1);
+  string owpage = "page " + ofd_pgfields(ofd_pgbag(owst, owmast));
+  string owout = owpage + owacc.ss[3] + "\n";
+} return string owout;
+("<a><office:body><text:p text:style-name=\"Standard\">hi</text:p></office:body></a>"):("page w=11906 h=16838 orient=0 top=1440 right=1440 bottom=1440 left=1440\npara 0 style=\"Normal\" align=- left=- right=- first=- before=- after=- line=- brk=0 level=0 list=-\nrun b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=- text=\"hi\"\n")
+("<a><style:page-layout style:name=\"L\"><style:page-layout-properties fo:page-width=\"1in\"/></style:page-layout><style:master-page style:name=\"M\" style:page-layout-name=\"L\"/><office:body/></a>"):("page w=1440 h=16838 orient=0 top=1440 right=1440 bottom=1440 left=1440\n")

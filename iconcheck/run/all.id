@@ -1,0 +1,35 @@
+// How many of icon id's two sizes, 16 and 24 px, fail: 0, 1 or 2. Each is printed.
+ik_pair(int ik_id) {
+  int ik_a = ik_line(ik_id, 16);
+  int ik_b = ik_line(ik_id, 24);
+  int ik_f = 2 - ik_a - ik_b;
+} return int ik_f;
+given vec_init() given idstd_vec_add(7, "M 0 0 L 2 0 L 2 2 L 0 2 Z") (7):(0)
+given vec_init() (7):(2)
+
+// How many (icon, size) pairs of the icons ik_ids fail, at 16 and 24 px.
+ik_all(int[] ik_ids) {
+  int ik_k = 0;
+  int ik_bad = 0;
+  while (ik_k < len(ik_ids)) {
+    ik_bad = ik_bad + ik_pair(ik_ids[ik_k]);
+    ik_k = ik_k + 1;
+  }
+} return int ik_bad;
+given ik_boot() ([9999]):(2)
+given ik_boot() ([101, 102]):(0)
+given vec_init() ([]):(0)
+
+// What main does: no argument checks every icon, "sheet" writes the contact sheet, anything else is a mistake.
+ik_run(int ik_argc, string[] ik_argv) {
+  int ik_r = 2;
+  if (ik_argc == 1) {
+    ik_r = ik_all((import ic_cmd));
+  }
+  if (ik_argc == 2 && ik_argv[1] == "sheet") {
+    ik_r = ik_sheet();
+  }
+} return int ik_r;
+given ik_boot() (1, ["iconcheck"]):(0)
+given ik_boot() (2, ["iconcheck", "sheet"]):(0)
+given ik_boot() (2, ["iconcheck", "nope"]):(2)

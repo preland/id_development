@@ -1,0 +1,53 @@
+// What one event of a fodt document's style sections adds to the store: a font face, a style (automatic when owauto is 1, which is inside office:automatic-styles), the default paragraph style, a list style, a page layout with its properties, or a master page. Answers the new owauto: 1 or 0, and -1 once the body begins.
+ofd_pass_one(OfdSty owst, XmlR owr, int owev, int owauto) {
+  string owname = xr_name(owr);
+  int ownext = owauto;
+  if(owname == "style:font-face" && owev != 2) {
+    ofd_face(owst, owr);
+  }
+} chain (OfdSty owst, XmlR owr, int owev, int owauto) {
+  if(owname == "style:style" && owev != 2) {
+    ofd_style_read(owst, owr, owev, xr_attr(owr, "style:family"), owauto);
+  }
+  if(owname == "style:default-style" && owev != 2 && xr_attr(owr, "style:family") == "paragraph") {
+    ofd_style_read(owst, owr, owev, "paragraph", 0);
+  }
+  if(owname == "text:list-style" && owev != 2) {
+    ofd_list_read(owst, owr, owev);
+  }
+} chain (OfdSty owst, XmlR owr, int owev, int owauto) {
+  if(owname == "style:page-layout" && owev != 2) {
+    ofd_layout(owst, owr);
+  }
+  if(owname == "style:page-layout-properties" && owev != 2) {
+    ofd_gprops(owst, owr);
+  }
+  if(owname == "style:master-page" && owev != 2) {
+    ofd_master(owst, owr);
+  }
+} chain (OfdSty owst, XmlR owr, int owev, int owauto) {
+  if(owname == "office:automatic-styles") {
+    ownext = owev == 1;
+  }
+  if(owname == "office:body") {
+    ownext = 0 - 1;
+  }
+} return int ownext;
+given ofd_t_open("<office:body/>") given ofd_t_steps(1) (OfdSty([], [], []), (import ofd_t_r), 1, 0):(-1)
+given ofd_t_open("<office:automatic-styles/>") given ofd_t_steps(1) (OfdSty([], [], []), (import ofd_t_r), 4, 1):(0)
+given ofd_t_open("<office:automatic-styles><a/></office:automatic-styles>") given ofd_t_steps(1) (OfdSty([], [], []), (import ofd_t_r), 1, 0):(1)
+given ofd_t_open("<style:default-style style:family=\"paragraph\"/>") given ofd_t_steps(1) (OfdSty([], [], []), (import ofd_t_r), 4, 1):(1)
+
+// Reads every style, face, list style, page layout and master page up to the document body into the store; the reader is left at the body's start.
+ofd_styles(OfdSty owst, XmlR owr) {
+  int owev = xr_next(owr);
+  int owauto = 0;
+  while(owev > 0 && owauto >= 0) {
+    owauto = ofd_pass_one(owst, owr, owev, owauto);
+    if(owauto >= 0) {
+      owev = xr_next(owr);
+    }
+  }
+} return void;
+given ofd_t_open("<a><style:font-face style:name=\"F\" svg:font-family=\"X\"/><style:style style:name=\"P\" style:family=\"paragraph\"><style:paragraph-properties fo:text-align=\"center\"/></style:style><office:automatic-styles><style:style style:name=\"P1\" style:family=\"paragraph\" style:parent-style-name=\"P\"/></office:automatic-styles><office:body><style:style style:name=\"Z\" style:family=\"paragraph\"/></office:body></a>") (OfdSty([], [], []), (import ofd_t_r)):(OfdSty(["f:F", "p:P", "p:P1"], ["|fam=X", "|p.fo:text-align=center", "|a=1"], ["", "", "", "", "", "", "p:P", "", ""]), (import ofd_t_r))
+given ofd_t_open("<a/>") (OfdSty([], [], []), (import ofd_t_r)):(OfdSty([], [], []), (import ofd_t_r))

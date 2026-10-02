@@ -1,0 +1,24 @@
+// The family a declared face name stands for: the family in its font-face entry, or the name itself when no such face is declared.
+ofd_face_of(OfdSty owst, string own) {
+  int owi = ofd_idx(owst, "f:" + own);
+  string owfam = own;
+  if(owi >= 0) {
+    owfam = ofd_val(owst.props[owi], "fam");
+  }
+} return string owfam;
+(OfdSty(["f:F1"], ["|fam=Liberation Serif"], ["", "", ""]), "F1"):("Liberation Serif")
+(OfdSty(["f:F1"], ["|fam=Liberation Serif"], ["", "", ""]), "Other"):("Other")
+
+// The family a style's own properties name: style:font-name (through the face declared by that name), else fo:font-family; "" when it names none.
+ofd_fam1(OfdSty owst, string owk) {
+  string owfn = ofd_own(owst, owk, "t.style:font-name");
+  string owff = ofd_own(owst, owk, "t.fo:font-family");
+  string owfam = ofd_unq(owff);
+} chain (OfdSty owst, string owk) {
+  if(owfn != "") {
+    owfam = ofd_face_of(owst, owfn);
+  }
+} return string owfam;
+(OfdSty(["t:T", "f:F"], ["|t.style:font-name=F|t.fo:font-family='X'", "|fam=Real"], ["", "", "", "", "", ""]), "t:T"):("Real")
+(OfdSty(["t:T"], ["|t.fo:font-family='X Y'"], ["", "", ""]), "t:T"):("X Y")
+(OfdSty(["t:T"], [""], ["", "", ""]), "t:T"):("")

@@ -1,0 +1,14 @@
+// A stand-in for the word binary: an executable shell script, named by fs_mktemp so two builds never share it, that runs the given shell commands. The case removes it with `then wlane_t_gone`.
+wlane_t_script(string wl_body) {
+  export string wl_script = fs_mktemp("wordcheck_word_", 0);
+  int wl_n = exec_file_put(wl_script, "#!/bin/sh\n" + wl_body + "\n", 493);
+} return void;
+("exit 0"):() then wlane_t_gone:(0)
+("echo x"):() then wlane_t_gone:(0)
+
+// Removes the stand-in; fs_remove's answer, 0 when it was there.
+wlane_t_gone() {
+  int wl_z = fs_remove((import wl_script));
+} return int wl_z;
+given wlane_t_script("exit 0") ():(0)
+given wlane_t_script("echo x") ():(0)

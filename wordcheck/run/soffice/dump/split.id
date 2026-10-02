@@ -1,0 +1,41 @@
+// The tokens of a dump line: the record word and every "key=value" pair, a quoted value kept whole with its quotes.
+ofd_tokens(string owline) {
+  string[] owlt = [];
+  int owi = 0;
+  while(charat(owline, owi) >= 0) {
+    owi = ofd_tpush(owlt, owline, owi);
+  }
+} return string[] owlt;
+("para 3 style=\"A B\" x=-"):(["para", "3", "style=\"A B\"", "x=-"])
+(""):([])
+
+// Adds the token that starts at or after index owi (past spaces) of a dump line to the list and answers the index after it.
+ofd_tpush(string[] owlt, string owline, int owi) {
+  int owa = owi;
+  while(charat(owline, owa) == 32) {
+    owa = owa + 1;
+  }
+  int owe = ofd_tend(owline, owa);
+} chain (string[] owlt, string owline, int owi) {
+  if(charat(owline, owa) >= 0) {
+    push(owlt, str_slice(owline, owa, owe - owa));
+  }
+  if(charat(owline, owa) < 0) {
+    owe = len(owline);
+  }
+} return int owe;
+([], "a=1 b", 0):(3)
+(["a=1"], "  b=\"x y\" c", 0):(9)
+([], "   ", 0):(3)
+
+// The value of a token: its text after its first "=", the whole token when it has none.
+ofd_after(string owx) {
+  int owik = str_find(owx, "=");
+  string owv = owx;
+  if(owik >= 0) {
+    owv = str_slice(owx, owik + 1, len(owx) - owik - 1);
+  }
+} return string owv;
+("a=1"):("1")
+("b=\"x=y\""):("\"x=y\"")
+("run"):("run")

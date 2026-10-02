@@ -1,0 +1,51 @@
+// The value of a text property for a run: the first of its span styles (innermost, the last of the list, outward) to give one through its chain, else its paragraph style's chain; "" when none does.
+ofd_rget(OfdSty owst, string[] owspans, string owpk, string own) {
+  string owv = "";
+  int owi = len(owspans) - 1;
+  while(owi >= 0 && owv == "") {
+    owv = ofd_get(owst, owspans[owi], own);
+    owi = owi - 1;
+  }
+} chain (OfdSty owst, string[] owspans, string owpk, string own) {
+  if(owv == "") {
+    owv = ofd_get(owst, owpk, own);
+  }
+} return string owv;
+(OfdSty(["t:T", "p:P", "p:"], ["|t.fo:color=#ff0000", "|t.fo:color=#00ff00", ""], ["", "", "", "", "", "", "", "", ""]), ["t:T"], "p:P", "t.fo:color"):("#ff0000")
+(OfdSty(["t:T", "p:P", "p:"], ["", "|t.fo:color=#00ff00", ""], ["", "", "", "", "", "", "", "", ""]), ["t:T"], "p:P", "t.fo:color"):("#00ff00")
+(OfdSty(["p:P"], [""], ["", "", ""]), [], "p:P", "t.fo:color"):("")
+
+// Whether a flag property value turns the flag on: kind 0 bold ("bold" or a weight of 600 and up), 1 italic ("italic" or "oblique"), 2 anything but "" and "none" (underline and strike).
+ofd_on(string owv, int owwhich) {
+  int owon = owv != "" && owv != "none";
+  if(owwhich == 0) {
+    owon = owv == "bold" || to_int(owv) >= 600;
+  }
+  if(owwhich == 1) {
+    owon = owv == "italic" || owv == "oblique";
+  }
+} return int owon;
+("bold", 0):(1)
+("700", 0):(1)
+("normal", 0):(0)
+("oblique", 1):(1)
+("solid", 2):(1)
+("none", 2):(0)
+
+// 1 for a superscript text-position value ("super 58%", or a positive percentage), 2 for a subscript one ("sub 58%", or a negative one), 0 for neither.
+ofd_pos(string owv) {
+  int owp = 0;
+  float owfv = str_to_float(owv);
+  if(owfv > 0.0 || str_starts(owv, "super") == 1) {
+    owp = 1;
+  }
+} chain (string owv) {
+  if(owfv < 0.0 || str_starts(owv, "sub") == 1) {
+    owp = 2;
+  }
+} return int owp;
+("super 58%"):(1)
+("sub 58%"):(2)
+("33% 58%"):(1)
+("-33% 58%"):(2)
+("0% 100%"):(0)

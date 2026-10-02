@@ -956,6 +956,73 @@ Return 0 on success, otherwise a code whose message names the fix (the project's
 "errors must name the fix" rule). `odt_load` fills an empty `Doc` made by
 `doc_new`. Nothing in these two files may touch the window.
 
+#### 4.6a The styles reader (`word/io/odt/read/styles`, owner B4b)
+
+B4a (content) and B4b (styles) meet at these functions and nowhere else. B4b
+reads `styles.xml` and the automatic styles, font faces and list styles of
+`content.xml`; it never reads the body. B4a reads the body and asks B4b what each
+style name means.
+
+```
+struct OdtSty { string[] keys; int[] ids; int[] over; }
+ost_new() -> OdtSty
+ost_load(Doc d, int[] styles_xml, int[] content_xml, OdtSty k) -> int
+ost_error(int code) -> string
+ost_fault_at(int[] xml) -> int
+
+ost_para(OdtSty k, string name) -> int
+ost_over(OdtSty k, string name) -> int
+ost_text(OdtSty k, string name) -> int
+ost_list(OdtSty k, string name) -> int
+ost_merge(Doc d, int under, int over) -> int
+```
+
+`ost_load` is called once, on a `Doc` from `doc_new`, with the bytes of the two
+parts. It fills `d.fmt.sty` (named styles, list styles), `d.ext.fonts` and
+`d.body.page`, and fills `k`. It answers 0, or `ost_e_styles` (50) or
+`ost_e_content` (51) when that part is not well-formed XML before the body;
+`ost_error` words the fix and `ost_fault_at(xml)` gives the byte (-1 when
+well-formed). B4 owns `odt_error` codes 1 to 99 and B5 100 to 199; B4b uses 50 to 59.
+
+What B4a does with a paragraph or run, with `name` the file's style name as
+written (`Heading_20_1`, `P1`, `T3`; `""` and an unknown name give the defaults):
+
+| element | call | result |
+| --- | --- | --- |
+| `text:p`, `text:h` `text:style-name` | `ost_para(k, name)` | the paragraph row (`word_p_style` set, `brk` and `list` flattened from the style chain); store it as `Para.pprop` |
+| inside `text:list` | `tab_with(d.fmt.paras, row, word_p_list, ost_list(k, outer_list_name))`, then `word_p_level` | list and level are the content reader's; only the outermost list's name counts |
+| text of that paragraph | `ost_over(k, name)` | the character row an **automatic** paragraph style's own text properties amount to (`P1` with a font size); `-1` for none and for named styles, whose properties the style chain already resolves. Start every run from `max(over, 0)` |
+| `text:span` `text:style-name` | `ost_text(k, name)` then `ost_merge(d, enclosing, that)` | the run's `cprop`: the span's fields laid over the enclosing run's (the paragraph's `over` for an outermost span); fields the span leaves unspecified keep the enclosing value, flags merge bit by bit, a character style on the span replaces the enclosing one |
+
+What `ost_load` decides, so the content reader need not:
+
+* Lengths are twips (`cm mm in pt pc px`, exact rational rounding half away from
+  zero), font sizes half-points; a `%` font size is resolved against the style it
+  inherits from when the styles are read (12 pt when nothing gives a size); a `%`
+  `fo:line-height` is the percentage and a length line height is left unset.
+* Named styles are found in the model by model name and family (`Standard` is
+  Normal, a `style:display-name` wins, otherwise each `_20_` is a space) and
+  replace its rows in place, so the index of Heading 1 is stable; styles the
+  model lacks are appended. **Normal is the default paragraph style with
+  `Standard` laid over it**, and a paragraph style with no parent gets Normal as
+  its parent. Nothing the file leaves unset is filled in from the built-in
+  rows, so a field no style sets stays `-1` (the layout's default applies).
+* Automatic styles are flattened into rows and never become model styles
+  (3.1.3); the writer's names (`WP<n>`, `WT<n>`, `WL<n>`) and LibreOffice's
+  (`P1`, `T1`, `L1`) are read the same way, from either part. A name defined in
+  both parts is the content part's.
+* Font families come from `style:font-name` through `office:font-face-decls`
+  (`svg:font-family` unquoted) or `fo:font-family`, deduplicated into `ext.fonts`.
+* List styles keep levels 1 to 3 (kind, bullet code point or number format, start,
+  left indent, hanging indent in twips; the label-alignment and the older
+  space-before/min-label-width spellings); the others are dropped. Levels a list
+  style does not describe keep the built-in bullet defaults.
+* `d.body.page` is the layout of the master page the first paragraph's style
+  names, else of the first master page: width, height, orientation (from
+  `style:print-orientation`, else from the shape) and four margins.
+* Not read: headers and footers, tab stops, `fo:margin` shorthand, line numbering,
+  letter spacing, borders, shading of paragraphs, asian and complex fonts.
+
 ### 4.7 idstd archive and XML seams (A1, A2, A2r)
 
 ```
@@ -1050,6 +1117,68 @@ page; `word --script FILE` replays recorded events (a text script of key, text a
 mouse events) against a document and saves it, so an editing session is a testable
 string (the same idea as `idstd_gui_tbt_play`).
 
+#### 4.9a The `--dump` format (defined by B4b; shared by B4a, B5a, B8, B11)
+
+`word --dump IN.odt` prints `ndump_doc(Doc d) -> string` (`word/io/odt/read/styles/out/dump`):
+UTF-8, one record per line, LF line ends, a final LF. It is the one text form of
+a `Doc` that two documents share when they look the same, whatever their row ids,
+style numbering or run boundaries: B4a and B4b compare it with LibreOffice's, B5a
+compares it before and after a round trip, B2's undo cases may use it too. Its
+other side is `wordcheck`'s oracle, which makes the same text from the `fodt`
+that `soffice --convert-to fodt` writes for the same file, with its own code
+(`wordcheck --oracle N` prints it).
+
+```
+page w=11906 h=16838 orient=0 top=1134 right=1134 bottom=1134 left=1134
+para 0 style="Heading 1" align=- left=- right=- first=- before=240 after=120 line=- brk=0 level=0 list=-
+run b=1 i=0 u=0 s=0 sup=0 sub=0 size=36 color=#ff0000 hl=- link="http://x" font="Liberation Sans" text="Chapter\tOne"
+para 1 opaque
+para 2 style="Normal" align=1 left=720 right=0 first=-360 before=0 after=120 line=115 brk=1 level=1 list=n:0:1:1134:283
+```
+
+* One `page` line, then for each paragraph in order a `para` line and its `run`
+  lines. An opaque block (`kind` 1) is `para N opaque` and nothing else; an empty
+  paragraph has no run lines.
+* A line is a record word and `key=value` pairs in the order above, one space
+  apart. A value is a bare token or a double-quoted string.
+* **Every value is effective**: resolved through the run's character style, the
+  paragraph's style chain and the default style, never a row id and never the name
+  of an automatic style. `-` means no layer sets it. Lengths are twips, `size` is
+  half-points, `color` and `hl` are `#rrggbb` in lowercase, the six flags are 0 or 1
+  (`b i u s sup sub`), `align` is 0 left, 1 centre, 2 right, 3 justify, `line` is
+  percent of single, `brk` is 1 when the paragraph's style chain has a page break
+  before it. A length of exactly -1 twip prints 0 (the model's -1 means unset).
+* `style` is the **named** style the paragraph sits on (an automatic style prints
+  its parent), by the model's name: `Standard` is `Normal`, a display name wins,
+  otherwise `_20_` reads as a space.
+* `list` is `-` outside a list; inside one it is the level the paragraph sits on:
+  `b:CODEPOINT:LEFT:HANG` for a bullet, `n:FORMAT:START:LEFT:HANG` for a number
+  (FORMAT 0 decimal, 1 lower alpha, 2 upper alpha, 3 lower roman, 4 upper roman;
+  indents in twips); `level` is 0 to 2. The list definition's id never appears.
+* **Runs are merged**: adjacent runs whose printed fields (all but `text`) are
+  equal are one run with their texts joined, so where a writer chose to split
+  spans does not matter. `link` is the target in quotes or `-`; `font` is the
+  family in quotes or `-`.
+* `text` is quoted: `\"`, `\\`, `\t`, `\n`, `\r`; printable ASCII as itself;
+  every other code point as `\u{hex}` in lowercase with at least four digits;
+  **every code point U+E000 to U+F8FF, and every code point from `word_o_marker`
+  (U+F0000, where the readers keep an inline object's marker plus its index) to
+  U+FFFFD, prints as `\u{e000}`** (whichever index it carries). A tab is `\t`, a line break `\n`, `text:s c`
+  is `c` spaces.
+* `page` is the page of the master page the first paragraph's style names, else of
+  the first master page, in the sizes of `Page` (3.1.5): `orient` is 0 portrait,
+  1 landscape. The other master pages of a file are not part of a `Doc`, so not
+  of a dump.
+
+`wordcheck --dump N WORDBIN [ASSETS]` converts fixture N with `soffice
+--convert-to fodt`, runs `WORDBIN --dump` on the same `.odt`, and prints `N STEM
+dump=OK` (exit 0), or `N STEM dump=FAIL` and one line per differing field,
+`pN rM FIELD: ours=A theirs=B` (`page FIELD`, or `pN FIELD` for a paragraph record;
+`records differ` when the words or the number of fields do not match), exit 1;
+2 for a missing fixture. `ASSETS` defaults to `wordcorpus`; a directory of your
+own with an `odt/` inside and files named `NN_name.odt` works.
+
+
 ---
 
 ## 5. Phased plan
@@ -1102,7 +1231,7 @@ the seam in section 4 with a stub, as noted.
 
 | id | package | directories | depends | acceptance |
 | --- | --- | --- | --- | --- |
-| A1 | CRC-32; ZIP reader (struct-based, CRC checked) and stored-entry ZIP writer; `mimetype`-first ordering helper | `idstd/core/data/seq/byte/sum/crc32`, `idstd/core/data/seq/byte/pack/zip` | W0 | `crc_32("123456789") = 0xCBF43926`; round trip of 0, 1, 300 and 70 000 byte entries and of an empty archive; reader accepts `editor/test_assets/empty.zip` and a LibreOffice-written `.odt` (committed under `word/test_assets`) with every CRC verified; one flipped bit in an entry is reported as a named CRC error; `soffice --headless --convert-to txt` opens an `.odt` whose parts were written by `zw_*` (manual first, then B9) |
+| A1 | CRC-32; ZIP reader (struct-based, CRC checked) and stored-entry ZIP writer; `mimetype`-first ordering helper | `idstd/core/data/seq/byte/sum/crc32`, `idstd/core/data/seq/byte/pack/zip` | W0 | `crc_32("123456789") = 0xCBF43926`; round trip of 0, 1, 300 and 70 000 byte entries and of an empty archive; reader accepts `editor/test_assets/empty.zip` and a LibreOffice-written `.odt` (committed under `wordcorpus`) with every CRC verified; one flipped bit in an entry is reported as a named CRC error; `soffice --headless --convert-to txt` opens an `.odt` whose parts were written by `zw_*` (manual first, then B9) |
 | A2 | XML writer (struct, escaping, declaration, attribute order = call order, nesting check) | `idstd/core/text/xml/write` | W0 | output of a hand-built tree equals expected bytes; `& < > "` escaping cases; unbalanced `xw_end` is a named error; output is accepted by the reader of A2r and by `soffice --convert-to txt` when it is `content.xml` of a fixture |
 | A2r | XML reader: the editor's pull parser re-founded on a struct, byte offsets in every error, entities, CDATA, comments, DOCTYPE skipped | `idstd/core/text/xml/read` | W0 | the editor's own `lib/doc/xml` cases ported and green (they are the spec); reads `content.xml`, `styles.xml` of the corpus; fuzz: 1000 truncations of a real `content.xml` give an error or end, never a trap (index-addressable sweep); event stream of the writer's output equals the writer's input |
 | A3a | Font discovery by style (parse subfamily from the `name` table the scan already reads; add weight/slant to the cache record; `gui_fonts_find_style`, `gui_font_families`) | `idstd/gfx/kit/gui/font/find/**` | W0 | on this machine DejaVu Sans resolves Bold to `DejaVuSans-Bold.ttf`, Oblique to `DejaVuSans-Oblique.ttf`; an unknown style falls back to Regular and says so; cache file version bumps and an old cache is ignored, not trusted; `gui_font_families` is sorted and unique; all existing font cases still pass |
@@ -1110,7 +1239,7 @@ the seam in section 4 with a stub, as noted.
 | A7 | List helpers: `lst_insert`, `lst_delete`, `lst_splice` for `int[]` and `string[]` | `idstd/core/data/seq/lst/**` (the slot W0 made) | W0 | cases at both ends, empty list, a splice that grows and one that shrinks; trap behaviour out of range is stated and cased |
 | B1 | Document model: structs, interning table, style set and defaults, resolvers, text and run primitives, paragraph split/join, default document | `word/core/doc/**`, `word/conf.id` (row offsets) | none (uses `utf8_*`, `lst_*`) | the 4.2 API with cases pinning run invariants after every primitive (covering, merged, empty-paragraph run); a randomised-but-seeded script of 2000 primitive calls keeps the invariants; `style_eff_c` resolves a three-level chain and a character style over a paragraph style; **publishes the struct files first** (within an hour) so B2-B7 can compile against them |
 | B7a | Ribbon data and logic without drawing: the table of tabs/groups/controls, command ids, shortcut table, group/column placement solver given control sizes, tooltip text and shortcut text, `cmd_state` plumbing signature | `word/ui/ribbon/model`, `word/conf.id` (ribbon and key tables) | none | every command id appears once in the table and in a shortcut/ribbon/menu route (a case walks the table and checks no id is orphaned, none duplicated); placement of the Home tab at widths 1280, 1024, 900 gives rectangles that do not overlap and fit the width (arithmetic cases, rect lists compared exactly); `key_cmd(ctrl, 'b')` = bold |
-| B9 | Oracle driver and corpus | `wordcheck/**`, `word/test_assets/**` | none (needs only the CLI contract of 4.9 and `soffice`) | corpus of 12 documents generated by `soffice --convert-to odt` from small `.fodt`/`.html` sources written in the repo (plain, headings, bold/italic/underline mix, colours, lists three levels, page break, A4/Letter/landscape, long text 20 pages, unicode, empty paragraphs, a table, an image); the driver prints one line per fixture and takes an index (`wordcheck N`); an isolated LibreOffice profile (`-env:UserInstallation=file://` under `fs_mktemp`) so runs do not collide; runs batch several files per `soffice` start; the first fixture completes inside 60 s on a cold start (measure; mitigation in 6.7) |
+| B9 | Oracle driver and corpus | `wordcheck/**`, `wordcorpus/**` | none (needs only the CLI contract of 4.9 and `soffice`) | corpus of 12 documents generated by `soffice --convert-to odt` from small `.fodt`/`.html` sources written in the repo (plain, headings, bold/italic/underline mix, colours, lists three levels, page break, A4/Letter/landscape, long text 20 pages, unicode, empty paragraphs, a table, an image); the driver prints one line per fixture and takes an index (`wordcheck N`); an isolated LibreOffice profile (`-env:UserInstallation=file://` under `fs_mktemp`) so runs do not collide; runs batch several files per `soffice` start; the first fixture completes inside 60 s on a cold start (measure; mitigation in 6.7) |
 
 #### Wave 2 (needs wave 1's seams; parallel within the wave)
 

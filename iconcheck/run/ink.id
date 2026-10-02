@@ -1,0 +1,39 @@
+// The total coverage of a bitmap as vec_bitmap gives it: the sum of every byte after the five of header.
+ik_ink(int[] ik_bm) {
+  int ik_k = 5;
+  int ik_t = 0;
+  while (ik_k < len(ik_bm)) {
+    ik_t = ik_t + ik_bm[ik_k];
+    ik_k = ik_k + 1;
+  }
+} return int ik_t;
+([0, 1, 1, 0, 0, 255]):(255)
+([14, 0, 0, 0, 0]):(0)
+([0, 2, 1, 0, 0, 10, 20]):(30)
+
+// 1 when icon id at px pixels is drawn, with no fault in its path, and has some ink; else 0.
+ik_good(int ik_id, int ik_px) {
+  int[] ik_bm = vec_bitmap(ik_id, ik_px);
+  int ik_t = ik_ink(ik_bm);
+  int ik_g = 0;
+} chain (int ik_id, int ik_px) {
+  if (ik_bm[0] == 0 && ik_t > 0) {
+    ik_g = 1;
+  }
+} return int ik_g;
+given vec_init() given idstd_vec_add(7, "M 0 0 L 2 0 L 2 2 L 0 2 Z") (7, 16):(1)
+given vec_init() given idstd_vec_add(7, "M 0 0 X") (7, 16):(0)
+given vec_init() given idstd_vec_add(7, "M 0 0") (7, 16):(0)
+given vec_init() (7, 16):(0)
+
+// One line about icon id at px pixels, and whether it passed (ik_good).
+ik_line(int ik_id, int ik_px) {
+  int[] ik_bm = vec_bitmap(ik_id, ik_px);
+  int ik_t = ik_ink(ik_bm);
+  string ik_row = "" + ik_id + " " + ik_px + " status " + ik_bm[0] + " " + ik_bm[1] + "x" + ik_bm[2] + " ink " + ik_t;
+} chain (int ik_id, int ik_px) {
+  print(ik_row);
+  int ik_g = ik_good(ik_id, ik_px);
+} return int ik_g;
+given vec_init() given idstd_vec_add(7, "M 0 0 L 2 0 L 2 2 L 0 2 Z") (7, 16):(1) then prints:("7 16 status 0 2x2 ink 1020\n")
+given vec_init() (7, 24):(0) then prints:("7 24 status 14 0x0 ink 0\n")

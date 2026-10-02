@@ -12,25 +12,28 @@ rep_verdict(int v) {
 (0):("FAIL")
 (2):("UNAVAILABLE(word binary not available)")
 
-// "mode=VERDICT" for one word-binary lane.
-rep_word_one(string wmode) {
-  int v = wlane_run(wmode);
+// "mode=VERDICT" for one word-binary lane; v_text is the verdict of the --text lane, which has run.
+rep_word_one(string wmode, int v_text) {
+  int v = wlane_run(wmode, v_text);
   string says = rep_verdict(v);
   string part = wmode + "=" + says;
 } return string part;
-("--text"):("--text=UNAVAILABLE(word binary not available)")
-("--bogus"):("--bogus=FAIL")
+("--text", 2):("--text=UNAVAILABLE(word binary not available)")
+("--text", 1):("--text=OK")
+("--dump", 1):("--dump=UNAVAILABLE(word binary not available)")
+("--bogus", 1):("--bogus=FAIL")
 
 // The word-binary lanes, space separated.
-rep_word_all(string[] modes) {
+rep_word_all(string[] modes, int v_text) {
   string[] parts = [];
   int i = 0;
   while (i < len(modes)) {
-    push(parts, rep_word_one(modes[i]));
+    push(parts, rep_word_one(modes[i], v_text));
     i = i + 1;
   }
-} chain (string[] modes) {
+} chain (string[] modes, int v_text) {
   string line = str_join(parts, " ");
 } return string line;
-(["--text", "--dump"]):("--text=UNAVAILABLE(word binary not available) --dump=UNAVAILABLE(word binary not available)")
-(["--bogus"]):("--bogus=FAIL")
+(["--text", "--dump"], 2):("--text=UNAVAILABLE(word binary not available) --dump=UNAVAILABLE(word binary not available)")
+(["--text", "--dump"], 0):("--text=FAIL --dump=UNAVAILABLE(word binary not available)")
+(["--bogus"], 1):("--bogus=FAIL")

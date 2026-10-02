@@ -1,0 +1,39 @@
+// 1 when the mode is one of the word binary's CLI modes (docs/WORD.md 4.9).
+wlane_known(string wmode, string[] modes) {
+  int i = 0;
+  int known = 0;
+  while (i < len(modes)) {
+    known = known + (modes[i] == wmode);
+    i = i + 1;
+  }
+} return int known;
+("--dump", ["--text", "--dump"]):(1)
+("--render", ["--text", "--dump"]):(0)
+
+// The verdict of one word-binary lane. --text has run, and v_text is its verdict; every other known mode has nothing to run yet and is reported unavailable, never as a pass; an unknown mode fails.
+wlane_run(string wmode, int v_text) {
+  int code = (import lane_fail);
+  if (wlane_known(wmode, (import word_modes)) == 1) {
+    code = (import lane_unavailable);
+  }
+  if (wmode == (import text_mode)) {
+    code = v_text;
+  }
+} return int code;
+("--text", 1):(1)
+("--text", 0):(0)
+("--roundtrip", 1):(2)
+("--bogus", 1):(0)
+
+// How many of the word-binary lanes have verdict v.
+wlane_count(string[] modes, int v_text, int v) {
+  int i = 0;
+  int n = 0;
+  while (i < len(modes)) {
+    n = n + (wlane_run(modes[i], v_text) == v);
+    i = i + 1;
+  }
+} return int n;
+(["--text", "--dump"], 1, 1):(1)
+(["--text", "--dump"], 0, 2):(1)
+([], 1, 1):(0)

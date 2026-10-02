@@ -1,0 +1,51 @@
+// Prints the outcome of one fixture's dump comparison and answers the exit status: with no word binary (owwbin "") the oracle's dump itself and 0; with one, "N STEM dump=OK" and 0 when its "--dump" equals the oracle's, else "N STEM dump=FAIL" and one line per differing field (see ofd_diff) and the failed status.
+dump_report(string owwbin, string owsrc, string owstem, int n, string owtheirs) {
+  string owours = ofd_ours(owwbin, owsrc);
+  string owrep = ofd_diff(owours, owtheirs);
+  int owcode = 0;
+} chain (string owwbin, string owsrc, string owstem, int n, string owtheirs) {
+  if(owwbin == "") {
+    put(owtheirs);
+  }
+  if(owwbin != "" && owrep == "") {
+    print("" + n + " " + owstem + " dump=OK");
+  }
+  if(owwbin != "" && owrep != "") {
+    print("" + n + " " + owstem + " dump=FAIL\n" + owrep);
+    owcode = (import exit_failed);
+  }
+} return int owcode;
+("", "x.odt", "07_x", 7, "page w=1\n"):(0) then prints:("page w=1\n")
+("echo", "x.odt", "07_x", 7, "--dump x.odt\n"):(0) then prints:("7 07_x dump=OK\n")
+("echo", "x.odt", "07_x", 7, "other\n"):(1) then prints:("7 07_x dump=FAIL\np-1: records differ: ours=--dump x.odt theirs=other\n")
+
+// Converts fixture n with soffice into a throwaway root, runs the comparison on it and removes the root; the exit status of dump_report.
+dump_run(string owsoff, string owwbin, int n, string owassets) {
+  string owstem = fixt_name(owassets + "/" + (import odt_sub), n);
+  string owroot = fs_mktemp((import tmp_prefix), 1);
+  int owmade = fs_mkdir(owroot + "/" + (import out_sub));
+} chain (string owsoff, string owwbin, int n, string owassets) {
+  string owsrc = owassets + "/" + (import odt_sub) + "/" + owstem + ".odt";
+  int owcode = lane_soff(owsoff, owroot, (import r_fodt), owsrc);
+  string owtheirs = ofd_theirs(owroot, owstem);
+} chain (string owsoff, string owwbin, int n, string owassets) {
+  int owres = dump_report(owwbin, owsrc, owstem, n, owtheirs);
+  int owgone = exec_drop(owroot);
+} return int owres;
+("true", "", 7, "../wordcorpus"):(0) then prints:("page w=11906 h=16838 orient=0 top=1440 right=1440 bottom=1440 left=1440\n")
+("true", "echo", 7, "../wordcorpus"):(1) then prints:("7 07_pages dump=FAIL\np-1: records differ: ours=--dump ../wordcorpus/odt/07_pages.odt theirs=page w=11906 h=16838 orient=0 top=1440 right=1440 bottom=1440 left=1440\n")
+
+// Runs the dump comparison for fixture n of the corpus under assets, or says there is none; exit status 2 for a missing fixture. owwbin "" prints the oracle's dump instead of comparing.
+dump_go(string owsoff, string owwbin, int n, string owassets) {
+  string owstem = fixt_name(owassets + "/" + (import odt_sub), n);
+  int owcode = (import exit_usage);
+  if(owstem != "") {
+    owcode = dump_run(owsoff, owwbin, n, owassets);
+  }
+} chain (string owsoff, string owwbin, int n, string owassets) {
+  if(owstem == "") {
+    eprint("wordcheck: no fixture " + n + " in " + owassets + "/" + (import odt_sub) + "; list the fixtures with: wordcheck --list");
+  }
+} return int owcode;
+("true", "", 99, "../wordcorpus"):(2) then eprints:("wordcheck: no fixture 99 in ../wordcorpus/odt; list the fixtures with: wordcheck --list\n")
+("true", "echo", 7, "../wordcorpus"):(1) then prints:("7 07_pages dump=FAIL\np-1: records differ: ours=--dump ../wordcorpus/odt/07_pages.odt theirs=page w=11906 h=16838 orient=0 top=1440 right=1440 bottom=1440 left=1440\n")

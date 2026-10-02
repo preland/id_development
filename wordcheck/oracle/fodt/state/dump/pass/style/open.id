@@ -1,0 +1,35 @@
+// The key prefix of a paragraph style family ("p:"), of a text style family ("t:"), "" for any other.
+ofd_famk(string owfam) {
+  string owk = "";
+  if(owfam == "paragraph") {
+    owk = "p:";
+  }
+  if(owfam == "text") {
+    owk = "t:";
+  }
+} return string owk;
+("paragraph"):("p:")
+("text"):("t:")
+("graphic"):("")
+
+// The listed attributes the reader's element has, as "|prefix+name=value" pairs one after the other; an attribute the element lacks adds nothing.
+ofd_attrs(string owpre, string[] owlnames, XmlR owr) {
+  string owout = "";
+  int owi = 0;
+  while(owi < len(owlnames)) {
+    owout = owout + ofd_pair(owpre + owlnames[owi], xr_attr(owr, owlnames[owi]));
+    owi = owi + 1;
+  }
+} return string owout;
+given ofd_t_open("<p fo:color=\"#ff0000\" fo:font-size=\"12pt\"/>") given ofd_t_steps(1) ("t.", ["fo:color", "fo:font-size", "fo:x"], (import ofd_t_r)):("|t.fo:color=#ff0000|t.fo:font-size=12pt")
+given ofd_t_open("<p/>") given ofd_t_steps(1) ("p.", ["fo:color"], (import ofd_t_r)):("")
+
+// "|name=value", or "" when the value is empty.
+ofd_pair(string own, string owv) {
+  string owout = "";
+  if(owv != "") {
+    owout = "|" + own + "=" + owv;
+  }
+} return string owout;
+("a", "b"):("|a=b")
+("a", ""):("")

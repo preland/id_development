@@ -1,0 +1,47 @@
+// The part of a length after its number: "in" for "0.25in", "%" for "115%", "" for a bare number.
+ofd_unit(string ows) {
+  int owi = 0;
+  int owc = charat(ows, 0);
+  while(owc == 45 || owc == 43 || owc == 46 || chr_is_digit(owc) == 1) {
+    owi = owi + 1;
+    owc = charat(ows, owi);
+  }
+} chain (string ows) {
+  string owu = str_slice(ows, owi, len(ows) - owi);
+} return string owu;
+("0.25in"):("in")
+("-12pt"):("pt")
+("115%"):("%")
+("7"):("")
+
+// How many twips one unit is: 1440.0 for "in", and -1.0 for a unit the oracle does not know.
+ofd_fac(string owu) {
+  float owf = 0.0 - 1.0;
+  int owi = lst_str_index((import ow_units), owu);
+  if(owi >= 0) {
+    owf = (import ow_twips)[owi];
+  }
+} return float owf;
+("in"):(1440.0)
+("pt"):(20.0)
+("furlong"):(-1.0)
+
+// A length in twips, rounded to the nearest and away from zero at a half; ow_bad when it has no number or its unit is not a length.
+ofd_tw(string ows) {
+  float owfac = ofd_fac(ofd_unit(ows));
+  float owfv = str_to_float(ows) * owfac;
+  int owtw = (import ow_bad);
+} chain (string ows) {
+  if(owfac > 0.0 && owfv < 0.0) {
+    owtw = owfv - 0.5;
+  }
+  if(owfac > 0.0 && owfv >= 0.0) {
+    owtw = owfv + 0.5;
+  }
+} return int owtw;
+("1in"):(1440)
+("1.27cm"):(720)
+("-0.25in"):(-360)
+("1.5pt"):(30)
+("12"):(-2147483647)
+("0.0007in"):(1)

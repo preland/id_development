@@ -1,0 +1,35 @@
+// The verdict of a --text run: unavailable when the binary does not exist (the shell's 127, or no child at all), equal when it exited 0 and printed exactly the fodt's paragraphs, different otherwise.
+wlane_cmp(int code, string said, string wanted) {
+  int v = (import lane_fail);
+  if (code == 127 || code == 0 - 1) {
+    v = (import lane_unavailable);
+  }
+  if (code == 0 && said == wanted) {
+    v = (import lane_ok);
+  }
+} return int v;
+(127, "", "x"):(2)
+(0, "a\n", "a\n"):(1)
+(0, "a\n", "b\n"):(0)
+(1, "a\n", "a\n"):(0)
+
+// The index of the first line two lists of lines differ at, or the length of the shorter one when one is a prefix of the other.
+wlane_first(string[] gl, string[] wl) {
+  int i = 0;
+  while (i < len(gl) && i < len(wl) && gl[i] == wl[i]) {
+    i = i + 1;
+  }
+} return int i;
+(["a", "b"], ["a", "c"]):(1)
+(["a"], ["a", "b"]):(1)
+([], ["a"]):(0)
+
+// Line i of a list of lines, or a note that there is none.
+wlane_line(string[] xs, int i) {
+  string line = "(no such paragraph)";
+  if (i < len(xs)) {
+    line = xs[i];
+  }
+} return string line;
+(["a", "b"], 1):("b")
+(["a"], 1):("(no such paragraph)")

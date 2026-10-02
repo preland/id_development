@@ -1,0 +1,44 @@
+// The master page name entry owk's own meta says (the third string), "" when the entry is unknown or has none: a paragraph style that starts a page with another master page.
+ofd_master1(OfdSty owst, string owk) {
+  int owi = ofd_idx(owst, owk);
+  string owm = "";
+  if(owi >= 0) {
+    owm = owst.meta[owi * 3 + 2];
+  }
+} return string owm;
+(OfdSty(["p:A"], [""], ["", "", "Wide"]), "p:A"):("Wide")
+(OfdSty(["p:A"], [""], ["", "", "Wide"]), "p:Z"):("")
+
+// The bag of the page layout the master page called owmaster uses; the first master page's when it is called "" or unknown, "" when the document has none.
+ofd_pgbag(OfdSty owst, string owmaster) {
+  int owi = ofd_idx(owst, "m:" + owmaster);
+  string owbag = "";
+  int owl = 0 - 1;
+} chain (OfdSty owst, string owmaster) {
+  if(owi < 0) {
+    owi = ofd_first(owst, "m:");
+  }
+  if(owi >= 0) {
+    owl = ofd_idx(owst, "g:" + owst.meta[owi * 3 + 2]);
+  }
+  if(owl >= 0) {
+    owbag = owst.props[owl];
+  }
+} return string owbag;
+(OfdSty(["g:L1", "g:L2", "m:A", "m:B"], ["|fo:page-width=1in", "|fo:page-width=2in", "", ""], ["", "", "", "", "", "", "", "", "L1", "", "", "L2"]), "B"):("|fo:page-width=2in")
+(OfdSty(["g:L1", "g:L2", "m:A", "m:B"], ["|fo:page-width=1in", "|fo:page-width=2in", "", ""], ["", "", "", "", "", "", "", "", "L1", "", "", "L2"]), ""):("|fo:page-width=1in")
+(OfdSty(["p:A"], [""], ["", "", ""]), ""):("")
+
+// The first entry whose key starts with the prefix, -1 when there is none.
+ofd_first(OfdSty owst, string owpre) {
+  int owfound = 0 - 1;
+  int owi = 0;
+  while(owi < len(owst.keys) && owfound < 0) {
+    if(str_starts(owst.keys[owi], owpre) == 1) {
+      owfound = owi;
+    }
+    owi = owi + 1;
+  }
+} return int owfound;
+(OfdSty(["p:A", "m:B", "m:C"], ["", "", ""], ["", "", "", "", "", "", "", "", ""]), "m:"):(1)
+(OfdSty(["p:A"], [""], ["", "", ""]), "m:"):(-1)

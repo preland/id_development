@@ -1,0 +1,23 @@
+// The six flags of a run as a dump prints them: "b=0 i=0 u=0 s=0 sup=0 sub=0".
+ofd_bits(OfdSty owst, string[] owspans, string owpk) {
+  int owfb = ofd_on(ofd_rget(owst, owspans, owpk, "t.fo:font-weight"), 0);
+  int owfi = ofd_on(ofd_rget(owst, owspans, owpk, "t.fo:font-style"), 1);
+  int owfu = ofd_on(ofd_rget(owst, owspans, owpk, "t.style:text-underline-style"), 2);
+} chain (OfdSty owst, string[] owspans, string owpk) {
+  int owfx = ofd_on(ofd_rget(owst, owspans, owpk, "t.style:text-line-through-style"), 2);
+  int owpos = ofd_pos(ofd_rget(owst, owspans, owpk, "t.style:text-position"));
+  string owout = "b=" + owfb + " i=" + owfi + " u=" + owfu + " s=" + owfx + " sup=" + (owpos == 1) + " sub=" + (owpos == 2);
+} return string owout;
+(OfdSty(["t:T", "p:"], ["|t.fo:font-weight=bold|t.style:text-position=super 58%", ""], ["", "", "", "", "", ""]), ["t:T"], "p:"):("b=1 i=0 u=0 s=0 sup=1 sub=0")
+(OfdSty(["p:"], ["|t.fo:font-style=italic|t.style:text-line-through-style=solid"], ["", "", ""]), [], "p:"):("b=0 i=1 u=0 s=1 sup=0 sub=0")
+
+// A colour value as a dump prints it: "#rrggbb" in lowercase, "-" for anything else (transparent, absent).
+ofd_color(string owv) {
+  string owout = "-";
+  if(len(owv) == 7 && charat(owv, 0) == 35) {
+    owout = str_lower(owv);
+  }
+} return string owout;
+("#FF0000"):("#ff0000")
+("transparent"):("-")
+(""):("-")

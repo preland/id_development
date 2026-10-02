@@ -1,0 +1,33 @@
+// The number the dump gives a style:num-format value (see ow_numfmts); decimal for any other.
+ofd_numf(string owv) {
+  int owi = lst_str_index((import ow_numfmts), owv);
+  if(owi < 0) {
+    owi = 0;
+  }
+} return int owi;
+("a"):(1)
+("I"):(4)
+(""):(0)
+
+
+// The level, 1 to 3, of a style:list-level-style-* element the reader is at, 0 for a level the dump does not follow.
+ofd_level(XmlR owr) {
+  int owl = to_int(xr_attr(owr, "text:level"));
+  if(owl < 1 || owl > 3) {
+    owl = 0;
+  }
+} return int owl;
+given ofd_t_open("<a text:level=\"2\"/>") given ofd_t_steps(1) ((import ofd_t_r)):(2)
+given ofd_t_open("<a text:level=\"4\"/>") given ofd_t_steps(1) ((import ofd_t_r)):(0)
+given ofd_t_open("<a/>") given ofd_t_steps(1) ((import ofd_t_r)):(0)
+
+
+// The start value of a numbered level as text: its text:start-value, 1 when it has none.
+ofd_start(XmlR owr) {
+  string owv = xr_attr(owr, "text:start-value");
+  if(owv == "") {
+    owv = "1";
+  }
+} return string owv;
+given ofd_t_open("<a text:start-value=\"5\"/>") given ofd_t_steps(1) ((import ofd_t_r)):("5")
+given ofd_t_open("<a/>") given ofd_t_steps(1) ((import ofd_t_r)):("1")
