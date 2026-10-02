@@ -1,0 +1,40 @@
+// 1 when the event is a left press and the pointer was over the button.
+ab_click(int kind, int[] ev) {
+  int h = 0;
+  if(kind == 3 && ev[3] == 1) {
+    h = ab_in("btn", ev[1], ev[2]);
+  }
+} return int h;
+given ab_doc (3, [3, 450, 150, 1, 1]):(1)
+given ab_doc (3, [3, 450, 150, 3, 1]):(0)
+
+// 1 when (x, y) is inside the rectangle of class cls.
+ab_in(string cls, int x, int y) {
+  int bx = ab_box(cls, 0);
+  int by = ab_box(cls, 1);
+  int bw = ab_box(cls, 2);
+} chain (string cls, int x, int y) {
+  int bh = ab_box(cls, 3);
+  int ix = ab_span(x, bx, bw);
+  int iy = ab_span(y, by, bh);
+} chain (string cls, int x, int y) {
+  int h = ix * iy;
+} return int h;
+given ab_doc ("btn", 450, 150):(1)
+given ab_doc ("btn", 450, 189):(0)
+
+// 1 when the event asks to quit: the window closing (kind 7), or Esc (1011) or q (113) pressed as a key
+// (kind 1) while the name box does not have the keyboard (foc is 0). A text or mouse event carrying 113
+// does not, and with the keyboard in the box Esc only lets go of it and q is a letter to type.
+ab_quit(int kind, int key, int foc) {
+  int q = 0;
+  if(kind == 7 || (kind == 1 && foc == 0 && (key == 1011 || key == 113))) {
+    q = 1;
+  }
+} return int q;
+(1, 113, 0):(1)
+(2, 113, 0):(0)
+(7, 0, 1):(1)
+(1, 97, 0):(0)
+(1, 113, 1):(0)
+(1, 1011, 1):(0)

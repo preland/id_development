@@ -1,0 +1,44 @@
+// about -- an "about this app" page on idstd's GUI toolkit (gfx/kit/gui). The
+// layout is about.idml, parsed at start-up and tiled again to every size the
+// window takes; this program only paints the rectangles the toolkit hands back,
+// runs the name box the toolkit provides (gui_textbox_*) and counts clicks on
+// the button.
+//
+//   cd demos/about && ../../idc/bin/idc . -o about && ./about
+//
+// The page follows the window: a tiling compositor sizes it to its tile, and a
+// drag resizes it, and the surface and the layout follow every time. Click the
+// name box and type; the box takes the mouse (click, double and triple click,
+// Shift-click, drag), the arrows, Home, End, Ctrl+A, Ctrl+C, Ctrl+X, Ctrl+V and
+// Ctrl+Z. Each click on "Draw a block" (or Enter in the name box) adds one
+// coloured block to the canvas and shows the name, large, beside the blocks.
+// Close the window, or press Esc or q with the name box not focused, to quit;
+// Esc in the box only lets go of the keyboard.
+
+main(int argc, string[] argv) {
+  ab_doc();
+  gui_font_init();
+  ab_field();
+} chain (int argc, string[] argv) {
+  int ok = gfx_open(640, 420, "About this app");
+  sf_l_init(640, 420);
+  ab_run(ok);
+} chain (int argc, string[] argv) {
+  int shut = gfx_close();
+} return int 0;
+given ab_nodisp (0, []):(0) then ab_px_btn:(0)
+given ab_nodisp (1, ["about"]):(0) then ab_px_blk:(0)
+
+// Frames until the window asks to quit; a window that never opened runs none.
+// The first frame is stale, so it paints.
+ab_run(int ok) {
+  int st = 0 - 1;
+  if(ok == 1) {
+    st = 1;
+  }
+  while(st >= 0) {
+    st = ab_tick(st);
+  }
+} return void;
+given ab_fx (0):() then ab_px_btn:(0)
+given ab_fx (-1):() then ab_px_blk:(0)

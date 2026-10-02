@@ -1,0 +1,31 @@
+// The name box: made once the font layer is up, put where the page's "field" cell is, and read back.
+
+// The name box, in a 16 pixel sans-serif with a hint, put in its cell. The font layer must be started.
+ab_field() {
+  int ab_f = gui_font_open("sans-serif", 16);
+  export GuiTextBox ab_tb = gui_textbox_new("", "Type a name", ab_f, 40);
+  ab_place();
+} return void;
+given ab_doc given gui_font_init ():() then ab_tb_h:(28)
+given ab_doc given gui_font_init ():() then ab_tb_x:(115)
+
+// Put the name box in its cell: the cell's width, 28 pixels tall and centred in the cell's height. The
+// page calls this after every layout, so the box follows the window.
+ab_place() {
+  int ab_px = ab_box("field", 0);
+  int ab_py = ab_box("field", 1);
+  int ab_pw = ab_box("field", 2);
+} chain () {
+  int ab_ph = ab_box("field", 3);
+  gui_textbox_place((import ab_tb), ab_px, ab_py + (ab_ph - 28) / 2, ab_pw, 28);
+} return void;
+given ab_fx given gui_layout((import ab_t), (import ab_rc), 1000, 600) ():() then ab_tb_x:(180)
+given ab_fx ():() then ab_tb_h:(28)
+
+// The text the canvas shows from now on: whatever is in the name box.
+ab_tell() {
+  string[] ab_cs = (import ab_say);
+  ab_cs[0] = gui_textbox_text((import ab_tb));
+} return void;
+given ab_fx ():() then ab_say_text:("")
+given ab_fx given gui_textbox_set((import ab_tb), "Ada") ():() then ab_say_text:("Ada")

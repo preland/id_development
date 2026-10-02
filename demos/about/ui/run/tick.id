@@ -1,0 +1,43 @@
+// One frame. The state is the click count times two plus whether the last
+// frame's picture is stale, so a frame that nothing changed costs no repaint;
+// -1 means quit. The surface is fitted to the window first, so everything after
+// it, the layout included, is at the window's real size.
+ab_tick(int st) {
+  int ch = gfx_sync();
+  ab_relayout(ch);
+  int k = ab_events(st / 2);
+} chain (int st) {
+  int d = ab_dirty(ch, k, st);
+  int shown = ab_draw(k, d);
+  sleep_ms(10);
+} chain (int st) {
+  int out = ab_pack(k, shown);
+} return int out;
+given ab_fx (1):(1) then ab_px_btn:(3433963)
+given ab_fx (4):(4) then ab_px_btn:(0)
+
+// 1 when the page must be painted: the window was resized (ch), a click changed the count (k against the
+// state's), the last paint never reached the screen, or the name box changed (a key, the caret blinking).
+ab_dirty(int ch, int k, int st) {
+  int d = 0;
+  int f = ab_take();
+  if(ch == 1 || k != st / 2 || st % 2 == 1 || f == 1) {
+    d = 1;
+  }
+} return int d;
+given ab_doc (0, 3, 6):(0)
+given ab_doc (0, 4, 6):(1)
+given ab_doc (1, 3, 6):(1)
+given ab_doc (0, 3, 7):(1)
+given ab_doc given ab_mark(1) (0, 3, 6):(1)
+
+// The next state: the count and whether the picture is stale, or -1 after a quit.
+ab_pack(int k, int shown) {
+  int nx = k * 2 + 1 - shown;
+  if(k < 0) {
+    nx = 0 - 1;
+  }
+} return int nx;
+(3, 1):(6)
+(3, 0):(7)
+(-1, 1):(-1)

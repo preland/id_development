@@ -1,7 +1,9 @@
 // Reading: ask how big the file is, size a buffer to match, fill it.
 show(string path) {
   int fs_size_v = fs_size(path);
-  int[] buf = zeros(fs_size_v);
+  int[] buf = [];
+  lst_fill(buf, fs_size_v, 0);
+} chain (string path) {
   show_tail(path, buf);
 } return void;
 given fsdemo_t_setup ("fsdemo_case.txt"):() then prints:("read 3 bytes back (close 0):\nhi\n\nremoved fsdemo_case.txt (rc 0), exists now 0\nreopening it gives -1, errno 2\n")
@@ -12,5 +14,5 @@ render(int h, int[] buf) {
   int n = fs_read(h, buf, len_v);
   render_tail(h, n, buf);
 } return void;
-(-1, [0, 0, 0]):() then prints:("read -1 bytes back (close -1):\n\n")
+(-1, [104, 105, 10]):() then prints:("read -1 bytes back (close -1):\nhi\n\n")
 (-1, []):() then prints:("read -1 bytes back (close -1):\n\n")

@@ -1,0 +1,55 @@
+// The canvas panel, a count line, the k blocks drawn so far on its left three fifths, and on the rest the
+// name the box held when the button was last pressed, drawn large.
+ab_canvas(int k) {
+  int cx = ab_box("canvas", 0);
+  int cy = ab_box("canvas", 1);
+  int cw = ab_box("canvas", 2);
+} chain (int k) {
+  int ch = ab_box("canvas", 3);
+  int panel = d2_pack(226, 230, 240);
+  d2_l_rect(cx + 16, cy, cw - 32, ch - 16, panel);
+} chain (int k) {
+  string msg = "blocks drawn: " + k;
+  int mf = gui_font_open("sans-serif", 14);
+  gui_text_draw(mf, cx + 28, cy + 4, msg, 4210752);
+} chain (int k) {
+  int bw = (cw - 32) * 3 / 5;
+  ab_blocks(k, cx + 16, cy + 26, bw, ch - 42);
+  ab_note(cx + 16 + bw + 12, cy + 26, cw - 32 - bw - 12, ch - 42);
+} return void;
+given ab_fx (0):() then ab_px_blk:(14870256)
+given ab_fx (1):() then ab_px_blk:(255)
+
+// Blocks 0 to k-1.
+ab_blocks(int k, int x, int y, int w, int h) {
+  int i = 0;
+  while(i < k) {
+    ab_block(i, x, y, w, h);
+    i = i + 1;
+  }
+} return void;
+given ab_fx (1, 16, 215, 608, 189):() then ab_px_blk:(255)
+given ab_fx (0, 16, 215, 608, 189):() then ab_px_blk:(0)
+
+// The text the box held when the button was last pressed, in the system sans-serif at 40 pixels and the
+// button's blue, in the w by h area at (x, y), cut off at its edge. With nothing to show, a quiet line says
+// where it comes from.
+ab_note(int x, int y, int w, int h) {
+  string t = (import ab_say)[0];
+  int f = gui_font_open("sans-serif", 40);
+  int col = 3433963;
+} chain (int x, int y, int w, int h) {
+  if(len(t) == 0) {
+    t = "Press the button";
+    f = gui_font_open("sans-serif", 15);
+    col = 9211030;
+  }
+  int dy = (h - gui_font_line(f)) / 2;
+  sf_l_clip(x, y, w, h);
+} chain (int x, int y, int w, int h) {
+  gui_text_draw(f, x, y + dy, t, col);
+  sf_l_unclip();
+} return void;
+given ab_fx (300, 215, 100, 120):() then ab_px_ink:(1)
+given ab_fx given gui_textbox_set((import ab_tb), "Ada") given ab_tell (300, 215, 100, 120):() then ab_px_big:(1)
+given ab_fx (300, 215, 100, 120):() then ab_px_big:(0)

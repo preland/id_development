@@ -1,0 +1,24 @@
+// Paint and show the page when it is stale. Answers 1 when the screen is now
+// current: the page was shown, or there was nothing to show (no change, or a
+// quit), and 0 when the page was painted but the window refused it because its
+// size moved again, in which case the next frame must paint again.
+ab_draw(int k, int d) {
+  int shown = 1;
+  if(d == 1 && k >= 0) {
+    shown = ab_show(k);
+  }
+} return int shown;
+given ab_fx (0, 0):(1) then ab_px_btn:(0)
+given ab_fx (0, 1):(0) then ab_px_btn:(3433963)
+
+// Lay the document out again at the surface's size when the surface changed (ch is 1), and put the name box
+// back in its cell. The layout list is refilled in place, so a drag costs no memory.
+ab_relayout(int ch) {
+  if(ch == 1) {
+    gui_layout((import ab_t), (import ab_rc), (import sf_l_w), (import sf_l_h));
+    ab_place();
+  }
+} return void;
+given ab_fx given sf_l_init(1000, 600) (1):() then ab_btn_w:(280)
+given ab_fx given sf_l_init(1000, 600) (1):() then ab_tb_x:(180)
+given ab_fx given sf_l_init(1000, 600) (0):() then ab_tb_x:(115)

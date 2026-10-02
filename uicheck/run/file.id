@@ -1,0 +1,35 @@
+// Parse the file named by argv[1], then act on it.
+uc_file(int argc, string[] argv) {
+  int[] t = [];
+  string[] s = [];
+  gui_new(t, s);
+} chain (int argc, string[] argv) {
+  int e = gui_load(argv[1], t, s);
+  int r = uc_mode(argc, argv, t, s, e);
+} return int r;
+(2, ["uicheck", "test_assets/tiny.idml"]):(0) then prints:("ok 8 records\n")
+(2, ["uicheck", "test_assets/none.idml"]):(1)
+
+// A failed parse is reported on stderr with the file's name; a good one goes on
+// to the mode the command line asked for.
+uc_mode(int argc, string[] argv, int[] t, string[] s, int e) {
+  int r = 1;
+  if (e == 0) {
+    uc_ok(argc, argv, t, s);
+    r = 0;
+  } else {
+    eprint(argv[1] + ": " + gui_diag(t, s));
+  }
+} return int r;
+given uc_t_tiny (2, ["uicheck", "x.idml"], (import uc_tt), (import uc_ts), 0):(0) then prints:("ok 8 records\n")
+given uc_t_miss (2, ["uicheck", "x.idml"], (import uc_tt), (import uc_ts), 12):(1) then eprints:("x.idml: cannot load 'test_assets/none.idml': import could not be loaded; check the path is relative to the importing file and that the loader function returns its text\n")
+
+// An argument, or "" when the command line has fewer.
+uc_arg(int argc, string[] argv, int i) {
+  string a = "";
+  if (i < argc) {
+    a = argv[i];
+  }
+} return string a;
+(3, ["a", "b", "c"], 2):("c")
+(2, ["a", "b", "c"], 2):("")

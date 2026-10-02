@@ -1,0 +1,33 @@
+// uicheck: parse an .idml file with the id toolkit in ui/ and say what it found.
+//
+//   uicheck FILE.idml                  ok and the record count, or line:column: message
+//   uicheck FILE.idml --dump           the parsed document as text
+//   uicheck FILE.idml --rects W H      one line per item: x y w h name class
+//
+// It is what scripts/check-idml.mjs (parse and report) and build-scene.mjs (resolve
+// the rectangles) do for a native app, without Node.
+main(int argc, string[] argv) {
+  int r = uc_go(argc, argv);
+} return int r;
+(1, ["uicheck"]):(2)
+(5, ["uicheck", "test_assets/tiny.idml", "--rects", "200", "100"]):(0) then prints:("0 0 200 100 Card c\n0 0 200 50 Row\n0 0 50 50 Spacer\n50 0 150 50 Text\n0 50 200 50 Spacer\n")
+(2, ["uicheck", "test_assets/none.idml"]):(1) then eprints:("test_assets/none.idml: cannot load 'test_assets/none.idml': import could not be loaded; check the path is relative to the importing file and that the loader function returns its text\n")
+
+// Usage when there is no file, otherwise check the file. Exit status: 0 fine,
+// 1 the document did not parse, 2 the command line was wrong.
+uc_go(int argc, string[] argv) {
+  int r = 2;
+  if (argc >= 2) {
+    r = uc_file(argc, argv);
+  } else {
+    uc_usage();
+  }
+} return int r;
+(1, ["uicheck"]):(2) then eprints:("usage: uicheck FILE.idml [--dump | --rects WIDTH HEIGHT]\n")
+(2, ["uicheck", "test_assets/tiny.idml"]):(0) then prints:("ok 8 records\n")
+
+uc_usage() {
+  eprint("usage: uicheck FILE.idml [--dump | --rects WIDTH HEIGHT]");
+} return void;
+():() then eprints:("usage: uicheck FILE.idml [--dump | --rects WIDTH HEIGHT]\n")
+():() then prints:("usage: uicheck FILE.idml [--dump | --rects WIDTH HEIGHT]\n")

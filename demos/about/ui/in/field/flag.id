@@ -1,0 +1,32 @@
+// Whether the page has changed since it was drawn, for changes that are not a click on the button, and the
+// once-a-frame work of the name box.
+
+// Record that the page has changed when the answer of gui_textbox_event or gui_textbox_tick has its
+// "redraw" bit (1) set.
+ab_mark(int ab_r) {
+  int[] ab_cell = (import ab_flag);
+  if(ab_r % 2 == 1) {
+    ab_cell[0] = 1;
+  }
+} return void;
+given ab_doc (1):() then ab_take:(1)
+given ab_doc (6):() then ab_take:(0)
+
+// 1 when the page has changed since this was last asked, and forget it.
+ab_take() {
+  int[] ab_cell = (import ab_flag);
+  int ab_was = ab_cell[0];
+  ab_cell[0] = 0;
+} return int ab_was;
+given ab_doc given ab_mark(1) ():(1) then ab_take:(0)
+given ab_doc ():(0)
+
+// The name box's once-a-frame work: auto-scroll a drag that rests past an edge, set the pointer's shape,
+// and note that the page changed if the box wants redrawing (its caret blinked).
+ab_idle() {
+  int ab_r = gui_textbox_tick((import ab_tb));
+  int ab_h = gui_textbox_hover((import ab_tb), gfx_mouse_x(), gfx_mouse_y());
+  ab_mark(ab_r);
+} return void;
+given ab_fx given gui_textbox_focus((import ab_tb), 1) ():() then ab_take:(1)
+given ab_fx given gui_textbox_draw((import ab_tb)) ():() then ab_take:(0)

@@ -1,0 +1,46 @@
+// Paint the page for click count k and show it: 1 if the window took the frame,
+// 0 if its size had moved since the surface was fitted (gfx_show).
+ab_show(int k) {
+  ab_paint(k);
+  int shown = gfx_show();
+} return int shown;
+given ab_fx (0):(0) then ab_px_btn:(3433963)
+given ab_fx (1):(0) then ab_px_blk:(255)
+
+// The whole page, over the whole surface: background, heading, button, canvas and name box.
+ab_paint(int k) {
+  int bg = d2_pack(245, 246, 250);
+  d2_l_rect(0, 0, (import sf_l_w), (import sf_l_h), bg);
+  ab_head();
+} chain (int k) {
+  ab_button();
+  ab_canvas(k);
+  ab_entry();
+} return void;
+given ab_fx (0):() then ab_px_blk:(14870256)
+given ab_fx (2):() then ab_px_blk:(255)
+
+// The title and the two lines of body text, placed in their idml rectangles by the font's own line
+// height: each is centred in the height its rectangle was given, and the second line sits one line
+// and six pixels under the first.
+ab_head() {
+  int tx = ab_box("title", 0);
+  int ty = ab_box("title", 1);
+  int tf = gui_font_open("sans-serif", 28);
+} chain () {
+  int th = ab_box("title", 3);
+  int tl = gui_font_line(tf);
+  gui_text_draw(tf, tx + 24, ty + (th - tl) / 2, "About this app", 2105408);
+} chain () {
+  int by = ab_box("body", 1);
+  int bh = ab_box("body", 3);
+  int bf = gui_font_open("sans-serif", 15);
+} chain () {
+  int bl = gui_font_line(bf);
+  int y0 = by + (bh - 2 * bl - 6) / 2;
+  gui_text_draw(bf, tx + 24, y0, "A small page built on id's standard GUI toolkit (idstd gfx/kit/gui).", 4210752);
+} chain () {
+  gui_text_draw(bf, tx + 24, y0 + bl + 6, "Its layout is read from about.idml at start-up. Click the button.", 4210752);
+} return void;
+given ab_fx ():() then ab_px_ttl:(1)
+given ab_fx ():() then ab_px_btn:(0)

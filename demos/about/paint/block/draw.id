@@ -1,0 +1,22 @@
+// Block i: a 30x30 square on a 36-pixel grid that fills the area row by row
+// and wraps back to the top, coloured by stepping through the RGB cube.
+ab_block(int i, int x, int y, int w, int h) {
+  int cols = fx_max(1, (w - 8) / 36);
+  int rows = fx_max(1, (h - 8) / 36);
+  int col = d2_pack((i * 67) % 256, (i * 141) % 256, 255 - (i * 29) % 256);
+} chain (int i, int x, int y, int w, int h) {
+  int px = x + 8 + (i % cols) * 36;
+  int py = y + 4 + ((i / cols) % rows) * 36;
+  d2_l_rect(px, py, 30, 30, col);
+} return void;
+given ab_fx (0, 16, 215, 608, 189):() then ab_px_blk:(255)
+given ab_fx (1, 16, 215, 608, 189):() then ab_px_blk:(0)
+given ab_fx (3, 22, 221, 20, 20):() then ab_px_blk:(13215656)
+
+// main's cases run without a display on every machine: gfx_open fails the same
+// way whatever DISPLAY the build machine has.
+ab_nodisp() {
+  int r = env_set("DISPLAY", "id-case-no-display");
+} return void;
+():() then env_error:(0)
+given ab_fx ():() then ab_px_btn:(0)

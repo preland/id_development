@@ -1,0 +1,34 @@
+// Probes of the canvas text and the name box, for the cases: what is in the 100 by 40 pixel area at
+// (300, 230), where the canvas text of a 640x420 page lands.
+
+// 1 when some pixel of the area is not black.
+ab_px_ink() {
+  int i = 0;
+  int hit = 0;
+  while(i < 4000 && hit == 0) {
+    hit = (import sf_l_px)[sf_l_idx(300 + i % 100, 230 + i / 100)] != 0;
+    i = i + 1;
+  }
+} return int hit;
+given ab_fx ():(0)
+given ab_fx given ab_note(300, 215, 100, 120) ():(1)
+
+// 1 when some pixel of the area is exactly the button's blue, which the large name is drawn in.
+ab_px_big() {
+  int i = 0;
+  int hit = 0;
+  while(i < 4000 && hit == 0) {
+    hit = (import sf_l_px)[sf_l_idx(300 + i % 100, 230 + i / 100)] == 3433963;
+    i = i + 1;
+  }
+} return int hit;
+given ab_fx ():(0)
+given ab_fx given gui_textbox_set((import ab_tb), "Ada") given ab_tell given ab_note(300, 215, 100, 120) ():(1)
+
+// The pixel inside the name box, clear of its text.
+ab_px_box() {
+  int at = sf_l_idx(300, 150);
+  int p = (import sf_l_px)[at];
+} return int p;
+given ab_fx ():(0)
+given ab_fx given ab_entry ():(16777215)
