@@ -1,5 +1,5 @@
 {
-  description = "id language: compiler (idc.py + self-hosted), LLVM/WASM targets, and hardware-accelerated graphics/3D backends";
+  description = "id language: self-hosted compiler, LLVM/WASM targets, and hardware-accelerated graphics/3D backends";
 
   # Follows the system registry's `nixpkgs` (a local, already-realised store
   # path on this machine), so `nix develop` resolves offline with no fetch.

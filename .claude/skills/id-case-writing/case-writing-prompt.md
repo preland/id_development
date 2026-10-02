@@ -87,20 +87,31 @@ shows your function reads or writes an export):
 given SETUP (ARGS):(EXPECTED) then CHECK:(VALUE)
 ```
 
-- `given SETUP` names a zero-parameter `void` function from the packet's
-  candidate list (or a nearby fixture) that runs before the call, before
-  arguments are built.
+- `given SETUP` names a `void` function from the packet's candidate list
+  (or a nearby fixture) that runs before the call, before arguments are
+  built. A setup with no parameters is written bare. A setup that takes
+  parameters is called with literals: `given SETUP(LIT, ...)`, one literal
+  per parameter, each at the parameter's type. Prefer this to writing a
+  zero-parameter fixture whose body is only a call with fixed values:
+  `given mem_new given lset((import ab), 1, 7) ((import ab)):(7)`. Any void
+  function of the build, library ones included, may be the setup. Its
+  arguments may be `(import NAME)` of an export set by a setup written
+  earlier in the same case, never by a later one or by itself. A function's
+  name, a conf constant, or an expression such as `(import ad) + 15` is not
+  a literal.
 - Setups compose: `given A given B (ARGS):(EXPECTED)` runs `A`, then `B`,
-  before the call. A later setup that re-exports a name replaces what an
-  earlier one left there.
+  before the call. Two setups must not export the same name: a name may be
+  exported only once, and the compiler rejects the second, so give each setup
+  its own export.
 - `then CHECK:(VALUE)` names a zero-parameter value-returning function
   (from the packet's candidate list, or one you write) called after the call
   under test; its result is compared to `VALUE`. Several `then` clauses are
   allowed on one case.
-- `(import NAME)` may appear inside `ARGS` or `EXPECTED` (top level of the
-  tuple, not inside a list literal) in a case that has a `given` — it is the
-  export's live value: after setup for an argument position, after the call
-  for an expected-value position. Requires the setup to transitively reach
+- `(import NAME)` may appear inside `ARGS` or `EXPECTED` (at the top of the
+  tuple or inside a list literal, nested lists included) in a case that has
+  a `given` — it is the export's live value: after setup for an argument
+  position, after the call for an expected-value position. `main`'s argv may
+  carry an exported path: `given tmp_path (2, ["kv", (import path)]):(0)`. Requires the setup to transitively reach
   `NAME`'s declaring function (the packet already checked this for every
   candidate it lists).
 
@@ -126,6 +137,11 @@ given SETUP (ARGS):(EXPECTED) then CHECK:(VALUE)
   lines in order and then `""`. Without it a case gets empty stdin. One per
   case, and TEXT must be a string literal:
   `given full_env stdin "ident x\n" ():() then last_tkind:("ident")`
+- `timeout N`, after any `given`s and `stdin` and before the argument tuple,
+  raises that one case's wall-time limit from 30 seconds to N seconds (a
+  positive integer literal, one per case); use it only for a function that
+  honestly runs longer, not to hide a hang:
+  `given fx stdin "a\n" timeout 90 (1):(2)`
 - `then traps:("TEXT")` passes only if the call stops its process with a
   runtime trap (or a signal) whose message contains TEXT. The expected side
   must be `()`, and no other `then` may accompany it:

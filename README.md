@@ -17,7 +17,7 @@ git submodules, each its own repository.
 | [`docs/`](docs) | the specification and design docs (19 files — see "Further reading" below) |
 | [`demos/`](demos) | example `id` programs |
 | `flake.nix`, `.envrc` | the Nix devshell |
-| [`idc/`](idc) (submodule) | the toolchain: `bin/idc`, the self-hosted compiler, the bootstrap, `idc.py`, the native backends, the dev tools, and the test suite — see [`idc/README.md`](idc/README.md) |
+| [`idc/`](idc) (submodule) | the toolchain: `bin/idc`, the self-hosted compiler, the bootstrap, the native backends, the dev tools, and the test suite — see [`idc/README.md`](idc/README.md) |
 | [`editor/`](editor) (submodule) | an OpenDocument editor written in `id` |
 | [`kernel/`](kernel) (submodule) | a freestanding kernel written in `id` |
 | [`vscode/`](vscode) (submodule) | the VS Code extension for `id` |
@@ -115,7 +115,7 @@ shell over an in-memory filesystem — `ls`, `cd`, `cat`, `write`, `uname`. A
 fault names itself and stops the machine. [`docs/KERNEL.md`](docs/KERNEL.md).
 
 ```sh
-idc/tools/devshell.sh 'idc/tools/kbuild.sh'
+idc/tools/devshell.sh 'idc/bin/idc idc/tools/kbuild -o /tmp/kbuild && /tmp/kbuild idc'
 qemu-system-x86_64 -kernel idc/build/kernel.elf -serial stdio -display none
 ```
 
@@ -142,9 +142,8 @@ places where the language costs more than it should, each naming the code that
 hit it — and the four rules that cost something and caught something, which is
 the difference worth keeping.
 
-What only `idc.py` still does: `--target wasm`. See
-[`docs/GAPS.md`](docs/GAPS.md) for the state of that and everything else, and
-[`idc/README.md`](idc/README.md) for `idc.py`'s retirement.
+`--target wasm` is built by `bin/idc` itself. See
+[`docs/GAPS.md`](docs/GAPS.md) for the state of that and everything else.
 
 ## Development environment (Nix)
 
@@ -358,7 +357,7 @@ still outstanding.
 ## Further reading
 
 `docs/` holds 19 files. The toolchain internals — native backends, the two
-code generators, self-hosting, `idc.py`'s retirement — are in
+code generators, self-hosting — are in
 [`idc/README.md`](idc/README.md) instead of here.
 
 | doc | what it covers |
