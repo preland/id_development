@@ -20,7 +20,7 @@ rather not stay in it. Every command here assumes the repository root.
 ### Build it
 
 ```sh
-idc/tools/kbuild.sh              # -> idc/build/kernel.elf
+idc/bin/idc idc/tools/kbuild -o /tmp/kbuild && /tmp/kbuild idc   # -> idc/build/kernel.elf
 ```
 
 That compiles `idc/runtime/` and `kernel/prog/` through the LLVM target, assembles
@@ -66,16 +66,19 @@ fault: reading 0x140000000, which has no page behind it
 
 ### Photograph it
 
-`idc/tools/qmon.sh` boots it, types at it over the serial port, and captures the
-framebuffer; `idc/tools/fbtext.sh` builds `idc/tools/fbtext`, in `id`, and reads
-that capture back as text by matching each 8×16 cell against the kernel's own
-font. That pair is how the shell is tested, and it is the fastest way to see
-what is on screen without a window:
+`idc/tools/qmon`, in `id`, boots it, types at it over the serial port, and
+captures the framebuffer; `idc/tools/fbtext`, also in `id`, reads that capture
+back as text by matching each 8×16 cell against the kernel's own font. That pair
+is how the shell is tested, and it is the fastest way to see what is on screen
+without a window. `idc/tools/buildrun` builds either one (with the standard
+library, whatever `IDC_NO_STD` says) and runs it, and `--stdin` hands it
+buildrun's own standard input, which fbtext reads the kernel's `conf.id` from:
 
 ```sh
-idc/tools/qmon.sh idc/build/kernel.elf --wait 4 --type "ls;cd bin;uname" \
+idc/bin/idc idc/tools/buildrun -o /tmp/buildrun
+/tmp/buildrun idc qmon idc/build/kernel.elf --wait 4 --type "ls;cd bin;uname" \
         --settle 2 --shot /tmp/screen.ppm
-idc/tools/fbtext.sh /tmp/screen.ppm
+/tmp/buildrun --stdin idc fbtext /tmp/screen.ppm < kernel/prog/conf.id
 ```
 
 `--keys "l s ret"` sends real PS/2 key events instead, which is how to exercise
@@ -163,7 +166,7 @@ Any `.odt` LibreOffice writes:
 It will show you what it made of it. What it does *not* do is listed at the end
 of [`docs/EDITOR.md`](EDITOR.md) — no tables, images, lists or footnotes, one
 font face at a time, and no scrolling, so only the first page's worth is drawn.
-`idc/tools/mkodt.sh` regenerates the fixture if you want a smaller thing to poke at.
+`buildrun idc mkodt` (`idc/tools/buildrun`, see "Photograph it") regenerates the fixture if you want a smaller thing to poke at.
 
 ### Check it
 
@@ -179,6 +182,13 @@ idc/tests/editor.sh              # 163 checks across five suites
 idc/tools/devshell.sh 'idc/tests/run.sh'          # the whole suite, ~4 minutes
 idc/tools/devshell.sh 'idc/tests/run.sh --list'   # the sections, to run one
 ```
+
+No step may run longer than a minute, so a script that would is cut into
+sections: `run.sh`'s, and for the two that were too long for one of them, pieces
+taken as arguments (`idc/tests/backends.sh --list`, `idc/tests/conform.sh AREA...`).
+What a stopped run had finished is kept (parsed sources, compiled units, passed
+cases, the library's pre-check), so running the same command again continues
+instead of starting over; `run.sh --resume` does the same for whole sections.
 
 ## Where to look for what to work on next
 

@@ -4,7 +4,7 @@
 > are the ones `idc/tests/run.sh` actually runs.
 
 **Language features are built in the self-hosted compiler**
-(`idc/compiler/lex` + `idc/compiler/parse`), not in `idc.py`.
+(`idc/compiler/lex` + `idc/compiler/parse`). There is no other compiler: the Python one, `idc.py`, is deleted.
 
 This document exists because the opposite kept happening, to several people
 and several models, and the reason turned out to be mechanical rather than a
@@ -13,9 +13,9 @@ matter of preference.
 ## The bias, and why it is not your fault
 
 It used to cost six times more to change the compiler than to change
-`idc.py`, and that was the whole explanation.
+`idc.py` (since deleted), and that was the whole explanation.
 
-Changing `idc.py` needs one grep: `grep -n "def parse_function" -A 40`.
+Changing `idc.py` needed one grep: `grep -n "def parse_function" -A 40`.
 Finding the same code here took **six** steps when it was measured —
 `parse_program` → `func1.id` → `parse_top` → `p1.id` → `parse_decl_top` →
 `f2.id`. The tree was nine directories deep and **212 of its 258 filenames**
@@ -59,13 +59,10 @@ one commit: the one that teaches the compiler the construct, regenerated with
 in a later commit, once stage 0 can read it. `regen_bootstrap.sh --check` fails
 the suite when stage 0 is not what the tree emits.
 
-`idc.py` does not need new constructs at all. It is frozen — `idc/tests/run.sh`
-checks its sha256 against a recorded value and fails if it has changed — and
-kept for one job now: `--target wasm`, which `idc/bin/idc` does not have.
-`idc/tests/conform.sh`'s wasm lane and the wasm half of `idc/tests/run.sh`'s
-alt-target checks are the only things that still build with it. No build that
-merges `idstd` goes through it, because `idstd` may hold syntax it cannot
-parse.
+`idc.py` is gone, so there is nothing else a new construct has to be taught to.
+`--target wasm` is implemented by `idc/bin/idc` itself (the C target's C
+recompiled for wasm32-wasi), and `idc/tests/conform.sh`'s wasm lane and
+`idc/tests/wasm.sh` run it.
 
 ## Where things are
 
@@ -81,12 +78,13 @@ parse.
 | function-logic uniqueness | `mid/form/unique/` |
 | what `bin/idc --fix` rewrites, and what it refuses | `mid/form/fix/` (token columns: `front/tokens/load/more/pos/`; applied by `idc/tools/fixapply.awk`) |
 | the type registry (adding a type) | `mid/types/registry/` |
+| structs: the table, field and constructor checks, the rules on a declaration | `mid/types/registry/derived/struct/` (the parser is `front/parse/decl/kinds/struct/`; the C and LLVM spellings are `back/tgt/c/emit/prog/code/expr/atom/lit/ctor/`, `back/tgt/c/emit/op/index/get.id` and `back/ir/build/expr/call/list/struct/`; a struct in a test case is `back/tgt/c/out/case/val/` and `back/tgt/c/emit/prog/code/func/ctype/list/note/st/`) |
 | type checks, call checks | `mid/types/check/` |
 | what type an expression has | `mid/types/type_of/` |
 | emitted C for a statement | `back/tgt/c/emit/prog/code/body/stmt/` |
 | emitted C for an expression | `back/tgt/c/emit/prog/code/expr/` |
 | function signatures, forward declarations | `back/tgt/c/emit/prog/code/func/def/` |
-| the exported-global block | `back/tgt/c/emit/prog/head/decl/` (LLVM: `back/tgt/ll/mod/sect/glob/`); which exports survive pruning: `back/drive/run/check/dce/export/keep.id` |
+| the exported-global block | `back/tgt/c/emit/prog/head/decl/` (LLVM: `back/tgt/ll/mod/sect/glob/`); which exports survive pruning: `back/drive/run/check/dce/export/keep.id` (which constants: `.../export/live/`) |
 | the C type spelling of an id type | `back/tgt/c/emit/prog/code/func/ctype/type_column.id` |
 | where emitted code leaves the compiler | `back/drive/sink/emit_line.id` |
 | the C runtime prelude | `idc/compiler/parse/back/tgt/c/runtime/prelude.id` (external linkage: `extern.id`), hand-maintained |
@@ -106,7 +104,7 @@ The shortest real example, and the shape most changes take:
    row number.
 3. `idc/tests/conform/` — a case, so every target is held to the same behaviour.
 
-No `idc.py` change: it is frozen and never changes.
+There is no second compiler to change.
 
 ## The loop
 
@@ -123,17 +121,13 @@ emits the compiler's own C through `idc/bin/idc` and compares it with
 `idc/bootstrap/*.c`, so if you did not mean to change emitted C, it must still
 say ok. When you *do* mean to change it, see `idc/bootstrap/README.md`.
 
-There is no differential check against `idc.py` any more: it is frozen, and a
-change to emitted C no longer means anything has to change in it. The one
-place it still has to agree with `idc/bin/idc` is `--target wasm`
-(`idc/tests/conform.sh`'s wasm lane, and the wasm half of `idc/tests/run.sh`'s
-alt-target checks), which builds the program under test without the standard
-library on both sides: `idc.py` cannot parse an `idstd` that holds a `given`
-case, so no build that merges `idstd` goes through it.
+There is no differential check against another compiler: `idc.py` is deleted,
+and a change to emitted C means only that `regen_bootstrap.sh --check` and the
+conformance suite must still agree.
 
 ## Writing `id` inside the rule of 3
 
-The friction that makes people give up and edit `idc.py` instead:
+The friction that used to make people give up and edit `idc.py` instead:
 
 - **A block may perform 3 actions.** Adding a call to an existing function
   often means finding one with a free slot, or splitting it. Look for a
@@ -151,19 +145,6 @@ The friction that makes people give up and edit `idc.py` instead:
   only a *root's* is read. One anywhere else is neither compiled nor read as a
   manifest, so everything it defines silently ceases to exist — and the only
   symptom is `no such function` at the caller, blaming a file that is fine.
-  Both compilers now reject it by name; before they did, it cost a rename
+  The compiler now rejects it by name; before it did, it cost a rename
   half an hour of looking in the wrong place.
 
-## What `idc.py` is still for, now that it is frozen
-
-It no longer shrinks. The line-count ceiling that used to ratchet down as work
-was ported out of it is gone, replaced by a hash check
-(`idc/tests/run.sh`) that fails on any change at all, including one that
-removes lines. `idc.py` is 5470 lines, exactly what they are today and what
-they will stay: the LLVM backend, the WASM backend, and the test-clause
-machinery are all still in the file, but only `--target wasm` is still built
-against by anything (`docs/BACKENDS.md`).
-
-The end state, from `docs/BACKENDS.md`, has not changed: porting `--target
-wasm` to `back/tgt/` is what would let `idc.py` be deleted outright. Until
-then, nothing lands in `idc.py` — not a line, not a rule, not a lint fix.

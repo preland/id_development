@@ -41,7 +41,7 @@ the declaration makes three things true that a suite cannot:
 After the `return` clause, one case per line:
 
 ```
-given SETUP (ARGS):(EXPECTED) then CHECK:(VALUE) [CONSTRAINTS]
+given SETUP stdin "TEXT" timeout N (ARGS):(EXPECTED) then CHECK:(VALUE) [CONSTRAINTS]
 ```
 
 Most cases are just `(ARGS):(EXPECTED)`:
@@ -49,8 +49,12 @@ Most cases are just `(ARGS):(EXPECTED)`:
 - **`ARGS`** — the arguments, as `id` literals, in order. `()` for none.
 - **`EXPECTED`** — the value the call must produce, as an `id` literal.
 - **`CONSTRAINTS`** — optional, in square brackets. See below.
-- **`given SETUP`** and **`then CHECK:(VALUE)`** — optional, for functions
-  whose behaviour is module state. See "Module state" below.
+- **`given SETUP`** (or **`given SETUP(LIT, ...)`**) and **`then CHECK:(VALUE)`** —
+  optional, for functions whose behaviour is module state. See "Module state"
+  below.
+- **`stdin "TEXT"`** and **`timeout N`** — optional, after any `given` and
+  before `ARGS`: the case's standard input, and its wall-time limit in
+  seconds (default 30). See "What a function reads" below.
 
 **At least two cases per function.** One case documents an example; two start
 to describe behaviour. The compiler requires two and does not care which two,
@@ -136,6 +140,39 @@ count() {
   takes no parameters and returns `void`. The case's process calls it first —
   before the arguments are built and before the counters are zeroed, so
   `[time:…]` and `[mem:…]` count only the call under test.
+- **`given SETUP(LIT, ...)`** names a setup that takes parameters and calls it
+  with the literals written in the parentheses: one per parameter, each held to
+  the parameter's type as a case's own arguments are, and the function still
+  returns `void`. It is what replaces a zero-parameter fixture whose only job
+  is to call another function with fixed values:
+
+  ```
+  mem_new() {
+    export int[] ab = [0, 0, 0];
+  } return void;
+
+  total(int[] m) {
+    int s = m[0] + m[1] + m[2];
+  } return int s;
+  given mem_new given lset((import ab), 1, 7) ((import ab)):(7)
+  given mem_new given lset((import ab), 0, 2) given lset((import ab), 2, 3) ((import ab)):(5)
+  ```
+
+  Any function of the build may be the setup, a library one included: `lset`
+  is idstd's, which sets one element of a list.
+
+  An `(import NAME)` among the literals is the value the export holds once the
+  setups written BEFORE this one have run, so `given mem_new given
+  lset((import ab), ...)` works and the reverse order is an error. Setups run
+  in the order written, and each one's arguments are built just before it is
+  called. Bare `given SETUP` still means a setup with no parameters, and the
+  two can be mixed in one case. Whether the parentheses after a name are the
+  setup's arguments or the case's own tuple is decided by what follows the
+  matching `)`: the case's tuple is always followed by `:`, a setup's
+  arguments never are, so `given f(1) (2):(3)` and `given f (1):(2)` read as
+  they look, with or without a space.
+  The literals are part of the case's tokens, so changing one changes its
+  cache key and the case runs again (tested in `idc/tests/cache.sh`).
 - **`then CHECK:(VALUE)`**, after the expected values and before the
   constraints, as many as the case needs, names a function in the build that
   takes no parameters and returns a value. It is called after the call and
@@ -147,11 +184,12 @@ count() {
   err.id:9: test failed: err_report("x") then count() = 1, expected 2
   ```
 
-- **`(import NAME)`** may be an element of `ARGS` or `EXPECTED` — at the top
-  of the tuple, not inside a list literal, and never a check's value — in a
-  case that has `given`. It is the export's value where it is read: after the
-  setup for an argument, after the call for an expected value. So an address
-  can be handed in by name:
+- **`(import NAME)`** may be an element of `ARGS` or `EXPECTED` — at the top of
+  the tuple or inside a list literal, nested lists included, and never a
+  check's value — in a case that has `given`. It is the export's value where
+  it is read: after the setup for an argument, after the call for an expected
+  value. So an address can be handed in by name, and `main`'s `argv` can carry
+  an exported path:
 
   ```
   buf_setup() {
@@ -179,17 +217,24 @@ the case's line:
 | written | error |
 | --- | --- |
 | `given` naming no function | `'given' names 'nope', which is not a function in this build` |
-| `given` naming a function with parameters | `'given' names 'f', which takes 1 parameter(s); a setup takes none and returns void` |
-| `given` naming a function that returns a value | `'given' names 'ret1', which returns int; a setup takes none and returns void` |
+| `given NAME` of a function with parameters | `'given' names 'f', which takes 1 parameter(s), but this 'given' passes 0; a setup is called with one literal per parameter, as in 'given f(1, 2)', and with none as 'given f'` |
+| `given NAME(...)` with the wrong number of literals | `'given' names 'f', which takes 3 parameter(s), but this 'given' passes 2; ...` |
+| a literal of the wrong type among a setup's arguments | `this case gives a string where a int is required` |
+| a function's name among a setup's arguments | `a setup's arguments are literals or (import NAME); 'mk' is a function name, which only a case's own arguments may pass` |
+| `given` naming a function that returns a value | `'given' names 'ret1', which returns int; a setup returns void, since the harness has nothing to compare its result with` |
 | `then` naming no function | `'then' names 'nope', which is not a function in this build` |
 | `then` naming a function with parameters | `'then' names 'f', which takes 1 parameter(s); a check takes none and returns the value it compares` |
 | `then` naming a `void` function | `'then' names 'st', which returns void; a check takes none and returns the value it compares` |
 | a check with more or fewer than one value | `a 'then' check compares exactly one value, not 2` |
 | `(import NAME)` as a check's value | `a 'then' check compares a literal; (import g) may only be an argument or an expected value` |
-| `(import NAME)` in a case without `given` | `(import g) needs a 'given': an export has no value in a case until a setup has run` |
+| `(import NAME)` in a case without `given` | `(import g) needs a 'given': an export has no value in a case until a setup has run; a setup's own arguments are read before it runs, so an (import NAME) there needs an earlier 'given' that sets it` |
 | `(import NAME)` of a name nothing exports | `(import zz): 'zz' is not an exported variable` |
 | `(import NAME)` exported by a function the setup does not reach through the call graph | `(import h): 'h' is exported by 'other', which the setup 'st' does not reach, so nothing sets it before the call` |
 | `(import NAME)` whose type is not exactly the one at that position | `this case gives (import xs), a int[], where a int is required` |
+
+The setup-argument and list-element rows are tested in
+`idc/tests/invalid/given_args_*.id` and `idc/tests/invalid/list_import_*.id`,
+and their working forms in `idc/tests/tests_feature.sh`.
 
 The reachability is the dead-export check's, seeded from the setup instead of
 `main`: the setup itself, or anything it calls, may be what exports the name.
@@ -229,8 +274,32 @@ harness carries the named function whether or not anything else calls it. It
 adds nothing to `n`. A failing case prints a function value as
 `a function value`: the running harness has the pointer, not the name.
 
-These are rules of `idc/bin/idc` only; `idc/idc.py` does not parse the form
-(see the status below). They are tested in `idc/tests/tests_feature.sh`.
+**A struct** (docs/SPEC.md 1.2) is written as its constructor, anywhere a value
+of its type may be: an argument, an expected value, a `then` check's value, or a
+setup's argument. Its arguments are case literals in turn, so a field that is a
+list, `(import NAME)` or another struct is written the way it is anywhere else.
+A struct is a reference, so the expected side of a `void` function describes the
+struct after the call, exactly as it does a list:
+
+```
+shift(Point p, int dx) {
+  p.x = p.x + dx;
+} return void;
+(Point(1, 2), 3):(Point(4, 2))
+(Point(0, 0), 5):(Point(5, 0))
+```
+
+The name must be the struct the position declares, with one value per field, each
+fitting its field (`this case builds a Size where a Point is required`,
+`struct 'Point' takes 2 field(s) (x, y), but this case gives 1`); a name that is
+no struct is the same mistake a variable always was
+(`... 'nope' is not a struct`). A failing case prints the structs in it as they
+were written, `shift(Point(1, 2), 3) = Point(4, 2), expected Point(9, 2)`. A
+struct adds nothing to `n`. Because a struct's file holds nothing else, the
+function and its cases are in another file, and a test program that uses one is
+a directory, not a single file.
+
+These are rules of `idc/bin/idc`, the only compiler (the Python one, `idc.py`, is deleted). They are tested in `idc/tests/tests_feature.sh`.
 
 ## What a function printed, and what it called
 
@@ -256,9 +325,19 @@ warn(string msg) {
   call writes the trailing `\n` in its expectation, exactly like the example
   above; a function that writes nothing is tested against `prints:("")`.
 - **`then eprints:("text")`** -- the same, for what `eprint` writes. Only
-  `eprint`'s own output is captured; a runtime trap's message (`docs/TESTS.md`,
+  `eprint`'s own output (and `stdio_write_mem`'s, below) is captured; a runtime trap's message (`docs/TESTS.md`,
   "How it runs") ends the case before any `then` clause runs, so there is
   nothing here for it to be confused with.
+  idstd's `stdio_write_mem` (bytes to fd 1 or 2) counts as `print` and `eprint`:
+  fd 1 shares stdout's stream and fd 2 writes where `eprint` does, so both are
+  captured, in order with them. An `fs_` handle opened on `/dev/stdout` has an
+  offset of its own, goes around that stream, and has no defined order against
+  `print`; use `stdio_write_mem`.
+- **A captured NUL fails the case.** A `prints`/`eprints` value is a string
+  literal, which cannot hold a NUL byte, so no expectation can equal output
+  that has one. A case whose call wrote a NUL fails saying so, rather than
+  comparing only the bytes before it; check such bytes with a `then` function
+  that reads them back instead.
 - **Only the call under test is captured.** A `given` setup's own output, and
   a `then` check's, run outside the window that is compared -- before it is
   opened and after it is closed, respectively -- so neither reaches
@@ -349,10 +428,9 @@ runner(int n) {
   runner.id:15: test failed: runner(70000) calls helper(65536) did not match any of the 65536 recorded call(s) to 'helper': helper(0), helper(1), helper(2), helper(3), helper(4), ... (65531 more); recording overflowed: 4464 later call(s) were counted but their arguments were not kept (at most 65536 per function)
   ```
 
-Like `given`/`then`/`(import NAME)`, these are rules of `idc/bin/idc` only:
-`idc/idc.py` does not parse `prints`, `eprints` or `calls` (they read as
-ordinary identifiers, and the form fails the same way `given` does -- see the
-status below). Recording happens only in harness builds: the C a normal build
+Like `given`/`then`/`(import NAME)`, these are rules of `idc/bin/idc`:
+there was once a second compiler that did not parse `prints`, `eprints` or
+`calls`; it is deleted. Recording happens only in harness builds: the C a normal build
 emits is unaffected, whether or not any case in the unit uses `calls` --
 proved by comparing `--emit-c` before and after this feature, byte for byte.
 Tested in `idc/tests/tests_feature.sh`; the compile errors above (unknown
@@ -399,7 +477,26 @@ differently, both messages are shown. The expected side must be `()`, and no
 other `then` may accompany `traps`, because nothing after a trap is captured.
 `given` works as usual. One `traps` per case, with one string; each misuse is
 an error at the case's line, tested in `idc/tests/invalid/traps_*.id`.
-`stdin` and `traps` are keywords, like `prints` and `calls`.
+`stdin`, `timeout` and `traps` are keywords, like `prints` and `calls`.
+
+**`timeout N`**, after any `given` and any `stdin` and before the argument
+tuple, is the number of seconds that one case may run:
+
+```
+given fx stdin "a\n" timeout 90 (1):(2) then prints:("x")
+```
+
+N is a positive integer literal. Only that case's wall-time limit changes,
+from the default 30 seconds to N; a case without the clause keeps 30, and the
+report for a case that overruns names its own limit (`did not finish within
+90 seconds`). At most one per case, and it comes after every `given` and
+`stdin`. Each misuse is an error naming the fix: a second one (`a case may
+have at most one 'timeout' clause`), a value that is not a positive integer
+literal (`timeout's value must be a positive integer literal`), `timeout`
+ahead of a `given` or `stdin`, and `timeout N` with no argument tuple after
+it; tested in `idc/tests/invalid/timeout_*.id`. The clause is part of the
+case's tokens, so changing it changes the case's cache key and the case runs
+again.
 
 ## Constraints are counted, not timed
 
@@ -560,8 +657,9 @@ bury itself under its callers' failures. A case that was not run never
 counts as passed, and the build still fails. A function named only by
 `given` or `then` is not a dependency.
 
-A case has 30 seconds of wall time and 4 GiB of address space; a case that
-runs out of either fails the same way. Scaling claims are judged once every
+A case has 30 seconds of wall time -- or the N of its own `timeout N` clause
+-- and 4 GiB of address space; a case that runs out of either fails the same
+way. Scaling claims are judged once every
 case has passed, since a count from a case that failed measures nothing.
 
 The harness is built for and run on the machine doing the build. A
@@ -576,10 +674,7 @@ one really runs.
 `idparse --harness` writes the harness ahead of the program on the same
 stream, so one parse produces both, and the program is emitted exactly as it is
 without the flag. The harness's code is
-`idc/compiler/parse/back/tgt/c/emit/prog/test/`. `idc/idc.py` is frozen
-(`docs/HACKING.md`) and, as before the freeze, runs cases only under
-`--tests`, in one process, if invoked with it -- nothing in this repository
-does any more.
+`idc/compiler/parse/back/tgt/c/emit/prog/test/`.
 
 When the interpreter target lands, the harness stops being a subprocess and
 becomes an evaluation inside the compiler; the syntax and the diagnostics do
@@ -613,8 +708,7 @@ The tree does not have its cases yet (the table below), so there is a way out:
   `grep -r -- --allow-untested` is the list of builds still to fix.
 - Every case that *is* written runs on every build either way, and a failure
   fails the build. `--allow-untested` skips no case; it only stops counting
-  them. (`idc/idc.py` has neither the default nor the flag, and still spells
-  running cases `--tests`.)
+  them.
 
 **Every build in these repositories passes the flag today**, and not only for
 want of cases in its own code: `idstd` is merged into every build that does not
@@ -722,16 +816,11 @@ runs"), so a freestanding tree can be cased like any other.
 > Next: cases for `idstd`'s 59 functions that lack them, per the order above,
 > starting with `sys/err` and `core/data/buf`, whose cases can be committed now.
 
-> **Update: `idc.py` is now frozen (`docs/HACKING.md`).** It takes no new
-> work of any kind, and nothing in this suite differentially tests against it
-> any more -- what is left of that above (`idc/tests/self_host_build.sh`,
-> `idc/tests/stdlib.sh`, `idc/tests/invalid.sh`, `idc/tools/parity.sh`) has
-> been removed or ported to `idc/bin/idc` alone; `idc/tools/parity.sh` itself
-> is deleted. The only thing still built with `idc.py` is `--target wasm`
-> (`idc/tests/conform.sh`'s wasm lane, and the wasm half of
-> `idc/tests/run.sh`'s alt-target checks). `idem`'s `IDEM_COMPILER=idc.py`
-> switch is gone with it; `c2id` is unaffected by this freeze and still
-> builds itself with `idc.py` as described above.
+> **Update: `idc.py` is deleted.** Every sentence above that says `idc.py`
+> parses, rejects or builds something describes the project as it stood on
+> 2026-09-13, when there were two compilers. There is one now, `idc/bin/idc`;
+> `--target wasm` is built by it, `c2id` builds with it, and the `idem`
+> `IDEM_COMPILER` switch is gone.
 
 ### What the case format cannot express
 
@@ -757,13 +846,15 @@ back what the function left. What remains:
   an export directly except as an argument or expected value of the function
   under test, so state that no function returns needs a function written to
   return it.
-- **A setup takes no arguments.** Cases that need different state need
-  different setups. A setup with arguments would need literals again, which is
-  the limit the form exists to get past.
+- **A setup's arguments are literals.** `given NAME(LIT, ...)` passes literals
+  and exports an earlier setup set; it cannot compute an argument, and a
+  function's name is not one (a setup's function values are not carried into
+  the harness as a case's own are). State that takes real code to build still
+  needs a setup function of its own.
 - **An `(import NAME)` argument has no size**, so a scaling claim on a case
   that passes an address takes `n` from its other arguments only.
 
 There used to be a third, milder one: every case in a build ran as sequential
 calls in one shared `main`, with no isolation, so a case that corrupted state
 took down every other module's cases with it. `idc/bin/idc` runs each case in a
-process of its own, which ends that; `idc/idc.py --tests` still does not.
+process of its own, which ends that.

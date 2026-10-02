@@ -10,7 +10,7 @@ one, and the reason it is not simply a third copy of `gen_expr`.
 
 ## Why an IR, and not an AST walk
 
-`idc/idc.py` emits C, LLVM IR and WAT from three near-duplicate AST walks. Copying
+`idc/idc.py` (since deleted) emitted C, LLVM IR and WAT from three near-duplicate AST walks. Copying
 that shape into the self-hosted compiler would be the obvious move and it is
 the wrong one, for a reason that has nothing to do with duplication:
 
@@ -171,7 +171,7 @@ algorithm, and it is a page of code rather than three.
 
 ## The runtime, and why builtins are inlined rather than called
 
-`idc/idc.py`'s LLVM target links the C runtime: every builtin is a `call` to an
+`idc/idc.py`'s LLVM target (since deleted) linked the C runtime: every builtin is a `call` to an
 external `id_*` symbol implemented in C and compiled by `clang` alongside the
 `.ll`. That is the fastest way to a working target and it is where this one
 starts too — but it cannot be where it ends, because it makes the LLVM target
@@ -225,6 +225,12 @@ idc/bin/idc PATH --target llvm --emit-llvm F # ... writing the IR instead
   it removes **33% of the emitted IR** (33 219 lines to 22 301). `sumto`
   becomes a loop with two phis and no memory traffic at all.
 
+* **It frees what the C target frees.** The lowering asks the same escape
+  analysis and emits the same three hooks: a null in each owned local's slot, a
+  free of the old value at every store, and a free of every owned slot before
+  each return (`back/ir/build/`, docs/MEMORY.md section 4). `tests/conform/free/`
+  requires C, LLVM and wasm to free the same number of lists.
+
 Two bugs the fixpoint check found, both worth recording because neither was
 visible in a program's *output*:
 
@@ -253,7 +259,7 @@ visible in a program's *output*:
 * **`asm` is not lowered.** `docs/ASM.md` maps it onto `call asm sideeffect`;
   nothing does that yet, and the kernel is what needs it.
 * **The runtime is still C.** `--target llvm` asks the compiler for the C
-  prelude with external linkage (`--target crt`, generated from `idc/idc.py`'s
+  prelude with external linkage (`--target crt`, once generated from the deleted `idc/idc.py`'s
   `RUNTIME` by `idc/tools/gen_runtime_id.py`) and links it with clang. That file
   exists only until the runtime is written in `id`; see `docs/KERNEL.md`.
 * **Native backends** (`--backend`) are C-target only, as they were.

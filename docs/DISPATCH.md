@@ -1,22 +1,30 @@
 # Calling a function chosen at run time
 
-> **Status: a proposal. Nothing here is implemented.** No `select` exists in
-> either compiler, in `docs/SPEC.md`, or in `idc/tests/conform/`. It is written up
-> because four separate pieces of work are blocked on it and each invented the
-> same workaround; it is not a description of the language.
+> **Status: a proposal, partly overtaken. `select` is not implemented.** No
+> `select` exists in either compiler, in `docs/SPEC.md`, or in
+> `idc/tests/conform/`. **Function values did land** after this was written:
+> `docs/SPEC.md` §1.1 specifies `func(T) return R` parameters, locals and
+> exports, and `idc/tests/tests_feature.sh` tests them. So the premise below,
+> that `id` cannot call a function chosen at run time, is no longer true for a
+> function passed or stored by name. What function values do not give is an
+> *index* that can be kept in a list or read from input, which is the part
+> `select` was for. Whether `select` is still wanted on top of §1.1 is open;
+> the section "Not function pointers" argues against a mechanism the language
+> now has in a restricted form, and is kept as the record of that argument.
 
-`id` cannot express "call whichever function this is". Four separate pieces of
-work are blocked on it, and all four have independently invented the same
-workaround:
+`id` could not, when this was written, express "call whichever function this
+is". Four separate pieces of work were blocked on it, and all four had
+independently invented the same workaround:
 
-- **`idstd`** cannot write a sort that takes a comparator, so `lst_sort` is
-  int-only and there is no `string[]` sort at all.
+- **`idstd`** could not write a sort that takes a comparator, so `lst_sort` is
+  int-only and there is no `string[]` sort at all (a `func(string, string)
+  return int` parameter could now carry the comparator; no one has written it).
 - **`c2id`** (`../c2id`) needs C function pointers, and its plan is a
   `crt_callN` helper dispatching on an integer id — listed as "planned: needs
   the emitter" since the front end was finished.
 - **`docs/BACKENDS.md`** proposes selecting a code-generation target with
-  `if(target() == "py")` chains, explicitly *because* "`id` has no function
-  pointers, so a target cannot be a table of closures".
+  `if(target() == "ll")` chains, which it once justified by "`id` has no
+  function pointers"; it now says function values exist.
 - **Every event loop** in `demos/` hand-writes a branch chain over a state
   integer.
 
@@ -108,11 +116,10 @@ twice, have (`cs3` and `unbox3`, recorded in `docs/BACKENDS.md`).
 1. `docs/SPEC.md` gains the trap and the index rule.
 2. `idc/tests/conform/select/` cases first, so all three targets are held to the
    same behaviour from the beginning rather than after the fact.
-3. `idc/idc.py`: parse, check the signature agreement, emit for C. Byte-parity is
-   not a gate here — the construct is new, so there is nothing to be identical
-   to; the gate is the conformance suite.
-4. The self-hosted compiler, with `idc/tools/parity.sh` back as the gate once
-   both emit it.
-5. LLVM and WASM.
-6. Then `idstd` gets a real sort, and `docs/BACKENDS.md`'s dispatch layer
+3. The self-hosted compiler: parse, check the signature agreement, emit for C.
+   (The plan once began with `idc.py`, now deleted.) The gate is the
+   conformance suite, since the construct is new and there is nothing to be
+   byte-identical to.
+4. LLVM and WASM.
+5. Then `idstd` gets a real sort, and `docs/BACKENDS.md`'s dispatch layer
    stops being a chain of `if`.

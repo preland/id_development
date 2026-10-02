@@ -1,11 +1,11 @@
 # The kernel, and the runtime under it
 
-> **Status: it boots.** `idc/tools/kbuild.sh` builds it and QEMU runs it; the
+> **Status: it boots.** `idc/tools/kbuild` (in `id`) builds it and QEMU runs it; the
 > serial output below is copied from a run. "What is not there yet" is the
 > honest list.
 
 ```sh
-idc/tools/devshell.sh 'idc/tools/kbuild.sh'
+idc/tools/devshell.sh 'idc/bin/idc idc/tools/kbuild -o /tmp/kbuild && /tmp/kbuild idc'
 qemu-system-x86_64 -kernel idc/build/kernel.elf -serial stdio -display none -no-reboot
 ```
 
@@ -80,7 +80,7 @@ than in a demo.
 | `kernel/boot/boot.S` | assembly | the boot protocol: a stack, paging, long mode |
 | `kernel/boot/kernel.ld` | a linker script | where the pieces land |
 
-`clang` appears twice in `idc/tools/kbuild.sh` — once assembling `boot.S`, once
+`clang` appears twice in `idc/tools/kbuild` — once assembling `boot.S`, once
 compiling the emitted LLVM IR — and never as a C compiler. `ld.lld` links.
 Nothing else runs, and no object in the image came from C source.
 
@@ -161,9 +161,13 @@ here, and each is a deliberate deviation rather than an oversight:
   exits 1. A kernel has neither. Division by zero is a `#DE` fault, which
   without an IDT is a triple fault and a reset — which is a trap, just a louder
   one. An IDT and a real panic path is the first thing to build next.
-* **There is no `free`, and now it is visible.** §6 already says the arena is
-  released only at process exit. There is no process. Memory is handed out and
-  never returned, and the identity map is the ceiling.
+* **Only lists are given back.** §6 says the arena is released at process exit.
+  There is no process, so a list the compiler proves unreachable goes onto a
+  free list in the runtime (`runtime/mem/store/arena/more/pool.id`) and is
+  reused, and a list that grows hands its old cells back. Strings and `alloc`
+  are handed out and never returned, and the identity map is the ceiling. There
+  is no stderr to trap to either, so the hosted runtime's use-after-free guard
+  does not exist here (docs/MEMORY.md 2a).
 * **Floats are absent.** `id_box_f`, `id_unbox_f` and float printing are not
   implemented, so a kernel that uses a `float` fails to link. Enabling SSE is a
   handful of `CR0`/`CR4` bits and belongs with the rest of CPU setup, not with

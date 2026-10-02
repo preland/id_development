@@ -427,7 +427,7 @@ it.** It has about 128 functions — `fx_min`, `fx_max`, `str_split`, `lst_sort`
 
 ```
 caesar/mine.id:1: error: function 'chr_is_lower' already defined at
-  /home/you/git/idstd/core/text/chr/range.id:28
+  /home/you/git/idstd/core/text/atom/chr/range.id:28
 caesar/mine.id:4: error: cannot assign a int value to string 'r'
 caesar/mine.id:6: error: function 'chr_is_lower' returns int but the expression
   has type string
@@ -552,6 +552,15 @@ function, `idc_const_init`, that every entry point calls before anything else
 runs: `id_main`'s first statement on every target, hosted or freestanding, and
 a test case's first statement in the harness, since each case is a process of
 its own. The declaration order in conf.id is the build order.
+
+A constant is only emitted if the code that is emitted reads it, exactly as a
+function is only emitted if it is reachable: a library can keep a large table
+of constants in its `conf.id` and a program that reads none of them pays for
+none -- not a global, and for a list not a line of the start-up initialiser. A
+constant read only by a list constant's initialiser is kept for that reason. A
+project with no `main`, and a `--freestanding` build, keep every constant, as
+they keep every function. The constants are still parsed and type-checked
+whether or not they are emitted.
 
 A conf.id list constant is still a constant: it is locked once built, and
 mutating it -- `push`, `pop`, or an index-assignment, whether directly or

@@ -35,9 +35,7 @@ editor/
   lib/
     zip/    DEFLATE (RFC 1951) and the archive        49 + 25 functions
     doc/    an XML pull parser and the ODT model      91 + 47
-    font/
-      ttf/  the table directory, cmap, glyf, metrics  115
-      ras/  flattening and scanline fill              ~60
+    font/   the editor's one font, as an adapter over idstd's `ttf_`
   app/
     doc/    reading the file, writing the image
     view/   layout, drawing, the window
@@ -72,43 +70,25 @@ Only `pt` sizes are read, and only the literal words `bold` and `italic`.
 
 ### The font
 
-`head`, `hhea`, `maxp`, `hmtx`, `cmap` formats 4 and 12, `loca`, `glyf`, and
-composite glyphs with all three 2×2 transform forms. Outlines come out in font
-units as contours of on- and off-curve points, with the implied on-curve
-midpoints deliberately **not** inserted: doing so would renumber the points,
-and `gvar`, hinting and point-matched composites are all indexed by the font's
-own numbering.
+The font is idstd's (`core/data/seq/byte/ttf`, NAMES.md 1.20), not the editor's:
+it was this directory's `lib/font` and was moved out and rewritten so that the
+standard GUI toolkit can use it too. `editor/lib/font` is now an adapter of a few
+functions that keeps the editor's one face in two exports and answers the
+questions the layout and the drawing have always asked -- `tt_load`, `tt_glyph`,
+`tt_advance`, `tt_upem`, `tt_line`, and `ras_scale` with `ras_w`, `ras_h`, `ras_bx`,
+`ras_by` and `ras_cov` for the bitmap of the glyph last scaled.
 
-Verified against a `struct`-only reference over every contour of every glyph of
-all 143 TrueType fonts on the machine it was written on. Nine deliberate
-mutations were each caught — and the first three sweeps missed four of them,
-which is why there are now three sweeps and a third font: DejaVu and Liberation
-between them contain *zero* composites with a 2×2 matrix, so that whole branch
-was unexecuted until the suite went looking for a font that had one.
+What changed for the editor: an `OTTO` (CFF) font is still refused, but a damaged
+font is now a printed reason and a 0 from `tt_load` rather than a trap; coverage
+is the exact area of the outline in each pixel instead of a 4 by 64 sample; a
+composite placed by matching points is placed rather than put at the origin. The
+editor does not yet use kerning (`ttf_kern`), so its text is laid out as before.
 
-CFF (`OTTO`) fonts are refused by name rather than by a trap.
-
-### The rasteriser
-
-Contours flattened to edges — implied midpoints, contours that begin
-off-curve, contours with no on-curve point at all — then a scanline fill by the
-**nonzero winding rule**, which is not the same as even-odd for a glyph whose
-contours overlap, and composites produce those routinely.
-
-Supersampled 4 in y by 64 in x, deliberately unequal: another y sample is
-another pass over every edge, another x column is one more cell of a prefix
-sum. Each crossing is recorded as a ±1 *difference* at its column and a prefix
-sum turns the differences back into a winding number — which removes the sort
-that a span fill would need, because addition does not care what order the
-crossings arrive in.
-
-Two independent references check it: a second rasteriser (sorted-crossing span
-fill) compared cell for cell, and the signed area the flattened polygon
-encloses, which answers "is it the right *amount* of ink" from geometry with no
-sampling grid in it. Seven mutations, all caught.
-
-No hinting, no dropout control, no stem darkening. Below about 12 px the result
-looks thin, which is what unhinted rasterisation looks like.
+Everything about how the font is checked -- the hand-assembled fonts the cases
+run on, the awk reader of the font tables the real-font expectations came from,
+the truncation and damage sweeps -- is in idstd's `.tests/font` and NAMES.md.
+`editor_ttf.sh` and `editor_ras.sh`, which checked the old code against a Python
+reader and a second rasteriser, are gone with it.
 
 ### Layout and drawing
 
@@ -132,9 +112,10 @@ already-placed glyphs mutable after the fact.
 | --- | ---: | --- |
 | `editor_zip.sh` | 11 | Python's `zlib` and `zipfile`, at run time |
 | `editor_doc.sh` | 25 | the fixture's own `content.xml` |
-| `editor_ttf.sh` | 40 | a `struct`-only font reader in the script |
-| `editor_ras.sh` | 74 | a second rasteriser, and enclosed area |
 | `editor_render.sh` | 13 | the shape of the page, not its pixels |
+
+The font is tested where it lives: idstd's inline cases on two hand-assembled
+fonts and `.tests/font` on the real ones (NAMES.md 1.20).
 
 The render test is deliberately structural. A pixel-exact golden would break on
 a different build of DejaVu, which is a fact about the font and not about this
@@ -173,9 +154,10 @@ What editing does *not* yet do:
   caret to be an offset into.
 
 ## Not done
-* **One font file at a time.** `tt_load` fills exported lists, so a second font
-  replaces the first. Real bold and italic faces need a glyph cache keyed by
-  face, which is the obvious next piece.
+* **One font file at a time.** The reader holds any number of faces, but the
+  adapter keeps one, so `tt_load` replaces the last. Real bold and italic faces
+  need an adapter that keeps one face per style and a glyph cache keyed by face,
+  which is the obvious next piece.
 * **No tables, images, lists, footnotes or page breaks.** An unmodelled
   element's text lands in the surrounding run rather than being dropped.
 * **No scrolling.** The window shows one page.

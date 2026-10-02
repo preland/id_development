@@ -11,7 +11,7 @@ Everything here is a promise every code-generation target must keep.
 
 Until now the answer to "what does this program do" was "whatever the C the
 compiler emitted does". That was workable while there was one target. There is
-not: `idc/idc.py` has emitted LLVM IR and WebAssembly since `f229d52`, and the
+not: the original compiler emitted LLVM IR and WebAssembly from `f229d52` on, and the
 three have **already drifted**. A shift wider than the type gives three
 different answers today — the C target defines it through a runtime helper,
 the LLVM target emits a raw instruction whose result is poison, and the WASM
@@ -186,6 +186,126 @@ loaded pointer (`call void %v7(i32 16)`), converting each argument to the
 parameter type the function type spells. WASM does not have function values
 (§11, S12).
 
+### 1.2 Structs
+
+A struct is a named record of one to three fields, with **reference
+semantics**, like a list: passing one to a function and writing a field is
+visible to the caller, and two names for one struct see each other's writes.
+(docs/STRUCTS.md has the reasoning and the decisions behind each rule here.)
+
+```
+// geo/point.id -- a struct has a file of its own
+struct Point {
+  int x;
+  int y;
+}
+
+// anywhere else
+shift(Point p, int dx) {
+  p.x = p.x + dx;
+} return void;
+
+main(int argc, string[] argv) {
+  Point p = Point(1, 2);
+  shift(p, 3);
+  print(p.x);
+} return int 0;
+```
+
+**Declaring.** `struct NAME { TYPE field; ... }` at the top level, in a file
+that holds that declaration and nothing else: no function and no second
+struct. A field is an `int`, `word`, `float` or `string`, another struct, or a
+list of any of those (`Point[]`, `int[]`); not `void`, and not a function value
+(§1.1). A struct has **one to three fields** -- the same three every limit in
+the language is -- so a bigger record is two records, one inside the other. A
+struct may not contain itself, directly or through the structs in its fields
+(it could never be built); a **list** of itself is the way to say "any number
+of these".
+
+**Naming.** A struct is a program-wide type: a struct in an imported tree and
+the same declaration in the program are one struct declared twice, and the
+second is an error. Two structs with the same field names *and* types, in the
+same order, are one struct (`{x, y}` and `{w, h}` are two; `{x, y}` twice is
+one); the rule is the one two functions with the same body obey. A struct
+cannot be named like a function or a builtin, because `Point(1, 2)` and
+`point(1, 2)` are told apart by looking the name up. Field names live in the
+struct's own namespace: `p.x` and `s.x` may have different types, and a field
+may share a name with a variable or an export. Variables keep the rule of §1:
+a name has one type across a unit, so `Point c` in one function and `Conn c` in
+another is an error.
+
+**Constructing.** `Point(1, 2)` builds a struct, one value per field, in
+declaration order, each checked against its field the way an argument is
+checked against a parameter (a `word` is not squeezed into an `int` field).
+It is an **initialiser and nothing else**: `Point p = Point(1, 2);` and
+`export Point p = Point(1, 2);`. It is not an assignment's value, a list
+element, an argument or a return -- declare the struct, then use the name --
+so a struct is built on a line of its own, where the next line can see what it
+is. There is no empty struct and no default; a struct has the value it was
+built with. An empty list literal is not a constructor's argument any more than
+it is a function's (§5): declare the list with its type (`int[] xs = [];`) and
+pass the name.
+
+**Fields.** `p.x` reads, `p.x = v;` writes, where `p` is any expression of
+struct type: `s.t.keys`, `xs[i].x` and `(import g).x` read, and the write
+`NAME.f = v;` or `xs[i].f = v;` goes through a name or an index like a list
+element's (a write through `(import g)` is rejected, as for a list, §5). A
+write is checked against the field's type like a declaration is. A struct is
+indexed by name, never by number: `p[0]` is an error that lists the fields.
+
+**What a struct cannot do (v1).** `==`, `!=`, `<`, arithmetic, `+`, a condition
+and `print` do not take a struct; compare and print its fields (`a.x == b.x`).
+`push(ps, p)` and `ps[i]` work on a list of structs, which is a list of
+references. A struct has **no defined layout** and cannot be read with `peek`
+or written with `poke`: it is not bytes, and nothing about how it is stored is
+a promise. There are no struct constants in `conf.id` (a constructor is an
+initialiser, and a function that only assigns literals into one would be the
+constant-wrapper §7.2 rejects); a struct-typed `export` is initialised by its
+owner like a list, and a read before the owner ran traps in a test case.
+
+**In a test case.** A struct is written as the constructor, as an argument, an
+expected value or a `then` check's value: `(Point(1, 2), 7):(Point(3, 2))`
+(docs/TESTS.md). Its arguments are case literals in turn, so a field that is a
+list, a struct or `(import NAME)` is written as it would be anywhere else.
+
+**What the compiler says.**
+
+| written | error |
+| --- | --- |
+| `p.z` | `struct 'Point' has no field 'z'; its fields are x, y` |
+| `n.x` where `n` is an `int` | `cannot read field 'x' of a int; only a struct has fields (a list's length is len(list))` |
+| `p[0]` | `cannot index a Point; a struct's fields are read by name, as in p.x (its fields are x, y)` |
+| `Point(1)` | `struct 'Point' takes 2 field(s) (x, y), got 1; pass one value per field, in order` |
+| `Point(1, "s")` | `argument 'y' of 'Point' expects int, got string` |
+| `p = Point(3, 4);` | `'Point(...)' builds a struct and can only initialise a declaration, as in 'Point p = Point(...);' -- ...` |
+| `p.x = "s";` | `cannot store a string into field 'x' (int) of struct 'Point'` |
+| `p == q`, `p + 1` | `'==' cannot take a struct: its left operand is Point; a struct is compared and combined by field, as in a.x == b.x` |
+| `print(p)` | `'print' cannot take a struct: argument 0 is Point; use its fields, as in print(p.x)` |
+| `if(p)` | `a condition cannot be a struct (Point); test one of its fields, as in x > 0` |
+| `Pnt p = ...` | `unknown type 'Pnt'; a type is int, word, float, string, a struct declared in a file of its own (structs: Point), or a list of one of those, as in 'int[]'` |
+| a struct with four fields | `struct 'Wide' has 4 fields; the limit is 3 -- group related fields into a second struct and nest it, as in 'struct Wide { Part p; int a; int b; }'` |
+| a struct beside a function | `struct 'A' shares its file with function 'f'; a struct is declared in a file of its own -- move the function to another file` |
+| a second `{int a; int b;}` | `struct 'B' has the same fields as struct 'A' (declared at a.id:1); two structs with the same field names and types are one struct -- use 'A', or give 'B' a field of another name or type` |
+| `struct N { N next; }` | `struct 'N' contains itself, directly or through another struct, so no value of it could ever be built; hold a list of it instead ('N[] items')` |
+| a case writing `Size(1, 2)` for a `Point` | `this case builds a Size where a Point is required` |
+
+**Memory.** A struct is a reference, so the rule of §6 applies to what it
+holds: a list or string stored in a field -- by the constructor or by
+`p.f = xs;` -- is **kept**, never freed when the function that made it ends,
+because the compiler does not follow a value into a field (docs/MEMORY.md).
+A struct is not itself freed yet: only lists are.
+
+**On the targets.** A struct is the list it is stored as: the C target spells
+it `IdList*`, one 64-bit cell per field in declaration order, with a field read
+as the list read at the field's constant position and unboxed to the field's
+type; the LLVM target spells it `ptr` and lowers the constructor, a read and a
+write to the same list operations. Both produce the same output
+(`idc/tests/conform/struct/`). The WASM target compiles the C target's own C
+(`idc/bin/idc --target wasm`), so a struct needs nothing of its own there --
+untested in the workspace this was written in, which has no WASI toolchain --
+while `idc/idc.py`, frozen, does not parse the syntax and builds nothing that
+merges one.
+
 ## 2. Integer arithmetic
 
 ### 2.0 How an integer is written
@@ -297,7 +417,7 @@ rule names it anyway, since it is about the reader and not about this table.
 The parentheses are grouping only: they change neither the emitted code nor a
 function's fingerprint for the uniqueness rule. Unary `~` is out of scope -- it
 binds tighter than every binary operator and cannot be misread -- and so are
-`&&` and `||` next to a bitwise operator. `idc.py` does not have this rule.
+`&&` and `||` next to a bitwise operator. The original `idc.py`, now deleted, never had this rule.
 
 ## 3. Floats
 
@@ -340,7 +460,7 @@ builds a new string.
 - `charat(s, i)` is the byte at `i`, or `-1` if `i` is outside the string.
   Reading past the end is a value, not a trap — it is how a scanner detects
   end-of-input.
-- `chr(n)` builds a one-byte string.
+- `chr(n)` builds a one-byte string; `chr(0)` traps (below).
 - `to_int(s)` parses a leading integer.
 
 **A string cannot contain a NUL byte.** This is a consequence of the C
@@ -348,6 +468,18 @@ representation that has already cost something real: `idstd` abandoned a
 planned function over it. It is recorded as a limitation rather than a design
 decision, and a target is not free to lift it, because a program that works on
 one target and not another is the thing this document exists to prevent.
+
+Bytes that may hold a NUL belong in the flat store (§6), not in a string: idstd's
+`stdio_slurp`, `stdio_read_mem`, `stdio_read_some_mem` and `stdio_write_mem` move
+stdin and stdout/stderr bytes through it without a string in between.
+
+**A NUL byte that would reach a string traps; it never truncates silently.**
+Every way bytes become a string checks for it: `read_all()` and `input()` on
+stdin that contains a NUL, `str_of_mem(addr, n)` over `n` bytes that contain
+one, and `chr(0)` (or any `n` whose low byte is 0). The trap names the fix: use
+idstd's `stdio_slurp` / `stdio_read_mem`, or the store (`fs_read_mem`), for
+binary data (§8). A fixed-size buffer padded with NULs must be read with the
+length of its text, not its capacity.
 
 ## 5. Lists
 
@@ -391,20 +523,43 @@ address is arithmetic — none of which needs syntax.
   outside it. This is the entire reason the store is a primitive rather than a
   library: the mistake that silently corrupts memory in C is a clean abort
   here.
-- `str_of_mem(addr, n)` and `mem_of_str(s)` bridge bytes and strings.
+- `str_of_mem(addr, n)` and `mem_of_str(s)` bridge bytes and strings;
+  `str_of_mem` traps if any of the `n` bytes is a NUL (§4).
 - `udiv`, `umod`, `ult`, `ushr` are the unsigned readings of `/ % < >>`. The
-  plain operators keep their signed meaning.
+  plain operators keep their signed meaning. An `int` argument to `udiv`,
+  `umod` or `ushr` is read as its 32 unsigned bits (§2.3's width `W`), not
+  sign-extended: `ushr(0 - 1, 28)` is `15` and `ushr(0 - 1, 32)` is `0`. Pass
+  a `word` to read 64 bits.
 
-**Memory is meant to be freed before exit, and today it is not.** `alloc` is a
-bump pointer, and the arena behind lists and strings is freed only at process
-exit — a gap in the implementation, not a property of the language: a program
-that allocates in a loop grows until it exits or runs out. The intended rule
-(decided 2026-09-26) is that the compiler frees a list or string it can prove
-never escapes — never returned, exported, stored in another list, or kept by
-a callee — when the scope that made it ends, and keeps anything it cannot
-prove, so freeing can never cause a use-after-free. No syntax marks it. Every
-target must free the same allocations: a program whose memory is reclaimed on
-one target and not another has no portable memory behaviour at all.
+**Memory is meant to be freed before exit, and only part of it is.** `alloc` is
+a bump pointer, and the arena behind strings is freed only at process exit — a
+gap in the implementation, not a property of the language: a program that
+allocates in a loop grows until it exits or runs out. The rule (decided
+2026-09-26) is that the compiler frees a list or string it can prove never
+escapes — never returned, exported, stored in another list, or kept by a callee
+— when the scope that made it ends, and keeps anything it cannot prove, so
+freeing can never cause a use-after-free. No syntax marks it. Today it frees
+the lists local to a function (shallowly: the header and cells, not the
+elements) and no string.
+
+**Every target frees the same allocations, unless a target is systemically
+unable to** (decided 2026-09-30): a program whose memory is reclaimed on one
+target and not another has no portable memory behaviour at all. The C target,
+the LLVM target, `--target wasm` (the C target's output recompiled for
+wasm32-wasi) and the freestanding runtime all free the same lists, and
+`tests/conform/free/` runs one program on C, LLVM and wasm and requires the same
+count. The exceptions, and why:
+
+- **`idc/idc.py`'s own WASM generator** does not free. This is policy, not
+  capability: `idc.py` is frozen and hash-checked, and its bump allocator over
+  linear memory could hold a free list. The exception ends when `idc.py` is
+  deleted.
+- **The freestanding runtime** frees but cannot check: a kernel has no stderr
+  to trap to, so the use-after-free guard (`ID_FREE_GUARD`) is hosted-only, and
+  a wrong proof there corrupts memory where it would trap elsewhere.
+
+No target is systemically unable to free a list. docs/MEMORY.md is the design,
+the open decisions, and what each target frees today.
 
 ## 7. Evaluation order
 
@@ -624,6 +779,8 @@ catchable; `id` has no exceptions.
 | a list grown past its capacity limit | `id: list capacity overflow` |
 | a size computation that overflows | `id: allocation size overflow (WHAT)` |
 | allocation refused by the host | `id: out of memory (N bytes)` |
+| a NUL byte reaching a string through `read_all`, `input`, `str_of_mem` | `id: a NUL byte reached a string (WHICH): use idstd stdio_slurp or stdio_read_mem, or the store (fs_read_mem), for binary data` |
+| `chr` of a code whose low byte is 0 | `id: a NUL byte reached a string (chr(0)): a string cannot hold NUL; use the store (poke8) for binary data` |
 | reading an export whose declaring function has not run: a list anywhere; any type in a test case | `id: read of an uninitialised export (its declaring function has not run)` |
 
 The exact text is part of the specification, not an implementation detail:
@@ -679,7 +836,7 @@ that words them differently makes the language feel different.
   responsibility.
 - An exported variable whose declaring function is unreachable from `main` is
   not emitted at all, in a build that has a `main` and is not
-  `--freestanding` -- the self-hosted compiler only; `idc.py` does not prune
+  `--freestanding` -- the original `idc.py`, now deleted, did not prune
   (docs/HACKING.md). Safe for the reason above: nothing reachable can read an
   export a check has already rejected reading. A no-main library, a
   `--freestanding` build, and the test harness's own unit each keep exactly
@@ -726,7 +883,7 @@ The rows below say what each one was and why it happened.
 | **S6** | `word`, the flat store and the unsigned builtins were rejected — 21 of 30 builtins, making §6 unimplementable. LLVM now calls the C runtime's helpers (which it already links); WASM implements the store in its own WAT over linear memory, which is its natural home. Only the real-time I/O builtins remain C-only, and those are genuinely platform-bound. | LLVM, WASM |
 | **S7** | Because of S6, `idstd` did not build — `core/data/buf/buf.id` uses `word`. Fixed with S6. | LLVM, WASM |
 | **S8** | Calls resolved at link time are refused, so no program using a native backend builds. LLVM now links the same backends as C (`idc/tests/backends.sh` compares the two). WASM still links none: `bin/idc`'s wasm branch never collects backends, no `backend.id` declares WASI sources, and WASI's preopened directories change what a path means. | WASM |
-| **S9** | Only the C target is reachable from `idc/bin/idc`, the primary compiler; the other two exist only in `idc/idc.py`. | — |
+| **S9** | The LLVM and WASM targets were once reachable only from `idc/idc.py`. `idc/bin/idc` now has all three: `--target c`, `llvm` and `wasm`, where wasm recompiles the C target's C for wasm32-wasi. | — |
 | **S10** | The flat store sits at a fixed 1 MiB offset in the same linear memory the string/list heap grows through, so **the heap is capped at 1 MiB**. Passing it used to overwrite the store and read back garbage with nothing reported — a 400 000-element list made `peek64` return `71772820526333952` where C returned `123456789`. The heap now aborts with `id: out of memory` instead, which is §7-legal, but the cap is real and the other two targets do not have it. The proper fix is to place the store above the heap and grow it with `memory.grow`, checking the heap against its actual base rather than a constant. | WASM |
 
 | **S11** | **The C target does not evaluate operands left to right**, which §7 now requires. It emits one C expression per `id` expression, and C does not sequence the arguments of a call: gcc evaluates them right to left, so `"pop=" + pop(xs) + " len=" + len(xs)` prints the length *before* the pop. The LLVM and WASM targets both conform, because both emit instructions in the order they walk the tree. Found by `idc/tests/kernel.sh`, which runs the same source on both runtimes and requires them to agree. | C |
@@ -744,11 +901,11 @@ short-circuit. The emitter is `back/tgt/c/emit/prog/code/expr/atom/order/`.
 
 The output stays ISO C11, which matters because the compiler's own C is the
 stage-0 bootstrap. Names beginning `idsq_` are reserved for these temporaries
-and rejected in source. Byte-parity with `idc/idc.py` is gone for every
+and rejected in source. Byte-parity with the original `idc.py` was lost for every
 statement that needed sequencing.
 
 `idc/tests/conform/order/` holds the cases, now passing on all three targets.
 
-| **S12** | **Function values (§1.1) do not exist on WASM.** They are implemented in `idc/bin/idc`, whose targets are C and LLVM; the WASM target is still built by `idc/idc.py`, which is being retired and refuses `func` as a type. `idc/tests/conform.sh` names `wasm:fn` as known apart, so the gap is counted rather than hidden. It closes with `docs/TODO.md` 9b, `--target wasm` in `idc/bin/idc`. | WASM |
+| **S12** | **Function values (§1.1) on WASM.** This row said they were missing because the WASM target was then built by the deleted `idc.py`. `idc/bin/idc` now builds wasm from the C target's C, which has them; `idc/tests/conform.sh` prints any remaining `wasm:fn` gap under "gaps". | WASM |
 
 `docs/BACKENDS.md` is the plan for the compiler restructuring these imply.

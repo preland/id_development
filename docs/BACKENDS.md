@@ -4,7 +4,7 @@
 > not the current one. "Where this stands" says which steps have landed; the
 > retirement section is the reason the rest is urgent.
 
-`idc.py` emits C, LLVM IR and WAT from three near-duplicate code generators —
+`idc.py`, the original compiler (since deleted), emitted C, LLVM IR and WAT from three near-duplicate code generators —
 `gen_expr`, `gen_binop`, `gen_call` and `gen_stmt` each exist three times. That
 is why adding one operator to the language meant five edits, and why the LLVM
 and WASM targets were left behind when `word` and the flat store arrived.
@@ -12,28 +12,15 @@ and WASM targets were left behind when `word` and the flat store arrived.
 The self-hosted compiler should not repeat that. This document is the shape it
 should grow into, and the order to get there.
 
-## idc.py is frozen; only the WASM target still uses it
+## idc.py is deleted
 
-`idc.py` is frozen (`idc/README.md`, `idc/docs/HACKING.md`): it takes no new
-work of any kind, not a line, not a rule, not a lint fix. It is stage 0 of a
-bootstrap that has already been retired — `idc/bin/idc` bootstraps from the
-checked-in C in `idc/bootstrap/`, not from `idc.py` — and it no longer compiles
-anything else either: the differential parity checks that used to run it
-alongside the self-hosted compiler across `idc/tests/`, `idc/tools/parity.sh`,
-the reserved-name and C-runtime generation, and idem's and idstd's own test
-runners have all been moved off it.
-
-What still reaches it is **the WASM codegen target** (`--target wasm`), which
-`idc/bin/idc` does not have: `idc/tests/conform.sh`'s wasm lane and the wasm
-half of `idc/tests/run.sh`'s alt-target checks still build with `idc.py` for
-that reason. Porting `--target wasm` to the self-hosted compiler is what would
-let `idc.py` be deleted; nothing else in this document is on that path any
-more.
-
-**The freeze is a gate, not a hope.** `idc/tests/run.sh` checks `idc.py`'s
-sha256 against a recorded value and fails if it does not match — the file may
-not change at all, not even to shrink. This replaces the line-count ceiling
-that used to ratchet down as work was ported out of it.
+`idc.py` was frozen, then removed. `idc/bin/idc` bootstraps from the checked-in
+C in `idc/bootstrap/`, and the frozen-hash case that guarded the file is gone
+from `idc/tests/run.sh`. `--target wasm` is implemented by `idc/bin/idc`
+itself: it recompiles the C target's C for wasm32-wasi and links a WASI
+reactor (`idc/tests/wasm.sh`, `idc/tests/conform.sh`'s wasm lane). It is not
+a WAT generator in `back/tgt/`, so the codegen-per-target split below still
+has exactly one real target (C) plus the LLVM one.
 
 ## The split
 
@@ -44,7 +31,7 @@ back/
   core/  the AST walk                   → calls the target interface
   tgt/
     c/     C target
-    py/    Python target      (future)
+    int/   interpreter       (future, docs/INTERPRETER.md)
     ll/    LLVM IR target     (future)
 ```
 
@@ -53,19 +40,20 @@ almost don't: the type pass is about `id`'s types, and the semantic checks are
 about `id`'s rules. Both are language properties, not codegen concerns.
 
 `back/core/` walks the AST once and asks the *target* how to spell each thing.
-Only `back/tgt/*/` knows about C, or Python, or IR.
+Only `back/tgt/*/` knows about C, or an interpreter, or IR.
 
 ## How a target is selected
 
-`id` has no function pointers, so a target cannot be a table of closures. The
-idiomatic answer is the same one the rest of the compiler already uses: a
-dispatch chain on a target name, resolved at runtime.
+`id` now has function values (`func(T) return R`, `docs/SPEC.md` §1.1), so a
+target could be a table of them. The compiler was written before they existed
+and uses a dispatch chain on a target name, resolved at runtime; the sketch
+below shows that shape.
 
 ```
 tgt_type(string t) {
   string s = c_type(t);
-  if(target() == "py") {
-    s = py_type(t);
+  if(target() == "ll") {
+    s = ll_type(t);
   }
 } return string s;
 ```
@@ -136,10 +124,9 @@ Done:
   / `tysigned`, one row per scalar type, list types derived. It is the sole
   source of type facts for every check, and now for the widening rule too,
   which previously lived in two halves in two subtrees.
-* **`idc.py` no longer compiles anything, and no longer bootstraps** —
+* **`idc.py` is deleted, and nothing bootstraps from it** —
   `idc/bin/idc` has no fallback and does not execute it. Stage 0 is
-  `idc/bootstrap/*.c`; `idc.py` is frozen, and what still reaches it is
-  `--target wasm`.
+  `idc/bootstrap/*.c`, and `--target wasm` is implemented by `idc/bin/idc`.
 * **`front/` and `mid/` no longer emit C.** Six `emit_*` functions that print
   the export and extern blocks lived in `mid/` and were called from `back/`;
   they are now `back/tgt/c/emit/prog/head/decl/`. The extern block has since
@@ -193,10 +180,12 @@ and are otherwise honest dead weight until step 1 lands.
    `idc/tools/parity.sh` staying at MATCH.
 3. **Rename `back/` to `back/tgt/c/` and add the dispatch layer**, with C as
    the only target. No behaviour change; parity proves it.
-4. **A second target.** Python first, not LLVM: it is the one that most
-   exercises the interface (no static types, no manual boxing, a real runtime
-   of its own), so it will expose everything C-shaped still leaking through.
-   It also gives an interpreted mode, which is useful on its own.
+4. **A second target.** An interpreter written in `id`, not LLVM and not a
+   Python target (the project writes no new Python): an interpreter exercises
+   the interface the way a dynamic target would (no manual boxing, a runtime of
+   its own), so it will expose everything C-shaped still leaking through, and
+   it is the interpreted mode the project wants anyway. Which interpreter, and
+   how it is built, is the open fork in `docs/INTERPRETER.md`.
 5. **LLVM IR**, once the interface has survived a second target.
 
 ## Native backends are already target-agnostic
@@ -228,11 +217,11 @@ They are ordinary source: the backend's directory is merged into the build like
 any dependency, so every call into it is resolved and checked like any call —
 there is no unresolved-call mode and no `extern int` guess — and the same
 however the program is compiled. They are also the only machine-readable form
-of the contract (a Python or LLVM target cannot parse `fs.h` to learn it); the
+of the contract (an interpreter or LLVM target cannot parse `fs.h` to learn it); the
 C target emits each as a prototype and the LLVM target as a typed `declare`.
 `backend.id` is what a
 given code generator needs in order to *deliver* it: sources and link flags for
-C, a module to import for the Python target of step 4, whatever LLVM wants.
+C, whatever an interpreter target of step 4 needs, whatever LLVM wants.
 
 ### `backend.id`
 
@@ -371,8 +360,7 @@ a native a prototype and no body; its parameters register no names; its
 fingerprint includes its name; it needs no test cases; its `backend.id` is
 read by `bin/idc` rather than compiled, and its C is compiled into `*.gen.o`
 beside the source; the LLVM target declares natives but links no backend; a
-project with no `main` links none; and `idc/idc.py`, which reads the
-`backend.json` that `backend.id` replaced, links no backend at all.
+project with no `main` links none.
 
 ## The rule that keeps this honest
 
