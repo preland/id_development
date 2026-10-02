@@ -1,0 +1,32 @@
+// Inserts ru so that it sits at index at; at may be len(rs).
+rs_insert(Run[] rs, int at, Run ru) {
+  push(rs, ru);
+  int i = len(rs) - 1;
+  while(i > at) {
+    rs[i] = rs[i - 1];
+    i = i - 1;
+  }
+} chain (Run[] rs, int at, Run ru) {
+  rs[at] = ru;
+} return void;
+([Run(1, 0, -1)], 0, Run(2, 3, 4)):([Run(2, 3, 4), Run(1, 0, -1)], 0, Run(2, 3, 4))
+([Run(1, 0, -1)], 1, Run(2, 3, 4)):([Run(1, 0, -1), Run(2, 3, 4)], 1, Run(2, 3, 4))
+([Run(1, 0, -1), Run(2, 0, -1)], 1, Run(9, 9, 9)):([Run(1, 0, -1), Run(9, 9, 9), Run(2, 0, -1)], 1, Run(9, 9, 9))
+
+// Removes the n runs that start at index at.
+rs_remove(Run[] rs, int at, int n) {
+  int i = at;
+  int j = 0;
+  while(i + n < len(rs)) {
+    rs[i] = rs[i + n];
+    i = i + 1;
+  }
+} chain (Run[] rs, int at, int n) {
+  while(j < n) {
+    pop(rs);
+    j = j + 1;
+  }
+} return void;
+([Run(1, 0, -1), Run(2, 1, -1), Run(3, 2, -1)], 1, 1):([Run(1, 0, -1), Run(3, 2, -1)], 1, 1)
+([Run(1, 0, -1), Run(2, 1, -1), Run(3, 2, -1)], 0, 2):([Run(3, 2, -1)], 0, 2)
+([Run(1, 0, -1), Run(2, 1, -1)], 2, 0):([Run(1, 0, -1), Run(2, 1, -1)], 2, 0)

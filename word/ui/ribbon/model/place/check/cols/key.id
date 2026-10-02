@@ -1,0 +1,24 @@
+key_bad(int code, int cmd) {
+  int got = key_cmd(code / 4096, code % 4096);
+  int bad = (code != 0) && (got != cmd);
+} return int bad;
+(8290, 301):(0)
+(8290, 302):(1)
+(0, 5):(0)
+
+tip_bad(string tip, int code) {
+  string ks = tip_head("", code);
+  int at = str_find(tip, ks);
+  int bad = (len(tip) == 0) + (at < 0);
+} return int bad;
+("Bold (Ctrl+B)\nMake bold.", 8290):(0)
+("Bold\nMake bold.", 8290):(1)
+("", 0):(1)
+
+row_bad(int rrow) {
+  string tip = row_tip(rrow);
+  int code = (import rb_key)[rrow];
+  int bad = key_bad(code, (import rb_cmd)[rrow]) + tip_bad(tip, code);
+} return int bad;
+(0):(0)
+(14):(0)

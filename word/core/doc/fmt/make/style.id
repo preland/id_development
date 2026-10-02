@@ -1,0 +1,35 @@
+// Interns the character row and the paragraph row of built-in style i and appends their ids to fm.
+fmt_rows(Fmt f, int i, int[] fm) {
+  int[] crow = lst_slice((import word_style_crow), i * (import word_c_width), (import word_c_width));
+  int[] prow = lst_slice((import word_style_prow), i * (import word_p_width), (import word_p_width));
+  int cid = tab_intern(f.chars, crow);
+} chain (Fmt f, int i, int[] fm) {
+  int pid = tab_intern(f.paras, prow);
+  push(fm, cid);
+  push(fm, pid);
+} return void;
+(Fmt(Tab([], 7, [0, 0, 0, 0, 0, 0, 0, 0]), Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), 0, []):(Fmt(Tab([0, 0, 24, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([-1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [0, 0, 0, 0, 0, 0, 1, 0]), Sty([], [], 0)), 0, [0, 0])
+(Fmt(Tab([], 7, [0, 0, 0, 0, 0, 0, 0, 0]), Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), 3, []):(Fmt(Tab([0, -1, 32, -1, -1, 1, 1], 7, [1, 0, 0, 0, 0, 0, 0, 0]), Tab([-1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0], 12, [0, 1, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), 3, [0, 0])
+
+// Appends built-in style i, with its rows interned, to the document's styles.
+fmt_style(Fmt f, int i) {
+  int[] fm = [];
+  fmt_rows(f, i, fm);
+  int[] rel = lst_slice((import word_style_rel), i * 3, 3);
+} chain (Fmt f, int i) {
+  Style st = Style((import word_style_names)[i], rel, fm);
+  Style[] ss = f.sty.styles;
+  push(ss, st);
+} return void;
+(Fmt(Tab([], 7, [0, 0, 0, 0, 0, 0, 0, 0]), Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), 0):(Fmt(Tab([0, 0, 24, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([-1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [0, 0, 0, 0, 0, 0, 1, 0]), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), 0)
+(Fmt(Tab([], 7, [0, 0, 0, 0, 0, 0, 0, 0]), Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), 3):(Fmt(Tab([0, -1, 32, -1, -1, 1, 1], 7, [1, 0, 0, 0, 0, 0, 0, 0]), Tab([-1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0], 12, [0, 1, 0, 0, 0, 0, 0, 0]), Sty([Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), 3)
+
+fmt_styles(Fmt f) {
+  int i = 0;
+  while(i < len((import word_style_names))) {
+    fmt_style(f, i);
+    i = i + 1;
+  }
+} return void;
+(Fmt(Tab([], 7, [0, 0, 0, 0, 0, 0, 0, 0]), Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0))):() then calls fmt_style:[8]
+(Fmt(Tab([0, 0, 24, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([-1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [0, 0, 0, 0, 0, 0, 1, 0]), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0))):() then calls fmt_style:[8]

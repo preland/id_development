@@ -1,0 +1,26 @@
+// A linear congruential generator over a one-cell list, so every run of the script is the same run. The next state is kept below 2^31.
+rng_next(int[] rg) {
+  rg[0] = (rg[0] * 1103515245 + 12345) & 2147483647;
+  int res = rg[0];
+} return int res;
+([1]):(1103527590)
+([0]):(12345)
+
+// A number from 0 to n - 1, from the upper bits, which are the better ones.
+rng_below(int[] rg, int n) {
+  int res = rng_next(rg);
+  int got = res / 65536 % n;
+} return int got;
+([1], 10):(8)
+([5], 4):(3)
+
+// Sets sp to a range lo..hi with 0 <= lo < hi <= n.
+rng_pair(int[] rg, int n, int[] sp) {
+  int lo = rng_below(rg, n);
+  int w = rng_below(rg, n - lo);
+  sp[0] = lo;
+} chain (int[] rg, int n, int[] sp) {
+  sp[1] = lo + 1 + w;
+} return void;
+([1], 10, [0, 0]):([377401575], 10, [8, 9])
+([7], 6, [0, 0]):([642666333], 6, [4, 5])

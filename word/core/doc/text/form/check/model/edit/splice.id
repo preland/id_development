@@ -1,0 +1,32 @@
+// A new list: xs with the m entries from index k replaced by ins. Built from slices, not by moving entries in place, so it shares no logic with lst_splice.
+model_splice(int[] xs, int k, int m, int[] ins) {
+  int[] acc = lst_slice(xs, 0, k);
+  lst_extend(acc, ins);
+  int[] tl = lst_slice(xs, k + m, len(xs) - k - m);
+} chain (int[] xs, int k, int m, int[] ins) {
+  lst_extend(acc, tl);
+} return int[] acc;
+([1, 2, 3, 4], 1, 2, [9]):([1, 9, 4])
+([1, 2], 2, 0, [7, 8]):([1, 2, 7, 8])
+([1, 2, 3], 0, 3, []):([])
+
+// ins with every entry except the -1 marks replaced by v.
+rep_like(int[] ins, int got) {
+  int[] acc = [];
+  int i = 0;
+  while(i < len(ins)) {
+    push(acc, got);
+    i = i + 1;
+  }
+} chain (int[] ins, int got) {
+  i = 0;
+  while(i < len(ins)) {
+    if(ins[i] == -1) {
+      acc[i] = -1;
+    }
+    i = i + 1;
+  }
+} return int[] acc;
+([4, 5, -1], 7):([7, 7, -1])
+([-1], 3):([-1])
+([], 3):([])

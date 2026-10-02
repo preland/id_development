@@ -1,0 +1,31 @@
+// 1 when the line starts with the tag and the tag ends there: the next byte is a space, ">" or "/", so "<text:p" does not match "<text:page-count".
+ofodt_opens(string line, string tag) {
+  int hit = str_starts(line, tag);
+  int nx = charat(line, len(tag));
+  int ok = hit == 1 && (nx == 32 || nx == 62 || nx == 47);
+} return int ok;
+("<text:p text:style-name=\"Standard\">", "<text:p"):(1)
+("<text:page-count>", "<text:p"):(0)
+("<text:p/>", "<text:p"):(1)
+("<table:table-row>", "<table:table"):(0)
+
+// The kind of a paragraph: "p" at the top level, "li" and the list depth inside a list.
+ofodt_para(int depth) {
+  string kind = "p";
+  if (depth > 0) {
+    kind = "li" + depth;
+  }
+} return string kind;
+(0):("p")
+(2):("li2")
+
+// The outline level a heading line declares, 1 when it declares none.
+ofodt_level(string line) {
+  int at = str_find(line, "outline-level=\"");
+  int level = 1;
+  if (at >= 0) {
+    level = to_int(str_slice(line, at + 15, 3));
+  }
+} return int level;
+("<text:h text:style-name=\"Heading_20_2\" text:outline-level=\"2\">Hi"):(2)
+("<text:h>Hi"):(1)

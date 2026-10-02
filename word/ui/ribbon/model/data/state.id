@@ -1,0 +1,31 @@
+rib_cmd_at(Ribbon rib, int i) {
+  int rrow = rib.items[i];
+  int cmd = (import rb_cmd)[rrow];
+} return int cmd;
+(Ribbon([5, 7], [], [0, 0]), 0):(201)
+(Ribbon([5, 7], [], [0, 0]), 1):(205)
+
+rib_cmds(Ribbon rib) {
+  int[] cmds = [];
+  int i = 0;
+  while(i < len(rib.items)) {
+    int cmd = rib_cmd_at(rib, i);
+    push(cmds, cmd);
+    i = i + 1;
+  }
+} return int[] cmds;
+(Ribbon([5, 6, 7], [], [0, 0, 0])):([201, 202, 205])
+(Ribbon([], [], [])):([])
+
+rib_set_state(Ribbon rib, int cmd, int val) {
+  int[] state = rib.state;
+  int i = 0;
+  while(i < len(state)) {
+    if(rib_cmd_at(rib, i) == cmd) {
+      state[i] = val;
+    }
+    i = i + 1;
+  }
+} return void;
+(Ribbon([5, 6, 7], [], [0, 0, 0]), 202, 1):(Ribbon([5, 6, 7], [], [0, 1, 0]), 202, 1)
+(Ribbon([5, 6], [], [0, 0]), 999, 2):(Ribbon([5, 6], [], [0, 0]), 999, 2)

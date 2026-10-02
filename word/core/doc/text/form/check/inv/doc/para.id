@@ -1,0 +1,40 @@
+tab_count(Tab tb) {
+  int n = len(tb.rows) / tb.width;
+} return int n;
+(Tab([1, 2, 3, 4, 5, 6], 3, [])):(2)
+(Tab([], 7, [])):(0)
+
+// 1 when some run has a character row that does not exist or a link that is not in ext.links.
+runs_bad(Run[] rs, int nc, int nl) {
+  int bad = 0;
+  int i = 0;
+  while(i < len(rs)) {
+    if(rs[i].cprop < 0 || rs[i].cprop >= nc || rs[i].link < -1 || rs[i].link >= nl) {
+      bad = 1;
+    }
+    i = i + 1;
+  }
+} return int bad;
+([Run(1, 0, -1), Run(1, 2, 0)], 3, 1):(0)
+([Run(1, 0, -1), Run(1, 3, 0)], 3, 1):(1)
+([Run(1, 0, 1)], 3, 1):(1)
+([Run(1, -1, -1)], 3, 1):(1)
+
+// The invariants of paragraph i: its text's (text_check), then 6 for a run that points at a missing character row or link and 7 for a paragraph row that does not exist.
+para_check(Doc d, int i) {
+  Para p = d.body.paras[i];
+  int nc = tab_count(d.fmt.chars);
+  int code = text_check(p.txt);
+} chain (Doc d, int i) {
+  if(code == 0 && runs_bad(p.txt.runs, nc, len(d.ext.links)) == 1) {
+    code = 6;
+  }
+  if(code == 0 && (p.pprop < 0 || p.pprop >= tab_count(d.fmt.paras))) {
+    code = 7;
+  }
+} return int code;
+(Doc(Body([Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), Ext([], ["a"], [])), 0):(0)
+(Doc(Body([Para(Text([1], [Run(1, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), Ext([], ["a"], [])), 0):(6)
+(Doc(Body([Para(Text([1], [Run(1, 0, 5)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), Ext([], ["a"], [])), 0):(6)
+(Doc(Body([Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], -1), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), Ext([], ["a"], [])), 0):(7)
+(Doc(Body([Para(Text([1], [Run(2, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), Ext([], ["a"], [])), 0):(2)

@@ -1,0 +1,33 @@
+// Runs every lane for fixture stem in a throwaway root under /tmp, prints its line, and removes the root, soffice's profile with it; the exit status of rep_exit.
+check_fixture(string bin, int n, string assets, string stem) {
+  string root = fs_mktemp((import tmp_prefix), 1);
+  int made = fs_mkdir(root + "/" + (import out_sub));
+  string src = assets + "/" + (import odt_sub) + "/" + stem + ".odt";
+} chain (string bin, int n, string assets, string stem) {
+  int[] res = lane_all(bin, root, src, stem, n);
+  string[] modes = (import word_modes);
+  string words = rep_word_all(modes);
+} chain (string bin, int n, string assets, string stem) {
+  print(rep_line(n, stem, res, words));
+  int open = wlane_open(modes);
+  int gone = exec_drop(root);
+} chain (string bin, int n, string assets, string stem) {
+  int code = rep_exit(res, open);
+} return int code;
+("false", 3, "../word/test_assets", "03_inline"):(1) then prints:("3 03_inline txt=FAIL fodt=FAIL pdf=FAIL(0 pages) cross=FAIL(-1 missing) | --text=UNAVAILABLE(word binary not available) --dump=UNAVAILABLE(word binary not available) --roundtrip=UNAVAILABLE(word binary not available) --pages=UNAVAILABLE(word binary not available)\n")
+("true", 7, "../word/test_assets", "07_pages"):(1) then prints:("7 07_pages txt=FAIL fodt=FAIL pdf=FAIL(0 pages) cross=FAIL(-1 missing) | --text=UNAVAILABLE(word binary not available) --dump=UNAVAILABLE(word binary not available) --roundtrip=UNAVAILABLE(word binary not available) --pages=UNAVAILABLE(word binary not available)\n")
+
+// Runs fixture n of the corpus under assets, or says there is none; exit status 2 for a missing fixture.
+check_run(string bin, int n, string assets) {
+  string stem = fixt_name(assets + "/" + (import odt_sub), n);
+  int code = (import exit_usage);
+  if (stem != "") {
+    code = check_fixture(bin, n, assets, stem);
+  }
+} chain (string bin, int n, string assets) {
+  if (stem == "") {
+    eprint("wordcheck: no fixture " + n + " in " + assets + "/" + (import odt_sub) + "; list the fixtures with: wordcheck --list");
+  }
+} return int code;
+("false", 99, "../word/test_assets"):(2) then eprints:("wordcheck: no fixture 99 in ../word/test_assets/odt; list the fixtures with: wordcheck --list\n")
+("false", 3, "../word/test_assets"):(1) then prints:("3 03_inline txt=FAIL fodt=FAIL pdf=FAIL(0 pages) cross=FAIL(-1 missing) | --text=UNAVAILABLE(word binary not available) --dump=UNAVAILABLE(word binary not available) --roundtrip=UNAVAILABLE(word binary not available) --pages=UNAVAILABLE(word binary not available)\n")

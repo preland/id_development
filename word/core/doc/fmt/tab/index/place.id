@@ -1,0 +1,40 @@
+// Puts row id into the first empty slot of its probe; the table keeps half its slots empty (tab_add), so the probe ends.
+tab_slot(Tab tb, int id) {
+  int[] row = tab_row(tb, id);
+  int k = tab_home(tb, row);
+  int[] sls = tb.slots;
+} chain (Tab tb, int id) {
+  while(sls[k] != 0) {
+    k = (k + 1) & (len(sls) - 1);
+  }
+  sls[k] = id + 1;
+} return void;
+(Tab([5, 6], 2, [0, 0, 0, 0, 0, 0, 0, 0]), 0):(Tab([5, 6], 2, [0, 0, 1, 0, 0, 0, 0, 0]), 0)
+(Tab([5, 6, 7, 8], 2, [0, 0, 1, 0, 0, 0, 0, 0]), 1):(Tab([5, 6, 7, 8], 2, [0, 0, 1, 2, 0, 0, 0, 0]), 1)
+
+tab_grow(Tab tb) {
+  int[] sls = [];
+  lst_fill(sls, len(tb.slots) * 2, 0);
+  tb.slots = sls;
+} chain (Tab tb) {
+  int n = len(tb.rows) / tb.width;
+  int i = 0;
+  while(i < n) {
+    tab_slot(tb, i);
+    i = i + 1;
+  }
+} return void;
+(Tab([5, 13, 5, 6], 2, [0, 1, 2, 0, 0, 0, 0, 0])):(Tab([5, 13, 5, 6], 2, [0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]))
+(Tab([], 2, [0, 0, 0, 0])):(Tab([], 2, [0, 0, 0, 0, 0, 0, 0, 0]))
+
+tab_add(Tab tb, int[] row) {
+  int id = len(tb.rows) / tb.width;
+  lst_extend(tb.rows, row);
+  tab_slot(tb, id);
+} chain (Tab tb, int[] row) {
+  if(len(tb.rows) / tb.width * 2 > len(tb.slots)) {
+    tab_grow(tb);
+  }
+} return void;
+(Tab([], 2, [0, 0, 0, 0, 0, 0, 0, 0]), [5, 6]):(Tab([5, 6], 2, [0, 0, 1, 0, 0, 0, 0, 0]), [5, 6])
+(Tab([1, 1, 1, 2, 1, 3, 1, 4], 2, [0, 1, 2, 3, 4, 0, 0, 0]), [1, 5]):(Tab([1, 1, 1, 2, 1, 3, 1, 4, 1, 5], 2, [0, 1, 2, 3, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), [1, 5])

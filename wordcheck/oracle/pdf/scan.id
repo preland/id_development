@@ -1,0 +1,38 @@
+// 1 when the pattern occurs in the file at index at.
+opdf_match(int[] b, string pat, int at) {
+  int i = 0;
+  int ok = 1;
+  while (charat(pat, i) >= 0 && ok == 1) {
+    ok = opdf_same(b, pat, at, i);
+    i = i + 1;
+  }
+} return int ok;
+([47, 84, 121, 112, 101], "/Type", 0):(1)
+([47, 84, 121, 112, 111], "/Type", 0):(0)
+([47, 84], "/Type", 0):(0)
+
+// 1 when a page object (a "/Type" entry naming "/Page", spaces allowed between, and not "/Pages" or "/PageLabels") starts at index i.
+opdf_at(int[] b, int i) {
+  int hit = opdf_match(b, "/Type", i);
+  int j = opdf_skip(b, i + 5);
+  int pg = opdf_match(b, "/Page", j);
+} chain (int[] b, int i) {
+  int nx = opdf_byte(b, j + 5);
+  int isp = hit * pg * (chr_is_alpha(nx) == 0);
+} return int isp;
+([47, 84, 121, 112, 101, 47, 80, 97, 103, 101], 0):(1)
+([47, 84, 121, 112, 101, 32, 47, 80, 97, 103, 101, 32], 0):(1)
+([47, 84, 121, 112, 101, 47, 80, 97, 103, 101, 115, 47, 67], 0):(0)
+([47, 84, 121, 112, 101, 47, 80, 97, 103, 101, 76, 97, 98, 101, 108, 115], 0):(0)
+
+// The number of page objects in a PDF's bytes. LibreOffice writes them uncompressed, one "/Type/Page" per page.
+opdf_pages(int[] b) {
+  int i = 0;
+  int pages = 0;
+  while (i < len(b)) {
+    pages = pages + opdf_at(b, i);
+    i = i + 1;
+  }
+} return int pages;
+([47, 84, 121, 112, 101, 47, 80, 97, 103, 101, 47, 84, 121, 112, 101, 47, 80, 97, 103, 101, 115, 47, 84, 121, 112, 101, 32, 47, 80, 97, 103, 101, 62]):(2)
+([]):(0)

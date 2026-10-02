@@ -1,0 +1,27 @@
+// The character row of the run holding code point off, clamped into the text, so an empty paragraph answers with its one run. Typing after offset n takes the properties of para_cprop(p, n - 1).
+para_cprop(Para p, int off) {
+  int i = run_at(p.txt, off);
+  int nc = p.txt.runs[i].cprop;
+} return int nc;
+(Para(Text([1, 2, 3], [Run(2, 4, -1), Run(1, 5, -1)], 0), Lay([], [], -1), 0), 1):(4)
+(Para(Text([1, 2, 3], [Run(2, 4, -1), Run(1, 5, -1)], 0), Lay([], [], -1), 0), 9):(5)
+(Para(Text([], [Run(0, 6, -1)], 0), Lay([], [], -1), 0), 0):(6)
+
+doc_count(Doc d) {
+  int n = len(d.body.paras);
+} return int n;
+(Doc(Body([Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([2], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], []))):(2)
+(Doc(Body([Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], []))):(1)
+
+// The text of the first paragraph, at most 64 code points, as the document's title.
+doc_title(Doc d) {
+  Text t = d.body.paras[0].txt;
+  int n = len(t.cps);
+  if(n > 64) {
+    n = 64;
+  }
+} chain (Doc d) {
+  string text = text_str(t, 0, n);
+} return string text;
+(Doc(Body([Para(Text([104, 105], [Run(2, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], []))):("hi")
+(Doc(Body([Para(Text([97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97], [Run(70, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], []))):("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")

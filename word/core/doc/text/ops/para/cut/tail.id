@@ -1,0 +1,49 @@
+// Moves the runs from index from on out of src and onto the end of dst.
+rs_move(Run[] src, int begin, Run[] dst) {
+  int i = begin;
+  while(i < len(src)) {
+    push(dst, src[i]);
+    i = i + 1;
+  }
+  while(len(src) > begin) {
+    pop(src);
+  }
+} return void;
+([Run(1, 0, -1), Run(2, 5, -1), Run(3, 6, -1)], 1, [Run(9, 9, 9)]):([Run(1, 0, -1)], 1, [Run(9, 9, 9), Run(2, 5, -1), Run(3, 6, -1)])
+([Run(1, 0, -1)], 1, []):([Run(1, 0, -1)], 1, [])
+
+// Cuts t at off: t keeps the code points before it and the new Text returned holds the rest, with the runs moved over; each half that would be empty keeps one empty run carrying the properties of the text next to the cut.
+text_tail(Text t, int off) {
+  int first = t.runs[0].cprop;
+  int last = t.runs[len(t.runs) - 1].cprop;
+  int k = run_cut(t, off);
+} chain (Text t, int off) {
+  Run[] tr = [];
+  rs_move(t.runs, k, tr);
+  rs_fill(t.runs, first);
+} chain (Text t, int off) {
+  rs_fill(tr, last);
+  int[] rest = lst_slice(t.cps, off, len(t.cps) - off);
+  int[] none = [];
+} chain (Text t, int off) {
+  lst_splice(t.cps, off, len(t.cps), none);
+  Text nt = Text(rest, tr, 0);
+  t.rev = t.rev + 1;
+} return Text nt;
+(Text([1, 2, 3, 4], [Run(2, 0, -1), Run(2, 5, -1)], 7), 3):(Text([4], [Run(1, 5, -1)], 0))
+(Text([1, 2], [Run(2, 5, -1)], 0), 0):(Text([1, 2], [Run(2, 5, -1)], 0))
+(Text([1, 2], [Run(2, 5, -1)], 0), 2):(Text([], [Run(0, 5, -1)], 0))
+(Text([], [Run(0, 4, -1)], 0), 0):(Text([], [Run(0, 4, -1)], 0))
+(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 0), 0):(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 0)) then calls rs_fill:([Run(0, 0, -1)], 0)
+(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 0), 2):(Text([], [Run(0, 5, -1)], 0)) then calls rs_fill:([Run(0, 5, -1)], 5)
+
+// A paragraph of the given text and paragraph row whose layout is stale (h is -1).
+para_make(Text t, int pprop) {
+  int[] lines = [];
+  int[] pen = [];
+  Lay ly = Lay(lines, pen, -1);
+} chain (Text t, int pprop) {
+  Para p = Para(t, ly, pprop);
+} return Para p;
+(Text([1], [Run(1, 0, -1)], 0), 3):(Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], -1), 3))
+(Text([], [Run(0, 4, -1)], 2), 0):(Para(Text([], [Run(0, 4, -1)], 2), Lay([], [], -1), 0))

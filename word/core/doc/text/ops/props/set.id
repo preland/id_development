@@ -1,0 +1,48 @@
+// Gives the code points lo..hi-1 the runs in runs, as [len, cprop, link] triples whose lengths add up to hi - lo; anything else changes nothing. The only way to set a link, and the way to set the properties of an empty paragraph (lo = hi = 0).
+text_runs_set(Text t, int lo, int hi, int[] runs) {
+  int n = runs_sum(runs);
+  if(len(runs) % 3 == 0 && n == hi - lo) {
+    text_swap(t, lo, hi, runs);
+    text_merge(t);
+  }
+} return void;
+(Text([1, 2, 3, 4], [Run(4, 0, -1)], 0), 1, 3, [1, 5, -1, 1, 6, 2]):(Text([1, 2, 3, 4], [Run(1, 0, -1), Run(1, 5, -1), Run(1, 6, 2), Run(1, 0, -1)], 1), 1, 3, [1, 5, -1, 1, 6, 2])
+(Text([1, 2, 3, 4], [Run(4, 0, -1)], 0), 1, 3, [1, 5, -1]):(Text([1, 2, 3, 4], [Run(4, 0, -1)], 0), 1, 3, [1, 5, -1])
+(Text([], [Run(0, 0, -1)], 0), 0, 0, [0, 4, -1]):(Text([], [Run(0, 4, -1)], 1), 0, 0, [0, 4, -1])
+(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 0), 0, 1, [1, 5, -1]):(Text([1, 2], [Run(2, 5, -1)], 1), 0, 1, [1, 5, -1])
+
+// Applies one change to a run's character row: mode word_m_field sets field key to val, word_m_bits turns the flag bits key on (val 1), off (0) or unset (-1); another mode changes nothing.
+run_mut(Run ru, Tab chars, int key, int val, int mode) {
+  int nc = ru.cprop;
+  if(mode == (import word_m_field)) {
+    nc = tab_with(chars, ru.cprop, key, val);
+  }
+  if(mode == (import word_m_bits)) {
+    nc = tab_with_bits(chars, ru.cprop, key, val);
+  }
+} chain (Run ru, Tab chars, int key, int val, int mode) {
+  ru.cprop = nc;
+} return void;
+(Run(2, 0, -1), Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 2, 24, 0):(Run(2, 1, -1), Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, [2, 0, 0, 0, 0, 0, 0, 0]), 2, 24, 0)
+(Run(2, 0, -1), Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 1, 1, 1):(Run(2, 1, -1), Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [0, 0, 0, 0, 0, 0, 0, 2]), 1, 1, 1)
+(Run(2, 0, -1), Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 2, 24, 7):(Run(2, 0, -1), Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 2, 24, 7)
+
+// Changes the character row of every run covering lo..hi-1 (see run_mut), splitting runs at the ends and merging equal neighbours afterwards. An empty paragraph (no text) has its one run changed.
+text_apply(Text t, int lo, int hi, Tab chars, int key, int val, int mode) {
+  int i = run_cut(t, lo);
+  int j = run_cut(t, hi);
+  if(len(t.cps) == 0) {
+    j = 1;
+  }
+} chain (Text t, int lo, int hi, Tab chars, int key, int val, int mode) {
+  while(i < j) {
+    run_mut(t.runs[i], chars, key, val, mode);
+    i = i + 1;
+  }
+  text_merge(t);
+  t.rev = t.rev + 1;
+} return void;
+(Text([1, 2, 3], [Run(3, 0, -1)], 0), 1, 2, Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 2, 24, 0):(Text([1, 2, 3], [Run(1, 0, -1), Run(1, 1, -1), Run(1, 0, -1)], 1), 1, 2, Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, [2, 0, 0, 0, 0, 0, 0, 0]), 2, 24, 0)
+(Text([], [Run(0, 0, -1)], 0), 0, 0, Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 1, 1, 1):(Text([], [Run(0, 1, -1)], 1), 0, 0, Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [0, 0, 0, 0, 0, 0, 0, 2]), 1, 1, 1)
+(Text([1, 2], [Run(1, 0, -1), Run(1, 1, -1)], 0), 0, 1, Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, [2, 0, 0, 0, 0, 0, 0, 1]), 2, 24, 0):(Text([1, 2], [Run(2, 1, -1)], 1), 0, 1, Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, [2, 0, 0, 0, 0, 0, 0, 1]), 2, 24, 0)
+(Text([1, 2, 3], [Run(3, 0, -1)], 0), 2, 2, Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 2, 24, 0):(Text([1, 2, 3], [Run(3, 0, -1)], 1), 2, 2, Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 2, 24, 0)

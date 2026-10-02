@@ -1,0 +1,40 @@
+// Runs steps random steps from seed on a new document, checking after each one, and returns the 1-based number of the first step after which a check failed, or 0. sx = [verify code, kinds seen, most paragraphs, most code points, most runs in one paragraph] is filled in.
+script_run(int seed, int steps, int[] sx) {
+  int[] rg = [seed];
+  Doc d = doc_new();
+  ext_add_links(d.ext, 2);
+} chain (int seed, int steps, int[] sx) {
+  Model mo = model_new(d);
+  int i = 0;
+  sx[0] = script_verify(d, mo);
+} chain (int seed, int steps, int[] sx) {
+  while(i < steps && sx[0] == 0) {
+    script_step(d, mo, rg, sx);
+    i = i + 1;
+  }
+  int res = 0;
+  if(sx[0] != 0) {
+    res = i;
+  }
+} return int res;
+(3, 40, [0, 0, 0, 0, 0]):(0)
+(4, 60, [0, 0, 0, 0, 0]):(0)
+
+// The randomised, seeded script of docs/WORD.md 5.3 B1: steps primitive calls from seed, every one checked against the run invariants and against an independent model. 0 means all held, otherwise the 1-based step that broke one.
+doc_script(int seed, int steps) {
+  int[] sx = [0, 0, 0, 0, 0];
+  int res = script_run(seed, steps, sx);
+} return int res;
+(1, 2000):(0)
+(7, 2000):(0)
+
+// One number from a script run, to show what it reached: which 0 the verify code, 1 the kinds seen as a bit mask (all ten is 1023), 2 the most paragraphs, 3 the most code points, 4 the most runs in one paragraph.
+script_probe(int seed, int steps, int which) {
+  int[] sx = [0, 0, 0, 0, 0];
+  int res = script_run(seed, steps, sx);
+  int got = sx[which];
+} return int got;
+(1, 2000, 1):(1023)
+(7, 2000, 1):(1023)
+(1, 2000, 2):(13)
+(7, 2000, 4):(25)

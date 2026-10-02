@@ -1,0 +1,26 @@
+// 1 when the page count is the one the corpus says fixture n lays out as; 0 for a count that differs or a fixture with no expectation.
+lane_pages_ok(int pages, int n) {
+  int[] plan = (import expect_pages);
+  int ok = 0;
+  if (n >= 1 && n <= len(plan)) {
+    ok = plan[n - 1] == pages;
+  }
+} return int ok;
+(3, 7):(1)
+(3, 8):(0)
+(20, 8):(1)
+(1, 99):(0)
+
+// Every soffice lane for one fixture: [txt verdict, fodt verdict, pdf verdict, page count, cross-check misses].
+lane_all(string bin, string root, string src, string stem, int n) {
+  int v_txt = lane_txt(bin, root, src, stem);
+  int v_fodt = lane_fodt(bin, root, src, stem);
+  int pages = lane_pdf(bin, root, src, stem);
+} chain (string bin, string root, string src, string stem, int n) {
+  int cross = lane_cross(root, stem);
+  int v_pdf = lane_pages_ok(pages, n);
+  int[] res = [v_txt, v_fodt, v_pdf, pages, cross];
+} return int[] res;
+("true", "../word/test_assets/oracle", "x.odt", "07_pages", 7):([1, 1, 1, 3, 0])
+("true", "../word/test_assets/oracle", "x.odt", "07_pages", 99):([1, 1, 0, 3, 0])
+("false", "../word/test_assets/oracle", "x.odt", "07_pages", 7):([0, 0, 0, 0, 0])

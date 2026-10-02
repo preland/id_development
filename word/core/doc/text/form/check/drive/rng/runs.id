@@ -1,0 +1,40 @@
+// Appends random run triples that cover n code points; for n = 0 one empty triple, which sets the properties of an empty paragraph.
+rand_runs(int[] rg, int n, int nc, int[] runs) {
+  int left = n;
+  if(n == 0) {
+    run_triple(rg, nc, 0, runs);
+  }
+  while(left > 0) {
+    int piece = 1 + rng_below(rg, left);
+    run_triple(rg, nc, piece, runs);
+    left = left - piece;
+  }
+} return void;
+([2], 3, 8, []):([671064393], 3, 8, [3, 1, -1])
+([5], 5, 8, []):([1387050425], 5, 8, [1, 1, 1, 2, 1, 1, 1, 3, 0, 1, 5, 1])
+([4], 0, 8, []):([1583775778], 0, 8, [0, 1, 0])
+
+// The index in the flattened document (see Model) of offset off in paragraph para; para may be the paragraph count, which gives the end.
+flat_at(Doc d, int para, int off) {
+  int at = off;
+  int j = 0;
+  while(j < para) {
+    at = at + para_len(d.body.paras[j]) + 1;
+    j = j + 1;
+  }
+} return int at;
+(Doc(Body([Para(Text([4, 5], [Run(2, 7, -1)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 7, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], [])), 1, 0):(3)
+(Doc(Body([Para(Text([4, 5], [Run(2, 7, -1)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 7, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], [])), 0, 1):(1)
+(Doc(Body([Para(Text([4, 5], [Run(2, 7, -1)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 7, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], [])), 2, 0):(4)
+
+// The link text inserted at flat index k, offset off of a paragraph of plen code points, takes: the one both neighbours have, as text_link does for runs.
+ins_link(Model mo, int k, int off, int plen) {
+  int lk = -1;
+  if(off > 0 && off < plen && mo.links[k - 1] == mo.links[k]) {
+    lk = mo.links[k];
+  }
+} return int lk;
+(Model([4, 5, 6, -1], [0, 0, 0, -1], [3, 3, -1, -1]), 1, 1, 3):(3)
+(Model([4, 5, 6, -1], [0, 0, 0, -1], [3, 3, -1, -1]), 2, 2, 3):(-1)
+(Model([4, 5, 6, -1], [0, 0, 0, -1], [3, 3, -1, -1]), 0, 0, 3):(-1)
+(Model([4, 5, 6, -1], [0, 0, 0, -1], [3, 3, 3, -1]), 3, 3, 3):(-1)

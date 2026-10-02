@@ -1,0 +1,52 @@
+// The kind of block a trimmed fodt line opens: "p", "li<depth>", "h<level>", "table", or "" for any other line.
+ofodt_kind(string line, int depth) {
+  string kind = "";
+  if (ofodt_opens(line, "<text:p") == 1) {
+    kind = ofodt_para(depth);
+  }
+  if (ofodt_opens(line, "<text:h") == 1) {
+    kind = "h" + ofodt_level(line);
+  }
+} chain (string line, int depth) {
+  if (ofodt_opens(line, "<table:table") == 1) {
+    kind = "table";
+  }
+} return string kind;
+("<text:p text:style-name=\"Standard\">Hi</text:p>", 0):("p")
+("<text:p>Hi</text:p>", 3):("li3")
+("<text:h text:outline-level=\"2\">T</text:h>", 0):("h2")
+("<table:table table:name=\"T\">", 0):("table")
+("<table:table-row>", 0):("")
+
+// The normalised record of a trimmed line, "kind:text" with the tags stripped and the entities decoded, or "" when the line opens no block.
+ofodt_rec(string line, int depth) {
+  string kind = ofodt_kind(line, depth);
+  string rec = "";
+  if (len(kind) > 0) {
+    rec = kind + ":" + ofodt_decode(ofodt_strip(line));
+  }
+} return string rec;
+("<text:p>a &lt; b</text:p>", 0):("p:a < b")
+("<text:p>x</text:p>", 1):("li1:x")
+("<text:p/>", 0):("p:")
+("</text:p>", 0):("")
+
+// Appends the record of a line to recs when the line is live (in the body, outside every table and frame); a line that also opens a drawing frame adds a "frame:" record.
+ofodt_emit(string line, int[] st, string[] recs) {
+  int live = ofodt_live(st);
+  string rec = "";
+  if (live == 1) {
+    rec = ofodt_rec(line, st[(import s_list)]);
+  }
+} chain (string line, int[] st, string[] recs) {
+  if (len(rec) > 0) {
+    push(recs, rec);
+  }
+  if (len(rec) > 0 && str_find(line, "<draw:frame ") >= 0) {
+    push(recs, "frame:");
+  }
+} return void;
+("<text:p>Hi</text:p>", [1, 0, 0, 0], []):("<text:p>Hi</text:p>", [1, 0, 0, 0], ["p:Hi"])
+("<text:p>Hi</text:p>", [0, 0, 0, 0], []):("<text:p>Hi</text:p>", [0, 0, 0, 0], [])
+("<text:p>Hi</text:p>", [1, 0, 1, 0], []):("<text:p>Hi</text:p>", [1, 0, 1, 0], [])
+("<text:p><draw:frame a=\"1\">", [1, 0, 0, 0], []):("<text:p><draw:frame a=\"1\">", [1, 0, 0, 0], ["p:", "frame:"])

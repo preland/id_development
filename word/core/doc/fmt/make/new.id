@@ -1,0 +1,20 @@
+// A table of character rows, a table of paragraph rows and no styles or lists yet; fmt_default fills in the built-in ones.
+fmt_new() {
+  Tab tc = tab_new((import word_c_width));
+  Tab tp = tab_new((import word_p_width));
+  Style[] ss = [];
+} chain () {
+  ListDef[] ls = [];
+  Sty sy = Sty(ss, ls, 0);
+  Fmt f = Fmt(tc, tp, sy);
+} return Fmt f;
+():(Fmt(Tab([], 7, [0, 0, 0, 0, 0, 0, 0, 0]), Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)))
+():(Fmt(Tab([], 7, [0, 0, 0, 0, 0, 0, 0, 0]), Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0))) then calls tab_new:[2]
+
+// Row id 0 of each table is the row with nothing set.
+fmt_base(Fmt f) {
+  tab_intern(f.chars, (import word_row_cdef));
+  tab_intern(f.paras, (import word_row_pdef));
+} return void;
+(Fmt(Tab([], 7, [0, 0, 0, 0, 0, 0, 0, 0]), Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0))):(Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)))
+(Fmt(Tab([0, 0, 24, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([-1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [0, 0, 0, 0, 0, 0, 1, 0]), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0))):() then calls tab_intern:[2]

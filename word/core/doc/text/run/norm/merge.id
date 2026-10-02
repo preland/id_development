@@ -1,0 +1,30 @@
+run_same(Run ru, Run rv) {
+  int res = ru.cprop == rv.cprop && ru.link == rv.link;
+} return int res;
+(Run(1, 2, 3), Run(5, 2, 3)):(1)
+(Run(1, 2, 3), Run(1, 2, 4)):(0)
+(Run(1, 2, 3), Run(1, 9, 3)):(0)
+
+// Adds cur to the compacted prefix rs[0..wr[0]): onto the last run there when the two carry the same properties, else as a new last run, which grows the prefix.
+rs_place(Run[] rs, int[] wr, Run cur) {
+  int w = wr[0];
+  if(w > 0 && run_same(rs[w - 1], cur) == 1) {
+    rs[w - 1].len = rs[w - 1].len + cur.len;
+  } else {
+    rs[w] = cur;
+    wr[0] = w + 1;
+  }
+} return void;
+([Run(1, 0, -1), Run(2, 0, -1)], [1], Run(2, 0, -1)):([Run(3, 0, -1), Run(2, 0, -1)], [1], Run(2, 0, -1))
+([Run(1, 0, -1), Run(2, 5, -1)], [1], Run(2, 5, -1)):([Run(1, 0, -1), Run(2, 5, -1)], [2], Run(2, 5, -1))
+([Run(4, 7, -1), Run(2, 5, -1)], [0], Run(4, 7, -1)):([Run(4, 7, -1), Run(2, 5, -1)], [1], Run(4, 7, -1))
+
+// Empty runs are dropped.
+rs_fold(Run[] rs, int[] wr, int res) {
+  Run cur = rs[res];
+  if(cur.len > 0) {
+    rs_place(rs, wr, cur);
+  }
+} return void;
+([Run(0, 0, -1), Run(2, 5, -1)], [0], 0):([Run(0, 0, -1), Run(2, 5, -1)], [0], 0)
+([Run(1, 0, -1), Run(2, 0, -1)], [1], 1):([Run(3, 0, -1), Run(2, 0, -1)], [1], 1)

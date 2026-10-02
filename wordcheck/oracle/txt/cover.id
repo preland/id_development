@@ -1,0 +1,24 @@
+// 1 when a fodt record carries text that the txt export does not contain; records with no text (a table, a frame) never miss.
+otxt_miss(string rec, string txt) {
+  string body = ofodt_text(rec);
+  int found = str_find(txt, body);
+  int miss = len(body) > 0 && found < 0;
+} return int miss;
+("p:hello", "say hello\n"):(0)
+("p:bye", "say hello\n"):(1)
+("table:", "x"):(0)
+
+// How many records of the normalised fodt have text the normalised txt lacks: the two oracle outputs of one fixture agreeing.
+otxt_cover(string txt, string norm) {
+  string[] recs = str_split(norm, "\n");
+  int i = 0;
+  int missing = 0;
+} chain (string txt, string norm) {
+  while (i < len(recs)) {
+    missing = missing + otxt_miss(recs[i], txt);
+    i = i + 1;
+  }
+} return int missing;
+("a b\n", "p:a\nli1:b\n"):(0)
+("a\n", "p:a\nh1:zz\nframe:\n"):(1)
+("", "p:a\np:b\n"):(2)

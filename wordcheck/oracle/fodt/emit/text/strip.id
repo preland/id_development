@@ -1,0 +1,40 @@
+// A line of XML without its tags: every <...> span removed, text between them kept. A tag that never closes drops the rest of the line.
+ofodt_strip(string line) {
+  int lt = str_find(line, "<");
+  int gt = str_findat(line, ">", lt);
+  string kept = line;
+} chain (string line) {
+  if (lt >= 0 && gt < 0) {
+    gt = len(line) - 1;
+  }
+  if (lt >= 0) {
+    string rest = str_slice(line, gt + 1, len(line) - gt - 1);
+    string tail = ofodt_strip(rest);
+    kept = str_slice(line, 0, lt) + tail;
+  }
+} return string kept;
+("a <text:span text:style-name=\"T1\">bold</text:span> c"):("a bold c")
+("no tags"):("no tags")
+("<text:p text:style-name=\"Standard\"/>"):("")
+("kept<text:p x=\"1\""):("kept")
+
+// The text with every occurrence of from replaced by to.
+ofodt_swap(string txt, string from, string to) {
+  string[] parts = str_split(txt, from);
+  string swapped = str_join(parts, to);
+} return string swapped;
+("1&lt;2&lt;3", "&lt;", "<"):("1<2<3")
+("abc", "x", "y"):("abc")
+
+// The five predefined XML entities decoded; &amp; last so that "&amp;lt;" becomes "&lt;" and no further.
+ofodt_decode(string txt) {
+  string ltd = ofodt_swap(txt, "&lt;", "<");
+  string gtd = ofodt_swap(ltd, "&gt;", ">");
+  string qtd = ofodt_swap(gtd, "&quot;", "\"");
+} chain (string txt) {
+  string ap = ofodt_swap(qtd, "&apos;", "'");
+  string amp = ofodt_swap(ap, "&amp;", "&");
+} return string amp;
+("1 &lt; 2 &amp; 3 &gt; 2"):("1 < 2 & 3 > 2")
+("&amp;lt;"):("&lt;")
+("&quot;x&apos;"):("\"x'")

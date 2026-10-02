@@ -1,0 +1,20 @@
+// A file's bytes, one per cell; an empty list when it cannot be opened.
+opdf_load(string path) {
+  int h = fs_open(path, "r");
+  int n = fs_size(path) * (h >= 0);
+  int[] bytes = [];
+} chain (string path) {
+  lst_fill(bytes, n, 0);
+  int got = fs_read(h, bytes, n);
+  int shut = fs_close(h);
+} return int[] bytes;
+("../word/test_assets/oracle/out/07_pages.txt"):([239, 187, 191, 65, 52, 32, 112, 111, 114, 116, 114, 97, 105, 116, 44, 32, 50, 49, 32, 98, 121, 32, 50, 57, 46, 55, 32, 99, 109, 44, 32, 109, 97, 114, 103, 105, 110, 115, 32, 50, 32, 99, 109, 46, 10, 85, 83, 32, 76, 101, 116, 116, 101, 114, 32, 112, 111, 114, 116, 114, 97, 105, 116, 44, 32, 56, 46, 53, 32, 98, 121, 32, 49, 49, 32, 105, 110, 44, 32, 109, 97, 114, 103, 105, 110, 115, 32, 50, 32, 99, 109, 46, 10, 65, 52, 32, 108, 97, 110, 100, 115, 99, 97, 112, 101, 44, 32, 50, 57, 46, 55, 32, 98, 121, 32, 50, 49, 32, 99, 109, 44, 32, 109, 97, 114, 103, 105, 110, 115, 32, 50, 32, 99, 109, 46, 10])
+("../word/test_assets/oracle/out/none.pdf"):([])
+
+// The page count of a PDF file soffice wrote; 0 when it cannot be read or holds no page object.
+opdf_pages_file(string path) {
+  int[] bytes = opdf_load(path);
+  int pages = opdf_pages(bytes);
+} return int pages;
+("../word/test_assets/oracle/out/07_pages.pdf"):(3)
+("../word/test_assets/oracle/out/07_pages.txt"):(0)

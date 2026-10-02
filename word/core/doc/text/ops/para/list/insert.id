@@ -1,0 +1,21 @@
+paras_insert(Para[] pl, int at, Para p) {
+  push(pl, p);
+  int i = len(pl) - 1;
+  while(i > at) {
+    pl[i] = pl[i - 1];
+    i = i - 1;
+  }
+} chain (Para[] pl, int at, Para p) {
+  pl[at] = p;
+} return void;
+([Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)], 0, Para(Text([2], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)):([Para(Text([2], [Run(1, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)], 0, Para(Text([2], [Run(1, 0, -1)], 0), Lay([], [], -1), 0))
+([Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)], 1, Para(Text([2], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)):([Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([2], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)], 1, Para(Text([2], [Run(1, 0, -1)], 0), Lay([], [], -1), 0))
+
+// Inserts paragraph p at index (0 to the paragraph count); its layout is marked stale.
+body_insert(Body b, int index, Para p) {
+  paras_insert(b.paras, index, p);
+  para_stale(p);
+  b.rev = b.rev + 1;
+} return void;
+(Body([Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], 7), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), 1, Para(Text([2], [Run(1, 0, -1)], 0), Lay([], [], 7), 4)):(Body([Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], 7), 0), Para(Text([2], [Run(1, 0, -1)], 0), Lay([], [], -1), 4)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 1), 1, Para(Text([2], [Run(1, 0, -1)], 0), Lay([], [], -1), 4))
+(Body([Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], 7), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 3), 0, Para(Text([2], [Run(1, 0, -1)], 0), Lay([], [], -1), 4)):(Body([Para(Text([2], [Run(1, 0, -1)], 0), Lay([], [], -1), 4), Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], 7), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 4), 0, Para(Text([2], [Run(1, 0, -1)], 0), Lay([], [], -1), 4))

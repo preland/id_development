@@ -1,0 +1,51 @@
+// 2 when the slot count is not a power of two, 3 when the rows fill more than half the slots (a probe could then never end).
+tab_shape(Tab tb, int n) {
+  int m = len(tb.slots);
+  int code = 0;
+  if(m == 0 || (m & (m - 1)) != 0) {
+    code = 2;
+  }
+} chain (Tab tb, int n) {
+  if(code == 0 && n * 2 > m) {
+    code = 3;
+  }
+} return int code;
+(Tab([], 2, [0, 0, 0, 0]), 0):(0)
+(Tab([], 2, [0, 0, 0]), 0):(2)
+(Tab([], 2, [0, 0, 0, 0]), 3):(3)
+
+// 4 when some row is not found at its own id: interned rows are unique and found again.
+tab_rows_ok(Tab tb, int n) {
+  int code = 0;
+  int i = 0;
+  while(i < n && code == 0) {
+    int found = tab_find(tb, tab_row(tb, i));
+    if(found != i) {
+      code = 4;
+    }
+    i = i + 1;
+  }
+} return int code;
+(Tab([5, 6, 7, 8], 2, [0, 0, 1, 2, 0, 0, 0, 0]), 2):(0)
+(Tab([5, 6, 5, 6], 2, [0, 0, 1, 2, 0, 0, 0, 0]), 2):(4)
+(Tab([5, 6], 2, [0, 0, 0, 0, 0, 0, 0, 0]), 1):(4)
+
+// The invariants of an interning table, 0 when they hold: rows are whole (1), the slot count is a power of two (2) and at most half used (3), and every row is found at its own id (4).
+tab_check(Tab tb) {
+  int code = 0;
+  int n = len(tb.rows) / tb.width;
+  if(n * tb.width != len(tb.rows)) {
+    code = 1;
+  }
+} chain (Tab tb) {
+  if(code == 0) {
+    code = tab_shape(tb, n);
+  }
+  if(code == 0) {
+    code = tab_rows_ok(tb, n);
+  }
+} return int code;
+(Tab([5, 6, 7, 8], 2, [0, 0, 1, 2, 0, 0, 0, 0])):(0)
+(Tab([5, 6, 7], 2, [0, 0, 1, 0, 0, 0, 0, 0])):(1)
+(Tab([5, 6, 7, 8], 2, [1, 2])):(3)
+(Tab([5, 6, 5, 6], 2, [0, 0, 1, 2, 0, 0, 0, 0])):(4)

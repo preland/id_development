@@ -1,0 +1,34 @@
+style_tab(Fmt f, int which) {
+  Tab tb = f.chars;
+  if(which == 1) {
+    tb = f.paras;
+  }
+} return Tab tb;
+(Fmt(Tab([1], 1, []), Tab([2], 1, []), Sty([], [], 0)), 0):(Tab([1], 1, []))
+(Fmt(Tab([1], 1, []), Tab([2], 1, []), Sty([], [], 0)), 1):(Tab([2], 1, []))
+
+// The value of a field in style s's own row: its character row when which is 0, its paragraph row when which is 1. -1 means that style leaves it unset.
+style_cell(Fmt f, int sn, int which, int field) {
+  Tab tb = style_tab(f, which);
+  int[] fm = f.sty.styles[sn].fmt;
+  int got = tab_get(tb, fm[which], field);
+} return int got;
+(Fmt(Tab([10, 11, 20, 21], 2, []), Tab([30, 31, 40, 41], 2, []), Sty([Style("N", [0, -1, 0], [1, 0])], [], 0)), 0, 0, 1):(21)
+(Fmt(Tab([10, 11, 20, 21], 2, []), Tab([30, 31, 40, 41], 2, []), Sty([Style("N", [0, -1, 0], [1, 0])], [], 0)), 0, 1, 0):(30)
+
+// The first value that is not -1 for a field, walking from style sid up through its parents; -1 for sid -1, and a chain longer than word_style_depth (a cycle) ends the walk.
+style_up(Fmt f, int sid, int which, int field) {
+  int got = -1;
+  int sn = sid;
+  int n = 0;
+} chain (Fmt f, int sid, int which, int field) {
+  while(sn >= 0 && got == -1 && n < (import word_style_depth)) {
+    got = style_cell(f, sn, which, field);
+    sn = f.sty.styles[sn].rel[(import word_s_parent)];
+    n = n + 1;
+  }
+} return int got;
+(Fmt(Tab([-1, 5, 7, -1, -1, -1], 2, []), Tab([-1, -1], 2, []), Sty([Style("A", [0, -1, 0], [0, 0]), Style("B", [0, 0, 0], [1, 0]), Style("C", [0, 1, 0], [2, 0])], [], 0)), 2, 0, 0):(7)
+(Fmt(Tab([-1, 5, 7, -1, -1, -1], 2, []), Tab([-1, -1], 2, []), Sty([Style("A", [0, -1, 0], [0, 0]), Style("B", [0, 0, 0], [1, 0]), Style("C", [0, 1, 0], [2, 0])], [], 0)), 2, 0, 1):(5)
+(Fmt(Tab([-1, -1], 2, []), Tab([-1, -1], 2, []), Sty([Style("A", [0, 0, 0], [0, 0])], [], 0)), 0, 0, 1):(-1)
+(Fmt(Tab([-1, -1], 2, []), Tab([-1, -1], 2, []), Sty([], [], 0)), -1, 0, 0):(-1)

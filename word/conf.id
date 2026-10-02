@@ -1,0 +1,189 @@
+// Constants of the word processor's document model (docs/WORD.md 4.1).
+
+// Character row: where each field sits in a row of word_c_width ints. Unset is -1; "on" and "set" are flag bits, so "off" differs from "unset".
+int word_c_style = 0;
+int word_c_font = 1;
+int word_c_size = 2;
+int word_c_color = 3;
+int word_c_hl = 4;
+int word_c_on = 5;
+int word_c_set = 6;
+int word_c_width = 7;
+
+// Paragraph row: where each field sits in a row of word_p_width ints.
+int word_p_style = 0;
+int word_p_align = 1;
+int word_p_left = 2;
+int word_p_right = 3;
+int word_p_first = 4;
+int word_p_before = 5;
+int word_p_after = 6;
+int word_p_line = 7;
+int word_p_brk = 8;
+int word_p_list = 9;
+int word_p_level = 10;
+int word_p_kind = 11;
+int word_p_width = 12;
+
+// Character flag bits, as kept in the "on" and "set" fields.
+int word_f_bold = 1;
+int word_f_italic = 2;
+int word_f_under = 4;
+int word_f_strike = 8;
+int word_f_super = 16;
+int word_f_sub = 32;
+int word_f_all = 63;
+
+// Style.rel and Style.fmt offsets; a style's family is 0 for a paragraph style and 1 for a character style.
+int word_s_family = 0;
+int word_s_parent = 1;
+int word_s_next = 2;
+int word_s_cprop = 0;
+int word_s_pprop = 1;
+
+// ListDef.levels: five ints per level; kind 0 is a bullet whose format is its code point, kind 1 is a number whose format is 0 decimal, 1 lower alpha, 2 upper alpha, 3 lower roman, 4 upper roman.
+int word_l_stride = 5;
+int word_l_kind = 0;
+int word_l_fmt = 1;
+int word_l_start = 2;
+int word_l_left = 3;
+int word_l_hang = 4;
+
+// Page.size and Page.margin offsets, and the A4 portrait page with one inch margins in twips.
+int word_g_w = 0;
+int word_g_h = 1;
+int word_g_orient = 2;
+int word_g_top = 0;
+int word_g_right = 1;
+int word_g_bottom = 2;
+int word_g_left = 3;
+int[] word_page_size = [11906, 16838, 0];
+int[] word_page_margin = [1440, 1440, 1440, 1440];
+
+// The family every run uses until told otherwise; ext.fonts[0] of a new document.
+string word_font_default = "serif";
+
+// How many parents a style chain may walk before it is taken for a cycle.
+int word_style_depth = 16;
+
+// The built-in styles in index order: the name shown in the UI, the name on the wire (ODT), [family, parent, next], the character row and the paragraph row. These numbers are chosen defaults, not measured against Word.
+string[] word_style_names = ["Normal", "Title", "Subtitle", "Heading 1", "Heading 2", "Heading 3", "List Paragraph", "Quote"];
+string[] word_style_wire = ["Standard", "Title", "Subtitle", "Heading_20_1", "Heading_20_2", "Heading_20_3", "List_20_Paragraph", "Quote"];
+int[] word_style_rel = [0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0];
+int[] word_style_crow = [0, 0, 24, -1, -1, 0, 0, 0, -1, 56, -1, -1, 0, 0, 0, -1, 30, 5855577, -1, 0, 0, 0, -1, 32, -1, -1, 1, 1, 0, -1, 28, -1, -1, 1, 1, 0, -1, 26, -1, -1, 1, 1, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 2, 2];
+int[] word_style_prow = [-1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0, -1, -1, -1, -1, -1, 0, 240, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 0, 160, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 200, 0, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 160, 0, -1, 0, 0, 0, 0, -1, -1, 720, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, 720, 720, -1, 200, 200, -1, 0, 0, 0, 0];
+
+// The two built-in list definitions after the placeholder at index 0 (list id 0 means no list): three levels each.
+string[] word_list_names = ["Bullet", "Number"];
+int[] word_list_bullet = [0, 8226, 0, 720, 360, 0, 9702, 0, 1440, 360, 0, 9642, 0, 2160, 360];
+int[] word_list_number = [1, 0, 1, 720, 360, 1, 1, 1, 1440, 360, 1, 3, 1, 2160, 360];
+
+// The rows every table starts with, so that row id 0 is "nothing set" in both tables.
+int[] word_row_cdef = [0, -1, -1, -1, -1, 0, 0];
+int[] word_row_pdef = [0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0];
+
+// How text_apply changes a run's character row: set a field to a value, or turn flag bits on, off or back to unset.
+int word_m_field = 0;
+int word_m_bits = 1;
+
+// The 16 slots the invariant script draws an operation from (docs/WORD.md 5.3 B1): 0 insert, 1 delete, 2 runs_set, 3 patch, 4 patch_bits, 5 split, 6 join, 7 insert paragraph, 8 remove paragraph, 9 merge. Inserts come up most, so paragraphs grow before they shrink.
+int[] word_script_roll = [0, 0, 0, 0, 1, 1, 2, 3, 4, 5, 5, 6, 7, 8, 9, 0];
+
+// What a patch step sets, as [field, value] pairs: font size in half-points, font colour, highlight colour, and -1 for unset.
+int[] word_script_patch = [2, 24, 2, 28, 2, -1, 3, 255, 3, 65280, 4, 16776960];
+
+// ===== B7a: ribbon and key tables (begin) =====
+int rib_tab_file = 0;
+int rib_tab_home = 1;
+int rib_tab_insert = 2;
+int rib_tab_layout = 3;
+int rib_tab_view = 4;
+int rib_tab_qat = 5;
+int kind_button = 0;
+int kind_toggle = 1;
+int kind_split = 2;
+int kind_drop = 3;
+int kind_combo = 4;
+int kind_gallery = 5;
+int kind_color = 6;
+int kind_stepper = 7;
+int kind_menu = 8;
+int kind_wide = 9;
+int mod_shift = 1;
+int mod_ctrl = 2;
+int mod_alt = 4;
+int rib_margin = 4;
+int rib_gpad = 4;
+int rib_sep = 4;
+int rib_hgap = 2;
+int rib_cap_h = 18;
+int rib_cap_cw = 6;
+int rib_flex_grow = 290;
+int cmd_new = 101;
+int cmd_open = 102;
+int cmd_save = 103;
+int cmd_save_as = 104;
+int cmd_undo = 201;
+int cmd_redo = 202;
+int cmd_cut = 203;
+int cmd_copy = 204;
+int cmd_paste = 205;
+int cmd_select_all = 206;
+int cmd_find = 207;
+int cmd_replace = 208;
+int cmd_bold = 301;
+int cmd_italic = 302;
+int cmd_underline = 303;
+int cmd_strike = 304;
+int cmd_sub = 305;
+int cmd_sup = 306;
+int cmd_font_family = 307;
+int cmd_font_size = 308;
+int cmd_size_grow = 309;
+int cmd_size_shrink = 310;
+int cmd_font_color = 311;
+int cmd_highlight = 312;
+int cmd_clear_fmt = 313;
+int cmd_align_left = 401;
+int cmd_align_center = 402;
+int cmd_align_right = 403;
+int cmd_align_justify = 404;
+int cmd_bullets = 405;
+int cmd_numbering = 406;
+int cmd_indent_dec = 407;
+int cmd_indent_inc = 408;
+int cmd_line_spacing = 409;
+int cmd_indent_left = 410;
+int cmd_indent_right = 411;
+int cmd_space_before = 412;
+int cmd_space_after = 413;
+int cmd_style = 414;
+int cmd_style_h1 = 415;
+int cmd_style_h2 = 416;
+int cmd_style_h3 = 417;
+int cmd_list_deeper = 418;
+int cmd_list_shallower = 419;
+int cmd_page_break = 501;
+int cmd_page_size = 502;
+int cmd_page_orient = 503;
+int cmd_page_margins = 504;
+int cmd_zoom_in = 601;
+int cmd_zoom_out = 602;
+int cmd_zoom_100 = 603;
+int cmd_zoom_fit = 604;
+int[] cmd_all = [cmd_new, cmd_open, cmd_save, cmd_save_as, cmd_undo, cmd_redo, cmd_cut, cmd_copy, cmd_paste, cmd_select_all, cmd_find, cmd_replace, cmd_bold, cmd_italic, cmd_underline, cmd_strike, cmd_sub, cmd_sup, cmd_font_family, cmd_font_size, cmd_size_grow, cmd_size_shrink, cmd_font_color, cmd_highlight, cmd_clear_fmt, cmd_align_left, cmd_align_center, cmd_align_right, cmd_align_justify, cmd_bullets, cmd_numbering, cmd_indent_dec, cmd_indent_inc, cmd_line_spacing, cmd_indent_left, cmd_indent_right, cmd_space_before, cmd_space_after, cmd_style, cmd_style_h1, cmd_style_h2, cmd_style_h3, cmd_list_deeper, cmd_list_shallower, cmd_page_break, cmd_page_size, cmd_page_orient, cmd_page_margins, cmd_zoom_in, cmd_zoom_out, cmd_zoom_100, cmd_zoom_fit];
+string[] grp_label = ["", "Clipboard", "Font", "Paragraph", "Styles", "Editing", "Pages", "Page Setup", "Paragraph", "Zoom", "", ""];
+int[] rb_tab = [rib_tab_file, rib_tab_file, rib_tab_file, rib_tab_file, rib_tab_qat, rib_tab_qat, rib_tab_qat, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_home, rib_tab_insert, rib_tab_layout, rib_tab_layout, rib_tab_layout, rib_tab_layout, rib_tab_layout, rib_tab_layout, rib_tab_layout, rib_tab_view, rib_tab_view, rib_tab_view, rib_tab_view];
+int[] rb_group = [10, 10, 10, 10, 11, 11, 11, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 5, 5, 5, 6, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9];
+int[] rb_kind = [kind_menu, kind_menu, kind_menu, kind_menu, kind_button, kind_button, kind_button, kind_split, kind_button, kind_button, kind_combo, kind_combo, kind_button, kind_button, kind_toggle, kind_toggle, kind_toggle, kind_toggle, kind_toggle, kind_toggle, kind_color, kind_color, kind_button, kind_split, kind_split, kind_button, kind_button, kind_toggle, kind_toggle, kind_toggle, kind_toggle, kind_drop, kind_gallery, kind_wide, kind_wide, kind_wide, kind_button, kind_drop, kind_drop, kind_drop, kind_stepper, kind_stepper, kind_stepper, kind_stepper, kind_button, kind_button, kind_button, kind_wide];
+int[] rb_cmd = [cmd_new, cmd_open, cmd_save, cmd_save_as, cmd_save, cmd_undo, cmd_redo, cmd_paste, cmd_cut, cmd_copy, cmd_font_family, cmd_font_size, cmd_size_grow, cmd_size_shrink, cmd_bold, cmd_italic, cmd_underline, cmd_strike, cmd_sub, cmd_sup, cmd_highlight, cmd_font_color, cmd_clear_fmt, cmd_bullets, cmd_numbering, cmd_indent_dec, cmd_indent_inc, cmd_align_left, cmd_align_center, cmd_align_right, cmd_align_justify, cmd_line_spacing, cmd_style, cmd_find, cmd_replace, cmd_select_all, cmd_page_break, cmd_page_margins, cmd_page_orient, cmd_page_size, cmd_indent_left, cmd_space_before, cmd_indent_right, cmd_space_after, cmd_zoom_fit, cmd_zoom_in, cmd_zoom_out, cmd_zoom_100];
+int[] rb_icon = [cmd_new, cmd_open, cmd_save, cmd_save_as, cmd_save, cmd_undo, cmd_redo, cmd_paste, cmd_cut, cmd_copy, 0, 0, cmd_size_grow, cmd_size_shrink, 66, 73, 85, 83, cmd_sub, cmd_sup, cmd_highlight, 65, cmd_clear_fmt, cmd_bullets, cmd_numbering, cmd_indent_dec, cmd_indent_inc, cmd_align_left, cmd_align_center, cmd_align_right, cmd_align_justify, cmd_line_spacing, 0, cmd_find, cmd_replace, cmd_select_all, cmd_page_break, cmd_page_margins, cmd_page_orient, cmd_page_size, 0, 0, 0, 0, cmd_zoom_fit, cmd_zoom_in, cmd_zoom_out, 0];
+string[] rb_label = ["New", "Open", "Save", "Save As", "Save", "Undo", "Redo", "Paste", "Cut", "Copy", "Font", "Font Size", "Grow Font", "Shrink Font", "Bold", "Italic", "Underline", "Strikethrough", "Subscript", "Superscript", "Highlight", "Font Color", "Clear Formatting", "Bullets", "Numbering", "Decrease Indent", "Increase Indent", "Align Left", "Center", "Align Right", "Justify", "Line Spacing", "Styles", "Find", "Replace", "Select All", "Page Break", "Margins", "Orientation", "Size", "Left Indent", "Spacing Before", "Right Indent", "Spacing After", "Fit Width", "Zoom In", "Zoom Out", "100%"];
+string[] rb_tip = ["Start a new blank document.", "Open an existing document.", "Save the document.", "Save the document under another name.", "Save the document.", "Undo the last change.", "Redo the change that was undone.", "Insert the clipboard at the caret.", "Remove the selection and keep it on the clipboard.", "Copy the selection to the clipboard.", "Choose the font family of the selection.", "Choose the font size of the selection.", "Make the selected text larger.", "Make the selected text smaller.", "Make the selected text bold.", "Make the selected text italic.", "Underline the selected text.", "Draw a line through the selected text.", "Lower the selected text below the line.", "Raise the selected text above the line.", "Mark the selected text with a background color.", "Change the color of the selected text.", "Remove the direct formatting of the selection.", "Start or stop a bulleted list.", "Start or stop a numbered list.", "Move the paragraph one level out.", "Move the paragraph one level in.", "Align the paragraph to the left margin.", "Center the paragraph between the margins.", "Align the paragraph to the right margin.", "Align the paragraph to both margins.", "Choose the space between lines of the paragraph.", "Apply a style to the paragraph.", "Find text in the document.", "Find text and replace it.", "Select the whole document.", "Start a new page at the caret.", "Choose the page margins.", "Choose portrait or landscape.", "Choose the paper size.", "Set the distance of the paragraph from the left margin.", "Set the space above the paragraph.", "Set the distance of the paragraph from the right margin.", "Set the space below the paragraph.", "Zoom so the page fills the window width.", "Make the page larger on screen.", "Make the page smaller on screen.", "Show the page at its actual size."];
+int[] rb_key = [mod_ctrl * 4096 + 110, mod_ctrl * 4096 + 111, mod_ctrl * 4096 + 115, (mod_ctrl + mod_shift) * 4096 + 115, mod_ctrl * 4096 + 115, mod_ctrl * 4096 + 122, mod_ctrl * 4096 + 121, mod_ctrl * 4096 + 118, mod_ctrl * 4096 + 120, mod_ctrl * 4096 + 99, 0, 0, mod_ctrl * 4096 + 93, mod_ctrl * 4096 + 91, mod_ctrl * 4096 + 98, mod_ctrl * 4096 + 105, mod_ctrl * 4096 + 117, 0, 0, 0, 0, 0, 0, (mod_ctrl + mod_shift) * 4096 + 108, 0, 0, 0, mod_ctrl * 4096 + 108, mod_ctrl * 4096 + 101, mod_ctrl * 4096 + 114, mod_ctrl * 4096 + 106, 0, 0, mod_ctrl * 4096 + 102, mod_ctrl * 4096 + 104, mod_ctrl * 4096 + 97, mod_ctrl * 4096 + 1009, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, mod_ctrl * 4096 + 48];
+int[] rb_row = [0, 0, 0, 0, 3, 3, 3, 3, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 3, 0, 1, 2, 3, 3, 3, 3, 0, 0, 1, 1, 3, 0, 1, 2];
+int[] rb_w = [180, 180, 180, 180, 24, 24, 24, 52, 24, 24, 120, 44, 24, 24, 24, 24, 24, 24, 24, 24, 36, 36, 24, 36, 36, 24, 24, 24, 24, 24, 24, 40, 150, 64, 64, 64, 52, 64, 76, 52, 90, 90, 90, 90, 52, 24, 24, 64];
+int[] key_code = [mod_ctrl * 4096 + 110, mod_ctrl * 4096 + 111, mod_ctrl * 4096 + 115, (mod_ctrl + mod_shift) * 4096 + 115, mod_ctrl * 4096 + 122, mod_ctrl * 4096 + 121, (mod_ctrl + mod_shift) * 4096 + 122, mod_ctrl * 4096 + 120, mod_ctrl * 4096 + 99, mod_ctrl * 4096 + 118, mod_ctrl * 4096 + 97, mod_ctrl * 4096 + 98, mod_ctrl * 4096 + 105, mod_ctrl * 4096 + 117, mod_ctrl * 4096 + 108, mod_ctrl * 4096 + 101, mod_ctrl * 4096 + 114, mod_ctrl * 4096 + 106, mod_ctrl * 4096 + 102, mod_ctrl * 4096 + 104, mod_ctrl * 4096 + 1009, mod_ctrl * 4096 + 91, mod_ctrl * 4096 + 93, (mod_ctrl + mod_shift) * 4096 + 108, (mod_ctrl + mod_alt) * 4096 + 49, (mod_ctrl + mod_alt) * 4096 + 50, (mod_ctrl + mod_alt) * 4096 + 51, mod_ctrl * 4096 + 48, 1010, mod_shift * 4096 + 1010];
+int[] key_cmds = [cmd_new, cmd_open, cmd_save, cmd_save_as, cmd_undo, cmd_redo, cmd_redo, cmd_cut, cmd_copy, cmd_paste, cmd_select_all, cmd_bold, cmd_italic, cmd_underline, cmd_align_left, cmd_align_center, cmd_align_right, cmd_align_justify, cmd_find, cmd_replace, cmd_page_break, cmd_size_shrink, cmd_size_grow, cmd_bullets, cmd_style_h1, cmd_style_h2, cmd_style_h3, cmd_zoom_100, cmd_list_deeper, cmd_list_shallower];
+string[] key_names = ["Left", "Right", "Up", "Down", "Home", "End", "Backspace", "Delete", "Enter", "Tab", "Esc", "PgUp", "PgDn"];
+// ===== B7a: ribbon and key tables (end) =====

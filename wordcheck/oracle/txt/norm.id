@@ -1,0 +1,30 @@
+// LibreOffice's txt export as plain text: its UTF-8 byte-order mark dropped and CRLF line ends made LF.
+otxt_norm(string raw) {
+  int skip = otxt_bom(raw);
+  string body = str_slice(raw, skip, len(raw) - skip);
+  string[] parts = str_split(body, "\r\n");
+} chain (string raw) {
+  string flat = str_join(parts, "\n");
+} return string flat;
+("﻿abc\ndef\n"):("abc\ndef\n")
+("a\r\nb\r\n"):("a\nb\n")
+("plain"):("plain")
+
+// 3 when the text starts with the UTF-8 byte-order mark (EF BB BF) that soffice writes first, else 0.
+otxt_bom(string raw) {
+  int skip = 0;
+  if (charat(raw, 0) == 239 && charat(raw, 1) == 187 && charat(raw, 2) == 191) {
+    skip = 3;
+  }
+} return int skip;
+("﻿x"):(3)
+("x"):(0)
+("é"):(0)
+
+// The normalised text of a txt file soffice wrote; "" when it cannot be read.
+otxt_norm_file(string path) {
+  string raw = fs_read_text(path);
+  string flat = otxt_norm(raw);
+} return string flat;
+("../word/test_assets/oracle/out/07_pages.txt"):("A4 portrait, 21 by 29.7 cm, margins 2 cm.\nUS Letter portrait, 8.5 by 11 in, margins 2 cm.\nA4 landscape, 29.7 by 21 cm, margins 2 cm.\n")
+("../word/test_assets/oracle/out/none.txt"):("")

@@ -1,0 +1,22 @@
+// Splits run i so that its first cut code points stay in it and the rest become a new run after it.
+run_halve(Text t, int i, int cut) {
+  Run ru = t.runs[i];
+  Run nr = Run(ru.len - cut, ru.cprop, ru.link);
+  ru.len = cut;
+} chain (Text t, int i, int cut) {
+  rs_insert(t.runs, i + 1, nr);
+} return void;
+(Text([1, 2, 3], [Run(3, 4, 5)], 0), 0, 1):(Text([1, 2, 3], [Run(1, 4, 5), Run(2, 4, 5)], 0), 0, 1)
+(Text([1, 2, 3], [Run(1, 0, -1), Run(2, 4, 5), Run(0, 9, -1)], 0), 1, 1):(Text([1, 2, 3], [Run(1, 0, -1), Run(1, 4, 5), Run(1, 4, 5), Run(0, 9, -1)], 0), 1, 1)
+
+// The index of the run that starts at off, after splitting the run i that holds it if it began earlier.
+run_split(Text t, int i, int off) {
+  int at = run_start(t, i);
+  int res = i;
+  if(at < off) {
+    run_halve(t, i, off - at);
+    res = i + 1;
+  }
+} return int res;
+(Text([1, 2, 3], [Run(3, 0, -1)], 0), 0, 2):(1) then calls run_halve:[1]
+(Text([1, 2, 3], [Run(1, 0, -1), Run(2, 0, -1)], 0), 1, 1):(1) then calls run_halve:[0]

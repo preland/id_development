@@ -1,0 +1,25 @@
+// The run invariants of a paragraph's text, 0 when they hold: the runs cover the code points exactly (2), none is empty while there is text (3), an empty paragraph has exactly one run (1 for none, 4 for more), and no two neighbours carry the same properties (5).
+text_check(Text t) {
+  int code = 0;
+  int n = len(t.runs);
+  if(n == 0) {
+    code = 1;
+  }
+} chain (Text t) {
+  if(code == 0 && runs_total(t.runs) != len(t.cps)) {
+    code = 2;
+  }
+  if(code == 0 && len(t.cps) == 0 && n != 1) {
+    code = 4;
+  }
+  if(code == 0) {
+    code = text_scan(t);
+  }
+} return int code;
+(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 0)):(0)
+(Text([], [Run(0, 0, -1)], 0)):(0)
+(Text([1, 2], [], 0)):(1)
+(Text([1, 2], [Run(1, 0, -1)], 0)):(2)
+(Text([1, 2], [Run(2, 0, -1), Run(0, 5, -1)], 0)):(3)
+(Text([], [Run(0, 0, -1), Run(0, 5, -1)], 0)):(4)
+(Text([1, 2], [Run(1, 0, -1), Run(1, 0, -1)], 0)):(5)

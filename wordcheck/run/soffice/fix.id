@@ -1,0 +1,15 @@
+// Starts a child from its argument lines and exports its handle. A child that reads its standard input waits there for ever, which is what a case wants to kill.
+soff_t_spawn(string cmd) {
+  export int soff_h = proc_spawn(cmd);
+} return void;
+("true\n"):() then soff_t_gone:(1)
+("sh\n-c\nread x\n"):() then soff_t_gone:(0)
+
+// 1 when the spawned child has exited within 300 ms; a child still running is killed and counts as 0.
+soff_t_gone() {
+  int code = proc_wait((import soff_h), 300);
+  int gone = code >= 0;
+  int killed = proc_kill((import soff_h));
+} return int gone;
+given soff_t_spawn("true\n") ():(1)
+given soff_t_spawn("sh\n-c\nread x\n") ():(0)

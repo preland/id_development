@@ -1,0 +1,44 @@
+// Which of the driver's modes a command line asks for: run one fixture, list them, count them, or none of those.
+cli_mode(int argc, string[] argv) {
+  int mode = (import mode_usage);
+  if (argc >= 2 && argc <= 3) {
+    mode = cli_pick(argv[1]);
+  }
+} return int mode;
+(1, ["wordcheck"]):(0)
+(4, ["wordcheck", "1", "x", "y"]):(0)
+(2, ["wordcheck", "7"]):(1)
+(3, ["wordcheck", "--list", "assets"]):(2)
+
+// The mode a first word names: a fixture index (digits only), --list or --count; anything else is no mode.
+cli_pick(string word) {
+  int mode = (import mode_usage);
+  if (cli_digits(word) == 1) {
+    mode = (import mode_run);
+  }
+  if (word == "--list") {
+    mode = (import mode_list);
+  }
+} chain (string word) {
+  if (word == "--count") {
+    mode = (import mode_count);
+  }
+} return int mode;
+("12"):(1)
+("--list"):(2)
+("--count"):(3)
+("12x"):(0)
+
+// 1 when every byte of the word is a digit and there is at least one.
+cli_digits(string word) {
+  int i = 0;
+  int ok = len(word) > 0;
+  while (charat(word, i) >= 0) {
+    ok = ok * chr_is_digit(charat(word, i));
+    i = i + 1;
+  }
+} return int ok;
+("0123"):(1)
+(""):(0)
+("1a"):(0)
+("a1"):(0)

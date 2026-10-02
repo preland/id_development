@@ -1,0 +1,36 @@
+runs_total(Run[] rs) {
+  int n = 0;
+  int i = 0;
+  while(i < len(rs)) {
+    n = n + rs[i].len;
+    i = i + 1;
+  }
+} return int n;
+([Run(2, 0, -1), Run(3, 5, -1)]):(5)
+([]):(0)
+
+// What is wrong with run i, 0 when nothing is: 3 an empty run in a paragraph that has text, 5 the same properties as the run before it.
+run_flaw(Text t, int i) {
+  int code = 0;
+  if(t.runs[i].len <= 0 && len(t.cps) > 0) {
+    code = 3;
+  }
+  if(i > 0 && run_same(t.runs[i - 1], t.runs[i]) == 1) {
+    code = 5;
+  }
+} return int code;
+(Text([1, 2], [Run(1, 0, -1), Run(0, 5, -1), Run(1, 0, -1)], 0), 1):(3)
+(Text([1, 2], [Run(1, 0, -1), Run(1, 0, -1)], 0), 1):(5)
+(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 0), 1):(0)
+
+text_scan(Text t) {
+  int code = 0;
+  int i = 0;
+  while(i < len(t.runs) && code == 0) {
+    code = run_flaw(t, i);
+    i = i + 1;
+  }
+} return int code;
+(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 0)):(0)
+(Text([1, 2], [Run(1, 0, -1), Run(1, 0, -1)], 0)):(5)
+(Text([1, 2], [Run(2, 0, -1), Run(0, 5, -1)], 0)):(3)

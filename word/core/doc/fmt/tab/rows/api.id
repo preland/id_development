@@ -1,0 +1,27 @@
+// An empty table of rows of the given width; eight slots to start with.
+tab_new(int width) {
+  int[] rows = [];
+  int[] sls = [0, 0, 0, 0, 0, 0, 0, 0];
+  Tab tb = Tab(rows, width, sls);
+} return Tab tb;
+(3):(Tab([], 3, [0, 0, 0, 0, 0, 0, 0, 0]))
+(12):(Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]))
+
+// The id of the row equal to row, adding it when it is new; -1 for a row that is not width ints long.
+tab_intern(Tab tb, int[] row) {
+  int id = tab_find(tb, row);
+  if(id < 0 && len(row) == tb.width) {
+    id = len(tb.rows) / tb.width;
+    tab_add(tb, row);
+  }
+} return int id;
+(Tab([5, 6, 7, 8], 2, [0, 0, 1, 2, 0, 0, 0, 0]), [7, 8]):(1) then calls tab_add:[0]
+(Tab([5, 6], 2, [0, 0, 1, 0, 0, 0, 0, 0]), [7, 8]):(1) then calls tab_add:[1]
+(Tab([5, 6], 2, [0, 0, 1, 0, 0, 0, 0, 0]), [7]):(-1) then calls tab_add:[0]
+
+tab_get(Tab tb, int id, int field) {
+  int at = id * tb.width + field;
+  int got = tb.rows[at];
+} return int got;
+(Tab([1, 2, 3, 4, 5, 6], 3, []), 1, 2):(6)
+(Tab([1, 2, 3, 4, 5, 6], 3, []), 0, 0):(1)

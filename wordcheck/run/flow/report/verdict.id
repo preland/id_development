@@ -1,0 +1,36 @@
+// The word a lane verdict is printed as; an unavailable lane says why.
+rep_verdict(int v) {
+  string says = "FAIL";
+  if (v == (import lane_ok)) {
+    says = "OK";
+  }
+  if (v == (import lane_unavailable)) {
+    says = "UNAVAILABLE(" + (import no_word) + ")";
+  }
+} return string says;
+(1):("OK")
+(0):("FAIL")
+(2):("UNAVAILABLE(word binary not available)")
+
+// "mode=VERDICT" for one word-binary lane.
+rep_word_one(string wmode) {
+  int v = wlane_run(wmode);
+  string says = rep_verdict(v);
+  string part = wmode + "=" + says;
+} return string part;
+("--text"):("--text=UNAVAILABLE(word binary not available)")
+("--bogus"):("--bogus=FAIL")
+
+// The word-binary lanes, space separated.
+rep_word_all(string[] modes) {
+  string[] parts = [];
+  int i = 0;
+  while (i < len(modes)) {
+    push(parts, rep_word_one(modes[i]));
+    i = i + 1;
+  }
+} chain (string[] modes) {
+  string line = str_join(parts, " ");
+} return string line;
+(["--text", "--dump"]):("--text=UNAVAILABLE(word binary not available) --dump=UNAVAILABLE(word binary not available)")
+(["--bogus"]):("--bogus=FAIL")

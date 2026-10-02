@@ -1,0 +1,22 @@
+tip_head(string label, int code) {
+  string rhead = label;
+  if(code != 0) {
+    rhead = label + " (" + key_text(code) + ")";
+  }
+} return string rhead;
+("Bold", 8290):("Bold (Ctrl+B)")
+("Strikethrough", 0):("Strikethrough")
+
+row_tip(int rrow) {
+  string rhead = tip_head((import rb_label)[rrow], (import rb_key)[rrow]);
+  string text = rhead + "\n" + (import rb_tip)[rrow];
+} return string text;
+(14):("Bold (Ctrl+B)\nMake the selected text bold.")
+(17):("Strikethrough\nDraw a line through the selected text.")
+
+rib_tip(Ribbon rib, int i) {
+  int rrow = rib.items[i];
+  string text = row_tip(rrow);
+} return string text;
+(Ribbon([14], [], [0]), 0):("Bold (Ctrl+B)\nMake the selected text bold.")
+(Ribbon([4, 17], [], [0, 0]), 1):("Strikethrough\nDraw a line through the selected text.")

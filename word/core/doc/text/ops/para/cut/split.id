@@ -1,0 +1,24 @@
+// Marks a paragraph's layout stale so the next layout pass redoes it.
+para_stale(Para p) {
+  Lay ly = p.lay;
+  ly.h = -1;
+} return void;
+(Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], 5), 0)):(Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], -1), 0))
+(Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)):(Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], -1), 0))
+
+// Splits paragraph para at code point off into two paragraphs; the second has the first's paragraph row, and the first keeps the text before off.
+body_split(Body b, int para, int off) {
+  Para p = b.paras[para];
+  Text nt = text_tail(p.txt, off);
+  Para np = para_make(nt, p.pprop);
+} chain (Body b, int para, int off) {
+  paras_insert(b.paras, para + 1, np);
+  para_stale(p);
+  b.rev = b.rev + 1;
+} return void;
+(Body([Para(Text([1, 2, 3, 4], [Run(2, 0, -1), Run(2, 5, -1)], 0), Lay([], [], 7), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), 0, 3):(Body([Para(Text([1, 2, 3], [Run(2, 0, -1), Run(1, 5, -1)], 1), Lay([], [], -1), 3), Para(Text([4], [Run(1, 5, -1)], 0), Lay([], [], -1), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 1), 0, 3)
+(Body([Para(Text([1, 2], [Run(2, 5, -1)], 0), Lay([], [], 7), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), 0, 0):(Body([Para(Text([], [Run(0, 5, -1)], 1), Lay([], [], -1), 3), Para(Text([1, 2], [Run(2, 5, -1)], 0), Lay([], [], -1), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 1), 0, 0)
+(Body([Para(Text([1, 2], [Run(2, 5, -1)], 0), Lay([], [], 7), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), 0, 2):(Body([Para(Text([1, 2], [Run(2, 5, -1)], 1), Lay([], [], -1), 3), Para(Text([], [Run(0, 5, -1)], 0), Lay([], [], -1), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 1), 0, 2)
+(Body([Para(Text([9], [Run(1, 1, -1)], 0), Lay([], [], 7), 0), Para(Text([1, 2], [Run(2, 0, -1)], 0), Lay([], [], 7), 4)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 2), 1, 1):(Body([Para(Text([9], [Run(1, 1, -1)], 0), Lay([], [], 7), 0), Para(Text([1], [Run(1, 0, -1)], 1), Lay([], [], -1), 4), Para(Text([2], [Run(1, 0, -1)], 0), Lay([], [], -1), 4)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 3), 1, 1)
+(Body([Para(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 0), Lay([], [], 7), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), 0, 0):(Body([Para(Text([], [Run(0, 0, -1)], 1), Lay([], [], -1), 3), Para(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 0), Lay([], [], -1), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 1), 0, 0)
+(Body([Para(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 0), Lay([], [], 7), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), 0, 2):(Body([Para(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 1), Lay([], [], -1), 3), Para(Text([], [Run(0, 5, -1)], 0), Lay([], [], -1), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 1), 0, 2)

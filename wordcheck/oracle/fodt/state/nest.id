@@ -1,0 +1,29 @@
+// Adds one to a nesting counter when the line opened the construct and takes one off when it closed it; a line that does both nets nothing.
+ofodt_nest(int[] st, int slot, int opened, int closed) {
+  st[slot] = st[slot] + opened - (closed >= 0);
+} return void;
+([0, 0, 0, 0], 1, 1, -1):([0, 1, 0, 0])
+([0, 2, 0, 0], 1, 0, 5):([0, 1, 0, 0])
+([0, 0, 0, 0], 3, 1, 9):([0, 0, 0, 0])
+
+// Tracks the list, table and frame depth a line leaves behind.
+ofodt_depth(string line, int[] st) {
+  ofodt_nest(st, (import s_list), ofodt_opens(line, "<text:list"), str_find(line, "</text:list>"));
+  ofodt_nest(st, (import s_table), ofodt_opens(line, "<table:table"), str_find(line, "</table:table>"));
+  ofodt_nest(st, (import s_frame), str_find(line, "<draw:frame ") >= 0, str_find(line, "</draw:frame>"));
+} return void;
+("<text:list text:style-name=\"L1\">", [1, 0, 0, 0]):("<text:list text:style-name=\"L1\">", [1, 1, 0, 0])
+("</text:list>", [1, 2, 0, 0]):("</text:list>", [1, 1, 0, 0])
+("<table:table table:name=\"T\">", [1, 0, 0, 0]):("<table:table table:name=\"T\">", [1, 0, 1, 0])
+("<text:p><draw:frame a=\"1\">", [1, 0, 0, 0]):("<text:p><draw:frame a=\"1\">", [1, 0, 0, 1])
+("<table:table-row>", [1, 0, 1, 0]):("<table:table-row>", [1, 0, 1, 0])
+
+// 1 when a line is live: inside the body and outside every table and frame.
+ofodt_live(int[] st) {
+  int live = st[(import s_body)] == 1 && st[(import s_table)] == 0 && st[(import s_frame)] == 0;
+} return int live;
+([1, 0, 0, 0]):(1)
+([1, 3, 0, 0]):(1)
+([0, 0, 0, 0]):(0)
+([1, 0, 1, 0]):(0)
+([1, 0, 0, 1]):(0)
