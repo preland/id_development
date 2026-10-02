@@ -1,0 +1,43 @@
+indent_value(string txt) {
+  int n = -1;
+  if (len(txt) >= 1 && len(txt) <= 3 && all_digits(txt) = 1) {
+    n = to_int(txt);
+  }
+  if (n > 64) {
+    n = -1;
+  }
+} return int n;
+("2"):(2)
+("64"):(64)
+("65"):(-1)
+(""):(-1)
+("1000"):(-1)
+("x"):(-1)
+("007"):(7)
+("0"):(0)
+("-1"):(-1)
+("0007"):(-1)
+("4294967297"):(-1)
+
+note_seen(int bit) {
+  int seen = (import jc)[(import c_seen)] | bit;
+  lset((import jc), (import c_seen), seen);
+} return void;
+given st_init (1):() then t_seen:(1)
+given st_init (4):() then t_seen:(4)
+given t_noted (4):() then t_seen:(7)
+
+indent_store(int n, string txt, int nxt) {
+  int r = nxt;
+  if (n < 0) {
+    eprint("jsontool: --indent needs an integer from 0 to 64, got '" + txt + "'");
+    r = (import a_bad);
+  } else {
+    lset((import jc), (import c_ind), n);
+    note_seen(1);
+  }
+} return int r;
+given st_init (5, "5", 7):(7) then t_ind:(5)
+given st_init (5, "5", 7):(7) then t_seen:(1)
+given st_init (-1, "abc", 7):(-1) then eprints:("jsontool: --indent needs an integer from 0 to 64, got 'abc'\n")
+given st_init (-1, "abc", 7):(-1) then t_ind:(2)

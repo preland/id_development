@@ -1,0 +1,33 @@
+aft_root(int pos) {
+  int nx = (import s_end);
+  if (byte_at(pos) >= 0) {
+    int bad = fail((import e_extra), pos);
+    nx = (import s_bad);
+  }
+} return int nx;
+given t_load stdin "  " (2):(3)
+given t_load stdin "1 x" (2):(4) then t_err:(7)
+given t_load stdin "1 x" (2):(4) then t_erp:(2)
+given t_hexload stdin "31 00" (1):(4) then t_err:(7)
+given t_hexload stdin "31 20 20" (3):(3)
+
+aft_go(int pos, int par) {
+  int nx = 0;
+  if (par < 0) {
+    nx = aft_root(pos);
+  } else {
+    nx = aft_in(pos, par);
+  }
+} return int nx;
+given t_load stdin "" (0, -1):(3)
+given t_parse stdin "[[1]" (3, 0):(2)
+given t_load stdin "x" (0, -1):(4) then t_err:(7)
+
+step_aft() {
+  int pos = skip_ws((import jc)[(import c_pos)]);
+  int par = stk_top();
+  int nx = aft_go(pos, par);
+} return int nx;
+given t_load stdin " " ():(3)
+given t_load stdin "1" ():(4) then t_err:(7)
+given t_parse stdin "[[1]" ():(4) then t_err:(4)

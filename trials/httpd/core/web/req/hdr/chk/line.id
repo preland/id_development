@@ -1,0 +1,34 @@
+hd_line_ok(string line) {
+  int c = str_find(line, ":");
+  int ok = 0;
+  if(c > 0) {
+    ok = hd_line_chk(line, c);
+  }
+} return int ok;
+("Host: x"):(1)
+(": nameless"):(0)
+("no colon"):(0)
+(" folded: continuation"):(0)
+("Host : x"):(0)
+("X: a\rb"):(0)
+
+hd_line_chk(string line, int c) {
+  int a = hd_tok_ok(line, c);
+  int b = hd_value_ok(line, c + 1);
+  int ok = a & b;
+} return int ok;
+("Host: x", 4):(1)
+("Ho st: x", 5):(0)
+("Host: x\ny", 4):(0)
+
+hd_tok_ok(string s, int c) {
+  int i = 0;
+  int ok = 1;
+  while(i < c && ok == 1) {
+    ok = hd_tchar(charat(s, i));
+    i = i + 1;
+  }
+} return int ok;
+("Host", 4):(1)
+("Ho st", 5):(0)
+("a(b", 1):(1)

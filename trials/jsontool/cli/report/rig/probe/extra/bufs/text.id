@@ -1,0 +1,21 @@
+// The text in a scratch buffer: the decoded bytes are followed by zeros, so the
+// length is where the first zero is. str_of_mem refuses a range that holds one.
+s_text(int w) {
+  word stx_ad = (import jw)[w];
+  int stx_n = buf_zlen(stx_ad, 8);
+  string stx_s = str_of_mem(stx_ad, stx_n);
+} return string stx_s;
+given t_dec_a stdin "a" (2):("a")
+given t_load stdin "abc" (2):("")
+
+t_s0() {
+  string s = s_text((import w_s0));
+} return string s;
+given t_load stdin "abc" ():("")
+given t_dec_a stdin "a" ():("a")
+
+t_s1() {
+  string s = s_text((import w_s1));
+} return string s;
+given t_load stdin "abc" ():("")
+given t_dec2 stdin "{\"ab\":0,\"ac\":0}" ():("ac")

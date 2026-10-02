@@ -1,0 +1,41 @@
+// HTML escaping for directory listings and error pages. Bytes are copied as
+// one-byte slices rather than through chr, so UTF-8 passes through untouched.
+
+hd_html_esc(string t_s) {
+  string t_o = "";
+  int t_i = 0;
+  t_o = hd_html_run(t_s, t_i, t_o);
+} return string t_o;
+(""):("")
+("plain"):("plain")
+("<a href=\"x\">'&'</a>"):("&lt;a href=&quot;x&quot;&gt;&#39;&amp;&#39;&lt;/a&gt;")
+("&amp;"):("&amp;amp;")
+("é<"):("é&lt;")
+
+hd_html_run(string t_s, int t_i, string t_o) {
+  while(charat(t_s, t_i) >= 0) {
+    string t_p = str_slice(t_s, t_i, 1);
+    t_o = t_o + hd_html_one(t_p);
+    t_i = t_i + 1;
+  }
+} return string t_o;
+("a<b", 0, ""):("a&lt;b")
+("a<b", 2, "Z"):("Zb")
+("a<b", 3, "Z"):("Z")
+
+hd_html_one(string t_p) {
+  int t_k = str_find("&<>\"'", t_p);
+  string[] t_mp = ["&amp;", "&lt;", "&gt;", "&quot;", "&#39;"];
+  string t_o = t_p;
+} chain (string t_p) {
+  if(t_k >= 0) {
+    t_o = t_mp[t_k];
+  }
+} return string t_o;
+("&"):("&amp;")
+("<"):("&lt;")
+(">"):("&gt;")
+("\""):("&quot;")
+("'"):("&#39;")
+("a"):("a")
+(" "):(" ")

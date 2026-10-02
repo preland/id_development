@@ -1,0 +1,31 @@
+main(int argc, string[] argv) {
+  int n = to_int(argv[2]);
+  int rc = gen_pick(argv[1], n);
+} return int rc;
+(3, ["gen", "deep", "2"]):(0) then prints:("[[]]")
+(3, ["gen", "bogus", "2"]):(2)
+
+gen_pick(string kind, int n) {
+  int rc = 0;
+  if (kind = "records") {
+    gen_records(n);
+  } else if (kind = "deep") {
+    gen_deep(n);
+  }
+} chain (string kind, int n) {
+  if (kind = "wide") {
+    gen_wide(n);
+  }
+  if (kind != "records" && kind != "deep" && kind != "wide") {
+    rc = 2;
+  }
+} return int rc;
+("deep", 1):(0) then prints:("[]")
+("nope", 1):(2)
+
+gen_deep(int n) {
+  put(str_repeat("[", n));
+  put(str_repeat("]", n));
+} return void;
+(3):() then prints:("[[[]]]")
+(0):() then prints:("")

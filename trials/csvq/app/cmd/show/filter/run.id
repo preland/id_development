@@ -1,0 +1,42 @@
+flt_rows(string[][] rows, int col, int code, string val, float vv, int vok) {
+  string[][] keep = [];
+  int i = 0;
+  while (i < len(rows)) {
+    if (flt_test(rows[i][col], val, code, vv, vok) == 1) {
+      push(keep, rows[i]);
+    }
+    i = i + 1;
+  }
+} return string[][] keep;
+([["a", "1"], ["b", "20"], ["c", "3"]], 1, 3, "2", 2.0, 1):([["b", "20"], ["c", "3"]])
+([["a", "1"], ["b", "20"], ["c", "3"]], 0, 4, "b", 0.0, 0):([["b", "20"]])
+([["a", "1"]], 0, 0, "z", 0.0, 0):([])
+
+flt_out(string[] hdr, string[][] rows, int[] o, int col, int code, string val) {
+  int vok = num_ok(val);
+  float vv = 0.0;
+  if (vok == 1) {
+    vv = num_val(val);
+  }
+} chain (string[] hdr, string[][] rows, int[] o, int col, int code, string val) {
+  string[][] keep = flt_rows(rows, col, code, val, vv, vok);
+  out_table(hdr, keep, o);
+} return void;
+(["n", "v"], [["a", "5"], ["b", "15"]], [44, 0, 0, 0, 0], 1, 3, "9"):(["n", "v"], [["a", "5"], ["b", "15"]], [44, 0, 0, 0, 0], 1, 3, "9") then prints:("n,v\nb,15\n")
+(["n", "v"], [["a", "5"], ["b", "15"]], [44, 0, 0, 0, 0], 0, 0, "a"):(["n", "v"], [["a", "5"], ["b", "15"]], [44, 0, 0, 0, 0], 0, 0, "a") then prints:("n,v\na,5\n")
+
+cmd_filter(string[] hdr, string[][] rows, int[] lines, int[] o, string[] args, string[] diag) {
+  int[] idx = [];
+  col_pick(hdr, args[1], idx, diag);
+  int code = lst_str_index((import op_names), args[2]);
+} chain (string[] hdr, string[][] rows, int[] lines, int[] o, string[] args, string[] diag) {
+  if (code < 0 && len(diag) == 0) {
+    push(diag, "unknown operator '" + args[2] + "'; use one of: " + str_join((import op_names), ", "));
+  }
+  if (len(diag) == 0) {
+    flt_out(hdr, rows, o, idx[0], code, args[3]);
+  }
+} return void;
+(["n", "v"], [["a", "5"], ["b", "15"]], [2, 3], [44, 0, 0, 0, 0], ["filter", "v", ">", "9"], []):(["n", "v"], [["a", "5"], ["b", "15"]], [2, 3], [44, 0, 0, 0, 0], ["filter", "v", ">", "9"], []) then prints:("n,v\nb,15\n")
+(["n", "v"], [["a", "5"]], [2], [44, 0, 0, 0, 0], ["filter", "v", "~", "9"], []):(["n", "v"], [["a", "5"]], [2], [44, 0, 0, 0, 0], ["filter", "v", "~", "9"], ["unknown operator '~'; use one of: ==, !=, <, >, contains"]) then prints:("")
+(["n", "v"], [["a", "5"]], [2], [44, 0, 0, 0, 0], ["filter", "w", "==", "9"], []):(["n", "v"], [["a", "5"]], [2], [44, 0, 0, 0, 0], ["filter", "w", "==", "9"], ["unknown column 'w'; available columns: n, v"]) then prints:("")

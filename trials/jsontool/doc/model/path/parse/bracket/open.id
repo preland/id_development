@@ -1,0 +1,33 @@
+br_quoted(string path, int i) {
+  int off = (import jc)[(import c_pk)];
+  int e = q_copy(path, i);
+  int q = q_finish(path, e, off);
+} return int q;
+given t_pinit ("[\"a b\"]", 2):(7) then t_segstr:(".a b")
+given t_pinit ("[\"ab", 2):(-1) then t_perr:(5)
+given t_pinit ("[\"a\"x", 2):(-1) then t_perr:(4)
+
+seg_bracket(string path, int i) {
+  int q = 0;
+  if (charat(path, i + 1) = (import k_quote)) {
+    q = br_quoted(path, i + 2);
+  } else {
+    q = br_index(path, i + 1);
+  }
+} return int q;
+given t_pinit ("[3]", 0):(3) then t_segstr:("[3]")
+given t_pinit ("[\"k\"]", 0):(5) then t_segstr:(".k")
+given t_pinit ("[x]", 0):(-1) then t_perr:(3)
+
+seg_kind(int c) {
+  int k = 0;
+  if (c = (import k_dot)) {
+    k = 1;
+  } else if (c = (import k_lbrk)) {
+    k = 2;
+  }
+} return int k;
+(46):(1)
+(91):(2)
+(97):(0)
+(-1):(0)

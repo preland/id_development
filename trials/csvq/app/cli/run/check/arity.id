@@ -1,0 +1,28 @@
+cli_arity(int at, string[] args, string[] diag) {
+  int extra = len(args) - 1 - (import cmd_need)[at];
+  if (extra < 0) {
+    push(diag, args[0] + " needs " + (import cmd_use)[at]);
+  } else {
+    if (extra > (import cmd_files)[at]) {
+      push(diag, "too many arguments for " + args[0]);
+    }
+  }
+} return void;
+(0, ["select"], []):(0, ["select"], ["select needs COLS, a comma-separated list of column names or 1-based numbers"])
+(1, ["filter", "a", "=="], []):(1, ["filter", "a", "=="], ["filter needs COL OP VALUE"])
+(2, ["sort", "a", "f.csv"], []):(2, ["sort", "a", "f.csv"], [])
+(3, ["count", "f.csv", "g.csv"], []):(3, ["count", "f.csv", "g.csv"], ["too many arguments for count"])
+(6, ["gen", "5", "f.csv"], []):(6, ["gen", "5", "f.csv"], ["too many arguments for gen"])
+
+cli_flags(string[] args, int[] o, string[] diag) {
+  if (args[0] != "sort" && o[(import o_desc)] == 1) {
+    push(diag, "--desc only applies to the sort command");
+  }
+  if (args[0] != "sort" && o[(import o_num)] == 1) {
+    push(diag, "--numeric only applies to the sort command");
+  }
+} return void;
+(["sort", "a"], [44, 1, 1, 0, 0], []):(["sort", "a"], [44, 1, 1, 0, 0], [])
+(["count"], [44, 1, 0, 0, 0], []):(["count"], [44, 1, 0, 0, 0], ["--desc only applies to the sort command"])
+(["head", "3"], [44, 0, 1, 0, 0], []):(["head", "3"], [44, 0, 1, 0, 0], ["--numeric only applies to the sort command"])
+

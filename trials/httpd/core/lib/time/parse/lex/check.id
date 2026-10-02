@@ -1,0 +1,48 @@
+// Structural and range checks on already-extracted fields. Each returns a flag
+// or a value and never traps, so the parser can chain them and only decide at
+// the end.
+
+hd_date_shape(string d_s) {
+  int d_ok = 0;
+  if(len(d_s) == 29 && charat(d_s, 3) == 44 && charat(d_s, 4) == 32 && charat(d_s, 7) == 32 && charat(d_s, 11) == 32 && charat(d_s, 16) == 32 && charat(d_s, 19) == 58 && charat(d_s, 22) == 58 && charat(d_s, 25) == 32 && str_eqat(d_s, 26, "GMT") == 1) {
+    d_ok = 1;
+  }
+} return int d_ok;
+("Sun, 06 Nov 1994 08:49:37 GMT"):(1)
+("Sun, 06 Nov 1994 08:49:37 UTC"):(0)
+("Sun, 06 Nov 1994 08:49:37 GM"):(0)
+("Sun; 06 Nov 1994 08:49:37 GMT"):(0)
+("Sun,06 Nov 1994 08:49:37 GMT"):(0)
+("Sun, 06 Nov 1994 08-49:37 GMT"):(0)
+("Sun, 06 Nov 1994 08:49:37 GMT "):(0)
+(""):(0)
+
+hd_date_dayok(int d_y, int d_m, int d_d) {
+  int d_ok = 0;
+  if(d_m > 0 && d_d > 0 && d_d <= hd_date_mdays(d_y, d_m)) {
+    d_ok = 1;
+  }
+} return int d_ok;
+(2024, 2, 29):(1)
+(2019, 2, 29):(0)
+(2000, 2, 29):(1)
+(1900, 2, 29):(0)
+(2023, 4, 31):(0)
+(2023, 12, 31):(1)
+(2023, 0, 1):(0)
+(2023, 1, 0):(0)
+(2023, 1, -1):(0)
+
+hd_date_sodv(int d_h, int d_mi, int d_se) {
+  int d_v = 0 - 1;
+  if(d_h >= 0 && d_h < 24 && d_mi >= 0 && d_mi < 60 && d_se >= 0 && d_se < 60) {
+    d_v = d_h * 3600 + d_mi * 60 + d_se;
+  }
+} return int d_v;
+(8, 49, 37):(31777)
+(23, 59, 59):(86399)
+(24, 0, 0):(-1)
+(0, 60, 0):(-1)
+(0, 0, 60):(-1)
+(-1, 0, 0):(-1)
+(0, 0, 0):(0)

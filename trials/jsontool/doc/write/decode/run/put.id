@@ -1,0 +1,29 @@
+uesc_len(int pos) {
+  int n = 6;
+  if (surr_class(hex4(pos + 2)) = 1) {
+    n = 12;
+  }
+} return int n;
+given t_load stdin "\\u0041" (0):(6)
+given t_load stdin "\\ud83d\\ude00" (0):(12)
+given t_load stdin "\\udc00" (0):(6)
+
+dec_put(int pos, word dst, int o) {
+  int c = byte_at(pos);
+  int r = dec_put_at(c, pos, dst, o);
+} return int r;
+given t_srcadr stdin "a" (0, (import s0ad), 0):(1) then t_s0:("a")
+given t_srcadr stdin "\\n" (0, (import s0ad), 0):(1) then t_s0:("\n")
+given t_srcadr stdin "\\u00e9" (0, (import s0ad), 0):(2) then t_s0:("é")
+
+dec_put_at(int c, int pos, word dst, int o) {
+  int r = o + 1;
+  if (c != (import k_bslash)) {
+    poke8(dst + o, c);
+  } else {
+    r = dec_esc(pos, dst, o);
+  }
+} return int r;
+given t_srcadr stdin "x" (120, 0, (import s0ad), 0):(1) then t_s0:("x")
+given t_srcadr stdin "\\t" (92, 0, (import s0ad), 0):(1) then t_s0:("\t")
+given t_srcadr stdin "x" (65, 0, (import s0ad), 2):(3) then t_s0:("")

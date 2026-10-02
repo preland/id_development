@@ -1,0 +1,25 @@
+hd_cli_io() {
+  int hi = fs_open("/dev/stdin", "r");
+  int ho = fs_open("/dev/stdout", "a");
+  word bf = alloc((import hd_chunk));
+} chain () {
+  export word[] hd_io = [hi, ho, bf];
+} return void;
+():() then hd_t_ioch:(1)
+():() then hd_t_ion:(3)
+
+hd_t_ioch() {
+  word[] io = (import hd_io);
+  int ok = 0;
+  if(io[0] >= 0 && io[1] >= 0 && io[2] > 0) {
+    ok = 1;
+  }
+} return int ok;
+given hd_cli_io ():(1)
+given hd_cli_io ():(1) then hd_t_ion:(3)
+
+hd_t_ion() {
+  int n = len((import hd_io));
+} return int n;
+given hd_cli_io ():(3)
+given hd_cli_io ():(3) then hd_t_ioch:(1)

@@ -1,0 +1,29 @@
+hd_root_msg(string rt) {
+  int kd = hd_kind(rt + "/");
+  string msg = "";
+  if(kd != 2) {
+    msg = "--root " + rt + " is not a readable directory";
+  }
+} return string msg;
+("/tmp"):("")
+("/nonexistent-hd-x"):("--root /nonexistent-hd-x is not a readable directory")
+("/dev/null"):("--root /dev/null is not a readable directory")
+
+hd_check_root(string rt) {
+  string msg = "--root DIR is required";
+  if(len(rt) > 0) {
+    msg = hd_root_msg(rt);
+  }
+} return string msg;
+("/tmp"):("")
+(""):("--root DIR is required")
+
+hd_check_port(string p) {
+  string msg = "";
+  if(len(p) > 0 && hd_port_ok(p) == 0) {
+    msg = "--port N must be a number from 0 to 65535 (omit --port to serve one connection on stdin/stdout)";
+  }
+} return string msg;
+("8080"):("")
+(""):("")
+("x"):("--port N must be a number from 0 to 65535 (omit --port to serve one connection on stdin/stdout)")

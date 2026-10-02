@@ -1,0 +1,44 @@
+// Reads size bytes of the file at path and replays them. 3 if the file could not be read whole, otherwise load_image's answer.
+load_file(string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea, int size) {
+  word ad = alloc(size);
+  int have = log_read(path, ad, size);
+  int code = 3;
+} chain (string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea, int size) {
+  if(have == size) {
+    code = load_image(keys, vals, used, st, ea, ad, size);
+  }
+} return int code;
+given log_t_file ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), 57):(0) then db_t_state:("1/33/3") then file_t_done:(0)
+given log_t_odd ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), 57):(2) then db_t_state:("0/0/0") then file_t_done:(0)
+given db_t_lists ("/nonexistent-kv-dir/none", (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), 8):(3)
+
+// What fs_size and fs_exists together say about a log file: 0 nothing to load (absent, or empty), 1 something to load, 3 there but of a size that cannot be known -- fs_size gives -1 for a file over two gibibytes, and treating that as absent would let the next put truncate it.
+size_state(int size, int exists) {
+  int verdict = 0;
+  if(size > 0) {
+    verdict = 1;
+  } else if(size < 0 && exists == 1) {
+    verdict = 3;
+  }
+} return int verdict;
+(0, 1):(0)
+(-1, 0):(0)
+(-1, 1):(3)
+(57, 1):(1)
+
+// Opens the store's log: replays the file at path into the lists. An absent or empty file is an empty store, and is left alone. 0 clean, 1 a damaged tail was left out, 2 not a kv log, 3 the file could not be read.
+db_load(string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea) {
+  int size = fs_size(path);
+  int verdict = size_state(size, fs_exists(path));
+  int code = verdict;
+} chain (string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea) {
+  if(verdict == 1) {
+    code = load_file(path, keys, vals, used, st, ea, size);
+  }
+} return int code;
+given log_t_file ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea)):(0) then db_t_meta:("57/57/0") then file_t_done:(0)
+given log_t_torn ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea)):(1) then db_t_meta:("42/52/-1") then file_t_done:(0)
+given log_t_odd ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea)):(2) then file_t_done:(0)
+given log_t_ready ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea)):(0) then db_t_meta:("0/0/0") then file_t_done:(0)
+given db_t_lists ("/nonexistent-kv-dir/none", (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea)):(0) then db_t_meta:("0/0/0")
+given log_t_stub ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea)):(1) then db_t_meta:("0/3/-1") then file_t_done:(0)

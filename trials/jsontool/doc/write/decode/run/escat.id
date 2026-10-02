@@ -1,0 +1,44 @@
+dec_esc(int pos, word dst, int o) {
+  int e = byte_at(pos + 1);
+  int r = dec_esc_at(e, pos, dst, o);
+} return int r;
+given t_srcadr stdin "\\n" (0, (import s0ad), 0):(1) then t_s0:("\n")
+given t_srcadr stdin "\\u0041" (0, (import s0ad), 0):(1) then t_s0:("A")
+
+dec_esc_at(int e, int pos, word dst, int o) {
+  int r = o + 1;
+  if (e = 117) {
+    r = utf8_put(dst, o, dec_cp(pos));
+  } else {
+    poke8(dst + o, esc_char(e));
+  }
+} return int r;
+given t_srcadr stdin "\\n" (110, 0, (import s0ad), 0):(1) then t_s0:("\n")
+given t_srcadr stdin "\\u00e9" (117, 0, (import s0ad), 0):(2) then t_s0:("é")
+given t_srcadr stdin "\\ud83d\\ude00" (117, 0, (import s0ad), 0):(4) then t_s0:("😀")
+
+esc_char(int e) {
+  int c = e;
+  if (e = 98) {
+    c = 8;
+  } else if (e = 102) {
+    c = 12;
+  }
+} chain (int e) {
+  if (e = 110) {
+    c = 10;
+  } else if (e = 114) {
+    c = 13;
+  }
+  if (e = 116) {
+    c = 9;
+  }
+} return int c;
+(98):(8)
+(102):(12)
+(110):(10)
+(114):(13)
+(116):(9)
+(34):(34)
+(92):(92)
+(47):(47)

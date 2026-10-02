@@ -1,0 +1,43 @@
+child_at(int cur, int i, int cnt) {
+  int c = -1;
+  if (i >= 0 && i < cnt) {
+    c = nget(cur, (import f_child));
+    while (i > 0) {
+      c = nget(c, (import f_next));
+      i = i - 1;
+    }
+  }
+} return int c;
+given t_parse stdin "[10,20,30]" (0, 2, 3):(3)
+given t_parse stdin "[10,20,30]" (0, 0, 3):(1)
+given t_parse stdin "[10,20,30]" (0, 3, 3):(-1)
+given t_parse stdin "[10,20,30]" (0, -1, 3):(-1)
+
+nth_child(int cur, int a) {
+  int cnt = nget(cur, (import f_count));
+  int i = a;
+  if (a < 0) {
+    i = cnt + a;
+  }
+} chain (int cur, int a) {
+  int hit = child_at(cur, i, cnt);
+} return int hit;
+given t_parse stdin "[10,20,30]" (0, 1):(2)
+given t_parse stdin "[10,20,30]" (0, -1):(3)
+given t_parse stdin "[10,20,30]" (0, 5):(-1)
+given t_parse stdin "[10,20,30]" (0, -4):(-1)
+given t_parse stdin "[]" (0, 0):(-1)
+
+idx_lookup(int cur, int a) {
+  int hit = -1;
+  if (nget(cur, (import f_kind)) = (import kn_arr)) {
+    hit = nth_child(cur, a);
+    lset((import jc), (import c_fr), (import fr_index));
+  } else {
+    lset((import jc), (import c_fr), (import fr_type_arr));
+  }
+} return int hit;
+given t_parse stdin "[5,6]" (0, 1):(2)
+given t_parse stdin "[5,6]" (0, 0):(1)
+given t_parse stdin "{\"a\":1}" (0, 0):(-1) then t_fr:(2)
+given t_parse stdin "[5,6]" (0, 9):(-1) then t_fr:(4)

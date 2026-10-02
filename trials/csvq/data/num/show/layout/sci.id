@@ -1,0 +1,46 @@
+num_exps(int e) {
+  string sn = "+";
+  int a = e;
+  if (e < 0) {
+    sn = "-";
+    a = 0 - e;
+  }
+} chain (int e) {
+  string es = "" + a;
+  if (a < 10) {
+    es = "0" + es;
+  }
+  string rs = "e" + sn + es;
+} return string rs;
+(5):("e+05")
+(-7):("e-07")
+(123):("e+123")
+(15):("e+15")
+
+num_sci(string ds, int e) {
+  string head = str_slice(ds, 0, 1);
+  if (len(ds) > 1) {
+    head = head + "." + str_slice(ds, 1, len(ds) - 1);
+  }
+  string rs = head + num_exps(e);
+} return string rs;
+("15", 20):("1.5e+20")
+("1", -7):("1e-07")
+("123456789012345", 17):("1.23456789012345e+17")
+
+num_body(float fx) {
+  int e = num_e15(fx);
+  word wv = num_scaled(fx, e);
+  string ds = num_ztrim("" + wv);
+} chain (float fx) {
+  string rs = num_layout(ds, e);
+} return string rs;
+(12345.0):("12345")
+(0.001):("0.001")
+(1234567.891):("1234567.891")
+(100.0):("100")
+(0.1):("0.1")
+(1000000000000000.0):("1e+15")
+(0.00001):("1e-05")
+(0.333333333333333333):("0.333333333333333")
+(123456789012345680000.0):("1.23456789012346e+20")

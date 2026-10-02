@@ -1,0 +1,32 @@
+// The date-to-days direction, part one: shifting the calendar so the year
+// starts on 1 March, which puts the leap day at the end of the year and makes
+// every later formula uniform.
+
+hd_date_yadj(int d_y, int d_m) {
+  int d_yy = d_y;
+  if(d_m < 3) {
+    d_yy = d_y - 1;
+  }
+} return int d_yy;
+(1970, 1):(1969)
+(1970, 3):(1970)
+(2024, 2):(2023)
+
+hd_date_mshift(int d_m) {
+  int d_ms = d_m - 3;
+  if(d_m < 3) {
+    d_ms = d_m + 9;
+  }
+} return int d_ms;
+(3):(0)
+(1):(10)
+(12):(9)
+(2):(11)
+
+hd_date_doym(int d_m, int d_d) {
+  int d_ms = hd_date_mshift(d_m);
+  int d_doy = (153 * d_ms + 2) / 5 + d_d - 1;
+} return int d_doy;
+(3, 1):(0)
+(11, 6):(250)
+(1, 1):(306)

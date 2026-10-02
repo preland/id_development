@@ -1,0 +1,28 @@
+// Whether the key reads back whole: a NUL inside it would cut the string short, and str_of_mem refuses it, so the bytes are scanned first. 0, or -6.
+rec_ck_key(word rec) {
+  int klen = rec_klen(rec);
+  int key_nz = buf_zlen(rec + (import rec_hdr), klen);
+  int code = 0;
+} chain (word rec) {
+  if(key_nz != klen) {
+    code = 0 - 6;
+  }
+} return int code;
+given rec_t_good ((import mem_t_ad)):(0)
+given mem_t_zeros given mem_load((import mem_t_ad), [183, 44, 248, 165, 1, 2, 0, 0, 0, 3, 0, 0, 0, 97, 0, 120, 121, 122]) ((import mem_t_ad)):(-6)
+
+// The words for a rec_check code, or "" for a code that is not a failure.
+rec_why(int code) {
+  int n = len((import rec_reasons));
+  int i = 0 - code - 1;
+  string why = "";
+} chain (int code) {
+  if(i >= 0 && i < n) {
+    why = (import rec_reasons)[i];
+  }
+} return string why;
+(-1):("truncated header")
+(-5):("checksum mismatch")
+(-6):("key holds a NUL byte")
+(0):("")
+(-7):("")

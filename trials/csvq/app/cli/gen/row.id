@@ -1,0 +1,29 @@
+gen_score(int[] gs) {
+  int whole = gen_next(gs) % 101;
+  int cents = gen_next(gs) % 100;
+  string t = whole + "." + gen_two(cents);
+} return string t;
+([1]):("72.58")
+([0]):("0.68")
+
+gen_row(int[] gs, int i) {
+  string[] row = ["" + i];
+  push(row, gen_pick((import gen_names), gs));
+  push(row, gen_pick((import gen_depts), gs));
+} chain (int[] gs, int i) {
+  push(row, "" + (18 + gen_next(gs) % 63));
+  push(row, gen_score(gs));
+  push(row, gen_pick((import gen_notes), gs));
+} return string[] row;
+([1], 7):(["7", "Dana \"DJ\" Lee", "hr", "51", "42.51", "line one\nline two"])
+([0], 1):(["1", "Ada Lovelace", "hr", "52", "99.98", "ok"])
+
+gen_rows(int n, int[] gs, int d) {
+  int i = 1;
+  while (i <= n) {
+    wr_print(gen_row(gs, i), d);
+    i = i + 1;
+  }
+} return void;
+(0, [1], 44):(0, [1], 44) then prints:("")
+(1, [1], 44):(1, [-1778682749], 44) then prints:("1,\"Dana \"\"DJ\"\" Lee\",hr,51,42.51,\"line one\nline two\"\n")

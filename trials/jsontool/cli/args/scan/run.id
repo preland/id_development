@@ -1,0 +1,57 @@
+arg_run(string[] argv, int i, int idx, int kind) {
+  int nxt = i + 1;
+  if (kind = 0) {
+    push((import pargs), argv[i]);
+  } else if (kind = 1) {
+    nxt = opt_indent(argv, i, idx);
+  }
+} chain (string[] argv, int i, int idx, int kind) {
+  if (kind = 2) {
+    nxt = opt_indent_eq(argv, i, idx);
+  } else if (kind = 3) {
+    nxt = opt_compact(i, idx);
+  }
+  if (kind = 4) {
+    nxt = opt_raw(i, idx);
+  }
+} chain (string[] argv, int i, int idx, int kind) {
+  if (kind = 5) {
+    nxt = (import a_help);
+  } else if (kind = 6) {
+    nxt = opt_unknown(argv, i);
+  }
+  if (kind = 7) {
+    nxt = args_rest(argv, i + 1);
+  }
+} return int nxt;
+given t_args (["p", "fmt", "f.json"], 2, 0, 0):(3) then t_arg0:("f.json")
+given t_args (["p", "fmt", "--indent", "4"], 2, 0, 1):(4) then t_ind:(4)
+given t_args (["p", "fmt", "--indent=5"], 2, 0, 2):(3) then t_ind:(5)
+given t_args (["p", "fmt", "--compact"], 2, 0, 3):(3) then t_ind:(-1)
+given t_args (["p", "get", "--raw"], 2, 2, 4):(3) then t_raw:(1)
+given t_args (["p", "fmt", "-h"], 2, 0, 5):(-2)
+given t_args (["p", "fmt", "-x"], 2, 0, 6):(-1) then eprints:("jsontool: unknown option '-x'\nTry 'jsontool --help' for usage.\n")
+given t_args (["p", "fmt", "--", "a", "b"], 2, 0, 7):(5) then t_npargs:(2)
+
+arg_one(string[] argv, int i, int idx) {
+  int kind = opt_kind(argv[i]);
+  int nxt = arg_run(argv, i, idx, kind);
+} return int nxt;
+given t_args (["p", "get", ".a"], 2, 2):(3) then t_arg0:(".a")
+given t_args (["p", "fmt", "--compact"], 2, 0):(3) then t_ind:(-1)
+given t_args (["p", "fmt", "--indent", "3"], 2, 0):(4) then t_ind:(3)
+given t_args (["p", "fmt", "--help"], 2, 0):(-2)
+
+args_scan(string[] argv, int idx) {
+  int i = 2;
+  while (i >= 0 && i < len(argv)) {
+    i = arg_one(argv, i, idx);
+  }
+} return int i;
+given t_args (["p", "fmt", "--indent", "4", "f.json"], 0):(5) then t_ind:(4)
+given t_args (["p", "fmt", "--indent", "4", "f.json"], 0):(5) then t_arg0:("f.json")
+given t_args (["p", "fmt", "-h"], 0):(-2)
+given t_args (["p", "fmt", "--bogus"], 0):(-1) then eprints:("jsontool: unknown option '--bogus'\nTry 'jsontool --help' for usage.\n")
+given t_args (["p", "validate", "--compact"], 1):(-1) then t_npargs:(0)
+given t_args (["p", "fmt"], 0):(2) then t_npargs:(0)
+given t_args (["p", "get", "--raw", ".a", "f"], 2):(5) then t_npargs:(2)

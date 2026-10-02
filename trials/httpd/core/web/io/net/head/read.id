@@ -1,0 +1,24 @@
+hd_head_set(word[] io, string[] cn, int pos, int st) {
+  if(st == 1) {
+    cn[0] = str_of_mem(io[2], pos - 4);
+  }
+} return void;
+given hd_t_openb ((import hd_t_io), ["old", ""], 6, 1):((import hd_t_io), ["AB", ""], 6, 1) then hd_t_out:("")
+given hd_t_openb ((import hd_t_io), ["old", ""], 6, 400):((import hd_t_io), ["old", ""], 6, 400) then hd_t_out:("")
+
+hd_read_head(word[] io, string[] cn, int mx, int lim) {
+  int pos = 0;
+  int st = -1;
+  while(st < 0) {
+    st = hd_head_step(io, pos, mx, lim);
+    pos = pos + 1;
+  }
+} chain (word[] io, string[] cn, int mx, int lim) {
+  hd_head_set(io, cn, pos, st);
+} return int st;
+given hd_t_open stdin "GET / HTTP/1.1\r\nHost: h\r\n\r\nNEXT" ((import hd_t_io), (import hd_t_cn), 100, 50):(1) then hd_t_head:("GET / HTTP/1.1\r\nHost: h") then hd_t_out:("")
+given hd_t_open stdin "GET / HTT" ((import hd_t_io), (import hd_t_cn), 100, 50):(400) then hd_t_out:("")
+given hd_t_open stdin "" ((import hd_t_io), (import hd_t_cn), 100, 50):(0) then hd_t_out:("")
+given hd_t_open stdin "GET /aaaaaaaaaaaaaaaa HTTP/1.1\r\n\r\n" ((import hd_t_io), (import hd_t_cn), 12, 8):(414) then hd_t_out:("")
+given hd_t_open stdin "GET / HTTP/1.1\r\nHost: xxxxxxxxxx\r\n\r\n" ((import hd_t_io), (import hd_t_cn), 20, 50):(413) then hd_t_out:("")
+given hd_t_opennul ((import hd_t_io), (import hd_t_cn), 100, 50):(400) then hd_t_out:("")

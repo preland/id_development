@@ -1,0 +1,46 @@
+seg_apply(int cur, int sk, int sa, int sb) {
+  int hit = 0;
+  if (sk = 0) {
+    hit = key_lookup(cur, sa, sb);
+  } else {
+    hit = idx_lookup(cur, sa);
+  }
+} return int hit;
+given t_wparse stdin "{\"a\":9}" (0, 0, 0, 1):(2)
+given t_wparse stdin "[3,4]" (0, 1, 1, 0):(2)
+given t_wparse stdin "[3,4]" (0, 0, 0, 1):(-1) then t_fr:(1)
+given t_wparse stdin "{\"a\":9}" (0, 1, 0, 0):(-1) then t_fr:(2)
+
+step_seg(int cur, int k) {
+  int sk = (import pth)[k * 3];
+  int sa = (import pth)[k * 3 + 1];
+  int sb = (import pth)[k * 3 + 2];
+} chain (int cur, int k) {
+  int hit = seg_apply(cur, sk, sa, sb);
+  if (hit < 0) {
+    lset((import jc), (import c_fk), k);
+  }
+} return int hit;
+given t_wparse stdin "{\"a\":[5,6]}" (0, 0):(2)
+given t_wparse stdin "{\"a\":[5,6]}" (2, 1):(4)
+given t_wparse stdin "{\"a\":[5,6]}" (2, 1):(4) then t_fk:(0)
+given t_wparse stdin "{\"a\":7}" (2, 1):(-1) then t_fk:(1)
+given t_wparse stdin "{\"a\":7}" (2, 1):(-1) then t_fr:(2)
+
+path_walk(int root) {
+  int cur = root;
+  int k = 0;
+  while (cur >= 0 && k * 3 < len((import pth))) {
+    cur = step_seg(cur, k);
+    k = k + 1;
+  }
+} return int cur;
+given t_wparse stdin "{\"a\":[5,6]}" (0):(4)
+given t_wparse stdin "{\"a\":[5]}" (0):(-1) then t_fk:(1)
+given t_wparse stdin "{\"a\":[5]}" (0):(-1) then t_fr:(4)
+given t_wparse stdin "{\"b\":1}" (0):(-1) then t_fk:(0)
+given t_wparse stdin "{\"a\":7}" (0):(-1) then t_fr:(2)
+given t_wneg stdin "{\"a\":[5,6]}" (0):(4)
+given t_wneg stdin "{\"a\":[5]}" (0):(3)
+given t_wneg stdin "{\"a\":[]}" (0):(-1) then t_fr:(4)
+given t_pinit stdin "7" (0):(0)

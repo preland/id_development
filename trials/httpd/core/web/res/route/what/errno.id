@@ -1,0 +1,43 @@
+hd_err_code(int e) {
+  int k = 500;
+  if(e == 13) {
+    k = 403;
+  }
+  if(e == 2 || e == 20) {
+    k = 404;
+  }
+} return int k;
+(13):(403)
+(2):(404)
+(20):(404)
+(0):(500)
+(28):(500)
+
+hd_errno_kind(int e, int x) {
+  int k = 500;
+  if(e == 20 && x == 1) {
+    k = 1;
+  }
+  if(e == 13) {
+    k = 403;
+  }
+} chain (int e, int x) {
+  if(e == 2 || (e == 20 && x == 0)) {
+    k = 404;
+  }
+} return int k;
+(20, 1):(1)
+(20, 0):(404)
+(2, 0):(404)
+(13, 0):(403)
+(5, 0):(500)
+
+hd_kind_err(string fp) {
+  int e = fs_error();
+  int x = fs_exists(fp);
+  int k = hd_errno_kind(e, x);
+} return int k;
+("/dev/null"):(500)
+("/nonexistent-hd-x"):(500)
+given hd_t_enoent ("/nonexistent-hd-x"):(404)
+given hd_t_enoent ("/dev/null"):(404)

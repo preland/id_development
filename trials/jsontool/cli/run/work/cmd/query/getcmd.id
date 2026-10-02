@@ -1,0 +1,19 @@
+cmd_get(string file) {
+  string path = (import pargs)[0];
+  int pc = path_parse(path);
+  int code = 2;
+} chain (string file) {
+  if (pc = 0) {
+    code = doc_load(file);
+  } else {
+    eprint(path_message(path));
+  }
+  if (code = 0) {
+    code = get_walk(path);
+  }
+} return int code;
+given t_get_file stdin "{\"a\":[5,6]}" ((import tp)):(0) then t_out:("6\n") then t_tmp_drop:(0)
+given t_get_file stdin "{\"a\":[5]}" ((import tp)):(1) then eprints:("jsontool: get: .a[1]: index out of range at [1]\n") then t_tmp_drop:(0)
+given t_get_bad stdin "{}" ((import tp)):(2) then eprints:("jsontool: invalid path 'a' at position 1: a path must start with '.' or '['\n") then t_tmp_drop:(0)
+given t_get_file stdin "{\"a\":[5,6" ((import tp)):(1) then t_out:("") then t_tmp_drop:(0)
+given t_get_file stdin "{\"a\":[5,6]}" ("/nonexistent/jt"):(1) then eprints:("jsontool: /nonexistent/jt: cannot read: no such file or directory\n") then t_tmp_drop:(0)

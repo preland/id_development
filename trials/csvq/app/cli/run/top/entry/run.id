@@ -1,0 +1,23 @@
+cli_top(string[] args, int[] o, string[] diag) {
+  int rc = 0;
+  if (o[(import o_help)] == 1) {
+    print((import usage_text));
+  } else {
+    rc = cli_use(args, o, diag);
+  }
+} return int rc;
+([], [44, 0, 0, 0, 1], []):(0)
+(["count"], [44, 0, 0, 0, 0], []):(0)
+
+cli_run(string[] argv) {
+  int[] o = lst_copy((import o_default));
+  string[] args = [];
+  string[] diag = [];
+} chain (string[] argv) {
+  cli_scan(argv, o, args, diag);
+  cli_check(args, o, diag);
+  int rc = cli_top(args, o, diag);
+} return int rc;
+stdin "a,b\n1,2\n" (["csvq", "count"]):(0) then prints:("1\n")
+(["csvq", "count", "--desc"]):(2) then eprints:("csvq: --desc only applies to the sort command\nTry 'csvq --help' for more information.\n")
+

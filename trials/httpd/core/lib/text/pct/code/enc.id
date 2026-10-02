@@ -1,0 +1,40 @@
+// Percent encoding for text that goes back into a URL (redirect Location,
+// directory-listing links). Every byte outside the unreserved set is escaped,
+// including all bytes >= 128, so UTF-8 names round-trip.
+
+hd_pct_encode(string t_s) {
+  string t_o = "";
+  int t_i = 0;
+  t_o = hd_pct_enc_run(t_s, t_i, t_o);
+} return string t_o;
+(""):("")
+("a b/c"):("a%20b/c")
+("~._-Az09"):("~._-Az09")
+("é"):("%C3%A9")
+("%"):("%25")
+("a?b=c&d#e"):("a%3Fb%3Dc%26d%23e")
+("\r\n"):("%0D%0A")
+
+hd_pct_enc_run(string t_s, int t_i, string t_o) {
+  while(charat(t_s, t_i) >= 0) {
+    int t_c = charat(t_s, t_i);
+    t_o = t_o + hd_pct_enc_one(t_c);
+    t_i = t_i + 1;
+  }
+} return string t_o;
+("a b", 0, ""):("a%20b")
+("ab", 1, "X"):("Xb")
+("ab", 2, "X"):("X")
+
+hd_pct_enc_one(int t_c) {
+  string t_x = hd_hex2(t_c);
+  string t_o = "%" + str_upper(t_x);
+  if(hd_pct_unres(t_c) == 1) {
+    t_o = chr(t_c);
+  }
+} return string t_o;
+(97):("a")
+(32):("%20")
+(171):("%AB")
+(255):("%FF")
+(47):("/")

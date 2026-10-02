@@ -1,0 +1,36 @@
+esc_ok(int e) {
+  int r = e == 34 || e == 92 || e == 47 || e == 98 || e == 102 || e == 110 || e == 114 || e == 116;
+} return int r;
+(110):(1)
+(34):(1)
+(92):(1)
+(47):(1)
+(98):(1)
+(102):(1)
+(114):(1)
+(116):(1)
+(113):(0)
+(117):(0)
+(-1):(0)
+
+esc_scan(int p) {
+  int e = byte_at(p + 1);
+  int q = esc_end(p, e);
+} return int q;
+given t_load stdin "\\n" (0):(2)
+given t_load stdin "\\u0041" (0):(6)
+given t_load stdin "\\q" (0):(-1) then t_err:(15)
+given t_load stdin "\\" (0):(-1) then t_erp:(1)
+
+esc_end(int p, int e) {
+  int q = p + 2;
+  if (e = 117) {
+    q = uesc_scan(p);
+  } else if (esc_ok(e) = 0) {
+    q = fail((import e_esc), p + 1);
+  }
+} return int q;
+given st_init (0, 110):(2)
+given t_load stdin "\\q" (0, 113):(-1) then t_erp:(1)
+given t_load stdin "\\u00e9" (0, 117):(6)
+given st_init (4, 34):(6)

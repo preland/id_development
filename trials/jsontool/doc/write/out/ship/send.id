@@ -1,0 +1,39 @@
+ob_write(int h, int n) {
+  word base = (import jw)[(import w_out)];
+  int wr = n;
+  if (h >= 0) {
+    wr = fs_write_mem(h, base, n);
+  }
+} chain (int h, int n) {
+  if (h = -2) {
+    put(str_of_mem(base, n));
+  }
+} return int wr;
+given t_flat stdin "[1]" (-2, 4):(4) then prints:("[1]\n")
+given t_flat stdin "[1]" (-1, 4):(4) then prints:("")
+given t_tmp_out ((import oh), 5):(5) then t_tmp_len:(5) then t_tmp_drop:(0)
+given t_tmp_out (999, 5):(-1) then t_tmp_drop:(0)
+
+ob_send(int h, int n) {
+  int wr = ob_write(h, n);
+  if (wr < 0) {
+    lset((import jc), (import c_werr), 1);
+  }
+} return void;
+given t_load (-1, 2):() then t_werr:(0)
+given t_load (999, 2):() then t_werr:(1)
+given t_tmp_out ((import oh), 3):() then t_werr:(0) then t_tmp_drop:(0)
+
+ob_flush() {
+  int n = (import jc)[(import c_of)];
+  int h = (import jc)[(import c_oh)];
+  ob_send(h, n);
+} chain () {
+  if (h != -1) {
+    lset((import jc), (import c_of), 0);
+  }
+} return void;
+given t_ofull ():() then t_of:(65536)
+given t_flat stdin "[1]" ():() then t_out:("[1]\n")
+given t_tmp_ofull ():() then t_tmp_len:(65536) then t_tmp_drop:(0)
+given t_tmp_ofull ():() then t_of:(0) then t_tmp_drop:(0)

@@ -1,0 +1,18 @@
+// A scratch file holding ten bytes, with a second file path.compact beside it holding three ("abc").
+file_t_twin() {
+  file_t_ten();
+  export string file_t_comp = (import file_t_path) + ".compact";
+  int h = fs_open(file_t_comp, "w");
+} chain () {
+  int wrote = fs_write(h, [97, 98, 99], 3);
+  int shut = fs_close(h);
+} return void;
+():() then file_t_size:(10) then file_t_csize:(3) then file_t_done:(0)
+():() then file_t_bytes:(525) then file_t_done:(0)
+
+// The size of path.compact, or -1.
+file_t_csize() {
+  int size = fs_size((import file_t_path) + ".compact");
+} return int size;
+given file_t_twin ():(3) then file_t_done:(0)
+given file_t_ten ():(-1) then file_t_done:(0)

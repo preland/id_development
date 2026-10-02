@@ -1,0 +1,32 @@
+hd_tcp_end(int[] skc, int[] skl, int i, int go) {
+  if(go != 2) {
+    sock_close(skc[i]);
+    hd_drop(skc, skl, i);
+  }
+} return void;
+given hd_t_lsn ([2], [100], 0, 2):([2], [100], 0, 2) then hd_t_tdown:(1)
+given hd_t_lsn ([2], [100], 0, 1):([], [], 0, 1) then hd_t_tdown:(1)
+
+hd_tcp_one(int[] skc, int[] skl, int i, word bf, string root) {
+  int h = skc[i];
+  word[] io = [-2 - h, -2 - h, bf];
+  string pr = sock_peer(h);
+} chain (int[] skc, int[] skl, int i, word bf, string root) {
+  string[] cn = ["", "", pr];
+  int go = hd_conn_step(io, cn, root, skl[i]);
+  int c = hd_counted(go);
+} chain (int[] skc, int[] skl, int i, word bf, string root) {
+  skl[i] = skl[i] - c;
+  hd_tcp_end(skc, skl, i, go);
+} return int c;
+given hd_t_web ((import hd_t_cs), (import hd_t_ls), 0, (import hd_t_bf), (import hd_t_root)):(1) then eprints:("127.0.0.1 - - [-] \"GET /a.txt HTTP/1.1\" 200 6\n") then hd_t_ncs:(1) then hd_t_left:(99) then hd_t_reply:("HTTP/1.1 200 OK\r\nServer: httpd-id/1.0\r\nContent-Type: text/plain; charset=utf-8\r\nLast-Modified: X\r\nContent-Length: 6\r\nConnection: keep-alive\r\nKeep-Alive: max=99\r\n\r\nhello\n") then hd_t_eof:(-1) then hd_t_tdown:(1) then hd_t_drop:(1)
+given hd_t_webc ((import hd_t_cs), (import hd_t_ls), 0, (import hd_t_bf), (import hd_t_root)):(1) then hd_t_ncs:(0) then hd_t_reply:("HTTP/1.1 200 OK\r\nServer: httpd-id/1.0\r\nContent-Type: text/plain; charset=utf-8\r\nLast-Modified: X\r\nContent-Length: 6\r\nConnection: close\r\n\r\nhello\n") then hd_t_eof:(0) then hd_t_tdown:(1) then hd_t_drop:(1)
+
+hd_tcp_pick(int[] skc, int[] skl, int[] rd, int i, word bf, string root) {
+  int t = 0;
+  if(rd[i + 1] == 1) {
+    t = hd_tcp_one(skc, skl, i, bf, root);
+  }
+} return int t;
+given hd_t_web ((import hd_t_cs), (import hd_t_ls), [0, 1], 0, (import hd_t_bf), (import hd_t_root)):(1) then hd_t_ncs:(1) then hd_t_tdown:(1) then hd_t_drop:(1)
+given hd_t_web ((import hd_t_cs), (import hd_t_ls), [0, 0], 0, (import hd_t_bf), (import hd_t_root)):(0) then hd_t_ncs:(1) then hd_t_left:(100) then hd_t_reply:("") then hd_t_tdown:(1) then hd_t_drop:(1)

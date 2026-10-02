@@ -1,0 +1,32 @@
+// Fixtures: a whole log in the flat store -- the magic, a put of "ab", a put of "cd", a delete of "ab" -- 57 bytes, built with rec_make.
+// The lists are the empty store from db_t_lists.
+log_t_image() {
+  db_t_lists();
+  export word log_t_ad = alloc(128);
+  export word log_t_src = alloc(8);
+} chain () {
+  str_blit("xyz", 0, 3, log_t_src);
+  str_blit((import log_magic), 0, (import log_hdr), log_t_ad);
+  rec_make(log_t_ad + 8, 1, "ab", log_t_src, 3);
+} chain () {
+  rec_make(log_t_ad + 26, 1, "cd", log_t_src, 1);
+  rec_make(log_t_ad + 42, 2, "ab", log_t_src, 0);
+} return void;
+():() then log_t_sum:(2951)
+():() then db_t_state:("0/0/0")
+
+// The same image with one value byte of the second record changed, so its checksum is wrong.
+log_t_flip() {
+  log_t_image();
+  poke8((import log_t_ad) + 41, 121);
+} return void;
+():() then log_t_sum:(2952)
+():() then db_t_state:("0/0/0")
+
+// The same image with its first byte changed, so it no longer starts with the magic.
+log_t_alien() {
+  log_t_image();
+  poke8((import log_t_ad), 88);
+} return void;
+():() then log_t_sum:(2966)
+():() then db_t_state:("0/0/0")

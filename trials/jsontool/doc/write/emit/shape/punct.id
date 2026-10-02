@@ -1,0 +1,27 @@
+emit_colon() {
+  ob_byte((import k_colon));
+  if ((import jc)[(import c_ind)] >= 0) {
+    ob_byte((import k_sp));
+  }
+} return void;
+given t_load ():() then t_out:(": ")
+given t_flat stdin "1" ():() then t_out:("1\n:")
+
+emit_comma() {
+  ob_byte((import k_comma));
+  nl_indent(len((import stk)));
+} return void;
+given t_load ():() then t_out:(",\n")
+given t_parse stdin "[" ():() then t_out:(",\n  ")
+given t_flat stdin "1" ():() then t_out:("1\n,")
+
+emit_pop() {
+  int top = stk_pop();
+  nl_indent(len((import stk)));
+  int c = closer_of(nget(top, (import f_kind)));
+} chain () {
+  ob_byte(c);
+} return int top;
+given t_parse stdin "[" ():(0) then t_out:("\n]")
+given t_parse stdin "{" ():(0) then t_out:("\n}")
+given t_parse stdin "[[" ():(1) then t_out:("\n  ]")

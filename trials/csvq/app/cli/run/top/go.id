@@ -1,0 +1,31 @@
+cli_exec(string[] args, int[] o, string[] diag) {
+  if (args[0] == "gen") {
+    cmd_gen(args, o, diag);
+  } else {
+    cli_table(args, o, diag);
+  }
+} return void;
+(["gen", "0"], [44, 0, 0, 0, 0], []):(["gen", "0"], [44, 0, 0, 0, 0], []) then prints:("id,name,dept,age,score,note\n")
+stdin "a\n1\n" (["count"], [44, 0, 0, 0, 0], []):(["count"], [44, 0, 0, 0, 0], []) then prints:("1\n")
+
+cli_go(string[] args, int[] o, string[] diag) {
+  int rc = 0;
+  cli_exec(args, o, diag);
+  if (len(diag) > 0) {
+    eprint("csvq: " + diag[0]);
+    rc = 1;
+  }
+} return int rc;
+stdin "a\n1\n" (["count"], [44, 0, 0, 0, 0], []):(0) then prints:("1\n")
+stdin "a\n1\n" (["select", "q"], [44, 0, 0, 0, 0], []):(1) then eprints:("csvq: <stdin>: unknown column 'q'; available columns: a\n")
+
+cli_usage(string[] diag) {
+  if (len(diag) > 0) {
+    eprint("csvq: " + diag[0]);
+    eprint("Try 'csvq --help' for more information.");
+  } else {
+    eprint((import usage_text));
+  }
+} return void;
+(["bad option"]):(["bad option"]) then eprints:("csvq: bad option\nTry 'csvq --help' for more information.\n")
+([]):([]) then eprints:("usage: csvq [OPTIONS] COMMAND [ARGS] [FILE]\n\ncommands:\n  select COLS          keep the named or 1-based numbered columns, in the order given\n  filter COL OP VALUE  keep the rows where COL OP VALUE holds; OP is ==, !=, <, > or contains\n  sort COL             sort the rows by COL, keeping equal rows in input order\n  count                print the number of data rows\n  stats COL            print the count, min, max, mean and sum of COL\n  head N               keep the first N data rows\n  gen ROWS             write ROWS rows of deterministic test data\n\noptions:\n  -d, --delimiter D    field delimiter: one byte, or tab, comma, semicolon, pipe, space (default comma)\n  --no-header          the first row is data; columns can only be given by number\n  --desc               sort: largest first\n  --numeric            sort: compare as numbers\n  -h, --help           show this help\n\nFILE is a path, or - (the default) for standard input.\nUse -- before an argument that starts with '-'.\n")

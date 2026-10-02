@@ -1,0 +1,34 @@
+hd_prep(string[] cn, string[] rq, int st) {
+  int c = st;
+  if(st == 1) {
+    c = hd_parse(cn[0], rq);
+  }
+} return int c;
+(["GET / HTTP/1.1\r\nHost: h"], ["", "", "", "", "", "", "", ""], 1):(0)
+(["GET / HTTP/1.1"], ["", "", "", "", "", "", "", ""], 400):(400)
+(["GET"], ["", "", "", "", "", "", "", ""], 1):(400)
+
+hd_finish(word[] io, string[] cn, string[] rq, string head, string[] out, int[] mt, int c) {
+  int a = hd_send(io, head, out, mt);
+  hd_flush(io, cn[1]);
+  hd_log(cn[2], rq, mt);
+} chain (word[] io, string[] cn, string[] rq, string head, string[] out, int[] mt, int c) {
+  int b = hd_body_ok(io, rq, c);
+  int keep = mt[1] & a & b;
+} return int keep;
+given hd_t_open stdin "" ((import hd_t_io), (import hd_t_cn), ["GET /x HTTP/1.1", "", "", "", "", "", "", ""], "HTTP/1.1 200 OK\r\n\r\n", ["body", ""], [200, 1, 4, 0], 400):(1) then hd_t_peek:("HTTP/1.1 200 OK\r\n\r\nbody") then hd_t_out:("HTTP/1.1 200 OK\r\n\r\nbody")
+given hd_t_open stdin "" ((import hd_t_io), (import hd_t_cn), ["", "", "", "", "", "", "", ""], "HTTP/1.1 200 OK\r\n\r\n", ["body", ""], [200, 0, 4, 1], 400):(0) then hd_t_out:("HTTP/1.1 200 OK\r\n\r\n")
+
+hd_conn_req(word[] io, string[] cn, string root, int left, int st) {
+  string[] rq = [];
+  hd_rq_init(rq);
+  int c = hd_prep(cn, rq, st);
+} chain (word[] io, string[] cn, string root, int left, int st) {
+  string[] out = ["", ""];
+  int[] mt = [0, 0, 0, 0];
+  string head = hd_respond(root, rq, c, left, out, mt);
+} chain (word[] io, string[] cn, string root, int left, int st) {
+  int keep = hd_finish(io, cn, rq, head, out, mt, c);
+} return int keep;
+given hd_t_env ((import hd_t_io), (import hd_t_cn), (import hd_t_root), 3, 400):(0) then hd_t_out:("HTTP/1.1 400 Bad Request\r\nServer: httpd-id/1.0\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 109\r\nConnection: close\r\n\r\n<!DOCTYPE html><html><head><title>400 Bad Request</title></head><body><h1>400 Bad Request</h1></body></html>\n") then hd_t_drop:(1)
+given hd_t_env ((import hd_t_io), ["GET /nope HTTP/1.1\r\nHost: h", "", "-"], (import hd_t_root), 3, 1):(1) then hd_t_out:("HTTP/1.1 404 Not Found\r\nServer: httpd-id/1.0\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 105\r\nConnection: keep-alive\r\nKeep-Alive: max=2\r\n\r\n<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1></body></html>\n") then hd_t_drop:(1)

@@ -1,0 +1,35 @@
+// Whether the record at rec holds the value bench_val gives entry i: 1 if so.
+bench_same(word rec, int i) {
+  int n = rec_vlen(rec);
+  word ad = rec + rec_voff(rec);
+  string seen = str_of_mem(ad, n);
+} chain (word rec, int i) {
+  int same = seen == bench_val(i);
+} return int same;
+given bench_t_pair ((import bench_t_a), 0):(1) then file_t_done:(0)
+given bench_t_pair ((import bench_t_a), 1):(0) then file_t_done:(0)
+
+// Whether entry i is in the store with the right value: 1 if so.
+bench_hit(string[] keys, int[] vals, int[] used, word[] ea, int i) {
+  word rec = db_rec(keys, vals, used, ea, bench_key(i));
+  int hit = 0;
+  if(rec != 0) {
+    hit = bench_same(rec, i);
+  }
+} return int hit;
+given bench_t_pair ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_ea), 0):(1) then file_t_done:(0)
+given bench_t_pair ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_ea), 5):(0) then file_t_done:(0)
+given bench_t_pair ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_ea), 1):(0) then file_t_done:(0)
+
+// How many of the entries 0 to n-1 are in the store with the right value.
+bench_get(string[] keys, int[] vals, int[] used, word[] ea, int n) {
+  int ok = 0;
+  int i = 0;
+  while(i < n) {
+    ok = ok + bench_hit(keys, vals, used, ea, i);
+    i = i + 1;
+  }
+} return int ok;
+given bench_t_pair ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_ea), 1):(1) then file_t_done:(0)
+given bench_t_pair ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_ea), 4):(1) then file_t_done:(0)
+given bench_t_pair ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_ea), 0):(0) then file_t_done:(0)

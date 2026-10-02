@@ -1,0 +1,21 @@
+emit_step(int cur) {
+  int kind = nget(cur, (import f_kind));
+  int child = nget(cur, (import f_child));
+  int nx = emit_go(cur, kind, child);
+} return int nx;
+given t_parse stdin "[1]" (0):(1) then t_out:("[\n  ")
+given t_parse stdin "[1]" (1):(-1) then t_out:("1")
+
+emit_tree(int root) {
+  int cur = root;
+  while (cur >= 0) {
+    cur = emit_step(cur);
+  }
+  ob_byte((import k_nl));
+} return void;
+given t_parse stdin "[1,{\"a\":[]}]" (0):() then t_out:("[\n  1,\n  {\n    \"a\": []\n  }\n]\n")
+given t_parse stdin "[]" (0):() then t_out:("[]\n")
+given t_parse stdin "[[[]]]" (0):() then t_out:("[\n  [\n    []\n  ]\n]\n")
+given t_parse stdin "[1,2]" (1):() then t_out:("1\n")
+given t_parse stdin "{\"a\":1,\"b\":[true,null]}" (0):() then t_out:("{\n  \"a\": 1,\n  \"b\": [\n    true,\n    null\n  ]\n}\n")
+given t_parse stdin " \"s\" " (0):() then t_out:("\"s\"\n")

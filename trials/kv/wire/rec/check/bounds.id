@@ -1,0 +1,39 @@
+// Whether the key and value lengths are ones a writer could have produced: 0, or -3.
+rec_ck_lens(word rec) {
+  int klen = rec_klen(rec);
+  int vlen = rec_vlen(rec);
+  int code = 0;
+} chain (word rec) {
+  if(klen < 1 || klen > (import rec_max_key) || vlen < 0 || vlen > (import rec_max_val)) {
+    code = 0 - 3;
+  }
+} return int code;
+given rec_t_good ((import mem_t_ad)):(0)
+given rec_t_huge ((import mem_t_ad)):(-3)
+given mem_t_zeros given mem_load((import mem_t_ad), [232, 243, 87, 197, 1, 0, 0, 0, 0, 3, 0, 0, 0, 120, 121, 122]) ((import mem_t_ad)):(-3)
+given rec_t_limit ((import mem_t_ad)):(0)
+given rec_t_over ((import mem_t_ad)):(-3)
+
+// Whether all the bytes the header promises are there: 0, or -4. Only safe once rec_ck_lens has passed.
+rec_ck_room(word rec, int avail) {
+  int size = rec_len(rec);
+  int code = 0;
+  if(size > avail) {
+    code = 0 - 4;
+  }
+} return int code;
+given rec_t_good ((import mem_t_ad), 18):(0)
+given rec_t_good ((import mem_t_ad), 17):(-4)
+
+// Whether the stored checksum matches the bytes: 0, or -5.
+rec_ck_crc(word rec) {
+  word stored = peek32(rec);
+  word actual = rec_crc(rec);
+  int code = 0;
+} chain (word rec) {
+  if(stored != actual) {
+    code = 0 - 5;
+  }
+} return int code;
+given rec_t_good ((import mem_t_ad)):(0)
+given rec_t_flip ((import mem_t_ad)):(-5)

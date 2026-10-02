@@ -1,0 +1,34 @@
+csv_bom(word base) {
+  int at = 0;
+  if (peek8(base) == (import ch_bom0) && peek8(base + 1) == (import ch_bom1) && peek8(base + 2) == (import ch_bom2)) {
+    at = 3;
+  }
+} return int at;
+given csv_t_all ((import tb)):(3)
+given csv_t_all ((import ta)):(0)
+given csv_t_all ((import te)):(0)
+
+csv_next(word base, int d, int[] st, string[][] rows, int[] lines, string[] diag) {
+  int c = peek8(base + st[(import s_pos)]);
+  if (c == (import ch_nl) || c == (import ch_cr)) {
+    csv_eol(base, st);
+  } else {
+    csv_row(base, d, st, rows, lines, diag);
+  }
+} return void;
+given csv_t_all ((import tl), 44, [1, 1, -1, 0], [], [], []):((import tl), 44, [2, 2, -1, 0], [], [], [])
+given csv_t_all ((import tl), 44, [3, 3, 1, 0], [], [], []):((import tl), 44, [5, 4, 1, 0], [["b"]], [3], [])
+
+csv_parse(word base, int d, string[][] rows, int[] lines, string[] diag) {
+  int[] st = [0, 1, -1, 0];
+  st[(import s_pos)] = csv_bom(base);
+  while (peek8(base + st[(import s_pos)]) > 0 && len(diag) == 0) {
+    csv_next(base, d, st, rows, lines, diag);
+  }
+} return void;
+given csv_t_all ((import ta), 44, [], [], []):((import ta), 44, [["a", "b"], ["1", "2"], ["x", ""]], [1, 2, 3], [])
+given csv_t_all ((import tq), 44, [], [], []):((import tq), 44, [["a\"b", "c\nd"], ["z", "w"]], [1, 3], [])
+given csv_t_all ((import tr), 44, [], [], []):((import tr), 44, [["a", "b"]], [1], ["line 2: expected 2 fields like the first row, but found 1"])
+given csv_t_all ((import te), 44, [], [], []):((import te), 44, [], [], [])
+given csv_t_all ((import tb), 44, [], [], []):((import tb), 44, [["z"]], [1], [])
+given csv_t_all ((import tl), 44, [], [], []):((import tl), 44, [["a"], ["b"]], [1, 3], [])

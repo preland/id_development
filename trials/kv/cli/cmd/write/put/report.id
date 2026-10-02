@@ -1,0 +1,45 @@
+// Prints msg on standard error unless it is empty.
+say_err(string msg) {
+  if(len(msg) > 0) {
+    eprint(msg);
+  }
+} return void;
+("kv: oops"):("kv: oops") then eprints:("kv: oops\n")
+(""):("") then eprints:("")
+
+// What to tell the user about how a put ended: 0 done, 1 bad key, 2 bad value, 3 could not write, 4 could not read the value, 5 the log is full. "" for success.
+put_text(string path, int status) {
+  string msg = "";
+  if(status == 1) {
+    msg = "kv: a key must be 1 to " + (import rec_max_key) + " bytes";
+  }
+  if(status == 2) {
+    msg = "kv: a value must be at most " + (import rec_max_val) + " bytes";
+  }
+} chain (string path, int status) {
+  if(status == 3) {
+    msg = "kv: " + path + ": cannot write to the log";
+  }
+  if(status == 4) {
+    msg = "kv: cannot read the value";
+  }
+  if(status == 5) {
+    msg = full_text(path);
+  }
+} return string msg;
+("x.kv", 0):("")
+("x.kv", 1):("kv: a key must be 1 to 65535 bytes")
+("x.kv", 2):("kv: a value must be at most 1073741824 bytes")
+("x.kv", 3):("kv: x.kv: cannot write to the log")
+("x.kv", 4):("kv: cannot read the value")
+("x.kv", 5):("kv: x.kv: the log is full (over 2147483647 bytes); compact it or delete keys")
+
+// The exit status for how a put ended.
+put_exit(int status) {
+  int code = (import put_exits)[status];
+} return int code;
+(0):(0)
+(1):(2)
+(3):(3)
+(4):(3)
+(5):(3)

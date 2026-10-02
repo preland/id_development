@@ -1,0 +1,49 @@
+str_plain(int pos) {
+  int c = byte_at(pos);
+  while (c >= 32 && c != (import k_quote) && c != (import k_bslash) && c < 128) {
+    pos = pos + 1;
+    c = byte_at(pos);
+  }
+} return int pos;
+given t_load stdin "abc\"" (0):(3)
+given t_load stdin "a\\b" (0):(1)
+given t_hexload stdin "61 62 01 63" (0):(2)
+given t_hexload stdin "61 1f 62" (0):(1)
+given t_hexload stdin "61 20 7f 62" (0):(4)
+given t_hexload stdin "61 c3 a9" (0):(1)
+given t_load stdin "abc" (-1):(-1)
+given t_load stdin "abc" (0):(3)
+
+str_open(int p, int c) {
+  int r = p >= 0 && c != (import k_quote);
+} return int r;
+(0, 97):(1)
+(0, 34):(0)
+(-1, 97):(0)
+(5, -1):(1)
+
+str_scan(int pos) {
+  int p = str_plain(pos + 1);
+  int c = byte_at(p);
+  while (str_open(p, c) = 1) {
+    p = str_special(p, c);
+    p = str_plain(p);
+    c = byte_at(p);
+  }
+} chain (int pos) {
+  if (c = (import k_quote)) {
+    p = p + 1;
+  }
+} return int p;
+given t_load stdin "\"abc\"" (0):(5)
+given t_load stdin "\"a\\nb\"" (0):(6)
+given t_load stdin "\"abc" (0):(-1) then t_err:(13)
+given t_load stdin "\"abc" (0):(-1) then t_erp:(4)
+given t_hexload stdin "22 61 0a 22" (0):(-1) then t_err:(14)
+given t_hexload stdin "22 61 0a 22" (0):(-1) then t_erp:(2)
+given t_load stdin "\"\\q\"" (0):(-1) then t_err:(15)
+given t_load stdin "\"\\q\"" (0):(-1) then t_erp:(2)
+given t_hexload stdin "22 c3 a9 22" (0):(4)
+given t_hexload stdin "22 c0 80 22" (0):(-1) then t_err:(18)
+given t_load stdin "\"\"" (0):(2)
+given t_load stdin "\"a\\\"b\"x" (0):(6)

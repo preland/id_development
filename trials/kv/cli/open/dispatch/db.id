@@ -1,0 +1,36 @@
+// Opens the database at path into fresh lists, reports what the open found, and runs the command. 3 if the file could not be opened as a log.
+cli_db(string path, string[] argv) {
+  string[] keys = [];
+  int[] vals = [];
+  int[] used = [];
+} chain (string path, string[] argv) {
+  int[] st = [];
+  word[] ea = [];
+  db_new(keys, vals, used, st);
+} chain (string path, string[] argv) {
+  int status = db_load(path, keys, vals, used, st, ea);
+  warn_open(path, st, status);
+  int code = 3;
+} chain (string path, string[] argv) {
+  if(status < 2) {
+    code = cmd_run(path, keys, vals, used, st, ea, argv);
+  } else {
+    code = fail_open(path, status);
+  }
+} return int code;
+given log_t_file ((import file_t_path), ["kv", "x", "list"]):(0) then prints:("cd\n") then file_t_done:(0)
+given log_t_odd ((import file_t_path), ["kv", "x", "list"]):(3) then file_t_size:(57) then file_t_done:(0)
+given log_t_torn ((import file_t_path), ["kv", "x", "stats"]):(0) then file_t_size:(52) then file_t_done:(0)
+("/nonexistent-kv-dir/none", ["kv", "x", "list"]):(0) then prints:("")
+("/nonexistent-kv-dir/none", ["kv", "x", "get", "k"]):(1) then eprints:("kv: no such key: k\n")
+
+// What is wrong with the whole command line, or "" if nothing.
+cli_check(int argc, string[] argv) {
+  string bad = "expected: kv DB COMMAND [ARGS]";
+  if(argc >= 3) {
+    bad = cmd_bad(argc, argv[2]);
+  }
+} return string bad;
+(1, ["kv"]):("expected: kv DB COMMAND [ARGS]")
+(4, ["kv", "db", "get", "k"]):("")
+(3, ["kv", "db", "nope"]):("unknown command 'nope'")

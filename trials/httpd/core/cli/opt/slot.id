@@ -1,0 +1,43 @@
+hd_opt_slot(string sa) {
+  int k = -1;
+  if(sa == "--port") {
+    k = 0;
+  }
+  if(sa == "--root") {
+    k = 1;
+  }
+} chain (string sa) {
+  if(sa == "--host") {
+    k = 3;
+  }
+} return int k;
+("--port"):(0)
+("--root"):(1)
+("--host"):(3)
+("--x"):(-1)
+
+hd_arg_at(string[] av, int i) {
+  string v = "";
+  if(i < len(av)) {
+    v = av[i];
+  }
+} return string v;
+(["a", "b"], 1):("b")
+(["a", "b"], 2):("")
+
+hd_opt_put(string[] opts, int k, string val, string sa) {
+  if(k >= 0 && len(val) > 0) {
+    opts[k] = val;
+  }
+  if(k >= 0 && len(val) == 0 && len(opts[2]) == 0) {
+    opts[2] = sa + " needs a value";
+  }
+  if(k < 0 && len(opts[2]) == 0) {
+    opts[2] = "unknown argument: " + sa;
+  }
+} return void;
+(["", "", "", ""], 0, "80", "--port"):(["80", "", "", ""], 0, "80", "--port")
+(["", "", "", ""], 1, "", "--root"):(["", "", "--root needs a value", ""], 1, "", "--root")
+(["", "", "", ""], -1, "z", "--zap"):(["", "", "unknown argument: --zap", ""], -1, "z", "--zap")
+(["", "", "", ""], 3, "0.0.0.0", "--host"):(["", "", "", "0.0.0.0"], 3, "0.0.0.0", "--host")
+(["", "", "first", ""], -1, "z", "--zap"):(["", "", "first", ""], -1, "z", "--zap")

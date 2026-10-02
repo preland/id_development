@@ -1,0 +1,34 @@
+cli_word(string cmd) {
+  int rc = -1;
+  if (cmd = "--help" || cmd = "-h") {
+    print((import usage_text));
+    rc = 0;
+  } else if (cmd = "--version") {
+    print((import version_text));
+    rc = 0;
+  }
+} return int rc;
+("--help"):(0)
+("-h"):(0)
+("--version"):(0) then prints:("jsontool 1.0.0\n")
+("fmt"):(-1) then prints:("")
+("--Help"):(-1)
+
+cli_unknown(string cmd) {
+  eprint("jsontool: unknown command '" + cmd + "'");
+  eprint("Try 'jsontool --help' for usage.");
+  int rc = 2;
+} return int rc;
+("bogus"):(2) then eprints:("jsontool: unknown command 'bogus'\nTry 'jsontool --help' for usage.\n")
+(""):(2) then eprints:("jsontool: unknown command ''\nTry 'jsontool --help' for usage.\n")
+
+cli_pick(string[] argv, int idx) {
+  int rc = 0;
+  if (idx >= 0) {
+    rc = cli_go(argv, idx);
+  } else {
+    rc = cli_unknown(argv[1]);
+  }
+} return int rc;
+given t_args stdin "[1]" (["p", "fmt"], 0):(0) then t_out:("[\n  1\n]\n")
+given t_args (["p", "zzz"], -1):(2) then eprints:("jsontool: unknown command 'zzz'\nTry 'jsontool --help' for usage.\n")

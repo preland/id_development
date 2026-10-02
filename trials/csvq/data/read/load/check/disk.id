@@ -1,0 +1,29 @@
+inp_t_disk() {
+  export string tf = fs_mktemp("csvq", 0);
+  export string tz = fs_mktemp("csvq", 0);
+  word ad = mem_of_str("a,b\n1,2\n");
+} chain () {
+  int h = fs_open(tf, "w");
+  int n = fs_write_mem(h, ad, 8);
+  int rc = fs_close(h);
+} chain () {
+  export int hf = fs_open(tf, "r");
+} return void;
+():() then inp_t_sizes:(800) then inp_t_clean:(0)
+():() then inp_t_clean:(0)
+
+inp_t_sizes() {
+  int a = fs_size((import tf));
+  int b = fs_size((import tz));
+  int r = a * 100 + b;
+} return int r;
+given inp_t_disk ():(800) then inp_t_clean:(0)
+():() then traps:("uninitialised export")
+
+inp_t_clean() {
+  int a = fs_remove((import tf));
+  int b = fs_remove((import tz));
+  int rc = a + b;
+} return int rc;
+given inp_t_disk ():(0)
+():() then traps:("uninitialised export")

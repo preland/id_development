@@ -1,0 +1,28 @@
+// hd_date_fmt: Unix seconds to RFC 9110 IMF-fixdate. Weekday is (days + 4) % 7
+// because day 0, 1970-01-01, was a Thursday and the table starts on Sunday.
+
+hd_date_fmt_day(int d_days) {
+  string d_wd = hd_date_name("SunMonTueWedThuFriSat", (d_days + 4) % 7);
+  int d_p = hd_date_ymd(d_days);
+  string d_rs = d_wd + ", " + hd_date_two(d_p % 100) + " " + hd_date_name("JanFebMarAprMayJunJulAugSepOctNovDec", (d_p / 100) % 100 - 1) + " " + d_p / 10000;
+} return string d_rs;
+(9075):("Sun, 06 Nov 1994")
+(0):("Thu, 01 Jan 1970")
+(19782):("Thu, 29 Feb 2024")
+
+hd_date_fmt(int d_t) {
+  string d_e = "";
+  if(d_t < 0) {
+    return d_e;
+  }
+  string d_rs = hd_date_fmt_day(d_t / 86400) + " " + hd_date_fmt_time(d_t % 86400) + " GMT";
+} return string d_rs;
+(784111777):("Sun, 06 Nov 1994 08:49:37 GMT")
+(0):("Thu, 01 Jan 1970 00:00:00 GMT")
+(2147483647):("Tue, 19 Jan 2038 03:14:07 GMT")
+(-1):("")
+(1709164800):("Thu, 29 Feb 2024 00:00:00 GMT")
+(951782400):("Tue, 29 Feb 2000 00:00:00 GMT")
+(1709251199):("Thu, 29 Feb 2024 23:59:59 GMT")
+(946684799):("Fri, 31 Dec 1999 23:59:59 GMT")
+(86399):("Thu, 01 Jan 1970 23:59:59 GMT")

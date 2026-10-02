@@ -1,0 +1,39 @@
+str_special(int p, int c) {
+  int q = 0;
+  if (c = (import k_bslash)) {
+    q = esc_scan(p);
+  } else if (c >= 128) {
+    q = utf8_scan(p);
+  }
+} chain (int p, int c) {
+  if (q = 0) {
+    q = str_fail(p, c);
+  }
+} return int q;
+given t_load stdin "\\n" (0, 92):(2)
+given t_hexload stdin "c3 a9" (0, 195):(2)
+given t_load stdin "x" (0, 1):(-1) then t_err:(14)
+given t_hexload stdin "80" (0, 128):(-1) then t_err:(18)
+given t_load stdin "x" (1, -1):(-1) then t_err:(13)
+
+str_fail(int p, int c) {
+  int code = (import e_ctrl);
+  if (c < 0) {
+    code = (import e_unterm);
+  }
+  int q = fail(code, p);
+} return int q;
+given st_init (3, -1):(-1) then t_err:(13)
+given st_init (3, 10):(-1) then t_err:(14)
+given st_init (7, 10):(-1) then t_erp:(7)
+
+utf8_scan(int p) {
+  int n = u8_len(p);
+  int q = p + n;
+  if (n = 0) {
+    q = fail((import e_utf8), p);
+  }
+} return int q;
+given t_hexload stdin "e2 82 ac" (0):(3)
+given t_hexload stdin "c0 80" (0):(-1) then t_err:(18)
+given t_hexload stdin "41 f0 9f 98 80" (1):(5)

@@ -1,0 +1,27 @@
+hd_poke_loop(int[] buf, word ad, int n) {
+  int i = 0;
+  while(i < n) {
+    poke8(ad + i, buf[i]);
+    i = i + 1;
+  }
+} return void;
+given hd_t_mem ([120, 121], (import hd_t_ad), 2):([120, 121], (import hd_t_ad), 2) then hd_t_first:(120)
+given hd_t_mem ([120, 121], (import hd_t_ad), 0):([120, 121], (import hd_t_ad), 0) then hd_t_first:(104)
+
+hd_cells_go(int[] buf, int n) {
+  word ad = alloc(n + 1);
+  hd_poke_loop(buf, ad, n);
+  string tx = str_of_mem(ad, n);
+} return string tx;
+([104, 105, 33], 3):("hi!")
+([104, 105, 33], 2):("hi")
+
+hd_cells_str(int[] buf, int n) {
+  string tx = "";
+  if(n > 0) {
+    tx = hd_cells_go(buf, n);
+  }
+} return string tx;
+([104, 105], 2):("hi")
+([104, 105], 0):("")
+([104, 105], -1):("")

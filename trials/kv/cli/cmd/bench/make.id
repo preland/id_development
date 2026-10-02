@@ -1,0 +1,25 @@
+// The key the benchmark uses for its i-th entry.
+bench_key(int i) {
+  string key = "key-" + i;
+} return string key;
+(0):("key-0")
+(49999):("key-49999")
+
+// The value for the i-th entry: about a hundred bytes, different for every i.
+bench_val(int i) {
+  string val = "value-" + i + str_repeat(".", 80);
+} return string val;
+(7):("value-7................................................................................")
+(12):("value-12................................................................................")
+
+// Stores entries 0 to n-1, each with put_arg, stopping at the first that fails. Its exit status.
+bench_put(string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea, int n) {
+  int code = 0;
+  int i = 0;
+  while(i < n && code == 0) {
+    code = put_arg(path, keys, vals, used, st, ea, bench_key(i), bench_val(i));
+    i = i + 1;
+  }
+} return int code;
+given log_t_ready ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), 3):(0) then db_t_state:("3/0/3") then file_t_size:(323) then file_t_done:(0)
+given log_t_ready ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), 0):(0) then db_t_state:("0/0/0") then file_t_size:(0) then file_t_done:(0)

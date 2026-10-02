@@ -1,0 +1,41 @@
+cmd_run(string name, string[] hdr, string[][] rows, int[] lines, int[] o, string[] args, string[] diag) {
+  if (name == "select") {
+    cmd_select(hdr, rows, lines, o, args, diag);
+  }
+  if (name == "filter") {
+    cmd_filter(hdr, rows, lines, o, args, diag);
+  }
+  if (name == "sort") {
+    cmd_sort(hdr, rows, lines, o, args, diag);
+  }
+} chain (string name, string[] hdr, string[][] rows, int[] lines, int[] o, string[] args, string[] diag) {
+  if (name == "count") {
+    cmd_count(hdr, rows, lines, o, args, diag);
+  }
+  if (name == "head") {
+    cmd_head(hdr, rows, lines, o, args, diag);
+  }
+  if (name == "stats") {
+    cmd_stats(hdr, rows, lines, o, args, diag);
+  }
+} return void;
+("select", ["a", "b"], [["1", "2"]], [2], [44, 0, 0, 0, 0], ["select", "b"], []):("select", ["a", "b"], [["1", "2"]], [2], [44, 0, 0, 0, 0], ["select", "b"], []) then prints:("b\n2\n")
+("filter", ["a"], [["1"], ["2"]], [2, 3], [44, 0, 0, 0, 0], ["filter", "a", "==", "2"], []):("filter", ["a"], [["1"], ["2"]], [2, 3], [44, 0, 0, 0, 0], ["filter", "a", "==", "2"], []) then prints:("a\n2\n")
+("sort", ["a"], [["2"], ["1"]], [2, 3], [44, 0, 0, 0, 0], ["sort", "a"], []):("sort", ["a"], [["2"], ["1"]], [2, 3], [44, 0, 0, 0, 0], ["sort", "a"], []) then prints:("a\n1\n2\n")
+("count", ["a"], [["2"], ["1"]], [2, 3], [44, 0, 0, 0, 0], ["count"], []):("count", ["a"], [["2"], ["1"]], [2, 3], [44, 0, 0, 0, 0], ["count"], []) then prints:("2\n")
+("head", ["a"], [["2"], ["1"]], [2, 3], [44, 0, 0, 0, 0], ["head", "1"], []):("head", ["a"], [["2"], ["1"]], [2, 3], [44, 0, 0, 0, 0], ["head", "1"], []) then prints:("a\n2\n")
+("stats", ["a"], [["2"], ["4"]], [2, 3], [44, 0, 0, 0, 0], ["stats", "a"], []):("stats", ["a"], [["2"], ["4"]], [2, 3], [44, 0, 0, 0, 0], ["stats", "a"], []) then prints:("count,min,max,mean,sum\n2,2,4,3,6\n")
+
+cli_path(string[] args) {
+  int at = lst_str_index((import cmd_names), args[0]);
+  string path = "-";
+  if (len(args) > 1 + (import cmd_need)[at]) {
+    path = args[1 + (import cmd_need)[at]];
+  }
+} return string path;
+(["count"]):("-")
+(["count", "f.csv"]):("f.csv")
+(["select", "a"]):("-")
+(["select", "a", "f.csv"]):("f.csv")
+(["filter", "a", "==", "1", "g.csv"]):("g.csv")
+

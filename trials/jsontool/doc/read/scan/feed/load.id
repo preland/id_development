@@ -1,0 +1,30 @@
+in_setup(int hint) {
+  int cap = fx_max(hint + 1, (import inchunk));
+  wset((import jw), (import w_src), alloc(cap));
+  lset((import jc), (import c_cap), cap);
+} return void;
+given st_init (10):() then t_cap:(65536)
+given st_init (100000):() then t_cap:(100001)
+given st_init (-5):() then t_cap:(65536)
+
+in_fill(int h) {
+  int got = 1;
+  while (got > 0) {
+    got = in_pull(h);
+  }
+} return int got;
+given t_tmp_ready stdin "hello" ((import th)):(0) then t_src:("hello") then t_tmp_drop:(0)
+given t_tmp_ready stdin "hi" (-1):(-1) then t_tmp_drop:(0)
+
+in_take(string path, int h) {
+  in_setup(fs_size(path));
+  int got = in_fill(h);
+  int code = fs_error();
+} chain (string path, int h) {
+  int cl = fs_close(h);
+  if (got < 0) {
+    lset((import jc), (import c_errno), code);
+  }
+} return int got;
+given t_tmp_open stdin "abc" ((import tp), (import th)):(0) then t_src:("abc") then t_tmp_drop:(0)
+given t_tmp_open stdin "abc" ((import tp), -1):(-1) then t_errno:(9) then t_tmp_drop:(0)

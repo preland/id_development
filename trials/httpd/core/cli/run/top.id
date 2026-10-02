@@ -1,0 +1,22 @@
+hd_check(string[] opts) {
+  string msg = opts[2];
+  if(len(msg) == 0) {
+    msg = hd_check_port(opts[0]);
+  }
+  if(len(msg) == 0) {
+    msg = hd_check_root(opts[1]);
+  }
+} return string msg;
+(["8080", "/tmp", "", ""]):("")
+(["8080", "/tmp", "bad", ""]):("bad")
+(["", "/tmp", "", ""]):("")
+(["x", "/tmp", "", ""]):("--port N must be a number from 0 to 65535 (omit --port to serve one connection on stdin/stdout)")
+(["80", "", "", ""]):("--root DIR is required")
+
+hd_usage(string msg) {
+  eprint("httpd: " + msg);
+  eprint("usage: httpd [--port N] [--host ADDR] --root DIR");
+} return void;
+("x"):("x") then eprints:("httpd: x\nusage: httpd [--port N] [--host ADDR] --root DIR\n")
+("y z"):("y z") then eprints:("httpd: y z\nusage: httpd [--port N] [--host ADDR] --root DIR\n")
+

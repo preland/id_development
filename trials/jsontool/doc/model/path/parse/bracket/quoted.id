@@ -1,0 +1,39 @@
+q_char(string path, int i) {
+  int c = charat(path, i);
+  int adv = 1;
+  if (c = (import k_bslash)) {
+    adv = 2;
+    c = charat(path, i + 1);
+  }
+} chain (string path, int i) {
+  pk_byte(c);
+} return int adv;
+given t_pinit ("a", 0):(1) then t_pkstr:("a")
+given t_pinit ("\\\"", 0):(2) then t_pkstr:("\"")
+given t_pinit ("\\\\", 0):(2) then t_pkstr:("\\")
+
+q_copy(string path, int i) {
+  while (i < len(path) && charat(path, i) != (import k_quote)) {
+    i = i + q_char(path, i);
+  }
+} return int i;
+given t_pinit ("ab\"", 0):(2) then t_pkstr:("ab")
+given t_pinit ("a\\\"b\"", 0):(4) then t_pkstr:("a\"b")
+given t_pinit ("ab", 0):(2) then t_pkstr:("ab")
+
+q_finish(string path, int e, int off) {
+  int q = e + 2;
+  if (charat(path, e) != (import k_quote)) {
+    q = path_fail((import pe_quote), e);
+  } else if (charat(path, e + 1) != (import k_rbrk)) {
+    q = path_fail((import pe_close), e + 1);
+  }
+} chain (string path, int e, int off) {
+  if (q >= 0) {
+    push_seg(0, off, (import jc)[(import c_pk)] - off);
+  }
+} return int q;
+given t_pinit ("\"]", 0, 0):(2) then t_segs:(1)
+given t_pinit ("]", 0, 0):(-1) then t_perr:(5)
+given t_pinit ("\"x", 0, 0):(-1) then t_perr:(4)
+given t_pinit ("\"]", 0, 0):(2) then t_segstr:(".")

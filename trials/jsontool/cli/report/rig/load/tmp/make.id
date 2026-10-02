@@ -1,0 +1,23 @@
+t_tmp_make() {
+  st_init();
+  export string tp = fs_mktemp("jsontool_", 0);
+  string txt = read_all();
+} chain () {
+  int h = fs_open((import tp), "w");
+  int w = fs_write_mem(h, mem_of_str(txt), len(txt));
+  int c = fs_close(h);
+} return void;
+stdin "hey" ():() then t_tmp_size:(3) then t_tmp_drop:(0)
+stdin "" ():() then t_tmp_size:(0) then t_tmp_drop:(0)
+
+t_tmp_size() {
+  int n = fs_size((import tp));
+} return int n;
+given t_tmp_make stdin "abcd" ():(4) then t_tmp_drop:(0)
+given t_tmp_make stdin "x" ():(1) then t_tmp_drop:(0)
+
+t_tmp_drop() {
+  int rc = fs_remove((import tp));
+} return int rc;
+given t_tmp_make ():(0)
+given t_tmp_make ():(0) then t_tmp_size:(-1)

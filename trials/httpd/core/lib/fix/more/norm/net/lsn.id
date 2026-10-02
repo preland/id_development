@@ -1,0 +1,28 @@
+hd_t_lsn0() {
+  int ln = sock_tcp_listen("127.0.0.1", 0, 4);
+  int pt = sock_port(ln);
+  export int hd_t_ln = ln;
+} chain () {
+  export int hd_t_pt = pt;
+} return void;
+():() then hd_t_tdown:(1)
+():() then hd_t_portok:(1) then hd_t_tdown:(1)
+
+hd_t_lsn() {
+  hd_t_lsn0();
+  int cl = sock_tcp_connect("127.0.0.1", (import hd_t_pt), 1000);
+  export int hd_t_cl = cl;
+} return void;
+():() then hd_t_sweep:(2)
+():() then hd_t_portok:(1) then hd_t_tdown:(1)
+
+hd_t_sweep() {
+  int i = 0;
+  int n = 0;
+  while(i < 8) {
+    n = n + (sock_close(i) == 0);
+    i = i + 1;
+  }
+} return int n;
+():(0)
+given hd_t_lsn ():(2)

@@ -1,0 +1,37 @@
+parse_step(int st) {
+  int nx = (import s_bad);
+  if (st = (import s_val)) {
+    nx = step_val();
+  } else if (st = (import s_key)) {
+    nx = step_key();
+  }
+} chain (int st) {
+  if (st = (import s_aft)) {
+    nx = step_aft();
+  }
+} return int nx;
+given t_load stdin "7" (0):(2)
+given t_load stdin "\"a\":" (1):(0)
+given t_load stdin "" (2):(3)
+given t_load stdin "7" (9):(4)
+
+parse_loop(int st) {
+  while (st < (import s_end)) {
+    st = parse_step(st);
+  }
+} return int st;
+given t_load stdin "[1,2]" (0):(3)
+given t_load stdin "[1" (0):(4) then t_err:(4)
+given t_load stdin "3" (3):(3)
+given t_load stdin "{\"a\":[true,{\"b\":null}]}" (0):(3) then t_nodes:(7)
+
+bom_len() {
+  int n = 0;
+  if (byte_at(0) = 239 && byte_at(1) = 187 && byte_at(2) = 191) {
+    n = 3;
+  }
+} return int n;
+given t_hexload stdin "ef bb bf 5b" ():(3)
+given t_hexload stdin "5b" ():(0)
+given t_hexload stdin "ef bb" ():(0)
+given t_hexload stdin "ef bb be" ():(0)

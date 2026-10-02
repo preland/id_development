@@ -1,0 +1,40 @@
+// Whether the first bytes of a file are the log's magic: 0 for a whole, matching header, 1 for a shorter start that still matches so far (a crash while the header was being written), -1 for anything else.
+head_ok(word ad, int size) {
+  int n = fx_min(size, (import log_hdr));
+  string seen = str_of_mem(ad, n);
+  string magic = str_slice((import log_magic), 0, n);
+} chain (word ad, int size) {
+  int code = 0 - 1;
+  if(seen == magic) {
+    code = n < (import log_hdr);
+  }
+} return int code;
+given log_t_image ((import log_t_ad), 57):(0)
+given log_t_image ((import log_t_ad), 5):(1)
+given mem_t_zeros given buf_fill((import mem_t_ad), 64, 1) ((import mem_t_ad), 8):(-1)
+
+// Checks the record at pos in an image of size bytes and, if it is sound, replays it. Its size, or the negative code rec_check gave.
+scan_step(string[] keys, int[] vals, int[] used, int[] st, word[] ea, word ad, int pos, int size) {
+  int n = rec_check(ad + pos, size - pos);
+  if(n > 0) {
+    apply_rec(keys, vals, used, st, ea, ad + pos);
+  }
+} return int n;
+given log_t_image ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 8, 57):(18) then db_t_state:("1/0/1")
+given log_t_flip ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 26, 57):(-5) then db_t_state:("0/0/0")
+
+// Replays every sound record of the image, in order, up to the first one that is not. Where the sound part ends.
+scan_all(string[] keys, int[] vals, int[] used, int[] st, word[] ea, word ad, int size) {
+  int pos = (import log_hdr);
+  int n = 1;
+  while(pos < size && n > 0) {
+    n = scan_step(keys, vals, used, st, ea, ad, pos, size);
+    if(n > 0) {
+      pos = pos + n;
+    }
+  }
+} return int pos;
+given log_t_image ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 57):(57) then db_t_state:("1/33/3")
+given log_t_image ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 52):(42) then db_t_state:("2/0/2")
+given log_t_flip ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 57):(26) then db_t_state:("1/0/1")
+given log_t_image ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 8):(8) then db_t_state:("0/0/0")

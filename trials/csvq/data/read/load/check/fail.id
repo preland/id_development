@@ -1,0 +1,32 @@
+inp_why(int code) {
+  int at = lst_index_of((import errno_codes), code);
+  string msg = "error " + code;
+  if (at >= 0) {
+    msg = (import errno_text)[at];
+  }
+} return string msg;
+(2):("no such file or directory")
+(21):("is a directory")
+(9):("error 9")
+(27):("file too large")
+
+inp_fail(int code, string[] diag) {
+  string why = inp_why(code);
+  push(diag, "cannot read: " + why);
+} return void;
+(13, []):(13, ["cannot read: permission denied"])
+(77, ["x"]):(77, ["x", "cannot read: error 77"])
+
+inp_nul(word ad, int n) {
+  int i = 0;
+  int at = -1;
+  while (i < n && at < 0) {
+    if (peek8(ad + i) == 0) {
+      at = i;
+    }
+    i = i + 1;
+  }
+} return int at;
+given inp_t_mem ((import nb), 3):(1)
+given inp_t_mem ((import nb), 1):(-1)
+given inp_t_mem ((import nb), 0):(-1)

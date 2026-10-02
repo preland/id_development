@@ -1,0 +1,36 @@
+csv_dbl(word base, int j) {
+  int k = 0;
+  if (peek8(base + j) == (import ch_quote) && peek8(base + j + 1) == (import ch_quote)) {
+    k = 1;
+  }
+} return int k;
+given csv_t_all ((import tq), 2):(1)
+given csv_t_all ((import tq), 5):(0)
+given csv_t_all ((import tq), 16):(0)
+given csv_t_all ((import ta), 0):(0)
+
+csv_qscan(word base, int i) {
+  int c = peek8(base + i);
+  while (c > 0 && (c != (import ch_quote) || csv_dbl(base, i) == 1)) {
+    i = i + 1 + csv_dbl(base, i);
+    c = peek8(base + i);
+  }
+} return int i;
+given csv_t_all ((import tq), 1):(5)
+given csv_t_all ((import tq), 8):(11)
+given csv_t_all ((import tx), 5):(10)
+given csv_t_all ((import tq), 2):(5)
+
+csv_nls(word base, int a, int b) {
+  int n = 0;
+  while (a < b) {
+    if (peek8(base + a) == (import ch_nl)) {
+      n = n + 1;
+    }
+    a = a + 1;
+  }
+} return int n;
+given csv_t_all ((import tq), 0, 16):(2)
+given csv_t_all ((import tq), 0, 9):(0)
+given csv_t_all ((import tq), 9, 10):(1)
+given csv_t_all ((import ta), 0, 12):(3)

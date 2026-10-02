@@ -1,0 +1,63 @@
+// Path normalisation for a decoded request path. Returns "" for anything that
+// is not an absolute path or that climbs above the root, so a caller can treat
+// the empty string as "reject" and never see a traversal.
+
+hd_norm(string t_s) {
+  string[] t_sg = str_split(t_s, "/");
+  string[] t_st = [];
+  int t_ok = hd_norm_walk(t_sg, t_st);
+} chain (string t_s) {
+  string t_o = "";
+  if(t_ok == 1 && charat(t_s, 0) == 47) {
+    t_o = hd_norm_join(t_s, t_st);
+  }
+} return string t_o;
+("/"):("/")
+("/a/b/"):("/a/b/")
+("/a//b/./c"):("/a/b/c")
+("/a/../b"):("/b")
+("/../x"):("")
+("/a/.."):("/")
+("/a/b/../../.."):("")
+("/a/b/../.."):("/")
+("/a/./"):("/a/")
+("//"):("/")
+("/a/b/../c/"):("/a/c/")
+("/.."):("")
+("abc"):("")
+("a/b"):("")
+(""):("")
+("/%2e%2e/x"):("/%2e%2e/x")
+("/..a/.b/c.."):("/..a/.b/c..")
+
+hd_norm_walk(string[] t_sg, string[] t_st) {
+  int t_i = 0;
+  int t_ok = 1;
+  while(t_i < len(t_sg)) {
+    t_ok = hd_norm_step(t_sg[t_i], t_st);
+    if(t_ok == 0) {
+      return 0;
+    }
+    t_i = t_i + 1;
+  }
+} return int t_ok;
+(["", "a", "b"], []):(1)
+(["", "a", "..", ".."], []):(0)
+(["", "a", "..", "b"], []):(1)
+([], []):(1)
+
+hd_norm_step(string t_g, string[] t_st) {
+  int t_ok = 1;
+  if(t_g == "..") {
+    t_ok = hd_norm_up(t_st);
+  } else {
+    if(t_g != "" && t_g != ".") {
+      push(t_st, t_g);
+    }
+  }
+} return int t_ok;
+("..", []):(0)
+("..", ["a"]):(1)
+("a", []):(1)
+(".", []):(1)
+("", []):(1)

@@ -1,0 +1,34 @@
+hd_tcp_ready(int[] skc, int[] skl, int[] rd, word bf, string root) {
+  int i = len(skc) * (len(rd) == len(skc) + 1) - 1;
+  int t = 0;
+  while(i >= 0) {
+    t = t + hd_tcp_pick(skc, skl, rd, i, bf, root);
+    i = i - 1;
+  }
+} return int t;
+given hd_t_web ((import hd_t_cs), (import hd_t_ls), [0, 1], (import hd_t_bf), (import hd_t_root)):(1) then hd_t_ncs:(1) then hd_t_tdown:(1) then hd_t_drop:(1)
+given hd_t_web ((import hd_t_cs), (import hd_t_ls), [], (import hd_t_bf), (import hd_t_root)):(0) then hd_t_ncs:(1) then hd_t_left:(100) then hd_t_tdown:(1) then hd_t_drop:(1)
+
+hd_tcp_round(int ln, int[] skc, int[] skl, word bf, string root, int ms) {
+  int[] skh = hd_poll_set(ln, skc);
+  int[] rd = sock_ready_set(skh, ms);
+  int t = hd_tcp_ready(skc, skl, rd, bf, root);
+} chain (int ln, int[] skc, int[] skl, word bf, string root, int ms) {
+  hd_tcp_take(ln, skc, skl, rd);
+} return int t;
+given hd_t_webu ((import hd_t_ln), (import hd_t_cs), (import hd_t_ls), (import hd_t_bf), (import hd_t_root), 1000):(0) then hd_t_ncs:(1) then hd_t_left:(100) then hd_t_tdown:(1) then hd_t_drop:(1)
+given hd_t_web ((import hd_t_ln), (import hd_t_cs), (import hd_t_ls), (import hd_t_bf), (import hd_t_root), 1000):(1) then hd_t_ncs:(1) then hd_t_left:(99) then hd_t_tdown:(1) then hd_t_drop:(1)
+
+hd_tcp_loop(int ln, string root, int rounds, int ms) {
+  word bf = alloc((import hd_chunk));
+  int[] skc = [];
+  int[] skl = [];
+} chain (int ln, string root, int rounds, int ms) {
+  int t = 0;
+  while(rounds != 0) {
+    t = t + hd_tcp_round(ln, skc, skl, bf, root, ms);
+    rounds = rounds - (rounds > 0);
+  }
+} return int t;
+given hd_t_webu ((import hd_t_ln), (import hd_t_root), 2, 1000):(1) then hd_t_reply:("HTTP/1.1 200 OK\r\nServer: httpd-id/1.0\r\nContent-Type: text/plain; charset=utf-8\r\nLast-Modified: X\r\nContent-Length: 6\r\nConnection: keep-alive\r\nKeep-Alive: max=99\r\n\r\nhello\n") then hd_t_tdown:(1) then hd_t_drop:(1)
+given hd_t_webu ((import hd_t_ln), (import hd_t_root), 1, 1000):(0) then hd_t_reply:("") then hd_t_tdown:(1) then hd_t_drop:(1)

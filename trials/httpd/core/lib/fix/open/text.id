@@ -1,0 +1,30 @@
+hd_t_slurp(string path) {
+  int n = fs_size(path);
+  word ad = alloc(n + 1);
+  int h = fs_open(path, "r");
+} chain (string path) {
+  int g = fs_read_mem(h, ad, n);
+  fs_close(h);
+  string tx = str_of_mem(ad, n);
+} return string tx;
+("/dev/null"):("")
+given hd_t_site ((import hd_t_apath)):("hello\n") then hd_t_drop:(1)
+
+hd_t_clean(string p, string q) {
+  fs_remove(p);
+  if(len(q) > 0) {
+    fs_remove(q);
+  }
+} return void;
+("/nonexistent-hd-x", ""):("/nonexistent-hd-x", "")
+("/nonexistent-hd-x", "/nonexistent-hd-y"):("/nonexistent-hd-x", "/nonexistent-hd-y")
+
+hd_t_lm1(string txt, int k) {
+  string sa = str_slice(txt, 0, k + 15);
+  int r = len(txt) - k - 44;
+  string sb = str_slice(txt, k + 44, r);
+} chain (string txt, int k) {
+  string z = sa + "X" + sb;
+} return string z;
+("Last-Modified: Sun, 06 Nov 1994 08:49:37 GMT\r\nZ", 0):("Last-Modified: X\r\nZ")
+("H\r\nLast-Modified: Sun, 06 Nov 1994 08:49:37 GMT\r\n", 3):("H\r\nLast-Modified: X\r\n")

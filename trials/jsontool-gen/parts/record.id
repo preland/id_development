@@ -1,0 +1,35 @@
+gen_rec(int i) {
+  string head = "{\"id\":" + i + ",\"name\":\"user" + i + "\",\"score\":" + i + ".25,";
+  string tags = "\"tags\":[\"a\",\"caf\\u00e9\",1.5e3,-0.25,true,null,false],";
+  string tail = "\"nested\":{\"k\":[1,2,3],\"s\":\"line\\nbreak \\ud83d\\ude00 x\"}}";
+} chain (int i) {
+  string all = head + tags + tail;
+} return string all;
+(7):("{\"id\":7,\"name\":\"user7\",\"score\":7.25,\"tags\":[\"a\",\"caf\\u00e9\",1.5e3,-0.25,true,null,false],\"nested\":{\"k\":[1,2,3],\"s\":\"line\\nbreak \\ud83d\\ude00 x\"}}")
+(0):("{\"id\":0,\"name\":\"user0\",\"score\":0.25,\"tags\":[\"a\",\"caf\\u00e9\",1.5e3,-0.25,true,null,false],\"nested\":{\"k\":[1,2,3],\"s\":\"line\\nbreak \\ud83d\\ude00 x\"}}")
+
+gen_records(int n) {
+  put("[");
+  int i = 0;
+  while (i < n) {
+    put(gen_rec(i) + ",");
+    i = i + 1;
+  }
+} chain (int n) {
+  put("null]");
+} return void;
+(1):() then prints:("[{\"id\":0,\"name\":\"user0\",\"score\":0.25,\"tags\":[\"a\",\"caf\\u00e9\",1.5e3,-0.25,true,null,false],\"nested\":{\"k\":[1,2,3],\"s\":\"line\\nbreak \\ud83d\\ude00 x\"}},null]")
+(0):() then prints:("[null]")
+
+gen_wide(int n) {
+  put("{");
+  int i = 0;
+  while (i < n) {
+    put("\"k" + (i * 7919) % n + "\":" + i + ",");
+    i = i + 1;
+  }
+} chain (int n) {
+  put("\"end\":0}");
+} return void;
+(3):() then prints:("{\"k0\":0,\"k2\":1,\"k1\":2,\"end\":0}")
+(0):() then prints:("{\"end\":0}")

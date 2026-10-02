@@ -1,0 +1,39 @@
+csv_eol(word base, int[] st) {
+  int c = peek8(base + st[(import s_pos)]);
+  if (c > 0) {
+    st[(import s_pos)] = st[(import s_pos)] + 1;
+    st[(import s_line)] = st[(import s_line)] + 1;
+  }
+  if (c == (import ch_cr) && peek8(base + st[(import s_pos)]) == (import ch_nl)) {
+    st[(import s_pos)] = st[(import s_pos)] + 1;
+  }
+} return void;
+given csv_t_all ((import ta), [3, 1, -1, 0]):((import ta), [5, 2, -1, 0])
+given csv_t_all ((import ta), [8, 7, -1, 0]):((import ta), [9, 8, -1, 0])
+given csv_t_all ((import tc), [1, 7, -1, 0]):((import tc), [2, 8, -1, 0])
+given csv_t_all ((import ta), [12, 1, -1, 0]):((import ta), [12, 1, -1, 0])
+
+csv_end(word base, int[] st, string[] diag) {
+  int c = peek8(base + st[(import s_pos)]);
+  if (c == 0 || c == (import ch_nl) || c == (import ch_cr)) {
+    csv_eol(base, st);
+  } else {
+    push(diag, "line " + st[(import s_line)] + ": unexpected character after a closing quote (expected the delimiter or the end of the line)");
+  }
+} return void;
+given csv_t_all ((import ta), [3, 1, -1, 0], []):((import ta), [5, 2, -1, 0], [])
+given csv_t_all ((import ta), [12, 1, -1, 0], []):((import ta), [12, 1, -1, 0], [])
+given csv_t_all ((import tg), [3, 6, -1, 0], []):((import tg), [3, 6, -1, 0], ["line 6: unexpected character after a closing quote (expected the delimiter or the end of the line)"])
+
+csv_sep(word base, int d, int[] st, string[] diag) {
+  st[(import s_more)] = 0;
+  if (peek8(base + st[(import s_pos)]) == d) {
+    st[(import s_pos)] = st[(import s_pos)] + 1;
+    st[(import s_more)] = 1;
+  } else {
+    csv_end(base, st, diag);
+  }
+} return void;
+given csv_t_all ((import ta), 44, [1, 1, -1, 0], []):((import ta), 44, [2, 1, -1, 1], [])
+given csv_t_all ((import ta), 44, [3, 1, -1, 1], []):((import ta), 44, [5, 2, -1, 0], [])
+given csv_t_all ((import ta), 59, [1, 1, -1, 0], []):((import ta), 59, [1, 1, -1, 0], ["line 1: unexpected character after a closing quote (expected the delimiter or the end of the line)"])

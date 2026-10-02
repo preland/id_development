@@ -1,0 +1,25 @@
+hd_log_cut(string raw) {
+  int n = fx_min(len(raw), 200);
+  string cut = str_slice(raw, 0, n);
+  string q = hd_log_clean(cut);
+} return string q;
+("GET / HTTP/1.1"):("GET / HTTP/1.1")
+("GET /\x01\"x"):("GET /\\x01\\x22x")
+
+hd_log_req(string[] rq) {
+  string q = "-";
+  if(len(rq[7]) > 0) {
+    q = hd_log_cut(rq[7]);
+  }
+} return string q;
+(["", "", "", "", "", "", "", "GET /a HTTP/1.1"]):("GET /a HTTP/1.1")
+(["", "", "", "", "", "", "", ""]):("-")
+
+hd_log_bytes(int[] mt) {
+  int b = mt[2];
+  if(mt[3] == 1) {
+    b = 0;
+  }
+} return int b;
+([200, 1, 42, 0]):(42)
+([200, 1, 42, 1]):(0)

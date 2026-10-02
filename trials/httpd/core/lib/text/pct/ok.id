@@ -1,0 +1,60 @@
+// Percent-escape validation for request targets. A target is accepted only if
+// every '%' introduces a printable byte and no raw control byte appears, so a
+// decoded path can never smuggle NUL, CR, LF or DEL past the path checks.
+
+hd_pct_ok(string t_s) {
+  int t_i = 0;
+  int t_v = 0;
+  while(charat(t_s, t_i) >= 0) {
+    t_v = hd_pct_at(t_s, t_i);
+    if(t_v < 0) {
+      return 0;
+    }
+    t_i = hd_pct_adv(t_s, t_i);
+  }
+} return int 1;
+(""):(1)
+("/a/b.txt"):(1)
+("%20"):(1)
+("%E2%82%AC"):(1)
+("a%2fb%2Fc"):(1)
+("%00"):(0)
+("%1f"):(0)
+("%7F"):(0)
+("%zz"):(0)
+("abc%4"):(0)
+("%"):(0)
+("a\nb"):(0)
+("a\tb"):(0)
+("ok\r\n"):(0)
+
+// The byte the text at i stands for: the decoded byte for a '%XX', the byte
+// itself otherwise, or -1 when the escape is malformed or the byte is a control.
+hd_pct_at(string t_s, int t_i) {
+  int t_c = charat(t_s, t_i);
+  int t_v = hd_pct_hex2(t_s, t_i + 1);
+  if(t_c != 37) {
+    t_v = t_c;
+  }
+} chain (string t_s, int t_i) {
+  int t_r = hd_pct_ctl(t_v);
+} return int t_r;
+("a%41", 0):(97)
+("a%41", 1):(65)
+("a%4", 1):(-1)
+("%00", 0):(-1)
+("%zz", 0):(-1)
+("%7e", 0):(126)
+("%7f", 0):(-1)
+("a\nb", 1):(-1)
+("\xe2", 0):(226)
+
+// How far one unit of input is: three bytes for an escape, one otherwise.
+hd_pct_adv(string t_s, int t_i) {
+  int t_n = t_i + 1;
+  if(charat(t_s, t_i) == 37) {
+    t_n = t_i + 3;
+  }
+} return int t_n;
+("a%41", 1):(4)
+("a%41", 0):(1)

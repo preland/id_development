@@ -1,0 +1,38 @@
+// File extension of the last path segment, lowercased, for the content-type
+// table. A leading dot is a hidden file, not an extension.
+
+hd_ext(string t_s) {
+  int t_a = hd_last(t_s, 47);
+  int t_n = len(t_s);
+  string t_g = str_slice(t_s, t_a + 1, t_n - t_a - 1);
+} chain (string t_s) {
+  int t_d = hd_last(t_g, 46);
+  string t_x = "";
+  if(t_d > 0) {
+    int t_m = len(t_g) - t_d - 1;
+    string t_e = str_slice(t_g, t_d + 1, t_m);
+    t_x = str_lower(t_e);
+  }
+} return string t_x;
+("index.html"):("html")
+("a.tar.GZ"):("gz")
+("/x.d/readme"):("")
+(".bashrc"):("")
+("/w/.bashrc"):("")
+("/w/.a.b"):("b")
+("file."):("")
+(""):("")
+("/"):("")
+("/dir.v2/file.PNG"):("png")
+
+// Index of the last byte equal to t_c, or -1.
+hd_last(string t_s, int t_c) {
+  int t_i = len(t_s) - 1;
+  while(t_i >= 0 && charat(t_s, t_i) != t_c) {
+    t_i = t_i - 1;
+  }
+} return int t_i;
+("a/b/c", 47):(3)
+("abc", 47):(-1)
+("", 46):(-1)
+("a.b.c", 46):(3)

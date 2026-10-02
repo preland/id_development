@@ -1,0 +1,36 @@
+// Where the live record for key is in the flat store, or 0 if the key is absent or deleted.
+db_rec(string[] keys, int[] vals, int[] used, word[] ea, string key) {
+  int e = hmap_get(keys, vals, used, key, (import no_entry));
+  word rec = 0;
+  if(e >= 0) {
+    rec = ea[e];
+  }
+} return word rec;
+given db_t_puts ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_ea), "cd"):((import db_t_b))
+given db_t_puts ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_ea), "zz"):(0)
+given db_t_over ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_ea), "ab"):((import db_t_a))
+given db_t_gone ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_ea), "ab"):(0)
+
+// Adds the key in table slot i to picked if the slot holds a live key that starts with prefix. With these two keys, "ab" is in slot 2 and "cd" in slot 3.
+pick_one(string[] keys, int[] vals, int[] used, string prefix, string[] picked, int i) {
+  if(used[i] == 1 && vals[i] >= 0 && str_starts(keys[i], prefix) == 1) {
+    push(picked, keys[i]);
+  }
+} return void;
+given db_t_puts ((import db_t_keys), (import db_t_vals), (import db_t_used), "a", [], 2):((import db_t_keys), (import db_t_vals), (import db_t_used), "a", ["ab"])
+given db_t_puts ((import db_t_keys), (import db_t_vals), (import db_t_used), "", [], 3):((import db_t_keys), (import db_t_vals), (import db_t_used), "", ["cd"])
+given db_t_puts ((import db_t_keys), (import db_t_vals), (import db_t_used), "c", [], 2):((import db_t_keys), (import db_t_vals), (import db_t_used), "c", [])
+given db_t_puts ((import db_t_keys), (import db_t_vals), (import db_t_used), "", [], 0):((import db_t_keys), (import db_t_vals), (import db_t_used), "", [])
+given db_t_gone ((import db_t_keys), (import db_t_vals), (import db_t_used), "", [], 2):((import db_t_keys), (import db_t_vals), (import db_t_used), "", [])
+
+// Adds every live key that starts with prefix to picked, in table order.
+keys_pick(string[] keys, int[] vals, int[] used, string prefix, string[] picked) {
+  int i = 0;
+  while(i < len(keys)) {
+    pick_one(keys, vals, used, prefix, picked, i);
+    i = i + 1;
+  }
+} return void;
+given db_t_puts ((import db_t_keys), (import db_t_vals), (import db_t_used), "", []):((import db_t_keys), (import db_t_vals), (import db_t_used), "", ["ab", "cd"])
+given db_t_puts ((import db_t_keys), (import db_t_vals), (import db_t_used), "zz", []):((import db_t_keys), (import db_t_vals), (import db_t_used), "zz", [])
+given db_t_gone ((import db_t_keys), (import db_t_vals), (import db_t_used), "", []):((import db_t_keys), (import db_t_vals), (import db_t_used), "", ["cd"])

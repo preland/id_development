@@ -1,0 +1,53 @@
+// Opens the log at path again into fresh lists, timing that, then reads every entry 0 to n-1 back, timing that. Fills res: the reopen's and the gets' milliseconds at 1 and 2, how many values were right at 3, how many keys the reopened store has at 4.
+bench_reload(string path, int n, int[] res) {
+  string[] keys = [];
+  int[] vals = [];
+  int[] used = [];
+} chain (string path, int n, int[] res) {
+  int[] st = [];
+  word[] ea = [];
+  db_new(keys, vals, used, st);
+} chain (string path, int n, int[] res) {
+  int t0 = ticks();
+  int status = db_load(path, keys, vals, used, st, ea);
+  int t1 = ticks();
+} chain (string path, int n, int[] res) {
+  res[1] = t1 - t0;
+  res[4] = st[(import st_live)];
+  int ok = bench_get(keys, vals, used, ea, n);
+} chain (string path, int n, int[] res) {
+  int t2 = ticks();
+  res[3] = ok;
+  res[2] = t2 - t1;
+} return void;
+given bench_t_pair ((import file_t_path), 1, (import bench_t_res)):() then bench_t_counts:("1/2") then file_t_done:(0)
+given bench_t_pair ((import file_t_path), 2, (import bench_t_res)):() then bench_t_counts:("1/2") then file_t_done:(0)
+given bench_t_pair ("/nonexistent-kv-dir/none", 2, (import bench_t_res)):() then bench_t_counts:("0/0") then file_t_done:(0)
+
+// 0 if every one of the n values read back right, 3 if not.
+bench_verdict(int n, int[] res) {
+  int code = 0;
+  if(res[3] != n) {
+    code = 3;
+  }
+} return int code;
+(5, [1, 2, 3, 5, 5]):(0)
+(5, [1, 2, 3, 4, 5]):(3)
+
+// Times n puts, then reloads and reads them back, and prints the four lines of results. The exit status.
+bench_go(string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea, int n, int[] res) {
+  int t0 = ticks();
+  int code = bench_put(path, keys, vals, used, st, ea, n);
+  int t1 = ticks();
+} chain (string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea, int n, int[] res) {
+  res[0] = t1 - t0;
+  if(code == 0) {
+    bench_reload(path, n, res);
+    print(bench_text(n, res));
+  }
+  if(code == 0) {
+    code = bench_verdict(n, res);
+  }
+} return int code;
+given bench_t_fresh ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), 20, (import bench_t_res)):(0) then file_t_size:(2128) then file_t_done:(0)
+given bench_t_fresh ("/nonexistent-kv-dir/none", (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), 3, (import bench_t_res)):(3) then file_t_done:(0)

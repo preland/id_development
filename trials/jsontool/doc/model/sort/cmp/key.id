@@ -1,0 +1,29 @@
+key_dec(int knode, int slot) {
+  int from = nget(knode, (import f_from)) + 1;
+  int to = nget(knode, (import f_to)) - 1;
+  int n = dec_range(from, to, (import jw)[slot]);
+} return int n;
+given t_parse stdin "{\"ab\":1}" (1, 2):(2) then t_s0:("ab")
+given t_parse stdin "{\"a\\u00e9\":1}" (1, 2):(3) then t_s0:("aé")
+given t_parse stdin "{\"k\":1,\"zz\":2}" (3, 3):(2) then t_s1:("zz")
+
+byte_diff(int i) {
+  int d = peek8((import jw)[(import w_s0)] + i) - peek8((import jw)[(import w_s1)] + i);
+  int r = fx_sign(d);
+} return int r;
+given t_dec2 stdin "{\"ab\":0,\"ac\":0}" (1):(-1)
+given t_dec2 stdin "{\"ab\":0,\"ac\":0}" (0):(0)
+given t_dec2 stdin "{\"ac\":0,\"ab\":0}" (1):(1)
+
+mem_diff(int m) {
+  int i = 0;
+  int r = 0;
+  while (i < m && r = 0) {
+    r = byte_diff(i);
+    i = i + 1;
+  }
+} return int r;
+given t_dec2 stdin "{\"ab\":0,\"ac\":0}" (2):(-1)
+given t_dec2 stdin "{\"ab\":0,\"ac\":0}" (1):(0)
+given t_dec2 stdin "{\"ab\":0,\"ac\":0}" (0):(0)
+given t_dec2 stdin "{\"bb\":0,\"ac\":0}" (2):(1)

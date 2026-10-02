@@ -1,0 +1,28 @@
+comma_fail(int p) {
+  int bad = fail((import e_comma), p);
+  int nx = (import s_bad);
+} return int nx;
+given st_init (3):(4) then t_err:(6)
+given st_init (7):(4) then t_erp:(7)
+
+comma_next(int p, int kind) {
+  int nx = seq_state(kind);
+  if (byte_at(p) = closer_of(kind)) {
+    nx = comma_fail(p);
+  } else {
+    lset((import jc), (import c_pos), p);
+  }
+} return int nx;
+given t_load stdin "]" (0, 5):(4) then t_err:(6)
+given t_load stdin "1" (0, 5):(0) then t_pos:(0)
+given t_load stdin " \"" (1, 6):(1) then t_pos:(1)
+given t_load stdin "}" (0, 6):(4) then t_err:(6)
+given t_load stdin "]" (0, 6):(1) then t_pos:(0)
+
+aft_comma(int pos, int kind) {
+  int p = skip_ws(pos + 1);
+  int nx = comma_next(p, kind);
+} return int nx;
+given t_load stdin ", 1" (0, 5):(0) then t_pos:(2)
+given t_load stdin ", ]" (0, 5):(4) then t_erp:(2)
+given t_load stdin ",\"a\"" (0, 6):(1)

@@ -1,0 +1,37 @@
+csv_qfill(word base, int i, int j, word ad) {
+  int n = 0;
+  while (i < j) {
+    poke8(ad + n, peek8(base + i));
+    n = n + 1;
+    i = i + 1 + csv_dbl(base, i);
+  }
+} return int n;
+given csv_t_all ((import tq), 1, 5, (import sb)):(3)
+given csv_t_all ((import tq), 8, 11, (import sb)):(3)
+given csv_t_all ((import tq), 5, 5, (import sb)):(0)
+
+csv_qcopy(word base, int i, int j) {
+  word ad = alloc(j - i + 1);
+  int n = csv_qfill(base, i, j, ad);
+  string f = str_of_mem(ad, n);
+} return string f;
+given csv_t_all ((import tq), 1, 5):("a\"b")
+given csv_t_all ((import tq), 8, 11):("c\nd")
+given csv_t_all ((import tq), 5, 5):("")
+
+csv_quoted(word base, int[] st, string[] row, string[] diag) {
+  int ln = st[(import s_line)];
+  int i = st[(import s_pos)] + 1;
+  int j = csv_qscan(base, i);
+} chain (word base, int[] st, string[] row, string[] diag) {
+  push(row, csv_qcopy(base, i, j));
+  st[(import s_line)] = st[(import s_line)] + csv_nls(base, i, j);
+  st[(import s_pos)] = j + 1;
+} chain (word base, int[] st, string[] row, string[] diag) {
+  if (peek8(base + j) == 0) {
+    push(diag, "line " + ln + ": quoted field is never closed (missing closing quote)");
+  }
+} return void;
+given csv_t_all ((import tq), [0, 1, -1, 0], [], []):((import tq), [6, 1, -1, 0], ["a\"b"], [])
+given csv_t_all ((import tq), [7, 1, -1, 0], [], []):((import tq), [12, 2, -1, 0], ["c\nd"], [])
+given csv_t_all ((import tx), [4, 2, -1, 0], [], []):((import tx), [11, 2, -1, 0], ["never"], ["line 2: quoted field is never closed (missing closing quote)"])

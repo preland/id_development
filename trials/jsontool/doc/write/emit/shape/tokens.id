@@ -1,0 +1,33 @@
+opener_of(int kind) {
+  int c = (import k_lbrk);
+  if (kind = (import kn_obj)) {
+    c = (import k_lbrc);
+  }
+} return int c;
+(5):(91)
+(6):(123)
+
+emit_leaf(int cur, int kind) {
+  if (kind >= (import kn_arr) && kind <= (import kn_obj)) {
+    ob_byte(opener_of(kind));
+    ob_byte(closer_of(kind));
+  } else {
+    ob_range(nget(cur, (import f_from)), nget(cur, (import f_to)));
+  }
+} return void;
+given t_parse stdin "[1]" (1, 3):() then t_out:("1")
+given t_parse stdin "[]" (0, 5):() then t_out:("[]")
+given t_parse stdin "{}" (0, 6):() then t_out:("{}")
+given t_parse stdin "\"a b\"" (0, 4):() then t_out:("\"a b\"")
+given t_parse stdin "-1.5e3" (0, 3):() then t_out:("-1.5e3")
+
+nl_indent(int depth) {
+  int ind = (import jc)[(import c_ind)];
+  if (ind >= 0) {
+    ob_byte((import k_nl));
+    ob_spaces(depth * ind);
+  }
+} return void;
+given t_load (2):() then t_out:("\n    ")
+given t_load (0):() then t_out:("\n")
+given t_flat stdin "1" (3):() then t_out:("1\n")

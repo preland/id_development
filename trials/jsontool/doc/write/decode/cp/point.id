@@ -1,0 +1,39 @@
+dec_pair(int hi, int pos) {
+  int lo = hex4(pos + 8);
+  int cp = 65536 + ((hi - 55296) << 10) + (lo - 56320);
+} return int cp;
+given t_load stdin "\\ud83d\\ude00" (55357, 0):(128512)
+given t_load stdin "\\ud800\\udc00" (55296, 0):(65536)
+given t_load stdin "\\udbff\\udfff" (56319, 0):(1114111)
+
+dec_cp(int pos) {
+  int cp = hex4(pos + 2);
+  if (surr_class(cp) = 1) {
+    cp = dec_pair(cp, pos);
+  }
+} return int cp;
+given t_load stdin "\\u00e9" (0):(233)
+given t_load stdin "\\ud83d\\ude00" (0):(128512)
+given t_load stdin "\\u0041" (0):(65)
+
+u8_size(int cp) {
+  int n = 1;
+  if (cp >= 128) {
+    n = 2;
+  }
+  if (cp >= 2048) {
+    n = 3;
+  }
+} chain (int cp) {
+  if (cp >= 65536) {
+    n = 4;
+  }
+} return int n;
+(65):(1)
+(127):(1)
+(128):(2)
+(2047):(2)
+(2048):(3)
+(65535):(3)
+(65536):(4)
+(1114111):(4)

@@ -1,0 +1,18 @@
+hd_tcp_run(int ln, string host, string root, int rounds) {
+  int pt = sock_port(ln);
+  string fm = hd_up_msg(host, pt, root);
+  eprint(fm);
+} chain (int ln, string host, string root, int rounds) {
+  int served = hd_tcp_loop(ln, root, rounds, -1);
+  sock_close(ln);
+  int rc = 0;
+} return int rc;
+given hd_t_lsn0 ((import hd_t_ln), "127.0.0.1", "/tmp", 0):(0) then hd_t_sweep:(0)
+given hd_t_lsn0 ((import hd_t_ln), "0.0.0.0", "/nonexistent-hd-x", 0):(0) then hd_t_sweep:(0)
+
+hd_tcp_fail(string host, string skp) {
+  string fm = hd_fail_msg(host, skp, sock_error());
+  eprint(fm);
+} return void;
+("x", "0"):() then eprints:("httpd: cannot listen on x:0 (error 0); --host must be a numeric address such as 127.0.0.1 or 0.0.0.0, and --port a free port\n")
+("999.1.1.1", "5"):() then eprints:("httpd: cannot listen on 999.1.1.1:5 (error 0); --host must be a numeric address such as 127.0.0.1 or 0.0.0.0, and --port a free port\n")

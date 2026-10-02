@@ -1,0 +1,18 @@
+// Fixtures: a 64-byte block of the flat store with a known content, and a way to read it back.
+mem_t_zeros() {
+  export word mem_t_ad = alloc(64);
+  buf_zero(mem_t_ad, 64);
+} return void;
+():() then mem_t_sum:(0)
+():() then mem_t_top:(0)
+
+mem_t_sum() {
+  int sum = 0;
+  int i = 0;
+  while(i < 32) {
+    sum = sum + peek8((import mem_t_ad) + i);
+    i = i + 1;
+  }
+} return int sum;
+given mem_t_zeros ():(0)
+given mem_t_zeros given buf_fill((import mem_t_ad), 64, 1) ():(32)

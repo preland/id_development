@@ -1,0 +1,57 @@
+lit_match(int pos, string txt) {
+  int i = 0;
+  while (i < len(txt) && byte_at(pos + i) = charat(txt, i)) {
+    i = i + 1;
+  }
+  int ok = i == len(txt);
+} return int ok;
+given t_load stdin "true" (0, "true"):(1)
+given t_load stdin "tru" (0, "true"):(0)
+given t_load stdin "trux" (0, "true"):(0)
+
+lit_scan(int pos, int kind) {
+  string txt = (import lit_words)[kind];
+  int q = pos + len(txt);
+  if (lit_match(pos, txt) = 0) {
+    q = fail((import e_lit), pos);
+  }
+} return int q;
+given t_load stdin "null" (0, 0):(4)
+given t_load stdin "false" (0, 1):(5)
+given t_load stdin "true" (0, 2):(4)
+given t_load stdin "nulx" (0, 0):(-1) then t_err:(8)
+
+val_kind(int c) {
+  int kind = -1;
+  if (c = (import k_lbrc)) {
+    kind = (import kn_obj);
+  } else if (c = (import k_lbrk)) {
+    kind = (import kn_arr);
+  }
+} chain (int c) {
+  if (c = (import k_quote)) {
+    kind = (import kn_str);
+  } else if (c = (import k_minus) || chr_is_digit(c) = 1) {
+    kind = (import kn_num);
+  }
+  if (c = 116) {
+    kind = (import kn_true);
+  }
+} chain (int c) {
+  if (c = 102) {
+    kind = (import kn_false);
+  } else if (c = 110) {
+    kind = (import kn_null);
+  }
+} return int kind;
+(123):(6)
+(91):(5)
+(34):(4)
+(45):(3)
+(48):(3)
+(57):(3)
+(116):(2)
+(102):(1)
+(110):(0)
+(120):(-1)
+(-1):(-1)

@@ -1,0 +1,27 @@
+// The 52 byte torn file with a .bad already beside it holding three bytes, so a second repair has something to append to.
+log_t_twice() {
+  log_t_dirty();
+  int h = fs_open((import file_t_path) + ".bad", "w");
+  int wrote = fs_write(h, [1, 2, 3], 3);
+} chain () {
+  int shut = fs_close(h);
+} return void;
+():() then file_t_bad:(3) then file_t_done:(0)
+():() then file_t_size:(52) then db_t_meta:("42/52/0") then file_t_done:(0)
+
+// The torn file whose counters claim 100 sound bytes, more than the file has: something shrank it since it was read.
+log_t_shrunk() {
+  log_t_torn();
+  st_add((import db_t_st), (import st_size), 100);
+  st_add((import db_t_st), (import st_file), 100);
+} return void;
+():() then db_t_meta:("100/100/0") then file_t_done:(0)
+():() then file_t_size:(52) then file_t_done:(0)
+
+// A log holding only its header: the file has 8 bytes and the counters know it.
+log_t_head() {
+  log_t_ready();
+  log_begin((import file_t_path), (import db_t_st));
+} return void;
+():() then db_t_meta:("8/8/0") then file_t_size:(8) then file_t_done:(0)
+():() then file_t_bytes:(577) then file_t_done:(0)

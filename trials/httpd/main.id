@@ -1,0 +1,9 @@
+main(int argc, string[] argv) {
+  string[] opts = hd_args(argv);
+  string msg = hd_check(opts);
+  int rc = hd_run(opts, msg);
+} return int rc;
+(1, ["httpd"]):(2) then eprints:("httpd: --root DIR is required\nusage: httpd [--port N] [--host ADDR] --root DIR\n")
+(3, ["httpd", "--bogus", "x"]):(2) then eprints:("httpd: unknown argument: --bogus\nusage: httpd [--port N] [--host ADDR] --root DIR\n")
+stdin "" (3, ["httpd", "--root", "/tmp"]):(0) then eprints:("httpd: serving /tmp over stdin/stdout (inetd style; give --port N to listen)\n")
+(7, ["httpd", "--port", "5", "--host", "999.1.1.1", "--root", "/tmp"]):(1) then eprints:("httpd: cannot listen on 999.1.1.1:5 (error 99); --host must be a numeric address such as 127.0.0.1 or 0.0.0.0, and --port a free port\n")

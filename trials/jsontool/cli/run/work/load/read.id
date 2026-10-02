@@ -1,0 +1,29 @@
+doc_after(string file, int rc) {
+  int code = 1;
+  if (rc < 0) {
+    eprint(io_message(file));
+  } else {
+    code = doc_parse(file);
+  }
+} return int code;
+given t_errno_set ("x", -1):(1) then eprints:("jsontool: x: cannot read: no such file or directory\n")
+given t_load stdin "[1]" ("x", 0):(0)
+given t_load stdin "[1,]" ("x", 0):(1) then t_err:(6)
+
+doc_load(string file) {
+  int rc = in_load(file_path(file));
+  int code = doc_after(file, rc);
+} return int code;
+given t_tmp_make stdin "[1,2]" ((import tp)):(0) then t_nodes:(3) then t_tmp_drop:(0)
+given t_tmp_make stdin "[1,2" ((import tp)):(1) then t_err:(4) then t_tmp_drop:(0)
+given st_init ("/nonexistent/jt"):(1) then eprints:("jsontool: /nonexistent/jt: cannot read: no such file or directory\n")
+given st_init stdin "{}" ("-"):(0)
+given st_init stdin "{" ("-"):(1) then eprints:("<stdin>:1:2: error: expected an object key: a string in double quotes (found end of input)\n")
+given st_init ("/tmp"):(1) then eprints:("jsontool: /tmp: cannot read: is a directory\n")
+
+doc_emit() {
+  emit_tree((import jc)[(import c_root)]);
+  int code = out_finish();
+} return int code;
+given t_parse stdin "[1]" ():(0) then t_out:("[\n  1\n]\n")
+given t_parse stdin "{\"a\":null}" ():(0) then t_out:("{\n  \"a\": null\n}\n")

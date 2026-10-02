@@ -1,0 +1,39 @@
+// Swaps two elements of a string list.
+strs_swap(string[] strs, int a, int b) {
+  string hold = strs[a];
+  strs[a] = strs[b];
+  strs[b] = hold;
+} return void;
+(["x", "y"], 0, 1):(["y", "x"], 0, 1)
+(["x", "y"], 1, 1):(["x", "y"], 1, 1)
+
+// Whichever of the element at root and its two children (in the heap of the first end elements) sorts highest, as an index.
+strs_big(string[] strs, int root, int end) {
+  int big = root;
+  int lc = 2 * root + 1;
+  if(lc < end && str_cmp(strs[lc], strs[big]) > 0) {
+    big = lc;
+  }
+} chain (string[] strs, int root, int end) {
+  int rc = lc + 1;
+  if(rc < end && str_cmp(strs[rc], strs[big]) > 0) {
+    big = rc;
+  }
+} return int big;
+(["a", "b", "c"], 0, 3):(2)
+(["z", "b", "c"], 0, 3):(0)
+(["a", "b", "c"], 0, 2):(1)
+(["a"], 0, 1):(0)
+
+// Moves the element at root down until neither of its children sorts above it.
+strs_sift(string[] strs, int root, int end) {
+  int big = strs_big(strs, root, end);
+  while(big != root) {
+    strs_swap(strs, root, big);
+    root = big;
+    big = strs_big(strs, root, end);
+  }
+} return void;
+(["a", "c", "b"], 0, 3):(["c", "a", "b"], 0, 3)
+(["z", "c", "b"], 0, 3):(["z", "c", "b"], 0, 3)
+(["a", "b", "c", "d"], 0, 4):(["c", "b", "a", "d"], 0, 4)

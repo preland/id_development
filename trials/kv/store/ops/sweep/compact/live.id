@@ -1,0 +1,33 @@
+// Whether entry e is the one its key resolves to, so the record is not garbage: 1 if so.
+live_at(string[] keys, int[] vals, int[] used, word[] ea, int e) {
+  string key = rec_key(ea[e]);
+  int cur = hmap_get(keys, vals, used, key, (import no_entry));
+  int live = cur == e;
+} return int live;
+given db_t_puts ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_ea), 0):(1)
+given db_t_over ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_ea), 0):(0)
+given db_t_over ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_ea), 2):(1)
+
+// Adds two byte counts, where -1 means a failure that stays a failure.
+tally(int total, int sent) {
+  int sum = 0 - 1;
+  if(total >= 0 && sent >= 0) {
+    sum = total + sent;
+  }
+} return int sum;
+(3, 4):(7)
+(-1, 4):(-1)
+(3, -1):(-1)
+(0, 0):(0)
+
+// Writes one whole record to an open handle. Its length, or -1 if it did not all go out.
+emit_rec(int h, word rec) {
+  int n = rec_len(rec);
+  int sent = write_all(h, rec, n);
+  if(sent != n) {
+    sent = 0 - 1;
+  }
+} return int sent;
+given db_t_writer ((import file_t_w), (import db_t_a)):(18) then file_t_wsize:(18) then file_t_bytes:(913) then file_t_done:(0)
+given db_t_writer ((import file_t_w), (import db_t_b)):(16) then file_t_wsize:(16) then file_t_bytes:(702) then file_t_done:(0)
+given db_t_writer (-1, (import db_t_a)):(-1) then file_t_done:(0)

@@ -1,0 +1,28 @@
+hd_shell(string pth, string body) {
+  string es = hd_html_esc(pth);
+  string hs = "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of " + es + "</title></head><body><h1>Index of " + es + "</h1><ul>\n" + body + "</ul></body></html>\n";
+} return string hs;
+("/a/", "X"):("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of /a/</title></head><body><h1>Index of /a/</h1><ul>\nX</ul></body></html>\n")
+("/<b>/", ""):("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of /&lt;b&gt;/</title></head><body><h1>Index of /&lt;b&gt;/</h1><ul>\n</ul></body></html>\n")
+
+hd_page_list(string pth, string txt) {
+  string[] li = [];
+  hd_parent_add(pth, li);
+  string[] ns = str_split(txt, "\n");
+} chain (string pth, string txt) {
+  hd_li_loop(ns, li, 0);
+  string body = str_join(li, "");
+  string hs = hd_shell(pth, body);
+} return string hs;
+("/", "a.txt\nd/\n"):("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of /</title></head><body><h1>Index of /</h1><ul>\n<li><a href=\"a.txt\">a.txt</a></li>\n<li><a href=\"d/\">d/</a></li>\n</ul></body></html>\n")
+("/x/", ""):("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of /x/</title></head><body><h1>Index of /x/</h1><ul>\n<li><a href=\"../\">../</a></li>\n</ul></body></html>\n")
+
+hd_dirtext(string fp, int need) {
+  int[] buf = [];
+  lst_fill(buf, need, 0);
+  int got = fs_list(fp, buf, need);
+} chain (string fp, int need) {
+  string tx = hd_cells_str(buf, fx_min(got, need));
+} return string tx;
+("/nonexistent-hd-x", 4):("")
+given hd_t_site ((import hd_t_dir), 27):("a.txt\nidx/\nsp ace.txt\nsub/\n") then hd_t_drop:(1)

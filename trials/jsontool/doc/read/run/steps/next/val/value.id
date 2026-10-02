@@ -1,0 +1,37 @@
+val_fail(int pos) {
+  int bad = fail((import e_val), pos);
+  int nx = (import s_bad);
+} return int nx;
+given st_init (3):(4) then t_err:(1)
+given st_init (3):(4) then t_erp:(3)
+given st_init (9):(4) then t_erp:(9)
+
+val_go(int pos, int kind) {
+  int nx = (import s_bad);
+  if (kind >= (import kn_arr)) {
+    nx = open_seq(pos, kind);
+  } else if (kind >= 0) {
+    nx = leaf_step(pos, kind);
+  }
+} chain (int pos, int kind) {
+  if (kind < 0) {
+    nx = val_fail(pos);
+  }
+} return int nx;
+given t_load stdin "[1]" (0, 5):(0)
+given t_load stdin "7" (0, 3):(2)
+given t_load stdin "x" (0, -1):(4) then t_err:(1)
+given t_load stdin "{}" (0, 6):(2)
+given t_load stdin "\"s\"" (0, 4):(2)
+
+step_val() {
+  int pos = skip_ws((import jc)[(import c_pos)]);
+  int c = byte_at(pos);
+  int kind = val_kind(c);
+} chain () {
+  int nx = val_go(pos, kind);
+} return int nx;
+given t_load stdin " 7" ():(2) then t_pos:(2)
+given t_load stdin "" ():(4) then t_err:(1)
+given t_load stdin "[" ():(0)
+given t_load stdin "  x" ():(4) then t_erp:(2)

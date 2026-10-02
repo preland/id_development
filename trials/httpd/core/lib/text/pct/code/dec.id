@@ -1,0 +1,25 @@
+// Percent decoding. Assumes hd_pct_ok already accepted the input; '+' is left
+// alone because in a path it is a plus, not a space.
+
+hd_pct_decode(string t_s) {
+  string t_o = "";
+  int t_i = 0;
+  t_o = hd_pct_dec_run(t_s, t_i, t_o);
+} return string t_o;
+(""):("")
+("a%20b"):("a b")
+("a+b"):("a+b")
+("100%25"):("100%")
+("%E2%82%AC"):("€")
+("%2f%2E"):("/.")
+
+hd_pct_dec_run(string t_s, int t_i, string t_o) {
+  while(charat(t_s, t_i) >= 0) {
+    int t_v = hd_pct_at(t_s, t_i);
+    t_o = t_o + chr(t_v);
+    t_i = hd_pct_adv(t_s, t_i);
+  }
+} return string t_o;
+("a%41", 0, ""):("aA")
+("x", 0, "p-"):("p-x")
+("a%41z", 1, "Q"):("QAz")

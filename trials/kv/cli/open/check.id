@@ -1,0 +1,43 @@
+// Which command a word names, as its place in cmd_names, or -1.
+cmd_index(string cmd) {
+  int found = 0 - 1;
+  int i = 0;
+  while(i < len((import cmd_names))) {
+    if((import cmd_names)[i] == cmd) {
+      found = i;
+    }
+    i = i + 1;
+  }
+} return int found;
+("put"):(0)
+("bench"):(6)
+("frobnicate"):(-1)
+(""):(-1)
+
+// What is wrong with a command line for the command cmd, whose place in cmd_names is at: an unknown command, or too many or too few words. "" if nothing.
+arity_bad(int argc, string cmd, int at) {
+  string bad = "";
+  if(at < 0) {
+    bad = "unknown command '" + cmd + "'";
+  } else if(argc < (import cmd_least)[at] || argc > (import cmd_most)[at]) {
+    bad = "wrong number of arguments for '" + cmd + "'";
+  }
+} return string bad;
+(5, "put", 0):("")
+(4, "put", 0):("wrong number of arguments for 'put'")
+(4, "list", 3):("")
+(5, "list", 3):("wrong number of arguments for 'list'")
+(3, "nope", -1):("unknown command 'nope'")
+(3, "bench", 6):("wrong number of arguments for 'bench'")
+(4, "bench", 6):("")
+(6, "bench", 6):("wrong number of arguments for 'bench'")
+
+// What is wrong with a command line for the command cmd, or "" if nothing.
+cmd_bad(int argc, string cmd) {
+  int at = cmd_index(cmd);
+  string bad = arity_bad(argc, cmd, at);
+} return string bad;
+(5, "put"):("")
+(3, "compact"):("")
+(4, "compact"):("wrong number of arguments for 'compact'")
+(3, "nope"):("unknown command 'nope'")

@@ -1,0 +1,34 @@
+cli_check(int idx) {
+  int bad = args_check(idx);
+  int rc = 2;
+  if (bad = 0) {
+    rc = cmd_run(idx);
+  }
+} return int rc;
+given t_args stdin "[1]" (0):(0) then t_out:("[\n  1\n]\n")
+given t_args (2):(2) then eprints:("jsontool: 'get' needs a PATH argument\n")
+given t_noted (0):(2) then eprints:("jsontool: --indent and --compact cannot be combined\n")
+
+cli_after(int e, int idx) {
+  int rc = 2;
+  if (e = (import a_help)) {
+    print((import usage_text));
+    rc = 0;
+  } else if (e >= 0) {
+    rc = cli_check(idx);
+  }
+} return int rc;
+given t_args (-2, 0):(0)
+given t_args (-1, 0):(2)
+given t_args stdin "[1]" (2, 0):(0) then t_out:("[\n  1\n]\n")
+
+cli_go(string[] argv, int idx) {
+  int e = args_scan(argv, idx);
+  int rc = cli_after(e, idx);
+} return int rc;
+given t_args stdin "[1,2]" (["p", "fmt", "--compact"], 0):(0) then t_out:("[1,2]\n")
+given t_args (["p", "fmt", "-h"], 0):(0)
+given t_args (["p", "fmt", "--bogus"], 0):(2) then eprints:("jsontool: unknown option '--bogus'\nTry 'jsontool --help' for usage.\n")
+given t_args stdin "[1]" (["p", "fmt", "--indent", "2", "--compact"], 0):(2) then eprints:("jsontool: --indent and --compact cannot be combined\n")
+given t_args stdin "{\"a\":1}" (["p", "fmt", "--indent", "0"], 0):(0) then t_out:("{\n\"a\": 1\n}\n")
+given t_args stdin "[1]" (["p", "fmt", "--indent=4"], 0):(0) then t_out:("[\n    1\n]\n")

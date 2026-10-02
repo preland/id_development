@@ -1,0 +1,29 @@
+opt_allowed(int idx, int bit, string name) {
+  int ok = ((import cmd_opts)[idx] & bit) != 0;
+  if (ok = 0) {
+    eprint("jsontool: option " + name + " is not valid for '" + (import cmd_names)[idx] + "'");
+  }
+} return int ok;
+(0, 1, "--indent"):(1)
+(2, 4, "--raw"):(1)
+(1, 1, "--indent"):(0) then eprints:("jsontool: option --indent is not valid for 'validate'\n")
+(0, 4, "--raw"):(0) then eprints:("jsontool: option --raw is not valid for 'fmt'\n")
+(3, 2, "--compact"):(0) then eprints:("jsontool: option --compact is not valid for 'keys'\n")
+(4, 2, "--compact"):(1) then eprints:("")
+
+indent_take(string txt, int nxt) {
+  int n = indent_value(txt);
+  int r = indent_store(n, txt, nxt);
+} return int r;
+given t_args ("4", 3):(3) then t_ind:(4)
+given t_args ("x", 3):(-1) then eprints:("jsontool: --indent needs an integer from 0 to 64, got 'x'\n")
+
+indent_set(int idx, string txt, int nxt) {
+  int r = (import a_bad);
+  if (opt_allowed(idx, 1, "--indent") = 1) {
+    r = indent_take(txt, nxt);
+  }
+} return int r;
+given t_args (0, "3", 4):(4) then t_ind:(3)
+given t_args (1, "3", 4):(-1) then eprints:("jsontool: option --indent is not valid for 'validate'\n")
+given t_args (0, "99", 4):(-1) then t_ind:(2)

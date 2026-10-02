@@ -1,0 +1,24 @@
+hd_t_openf(string body) {
+  string q = fs_mktemp("hdt", 0);
+  string p = fs_mktemp("hdt", 0);
+  hd_t_put(q, body);
+} chain (string body) {
+  hd_t_mem();
+  hd_t_wire(p, q, q);
+} return void;
+("x"):() then hd_t_out:("")
+("GET /\r\n\r\n"):() then hd_t_out:("")
+
+hd_t_open414() {
+  string pad = str_repeat("a", 9000);
+  hd_t_openf("GET /" + pad + " HTTP/1.1\r\nHost: h\r\n\r\n");
+} return void;
+():() then hd_t_out:("")
+():() then hd_t_head:("") then hd_t_out:("")
+
+hd_t_open413() {
+  string pad = str_repeat("a", 9000);
+  hd_t_openf("GET / HTTP/1.1\r\nHost: h\r\nX-Pad: " + pad + "\r\n\r\n");
+} return void;
+():() then hd_t_out:("")
+():() then hd_t_head:("") then hd_t_out:("")

@@ -1,0 +1,11 @@
+// kv DB put KEY VALUE, or with - for VALUE, the value is all of standard input (inp).
+cmd_put(string path, string inp, string[] keys, int[] vals, int[] used, int[] st, word[] ea, string[] argv) {
+  int code = 0;
+  if(argv[4] == "-") {
+    code = put_stdin(path, inp, keys, vals, used, st, ea, argv[3]);
+  } else {
+    code = put_arg(path, keys, vals, used, st, ea, argv[3], argv[4]);
+  }
+} return int code;
+given log_t_ready stdin "hello" ((import file_t_path), "/dev/stdin", (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), ["kv", "x", "put", "ab", "-"]):(0) then db_t_state:("1/0/1") then file_t_size:(28) then file_t_done:(0)
+given log_t_ready stdin "hello" ((import file_t_path), "/dev/stdin", (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), ["kv", "x", "put", "ab", "xyz"]):(0) then db_t_state:("1/0/1") then file_t_size:(26) then file_t_done:(0)

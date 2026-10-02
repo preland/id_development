@@ -1,0 +1,25 @@
+main(int argc, string[] argv) {
+  int rc = 2;
+  if(argc == 4) {
+    rc = gc_fetch(argv[1], to_int(argv[2]), argv[3]);
+  }
+  if(argc != 4) {
+    eprint("usage: httpget HOST PORT PATH");
+  }
+} return int rc;
+(1, ["httpget"]):(2) then eprints:("usage: httpget HOST PORT PATH\n")
+(4, ["httpget", "127.0.0.1", "1", "/"]):(1) then eprints:("httpget: cannot connect to 127.0.0.1:1 (error 111)\n")
+
+gc_fetch(string host, int port, string path) {
+  int h = sock_tcp_connect(host, port, 3000);
+  int rc = 1;
+  if(h >= 0) {
+    rc = gc_show(h, host, path, 5000);
+  }
+} chain (string host, int port, string path) {
+  if(h < 0) {
+    eprint("httpget: cannot connect to " + host + ":" + port + " (error " + sock_error() + ")");
+  }
+} return int rc;
+("127.0.0.1", 1, "/"):(1) then eprints:("httpget: cannot connect to 127.0.0.1:1 (error 111)\n")
+("127.0.0.1", 0, "/"):(1) then eprints:("httpget: cannot connect to 127.0.0.1:0 (error 22)\n")

@@ -1,0 +1,9 @@
+cmd_keys(string file) {
+  int code = doc_load(file);
+  int root = (import jc)[(import c_root)];
+  int rc = keys_pick(code, root);
+} return int rc;
+given t_args stdin "{\"x\":1,\"y\":2}" ("-"):(0) then t_out:("x\ny\n")
+given t_args stdin "[1]" ("-"):(1) then eprints:("jsontool: keys: the top-level value is not an object\n")
+given t_args stdin "{\"x\":" ("-"):(1) then eprints:("<stdin>:1:6: error: expected a value (found end of input)\n")
+given t_args stdin "{}" ("-"):(0) then t_out:("")

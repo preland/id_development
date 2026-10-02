@@ -1,0 +1,28 @@
+// The pieces of an IMF-fixdate. Month and weekday names are 3-byte cells of one
+// packed string, so a name is a slice and the same string can be searched by
+// the parser; the table is passed in because the caller owns which table it is.
+
+hd_date_name(string d_tbl, int d_n) {
+  string d_rs = str_slice(d_tbl, d_n * 3, 3);
+} return string d_rs;
+("SunMonTueWedThuFriSat", 4):("Thu")
+("JanFebMarAprMayJunJulAugSepOctNovDec", 10):("Nov")
+("JanFebMarAprMayJunJulAugSepOctNovDec", 0):("Jan")
+
+hd_date_two(int d_n) {
+  string d_rs = "" + d_n;
+  if(d_n < 10) {
+    d_rs = "0" + d_n;
+  }
+} return string d_rs;
+(6):("06")
+(12):("12")
+(0):("00")
+
+hd_date_fmt_time(int d_sod) {
+  string d_rs = hd_date_two(d_sod / 3600) + ":" + hd_date_two((d_sod % 3600) / 60) + ":" + hd_date_two(d_sod % 60);
+} return string d_rs;
+(31777):("08:49:37")
+(0):("00:00:00")
+(86399):("23:59:59")
+(3661):("01:01:01")

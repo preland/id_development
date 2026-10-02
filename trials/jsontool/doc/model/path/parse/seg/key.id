@@ -1,0 +1,42 @@
+seg_key(string path, int from, int to) {
+  int off = (import jc)[(import c_pk)];
+  int i = from;
+  while (i < to) {
+    pk_byte(charat(path, i));
+    i = i + 1;
+  }
+} chain (string path, int from, int to) {
+  push_seg(0, off, to - from);
+} return void;
+given t_pinit ("a.bc", 2, 4):() then t_segstr:(".bc")
+given t_pinit ("a.bc", 2, 4):() then t_pk:(2)
+given t_pinit ("abc", 0, 1):() then t_pkstr:("a")
+
+dot_empty(string path, int i) {
+  int ok = charat(path, i + 1) == 91 || (i == 0 && len(path) == 1);
+  int q = i + 1;
+  if (ok = 0) {
+    q = path_fail((import pe_name), i + 1);
+  }
+} return int q;
+given t_pinit (".", 0):(1)
+given t_pinit (".[0]", 0):(1)
+given t_pinit ("..a", 0):(-1) then t_perr:(2)
+given t_pinit (".a.", 2):(-1) then t_pep:(3)
+
+seg_dot(string path, int i) {
+  int e = name_end(path, i + 1);
+  int q = e;
+  if (e = i + 1) {
+    q = dot_empty(path, i);
+  }
+} chain (string path, int i) {
+  if (e > i + 1) {
+    seg_key(path, i + 1, e);
+  }
+} return int q;
+given t_pinit (".ab", 0):(3) then t_segstr:(".ab")
+given t_pinit (".", 0):(1) then t_segs:(0)
+given t_pinit ("..", 0):(-1) then t_perr:(2)
+given t_pinit (".[", 0):(1) then t_segs:(0)
+given t_pinit (".a[0]", 0):(2) then t_segstr:(".a")

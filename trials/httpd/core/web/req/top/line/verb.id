@@ -1,0 +1,31 @@
+hd_ver_ok(string v) {
+  int ok = 0;
+  if(v == "HTTP/1.1" || v == "HTTP/1.0") {
+    ok = 1;
+  }
+} return int ok;
+("HTTP/1.1"):(1)
+("HTTP/1.0"):(1)
+("HTTP/2.0"):(0)
+("http/1.1"):(0)
+
+hd_meth_ok(string mth) {
+  int n = len(mth);
+  int ok = 0;
+  if(n > 0) {
+    ok = hd_tok_ok(mth, n);
+  }
+} return int ok;
+("GET"):(1)
+(""):(0)
+("G ET"):(0)
+
+hd_uri_len(string tg, int mx) {
+  int st = 0;
+  if(len(tg) > mx) {
+    st = 414;
+  }
+} return int st;
+("abc", 3):(0)
+("abcd", 3):(414)
+("", 0):(0)

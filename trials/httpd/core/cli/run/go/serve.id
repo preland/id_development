@@ -1,0 +1,28 @@
+hd_banner(string[] opts) {
+  string bn = "httpd: serving " + opts[1] + " over stdin/stdout (inetd style; give --port N to listen)";
+} return string bn;
+(["", "/srv", "", ""]):("httpd: serving /srv over stdin/stdout (inetd style; give --port N to listen)")
+(["", "/", "", ""]):("httpd: serving / over stdin/stdout (inetd style; give --port N to listen)")
+
+hd_go(string[] opts) {
+  hd_cli_io();
+  string bn = hd_banner(opts);
+  eprint(bn);
+} chain (string[] opts) {
+  string[] cn = ["", "/dev/stdout", "-"];
+  int served = hd_serve((import hd_io), cn, opts[1], (import hd_max_reqs));
+} return int served;
+stdin "" (["", "/tmp", "", ""]):(0) then eprints:("httpd: serving /tmp over stdin/stdout (inetd style; give --port N to listen)\n")
+stdin "" (["", "/", "", ""]):(0) then eprints:("httpd: serving / over stdin/stdout (inetd style; give --port N to listen)\n")
+
+hd_run(string[] opts, string msg) {
+  int rc = 2;
+  if(len(msg) > 0) {
+    hd_usage(msg);
+  }
+  if(len(msg) == 0) {
+    rc = hd_mode(opts);
+  }
+} return int rc;
+(["", "", "", ""], "bad"):(2) then eprints:("httpd: bad\nusage: httpd [--port N] [--host ADDR] --root DIR\n")
+stdin "" (["", "/tmp", "", ""], ""):(0)

@@ -1,0 +1,41 @@
+hd_rd(int h, word ad, int n) {
+  int g = 0;
+  if(h > -2) {
+    g = fs_read_mem(h, ad, n);
+  }
+  if(h <= -2) {
+    g = sock_recv_mem(-2 - h, ad, n, (import hd_net_ms));
+  }
+} return int g;
+given hd_t_open stdin "abc" ((import hd_t_hin), (import hd_t_ad), 2):(2) then hd_t_out:("")
+given hd_t_open stdin "" ((import hd_t_hin), (import hd_t_ad), 2):(0) then hd_t_out:("")
+given hd_t_open ((import hd_t_hin), (import hd_t_ad), 0):(0) then hd_t_out:("")
+
+hd_sock_send(int sk, word ad, int n) {
+  int t = 0;
+  int k = 1;
+  while(t < n && k > 0) {
+    k = sock_send_mem(sk, ad + t, n - t, (import hd_net_ms));
+    t = t + (k > 0) * k;
+  }
+} chain (int sk, word ad, int n) {
+  int r = -1;
+  if(t == n) {
+    r = n;
+  }
+} return int r;
+(-5, 0, 0):(0)
+(-5, 0, 3):(-1)
+
+hd_wr(int h, word ad, int n) {
+  int w = 0;
+  if(h > -2) {
+    w = fs_write_mem(h, ad, n);
+  }
+  if(h <= -2) {
+    w = hd_sock_send(-2 - h, ad, n);
+  }
+} return int w;
+given hd_t_open ((import hd_t_ho), (import hd_t_ad), 2):(2) then hd_t_out:("hi")
+given hd_t_open ((import hd_t_ho), (import hd_t_ad), 0):(0) then hd_t_out:("")
+(-9, 0, 1):(-1)

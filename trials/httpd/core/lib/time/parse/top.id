@@ -1,0 +1,59 @@
+// hd_date_parse: the exact inverse of hd_date_fmt. Only IMF-fixdate is
+// accepted; the two obsolete formats RFC 9110 lets a recipient read are
+// rejected on purpose, because a static file server only compares this value
+// with dates it produced itself, and refusing is the safe answer to a
+// malformed conditional header.
+// hd_date_rt exists to pin the inverse property with a case, since a case's
+// arguments must be literals and cannot call hd_date_fmt themselves.
+
+hd_date_total(string d_s) {
+  int d_days = hd_date_dayn(d_s);
+  int d_sod = hd_date_sod(d_s);
+  int d_r = hd_date_join(d_s, d_days, d_sod);
+} return int d_r;
+("Sun, 06 Nov 1994 08:49:37 GMT"):(784111777)
+("Sun, 06 Nov 1994 25:00:00 GMT"):(-1)
+
+hd_date_parse(string d_s) {
+  int d_bad = 0 - 1;
+  if(hd_date_shape(d_s) != 1) {
+    return d_bad;
+  }
+  int d_r = hd_date_total(d_s);
+} return int d_r;
+("Sun, 06 Nov 1994 08:49:37 GMT"):(784111777)
+("Thu, 01 Jan 1970 00:00:00 GMT"):(0)
+("Tue, 19 Jan 2038 03:14:07 GMT"):(2147483647)
+("Tue, 19 Jan 2038 03:14:08 GMT"):(-1)
+("Wed, 20 Jan 2038 00:00:00 GMT"):(-1)
+("Wed, 31 Dec 1969 23:59:59 GMT"):(-1)
+("Thu, 29 Feb 2024 00:00:00 GMT"):(1709164800)
+("Fri, 29 Feb 2019 00:00:00 GMT"):(-1)
+("Tue, 29 Feb 2000 00:00:00 GMT"):(951782400)
+("Mon, 29 Feb 1900 00:00:00 GMT"):(-1)
+("Mon, 29 Feb 2100 00:00:00 GMT"):(-1)
+("Mon, 31 Apr 2023 00:00:00 GMT"):(-1)
+("Fri, 31 Dec 1999 23:59:59 GMT"):(946684799)
+("Sun, 06 nov 1994 08:49:37 GMT"):(-1)
+("Sun, 06 Nov 1994 08:49:37"):(-1)
+("Sun, 06 Nov 1994 08:49:37 GMT "):(-1)
+("Mon, 06 Nov 1994 08:49:37 GMT"):(-1)
+("Sun, 06 Nov 1994 08:60:37 GMT"):(-1)
+("Sun, 06 Nov 1994 08:49:60 GMT"):(-1)
+("Sun, 06 Nov 1994 24:49:37 GMT"):(-1)
+("Sun, 0a Nov 1994 08:49:37 GMT"):(-1)
+("Sun, +6 Nov 1994 08:49:37 GMT"):(-1)
+("Sun, 06 Nov 9999 08:49:37 GMT"):(-1)
+("Sun, 06 Xyz 1994 08:49:37 GMT"):(-1)
+(""):(-1)
+
+hd_date_rt(int d_t) {
+  string d_rs = hd_date_fmt(d_t);
+  int d_r = hd_date_parse(d_rs);
+} return int d_r;
+(784111777):(784111777)
+(0):(0)
+(2147483647):(2147483647)
+(1709164800):(1709164800)
+(951782400):(951782400)
+(-1):(-1)

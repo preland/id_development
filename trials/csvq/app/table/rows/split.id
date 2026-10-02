@@ -1,0 +1,30 @@
+tbl_names(string[] hdr, int nc) {
+  int i = 1;
+  while (i <= nc) {
+    push(hdr, "" + i);
+    i = i + 1;
+  }
+} return void;
+([], 3):(["1", "2", "3"])
+([], 0):([])
+
+tbl_take(string[] hdr, string[][] rows, int[] lines) {
+  row_copy(rows[0], hdr);
+  rows_shift(rows);
+  ints_shift(lines);
+} return void;
+([], [["a", "b"], ["1", "2"]], [1, 2]):(["a", "b"], [["1", "2"]], [2])
+([], [["h"]], [1]):(["h"], [], [])
+
+tbl_split(int[] o, string[] hdr, string[][] rows, int[] lines) {
+  if (len(rows) > 0 && o[(import o_nohdr)] == 0) {
+    tbl_take(hdr, rows, lines);
+  } else {
+    if (len(rows) > 0) {
+      tbl_names(hdr, len(rows[0]));
+    }
+  }
+} return void;
+([44, 0, 0, 0, 0], [], [["a", "b"], ["1", "2"]], [1, 2]):([44, 0, 0, 0, 0], ["a", "b"], [["1", "2"]], [2])
+([44, 0, 0, 1, 0], [], [["x", "y", "z"]], [1]):([44, 0, 0, 1, 0], ["1", "2", "3"], [["x", "y", "z"]], [1])
+([44, 0, 0, 0, 0], [], [], []):([44, 0, 0, 0, 0], [], [], [])

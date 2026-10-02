@@ -1,0 +1,31 @@
+col_uint(string spec) {
+  int n = -1;
+  if (len(spec) > 0 && num_digits(spec, 0) == len(spec)) {
+    n = 2147483647;
+    if (len(spec) < 10) {
+      n = to_int(spec);
+    }
+  }
+} return int n;
+("42"):(42)
+("007"):(7)
+("-1"):(-1)
+("12a"):(-1)
+(""):(-1)
+("1234567890"):(2147483647)
+("99999999999999999999"):(2147483647)
+("0"):(0)
+
+col_find(string[] hdr, string spec) {
+  int at = lst_str_index(hdr, spec);
+  int n = col_uint(spec);
+  if (at < 0 && n >= 1 && n <= len(hdr)) {
+    at = n - 1;
+  }
+} return int at;
+(["a", "b", "c"], "b"):(1)
+(["a", "b", "c"], "3"):(2)
+(["a", "b", "c"], "4"):(-1)
+(["a", "b", "c"], "0"):(-1)
+(["2", "1"], "1"):(1)
+(["a"], "x"):(-1)

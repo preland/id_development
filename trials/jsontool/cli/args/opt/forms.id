@@ -1,0 +1,31 @@
+opt_indent(string[] argv, int i, int idx) {
+  string txt = "";
+  if (i + 1 < len(argv)) {
+    txt = argv[i + 1];
+  }
+  int nxt = indent_set(idx, txt, i + 2);
+} return int nxt;
+given t_args (["p", "fmt", "--indent", "4"], 2, 0):(4) then t_ind:(4)
+given t_args (["p", "fmt", "--indent"], 2, 0):(-1) then eprints:("jsontool: --indent needs an integer from 0 to 64, got ''\n")
+given t_args (["p", "keys", "--indent", "4"], 2, 3):(-1) then t_ind:(2)
+
+opt_indent_eq(string[] argv, int i, int idx) {
+  string s = argv[i];
+  string txt = str_slice(s, 9, len(s) - 9);
+  int nxt = indent_set(idx, txt, i + 1);
+} return int nxt;
+given t_args (["p", "fmt", "--indent=6"], 2, 0):(3) then t_ind:(6)
+given t_args (["p", "fmt", "--indent=x"], 2, 0):(-1) then t_ind:(2)
+given t_args (["p", "fmt", "--indent="], 2, 0):(-1) then t_ind:(2)
+
+opt_compact(int i, int idx) {
+  int nxt = (import a_bad);
+  if (opt_allowed(idx, 2, "--compact") = 1) {
+    lset((import jc), (import c_ind), -1);
+    note_seen(2);
+    nxt = i + 1;
+  }
+} return int nxt;
+given t_args (2, 0):(3) then t_ind:(-1)
+given t_args (2, 0):(3) then t_seen:(2)
+given t_args (2, 1):(-1) then eprints:("jsontool: option --compact is not valid for 'validate'\n")

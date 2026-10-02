@@ -1,0 +1,41 @@
+emit_route(int kind, int nx) {
+  int r = nx;
+  if (kind = (import kn_key)) {
+    emit_colon();
+  } else if (nx >= 0) {
+    emit_comma();
+  }
+} chain (int kind, int nx) {
+  if (kind != (import kn_key) && nx < 0) {
+    r = (import em_pop);
+  }
+} return int r;
+given t_load (7, 3):(3) then t_out:(": ")
+given t_load (3, 4):(4) then t_out:(",\n")
+given t_load (3, -1):(-2) then t_out:("")
+given t_load (5, -1):(-2) then t_of:(0)
+
+emit_after(int x) {
+  int kind = nget(x, (import f_kind));
+  int nx = nget(x, (import f_next));
+  int r = (import em_done);
+} chain (int x) {
+  if (len((import stk)) > 0) {
+    r = emit_route(kind, nx);
+  }
+} return int r;
+given t_parse stdin "[1" (1):(-2)
+given t_parse stdin "[1]" (1):(-1)
+given t_parse stdin "[1,2" (1):(2) then t_out:(",\n  ")
+given t_parse stdin "{\"a\"" (1):(-1)
+
+emit_up(int x) {
+  int nx = emit_after(x);
+  while (nx = (import em_pop)) {
+    x = emit_pop();
+    nx = emit_after(x);
+  }
+} return int nx;
+given t_parse stdin "[1" (1):(-1) then t_out:("\n]")
+given t_parse stdin "[1,2" (1):(2) then t_out:(",\n  ")
+given t_parse stdin "[[1" (2):(-1) then t_out:("\n  ]\n]")

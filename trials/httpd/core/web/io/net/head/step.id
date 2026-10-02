@@ -1,0 +1,43 @@
+hd_long_st(word[] io, int n, int lim) {
+  string sofar = str_of_mem(io[2], n);
+  int st = hd_toolong(sofar, lim);
+} return int st;
+given hd_t_openb ((import hd_t_io), 6, 1):(414) then hd_t_out:("")
+given hd_t_openb ((import hd_t_io), 6, 10):(413) then hd_t_out:("")
+
+hd_byte_st(word[] io, int pos, int b, int mx, int lim) {
+  int st = -1;
+  if(b < 0) {
+    st = hd_eof_st(pos);
+    return st;
+  }
+  if(b == 0) {
+    st = 400;
+    return st;
+  }
+} chain (word[] io, int pos, int b, int mx, int lim) {
+  int end = hd_at_end(io[2], pos);
+  if(end == 1) {
+    st = 1;
+    return st;
+  }
+  if(pos + 1 > mx) {
+    st = hd_long_st(io, pos + 1, lim);
+  }
+} return int st;
+given hd_t_openb ((import hd_t_io), 5, 10, 100, 50):(1) then hd_t_out:("")
+given hd_t_openb ((import hd_t_io), 0, 65, 100, 50):(-1) then hd_t_out:("")
+given hd_t_openb ((import hd_t_io), 0, -1, 100, 50):(0) then hd_t_out:("")
+given hd_t_openb ((import hd_t_io), 3, -1, 100, 50):(400) then hd_t_out:("")
+given hd_t_openb ((import hd_t_io), 0, 0, 100, 50):(400) then hd_t_out:("")
+given hd_t_openb ((import hd_t_io), 7, 65, 8, 1):(-1) then hd_t_out:("")
+given hd_t_openb ((import hd_t_io), 8, 65, 8, 1):(414) then hd_t_out:("")
+given hd_t_openb ((import hd_t_io), 8, 65, 8, 10):(413) then hd_t_out:("")
+
+hd_head_step(word[] io, int pos, int mx, int lim) {
+  int b = hd_getb(io, pos);
+  int st = hd_byte_st(io, pos, b, mx, lim);
+} return int st;
+given hd_t_open stdin "" ((import hd_t_io), 0, 100, 50):(0) then hd_t_out:("")
+given hd_t_open stdin "G" ((import hd_t_io), 0, 100, 50):(-1) then hd_t_out:("")
+given hd_t_open stdin "" ((import hd_t_io), 2, 100, 50):(400) then hd_t_out:("")

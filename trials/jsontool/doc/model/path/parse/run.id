@@ -1,0 +1,44 @@
+seg_run(string path, int i, int k) {
+  int q = 0;
+  if (k = 1) {
+    q = seg_dot(path, i);
+  } else if (k = 2) {
+    q = seg_bracket(path, i);
+  }
+} chain (string path, int i, int k) {
+  if (k = 0) {
+    q = path_fail((import pe_start), i);
+  }
+} return int q;
+given t_pinit ("[3]", 0, 2):(3)
+given t_pinit (".a", 0, 1):(2)
+given t_pinit ("x", 0, 0):(-1) then t_perr:(1)
+given t_pinit ("x", 0, 0):(-1) then t_pep:(0)
+
+path_seg(string path, int i) {
+  int k = seg_kind(charat(path, i));
+  int q = seg_run(path, i, k);
+} return int q;
+given t_pinit (".a", 0):(2)
+given t_pinit ("x", 0):(-1) then t_perr:(1)
+given t_pinit (".a[1]", 2):(5) then t_segstr:("[1]")
+
+path_parse(string path) {
+  path_init(len(path));
+  int i = 0;
+  while (i >= 0 && i < len(path)) {
+    i = path_seg(path, i);
+  }
+} chain (string path) {
+  int code = (import jc)[(import c_perr)];
+} return int code;
+given st_init (".a.b[2].c"):(0) then t_segstr:(".a.b[2].c")
+given st_init ("."):(0) then t_segs:(0)
+given st_init (""):(0) then t_segs:(0)
+given st_init (".a["):(3) then t_pep:(3)
+given st_init ("a"):(1)
+given st_init ("[-1]"):(0) then t_segstr:("[-1]")
+given st_init (".a..b"):(2) then t_pep:(3)
+given st_init (".a[\"x.y\"].z"):(0) then t_segstr:(".a.x.y.z")
+given st_init (".[0]"):(0) then t_segstr:("[0]")
+given st_init ("[\"a\\\"b\"]"):(0) then t_pkstr:("a\"b")

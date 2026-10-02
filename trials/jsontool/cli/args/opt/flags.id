@@ -1,0 +1,28 @@
+opt_raw(int i, int idx) {
+  int nxt = (import a_bad);
+  if (opt_allowed(idx, 4, "--raw") = 1) {
+    lset((import jc), (import c_raw), 1);
+    nxt = i + 1;
+  }
+} return int nxt;
+given t_args (2, 2):(3) then t_raw:(1)
+given t_args (2, 0):(-1) then eprints:("jsontool: option --raw is not valid for 'fmt'\n")
+given t_args (2, 0):(-1) then t_raw:(0)
+
+opt_unknown(string[] argv, int i) {
+  eprint("jsontool: unknown option '" + argv[i] + "'");
+  eprint("Try 'jsontool --help' for usage.");
+  int r = (import a_bad);
+} return int r;
+(["p", "fmt", "-x"], 2):(-1) then eprints:("jsontool: unknown option '-x'\nTry 'jsontool --help' for usage.\n")
+(["p", "fmt", "--frob"], 2):(-1) then eprints:("jsontool: unknown option '--frob'\nTry 'jsontool --help' for usage.\n")
+
+args_rest(string[] argv, int i) {
+  while (i < len(argv)) {
+    push((import pargs), argv[i]);
+    i = i + 1;
+  }
+} return int i;
+given t_args (["p", "fmt", "--", "-a", "b"], 3):(5) then t_npargs:(2)
+given t_args (["p", "fmt", "--"], 3):(3) then t_npargs:(0)
+given t_args (["p", "fmt", "--", "-a"], 3):(4) then t_arg0:("-a")

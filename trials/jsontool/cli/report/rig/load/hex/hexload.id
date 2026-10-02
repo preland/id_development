@@ -1,0 +1,27 @@
+t_hexbyte(int at) {
+  int hi = hex_val(byte_at(at));
+  int lo = hex_val(byte_at(at + 1));
+  int b = hi * 16 + lo;
+} return int b;
+given t_load stdin "e2 82" (3):(130)
+given t_load stdin "0a" (0):(10)
+
+t_hexpack() {
+  int n = ((import jc)[(import c_len)] + 1) / 3;
+  int k = 0;
+  while (k < n) {
+    poke8((import jw)[(import w_src)] + k, t_hexbyte(k * 3));
+    k = k + 1;
+  }
+} chain () {
+  lset((import jc), (import c_len), n);
+} return void;
+given t_load stdin "41 42" ():() then t_len:(2)
+given t_load stdin "" ():() then t_len:(0)
+
+t_hexload() {
+  t_load();
+  t_hexpack();
+} return void;
+stdin "22 e2 82 ac 22" ():() then t_len:(5)
+stdin "ff" ():() then t_len:(1)

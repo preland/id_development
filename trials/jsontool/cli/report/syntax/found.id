@@ -1,0 +1,36 @@
+hex2(int c) {
+  int hi = chr_hex(c >> 4);
+  int lo = chr_hex(c & 15);
+  string s = chr(hi) + chr(lo);
+} return string s;
+(0):("00")
+(15):("0f")
+(255):("ff")
+(171):("ab")
+
+found_desc(int c) {
+  string desc = "end of input";
+  if (c >= 32 && c < 127) {
+    desc = "'" + chr(c) + "'";
+  } else if (c >= 0) {
+    desc = "byte 0x" + hex2(c);
+  }
+} return string desc;
+(-1):("end of input")
+(120):("'x'")
+(32):("' '")
+(126):("'~'")
+(10):("byte 0x0a")
+(127):("byte 0x7f")
+(200):("byte 0xc8")
+
+err_text() {
+  int code = (import jc)[(import c_err)];
+  int c = byte_at((import jc)[(import c_erp)]);
+  string s = (import e_msg)[code] + " (found " + found_desc(c) + ")";
+} return string s;
+given t_parse stdin "[1 2]" ():("expected ',' or ']' after an array element (found '2')")
+given t_parse stdin "" ():("expected a value (found end of input)")
+given t_parse stdin "[01]" ():("invalid number: leading zeros are not allowed (found '1')")
+given t_parse stdin "\"\\q\"" ():("invalid escape sequence in string (found 'q')")
+given t_parse stdin "nul" ():("invalid literal: expected true, false or null (found 'n')")

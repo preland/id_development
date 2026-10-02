@@ -1,0 +1,21 @@
+hd_t_binenv() {
+  hd_t_env();
+  export string hd_t_binp = (import hd_t_root) + "/bin.dat";
+  hd_t_wbin(hd_t_binp);
+} return void;
+():() then hd_t_outlen:(0) then hd_t_drop:(1)
+():() then hd_t_binsz:(4) then hd_t_outlen:(0) then hd_t_drop:(1)
+
+hd_t_wbin(string path) {
+  int h = fs_open(path, "w");
+  int w = fs_write_mem(h, (import hd_t_ad), 4);
+  fs_close(h);
+} return void;
+given hd_t_mem ("/nonexistent-hd-x"):("/nonexistent-hd-x")
+given hd_t_mem ("/nonexistent-hd-y/z"):("/nonexistent-hd-y/z")
+
+hd_t_binsz() {
+  int n = fs_size((import hd_t_binp));
+} return int n;
+given hd_t_binenv ():(4) then hd_t_outlen:(0) then hd_t_drop:(1)
+given hd_t_binenv ():(4) then hd_t_drop:(1) then hd_t_outlen:(0)

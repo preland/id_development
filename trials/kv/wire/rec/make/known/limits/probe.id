@@ -1,0 +1,23 @@
+// A value length of 2^31 - 1 in an otherwise valid record.
+rec_t_huge() {
+  rec_t_good();
+  poke32((import mem_t_ad) + 9, 2147483647);
+} return void;
+():() then mem_t_sum:(1802)
+():() then rec_t_head:(1)
+
+// The kind byte of the record at the start of the block, read without rec_kind.
+rec_t_head() {
+  int head = peek8((import mem_t_ad) + 4);
+} return int head;
+given rec_t_good ():(1)
+given rec_t_del ():(2)
+
+// The bytes "xyz" at a source address inside the block, clear of the record area at its start.
+rec_t_src() {
+  mem_t_zeros();
+  export word rec_t_from = (import mem_t_ad) + 40;
+  str_blit("xyz", 0, 3, rec_t_from);
+} return void;
+():() then mem_t_sum:(0)
+():() then rec_t_head:(0)

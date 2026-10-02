@@ -1,0 +1,23 @@
+hd_t_bigenv() {
+  hd_t_env();
+  export string hd_t_bpath = (import hd_t_root) + "/big.txt";
+  hd_t_put(hd_t_bpath, str_repeat("x", 70000));
+} return void;
+():() then hd_t_outlen:(0) then hd_t_drop:(1)
+():() then hd_t_bsize:(70000) then hd_t_outlen:(0) then hd_t_drop:(1)
+
+hd_t_bsize() {
+  int n = fs_size((import hd_t_bpath));
+} return int n;
+given hd_t_bigenv ():(70000) then hd_t_outlen:(0) then hd_t_drop:(1)
+given hd_t_bigenv ():(70000) then hd_t_drop:(1) then hd_t_outlen:(0)
+
+hd_t_outlen() {
+  hd_t_shut((import hd_t_io));
+  string p = (import hd_t_outp);
+  int n = fs_size(p);
+} chain () {
+  hd_t_clean(p, (import hd_t_inp));
+} return int n;
+given hd_t_open ():(0)
+given hd_t_hi ():(2)

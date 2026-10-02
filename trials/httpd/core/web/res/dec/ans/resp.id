@@ -1,0 +1,14 @@
+hd_dispatch(string root, string[] rq, int st, int keep, int left, string[] out, int[] mt) {
+  int c = hd_gate(rq, st);
+  string head = hd_answer(root, rq, c, keep, left, out, mt);
+} return string head;
+("/nonexistent-hd-root", ["POST", "/x", "HTTP/1.1", "/x", "", "", ""], 0, 0, 1, ["", ""], [0, 0, 0, 0]):("HTTP/1.1 405 Method Not Allowed\r\nServer: httpd-id/1.0\r\nAllow: GET, HEAD\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 123\r\nConnection: close\r\n\r\n")
+("/nonexistent-hd-root", ["GET", "/x", "HTTP/1.1", "/x", "", "", ""], 400, 0, 1, ["", ""], [0, 0, 0, 0]):("HTTP/1.1 400 Bad Request\r\nServer: httpd-id/1.0\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 109\r\nConnection: close\r\n\r\n")
+
+hd_respond(string root, string[] rq, int st, int left, string[] out, int[] mt) {
+  int keep = hd_keep(rq, st, left);
+  string head = hd_dispatch(root, rq, st, keep, left, out, mt);
+  hd_flags(rq, mt);
+} return string head;
+("/nonexistent-hd-root", ["HEAD", "/x", "HTTP/1.1", "/x", "", "", "Host: h"], 0, 3, ["", ""], [0, 0, 0, 0]):("HTTP/1.1 404 Not Found\r\nServer: httpd-id/1.0\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 105\r\nConnection: keep-alive\r\nKeep-Alive: max=2\r\n\r\n") then calls hd_flags:(["HEAD", "/x", "HTTP/1.1", "/x", "", "", "Host: h"], [404, 1, 105, 1])
+("/nonexistent-hd-root", ["GET", "/x", "HTTP/1.1", "/x", "", "", "Host: h\r\nConnection: close"], 0, 3, ["", ""], [0, 0, 0, 0]):("HTTP/1.1 404 Not Found\r\nServer: httpd-id/1.0\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 105\r\nConnection: close\r\n\r\n")

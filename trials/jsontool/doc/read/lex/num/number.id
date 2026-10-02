@@ -1,0 +1,45 @@
+num_scan(int pos) {
+  int p = pos;
+  if (byte_at(pos) = (import k_minus)) {
+    p = pos + 1;
+  }
+  int q = num_int(p);
+} chain (int pos) {
+  if (q >= 0) {
+    q = num_frac(q);
+  }
+  if (q >= 0) {
+    q = num_exp(q);
+  }
+} return int q;
+given t_load stdin "123" (0):(3)
+given t_load stdin "-0.5e+3x" (0):(7)
+given t_load stdin "-" (0):(-1) then t_err:(9)
+given t_load stdin "01" (0):(-1) then t_err:(10)
+given t_load stdin "1." (0):(-1) then t_err:(11)
+given t_load stdin "1e+" (0):(-1) then t_err:(12)
+given t_load stdin "1E5" (0):(3)
+given t_load stdin "1.5" (0):(3)
+given t_load stdin "0" (0):(1)
+given t_load stdin "-a" (0):(-1) then t_erp:(1)
+
+num_int(int p) {
+  int c = byte_at(p);
+  int q = num_lead(p, c);
+} return int q;
+given t_load stdin "42" (0):(2)
+given t_load stdin "0" (0):(1)
+given t_load stdin "x" (0):(-1) then t_err:(9)
+
+num_lead(int p, int c) {
+  int q = digits(p);
+  if (c = (import k_zero)) {
+    q = num_zero(p);
+  } else if (chr_is_digit(c) = 0) {
+    q = fail((import e_minus), p);
+  }
+} return int q;
+given t_load stdin "0" (0, 48):(1)
+given t_load stdin "97" (0, 57):(2)
+given t_load stdin "x" (0, 120):(-1) then t_err:(9)
+given t_load stdin "01" (0, 48):(-1) then t_err:(10)

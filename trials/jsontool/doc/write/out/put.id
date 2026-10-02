@@ -1,0 +1,33 @@
+ob_room() {
+  int f = (import jc)[(import c_of)];
+  if (f >= (import obcap) && (import jc)[(import c_oh)] != -1) {
+    ob_flush();
+    f = 0;
+  }
+} return int f;
+given t_load ():(0)
+given t_ofull ():(65536)
+given t_tmp_ofull ():(0) then t_tmp_len:(65536) then t_tmp_drop:(0)
+given t_tmp_out ():(0) then t_tmp_len:(0) then t_tmp_drop:(0)
+
+ob_byte(int c) {
+  int f = ob_room();
+  poke8((import jw)[(import w_out)] + f, c);
+  lset((import jc), (import c_of), f + 1);
+} return void;
+given t_load (65):() then t_out:("A")
+given t_load (10):() then t_out:("\n")
+given t_load (65):() then t_of:(1)
+given t_tmp_ofull (66):() then t_of:(1) then t_tmp_len:(65536) then t_tmp_drop:(0)
+
+ob_mem(word adr, int n) {
+  int i = 0;
+  while (i < n) {
+    int b = peek8(adr + i);
+    ob_byte(b);
+    i = i + 1;
+  }
+} return void;
+given t_srcadr stdin "hello" ((import srcad), 3):() then t_out:("hel")
+given t_srcadr stdin "hello" ((import srcad), 0):() then t_out:("")
+given t_srcadr stdin "hello" ((import srcad), 5):() then t_of:(5)

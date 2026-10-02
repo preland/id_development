@@ -1,0 +1,26 @@
+hd_rq_line(string[] ps, string[] rq) {
+  rq[0] = ps[0];
+  rq[1] = ps[1];
+  rq[2] = ps[2];
+} return void;
+(["GET", "/", "HTTP/1.1"], ["", "", "", "", "", "", "", ""]):(["GET", "/", "HTTP/1.1"], ["GET", "/", "HTTP/1.1", "", "", "", "", ""])
+(["a", "b", "c"], ["x", "y", "z", "w"]):(["a", "b", "c"], ["a", "b", "c", "w"])
+
+hd_reqline_set(string[] ps, string[] rq, int ok) {
+  int st = 400;
+  if(ok == 1) {
+    hd_rq_line(ps, rq);
+    st = hd_uri_len(ps[1], (import hd_max_uri));
+  }
+} return int st;
+(["GET", "/", "HTTP/1.1"], ["", "", "", "", "", "", "", ""], 1):(0)
+(["GET", "/", "HTTP/1.1"], ["", "", "", "", "", "", "", ""], 0):(400)
+
+hd_reqline_ck(string[] ps, string[] rq) {
+  int a = hd_meth_ok(ps[0]);
+  int b = hd_ver_ok(ps[2]);
+  int st = hd_reqline_set(ps, rq, a & b);
+} return int st;
+(["GET", "/", "HTTP/1.1"], ["", "", "", "", "", "", "", ""]):(0)
+(["GET", "/", "HTTP/9"], ["", "", "", "", "", "", "", ""]):(400)
+(["G(T", "/", "HTTP/1.1"], ["", "", "", "", "", "", "", ""]):(400)

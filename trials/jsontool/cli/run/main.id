@@ -1,0 +1,16 @@
+cli_init() {
+  st_init();
+  args_init();
+  out_open();
+} return void;
+():() then t_oh_ok:(1)
+():() then t_npargs:(0)
+
+main(int argc, string[] argv) {
+  cli_init();
+  int rc = cli_dispatch(argc, argv);
+} return int rc;
+(1, ["p"]):(2) then eprints:("Usage: jsontool COMMAND [OPTIONS] [ARGS] [FILE]\n\nA strict JSON tool (RFC 8259). FILE defaults to standard input; '-' also\nmeans standard input.\n\nCommands:\n  fmt [--indent N | --compact] [FILE]\n        Pretty-print the document. Strings and numbers keep their spelling.\n  validate [FILE]\n        Print nothing; exit 0 if the input is valid JSON, 1 otherwise.\n  get [--raw] [--indent N | --compact] PATH [FILE]\n        Print the value at PATH, for example .a.b[2].c (see below).\n  keys [FILE]\n        List the top-level object's keys, one per line, in document order.\n  sort-keys [--indent N | --compact] [FILE]\n        Print the document with every object's keys sorted (bytewise).\n\nOptions:\n  --indent N    spaces per level, 0 to 64 (default 2); also --indent=N\n  --compact     no whitespace at all\n  -r, --raw     with get: print a string result decoded, without quotes\n  -h, --help    show this help and exit\n  --version     show the version and exit\n\nPaths: .key  [index]  [-index from the end]  [\"key with . or [ in it\"]\n  A bare '.' is the whole document. Duplicate keys: the last one wins.\n\nExit status: 0 success; 1 invalid input, path not found or I/O error;\n2 usage error.\n")
+(2, ["p", "--help"]):(0) then prints:("Usage: jsontool COMMAND [OPTIONS] [ARGS] [FILE]\n\nA strict JSON tool (RFC 8259). FILE defaults to standard input; '-' also\nmeans standard input.\n\nCommands:\n  fmt [--indent N | --compact] [FILE]\n        Pretty-print the document. Strings and numbers keep their spelling.\n  validate [FILE]\n        Print nothing; exit 0 if the input is valid JSON, 1 otherwise.\n  get [--raw] [--indent N | --compact] PATH [FILE]\n        Print the value at PATH, for example .a.b[2].c (see below).\n  keys [FILE]\n        List the top-level object's keys, one per line, in document order.\n  sort-keys [--indent N | --compact] [FILE]\n        Print the document with every object's keys sorted (bytewise).\n\nOptions:\n  --indent N    spaces per level, 0 to 64 (default 2); also --indent=N\n  --compact     no whitespace at all\n  -r, --raw     with get: print a string result decoded, without quotes\n  -h, --help    show this help and exit\n  --version     show the version and exit\n\nPaths: .key  [index]  [-index from the end]  [\"key with . or [ in it\"]\n  A bare '.' is the whole document. Duplicate keys: the last one wins.\n\nExit status: 0 success; 1 invalid input, path not found or I/O error;\n2 usage error.\n")
+(2, ["p", "--version"]):(0) then prints:("jsontool 1.0.0\n")
+(2, ["p", "bogus"]):(2) then eprints:("jsontool: unknown command 'bogus'\nTry 'jsontool --help' for usage.\n")

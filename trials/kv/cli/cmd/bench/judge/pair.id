@@ -1,0 +1,19 @@
+// Fixture: a store on a scratch file with two entries, key-0 holding bench_val(0) and key-1 holding a different value. bench_t_a is where the record of key-0 is.
+bench_t_pair() {
+  bench_t_fresh();
+  put_arg((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), "key-0", bench_val(0));
+  put_arg((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), "key-1", "wrong");
+} chain () {
+  export word bench_t_a = db_rec((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_ea), "key-0");
+} return void;
+():() then db_t_state:("2/0/2") then file_t_done:(0)
+():() then file_t_size:(136) then file_t_done:(0)
+
+// The same, with the last two counts of the results list set to 7 and 9.
+bench_t_set() {
+  bench_t_pair();
+  lset((import bench_t_res), 3, 7);
+  lset((import bench_t_res), 4, 9);
+} return void;
+():() then bench_t_counts:("7/9") then file_t_done:(0)
+():() then file_t_size:(136) then file_t_done:(0)

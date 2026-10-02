@@ -1,0 +1,32 @@
+// Writes a delete of key to the log and, once it is there, to the index. 0 deleted, 1 there was no such key (nothing is written), 3 the log could not be written, 5 the log has no room for the record.
+db_del(string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea, string key) {
+  int old = hmap_get(keys, vals, used, key, (import no_entry));
+  int code = 1;
+  if(old >= 0) {
+    code = put_fit(st, len(key), 0);
+  }
+} chain (string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea, string key) {
+  if(old >= 0 && code == 0) {
+    code = del_store(path, keys, vals, used, st, ea, key);
+  }
+} return int code;
+given log_t_open ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), "cd"):(0) then db_t_state:("0/64/4") then db_t_where:("-1,-1") then db_t_meta:("72/72/0") then file_t_done:(0)
+given log_t_open ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), "ab"):(1) then db_t_meta:("57/57/0") then file_t_size:(57) then file_t_done:(0)
+given log_t_ready ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), "zz"):(1) then file_t_size:(0) then file_t_done:(0)
+given log_t_full ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), "cd"):(5) then db_t_where:("-1,1") then file_t_size:(57) then file_t_done:(0)
+
+// Builds the record for a delete and appends it; the index is updated only if the whole record reached the log.
+del_store(string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea, string key) {
+  int n = rec_size(len(key), 0);
+  word rec = alloc(n);
+  rec_make(rec, (import rec_del), key, 0, 0);
+} chain (string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea, string key) {
+  int sent = log_append(path, st, rec, n);
+  int code = 3;
+  if(sent == n) {
+    apply_del(keys, vals, used, st, ea, rec);
+    code = 0;
+  }
+} return int code;
+given log_t_open ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), "cd"):(0) then db_t_where:("-1,-1") then file_t_size:(72) then file_t_done:(0)
+given db_t_lists ("/nonexistent-kv-dir/none", (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), "ab"):(3) then db_t_state:("0/0/0")

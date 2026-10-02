@@ -1,0 +1,38 @@
+// Counts a delete: the tombstone is garbage at once, and so is the record it kills, if there was one (entry old).
+stat_del(int[] st, word[] ea, int old, word rec) {
+  int gone = rec_len(rec);
+  if(old >= 0) {
+    word prev = ea[old];
+    gone = gone + rec_len(prev);
+    st_add(st, (import st_live), 0 - 1);
+  }
+  st_add(st, (import st_dead), gone);
+} return void;
+given db_t_puts ((import db_t_st), (import db_t_ea), 0, (import db_t_t)):() then db_t_state:("1/33/2")
+given db_t_recs ((import db_t_st), (import db_t_ea), -1, (import db_t_t)):() then db_t_state:("0/15/0")
+
+// Replays one delete record: the key, if it was there, no longer points at any entry.
+apply_del(string[] keys, int[] vals, int[] used, int[] st, word[] ea, word rec) {
+  string key = rec_key(rec);
+  int old = hmap_get(keys, vals, used, key, (import no_entry));
+  stat_del(st, ea, old, rec);
+} chain (string[] keys, int[] vals, int[] used, int[] st, word[] ea, word rec) {
+  if(old >= 0) {
+    hmap_put(keys, vals, used, st, key, (import no_entry));
+  }
+  st_add(st, (import st_recs), 1);
+} return void;
+given db_t_puts ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import db_t_t)):() then db_t_state:("1/33/3") then db_t_where:("-1,1")
+given db_t_recs ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import db_t_t)):() then db_t_state:("0/15/1") then db_t_where:("-1,-1")
+
+// Replays one record of either kind.
+apply_rec(string[] keys, int[] vals, int[] used, int[] st, word[] ea, word rec) {
+  int kind = rec_kind(rec);
+  if(kind == (import rec_put)) {
+    apply_put(keys, vals, used, st, ea, rec);
+  } else {
+    apply_del(keys, vals, used, st, ea, rec);
+  }
+} return void;
+given db_t_recs ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import db_t_a)):() then db_t_state:("1/0/1") then db_t_where:("0,-1")
+given db_t_puts ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import db_t_t)):() then db_t_state:("1/33/3") then db_t_where:("-1,1")

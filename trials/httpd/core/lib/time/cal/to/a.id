@@ -1,0 +1,30 @@
+// The first half of Hinnant's civil-from-days: the pieces of a day number
+// inside a 400-year era that start on 1 March. Split into one function per
+// quantity because each is a single formula and the action limit is three.
+
+hd_date_yoe(int d_doe) {
+  int d_yoe = (d_doe - d_doe / 1460 + d_doe / 36524 - d_doe / 146096) / 365;
+} return int d_yoe;
+(0):(0)
+(365):(1)
+(146096):(399)
+
+hd_date_doy(int d_doe) {
+  int d_yoe = hd_date_yoe(d_doe);
+  int d_doy = d_doe - (365 * d_yoe + d_yoe / 4 - d_yoe / 100);
+} return int d_doy;
+(0):(0)
+(364):(364)
+(365):(0)
+(146096):(365)
+
+hd_date_mon(int d_mp) {
+  int d_m = d_mp + 3;
+  if(d_mp > 9) {
+    d_m = d_mp - 9;
+  }
+} return int d_m;
+(0):(3)
+(9):(12)
+(10):(1)
+(11):(2)

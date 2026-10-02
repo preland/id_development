@@ -1,0 +1,29 @@
+file_path(string file) {
+  string path = file;
+  if (file = "-") {
+    path = "/dev/stdin";
+  }
+} return string path;
+("-"):("/dev/stdin")
+("a.json"):("a.json")
+("--"):("--")
+
+doc_check(string file, int st) {
+  int code = 0;
+  if (st != (import s_end)) {
+    eprint(parse_message(file));
+    code = 1;
+  }
+} return int code;
+given t_parse stdin "[1]" ("f.json", 3):(0) then eprints:("")
+given t_parse stdin "[1 2]" ("f.json", 4):(1) then eprints:("f.json:1:4: error: expected ',' or ']' after an array element (found '2')\n")
+given t_parse stdin "[1 2]" ("-", 4):(1) then eprints:("<stdin>:1:4: error: expected ',' or ']' after an array element (found '2')\n")
+
+doc_parse(string file) {
+  buf_setup();
+  int st = parse_doc();
+  int code = doc_check(file, st);
+} return int code;
+given t_load stdin "[1]" ("f"):(0) then t_nodes:(2)
+given t_load stdin "[" ("f"):(1) then eprints:("f:1:2: error: expected a value (found end of input)\n")
+given t_load stdin "1 2" ("f"):(1) then t_err:(7)

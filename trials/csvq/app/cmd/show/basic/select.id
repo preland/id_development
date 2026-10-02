@@ -1,0 +1,30 @@
+sel_row(string[] row, int[] idx) {
+  string[] pick = [];
+  int i = 0;
+  while (i < len(idx)) {
+    push(pick, row[idx[i]]);
+    i = i + 1;
+  }
+} return string[] pick;
+(["a", "b", "c"], [2, 0]):(["c", "a"])
+(["a", "b", "c"], [1, 1]):(["b", "b"])
+(["a"], []):([])
+
+sel_rows(string[][] rows, int[] idx) {
+  string[][] prj = [];
+  int i = 0;
+  while (i < len(rows)) {
+    push(prj, sel_row(rows[i], idx));
+    i = i + 1;
+  }
+} return string[][] prj;
+([["a", "b"], ["c", "d"]], [1]):([["b"], ["d"]])
+([], [0]):([])
+
+sel_out(string[] hdr, string[][] rows, int[] o, int[] idx) {
+  string[] h2 = sel_row(hdr, idx);
+  string[][] r2 = sel_rows(rows, idx);
+  out_table(h2, r2, o);
+} return void;
+(["a", "b"], [["1", "2"]], [44, 0, 0, 0, 0], [1]):(["a", "b"], [["1", "2"]], [44, 0, 0, 0, 0], [1]) then prints:("b\n2\n")
+(["a", "b"], [["1", "2"]], [59, 0, 0, 1, 0], [1, 0]):(["a", "b"], [["1", "2"]], [59, 0, 0, 1, 0], [1, 0]) then prints:("2;1\n")

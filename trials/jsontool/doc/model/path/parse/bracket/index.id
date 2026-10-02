@@ -1,0 +1,31 @@
+br_close(string path, int e, int cnt) {
+  int q = e + 1;
+  if (cnt < 1 || cnt > 9) {
+    q = path_fail((import pe_index), e);
+  } else if (charat(path, e) != (import k_rbrk)) {
+    q = path_fail((import pe_close), e);
+  }
+} return int q;
+given t_pinit ("[5]", 2, 1):(3)
+given t_pinit ("[5", 2, 1):(-1) then t_perr:(4)
+given t_pinit ("[]", 1, 0):(-1) then t_perr:(3)
+given t_pinit ("[1234567890]", 11, 10):(-1) then t_perr:(3)
+given t_pinit ("[123456789]", 10, 9):(11)
+
+br_index(string path, int i) {
+  int neg = charat(path, i) == 45;
+  int e = path_digits(path, i + neg);
+  int q = br_close(path, e, e - i - neg);
+} chain (string path, int i) {
+  string txt = str_slice(path, i, e - i);
+  int v = to_int(txt);
+  if (q >= 0) {
+    push_seg(1, v, 0);
+  }
+} return int q;
+given t_pinit ("[12]", 1):(4) then t_segstr:("[12]")
+given t_pinit ("[-3]", 1):(4) then t_segstr:("[-3]")
+given t_pinit ("[x]", 1):(-1) then t_perr:(3)
+given t_pinit ("[1", 1):(-1) then t_perr:(4)
+given t_pinit ("[-]", 1):(-1) then t_perr:(3)
+given t_pinit ("[0]", 1):(3) then t_segstr:("[0]")

@@ -1,0 +1,34 @@
+num_big(string ds, int e) {
+  int n = len(ds);
+  string rs = ds + str_repeat("0", e + 1 - n);
+  if (n > e + 1) {
+    rs = str_slice(ds, 0, e + 1) + "." + str_slice(ds, e + 1, n - e - 1);
+  }
+} return string rs;
+("123", 0):("1.23")
+("5", 3):("5000")
+("12345", 2):("123.45")
+("12", 1):("12")
+
+num_place(string ds, int e) {
+  string rs = "0." + str_repeat("0", 0 - e - 1) + ds;
+  if (e >= 0) {
+    rs = num_big(ds, e);
+  }
+} return string rs;
+("5", -1):("0.5")
+("123", -3):("0.00123")
+("123", 0):("1.23")
+("5", 3):("5000")
+
+num_layout(string ds, int e) {
+  string rs = num_place(ds, e);
+  if (e < -4 || e >= 15) {
+    rs = num_sci(ds, e);
+  }
+} return string rs;
+("15", 2):("150")
+("15", -4):("0.00015")
+("15", -5):("1.5e-05")
+("15", 15):("1.5e+15")
+("15", 14):("150000000000000")

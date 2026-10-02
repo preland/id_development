@@ -1,0 +1,38 @@
+cli_load(string path, int[] o, string[] hdr, string[][] rows, int[] lines, string[] diag) {
+  inp_load(path, o[(import o_delim)], rows, lines, diag);
+  if (len(diag) == 0) {
+    tbl_split(o, hdr, rows, lines);
+  }
+} return void;
+stdin "a,b\n1,2\n" ("-", [44, 0, 0, 0, 0], [], [], [], []):("-", [44, 0, 0, 0, 0], ["a", "b"], [["1", "2"]], [2], [])
+("/nonexistent/csvq-none", [44, 0, 0, 0, 0], [], [], [], []):("/nonexistent/csvq-none", [44, 0, 0, 0, 0], [], [], [], ["cannot read: no such file or directory"])
+stdin "x,y\n1\n" ("-", [44, 0, 0, 0, 0], [], [], [], []):("-", [44, 0, 0, 0, 0], [], [["x", "y"]], [1], ["line 2: expected 2 fields like the first row, but found 1"])
+stdin "a;b\n1;2\n" ("-", [59, 0, 0, 1, 0], [], [], [], []):("-", [59, 0, 0, 1, 0], ["1", "2"], [["a", "b"], ["1", "2"]], [1, 2], [])
+
+cli_tag(string path, string[] diag) {
+  string label = path;
+  if (path == "-") {
+    label = "<stdin>";
+  }
+  if (len(diag) > 0) {
+    diag[0] = label + ": " + diag[0];
+  }
+} return void;
+("-", ["bad"]):("-", ["<stdin>: bad"])
+("data.csv", ["bad"]):("data.csv", ["data.csv: bad"])
+("data.csv", []):("data.csv", [])
+
+cli_table(string[] args, int[] o, string[] diag) {
+  string[] hdr = [];
+  string[][] rows = [];
+  int[] lines = [];
+} chain (string[] args, int[] o, string[] diag) {
+  cli_load(cli_path(args), o, hdr, rows, lines, diag);
+  if (len(diag) == 0) {
+    cmd_run(args[0], hdr, rows, lines, o, args, diag);
+  }
+  cli_tag(cli_path(args), diag);
+} return void;
+stdin "n,v\na,1\nb,2\n" (["filter", "v", ">", "1"], [44, 0, 0, 0, 0], []):(["filter", "v", ">", "1"], [44, 0, 0, 0, 0], []) then prints:("n,v\nb,2\n")
+stdin "n,v\na,1\n" (["select", "zz"], [44, 0, 0, 0, 0], []):(["select", "zz"], [44, 0, 0, 0, 0], ["<stdin>: unknown column 'zz'; available columns: n, v"]) then prints:("")
+stdin "n,v\na\n" (["count"], [44, 0, 0, 0, 0], []):(["count"], [44, 0, 0, 0, 0], ["<stdin>: line 2: expected 2 fields like the first row, but found 1"]) then prints:("")

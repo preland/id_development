@@ -1,0 +1,28 @@
+hd_conn_lines(int keep, int left) {
+  string l = "Connection: close\r\n";
+  if(keep == 1) {
+    int m = left - 1;
+    l = "Connection: keep-alive\r\nKeep-Alive: max=" + m + "\r\n";
+  }
+} return string l;
+(1, 5):("Connection: keep-alive\r\nKeep-Alive: max=4\r\n")
+(0, 5):("Connection: close\r\n")
+(1, 1):("Connection: keep-alive\r\nKeep-Alive: max=0\r\n")
+
+hd_head(int code, int keep, int left, string ex, int clen) {
+  string sl = hd_status_line(code);
+  string cls = hd_clen_line(clen);
+  string cxs = hd_conn_lines(keep, left);
+} chain (int code, int keep, int left, string ex, int clen) {
+  string head = sl + "Server: " + (import hd_server) + "\r\n" + ex + cls + cxs + "\r\n";
+} return string head;
+(200, 0, 1, "Content-Type: text/plain\r\n", 5):("HTTP/1.1 200 OK\r\nServer: httpd-id/1.0\r\nContent-Type: text/plain\r\nContent-Length: 5\r\nConnection: close\r\n\r\n")
+(304, 1, 3, "", -1):("HTTP/1.1 304 Not Modified\r\nServer: httpd-id/1.0\r\nConnection: keep-alive\r\nKeep-Alive: max=2\r\n\r\n")
+
+hd_page(int code) {
+  string rs = hd_reason(code);
+  string tt = code + " " + rs;
+  string hs = "<!DOCTYPE html><html><head><title>" + tt + "</title></head><body><h1>" + tt + "</h1></body></html>\n";
+} return string hs;
+(404):("<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1></body></html>\n")
+(403):("<!DOCTYPE html><html><head><title>403 Forbidden</title></head><body><h1>403 Forbidden</h1></body></html>\n")

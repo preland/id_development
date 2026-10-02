@@ -1,0 +1,31 @@
+hd_tcp_up(int ln, string host, string[] opts, int rounds) {
+  int rc = 1;
+  if(ln >= 0) {
+    rc = hd_tcp_run(ln, host, opts[1], rounds);
+  }
+  if(ln < 0) {
+    hd_tcp_fail(host, opts[0]);
+  }
+} return int rc;
+given hd_t_lsn0 ((import hd_t_ln), "127.0.0.1", ["0", "/tmp", "", ""], 0):(0) then hd_t_sweep:(0)
+(-1, "999.1.1.1", ["5", "/tmp", "", "999.1.1.1"], 0):(1) then eprints:("httpd: cannot listen on 999.1.1.1:5 (error 0); --host must be a numeric address such as 127.0.0.1 or 0.0.0.0, and --port a free port\n")
+
+hd_tcp_go(string[] opts, int rounds) {
+  string host = hd_host_of(opts);
+  int ln = sock_tcp_listen(host, to_int(opts[0]), (import hd_backlog));
+  int rc = hd_tcp_up(ln, host, opts, rounds);
+} return int rc;
+(["0", "/tmp", "", ""], 0):(0)
+(["5", "/tmp", "", "999.1.1.1"], 0):(1) then eprints:("httpd: cannot listen on 999.1.1.1:5 (error 99); --host must be a numeric address such as 127.0.0.1 or 0.0.0.0, and --port a free port\n")
+
+hd_mode(string[] opts) {
+  int rc = 0;
+  if(len(opts[0]) == 0) {
+    rc = hd_go(opts);
+  }
+  if(len(opts[0]) > 0) {
+    rc = hd_tcp_go(opts, -1);
+  }
+} return int rc;
+stdin "" (["", "/tmp", "", ""]):(0) then eprints:("httpd: serving /tmp over stdin/stdout (inetd style; give --port N to listen)\n")
+(["5", "/tmp", "", "999.1.1.1"]):(1) then eprints:("httpd: cannot listen on 999.1.1.1:5 (error 99); --host must be a numeric address such as 127.0.0.1 or 0.0.0.0, and --port a free port\n")

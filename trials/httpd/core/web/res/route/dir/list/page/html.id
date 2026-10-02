@@ -1,0 +1,27 @@
+hd_li_add(string name, string[] li) {
+  if(len(name) > 0) {
+    string ea = hd_pct_encode(name);
+    string eb = hd_html_esc(name);
+    push(li, "<li><a href=\"" + ea + "\">" + eb + "</a></li>\n");
+  }
+} return void;
+("a b.txt", []):("a b.txt", ["<li><a href=\"a%20b.txt\">a b.txt</a></li>\n"])
+("<x>/", ["p"]):("<x>/", ["p", "<li><a href=\"%3Cx%3E/\">&lt;x&gt;/</a></li>\n"])
+("", ["p"]):("", ["p"])
+
+hd_li_loop(string[] ns, string[] li, int i) {
+  while(i < len(ns)) {
+    hd_li_add(ns[i], li);
+    i = i + 1;
+  }
+} return void;
+(["a", "b"], [], 0):(["a", "b"], ["<li><a href=\"a\">a</a></li>\n", "<li><a href=\"b\">b</a></li>\n"], 0)
+(["a", "b"], [], 1):(["a", "b"], ["<li><a href=\"b\">b</a></li>\n"], 1)
+
+hd_parent_add(string pth, string[] li) {
+  if(pth != "/") {
+    push(li, "<li><a href=\"../\">../</a></li>\n");
+  }
+} return void;
+("/", []):("/", [])
+("/a/", []):("/a/", ["<li><a href=\"../\">../</a></li>\n"])

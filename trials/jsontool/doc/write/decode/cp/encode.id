@@ -1,0 +1,45 @@
+u8_lead(int n, int v) {
+  int b = v;
+  if (n = 2) {
+    b = 192 | v;
+  } else if (n = 3) {
+    b = 224 | v;
+  }
+} chain (int n, int v) {
+  if (n = 4) {
+    b = 240 | v;
+  }
+} return int b;
+(1, 65):(65)
+(2, 3):(195)
+(3, 14):(238)
+(4, 0):(240)
+
+u8_byte(int cp, int n, int k) {
+  int v = cp >> (6 * (n - 1 - k));
+  int b = 128 | (v & 63);
+  if (k = 0) {
+    b = u8_lead(n, v);
+  }
+} return int b;
+(233, 2, 0):(195)
+(233, 2, 1):(169)
+(8364, 3, 0):(226)
+(8364, 3, 1):(130)
+(8364, 3, 2):(172)
+(128512, 4, 0):(240)
+(128512, 4, 3):(128)
+
+utf8_put(word dst, int o, int cp) {
+  int n = u8_size(cp);
+  int k = 0;
+  while (k < n) {
+    poke8(dst + o, u8_byte(cp, n, k));
+    o = o + 1;
+    k = k + 1;
+  }
+} return int o;
+given t_srcadr ((import s0ad), 0, 233):(2) then t_s0:("é")
+given t_srcadr ((import s0ad), 0, 128512):(4) then t_s0:("😀")
+given t_srcadr ((import s0ad), 0, 65):(1) then t_s0:("A")
+given t_srcadr ((import s0ad), 0, 8364):(3) then t_s0:("€")

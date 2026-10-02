@@ -1,0 +1,33 @@
+disp_name(string file) {
+  string name = file;
+  if (file = "-") {
+    name = "<stdin>";
+  }
+} return string name;
+("-"):("<stdin>")
+("a.json"):("a.json")
+("--"):("--")
+
+parse_message(string file) {
+  int pos = (import jc)[(import c_erp)];
+  int ln = err_line(pos);
+  int col = err_col(pos);
+} chain (string file) {
+  string txt = err_text();
+  string msg = disp_name(file) + ":" + ln + ":" + col + ": error: " + txt;
+} return string msg;
+given t_parse stdin "[1 2]" ("f.json"):("f.json:1:4: error: expected ',' or ']' after an array element (found '2')")
+given t_parse stdin "[\n  1 2]" ("-"):("<stdin>:2:5: error: expected ',' or ']' after an array element (found '2')")
+given t_parse stdin "" ("e.json"):("e.json:1:1: error: expected a value (found end of input)")
+
+errno_text(int en) {
+  int at = lst_index_of((import errnos), en);
+  string why = "error " + en;
+  if (at >= 0) {
+    why = (import errtxt)[at];
+  }
+} return string why;
+(2):("no such file or directory")
+(13):("permission denied")
+(21):("is a directory")
+(99):("error 99")

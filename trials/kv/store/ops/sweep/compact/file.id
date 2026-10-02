@@ -1,0 +1,39 @@
+// Writes the compacted log to path.compact and renames it over path. The new size, or -1 with the log untouched.
+compact_file(string path, string[] keys, int[] vals, int[] used, word[] ea) {
+  string tmp = path + ".compact";
+  int h = fs_open(tmp, "w");
+  int total = 0 - 1;
+} chain (string path, string[] keys, int[] vals, int[] used, word[] ea) {
+  if(h >= 0) {
+    total = compact_write(h, keys, vals, used, ea);
+  }
+  total = swap_in(tmp, path, total);
+} return int total;
+given log_t_open ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_ea)):(24) then file_t_size:(24) then file_t_bytes:(1279) then file_t_done:(0)
+given log_t_topen ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_ea)):(42) then file_t_size:(42) then file_t_bytes:(2192) then file_t_done:(0)
+given db_t_lists ("/nonexistent-kv-dir/none", (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_ea)):(-1)
+
+// Rewrites the log so it holds only what is live. The new size, or -1 if the log could not be made ready or rewritten; the counters follow.
+db_compact(string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea) {
+  int ready = db_ready(path, st);
+  int total = 0 - 1;
+  if(ready >= 0) {
+    total = compact_file(path, keys, vals, used, ea);
+  }
+} chain (string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea) {
+  if(total >= 0) {
+    compact_count(st, total);
+  }
+} return int total;
+given log_t_open ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea)):(24) then db_t_meta:("24/24/0") then db_t_state:("1/0/1") then log_t_again:("1/0/1/0") then file_t_done:(0)
+given log_t_topen ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea)):(42) then db_t_meta:("42/42/0") then db_t_state:("2/0/2") then file_t_bad:(10) then log_t_again:("2/0/2/0") then file_t_done:(0)
+given db_t_lists ("/nonexistent-kv-dir/none", (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea)):(-1) then db_t_meta:("0/0/0")
+
+// Counts a compaction: the log is exactly the live records, so nothing is garbage and every record is a live key.
+compact_count(int[] st, int total) {
+  st_settle(st, total);
+  st[(import st_dead)] = 0;
+  st[(import st_recs)] = st[(import st_live)];
+} return void;
+given db_t_marked ((import db_t_st), 30):() then db_t_meta:("30/30/0")
+given db_t_over ((import db_t_st), 42):() then db_t_state:("2/0/2") then db_t_meta:("42/42/0")

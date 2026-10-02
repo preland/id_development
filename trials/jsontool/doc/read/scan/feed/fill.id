@@ -1,0 +1,32 @@
+in_grow() {
+  int cap = (import jc)[(import c_cap)];
+  word old = (import jw)[(import w_src)];
+  word fresh = alloc(cap * 2);
+} chain () {
+  buf_copy(fresh, old, (import jc)[(import c_len)]);
+  wset((import jw), (import w_src), fresh);
+  lset((import jc), (import c_cap), cap * 2);
+} return void;
+given t_load stdin "abc" ():() then t_cap:(131072)
+given t_load stdin "abc" ():() then t_src:("abc")
+
+in_room() {
+  if ((import jc)[(import c_len)] = (import jc)[(import c_cap)]) {
+    in_grow();
+  }
+} return void;
+given t_load stdin "abc" ():() then t_cap:(65536)
+given t_full ():() then t_cap:(131072)
+
+in_pull(int h) {
+  in_room();
+  int n = (import jc)[(import c_len)];
+  int got = fs_read_mem(h, (import jw)[(import w_src)] + n, (import jc)[(import c_cap)] - n);
+} chain (int h) {
+  if (got > 0) {
+    lset((import jc), (import c_len), n + got);
+  }
+} return int got;
+given t_tmp_ready stdin "hi" ((import th)):(2) then t_len:(2) then t_tmp_drop:(0)
+given t_tmp_ready stdin "" ((import th)):(0) then t_len:(0) then t_tmp_drop:(0)
+given t_tmp_ready stdin "hi" (-1):(-1) then t_len:(0) then t_tmp_drop:(0)

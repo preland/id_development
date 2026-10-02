@@ -1,0 +1,29 @@
+// The second half of civil-from-days: turning the March-based pieces back into
+// a calendar year and day of month, and packing year, month and day into one
+// int (YYYYMMDD) because a function returns only one value.
+
+hd_date_yr(int d_yoe, int d_era, int d_m) {
+  int d_y = d_yoe + d_era * 400;
+  if(d_m < 3) {
+    d_y = d_y + 1;
+  }
+} return int d_y;
+(369, 4, 1):(1970)
+(394, 4, 11):(1994)
+(399, 0, 3):(399)
+(399, 0, 2):(400)
+
+hd_date_dom(int d_doy, int d_mp) {
+  int d_d = d_doy - (153 * d_mp + 2) / 5 + 1;
+} return int d_d;
+(306, 10):(1)
+(250, 8):(6)
+(30, 0):(31)
+
+hd_date_pack2(int d_yoe, int d_era, int d_doy, int d_mp) {
+  int d_m = hd_date_mon(d_mp);
+  int d_y = hd_date_yr(d_yoe, d_era, d_m);
+  int d_r = d_y * 10000 + d_m * 100 + hd_date_dom(d_doy, d_mp);
+} return int d_r;
+(369, 4, 306, 10):(19700101)
+(394, 4, 250, 8):(19941106)
