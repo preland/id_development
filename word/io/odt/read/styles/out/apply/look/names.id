@@ -1,0 +1,32 @@
+// The name the model gives an ODT style: "Normal" for LibreOffice's "Standard", else its display name, else the ODT name with each _20_ (an encoded space) turned back into a space.
+ost_mname(string os_swire, string os_sdisp) {
+  string[] os_lparts = str_split(os_swire, "_20_");
+  string os_sname = str_join(os_lparts, " ");
+  if(os_sdisp != "") {
+    os_sname = os_sdisp;
+  }
+} chain (string os_swire, string os_sdisp) {
+  if(os_swire == (import word_style_wire)[0]) {
+    os_sname = (import word_style_names)[0];
+  }
+} return string os_sname;
+("Heading_20_1", ""):("Heading 1")
+("Standard", ""):("Normal")
+("Text_20_body", "Text body"):("Text body")
+("Emphasis", ""):("Emphasis")
+
+// The index of the model style called os_sname in family os_ifam (0 paragraph, 1 text), -1 when there is none.
+ost_sty_find(Fmt os_f, string os_sname, int os_ifam) {
+  int os_ires = 0 - 1;
+  int i = 0;
+  while(i < len(os_f.sty.styles) && os_ires < 0) {
+    if(os_f.sty.styles[i].name == os_sname && os_f.sty.styles[i].rel[(import word_s_family)] == os_ifam) {
+      os_ires = i;
+    }
+    i = i + 1;
+  }
+} return int os_ires;
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("A", [0, -1, 0], [0, 0]), Style("A", [1, -1, 1], [0, 0])], [], 0)), "A", 1):(1)
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("A", [0, -1, 0], [0, 0])], [], 0)), "B", 0):(-1)
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("A", [0, -1, 0], [0, 0]), Style("B", [0, 0, 0], [0, 0])], [], 0)), "B", 0):(1)
+

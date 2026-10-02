@@ -1,0 +1,39 @@
+// Ten-thousandths of an inch in the magnitude of tw twips, rounded to the nearest; the product is taken as a word so a long indent cannot overflow an int.
+oc_ten(int oc_tw) {
+  word oc_a = fx_abs(oc_tw);
+  word oc_m = oc_a * 10000 + 720;
+  int oc_t = oc_m / 1440;
+} return int oc_t;
+(720):(5000)
+(-720):(5000)
+(1):(7)
+(11906):(82681)
+(300000):(2083333)
+
+// A count of ten-thousandths as exactly four digits: the fraction of an inch.
+oc_pad4(int oc_n) {
+  int oc_q = oc_n + 10000;
+  string oc_s = "" + oc_q;
+  string oc_r = str_slice(oc_s, 1, 4);
+} return string oc_r;
+(7):("0007")
+(5000):("5000")
+
+// A length in twips as ODT writes it: inches with four decimals, which a reader turns back into the same twips because a twip is 0.0007 in.
+oc_in(int oc_tw) {
+  int oc_t = oc_ten(oc_tw);
+  int oc_wh = oc_t / 10000;
+  int oc_fr = oc_t - oc_wh * 10000;
+} chain (int oc_tw) {
+  string oc_f = oc_pad4(oc_fr);
+  string oc_s = "";
+  if(oc_tw < 0) {
+    oc_s = "-";
+  }
+} chain (int oc_tw) {
+  oc_s = oc_s + oc_wh + "." + oc_f + "in";
+} return string oc_s;
+(720):("0.5000in")
+(-360):("-0.2500in")
+(11906):("8.2681in")
+(1):("0.0007in")

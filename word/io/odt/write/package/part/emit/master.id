@@ -1,0 +1,21 @@
+// The office:automatic-styles element of styles.xml, which holds the page layout.
+odp_auto(XmlW pkw, Page pkpg) {
+  xw_start(pkw, "office:automatic-styles");
+  odp_layout(pkw, pkpg);
+  xw_end(pkw);
+} return void;
+given odp_t_new ((import odp_t_w), Page([100, 200, 0], [0, 0, 0, 0], [0, 0, 0])):() then odp_t_tags:("r office:automatic-styles style:page-layout style:page-layout-properties")
+given odp_t_new ((import odp_t_w), Page([1440, 1440, 1], [-1, -1, -1, -1], [0, 0, 0])):() then odp_t_xml:("<r><office:automatic-styles><style:page-layout style:name=\"pm1\"><style:page-layout-properties fo:page-width=\"1.0000in\" fo:page-height=\"1.0000in\" style:print-orientation=\"landscape\"/></style:page-layout></office:automatic-styles>")
+
+// The office:master-styles element: the one master page, Standard, which uses the page layout.
+odp_master(XmlW pkw) {
+  xw_start(pkw, "office:master-styles");
+  xw_start(pkw, "style:master-page");
+  xw_attr(pkw, "style:name", (import odp_master_name));
+} chain (XmlW pkw) {
+  xw_attr(pkw, "style:page-layout-name", (import odp_layout_name));
+  xw_end(pkw);
+  xw_end(pkw);
+} return void;
+given odp_t_new ((import odp_t_w)):() then odp_t_xml:("<r><office:master-styles><style:master-page style:name=\"Standard\" style:page-layout-name=\"pm1\"/></office:master-styles>")
+given odp_t_new given xw_attr((import odp_t_w), "k", "v") ((import odp_t_w)):() then odp_t_xml:("<r k=\"v\"><office:master-styles><style:master-page style:name=\"Standard\" style:page-layout-name=\"pm1\"/></office:master-styles>")

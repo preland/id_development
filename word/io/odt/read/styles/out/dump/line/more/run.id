@@ -1,0 +1,53 @@
+// What a dump prints of a run's properties, resolved through its character style and its paragraph's style: the flags, size, colour, highlight, link and font, as the fields of a run record without its text. os_ipstyle is the index of the paragraph's style.
+ndump_sig(Doc os_d, int os_ipstyle, Run os_ru) {
+  int os_ic = os_ru.cprop;
+  string os_sbits = ndump_bits(style_eff_c(os_d.fmt, os_ipstyle, os_ic, (import word_c_on)));
+  string os_ssize = "size=" + ndump_num(style_eff_c(os_d.fmt, os_ipstyle, os_ic, (import word_c_size)));
+} chain (Doc os_d, int os_ipstyle, Run os_ru) {
+  string os_scol = "color=" + ndump_color(style_eff_c(os_d.fmt, os_ipstyle, os_ic, (import word_c_color)));
+  string os_shl = "hl=" + ndump_color(style_eff_c(os_d.fmt, os_ipstyle, os_ic, (import word_c_hl)));
+  string os_slink = "link=" + ndump_link(os_d, os_ru);
+} chain (Doc os_d, int os_ipstyle, Run os_ru) {
+  string os_sfont = "font=" + ndump_font(os_d, os_ipstyle, os_ic);
+  string os_sout = os_sbits + " " + os_ssize + " " + os_scol + " " + os_shl + " " + os_slink + " " + os_sfont;
+} return string os_sout;
+(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, 24, 16711680, 65280, 5, 5], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], ["u"], [])), 0, Run(3, 1, 0)):("b=1 i=0 u=1 s=0 sup=0 sub=0 size=24 color=#ff0000 hl=#00ff00 link=\"u\" font=\"F\"")
+(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, Run(1, 0, -1)):("b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-")
+
+
+// Adds one run to a paragraph's merged runs: the signature list (each merged run's printed properties) and the list of where each merged run ends in the paragraph's text. A run that prints the same as the last merged run extends it, any other starts a new one; an empty run adds nothing.
+ndump_take(Doc os_d, int os_ipstyle, Run os_ru, string[] os_lsig, int[] os_lends) {
+  string os_ssig = ndump_sig(os_d, os_ipstyle, os_ru);
+  int os_ilast = len(os_lsig) - 1;
+  int os_iprev = 0;
+} chain (Doc os_d, int os_ipstyle, Run os_ru, string[] os_lsig, int[] os_lends) {
+  if(os_ilast >= 0) {
+    os_iprev = os_lends[os_ilast];
+  }
+  if(os_ru.len > 0 && os_ilast >= 0 && os_lsig[os_ilast] == os_ssig) {
+    os_lends[os_ilast] = os_iprev + os_ru.len;
+  }
+  if(os_ru.len > 0 && (os_ilast < 0 || os_lsig[os_ilast] != os_ssig)) {
+    push(os_lsig, os_ssig);
+    push(os_lends, os_iprev + os_ru.len);
+  }
+} return void;
+(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, Run(2, 0, -1), [], []):(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, Run(2, 0, -1), ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-"], [2])
+(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, Run(3, 0, -1), ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-"], [2]):(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, Run(3, 0, -1), ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-"], [5])
+(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, Run(3, 1, -1), ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-"], [2]):(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, Run(3, 1, -1), ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", "b=0 i=0 u=0 s=0 sup=0 sub=0 size=24 color=- hl=- link=- font=-"], [2, 5])
+(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, Run(0, 1, -1), ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-"], [2]):(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, Run(0, 1, -1), ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-"], [2])
+
+// The run records of a paragraph, each on a line of its own after a line feed: "run" and the merged run's printed properties, then its text in quotes; os_lends says where each merged run ends in os_lcps.
+ndump_lines(int[] os_lcps, string[] os_lsig, int[] os_lends) {
+  string os_sout = "";
+  int os_istart = 0;
+  int i = 0;
+} chain (int[] os_lcps, string[] os_lsig, int[] os_lends) {
+  while(i < len(os_lsig)) {
+    os_sout = os_sout + "\nrun " + os_lsig[i] + " text=" + str_quote(ndump_str(os_lcps, os_istart, os_lends[i]));
+    os_istart = os_lends[i];
+    i = i + 1;
+  }
+} return string os_sout;
+([104, 105, 33], ["b=1", "b=0"], [2, 3]):("\nrun b=1 text=\"hi\"\nrun b=0 text=\"!\"")
+([], [], []):("")

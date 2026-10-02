@@ -1,0 +1,32 @@
+// Marks every paragraph row and character row the document uses.
+oc_marks(Doc oc_d, int[] oc_pm, int[] oc_cm) {
+  int oc_i = 0;
+  while(oc_i < len(oc_d.body.paras)) {
+    oc_mark_para(oc_d.body.paras[oc_i], oc_pm, oc_cm);
+    oc_i = oc_i + 1;
+  }
+} return void;
+(Doc(Body([Para(Text([1], [Run(1, 1, -1)], 0), Lay([], [], -1), 2), Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], [])), [0, 0, 0], [0, 0]):(Doc(Body([Para(Text([1], [Run(1, 1, -1)], 0), Lay([], [], -1), 2), Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], [])), [1, 0, 1], [1, 1])
+(Doc(Body([Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 1)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], [])), [0, 0], [0]):(Doc(Body([Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 1)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], [])), [0, 1], [1])
+
+// The automatic style of paragraph row i, written when the row is marked used and sets something.
+oc_pauto(XmlW oc_w, Doc oc_d, int[] oc_pm, int oc_i) {
+  int oc_pl = oc_plain_p(oc_d.fmt.paras, oc_i);
+  if(oc_pm[oc_i] == 1 && oc_pl == 0) {
+    oc_pstyle(oc_w, oc_d, oc_i);
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, -1, 1, 1], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([], [], 0)), Ext(["Arial"], [], [])), [1, 1], 1):() then oc_t_out:("<r><style:style style:name=\"WP1\" style:family=\"paragraph\"><style:paragraph-properties fo:text-align=\"center\"/></style:style>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, -1, 1, 1], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([], [], 0)), Ext(["Arial"], [], [])), [1, 1], 0):() then oc_t_out:("<r")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, -1, 1, 1], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([], [], 0)), Ext(["Arial"], [], [])), [1, 0], 1):() then oc_t_out:("<r")
+
+// The automatic style of character row i, written when the row is marked used and sets something.
+oc_cauto(XmlW oc_w, Doc oc_d, int[] oc_cm, int oc_i) {
+  int oc_pl = oc_plain_c(oc_d.fmt.chars, oc_i);
+  if(oc_cm[oc_i] == 1 && oc_pl == 0) {
+    oc_cstyle(oc_w, oc_d, oc_i);
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, -1, 1, 1], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([], [], 0)), Ext(["Arial"], [], [])), [1, 1], 1):() then oc_t_out:("<r><style:style style:name=\"WT1\" style:family=\"text\"><style:text-properties style:font-name=\"Arial\" fo:font-weight=\"bold\"/></style:style>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, -1, 1, 1], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([], [], 0)), Ext(["Arial"], [], [])), [1, 1], 0):() then oc_t_out:("<r")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, -1, 1, 1], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([], [], 0)), Ext(["Arial"], [], [])), [0, 0], 1):() then oc_t_out:("<r")

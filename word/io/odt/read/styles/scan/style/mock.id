@@ -1,0 +1,26 @@
+// Test fixture: a new empty bag kept in an export.
+ost_t_mkbag() {
+  export StyBag ost_t_b = ost_bag_new();
+} return void;
+():() then ost_t_strs:([])
+given ost_t_mkbag ():() then ost_t_strs:([])
+
+// Test fixture: a bag read from a styles document held in a string, kept in an export along with the reader that read it.
+ost_t_scan(string os_ss) {
+  ost_t_open(os_ss);
+  ost_t_mkbag();
+  XmlR os_r = (import ost_t_r);
+} chain (string os_ss) {
+  StyBag os_b = (import ost_t_b);
+  ost_scan(os_b, os_r);
+} return void;
+("<a><style:style style:name=\"P1\" style:family=\"paragraph\"/></a>"):() then ost_t_strs:(["P1", "", "", "", "", "", "p", "n"])
+("<a/>"):() then ost_t_strs:([])
+
+// Test fixture: every record's eight strings of the fixture bag, one after the other.
+ost_t_strs() {
+  StyBag os_b = (import ost_t_b);
+  string[] os_lss = os_b.strings;
+} return string[] os_lss;
+given ost_t_mkbag ():([])
+given ost_t_scan("<a><style:style style:name=\"T\" style:family=\"text\" style:parent-style-name=\"S\"/></a>") ():(["T", "S", "", "", "", "", "t", "n"])

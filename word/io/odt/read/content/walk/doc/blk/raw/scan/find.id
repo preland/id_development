@@ -1,0 +1,21 @@
+// The offset of the first start tag at or after off, passing over comments, processing instructions and the text between them: the reader skips those, so they may sit between the end of the last event and the tag.
+orc_tag_at(XmlR rd, int off) {
+  int i = off;
+  while(i < len(rd.src) && orc_lt(rd, i) == 0) {
+    i = i + 1;
+  }
+} return int i;
+(XmlR([60, 33, 45, 45, 120, 45, 45, 62, 60, 97, 47, 62], [0, 0, 0, 0, 0], ["", ""]), 0):(8)
+(XmlR([60, 33, 45, 45, 120, 45, 45, 62, 60, 97, 47, 62], [0, 0, 0, 0, 0], ["", ""]), 9):(12)
+(XmlR([60, 97, 47, 62], [0, 0, 0, 0, 0], ["", ""]), 0):(0)
+
+// 1 when a tag starts at byte i: a "<" that does not begin a comment, a DOCTYPE or a processing instruction (and is not the last byte).
+orc_lt(XmlR rd, int i) {
+  int room = i >= 0 && i + 1 < len(rd.src);
+  int lt = room == 1 && rd.src[i] == 60 && rd.src[i + 1] != 33 && rd.src[i + 1] != 63;
+} return int lt;
+(XmlR([60, 97, 62], [0, 0, 0, 0, 0], ["", ""]), 0):(1)
+(XmlR([60, 33, 45], [0, 0, 0, 0, 0], ["", ""]), 0):(0)
+(XmlR([60, 63, 120], [0, 0, 0, 0, 0], ["", ""]), 0):(0)
+(XmlR([97, 62, 60], [0, 0, 0, 0, 0], ["", ""]), 2):(0)
+(XmlR([60, 97, 62], [0, 0, 0, 0, 0], ["", ""]), 1):(0)

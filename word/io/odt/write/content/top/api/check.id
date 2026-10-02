@@ -1,0 +1,44 @@
+// The offset of the first code point of a text that stands for an object but names no verbatim part of the document, or -1.
+oc_bad_cp(Text oc_tx, Ext oc_ex) {
+  int oc_i = 0;
+  int oc_at = 0 - 1;
+  while(oc_i < len(oc_tx.cps) && oc_at < 0) {
+    if(oc_tx.cps[oc_i] >= (import word_o_marker) && oc_part_ok(oc_ex, oc_tx.cps[oc_i] - (import word_o_marker)) == 0) {
+      oc_at = oc_i;
+    }
+    oc_i = oc_i + 1;
+  }
+} return int oc_at;
+(Text([97, 983040], [Run(2, 0, -1)], 0), Ext([], [], [Part("t", [60, 116, 47, 62], 0)])):(-1)
+(Text([97, 983041, 98], [Run(3, 0, -1)], 0), Ext([], [], [Part("t", [60, 116, 47, 62], 0)])):(1)
+(Text([983040], [Run(1, 0, -1)], 0), Ext([], [], [Part("f", [1], 1)])):(0)
+(Text([97, 98], [Run(2, 0, -1)], 0), Ext([], [], [])):(-1)
+
+// What is wrong with paragraph i for writing, as a message that names the fix, or "" when nothing is.
+oc_check_para(Doc oc_d, int oc_i) {
+  string oc_why = "";
+  int oc_at = oc_bad_cp(oc_d.body.paras[oc_i].txt, oc_d.ext);
+  int oc_bb = oc_bad_block(oc_d, oc_i);
+} chain (Doc oc_d, int oc_i) {
+  if(oc_bb == 1) {
+    oc_why = "paragraph " + oc_i + " is an opaque block (kind 1) whose first code point names no verbatim part; make that code point word_o_marker plus the index of a Part of kind 0 in ext.parts, or make the paragraph a text paragraph";
+  } else if(oc_at >= 0) {
+    oc_why = "paragraph " + oc_i + " has an object marker at offset " + oc_at + " that names no verbatim part; store the object's XML as a Part of kind 0 at index (code point - word_o_marker) of ext.parts, or remove the code point";
+  }
+} return string oc_why;
+(Doc(Body([Para(Text([97], [Run(1, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([983040, 63], [Run(2, 0, -1)], 0), Lay([], [], -1), 1), Para(Text([98, 983040], [Run(2, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 1], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), Ext(["Arial"], [], [Part("t", [60, 116, 47, 62], 0), Part("f", [1], 1)])), 1):("")
+(Doc(Body([Para(Text([97], [Run(1, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([63], [Run(1, 0, -1)], 0), Lay([], [], -1), 1)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 1], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), Ext(["Arial"], [], [Part("t", [60, 116, 47, 62], 0), Part("f", [1], 1)])), 1):("paragraph 1 is an opaque block (kind 1) whose first code point names no verbatim part; make that code point word_o_marker plus the index of a Part of kind 0 in ext.parts, or make the paragraph a text paragraph")
+(Doc(Body([Para(Text([97], [Run(1, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([98, 983041], [Run(2, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 1], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), Ext(["Arial"], [], [Part("t", [60, 116, 47, 62], 0), Part("f", [1], 1)])), 1):("paragraph 1 has an object marker at offset 1 that names no verbatim part; store the object's XML as a Part of kind 0 at index (code point - word_o_marker) of ext.parts, or remove the code point")
+
+// Whether the document can be written as content.xml: the message of the first paragraph that cannot be, or "" when all can. A document that fails must not be saved, since saving it would drop or garble a block.
+odt_content_check(Doc oc_d) {
+  string oc_why = "";
+  int oc_i = 0;
+  while(oc_i < len(oc_d.body.paras) && len(oc_why) == 0) {
+    oc_why = oc_check_para(oc_d, oc_i);
+    oc_i = oc_i + 1;
+  }
+} return string oc_why;
+(Doc(Body([Para(Text([97], [Run(1, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([983040, 63], [Run(2, 0, -1)], 0), Lay([], [], -1), 1), Para(Text([98, 983040], [Run(2, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 1], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), Ext(["Arial"], [], [Part("t", [60, 116, 47, 62], 0), Part("f", [1], 1)]))):("")
+(Doc(Body([Para(Text([97], [Run(1, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([98, 983041], [Run(2, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 1], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), Ext(["Arial"], [], [Part("t", [60, 116, 47, 62], 0), Part("f", [1], 1)]))):("paragraph 1 has an object marker at offset 1 that names no verbatim part; store the object's XML as a Part of kind 0 at index (code point - word_o_marker) of ext.parts, or remove the code point")
+(Doc(Body([Para(Text([97], [Run(1, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([63], [Run(1, 0, -1)], 0), Lay([], [], -1), 1)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 1], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), Ext(["Arial"], [], [Part("t", [60, 116, 47, 62], 0), Part("f", [1], 1)]))):("paragraph 1 is an opaque block (kind 1) whose first code point names no verbatim part; make that code point word_o_marker plus the index of a Part of kind 0 in ext.parts, or make the paragraph a text paragraph")

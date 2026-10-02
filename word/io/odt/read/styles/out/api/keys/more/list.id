@@ -1,0 +1,25 @@
+// Adds the key, id and over entries of record os_i to the lookup lists.
+ost_key_one(Doc os_d, StyBag os_b, string[] os_lface, int[] os_lidx, int os_i, OdtSty os_k) {
+  string os_skey = ost_key_name(os_b, os_i);
+  int os_iid = ost_key_id(os_d, os_b, os_lface, os_lidx, os_i);
+  int os_iov = ost_key_over(os_d, os_b, os_lface, os_i);
+} chain (Doc os_d, StyBag os_b, string[] os_lface, int[] os_lidx, int os_i, OdtSty os_k) {
+  push(os_k.keys, os_skey);
+  push(os_k.ids, os_iid);
+  push(os_k.over, os_iov);
+} return void;
+given ost_t_doc given ost_t_scan("<a><style:style style:name=\"Standard\" style:family=\"paragraph\"/></a>") given ost_t_reg ((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 0, OdtSty([], [], [])):((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 0, OdtSty(["p:Standard"], [0], [-1]))
+given ost_t_doc given ost_t_scan("<a><office:automatic-styles><style:style style:name=\"P1\" style:family=\"paragraph\"><style:text-properties fo:font-weight=\"bold\"/></style:style></office:automatic-styles></a>") given ost_t_reg ((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 0, OdtSty(["x"], [5], [5])):((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 0, OdtSty(["x", "p:P1"], [5, 0], [5, 8]))
+
+// Adds an entry for every style of the bag, named or automatic, to the lookup lists; the default paragraph style is not a name anything can use.
+ost_keys(Doc os_d, StyBag os_b, string[] os_lface, int[] os_lidx, OdtSty os_k) {
+  int i = 0;
+  while(i < ost_bag_n(os_b)) {
+    if(os_b.strings[i * (import ost_s_width) + (import ost_s_kind)] != "d") {
+      ost_key_one(os_d, os_b, os_lface, os_lidx, i, os_k);
+    }
+    i = i + 1;
+  }
+} return void;
+given ost_t_doc given ost_t_scan("<a><style:default-style style:family=\"paragraph\"/><style:style style:name=\"Standard\" style:family=\"paragraph\"/><office:automatic-styles><style:style style:name=\"P1\" style:family=\"paragraph\" style:parent-style-name=\"Standard\"/></office:automatic-styles></a>") given ost_t_reg ((import ost_t_d), (import ost_t_b), [], (import ost_t_x), OdtSty([], [], [])):((import ost_t_d), (import ost_t_b), [], (import ost_t_x), OdtSty(["p:Standard", "p:P1"], [0, 0], [-1, -1]))
+given ost_t_doc given ost_t_scan("<a/>") given ost_t_reg ((import ost_t_d), (import ost_t_b), [], (import ost_t_x), OdtSty([], [], [])):((import ost_t_d), (import ost_t_b), [], (import ost_t_x), OdtSty([], [], []))

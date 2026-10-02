@@ -1,0 +1,41 @@
+// The attributes of a paragraph element: its style-name when it has one and, for a heading, its outline level.
+oc_pattr(XmlW oc_w, string oc_nm, int oc_lv) {
+  if(len(oc_nm) > 0) {
+    xw_attr(oc_w, "text:style-name", oc_nm);
+  }
+  if(oc_lv > 0) {
+    xw_attr(oc_w, "text:outline-level", "" + oc_lv);
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), "WP1", 0):() then oc_t_out:("<r text:style-name=\"WP1\"")
+given oc_t_w(0) ((import oc_fw), "Heading_20_2", 2):() then oc_t_out:("<r text:style-name=\"Heading_20_2\" text:outline-level=\"2\"")
+given oc_t_w(0) ((import oc_fw), "", 0):() then oc_t_out:("<r")
+
+// Opens the paragraph of row pid: text:h with its outline level when the style is a heading, text:p otherwise, with the style-name.
+oc_pstart(XmlW oc_w, Doc oc_d, int oc_pid) {
+  int oc_sid = tab_get(oc_d.fmt.paras, oc_pid, (import word_p_style));
+  int oc_lv = 0;
+  if(oc_sid > 0) {
+    oc_lv = oc_level(oc_d, oc_sid);
+  }
+} chain (XmlW oc_w, Doc oc_d, int oc_pid) {
+  string oc_el = "text:p";
+  if(oc_lv > 0) {
+    oc_el = "text:h";
+  }
+  xw_start(oc_w, oc_el);
+} chain (XmlW oc_w, Doc oc_d, int oc_pid) {
+  oc_pattr(oc_w, oc_pname(oc_d, oc_pid), oc_lv);
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([Para(Text([97, 98], [Run(2, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([84, 105], [Run(2, 1, -1)], 0), Lay([], [], -1), 1), Para(Text([120], [Run(1, 0, -1)], 0), Lay([], [], -1), 2), Para(Text([983040, 63], [Run(2, 0, -1)], 0), Lay([], [], -1), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 1], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), Ext(["Arial"], [], [Part("t", [60, 116, 47, 62], 0)])), 1):() then oc_t_out:("<r><text:h text:style-name=\"Heading_20_1\" text:outline-level=\"1\"")
+given oc_t_w(0) ((import oc_fw), Doc(Body([Para(Text([97, 98], [Run(2, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([84, 105], [Run(2, 1, -1)], 0), Lay([], [], -1), 1), Para(Text([120], [Run(1, 0, -1)], 0), Lay([], [], -1), 2), Para(Text([983040, 63], [Run(2, 0, -1)], 0), Lay([], [], -1), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 1], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), Ext(["Arial"], [], [Part("t", [60, 116, 47, 62], 0)])), 2):() then oc_t_out:("<r><text:p text:style-name=\"WP2\"")
+given oc_t_w(0) ((import oc_fw), Doc(Body([Para(Text([97, 98], [Run(2, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([84, 105], [Run(2, 1, -1)], 0), Lay([], [], -1), 1), Para(Text([120], [Run(1, 0, -1)], 0), Lay([], [], -1), 2), Para(Text([983040, 63], [Run(2, 0, -1)], 0), Lay([], [], -1), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 1], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), Ext(["Arial"], [], [Part("t", [60, 116, 47, 62], 0)])), 0):() then oc_t_out:("<r><text:p")
+
+// Paragraph i as a text:p or text:h with its runs.
+oc_para(XmlW oc_w, Doc oc_d, int oc_i) {
+  oc_pstart(oc_w, oc_d, oc_d.body.paras[oc_i].pprop);
+  oc_runs(oc_w, oc_d, oc_d.body.paras[oc_i]);
+  xw_end(oc_w);
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([Para(Text([97, 98], [Run(2, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([84, 105], [Run(2, 1, -1)], 0), Lay([], [], -1), 1), Para(Text([120], [Run(1, 0, -1)], 0), Lay([], [], -1), 2), Para(Text([983040, 63], [Run(2, 0, -1)], 0), Lay([], [], -1), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 1], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), Ext(["Arial"], [], [Part("t", [60, 116, 47, 62], 0)])), 0):() then oc_t_out:("<r><text:p>ab</text:p>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([Para(Text([97, 98], [Run(2, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([84, 105], [Run(2, 1, -1)], 0), Lay([], [], -1), 1), Para(Text([120], [Run(1, 0, -1)], 0), Lay([], [], -1), 2), Para(Text([983040, 63], [Run(2, 0, -1)], 0), Lay([], [], -1), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 1], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), Ext(["Arial"], [], [Part("t", [60, 116, 47, 62], 0)])), 1):() then oc_t_out:("<r><text:h text:style-name=\"Heading_20_1\" text:outline-level=\"1\"><text:span text:style-name=\"WT1\">Ti</text:span></text:h>")

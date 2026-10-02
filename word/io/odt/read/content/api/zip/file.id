@@ -1,0 +1,36 @@
+// The bytes of a file, one per cell; an empty list for a file that is missing, empty or unreadable.
+orc_file_bytes(string path) {
+  int n = fs_size(path);
+  int h = fs_open(path, "r");
+  int[] xs = [];
+} chain (string path) {
+  if(n > 0 && h >= 0) {
+    lst_fill(xs, n, 0);
+    int got = fs_read(h, xs, n);
+  }
+  int c = fs_close(h);
+} return int[] xs;
+given orc_t_file("abc") ((import orc_tp)):([97, 98, 99]) then orc_t_gone:(0)
+given orc_t_file("") ((import orc_tp)):([]) then orc_t_gone:(0)
+("/nonexistent/none.odt"):([])
+
+// Remembers where a load went wrong, for odt_error to put in brackets after its message. A load starts by clearing it.
+orc_why(string msg) {
+  export string odt_why = msg;
+} return void;
+("a"):() then orc_t_why:("a")
+(""):() then orc_t_why:("")
+
+// 1 when the bytes of xs are exactly the bytes of s.
+orc_same(int[] xs, string s) {
+  int same = len(xs) == len(s);
+  int i = 0;
+  while(i < len(xs) && same == 1) {
+    same = xs[i] == charat(s, i);
+    i = i + 1;
+  }
+} return int same;
+([104, 105], "hi"):(1)
+([104, 105], "hj"):(0)
+([104], "hi"):(0)
+([], ""):(1)

@@ -1,0 +1,64 @@
+// The content of a paragraph, one event at a time, until the end tag of the paragraph itself (the end event at depth base).
+orc_inline(Cx cx, Text t, int base) {
+  int ev = orc_next(cx);
+  while(ev > 0 && orc_inside(cx, ev, base) == 1) {
+    orc_inline_ev(cx, t, ev);
+    ev = orc_next(cx);
+  }
+} return void;
+given orc_t_open("<text:p>ab</text:p>") given orc_t_steps(1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 0):((import orc_tc), Text([97, 98], [Run(2, 0, -1)], 0), 0)
+given orc_t_open("<r><text:p>a</text:p>b</r>") given orc_t_steps(2) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 1):((import orc_tc), Text([97], [Run(1, 0, -1)], 0), 1) then orc_t_pos:(21)
+
+// 1 while the event is part of the paragraph: every event but the end tag of the paragraph, the end event at depth base.
+orc_inside(Cx cx, int ev, int base) {
+  int ended = ev == 2 && xr_depth(cx.rd) == base;
+  int in = 1 - ended;
+} return int in;
+given orc_t_open("<a></a>") given orc_t_steps(2) ((import orc_tc), 2, 0):(0)
+given orc_t_open("<a></a>") given orc_t_steps(2) ((import orc_tc), 2, 1):(1)
+given orc_t_open("<a></a>") given orc_t_steps(1) ((import orc_tc), 1, 0):(1)
+
+// What one event inside a paragraph adds: text, spaces, a tab or a line break as code points, the start or end of a hyperlink or of a text:span (the character row of the text follows it), or, for an element the model does not know, an object kept untouched.
+orc_inline_ev(Cx cx, Text t, int ev) {
+  int k = orc_ikind(cx, ev);
+  if(k == 0) {
+    orc_text(cx, t, xr_text(cx.rd));
+  }
+  if(k == 2) {
+    orc_link(cx);
+  }
+} chain (Cx cx, Text t, int ev) {
+  if(k == 3) {
+    lset(cx.cs.slots, (import orc_s_link), 0);
+  }
+  if(k == 4) {
+    orc_gap(cx, t);
+  }
+  if(k == 5) {
+    orc_run(cx, t, (import orc_cp_tab), 1);
+  }
+} chain (Cx cx, Text t, int ev) {
+  if(k == 6) {
+    orc_run(cx, t, (import orc_cp_break), 1);
+  }
+  if(k < 0) {
+    orc_object(cx, t, ev);
+  }
+  if(k == 1 && ev == 1 && xr_name(cx.rd) == "text:span") {
+    orc_span_in(cx);
+  }
+} chain (Cx cx, Text t, int ev) {
+  if(k == 1 && ev == 2 && xr_name(cx.rd) == "text:span") {
+    orc_span_out(cx);
+  }
+} return void;
+given orc_t_open("<a>hi</a>") given orc_t_steps(2) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 3):((import orc_tc), Text([104, 105], [Run(2, 0, -1)], 0), 3)
+given orc_t_open("<text:a xlink:href='u'/>") given orc_t_steps(1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 4):((import orc_tc), Text([], [Run(0, 0, -1)], 0), 4) then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} | u | ")
+given orc_t_open("<text:a></text:a>") given orc_t_steps(2) given orc_t_set(3, 2) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 2):((import orc_tc), Text([], [Run(0, 0, -1)], 0), 2) then orc_t_slots:("0,0,0,0,8,0,0,0,")
+given orc_t_open("<text:span></text:span>") given orc_t_steps(2) given orc_t_set(3, 2) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 2):((import orc_tc), Text([], [Run(0, 0, -1)], 0), 2) then orc_t_slots:("0,0,0,2,11,0,0,0,")
+given orc_t_open("<text:s text:c='2'/>") given orc_t_steps(1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 4):((import orc_tc), Text([32, 32], [Run(2, 0, -1)], 0), 4)
+given orc_t_open("<text:tab/>") given orc_t_steps(1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 4):((import orc_tc), Text([9], [Run(1, 0, -1)], 0), 4)
+given orc_t_open("<text:line-break/>") given orc_t_steps(1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 4):((import orc_tc), Text([11], [Run(1, 0, -1)], 0), 4)
+given orc_t_open("<draw:frame/>") given orc_t_steps(1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 4):((import orc_tc), Text([983040], [Run(1, 0, -1)], 0), 4) then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | draw:frame:0:<draw:frame/>,")
+given orc_t_open("<r><office:automatic-styles><style:style style:name='T1' style:family='text'><style:text-properties fo:font-weight='bold'/></style:style></office:automatic-styles><text:span text:style-name='T1'></text:span></r>") given orc_t_steps(7) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 1):((import orc_tc), Text([], [Run(0, 0, -1)], 0), 1) then orc_t_rows:("0,1,")
+given orc_t_open("<r><office:automatic-styles><style:style style:name='T1' style:family='text'><style:text-properties fo:font-weight='bold'/></style:style></office:automatic-styles><text:span text:style-name='T1'></text:span></r>") given orc_t_steps(7) given orc_span_in((import orc_tc)) given orc_t_steps(1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 2):((import orc_tc), Text([], [Run(0, 0, -1)], 0), 2) then orc_t_rows:("0,")

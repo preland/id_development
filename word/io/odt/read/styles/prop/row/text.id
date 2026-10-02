@@ -1,0 +1,44 @@
+// The size field of a character row for a font-size value: half-points, or ost_pct_base minus the percentage when it is relative (the parent's size is not known yet), -1 when unreadable.
+ost_csize(string os_sv) {
+  int os_ipct = ost_pct(os_sv);
+  int os_ihp = ost_size(os_sv, 0 - 1);
+  if(os_ipct != (import ost_bad)) {
+    os_ihp = (import ost_pct_base) - os_ipct;
+  }
+} chain (string os_sv) {
+  if(os_ihp == (import ost_bad)) {
+    os_ihp = 0 - 1;
+  }
+} return int os_ihp;
+("12pt"):(24)
+("130%"):(-1130)
+("huge"):(-1)
+
+// Applies the value of text attribute k (the order of ost_cattr) to a character row; the font is not a number here, the caller reads its name.
+ost_cset(int[] os_lcrow, int os_ik, string os_sv) {
+  int os_ibit = 1 << os_ik;
+  if(os_ik < 4) {
+    int os_iflag = ost_isflag(os_ik, os_sv);
+    ost_flagset(os_lcrow, os_ibit, os_iflag * os_ibit);
+  }
+  if(os_ik == 4) {
+    int os_ipos = ost_pos(os_sv);
+    ost_flagset(os_lcrow, 48, os_ipos);
+  }
+} chain (int[] os_lcrow, int os_ik, string os_sv) {
+  if(os_ik == 5) {
+    os_lcrow[(import word_c_size)] = ost_csize(os_sv);
+  }
+  if(os_ik == 6) {
+    os_lcrow[(import word_c_color)] = ost_color(os_sv);
+  }
+  if(os_ik == 7) {
+    os_lcrow[(import word_c_hl)] = ost_color(os_sv);
+  }
+} return void;
+([0, -1, -1, -1, -1, 0, 0], 0, "bold"):([0, -1, -1, -1, -1, 1, 1], 0, "bold")
+([0, -1, -1, -1, -1, 0, 0], 2, "none"):([0, -1, -1, -1, -1, 0, 4], 2, "none")
+([0, -1, -1, -1, -1, 0, 0], 4, "super 58%"):([0, -1, -1, -1, -1, 16, 48], 4, "super 58%")
+([0, -1, -1, -1, -1, 0, 0], 5, "11pt"):([0, -1, 22, -1, -1, 0, 0], 5, "11pt")
+([0, -1, -1, -1, -1, 0, 0], 6, "#ff0000"):([0, -1, -1, 16711680, -1, 0, 0], 6, "#ff0000")
+([0, -1, -1, -1, -1, 0, 0], 7, "#ffff00"):([0, -1, -1, -1, 16776960, 0, 0], 7, "#ffff00")

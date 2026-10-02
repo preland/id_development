@@ -1,0 +1,26 @@
+// Test fixture (internal): adds a preserved part with a zero byte and a 255 in it to a document's references.
+odw_t_part(Ext pkx, string pkname) {
+  Part pkpt = Part(pkname, [137, 0, 255], 1);
+  push(pkx.parts, pkpt);
+} return void;
+(Ext(["f"], [], []), "a"):(Ext(["f"], [], [Part("a", [137, 0, 255], 1)]), "a")
+(Ext(["f"], [], [Part("b", [], 1)]), "a"):(Ext(["f"], [], [Part("b", [], 1), Part("a", [137, 0, 255], 1)]), "a")
+
+// Test fixture (internal): the default document, exported. Variant 1 holds a code point that stands for an object but names no part, which the content writer refuses; 2 holds two preserved parts of one name, which the archive refuses; 3 holds one preserved image; any other is the plain document.
+odw_t_doc(int pkk) {
+  export Doc odw_td = doc_new();
+  if(pkk == 1) {
+    text_insert(odw_td.body.paras[0].txt, 0, [983040], 0);
+  }
+  if(pkk >= 2) {
+    odw_t_part(odw_td.ext, "Pictures/a.png");
+  }
+} chain (int pkk) {
+  if(pkk == 2) {
+    odw_t_part(odw_td.ext, "Pictures/a.png");
+  }
+} return void;
+(0):() then odw_t_sig:(0)
+(1):() then odw_t_sig:(1)
+(2):() then odw_t_sig:(20)
+(3):() then odw_t_sig:(10)

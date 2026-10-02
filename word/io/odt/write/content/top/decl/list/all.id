@@ -1,0 +1,30 @@
+// The automatic list style L<li> of list definition li: its levels inside a text:list-style.
+oc_lstyle(XmlW oc_w, Doc oc_d, int oc_li) {
+  xw_start(oc_w, "text:list-style");
+  xw_attr(oc_w, "style:name", "WL" + oc_li);
+  oc_lvs(oc_w, oc_d.fmt.sty.lists[oc_li].levels);
+} chain (XmlW oc_w, Doc oc_d, int oc_li) {
+  xw_end(oc_w);
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("N", [1, 0, 1, 720, 360], 1), ListDef("Empty", [], 0)], 0)), Ext([], [], [])), 1):() then oc_t_out:("<r><text:list-style style:name=\"WL1\"><text:list-level-style-number text:level=\"1\" style:num-suffix=\".\" style:num-format=\"1\"><style:list-level-properties text:list-level-position-and-space-mode=\"label-alignment\"><style:list-level-label-alignment text:label-followed-by=\"listtab\" text:list-tab-stop-position=\"0.5000in\" fo:text-indent=\"-0.2500in\" fo:margin-left=\"0.5000in\"/></style:list-level-properties></text:list-level-style-number></text:list-style>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("N", [1, 0, 1, 720, 360], 1), ListDef("Empty", [], 0)], 0)), Ext([], [], [])), 2):() then oc_t_out:("<r><text:list-style style:name=\"WL2\"/>")
+
+// A list style for every definition that has levels; index 0 is the "no list" placeholder and is skipped.
+oc_lists(XmlW oc_w, Doc oc_d) {
+  int oc_i = 1;
+  while(oc_i < len(oc_d.fmt.sty.lists)) {
+    oc_lone(oc_w, oc_d, oc_i);
+    oc_i = oc_i + 1;
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("N", [1, 0, 1, 720, 360], 1), ListDef("Empty", [], 0)], 0)), Ext([], [], []))):() then oc_t_out:("<r><text:list-style style:name=\"WL1\"><text:list-level-style-number text:level=\"1\" style:num-suffix=\".\" style:num-format=\"1\"><style:list-level-properties text:list-level-position-and-space-mode=\"label-alignment\"><style:list-level-label-alignment text:label-followed-by=\"listtab\" text:list-tab-stop-position=\"0.5000in\" fo:text-indent=\"-0.2500in\" fo:margin-left=\"0.5000in\"/></style:list-level-properties></text:list-level-style-number></text:list-style>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0)], 0)), Ext([], [], []))):() then oc_t_out:("<r")
+
+// The list style of definition i, written only when the definition has levels.
+oc_lone(XmlW oc_w, Doc oc_d, int oc_i) {
+  if(len(oc_d.fmt.sty.lists[oc_i].levels) > 0) {
+    oc_lstyle(oc_w, oc_d, oc_i);
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("N", [1, 0, 1, 720, 360], 1), ListDef("Empty", [], 0)], 0)), Ext([], [], [])), 2):() then oc_t_out:("<r")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("N", [1, 0, 1, 720, 360], 1), ListDef("Empty", [], 0)], 0)), Ext([], [], [])), 1):() then oc_t_out:("<r><text:list-style style:name=\"WL1\"><text:list-level-style-number text:level=\"1\" style:num-suffix=\".\" style:num-format=\"1\"><style:list-level-properties text:list-level-position-and-space-mode=\"label-alignment\"><style:list-level-label-alignment text:label-followed-by=\"listtab\" text:list-tab-stop-position=\"0.5000in\" fo:text-indent=\"-0.2500in\" fo:margin-left=\"0.5000in\"/></style:list-level-properties></text:list-level-style-number></text:list-style>")

@@ -1,0 +1,31 @@
+// The size the default paragraph style sets, in half-points, -1 when the document has none or it sets none.
+ost_dsize(StyBag os_b) {
+  int os_isz = 0 - 1;
+  int os_id = ost_rec_find(os_b, "", "p", "d");
+  if(os_id >= 0) {
+    os_isz = os_b.crows[os_id][(import word_c_size)];
+  }
+} return int os_isz;
+(StyBag(["", "", "", "", "", "", "p", "d"], [[0, -1, 24, -1, -1, 0, 0]], [[]])):(24)
+(StyBag(["A", "", "", "", "", "", "p", "n"], [[0, -1, 24, -1, -1, 0, 0]], [[]])):(-1)
+
+// Replaces every relative font size of the bag (a percentage, held as ost_pct_base minus it) by the half-points it comes to once its parent's size is known.
+ost_sizes(StyBag os_b) {
+  int i = 0;
+  while(i < ost_bag_n(os_b)) {
+    ost_size_at(os_b, i);
+    i = i + 1;
+  }
+} return void;
+(StyBag(["H", "", "", "", "", "", "p", "n", "H1", "H", "", "", "", "", "p", "n"], [[0, -1, 28, -1, -1, 0, 0], [0, -1, -1130, -1, -1, 0, 0]], [[], []])):(StyBag(["H", "", "", "", "", "", "p", "n", "H1", "H", "", "", "", "", "p", "n"], [[0, -1, 28, -1, -1, 0, 0], [0, -1, 36, -1, -1, 0, 0]], [[], []]))
+(StyBag(["H", "", "", "", "", "", "p", "n"], [[0, -1, -1, -1, -1, 0, 0]], [[]])):(StyBag(["H", "", "", "", "", "", "p", "n"], [[0, -1, -1, -1, -1, 0, 0]], [[]]))
+
+// Resolves record os_i's size if it is relative.
+ost_size_at(StyBag os_b, int os_i) {
+  int[] os_lcrow = os_b.crows[os_i];
+  if(os_lcrow[(import word_c_size)] <= (import ost_pct_base)) {
+    os_lcrow[(import word_c_size)] = ost_abs(os_b, os_i, 0);
+  }
+} return void;
+(StyBag(["H", "", "", "", "", "", "p", "n"], [[0, -1, -1050, -1, -1, 0, 0]], [[]]), 0):(StyBag(["H", "", "", "", "", "", "p", "n"], [[0, -1, 12, -1, -1, 0, 0]], [[]]), 0)
+(StyBag(["H", "", "", "", "", "", "p", "n"], [[0, -1, 20, -1, -1, 0, 0]], [[]]), 0):(StyBag(["H", "", "", "", "", "", "p", "n"], [[0, -1, 20, -1, -1, 0, 0]], [[]]), 0)

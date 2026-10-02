@@ -1,0 +1,31 @@
+// The page record of a dump: "page w= h= orient= top= right= bottom= left=", all in twips except the orientation (0 portrait, 1 landscape).
+ndump_page(Page os_page) {
+  string os_ssize = "w=" + os_page.size[0] + " h=" + os_page.size[1] + " orient=" + os_page.size[2];
+  string os_smar = "top=" + os_page.margin[0] + " right=" + os_page.margin[1] + " bottom=" + os_page.margin[2] + " left=" + os_page.margin[3];
+  string os_sout = "page " + os_ssize + " " + os_smar;
+} return string os_sout;
+(Page([11906, 16838, 0], [1134, 1134, 1134, 1134], [0, 0, 0])):("page w=11906 h=16838 orient=0 top=1134 right=1134 bottom=1134 left=1134")
+(Page([15840, 12240, 1], [1440, 720, 1440, 720], [0, 0, 0])):("page w=15840 h=12240 orient=1 top=1440 right=720 bottom=1440 left=720")
+
+// What a list level says in a dump: "b:CODEPOINT:LEFT:HANG" for a bullet, "n:FORMAT:START:LEFT:HANG" for a number, the indents in twips; a level past the third reads as the third.
+ndump_lvl(int[] os_llv, int os_ilevel) {
+  int os_ib = fx_min(fx_max(os_ilevel, 0), 2) * (import word_l_stride);
+  string os_sind = os_llv[os_ib + (import word_l_left)] + ":" + os_llv[os_ib + (import word_l_hang)];
+  string os_sout = "b:" + os_llv[os_ib + (import word_l_fmt)] + ":" + os_sind;
+} chain (int[] os_llv, int os_ilevel) {
+  if(os_llv[os_ib + (import word_l_kind)] == 1) {
+    os_sout = "n:" + os_llv[os_ib + (import word_l_fmt)] + ":" + os_llv[os_ib + (import word_l_start)] + ":" + os_sind;
+  }
+} return string os_sout;
+([0, 8226, 0, 720, 360, 0, 9702, 0, 1440, 360, 0, 9642, 0, 2160, 360], 1):("b:9702:1440:360")
+([1, 0, 3, 720, 360, 1, 1, 1, 1440, 360, 1, 3, 1, 2160, 360], 5):("n:3:1:2160:360")
+
+// What a paragraph's list says in a dump: "-" for no list (id 0), else ndump_lvl of the list's level.
+ndump_list(Fmt os_f, int os_il, int os_ilevel) {
+  string os_sout = "-";
+  if(os_il > 0) {
+    os_sout = ndump_lvl(os_f.sty.lists[os_il].levels, os_ilevel);
+  }
+} return string os_sout;
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("L", [0, 8226, 0, 720, 360, 0, 9702, 0, 1440, 360, 0, 9642, 0, 2160, 360], 0)], 0)), 1, 1):("b:9702:1440:360")
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0)], 0)), 0, 0):("-")

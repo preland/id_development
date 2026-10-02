@@ -1,0 +1,25 @@
+// A style name an element gave: when it is an automatic style noted in the head and not yet kept, it is kept (a name no automatic style has, such as a style of styles.xml, or an empty name, is none of this reader's business).
+orc_ref(Cx cx, string sname) {
+  int k = lst_str_index(cx.cs.lstyles.keys, (import orc_k_auto) + sname);
+  int fresh = sname != "" && k >= 0 && cx.cs.lstyles.vals[k] >= 0;
+  if(fresh == 1) {
+    orc_take(cx, sname, k);
+  }
+} return void;
+given orc_t_open("<style:style style:name='S1'/>") given orc_a_push((import orc_tc), "S1", 0, 30) ((import orc_tc), "S1"):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | auto:S1:0:<style:style style:name='S1'/>,")
+given orc_t_open("<style:style style:name='S1'/>") given orc_a_push((import orc_tc), "S1", 0, 30) given orc_ref((import orc_tc), "S1") ((import orc_tc), "S1"):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | auto:S1:0:<style:style style:name='S1'/>,")
+given orc_t_open("<style:style style:name='S1'/>") given orc_a_push((import orc_tc), "S1", 0, 30) ((import orc_tc), "Standard"):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | ")
+given orc_t_open("<style:style style:name='S1'/>") given orc_a_push((import orc_tc), "S1", 0, 30) ((import orc_tc), ""):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | ")
+
+// Keeps the automatic style that entry k of the table names as the part "auto:NAME", marks the entry as kept, and then keeps the automatic styles that style leans on in turn (its list style, its parent).
+orc_take(Cx cx, string sname, int k) {
+  int[] vs = cx.cs.lstyles.vals;
+  int[] bytes = lst_slice(cx.rd.src, vs[k], vs[k + 1] - vs[k]);
+  Part pt = Part((import orc_k_auto) + sname, bytes, (import orc_part_raw));
+} chain (Cx cx, string sname, int k) {
+  lset(vs, k, 0 - 1);
+  push(cx.d.ext.parts, pt);
+  orc_autos(cx, bytes);
+} return void;
+given orc_t_open("<r><style:style style:name='S1' style:list-style-name='L1'/><text:list-style style:name='L1'/></r>") given orc_a_push((import orc_tc), "S1", 3, 60) given orc_a_push((import orc_tc), "L1", 60, 94) ((import orc_tc), "S1", 0):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | auto:S1:0:<style:style style:name='S1' style:list-style-name='L1'/>,auto:L1:0:<text:list-style style:name='L1'/>,")
+given orc_t_open("<r><style:style style:name='S1'/></r>") given orc_a_push((import orc_tc), "S1", 3, 33) ((import orc_tc), "S1", 0):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | auto:S1:0:<style:style style:name='S1'/>,")

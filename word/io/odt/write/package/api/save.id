@@ -1,0 +1,41 @@
+// The archive's bytes when the document could be written (pkwhy is ""), otherwise []; a refused entry is noted with the archive's own reason.
+odw_seal(ZipW pkz, string pkwhy) {
+  int[] pkby = [];
+  if(len(pkwhy) == 0) {
+    pkby = zw_finish(pkz);
+  }
+  if(len(pkby) == 0 && len(pkwhy) == 0) {
+    odw_note((import odw_e_zip), zw_why(pkz));
+  }
+} return int[] pkby;
+(ZipW([], [], [""]), "paragraph 1 is bad"):([])
+(ZipW([], [], [""]), ""):([80, 75, 5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+given odw_note(0, "") (ZipW([], [], ["zip: refused"]), ""):([]) then odw_t_why:("zip: refused")
+
+// The bytes of the .odt file of a document: the checked content, then the package around it. [] when the document cannot be written or the archive refused an entry; odw_code and odt_error then say why.
+odt_save_bytes(Doc pkd) {
+  odw_note(0, "");
+  string pkwhy = odt_content_check(pkd);
+  ZipW pkz = zw_new();
+} chain (Doc pkd) {
+  if(len(pkwhy) == 0) {
+    odp_pack(pkd, odt_content_bytes(pkd), pkz);
+  }
+  if(len(pkwhy) > 0) {
+    odw_note((import odw_e_check), pkwhy);
+  }
+  int[] pkby = odw_seal(pkz, pkwhy);
+} return int[] pkby;
+given odw_t_doc(1) ((import odw_td)):([]) then odw_t_code:(100)
+given odw_t_doc(2) ((import odw_td)):([]) then odw_t_code:(101)
+
+// Writes the document to the .odt file at the path. 0 on success, otherwise a code of 100 or more that odt_error turns into a message.
+odt_save(string pkpath, Doc pkd) {
+  int[] pkby = odt_save_bytes(pkd);
+  int pkcode = (import odw_code);
+  if(len(pkby) > 0) {
+    pkcode = odw_write(pkpath, pkby);
+  }
+} return int pkcode;
+given odw_t_path given odw_t_doc(3) ((import odw_tp), (import odw_td)):(0) then odw_t_file:("mimetype,META-INF/manifest.xml,content.xml,styles.xml,meta.xml,Pictures/a.png") then odw_t_gone:(0)
+given odw_t_doc(1) ("/tmp/odw_never.odt", (import odw_td)):(100)

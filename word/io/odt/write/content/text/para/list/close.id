@@ -1,0 +1,32 @@
+// Ends list items and their lists, innermost first, until only to levels are open; ls[0] counts the open levels.
+oc_close_to(XmlW oc_w, int[] oc_ls, int oc_to) {
+  while(oc_ls[0] > oc_to) {
+    xw_end(oc_w);
+    xw_end(oc_w);
+    oc_ls[0] = oc_ls[0] - 1;
+  }
+} return void;
+given oc_t_w(2) ((import oc_fw), [1, 5], 0):((import oc_fw), [0, 5]) then oc_t_out:("<r><text:list><text:list-item/></text:list>")
+given oc_t_w(3) ((import oc_fw), [2, 5], 1):((import oc_fw), [1, 5]) then oc_t_out:("<r><text:list><text:list-item><text:list><text:list-item/></text:list>")
+given oc_t_w(2) ((import oc_fw), [1, 5], 1):((import oc_fw), [1, 5]) then oc_t_out:("<r><text:list><text:list-item")
+
+// Opens one list level at depth: the text:list (the outermost carries the list style L<list>) and its first item.
+oc_open_one(XmlW oc_w, int oc_list, int oc_dp) {
+  xw_start(oc_w, "text:list");
+  if(oc_dp == 0) {
+    xw_attr(oc_w, "text:style-name", "WL" + oc_list);
+  }
+  xw_start(oc_w, "text:list-item");
+} return void;
+given oc_t_w(0) ((import oc_fw), 2, 0):() then oc_t_out:("<r><text:list text:style-name=\"WL2\"><text:list-item")
+given oc_t_w(2) ((import oc_fw), 2, 1):() then oc_t_out:("<r><text:list><text:list-item><text:list><text:list-item")
+
+// Opens list levels, outermost first, until to levels are open.
+oc_open_to(XmlW oc_w, int[] oc_ls, int oc_list, int oc_to) {
+  while(oc_ls[0] < oc_to) {
+    oc_open_one(oc_w, oc_list, oc_ls[0]);
+    oc_ls[0] = oc_ls[0] + 1;
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), [0, 0], 3, 2):((import oc_fw), [2, 0]) then oc_t_out:("<r><text:list text:style-name=\"WL3\"><text:list-item><text:list><text:list-item")
+given oc_t_w(2) ((import oc_fw), [1, 3], 3, 2):((import oc_fw), [2, 3]) then oc_t_out:("<r><text:list><text:list-item><text:list><text:list-item")

@@ -1,0 +1,36 @@
+// The element that has just started, taken out of the document byte for byte and kept as a part; the part's index. Everything inside it is read past, so none of it reaches a paragraph. The automatic styles it names are kept as parts after it.
+orc_raw(Cx cx, int ev) {
+  int lo = orc_tag_at(cx.rd, cx.cs.slots[(import orc_s_prev)]);
+  string name = xr_name(cx.rd);
+  int hi = orc_close(cx, ev);
+} chain (Cx cx, int ev) {
+  int[] bytes = lst_slice(cx.rd.src, lo, hi - lo);
+  Part pt = Part(name, bytes, (import orc_part_raw));
+  push(cx.d.ext.parts, pt);
+} chain (Cx cx, int ev) {
+  int idx = len(cx.d.ext.parts) - 1;
+  orc_autos(cx, bytes);
+} return int idx;
+given orc_t_open("<r><draw:frame a='1'><x/></draw:frame></r>") given orc_t_steps(2) ((import orc_tc), 1):(0) then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | draw:frame:0:<draw:frame a='1'><x/></draw:frame>,") then orc_t_pos:(38)
+given orc_t_open("<r><!--x--><y/><z/></r>") given orc_t_steps(2) given orc_t_raw(4) given orc_t_steps(1) ((import orc_tc), 4):(1) then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | y:0:<y/>,z:0:<z/>,")
+
+// Reads on to the end tag of the element that has just started and answers the offset just past it; an empty element is already closed.
+orc_close(Cx cx, int ev) {
+  int shut = ev == 4;
+  orc_skip(cx, xr_depth(cx.rd), shut);
+  int at = orc_pos(cx.rd);
+} return int at;
+given orc_t_open("<a><b>x</b></a>") given orc_t_steps(1) ((import orc_tc), 1):(15)
+given orc_t_open("<a/><b/>") given orc_t_steps(1) ((import orc_tc), 4):(4)
+given orc_t_open("<a><b>x</b></a>") given orc_t_steps(2) ((import orc_tc), 1):(11)
+
+// Reads events until one ends the element at depth base, or the document ends or breaks first; shut says the element is closed already.
+orc_skip(Cx cx, int base, int shut) {
+  while(shut == 0) {
+    int ev = xr_next(cx.rd);
+    shut = ev <= 0 || (ev == 2 && xr_depth(cx.rd) == base);
+  }
+} return void;
+given orc_t_open("<a><b>x</b></a>") given orc_t_steps(1) ((import orc_tc), 0, 0):() then orc_t_pos:(15)
+given orc_t_open("<a><b>x</b></a>") given orc_t_steps(1) ((import orc_tc), 0, 1):() then orc_t_pos:(3)
+given orc_t_open("<a><b>x</b></a>") given orc_t_steps(2) ((import orc_tc), 1, 0):() then orc_t_pos:(11)

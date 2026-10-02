@@ -1,0 +1,52 @@
+// Ten to the n as a word, n small.
+ost_pow10(int os_in) {
+  word os_xp = 1;
+  int i = 0;
+  while(i < os_in) {
+    os_xp = os_xp * 10;
+    i = i + 1;
+  }
+} return word os_xp;
+(0):(1)
+(3):(1000)
+
+// The twips of a number given as [mantissa, fraction digits] in unit k of ost_units, rounded half away from zero; os_ineg is 1 for a minus sign.
+ost_twips(word[] os_wd, int os_ik, int os_ineg) {
+  int os_if = os_wd[1];
+  word os_xscale = (import ost_uden)[os_ik] * ost_pow10(os_if);
+  word os_xnum = os_wd[0] * (import ost_unum)[os_ik];
+} chain (word[] os_wd, int os_ik, int os_ineg) {
+  word os_xq = (os_xnum * 2 + os_xscale) / (os_xscale * 2);
+  int os_itw = os_xq;
+  if(os_ineg == 1) {
+    os_itw = 0 - os_itw;
+  }
+} return int os_itw;
+([127, 2], 1, 0):(720)
+([25, 2], 0, 1):(-360)
+([105, 1], 3, 0):(210)
+([25, 1], 2, 0):(142)
+
+// An ODT length in twips ("1.27cm", "0.25in", "12pt", "-3mm", "5px"), or ost_bad when it has no number or its unit is not one of ost_units.
+ost_len(string os_ss) {
+  int os_ie = ost_split(os_ss);
+  int os_in = len(os_ss) - os_ie;
+  string os_sunit = str_slice(os_ss, os_ie, os_in);
+} chain (string os_ss) {
+  int os_ik = lst_str_index((import ost_units), os_sunit);
+  word[] os_wd = ost_digits(os_ss, os_ie);
+  int os_itw = (import ost_bad);
+} chain (string os_ss) {
+  int os_ineg = charat(os_ss, 0) == 45;
+  if(os_ik >= 0 && os_ie > 0) {
+    os_itw = ost_twips(os_wd, os_ik, os_ineg);
+  }
+} return int os_itw;
+("2.54cm"):(1440)
+("25.4mm"):(1440)
+("1in"):(1440)
+("72pt"):(1440)
+("-0.25in"):(-360)
+("0.1965in"):(283)
+("12"):(-2147483647)
+("3furlong"):(-2147483647)

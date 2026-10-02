@@ -1,0 +1,35 @@
+// The style index of the named style that record os_i names in its string at os_ik (its parent or its next style), -1 when it names none or names one the bag does not define.
+ost_link(StyBag os_b, int[] os_lidx, int os_i, int os_ik) {
+  string os_sname = os_b.strings[os_i * (import ost_s_width) + os_ik];
+  string os_sfam = os_b.strings[os_i * (import ost_s_width) + (import ost_s_fam)];
+  int os_ir = ost_rec_find(os_b, os_sname, os_sfam, "n");
+} chain (StyBag os_b, int[] os_lidx, int os_i, int os_ik) {
+  int os_ires = 0 - 1;
+  if(os_ir >= 0 && os_sname != "") {
+    os_ires = os_lidx[os_ir];
+  }
+} return int os_ires;
+(StyBag(["A", "", "", "", "", "", "p", "n", "B", "A", "", "", "", "", "p", "n"], [[], []], [[], []]), [3, 4], 1, 1):(3)
+(StyBag(["A", "", "", "", "", "", "p", "n", "B", "Z", "", "", "", "", "p", "n"], [[], []], [[], []]), [3, 4], 1, 1):(-1)
+(StyBag(["A", "", "", "", "", "", "p", "n", "B", "", "A", "", "", "", "p", "n"], [[], []], [[], []]), [3, 4], 1, 2):(3)
+
+// Sets the parent and next style of the model style os_idx from record os_i: a paragraph style with no parent sits on Normal (0), a style with no next style is its own next.
+ost_rel_set(Fmt os_f, StyBag os_b, int[] os_lidx, int os_i) {
+  int os_idx = os_lidx[os_i];
+  int os_ipar = ost_link(os_b, os_lidx, os_i, (import ost_s_parent));
+  int os_inext = ost_link(os_b, os_lidx, os_i, (import ost_s_next));
+} chain (Fmt os_f, StyBag os_b, int[] os_lidx, int os_i) {
+  int[] os_lrel = os_f.sty.styles[os_idx].rel;
+  if(os_ipar < 0 && os_lrel[(import word_s_family)] == 0) {
+    os_ipar = 0;
+  }
+  if(os_inext < 0) {
+    os_inext = os_idx;
+  }
+} chain (Fmt os_f, StyBag os_b, int[] os_lidx, int os_i) {
+  os_lrel[(import word_s_parent)] = os_ipar;
+  os_lrel[(import word_s_next)] = os_inext;
+} return void;
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("A", [0, -1, -1], [0, 0]), Style("B", [0, -1, -1], [0, 0])], [], 0)), StyBag(["Standard", "", "", "", "", "", "p", "n", "A", "", "", "", "", "", "p", "n", "B", "A", "A", "", "", "", "p", "n"], [[], [], []], [[], [], []]), [0, 1, 2], 2):(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("A", [0, -1, -1], [0, 0]), Style("B", [0, 1, 1], [0, 0])], [], 0)), StyBag(["Standard", "", "", "", "", "", "p", "n", "A", "", "", "", "", "", "p", "n", "B", "A", "A", "", "", "", "p", "n"], [[], [], []], [[], [], []]), [0, 1, 2], 2)
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("A", [0, -1, -1], [0, 0])], [], 0)), StyBag(["Standard", "", "", "", "", "", "p", "n", "A", "", "", "", "", "", "p", "n"], [[], []], [[], []]), [0, 1], 1):(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("A", [0, 0, 1], [0, 0])], [], 0)), StyBag(["Standard", "", "", "", "", "", "p", "n", "A", "", "", "", "", "", "p", "n"], [[], []], [[], []]), [0, 1], 1)
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Strong", [1, -1, -1], [0, 0])], [], 0)), StyBag(["Strong", "", "", "", "", "", "t", "n"], [[]], [[]]), [0], 0):(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Strong", [1, -1, 0], [0, 0])], [], 0)), StyBag(["Strong", "", "", "", "", "", "t", "n"], [[]], [[]]), [0], 0)

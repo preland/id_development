@@ -1,0 +1,32 @@
+// Writes part i when it is a verbatim automatic style (its name starts with "auto:"), so an opaque block that refers to it still finds it.
+oc_apart(XmlW oc_w, Doc oc_d, int oc_i) {
+  if(str_starts(oc_d.ext.parts[oc_i].name, "auto:") == 1) {
+    oc_raw(oc_w, oc_d.ext, oc_i);
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([Para(Text([97], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [ListDef("", [], 0), ListDef("N", [1, 0, 1, 720, 360], 1)], 0)), Ext(["Arial"], [], [Part("auto:gr1", [60, 115, 47, 62], 0), Part("t", [60, 116, 47, 62], 0), Part("auto:z", [60, 122, 47, 62], 1)])), 0):() then oc_t_out:("<r><s/>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([Para(Text([97], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [ListDef("", [], 0), ListDef("N", [1, 0, 1, 720, 360], 1)], 0)), Ext(["Arial"], [], [Part("auto:gr1", [60, 115, 47, 62], 0), Part("t", [60, 116, 47, 62], 0), Part("auto:z", [60, 122, 47, 62], 1)])), 1):() then oc_t_out:("<r")
+given oc_t_w(0) ((import oc_fw), Doc(Body([Para(Text([97], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [ListDef("", [], 0), ListDef("N", [1, 0, 1, 720, 360], 1)], 0)), Ext(["Arial"], [], [Part("auto:gr1", [60, 115, 47, 62], 0), Part("t", [60, 116, 47, 62], 0), Part("auto:z", [60, 122, 47, 62], 1)])), 2):() then oc_t_out:("<r")
+
+// Every verbatim automatic style the document carries.
+oc_aparts(XmlW oc_w, Doc oc_d) {
+  int oc_i = 0;
+  while(oc_i < len(oc_d.ext.parts)) {
+    oc_apart(oc_w, oc_d, oc_i);
+    oc_i = oc_i + 1;
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([Para(Text([97], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [ListDef("", [], 0), ListDef("N", [1, 0, 1, 720, 360], 1)], 0)), Ext(["Arial"], [], [Part("auto:gr1", [60, 115, 47, 62], 0), Part("t", [60, 116, 47, 62], 0), Part("auto:z", [60, 122, 47, 62], 1)]))):() then oc_t_out:("<r><s/>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([Para(Text([97], [Run(1, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([98], [Run(1, 0, -1)], 0), Lay([], [], -1), 1), Para(Text([99], [Run(1, 0, -1)], 0), Lay([], [], -1), 2), Para(Text([983040, 63], [Run(2, 0, -1)], 0), Lay([], [], -1), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 1, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 1, 1, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 1], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), Ext(["Arial"], [], [Part("t", [60, 116, 47, 62], 0)]))):() then oc_t_out:("<r")
+
+// The office:automatic-styles element: the paragraph and character styles the rows in use call for, the list styles and the verbatim styles of preserved blocks.
+oc_asty(XmlW oc_w, Doc oc_d) {
+  xw_start(oc_w, "office:automatic-styles");
+  oc_autos(oc_w, oc_d);
+  oc_lists(oc_w, oc_d);
+} chain (XmlW oc_w, Doc oc_d) {
+  oc_aparts(oc_w, oc_d);
+  xw_end(oc_w);
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([Para(Text([97], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [ListDef("", [], 0), ListDef("N", [1, 0, 1, 720, 360], 1)], 0)), Ext(["Arial"], [], [Part("auto:gr1", [60, 115, 47, 62], 0), Part("t", [60, 116, 47, 62], 0), Part("auto:z", [60, 122, 47, 62], 1)]))):() then oc_t_out:("<r><office:automatic-styles><text:list-style style:name=\"WL1\"><text:list-level-style-number text:level=\"1\" style:num-suffix=\".\" style:num-format=\"1\"><style:list-level-properties text:list-level-position-and-space-mode=\"label-alignment\"><style:list-level-label-alignment text:label-followed-by=\"listtab\" text:list-tab-stop-position=\"0.5000in\" fo:text-indent=\"-0.2500in\" fo:margin-left=\"0.5000in\"/></style:list-level-properties></text:list-level-style-number></text:list-style><s/></office:automatic-styles>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([Para(Text([97], [Run(1, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([98], [Run(1, 0, -1)], 0), Lay([], [], -1), 1), Para(Text([99], [Run(1, 0, -1)], 0), Lay([], [], -1), 2), Para(Text([983040, 63], [Run(2, 0, -1)], 0), Lay([], [], -1), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 1, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 1, 1, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 1], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), Ext(["Arial"], [], [Part("t", [60, 116, 47, 62], 0)]))):() then oc_t_out:("<r><office:automatic-styles/>")

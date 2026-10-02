@@ -1,0 +1,30 @@
+// One style:font-face declaration: the family name, and the same name quoted as the CSS family the face stands for.
+oc_face(XmlW oc_w, string oc_nm) {
+  xw_start(oc_w, "style:font-face");
+  xw_attr(oc_w, "style:name", oc_nm);
+  xw_attr(oc_w, "svg:font-family", "'" + oc_nm + "'");
+} chain (XmlW oc_w, string oc_nm) {
+  xw_end(oc_w);
+} return void;
+given oc_t_w(0) ((import oc_fw), "Arial"):() then oc_t_out:("<r><style:font-face style:name=\"Arial\" svg:font-family=\"'Arial'\"/>")
+given oc_t_w(0) ((import oc_fw), "Liberation Serif"):() then oc_t_out:("<r><style:font-face style:name=\"Liberation Serif\" svg:font-family=\"'Liberation Serif'\"/>")
+
+// A declaration for each of the document's font families, in index order, so style:font-name finds one.
+oc_face_all(XmlW oc_w, Doc oc_d) {
+  int oc_i = 0;
+  while(oc_i < len(oc_d.ext.fonts)) {
+    oc_face(oc_w, oc_d.ext.fonts[oc_i]);
+    oc_i = oc_i + 1;
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["A", "B"], [], []))):() then oc_t_out:("<r><style:font-face style:name=\"A\" svg:font-family=\"'A'\"/><style:font-face style:name=\"B\" svg:font-family=\"'B'\"/>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], []))):() then oc_t_out:("<r")
+
+// The office:font-face-decls element of content.xml.
+oc_faces(XmlW oc_w, Doc oc_d) {
+  xw_start(oc_w, "office:font-face-decls");
+  oc_face_all(oc_w, oc_d);
+  xw_end(oc_w);
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["A"], [], []))):() then oc_t_out:("<r><office:font-face-decls><style:font-face style:name=\"A\" svg:font-family=\"'A'\"/></office:font-face-decls>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], []))):() then oc_t_out:("<r><office:font-face-decls/>")

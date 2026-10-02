@@ -1,0 +1,43 @@
+// 1 when part idx exists and is verbatim XML (kind 0), so it can be written inline.
+oc_part_ok(Ext oc_ex, int oc_ix) {
+  int oc_ok = 0;
+  if(oc_ix >= 0 && oc_ix < len(oc_ex.parts)) {
+    oc_ok = oc_ex.parts[oc_ix].kind == 0;
+  }
+} return int oc_ok;
+(Ext([], [], [Part("b", [60, 97, 47, 62], 0), Part("f", [1], 1)]), 0):(1)
+(Ext([], [], [Part("b", [60, 97, 47, 62], 0), Part("f", [1], 1)]), 1):(0)
+(Ext([], [], [Part("b", [60, 97, 47, 62], 0)]), 5):(0)
+(Ext([], [], [Part("b", [60, 97, 47, 62], 0)]), -1):(0)
+
+// Writes the bytes of part idx exactly as they were read, inside the open element; a part that is missing or is not XML writes nothing.
+oc_raw(XmlW oc_w, Ext oc_ex, int oc_ix) {
+  int oc_ok = oc_part_ok(oc_ex, oc_ix);
+  if(oc_ok == 1) {
+    xw_text(oc_w, "");
+    lst_extend(oc_w.out, oc_ex.parts[oc_ix].bytes);
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), Ext([], [], [Part("b", [60, 97, 47, 62], 0)]), 0):() then oc_t_out:("<r><a/>")
+given oc_t_w(0) ((import oc_fw), Ext([], [], [Part("b", [60, 97, 47, 62], 1)]), 0):() then oc_t_out:("<r")
+
+// Writes the code point at i when it is not plain text and answers where to go on: a tab, a line break, the run of spaces starting here, an inline object, or nothing for a code point XML cannot hold.
+oc_special(XmlW oc_w, int[] oc_cps, Ext oc_ex, int oc_i, int oc_hi) {
+  int oc_cl = oc_cls(oc_cps, oc_i);
+  int oc_nx = oc_i + 1;
+  if(oc_cl == 2) {
+    oc_nx = oc_i + oc_spaces(oc_w, oc_cps, oc_i, oc_hi);
+  }
+} chain (XmlW oc_w, int[] oc_cps, Ext oc_ex, int oc_i, int oc_hi) {
+  if(oc_cl == 3 || oc_cl == 4) {
+    oc_empty(oc_w, (import odt_cls_el)[oc_cl]);
+  }
+  if(oc_cl == 5) {
+    oc_raw(oc_w, oc_ex, oc_cps[oc_i] - (import word_o_marker));
+  }
+} return int oc_nx;
+given oc_t_w(0) ((import oc_fw), [97, 9, 98], Ext([], [], []), 1, 3):(2) then oc_t_out:("<r><text:tab/>")
+given oc_t_w(0) ((import oc_fw), [97, 10, 98], Ext([], [], []), 1, 3):(2) then oc_t_out:("<r><text:line-break/>")
+given oc_t_w(0) ((import oc_fw), [97, 32, 32, 98], Ext([], [], []), 1, 4):(3) then oc_t_out:("<r><text:s text:c=\"2\"/>")
+given oc_t_w(0) ((import oc_fw), [97, 983040, 98], Ext([], [], [Part("b", [60, 97, 47, 62], 0)]), 1, 3):(2) then oc_t_out:("<r><a/>")
+given oc_t_w(0) ((import oc_fw), [97, 7, 98], Ext([], [], []), 1, 3):(2) then oc_t_out:("<r")

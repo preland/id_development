@@ -1,0 +1,29 @@
+// An element with no content, such as text:tab.
+oc_empty(XmlW oc_w, string oc_el) {
+  xw_start(oc_w, oc_el);
+  xw_end(oc_w);
+} return void;
+given oc_t_w(0) ((import oc_fw), "text:tab"):() then oc_t_out:("<r><text:tab/>")
+given oc_t_w(0) ((import oc_fw), "text:line-break"):() then oc_t_out:("<r><text:line-break/>")
+
+// A text:s element standing for n spaces; the count is written only when it is more than one.
+oc_sp_el(XmlW oc_w, int oc_n) {
+  xw_start(oc_w, "text:s");
+  if(oc_n > 1) {
+    xw_attr(oc_w, "text:c", "" + oc_n);
+  }
+  xw_end(oc_w);
+} return void;
+given oc_t_w(0) ((import oc_fw), 1):() then oc_t_out:("<r><text:s/>")
+given oc_t_w(0) ((import oc_fw), 3):() then oc_t_out:("<r><text:s text:c=\"3\"/>")
+
+// Writes one text:s for the run of spaces that starts at i and stops at hi; answers how many spaces it covered.
+oc_spaces(XmlW oc_w, int[] oc_cps, int oc_i, int oc_hi) {
+  int oc_n = 0;
+  while(oc_i + oc_n < oc_hi && oc_cls(oc_cps, oc_i + oc_n) == 2) {
+    oc_n = oc_n + 1;
+  }
+  oc_sp_el(oc_w, oc_n);
+} return int oc_n;
+given oc_t_w(0) ((import oc_fw), [97, 32, 32, 32, 98], 1, 5):(3) then oc_t_out:("<r><text:s text:c=\"3\"/>")
+given oc_t_w(0) ((import oc_fw), [97, 32, 32, 32, 98], 1, 2):(1) then oc_t_out:("<r><text:s/>")

@@ -1,0 +1,30 @@
+// The six flags of a run as a dump prints them: "b=0 i=0 u=0 s=0 sup=0 sub=0", bold, italic, underline, strike, superscript, subscript.
+ndump_bits(int os_ibits) {
+  string os_sa = "b=" + (os_ibits & 1) + " i=" + ((os_ibits >> 1) & 1) + " u=" + ((os_ibits >> 2) & 1);
+  string os_sb = "s=" + ((os_ibits >> 3) & 1) + " sup=" + ((os_ibits >> 4) & 1) + " sub=" + ((os_ibits >> 5) & 1);
+  string os_sout = os_sa + " " + os_sb;
+} return string os_sout;
+(0):("b=0 i=0 u=0 s=0 sup=0 sub=0")
+(21):("b=1 i=0 u=1 s=0 sup=1 sub=0")
+(10):("b=0 i=1 u=0 s=1 sup=0 sub=0")
+
+// The hyperlink of a run as a dump prints it: its target in quotes, "-" for none.
+ndump_link(Doc os_d, Run os_ru) {
+  string os_sout = "-";
+  if(os_ru.link >= 0 && os_ru.link < len(os_d.ext.links)) {
+    os_sout = str_quote(os_d.ext.links[os_ru.link]);
+  }
+} return string os_sout;
+(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], ["http://a"], [])), Run(2, 0, 0)):("\"http://a\"")
+(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], ["http://a"], [])), Run(2, 0, -1)):("-")
+
+// The effective font family of a run as a dump prints it: its name in quotes, "-" when no style gives one.
+ndump_font(Doc os_d, int os_ipstyle, int os_icprop) {
+  string os_sout = "-";
+  int os_ifont = style_eff_c(os_d.fmt, os_ipstyle, os_icprop, (import word_c_font));
+  if(os_ifont >= 0 && os_ifont < len(os_d.ext.fonts)) {
+    os_sout = str_quote(os_d.ext.fonts[os_ifont]);
+  }
+} return string os_sout;
+(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, 1):("\"F\"")
+(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, 0):("-")

@@ -1,0 +1,27 @@
+// A list with one 0 for each row of the table, ready to be marked as used.
+oc_zeros(Tab oc_tb) {
+  int oc_n = len(oc_tb.rows) / oc_tb.width;
+  int[] oc_ms = [];
+  lst_fill(oc_ms, oc_n, 0);
+} return int[] oc_ms;
+(Tab([1, 2, 3, 4], 2, [])):([0, 0])
+(Tab([], 7, [])):([])
+
+// Marks the character row of every run of a text as used.
+oc_mark_runs(Text oc_tx, int[] oc_cm) {
+  int oc_i = 0;
+  while(oc_i < len(oc_tx.runs)) {
+    oc_cm[oc_tx.runs[oc_i].cprop] = 1;
+    oc_i = oc_i + 1;
+  }
+} return void;
+(Text([1, 2], [Run(1, 2, -1), Run(1, 0, -1)], 0), [0, 0, 0]):(Text([1, 2], [Run(1, 2, -1), Run(1, 0, -1)], 0), [1, 0, 1])
+(Text([], [Run(0, 1, -1)], 0), [0, 0]):(Text([], [Run(0, 1, -1)], 0), [0, 1])
+
+// Marks a paragraph's own row and the character rows of its runs as used.
+oc_mark_para(Para oc_pa, int[] oc_pm, int[] oc_cm) {
+  oc_pm[oc_pa.pprop] = 1;
+  oc_mark_runs(oc_pa.txt, oc_cm);
+} return void;
+(Para(Text([1], [Run(1, 1, -1)], 0), Lay([], [], -1), 2), [0, 0, 0], [0, 0]):(Para(Text([1], [Run(1, 1, -1)], 0), Lay([], [], -1), 2), [0, 0, 1], [0, 1])
+(Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 0), [0], [0]):(Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 0), [1], [1])

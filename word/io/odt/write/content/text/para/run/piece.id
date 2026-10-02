@@ -1,0 +1,31 @@
+// Opens the text:span of character row cid.
+oc_span(XmlW oc_w, int oc_cid) {
+  xw_start(oc_w, "text:span");
+  xw_attr(oc_w, "text:style-name", "WT" + oc_cid);
+} return void;
+given oc_t_w(0) ((import oc_fw), 3):() then oc_t_out:("<r><text:span text:style-name=\"WT3\"")
+given oc_t_w(0) ((import oc_fw), 12):() then oc_t_out:("<r><text:span text:style-name=\"WT12\"")
+
+// One run's text, inside a text:span when its character row sets anything and bare when it does not.
+oc_run(XmlW oc_w, Doc oc_d, Text oc_tx, int oc_off, Run oc_ru) {
+  int oc_pl = oc_plain_c(oc_d.fmt.chars, oc_ru.cprop);
+  if(oc_pl == 0) {
+    oc_span(oc_w, oc_ru.cprop);
+  }
+  oc_text(oc_w, oc_tx, oc_d.ext, oc_off, oc_off + oc_ru.len);
+} chain (XmlW oc_w, Doc oc_d, Text oc_tx, int oc_off, Run oc_ru) {
+  if(oc_pl == 0) {
+    xw_end(oc_w);
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98, 99], [Run(1, 0, -1), Run(2, 1, -1)], 0), 1, Run(2, 1, -1)):() then oc_t_out:("<r><text:span text:style-name=\"WT1\">bc</text:span>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98, 99], [Run(1, 0, -1), Run(2, 1, -1)], 0), 0, Run(1, 0, -1)):() then oc_t_out:("<r>a")
+
+// Writes the run at offset off as the hyperlink state in st says (st[0] is the offset of the next run, st[1] the hyperlink open now), then moves the state on.
+oc_piece(XmlW oc_w, Doc oc_d, Text oc_tx, Run oc_ru, int[] oc_st) {
+  oc_st[1] = oc_link(oc_w, oc_d, oc_st[1], oc_ru.link);
+  oc_run(oc_w, oc_d, oc_tx, oc_st[0], oc_ru);
+  oc_st[0] = oc_st[0] + oc_ru.len;
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98], [Run(1, 0, -1), Run(1, 0, 1)], 0), Run(1, 0, 1), [1, -1]):((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98], [Run(1, 0, -1), Run(1, 0, 1)], 0), Run(1, 0, 1), [2, 1]) then oc_t_out:("<r><text:a xlink:type=\"simple\" xlink:href=\"v\">b")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98], [Run(2, 0, -1)], 0), Run(2, 0, -1), [0, -1]):((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98], [Run(2, 0, -1)], 0), Run(2, 0, -1), [2, -1]) then oc_t_out:("<r>ab")

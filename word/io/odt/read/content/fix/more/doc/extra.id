@@ -1,0 +1,23 @@
+// Test fixture: adds a paragraph style called name to the document of orc_tc, as a style a file brings.
+orc_t_style(string name) {
+  Cx cx = (import orc_tc);
+  Style st = Style(name, [0, -1, 0], [0, 0]);
+  push(cx.d.fmt.sty.styles, st);
+} return void;
+given orc_t_open("<a/>") ("X Y"):() then orc_t_count:(9)
+given orc_t_open("<a/>") ("Z"):() then orc_t_count:(9)
+
+// Test fixture: how many styles the document of orc_tc has.
+orc_t_count() {
+  Cx cx = (import orc_tc);
+  int n = len(cx.d.fmt.sty.styles);
+} return int n;
+given orc_t_open("<a/>") ():(8)
+given orc_t_open("<a/>") given orc_t_style("A") ():(9)
+
+// Test fixture: the byte offset the XML reader of orc_tr has read up to.
+orc_t_pos() {
+  int at = orc_pos((import orc_tr));
+} return int at;
+given orc_t_open("<a>x</a>") ():(0)
+given orc_t_open("<a>x</a>") given orc_t_steps(2) ():(4)

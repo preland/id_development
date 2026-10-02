@@ -1,0 +1,30 @@
+// Test fixture (internal): damages the exported archive by adding 1 to the byte at pkat, so the entry holding it no longer matches the CRC-32 in its record.
+odp_t_flip(int pkat) {
+  ZipW pkz = (import odp_t_z);
+  int[] pko = pkz.out;
+  pko[pkat] = pko[pkat] + 1;
+} return void;
+given odp_t_new given odp_pack((import odp_t_d), [1], (import odp_t_z)) (40):() then odp_t_crc:(0)
+given odp_t_new given odp_pack((import odp_t_d), [1], (import odp_t_z)) (80):() then odp_t_crc:(0)
+
+// Test fixture (internal): 1 when entry pki of the archive is one the manifest should list and its text has no manifest:full-path for it, otherwise 0.
+odp_t_miss(Zip pkzr, int pki, string pkmf) {
+  string pknm = zr_name(pkzr, pki);
+  int pkq = 0;
+  if(pknm != "mimetype" && pknm != "META-INF/manifest.xml" && str_find(pkmf, "manifest:full-path=\"" + pknm + "\"") < 0) {
+    pkq = 1;
+  }
+} return int pkq;
+(Zip([], [], ["", "a", "b"]), 1, "manifest:full-path=\"a\""):(1)
+(Zip([], [], ["", "mimetype", "a"]), 0, ""):(0)
+
+// Test fixture (internal): how many entries of the exported archive its own manifest leaves out.
+odp_t_listed() {
+  Zip pkzr = zr_open(odp_t_bytes());
+  int pkat = zr_find(pkzr, "META-INF/manifest.xml");
+  string pkmf = exec_text(zr_read(pkzr, pkat));
+} chain () {
+  int pkn = odp_t_unlisted(pkzr, pkmf);
+} return int pkn;
+given odp_t_new given odp_t_img given odp_pack((import odp_t_d), [1], (import odp_t_z)) ():(0)
+given odp_t_new given odp_t_img given odp_pack((import odp_t_d), [1], (import odp_t_z)) given zw_add((import odp_t_z), "extra.bin", [1], 0) ():(1)

@@ -1,0 +1,42 @@
+// Whether a preserved part is written back as a file of its own: a zip entry the model did not understand (kind 1), unless its name is one of the five files this writer makes itself.
+odp_keep(Part pkpt) {
+  int pkq = 0;
+  if(pkpt.kind == 1 && lst_str_index((import odp_reserved), pkpt.name) < 0) {
+    pkq = 1;
+  }
+} return int pkq;
+(Part("Pictures/a.png", [1], 1)):(1)
+(Part("styles.xml", [1], 1)):(0)
+(Part("Pictures/a.png", [1], 0)):(0)
+
+// The place in the extension table of the one the lower-case name ends with, or -1.
+odp_ext_at(string pklow) {
+  int pki = 0;
+  int pkq = 0 - 1;
+  while(pki < len((import odp_ext)) && pkq < 0) {
+    if(str_ends(pklow, (import odp_ext)[pki]) == 1) {
+      pkq = pki;
+    }
+    pki = pki + 1;
+  }
+} return int pkq;
+("a.png"):(0)
+("x.jpeg"):(2)
+("a.bin"):(-1)
+
+// The media type the manifest gives an entry: from its extension, "" for a directory and application/octet-stream for anything unknown.
+odp_media(string pkname) {
+  string pklow = str_lower(pkname);
+  int pkat = odp_ext_at(pklow);
+  string pkr = (import odp_octets);
+} chain (string pkname) {
+  if(pkat >= 0) {
+    pkr = (import odp_types)[pkat];
+  }
+  if(str_ends(pklow, "/") == 1) {
+    pkr = "";
+  }
+} return string pkr;
+("Pictures/A.PNG"):("image/png")
+("Thumbnails/"):("")
+("a.bin"):("application/octet-stream")

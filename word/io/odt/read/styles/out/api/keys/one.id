@@ -1,0 +1,30 @@
+// The id a paragraph style's name stands for: its paragraph row, interned, sitting on the style it names (a named style) or on its parent (an automatic one).
+ost_key_pid(Doc os_d, StyBag os_b, int[] os_lidx, int os_i) {
+  int os_istyle = ost_key_style(os_b, os_lidx, os_i);
+  int[] os_lrow = ost_rowp(os_d.fmt, os_b, os_i, os_istyle);
+  int os_iid = tab_intern(os_d.fmt.paras, os_lrow);
+} return int os_iid;
+given ost_t_doc given ost_t_scan("<a><style:style style:name=\"Standard\" style:family=\"paragraph\"/></a>") given ost_t_reg ((import ost_t_d), (import ost_t_b), (import ost_t_x), 0):(0)
+given ost_t_doc given ost_t_scan("<a><style:style style:name=\"Standard\" style:family=\"paragraph\"/><style:style style:name=\"Foo\" style:family=\"paragraph\"><style:paragraph-properties fo:text-align=\"center\"/></style:style></a>") given ost_t_reg ((import ost_t_d), (import ost_t_b), (import ost_t_x), 1):(9)
+
+// The character row a text style's name stands for: a named style is the row that only names it, an automatic style carries its own properties on top of its parent character style.
+ost_key_trow(Doc os_d, StyBag os_b, string[] os_lface, int[] os_lidx, int os_i) {
+  int os_istyle = ost_key_style(os_b, os_lidx, os_i);
+  int[] os_lrow = ost_rowc(os_d, os_b, os_lface, os_i, os_istyle);
+  string os_skind = os_b.strings[os_i * (import ost_s_width) + (import ost_s_kind)];
+} chain (Doc os_d, StyBag os_b, string[] os_lface, int[] os_lidx, int os_i) {
+  if(os_skind == "n") {
+    os_lrow = lst_copy((import ost_cdef));
+    os_lrow[(import word_c_style)] = os_istyle;
+  }
+} return int[] os_lrow;
+given ost_t_doc given ost_t_scan("<a><style:style style:name=\"Strong\" style:family=\"text\"><style:text-properties fo:font-weight=\"bold\"/></style:style></a>") given ost_t_reg ((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 0):([8, -1, -1, -1, -1, 0, 0])
+given ost_t_doc given ost_t_scan("<a><office:automatic-styles><style:style style:name=\"T1\" style:family=\"text\"><style:text-properties fo:font-weight=\"bold\"/></style:style></office:automatic-styles></a>") given ost_t_reg ((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 0):([0, -1, -1, -1, -1, 1, 1])
+
+// The id a text style's name stands for: its character row, interned.
+ost_key_tid(Doc os_d, StyBag os_b, string[] os_lface, int[] os_lidx, int os_i) {
+  int[] os_lrow = ost_key_trow(os_d, os_b, os_lface, os_lidx, os_i);
+  int os_iid = tab_intern(os_d.fmt.chars, os_lrow);
+} return int os_iid;
+given ost_t_doc given ost_t_scan("<a><office:automatic-styles><style:style style:name=\"T1\" style:family=\"text\"/></office:automatic-styles></a>") given ost_t_reg ((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 0):(0)
+given ost_t_doc given ost_t_scan("<a><style:style style:name=\"Strong\" style:family=\"text\"/></a>") given ost_t_reg ((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 0):(8)

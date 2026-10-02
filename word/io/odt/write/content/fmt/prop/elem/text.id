@@ -1,0 +1,38 @@
+// The character flags in turn: bold, italic, underline, strike.
+oc_flags(XmlW oc_w, int oc_set, int oc_on) {
+  int oc_ix = 0;
+  while(oc_ix < len((import odt_flag_attr))) {
+    oc_a_flag(oc_w, oc_set, oc_on, oc_ix);
+    oc_ix = oc_ix + 1;
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), 15, 5):() then oc_t_out:("<r fo:font-weight=\"bold\" fo:font-style=\"normal\" style:text-underline-style=\"solid\" style:text-line-through-style=\"none\"")
+given oc_t_w(0) ((import oc_fw), 0, 15):() then oc_t_out:("<r")
+
+// The font attribute: the family name at index f of the document's fonts, written when f is set and names one.
+oc_a_font(XmlW oc_w, Doc oc_d, int oc_fi) {
+  if(oc_fi >= 0 && oc_fi < len(oc_d.ext.fonts)) {
+    xw_attr(oc_w, "style:font-name", oc_d.ext.fonts[oc_fi]);
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), 1):() then oc_t_out:("<r style:font-name=\"Arial\"")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), 2):() then oc_t_out:("<r")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), -1):() then oc_t_out:("<r")
+
+// The style:text-properties element of character row cid: font, size, colour, highlight, then flags and position.
+oc_cprops(XmlW oc_w, Doc oc_d, int oc_cid) {
+  int[] oc_rw = tab_row(oc_d.fmt.chars, oc_cid);
+  xw_start(oc_w, "style:text-properties");
+  oc_a_font(oc_w, oc_d, oc_rw[(import word_c_font)]);
+} chain (XmlW oc_w, Doc oc_d, int oc_cid) {
+  oc_a_size(oc_w, oc_rw[(import word_c_size)]);
+  oc_a_rgb(oc_w, "fo:color", oc_rw[(import word_c_color)]);
+  oc_a_rgb(oc_w, "fo:background-color", oc_rw[(import word_c_hl)]);
+} chain (XmlW oc_w, Doc oc_d, int oc_cid) {
+  oc_flags(oc_w, oc_rw[(import word_c_set)], oc_rw[(import word_c_on)]);
+  oc_a_pos(oc_w, oc_rw[(import word_c_set)], oc_rw[(import word_c_on)]);
+  xw_end(oc_w);
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), 0):() then oc_t_out:("<r><style:text-properties style:font-name=\"Arial\" fo:font-size=\"12pt\" fo:color=\"#ff0000\" fo:background-color=\"#ffff00\" fo:font-weight=\"bold\" fo:font-style=\"italic\"/>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), 1):() then oc_t_out:("<r><style:text-properties/>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), 2):() then oc_t_out:("<r><style:text-properties style:text-underline-style=\"solid\" style:text-line-through-style=\"none\" style:text-position=\"super 58%\"/>")

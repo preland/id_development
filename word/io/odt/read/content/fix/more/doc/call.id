@@ -1,0 +1,26 @@
+// Test fixture: reads the head of orc_tc up to office:text, as a case's setup (orc_styles answers an event, and a setup answers nothing).
+orc_t_head() {
+  Cx cx = (import orc_tc);
+  int at = orc_styles(cx);
+} return void;
+given orc_t_open("<r><office:text/></r>") ():() then orc_t_slots:("0,0,0,0,3,0,0,0,")
+given orc_t_open("<r><style:style style:name='P1' style:family='paragraph'/><office:text/></r>") ():() then orc_t_names:("")
+
+// Test fixture: keeps the element that has just started in orc_tc as a part, as the opaque readers do.
+orc_t_raw(int ev) {
+  Cx cx = (import orc_tc);
+  int idx = orc_raw(cx, ev);
+} return void;
+given orc_t_open("<a/>") given orc_t_steps(1) (4):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | a:0:<a/>,")
+given orc_t_open("<b><c/></b>") given orc_t_steps(1) (1):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | b:0:<b><c/></b>,")
+
+// Test fixture: adds an empty paragraph to orc_tc that has the paragraph row of the paragraph element that has just started.
+orc_t_prop() {
+  Cx cx = (import orc_tc);
+  int pp = orc_pprop(cx);
+  Para p = para_make(text_new(0), pp);
+} chain () {
+  push(cx.d.body.paras, p);
+} return void;
+given orc_t_open("<text:h text:outline-level='1'/>") given orc_t_steps(1) ():() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0}\nP9  0:0:-1, {3,0,0,0,0} |  | ")
+given orc_t_open("<text:p/>") given orc_t_steps(1) ():() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0}\nP0  0:0:-1, {0,0,0,0,0} |  | ")

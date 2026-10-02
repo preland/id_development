@@ -1,0 +1,56 @@
+// 0 when the archive can be read as an ODT: the zip is sound, it has a content.xml, and its mimetype entry, if it has one, says text document. Otherwise the code of the first thing wrong (the reason is kept for odt_error).
+orc_zip_code(Zip z) {
+  int code = 0;
+  int mi = zr_find(z, "mimetype");
+  int ci = zr_find(z, "content.xml");
+} chain (Zip z) {
+  if(zr_ok(z) == 0) {
+    code = (import orc_e_zip);
+    orc_why(zr_why(z));
+  }
+  if(code == 0 && ci < 0) {
+    code = (import orc_e_nocontent);
+  }
+  if(code == 0 && mi >= 0) {
+    code = orc_mime(z, mi);
+  }
+} return int code;
+given orc_t_zip("<a/>", "application/vnd.oasis.opendocument.text") ((import orc_tzo)):(0)
+given orc_t_zip("<a/>", "") ((import orc_tzo)):(0)
+given orc_t_zip("", "") ((import orc_tzo)):(6)
+given orc_t_zip("<a/>", "x") ((import orc_tzo)):(5)
+(Zip([1, 2, 3], [], ["zip: broken"])):(2) then orc_t_why:("zip: broken")
+
+// 0 when the mimetype entry (entry mi) is exactly the text document type; otherwise the mimetype code, with the entry's size kept as the reason.
+orc_mime(Zip z, int mi) {
+  int[] xs = zr_read(z, mi);
+  int code = 0;
+  if(orc_same(xs, (import orc_mimetype)) == 0) {
+    code = (import orc_e_mime);
+    orc_why("the mimetype entry is " + len(xs) + " bytes and does not read " + (import orc_mimetype));
+  }
+} return int code;
+given orc_t_zip("<a/>", "application/vnd.oasis.opendocument.text") ((import orc_tzo), 0):(0)
+given orc_t_zip("<a/>", "application/vnd.oasis.opendocument.texy") ((import orc_tzo), 0):(5) then orc_t_why:("the mimetype entry is 39 bytes and does not read application/vnd.oasis.opendocument.text")
+
+// Reads the styles and then content.xml of a sound archive into the document: ost_load for what the style names mean, then the XML reader over the body, the read, and its code. A bad CRC on the way surfaces as the zip code.
+orc_parse(Zip z, Doc d) {
+  int ci = zr_find(z, "content.xml");
+  int[] xs = zr_read(z, ci);
+  OdtSty osty = ost_new();
+} chain (Zip z, Doc d) {
+  int code = orc_sty(z, d, xs, osty);
+  XmlR rd = xr_open(xs);
+  Cx cx = orc_new(d, rd, osty);
+} chain (Zip z, Doc d) {
+  if(code == 0) {
+    code = orc_content(cx);
+  }
+  if(zr_ok(z) == 0) {
+    code = (import orc_e_zip);
+    orc_why(zr_why(z));
+  }
+} return int code;
+given orc_t_zip("<r><office:text><text:p>Hi</text:p></office:text></r>", "") ((import orc_tzo), (import orc_td)):(0) then orc_t_show:("P0 72,105, 2:0:-1, {0,0,0,0,0} |  | ")
+given orc_t_zip("<r><office:body><office:text><text:p>Hi</text:p></r>", "") ((import orc_tzo), (import orc_td)):(3)
+given orc_t_zip("<a/>", "") given orc_t_flip(41) ((import orc_tzo), (import orc_td)):(2)

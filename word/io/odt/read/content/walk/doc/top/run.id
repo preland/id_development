@@ -1,0 +1,40 @@
+// Reads all of content.xml into cx.d: the head up to office:text for the styles the body names, then the body. The document's one empty paragraph is taken out first, since the body replaces it. Answers 0, or the code of the first fault: malformed XML (the reader's message and byte offset go to odt_why) or no office:text.
+orc_content(Cx cx) {
+  Para[] pl = cx.d.body.paras;
+  pop(pl);
+  int at = orc_styles(cx);
+} chain (Cx cx) {
+  orc_body(cx, at);
+  orc_finish(cx);
+  int code = orc_status(cx, at);
+} return int code;
+given orc_t_open("<r><office:automatic-styles><style:style style:name='P1' style:family='paragraph' style:parent-style-name='Standard'><style:paragraph-properties fo:break-before='page'/></style:style></office:automatic-styles><office:text><text:p text:style-name='P1'>Hi</text:p><text:p/><text:h text:outline-level='2'>T</text:h></office:text></r>") ((import orc_tc)):(0) then orc_t_show:("P9 72,105, 2:0:-1, {0,1,0,0,0}\nP0  0:0:-1, {0,0,0,0,0}\nP10 84, 1:0:-1, {4,0,0,0,0} |  | ")
+given orc_t_open("<r><office:text><text:p>x</text:p>") ((import orc_tc)):(3) then orc_t_why:("element is still open at the end of the input at byte 34")
+given orc_t_open("<r/>") ((import orc_tc)):(4) then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | ")
+given orc_t_open("<r><office:automatic-styles><style:style style:name='Table1' style:family='table'><style:table-properties style:width='4in'/></style:style><style:style style:name='C1' style:family='table-cell'/><style:style style:name='Unused'/></office:automatic-styles><office:text><table:table table:style-name='Table1'><table:table-cell table:style-name='C1'/><table:table-cell table:style-name='C1'/></table:table></office:text></r>") ((import orc_tc)):(0) then orc_t_show:("P9 983040,91,84,97,98,108,101,93, 8:0:-1, {0,0,0,0,1} |  | table:table:0:<table:table table:style-name='Table1'><table:table-cell table:style-name='C1'/><table:table-cell table:style-name='C1'/></table:table>,auto:Table1:0:<style:style style:name='Table1' style:family='table'><style:table-properties style:width='4in'/></style:style>,auto:C1:0:<style:style style:name='C1' style:family='table-cell'/>,")
+
+// A read over the XML reader rd that fills the document d: the styles osty (from ost_load) say what the names mean, no automatic style is placed yet, outside every list, and at the start of a paragraph for white space.
+orc_new(Doc d, XmlR rd, OdtSty osty) {
+  string[] lkeys = [];
+  int[] lv = [];
+  Names lnm = Names(lkeys, lv);
+} chain (Doc d, XmlR rd, OdtSty osty) {
+  int[] sl = [];
+  lst_fill(sl, (import orc_s_len), 0);
+  int[] rstk = [0];
+} chain (Doc d, XmlR rd, OdtSty osty) {
+  Look lok = Look(osty, rstk);
+  Cs cst = Cs(lnm, sl, lok);
+  Cx cx = Cx(rd, d, cst);
+} return Cx cx;
+given orc_t_open("<a/>") ((import orc_td), (import orc_tr), OdtSty([], [], [])):(Cx((import orc_tr), (import orc_td), Cs(Names([], []), [0, 0, 0, 0, 0, 0, 0, 0], Look(OdtSty([], [], []), [0]))))
+given orc_t_open("<a>b</a>") given orc_t_steps(2) ((import orc_td), (import orc_tr), OdtSty(["p:A"], [3], [-1])):(Cx((import orc_tr), (import orc_td), Cs(Names([], []), [0, 0, 0, 0, 0, 0, 0, 0], Look(OdtSty(["p:A"], [3], [-1]), [0]))))
+
+// The next event of the reader, remembering where the reader stood before it: an element that starts here begins at or after that byte.
+orc_next(Cx cx) {
+  int at = orc_pos(cx.rd);
+  lset(cx.cs.slots, (import orc_s_prev), at);
+  int ev = xr_next(cx.rd);
+} return int ev;
+given orc_t_open("<a>x</a>") ((import orc_tc)):(1) then orc_t_slots:("0,0,0,0,0,0,0,0,")
+given orc_t_open("<a>x</a>") given orc_t_steps(1) ((import orc_tc)):(3) then orc_t_slots:("0,0,0,0,3,0,0,0,")

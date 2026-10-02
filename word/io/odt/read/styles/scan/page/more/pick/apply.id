@@ -1,0 +1,37 @@
+// The seven ints of the page layout of master page os_smaster ("" for the first master page), or an empty list when the document defines no layout.
+ost_pg_pick(PgTab os_pg, string os_smaster) {
+  int[] os_lpick = [];
+  int os_im = ost_pg_master_at(os_pg, os_smaster);
+  string os_slay = ost_pg_lname(os_pg, os_im);
+} chain (PgTab os_pg, string os_smaster) {
+  int os_il = ost_pg_layout_at(os_pg, os_slay);
+  if(len(os_pg.vals) > 0) {
+    os_lpick = lst_copy(os_pg.vals[os_il]);
+  }
+} return int[] os_lpick;
+(PgTab(["L", "N"], [[1, 2, 0, 3, 3, 3, 3], [4, 5, 0, 6, 6, 6, 6]], ["A", "L", "B", "N"]), "B"):([4, 5, 0, 6, 6, 6, 6])
+(PgTab(["L", "N"], [[1, 2, 0, 3, 3, 3, 3], [4, 5, 0, 6, 6, 6, 6]], ["A", "L", "B", "N"]), ""):([1, 2, 0, 3, 3, 3, 3])
+(PgTab(["L"], [[1, 2, 0, 3, 3, 3, 3]], []), ""):([1, 2, 0, 3, 3, 3, 3])
+(PgTab([], [], []), ""):([])
+
+// The master page names of the table, in order.
+ost_pg_masters(PgTab os_pg) {
+  string[] os_lnames = [];
+  int os_ik = 0;
+  while(os_ik < len(os_pg.masters)) {
+    push(os_lnames, os_pg.masters[os_ik]);
+    os_ik = os_ik + 2;
+  }
+} return string[] os_lnames;
+(PgTab([], [], ["A", "L", "B", "M"])):(["A", "B"])
+(PgTab([], [], [])):([])
+
+// Sets the page of a document from layout ints (ost_pgdef's order); an empty list changes nothing.
+ost_pg_apply(Doc os_d, int[] os_lpg) {
+  if(len(os_lpg) == 7) {
+    lst_splice(os_d.body.page.size, 0, 3, lst_slice(os_lpg, 0, 3));
+    lst_splice(os_d.body.page.margin, 0, 4, lst_slice(os_lpg, 3, 4));
+  }
+} return void;
+(Doc(Body([], Page([11906, 16838, 0], [1440, 1440, 1440, 1440], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], [])), [12240, 15840, 0, 1134, 1000, 900, 800]):(Doc(Body([], Page([12240, 15840, 0], [1134, 1000, 900, 800], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], [])), [12240, 15840, 0, 1134, 1000, 900, 800])
+(Doc(Body([], Page([11906, 16838, 0], [1440, 1440, 1440, 1440], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], [])), []):(Doc(Body([], Page([11906, 16838, 0], [1440, 1440, 1440, 1440], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], [])), [])

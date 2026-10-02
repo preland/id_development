@@ -1,0 +1,32 @@
+// Adds the name of a preserved part to a list when it is kept.
+odp_note(string[] pknames, Part pkpt) {
+  if(odp_keep(pkpt) == 1) {
+    push(pknames, pkpt.name);
+  }
+} return void;
+(["a"], Part("Pictures/b.png", [], 1)):(["a", "Pictures/b.png"], Part("Pictures/b.png", [], 1))
+(["a"], Part("meta.xml", [], 1)):(["a"], Part("meta.xml", [], 1))
+
+// The names of the entries the manifest lists, in the order they are written: content.xml, styles.xml and meta.xml, then each kept part.
+odp_names(Ext pkx) {
+  string[] pknames = ["content.xml", "styles.xml", "meta.xml"];
+  int pki = 0;
+  while(pki < len(pkx.parts)) {
+    odp_note(pknames, pkx.parts[pki]);
+    pki = pki + 1;
+  }
+} return string[] pknames;
+(Ext(["f"], [], [Part("Pictures/b.png", [], 1), Part("x", [], 0)])):(["content.xml", "styles.xml", "meta.xml", "Pictures/b.png"])
+(Ext(["f"], [], [])):(["content.xml", "styles.xml", "meta.xml"])
+
+// The media type of each name.
+odp_types(string[] pknames) {
+  string[] pktypes = [];
+  int pki = 0;
+  while(pki < len(pknames)) {
+    push(pktypes, odp_media(pknames[pki]));
+    pki = pki + 1;
+  }
+} return string[] pktypes;
+(["content.xml", "a.png", "d/"]):(["text/xml", "image/png", ""])
+([]):([])

@@ -1,0 +1,32 @@
+// Starts a layout in the table for the style:page-layout element the reader is at: its name, and the default ints.
+ost_pg_start(PgTab os_pg, XmlR os_r) {
+  string os_sname = xr_attr(os_r, "style:name");
+  push(os_pg.names, os_sname);
+  push(os_pg.vals, lst_copy((import ost_pgdef)));
+} return void;
+given ost_t_pgone given ost_t_open("<style:page-layout style:name=\"N\"/>") given ost_t_steps(1) ((import ost_t_pg), (import ost_t_r)):((import ost_t_pg), (import ost_t_r)) then ost_t_vals:([11906, 16838, 0, 1440, 1440, 1440, 1440, 11906, 16838, 0, 1440, 1440, 1440, 1440])
+given ost_t_pgone given ost_t_open("<style:page-layout/>") given ost_t_steps(1) ((import ost_t_pg), (import ost_t_r)):((import ost_t_pg), (import ost_t_r)) then ost_t_masters:([])
+
+// Records the master page the reader is at: its name and the name of its page layout.
+ost_pg_master(PgTab os_pg, XmlR os_r) {
+  string os_sname = xr_attr(os_r, "style:name");
+  string os_slay = xr_attr(os_r, "style:page-layout-name");
+  lst_str_extend(os_pg.masters, [os_sname, os_slay]);
+} return void;
+given ost_t_pgone given ost_t_open("<style:master-page style:name=\"Standard\" style:page-layout-name=\"Mpm1\"/>") given ost_t_steps(1) ((import ost_t_pg), (import ost_t_r)):((import ost_t_pg), (import ost_t_r)) then ost_t_masters:(["Standard", "Mpm1"])
+given ost_t_pgone given ost_t_open("<style:master-page style:name=\"A\" style:page-layout-name=\"B\"/>") given ost_t_steps(1) given ost_pg_master((import ost_t_pg), (import ost_t_r)) ((import ost_t_pg), (import ost_t_r)):((import ost_t_pg), (import ost_t_r)) then ost_t_masters:(["A", "B", "A", "B"])
+
+// Reads the page layouts and master pages of a styles document into a table.
+ost_pg_scan(XmlR os_r) {
+  PgTab os_pg = ost_pg_new();
+  int os_iev = xr_next(os_r);
+  int os_igo = 1;
+} chain (XmlR os_r) {
+  while(os_iev > 0 && os_igo == 1) {
+    os_igo = ost_pg_event(os_pg, os_r, os_iev);
+    os_iev = xr_next(os_r);
+  }
+} return PgTab os_pg;
+given ost_t_open("<a><style:page-layout style:name=\"Mpm1\"><style:page-layout-properties fo:page-width=\"8.2681in\" fo:page-height=\"11.6929in\" style:print-orientation=\"portrait\" fo:margin-top=\"0.7874in\" fo:margin-bottom=\"0.7874in\" fo:margin-left=\"0.7874in\" fo:margin-right=\"0.7874in\"/></style:page-layout><style:master-page style:name=\"Standard\" style:page-layout-name=\"Mpm1\"/></a>") ((import ost_t_r)):(PgTab(["Mpm1"], [[11906, 16838, 0, 1134, 1134, 1134, 1134]], ["Standard", "Mpm1"]))
+given ost_t_open("<a><style:page-layout style:name=\"W\"><style:page-layout-properties fo:page-width=\"29.7cm\" fo:page-height=\"21cm\" style:print-orientation=\"landscape\"/></style:page-layout><office:body/><style:master-page style:name=\"Late\" style:page-layout-name=\"W\"/></a>") ((import ost_t_r)):(PgTab(["W"], [[16838, 11906, 1, 1440, 1440, 1440, 1440]], []))
+given ost_t_open("<a><style:page-layout style:name=\"Mpm1\"><style:page-layout-properties fo:page-width=\"8.2681in\" fo:page-height=\"11.6929in\" style:print-orientation=\"portrait\" fo:margin-top=\"0.7874in\" fo:margin-bottom=\"0.7874in\" fo:margin-left=\"0.7874in\" fo:margin-right=\"0.7874in\"/></style:page-layout><style:page-layout style:name=\"Mpm2\"><style:page-layout-properties fo:page-width=\"8.5in\" fo:page-height=\"11in\" style:print-orientation=\"portrait\" fo:margin-top=\"0.7874in\" fo:margin-bottom=\"0.7874in\" fo:margin-left=\"0.7874in\" fo:margin-right=\"0.7874in\"/></style:page-layout><style:page-layout style:name=\"Mpm3\"><style:page-layout-properties fo:page-width=\"11.6929in\" fo:page-height=\"8.2681in\" style:print-orientation=\"landscape\" fo:margin-top=\"0.7874in\" fo:margin-bottom=\"0.7874in\" fo:margin-left=\"0.7874in\" fo:margin-right=\"0.7874in\"/></style:page-layout><style:master-page style:name=\"Standard\" style:page-layout-name=\"Mpm1\"/><style:master-page style:name=\"Letter\" style:page-layout-name=\"Mpm2\"/><style:master-page style:name=\"Wide\" style:page-layout-name=\"Mpm3\"/></a>") ((import ost_t_r)):(PgTab(["Mpm1", "Mpm2", "Mpm3"], [[11906, 16838, 0, 1134, 1134, 1134, 1134], [12240, 15840, 0, 1134, 1134, 1134, 1134], [16838, 11906, 1, 1134, 1134, 1134, 1134]], ["Standard", "Mpm1", "Letter", "Mpm2", "Wide", "Mpm3"]))

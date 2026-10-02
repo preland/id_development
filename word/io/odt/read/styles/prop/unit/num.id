@@ -1,0 +1,50 @@
+// Where the number in os_ss ends and its unit begins: past an optional sign, then digits and points.
+ost_split(string os_ss) {
+  int i = 0;
+  int os_ic = charat(os_ss, 0);
+  if(os_ic == 45 || os_ic == 43) {
+    i = 1;
+  }
+} chain (string os_ss) {
+  os_ic = charat(os_ss, i);
+  while(os_ic == 46 || chr_is_digit(os_ic) == 1) {
+    i = i + 1;
+    os_ic = charat(os_ss, i);
+  }
+} return int i;
+("12pt"):(2)
+("-0.25in"):(5)
+("pt"):(0)
+("+3"):(2)
+
+// Folds one character into os_wacc = [mantissa, fraction digits, digits taken, seen a point]; a thirteenth digit is dropped so that a mantissa times a unit never overflows a word.
+ost_step(word[] os_wacc, int os_ic) {
+  if(chr_is_digit(os_ic) == 1 && os_wacc[2] < 12) {
+    os_wacc[0] = os_wacc[0] * 10 + (os_ic - 48);
+    os_wacc[2] = os_wacc[2] + 1;
+    os_wacc[1] = os_wacc[1] + os_wacc[3];
+  }
+  if(os_ic == 46) {
+    os_wacc[3] = 1;
+  }
+} return void;
+([0, 0, 0, 0], 53):([5, 0, 1, 0], 53)
+([12, 0, 2, 1], 46):([12, 0, 2, 1], 46)
+([7, 0, 1, 1], 56):([78, 1, 2, 1], 56)
+([999999999999, 0, 12, 0], 49):([999999999999, 0, 12, 0], 49)
+
+// The digits of the number in os_ss[0..os_ie) as [mantissa, fraction digits]: "0.25" is [25, 2].
+ost_digits(string os_ss, int os_ie) {
+  word[] os_wacc = [0, 0, 0, 0];
+  int i = 0;
+  while(i < os_ie) {
+    int os_ic = charat(os_ss, i);
+    ost_step(os_wacc, os_ic);
+    i = i + 1;
+  }
+} chain (string os_ss, int os_ie) {
+  word[] os_wres = [os_wacc[0], os_wacc[1]];
+} return word[] os_wres;
+("0.25in", 4):([25, 2])
+("-12pt", 3):([12, 0])
+("1.5", 3):([15, 1])

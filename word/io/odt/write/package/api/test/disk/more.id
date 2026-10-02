@@ -1,0 +1,33 @@
+// Test fixture (internal): writes the one byte 97 to the scratch file through odw_write.
+odw_t_put() {
+  int pkq = odw_write((import odw_tp), [97]);
+} return void;
+given odw_t_path ():() then odw_t_bytes:([97])
+given odw_t_path ():() then odw_t_code:(0)
+
+// Test fixture (internal): the entry names, comma separated, of the zip in the scratch file once every entry has been read with its size and CRC-32 checked; "bad: " and the reader's reason when anything is wrong.
+odw_t_file() {
+  Zip pkzr = zr_open(odw_t_bytes());
+  int pki = 0;
+  while(pki < zr_count(pkzr)) {
+    int[] pkrd = zr_read(pkzr, pki);
+    pki = pki + 1;
+  }
+} chain () {
+  string[] pkns = lst_str_tail(pkzr.names, 1);
+  string pkr = str_join(pkns, ",");
+  if(zr_ok(pkzr) == 0) {
+    pkr = "bad: " + zr_why(pkzr);
+  }
+} return string pkr;
+given odw_t_path ():("bad: zip: no end-of-central-directory record, so this is not a zip archive or it was cut short; open an archive written by a zip tool, or re-download it")
+given odw_t_path given odw_t_zip ():("a")
+
+// Test fixture (internal): writes a small valid zip with one entry, "a", to the scratch file through odw_write.
+odw_t_zip() {
+  ZipW pkz = zw_new();
+  zw_add(pkz, "a", [104, 105], 0);
+  int pkq = odw_write((import odw_tp), zw_finish(pkz));
+} return void;
+given odw_t_path ():() then odw_t_file:("a")
+given odw_t_path ():() then odw_t_code:(0)

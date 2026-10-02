@@ -1,0 +1,36 @@
+// Test fixture: an archive with the given mimetype entry first (none when mime is empty), a content.xml holding xml (none when xml is empty), and a picture entry of three bytes, all stored. The bytes are kept in the export orc_tz, and a new document is made as orc_t_open makes it, so orc_t_show shows what a load made of it.
+orc_t_zip(string xml, string mime) {
+  ZipW zw = zw_new();
+  int[] cb = exec_bytes(xml);
+  int[] pic = [1, 2, 3];
+} chain (string xml, string mime) {
+  if(len(mime) > 0) {
+    zw_add(zw, "mimetype", exec_bytes(mime), 0);
+  }
+  if(len(xml) > 0) {
+    zw_add(zw, "content.xml", cb, 0);
+  }
+  zw_add(zw, "Pictures/a.png", pic, 0);
+} chain (string xml, string mime) {
+  export int[] orc_tz = zw_finish(zw);
+  orc_t_open(xml);
+  orc_t_zopen();
+} return void;
+("<a/>", ""):() then orc_t_zn:(2)
+("<a/>", "application/vnd.oasis.opendocument.text"):() then orc_t_zn:(3)
+("", ""):() then orc_t_zn:(1)
+
+// Test fixture: how many entries the archive of orc_tzo holds.
+orc_t_zn() {
+  Zip z = (import orc_tzo);
+  int n = zr_count(z);
+} return int n;
+given orc_t_zip("<a/>", "") ():(2)
+given orc_t_zip("<a/>", "x") ():(3)
+
+// Test fixture: the reason the last load went wrong, as odt_error will bracket it.
+orc_t_why() {
+  string msg = (import odt_why);
+} return string msg;
+given orc_why("a") ():("a")
+given orc_why("") ():("")

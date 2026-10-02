@@ -1,0 +1,24 @@
+// Test fixture: takes the last paragraph out of the document of orc_tc, as the body read does with the new document's one empty paragraph before it starts.
+orc_t_pop() {
+  Cx cx = (import orc_tc);
+  Para[] pl = cx.d.body.paras;
+  pop(pl);
+} return void;
+given orc_t_open("<a/>") ():() then orc_t_show:(" |  | ")
+given orc_t_open("<a/>") ():() then orc_t_slots:("0,0,0,0,0,0,0,0,")
+
+// Test fixture: sets slot k of the read counters of orc_tc to val.
+orc_t_set(int k, int val) {
+  Cx cx = (import orc_tc);
+  lset(cx.cs.slots, k, val);
+} return void;
+given orc_t_open("<a/>") (1, 5):() then orc_t_slots:("0,5,0,0,0,0,0,0,")
+given orc_t_open("<a/>") (5, -1):() then orc_t_slots:("0,0,0,0,0,-1,0,0,")
+
+// Test fixture: reads all of the XML of orc_tc into the document of orc_td, as a load does, whatever the outcome.
+orc_t_load() {
+  Cx cx = (import orc_tc);
+  int code = orc_content(cx);
+} return void;
+given orc_t_open("<r><office:text><text:p>Hi</text:p></office:text></r>") ():() then orc_t_show:("P0 72,105, 2:0:-1, {0,0,0,0,0} |  | ")
+given orc_t_open("<r/>") ():() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | ")

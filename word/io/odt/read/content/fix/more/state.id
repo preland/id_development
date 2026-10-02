@@ -1,0 +1,29 @@
+// Test fixture: the read counters of orc_tc, as the ints of the orc_s_* slots in order.
+orc_t_slots() {
+  Cx cx = (import orc_tc);
+  string text = dump_ints(cx.cs.slots);
+} return string text;
+given orc_t_open("<a/>") ():("0,0,0,0,0,0,0,0,")
+given orc_t_open("<a>x</a>") given orc_t_steps(2) ():("0,0,0,0,3,0,0,0,")
+
+// Test fixture: reads n events of orc_tc and leaves the reader after them.
+orc_t_steps(int n) {
+  Cx cx = (import orc_tc);
+  int i = 0;
+  while(i < n) {
+    orc_next(cx);
+    i = i + 1;
+  }
+} return void;
+given orc_t_open("<a>x</a>") (1):() then orc_t_slots:("0,0,0,0,0,0,0,0,")
+given orc_t_open("<a>x</a>") (3):() then orc_t_slots:("0,0,0,0,4,0,0,0,")
+
+// Test fixture: what a kept part holds, as a case reads it: the XML itself for an element, the number of bytes for a file.
+orc_t_what(Part pt) {
+  string what = "" + len(pt.bytes);
+  if(pt.kind == 0) {
+    what = exec_text(pt.bytes);
+  }
+} return string what;
+(Part("a", [60, 97, 47, 62], 0)):("<a/>")
+(Part("p", [1, 2, 3], 1)):("3")

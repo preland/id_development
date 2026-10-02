@@ -1,0 +1,38 @@
+// Lays record os_i over the rows os_lc and os_lp being built for Normal: the record's rows merged on top of them.
+ost_norm_over(Doc os_d, StyBag os_b, string[] os_lface, int os_i, int[][] os_lrows) {
+  int[] os_lc = ost_rowc(os_d, os_b, os_lface, os_i, 0);
+  int[] os_lp = ost_rowp(os_d.fmt, os_b, os_i, 0 - 1);
+  os_lrows[0] = ost_cmerge(os_lrows[0], os_lc);
+} chain (Doc os_d, StyBag os_b, string[] os_lface, int os_i, int[][] os_lrows) {
+  os_lrows[1] = ost_pmerge(os_lrows[1], os_lp);
+} return void;
+(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["serif"], [], [])), StyBag(["A", "", "", "", "", "", "p", "n"], [[0, -1, 40, -1, -1, 1, 1]], [[-1, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]]), [], 0, [[0, -1, 24, -1, -1, 0, 0], [-1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]]):(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["serif"], [], [])), StyBag(["A", "", "", "", "", "", "p", "n"], [[0, -1, 40, -1, -1, 1, 1]], [[-1, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]]), [], 0, [[0, -1, 40, -1, -1, 1, 1], [-1, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]])
+(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["serif"], [], [])), StyBag(["A", "", "", "", "", "", "p", "n"], [[0, -1, -1, -1, -1, 0, 0]], [[-1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]]), [], 0, [[0, -1, 24, -1, -1, 0, 0], [-1, 0, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]]):(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["serif"], [], [])), StyBag(["A", "", "", "", "", "", "p", "n"], [[0, -1, -1, -1, -1, 0, 0]], [[-1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]]), [], 0, [[0, -1, 24, -1, -1, 0, 0], [-1, 0, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]])
+
+// Stores the character row and paragraph row being built for Normal, interned, as Normal's own.
+ost_norm_set(Doc os_d, int[][] os_lrows) {
+  int[] os_lfm = os_d.fmt.sty.styles[0].fmt;
+  os_lfm[(import word_s_cprop)] = tab_intern(os_d.fmt.chars, os_lrows[0]);
+  os_lfm[(import word_s_pprop)] = tab_intern(os_d.fmt.paras, os_lrows[1]);
+} return void;
+given ost_t_doc given ost_t_pick(0) ((import ost_t_d), [[0, -1, 40, -1, -1, 1, 1], [-1, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]]):((import ost_t_d), [[0, -1, 40, -1, -1, 1, 1], [-1, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]]) then ost_t_sty:([0, -1, 0, 0, -1, 40, -1, -1, 1, 1, -1, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])
+given ost_t_doc given ost_t_pick(0) ((import ost_t_d), [[0, -1, 24, -1, -1, 0, 0], [-1, 0, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]]):((import ost_t_d), [[0, -1, 24, -1, -1, 0, 0], [-1, 0, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]]) then ost_t_sty:([0, -1, 0, 0, -1, 24, -1, -1, 0, 0, -1, 0, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])
+
+// Rebuilds Normal from the document's default paragraph style and its "Standard" style, the first with the second laid over it; the built-in Normal is left alone when the document defines neither.
+ost_fill_normal(Doc os_d, StyBag os_b, string[] os_lface) {
+  int os_ij = ost_rec_find(os_b, "", "p", "d");
+  int os_is = ost_rec_find(os_b, (import word_style_wire)[0], "p", "n");
+  int[][] os_lrows = [lst_copy((import ost_cdef)), lst_copy((import ost_pdef))];
+} chain (Doc os_d, StyBag os_b, string[] os_lface) {
+  if(os_ij >= 0) {
+    ost_norm_over(os_d, os_b, os_lface, os_ij, os_lrows);
+  }
+  if(os_is >= 0) {
+    ost_norm_over(os_d, os_b, os_lface, os_is, os_lrows);
+  }
+  if(os_ij >= 0 || os_is >= 0) {
+    ost_norm_set(os_d, os_lrows);
+  }
+} return void;
+given ost_t_doc given ost_t_scan("<a><style:default-style style:family=\"paragraph\"><style:text-properties fo:font-size=\"12pt\"/></style:default-style><style:style style:name=\"Standard\" style:family=\"paragraph\"><style:text-properties fo:font-weight=\"bold\"/></style:style></a>") given ost_t_pick(0) ((import ost_t_d), (import ost_t_b), []):((import ost_t_d), (import ost_t_b), []) then ost_t_sty:([0, -1, 0, 0, -1, 24, -1, -1, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])
+given ost_t_doc given ost_t_scan("<a/>") given ost_t_pick(0) ((import ost_t_d), (import ost_t_b), []):((import ost_t_d), (import ost_t_b), []) then ost_t_sty:([0, -1, 0, 0, 0, 24, -1, -1, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0])

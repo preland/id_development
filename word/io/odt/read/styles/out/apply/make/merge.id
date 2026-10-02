@@ -1,0 +1,46 @@
+// os_iover unless it is -1 (unset), then os_iunder.
+ost_pick(int os_iunder, int os_iover) {
+  int os_ires = os_iover;
+  if(os_iover == 0 - 1) {
+    os_ires = os_iunder;
+  }
+} return int os_ires;
+(5, 7):(7)
+(5, -1):(5)
+
+// A character row that is os_lunder with every field os_lover specifies laid over it; the flags merge bit by bit, so a bit os_lover leaves unspecified keeps os_lunder's value.
+ost_cmerge(int[] os_lunder, int[] os_lover) {
+  int[] os_lres = lst_copy(os_lunder);
+  int i = 1;
+  while(i < 5) {
+    os_lres[i] = ost_pick(os_lunder[i], os_lover[i]);
+    i = i + 1;
+  }
+} chain (int[] os_lunder, int[] os_lover) {
+  ost_flagset(os_lres, os_lover[(import word_c_set)], os_lover[(import word_c_on)]);
+  if(os_lover[(import word_c_style)] > 0) {
+    os_lres[(import word_c_style)] = os_lover[(import word_c_style)];
+  }
+} return int[] os_lres;
+([0, 1, 24, -1, -1, 1, 1], [0, -1, 40, 255, -1, 2, 2]):([0, 1, 40, 255, -1, 3, 3])
+([0, -1, -1, -1, -1, 3, 3], [0, -1, -1, -1, -1, 0, 1]):([0, -1, -1, -1, -1, 2, 3])
+([0, -1, -1, -1, -1, 0, 0], [4, -1, -1, -1, -1, 0, 0]):([4, -1, -1, -1, -1, 0, 0])
+([5, -1, -1, -1, -1, 0, 0], [0, -1, -1, -1, -1, 1, 1]):([5, -1, -1, -1, -1, 1, 1])
+([5, -1, -1, -1, -1, 0, 0], [3, -1, -1, -1, -1, 0, 0]):([3, -1, -1, -1, -1, 0, 0])
+
+// A paragraph row that is os_lunder with every field os_lover specifies laid over it; the page break, list, level and kind fields, which are never -1, take the larger of the two.
+ost_pmerge(int[] os_lunder, int[] os_lover) {
+  int[] os_lres = lst_copy(os_lunder);
+  int i = 0;
+  while(i < (import word_p_brk)) {
+    os_lres[i] = ost_pick(os_lunder[i], os_lover[i]);
+    i = i + 1;
+  }
+} chain (int[] os_lunder, int[] os_lover) {
+  while(i < (import word_p_width)) {
+    os_lres[i] = fx_max(os_lunder[i], os_lover[i]);
+    i = i + 1;
+  }
+} return int[] os_lres;
+([-1, 0, -1, -1, -1, 240, -1, -1, 0, 0, 0, 0], [-1, -1, 720, -1, -1, 120, -1, 115, 1, 0, 0, 0]):([-1, 0, 720, -1, -1, 120, -1, 115, 1, 0, 0, 0])
+([-1, -1, -1, -1, -1, -1, -1, -1, 0, 2, 0, 0], [-1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]):([-1, -1, -1, -1, -1, -1, -1, -1, 0, 2, 0, 0])

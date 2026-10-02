@@ -1,0 +1,22 @@
+// Writes run k of the paragraph when it is not empty; empty runs only carry the caret's properties and have nothing to write.
+oc_step(XmlW oc_w, Doc oc_d, Para oc_pa, int oc_k, int[] oc_st) {
+  if(oc_pa.txt.runs[oc_k].len > 0) {
+    oc_piece(oc_w, oc_d, oc_pa.txt, oc_pa.txt.runs[oc_k], oc_st);
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Para(Text([97, 98, 99], [Run(1, 0, -1), Run(0, 1, -1), Run(2, 1, 0)], 0), Lay([], [], -1), 0), 2, [1, -1]):() then oc_t_out:("<r><text:a xlink:type=\"simple\" xlink:href=\"u\"><text:span text:style-name=\"WT1\">bc</text:span>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Para(Text([97, 98, 99], [Run(1, 0, -1), Run(0, 1, -1), Run(2, 1, 0)], 0), Lay([], [], -1), 0), 1, [1, -1]):() then oc_t_out:("<r")
+
+// All the runs of a paragraph in order, with the hyperlinks and spans they call for.
+oc_runs(XmlW oc_w, Doc oc_d, Para oc_pa) {
+  int[] oc_st = [0, -1];
+  int oc_k = 0;
+  while(oc_k < len(oc_pa.txt.runs)) {
+    oc_step(oc_w, oc_d, oc_pa, oc_k, oc_st);
+    oc_k = oc_k + 1;
+  }
+} chain (XmlW oc_w, Doc oc_d, Para oc_pa) {
+  oc_link(oc_w, oc_d, oc_st[1], -1);
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Para(Text([97, 98, 99], [Run(1, 0, -1), Run(0, 1, -1), Run(2, 1, 0)], 0), Lay([], [], -1), 0)):() then oc_t_out:("<r>a<text:a xlink:type=\"simple\" xlink:href=\"u\"><text:span text:style-name=\"WT1\">bc</text:span></text:a>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 0)):() then oc_t_out:("<r")

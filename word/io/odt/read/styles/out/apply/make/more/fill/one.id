@@ -1,0 +1,28 @@
+// Fills the model style of named record os_i: its character row and paragraph row interned and stored as the style's, then its parent and next style. A text style has no paragraph row, so it keeps row 0 there.
+ost_fill_one(Doc os_d, StyBag os_b, string[] os_lface, int[] os_lidx, int os_i) {
+  int[] os_lfm = os_d.fmt.sty.styles[os_lidx[os_i]].fmt;
+  int[] os_lc = ost_rowc(os_d, os_b, os_lface, os_i, 0);
+  int[] os_lp = ost_rowp(os_d.fmt, os_b, os_i, 0 - 1);
+} chain (Doc os_d, StyBag os_b, string[] os_lface, int[] os_lidx, int os_i) {
+  os_lfm[(import word_s_cprop)] = tab_intern(os_d.fmt.chars, os_lc);
+  if(os_b.strings[os_i * (import ost_s_width) + (import ost_s_fam)] == "p") {
+    os_lfm[(import word_s_pprop)] = tab_intern(os_d.fmt.paras, os_lp);
+  }
+  ost_rel_set(os_d.fmt, os_b, os_lidx, os_i);
+} return void;
+given ost_t_doc given ost_t_scan("<a><style:style style:name=\"Standard\" style:family=\"paragraph\"/><style:style style:name=\"Foo\" style:family=\"paragraph\"><style:text-properties fo:font-size=\"20pt\" fo:font-weight=\"bold\"/><style:paragraph-properties fo:text-align=\"center\"/></style:style></a>") given ost_t_reg given ost_t_pick(8) ((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 1):((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 1) then ost_t_sty:([0, 0, 8, 0, -1, 40, -1, -1, 1, 1, -1, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])
+given ost_t_doc given ost_t_scan("<a><style:style style:name=\"Standard\" style:family=\"paragraph\"/><style:style style:name=\"Strong\" style:family=\"text\"><style:text-properties fo:font-weight=\"bold\"/></style:style></a>") given ost_t_reg given ost_t_pick(8) ((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 1):((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 1) then ost_t_sty:([1, -1, 8, 0, -1, -1, -1, -1, 1, 1, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])
+
+// Fills every named style of the bag except Normal (index 0), then Normal from the default style and "Standard".
+ost_fill(Doc os_d, StyBag os_b, string[] os_lface, int[] os_lidx) {
+  int i = 0;
+  while(i < ost_bag_n(os_b)) {
+    if(os_lidx[i] > 0) {
+      ost_fill_one(os_d, os_b, os_lface, os_lidx, i);
+    }
+    i = i + 1;
+  }
+  ost_fill_normal(os_d, os_b, os_lface);
+} return void;
+given ost_t_doc given ost_t_scan("<a><style:style style:name=\"Standard\" style:family=\"paragraph\"><style:text-properties fo:font-size=\"10pt\"/></style:style><style:style style:name=\"Foo\" style:family=\"paragraph\" style:parent-style-name=\"Standard\"><style:text-properties fo:font-weight=\"bold\"/></style:style></a>") given ost_t_reg given ost_t_pick(8) ((import ost_t_d), (import ost_t_b), [], (import ost_t_x)):((import ost_t_d), (import ost_t_b), [], (import ost_t_x)) then ost_t_sty:([0, 0, 8, 0, -1, -1, -1, -1, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])
+given ost_t_doc given ost_t_scan("<a><style:style style:name=\"Standard\" style:family=\"paragraph\"><style:text-properties fo:font-size=\"10pt\"/></style:style></a>") given ost_t_reg given ost_t_pick(0) ((import ost_t_d), (import ost_t_b), [], (import ost_t_x)):((import ost_t_d), (import ost_t_b), [], (import ost_t_x)) then ost_t_sty:([0, -1, 0, 0, -1, 20, -1, -1, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])

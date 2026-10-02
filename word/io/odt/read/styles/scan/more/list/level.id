@@ -1,0 +1,54 @@
+// A style:num-format value as the model's number format: "1" decimal 0, "a" lower alpha 1, "A" upper alpha 2, "i" lower roman 3, "I" upper roman 4; anything else, the empty format included, is decimal.
+ost_numfmt(string os_sv) {
+  int os_if = 0;
+  if(os_sv == "a") {
+    os_if = 1;
+  }
+  if(os_sv == "A") {
+    os_if = 2;
+  }
+} chain (string os_sv) {
+  if(os_sv == "i") {
+    os_if = 3;
+  }
+  if(os_sv == "I") {
+    os_if = 4;
+  }
+} return int os_if;
+("1"):(0)
+("a"):(1)
+("A"):(2)
+("i"):(3)
+("I"):(4)
+(""):(0)
+
+// The code point of a bullet character, 8226 (a round bullet) when the attribute is absent.
+ost_bullet(string os_sv) {
+  int os_icp = 8226;
+  if(os_sv != "") {
+    os_icp = utf8_cp(os_sv, 0);
+  }
+} return int os_icp;
+("•"):(8226)
+("◦"):(9702)
+(""):(8226)
+("-"):(45)
+
+// Sets the five ints of level ilevel (0 to 2) from the level element the reader is at: bullet or number, its character or format, and where numbering starts.
+ost_lvl_head(int[] os_llv, XmlR os_r, int os_ilevel) {
+  string os_sname = xr_name(os_r);
+  int os_ib = os_ilevel * (import word_l_stride);
+  os_llv[os_ib + (import word_l_kind)] = os_sname == "text:list-level-style-number";
+} chain (int[] os_llv, XmlR os_r, int os_ilevel) {
+  os_llv[os_ib + (import word_l_fmt)] = ost_bullet(xr_attr(os_r, "text:bullet-char"));
+  os_llv[os_ib + (import word_l_start)] = 1;
+  if(os_sname == "text:list-level-style-number") {
+    os_llv[os_ib + (import word_l_fmt)] = ost_numfmt(xr_attr(os_r, "style:num-format"));
+  }
+} chain (int[] os_llv, XmlR os_r, int os_ilevel) {
+  if(xr_attr(os_r, "text:start-value") != "") {
+    os_llv[os_ib + (import word_l_start)] = to_int(xr_attr(os_r, "text:start-value"));
+  }
+} return void;
+given ost_t_open("<text:list-level-style-number text:level=\"1\" style:num-format=\"a\" text:start-value=\"3\"/>") given ost_t_steps(1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0):([1, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0)
+given ost_t_open("<text:list-level-style-bullet text:level=\"2\" text:bullet-char=\"◦\"/>") given ost_t_steps(1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 1):([0, 0, 0, 0, 0, 0, 9702, 1, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 1)

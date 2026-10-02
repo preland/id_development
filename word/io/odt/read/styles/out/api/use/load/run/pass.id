@@ -1,0 +1,41 @@
+// Reads one document of the package (styles.xml, part 1, or content.xml, part 2) three times, each time up to its body: its font faces, its styles into the bag, its list styles into the document. Answers 0, or the error code of ost_error when the document is not well-formed before its body.
+ost_pass(Doc os_d, StyBag os_b, string[] os_lface, int[] os_lxml, int os_ipart) {
+  XmlR os_r1 = xr_open(os_lxml);
+  ost_faces(os_lface, os_r1);
+  XmlR os_r2 = xr_open(os_lxml);
+} chain (Doc os_d, StyBag os_b, string[] os_lface, int[] os_lxml, int os_ipart) {
+  ost_scan(os_b, os_r2);
+  XmlR os_r3 = xr_open(os_lxml);
+  ost_lists(os_d.fmt, os_r3);
+} chain (Doc os_d, StyBag os_b, string[] os_lface, int[] os_lxml, int os_ipart) {
+  int os_icode = ost_xerr(os_r2, os_ipart);
+} return int os_icode;
+given ost_t_doc given ost_t_mkbag given ost_t_xml("<a><style:style style:name=\"A\" style:family=\"text\"/></a>", "") ((import ost_t_d), (import ost_t_b), [], (import ost_t_sx), 50):(0)
+given ost_t_doc given ost_t_mkbag given ost_t_xml("<a><b></a>", "") ((import ost_t_d), (import ost_t_b), [], (import ost_t_sx), 51):(51)
+
+// The master page a paragraph style names, looked up in pairs of style name and master page name; "" for no style or none paired.
+ost_pair(string[] os_lpairs, string os_sname) {
+  string os_smaster = "";
+  int i = 0;
+  while(i < len(os_lpairs) && os_sname != "") {
+    if(os_lpairs[i] == os_sname) {
+      os_smaster = os_lpairs[i + 1];
+    }
+    i = i + 2;
+  }
+} return string os_smaster;
+(["P1", "Letter", "P2", "Wide"], "P2"):("Wide")
+(["P1", "Letter"], "P3"):("")
+(["P1", "Letter"], ""):("")
+
+// What one event of a content document says about the master page of the first paragraph: a style that names a master page adds a pair; the first paragraph or heading answers 1 to stop.
+ost_master_one(string[] os_lpairs, XmlR os_r, int os_iev) {
+  string os_sname = xr_name(os_r);
+  int os_istop = (os_sname == "text:p" || os_sname == "text:h") && os_iev != 2;
+  if(os_sname == "style:style" && os_iev != 2 && xr_attr(os_r, "style:master-page-name") != "") {
+    lst_str_extend(os_lpairs, [xr_attr(os_r, "style:name"), xr_attr(os_r, "style:master-page-name")]);
+  }
+} return int os_istop;
+given ost_t_open("<style:style style:name=\"P1\" style:master-page-name=\"Letter\"/>") given ost_t_steps(1) ([], (import ost_t_r), 4):(0)
+given ost_t_open("<text:p text:style-name=\"P1\">x</text:p>") given ost_t_steps(1) ([], (import ost_t_r), 1):(1)
+given ost_t_open("<text:p>x</text:p>") given ost_t_steps(2) ([], (import ost_t_r), 3):(0)

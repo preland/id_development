@@ -1,0 +1,31 @@
+// A length attribute in inches, written only when the length is set.
+oc_a_len(XmlW oc_w, string oc_an, int oc_tw) {
+  if(oc_tw != -1) {
+    string oc_v = oc_in(oc_tw);
+    xw_attr(oc_w, oc_an, oc_v);
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), "fo:margin-left", 720):() then oc_t_out:("<r fo:margin-left=\"0.5000in\"")
+given oc_t_w(0) ((import oc_fw), "fo:margin-left", -1):() then oc_t_out:("<r")
+given oc_t_w(0) ((import oc_fw), "fo:text-indent", -360):() then oc_t_out:("<r fo:text-indent=\"-0.2500in\"")
+
+// A colour attribute as #rrggbb, written only when the colour is set.
+oc_a_rgb(XmlW oc_w, string oc_an, int oc_c) {
+  if(oc_c != -1) {
+    string oc_v = oc_hex(oc_c);
+    xw_attr(oc_w, oc_an, oc_v);
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), "fo:color", 16711680):() then oc_t_out:("<r fo:color=\"#ff0000\"")
+given oc_t_w(0) ((import oc_fw), "fo:color", -1):() then oc_t_out:("<r")
+given oc_t_w(0) ((import oc_fw), "fo:color", 0):() then oc_t_out:("<r fo:color=\"#000000\"")
+
+// The font size attribute, written only when the size is set.
+oc_a_size(XmlW oc_w, int oc_h) {
+  if(oc_h != -1) {
+    string oc_v = oc_pt(oc_h);
+    xw_attr(oc_w, "fo:font-size", oc_v);
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), 24):() then oc_t_out:("<r fo:font-size=\"12pt\"")
+given oc_t_w(0) ((import oc_fw), -1):() then oc_t_out:("<r")

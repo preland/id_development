@@ -1,0 +1,23 @@
+// Adds style:default-outline-level for a paragraph style named "Heading 1" to "Heading 9"; no other style has one.
+odp_outline(XmlW pkw, Doc pkd, int pki) {
+  int pkl = oc_level(pkd, pki);
+  Style pksy = pkd.fmt.sty.styles[pki];
+  if(pkl > 0 && pksy.rel[(import word_s_family)] == 0) {
+    xw_attr(pkw, "style:default-outline-level", "" + pkl);
+  }
+} return void;
+given odp_t_new ((import odp_t_w), (import odp_t_d), 4):() then odp_t_xml:("<r style:default-outline-level=\"2\"")
+given odp_t_new ((import odp_t_w), (import odp_t_d), 1):() then odp_t_xml:("<r")
+
+// One named style as style:style: its attributes, then the properties of its paragraph row and its character row.
+odp_style(XmlW pkw, Doc pkd, int pki) {
+  Style pksy = pkd.fmt.sty.styles[pki];
+  xw_start(pkw, "style:style");
+  odp_sattrs(pkw, pkd, pki);
+} chain (XmlW pkw, Doc pkd, int pki) {
+  oc_pprops(pkw, pkd, pksy.fmt[(import word_s_pprop)]);
+  oc_cprops(pkw, pkd, pksy.fmt[(import word_s_cprop)]);
+  xw_end(pkw);
+} return void;
+given odp_t_new ((import odp_t_w), (import odp_t_d), 3):() then odp_t_xml:("<r><style:style style:name=\"Heading_20_1\" style:family=\"paragraph\" style:display-name=\"Heading 1\" style:parent-style-name=\"Standard\" style:next-style-name=\"Standard\" style:default-outline-level=\"1\"><style:paragraph-properties fo:margin-top=\"0.1667in\" fo:margin-bottom=\"0.0000in\"/><style:text-properties fo:font-size=\"16pt\" fo:font-weight=\"bold\"/></style:style>")
+given odp_t_new ((import odp_t_w), (import odp_t_d), 0):() then odp_t_xml:("<r><style:style style:name=\"Standard\" style:family=\"paragraph\"><style:paragraph-properties fo:text-align=\"start\" fo:margin-left=\"0.0000in\" fo:margin-right=\"0.0000in\" fo:text-indent=\"0.0000in\" fo:margin-top=\"0.0000in\" fo:margin-bottom=\"0.0833in\" fo:line-height=\"100%\"/><style:text-properties style:font-name=\"serif\" fo:font-size=\"12pt\"/></style:style>")

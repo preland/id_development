@@ -1,0 +1,54 @@
+// A percentage written "115%" as 115, or ost_bad.
+ost_pct(string os_ss) {
+  int os_ie = ost_split(os_ss);
+  int os_ipct = (import ost_bad);
+  if(str_slice(os_ss, os_ie, 1) == "%" && os_ie > 0 && charat(os_ss, os_ie + 1) < 0) {
+    os_ipct = to_int(os_ss);
+  }
+} return int os_ipct;
+("115%"):(115)
+("12pt"):(-2147483647)
+("%"):(-2147483647)
+
+// A font size in half-points: points doubled, other units through twips, or a percentage of os_ibase (the parent's size; 24 when that is unknown); ost_bad when unreadable.
+ost_size(string os_ss, int os_ibase) {
+  int os_ipct = ost_pct(os_ss);
+  int os_iref = os_ibase;
+  int os_ihp = ost_len(os_ss);
+} chain (string os_ss, int os_ibase) {
+  if(os_iref < 0) {
+    os_iref = 24;
+  }
+  if(os_ihp != (import ost_bad)) {
+    os_ihp = (os_ihp + 5) / 10;
+  }
+  if(os_ipct != (import ost_bad)) {
+    os_ihp = (os_iref * os_ipct + 50) / 100;
+  }
+} return int os_ihp;
+("12pt", -1):(24)
+("10.5pt", -1):(21)
+("130%", 28):(36)
+("50%", -1):(12)
+("15%", -1):(4)
+("15%", 30):(5)
+("big", 20):(-2147483647)
+
+// The value of one hex digit byte code, -1 when it is not one.
+ost_hexval(int os_ic) {
+  int os_iv = 0 - 1;
+  if(chr_is_digit(os_ic) == 1) {
+    os_iv = os_ic - 48;
+  }
+  if(os_ic >= 97 && os_ic <= 102) {
+    os_iv = os_ic - 87;
+  }
+} chain (int os_ic) {
+  if(os_ic >= 65 && os_ic <= 70) {
+    os_iv = os_ic - 55;
+  }
+} return int os_iv;
+(53):(5)
+(102):(15)
+(70):(15)
+(103):(-1)

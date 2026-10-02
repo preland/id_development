@@ -1,0 +1,20 @@
+// What ost_load makes of the archive's styles.xml (none when it has none) and of the automatic styles of content.xml, the bytes xs. 0, or 50 and 51 when one of the two is not well-formed, with where kept for odt_error.
+orc_sty(Zip z, Doc d, int[] xs, OdtSty osty) {
+  int si = zr_find(z, "styles.xml");
+  int[] sx = [];
+  if(si >= 0) {
+    sx = zr_read(z, si);
+  }
+} chain (Zip z, Doc d, int[] xs, OdtSty osty) {
+  int code = ost_load(d, sx, xs, osty);
+  int at = ost_fault_at(sx);
+  if(code == (import ost_e_content)) {
+    at = ost_fault_at(xs);
+  }
+} chain (Zip z, Doc d, int[] xs, OdtSty osty) {
+  if(code != 0) {
+    orc_why("byte " + at);
+  }
+} return int code;
+given orc_t_zip("<a/>", "") ((import orc_tzo), (import orc_td), [60, 97, 47, 62], OdtSty([], [], [])):(0)
+given orc_t_zip("<a/>", "") ((import orc_tzo), (import orc_td), [60, 97, 62], OdtSty([], [], [])):(51) then orc_t_why:("byte 3")

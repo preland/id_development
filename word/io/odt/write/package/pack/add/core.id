@@ -1,0 +1,37 @@
+// Records that a part could not be written on the archive itself, as a refused entry would be, so that zw_ok is 0 and zw_finish gives []; the first failure is kept.
+odp_fail(ZipW pkz, string pkname, string pkwhy) {
+  string[] pkerr = pkz.names;
+  if(len(pkerr[0]) == 0) {
+    pkerr[0] = "odt: " + pkname + " could not be written (" + pkwhy + "); this is a fault in the ODT writer, so report it with the document that caused it";
+  }
+} return void;
+given odp_t_new ((import odp_t_z), "a.xml", "why"):() then odp_t_names:("odt: a.xml could not be written (why); this is a fault in the ODT writer, so report it with the document that caused it")
+given odp_t_new given odp_fail((import odp_t_z), "first.xml", "x") ((import odp_t_z), "second.xml", "y"):() then odp_t_names:("odt: first.xml could not be written (x); this is a fault in the ODT writer, so report it with the document that caused it")
+
+// Adds a finished XML part as a stored entry; when the writer holds no document, because an element was left open, the archive records the failure instead.
+odp_put(ZipW pkz, string pkname, XmlW pkw) {
+  int[] pkby = xw_done(pkw);
+  if(len(pkby) > 0) {
+    zw_add(pkz, pkname, pkby, 0);
+  }
+  if(len(pkby) == 0) {
+    odp_fail(pkz, pkname, xw_error(pkw));
+  }
+} return void;
+given odp_t_new given xw_end((import odp_t_w)) ((import odp_t_z), "x.xml", (import odp_t_w)):() then odp_t_names:(",x.xml")
+given odp_t_new ((import odp_t_z), "x.xml", (import odp_t_w)):() then odp_t_names:("odt: x.xml could not be written (xw_done before the document is complete: write a root element, then call xw_end once for every xw_start); this is a fault in the ODT writer, so report it with the document that caused it")
+
+// Adds the three files this writer makes besides the manifest: content.xml as the caller built it, then styles.xml and meta.xml, all stored.
+odp_core(ZipW pkz, Doc pkd, int[] pkc) {
+  zw_add(pkz, "content.xml", pkc, 0);
+  XmlW pkw = odp_doc();
+  odp_styles(pkw, pkd);
+} chain (ZipW pkz, Doc pkd, int[] pkc) {
+  odp_put(pkz, "styles.xml", pkw);
+  pkw = odp_doc();
+  odp_meta(pkw, (import odp_generator));
+} chain (ZipW pkz, Doc pkd, int[] pkc) {
+  odp_put(pkz, "meta.xml", pkw);
+} return void;
+given odp_t_new ((import odp_t_z), (import odp_t_d), [1, 2]):() then odp_t_names:(",content.xml,styles.xml,meta.xml")
+given odp_t_new given zw_mimetype((import odp_t_z), "x") ((import odp_t_z), (import odp_t_d), []):() then odp_t_names:(",mimetype,content.xml,styles.xml,meta.xml")

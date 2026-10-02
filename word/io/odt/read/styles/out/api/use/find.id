@@ -1,0 +1,37 @@
+// The index of a key in the lookup lists, searched from the end so that a content document's style beats a styles document's of the same name; -1 when it is not there.
+ost_key(OdtSty os_k, string os_skey) {
+  int os_ires = 0 - 1;
+  int i = len(os_k.keys) - 1;
+  while(i >= 0 && os_ires < 0) {
+    if(os_k.keys[i] == os_skey) {
+      os_ires = i;
+    }
+    i = i - 1;
+  }
+} return int os_ires;
+(OdtSty(["p:A", "t:A", "p:A"], [1, 2, 3], [-1, -1, -1]), "p:A"):(2)
+(OdtSty(["p:A"], [1], [-1]), "t:A"):(-1)
+
+// The paragraph row for the paragraph style called os_sname in the document, 0 (nothing set, so Normal) when the name is "" or the document does not define it.
+ost_para(OdtSty os_k, string os_sname) {
+  int os_ik = ost_key(os_k, "p:" + os_sname);
+  int os_ip = 0;
+  if(os_ik >= 0) {
+    os_ip = os_k.ids[os_ik];
+  }
+} return int os_ip;
+(OdtSty(["p:Heading_20_1"], [4], [-1]), "Heading_20_1"):(4)
+(OdtSty(["p:Heading_20_1"], [4], [-1]), ""):(0)
+(OdtSty(["p:Heading_20_1"], [4], [-1]), "Other"):(0)
+
+// The character row that the text properties of the paragraph style called os_sname amount to when the style is automatic and sets any; -1 when it is named, undefined or sets none.
+ost_over(OdtSty os_k, string os_sname) {
+  int os_ik = ost_key(os_k, "p:" + os_sname);
+  int os_iov = 0 - 1;
+  if(os_ik >= 0) {
+    os_iov = os_k.over[os_ik];
+  }
+} return int os_iov;
+(OdtSty(["p:P1"], [4], [7]), "P1"):(7)
+(OdtSty(["p:P1"], [4], [-1]), "P1"):(-1)
+(OdtSty(["p:P1"], [4], [7]), "P2"):(-1)

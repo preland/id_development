@@ -1,0 +1,51 @@
+// An element of the body the model does not edit, kept untouched: one paragraph of its own whose text is a marker for the kept bytes and a label, and whose paragraph row says it is opaque.
+orc_block(Cx cx, int ev, string name) {
+  int idx = orc_raw(cx, ev);
+  Text t = text_new(0);
+  lset(cx.cs.slots, (import orc_s_link), 0);
+} chain (Cx cx, int ev, string name) {
+  orc_run(cx, t, (import word_o_marker) + idx, 1);
+  orc_text(cx, t, orc_label(name));
+  int pp = tab_with(cx.d.fmt.paras, 0, (import word_p_kind), 1);
+} chain (Cx cx, int ev, string name) {
+  Para p = para_make(t, pp);
+  push(cx.d.body.paras, p);
+} return void;
+given orc_t_open("<table:table><x/></table:table>") given orc_t_pop given orc_t_steps(1) ((import orc_tc), 1, "table:table"):() then orc_t_show:("P9 983040,91,84,97,98,108,101,93, 8:0:-1, {0,0,0,0,1} |  | table:table:0:<table:table><x/></table:table>,")
+given orc_t_open("<r><a/><draw:frame/></r>") given orc_t_steps(2) given orc_block((import orc_tc), 4, "a") given orc_t_steps(1) ((import orc_tc), 4, "draw:frame"):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0}\nP9 983040,91,66,108,111,99,107,93, 8:0:-1, {0,0,0,0,1}\nP9 983041,91,66,108,111,99,107,93, 8:0:-1, {0,0,0,0,1} |  | a:0:<a/>,draw:frame:0:<draw:frame/>,")
+
+// The label an opaque block shows in place of its content.
+orc_label(string name) {
+  int at = lst_str_index((import orc_block_names), name);
+  string label = "[Block]";
+  if(at >= 0) {
+    label = (import orc_block_labels)[at];
+  }
+} return string label;
+("table:table"):("[Table]")
+("text:section"):("[Section]")
+("draw:frame"):("[Block]")
+
+// What a start tag between blocks is: 0 a paragraph or heading, 1 a list, 2 an element stepped through, 3 a declaration kept apart, 4 anything else, an opaque block.
+orc_kind(string name) {
+  int kind = 4;
+  if(name == "text:p" || name == "text:h") {
+    kind = 0;
+  }
+  if(name == "text:list") {
+    kind = 1;
+  }
+} chain (string name) {
+  if(lst_str_index((import orc_pass_names), name) >= 0) {
+    kind = 2;
+  }
+  if(lst_str_index((import orc_prologue), name) >= 0) {
+    kind = 3;
+  }
+} return int kind;
+("text:p"):(0)
+("text:h"):(0)
+("text:list"):(1)
+("text:list-item"):(2)
+("text:sequence-decls"):(3)
+("table:table"):(4)

@@ -1,0 +1,20 @@
+// Test fixture (internal): the bytes of the preserved image as the exported archive, once packed, hands them back through our reader.
+odp_t_part() {
+  Zip pkzr = zr_open(odp_t_bytes());
+  int pkat = zr_find(pkzr, "Pictures/a.png");
+  int[] pkrd = zr_read(pkzr, pkat);
+} return int[] pkrd;
+given odp_t_new given odp_t_img given odp_pack((import odp_t_d), [1], (import odp_t_z)) ():([137, 80, 78, 71, 0, 255])
+given odp_t_new given odp_pack((import odp_t_d), [1], (import odp_t_z)) ():([])
+
+// Test fixture (internal): how many entries of the archive, other than mimetype and the manifest itself, the manifest text does not give a manifest:full-path.
+odp_t_unlisted(Zip pkzr, string pkmf) {
+  int pki = 0;
+  int pkn = 0;
+  while(pki < zr_count(pkzr)) {
+    pkn = pkn + odp_t_miss(pkzr, pki, pkmf);
+    pki = pki + 1;
+  }
+} return int pkn;
+(Zip([], [], ["", "mimetype", "a", "META-INF/manifest.xml"]), "manifest:full-path=\"a\""):(0)
+(Zip([], [], ["", "mimetype", "a", "b", "META-INF/manifest.xml"]), "manifest:full-path=\"a\""):(1)

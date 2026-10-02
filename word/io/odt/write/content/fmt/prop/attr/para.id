@@ -1,0 +1,28 @@
+// The alignment attribute: 0 left, 1 centre, 2 right, 3 justify; written when set.
+oc_a_align(XmlW oc_w, int oc_al) {
+  if(oc_al >= 0) {
+    xw_attr(oc_w, "fo:text-align", (import odt_align)[oc_al]);
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), 1):() then oc_t_out:("<r fo:text-align=\"center\"")
+given oc_t_w(0) ((import oc_fw), 3):() then oc_t_out:("<r fo:text-align=\"justify\"")
+given oc_t_w(0) ((import oc_fw), -1):() then oc_t_out:("<r")
+
+// The line height as a percentage of single spacing, written when set.
+oc_a_line(XmlW oc_w, int oc_pc) {
+  if(oc_pc != -1) {
+    string oc_v = oc_pc + "%";
+    xw_attr(oc_w, "fo:line-height", oc_v);
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), 150):() then oc_t_out:("<r fo:line-height=\"150%\"")
+given oc_t_w(0) ((import oc_fw), -1):() then oc_t_out:("<r")
+
+// A page break before the paragraph, written when the row asks for one.
+oc_a_brk(XmlW oc_w, int oc_bk) {
+  if(oc_bk == 1) {
+    xw_attr(oc_w, "fo:break-before", "page");
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), 1):() then oc_t_out:("<r fo:break-before=\"page\"")
+given oc_t_w(0) ((import oc_fw), 0):() then oc_t_out:("<r")

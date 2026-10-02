@@ -1,0 +1,40 @@
+// Remembers how the last save ended, for odt_error to read: the code and the detail that goes in brackets after its message.
+odw_note(int pkcode, string pkwhy) {
+  export int odw_code = pkcode;
+  export string odw_why = pkwhy;
+} return void;
+(100, "x"):() then odw_t_code:(100) then odw_t_why:("x")
+(0, ""):() then odw_t_code:(0) then odw_t_why:("")
+
+// What a save code means, with its detail in brackets: 100 the document holds something that cannot be written, 101 the package could not be assembled, 102 the file could not be written. Codes 1 to 99 belong to the reader.
+odw_error(int pkcode) {
+  string pkmsg = "ODT: unknown error code " + pkcode;
+  int pkat = pkcode - (import odw_e_check);
+  if(pkat >= 0 && pkat < len((import odw_errors))) {
+    pkmsg = (import odw_errors)[pkat] + " [" + (import odw_why) + "]";
+  }
+} return string pkmsg;
+given odw_note(100, "paragraph 2 is bad") (100):("ODT: this document cannot be written as it is; make the change the bracket asks for, then save again [paragraph 2 is bad]")
+given odw_note(102, "/x.odt") (102):("ODT: the file could not be written; check that the folder exists, that you may write to it and that the disk has room [/x.odt]")
+given odw_note(0, "") (7):("ODT: unknown error code 7")
+
+// Writes the bytes to the file at the path; 0 when all of them reached it, otherwise 102 with the path as the detail.
+odw_write(string pkpath, int[] pkby) {
+  int pkfh = fs_open(pkpath, "w");
+  int pkq = (import odw_e_file);
+  int pkn = 0;
+} chain (string pkpath, int[] pkby) {
+  if(pkfh >= 0) {
+    pkn = fs_write(pkfh, pkby, len(pkby));
+    pkq = fs_close(pkfh);
+  }
+  if(pkq == 0 && pkn == len(pkby)) {
+    odw_note(0, "");
+  } else {
+    pkq = (import odw_e_file);
+    odw_note(pkq, pkpath);
+  }
+} return int pkq;
+given odw_t_path ((import odw_tp), [104, 105]):(0) then odw_t_bytes:([104, 105])
+("/nonexistent/dir/x.odt", [1]):(102) then odw_t_why:("/nonexistent/dir/x.odt")
+("/dev/full", [1, 2, 3]):(102) then odw_t_why:("/dev/full")

@@ -1,0 +1,19 @@
+// The style:paragraph-properties element of paragraph row pid: alignment, indents, spacing, line height and page break.
+oc_pprops(XmlW oc_w, Doc oc_d, int oc_pid) {
+  int[] oc_rw = tab_row(oc_d.fmt.paras, oc_pid);
+  xw_start(oc_w, "style:paragraph-properties");
+  oc_a_align(oc_w, oc_rw[(import word_p_align)]);
+} chain (XmlW oc_w, Doc oc_d, int oc_pid) {
+  oc_a_len(oc_w, "fo:margin-left", oc_rw[(import word_p_left)]);
+  oc_a_len(oc_w, "fo:margin-right", oc_rw[(import word_p_right)]);
+  oc_a_len(oc_w, "fo:text-indent", oc_rw[(import word_p_first)]);
+} chain (XmlW oc_w, Doc oc_d, int oc_pid) {
+  oc_a_len(oc_w, "fo:margin-top", oc_rw[(import word_p_before)]);
+  oc_a_len(oc_w, "fo:margin-bottom", oc_rw[(import word_p_after)]);
+  oc_a_line(oc_w, oc_rw[(import word_p_line)]);
+} chain (XmlW oc_w, Doc oc_d, int oc_pid) {
+  oc_a_brk(oc_w, oc_rw[(import word_p_brk)]);
+  xw_end(oc_w);
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([0, 1, 720, -1, -360, 240, 120, 150, 1, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([], [], 0)), Ext([], [], [])), 0):() then oc_t_out:("<r><style:paragraph-properties fo:text-align=\"center\" fo:margin-left=\"0.5000in\" fo:text-indent=\"-0.2500in\" fo:margin-top=\"0.1667in\" fo:margin-bottom=\"0.0833in\" fo:line-height=\"150%\" fo:break-before=\"page\"/>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([0, 1, 720, -1, -360, 240, 120, 150, 1, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([], [], 0)), Ext([], [], [])), 1):() then oc_t_out:("<r><style:paragraph-properties/>")

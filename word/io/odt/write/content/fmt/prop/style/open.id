@@ -1,0 +1,42 @@
+// Opens a style:style element with its name, family and, when there is one, parent; the caller adds the properties and ends it.
+oc_style(XmlW oc_w, string oc_nm, string oc_fam, string oc_par) {
+  xw_start(oc_w, "style:style");
+  xw_attr(oc_w, "style:name", oc_nm);
+  xw_attr(oc_w, "style:family", oc_fam);
+} chain (XmlW oc_w, string oc_nm, string oc_fam, string oc_par) {
+  if(len(oc_par) > 0) {
+    xw_attr(oc_w, "style:parent-style-name", oc_par);
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), "WP3", "paragraph", "Heading_20_1"):() then oc_t_out:("<r><style:style style:name=\"WP3\" style:family=\"paragraph\" style:parent-style-name=\"Heading_20_1\"")
+given oc_t_w(0) ((import oc_fw), "WT1", "text", ""):() then oc_t_out:("<r><style:style style:name=\"WT1\" style:family=\"text\"")
+
+// The automatic style P<pid> of paragraph row pid: its named style as the parent, then the row's paragraph properties.
+oc_pstyle(XmlW oc_w, Doc oc_d, int oc_pid) {
+  int oc_sid = tab_get(oc_d.fmt.paras, oc_pid, (import word_p_style));
+  string oc_par = "";
+  if(oc_sid > 0) {
+    oc_par = oc_wire(oc_d, oc_sid);
+  }
+} chain (XmlW oc_w, Doc oc_d, int oc_pid) {
+  oc_style(oc_w, "WP" + oc_pid, "paragraph", oc_par);
+  oc_pprops(oc_w, oc_d, oc_pid);
+  xw_end(oc_w);
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([1, 1, 24, -1, -1, 1, 1, 0, -1, -1, -1, -1, 0, 0], 7, []), Tab([1, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), Ext(["Arial", "Mono"], [], [])), 0):() then oc_t_out:("<r><style:style style:name=\"WP0\" style:family=\"paragraph\" style:parent-style-name=\"Heading_20_1\"><style:paragraph-properties fo:text-align=\"center\"/></style:style>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([1, 1, 24, -1, -1, 1, 1, 0, -1, -1, -1, -1, 0, 0], 7, []), Tab([1, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), Ext(["Arial", "Mono"], [], [])), 1):() then oc_t_out:("<r><style:style style:name=\"WP1\" style:family=\"paragraph\"><style:paragraph-properties/></style:style>")
+
+// The automatic style T<cid> of character row cid: its character style as the parent, then the row's text properties.
+oc_cstyle(XmlW oc_w, Doc oc_d, int oc_cid) {
+  int oc_sid = tab_get(oc_d.fmt.chars, oc_cid, (import word_c_style));
+  string oc_par = "";
+  if(oc_sid > 0) {
+    oc_par = oc_wire(oc_d, oc_sid);
+  }
+} chain (XmlW oc_w, Doc oc_d, int oc_cid) {
+  oc_style(oc_w, "WT" + oc_cid, "text", oc_par);
+  oc_cprops(oc_w, oc_d, oc_cid);
+  xw_end(oc_w);
+} return void;
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([1, 1, 24, -1, -1, 1, 1, 0, -1, -1, -1, -1, 0, 0], 7, []), Tab([1, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), Ext(["Arial", "Mono"], [], [])), 0):() then oc_t_out:("<r><style:style style:name=\"WT0\" style:family=\"text\" style:parent-style-name=\"Heading_20_1\"><style:text-properties style:font-name=\"Mono\" fo:font-size=\"12pt\" fo:font-weight=\"bold\"/></style:style>")
+given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([1, 1, 24, -1, -1, 1, 1, 0, -1, -1, -1, -1, 0, 0], 7, []), Tab([1, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), Ext(["Arial", "Mono"], [], [])), 1):() then oc_t_out:("<r><style:style style:name=\"WT1\" style:family=\"text\"><style:text-properties/></style:style>")

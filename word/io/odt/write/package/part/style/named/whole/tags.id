@@ -1,0 +1,37 @@
+// Test fixture (internal): adds to pkns the name of the element that a piece of text opens, which is what comes before its first space, ">" or "/"; an end tag or plain text opens none.
+odp_t_cut2(string[] pkns, string pkpc) {
+  int pki = 0;
+  while(pki < len(pkpc) && charat(pkpc, pki) != 32 && charat(pkpc, pki) != 62 && charat(pkpc, pki) != 47) {
+    pki = pki + 1;
+  }
+  string pkr = str_slice(pkpc, 0, pki);
+} chain (string[] pkns, string pkpc) {
+  if(len(pkr) > 0) {
+    push(pkns, pkr);
+  }
+} return void;
+(["x"], "office:text a=\"b\">x"):(["x", "office:text"], "office:text a=\"b\">x")
+(["x"], "/office:text>"):(["x"], "/office:text>")
+
+// Test fixture (internal): the element names of a list of pieces of text, in order.
+odp_t_elems(string[] pkpcs) {
+  string[] pkns = [];
+  int pki = 0;
+  while(pki < len(pkpcs)) {
+    odp_t_cut2(pkns, pkpcs[pki]);
+    pki = pki + 1;
+  }
+} chain (string[] pkpcs) {
+  string pkr = str_join(pkns, " ");
+} return string pkr;
+(["", "a b", "/a>", "c>"]):("a c")
+([]):("")
+
+// Test fixture (internal): the names of the elements opened in what has been written to the exported writer so far, in order and separated by spaces.
+odp_t_tags() {
+  XmlW pkw = (import odp_t_w);
+  string[] pkpcs = str_split(exec_text(pkw.out), "<");
+  string pkr = odp_t_elems(pkpcs);
+} return string pkr;
+given odp_t_new ():("r")
+given odp_t_new given xw_start((import odp_t_w), "a") given xw_end((import odp_t_w)) ():("r a")

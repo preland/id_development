@@ -1,0 +1,38 @@
+// The page orientation attribute: portrait unless the orientation is 1.
+odp_orient(XmlW pkw, int pkor) {
+  string pkval = "portrait";
+  if(pkor == 1) {
+    pkval = "landscape";
+  }
+  xw_attr(pkw, "style:print-orientation", pkval);
+} return void;
+given odp_t_new ((import odp_t_w), 1):() then odp_t_xml:("<r style:print-orientation=\"landscape\"")
+given odp_t_new ((import odp_t_w), 0):() then odp_t_xml:("<r style:print-orientation=\"portrait\"")
+
+// The style:page-layout-properties element: size, orientation and the four margins of the page, each length only when it is set.
+odp_gprops(XmlW pkw, Page pkpg) {
+  xw_start(pkw, "style:page-layout-properties");
+  oc_a_len(pkw, "fo:page-width", pkpg.size[(import word_g_w)]);
+  oc_a_len(pkw, "fo:page-height", pkpg.size[(import word_g_h)]);
+} chain (XmlW pkw, Page pkpg) {
+  odp_orient(pkw, pkpg.size[(import word_g_orient)]);
+  oc_a_len(pkw, "fo:margin-top", pkpg.margin[(import word_g_top)]);
+  oc_a_len(pkw, "fo:margin-bottom", pkpg.margin[(import word_g_bottom)]);
+} chain (XmlW pkw, Page pkpg) {
+  oc_a_len(pkw, "fo:margin-left", pkpg.margin[(import word_g_left)]);
+  oc_a_len(pkw, "fo:margin-right", pkpg.margin[(import word_g_right)]);
+  xw_end(pkw);
+} return void;
+given odp_t_new ((import odp_t_w), Page([11906, 16838, 0], [1440, 1440, 1440, 1440], [0, 0, 0])):() then odp_t_xml:("<r><style:page-layout-properties fo:page-width=\"8.2681in\" fo:page-height=\"11.6931in\" style:print-orientation=\"portrait\" fo:margin-top=\"1.0000in\" fo:margin-bottom=\"1.0000in\" fo:margin-left=\"1.0000in\" fo:margin-right=\"1.0000in\"/>")
+given odp_t_new ((import odp_t_w), Page([15840, 12240, 1], [720, 1080, 360, 1440], [0, 0, 0])):() then odp_t_xml:("<r><style:page-layout-properties fo:page-width=\"11.0000in\" fo:page-height=\"8.5000in\" style:print-orientation=\"landscape\" fo:margin-top=\"0.5000in\" fo:margin-bottom=\"0.2500in\" fo:margin-left=\"1.0000in\" fo:margin-right=\"0.7500in\"/>")
+
+// The style:page-layout the master page uses, with the size, orientation and margins of the document's page.
+odp_layout(XmlW pkw, Page pkpg) {
+  xw_start(pkw, "style:page-layout");
+  xw_attr(pkw, "style:name", (import odp_layout_name));
+  odp_gprops(pkw, pkpg);
+} chain (XmlW pkw, Page pkpg) {
+  xw_end(pkw);
+} return void;
+given odp_t_new ((import odp_t_w), Page([100, 200, 0], [0, 0, 0, 0], [0, 0, 0])):() then odp_t_xml:("<r><style:page-layout style:name=\"pm1\"><style:page-layout-properties fo:page-width=\"0.0694in\" fo:page-height=\"0.1389in\" style:print-orientation=\"portrait\" fo:margin-top=\"0.0000in\" fo:margin-bottom=\"0.0000in\" fo:margin-left=\"0.0000in\" fo:margin-right=\"0.0000in\"/></style:page-layout>")
+given odp_t_new ((import odp_t_w), Page([1440, 1440, 1], [-1, -1, -1, -1], [0, 0, 0])):() then odp_t_xml:("<r><style:page-layout style:name=\"pm1\"><style:page-layout-properties fo:page-width=\"1.0000in\" fo:page-height=\"1.0000in\" style:print-orientation=\"landscape\"/></style:page-layout>")

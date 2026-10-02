@@ -1,0 +1,19 @@
+// Adds a preserved part as a stored entry when it is kept, with its bytes exactly as they were read.
+odp_part(ZipW pkz, Part pkpt) {
+  if(odp_keep(pkpt) == 1) {
+    zw_add(pkz, pkpt.name, pkpt.bytes, 0);
+  }
+} return void;
+given odp_t_new ((import odp_t_z), Part("Pictures/a.png", [137, 0, 255], 1)):() then odp_t_names:(",Pictures/a.png")
+given odp_t_new ((import odp_t_z), Part("Pictures/a.png", [137, 0, 255], 0)):() then odp_t_names:("")
+
+// Adds every kept part of the document, in order.
+odp_parts(ZipW pkz, Ext pkx) {
+  int pki = 0;
+  while(pki < len(pkx.parts)) {
+    odp_part(pkz, pkx.parts[pki]);
+    pki = pki + 1;
+  }
+} return void;
+given odp_t_new ((import odp_t_z), Ext(["f"], [], [Part("a/", [], 1), Part("b.png", [1], 1)])):() then odp_t_names:(",a/,b.png")
+given odp_t_new ((import odp_t_z), Ext(["f"], [], [])):() then odp_t_names:("")

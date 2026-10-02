@@ -1,0 +1,39 @@
+// The text of a font family value without the quotes ODT wraps around a name with a space: 'Liberation Sans' is Liberation Sans.
+ost_unquote(string os_sv) {
+  string os_su = os_sv;
+  int os_ic = charat(os_sv, 0);
+  int os_in = len(os_sv) - 2;
+} chain (string os_sv) {
+  if((os_ic == 39 || os_ic == 34) && os_in >= 0) {
+    os_su = str_slice(os_sv, 1, os_in);
+  }
+} return string os_su;
+("'Liberation Sans'"):("Liberation Sans")
+("FreeSans"):("FreeSans")
+("\"A\""):("A")
+
+// The font family a text-properties element names: style:font-name (a face declared in font-face-decls, resolved later) or else fo:font-family; "" when neither.
+ost_cfont(XmlR os_r) {
+  string os_sf = xr_attr(os_r, "style:font-name");
+  string os_sg = xr_attr(os_r, "fo:font-family");
+  if(os_sf == "") {
+    os_sf = ost_unquote(os_sg);
+  }
+} return string os_sf;
+given ost_t_open("<p style:font-name=\"Liberation Serif\" fo:font-family=\"x\"/>") given ost_t_steps(1) ((import ost_t_r)):("Liberation Serif")
+given ost_t_open("<p fo:font-family=\"'Liberation Sans'\"/>") given ost_t_steps(1) ((import ost_t_r)):("Liberation Sans")
+given ost_t_open("<p/>") given ost_t_steps(1) ((import ost_t_r)):("")
+
+// Reads every attribute ost_cattr lists off the current element into a character row.
+ost_ctext(int[] os_lcrow, XmlR os_r) {
+  int os_ik = 0;
+  while(os_ik < len((import ost_cattr))) {
+    string os_sv = xr_attr(os_r, (import ost_cattr)[os_ik]);
+    if(os_sv != "") {
+      ost_cset(os_lcrow, os_ik, os_sv);
+    }
+    os_ik = os_ik + 1;
+  }
+} return void;
+given ost_t_open("<p fo:font-weight=\"bold\" fo:color=\"#0000ff\" fo:font-size=\"18pt\"/>") given ost_t_steps(1) ([0, -1, -1, -1, -1, 0, 0], (import ost_t_r)):([0, -1, 36, 255, -1, 1, 1], (import ost_t_r))
+given ost_t_open("<p style:text-underline-style=\"solid\" fo:font-style=\"italic\"/>") given ost_t_steps(1) ([0, -1, -1, -1, -1, 0, 0], (import ost_t_r)):([0, -1, -1, -1, -1, 6, 6], (import ost_t_r))

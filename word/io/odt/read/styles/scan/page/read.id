@@ -1,0 +1,33 @@
+// An empty table of page layouts.
+ost_pg_new() {
+  string[] os_lnames = [];
+  int[][] os_lvals = [];
+  string[] os_lmast = [];
+} chain () {
+  PgTab os_pg = PgTab(os_lnames, os_lvals, os_lmast);
+} return PgTab os_pg;
+():(PgTab([], [], []))
+given ost_t_pgone ():(PgTab([], [], []))
+
+// Reads the width, height and four margins of the style:page-layout-properties element the reader is at into a layout's ints; an attribute that is absent or unreadable leaves its int as it was.
+ost_pg_dims(int[] os_lpg, XmlR os_r) {
+  int os_ik = 0;
+  while(os_ik < len((import ost_gattr))) {
+    string os_sv = xr_attr(os_r, (import ost_gattr)[os_ik]);
+    ost_pg_set(os_lpg, os_ik, os_sv);
+    os_ik = os_ik + 1;
+  }
+} return void;
+given ost_t_open("<p fo:page-width=\"8.5in\" fo:page-height=\"11in\" fo:margin-left=\"2cm\"/>") given ost_t_steps(1) ([0, 0, 0, 1, 1, 1, 1], (import ost_t_r)):([12240, 15840, 0, 1, 1, 1, 1134], (import ost_t_r))
+given ost_t_open("<p fo:page-width=\"wide\" fo:margin-top=\"1in\"/>") given ost_t_steps(1) ([5, 6, 0, 1, 1, 1, 1], (import ost_t_r)):([5, 6, 0, 1440, 1, 1, 1], (import ost_t_r))
+
+// Sets one int of a layout from the text of its attribute: a length in twips, and nothing for "" or an unreadable value or the orientation slot (2).
+ost_pg_set(int[] os_lpg, int os_ik, string os_sv) {
+  int os_itw = ost_len(os_sv);
+  if(os_sv != "" && os_itw != (import ost_bad) && os_ik != 2) {
+    os_lpg[os_ik] = os_itw;
+  }
+} return void;
+([1, 2, 3, 4, 5, 6, 7], 0, "1in"):([1440, 2, 3, 4, 5, 6, 7], 0, "1in")
+([1, 2, 3, 4, 5, 6, 7], 2, "1in"):([1, 2, 3, 4, 5, 6, 7], 2, "1in")
+([1, 2, 3, 4, 5, 6, 7], 6, "bad"):([1, 2, 3, 4, 5, 6, 7], 6, "bad")

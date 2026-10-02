@@ -1,0 +1,34 @@
+// One hex digit folded into a colour under construction; -1 stays -1 and a value that is not a digit makes it -1.
+ost_hexacc(int os_icol, int os_iv) {
+  int os_iout = os_icol * 16 + os_iv;
+  if(os_icol < 0 || os_iv < 0) {
+    os_iout = 0 - 1;
+  }
+} return int os_iout;
+(255, 10):(4090)
+(255, -1):(-1)
+(-1, 5):(-1)
+
+// The six hex digits of os_ss from index 1 as a number, -1 when one of them is not a hex digit.
+ost_hex6(string os_ss) {
+  int os_icol = 0;
+  int i = 1;
+  while(i < 7) {
+    int os_iv = ost_hexval(charat(os_ss, i));
+    os_icol = ost_hexacc(os_icol, os_iv);
+    i = i + 1;
+  }
+} return int os_icol;
+("#ff0000"):(16711680)
+("#12345g"):(-1)
+
+// "#rrggbb" as 0xRRGGBB, or -1 for anything else ("transparent", a name, a short form).
+ost_color(string os_ss) {
+  int os_icol = 0 - 1;
+  if(len(os_ss) == 7 && charat(os_ss, 0) == 35) {
+    os_icol = ost_hex6(os_ss);
+  }
+} return int os_icol;
+("#00aa00"):(43520)
+("transparent"):(-1)
+("#0000ff"):(255)

@@ -1,0 +1,32 @@
+// The id of a record's name: its paragraph row for a paragraph style, its character row for a text style.
+ost_key_id(Doc os_d, StyBag os_b, string[] os_lface, int[] os_lidx, int os_i) {
+  int os_iid = ost_key_tid(os_d, os_b, os_lface, os_lidx, os_i);
+  if(os_b.strings[os_i * (import ost_s_width) + (import ost_s_fam)] == "p") {
+    os_iid = ost_key_pid(os_d, os_b, os_lidx, os_i);
+  }
+} return int os_iid;
+given ost_t_doc given ost_t_scan("<a><style:style style:name=\"Standard\" style:family=\"paragraph\"/></a>") given ost_t_reg ((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 0):(0)
+given ost_t_doc given ost_t_scan("<a><style:style style:name=\"Strong\" style:family=\"text\"/></a>") given ost_t_reg ((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 0):(8)
+
+// The character row an automatic paragraph style's own text properties amount to, interned; -1 for any other style and for one whose text properties set nothing.
+ost_key_over(Doc os_d, StyBag os_b, string[] os_lface, int os_i) {
+  int os_iov = 0 - 1;
+  int[] os_lrow = ost_rowc(os_d, os_b, os_lface, os_i, 0);
+  string os_sfk = os_b.strings[os_i * (import ost_s_width) + (import ost_s_fam)] + os_b.strings[os_i * (import ost_s_width) + (import ost_s_kind)];
+} chain (Doc os_d, StyBag os_b, string[] os_lface, int os_i) {
+  if(os_sfk == "pa" && ost_hasc(os_lrow) == 1) {
+    os_iov = tab_intern(os_d.fmt.chars, os_lrow);
+  }
+} return int os_iov;
+given ost_t_doc given ost_t_scan("<a><office:automatic-styles><style:style style:name=\"P1\" style:family=\"paragraph\"><style:text-properties fo:font-weight=\"bold\"/></style:style></office:automatic-styles></a>") ((import ost_t_d), (import ost_t_b), [], 0):(8)
+given ost_t_doc given ost_t_scan("<a><office:automatic-styles><style:style style:name=\"P1\" style:family=\"paragraph\"/></office:automatic-styles></a>") ((import ost_t_d), (import ost_t_b), [], 0):(-1)
+given ost_t_doc given ost_t_scan("<a><style:style style:name=\"P1\" style:family=\"paragraph\"><style:text-properties fo:font-weight=\"bold\"/></style:style></a>") ((import ost_t_d), (import ost_t_b), [], 0):(-1)
+
+// "p:" or "t:" followed by the name of record os_i: the key its name is looked up by.
+ost_key_name(StyBag os_b, int os_i) {
+  string os_sfam = os_b.strings[os_i * (import ost_s_width) + (import ost_s_fam)];
+  string os_sname = os_b.strings[os_i * (import ost_s_width) + (import ost_s_name)];
+  string os_skey = os_sfam + ":" + os_sname;
+} return string os_skey;
+(StyBag(["Heading_20_1", "", "", "", "", "", "p", "n"], [[]], [[]]), 0):("p:Heading_20_1")
+(StyBag(["T1", "", "", "", "", "", "t", "a"], [[]], [[]]), 0):("t:T1")

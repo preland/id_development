@@ -1,0 +1,42 @@
+// The code point a dump shows for os_icp: every private-use code point (U+E000 to U+F8FF, and word_o_marker up to U+FFFFD, the plane the readers keep inline objects in) shows as U+E000, and a cell that is not a valid code point shows as U+FFFD.
+ndump_cp(int os_icp) {
+  int os_ishown = os_icp;
+  if((os_icp >= 57344 && os_icp <= 63743) || (os_icp >= (import word_o_marker) && os_icp <= 1048573)) {
+    os_ishown = 57344;
+  }
+  if(os_icp <= 0 || os_icp > 1114111) {
+    os_ishown = 65533;
+  }
+} return int os_ishown;
+(97):(97)
+(57349):(57344)
+(63743):(57344)
+(63744):(63744)
+(983041):(57344)
+(1048574):(1048574)
+(0):(65533)
+
+// The code points os_lcps[os_ilo..os_ihi) as a UTF-8 string, as ndump_cp shows them.
+ndump_str(int[] os_lcps, int os_ilo, int os_ihi) {
+  string os_sout = "";
+  int i = os_ilo;
+  while(i < os_ihi) {
+    os_sout = os_sout + utf8_str(ndump_cp(os_lcps[i]));
+    i = i + 1;
+  }
+} return string os_sout;
+([104, 105, 233, 57345], 0, 4):("hié\uE000")
+([57345], 0, 1):("\uE000")
+([104, 105, 233], 1, 2):("i")
+([], 0, 0):("")
+
+// A value as a dump prints it: its number, or "-" for -1, which every unset field is.
+ndump_num(int os_in) {
+  string os_sout = "" + os_in;
+  if(os_in == 0 - 1) {
+    os_sout = "-";
+  }
+} return string os_sout;
+(24):("24")
+(-1):("-")
+(0):("0")

@@ -1,0 +1,37 @@
+// One manifest:file-entry: the path in the archive, its media type and, for the package root only, the manifest version.
+odp_entry(XmlW pkw, string pkpath, string pktype, string pkver) {
+  xw_start(pkw, "manifest:file-entry");
+  xw_attr(pkw, "manifest:full-path", pkpath);
+  if(len(pkver) > 0) {
+    xw_attr(pkw, "manifest:version", pkver);
+  }
+} chain (XmlW pkw, string pkpath, string pktype, string pkver) {
+  xw_attr(pkw, "manifest:media-type", pktype);
+  xw_end(pkw);
+} return void;
+given odp_t_new ((import odp_t_w), "a.png", "image/png", ""):() then odp_t_xml:("<r><manifest:file-entry manifest:full-path=\"a.png\" manifest:media-type=\"image/png\"/>")
+given odp_t_new ((import odp_t_w), "/", "t", "1.3"):() then odp_t_xml:("<r><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.3\" manifest:media-type=\"t\"/>")
+
+// One file-entry for each name, with the media type at the same position.
+odp_entries(XmlW pkw, string[] pknames, string[] pktypes) {
+  int pki = 0;
+  while(pki < len(pknames)) {
+    odp_entry(pkw, pknames[pki], pktypes[pki], "");
+    pki = pki + 1;
+  }
+} return void;
+given odp_t_new ((import odp_t_w), ["a", "b"], ["x", "y"]):() then odp_t_xml:("<r><manifest:file-entry manifest:full-path=\"a\" manifest:media-type=\"x\"/><manifest:file-entry manifest:full-path=\"b\" manifest:media-type=\"y\"/>")
+given odp_t_new ((import odp_t_w), [], []):() then odp_t_xml:("<r")
+
+// META-INF/manifest.xml: the package root, then one entry for each name. The mimetype entry and the manifest itself are not listed, as in every file LibreOffice writes.
+odp_manifest(XmlW pkw, string[] pknames, string[] pktypes) {
+  xw_start(pkw, "manifest:manifest");
+  xw_attr(pkw, "xmlns:manifest", "urn:oasis:names:tc:opendocument:xmlns:manifest:1.0");
+  xw_attr(pkw, "manifest:version", (import odp_version));
+} chain (XmlW pkw, string[] pknames, string[] pktypes) {
+  odp_entry(pkw, "/", (import odp_mime), (import odp_version));
+  odp_entries(pkw, pknames, pktypes);
+  xw_end(pkw);
+} return void;
+given odp_t_new ((import odp_t_w), ["content.xml"], ["text/xml"]):() then odp_t_xml:("<r><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.3\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.3\" manifest:media-type=\"application/vnd.oasis.opendocument.text\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>")
+given odp_t_new ((import odp_t_w), [], []):() then odp_t_xml:("<r><manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\" manifest:version=\"1.3\"><manifest:file-entry manifest:full-path=\"/\" manifest:version=\"1.3\" manifest:media-type=\"application/vnd.oasis.opendocument.text\"/></manifest:manifest>")

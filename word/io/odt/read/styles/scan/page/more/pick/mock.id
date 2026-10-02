@@ -1,0 +1,32 @@
+// Test fixture: a table with one layout, "L", and no master page, kept in an export.
+ost_t_pgone() {
+  PgTab os_pg = ost_pg_new();
+  push(os_pg.names, "L");
+  push(os_pg.vals, lst_copy((import ost_pgdef)));
+} chain () {
+  export PgTab ost_t_pg = os_pg;
+} return void;
+():() then ost_t_vals:([11906, 16838, 0, 1440, 1440, 1440, 1440])
+given ost_t_pgone ():() then ost_t_masters:([])
+
+// Test fixture: the ints of every layout of the fixture table, one after the other.
+ost_t_vals() {
+  PgTab os_pg = (import ost_t_pg);
+  int[] os_lall = [];
+  int os_il = 0;
+} chain () {
+  while(os_il < len(os_pg.vals)) {
+    lst_extend(os_lall, os_pg.vals[os_il]);
+    os_il = os_il + 1;
+  }
+} return int[] os_lall;
+given ost_t_pgone ():([11906, 16838, 0, 1440, 1440, 1440, 1440])
+given ost_t_pgone given ost_t_pgone ():([11906, 16838, 0, 1440, 1440, 1440, 1440])
+
+// Test fixture: the master page pairs of the fixture table.
+ost_t_masters() {
+  PgTab os_pg = (import ost_t_pg);
+  string[] os_lmast = os_pg.masters;
+} return string[] os_lmast;
+given ost_t_pgone ():([])
+given ost_t_pgone given ost_t_open("<style:master-page style:name=\"A\" style:page-layout-name=\"B\"/>") given ost_t_steps(1) given ost_pg_master((import ost_t_pg), (import ost_t_r)) ():(["A", "B"])

@@ -1,0 +1,32 @@
+// The character row for the text style called os_sname (a span's style), 0 (nothing set) when the name is "" or not defined.
+ost_text(OdtSty os_k, string os_sname) {
+  int os_ik = ost_key(os_k, "t:" + os_sname);
+  int os_ic = 0;
+  if(os_ik >= 0) {
+    os_ic = os_k.ids[os_ik];
+  }
+} return int os_ic;
+(OdtSty(["t:T1"], [6], [-1]), "T1"):(6)
+(OdtSty(["t:T1"], [6], [-1]), "T2"):(0)
+
+// The list definition called os_sname (a text:list's style), 0 (no list) when the name is "" or not defined.
+ost_list(OdtSty os_k, string os_sname) {
+  int os_ik = ost_key(os_k, "l:" + os_sname);
+  int os_il = 0;
+  if(os_ik >= 0) {
+    os_il = os_k.ids[os_ik];
+  }
+} return int os_il;
+(OdtSty(["l:L1"], [3], [-1]), "L1"):(3)
+(OdtSty(["l:L1"], [3], [-1]), ""):(0)
+
+// An empty lookup, to be filled by ost_load.
+ost_new() {
+  string[] os_lkeys = [];
+  int[] os_lids = [];
+  int[] os_lover = [];
+} chain () {
+  OdtSty os_k = OdtSty(os_lkeys, os_lids, os_lover);
+} return OdtSty os_k;
+():(OdtSty([], [], []))
+given ost_t_doc ():(OdtSty([], [], []))

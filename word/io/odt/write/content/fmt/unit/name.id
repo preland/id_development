@@ -1,0 +1,42 @@
+// The name a style has in the file: the ODT name of a built-in style ("Standard" for Normal), otherwise its name with each space written as _20_ as ODF does.
+oc_wire(Doc oc_d, int oc_sid) {
+  string oc_nm = oc_d.fmt.sty.styles[oc_sid].name;
+  string[] oc_parts = str_split(oc_nm, " ");
+  string oc_wr = str_join(oc_parts, "_20_");
+} chain (Doc oc_d, int oc_sid) {
+  int oc_k = lst_str_index((import word_style_names), oc_nm);
+  if(oc_k >= 0) {
+    oc_wr = (import word_style_wire)[oc_k];
+  }
+} return string oc_wr;
+(Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("My Style", [0, 0, 0], [0, 0])], [], 0)), Ext([], [], [])), 0):("Standard")
+(Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("My Style", [0, 0, 0], [0, 0])], [], 0)), Ext([], [], [])), 1):("My_20_Style")
+(Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), Ext([], [], [])), 1):("Heading_20_1")
+
+// The outline level of a heading style, 0 for any other style: the number after "Heading_20_" in its file name.
+oc_level(Doc oc_d, int oc_sid) {
+  string oc_wr = oc_wire(oc_d, oc_sid);
+  int oc_lv = 0;
+  if(str_starts(oc_wr, "Heading_20_") == 1) {
+    string oc_dg = str_slice(oc_wr, 11, len(oc_wr) - 11);
+    oc_lv = to_int(oc_dg);
+  }
+} return int oc_lv;
+(Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 2", [0, 0, 0], [0, 0])], [], 0)), Ext([], [], [])), 1):(2)
+(Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 2", [0, 0, 0], [0, 0])], [], 0)), Ext([], [], [])), 0):(0)
+
+// The style-name a paragraph's element carries: its automatic style P<row> when the row sets paragraph properties, else its named style, else nothing.
+oc_pname(Doc oc_d, int oc_pid) {
+  string oc_nm = "";
+  int oc_pl = oc_plain_p(oc_d.fmt.paras, oc_pid);
+  int oc_sid = tab_get(oc_d.fmt.paras, oc_pid, (import word_p_style));
+} chain (Doc oc_d, int oc_pid) {
+  if(oc_pl == 0) {
+    oc_nm = "WP" + oc_pid;
+  } else if(oc_sid > 0) {
+    oc_nm = oc_wire(oc_d, oc_sid);
+  }
+} return string oc_nm;
+(Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), Ext([], [], [])), 0):("")
+(Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), Ext([], [], [])), 1):("Heading_20_1")
+(Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), Ext([], [], [])), 2):("WP2")

@@ -1,0 +1,35 @@
+// What one event of a document adds to the face list (pairs of declared name and family): a style:font-face adds its pair. Answers 1 to go on and 0 once the body begins.
+ost_face_one(string[] os_lface, XmlR os_r, int os_iev) {
+  string os_sname = xr_name(os_r);
+  int os_igo = 1;
+  if(os_sname == "style:font-face" && os_iev != 2) {
+    ost_face_add(os_lface, os_r);
+  }
+} chain (string[] os_lface, XmlR os_r, int os_iev) {
+  if(os_sname == "office:body") {
+    os_igo = 0;
+  }
+} return int os_igo;
+given ost_t_open("<style:font-face style:name=\"A\" svg:font-family=\"B\"/>") given ost_t_steps(1) ([], (import ost_t_r), 4):(1) 
+given ost_t_open("<office:body/>") given ost_t_steps(1) ([], (import ost_t_r), 1):(0)
+
+// Adds the style:font-face the reader is at to the face list: the name it is declared by and its family, without quotes.
+ost_face_add(string[] os_lface, XmlR os_r) {
+  string os_sname = xr_attr(os_r, "style:name");
+  string os_sfam = ost_unquote(xr_attr(os_r, "svg:font-family"));
+  lst_str_extend(os_lface, [os_sname, os_sfam]);
+} return void;
+given ost_t_open("<style:font-face style:name=\"Liberation Serif1\" svg:font-family=\"&apos;Liberation Serif&apos;\"/>") given ost_t_steps(1) ([], (import ost_t_r)):(["Liberation Serif1", "Liberation Serif"], (import ost_t_r))
+given ost_t_open("<style:font-face style:name=\"FreeSans\" svg:font-family=\"FreeSans\"/>") given ost_t_steps(1) (["A", "B"], (import ost_t_r)):(["A", "B", "FreeSans", "FreeSans"], (import ost_t_r))
+
+// Reads every font face a styles or content document declares into the face list, up to the body.
+ost_faces(string[] os_lface, XmlR os_r) {
+  int os_iev = xr_next(os_r);
+  int os_igo = 1;
+  while(os_iev > 0 && os_igo == 1) {
+    os_igo = ost_face_one(os_lface, os_r, os_iev);
+    os_iev = xr_next(os_r);
+  }
+} return void;
+given ost_t_open("<a><office:font-face-decls><style:font-face style:name=\"A\" svg:font-family=\"'B C'\"/></office:font-face-decls><office:body/><style:font-face style:name=\"Z\" svg:font-family=\"Z\"/></a>") ([], (import ost_t_r)):(["A", "B C"], (import ost_t_r))
+given ost_t_open("<a/>") (["X", "Y"], (import ost_t_r)):(["X", "Y"], (import ost_t_r))

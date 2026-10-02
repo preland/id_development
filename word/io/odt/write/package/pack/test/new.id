@@ -1,0 +1,31 @@
+// Test fixture (internal): a writer with a root element open, a default document with its formats and references, and an empty archive, all exported, so a case can hand them to a function and then read what it wrote.
+odp_t_new() {
+  Doc pkd = doc_new();
+  XmlW pkw = xw_new();
+  xw_start(pkw, "r");
+} chain () {
+  export XmlW odp_t_w = pkw;
+  export Doc odp_t_d = pkd;
+  export Fmt odp_t_f = pkd.fmt;
+} chain () {
+  export Ext odp_t_x = pkd.ext;
+  export ZipW odp_t_z = zw_new();
+} return void;
+():() then odp_t_xml:("<r")
+():() then odp_t_names:("")
+
+// Test fixture (internal): what has been written to the exported writer so far.
+odp_t_xml() {
+  XmlW pkw = (import odp_t_w);
+  string pkr = exec_text(pkw.out);
+} return string pkr;
+given odp_t_new ():("<r")
+given odp_t_new given xw_attr((import odp_t_w), "a", "b") ():("<r a=\"b\"")
+
+// Test fixture (internal): the names of the exported archive's entries, comma separated, the empty first one being its error slot.
+odp_t_names() {
+  ZipW pkz = (import odp_t_z);
+  string pkr = str_join(pkz.names, ",");
+} return string pkr;
+given odp_t_new ():("")
+given odp_t_new given zw_mimetype((import odp_t_z), "x") ():(",mimetype")

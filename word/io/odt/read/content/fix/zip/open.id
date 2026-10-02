@@ -1,0 +1,24 @@
+// Test fixture: the archive of orc_tz opened as a Zip, kept in the export orc_tzo.
+orc_t_zopen() {
+  export Zip orc_tzo = zr_open((import orc_tz));
+} return void;
+given orc_t_zip("<a/>", "") ():() then orc_t_zn:(2)
+given orc_t_zip("<a/>", "x") ():() then orc_t_zn:(3)
+
+// Test fixture: writes the archive of orc_tz to a scratch file, orc_tp, which the case removes with `then orc_t_gone`.
+orc_t_save() {
+  orc_t_file("");
+  int h = fs_open((import orc_tp), "w");
+  int n = fs_write(h, (import orc_tz), len((import orc_tz)));
+} chain () {
+  int c = fs_close(h);
+} return void;
+given orc_t_zip("<a/>", "") ():() then orc_t_gone:(0)
+given orc_t_zip("<a/>", "x") ():() then orc_t_gone:(0)
+
+// Test fixture: flips the low bit of byte at of the archive of orc_tz, which breaks the CRC of the entry that byte is in.
+orc_t_flip(int at) {
+  lset((import orc_tz), at, (import orc_tz)[at] ^ 1);
+} return void;
+given orc_t_zip("<a/>", "") (41):() then orc_t_crc:(0)
+given orc_t_zip("<a/>", "") (89):() then orc_t_crc:(1)

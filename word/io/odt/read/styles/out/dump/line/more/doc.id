@@ -1,0 +1,40 @@
+// The run records of a paragraph: its runs merged where their printed properties are equal, each on a line after a line feed; "" for an empty paragraph.
+ndump_runs(Doc os_d, Para os_p) {
+  int os_ipstyle = fx_max(tab_get(os_d.fmt.paras, os_p.pprop, (import word_p_style)), 0);
+  string[] os_lsig = [];
+  int[] os_lends = [];
+} chain (Doc os_d, Para os_p) {
+  int i = 0;
+  while(i < len(os_p.txt.runs)) {
+    ndump_take(os_d, os_ipstyle, os_p.txt.runs[i], os_lsig, os_lends);
+    i = i + 1;
+  }
+  string os_sout = ndump_lines(os_p.txt.cps, os_lsig, os_lends);
+} return string os_sout;
+given ost_t_doc ((import ost_t_d), Para(Text([104, 105, 33], [Run(2, 0, -1), Run(1, 0, -1)], 0), Lay([], [], -1), 0)):("\nrun b=0 i=0 u=0 s=0 sup=0 sub=0 size=24 color=- hl=- link=- font=\"serif\" text=\"hi!\"")
+given ost_t_doc ((import ost_t_d), Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 0)):("")
+
+// A paragraph's records: its head, then its runs, unless it is an opaque block (which has no runs in a dump).
+ndump_para(Doc os_d, int os_i) {
+  Para os_p = os_d.body.paras[os_i];
+  string os_sout = ndump_phead(os_d, os_p, os_i);
+  if(tab_get(os_d.fmt.paras, os_p.pprop, (import word_p_kind)) == 0) {
+    os_sout = os_sout + ndump_runs(os_d, os_p);
+  }
+} return string os_sout;
+given ost_t_doc ((import ost_t_d), 0):("para 0 style=\"Normal\" align=0 left=0 right=0 first=0 before=0 after=120 line=100 brk=0 level=0 list=-")
+(Doc(Body([Para(Text([104, 105], [Run(2, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, 24, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0):("para 0 style=\"N\" align=- left=- right=- first=- before=- after=- line=- brk=0 level=0 list=-\nrun b=0 i=0 u=0 s=0 sup=0 sub=0 size=24 color=- hl=- link=- font=\"F\" text=\"hi\"")
+
+// The normalised dump of a document, as docs/WORD.md 4.9 defines it: the page record, then every paragraph's records, each line ending in a line feed. Two documents with the same text and the same effective formatting dump identically however their rows and styles are numbered.
+ndump_doc(Doc os_d) {
+  string os_sout = ndump_page(os_d.body.page);
+  int i = 0;
+  while(i < len(os_d.body.paras)) {
+    os_sout = os_sout + "\n" + ndump_para(os_d, i);
+    i = i + 1;
+  }
+} chain (Doc os_d) {
+  os_sout = os_sout + "\n";
+} return string os_sout;
+given ost_t_doc ((import ost_t_d)):("page w=11906 h=16838 orient=0 top=1440 right=1440 bottom=1440 left=1440\npara 0 style=\"Normal\" align=0 left=0 right=0 first=0 before=0 after=120 line=100 brk=0 level=0 list=-\n")
+(Doc(Body([Para(Text([104], [Run(1, 1, -1)], 0), Lay([], [], -1), 0), Para(Text([91, 84, 93], [Run(3, 0, -1)], 0), Lay([], [], -1), 1)], Page([100, 200, 1], [5, 6, 7, 8], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, 24, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 1], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], []))):("page w=100 h=200 orient=1 top=5 right=6 bottom=7 left=8\npara 0 style=\"N\" align=- left=- right=- first=- before=- after=- line=- brk=0 level=0 list=-\nrun b=0 i=0 u=0 s=0 sup=0 sub=0 size=24 color=- hl=- link=- font=\"F\" text=\"h\"\npara 1 opaque\n")

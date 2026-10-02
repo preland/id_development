@@ -1,0 +1,22 @@
+// Adds an entry "l:" and the list's name for every list definition that has a name, with its index as the id.
+ost_key_lists(Fmt os_f, OdtSty os_k) {
+  int i = 1;
+  while(i < len(os_f.sty.lists)) {
+    ost_key_list(os_f, os_k, i);
+    i = i + 1;
+  }
+} return void;
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("L1", [], 0), ListDef("", [], 1)], 0)), OdtSty([], [], [])):(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("L1", [], 0), ListDef("", [], 1)], 0)), OdtSty(["l:L1"], [1], [-1]))
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0)], 0)), OdtSty([], [], [])):(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0)], 0)), OdtSty([], [], []))
+
+// Adds the entry of list definition os_il, when it has a name.
+ost_key_list(Fmt os_f, OdtSty os_k, int os_il) {
+  string os_sname = os_f.sty.lists[os_il].name;
+  if(os_sname != "") {
+    push(os_k.keys, "l:" + os_sname);
+    push(os_k.ids, os_il);
+    push(os_k.over, 0 - 1);
+  }
+} return void;
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("L2", [], 0)], 0)), OdtSty([], [], []), 1):(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("L2", [], 0)], 0)), OdtSty(["l:L2"], [1], [-1]), 1)
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("", [], 0)], 0)), OdtSty([], [], []), 1):(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("", [], 0)], 0)), OdtSty([], [], []), 1)

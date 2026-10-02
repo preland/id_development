@@ -1,0 +1,41 @@
+// os_i when record os_i of the bag has this name, family ("p" or "t") and kind ("n" named, "a" automatic, "d" default), else -1.
+ost_rec_is(StyBag os_b, int os_i, string os_sname, string os_sfam, string os_skind) {
+  int os_ires = 0 - 1;
+  int os_ib = os_i * (import ost_s_width);
+  string[] os_lss = os_b.strings;
+} chain (StyBag os_b, int os_i, string os_sname, string os_sfam, string os_skind) {
+  if(os_lss[os_ib + (import ost_s_name)] == os_sname && os_lss[os_ib + (import ost_s_fam)] == os_sfam && os_lss[os_ib + (import ost_s_kind)] == os_skind) {
+    os_ires = os_i;
+  }
+} return int os_ires;
+(StyBag(["A", "", "", "", "", "", "p", "n"], [[]], [[]]), 0, "A", "p", "n"):(0)
+(StyBag(["A", "", "", "", "", "", "p", "n"], [[]], [[]]), 0, "A", "t", "n"):(-1)
+(StyBag(["A", "", "", "", "", "", "p", "n"], [[]], [[]]), 0, "A", "p", "a"):(-1)
+
+// The record of the bag called os_sname in family os_sfam and kind os_skind, -1 when there is none; the last of several wins, as a content document's styles override a styles document's.
+ost_rec_find(StyBag os_b, string os_sname, string os_sfam, string os_skind) {
+  int os_ires = 0 - 1;
+  int i = ost_bag_n(os_b) - 1;
+  while(i >= 0 && os_ires < 0) {
+    os_ires = ost_rec_is(os_b, i, os_sname, os_sfam, os_skind);
+    i = i - 1;
+  }
+} return int os_ires;
+(StyBag(["A", "", "", "", "", "", "p", "n", "A", "", "", "", "", "", "p", "n"], [[], []], [[], []]), "A", "p", "n"):(1)
+(StyBag(["A", "", "", "", "", "", "p", "n"], [[]], [[]]), "B", "p", "n"):(-1)
+(StyBag(["", "", "", "", "", "", "p", "d"], [[]], [[]]), "", "p", "d"):(0)
+
+// The record of the named style a record names as its parent, in its own family; -1 when it names none or the document does not define it.
+ost_par(StyBag os_b, int os_i) {
+  int os_ip = 0 - 1;
+  string os_sparent = os_b.strings[os_i * (import ost_s_width) + (import ost_s_parent)];
+  string os_sfam = os_b.strings[os_i * (import ost_s_width) + (import ost_s_fam)];
+} chain (StyBag os_b, int os_i) {
+  if(os_sparent != "") {
+    os_ip = ost_rec_find(os_b, os_sparent, os_sfam, "n");
+  }
+} return int os_ip;
+(StyBag(["A", "", "", "", "", "", "p", "n", "B", "A", "", "", "", "", "p", "a"], [[], []], [[], []]), 1):(0)
+(StyBag(["A", "", "", "", "", "", "p", "n", "B", "Z", "", "", "", "", "p", "a"], [[], []], [[], []]), 1):(-1)
+(StyBag(["A", "", "", "", "", "", "t", "n", "A", "", "", "", "", "", "p", "n", "B", "A", "", "", "", "", "p", "a"], [[], [], []], [[], [], []]), 2):(1)
+(StyBag(["A", "", "", "", "", "", "p", "n"], [[]], [[]]), 0):(-1)

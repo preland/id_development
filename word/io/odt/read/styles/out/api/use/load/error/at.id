@@ -1,0 +1,29 @@
+// The byte offset in a reader's fault message ("... at byte 123"), 0 when it has none.
+ost_at(string os_serr) {
+  int os_ik = str_find(os_serr, " at byte ");
+  int os_in = len(os_serr) - os_ik - 9;
+  int os_iat = 0;
+} chain (string os_serr) {
+  if(os_ik >= 0) {
+    os_iat = to_int(str_slice(os_serr, os_ik + 9, os_in));
+  }
+} return int os_iat;
+("unexpected end of document at byte 123"):(123)
+("mismatched end tag at byte 7"):(7)
+("no offset"):(0)
+
+// The byte at which a document stops being well-formed, -1 when it is; for naming the byte in the message of an ost_load error.
+ost_fault_at(int[] os_lxml) {
+  XmlR os_r = xr_open(os_lxml);
+  int os_iev = xr_next(os_r);
+  int os_iat = 0 - 1;
+} chain (int[] os_lxml) {
+  while(os_iev != 0) {
+    os_iev = xr_next(os_r);
+  }
+  if(xr_error(os_r) != "") {
+    os_iat = ost_at(xr_error(os_r));
+  }
+} return int os_iat;
+given ost_t_xml("<a><b></a>", "") ((import ost_t_sx)):(8)
+given ost_t_xml("<a/>", "") ((import ost_t_sx)):(-1)

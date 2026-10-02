@@ -1,0 +1,40 @@
+// The indentation of level k: the label sits at the left indent minus the hanging indent, the text at the left indent.
+oc_lv_props(XmlW oc_w, int[] oc_lvl, int oc_k) {
+  int oc_lf = oc_cell(oc_lvl, oc_k, (import word_l_left));
+  int oc_hg = oc_cell(oc_lvl, oc_k, (import word_l_hang));
+  int oc_ng = 0 - oc_hg;
+} chain (XmlW oc_w, int[] oc_lvl, int oc_k) {
+  xw_start(oc_w, "style:list-level-properties");
+  xw_attr(oc_w, "text:list-level-position-and-space-mode", "label-alignment");
+  xw_start(oc_w, "style:list-level-label-alignment");
+} chain (XmlW oc_w, int[] oc_lvl, int oc_k) {
+  xw_attr(oc_w, "text:label-followed-by", "listtab");
+  oc_a_len(oc_w, "text:list-tab-stop-position", oc_lf);
+  oc_a_len(oc_w, "fo:text-indent", oc_ng);
+} chain (XmlW oc_w, int[] oc_lvl, int oc_k) {
+  oc_a_len(oc_w, "fo:margin-left", oc_lf);
+  xw_end(oc_w);
+  xw_end(oc_w);
+} return void;
+given oc_t_w(0) ((import oc_fw), [0, 8226, 0, 720, 360], 0):() then oc_t_out:("<r><style:list-level-properties text:list-level-position-and-space-mode=\"label-alignment\"><style:list-level-label-alignment text:label-followed-by=\"listtab\" text:list-tab-stop-position=\"0.5000in\" fo:text-indent=\"-0.2500in\" fo:margin-left=\"0.5000in\"/></style:list-level-properties>")
+given oc_t_w(0) ((import oc_fw), [0, 8226, 0, 720, 360, 1, 0, 1, 1440, 0], 1):() then oc_t_out:("<r><style:list-level-properties text:list-level-position-and-space-mode=\"label-alignment\"><style:list-level-label-alignment text:label-followed-by=\"listtab\" text:list-tab-stop-position=\"1.0000in\" fo:text-indent=\"0.0000in\" fo:margin-left=\"1.0000in\"/></style:list-level-properties>")
+
+// A whole level style: its opening tag, its indentation, its end.
+oc_lvone(XmlW oc_w, int[] oc_lvl, int oc_k) {
+  oc_lv_open(oc_w, oc_lvl, oc_k);
+  oc_lv_props(oc_w, oc_lvl, oc_k);
+  xw_end(oc_w);
+} return void;
+given oc_t_w(0) ((import oc_fw), [0, 8226, 0, 720, 360], 0):() then oc_t_out:("<r><text:list-level-style-bullet text:level=\"1\" text:bullet-char=\"•\"><style:list-level-properties text:list-level-position-and-space-mode=\"label-alignment\"><style:list-level-label-alignment text:label-followed-by=\"listtab\" text:list-tab-stop-position=\"0.5000in\" fo:text-indent=\"-0.2500in\" fo:margin-left=\"0.5000in\"/></style:list-level-properties></text:list-level-style-bullet>")
+given oc_t_w(0) ((import oc_fw), [1, 1, 1, 720, 360], 0):() then oc_t_out:("<r><text:list-level-style-number text:level=\"1\" style:num-suffix=\".\" style:num-format=\"a\"><style:list-level-properties text:list-level-position-and-space-mode=\"label-alignment\"><style:list-level-label-alignment text:label-followed-by=\"listtab\" text:list-tab-stop-position=\"0.5000in\" fo:text-indent=\"-0.2500in\" fo:margin-left=\"0.5000in\"/></style:list-level-properties></text:list-level-style-number>")
+
+// Every level of a list definition, in order.
+oc_lvs(XmlW oc_w, int[] oc_lvl) {
+  int oc_k = 0;
+  while(oc_k < len(oc_lvl) / (import word_l_stride)) {
+    oc_lvone(oc_w, oc_lvl, oc_k);
+    oc_k = oc_k + 1;
+  }
+} return void;
+given oc_t_w(0) ((import oc_fw), [0, 8226, 0, 720, 360, 0, 9702, 0, 1440, 360]):() then oc_t_out:("<r><text:list-level-style-bullet text:level=\"1\" text:bullet-char=\"•\"><style:list-level-properties text:list-level-position-and-space-mode=\"label-alignment\"><style:list-level-label-alignment text:label-followed-by=\"listtab\" text:list-tab-stop-position=\"0.5000in\" fo:text-indent=\"-0.2500in\" fo:margin-left=\"0.5000in\"/></style:list-level-properties></text:list-level-style-bullet><text:list-level-style-bullet text:level=\"2\" text:bullet-char=\"◦\"><style:list-level-properties text:list-level-position-and-space-mode=\"label-alignment\"><style:list-level-label-alignment text:label-followed-by=\"listtab\" text:list-tab-stop-position=\"1.0000in\" fo:text-indent=\"-0.2500in\" fo:margin-left=\"1.0000in\"/></style:list-level-properties></text:list-level-style-bullet>")
+given oc_t_w(0) ((import oc_fw), []):() then oc_t_out:("<r")

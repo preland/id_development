@@ -1,0 +1,40 @@
+// Adds the text of a text event. ODT reads any run of white space (space, tab, newline, carriage return) as one space and drops it at the start of a paragraph; spaces and tabs that count are text:s and text:tab.
+orc_text(Cx cx, Text t, string s) {
+  int i = 0;
+  while(i < len(s)) {
+    i = orc_char(cx, t, s, i);
+  }
+} return void;
+given orc_t_open("<a/>") given orc_reset((import orc_tc)) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), "  a \n b "):((import orc_tc), Text([97, 32, 98, 32], [Run(4, 0, -1)], 0), "  a \n b ")
+given orc_t_open("<a/>") given orc_reset((import orc_tc)) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), "é€ 😀"):((import orc_tc), Text([233, 8364, 32, 128512], [Run(4, 0, -1)], 0), "é€ 😀")
+given orc_t_open("<a/>") ((import orc_tc), Text([], [Run(0, 0, -1)], 0), " x"):((import orc_tc), Text([32, 120], [Run(2, 0, -1)], 0), " x")
+
+// Adds the character of s at byte i, or nothing for white space after white space; the byte offset of the next character.
+orc_char(Cx cx, Text t, string s, int i) {
+  int cp = utf8_cp(s, i);
+  int nx = i + utf8_seq(s, i);
+  int isws = cp == 32 || cp == 9 || cp == 10 || cp == 13;
+} chain (Cx cx, Text t, string s, int i) {
+  if(isws == 0) {
+    orc_run(cx, t, cp, 1);
+  }
+  if(isws == 1 && cx.cs.slots[(import orc_s_space)] == 0) {
+    orc_add(cx, t, 32);
+    lset(cx.cs.slots, (import orc_s_space), 1);
+  }
+} return int nx;
+given orc_t_open("<a/>") ((import orc_tc), Text([], [Run(0, 0, -1)], 0), "é€", 0):(2)
+given orc_t_open("<a/>") ((import orc_tc), Text([], [Run(0, 0, -1)], 0), "a\tb", 1):(2) then orc_t_slots:("0,0,1,0,0,0,0,0,")
+given orc_t_open("<a/>") given orc_t_set(2, 1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), "\t", 0):(1) then orc_t_slots:("0,0,1,0,0,0,0,0,")
+
+// Adds n copies of the code point cp as characters that count: the last character is no longer a space.
+orc_run(Cx cx, Text t, int cp, int n) {
+  int i = 0;
+  while(i < n) {
+    orc_add(cx, t, cp);
+    i = i + 1;
+  }
+  lset(cx.cs.slots, (import orc_s_space), 0);
+} return void;
+given orc_t_open("<a/>") given orc_t_set(2, 1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 120, 3):((import orc_tc), Text([120, 120, 120], [Run(3, 0, -1)], 0), 120, 3) then orc_t_slots:("0,0,0,0,0,0,0,0,")
+given orc_t_open("<a/>") ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 120, 0):((import orc_tc), Text([], [Run(0, 0, -1)], 0), 120, 0)
