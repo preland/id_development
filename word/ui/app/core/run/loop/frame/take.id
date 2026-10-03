@@ -1,0 +1,40 @@
+// Takes every event the window has waiting, one at a time, into the one list wa_ev (a frame with nothing waiting allocates nothing), and answers 1 as soon as one asks to close the app (the rest stay waiting), else 0.
+wa_events(App waa) {
+  int[] wal_ev = (import wa_ev);
+  int wai_kind = gfx_event(wal_ev);
+  int wai_q = 0;
+} chain (App waa) {
+  while(wai_kind != 0 && wai_q == 0) {
+    wai_q = app_on(waa, wai_kind, wal_ev);
+    wai_kind = gfx_event(wal_ev);
+  }
+} return int wai_q;
+given wa_t_app ((import wa_app)):(0)
+given wa_t_app given lset((import wa_st), 3, 1) ((import wa_app)):(0)
+
+// The picture is made again, in a surface that the window changed the size of: everything that depends on the size is fitted, and the dialog that is open is put in the middle again.
+wa_resize(App waa) {
+  vw_fit_all(waa.ui.view);
+  if((import wa_st)[(import wa_s_dlg)] != (import wa_d_none)) {
+    wa_dlg_place();
+  }
+} return void;
+given wa_t_app given sf_l_init(800, 600) ((import wa_app)):() then vw_t_box:("0,0,800,156")
+given wa_t_app given wa_open("T", ["hi"], ["OK"], 4) given sf_l_init(800, 600) ((import wa_app)):() then wa_t_mid:(1)
+
+// Paints the window when the picture is stale: the page and the chrome (vw_paint), and over them the dialog when one is open, which is painted whole, never as a band, so that a band does not paint the page over it. Nothing is painted when the app is closing (wai_q is 1).
+wa_paint(App waa, int wai_q) {
+  int wai_d = (import wa_st)[(import wa_s_dlg)];
+  int wai_s = (import vw_st)[(import vw_s_d)];
+  if(wai_d == (import wa_d_none)) {
+    vw_paint(waa.ui.view, wai_q);
+  }
+} chain (App waa, int wai_q) {
+  if(wai_d != (import wa_d_none) && wai_s != 0 && wai_q == 0) {
+    vw_draw_all(waa.ui.view);
+    wa_dlg_draw();
+    lset((import vw_st), (import vw_s_d), 1 - gfx_show());
+  }
+} return void;
+given wa_t_app given wa_open("T", ["hi"], ["OK"], 4) given vw_t_at(200, 150) ((import wa_app), 0):() then vw_t_px:(16777215)
+given wa_t_app given vw_t_at(200, 150) ((import wa_app), 0):() then vw_t_px:(15987699)

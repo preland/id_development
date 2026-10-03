@@ -1,0 +1,33 @@
+// Test setup: two scratch files named by fs_mktemp so two builds never share them: the target wa_t_p holding was_old and, beside it, the file wa_t_q that a save writes first, holding was_new. The case removes both with `then wa_t_gone`.
+wa_t_pair(string was_new, string was_old) {
+  string was_p = fs_mktemp("wa_save_", 0);
+  string was_q = was_p + (import wa_part);
+  export string wa_t_p = was_p;
+} chain (string was_new, string was_old) {
+  export string wa_t_q = was_q;
+  int wai_a = exec_file_put(was_p, was_old, 420);
+  int wai_b = exec_file_put(was_q, was_new, 420);
+} return void;
+("nn", "oo"):() then wa_t_files:("111,111,|1") then wa_t_gone:(0)
+("ab", "cd"):() then wa_t_files:("99,100,|1") then wa_t_gone:(0)
+
+// Test check: the first two bytes of the target scratch file, a bar, and whether the file beside it is there.
+wa_t_files() {
+  int wai_h = fs_open((import wa_t_p), "r");
+  int[] wal_b = [0, 0];
+  int wai_n = fs_read(wai_h, wal_b, 2);
+} chain () {
+  int wai_c = fs_close(wai_h);
+  int wai_e = fs_exists((import wa_t_q));
+  string was_s = dump_ints(wal_b) + "|" + wai_e;
+} return string was_s;
+given wa_t_pair("new", "old") ():("111,108,|1") then wa_t_gone:(0)
+given wa_t_pair("zz", "xy") ():("120,121,|1") then wa_t_gone:(0)
+
+// Test check: removes both scratch files; 0 when the target was there.
+wa_t_gone() {
+  int wai_a = fs_remove((import wa_t_p));
+  int wai_b = fs_remove((import wa_t_q));
+} return int wai_a;
+given wa_t_pair("aa", "bb") ():(0)
+given wa_t_pair("cc", "dd") ():(0)

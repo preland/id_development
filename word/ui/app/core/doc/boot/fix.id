@@ -1,0 +1,30 @@
+// Test check: the app's state list, then whether the document has a path (a path is a random scratch name in a case, so only its being there is shown) and whether it is dirty, bar separated.
+wa_t_state() {
+  App waa = (import wa_app);
+  string was_i = dump_ints((import wa_st));
+  int wai_p = len(waa.ui.shell.path) > 0;
+} chain () {
+  string was_s = was_i + "|" + wai_p + "|" + waa.ui.shell.dirty;
+} return string was_s;
+given wa_t_app ():("0,0,0,0,|0|0")
+given wa_t_app given lset((import wa_st), 1, 2) ():("0,2,0,0,|0|0")
+
+// Test setup: types the code point wai_cp into the app's document at its caret, as a key does: as one command of the canvas, which lays out what changed.
+wa_t_type(int wai_cp) {
+  App waa = (import wa_app);
+  cv_begin(waa.ui.view);
+  ed_type(waa.doc, waa.ctl, wai_cp);
+} chain (int wai_cp) {
+  cv_end(waa.ui.view);
+} return void;
+given wa_t_app (120):() then wa_t_text:("x")
+given wa_t_app given wa_t_type(65) (66):() then wa_t_text:("AB")
+
+// Test check: the text of the app's document, one paragraph after another with a bar between them.
+wa_t_text() {
+  App waa = (import wa_app);
+  string[] wat_l = cli_lines(waa.doc);
+  string was_t = str_join(wat_l, "|");
+} return string was_t;
+given wa_t_app ():("")
+given wa_t_app given wa_t_type(120) ():("x")

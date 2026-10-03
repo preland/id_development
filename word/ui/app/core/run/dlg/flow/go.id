@@ -1,0 +1,41 @@
+// Does an action that may lose the document's changes, after asking about them: it waits as wai_act (wa_a_new, wa_a_open or wa_a_close) while the unsaved-changes dialog is open, and happens at once when nothing is unsaved.
+wa_ask(App waa, int wai_act) {
+  wa_dirty(waa);
+  lset((import wa_st), (import wa_s_ask), wai_act);
+  if(waa.ui.shell.dirty == 1) {
+    wa_confirm(waa);
+  }
+} chain (App waa, int wai_act) {
+  if(waa.ui.shell.dirty == 0) {
+    wa_go(waa);
+  }
+} return void;
+given wa_t_app ((import wa_app), 3):() then wa_t_state:("0,0,0,1,|0|0")
+given wa_t_app given wa_t_type(120) ((import wa_app), 3):() then wa_t_state:("0,3,1,0,|0|1")
+
+// Does the action that was waiting (the cell wa_s_ask of the app's state): a blank document, the Open picker, or the app's closing. Nothing waits afterwards.
+wa_go(App waa) {
+  int wai_a = (import wa_st)[(import wa_s_ask)];
+  lset((import wa_st), (import wa_s_ask), (import wa_a_none));
+  if(wai_a == (import wa_a_new)) {
+    wa_blank(waa);
+  }
+} chain (App waa) {
+  if(wai_a == (import wa_a_open)) {
+    wa_picker(waa, (import wa_d_open));
+  }
+  if(wai_a == (import wa_a_close)) {
+    lset((import wa_st), (import wa_s_quit), 1);
+  }
+} return void;
+given wa_t_app given wa_t_type(120) given lset((import wa_st), 1, 1) ((import wa_app)):() then wa_t_text:("") then wa_t_state:("0,0,0,0,|0|0")
+given wa_t_app given lset((import wa_st), 1, 3) ((import wa_app)):() then wa_t_state:("0,0,0,1,|0|0")
+given wa_t_app given lset((import wa_st), 1, 2) ((import wa_app)):() then wa_t_state:("0,0,2,0,|0|0")
+
+// Puts a new, blank document in the app's place: no file, nothing unsaved, the caret at the start.
+wa_blank(App waa) {
+  wa_swap(waa, doc_new());
+  waa.ui.shell.path = "";
+} return void;
+given wa_t_app given wa_t_type(120) ((import wa_app)):() then wa_t_text:("")
+given wa_t_app given wa_t_at("/x/a.odt") ((import wa_app)):() then wa_t_state:("0,0,0,0,|0|0")

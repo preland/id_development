@@ -1,0 +1,48 @@
+// Starts the application in a surface wai_w by wai_h pixels with the faces wai_r, wai_b and wai_i (regular, bold, italic) for the ribbon's and the status bar's text: the surface, the chrome, the viewer's state, an empty document, the ribbon and the scrollbar, all fitted to the surface, and the app's own state list wa_st. The App is the export wa_app, which it answers.
+app_boot(int wai_w, int wai_h, int wai_r, int wai_b, int wai_i) {
+  rbd_ui_set(wai_r, wai_b, wai_i);
+  sf_l_init(wai_w, wai_h);
+  string was_diag = vw_make();
+} chain (int wai_w, int wai_h, int wai_r, int wai_b, int wai_i) {
+  vw_state_new();
+  wa_view(doc_new());
+  vw_rib_make();
+} chain (int wai_w, int wai_h, int wai_r, int wai_b, int wai_i) {
+  vw_bar_new();
+  vw_fit_all((import vw_v));
+  vw_msg_new("");
+} chain (int wai_w, int wai_h, int wai_r, int wai_b, int wai_i) {
+  wa_state_new();
+  View wav = (import vw_v);
+  Shell wash = Shell("", 0, (import vw_st));
+} chain (int wai_w, int wai_h, int wai_r, int wai_b, int wai_i) {
+  Ui wau = Ui(wav, (import vw_rb), wash);
+  App waa = App(wav.doc, (import vw_ctl), wau);
+  export App wa_app = waa;
+} return App waa;
+given wa_t_app (400, 300, 1, 1, 1):((import wa_app)) then wa_t_state:("0,0,0,0,|0|0")
+given wa_t_app (640, 480, 1, 1, 1):((import wa_app)) then vw_t_box:("0,0,640,156")
+
+// Test setup: the app started in a surface 400 by 300 with the font file's faces, so that the picture does not depend on the machine's fonts.
+wa_t_app() {
+  gui_font_init();
+  int wai_r = gui_face_file("../editor/test_assets/LiberationSans-Regular.ttf", 13, 0);
+  int wai_b = gui_face_file("../editor/test_assets/LiberationSans-Regular.ttf", 13, 1);
+} chain () {
+  int wai_i = gui_face_file("../editor/test_assets/LiberationSans-Regular.ttf", 13, 2);
+  App waa = app_boot(400, 300, wai_r, wai_b, wai_i);
+} return void;
+():() then wa_t_state:("0,0,0,0,|0|0")
+():() then vw_t_box:("0,0,400,156")
+
+// The application in a window of the machine's own sans-serif: the font layer, the three faces the ribbon draws its text in, and the app started in a surface of wa_w by wa_h pixels.
+app_new() {
+  gui_font_init();
+  int wai_r = gui_face("sans-serif", 13, 0);
+  int wai_b = gui_face("sans-serif", 13, 1);
+} chain () {
+  int wai_i = gui_face("sans-serif", 13, 2);
+  App waa = app_boot((import wa_w), (import wa_h), wai_r, wai_b, wai_i);
+} return App waa;
+given wa_t_app ():((import wa_app)) then vw_t_box:("0,0,1180,156")
+given wa_t_app ():((import wa_app)) then wa_t_state:("0,0,0,0,|0|0")

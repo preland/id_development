@@ -1,0 +1,49 @@
+// Test check: closes the scratch file and answers how many bytes it holds; the file is removed.
+cli_t_got() {
+  int wai_c = fs_close((import cli_t_h));
+  int wai_n = fs_size((import cli_t_p));
+  int wai_g = fs_remove((import cli_t_p));
+} return int wai_n;
+given cli_t_open("a") ():(0)
+given cli_t_open("b") ():(0)
+
+// Paints page wai_page (counted from 1) of the document wad at the zoom wai_z percent and writes it to the file at was_out as a PPM. Answers 0, or 1 after naming on stderr what went wrong and how to fix it.
+cli_shot(Doc wad, string was_out, int wai_page, int wai_z) {
+  gui_font_init();
+  int wai_f = gui_face("sans-serif", 13, 0);
+  rbd_ui_set(wai_f, wai_f, wai_f);
+} chain (Doc wad, string was_out, int wai_page, int wai_z) {
+  View wav = lay_view(wad);
+  lay_all(wav);
+  lay_paginate(wav, 0);
+} chain (Doc wad, string was_out, int wai_page, int wai_z) {
+  int wai_n = lay_page_count(wav);
+  int wai_ok = wai_page >= 1 && wai_page <= wai_n && wai_z >= (import vw_zoom_min) && wai_z <= (import vw_zoom_max);
+  int wai_rc = 1;
+} chain (Doc wad, string was_out, int wai_page, int wai_z) {
+  if(wai_ok == 1) {
+    cli_draw(wav, wai_page - 1, wai_z);
+    wai_rc = cli_ppm(was_out);
+  }
+  if(wai_ok == 0) {
+    eprint("render: the page or the zoom is not there; the document has " + wai_n + " page(s) and the zoom is from 25 to 400 percent");
+  }
+} return int wai_rc;
+given vw_t_two given cli_t_open("x") ((import lp_t_d), (import cli_t_p), 1, 25):(0) then cli_t_got:(3763)
+given vw_t_two ((import lp_t_d), "/nonexistent/dir/o.ppm", 3, 25):(1) then eprints:("render: the page or the zoom is not there; the document has 2 page(s) and the zoom is from 25 to 400 percent\n")
+
+// word --render IN.odt OUT.ppm [--page N] [--zoom Z]: lays out the document IN.odt and writes page N (the first when not given) at Z percent (100 when not given) to OUT.ppm. Answers 0, or 1 after naming on stderr what went wrong and how to fix it.
+cli_render(int argc, string[] argv) {
+  Doc wad = doc_new();
+  int wai_code = odt_load(argv[2], wad);
+  int wai_rc = 1;
+} chain (int argc, string[] argv) {
+  if(wai_code == 0) {
+    wai_rc = cli_shot(wad, argv[3], cli_opt(argc, argv, "--page", 1), cli_opt(argc, argv, "--zoom", 100));
+  }
+  if(wai_code != 0) {
+    eprint(odt_error(wai_code));
+  }
+} return int wai_rc;
+given orc_t_zip("<r><office:text><text:p>Hi</text:p></office:text></r>", "") given orc_t_save given cli_t_open("x") (6, ["word", "--render", (import orc_tp), (import cli_t_p), "--zoom", "25"]):(0) then cli_t_got:(166335) then orc_t_gone:(0)
+(4, ["word", "--render", "/nonexistent/none.odt", "/nonexistent/o.ppm"]):(1) then eprints:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/none.odt]\n")

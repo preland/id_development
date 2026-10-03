@@ -1,14 +1,12 @@
-// What a key does: 1 when it asks to quit (Escape), else with Ctrl it zooms (plus and minus by 10 percent, 0 back to 100) and it is the canvas's whatever it is: the command the key table has for it, a caret movement, a change of the text (cv_key). The page area is vwi_ch pixels tall.
+// What a key does: with Ctrl it zooms (plus and minus by 10 percent, 0 back to 100), and the canvas has it whatever it is: the command the key table has for it, a caret movement, a change of the text (cv_key). Escape does nothing here: the app closes when it is asked to, not by a key. The page area is vwi_ch pixels tall.
 vw_key(View vwv, int vwi_key, int vwi_mods, int vwi_ch) {
   int vwi_ctl = (vwi_mods & 2) != 0;
-  int vwi_q = vwi_ctl == 0 && vwi_key == 1011;
   vw_nav(vwv, vwi_key, vwi_ctl, vwi_ch);
-} chain (View vwv, int vwi_key, int vwi_mods, int vwi_ch) {
   cv_key(vwv, vwi_key, vwi_mods);
-} return int vwi_q;
-given vw_t_two given vw_state_new given vw_t_up(400, 300) ((import lp_t_v), 1011, 0, 150):(1)
-given vw_t_two given vw_state_new given vw_t_up(400, 300) ((import lp_t_v), 113, 0, 150):(0)
-given vw_t_two given vw_state_new given vw_t_up(400, 300) ((import lp_t_v), 1004, 0, 150):(0) then cv_t_sel:("1:0-1:0")
+} return void;
+given vw_t_two given vw_state_new given vw_t_up(400, 300) ((import lp_t_v), 1011, 0, 150):() then cv_t_sel:("0:0-0:0") then vw_t_sts:("0,0,100,1,")
+given vw_t_two given vw_state_new given vw_t_up(400, 300) ((import lp_t_v), 113, 0, 150):() then cv_t_sel:("0:0-0:0")
+given vw_t_two given vw_state_new given vw_t_up(400, 300) ((import lp_t_v), 1004, 0, 150):() then cv_t_sel:("1:0-1:0")
 
 // The zoom a key makes: with Ctrl, plus and equals zoom in, minus zooms out and 0 resets the zoom; any other key, or any key without Ctrl, leaves it as it is, and the page area (vwi_ch pixels tall) keeps what it shows.
 vw_nav(View vwv, int vwi_key, int vwi_ctl, int vwi_ch) {

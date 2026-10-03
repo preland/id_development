@@ -1,0 +1,42 @@
+// The zoom that makes the page fit the width of the page area, in percent: the page area's width over the sheet and a gap on each side, all at 100 percent. The least and the most the viewer allows are its business (vw_zoom).
+wa_fit(App waa) {
+  int wai_w = vw_px(lay_sheet(waa.doc, 0), 100);
+  int wai_g = vw_px((import word_lay_gap), 100);
+  int wai_z = vw_box("canvas", 2) * 100 / (wai_w + 2 * wai_g);
+} return int wai_z;
+given wa_t_app ((import wa_app)):(45)
+given wa_t_app given sf_l_init(800, 600) given vw_fit ((import wa_app)):(93)
+
+// The zoom the command wai_cmd asks for when the zoom is wai_z now: a step in or out, 100, or fit to the width; any other command asks for the zoom it has.
+wa_scale(App waa, int wai_cmd, int wai_z) {
+  int wai_n = wai_z;
+  if(wai_cmd == (import cmd_zoom_in)) {
+    wai_n = wai_z + (import vw_zoom_step);
+  }
+  if(wai_cmd == (import cmd_zoom_out)) {
+    wai_n = wai_z - (import vw_zoom_step);
+  }
+} chain (App waa, int wai_cmd, int wai_z) {
+  if(wai_cmd == (import cmd_zoom_100)) {
+    wai_n = 100;
+  }
+  if(wai_cmd == (import cmd_zoom_fit)) {
+    wai_n = wa_fit(waa);
+  }
+} return int wai_n;
+given wa_t_app ((import wa_app), 601, 100):(110)
+given wa_t_app ((import wa_app), 604, 100):(45)
+given wa_t_app ((import wa_app), 602, 100):(90)
+given wa_t_app ((import wa_app), 603, 150):(100)
+given wa_t_app ((import wa_app), 301, 150):(150)
+
+// The zoom commands: zoom in, zoom out, 100 percent and fit to the width set the viewer's zoom, which keeps the part of the document in view. Any other command is left alone.
+wa_zoom(App waa, int wai_cmd) {
+  int wai_z = (import vw_st)[(import vw_s_z)];
+  int wai_n = wa_scale(waa, wai_cmd, wai_z);
+  if(wai_n != wai_z) {
+    vw_zoom(waa.ui.view, wai_n, vw_box("canvas", 3));
+  }
+} return void;
+given wa_t_app ((import wa_app), 604):() then vw_t_sts:("0,0,45,1,")
+given wa_t_app ((import wa_app), 301):() then vw_t_sts:("0,0,100,1,")

@@ -1,0 +1,46 @@
+// Starts the built-in list wai_id (1 bullets, 2 numbers) on the paragraphs the selection touches, as one undo step, or takes them out of it when they are in it already (a mixed selection is put in it) or when wai_arg is 1, the menu's "Remove" entry.
+wa_mark(App waa, int wai_id, int wai_arg) {
+  int wai_cur = sel_state(waa.doc, waa.ctl, (import ed_s_para) + (import word_p_list));
+  int wai_to = wai_id;
+  if(wai_cur == wai_id || wai_arg == 1) {
+    wai_to = 0;
+  }
+} chain (App waa, int wai_id, int wai_arg) {
+  cv_begin(waa.ui.view);
+  ed_set_para(waa.doc, waa.ctl, (import word_p_list), wai_to);
+  cv_end(waa.ui.view);
+} return void;
+given wa_t_app ((import wa_app), 1, 0):() then wa_t_level:("1:0")
+given wa_t_app given wa_t_list(1, 0) ((import wa_app), 1, 0):() then wa_t_level:("0:0")
+given wa_t_app given wa_t_list(2, 0) ((import wa_app), 1, 0):() then wa_t_level:("1:0")
+given wa_t_app given wa_t_list(1, 0) ((import wa_app), 2, 1):() then wa_t_level:("0:0")
+
+// Moves the paragraphs of the selection that are in a list wai_d levels in (1) or out (-1), as one undo step; a paragraph that is not in a list, or would leave the levels there are, stays.
+wa_shift(App waa, int wai_d) {
+  int[] wal_a = [wai_d];
+  cv_begin(waa.ui.view);
+  ed_change(waa.doc, waa.ctl, wa_step, wal_a);
+} chain (App waa, int wai_d) {
+  cv_end(waa.ui.view);
+} return void;
+given wa_t_app given wa_t_list(1, 0) ((import wa_app), 1):() then wa_t_level:("1:1")
+given wa_t_app given wa_t_list(1, 1) ((import wa_app), -1):() then wa_t_level:("1:0")
+
+// The list commands: bullets and numbering start or stop their list (wa_mark), and deeper and shallower move the paragraphs a level in or out (wa_shift). Any other command is left alone.
+wa_list(App waa, int wai_cmd, int wai_arg) {
+  int wai_k = lst_index_of((import wa_list_cmd), wai_cmd);
+  if(wai_k >= 0) {
+    wa_mark(waa, wai_k + 1, wai_arg);
+  }
+  if(wai_cmd == (import cmd_list_deeper)) {
+    wa_shift(waa, 1);
+  }
+} chain (App waa, int wai_cmd, int wai_arg) {
+  if(wai_cmd == (import cmd_list_shallower)) {
+    wa_shift(waa, 0 - 1);
+  }
+} return void;
+given wa_t_app ((import wa_app), 406, 0):() then wa_t_level:("2:0")
+given wa_t_app given wa_t_list(1, 1) ((import wa_app), 419, 0):() then wa_t_level:("1:0")
+given wa_t_app given wa_t_list(1, 0) ((import wa_app), 418, 0):() then wa_t_level:("1:1")
+given wa_t_app ((import wa_app), 301, 0):() then wa_t_level:("0:0")

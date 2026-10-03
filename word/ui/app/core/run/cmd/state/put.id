@@ -1,0 +1,36 @@
+// What each command of wa_put_cmd shows now, in that order (cmd_state).
+wa_states(App waa) {
+  int[] wal_n = [];
+  int wai_k = 0;
+  while(wai_k < len((import wa_put_cmd))) {
+    push(wal_n, cmd_state(waa, (import wa_put_cmd)[wai_k]));
+    wai_k = wai_k + 1;
+  }
+} return int[] wal_n;
+given wa_t_app ((import wa_app)):([3, 3, 3, 3, 0, 0, 3, 3])
+given wa_t_app given wa_t_list(1, 1) ((import wa_app)):([0, 3, 3, 3, 1, 0, 0, 0])
+
+// Gives the ribbon the states wal_n of the commands of wa_put_cmd, keeps them as the ones it has (the export wa_ps), and makes the picture stale, because the ribbon is painted again only whole.
+wa_tell(App waa, int[] wal_n) {
+  int wai_k = 0;
+  while(wai_k < len(wal_n)) {
+    rib_put(waa.ui.rib, (import wa_put_cmd)[wai_k], wal_n[wai_k]);
+    wai_k = wai_k + 1;
+  }
+  lst_splice((import wa_ps), 0, len(wal_n), wal_n);
+} chain (App waa, int[] wal_n) {
+  lset((import vw_st), (import vw_s_d), 1);
+} return void;
+given wa_t_app given lset((import vw_st), 3, 0) ((import wa_app), [0, 3, 3, 3, 1, 0, 0, 0]):() then wa_t_put:("0,3,3,1") then vw_t_sts:("0,0,100,1,")
+given wa_t_app ((import wa_app), [3, 3, 3, 3, 0, 0, 3, 3]):() then wa_t_put:("3,3,3,0")
+
+// Tells the ribbon what the commands of wa_put_cmd show now when that is not what it was told last: undo and redo grey when there is nothing to undo or redo, cut and copy when nothing is selected, the list buttons on for the list the caret is in, the moves of a list level grey outside a list.
+wa_put(App waa) {
+  int[] wal_n = wa_states(waa);
+  int wai_c = dump_ints(wal_n) != dump_ints((import wa_ps));
+  if(wai_c == 1) {
+    wa_tell(waa, wal_n);
+  }
+} return void;
+given wa_t_app given wa_t_list(1, 0) given lset((import vw_st), 3, 0) ((import wa_app)):() then wa_t_put:("0,3,3,1") then vw_t_sts:("0,0,100,1,")
+given wa_t_app given wa_put((import wa_app)) given lset((import vw_st), 3, 0) ((import wa_app)):() then vw_t_sts:("0,0,100,0,")

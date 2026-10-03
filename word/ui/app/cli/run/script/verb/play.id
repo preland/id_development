@@ -1,0 +1,63 @@
+// The words of a script line that look at the document without changing it: d is the normalised dump of the document (docs/WORD.md 4.9a), t the title of the window and a line feed, g the name of the dialog that is open and a line feed (none, unsaved, open, save, message). Any other verb says nothing.
+wa_see(App waa, int wai_v) {
+  string was_o = "";
+  if(wai_v == 100) {
+    was_o = ndump_doc(waa.doc);
+  }
+  if(wai_v == 116) {
+    was_o = app_title(waa) + "\n";
+  }
+} chain (App waa, int wai_v) {
+  if(wai_v == 103) {
+    was_o = (import wa_d_names)[(import wa_st)[(import wa_s_dlg)]] + "\n";
+  }
+} return string was_o;
+given wa_t_app ((import wa_app), 116):("Untitled - Word\n")
+given wa_t_app ((import wa_app), 103):("none\n")
+given wa_t_app ((import wa_app), 100):("page w=11906 h=16838 orient=0 top=1440 right=1440 bottom=1440 left=1440\npara 0 style=\"Normal\" align=0 left=0 right=0 first=0 before=0 after=120 line=100 brk=0 level=0 list=-\n")
+given wa_t_app ((import wa_app), 120):("")
+
+// What a script line does to the application's files and windows: n starts a new document, o opens the file named after it (the Open picker when nothing follows), s saves to the file named after it (the document's own file, or the Save As picker, when nothing follows), q asks the window to close, p chooses the file named after it in the picker that is open, and u presses the button of that number in the dialog that is open. Answers what it has to say: the reason a file could not be read or written, or what q came to.
+wa_shell(App waa, int wai_v, string was_a) {
+  string was_o = "";
+  if(wai_v == 110) {
+    cmd_run(waa, (import cmd_new));
+  }
+  if(wai_v == 111) {
+    was_o = wa_load(waa, was_a);
+  }
+} chain (App waa, int wai_v, string was_a) {
+  if(wai_v == 115) {
+    was_o = wa_store(waa, was_a);
+  }
+  if(wai_v == 113) {
+    was_o = wa_leave(waa);
+  }
+  if(wai_v == 117 && (import wa_st)[(import wa_s_dlg)] != (import wa_d_none)) {
+    wa_choose(waa, to_int(was_a));
+  }
+} chain (App waa, int wai_v, string was_a) {
+  if(wai_v == 112 && (import wa_st)[(import wa_s_dlg)] != (import wa_d_none)) {
+    wa_took(waa, was_a);
+  }
+} return string was_o;
+given wa_t_app ((import wa_app), 113, ""):("close\n")
+given wa_t_app ((import wa_app), 110, ""):("")
+
+// One line of a script: its first character is the verb and the rest its argument. Lower case verbs are the application's (wa_see, wa_shell, and k, c, m and x, which are events of the window, wa_enter); upper case ones are the editor's (ed_play: T types, E is Enter, G toggles a flag, ...). Anything else is skipped. The title and the ribbon's switches are brought up to date after each line. Answers what the line printed: nothing, or a dump, a title, a dialog's name or a reason.
+wa_play(App waa, string was_line) {
+  int wai_v = charat(was_line, 0);
+  int wai_n = fx_max(len(was_line) - 1, 0);
+  string was_a = str_slice(was_line, 1, wai_n);
+} chain (App waa, string was_line) {
+  string was_o = wa_see(waa, wai_v);
+  string was_p = wa_shell(waa, wai_v, was_a);
+  wa_enter(waa, wai_v, was_a, was_line);
+} chain (App waa, string was_line) {
+  wa_note(waa);
+  string was_r = was_o + was_p;
+} return string was_r;
+given wa_t_app ((import wa_app), "t"):("Untitled - Word\n")
+given wa_t_app ((import wa_app), "Tab"):("") then wa_t_text:("ab")
+given wa_t_app ((import wa_app), "Tab"):("") then wa_t_ti:("Untitled* - Word")
+given wa_t_app ((import wa_app), "?x"):("")

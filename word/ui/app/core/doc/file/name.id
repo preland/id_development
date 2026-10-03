@@ -1,0 +1,25 @@
+// The name of the file at the path, which is what follows its last slash, or the name of a document that has no file yet when the path is empty.
+wa_name(string was_path) {
+  string[] wat_p = str_split(was_path, "/");
+  string was_n = wat_p[len(wat_p) - 1];
+  if(len(was_n) == 0) {
+    was_n = (import wa_untitled);
+  }
+} return string was_n;
+("a/b/c.odt"):("c.odt")
+("c.odt"):("c.odt")
+(""):("Untitled")
+("/x/"):("Untitled")
+
+// The title of the window: the name of the document's file, a star after it when there are changes that are not saved, then the program.
+app_title(App waa) {
+  string was_n = wa_name(waa.ui.shell.path);
+  string was_s = "";
+  if(waa.ui.shell.dirty == 1) {
+    was_s = (import wa_star);
+  }
+} chain (App waa) {
+  string was_t = was_n + was_s + (import wa_prog);
+} return string was_t;
+given wa_t_app ((import wa_app)):("Untitled - Word")
+given wa_t_app given wa_t_type(120) given wa_dirty((import wa_app)) ((import wa_app)):("Untitled* - Word")

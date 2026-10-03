@@ -1,0 +1,26 @@
+// Test check: the list and the level of the first paragraph of the app's document, as the styles have them, a colon between.
+wa_t_level() {
+  App waa = (import wa_app);
+  int wai_pp = waa.doc.body.paras[0].pprop;
+  string was_l = style_eff_p(waa.doc.fmt, wai_pp, (import word_p_list)) + ":" + style_eff_p(waa.doc.fmt, wai_pp, (import word_p_level));
+} return string was_l;
+given wa_t_app ():("0:0")
+given wa_t_app given wa_t_list(1, 1) ():("1:1")
+
+// Test check: the name of the style the first paragraph of the app's document is on.
+wa_t_head() {
+  App waa = (import wa_app);
+  int wai_s = tab_get(waa.doc.fmt.paras, waa.doc.body.paras[0].pprop, (import word_p_style));
+  string was_n = waa.doc.fmt.sty.styles[wai_s].name;
+} return string was_n;
+given wa_t_app ():("Normal")
+given wa_t_app given wa_head((import wa_app), 415) ():("Heading 1")
+
+// Test check: the states the ribbon shows for undo and redo in the quick-access strip, for cut in the Home tab and for bullets, comma separated (0 off, 1 on, 2 mixed, 3 disabled).
+wa_t_put() {
+  Ribbon wahome = (import vw_rb);
+  Ribbon waqat = (import rbd_q);
+  string was_s = waqat.state[1] + "," + waqat.state[2] + "," + wahome.state[1] + "," + wahome.state[16];
+} return string was_s;
+given wa_t_app ():("0,0,0,0")
+given wa_t_app given rib_put((import vw_rb), 405, 1) ():("0,0,0,1")

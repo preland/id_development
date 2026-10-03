@@ -1,0 +1,54 @@
+// What the selection says about a command that is a switch: for a character flag 0 off, 1 on, 2 mixed; for an alignment 1 when the paragraphs have it; for bullets and numbering 1 when they are in that list. Any other command is 0.
+wa_flag(App waa, int wai_cmd) {
+  int wai_f = lst_index_of((import cv_f_cmd), wai_cmd);
+  int wai_a = lst_index_of((import cv_al_cmd), wai_cmd);
+  int wai_l = lst_index_of((import wa_list_cmd), wai_cmd);
+} chain (App waa, int wai_cmd) {
+  int wai_s = 0;
+  if(wai_f >= 0) {
+    wai_s = sel_state(waa.doc, waa.ctl, (import ed_s_flag) + (import cv_f_bit)[wai_f]);
+  }
+  if(wai_a >= 0) {
+    wai_s = sel_state(waa.doc, waa.ctl, (import ed_s_para) + (import word_p_align)) == wai_a;
+  }
+} chain (App waa, int wai_cmd) {
+  if(wai_l >= 0) {
+    wai_s = sel_state(waa.doc, waa.ctl, (import ed_s_para) + (import word_p_list)) == wai_l + 1;
+  }
+} return int wai_s;
+given wa_t_app ((import wa_app), 301):(0)
+given wa_t_app given wa_t_list(1, 0) ((import wa_app), 405):(1)
+given wa_t_app given wa_t_list(1, 0) ((import wa_app), 406):(0)
+given wa_t_app ((import wa_app), 401):(1)
+given wa_t_app ((import wa_app), 402):(0)
+
+// 1 when the command cannot be done now: undo and redo with nothing to undo or redo, cut and copy with nothing selected, a move of a list level with the paragraphs not in a list.
+wa_gate(App waa, int wai_cmd) {
+  int wai_u = len(waa.ctl.hist.undo) == 0 && wai_cmd == (import cmd_undo);
+  int wai_r = len(waa.ctl.hist.redo) == 0 && wai_cmd == (import cmd_redo);
+  int wai_s = sel_empty(waa.ctl.sel) == 1 && (wai_cmd == (import cmd_cut) || wai_cmd == (import cmd_copy));
+} chain (App waa, int wai_cmd) {
+  int wai_n = sel_state(waa.doc, waa.ctl, (import ed_s_para) + (import word_p_list)) < 1;
+  int wai_l = wai_n == 1 && (wai_cmd == (import cmd_list_deeper) || wai_cmd == (import cmd_list_shallower));
+  int wai_g = wai_u || wai_r || wai_s || wai_l;
+} return int wai_g;
+given wa_t_app ((import wa_app), 201):(1)
+given wa_t_app given wa_t_type(120) ((import wa_app), 201):(0)
+given wa_t_app ((import wa_app), 202):(1)
+given wa_t_app ((import wa_app), 203):(1)
+given wa_t_app ((import wa_app), 418):(1)
+given wa_t_app given wa_t_list(1, 0) ((import wa_app), 418):(0)
+given wa_t_app ((import wa_app), 205):(0)
+
+// What the ribbon shows for a command now: 0 off, 1 on, 2 mixed, 3 disabled (the ribbon's own numbers, rib_put).
+cmd_state(App waa, int wai_cmd) {
+  int wai_s = wa_flag(waa, wai_cmd);
+  int wai_g = wa_gate(waa, wai_cmd);
+  if(wai_g == 1) {
+    wai_s = 3;
+  }
+} return int wai_s;
+given wa_t_app given wa_t_type(120) ((import wa_app), 201):(0)
+given wa_t_app ((import wa_app), 201):(3)
+given wa_t_app given wa_t_list(1, 0) ((import wa_app), 405):(1)
+given wa_t_app ((import wa_app), 405):(0)

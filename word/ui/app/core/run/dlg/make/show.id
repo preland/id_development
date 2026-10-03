@@ -1,0 +1,38 @@
+// Puts a dialog on the screen as dialog kind wai_kind (a wa_d_* code): one titled was_title with the lines wat_body and the buttons wat_keys, the first the default, kept as the export wa_dg and placed in the middle of the window. From now on it has every event, and the picture is stale.
+wa_open(string was_title, string[] wat_body, string[] wat_keys, int wai_kind) {
+  GuiDialog wadg = gui_dialog_new(was_title, wat_body, wat_keys, 0, (import wa_minw), rbd_ui_f(0));
+  export GuiDialog wa_dg = wadg;
+  lset((import wa_st), (import wa_s_dlg), wai_kind);
+} chain (string was_title, string[] wat_body, string[] wat_keys, int wai_kind) {
+  wa_dlg_place();
+  lset((import vw_st), (import vw_s_d), 1);
+} return void;
+given wa_t_app given lset((import vw_st), 3, 0) ("T", ["hi"], ["OK"], 4):() then wa_t_state:("0,0,4,0,|0|0") then vw_t_sts:("0,0,100,1,") then wa_t_mid:(1)
+given wa_t_app ("Q", ["a", "b"], ["Yes", "No"], 1):() then wa_t_state:("0,0,1,0,|0|0") then wa_t_mid:(1)
+
+// Puts the open dialog in the middle of the window as it is now, and the file list of a picker in the free part of it. Call it after the window changed size.
+wa_dlg_place() {
+  GuiDialog wadg = (import wa_dg);
+  gui_dialog_place(wadg, (import sf_l_w), (import sf_l_h));
+  int wai_k = (import wa_st)[(import wa_s_dlg)];
+} chain () {
+  int[] wal_a = gui_dialog_area(wadg);
+  if(wai_k == (import wa_d_open) || wai_k == (import wa_d_save)) {
+    gui_files_place((import wa_fl), wal_a[0], wal_a[1], wal_a[2], wal_a[3]);
+  }
+} return void;
+given wa_t_app given wa_open("T", ["hi"], ["OK"], 4) given sf_l_init(800, 600) ():() then wa_t_mid:(1)
+given wa_t_app given wa_open("T", ["hi"], ["OK"], 4) given sf_l_init(1000, 700) ():() then wa_t_mid:(1)
+
+// Paints the open dialog over the picture, and the file list in it when it is a picker; nothing when there is no dialog.
+wa_dlg_draw() {
+  int wai_k = (import wa_st)[(import wa_s_dlg)];
+  if(wai_k != (import wa_d_none)) {
+    gui_dialog_draw((import wa_dg));
+  }
+  if(wai_k == (import wa_d_open) || wai_k == (import wa_d_save)) {
+    gui_files_draw((import wa_fl));
+  }
+} return void;
+given wa_t_app given wa_open("T", ["hi"], ["OK"], 4) given vw_t_at(200, 150) ():() then vw_t_px:(16777215)
+given wa_t_app given vw_t_at(200, 150) ():() then vw_t_px:(0)

@@ -1,0 +1,22 @@
+// Test setup: presses Enter at the caret of the app's document, as the key does: one command of the canvas.
+wa_t_enter() {
+  App waa = (import wa_app);
+  cv_begin(waa.ui.view);
+  ed_enter(waa.doc, waa.ctl);
+} chain () {
+  cv_end(waa.ui.view);
+} return void;
+given wa_t_app ():() then wa_t_text:("|")
+given wa_t_app given wa_t_type(97) ():() then wa_t_text:("a|")
+
+// Test setup: the app's document has wai_n paragraphs of the letter a, and a last, empty one, with the caret in it.
+wa_t_lines(int wai_n) {
+  int wai_k = 0;
+  while(wai_k < wai_n) {
+    wa_t_type(97);
+    wa_t_enter();
+    wai_k = wai_k + 1;
+  }
+} return void;
+given wa_t_app (2):() then wa_t_text:("a|a|")
+given wa_t_app (0):() then wa_t_text:("")

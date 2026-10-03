@@ -1,0 +1,27 @@
+// For ed_change: moves paragraph wai_p wal_a[0] levels, when it is in a list and the level it comes to is one of the list's, by the paragraph row that par_set makes.
+wa_step(Doc wad, Ctl wac, int wai_p, int wai_lo, int wai_hi, int[] wal_a) {
+  int wai_pp = wad.body.paras[wai_p].pprop;
+  int wai_l = style_eff_p(wad.fmt, wai_pp, (import word_p_list));
+  int wai_v = fx_max(style_eff_p(wad.fmt, wai_pp, (import word_p_level)), 0) + wal_a[0];
+} chain (Doc wad, Ctl wac, int wai_p, int wai_lo, int wai_hi, int[] wal_a) {
+  int[] wal_v = [(import word_p_level), wai_v];
+  if(wai_l > 0 && wai_v >= 0 && wai_v <= (import wa_deepest)) {
+    par_set(wad, wac, wai_p, wai_lo, wai_hi, wal_v);
+  }
+} return void;
+given wa_t_app given wa_t_list(1, 0) given txn_begin((import wa_t_c)) ((import wa_t_d), (import wa_t_c), 0, 0, 0, [1]):() then wa_t_level:("1:1")
+given wa_t_app given wa_t_list(1, 2) given txn_begin((import wa_t_c)) ((import wa_t_d), (import wa_t_c), 0, 0, 0, [1]):() then wa_t_level:("1:2")
+given wa_t_app given wa_t_list(0, 0) given txn_begin((import wa_t_c)) ((import wa_t_d), (import wa_t_c), 0, 0, 0, [1]):() then wa_t_level:("0:0")
+
+// Test setup: the first paragraph of the app's document is on the list wai_id at the level wai_lv, and the document and its controller are the exports wa_t_d and wa_t_c.
+wa_t_list(int wai_id, int wai_lv) {
+  App waa = (import wa_app);
+  ed_set_para(waa.doc, waa.ctl, (import word_p_list), wai_id);
+  ed_set_para(waa.doc, waa.ctl, (import word_p_level), wai_lv);
+} chain (int wai_id, int wai_lv) {
+  export Doc wa_t_d = waa.doc;
+  export Ctl wa_t_c = waa.ctl;
+} return void;
+given wa_t_app (1, 0):() then wa_t_level:("1:0")
+given wa_t_app (2, 1):() then wa_t_level:("2:1")
+

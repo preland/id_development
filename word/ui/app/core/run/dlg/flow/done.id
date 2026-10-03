@@ -1,0 +1,52 @@
+// Takes the dialog off the screen: no dialog is open, and the picture is stale.
+wa_shut() {
+  lset((import wa_st), (import wa_s_dlg), (import wa_d_none));
+  lset((import vw_st), (import vw_s_d), 1);
+} return void;
+given wa_t_app given wa_open("T", ["a"], ["OK"], 4) given lset((import vw_st), 3, 0) ():() then wa_t_state:("0,0,0,0,|0|0") then vw_t_sts:("0,0,100,1,")
+given wa_t_app ():() then wa_t_state:("0,0,0,0,|0|0")
+
+// Saves the document where it is: to its file, or, when it has none, through the Save As picker. Once saved, the action that was waiting for it happens (wa_go); a save that failed says why and nothing waits.
+wa_keep(App waa) {
+  string was_p = waa.ui.shell.path;
+  int wai_code = 0;
+  if(len(was_p) == 0) {
+    wa_picker(waa, (import wa_d_save));
+  }
+} chain (App waa) {
+  if(len(was_p) > 0) {
+    wai_code = app_save(waa, was_p);
+  }
+  if(len(was_p) > 0 && wai_code == 0) {
+    wa_go(waa);
+  }
+  if(wai_code != 0) {
+    wa_oops(waa, wai_code);
+  }
+} return void;
+given wa_t_app ((import wa_app)):() then wa_t_state:("0,0,3,0,|0|0")
+given wa_t_app given wa_t_type(120) given wa_t_pair("zz", "old") given wa_t_at((import wa_t_p)) given lset((import wa_st), 1, 3) ((import wa_app)):() then wa_t_state:("1,0,0,1,|1|0") then wa_t_gone:(0)
+given wa_t_app given wa_t_type(120) given wa_t_at("/nonexistent/d/x.odt") ((import wa_app)):() then wa_t_state:("0,0,4,0,|1|0")
+
+// What the file picker chose: the dialog goes, and the file at was_path is opened (the Open picker) or written (the Save As picker), saying why when it cannot be, and after a Save As the action that was waiting for it happens.
+wa_took(App waa, string was_path) {
+  int wai_k = (import wa_st)[(import wa_s_dlg)];
+  wa_shut();
+  int wai_code = 0;
+} chain (App waa, string was_path) {
+  if(wai_k == (import wa_d_open)) {
+    wai_code = app_open(waa, was_path);
+  }
+  if(wai_k == (import wa_d_save)) {
+    wai_code = app_save(waa, was_path);
+  }
+  if(wai_code != 0) {
+    wa_oops(waa, wai_code);
+  }
+} chain (App waa, string was_path) {
+  if(wai_code == 0 && wai_k == (import wa_d_save)) {
+    wa_go(waa);
+  }
+} return void;
+given wa_t_app given orc_t_zip("<r><office:text><text:p>Hi</text:p></office:text></r>", "") given orc_t_save given lset((import wa_st), 2, 2) ((import wa_app), (import orc_tp)):() then wa_t_text:("Hi") then wa_t_state:("0,0,0,0,|1|0") then orc_t_gone:(0)
+given wa_t_app given wa_t_type(120) given lset((import wa_st), 2, 3) given lset((import wa_st), 1, 3) given wa_t_pair("zz", "old") ((import wa_app), (import wa_t_p)):() then wa_t_state:("1,0,0,1,|1|0") then wa_t_gone:(0)

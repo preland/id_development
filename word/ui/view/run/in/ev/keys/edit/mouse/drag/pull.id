@@ -12,13 +12,17 @@ cv_out(int cvi_my, int cvi_cy, int cvi_ch) {
 (300, 128, 150):(9)
 (200, 128, 150):(0)
 
-// Once a frame, while a drag rests outside the page area, scrolls it a step towards the pointer and grows the selection to what shows under the pointer there.
+// Once a frame, while a drag rests outside the page area, scrolls it a step towards the pointer and grows the selection to what shows under the pointer there. The page area is looked up only while there is a drag: a lookup allocates, and this runs every frame.
 cv_pull(View cvv) {
   int[] cvl_e = (import vw_ed);
-  int cvi_ch = vw_box("canvas", 3);
-  int cvi_o = cv_out(cvl_e[(import cv_e_my)], vw_box("canvas", 1), cvi_ch);
+  int cvi_ch = 0;
+  int cvi_o = 0;
 } chain (View cvv) {
-  if(cvl_e[(import cv_e_drag)] == 1 && cvi_o != 0) {
+  if(cvl_e[(import cv_e_drag)] == 1) {
+    cvi_ch = vw_box("canvas", 3);
+    cvi_o = cv_out(cvl_e[(import cv_e_my)], vw_box("canvas", 1), cvi_ch);
+  }
+  if(cvi_o != 0) {
     vw_scroll(cvv, cvi_o, cvi_ch);
     cv_drag(cvv, cvl_e[(import cv_e_mx)], cvl_e[(import cv_e_my)]);
   }

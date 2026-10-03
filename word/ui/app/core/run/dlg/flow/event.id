@@ -1,0 +1,55 @@
+// What the dialog's button wai_r (-1 for Esc) does: the dialog goes. For the unsaved-changes question Save (0) saves and carries on with the action that waited, Don't Save (1) carries on without saving, and anything else gives the action up; every other dialog gives the action up whatever its button.
+wa_choose(App waa, int wai_r) {
+  int wai_k = (import wa_st)[(import wa_s_dlg)];
+  int wai_a = wai_k == (import wa_d_ask);
+  wa_shut();
+} chain (App waa, int wai_r) {
+  if(wai_a == 1 && wai_r == 0) {
+    wa_keep(waa);
+  }
+  if(wai_a == 1 && wai_r == 1) {
+    wa_go(waa);
+  }
+  if(wai_a == 0 || wai_r < 0 || wai_r > 1) {
+    lset((import wa_st), (import wa_s_ask), (import wa_a_none));
+  }
+} return void;
+given wa_t_app given wa_open("T", ["a"], ["OK"], 4) given lset((import wa_st), 1, 2) ((import wa_app), 0):() then wa_t_state:("0,0,0,0,|0|0")
+given wa_t_app given wa_t_type(120) given wa_ask((import wa_app), 3) ((import wa_app), 1):() then wa_t_state:("0,0,0,1,|0|1")
+given wa_t_app given wa_t_type(120) given wa_ask((import wa_app), 3) ((import wa_app), 2):() then wa_t_state:("0,0,0,0,|0|1")
+
+// Acts on what a dialog answered to an event: wai_f is what the file list said (bit 2: it chose the file gui_files_picked names), wai_b what the dialog said (2: a button was pressed, 4: Esc); the picture is stale when either asks for a repaint.
+wa_dlg_after(App waa, int wai_f, int wai_b) {
+  if((wai_f & 2) != 0) {
+    wa_took(waa, gui_files_picked((import wa_fl)));
+  }
+  if((wai_b & 2) != 0) {
+    wa_choose(waa, gui_dialog_result((import wa_dg)));
+  }
+  if((wai_b & 4) != 0) {
+    wa_choose(waa, 0 - 1);
+  }
+} chain (App waa, int wai_f, int wai_b) {
+  if(((wai_f | wai_b) & 1) != 0) {
+    lset((import vw_st), (import vw_s_d), 1);
+  }
+} return void;
+given wa_t_app given wa_open("T", ["a"], ["OK"], 4) given lset((import vw_st), 3, 0) ((import wa_app), 0, 1):() then vw_t_sts:("0,0,100,1,") then wa_t_state:("0,0,4,0,|0|0")
+given wa_t_app given wa_open("T", ["a"], ["OK"], 4) ((import wa_app), 0, 4):() then wa_t_state:("0,0,0,0,|0|0")
+
+// One event of the window while a dialog is open: it is the file list's first when the dialog is a picker, then the dialog's, and what they answered is acted on (wa_dlg_after).
+wa_dlg_event(App waa, int wai_kind, int[] wal_ev) {
+  int wai_d = (import wa_st)[(import wa_s_dlg)];
+  int wai_f = 0;
+  if(wai_d == (import wa_d_open) || wai_d == (import wa_d_save)) {
+    wai_f = gui_files_event((import wa_fl), wai_kind, wal_ev);
+  }
+} chain (App waa, int wai_kind, int[] wal_ev) {
+  int wai_b = 0;
+  if(wai_f == 0) {
+    wai_b = gui_dialog_event((import wa_dg), wai_kind, wal_ev);
+  }
+  wa_dlg_after(waa, wai_f, wai_b);
+} return void;
+given wa_t_app given wa_t_type(120) given wa_ask((import wa_app), 3) ((import wa_app), 1, [1, 1011, 0, 0, 0]):() then wa_t_state:("0,0,0,0,|0|1")
+given wa_t_app given wa_t_type(120) given wa_ask((import wa_app), 3) given wa_dlg_event((import wa_app), 1, [1, 1002, 0, 0, 0]) ((import wa_app), 1, [1, 1009, 0, 0, 0]):() then wa_t_state:("0,0,0,1,|0|1")

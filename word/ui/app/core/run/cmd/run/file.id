@@ -1,0 +1,28 @@
+// The file commands: New and Open ask about unsaved changes first, Save saves where the document is (or asks where), Save As always asks where. Any other command is left alone.
+wa_file(App waa, int wai_cmd) {
+  if(wai_cmd == (import cmd_new)) {
+    wa_ask(waa, (import wa_a_new));
+  }
+  if(wai_cmd == (import cmd_open)) {
+    wa_ask(waa, (import wa_a_open));
+  }
+  if(wai_cmd == (import cmd_save)) {
+    wa_keep(waa);
+  }
+} chain (App waa, int wai_cmd) {
+  if(wai_cmd == (import cmd_save_as)) {
+    wa_picker(waa, (import wa_d_save));
+  }
+} return void;
+given wa_t_app ((import wa_app), 104):() then wa_t_state:("0,0,3,0,|0|0")
+given wa_t_app given wa_t_type(120) ((import wa_app), 101):() then wa_t_text:("x")
+
+// The style shortcuts, Ctrl+Alt+1 to 3: the command is the Heading style of its number, applied as the Styles gallery would apply it. Any other command is left alone.
+wa_head(App waa, int wai_cmd) {
+  int wai_k = lst_index_of((import wa_head_cmd), wai_cmd);
+  if(wai_k >= 0) {
+    cv_rib(waa.ui.view, (import cmd_style), 0, (import wa_head_name)[wai_k]);
+  }
+} return void;
+given wa_t_app given wa_t_type(120) ((import wa_app), 416):() then wa_t_head:("Heading 2")
+given wa_t_app given wa_t_type(120) ((import wa_app), 414):() then wa_t_head:("Normal")

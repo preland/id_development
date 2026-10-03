@@ -1,0 +1,27 @@
+// Does the command wai_cmd of the ribbon's table (word/conf.id) with the argument wai_arg the ribbon gave it, unless a dialog is open, which has every event: the file commands, the zoom, the lists and the heading shortcuts are the app's, any other command is the canvas's (cv_rib), which leaves alone the ones it does not do.
+cmd_run_arg(App waa, int wai_cmd, int wai_arg) {
+  if((import wa_st)[(import wa_s_dlg)] == (import wa_d_none)) {
+    wa_do(waa, wai_cmd, wai_arg);
+  }
+} return void;
+given wa_t_app given wa_t_type(120) ((import wa_app), 101, 0):() then wa_t_state:("0,1,1,0,|0|1")
+given wa_t_app given wa_open("T", ["a"], ["OK"], 4) ((import wa_app), 102, 0):() then wa_t_state:("0,0,4,0,|0|0")
+
+// Does the command wai_cmd, which takes no argument (a key's, or a button's).
+cmd_run(App waa, int wai_cmd) {
+  cmd_run_arg(waa, wai_cmd, 0);
+} return void;
+given wa_t_app ((import wa_app), 102):() then wa_t_state:("0,0,2,0,|0|0")
+given wa_t_app given wa_t_type(120) ((import wa_app), 201):() then wa_t_text:("")
+
+// The dispatcher under cmd_run_arg: each family of commands looks at the command and does it when it is its own.
+wa_do(App waa, int wai_cmd, int wai_arg) {
+  wa_file(waa, wai_cmd);
+  wa_zoom(waa, wai_cmd);
+  wa_list(waa, wai_cmd, wai_arg);
+} chain (App waa, int wai_cmd, int wai_arg) {
+  wa_head(waa, wai_cmd);
+  cv_rib(waa.ui.view, wai_cmd, wai_arg, rib_name(waa.ui.rib));
+} return void;
+given wa_t_app given wa_t_type(120) ((import wa_app), 201, 0):() then wa_t_text:("")
+given wa_t_app ((import wa_app), 103, 0):() then wa_t_state:("0,0,3,0,|0|0")

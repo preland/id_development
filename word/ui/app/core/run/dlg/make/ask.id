@@ -1,0 +1,27 @@
+// Asks whether to save the changes of the document before something replaces it: the unsaved-changes dialog, Save, Don't Save or Cancel, naming the document's file.
+wa_confirm(App waa) {
+  string was_n = wa_name(waa.ui.shell.path);
+  string[] wat_b = ["Save changes to " + was_n + "?"];
+  wa_open((import wa_h_ask), wat_b, (import wa_k_ask), (import wa_d_ask));
+} return void;
+given wa_t_app ((import wa_app)):() then wa_t_state:("0,0,1,0,|0|0") then wa_t_body:("Save changes to Untitled?")
+given wa_t_app given wa_t_at("/etc/x.odt") ((import wa_app)):() then wa_t_body:("Save changes to x.odt?")
+
+// Tells the user what went wrong with a file, in the words odt_error has for the code wai_code: a dialog with an OK button, and no action waits any more.
+wa_oops(App waa, int wai_code) {
+  string was_m = odt_error(wai_code);
+  string[] wat_b = vw_wrap(rbd_ui_f(0), was_m, (import wa_msgw));
+  lset((import wa_st), (import wa_s_ask), (import wa_a_none));
+} chain (App waa, int wai_code) {
+  wa_open((import wa_h_msg), wat_b, (import wa_k_msg), (import wa_d_msg));
+} return void;
+given wa_t_app given vw_t_op("/nonexistent/x.odt") given lset((import wa_st), 1, 2) ((import wa_app), 1):() then wa_t_state:("0,0,4,0,|0|0") then wa_t_body:("ODT: the file could not be read; check that the path exists and that you|may read it [/nonexistent/x.odt]")
+given wa_t_app given vw_t_op("/nonexistent/y.odt") ((import wa_app), 1):() then wa_t_body:("ODT: the file could not be read; check that the path exists and that you|may read it [/nonexistent/y.odt]")
+
+// Test check: the lines of text of the open dialog, one after another with a bar between them.
+wa_t_body() {
+  GuiDialog wadg = (import wa_dg);
+  string was_b = str_join(wadg.txt.body, "|");
+} return string was_b;
+given wa_t_app given wa_open("T", ["a", "b"], ["OK"], 4) ():("a|b")
+given wa_t_app given wa_open("T", [], ["OK"], 4) ():("")

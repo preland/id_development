@@ -1,0 +1,35 @@
+// Paints page wai_k (counted from 0) of the view wav on a surface made for it, as big as the sheet at the zoom wai_z percent: the white sheet and the text on it, as the window paints a page, without the desk, the selection or the caret.
+cli_draw(View wav, int wai_k, int wai_z) {
+  int wai_w = vw_px(lay_sheet(wav.doc, 0), wai_z);
+  int wai_h = vw_px(lay_sheet(wav.doc, 1), wai_z);
+  sf_l_init(wai_w, wai_h);
+} chain (View wav, int wai_k, int wai_z) {
+  d2_l_rect(0, 0, wai_w, wai_h, (import vw_c_sheet));
+  int[] wal_g = vw_geom(wav, 0, 0, wai_z);
+  cv_cull(wal_g, 0, wai_h);
+} chain (View wav, int wai_k, int wai_z) {
+  vw_page(wav, wai_k, wal_g);
+} return void;
+given vw_t_two given rbd_ui_set(1, 1, 1) given vw_t_at(1, 1) ((import lp_t_v), 0, 100):() then vw_t_px:(16777215) then cli_t_ink:(1)
+given vw_t_two given rbd_ui_set(1, 1, 1) given vw_t_at(1, 1) ((import lp_t_v), 1, 50):() then vw_t_px:(16777215) then cli_t_ink:(1)
+
+// Test check: 1 when some pixel of the surface is not the colour of the sheet, which is the text of a page painted on it.
+cli_t_ink() {
+  int wai_n = 0;
+  int wai_k = 0;
+  while(wai_k < len((import sf_l_px))) {
+    wai_n = wai_n || (import sf_l_px)[wai_k] != (import vw_c_sheet);
+    wai_k = wai_k + 1;
+  }
+} return int wai_n;
+given sf_l_init(2, 2) given d2_l_rect(0, 0, 2, 2, 16777215) ():(0)
+given sf_l_init(2, 2) ():(1)
+
+// Test setup: a scratch file named by fs_mktemp, in the export cli_t_p, open for writing in the export cli_t_h.
+cli_t_open(string was_tag) {
+  string was_p = fs_mktemp("wa_ppm_" + was_tag, 0);
+  export string cli_t_p = was_p;
+  export int cli_t_h = fs_open(was_p, "w");
+} return void;
+("a"):() then cli_t_got:(0)
+("b"):() then cli_t_got:(0)

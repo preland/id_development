@@ -1,0 +1,30 @@
+// Puts the file the save just wrote, at was_tmp, in the place of the one at was_path, which it replaces only when the write was whole (wai_code is 0): a save that failed leaves the old file, and the half-written one is removed. Answers wai_code, or the code of a file that could not be written when the replacing failed.
+wa_place(string was_tmp, string was_path, int wai_code) {
+  int wai_r = wai_code;
+  if(wai_code == 0 && fs_rename(was_tmp, was_path) != 0) {
+    wai_r = (import odw_e_file);
+    odw_note(wai_r, was_path);
+  }
+  if(wai_r != 0) {
+    int wai_g = fs_remove(was_tmp);
+  }
+} return int wai_r;
+given wa_t_pair("new", "old") ((import wa_t_q), (import wa_t_p), 0):(0) then wa_t_files:("110,101,|0") then wa_t_gone:(0)
+given wa_t_pair("new", "old") ((import wa_t_q), (import wa_t_p), 102):(102) then wa_t_files:("111,108,|0") then wa_t_gone:(0)
+
+// Writes the document to the file at the path, through a file beside it that replaces it only when whole; on success the path is the document's and nothing is unsaved. Answers 0, or the code odt_error explains.
+app_save(App waa, string was_path) {
+  string was_tmp = was_path + (import wa_part);
+  int wai_code = odt_save(was_tmp, waa.doc);
+  int wai_r = wa_place(was_tmp, was_path, wai_code);
+} chain (App waa, string was_path) {
+  if(wai_r == 0) {
+    waa.ui.shell.path = was_path;
+    wa_clean(waa);
+  }
+  if(wai_r == (import odw_e_file)) {
+    odw_note(wai_r, was_path);
+  }
+} return int wai_r;
+given wa_t_app given wa_t_type(120) given wa_dirty((import wa_app)) given wa_t_pair("zz", "old") ((import wa_app), (import wa_t_p)):(0) then wa_t_files:("80,75,|0") then wa_t_state:("1,0,0,0,|1|0") then wa_t_gone:(0)
+given wa_t_app given wa_t_type(120) given wa_dirty((import wa_app)) ((import wa_app), "/nonexistent/dir/x.odt"):(102) then wa_t_state:("0,0,0,0,|0|1")

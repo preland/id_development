@@ -1,0 +1,54 @@
+// One event of the window, of kind wai_kind with the fields wal_ev: a dialog that is open has it; otherwise it is routed (wa_route). Afterwards the title and the ribbon's switches are brought up to date, except after a mouse move or the wheel. Answers 1 when the app should close.
+app_on(App waa, int wai_kind, int[] wal_ev) {
+  int wai_d = (import wa_st)[(import wa_s_dlg)];
+  if(wai_d != (import wa_d_none)) {
+    wa_dlg_event(waa, wai_kind, wal_ev);
+  }
+  if(wai_d == (import wa_d_none)) {
+    wa_route(waa, wai_kind, wal_ev);
+  }
+} chain (App waa, int wai_kind, int[] wal_ev) {
+  int wai_q = (import wa_st)[(import wa_s_quit)];
+  if(wai_kind != 5 && wai_kind != 8) {
+    wa_note(waa);
+  }
+} return int wai_q;
+given wa_t_app ((import wa_app), 7, [7, 0, 0, 0, 0]):(1)
+given wa_t_app given wa_t_type(120) ((import wa_app), 7, [7, 0, 0, 0, 0]):(0) then wa_t_state:("0,3,1,0,|0|1")
+
+// An event that no dialog took: the ribbon sees it first (wa_rib); the window closing asks about unsaved changes; and what the ribbon did not take goes to the page area or the scrollbar (wa_input).
+wa_route(App waa, int wai_kind, int[] wal_ev) {
+  int wai_t = wa_rib(waa, wai_kind, wal_ev);
+  if(wai_kind == 7) {
+    wa_ask(waa, (import wa_a_close));
+  }
+  if(wai_t == 0) {
+    wa_input(waa, wai_kind, wal_ev);
+  }
+} return void;
+given wa_t_app ((import wa_app), 7, [7, 0, 0, 0, 0]):() then wa_t_state:("0,0,0,1,|0|0")
+given wa_t_app given wa_route((import wa_app), 3, [3, 24, 14, 1, 1]) ((import wa_app), 4, [4, 24, 14, 1, 1]):() then wa_t_state:("0,0,3,0,|0|0")
+
+// What the page area takes of an event the ribbon did not: a key (wa_key), the text a key types, the wheel (scroll, or zoom with Ctrl), the mouse, and a resize, which makes the picture stale.
+wa_input(App waa, int wai_kind, int[] wal_ev) {
+  if(wai_kind == 1) {
+    wa_key(waa, wal_ev[1], wal_ev[2]);
+  }
+  if(wai_kind == 2) {
+    cv_text(waa.ui.view, wal_ev[1], wal_ev[2]);
+  }
+  if(wai_kind == 8) {
+    vw_wheel(waa.ui.view, wal_ev[1], wal_ev[2], gfx_mods(), vw_box("canvas", 3), vw_box("canvas", 2));
+  }
+} chain (App waa, int wai_kind, int[] wal_ev) {
+  if(wai_kind >= 3 && wai_kind <= 5) {
+    vw_mouse(waa.ui.view, wai_kind, wal_ev);
+  }
+  if(wai_kind == 6) {
+    lset((import vw_st), (import vw_s_d), 1);
+  }
+} return void;
+given wa_t_app ((import wa_app), 2, [2, 120, 0, 0, 0]):() then wa_t_text:("x")
+given wa_t_app given lset((import vw_st), 3, 0) ((import wa_app), 6, [6, 400, 300, 0, 0]):() then vw_t_sts:("0,0,100,1,")
+given wa_t_app ((import wa_app), 8, [8, 0, 1, 0, 0]):() then vw_t_sts:("0,48,100,1,")
+given wa_t_app given wa_t_lines(3) ((import wa_app), 3, [3, 200, 170, 1, 1]):() then cv_t_sel:("0:1-0:1")

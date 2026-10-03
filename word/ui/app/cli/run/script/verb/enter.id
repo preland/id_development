@@ -1,0 +1,48 @@
+// Field wai_i of an argument that was split at its colons, as a number: 0 when the line gave fewer fields.
+wa_num(string[] wat_f, int wai_i) {
+  int wai_n = 0;
+  if(wai_i < len(wat_f)) {
+    wai_n = to_int(wat_f[wai_i]);
+  }
+} return int wai_n;
+(["12", "7"], 1):(7)
+(["12"], 1):(0)
+
+// Types the text of was_t into the document the way the window delivers it: one text event for each code point (kind 2), each routed as the window's would be.
+wa_type(App waa, string was_t) {
+  int wai_k = 0;
+  while(charat(was_t, wai_k) >= 0) {
+    app_on(waa, 2, [2, utf8_cp(was_t, wai_k), 0, 0, 0]);
+    wai_k = utf8_next(was_t, wai_k);
+  }
+} return void;
+given wa_t_app ((import wa_app), "hi"):() then wa_t_text:("hi")
+given wa_t_app ((import wa_app), "é"):() then wa_t_text:("é")
+
+// What a script line does as the window's events do: k<key>:<mods> a key, c<command>:<argument> a command of the ribbon's table, m<kind>:<x>:<y>:<button> a mouse event (kind 3 press, 4 release, 5 move), x<text> text typed; and for an upper case verb the whole line is the editor's (ed_play), done as one command of the canvas so that what changed is laid out. Any other verb does nothing here.
+wa_enter(App waa, int wai_v, string was_a, string was_l) {
+  string[] wat_f = str_split(was_a, ":");
+  if(wai_v == 107) {
+    app_on(waa, 1, [1, wa_num(wat_f, 0), wa_num(wat_f, 1), 0, 0]);
+  }
+  if(wai_v == 99) {
+    cmd_run_arg(waa, wa_num(wat_f, 0), wa_num(wat_f, 1));
+  }
+} chain (App waa, int wai_v, string was_a, string was_l) {
+  if(wai_v == 109) {
+    app_on(waa, wa_num(wat_f, 0), [wa_num(wat_f, 0), wa_num(wat_f, 1), wa_num(wat_f, 2), wa_num(wat_f, 3), 1]);
+  }
+  if(wai_v == 120) {
+    wa_type(waa, was_a);
+  }
+  if(wai_v >= 65 && wai_v <= 90) {
+    cv_begin(waa.ui.view);
+    ed_play_event(waa.doc, waa.ctl, was_l);
+    cv_end(waa.ui.view);
+  }
+} return void;
+given wa_t_app ((import wa_app), 120, "ab", "xab"):() then wa_t_text:("ab")
+given wa_t_app ((import wa_app), 84, "ab", "Tab"):() then wa_t_text:("ab")
+given wa_t_app ((import wa_app), 99, "406", "c406"):() then wa_t_level:("2:0")
+given wa_t_app ((import wa_app), 107, "111:2", "k111:2"):() then wa_t_state:("0,0,2,0,|0|0")
+given wa_t_app ((import wa_app), 122, "1", "z1"):() then wa_t_text:("")

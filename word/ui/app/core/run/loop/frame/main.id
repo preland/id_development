@@ -1,0 +1,52 @@
+// One frame: the surface is fitted to the window when it changed, the waiting events are taken, the caret and the ribbon's tooltip get their turn, and the picture is painted when it is stale. Answers 1 when the app should close.
+app_frame(App waa) {
+  int wai_ch = gfx_sync();
+  if(wai_ch == 1) {
+    wa_resize(waa);
+  }
+  int wai_q = wa_events(waa);
+} chain (App waa) {
+  cv_tick(waa.ui.view);
+  vw_rib_tick();
+  wa_paint(waa, wai_q);
+} chain (App waa) {
+  sleep_ms(1);
+} return int wai_q;
+given wa_t_app ((import wa_app)):(0)
+given wa_t_app given lset((import wa_st), 3, 1) given lset((import vw_st), 3, 0) ((import wa_app)):(0) then vw_t_sts:("0,0,100,1,")
+
+// Runs frames until the app should close or wai_max frames have run (a negative wai_max is no limit), and answers how many ran. A window that never opened (wai_ok 0) runs none.
+wa_loop(App waa, int wai_ok, int wai_max) {
+  int wai_n = 0;
+  int wai_q = wai_ok == 0;
+  while(wai_q == 0 && wai_n != wai_max) {
+    wai_q = app_frame(waa);
+    wai_n = wai_n + 1;
+  }
+} return int wai_n;
+given wa_t_app ((import wa_app), 1, 3):(3)
+given wa_t_app ((import wa_app), 0, 5):(0)
+given wa_t_app ((import wa_app), 1, 0):(0)
+
+// Opens the window (when wai_open is 1, so that a case can run everything else without one), starts the app on the file at the path (a new document when the path is empty; a file that cannot be read is told in a dialog and a new document stands), puts the title on the window and runs frames until the app closes. Answers 0.
+app_main(string was_path, int wai_open) {
+  int wai_ok = wai_open;
+  if(wai_open == 1) {
+    wai_ok = gfx_open((import wa_w), (import wa_h), (import wa_untitled));
+  }
+  App waa = app_new();
+} chain (string was_path, int wai_open) {
+  int wai_c = 0;
+  if(len(was_path) > 0) {
+    wai_c = app_open(waa, was_path);
+  }
+  if(wai_c != 0) {
+    wa_oops(waa, wai_c);
+  }
+} chain (string was_path, int wai_open) {
+  wa_note(waa);
+  int wai_n = wa_loop(waa, wai_ok * wai_open, 0 - 1);
+  int wai_s = gfx_close();
+} return int 0;
+given lp_t_font ("", 0):(0) then wa_t_state:("0,0,0,0,|0|0") then wa_t_ti:("Untitled - Word")
+given lp_t_font ("/nonexistent/x.odt", 0):(0) then wa_t_state:("0,0,4,0,|0|0")

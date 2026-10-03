@@ -1116,9 +1116,13 @@ CLI modes of the binary (the test surface for the oracle driver, no window):
 normalised paragraph/run/property dump; `word --roundtrip IN.odt OUT.odt` loads and
 saves; `word --render IN.odt OUT.ppm [--page N] [--zoom Z]` lays out and paints one
 page; `word --pages IN.odt` prints the page count and the first paragraph on each
-page; `word --script FILE` replays recorded events (a text script of key, text and
-mouse events) against a document and saves it, so an editing session is a testable
-string (the same idea as `idstd_gui_tbt_play`).
+page; `word --script FILE [IN.odt [OUT.odt]]` replays recorded events (a text script of
+key, text and mouse events, and the shell's own: new, open, save, close, dialog
+buttons) against a document, in an application with no window, and saves it to OUT
+when given, so an editing session is a testable string (the same idea as
+`idstd_gui_tbt_play`; the verbs are listed in `word/NAMES.md`, section B8, and an
+upper case verb is `ed_play`'s). `--render` writes a binary PPM (P6). A line that is
+none of these prints the usage and answers 2.
 
 #### 4.9a The `--dump` format (defined by B4b; shared by B4a, B5a, B8, B11)
 

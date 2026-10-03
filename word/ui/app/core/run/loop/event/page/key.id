@@ -1,0 +1,12 @@
+// A key the ribbon and the shortcut table did not want: Page Up and Page Down (with Shift the selection grows) move a screenful (wa_page); any other key is the canvas's (vw_key: the zoom keys, caret movement, editing).
+wa_plain(App waa, int wai_key, int wai_mods) {
+  int wai_pg = wai_key == (import wa_k_pgup) || wai_key == (import wa_k_pgdn);
+  if(wai_pg == 1) {
+    wa_page(waa, 2 * (wai_key - (import wa_k_pgup)) - 1, wai_mods & 1);
+  }
+  if(wai_pg == 0) {
+    vw_key(waa.ui.view, wai_key, wai_mods, vw_box("canvas", 3));
+  }
+} return void;
+given wa_t_app given wa_t_lines(3) given sf_l_init(500, 700) given vw_fit_all((import vw_v)) ((import wa_app), 1012, 0):() then cv_t_sel:("0:0-0:0")
+given wa_t_app ((import wa_app), 97, 0):() then wa_t_text:("")

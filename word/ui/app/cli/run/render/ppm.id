@@ -1,0 +1,43 @@
+// One row of the surface as the bytes of a binary PPM: red, green and blue of each pixel, left to right.
+cli_row(int wai_y) {
+  int[] wal_r = [];
+  int wai_x = 0;
+  while(wai_x < (import sf_l_w)) {
+    int wai_c = (import sf_l_px)[sf_l_idx(wai_x, wai_y)];
+    lst_extend(wal_r, [wai_c / 65536 % 256, wai_c / 256 % 256, wai_c % 256]);
+    wai_x = wai_x + 1;
+  }
+} return int[] wal_r;
+given sf_l_init(2, 2) given d2_l_rect(0, 0, 2, 2, 1193046) (1):([18, 52, 86, 18, 52, 86])
+given sf_l_init(1, 1) (0):([0, 0, 0])
+
+// Writes every row of the surface to the open file wai_h, top to bottom. Answers how many bytes did not get there, 0 when all did.
+cli_rows(int wai_h) {
+  int wai_y = 0;
+  int wai_lost = 0;
+  while(wai_y < (import sf_l_h)) {
+    int[] wal_r = cli_row(wai_y);
+    wai_lost = wai_lost + len(wal_r) - fs_write(wai_h, wal_r, len(wal_r));
+    wai_y = wai_y + 1;
+  }
+} return int wai_lost;
+given sf_l_init(2, 2) given d2_l_rect(0, 0, 2, 2, 1193046) given cli_t_open("x") ((import cli_t_h)):(0) then cli_t_got:(12)
+given sf_l_init(3, 1) given cli_t_open("x") ((import cli_t_h)):(0) then cli_t_got:(9)
+
+// Writes the surface to the file at the path as a binary PPM (P6, 255), the picture a browser or an image viewer shows. Answers 0, or 1 after naming on stderr what went wrong and how to fix it.
+cli_ppm(string was_path) {
+  int wai_h = fs_open(was_path, "w");
+  string was_head = "P6\n" + (import sf_l_w) + " " + (import sf_l_h) + "\n255\n";
+  int wai_lost = 1;
+} chain (string was_path) {
+  if(wai_h >= 0) {
+    wai_lost = fs_write(wai_h, exec_bytes(was_head), len(was_head)) - len(was_head);
+    wai_lost = wai_lost + cli_rows(wai_h);
+    wai_lost = wai_lost + fs_close(wai_h);
+  }
+  if(wai_lost != 0) {
+    eprint("render: the picture could not be written; check that the folder exists and that you may write to it [" + was_path + "]");
+  }
+} return int wai_lost;
+given sf_l_init(2, 2) given d2_l_rect(0, 0, 2, 2, 1193046) given cli_t_open("x") ((import cli_t_p)):(0) then cli_t_got:(23)
+given sf_l_init(2, 2) ("/nonexistent/dir/o.ppm"):(1) then eprints:("render: the picture could not be written; check that the folder exists and that you may write to it [/nonexistent/dir/o.ppm]\n")

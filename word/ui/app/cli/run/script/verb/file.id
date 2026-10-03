@@ -1,0 +1,50 @@
+// Opens the file at the path for a script, as a user's Open does (wa_took); with no path it shows the Open picker. Answers why the file could not be read, and a line feed, or "" when it was.
+wa_load(App waa, string was_path) {
+  string was_o = "";
+  int wai_c = 0;
+  if(len(was_path) == 0) {
+    cmd_run(waa, (import cmd_open));
+  }
+} chain (App waa, string was_path) {
+  if(len(was_path) > 0) {
+    wai_c = app_open(waa, was_path);
+  }
+  if(wai_c != 0) {
+    was_o = odt_error(wai_c) + "\n";
+  }
+} return string was_o;
+given wa_t_app given orc_t_zip("<r><office:text><text:p>Hi</text:p></office:text></r>", "") given orc_t_save ((import wa_app), (import orc_tp)):("") then wa_t_text:("Hi") then orc_t_gone:(0)
+given wa_t_app ((import wa_app), "/nonexistent/none.odt"):("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/none.odt]\n")
+given wa_t_app ((import wa_app), ""):("") then wa_t_state:("0,0,2,0,|0|0")
+
+// Saves the document to the file at the path for a script (app_save); with no path it saves where the document is, or shows the Save As picker. Answers why the file could not be written, and a line feed, or "" when it was.
+wa_store(App waa, string was_path) {
+  string was_o = "";
+  int wai_c = 0;
+  if(len(was_path) == 0) {
+    cmd_run(waa, (import cmd_save));
+  }
+} chain (App waa, string was_path) {
+  if(len(was_path) > 0) {
+    wai_c = app_save(waa, was_path);
+  }
+  if(wai_c != 0) {
+    was_o = odt_error(wai_c) + "\n";
+  }
+} return string was_o;
+given wa_t_app given wa_t_pair("zz", "old") ((import wa_app), (import wa_t_p)):("") then wa_t_files:("80,75,|0") then wa_t_gone:(0)
+given wa_t_app ((import wa_app), "/nonexistent/dir/x.odt"):("ODT: the file could not be written; check that the folder exists, that you may write to it and that the disk has room [/nonexistent/dir/x.odt]\n")
+given wa_t_app ((import wa_app), ""):("") then wa_t_state:("0,0,3,0,|0|0")
+
+// Asks the window to close, as its close button does, and answers what came of it: "close" and a line feed when the app is closing, else the name of the dialog that opened (unsaved) and a line feed.
+wa_leave(App waa) {
+  int[] wal_e = [7, 0, 0, 0, 0];
+  int wai_q = app_on(waa, 7, wal_e);
+  string was_o = (import wa_d_names)[(import wa_st)[(import wa_s_dlg)]] + "\n";
+} chain (App waa) {
+  if(wai_q == 1) {
+    was_o = "close\n";
+  }
+} return string was_o;
+given wa_t_app ((import wa_app)):("close\n")
+given wa_t_app given wa_t_type(120) ((import wa_app)):("unsaved\n")

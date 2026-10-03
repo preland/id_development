@@ -1,30 +1,6 @@
 main(int argc, string[] argv) {
-  Doc d = doc_new();
-  int n = doc_count(d);
-  int rc = n - 1;
-} chain (int argc, string[] argv) {
-  if(argc == 3 && argv[1] == "--text") {
-    rc = cli_doc(argv[2], 0);
-  }
-  if(argc == 3 && argv[1] == "--dump") {
-    rc = cli_doc(argv[2], 1);
-  }
-  if(argc == 4 && argv[1] == "--roundtrip") {
-    rc = cli_round(argv[2], argv[3]);
-  }
-} chain (int argc, string[] argv) {
-  if(argc == 3 && argv[1] == "--pages") {
-    rc = cli_pages(argv[2]);
-  }
-  if(argc == 1) {
-    rc = vw_main((import vw_default), 1);
-  }
-  if(argc == 2 && str_starts(argv[1], "--") == 0) {
-    rc = vw_main(argv[1], 1);
-  }
+  int rc = cli_main(argc, argv);
 } return int rc;
-(3, ["word", "a", "b"]):(0)
-(2, ["word", "--bogus"]):(0)
+(2, ["word", "--bogus"]):(2) then eprints:("usage: word [FILE.odt] | --text IN.odt | --dump IN.odt | --roundtrip IN.odt OUT.odt | --pages IN.odt | --render IN.odt OUT.ppm [--page N] [--zoom Z] | --script FILE [IN.odt [OUT.odt]]\n")
 (3, ["word", "--text", "/nonexistent/none.odt"]):(1) then eprints:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/none.odt]\n")
-(3, ["word", "--dump", "/nonexistent/none.odt"]):(1) then eprints:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/none.odt]\n")
 (4, ["word", "--roundtrip", "/nonexistent/none.odt", "/nonexistent/out.odt"]):(1) then eprints:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/none.odt]\n")
