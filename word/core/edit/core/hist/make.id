@@ -1,4 +1,4 @@
-// A new editing state: the caret at the start of the document, empty history, and an empty fragment. It also resets the pending typing properties and installs the paragraph-granular line and page movement, so call ed_layout_hooks after it to use real layout.
+// A new editing state: the caret at the start of the document, empty history, and an empty fragment. It also makes the three-cell list ed_acc that sel_state samples into (a list of its own would never be freed, because the samplers are called through function values), and resets the pending typing properties and installs the paragraph-granular line and page movement, so call ed_layout_hooks after it to use real layout.
 ctl_new() {
   Sel sel = sel_make(0, 0, 0, 0);
   Txn[] undo = [];
@@ -12,6 +12,7 @@ ctl_new() {
   Ctl ctl = Ctl(sel, hs, frag);
   export int[] ed_typing = [-1, 0];
 } chain () {
+  export int[] ed_acc = [0, 0, 0];
   ed_layout_hooks(ed_hook_para);
 } return Ctl ctl;
 ():(Ctl(Sel(Pos(0, 0), Pos(0, 0), -1), Hist([], [], -1), Frag([], [], 1)))

@@ -37,12 +37,14 @@ given wa_t_app ((import wa_app), 1011, 0):() then wa_t_state:("0,0,0,0,|0|0")
 // Notes what an event may have changed: whether the document has changes that are not saved, the title of the window when that or the file's name changed it, and what the ribbon shows for the commands that depend on the selection and the history.
 wa_note(App waa) {
   wa_dirty(waa);
-  string was_t = app_title(waa);
   string[] wat_k = (import wa_ti);
+  string was_s = "";
 } chain (App waa) {
-  if(was_t != wat_k[0]) {
-    wat_k[0] = was_t;
-    int wai_g = gfx_title(was_t);
+  if(waa.ui.shell.dirty == 1) {
+    was_s = (import wa_star);
+  }
+  if(waa.ui.shell.path != wat_k[1] || was_s != wat_k[2]) {
+    wa_retitle(waa, wat_k, was_s);
   }
   wa_put(waa);
 } return void;

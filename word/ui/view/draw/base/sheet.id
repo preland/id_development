@@ -1,11 +1,14 @@
 // A sheet of paper at (x, y), w by h pixels, over the desk: its shadow first, offset down and right and blended over what is there, then the white sheet. Only the rows from vwi_c0 to vwi_c1 - 1 (the band being painted) are drawn, since the primitives test the clip a pixel at a time and a whole sheet is a million of them.
 vw_sheet(int vwi_x, int vwi_y, int vwi_w, int vwi_h, int vwi_c0, int vwi_c1) {
   int vwi_o = (import vw_shadow_off);
-  int[] vwl_s = cv_span(vwi_y + vwi_o, vwi_h, vwi_c0, vwi_c1);
-  d2_l_arect(vwi_x + vwi_o, vwl_s[0], vwi_w, vwl_s[1], 0, (import vw_shadow_a));
+  int vwi_s0 = cv_span(vwi_y + vwi_o, vwi_h, vwi_c0, vwi_c1, 0);
+  int vwi_s1 = cv_span(vwi_y + vwi_o, vwi_h, vwi_c0, vwi_c1, 1);
 } chain (int vwi_x, int vwi_y, int vwi_w, int vwi_h, int vwi_c0, int vwi_c1) {
-  int[] vwl_p = cv_span(vwi_y, vwi_h, vwi_c0, vwi_c1);
-  d2_l_rect(vwi_x, vwl_p[0], vwi_w, vwl_p[1], (import vw_c_sheet));
+  d2_l_arect(vwi_x + vwi_o, vwi_s0, vwi_w, vwi_s1, 0, (import vw_shadow_a));
+  int vwi_p0 = cv_span(vwi_y, vwi_h, vwi_c0, vwi_c1, 0);
+  int vwi_p1 = cv_span(vwi_y, vwi_h, vwi_c0, vwi_c1, 1);
+} chain (int vwi_x, int vwi_y, int vwi_w, int vwi_h, int vwi_c0, int vwi_c1) {
+  d2_l_rect(vwi_x, vwi_p0, vwi_w, vwi_p1, (import vw_c_sheet));
 } return void;
 given sf_l_init(40, 40) given d2_l_rect(0, 0, 40, 40, 13619151) given vw_t_at(10, 10) (5, 5, 20, 20, 0, 40):() then vw_t_px:(16777215)
 given sf_l_init(40, 40) given d2_l_rect(0, 0, 40, 40, 13619151) given vw_t_at(27, 10) (5, 5, 20, 20, 0, 40):() then vw_t_px:(8816262)
@@ -14,12 +17,14 @@ given sf_l_init(40, 40) given d2_l_rect(0, 0, 40, 40, 13619151) given vw_t_at(10
 given sf_l_init(40, 40) given d2_l_rect(0, 0, 40, 40, 13619151) given vw_t_at(10, 10) (5, 5, 20, 20, 0, 8):() then vw_t_px:(13619151)
 given sf_l_init(40, 40) given d2_l_rect(0, 0, 40, 40, 13619151) given vw_t_at(10, 6) (5, 5, 20, 20, 0, 8):() then vw_t_px:(16777215)
 
-// The part of the rows cvi_y to cvi_y + cvi_h - 1 that lies in the band of rows cvi_c0 to cvi_c1 - 1, as [first row, how many], with none (how many 0) when they do not meet.
-cv_span(int cvi_y, int cvi_h, int cvi_c0, int cvi_c1) {
+// The part of the rows cvi_y to cvi_y + cvi_h - 1 that lies in the band of rows cvi_c0 to cvi_c1 - 1, as its first row when cvi_k is 0 and how many rows it is when cvi_k is 1 (none, how many 0, when they do not meet).
+cv_span(int cvi_y, int cvi_h, int cvi_c0, int cvi_c1, int cvi_k) {
   int cvi_a = fx_max(cvi_y, cvi_c0);
   int cvi_b = fx_min(cvi_y + cvi_h, cvi_c1);
-  int[] cvl_s = [cvi_a, fx_max(cvi_b - cvi_a, 0)];
-} return int[] cvl_s;
-(10, 20, 0, 100):([10, 20])
-(10, 20, 0, 15):([10, 5])
-(10, 20, 40, 60):([40, 0])
+  int cvi_s = cvi_a * (cvi_k == 0) + fx_max(cvi_b - cvi_a, 0) * (cvi_k == 1);
+} return int cvi_s;
+(10, 20, 0, 100, 0):(10)
+(10, 20, 0, 100, 1):(20)
+(10, 20, 0, 15, 1):(5)
+(10, 20, 40, 60, 0):(40)
+(10, 20, 40, 60, 1):(0)

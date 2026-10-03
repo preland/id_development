@@ -13,26 +13,35 @@ given vw_t_two given vw_state_new given vw_t_up(400, 300) given d2_l_rect(0, 128
 given vw_t_two given vw_state_new given vw_t_up(400, 300) given d2_l_rect(0, 128, 384, 150, 255) given vw_t_at(150, 160) ((import lp_t_v), [0, 128, 384, 150, 128, 140]):() then vw_t_px:(255)
 given vw_t_two given vw_state_new given vw_t_up(400, 300) given d2_l_rect(0, 128, 384, 150, 255) given vw_t_at(300, 135) ((import lp_t_v), [0, 128, 384, 150, 128, 140]):() then vw_t_px:(13619151)
 
-// The area list of the page area for a repaint of rows cvi_y0 to cvi_y1 - 1 of the surface: the page area's rectangle from the chrome, and the band cut to lie inside it (nothing, with its two rows equal, when they miss it).
-cv_rows(int cvi_y0, int cvi_y1) {
+// Makes cvl_r the area list of the page area for a repaint of rows cvi_y0 to cvi_y1 - 1 of the surface: the page area's rectangle from the chrome, and the band cut to lie inside it (nothing, with its two rows equal, when they miss it). The caller makes the six-cell list, so that it is its own and is freed with it.
+cv_rows(int cvi_y0, int cvi_y1, int[] cvl_r) {
   int cvi_cy = vw_box("canvas", 1);
   int cvi_ch = vw_box("canvas", 3);
   int cvi_a = fx_clamp(cvi_y0, cvi_cy, cvi_cy + cvi_ch);
-} chain (int cvi_y0, int cvi_y1) {
+} chain (int cvi_y0, int cvi_y1, int[] cvl_r) {
   int cvi_b = fx_clamp(cvi_y1, cvi_a, cvi_cy + cvi_ch);
-  int[] cvl_r = [vw_box("canvas", 0), cvi_cy, vw_box("canvas", 2), cvi_ch, cvi_a, cvi_b];
-} return int[] cvl_r;
-given vw_t_two given vw_t_up(400, 300) (100, 140):([0, 156, 384, 122, 156, 156])
-given vw_t_two given vw_t_up(400, 300) (200, 400):([0, 156, 384, 122, 200, 278])
+  lset(cvl_r, 0, vw_box("canvas", 0));
+  lset(cvl_r, 1, cvi_cy);
+} chain (int cvi_y0, int cvi_y1, int[] cvl_r) {
+  lset(cvl_r, 2, vw_box("canvas", 2));
+  lset(cvl_r, 3, cvi_ch);
+  lset(cvl_r, 4, cvi_a);
+} chain (int cvi_y0, int cvi_y1, int[] cvl_r) {
+  lset(cvl_r, 5, cvi_b);
+} return void;
+given vw_t_two given vw_t_up(400, 300) (100, 140, [9, 9, 9, 9, 9, 9]):(100, 140, [0, 156, 384, 122, 156, 156])
+given vw_t_two given vw_t_up(400, 300) (200, 400, [9, 9, 9, 9, 9, 9]):(200, 400, [0, 156, 384, 122, 200, 278])
 
 // Paints the part of the picture that the band of rows asked for (vw_ed) needs and no more: the page area in the band, and the status bar, whose page and word count an edit changes. The band is then empty again.
 cv_part(View cvv) {
   int[] cvl_e = (import vw_ed);
-  int[] cvl_r = cv_rows(cvl_e[(import cv_e_y0)], cvl_e[(import cv_e_y1)]);
-  cv_area(cvv, cvl_r);
+  int[] cvl_r = [0, 0, 0, 0, 0, 0];
+  cv_rows(cvl_e[(import cv_e_y0)], cvl_e[(import cv_e_y1)], cvl_r);
 } chain (View cvv) {
+  cv_area(cvv, cvl_r);
   vw_status(cvv);
   lset(cvl_e, (import cv_e_y0), 0 - 1);
+} chain (View cvv) {
   lset(cvl_e, (import cv_e_y1), 0 - 1);
 } return void;
 given cv_t_ed("A|A|A|A|A|A|A|A") given rbd_ui_set(1, 1, 1) given d2_l_rect(0, 156, 384, 122, 255) given cv_mark(178, 188) given vw_t_at(5, 183) ((import lp_t_v)):() then vw_t_px:(13619151) then cv_t_eds:("0,0,0,0,0,-1,-1,-1,")

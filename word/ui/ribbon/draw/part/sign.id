@@ -1,24 +1,29 @@
-// Where the sign of a menu goes on a control at (rbi_x, rbi_y) of size rbi_w by rbi_h of look rbi_shape (rbd_k_shape), as x then y: under the icon of a large control with an icon and a name, at the right of a small one or of a field, at the bottom right of the gallery.
-rbd_sign_at(int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_shape) {
+// Where the sign of a menu goes on a control at (rbi_x, rbi_y) of size rbi_w by rbi_h of look rbi_shape (rbd_k_shape), as x when rbi_axis is 0 and as y when it is 1: under the icon of a large control with an icon and a name, at the right of a small one or of a field, at the bottom right of the gallery.
+rbd_sign_at(int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_shape, int rbi_axis) {
   int rbi_big = rbi_h >= 48;
   int rbi_sx = rbi_x + rbi_w - 9 + (rbi_big * (rbi_shape == 1)) * (9 - rbi_w / 2) + (rbi_shape == 1) * (1 - rbi_big);
   int rbi_sy = rbi_y + rbi_h / 2 + (rbi_big * (rbi_shape == 1)) * (33 - rbi_h / 2) + (rbi_shape == 4) * (rbi_h / 2 - 9);
-} chain (int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_shape) {
-  int[] rbl_p = [rbi_sx, rbi_sy];
-} return int[] rbl_p;
-(0, 0, 40, 74, 1):([20, 33])
-(0, 0, 90, 24, 3):([81, 12])
-(0, 0, 40, 24, 1):([32, 12])
-(10, 10, 150, 74, 4):([151, 75])
+} chain (int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_shape, int rbi_axis) {
+  int rbi_p = rbi_sx * (rbi_axis == 0) + rbi_sy * (rbi_axis == 1);
+} return int rbi_p;
+(0, 0, 40, 74, 1, 0):(20)
+(0, 0, 40, 74, 1, 1):(33)
+(0, 0, 90, 24, 3, 0):(81)
+(0, 0, 40, 24, 1, 0):(32)
+(0, 0, 40, 24, 1, 1):(12)
+(10, 10, 150, 74, 4, 0):(151)
+(10, 10, 150, 74, 4, 1):(75)
 
 // Paints the sign of the control at (rbi_x, rbi_y) of size rbi_w by rbi_h of look rbi_shape: the arrow strip at the right of a split button (on the hot colour while rbi_hot is 1), the triangle of a menu for a control that opens one, nothing for any other.
 rbd_sign(int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_shape, int rbi_hot) {
-  int[] rbl_p = rbd_sign_at(rbi_x, rbi_y, rbi_w, rbi_h, rbi_shape);
+  int rbi_px = rbd_sign_at(rbi_x, rbi_y, rbi_w, rbi_h, rbi_shape, 0);
+  int rbi_py = rbd_sign_at(rbi_x, rbi_y, rbi_w, rbi_h, rbi_shape, 1);
   if(rbi_shape == 2) {
     rbd_strip(rbi_x + rbi_w - (import rbd_arrow_px), rbi_y, (import rbd_arrow_px), rbi_h, rbi_hot, (import rbd_c_icon));
   }
+} chain (int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_shape, int rbi_hot) {
   if(rbi_shape == 1 || rbi_shape == 3 || rbi_shape == 4) {
-    rbd_tri(rbl_p[0], rbl_p[1], (import rbd_c_icon));
+    rbd_tri(rbi_px, rbi_py, (import rbd_c_icon));
   }
 } return void;
 given sf_l_init(60, 40) given vw_t_at(48, 17) (2, 2, 52, 30, 2, 1):() then vw_t_px:(4210752)

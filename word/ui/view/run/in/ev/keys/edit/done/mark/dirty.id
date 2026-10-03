@@ -10,18 +10,20 @@ given cv_t_ed("AB|CD") ((import lp_t_v), 0, 1):() then cv_t_eds:("0,0,0,0,0,-1,1
 // Asks for the paragraphs the selection of the controller covers to be repainted, whole paragraphs from the first to the last: a selection is painted over the lines it covers and a caret is in one.
 cv_sel_dirty(View cvv) {
   Ctl cvc = (import vw_ctl);
-  Pos cvp = sel_lo(cvc.sel);
-  Pos cvq = sel_hi(cvc.sel);
+  int cvi_p = fx_min(cvc.sel.anchor.para, cvc.sel.caret.para);
+  int cvi_q = fx_max(cvc.sel.anchor.para, cvc.sel.caret.para);
 } chain (View cvv) {
-  cv_para_band(cvv, cvp.para, cvq.para);
+  cv_para_band(cvv, cvi_p, cvi_q);
 } return void;
 given cv_t_ed("AB|CD") ((import lp_t_v)):() then cv_t_eds:("0,0,0,0,0,-1,187,219,")
 given cv_t_ed("AB|CD") given ed_select_all((import lp_t_d), (import vw_ctl)) ((import lp_t_v)):() then cv_t_eds:("0,0,0,0,0,-1,187,237,")
 
 // Asks for the line the caret is on to be repainted: the rows of its line, for a caret that blinks.
 cv_caret_dirty(View cvv) {
-  int[] cvl_o = cv_where(cvv);
+  int[] cvl_o = [0, 0, 0, 0];
+  cv_where(cvv, cvl_o);
   int cvi_y = cvl_o[0] * (lay_sheet(cvv.doc, 1) + (import word_lay_gap)) + cvl_o[2];
+} chain (View cvv) {
   cv_band(cvv, cvi_y, cvi_y + cvl_o[3]);
 } return void;
 given cv_t_ed("AB|CD") ((import lp_t_v)):() then cv_t_eds:("0,0,0,0,0,-1,187,211,")

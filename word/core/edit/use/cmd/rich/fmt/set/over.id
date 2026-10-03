@@ -16,12 +16,16 @@ given fx_setup("abc|def|ghi") ((import fxd), (import fxc), fx_note, [], 0, Pos(0
 given fx_setup("abc|def|ghi") ((import fxd), (import fxc), fx_note, [], 2, Pos(0, 1), Pos(2, 2)):((import fxd), (import fxc), fx_note, [2, 0, 2], 2, Pos(0, 1), Pos(2, 2))
 given fx_setup("abc|def|ghi") ((import fxd), (import fxc), fx_note, [], 1, Pos(1, 1), Pos(1, 2)):((import fxd), (import fxc), fx_note, [1, 1, 2], 1, Pos(1, 1), Pos(1, 2))
 
-// Calls act on every paragraph the selection touches, each with the part of it that is selected. act changes the document (ops in the open undo step) or notes something in acc; it must not add or remove paragraphs.
+// Calls act on every paragraph the selection touches, each with the part of it that is selected. act changes the document (ops in the open undo step) or notes something in acc; it must not add or remove paragraphs, and it must not move the selection, because the two ends are read from the selection itself (a copy of each would be a list never freed, for every frame and key that asks the selection a question).
 ed_over(Doc d, Ctl ctl, func(Doc, Ctl, int, int, int, int[]) return void act, int[] acc) {
-  Pos pa = sel_lo(ctl.sel);
-  Pos pb = sel_hi(ctl.sel);
-  int i = pa.para;
+  Pos pa = ctl.sel.anchor;
+  Pos pb = ctl.sel.caret;
+  if(pos_lt(ctl.sel.caret, ctl.sel.anchor) == 1) {
+    pa = ctl.sel.caret;
+    pb = ctl.sel.anchor;
+  }
 } chain (Doc d, Ctl ctl, func(Doc, Ctl, int, int, int, int[]) return void act, int[] acc) {
+  int i = pa.para;
   while(i <= pb.para) {
     ed_over_one(d, ctl, act, acc, i, pa, pb);
     i = i + 1;

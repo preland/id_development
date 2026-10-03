@@ -19,18 +19,19 @@ cv_dy(int cvi_top, int cvi_bot, int cvi_sy, int cvi_ch) {
 
 // Scrolls the page area as far as it takes to bring the caret's line into view, down or up and, when the sheets are wider than the area, sideways. The caret is where lay_caret puts it; nothing moves when it is in view already.
 cv_see(View cvv) {
-  int[] cvl_o = cv_where(cvv);
+  int[] cvl_o = [0, 0, 0, 0];
+  cv_where(cvv, cvl_o);
   int[] cvl_st = (import vw_st);
-  int cvi_z = cvl_st[(import vw_s_z)];
 } chain (View cvv) {
+  int cvi_z = cvl_st[(import vw_s_z)];
   int cvi_t = vw_top(cvv, cvl_o[0], cvi_z) + vw_px(cvl_o[2], cvi_z);
   int cvi_ch = vw_box("canvas", 3);
-  int cvi_b = cvi_t + fx_max(vw_px(cvl_o[3], cvi_z), 1);
 } chain (View cvv) {
+  int cvi_b = cvi_t + fx_max(vw_px(cvl_o[3], cvi_z), 1);
   vw_scroll(cvv, cv_dy(cvi_t, cvi_b, cvl_st[(import vw_s_y)], cvi_ch), cvi_ch);
   int cvi_cw = vw_box("canvas", 2);
-  int cvi_x = vw_sx(cvv, cvi_z, cvi_cw, cvl_st[(import vw_s_x)]) + cvl_st[(import vw_s_x)] + vw_px(cvl_o[1], cvi_z);
 } chain (View cvv) {
+  int cvi_x = vw_sx(cvv, cvi_z, cvi_cw, cvl_st[(import vw_s_x)]) + cvl_st[(import vw_s_x)] + vw_px(cvl_o[1], cvi_z);
   vw_scroll_x(cvv, cv_dy(cvi_x, cvi_x + 1, cvl_st[(import vw_s_x)], cvi_cw), cvi_cw);
 } return void;
 given cv_t_ed("AB|CD") ((import lp_t_v)):() then vw_t_sts:("0,0,100,0,")

@@ -1,17 +1,21 @@
 // The rectangles that show selection lhs on page lhk: lhc becomes four numbers [x, y, width, height] for every line of the page the selection covers, in lu from the top left corner of the page, one rectangle per line from the first covered offset to the last, plus the width of a paragraph mark (word_lay_mark) at the end of a line whose paragraph the selection goes on past. Answers how many rectangles. A collapsed selection has none. Uses only the pagination and the pens, so it needs no font.
 // By hand in "BBB", "A", "BBB" (pens 683 per letter, left margin 2560, paragraphs 1664 apart from 640): the selection from 1 of the first to 1 of the last is [3243, 640, 1366 + 256, 1152] for the rest of the first, [2560, 2304, 683 + 256, 1152] for the second whole, and [2560, 3968, 683, 1152] for the start of the third, three in all.
 lay_sel_rects(View lhv, Sel lhs, int lhk, int[] lhc) {
-  lp_clear(lhc);
-  Pos lhsa = sel_lo(lhs);
-  Pos lhsb = sel_hi(lhs);
+  Pos lhsa = lhs.anchor;
+  Pos lhsb = lhs.caret;
+  if(pos_lt(lhs.caret, lhs.anchor) == 1) {
+    lhsa = lhs.caret;
+    lhsb = lhs.anchor;
+  }
 } chain (View lhv, Sel lhs, int lhk, int[] lhc) {
+  lp_clear(lhc);
   int lhi = fx_max(lhv.pages.starts[2 * lhk], lhsa.para);
   int lhe = fx_min(lhv.pages.starts[2 * lhk + 2] + (lhv.pages.starts[2 * lhk + 3] > 0), lhsb.para + 1);
+} chain (View lhv, Sel lhs, int lhk, int[] lhc) {
   while(lhi < lhe) {
     lay_rects_para(lhv, lhk, lhi, lhsa, lhsb, lhc);
     lhi = lhi + 1;
   }
-} chain (View lhv, Sel lhs, int lhk, int[] lhc) {
   int lhn = len(lhc) / 4;
 } return int lhn;
 given lg_t_rows(["BBB", "A", "BBB"]) given lg_t_out ((import lp_t_v), Sel(Pos(0, 1), Pos(2, 1), -1), 0, (import lg_t_o)):(3) then lg_t_outs:("3243,640,1622,1152,2560,2304,939,1152,2560,3968,683,1152,")

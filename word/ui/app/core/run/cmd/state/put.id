@@ -1,14 +1,13 @@
-// What each command of wa_put_cmd shows now, in that order (cmd_state).
-wa_states(App waa) {
-  int[] wal_n = [];
+// Adds to wal_n what each command of wa_put_cmd shows now, in that order (cmd_state).
+wa_states(App waa, int[] wal_n) {
   int wai_k = 0;
   while(wai_k < len((import wa_put_cmd))) {
     push(wal_n, cmd_state(waa, (import wa_put_cmd)[wai_k]));
     wai_k = wai_k + 1;
   }
-} return int[] wal_n;
-given wa_t_app ((import wa_app)):([3, 3, 3, 3, 0, 0, 3, 3])
-given wa_t_app given wa_t_list(1, 1) ((import wa_app)):([0, 3, 3, 3, 1, 0, 0, 0])
+} return void;
+given wa_t_app ((import wa_app), []):((import wa_app), [3, 3, 3, 3, 0, 0, 3, 3])
+given wa_t_app given wa_t_list(1, 1) ((import wa_app), [9]):((import wa_app), [9, 0, 3, 3, 3, 1, 0, 0, 0])
 
 // Gives the ribbon the states wal_n of the commands of wa_put_cmd, keeps them as the ones it has (the export wa_ps), and makes the picture stale, because the ribbon is painted again only whole.
 wa_tell(App waa, int[] wal_n) {
@@ -26,8 +25,10 @@ given wa_t_app ((import wa_app), [3, 3, 3, 3, 0, 0, 3, 3]):() then wa_t_put:("3,
 
 // Tells the ribbon what the commands of wa_put_cmd show now when that is not what it was told last: undo and redo grey when there is nothing to undo or redo, cut and copy when nothing is selected, the list buttons on for the list the caret is in, the moves of a list level grey outside a list.
 wa_put(App waa) {
-  int[] wal_n = wa_states(waa);
-  int wai_c = dump_ints(wal_n) != dump_ints((import wa_ps));
+  int[] wal_n = [];
+  wa_states(waa, wal_n);
+  int wai_c = lst_eq(wal_n, (import wa_ps)) == 0;
+} chain (App waa) {
   if(wai_c == 1) {
     wa_tell(waa, wal_n);
   }
