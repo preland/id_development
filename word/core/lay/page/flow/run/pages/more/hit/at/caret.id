@@ -1,0 +1,44 @@
+// Where the caret is for position lhq: lhc becomes [page, x, y, height], x and y in lu from the top left corner of the page, the height that of the line. The pen of the offset gives x and the line gives y, as the glyphs are drawn, so caret and glyph agree.
+// By hand in "BBB EEE BBB" (lines of 4, 4 and 3, B 683 wide, left margin 2560, top margin 640, lines of 1152): offset 5 is the second code point of line 1, at 2560 + 683 = 3243, 640 + 1152 = 1792 down; the end of the 28-letter paragraph is on page 1, after one letter of its last line.
+lay_caret(View lhv, Pos lhq, int[] lhc) {
+  Para lhpa = lhv.doc.body.paras[lhq.para];
+  int lhj = lay_line_in(lhpa, lhq.off);
+  lp_clear(lhc);
+} chain (View lhv, Pos lhq, int[] lhc) {
+  lay_rect(lhc, lay_page_of(lhv, lhq.para, lhj), lay_margin(lhv.doc, 3) + lhpa.lay.pen[lhq.off], lay_line_y(lhv, lhq.para, lhj), lay_line_h(lhv, lhq.para, lhj));
+} return void;
+given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 0), [9, 9, 9, 9, 9]):((import lp_t_v), Pos(0, 0), [0, 2560, 640, 1152])
+given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 5), []):((import lp_t_v), Pos(0, 5), [0, 3243, 1792, 1152])
+given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 11), []):((import lp_t_v), Pos(0, 11), [0, 4609, 2944, 1152])
+given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), Pos(0, 28), []):((import lp_t_v), Pos(0, 28), [1, 3243, 1792, 1152])
+
+// Appends the four numbers of a rectangle, or of a caret, to lhc.
+// By hand: appending 5, 6, 7, 8 to a list holding 9 gives 9, 5, 6, 7, 8.
+lay_rect(int[] lhc, int lha, int lhb, int lhwd, int lhh) {
+  push(lhc, lha);
+  push(lhc, lhb);
+  push(lhc, lhwd);
+} chain (int[] lhc, int lha, int lhb, int lhwd, int lhh) {
+  push(lhc, lhh);
+} return void;
+([], 1, 2, 3, 4):([1, 2, 3, 4], 1, 2, 3, 4)
+([9], 5, 6, 7, 8):([9, 5, 6, 7, 8], 5, 6, 7, 8)
+
+// The last offset a caret can have on line lhj of a paragraph: the end of the text on its last line, else the end of the visible text, before the spaces that hang past the edge, or the offset before the last code point of a line that broke inside a word, because the offset where the next line starts is that line's.
+// By hand: in "BBB EEE BBB" in lines of 4, 4 and 3, line 0 ends at 3 (before its space), line 1 at 7 and line 2 at 11; four A in lines of 3 and 1, line 0 ends at 2.
+lay_maxoff(Para lhpa, int lhj) {
+  int lhlo = lhpa.lay.lines[lhj * (import word_ln_stride) + (import word_ln_lo)];
+  int lhhi = lhpa.lay.lines[lhj * (import word_ln_stride) + (import word_ln_hi)];
+  int lhm = lhhi;
+} chain (Para lhpa, int lhj) {
+  if(lhhi < len(lhpa.txt.cps)) {
+    lhm = lp_wend(lhpa, lhlo, lhhi);
+  }
+  if(lhm == lhhi && lhhi < len(lhpa.txt.cps)) {
+    lhm = lhhi - 1;
+  }
+} return int lhm;
+(Para(Text([66, 66, 66, 32, 69, 69, 69, 32, 66, 66, 66], [Run(11, 0, -1)], 0), Lay([0, 4, 0, 960, 192, 2049, 4, 8, 1152, 960, 192, 2049, 8, 11, 2304, 960, 192, 2049], [], 3968), 0), 0):(3)
+(Para(Text([66, 66, 66, 32, 69, 69, 69, 32, 66, 66, 66], [Run(11, 0, -1)], 0), Lay([0, 4, 0, 960, 192, 2049, 4, 8, 1152, 960, 192, 2049, 8, 11, 2304, 960, 192, 2049], [], 3968), 0), 1):(7)
+(Para(Text([66, 66, 66, 32, 69, 69, 69, 32, 66, 66, 66], [Run(11, 0, -1)], 0), Lay([0, 4, 0, 960, 192, 2049, 4, 8, 1152, 960, 192, 2049, 8, 11, 2304, 960, 192, 2049], [], 3968), 0), 2):(11)
+(Para(Text([65, 65, 65, 65], [Run(4, 0, -1)], 0), Lay([0, 3, 0, 960, 192, 2049, 3, 4, 1152, 960, 192, 683], [], 2816), 0), 0):(2)

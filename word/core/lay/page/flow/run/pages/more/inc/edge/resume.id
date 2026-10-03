@@ -1,0 +1,44 @@
+// Puts the walk lws, [y, used, base], back at the start of page lwk, which stays in starts while the pages after it are forgotten, and places the paragraph the page starts in (from the line it starts at) so that the walk goes on from the end of that paragraph. Pages before it are as they were, because only paragraphs from the page's own start on can have changed.
+// By hand: 8 one-line paragraphs of 1664 lu, 6 to a page: page 1 starts at paragraph 6, which ends at y 1664 with its own top as the base 0. A 28-letter paragraph in 3-letter lines is 10 lines of 1152 lu and 512 after, 12032 in all; page 1 starts at its line 8, so the base is minus 8 lines, 9216, and the paragraph ends at 12032 - 9216 = 2816.
+lay_resume(View lwv, int lwk, int[] lws) {
+  lay_keep(lwv, lwk + 1);
+  int lwi = lwv.pages.starts[2 * lwk];
+  int lwj = lwv.pages.starts[2 * lwk + 1];
+} chain (View lwv, int lwk, int[] lws) {
+  lset(lws, 0, lay_pedge(lwv, lwi, lwj));
+  lset(lws, 1, 0);
+  lay_first(lwv, lwi, lwj, lws);
+} return void;
+given lg_t_paged(8) ((import lp_t_v), 1, [9, 9, 9]):((import lp_t_v), 1, [1664, 1, 0]) then lg_t_starts:("0,0,6,0,") then lg_t_count:(2)
+given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 1, [9, 9, 9]):((import lp_t_v), 1, [2816, 1, -9216]) then lg_t_starts:("0,0,0,8,") then lg_t_count:(2)
+
+// Places paragraph lwi from line lwj on the walk lws, whose y already says where the page's first line sits: a paragraph from its first line is placed whole, one that carries on from the page before places only its lines from lwj on and ends where they end.
+// By hand: with the paragraph of 10 lines starting its page at line 8 and the base at minus 9216, the lines 8 and 9 are placed and the walk ends at 12032 - 9216 = 2816, in use, with that base.
+lay_first(View lwv, int lwi, int lwj, int[] lws) {
+  if(lwj == 0) {
+    lay_place(lwv, lwi, lws);
+  } else {
+    lset(lws, 2, lws[0]);
+    lay_lines(lwv, lwi, lwj, lws);
+  }
+  if(lwj > 0) {
+    lset(lws, 0, lws[2] + lwv.doc.body.paras[lwi].lay.h);
+  }
+} return void;
+given lg_t_paged(8) ((import lp_t_v), 6, 0, [0, 0, 0]):((import lp_t_v), 6, 0, [1664, 1, 0]) then lg_t_tops:("640,2304,3968,5632,7296,8960,14976,16640,")
+given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 0, 8, [-9216, 0, 0]):((import lp_t_v), 0, 8, [2816, 1, -9216]) then lg_t_tops:("640,")
+
+// Where the first line of a page that starts at paragraph lwi, line lwj, sits when the paragraph's own top is the base: minus the line's y, so that the line is at the top of the page. A page that starts at a paragraph's first line is the exception when the paragraph asks for a page break or is the first of the document, where the paragraph's own top, its space before included, is the page's top.
+// By hand: line 8 of 3-letter lines of 1152 lu is at 9216, so the base is minus 9216; a paragraph with 600 twips (2560 lu) before it that starts a page by overflow has its first line at 2560 and the base is minus 2560; one that asks for a page break keeps it, base 0.
+lay_pedge(View lwv, int lwi, int lwj) {
+  int lwy = lwv.doc.body.paras[lwi].lay.lines[lwj * (import word_ln_stride) + (import word_ln_y)];
+  int lwb = style_eff_p(lwv.doc.fmt, lwv.doc.body.paras[lwi].pprop, (import word_p_brk));
+  int lwe = 0 - lwy;
+} chain (View lwv, int lwi, int lwj) {
+  if(lwj == 0 && (lwi == 0 || lwb == 1)) {
+    lwe = 0;
+  }
+} return int lwe;
+given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 0, 8):(-9216)
+given lg_t_paged(8) given lp_t_row(1, 5, 600) given lay_all((import lp_t_v)) ((import lp_t_v), 1, 0):(-2560)
+given lg_t_paged(8) given lp_t_row(1, 5, 600) given lg_t_brk(1) given lay_all((import lp_t_v)) ((import lp_t_v), 1, 0):(0)

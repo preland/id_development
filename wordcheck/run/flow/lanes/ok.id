@@ -24,3 +24,32 @@ lane_all(string bin, string root, string src, string stem, int n) {
 ("true", "../wordcorpus/oracle", "x.odt", "07_pages", 7):([1, 1, 1, 3, 0])
 ("true", "../wordcorpus/oracle", "x.odt", "07_pages", 99):([1, 1, 0, 3, 0])
 ("false", "../wordcorpus/oracle", "x.odt", "07_pages", 7):([0, 0, 0, 0, 0])
+
+// The verdict of the --pages lane from what the word binary did: its exit status code, what it printed (said, whose first line is "pages N"), the page count want of soffice's pdf, and the fixture number n. Unavailable (2) when the binary does not exist; skipped (3) for a fixture in pages_gap; ok (1) when it exited 0 and N is within pages_tol of want; failed (0) otherwise, including a first line that is not "pages N".
+lane_pages_cmp(int code, string said, int want, int n) {
+  int got = 0 - 1;
+  int e = str_eol(said, 0);
+  if (str_starts(said, "pages ")) {
+    string num = str_slice(said, 6, e - 6);
+    got = to_int(num);
+  }
+} chain (int code, string said, int want, int n) {
+  int v = (import lane_fail);
+  if (code == 127 || code == 0 - 1) {
+    v = (import lane_unavailable);
+  }
+  if (code == 0 && fx_abs(got - want) <= (import pages_tol)) {
+    v = (import lane_ok);
+  }
+} chain (int code, string said, int want, int n) {
+  if (code == 0 && lst_find((import pages_gap), n) == 1) {
+    v = (import lane_skipped);
+  }
+} return int v;
+(0, "pages 20\npage 1 para 0 line 0\n", 20, 8):(1)
+(0, "pages 19\n", 20, 8):(1)
+(0, "pages 18\n", 20, 8):(0)
+(0, "pages 22\n", 20, 8):(0)
+(0, "oops", 3, 8):(0)
+(127, "", 3, 8):(2)
+(0, "pages 1\n", 3, 7):(3)

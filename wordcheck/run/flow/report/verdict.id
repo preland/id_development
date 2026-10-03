@@ -1,4 +1,4 @@
-// The word a lane verdict is printed as; an unavailable lane says why.
+// The word a lane verdict is printed as; an unavailable lane says why, and so does one that is skipped.
 rep_verdict(int v) {
   string says = "FAIL";
   if (v == (import lane_ok)) {
@@ -7,33 +7,40 @@ rep_verdict(int v) {
   if (v == (import lane_unavailable)) {
     says = "UNAVAILABLE(" + (import no_word) + ")";
   }
+} chain (int v) {
+  if (v == (import lane_skipped)) {
+    says = (import skip_pages);
+  }
 } return string says;
 (1):("OK")
 (0):("FAIL")
 (2):("UNAVAILABLE(word binary not available)")
+(3):("SKIP(the document model keeps one page layout; this fixture changes it per paragraph)")
 
-// "mode=VERDICT" for one word-binary lane; v_text is the verdict of the --text lane, which has run.
-rep_word_one(string wmode, int v_text) {
-  int v = wlane_run(wmode, v_text);
+// "mode=VERDICT" for one word-binary lane; vs holds the verdicts of the lanes that have run, [--text, --pages].
+rep_word_one(string wmode, int[] vs) {
+  int v = wlane_run(wmode, vs);
   string says = rep_verdict(v);
   string part = wmode + "=" + says;
 } return string part;
-("--text", 2):("--text=UNAVAILABLE(word binary not available)")
-("--text", 1):("--text=OK")
-("--dump", 1):("--dump=UNAVAILABLE(word binary not available)")
-("--bogus", 1):("--bogus=FAIL")
+("--text", [2, 1]):("--text=UNAVAILABLE(word binary not available)")
+("--text", [1, 2]):("--text=OK")
+("--pages", [1, 0]):("--pages=FAIL")
+("--dump", [1, 1]):("--dump=UNAVAILABLE(word binary not available)")
+("--bogus", [1, 1]):("--bogus=FAIL")
 
 // The word-binary lanes, space separated.
-rep_word_all(string[] modes, int v_text) {
+rep_word_all(string[] modes, int[] vs) {
   string[] parts = [];
   int i = 0;
   while (i < len(modes)) {
-    push(parts, rep_word_one(modes[i], v_text));
+    push(parts, rep_word_one(modes[i], vs));
     i = i + 1;
   }
-} chain (string[] modes, int v_text) {
+} chain (string[] modes, int[] vs) {
   string line = str_join(parts, " ");
 } return string line;
-(["--text", "--dump"], 2):("--text=UNAVAILABLE(word binary not available) --dump=UNAVAILABLE(word binary not available)")
-(["--text", "--dump"], 0):("--text=FAIL --dump=UNAVAILABLE(word binary not available)")
-(["--bogus"], 1):("--bogus=FAIL")
+(["--text", "--dump"], [2, 2]):("--text=UNAVAILABLE(word binary not available) --dump=UNAVAILABLE(word binary not available)")
+(["--text", "--dump"], [0, 2]):("--text=FAIL --dump=UNAVAILABLE(word binary not available)")
+(["--text", "--pages"], [1, 1]):("--text=OK --pages=OK")
+(["--bogus"], [1, 1]):("--bogus=FAIL")

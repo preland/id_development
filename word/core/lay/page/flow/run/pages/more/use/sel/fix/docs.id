@@ -1,0 +1,38 @@
+// Test setup: a view over n one-line paragraphs, laid out and paginated, on the sheet of 1500 by 3000 twips with margins 150, 300, 450 and 600 (top, right, bottom, left): a text area 2560 lu wide and 10240 high, so 6 paragraphs of 1664 lu (6 * 1664 = 9984 fits, 7 * 1664 does not) fill a page: 3 make one page, 8 make two, 120 make 20.
+lg_t_paged(int lgn) {
+  lp_t_font();
+  lg_t_page(1500, 3000, 150, 300, 450, 600);
+  lp_t_paras(lgn);
+} chain (int lgn) {
+  lay_all((import lp_t_v));
+  lay_paginate((import lp_t_v), 0);
+} return void;
+(8):() then lg_t_count:(2)
+(3):() then lg_t_starts:("0,0,3,0,")
+(120):() then lg_t_count:(20)
+
+// Test setup: a view over one paragraph of text lgtx on the same sheet as lg_t_paged, laid out and paginated. In lines of 2560 lu with 683 for a B, an E or an A and 285 for a space, "BBB EEE BBB" breaks into "BBB ", "EEE " and "BBB", and 28 A into 9 lines of 3 and one of 1, 8 lines to a page.
+lg_t_text(string lgtx) {
+  lg_t_rows([lgtx]);
+} return void;
+("BBB EEE BBB"):() then lg_t_starts:("0,0,1,0,")
+("AAAAAAAAAAAAAAAAAAAAAAAAAAAA"):() then lg_t_starts:("0,0,0,8,1,0,")
+
+// Test setup: a view with one paragraph for every text of lgtl, laid out and paginated on the sheet of lg_t_paged.
+lg_t_rows(string[] lgtl) {
+  lp_t_font();
+  lg_t_page(1500, 3000, 150, 300, 450, 600);
+  int lgi = 0;
+} chain (string[] lgtl) {
+  while(lgi < len(lgtl)) {
+    lp_t_ins(lgi, lgtl[lgi]);
+    if(lgi + 1 < len(lgtl)) {
+      lp_t_split(lgi, len(lgtl[lgi]));
+    }
+    lgi = lgi + 1;
+  }
+  lay_all((import lp_t_v));
+  lay_paginate((import lp_t_v), 0);
+} return void;
+(["AB", "C"]):() then lp_t_np:(2)
+(["AB"]):() then lg_t_starts:("0,0,1,0,")

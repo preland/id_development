@@ -6,13 +6,16 @@ check_fixture(string bin, int n, string assets, string stem) {
 } chain (string bin, int n, string assets, string stem) {
   int[] res = lane_all(bin, root, src, stem, n);
   int vt = wlane_text((import word_bin), root, src, stem);
+  int vp = wlane_pages((import word_bin), src, res[(import r_pages)], n);
+} chain (string bin, int n, string assets, string stem) {
+  int[] vs = [vt, vp];
   string[] modes = (import word_modes);
+  string words = rep_word_all(modes, vs);
 } chain (string bin, int n, string assets, string stem) {
-  string words = rep_word_all(modes, vt);
   print(rep_line(n, stem, res, words));
-  int ok = wlane_count(modes, vt, (import lane_ok));
+  int ok = wlane_count(modes, vs, (import lane_ok));
+  int failed = wlane_count(modes, vs, (import lane_fail));
 } chain (string bin, int n, string assets, string stem) {
-  int failed = wlane_count(modes, vt, (import lane_fail));
   int gone = exec_drop(root);
   int code = rep_exit(res, len(modes) - ok, failed);
 } return int code;

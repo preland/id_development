@@ -26,3 +26,21 @@ wlane_exec(string wbin, string wmode, string src, int[] sout) {
 } return int code;
 ("echo", "-n", "x.odt", []):(0)
 ("/nonexistent/word", "--text", "x.odt", []):(127)
+
+// The --pages lane: runs the word binary with --pages on the fixture and compares the page count on its first line with want, the page count of soffice's pdf of the same file, within pages_tol pages (lane_pages_cmp): 1 within, 0 not, with the printed line on stderr, 2 when the binary does not exist, 3 for a fixture the model cannot lay out as soffice does yet.
+wlane_pages(string wbin, string src, int want, int n) {
+  int[] sout = [];
+  int code = wlane_exec(wbin, (import pages_mode), src, sout);
+  string said = exec_text(sout);
+} chain (string wbin, string src, int want, int n) {
+  int v = lane_pages_cmp(code, said, want, n);
+  int e = str_eol(said, 0);
+  string first = str_slice(said, 0, e);
+} chain (string wbin, string src, int want, int n) {
+  if (v == (import lane_fail)) {
+    eprint("wordcheck: word --pages (exit " + code + ") printed '" + first + "', soffice's pdf has " + want + " pages, more than " + (import pages_tol) + " apart; fix the layout in word/core/lay (line height, margins, page breaks), or the page count read by wordcheck/oracle/pdf when the pdf is the one that is wrong");
+  }
+} return int v;
+given wlane_t_script("echo 'pages 20'") ((import wl_script), "x.odt", 20, 8):(1) then wlane_t_gone:(0)
+given wlane_t_script("echo 'pages 5'") ((import wl_script), "x.odt", 20, 8):(0) then eprints:("wordcheck: word --pages (exit 0) printed 'pages 5', soffice's pdf has 20 pages, more than 1 apart; fix the layout in word/core/lay (line height, margins, page breaks), or the page count read by wordcheck/oracle/pdf when the pdf is the one that is wrong\n") then wlane_t_gone:(0)
+("/nonexistent/word", "x.odt", 3, 8):(2)

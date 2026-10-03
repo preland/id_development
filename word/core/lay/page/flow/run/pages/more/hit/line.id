@@ -1,0 +1,29 @@
+// Where the top of line lhj of paragraph lhi is, in lu from the top of the page it is on.
+// By hand: line 0 of the 28-letter paragraph is at the top margin, 640; line 9 is on page 1, its page's second line, 640 + 1152 = 1792.
+lay_line_y(View lhv, int lhi, int lhj) {
+  int lhk = lay_page_of(lhv, lhi, lhj);
+  int lhy = lay_origin(lhv, lhi, lhk) + lhv.doc.body.paras[lhi].lay.lines[lhj * (import word_ln_stride) + (import word_ln_y)];
+} return int lhy;
+given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 0, 0):(640)
+given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 0, 9):(1792)
+
+// The line of a paragraph that holds offset lhoff: the first line that ends after it, or the last line for the end of the text, so an offset where a line breaks belongs to the line that starts there.
+// By hand: for lines 0 to 4, 4 to 8 and 8 to 11, offset 3 is on line 0, offset 4 on line 1 and offset 11, the end, on line 2.
+lay_line_in(Para lhpa, int lhoff) {
+  int lhn = len(lhpa.lay.lines) / (import word_ln_stride);
+  int lhj = 0;
+  while(lhj < lhn - 1 && lhpa.lay.lines[lhj * (import word_ln_stride) + (import word_ln_hi)] <= lhoff) {
+    lhj = lhj + 1;
+  }
+} return int lhj;
+(Para(Text([], [Run(0, 0, -1)], 0), Lay([0, 4, 0, 960, 192, 2049, 4, 8, 1152, 960, 192, 2049, 8, 11, 2304, 960, 192, 2049], [], 3968), 0), 3):(0)
+(Para(Text([], [Run(0, 0, -1)], 0), Lay([0, 4, 0, 960, 192, 2049, 4, 8, 1152, 960, 192, 2049, 8, 11, 2304, 960, 192, 2049], [], 3968), 0), 4):(1)
+(Para(Text([], [Run(0, 0, -1)], 0), Lay([0, 4, 0, 960, 192, 2049, 4, 8, 1152, 960, 192, 2049, 8, 11, 2304, 960, 192, 2049], [], 3968), 0), 11):(2)
+
+// The line of its paragraph that holds position lhq.
+// By hand: in "BBB EEE BBB" laid out in lines of 4, 4 and 3 code points, offset 5 is on line 1 and offset 11 on line 2.
+lay_line_of(View lhv, Pos lhq) {
+  int lhj = lay_line_in(lhv.doc.body.paras[lhq.para], lhq.off);
+} return int lhj;
+given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 5)):(1)
+given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 11)):(2)

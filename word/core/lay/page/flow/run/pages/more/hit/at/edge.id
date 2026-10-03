@@ -1,0 +1,44 @@
+// Puts in lho the first position of the line that holds position lhq.
+// By hand: offset 6 of "BBB EEE BBB" is on line 1, which starts at 4.
+lay_line_start(View lhv, Pos lhq, Pos lho) {
+  Para lhpa = lhv.doc.body.paras[lhq.para];
+  int lhj = lay_line_in(lhpa, lhq.off);
+  lho.off = lhpa.lay.lines[lhj * (import word_ln_stride) + (import word_ln_lo)];
+} chain (View lhv, Pos lhq, Pos lho) {
+  lho.para = lhq.para;
+} return void;
+given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 6), Pos(9, 9)):((import lp_t_v), Pos(0, 6), Pos(0, 4))
+given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 2), Pos(9, 9)):((import lp_t_v), Pos(0, 2), Pos(0, 0))
+
+// Puts in lho the last position of the line that holds position lhq (lay_maxoff).
+// By hand: offset 6 of "BBB EEE BBB" is on line 1, whose visible text ends at 7; offset 1 is on line 0, which ends at 3; offset 11 is the end.
+lay_line_end(View lhv, Pos lhq, Pos lho) {
+  Para lhpa = lhv.doc.body.paras[lhq.para];
+  int lhj = lay_line_in(lhpa, lhq.off);
+  lho.para = lhq.para;
+} chain (View lhv, Pos lhq, Pos lho) {
+  lho.off = lay_maxoff(lhpa, lhj);
+} return void;
+given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 6), Pos(9, 9)):((import lp_t_v), Pos(0, 6), Pos(0, 7))
+given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 1), Pos(9, 9)):((import lp_t_v), Pos(0, 1), Pos(0, 3))
+given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 11), Pos(9, 9)):((import lp_t_v), Pos(0, 11), Pos(0, 11))
+
+// The offset on line lhj of paragraph lhi whose pen is nearest to lhx, in lu from the left edge of the text area.
+// By hand: line 1 of "BBB EEE BBB" has its offsets 4 to 7 at 0, 683, 1366 and 2049: 700 is nearest 683, offset 5; 1100 is nearer 1366 than 683, offset 6; left of everything is the first, 4; far to the right is the last, 7.
+lay_off_at(View lhv, int lhi, int lhj, int lhx) {
+  Para lhpa = lhv.doc.body.paras[lhi];
+  int lhe = lhpa.lay.lines[lhj * (import word_ln_stride) + (import word_ln_lo)];
+  int lhm = lay_maxoff(lhpa, lhj);
+} chain (View lhv, int lhi, int lhj, int lhx) {
+  int lhk = lhe;
+  while(lhk <= lhm) {
+    if(fx_abs(lhpa.lay.pen[lhk] - lhx) < fx_abs(lhpa.lay.pen[lhe] - lhx)) {
+      lhe = lhk;
+    }
+    lhk = lhk + 1;
+  }
+} return int lhe;
+given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 1, 700):(5)
+given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 1, 1100):(6)
+given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 1, -50):(4)
+given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 1, 90000):(7)

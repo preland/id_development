@@ -1,0 +1,50 @@
+// The function ed_move calls for the line and page units once lay_hook_install has run: it moves the caret of lhs by one line (unit line, dir 1 and -1), to the end or the start of its line (dir 2 and -2) or by one page (unit page), the anchor staying, and keeps the x the caret aims for in lhs.goal across the vertical moves, which a horizontal one forgets (sel_put).
+// By hand in "BBB", "A", "BBB": a line down from offset 2 of paragraph 0, x 2560 + 1366 = 3926, is offset 1 of paragraph 1 with the goal 3926 kept; the end of the line from offset 6 of "BBB EEE BBB" is 7 and the goal is unset.
+lay_hook(Doc lhdc, Sel lhs, int lhdir, int lhunit) {
+  View lhv = (import lay_hv);
+  Pos lho = pos_new(lhs.caret.para, lhs.caret.off);
+  int lhg = lay_goal(lhv, lhs.caret, lhs.goal) + lay_margin(lhv.doc, 3);
+} chain (Doc lhdc, Sel lhs, int lhdir, int lhunit) {
+  lay_dispatch(lhv, lhs, lhdir, lhunit, lhg, lho);
+  sel_put(lhs, lho.para, lho.off, 1);
+  int lhu = fx_abs(lhdir) == 1;
+} chain (Doc lhdc, Sel lhs, int lhdir, int lhunit) {
+  if(lhu == 1) {
+    lhs.goal = lhg;
+  }
+} return void;
+given lg_t_rows(["BBB", "A", "BBB"]) given lay_hook_install((import lp_t_v)) ((import lp_t_d), Sel(Pos(0, 2), Pos(0, 2), -1), 1, 2):((import lp_t_d), Sel(Pos(0, 2), Pos(1, 1), 3926), 1, 2)
+given lg_t_rows(["BBB", "A", "BBB"]) given lay_hook_install((import lp_t_v)) ((import lp_t_d), Sel(Pos(1, 0), Pos(1, 1), 3926), 1, 2):((import lp_t_d), Sel(Pos(1, 0), Pos(2, 2), 3926), 1, 2)
+given lg_t_text("BBB EEE BBB") given lay_hook_install((import lp_t_v)) ((import lp_t_d), Sel(Pos(0, 6), Pos(0, 6), 77), 2, 2):((import lp_t_d), Sel(Pos(0, 6), Pos(0, 7), -1), 2, 2)
+given lg_t_text("BBB EEE BBB") given lay_hook_install((import lp_t_v)) ((import lp_t_d), Sel(Pos(0, 6), Pos(0, 6), 77), -2, 2):((import lp_t_d), Sel(Pos(0, 6), Pos(0, 4), -1), -2, 2)
+given lg_t_paged(8) given lay_hook_install((import lp_t_v)) ((import lp_t_d), Sel(Pos(0, 0), Pos(0, 0), -1), 1, 4):((import lp_t_d), Sel(Pos(0, 0), Pos(6, 0), 2560), 1, 4)
+
+// Installs the layout of view lhv as the one the line and page moves of ed_move use (ed_layout_hooks): lay_hook finds the view again through the export lay_hv, because a function value carries no view of its own.
+// By hand: afterwards a page down in an empty new document ends at the end of the view's document, offset 11 of "BBB EEE BBB", and not at the start of the new one as the paragraph hook of ed_hook_para would.
+lay_hook_install(View lhv) {
+  export View lay_hv = lhv;
+  ed_layout_hooks(lay_hook);
+} return void;
+given lg_t_text("BBB EEE BBB") ((import lp_t_v)):() then ed_hook_probe:(11)
+given lg_t_text("BBB") ((import lp_t_v)):() then ed_hook_probe:(3)
+given fx_setup("BBB|A|BBB") given lg_t_over given fx_at(0, 2, 0, 2) given ed_move((import fxd), (import fxc), 1, 2, 0) given ed_move((import fxd), (import fxc), 1, 2, 0) ((import lg_t_ov)):() then fx_sel:("2:2-2:2")
+
+// Does the move lhdir of unit lhunit from the caret of lhs into lho: a page for the page unit, a line up or down for dir 1 and -1, the end or the start of the line for dir 2 and -2. lhg is the x of the page the caret aims for, lhs.goal the one that was kept.
+// By hand: unit 4 with dir 1 is a page down; unit 2 with dir 1 a line down, with dir 2 the end of the line, with dir -2 its start.
+lay_dispatch(View lhv, Sel lhs, int lhdir, int lhunit, int lhg, Pos lho) {
+  if(lhunit == (import ed_u_page)) {
+    lay_page_move(lhv, lhs.caret, lhdir, lhg, lho);
+  }
+  if(lhunit == (import ed_u_line) && fx_abs(lhdir) == 1) {
+    lay_move_line(lhv, lhs.caret, lhdir, lhs.goal, lho);
+  }
+  if(lhunit == (import ed_u_line) && lhdir == 2) {
+    lay_line_end(lhv, lhs.caret, lho);
+  }
+} chain (View lhv, Sel lhs, int lhdir, int lhunit, int lhg, Pos lho) {
+  if(lhunit == (import ed_u_line) && lhdir == -2) {
+    lay_line_start(lhv, lhs.caret, lho);
+  }
+} return void;
+given lg_t_text("BBB EEE BBB") ((import lp_t_v), Sel(Pos(0, 6), Pos(0, 6), -1), 2, 2, 0, Pos(9, 9)):((import lp_t_v), Sel(Pos(0, 6), Pos(0, 6), -1), 2, 2, 0, Pos(0, 7))
+given lg_t_text("BBB EEE BBB") ((import lp_t_v), Sel(Pos(0, 2), Pos(0, 2), -1), 1, 2, 0, Pos(9, 9)):((import lp_t_v), Sel(Pos(0, 2), Pos(0, 2), -1), 1, 2, 0, Pos(0, 6))

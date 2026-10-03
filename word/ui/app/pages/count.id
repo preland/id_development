@@ -1,0 +1,38 @@
+// word --pages IN.odt: loads the document, lays it out at 100 percent and paginates it, then prints "pages N" and one line "page K para I line J" per page, the paragraph and the line it begins with. Answers 0, or 1 after naming on stderr what went wrong and how to fix it.
+cli_pages(string path) {
+  Doc d = doc_new();
+  int code = odt_load(path, d);
+  int rc = code != 0;
+} chain (string path) {
+  if(code == 0) {
+    gui_font_init();
+    put(cli_laid(d));
+  } else {
+    eprint(odt_error(code));
+  }
+} return int rc;
+("/nonexistent/none.odt"):(1) then eprints:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/none.odt]\n")
+given orc_t_zip("<r><office:text><text:p>Hi</text:p></office:text></r>", "") given orc_t_save ((import orc_tp)):(0) then prints:("pages 1\npage 1 para 0 line 0\n") then orc_t_gone:(0)
+
+// The text word --pages prints for a document: the page count, then the first paragraph and line of every page.
+cli_laid(Doc d) {
+  View v = lay_view(d);
+  lay_all(v);
+  lay_paginate(v, 0);
+} chain (Doc d) {
+  string text = "pages " + lay_page_count(v) + "\n" + cli_starts(v);
+} return string text;
+given gui_font_init given orc_t_open("<r><office:text><text:p>Hi</text:p><text:p>x</text:p></office:text></r>") given orc_t_load ((import orc_td)):("pages 1\npage 1 para 0 line 0\n")
+given gui_font_init given orc_t_open("<a/>") ((import orc_td)):("pages 1\npage 1 para 0 line 0\n")
+
+// One line "page K para I line J" for every page of the view, each ending in a line feed.
+cli_starts(View v) {
+  string text = "";
+  int k = 0;
+  while(k < lay_page_count(v)) {
+    text = text + "page " + (k + 1) + " para " + v.pages.starts[2 * k] + " line " + v.pages.starts[2 * k + 1] + "\n";
+    k = k + 1;
+  }
+} return string text;
+given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_paras(8) given lay_all((import lp_t_v)) given lg_t_pag ((import lp_t_v)):("page 1 para 0 line 0\npage 2 para 6 line 0\n")
+given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v)):("page 1 para 0 line 0\npage 2 para 0 line 8\n")
