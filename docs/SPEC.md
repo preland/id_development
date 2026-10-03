@@ -830,8 +830,9 @@ that words them differently makes the language feel different.
   its own, so a chain whose logic matches a function defined elsewhere is
   rejected. A continuation that could have stood alone was not continuing
   anything.
-- `print(x)` writes a value and a newline to stdout; `put(s)` writes without
-  one; `flush()` flushes.
+- `print(x)` writes a value and a newline to stdout; `put(s)` writes a string
+  without one -- an int or a float is an error, as in `put("" + x)`; `flush()`
+  flushes.
 - `eprint(x)` writes to stderr exactly what `print(x)` writes to stdout: it
   takes the same argument, spells the value the same way and ends it with a
   newline. **It flushes stdout first**, so when both streams reach the same

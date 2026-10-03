@@ -47,38 +47,41 @@ two test cases per function (§9), and neither this program nor the standard
 library it merges has them all yet; the flag is the way to build anyway, and
 it says nothing about it -- `id` has no warnings, only errors.
 
-Three errors, and they are worth reading in order:
+Two errors, and they are worth reading in order:
 
 ```
 caesar.id:1: error: a block in 'main' performs 5 actions; the limit is 3 (each
-  statement, if, else, and while is one action; return is free) -- move some
-  statements into a helper function to stay within the limit
-caesar.id:6: error: argument 0 of 'shift_one' contains a call; give that value
-  a name and pass the name
+  statement, if, else, and while is one action; return is free) -- continue the
+  function into a chain: `} chain (same parameters) {`
 caesar.id:6: error: no such function 'shift_one'; available builtins: print,
   input, read_all, len, push, pop, to_int, charat, chr, put, flush, getkey,
   sleep_ms, ticks, alloc, store_size, peek8, ...
 ```
 
-The first is the rule everyone meets first. The third is the last one to fix —
+The first is the rule everyone meets first. The second is the last one to fix —
 `shift_one` genuinely does not exist yet.
 
-**The second is the one nobody expects.** `shift_one(charat(text, i))` is
-rejected: **a call may not appear as an argument to another call.** Not "is
-discouraged" — is an error. Every intermediate result gets a name:
+**The second rule is about nesting.** `shift_one(charat(text, i))` above is
+accepted: **a call's argument may hold one level of call.** A call inside a call
+is fine; a call inside a call inside a call is an error (SPEC §7.1), and the
+inner result gets a name:
 
 ```
+shift_one(charat(text, i))         fine -- one level down
+shift_one(prev(charat(text, i)))   rejected -- two levels
+
 int c = charat(text, i);
-string s = shift_one(c);
+string s = shift_one(prev(c));     the same thing, said in two steps
 ```
 
-This is not the 3-action rule in disguise; it is separate, and it is the single
-thing that most changes how `id` code looks. Expect roughly one named
-temporary per call you would have nested. `demos/fsdemo/end/cleanup.id`
+This is not the 3-action rule in disguise; it is separate, and it is one of the
+things that most changes how `id` code looks. Expect a named temporary now and
+then, where you would have nested twice. `demos/fsdemo/end/cleanup.id`
 explains the other reason it is a good idea anyway: operands of one expression
 are not ordered, so two calls in one expression can run in either order.
 
-> **Pitfall 1.** A call cannot be an argument. Name the value first.
+> **Pitfall 1.** A call's argument may hold one level of call, not two. Name
+> the value first when it would be a second.
 
 ## 2. A directory is a program
 
@@ -386,8 +389,8 @@ change what the program does:
 
 | violation | what `--fix` writes |
 | --- | --- |
-| a call inside a call's argument | the call as a new local just before the statement, `<callee>_v`, and the name in its place |
-| an argument that is not itself a call but has one somewhere inside it | the whole argument as a new local, `<callee>_a0` (`_a1`, ...) for the callee it is an argument of, and the name in its place -- not one local per call inside it |
+| a call two levels deep in a call's argument | the inner call as a new local just before the statement, `<callee>_v`, and the name in its place |
+| an argument that is not itself a call but has a call two levels deep inside it | the whole argument as a new local, `<callee>_a0` (`_a1`, ...) for the callee it is an argument of, and the name in its place -- not one local per call inside it |
 | a return clause that is not a name or a literal | the value as the body's last statement, `ret_i` (`ret_s`, `ret_w`, `ret_li` ...), returned by name |
 | an argument that narrows (`word` to `int`) | a local of the parameter's type, which converts exactly as the argument would |
 | a comparison beside a bare bitwise operator | the parentheses the diagnostic names |
@@ -574,6 +577,16 @@ constant read only by a list constant's initialiser is kept for that reason. A
 project with no `main`, and a `--freestanding` build, keep every constant, as
 they keep every function. The constants are still parsed and type-checked
 whether or not they are emitted.
+
+A scalar constant may be initialised from an earlier scalar constant,
+`int b = (import a);`. A file-scope initialiser has to be a constant
+expression, and a read of another global is not one, so the parser replaces the
+import with `a`'s own initialiser: `b` is built as if it had been written
+`int b = <a's initialiser>;`. A case that reads `b` is still keyed on `a`'s
+tokens. Only a bare `(import a)` is folded: `int b = (import a) + 1;` still
+reaches the C compiler as a non-constant initialiser and fails there. A list
+element may read a constant either way, because a list is built in
+`idc_const_init`.
 
 A conf.id list constant is still a constant: it is locked once built, and
 mutating it -- `push`, `pop`, or an index-assignment, whether directly or
@@ -832,7 +845,7 @@ migration".
 
 Seven things, in the order you will meet them.
 
-1. **A call cannot be an argument to a call.** Name every intermediate value.
+1. **A call's argument may hold one level of call, not two.** Name the inner value when a call would sit two deep.
 2. **3 functions per file, 3 entries per directory.** The directory limit fires
    on a directory you were not editing. Plan the levels early. A `chain`
    continues a function without adding to the file's three.

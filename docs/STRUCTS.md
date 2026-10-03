@@ -271,7 +271,7 @@ The proposal's own example also costs 1 + N actions: a three-field struct is
 | --- | --- | --- |
 | A. `init` per struct, named by convention | `point_init(int x, int y)` | works today's rules; a file per struct plus its init, and chain for 3 fields. |
 | B. zero value, then assign | `Point p = Point; p.x = 1;` | no function; 1 + N actions. |
-| C. constructor expression | `Point p = Point(1, 2);` | one action for any size; needs a rule on whether it may be a call argument (today a call may not be). |
+| C. constructor expression | `Point p = Point(1, 2);` | one action for any size; and as a call argument it counts as one level of call (SPEC §7.1). |
 
 **Recommend C**, allowed only as an initialiser, and the struct file then
 holds only the struct (closing the question of `init` in it).
