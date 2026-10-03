@@ -1,0 +1,57 @@
+// Takes what the open menu or gallery has hot as the choice made: its command is the one the menu was opened for (for the File tab's menu, command 0, the choice is itself a command), its argument and its name are the choice's, and a colour choice is remembered for the colour button.
+rbe_pick() {
+  int[] rbl_s = (import rbd_s);
+  int rbi_k = rbe_hot();
+  int rbi_cmd = rbl_s[(import rbd_s_pcmd)];
+} chain () {
+  int rbi_arg = (import rbd_pa)[rbi_k];
+  string rbs_n = (import rbd_pl)[rbi_k];
+  if(rbi_cmd == 0) {
+    rbi_cmd = rbi_arg;
+    rbi_arg = 0;
+  }
+} chain () {
+  rbe_emit(rbi_cmd, rbi_arg, rbs_n);
+  rbe_remember(rbi_cmd, rbi_arg);
+} return void;
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(308) given rbd_t_hot(2) ():() then rbd_t_sd:("1,-1,308,20,0,-1,1,0,0,0,1024,156,-1,308,1,|16776960,12582912,|20")
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(0) given rbd_t_hot(1) ():() then rbd_t_sd:("1,-1,102,0,0,-1,1,0,0,0,1024,156,-1,0,1,|16776960,12582912,|20")
+
+// What an event did to the open menu or gallery, as the widget's own bits: 1 draw again, 2 a choice was made, 4 dismissed; 0 when nothing is open.
+rbe_route(int rbi_kind, int[] rbl_ev) {
+  int rbi_pk = (import rbd_s)[(import rbd_s_pk)];
+  int rbi_b = 0;
+  if(rbi_pk == 1) {
+    rbi_b = gui_menu_event((import rbd_menu)[0], rbi_kind, rbl_ev);
+  }
+} chain (int rbi_kind, int[] rbl_ev) {
+  if(rbi_pk == 2) {
+    rbi_b = gui_gallery_event((import rbd_gal)[0], rbi_kind, rbl_ev);
+  }
+  if(rbi_pk == 3) {
+    rbi_b = gui_colors_event((import rbd_cg)[0], rbi_kind, rbl_ev);
+  }
+  if((rbi_b & 2) != 0 && rbi_pk == 3) {
+    rbe_note_colour();
+  }
+} return int rbi_b;
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(308) (1, [1, 1004, 0, 0, 0]):(1)
+given lp_t_font given rbd_t_up(1024) (1, [1, 1004, 0, 0, 0]):(0)
+
+// An event for the open menu or gallery: the widget decides what it means, and the answer is rbe_ret's. A choice is taken and every end of the menu closes it.
+rbe_pop_event(int rbi_kind, int[] rbl_ev) {
+  int rbi_b = rbe_route(rbi_kind, rbl_ev);
+  int rbi_on = gui_wid_hit((import rbd_an), rbl_ev[1], rbl_ev[2]);
+  int rbi_r = rbe_ret(rbi_b, rbi_kind, rbi_on);
+} chain (int rbi_kind, int[] rbl_ev) {
+  if((rbi_b & 2) != 0) {
+    rbe_pick();
+  }
+  if((rbi_b & 6) != 0) {
+    rbe_close();
+  }
+} return int rbi_r;
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(308) (1, [1, 1004, 0, 0, 0]):(9) then rbd_t_pk:(1)
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(308) (1, [1, 1011, 0, 0, 0]):(9) then rbd_t_pk:(0)
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(308) (3, [3, 500, 200, 1, 0]):(5) then rbd_t_pk:(0)
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) (3, [3, 20, 15, 1, 0]):(9) then rbd_t_pk:(0)

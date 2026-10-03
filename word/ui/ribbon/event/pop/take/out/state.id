@@ -1,0 +1,22 @@
+// 1 while a menu, a gallery or a colour grid of the ribbon is open, or a combo box has the keyboard: every event of the window is then the ribbon's to take first, whatever part of the window it is in.
+rib_open(Ribbon rib) {
+  int rbi_o = (import rbd_s)[(import rbd_s_pk)] != 0 || (import rbd_fo)[0] >= 0;
+} return int rbi_o;
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(308) ((import rbd_t_r)):(1)
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r)):(0)
+given lp_t_font given rbd_t_up(1024) given rbd_t_ev(3, 240, 70) ((import rbd_t_r)):(1)
+
+// Once a frame: 1 when the tooltip has come on show, or gone, since the last time, so the window is painted again then and not otherwise.
+rib_tick(Ribbon rib) {
+  int rbi_t = gui_tip_tick((import rbd_tip)[0]);
+} return int rbi_t;
+given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) given rbd_t_ev(5, 20, 70) given rbd_t_clock(1500) ((import rbd_t_r)):(1)
+given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) given rbd_t_ev(5, 20, 70) given rbd_t_clock(1200) ((import rbd_t_r)):(0)
+
+// Tells the ribbon the state of command rbi_cmd, 0 off, 1 on, 2 mixed, 3 disabled, wherever the command has a control, in the open tab and in the quick-access strip.
+rib_put(Ribbon rib, int rbi_cmd, int rbi_val) {
+  rib_set_state(rib, rbi_cmd, rbi_val);
+  rib_set_state((import rbd_q), rbi_cmd, rbi_val);
+} return void;
+given lp_t_font given rbd_t_up(1024) given rbd_t_k(7) ((import rbd_t_r), 301, 1):() then rbd_t_sk:(1)
+given lp_t_font given rbd_t_up(1024) given rbd_t_kq(1) ((import rbd_t_r), 201, 3):() then rbd_t_sk:(3)

@@ -1,0 +1,25 @@
+// Test check: the state list, the remembered colours and the number of cells of the tab rectangles, as numbers.
+rbd_t_sd() {
+  string rbs_a = dump_ints((import rbd_s));
+  string rbs_b = dump_ints((import rbd_col));
+  string rbs_z = rbs_a + "|" + rbs_b + "|" + len((import rbd_tr));
+} return string rbs_z;
+given rbe_state ():("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+given rbe_state given lset((import rbd_col), 0, 7) ():("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|7,12582912,|20")
+
+// Test check: how many menus, galleries, labels and answers are open or kept, the name of the last choice and the rectangle the open menu came from, comma separated.
+rbd_t_pd() {
+  string rbs_a = len((import rbd_menu)) + "," + len((import rbd_gal)) + "," + (import rbd_nm)[0];
+  string rbs_b = len((import rbd_pl)) + "," + len((import rbd_pa)) + "," + dump_ints((import rbd_an));
+  string rbs_z = rbs_a + "," + rbs_b;
+} return string rbs_z;
+given rbe_pops ():("0,0,,0,0,0,0,0,0,")
+given rbe_pops given lset((import rbd_an), 0, 5) ():("0,0,,0,0,5,0,0,0,")
+
+// Test check: the font handle of the tooltip.
+rbd_t_tf() {
+  GuiTip rbp = (import rbd_tip)[0];
+  int rbi_f = rbp.v[4];
+} return int rbi_f;
+given rbd_ui_set(2, 2, 2) given rbe_tip_new ():(2)
+given rbd_ui_set(6, 7, 8) given rbe_tip_new ():(6)

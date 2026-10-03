@@ -1,0 +1,49 @@
+// Starts an event with no answer: the command and the argument, the activated control and the name of the last choice are cleared.
+rbe_clear() {
+  int[] rbl_s = (import rbd_s);
+  string[] rbt_n = (import rbd_nm);
+  lset(rbl_s, (import rbd_s_cmd), 0);
+} chain () {
+  lset(rbl_s, (import rbd_s_arg), 0);
+  lset(rbl_s, (import rbd_s_act), -1);
+  rbt_n[0] = "";
+} return void;
+given rbe_state given rbe_pops given rbe_emit(301, 5, "x") ():() then rbd_t_sd:("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+given rbe_state given rbe_pops given rbe_emit(301, 5, "x") ():() then rbd_t_pd:("0,0,,0,0,0,0,0,0,")
+
+// One window event of kind rbi_kind with the fields rbl_ev, as gfx_event filled it in, for the ribbon rib. A combo box that has the keyboard (or is pressed on) takes the event first (rbe_cb_event), and then rbe_rest does what is left. Answers bits: 1 paint the ribbon again, 2 a command was given (rib_cmd, rib_arg and rib_name), 4 the press closed a menu or ended a combo box and is not used up, so it is owed to what is under, 8 the ribbon took the event (it is in the band, or a menu is open, or a combo box has the keyboard).
+rib_event(Ribbon rib, int rbi_kind, int[] rbl_ev) {
+  rbe_clear();
+  int rbi_c = rbe_cb_event(rib, rbi_kind, rbl_ev);
+  int rbi_b = rbi_c;
+} chain (Ribbon rib, int rbi_kind, int[] rbl_ev) {
+  if(rbi_c == 0) {
+    rbi_b = rbe_rest(rib, rbi_kind, rbl_ev);
+  }
+} return int rbi_b;
+given lp_t_font given rbd_t_up(1024) given rbd_t_ev(3, 114, 96) ((import rbd_t_r), 4, [4, 114, 96, 1, 0]):(11) then rbd_t_cmd:("301,0,")
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 5, [5, 20, 300, 0, 0]):(0)
+given lp_t_font given rbd_t_up(1024) given rbd_t_ev(3, 240, 70) ((import rbd_t_r), 5, [5, 20, 300, 0, 0]):(8)
+
+// What the ribbon does with the event of kind rbi_kind, fields rbl_ev, that no combo box took: a menu that is open takes it first; otherwise a mouse event goes to the tabs and the controls, and a key or a press takes the tooltip away. Answers the bits rib_event does.
+rbe_rest(Ribbon rib, int rbi_kind, int[] rbl_ev) {
+  int rbi_pk = (import rbd_s)[(import rbd_s_pk)];
+  int rbi_b = 0;
+  if(rbi_pk != 0) {
+    rbi_b = rbe_pop_event(rbi_kind, rbl_ev);
+  }
+} chain (Ribbon rib, int rbi_kind, int[] rbl_ev) {
+  int rbi_t = gui_tip_event((import rbd_tip)[0], rbi_kind, rbl_ev);
+  int rbi_ms = rbi_kind >= 3 && rbi_kind <= 5;
+  if((rbi_b & 8) == 0 && rbi_ms == 1) {
+    rbi_b = rbi_b | rbe_mouse(rib, rbi_kind, rbl_ev);
+  }
+} chain (Ribbon rib, int rbi_kind, int[] rbl_ev) {
+  rbi_b = rbi_b | rbi_t;
+} return int rbi_b;
+given lp_t_font given rbd_t_up(1024) given rbd_t_ev(3, 114, 96) ((import rbd_t_r), 4, [4, 114, 96, 1, 0]):(11) then rbd_t_cmd:("301,0,")
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 4, [4, 114, 96, 1, 0]):(8) then rbd_t_cmd:("0,0,")
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 5, [5, 20, 300, 0, 0]):(0)
+given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) given rbd_t_ev(5, 114, 96) given rbd_t_clock(1499) ((import rbd_t_r), 5, [5, 114, 96, 0, 0]):(8) then rbd_t_tv:("0,Bold (Ctrl+B) - Make the selected text bold.")
+given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) given rbd_t_ev(5, 114, 96) given rbd_t_clock(1500) ((import rbd_t_r), 5, [5, 114, 96, 0, 0]):(8) then rbd_t_tv:("1,Bold (Ctrl+B) - Make the selected text bold.")
+given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) given rbd_t_ev(5, 114, 96) given rbd_t_clock(1500) ((import rbd_t_r), 5, [5, 140, 96, 0, 0]):(9) then rbd_t_tv:("0,Italic (Ctrl+I) - Make the selected text italic.")

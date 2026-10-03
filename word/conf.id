@@ -187,6 +187,69 @@ int[] key_code = [mod_ctrl * 4096 + 110, mod_ctrl * 4096 + 111, mod_ctrl * 4096 
 int[] key_cmds = [cmd_new, cmd_open, cmd_save, cmd_save_as, cmd_undo, cmd_redo, cmd_redo, cmd_cut, cmd_copy, cmd_paste, cmd_select_all, cmd_bold, cmd_italic, cmd_underline, cmd_align_left, cmd_align_center, cmd_align_right, cmd_align_justify, cmd_find, cmd_replace, cmd_page_break, cmd_size_shrink, cmd_size_grow, cmd_bullets, cmd_style_h1, cmd_style_h2, cmd_style_h3, cmd_zoom_100, cmd_list_deeper, cmd_list_shallower];
 string[] key_names = ["Left", "Right", "Up", "Down", "Home", "End", "Backspace", "Delete", "Enter", "Tab", "Esc", "PgUp", "PgDn"];
 // ===== B7a: ribbon and key tables (end) =====
+// ===== B7b: ribbon painting and events (begin) =====
+// The ribbon band from the top: the quick-access strip, the tab strip and the body that holds the groups, in pixels, and the whole band (their sum, which the window chrome reserves); a tab is its name's width plus this padding on each side; the width of the arrow strip of a split button.
+int rbd_qat_px = 28;
+int rbd_tab_px = 28;
+int rbd_body_px = 100;
+int rbd_band_px = 156;
+int rbd_tab_pad = 14;
+int rbd_arrow_px = 12;
+// Colours, 0xRRGGBB: the quick-access strip, the tab strip, the body, the lines between groups, the names under the groups, the dark of an icon and of a tab, the dimmed ink of a disabled control, the accent under the open tab, the tab under the pointer, the field of a combo box and the colour of a menu control under the pointer.
+int rbd_c_qat = 15592941;
+int rbd_c_tabs = 16777215;
+int rbd_c_body = 15987699;
+int rbd_c_sep = 13684944;
+int rbd_c_cap = 7105644;
+int rbd_c_icon = 4210752;
+int rbd_c_dim = 10526880;
+int rbd_c_acc = 2840474;
+int rbd_c_tabhot = 15132390;
+int rbd_c_field = 16777215;
+int rbd_c_hot = 15068921;
+// The commands whose field says less than the name of their control, so that two fields of a group do not read alike, and what each says; then the tab names, in the order of rib_tab_file to rib_tab_view.
+int[] rbd_fld_cmd = [cmd_font_size, cmd_indent_left, cmd_indent_right, cmd_space_before, cmd_space_after];
+string[] rbd_fld_txt = ["Size", "Left", "Right", "Before", "After"];
+string[] rbd_tabs = ["File", "Home", "Insert", "Layout", "View"];
+// How each kind of control looks: 0 an icon alone, 1 an icon and the sign of a menu, 2 an icon and an arrow strip, 3 a field with its name and the sign of a menu, 4 the styles gallery, 5 its name alone, 6 a combo box, which the combo box draws and handles itself; and whether pressing the control (not the arrow strip of a split button) opens a menu (1) or gives its command (0).
+int[] rbd_k_shape = [0, 0, 2, 1, 6, 4, 2, 3, 0, 5];
+int[] rbd_k_menu = [0, 0, 0, 1, 0, 1, 0, 1, 0, 0];
+// The commands that are combo boxes, in the order of the list of the ribbon's combo boxes: the font family, whose choices are the installed families, and the font size.
+int[] rbd_cb_cmd = [cmd_font_family, cmd_font_size];
+// The cells of the ribbon's state list: the open tab, the tab under the pointer, the command and the argument the last event gave, where the activated control sits (the ribbon it is in, 0 body or 1 quick-access, and its index), the control whose menu is open (-1 none, and the ribbon it is in, 2 for a tab), the band's x, y, width and height, the control whose arrow the pointer is on, the command whose menu is open and what is open (0 nothing, 1 a menu, 2 a gallery).
+int rbd_s_tab = 0;
+int rbd_s_hot = 1;
+int rbd_s_cmd = 2;
+int rbd_s_arg = 3;
+int rbd_s_src = 4;
+int rbd_s_act = 5;
+int rbd_s_pop = 6;
+int rbd_s_psrc = 7;
+int rbd_s_bx = 8;
+int rbd_s_by = 9;
+int rbd_s_bw = 10;
+int rbd_s_bh = 11;
+int rbd_s_ahot = 12;
+int rbd_s_pcmd = 13;
+int rbd_s_pk = 14;
+// The colours the highlight and the font colour buttons apply when their body is pressed, until a menu picks another (yellow and a dark red), and the two commands in that order.
+int[] rbd_col0 = [16776960, 12582912];
+// The state list at the start: Home open, nothing under the pointer, no command, nothing activated, no menu open.
+int[] rbd_col_cmd = [cmd_highlight, cmd_font_color];
+int[] rbd_s0 = [1, -1, 0, 0, 0, -1, -1, 0, 0, 0, 0, 0, -1, 0, 0];
+// The menus of the controls that open one: the command, where its labels start in rbd_plab and rbd_parg, and how many. rbd_parg is what the ribbon answers with (half-points for a size, percent for a line spacing, twips for an indent or a space, the index for a margin set, an orientation and a paper size). The colour buttons open A5c's colour grid, which answers the colour itself, and the font family and size are combo boxes, whose size choices are the rows of cmd_font_size.
+int[] rbd_pcmd = [cmd_font_size, cmd_line_spacing, cmd_page_margins, cmd_page_orient, cmd_page_size, cmd_indent_left, cmd_space_before, cmd_indent_right, cmd_space_after, cmd_bullets, cmd_numbering, cmd_paste];
+int[] rbd_plo = [0, 16, 22, 26, 28, 32, 37, 42, 47, 52, 54, 56];
+int[] rbd_pn = [16, 6, 4, 2, 4, 5, 5, 5, 5, 2, 2, 2];
+string[] rbd_plab = ["8", "9", "10", "11", "12", "14", "16", "18", "20", "22", "24", "26", "28", "36", "48", "72", "1.0", "1.15", "1.5", "2.0", "2.5", "3.0", "Normal", "Narrow", "Moderate", "Wide", "Portrait", "Landscape", "Letter", "A4", "Legal", "A5", "0 in", "0.25 in", "0.5 in", "0.75 in", "1 in", "0 pt", "6 pt", "12 pt", "18 pt", "24 pt", "0 in", "0.25 in", "0.5 in", "0.75 in", "1 in", "0 pt", "6 pt", "12 pt", "18 pt", "24 pt", "Bulleted list", "Remove bullets", "Numbered list", "Remove numbering", "Paste", "Paste Plain Text"];
+int[] rbd_parg = [16, 18, 20, 22, 24, 28, 32, 36, 40, 44, 48, 52, 56, 72, 96, 144, 100, 115, 150, 200, 250, 300, 0, 1, 2, 3, 0, 1, 0, 1, 2, 3, 0, 360, 720, 1080, 1440, 0, 120, 240, 360, 480, 0, 360, 720, 1080, 1440, 0, 120, 240, 360, 480, 0, 1, 0, 1, 0, 1];
+// The paper sizes behind the Size menu as width and height in twips (Letter, A4, Legal, A5), and the margin sets behind the Margins menu as top, right, bottom and left in twips (Normal, Narrow, Moderate, Wide), for the app to read with the index the ribbon answers.
+int[] rbd_paper = [12240, 15840, 11906, 16838, 12240, 20160, 8391, 11906];
+int[] rbd_margins = [1440, 1440, 1440, 1440, 720, 720, 720, 720, 1440, 1080, 1440, 1080, 1440, 2880, 1440, 2880];
+// The styles of the gallery in the order the ribbon answers them with, and the face each tile is drawn in: 0 regular, 1 bold, 2 italic.
+string[] rbd_styles = ["Normal", "Title", "Heading 1", "Heading 2", "Heading 3", "Subtitle"];
+int[] rbd_style_f = [0, 1, 1, 1, 1, 2];
+// ===== B7b: ribbon painting and events (end) =====
 // ===== A6: vector icons (begin) =====
 // Every command of the ribbon that has a picture rather than a letter: the command id, and the path of its icon on a 16 by 16 grid (idstd vec_fill describes the syntax). The ribbon registers both lists once with vec_load, and rb_icon names an icon by its command id.
 int[] ic_cmd = [cmd_new, cmd_open, cmd_save, cmd_save_as, cmd_undo, cmd_redo, cmd_paste, cmd_cut, cmd_copy, cmd_size_grow, cmd_size_shrink, cmd_sub, cmd_sup, cmd_highlight, cmd_clear_fmt, cmd_bullets, cmd_numbering, cmd_indent_dec, cmd_indent_inc, cmd_align_left, cmd_align_center, cmd_align_right, cmd_align_justify, cmd_line_spacing, cmd_find, cmd_replace, cmd_select_all, cmd_page_break, cmd_page_margins, cmd_page_orient, cmd_page_size, cmd_zoom_fit, cmd_zoom_in, cmd_zoom_out];
@@ -403,8 +466,7 @@ int word_lay_gap = 1536;
 string[] vw_idml = ["Ribbon:Col `ribbon` {}", "Canvas:Col `canvas` {}", "Bar:Col `vbar` {}", "Status:Col `status` {}", "", "./", "Col()[100,100,top-left] {", "  Ribbon()[@rib_h,100,top-left]{}", "  Row()[@mid_h,100,top-left] {", "    Canvas()[100,@cv_w,top-left]{}", "    Bar()[100,@bar_w,top-left]{}", "  }", "  Status()[@st_h,100,top-left]{}", "}"];
 // The names that idml asks vw_dim for, in the order vw_dims answers them.
 string[] vw_names = ["rib_h", "mid_h", "cv_w", "bar_w", "st_h"];
-// The fixed sizes of the chrome in pixels: the ribbon band (its tab strip and its body), the scrollbar's width, the status bar.
-int vw_rib_px = 128;
+// The fixed sizes of the chrome in pixels: the scrollbar's width and the status bar; the ribbon band is rbd_band_px, the ribbon's own.
 int vw_bar_px = 16;
 int vw_st_px = 22;
 // Colours of the viewer, 0xRRGGBB: the grey the sheets lie on, the sheet, an object's box and its border and label, a hyperlink, the status bar and its text.
@@ -440,23 +502,71 @@ int vw_s_x = 0;
 int vw_s_y = 1;
 int vw_s_z = 2;
 int vw_s_d = 3;
-// Zoom: the least and the most, the percent one notch of Ctrl+wheel or Ctrl+plus changes it by; and how far one notch of the wheel and one press of an arrow key scroll, in pixels.
+// Zoom: the least and the most, the percent one notch of Ctrl+wheel or Ctrl+plus changes it by; and how far one notch of the wheel scrolls, in pixels.
 int vw_zoom_min = 25;
 int vw_zoom_max = 400;
 int vw_zoom_step = 10;
 int vw_wheel_px = 48;
-int vw_key_px = 40;
-// The ribbon preview: the tab names, the height of the tab strip in pixels, and its colours: the tab strip, the ribbon body, the lines between groups, the dimmed text and icons of disabled controls, the dark of an icon, and the field a combo box shows.
-string[] vw_tabs = ["File", "Home", "Insert", "Layout", "View"];
-int vw_tab_px = 28;
-int vw_c_tabs = 16777215;
-int vw_c_rib = 15987699;
-int vw_c_sep = 13684944;
-int vw_c_dim = 10526880;
+// The dark ink of the viewer's own text, and the red of a message that says why there is no document.
 int vw_c_icon = 4210752;
-int vw_c_field = 16777215;
-// The red of the bar under an A icon.
+
 int vw_c_red = 12582912;
 // The document the viewer opens when it is started with none, relative to the directory the program runs in (the repository's id_development).
 string vw_default = "wordcorpus/odt/03_inline.odt";
 // ===== V1: the viewer (end) =====
+// ===== B3b: pagination, hit testing and selection rectangles (begin) =====
+// The width in lu of the highlight a selected paragraph mark gets at the end of its last line, 4 px, so that a selected empty paragraph still shows.
+int word_lay_mark = 256;
+// ===== B3b: pagination, hit testing and selection rectangles (end) =====
+// ===== B6: the canvas (begin) =====
+// The selection's fill, 0xRRGGBB, and how much of it covers the text under it out of 255; the caret's colour; and how long in milliseconds each half of its blink lasts (it is dark for one half after it has been solid for one).
+int cv_c_sel = 3381759;
+int cv_sel_a = 90;
+int cv_c_caret = 0;
+int cv_blink = 530;
+// The cells of the edit state list vw_ed: whether the left button is held after a press in the page area (a drag), the last pointer x and y, when the caret last became solid in milliseconds, the half of its blink the last tick saw, the clock a case froze (-1 reads ticks()), and the band of the surface, from its top row to the row after its bottom, that the next frame repaints (-1 when none).
+int cv_e_drag = 0;
+int cv_e_mx = 1;
+int cv_e_my = 2;
+int cv_e_t0 = 3;
+int cv_e_ph = 4;
+int cv_e_clk = 5;
+int cv_e_y0 = 6;
+int cv_e_y1 = 7;
+// The cells that cv_cull adds to a geometry list: the top and the bottom row of the band being painted, so that a paragraph that lies wholly outside it is not drawn.
+int cv_far = 1000000;
+int cv_g_y0 = 5;
+int cv_g_y1 = 6;
+// The cells that the area list of the page area has after its rectangle (x, y, width, height): the band of it being painted, from a top row to the row after the bottom.
+int cv_a_y0 = 4;
+int cv_a_y1 = 5;
+// How many pixels of the page area ensure-visible keeps between the caret's line and its edge, how many pixels around a band of repaint are added for the rounding of lu to pixels, and the fewest pixels a drag outside the page area scrolls a frame.
+int cv_see_px = 24;
+int cv_pad_px = 3;
+int cv_pull_px = 4;
+// What each of the keys 1001 to 1013 (left, right, up, down, home, end, backspace, delete, enter, tab, escape, page up, page down) does as a caret movement: its direction in ed_move's terms (0 when it is no movement), its unit, and the same with Ctrl held.
+int[] cv_k_dir = [-1, 1, -1, 1, -2, 2, 0, 0, 0, 0, 0, -1, 1];
+int[] cv_k_unit = [0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 4, 4];
+int[] cv_k_cdir = [-1, 1, -1, 1, -1, 1, 0, 0, 0, 0, 0, -1, 1];
+int[] cv_k_cunit = [1, 1, 3, 3, 5, 5, 0, 0, 0, 0, 0, 4, 4];
+// The formatting commands of the ribbon table that the canvas does with a flag toggle, and the flag bit each toggles.
+int[] cv_f_cmd = [cmd_bold, cmd_italic, cmd_underline, cmd_strike, cmd_sub, cmd_sup];
+int[] cv_f_bit = [word_f_bold, word_f_italic, word_f_under, word_f_strike, word_f_sub, word_f_super];
+// The alignment commands, in the order of the values of the paragraph field word_p_align (0 left, 1 centre, 2 right, 3 justify).
+int[] cv_al_cmd = [cmd_align_left, cmd_align_center, cmd_align_right, cmd_align_justify];
+// The commands that give a character field the argument of the ribbon as its value and the field each sets: the font size in half-points, the font colour and the highlight as 0xRRGGBB (-1 for automatic and for none).
+int[] cv_cc_cmd = [cmd_font_size, cmd_font_color, cmd_highlight];
+int[] cv_cc_fld = [word_c_size, word_c_color, word_c_hl];
+// The commands that give a paragraph field the argument as its value and the field each sets: the line spacing in percent, the indents and the spaces in twips.
+int[] cv_pc_cmd = [cmd_line_spacing, cmd_indent_left, cmd_indent_right, cmd_space_before, cmd_space_after];
+int[] cv_pc_fld = [word_p_line, word_p_left, word_p_right, word_p_before, word_p_after];
+// How much one press of the grow and shrink buttons changes the font size, in half-points, and of the indent buttons the left indent, in twips.
+int cv_grow = 2;
+int cv_indent = 720;
+// Every command of the ribbon table the canvas does, with or without an argument: a command that is not here (opening a file, say, or the zoom, which is the viewer's) leaves the document and the view as they are.
+int[] cv_r_cmd = [cmd_undo, cmd_redo, cmd_cut, cmd_copy, cmd_paste, cmd_select_all, cmd_bold, cmd_italic, cmd_underline, cmd_strike, cmd_sub, cmd_sup, cmd_font_family, cmd_font_size, cmd_size_grow, cmd_size_shrink, cmd_font_color, cmd_highlight, cmd_clear_fmt, cmd_align_left, cmd_align_center, cmd_align_right, cmd_align_justify, cmd_indent_dec, cmd_indent_inc, cmd_line_spacing, cmd_indent_left, cmd_indent_right, cmd_space_before, cmd_space_after, cmd_style, cmd_page_break, cmd_page_size, cmd_page_orient, cmd_page_margins];
+// The cells of the list vw_lk, which holds what the selection looks like for the ribbon: the state of each flag command of cv_f_cmd (0 off, 1 on, 2 mixed), then of each alignment command of cv_al_cmd (1 when the paragraphs have it), then the font (a number in the document's list of fonts, -2 mixed) and the size in half-points (-2 mixed), and last whether any of it changed since the ribbon was told.
+int cv_lk_font = 10;
+int cv_lk_size = 11;
+int cv_lk_dirty = 12;
+// ===== B6: the canvas (end) =====

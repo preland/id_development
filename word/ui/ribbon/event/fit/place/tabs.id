@@ -1,0 +1,38 @@
+// Remembers the band the ribbon is in: its left, top, width and height in the state list, so that a tab switch can place the ribbon again in the same room.
+rbe_band(int rbi_x, int rbi_y, int rbi_w, int rbi_h) {
+  int[] rbl_s = (import rbd_s);
+  lset(rbl_s, (import rbd_s_bx), rbi_x);
+  lset(rbl_s, (import rbd_s_by), rbi_y);
+} chain (int rbi_x, int rbi_y, int rbi_w, int rbi_h) {
+  lset(rbl_s, (import rbd_s_bw), rbi_w);
+  lset(rbl_s, (import rbd_s_bh), rbi_h);
+} return void;
+given rbe_state (3, 4, 5, 6):() then rbd_t_sd:("1,-1,0,0,0,-1,-1,0,3,4,5,6,-1,0,0,|16776960,12582912,|20")
+given rbe_state (0, 0, 1024, 156):() then rbd_t_sd:("1,-1,0,0,0,-1,-1,0,0,0,1024,156,-1,0,0,|16776960,12582912,|20")
+
+// Puts tab number rbi_k at rbi_cx on the tab strip whose top is rbi_y: as wide as its name in the bold face (the open tab's) and the padding on both sides, as high as the strip. Answers its width.
+rbe_tab(int rbi_k, int rbi_cx, int rbi_y) {
+  int[] rbl_t = (import rbd_tr);
+  int rbi_w = gui_text_width(rbd_ui_f(1), (import rbd_tabs)[rbi_k]) + 2 * (import rbd_tab_pad);
+  int rbi_q = rbi_k * 4;
+} chain (int rbi_k, int rbi_cx, int rbi_y) {
+  lset(rbl_t, rbi_q, rbi_cx);
+  lset(rbl_t, rbi_q + 1, rbi_y);
+  lset(rbl_t, rbi_q + 2, rbi_w);
+} chain (int rbi_k, int rbi_cx, int rbi_y) {
+  lset(rbl_t, rbi_q + 3, (import rbd_tab_px));
+} return int rbi_w;
+given lp_t_font given rbd_ui_set(1, 1, 1) given rbe_state (0, 10, 30):(54) then rbd_t_tr:("10,30,54,28,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,")
+given lp_t_font given rbd_ui_set(1, 1, 1) given rbe_state (1, 50, 30):(71) then rbd_t_tr:("0,0,0,0,50,30,71,28,0,0,0,0,0,0,0,0,0,0,0,0,")
+
+// Puts the five tabs side by side on the tab strip whose top is rbi_y, the first a margin in from the left edge rbi_x.
+rbe_tabs(int rbi_x, int rbi_y) {
+  int rbi_k = 0;
+  int rbi_cx = rbi_x + 4;
+  while(rbi_k < len((import rbd_tabs))) {
+    rbi_cx = rbi_cx + rbe_tab(rbi_k, rbi_cx, rbi_y);
+    rbi_k = rbi_k + 1;
+  }
+} return void;
+given lp_t_font given rbd_ui_set(1, 1, 1) given rbe_state (0, 28):() then rbd_t_tr:("4,28,54,28,58,28,71,28,129,28,68,28,197,28,76,28,273,28,62,28,")
+given lp_t_font given rbd_ui_set(1, 1, 1) given rbe_state (100, 0):() then rbd_t_tr:("104,0,54,28,158,0,71,28,229,0,68,28,297,0,76,28,373,0,62,28,")

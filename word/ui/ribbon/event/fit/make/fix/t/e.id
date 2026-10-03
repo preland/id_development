@@ -1,0 +1,28 @@
+// Test setup: opens the menu of command rbi_cmd under a control at (10, 10) of size 40 by 20, as the ribbon does.
+rbd_t_open(int rbi_cmd) {
+  rbe_open(rbi_cmd, 0, 1, [10, 10, 40, 20]);
+} return void;
+given lp_t_font given rbd_t_up(1024) (409):() then rbd_t_pk:(1)
+given lp_t_font given rbd_t_up(1024) (414):() then rbd_t_pk:(2)
+
+// Test setup: makes choice rbi_k of the open menu or gallery the hot one.
+rbd_t_hot(int rbi_k) {
+  int rbi_pk = (import rbd_s)[(import rbd_s_pk)];
+  if(rbi_pk == 1) {
+    GuiMenu rbm = (import rbd_menu)[0];
+    rbm.hot = rbi_k;
+  }
+  if(rbi_pk == 2) {
+    GuiGallery rby = (import rbd_gal)[0];
+    rby.rects[len(rby.rects) - 1] = rbi_k;
+  }
+} return void;
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) (2):() then rbe_hot:(2)
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(414) (3):() then rbe_hot:(3)
+
+// Test setup: the ribbon in the export rbd_t_r gets a mouse event of kind rbi_kind at (rbi_x, rbi_y) with the left button, and the answer is dropped.
+rbd_t_ev(int rbi_kind, int rbi_x, int rbi_y) {
+  int rbi_b = rib_event((import rbd_t_r), rbi_kind, [rbi_kind, rbi_x, rbi_y, 1, 0]);
+} return void;
+given lp_t_font given rbd_t_up(1024) given rbd_t_k(0) (3, 20, 70):() then rbd_t_wd:("12,60,40,74,2,1,205,1,1,0")
+given lp_t_font given rbd_t_up(1024) given rbd_t_k(0) (5, 20, 70):() then rbd_t_wd:("12,60,40,74,1,1,205,1,0,0")

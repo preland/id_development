@@ -1,0 +1,46 @@
+// Opens the menu of command rbi_cmd with the labels rbt_l under the control whose rectangle is rbl_a: a gallery for the styles, a colour grid for the colour buttons and a plain menu for any other. Answers what it opened, 1 a menu, 2 a gallery and 3 a colour grid.
+rbe_widget(int rbi_cmd, string[] rbt_l, int[] rbl_a) {
+  int rbi_pk = 1 + (rbi_cmd == (import cmd_style)) + 2 * (lst_index_of((import rbd_col_cmd), rbi_cmd) >= 0);
+  if(rbi_pk == 1) {
+    rbe_menu(rbt_l, rbl_a);
+  }
+  if(rbi_pk == 2) {
+    rbe_gallery(rbi_cmd, rbt_l, rbl_a);
+  }
+} chain (int rbi_cmd, string[] rbt_l, int[] rbl_a) {
+  if(rbi_pk == 3) {
+    rbe_colours(rbi_cmd, rbl_a);
+  }
+} return int rbi_pk;
+given lp_t_font given rbd_t_up(1024) (409, ["A"], [10, 10, 40, 20]):(1) then rbd_t_pd:("1,0,,0,0,0,0,0,0,")
+given lp_t_font given rbd_t_up(1024) (414, ["A"], [10, 10, 40, 20]):(2) then rbd_t_pd:("0,1,,0,0,0,0,0,0,")
+given lp_t_font given rbd_t_up(1024) (311, [], [10, 10, 40, 20]):(3) then rbd_t_cp:("1,10,30,212,184,Automatic")
+
+// Writes down in the state list what was opened: the control it came from (its index rbi_i in the ribbon rbi_src, 0 the body, 1 the quick-access strip, 2 the tab strip), the command, and the kind rbi_pk of widget.
+rbe_mark(int rbi_cmd, int rbi_src, int rbi_i, int rbi_pk) {
+  int[] rbl_s = (import rbd_s);
+  lset(rbl_s, (import rbd_s_pop), rbi_i);
+  lset(rbl_s, (import rbd_s_psrc), rbi_src);
+} chain (int rbi_cmd, int rbi_src, int rbi_i, int rbi_pk) {
+  lset(rbl_s, (import rbd_s_pcmd), rbi_cmd);
+  lset(rbl_s, (import rbd_s_pk), rbi_pk);
+} return void;
+given rbe_state (409, 0, 5, 1):() then rbd_t_sd:("1,-1,0,0,0,-1,5,0,0,0,0,0,-1,409,1,|16776960,12582912,|20")
+given rbe_state (0, 2, 0, 2):() then rbd_t_sd:("1,-1,0,0,0,-1,0,2,0,0,0,0,-1,0,2,|16776960,12582912,|20")
+
+// Opens the menu of command rbi_cmd under the control at index rbi_i of the ribbon rbi_src (0 the body, 1 the quick-access strip, 2 the tab strip), whose rectangle is rbl_a: the labels and what each answers with are kept, any menu that was open is closed, the tooltip is taken away, and the state says what is open.
+rbe_open(int rbi_cmd, int rbi_src, int rbi_i, int[] rbl_a) {
+  rbe_close();
+  string[] rbt_l = rbe_labels(rbi_cmd);
+  int[] rbl_v = rbe_args(rbi_cmd, len(rbt_l));
+} chain (int rbi_cmd, int rbi_src, int rbi_i, int[] rbl_a) {
+  lst_str_splice((import rbd_pl), 0, len((import rbd_pl)), rbt_l);
+  lst_splice((import rbd_pa), 0, len((import rbd_pa)), rbl_v);
+  lst_splice((import rbd_an), 0, 4, rbl_a);
+} chain (int rbi_cmd, int rbi_src, int rbi_i, int[] rbl_a) {
+  int rbi_pk = rbe_widget(rbi_cmd, rbt_l, rbl_a);
+  rbe_mark(rbi_cmd, rbi_src, rbi_i, rbi_pk);
+  int rbi_h = gui_tip_hide((import rbd_tip)[0]);
+} return void;
+given lp_t_font given rbd_t_up(1024) (409, 0, 5, [10, 10, 40, 20]):() then rbd_t_pd:("1,0,,6,6,10,10,40,20,")
+given lp_t_font given rbd_t_up(1024) (0, 2, 0, [4, 0, 44, 28]):() then rbd_t_pd:("1,0,,4,4,4,0,44,28,")

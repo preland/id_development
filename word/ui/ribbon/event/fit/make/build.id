@@ -1,0 +1,39 @@
+// The text a control of item row rbi_row has on its face: the name of a wide control, which has no icon; any other control shows an icon or is drawn by the ribbon, so none.
+rbe_label(int rbi_row) {
+  string rbs_t = "";
+  if((import rb_kind)[rbi_row] == (import kind_wide)) {
+    rbs_t = (import rb_label)[rbi_row];
+  }
+} return string rbs_t;
+(33):("Find")
+(14):("")
+
+// Makes the widget for control rbi_i of the ribbon rib at the rectangle it was placed at, in the ribbon's regular face, and keeps it after the others in rbl_ws: its body is the whole rectangle less the arrow strip of a split button, and none at all for a combo box, which is a widget of its own (rbd_cb) and must not meet the pointer twice.
+rbe_make(Ribbon rib, GuiToggle[] rbl_ws, int rbi_i) {
+  int rbi_row = rib.items[rbi_i];
+  int rbi_q = rbi_i * 4;
+  GuiToggle rbg = gui_tgl_new(rbe_label(rbi_row), (import rb_icon)[rbi_row], (import rb_cmd)[rbi_row], 0);
+} chain (Ribbon rib, GuiToggle[] rbl_ws, int rbi_i) {
+  int rbi_w = rib.rects[rbi_q + 2] - (import rbd_arrow_px) * (rbd_shape(rbi_row) == 2);
+  int rbi_on = rbd_shape(rbi_row) != 6;
+  gui_tgl_place(rbg, rib.rects[rbi_q], rib.rects[rbi_q + 1], rbi_w * rbi_on, rib.rects[rbi_q + 3] * rbi_on);
+} chain (Ribbon rib, GuiToggle[] rbl_ws, int rbi_i) {
+  gui_btn_font(rbg.btn, rbd_ui_f(0));
+  push(rbl_ws, rbg);
+} return void;
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), (import rbd_ws), 0):() then rbd_t_nw:("30,3")
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), (import rbd_qs), 1):() then rbd_t_nw:("29,4")
+
+// Makes a widget for every control of the ribbon rib, in the order of its controls, replacing those in rbl_ws.
+rbe_widgets(Ribbon rib, GuiToggle[] rbl_ws) {
+  int rbi_i = 0;
+  while(len(rbl_ws) > 0) {
+    pop(rbl_ws);
+  }
+  while(rbi_i < len(rib.items)) {
+    rbe_make(rib, rbl_ws, rbi_i);
+    rbi_i = rbi_i + 1;
+  }
+} return void;
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), (import rbd_ws)):() then rbd_t_nw:("29,3")
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), (import rbd_qs)):() then rbd_t_nw:("29,29")

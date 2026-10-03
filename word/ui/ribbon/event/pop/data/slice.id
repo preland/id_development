@@ -1,0 +1,44 @@
+// Closes the menu, the gallery or the colour grid that is open, if one is: the lists that hold it are emptied and the state says nothing is open.
+rbe_close() {
+  int[] rbl_s = (import rbd_s);
+  while(len((import rbd_menu)) > 0) {
+    pop((import rbd_menu));
+  }
+  while(len((import rbd_gal)) > 0) {
+    pop((import rbd_gal));
+  }
+} chain () {
+  while(len((import rbd_cg)) > 0) {
+    pop((import rbd_cg));
+  }
+  lset(rbl_s, (import rbd_s_pop), -1);
+  lset(rbl_s, (import rbd_s_pk), 0);
+} return void;
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) ():() then rbd_t_pk:(0)
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(414) ():() then rbd_t_pd:("0,0,,6,6,10,10,40,20,")
+
+// The labels from rbi_lo on, rbi_n of them, in the table of menu labels.
+rbe_slice_s(int rbi_lo, int rbi_n) {
+  string[] rbt_l = [];
+  int rbi_k = 0;
+  while(rbi_k < rbi_n) {
+    push(rbt_l, (import rbd_plab)[rbi_lo + rbi_k]);
+    rbi_k = rbi_k + 1;
+  }
+} return string[] rbt_l;
+(0, 3):(["8", "9", "10"])
+(16, 2):(["1.0", "1.15"])
+
+// The names of the commands of tab rbi_tab as menu labels, in the order of the tab.
+rbe_tab_labels(int rbi_tab) {
+  int[] rbl_w = rib_rows(rbi_tab);
+  string[] rbt_l = [];
+  int rbi_k = 0;
+} chain (int rbi_tab) {
+  while(rbi_k < len(rbl_w)) {
+    push(rbt_l, (import rb_label)[rbl_w[rbi_k]]);
+    rbi_k = rbi_k + 1;
+  }
+} return string[] rbt_l;
+(0):(["New", "Open", "Save", "Save As"])
+(5):(["Save", "Undo", "Redo"])

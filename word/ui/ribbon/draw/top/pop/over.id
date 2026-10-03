@@ -1,0 +1,37 @@
+// Paints every control of the ribbon rib, one after the other; rbl_ws are its widgets.
+rbd_items(Ribbon rib, GuiToggle[] rbl_ws) {
+  int rbi_i = 0;
+  while(rbi_i < len(rib.items)) {
+    rbd_item(rib, rbl_ws, rbi_i);
+    rbi_i = rbi_i + 1;
+  }
+} return void;
+given lp_t_font given rbd_t_up(1024) given vw_t_box0(12, 62, 64, 130) given vw_t_bg(0) ((import rbd_t_r), (import rbd_ws)):() then vw_t_inked:(1)
+given lp_t_font given rbd_t_up(1024) given vw_t_box0(12, 138, 1000, 150) given vw_t_bg(0) ((import rbd_t_r), (import rbd_ws)):() then vw_t_inked:(0)
+
+// Paints the menu, the gallery or the colour grid that is open, over everything; nothing when none is.
+rbd_pop_draw() {
+  int rbi_k = (import rbd_s)[(import rbd_s_pk)];
+  if(rbi_k == 1) {
+    gui_menu_draw((import rbd_menu)[0]);
+  }
+  if(rbi_k == 2) {
+    gui_gallery_draw((import rbd_gal)[0]);
+  }
+} chain () {
+  if(rbi_k == 3) {
+    gui_colors_draw((import rbd_cg)[0]);
+  }
+} return void;
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) given vw_t_at(14, 40) ():() then vw_t_px:(16777215)
+given lp_t_font given rbd_t_up(1024) given vw_t_at(14, 40) ():() then vw_t_px:(0)
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(311) given vw_t_at(14, 40) ():() then vw_t_px:(16777215)
+
+// Paints what lies over the band: the combo boxes (their lists are over the rest), the open menu, gallery or colour grid, then the tooltip when it is on show.
+rbd_over() {
+  rbd_combos();
+  rbd_pop_draw();
+  gui_tip_draw((import rbd_tip)[0]);
+} return void;
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) given vw_t_at(14, 40) ():() then vw_t_px:(16777215)
+given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) given rbd_t_show("tip") given rbd_t_clock(1600) given vw_t_at(3, 3) ():() then vw_t_px:(16777185)

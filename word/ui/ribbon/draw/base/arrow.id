@@ -1,0 +1,23 @@
+// A downward triangle in colour rbi_col, three rows of 5, 3 and 1 pixels, centred on x and one row down from y.
+rbd_tri(int rbi_x, int rbi_y, int rbi_col) {
+  int rbi_k = 0;
+  while(rbi_k < 3) {
+    d2_l_rect(rbi_x - 2 + rbi_k, rbi_y - 1 + rbi_k, 5 - 2 * rbi_k, 1, rbi_col);
+    rbi_k = rbi_k + 1;
+  }
+} return void;
+given sf_l_init(10, 10) given vw_t_at(5, 4) (5, 5, 255):() then vw_t_px:(255)
+given sf_l_init(10, 10) given vw_t_at(2, 3) (5, 5, 255):() then vw_t_px:(0)
+given sf_l_init(10, 10) given vw_t_at(5, 6) (5, 5, 255):() then vw_t_px:(255)
+
+// The arrow strip of a split button: the strip at (rbi_x, rbi_y) of width rbi_w and height rbi_h, on the hot colour while rbi_hot is 1 and on the body's otherwise, a line down its left edge and the triangle of a menu at its middle in colour rbi_col.
+rbd_strip(int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_hot, int rbi_col) {
+  int rbi_bg = (import rbd_c_body) + rbi_hot * ((import rbd_c_hot) - (import rbd_c_body));
+  d2_l_rect(rbi_x, rbi_y, rbi_w, rbi_h, rbi_bg);
+  d2_l_rect(rbi_x, rbi_y + 2, 1, rbi_h - 4, (import rbd_c_sep));
+} chain (int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_hot, int rbi_col) {
+  rbd_tri(rbi_x + rbi_w / 2, rbi_y + rbi_h / 2, rbi_col);
+} return void;
+given sf_l_init(30, 30) given vw_t_at(16, 15) (10, 5, 12, 20, 1, 255):() then vw_t_px:(255)
+given sf_l_init(30, 30) given vw_t_at(12, 8) (10, 5, 12, 20, 1, 255):() then vw_t_px:(15068921)
+given sf_l_init(30, 30) given vw_t_at(12, 8) (10, 5, 12, 20, 0, 255):() then vw_t_px:(15987699)

@@ -1,0 +1,26 @@
+// The mark that goes with a letter icon of width rbi_w at x rbi_x over the baseline rbi_b, in colour rbi_col: a line under a U, a line through an S, nothing for any other letter.
+rbd_marks(int rbi_cp, int rbi_x, int rbi_w, int rbi_b, int rbi_col) {
+  if(rbi_cp == 85) {
+    d2_l_rect(rbi_x, rbi_b + 2, rbi_w, 1, rbi_col);
+  }
+  if(rbi_cp == 83) {
+    d2_l_rect(rbi_x, rbi_b - 4, rbi_w, 1, rbi_col);
+  }
+} return void;
+given sf_l_init(30, 30) given vw_t_at(12, 22) (85, 10, 8, 20, 4210752):() then vw_t_px:(4210752)
+given sf_l_init(30, 30) given vw_t_at(12, 16) (83, 10, 8, 20, 255):() then vw_t_px:(255)
+given sf_l_init(30, 30) given vw_t_at(12, 24) (65, 10, 8, 20, 4210752):() then vw_t_px:(0)
+
+// Writes a letter icon: the code point rbi_cp centred on (rbi_cx, rbi_cy) in the ribbon's face in colour rbi_col, bold for a B and italic for an I, with a line under a U and through an S, as Word draws them. Anything that is not a printable ASCII letter draws nothing.
+rbd_letter(int rbi_cp, int rbi_cx, int rbi_cy, int rbi_col) {
+  int rbi_f = rbd_ui_f((rbi_cp == 66) + 2 * (rbi_cp == 73));
+  int rbi_w = gui_cp_adv(rbi_f, rbi_cp, 0) / 64;
+  int rbi_b = rbi_cy + (gui_font_ascent(rbi_f) - gui_font_descent(rbi_f)) / 2;
+} chain (int rbi_cp, int rbi_cx, int rbi_cy, int rbi_col) {
+  if(rbi_cp > 32 && rbi_cp < 127) {
+    gui_cp_draw(rbi_f, (rbi_cx - rbi_w / 2) * 64, rbi_b, rbi_cp, rbi_col);
+    rbd_marks(rbi_cp, rbi_cx - rbi_w / 2, rbi_w, rbi_b, rbi_col);
+  }
+} return void;
+given lp_t_font given rbd_ui_set(1, 1, 1) given sf_l_init(40, 40) given d2_l_rect(0, 0, 40, 40, 15987699) given vw_t_box0(10, 12, 22, 30) given vw_t_bg(15987699) (66, 16, 20, 4210752):() then vw_t_inked:(1)
+given lp_t_font given rbd_ui_set(1, 1, 1) given sf_l_init(40, 40) given d2_l_rect(0, 0, 40, 40, 15987699) given vw_t_box0(10, 12, 22, 30) given vw_t_bg(15987699) (200, 16, 20, 4210752):() then vw_t_inked:(0)

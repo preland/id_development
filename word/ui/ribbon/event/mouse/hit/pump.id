@@ -1,0 +1,31 @@
+// Notes in the state list that the control at index rbi_i of the ribbon rbi_src (0 the body, 1 the quick-access strip) was activated, when the widget's bits rbi_b say it was.
+rbe_note(int rbi_src, int rbi_i, int rbi_b) {
+  int[] rbl_s = (import rbd_s);
+  if((rbi_b & 2) != 0) {
+    lset(rbl_s, (import rbd_s_src), rbi_src);
+    lset(rbl_s, (import rbd_s_act), rbi_i);
+  }
+} return void;
+given rbe_state (1, 4, 2):() then rbd_t_sd:("1,-1,0,0,1,4,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+given rbe_state (1, 4, 1):() then rbd_t_sd:("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+
+// Gives the window event of kind rbi_kind to the widget at index rbi_i of rbl_ws, which stands for a control of the ribbon rbi_src, and answers the widget's bits (1 draw it again, 2 it was activated, which is noted).
+rbe_hit_one(GuiToggle[] rbl_ws, int rbi_src, int rbi_i, int rbi_kind, int[] rbl_ev) {
+  GuiToggle rbg = rbl_ws[rbi_i];
+  int rbi_b = gui_btn_event(rbg.btn, rbi_kind, rbl_ev);
+  rbe_note(rbi_src, rbi_i, rbi_b);
+} return int rbi_b;
+given lp_t_font given rbd_t_up(1024) given rbd_t_ev(3, 20, 70) ((import rbd_ws), 0, 0, 4, [4, 20, 70, 1, 0]):(3) then rbd_t_sd:("1,-1,0,0,0,0,-1,0,0,0,1024,156,-1,0,0,|16776960,12582912,|20")
+given lp_t_font given rbd_t_up(1024) ((import rbd_ws), 0, 0, 4, [4, 20, 70, 1, 0]):(0)
+
+// Gives the event to every widget in rbl_ws, the ribbon rbi_src's, and answers the bits of all of them together.
+rbe_pump(GuiToggle[] rbl_ws, int rbi_src, int rbi_kind, int[] rbl_ev) {
+  int rbi_k = 0;
+  int rbi_b = 0;
+  while(rbi_k < len(rbl_ws)) {
+    rbi_b = rbi_b | rbe_hit_one(rbl_ws, rbi_src, rbi_k, rbi_kind, rbl_ev);
+    rbi_k = rbi_k + 1;
+  }
+} return int rbi_b;
+given lp_t_font given rbd_t_up(1024) ((import rbd_ws), 0, 5, [5, 20, 70, 0, 0]):(1)
+given lp_t_font given rbd_t_up(1024) ((import rbd_ws), 0, 5, [5, 20, 200, 0, 0]):(0)

@@ -1,0 +1,47 @@
+// Gives the keyboard to combo box number rbi_k, whose control the ribbon rib has in the open tab. The font family combo box first looks up the installed families, which it then offers (rbe_fonts, and the combo boxes are made again so that they hold them), because the scan costs a moment and is not done when the ribbon starts.
+rbe_cb_focus(Ribbon rib, int rbi_k) {
+  if((import rbd_cb_cmd)[rbi_k] == (import cmd_font_family) && len((import rbd_fm)) == 0) {
+    rbe_fonts();
+    rbe_cb_place(rib);
+  }
+  GuiCombo rbc = (import rbd_cb)[rbi_k];
+  gui_textbox_focus(rbc.box, 1);
+} chain (Ribbon rib, int rbi_k) {
+  lset((import rbd_fo), 0, rbi_k);
+} return void;
+given lp_t_font given rbd_t_up(1024) given lst_str_splice((import rbd_fm), 0, 0, ["A"]) ((import rbd_t_r), 1):() then rbd_t_cn:("2|3,4,|1,")
+given lp_t_font given rbd_t_up(1024) given lst_str_splice((import rbd_fm), 0, 0, ["A", "B"]) ((import rbd_t_r), 0):() then rbd_t_cn:("2|3,4,|0,")
+
+// Takes the keyboard away from the combo box that has it, if one has, and puts back the text it had when it was last committed: what a change of the ribbon's band or tab does to a combo box in the middle of being typed in.
+rbe_cb_blur() {
+  int rbi_k = (import rbd_fo)[0];
+  GuiCombo[] rbl_b = (import rbd_cb);
+  if(rbi_k >= 0) {
+    gui_textbox_focus(rbl_b[rbi_k].box, 0);
+    gui_combo_set(rbl_b[rbi_k], rbl_b[rbi_k].set.back);
+  }
+} chain () {
+  lset((import rbd_fo), 0, -1);
+} return void;
+given lp_t_font given rbd_t_up(1024) ():() then rbd_t_cn:("2|3,4,|-1,")
+given lp_t_font given rbd_t_up(1024) given rbd_t_ev(3, 240, 70) ():() then rbd_t_cn:("2|3,4,|-1,")
+
+// What a combo box number rbi_k did, from the bits rbi_b it answered to an event of kind rbi_kind: a value committed is given to the program (rbe_cb_emit), and a commit or a give-up lets the keyboard go. Answers the bits of rib_event: the paint bit kept, 2 for a command given, and 4 for a press that ended the combo box (it is owed to what is under) or else 8, the event taken.
+rbe_cb_done(int rbi_k, int rbi_kind, int rbi_b) {
+  int rbi_c = 0;
+  if((rbi_b & 2) != 0) {
+    rbi_c = rbe_cb_emit(rbi_k);
+  }
+  int rbi_end = (rbi_b & 6) != 0;
+} chain (int rbi_k, int rbi_kind, int rbi_b) {
+  if(rbi_end == 1) {
+    gui_textbox_focus((import rbd_cb)[rbi_k].box, 0);
+    lset((import rbd_fo), 0, -1);
+  }
+  int rbi_owed = rbi_end == 1 && rbi_kind == 3;
+  int rbi_r = (rbi_b & 1) + 2 * rbi_c + 4 * rbi_owed + 8 * (1 - rbi_owed);
+} return int rbi_r;
+given lp_t_font given rbd_t_up(1024) (1, 1, 5):(9)
+given lp_t_font given rbd_t_up(1024) (1, 1, 0):(8)
+given lp_t_font given rbd_t_up(1024) (1, 3, 3):(5)
+given lp_t_font given rbd_t_up(1024) given rib_text((import rbd_t_r), 308, "14") (1, 4, 3):(11) then rbd_t_cmd:("308,28,14")

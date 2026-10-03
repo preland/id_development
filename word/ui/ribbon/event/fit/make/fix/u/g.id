@@ -1,0 +1,18 @@
+// Test setup: the ribbon started and kept in the export rbd_t_r, not yet placed.
+rbd_t_start() {
+  Ribbon rib = rib_init();
+  export Ribbon rbd_t_r = rib;
+} return void;
+given rbd_ui_set(1, 1, 1) ():() then rbd_t_sd:("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+given rbd_ui_set(2, 2, 2) ():() then rbd_t_pd:("0,0,,0,0,0,0,0,0,")
+
+// Test setup: a surface rbi_w wide, the ribbon started and placed in a band of the full height at its top left; the ribbon is in the export rbd_t_r. The faces are the handle 1 of the test fonts, which lp_t_font makes.
+rbd_t_up(int rbi_w) {
+  sf_l_init(rbi_w, 300);
+  rbd_ui_set(1, 1, 1);
+  rbd_t_start();
+} chain (int rbi_w) {
+  rib_fit((import rbd_t_r), 0, 0, rbi_w, (import rbd_band_px));
+} return void;
+given lp_t_font (1024):() then rbd_t_nw:("29,3")
+given lp_t_font (800):() then rbd_t_nw:("29,3")

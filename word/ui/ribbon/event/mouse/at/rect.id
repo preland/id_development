@@ -1,0 +1,32 @@
+// 1 when the point (rbi_x, rbi_y) is inside the rectangle that starts at index rbi_q of rbl_r as x, y, width and height, its left and top edges in and its right and bottom edges out.
+rbe_in(int[] rbl_r, int rbi_q, int rbi_x, int rbi_y) {
+  int rbi_h = rbi_x >= rbl_r[rbi_q] && rbi_x < rbl_r[rbi_q] + rbl_r[rbi_q + 2];
+  int rbi_v = rbi_y >= rbl_r[rbi_q + 1] && rbi_y < rbl_r[rbi_q + 1] + rbl_r[rbi_q + 3];
+  int rbi_on = rbi_h * rbi_v;
+} return int rbi_on;
+([0, 0, 10, 10], 0, 9, 9):(1)
+([0, 0, 10, 10, 20, 20, 5, 5], 4, 25, 20):(0)
+([0, 0, 10, 10], 0, 10, 5):(0)
+
+// The index of the first of rbi_n rectangles at the start of rbl_r (four numbers each) that holds the point (rbi_x, rbi_y); -1 when none does.
+rbe_at(int[] rbl_r, int rbi_n, int rbi_x, int rbi_y) {
+  int rbi_k = 0;
+  int rbi_at = -1;
+  while(rbi_k < rbi_n && rbi_at < 0) {
+    rbi_at = rbi_at + (rbi_k + 1) * rbe_in(rbl_r, rbi_k * 4, rbi_x, rbi_y);
+    rbi_k = rbi_k + 1;
+  }
+} return int rbi_at;
+([0, 0, 10, 10, 20, 0, 10, 10], 2, 25, 5):(1)
+([0, 0, 10, 10, 20, 0, 10, 10], 2, 15, 5):(-1)
+
+// The control of the ribbon rib the point (rbi_x, rbi_y) is on the arrow strip of, when it is a split button; -1 when it is not on one.
+rbe_arrow_at(Ribbon rib, int rbi_x, int rbi_y) {
+  int rbi_i = rbe_at(rib.rects, len(rib.items), rbi_x, rbi_y);
+  int rbi_a = -1;
+  if(rbi_i >= 0) {
+    rbi_a = rbe_strip(rib, rbi_i, rbi_x);
+  }
+} return int rbi_a;
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 56, 70):(0)
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 20, 70):(-1)

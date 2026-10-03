@@ -1,0 +1,49 @@
+// The index of the control of the ribbon rbr whose command is rbi_cmd, -1 when it has none.
+// By hand: in the Home tab the font family is the fourth control, the font size the fifth and bold the eighth.
+rbe_ctl_of(Ribbon rbr, int rbi_cmd) {
+  int rbi_i = 0;
+  int rbi_at = -1;
+  while(rbi_i < len(rbr.items) && rbi_at < 0) {
+    if((import rb_cmd)[rbr.items[rbi_i]] == rbi_cmd) {
+      rbi_at = rbi_i;
+    }
+    rbi_i = rbi_i + 1;
+  }
+} return int rbi_at;
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 307):(3)
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 308):(4)
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 301):(7)
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 999):(-1)
+
+// Makes the ribbon's combo boxes empty and unplaced, one for each command of rbd_cb_cmd, in the ribbon's regular face; rbe_cb_make makes them for real once the ribbon is placed.
+rbe_cb_new() {
+  int rbi_k = 0;
+  string[] rbt_e = [];
+  int rbi_f = rbd_ui_f(0);
+} chain () {
+  lst_fill((import rbd_cx), len((import rbd_cb_cmd)), -1);
+  while(rbi_k < len((import rbd_cb_cmd))) {
+    GuiCombo rbc = gui_combo_new("", rbt_e, rbi_f, 0);
+    push((import rbd_cb), rbc);
+    rbi_k = rbi_k + 1;
+  }
+} return void;
+given lp_t_font given rbd_ui_set(1, 1, 1) given rbe_pops ():() then rbd_t_cn:("2|-1,-1,|-1,")
+given lp_t_font given rbd_ui_set(2, 2, 2) given rbe_pops ():() then rbd_t_cd:("0:|-1|0,0,0,0;1:|-1|0,0,0,0")
+
+// Makes combo box number rbi_k showing the text rbs_t with the choices of its command, in place of the one that was there, and puts it where its control stands in the open tab of the ribbon rib; for a command with no control in the tab it is made and left unplaced, and rbd_cx says so with -1.
+rbe_cb_make(Ribbon rib, int rbi_k, string rbs_t) {
+  int rbi_c = (import rbd_cb_cmd)[rbi_k];
+  int rbi_i = rbe_ctl_of(rib, rbi_c);
+  GuiCombo rbc = gui_combo_new(rbs_t, rbe_labels(rbi_c), rbd_ui_f(0), 0);
+} chain (Ribbon rib, int rbi_k, string rbs_t) {
+  GuiCombo[] rbl_b = (import rbd_cb);
+  if(rbi_i >= 0) {
+    gui_combo_place(rbc, rib.rects[rbi_i * 4], rib.rects[rbi_i * 4 + 1], rib.rects[rbi_i * 4 + 2], rib.rects[rbi_i * 4 + 3], (import sf_l_w), (import sf_l_h));
+  }
+  lset((import rbd_cx), rbi_k, rbi_i);
+} chain (Ribbon rib, int rbi_k, string rbs_t) {
+  rbl_b[rbi_k] = rbc;
+} return void;
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 1, "14"):() then rbd_t_cd:("0:|3|102,60,104,24;1:14|4|224,60,28,24")
+given lp_t_font given rbd_t_up(1024) given rib_show((import rbd_t_r), 3) ((import rbd_t_r), 0, "Arial"):() then rbd_t_cd:("0:Arial|-1|0,0,0,0;1:|-1|0,0,0,0")

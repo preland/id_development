@@ -1,0 +1,40 @@
+// Remembers the colour rbi_arg for the colour button of command rbi_cmd, which applies it when its body is pressed; any other command has none to remember.
+rbe_remember(int rbi_cmd, int rbi_arg) {
+  int rbi_k = lst_index_of((import rbd_col_cmd), rbi_cmd);
+  if(rbi_k >= 0) {
+    lset((import rbd_col), rbi_k, rbi_arg);
+  }
+} return void;
+given rbe_state (311, 255):() then rbd_t_sd:("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,255,|20")
+given rbe_state (301, 255):() then rbd_t_sd:("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+
+// Writes down the answer of an event: the command, its argument and the name of what was chosen, for rib_cmd, rib_arg and rib_name to give back.
+rbe_emit(int rbi_cmd, int rbi_arg, string rbs_name) {
+  int[] rbl_s = (import rbd_s);
+  string[] rbt_n = (import rbd_nm);
+  lset(rbl_s, (import rbd_s_cmd), rbi_cmd);
+} chain (int rbi_cmd, int rbi_arg, string rbs_name) {
+  lset(rbl_s, (import rbd_s_arg), rbi_arg);
+  rbt_n[0] = rbs_name;
+} return void;
+given rbe_state given rbe_pops (301, 0, ""):() then rbd_t_sd:("1,-1,301,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+given rbe_state given rbe_pops (308, 24, "12"):() then rbd_t_pd:("0,0,12,0,0,0,0,0,0,")
+
+// The position of the choice the open menu or gallery has hot, which is the one an event answered chosen for; -1 when nothing is open. A colour grid has the one answer rbe_note_colour wrote, so its choice is the first.
+rbe_hot() {
+  int rbi_pk = (import rbd_s)[(import rbd_s_pk)];
+  int rbi_h = -1;
+  if(rbi_pk == 1) {
+    rbi_h = gui_menu_hot((import rbd_menu)[0]);
+  }
+} chain () {
+  if(rbi_pk == 2) {
+    rbi_h = gui_gallery_hot((import rbd_gal)[0]);
+  }
+  if(rbi_pk == 3) {
+    rbi_h = 0;
+  }
+} return int rbi_h;
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) given rbd_t_hot(2) ():(2)
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(414) given rbd_t_hot(3) ():(3)
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(311) ():(0)

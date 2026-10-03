@@ -1,0 +1,31 @@
+// Paints tab number rbi_k on the tab strip: the field of the pointer behind it when the pointer is on it, its name centred in the regular face (the bold one for the open tab), and a line of the accent colour under the open tab.
+rbd_tab(int rbi_k) {
+  int[] rbl_t = (import rbd_tr);
+  int[] rbl_s = (import rbd_s);
+  int rbi_open = rbl_s[(import rbd_s_tab)] == rbi_k;
+} chain (int rbi_k) {
+  int rbi_q = rbi_k * 4;
+  int rbi_f = rbd_ui_f(rbi_open);
+  int rbi_tw = gui_text_width(rbi_f, (import rbd_tabs)[rbi_k]);
+} chain (int rbi_k) {
+  if(rbl_s[(import rbd_s_hot)] == rbi_k && rbi_open == 0) {
+    d2_l_rect(rbl_t[rbi_q], rbl_t[rbi_q + 1], rbl_t[rbi_q + 2], rbl_t[rbi_q + 3], (import rbd_c_tabhot));
+  }
+  gui_text_draw(rbi_f, rbl_t[rbi_q] + (rbl_t[rbi_q + 2] - rbi_tw) / 2, rbl_t[rbi_q + 1] + (rbl_t[rbi_q + 3] - gui_font_line(rbi_f)) / 2, (import rbd_tabs)[rbi_k], (import rbd_c_icon));
+  if(rbi_open == 1) {
+    d2_l_rect(rbl_t[rbi_q], rbl_t[rbi_q + 1] + rbl_t[rbi_q + 3] - 3, rbl_t[rbi_q + 2], 3, (import rbd_c_acc));
+  }
+} return void;
+given lp_t_font given rbd_t_up(1024) given vw_t_at(70, 53) (1):() then vw_t_px:(2840474)
+given lp_t_font given rbd_t_up(1024) given vw_t_at(70, 53) (2):() then vw_t_px:(0)
+
+// Paints the tab strip: every tab, one after the other.
+rbd_tabs_draw() {
+  int rbi_k = 0;
+  while(rbi_k < len((import rbd_tabs))) {
+    rbd_tab(rbi_k);
+    rbi_k = rbi_k + 1;
+  }
+} return void;
+given lp_t_font given rbd_t_up(1024) given d2_l_rect(0, 0, 1024, 156, 16777215) given vw_t_box0(10, 30, 60, 54) given vw_t_bg(16777215) ():() then vw_t_inked:(1)
+given lp_t_font given rbd_t_up(1024) given d2_l_rect(0, 0, 1024, 156, 16777215) given vw_t_box0(400, 30, 600, 54) given vw_t_bg(16777215) ():() then vw_t_inked:(0)

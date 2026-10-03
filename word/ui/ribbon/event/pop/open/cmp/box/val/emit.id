@@ -1,0 +1,28 @@
+// The argument a combo box answers for the text rbs_t it holds: half-points for the font size (ost_bad when the text is no number of points above zero), the position in the installed families for the font family (-1 when the family is not one of them).
+rbe_cb_arg(int rbi_cmd, string rbs_t) {
+  int rbi_a = lst_str_index((import rbd_fm), rbs_t);
+  if(rbi_cmd == (import cmd_font_size)) {
+    rbi_a = ost_size(rbs_t + "pt", -1);
+  }
+  if(rbi_cmd == (import cmd_font_size) && rbi_a <= 0) {
+    rbi_a = (import ost_bad);
+  }
+} return int rbi_a;
+given rbe_pops (308, "12"):(24)
+given rbe_pops (308, "10.5"):(21)
+given rbe_pops (308, "big"):(-2147483647)
+given rbe_pops (308, "0"):(-2147483647)
+
+// Gives the program what combo box number rbi_k committed: its command, the argument rbe_cb_arg makes of its text, and the text as the name, for rib_cmd, rib_arg and rib_name. Answers 1 when it did, 0 when the text meant nothing (a font size that is no number) and nothing was given.
+rbe_cb_emit(int rbi_k) {
+  int rbi_c = (import rbd_cb_cmd)[rbi_k];
+  string rbs_t = gui_combo_text((import rbd_cb)[rbi_k]);
+  int rbi_a = rbe_cb_arg(rbi_c, rbs_t);
+} chain (int rbi_k) {
+  int rbi_ok = rbi_a != (import ost_bad);
+  if(rbi_ok == 1) {
+    rbe_emit(rbi_c, rbi_a, rbs_t);
+  }
+} return int rbi_ok;
+given lp_t_font given rbd_t_up(1024) given rib_text((import rbd_t_r), 308, "14") (1):(1) then rbd_t_cmd:("308,28,14")
+given lp_t_font given rbd_t_up(1024) given rib_text((import rbd_t_r), 308, "x") (1):(0) then rbd_t_cmd:("0,0,")

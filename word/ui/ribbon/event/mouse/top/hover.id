@@ -1,0 +1,35 @@
+// The text of the tooltip of the control at index rbi_i of the ribbon rbr: its name with its shortcut, a dash, and the line that says what it does.
+rbe_tip_text(Ribbon rbr, int rbi_i) {
+  int rbi_row = rbr.items[rbi_i];
+  string rbs_h = tip_head((import rb_label)[rbi_row], (import rb_key)[rbi_row]);
+  string rbs_t = rbs_h + " - " + (import rb_tip)[rbi_row];
+} return string rbs_t;
+(Ribbon([14], [], [0]), 0):("Bold (Ctrl+B) - Make the selected text bold.")
+(Ribbon([4, 17], [], [0, 0]), 1):("Strikethrough - Draw a line through the selected text.")
+
+// Arms the tooltip of the control of the ribbon rbr that the pointer of the event rbl_ev is on, under that control. Answers 0 when the pointer is on none, else 2 and 1 more when the tooltip it replaced was on show and has to be wiped out.
+rbe_tip_at(Ribbon rbr, int[] rbl_ev) {
+  int rbi_i = rbe_at(rbr.rects, len(rbr.items), rbl_ev[1], rbl_ev[2]);
+  int rbi_r = 0;
+  if(rbi_i >= 0) {
+    rbi_r = 2 + gui_tip_show((import rbd_tip)[0], rbe_tip_text(rbr, rbi_i), rbr.rects[rbi_i * 4], rbr.rects[rbi_i * 4 + 1] + rbr.rects[rbi_i * 4 + 3] + 4);
+  }
+} return int rbi_r;
+given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) ((import rbd_t_r), [5, 110, 90, 0, 0]):(2) then rbd_t_tv:("0,Bold (Ctrl+B) - Make the selected text bold.") then rbd_t_tp:("102,112")
+given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) ((import rbd_t_r), [5, 20, 200, 0, 0]):(0)
+
+// What the pointer of the event rbl_ev does to the tooltip: it is armed under the control of the ribbon rib the pointer is on, or else under the quick-access control it is on, and taken away when it is on none. Answers 1 when a tooltip that was on show has to be wiped out.
+rbe_tip_for(Ribbon rib, int[] rbl_ev) {
+  int rbi_a = rbe_tip_at(rib, rbl_ev);
+  int rbi_b = 0;
+  if(rbi_a < 2) {
+    rbi_b = rbe_tip_at((import rbd_q), rbl_ev);
+  }
+} chain (Ribbon rib, int[] rbl_ev) {
+  int rbi_r = (rbi_a | rbi_b) & 1;
+  if((rbi_a | rbi_b) < 2) {
+    rbi_r = gui_tip_hide((import rbd_tip)[0]);
+  }
+} return int rbi_r;
+given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) ((import rbd_t_r), [5, 110, 90, 0, 0]):(0) then rbd_t_tv:("0,Bold (Ctrl+B) - Make the selected text bold.")
+given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) ((import rbd_t_r), [5, 20, 200, 0, 0]):(0) then rbd_t_tv:("0,")

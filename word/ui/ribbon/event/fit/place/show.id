@@ -1,0 +1,29 @@
+// Places the ribbon rib again in the band it was last placed in, for a change that did not move the band.
+rib_refit(Ribbon rib) {
+  int[] rbl_s = (import rbd_s);
+  rib_fit(rib, rbl_s[(import rbd_s_bx)], rbl_s[(import rbd_s_by)], rbl_s[(import rbd_s_bw)], rbl_s[(import rbd_s_bh)]);
+} return void;
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r)):() then rbd_t_nw:("29,3")
+given lp_t_font given rbd_t_up(800) ((import rbd_t_r)):() then rbd_t_nw:("29,3")
+
+// Closes the menu that is open, if one is, takes the tooltip away and takes the keyboard from a combo box (which puts back its committed text): what a change of the ribbon's size or of its tab must not leave behind.
+rbe_shut() {
+  rbe_close();
+  rbe_cb_blur();
+  int rbi_w = gui_tip_hide((import rbd_tip)[0]);
+} return void;
+given lp_t_font given rbd_t_up(1024) ():() then rbd_t_pk:(0)
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) ():() then rbd_t_pk:(0)
+given lp_t_font given rbd_t_up(1024) given rbd_t_ev(3, 240, 70) ():() then rbd_t_cn:("2|3,4,|-1,")
+
+// Opens tab rbi_tab in the ribbon rib: the controls of that tab take the place of the controls of the one that was open, placed in the same band, and nothing of the old tab's menus stays open.
+rib_show(Ribbon rib, int rbi_tab) {
+  Ribbon rbn = rib_build(rbi_tab);
+  rib.items = rbn.items;
+  rib.state = rbn.state;
+} chain (Ribbon rib, int rbi_tab) {
+  lset((import rbd_s), (import rbd_s_tab), rbi_tab);
+  rib_refit(rib);
+} return void;
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 3):() then rbd_t_nw:("7,3")
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 2):() then rbd_t_nw:("1,3")

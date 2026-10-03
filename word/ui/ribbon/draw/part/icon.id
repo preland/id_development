@@ -1,0 +1,48 @@
+// Paints the icon of item row rbi_row inside the button rectangle (rbi_x, rbi_y, rbi_w, rbi_h) in colour rbi_col: a vector icon where the ribbon has one for the command, 24 px high near the top of a large button and 16 px centred in a small one, else the letter the model names; a large button also carries its name at the bottom.
+rbd_icon(int rbi_row, int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_col) {
+  int rbi_ic = (import rb_icon)[rbi_row];
+  int rbi_big = rbi_h >= 48;
+  int rbi_px = 16 + 8 * rbi_big;
+} chain (int rbi_row, int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_col) {
+  int rbi_ix = rbi_x + (rbi_w - rbi_px) / 2;
+  int rbi_iy = rbi_y + 4 * rbi_big + (rbi_h - rbi_px) / 2 * (1 - rbi_big);
+  int rbi_vec = lst_index_of((import ic_cmd), rbi_ic) >= 0;
+} chain (int rbi_row, int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_col) {
+  if(rbi_vec == 1) {
+    vec_icon(rbi_ic, rbi_px, rbi_col, rbi_ix, rbi_iy);
+  }
+  if(rbi_vec == 0) {
+    rbd_letter(rbi_ic, rbi_x + rbi_w / 2, rbi_y + rbi_h / 2, rbi_col);
+  }
+  rbd_big(rbi_row, rbi_x, rbi_y, rbi_w, rbi_h, rbi_big, rbi_col);
+} return void;
+given lp_t_font given rbd_t_up(1024) given vw_t_box0(14, 62, 62, 90) given d2_l_rect(0, 0, 400, 156, 15987699) given vw_t_bg(15987699) (7, 12, 60, 52, 74, 4210752):() then vw_t_inked:(1)
+given lp_t_font given rbd_t_up(1024) given vw_t_box0(66, 62, 88, 90) given d2_l_rect(0, 0, 400, 156, 15987699) given vw_t_bg(15987699) (14, 66, 60, 24, 24, 4210752):() then vw_t_inked:(1)
+
+// Writes the name of a large button (one rbi_big says is large) centred along its bottom in colour rbi_col, cut to the button when it is wider than it. A small button has no room for one.
+rbd_big(int rbi_row, int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_big, int rbi_col) {
+  string rbs_t = (import rb_label)[rbi_row];
+  int rbi_f = rbd_ui_f(0);
+  int rbi_tw = gui_text_width(rbi_f, rbs_t);
+} chain (int rbi_row, int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_big, int rbi_col) {
+  if(rbi_big == 1) {
+    sf_l_clip(rbi_x + 1, rbi_y + 1, rbi_w - 2, rbi_h - 2);
+    gui_text_draw(rbi_f, rbi_x + (rbi_w - rbi_tw) / 2, rbi_y + rbi_h - gui_font_line(rbi_f) - 3, rbs_t, rbi_col);
+    sf_l_unclip();
+  }
+} return void;
+given lp_t_font given rbd_t_up(1024) given vw_t_box0(14, 112, 62, 132) given d2_l_rect(0, 0, 400, 156, 15987699) given vw_t_bg(15987699) (7, 12, 60, 52, 74, 1, 4210752):() then vw_t_inked:(1)
+given lp_t_font given rbd_t_up(1024) given vw_t_box0(14, 112, 62, 132) given d2_l_rect(0, 0, 400, 156, 15987699) given vw_t_bg(15987699) (7, 12, 60, 52, 74, 0, 4210752):() then vw_t_inked:(0)
+given lp_t_font given rbd_t_up(1024) given vw_t_box0(34, 112, 80, 132) given d2_l_rect(0, 0, 400, 156, 15987699) given vw_t_bg(15987699) (36, 12, 60, 20, 74, 1, 4210752):() then vw_t_inked:(0)
+
+// The caption of the field of item row rbi_row: the short word rbd_fld_txt gives for its command where it has one ("Size" for the font size), else the name of the control.
+rbd_caption(int rbi_row) {
+  string rbs_t = (import rb_label)[rbi_row];
+  int rbi_k = lst_index_of((import rbd_fld_cmd), (import rb_cmd)[rbi_row]);
+  if(rbi_k >= 0) {
+    rbs_t = (import rbd_fld_txt)[rbi_k];
+  }
+} return string rbs_t;
+(11):("Size")
+(41):("Before")
+(10):("Font")

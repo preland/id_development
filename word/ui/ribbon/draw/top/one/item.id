@@ -1,0 +1,44 @@
+// Paints what a control shows inside its body rbg of item row rbi_row and look rbi_shape: its icon and, for a large control, its name; or, for a field, its name at the left; or the preview of the gallery.
+rbd_inside(GuiToggle rbg, int rbi_row, int rbi_shape) {
+  int[] rbl_v = rbg.btn.v;
+  int rbi_ink = rbd_ink(rbg);
+  if(rbi_shape < 3) {
+    rbd_icon(rbi_row, rbl_v[0], rbl_v[1], rbl_v[2], rbl_v[3], rbi_ink);
+  }
+} chain (GuiToggle rbg, int rbi_row, int rbi_shape) {
+  if(rbi_shape == 3) {
+    rbd_field(rbg, rbi_row, rbi_ink);
+  }
+  if(rbi_shape == 4) {
+    rbd_tiles(rbg, rbi_ink);
+  }
+} return void;
+given lp_t_font given rbd_t_up(1024) given d2_l_rect(0, 0, 400, 156, 15987699) given vw_t_box0(14, 62, 62, 90) given vw_t_bg(15987699) (GuiToggle(GuiButton([12, 60, 38, 74, 0, 1, 0, 0, 0], "", 0), 0, 0), 7, 0):() then vw_t_inked:(1)
+given lp_t_font given rbd_t_up(1024) given d2_l_rect(0, 0, 400, 156, 15987699) given vw_t_box0(14, 62, 62, 90) given vw_t_bg(15987699) (GuiToggle(GuiButton([12, 60, 38, 74, 0, 1, 0, 0, 0], "", 0), 0, 0), 7, 3):() then vw_t_inked:(0)
+
+// Paints what a control shows outside its body: the sign of a menu or the arrow strip of the control at index rbi_i of the ribbon, and the bar of a colour button.
+rbd_outside(Ribbon rib, int rbi_i, int rbi_row, int rbi_shape) {
+  int[] rbl_r = rib.rects;
+  int rbi_q = rbi_i * 4;
+  int rbi_hot = rbd_hot(rbi_i);
+} chain (Ribbon rib, int rbi_i, int rbi_row, int rbi_shape) {
+  rbd_sign(rbl_r[rbi_q], rbl_r[rbi_q + 1], rbl_r[rbi_q + 2], rbl_r[rbi_q + 3], rbi_shape, rbi_hot);
+  rbd_bar(rbl_r[rbi_q], rbl_r[rbi_q + 1], rbl_r[rbi_q + 2], rbl_r[rbi_q + 3], rbi_row);
+} return void;
+given lp_t_font given rbd_t_up(1024) given vw_t_at(58, 70) ((import rbd_t_r), 0, 7, 2):() then vw_t_px:(15987699)
+given lp_t_font given rbd_t_up(1024) given vw_t_at(58, 70) ((import rbd_t_r), 0, 7, 0):() then vw_t_px:(0)
+
+// Paints the control at index rbi_i of the ribbon rib whose widgets are rbl_ws: its body (a toggle shows its state), what is inside it, and the sign or the arrow strip outside it. A combo box paints itself (rbd_combos) and has nothing here.
+rbd_item(Ribbon rib, GuiToggle[] rbl_ws, int rbi_i) {
+  GuiToggle rbg = rbl_ws[rbi_i];
+  int rbi_row = rib.items[rbi_i];
+  int rbi_shape = rbd_shape(rbi_row);
+} chain (Ribbon rib, GuiToggle[] rbl_ws, int rbi_i) {
+  if(rbi_shape != 6) {
+    gui_tgl_draw(rbg);
+    rbd_inside(rbg, rbi_row, rbi_shape);
+    rbd_outside(rib, rbi_i, rbi_row, rbi_shape);
+  }
+} return void;
+given lp_t_font given rbd_t_up(1024) given rib_put((import rbd_t_r), 301, 1) given rbe_sync((import rbd_t_r)) given vw_t_at(114, 96) ((import rbd_t_r), (import rbd_ws), 7):() then vw_t_px:(12308972)
+given lp_t_font given rbd_t_up(1024) given vw_t_at(114, 96) ((import rbd_t_r), (import rbd_ws), 7):() then vw_t_px:(15987699)

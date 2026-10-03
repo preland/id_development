@@ -1,0 +1,46 @@
+// 1 when the point (rbi_px, rbi_py) is on combo box number rbi_k: its text box and arrow, or its list while the list is open; 0 when it is not, and always 0 for a combo box whose control is not in the open tab.
+rbe_cb_on(int rbi_k, int rbi_px, int rbi_py) {
+  GuiCombo rbc = (import rbd_cb)[rbi_k];
+  int[] rbl_v = rbc.box.v;
+  int rbi_a = gui_wid_hit([rbl_v[0], rbl_v[1], rbl_v[2] + (import idstd_pp_arrow), rbl_v[3]], rbi_px, rbi_py);
+} chain (int rbi_k, int rbi_px, int rbi_py) {
+  int rbi_l = gui_wid_hit(rbc.list.rects, rbi_px, rbi_py) * rbc.set.sel[0];
+  int rbi_on = (rbi_a + rbi_l > 0) * ((import rbd_cx)[rbi_k] >= 0);
+} return int rbi_on;
+given lp_t_font given rbd_t_up(1024) (0, 160, 70):(1)
+given lp_t_font given rbd_t_up(1024) (1, 160, 70):(0)
+given lp_t_font given rbd_t_up(1024) given rib_show((import rbd_t_r), 3) (0, 160, 70):(0)
+
+// The combo box a press at the point (rbi_px, rbi_py) is on, -1 when it is on none.
+rbe_cb_hit(int rbi_px, int rbi_py) {
+  int rbi_k = 0;
+  int rbi_at = -1;
+  while(rbi_k < len((import rbd_cb)) && rbi_at < 0) {
+    rbi_at = rbi_at + (rbi_k + 1) * rbe_cb_on(rbi_k, rbi_px, rbi_py);
+    rbi_k = rbi_k + 1;
+  }
+} return int rbi_at;
+given lp_t_font given rbd_t_up(1024) (160, 70):(0)
+given lp_t_font given rbd_t_up(1024) (240, 70):(1)
+given lp_t_font given rbd_t_up(1024) (20, 20):(-1)
+
+// An event of kind rbi_kind for the ribbon's combo boxes. The combo box that has the keyboard takes every event, and a press that is not on it is its end: it commits what was typed and the press is owed to what is under. A press on a combo box that has not the keyboard gives it the keyboard and goes to it, unless a menu, a gallery or a colour grid is open, which has the press. Answers bits like rib_event: 1 paint again, 2 a command was given (rbe_cb_emit), 4 the press is owed to what is under, 8 the combo box took the event; 0 when it is none of its business.
+rbe_cb_event(Ribbon rib, int rbi_kind, int[] rbl_ev) {
+  int rbi_h = -1;
+  if((import rbd_fo)[0] < 0 && rbi_kind == 3 && (import rbd_s)[(import rbd_s_pk)] == 0) {
+    rbi_h = rbe_cb_hit(rbl_ev[1], rbl_ev[2]);
+  }
+  if(rbi_h >= 0) {
+    rbe_cb_focus(rib, rbi_h);
+  }
+} chain (Ribbon rib, int rbi_kind, int[] rbl_ev) {
+  int rbi_k = (import rbd_fo)[0];
+  int rbi_b = 0;
+  if(rbi_k >= 0) {
+    rbi_b = rbe_cb_done(rbi_k, rbi_kind, gui_combo_event((import rbd_cb)[rbi_k], rbi_kind, rbl_ev));
+  }
+} return int rbi_b;
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 3, [3, 240, 70, 1, 0]):(9) then rbd_t_cn:("2|3,4,|1,")
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 5, [5, 240, 70, 0, 0]):(0)
+given lp_t_font given rbd_t_up(1024) given rbd_t_ev(3, 240, 70) ((import rbd_t_r), 3, [3, 500, 40, 1, 0]):(5) then rbd_t_cn:("2|3,4,|-1,")
+given lp_t_font given rbd_t_up(1024) given rbd_t_ev(3, 240, 70) ((import rbd_t_r), 1, [1, 1011, 0, 0, 0]):(9) then rbd_t_cn:("2|3,4,|-1,")

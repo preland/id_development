@@ -1,0 +1,22 @@
+// Test setup: freezes the tooltip's clock at rbi_ms milliseconds.
+rbd_t_clock(int rbi_ms) {
+  gui_tip_clock((import rbd_tip)[0], rbi_ms);
+} return void;
+given lp_t_font given rbd_t_up(1024) (1000):() then rbd_t_tv:("0,")
+given lp_t_font given rbd_t_up(1024) (0):() then rbd_t_tv:("0,")
+
+// Test setup: the state list says control rbi_i of the ribbon rbi_src was activated.
+rbd_t_act(int rbi_src, int rbi_i) {
+  int[] rbl_s = (import rbd_s);
+  lset(rbl_s, (import rbd_s_src), rbi_src);
+  lset(rbl_s, (import rbd_s_act), rbi_i);
+} return void;
+given rbe_state (1, 2):() then rbd_t_sd:("1,-1,0,0,1,2,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+given rbe_state (0, 5):() then rbd_t_sd:("1,-1,0,0,0,5,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+
+// Test setup: arms the tooltip with the text rbs_t at (1, 1), as the pointer coming to rest on a control does.
+rbd_t_show(string rbs_t) {
+  int rbi_r = gui_tip_show((import rbd_tip)[0], rbs_t, 1, 1);
+} return void;
+given rbd_ui_set(1, 1, 1) given rbe_tip_new given rbd_t_clock(1000) ("a"):() then rbd_t_tv:("0,a")
+given rbd_ui_set(1, 1, 1) given rbe_tip_new given rbd_t_clock(1000) given rbd_t_show("a") ("b"):() then rbd_t_tv:("0,b")

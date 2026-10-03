@@ -1,0 +1,48 @@
+// The pointer moved, in the event rbl_ev: the tab and the arrow strip it is on are remembered for painting, the tooltip follows it, and the widgets learn of it. Answers the bits of the event, 1 when something has to be painted again.
+rbe_move(Ribbon rib, int[] rbl_ev) {
+  int[] rbl_s = (import rbd_s);
+  int rbi_t = rbe_at((import rbd_tr), 5, rbl_ev[1], rbl_ev[2]);
+  int rbi_a = rbe_arrow_at(rib, rbl_ev[1], rbl_ev[2]);
+} chain (Ribbon rib, int[] rbl_ev) {
+  int rbi_c = (rbi_t != rbl_s[(import rbd_s_hot)]) || (rbi_a != rbl_s[(import rbd_s_ahot)]);
+  lset(rbl_s, (import rbd_s_hot), rbi_t);
+  lset(rbl_s, (import rbd_s_ahot), rbi_a);
+} chain (Ribbon rib, int[] rbl_ev) {
+  int rbi_h = rbe_tip_for(rib, rbl_ev);
+  int rbi_p = rbe_pumps(5, rbl_ev);
+  int rbi_b = rbi_c | rbi_h | rbi_p;
+} return int rbi_b;
+given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) ((import rbd_t_r), [5, 20, 70, 0, 0]):(1) then rbd_t_sd:("1,-1,0,0,0,-1,-1,0,0,0,1024,156,-1,0,0,|16776960,12582912,|20")
+given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) ((import rbd_t_r), [5, 900, 300, 0, 0]):(0)
+
+// Gives the event of kind rbi_kind to the widgets of the body and to those of the quick-access strip, and answers the bits of both together.
+rbe_pumps(int rbi_kind, int[] rbl_ev) {
+  int rbi_a = rbe_pump((import rbd_ws), 0, rbi_kind, rbl_ev);
+  int rbi_b = rbe_pump((import rbd_qs), 1, rbi_kind, rbl_ev);
+  int rbi_r = rbi_a | rbi_b;
+} return int rbi_r;
+given lp_t_font given rbd_t_up(1024) (5, [5, 20, 70, 0, 0]):(1)
+given lp_t_font given rbd_t_up(1024) (5, [5, 900, 300, 0, 0]):(0)
+
+// A mouse event of kind rbi_kind (3 press, 4 release, 5 move) at the point of the event rbl_ev, for the ribbon rib when no menu is open: a press goes to the tabs, the arrow strips and the widgets, a release to the widgets, and the control that was activated by it acts; a move to the pointer's followers. Adds 8 when the point is in the ribbon's band, so the program knows the ribbon had it.
+rbe_mouse(Ribbon rib, int rbi_kind, int[] rbl_ev) {
+  int rbi_b = 0;
+  if(rbi_kind == 3) {
+    rbi_b = rbe_press(rib, rbl_ev);
+  }
+  if(rbi_kind == 4) {
+    rbi_b = rbe_pumps(4, rbl_ev);
+  }
+} chain (Ribbon rib, int rbi_kind, int[] rbl_ev) {
+  if(rbi_kind == 5) {
+    rbi_b = rbe_move(rib, rbl_ev);
+  }
+  if((rbi_b & 2) != 0) {
+    rbe_act(rib);
+  }
+  int rbi_in = rbe_in((import rbd_s), (import rbd_s_bx), rbl_ev[1], rbl_ev[2]);
+} chain (Ribbon rib, int rbi_kind, int[] rbl_ev) {
+  rbi_b = rbi_b + 8 * rbi_in;
+} return int rbi_b;
+given lp_t_font given rbd_t_up(1024) given rbd_t_ev(3, 20, 70) ((import rbd_t_r), 4, [4, 20, 70, 1, 0]):(11) then rbd_t_cmd:("205,0,")
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 5, [5, 20, 300, 0, 0]):(0)

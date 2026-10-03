@@ -1,0 +1,30 @@
+// Makes the widget rbg follow the state rbi_st of its control: a toggle shows on (1) or mixed (2) and is off for any other state, and the control is enabled unless the state is disabled (3).
+rbe_one(GuiToggle rbg, int rbi_st) {
+  int rbi_on = rbi_st != 3;
+  gui_tgl_set(rbg, (rbi_st == 1 || rbi_st == 2) * rbi_st);
+  if(gui_btn_cell(rbg.btn, 5) != rbi_on) {
+    gui_btn_enable(rbg.btn, rbi_on);
+  }
+} return void;
+(GuiToggle(GuiButton([0, 0, 10, 10, 0, 1, 0, 0, 0], "", 0), 0, 0), 1):(GuiToggle(GuiButton([0, 0, 10, 10, 0, 1, 0, 0, 0], "", 0), 1, 0))
+(GuiToggle(GuiButton([0, 0, 10, 10, 2, 1, 0, 0, 1], "", 0), 1, 0), 3):(GuiToggle(GuiButton([0, 0, 10, 10, 0, 0, 0, 0, 0], "", 0), 0, 0))
+(GuiToggle(GuiButton([0, 0, 10, 10, 1, 1, 0, 0, 0], "", 0), 2, 0), 0):(GuiToggle(GuiButton([0, 0, 10, 10, 1, 1, 0, 0, 0], "", 0), 0, 0))
+
+// Makes every widget in rbl_ws follow the state of the control it stands for in the ribbon rib.
+rbe_follow(Ribbon rib, GuiToggle[] rbl_ws) {
+  int rbi_i = 0;
+  while(rbi_i < len(rbl_ws)) {
+    rbe_one(rbl_ws[rbi_i], rib.state[rbi_i]);
+    rbi_i = rbi_i + 1;
+  }
+} return void;
+given lp_t_font given rbd_t_up(1024) given rib_put((import rbd_t_r), 301, 1) given rbd_t_k(7) ((import rbd_t_r), (import rbd_ws)):() then rbd_t_wd:("102,84,24,24,0,1,301,1,0,1")
+given lp_t_font given rbd_t_up(1024) given rbd_t_k(7) ((import rbd_t_r), (import rbd_ws)):() then rbd_t_wd:("102,84,24,24,0,1,301,1,0,0")
+
+// Makes the widgets of the body and of the quick-access strip follow the state the ribbon rib was given.
+rbe_sync(Ribbon rib) {
+  rbe_follow(rib, (import rbd_ws));
+  rbe_follow((import rbd_q), (import rbd_qs));
+} return void;
+given lp_t_font given rbd_t_up(1024) given rib_put((import rbd_t_r), 301, 2) given rbd_t_k(7) ((import rbd_t_r)):() then rbd_t_wd:("102,84,24,24,0,1,301,1,0,2")
+given lp_t_font given rbd_t_up(1024) given rib_put((import rbd_t_r), 201, 3) given rbd_t_kq(1) ((import rbd_t_r)):() then rbd_t_wd:("38,4,24,20,0,0,201,1,0,0")

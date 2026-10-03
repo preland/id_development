@@ -1,0 +1,43 @@
+// The lists the ribbon keeps its state in, as exports: the state list (rbd_s0 at the start), the colours the colour buttons apply (rbd_col0) and the rectangles of the five tabs.
+rbe_state() {
+  export int[] rbd_s = [];
+  export int[] rbd_col = [];
+  export int[] rbd_tr = [];
+} chain () {
+  lst_extend((import rbd_s), (import rbd_s0));
+  lst_extend((import rbd_col), (import rbd_col0));
+  lst_fill((import rbd_tr), 20, 0);
+} return void;
+():() then rbd_t_sd:("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+given rbe_state given lset((import rbd_s), 0, 3) given lset((import rbd_col), 1, 5) ():() then rbd_t_sd:("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+
+// The lists the ribbon keeps its open menu in, as exports: the menus, galleries and colour grids that are open (none or one of them), the name the last choice had, the labels and the answers of the open menu, and the rectangle of the control that opened it; and its combo boxes: the combo boxes themselves, the control each stands in the open tab at (-1 when its tab is not open) the one that has the keyboard (-1 for none) and the installed font families, which are looked up when the first is needed.
+rbe_pops() {
+  export GuiMenu[] rbd_menu = [];
+  export GuiGallery[] rbd_gal = [];
+  export string[] rbd_nm = [""];
+} chain () {
+  export string[] rbd_pl = [];
+  export int[] rbd_pa = [];
+  export int[] rbd_an = [0, 0, 0, 0];
+} chain () {
+  export GuiColors[] rbd_cg = [];
+  export GuiCombo[] rbd_cb = [];
+  export int[] rbd_cx = [];
+} chain () {
+  export int[] rbd_fo = [-1];
+  export string[] rbd_fm = [];
+} return void;
+():() then rbd_t_pd:("0,0,,0,0,0,0,0,0,")
+given rbe_pops given lset((import rbd_an), 2, 9) ():() then rbd_t_pd:("0,0,,0,0,0,0,0,0,")
+
+// The tooltip, as an export: one for the whole ribbon, in the regular face, so that there is one at a time.
+rbe_tip_new() {
+  export GuiTip[] rbd_tip = [];
+  int rbi_f = rbd_ui_f(0);
+  GuiTip rbp = gui_tip_new(rbi_f);
+} chain () {
+  push((import rbd_tip), rbp);
+} return void;
+given rbd_ui_set(3, 3, 3) ():() then rbd_t_tf:(3)
+given rbd_ui_set(4, 4, 4) ():() then rbd_t_tf:(4)

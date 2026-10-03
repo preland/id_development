@@ -1,0 +1,51 @@
+// Test check: whether the Home tab fits the width of the surface, and how many of its rectangles overlap another, comma separated.
+rbd_t_hf() {
+  Ribbon rbr = (import rbd_t_r);
+  int rbi_f = rib_fits(rbr, (import sf_l_w));
+  int rbi_o = rects_overlap(rbr.rects, len(rbr.items));
+} chain () {
+  string rbs_z = rbi_f + "," + rbi_o;
+} return string rbs_z;
+given lp_t_font given rbd_t_up(1024) ():("1,0")
+given lp_t_font given rbd_t_up(600) ():("0,0")
+
+// Test check: the rectangles of the open menu, gallery or the open list of the combo box that has the keyboard: its box, then each choice, then what follows them; none when nothing is open.
+rbd_t_rects() {
+  int rbi_pk = (import rbd_s)[(import rbd_s_pk)];
+  int[] rbl_r = [];
+  if(rbi_pk == 1) {
+    GuiMenu rbm = (import rbd_menu)[0];
+    rbl_r = rbm.rects;
+  }
+} chain () {
+  if(rbi_pk == 2) {
+    GuiGallery rby = (import rbd_gal)[0];
+    rbl_r = rby.rects;
+  }
+  if(rbi_pk == 0 && (import rbd_fo)[0] >= 0) {
+    GuiCombo rbc = (import rbd_cb)[(import rbd_fo)[0]];
+    rbl_r = rbc.list.rects;
+  }
+} return int[] rbl_r;
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) ():([10, 30, 53, 158, 11, 31, 51, 26, 11, 57, 51, 26, 11, 83, 51, 26, 11, 109, 51, 26, 11, 135, 51, 26, 11, 161, 51, 26, 1])
+given lp_t_font given rbd_t_up(1024) ():([])
+
+// Test setup: a tap on choice rbi_k of the open menu or gallery: a press and a release at the middle of its rectangle, the ribbon in rbd_t_r getting both.
+rbd_t_choose(int rbi_k) {
+  int[] rbl_r = rbd_t_rects();
+  int rbi_q = 4 + 4 * rbi_k;
+  int rbi_x = rbl_r[rbi_q] + rbl_r[rbi_q + 2] / 2;
+} chain (int rbi_k) {
+  int rbi_y = rbl_r[rbi_q + 1] + rbl_r[rbi_q + 3] / 2;
+  rbd_t_ev(3, rbi_x, rbi_y);
+  rbd_t_ev(4, rbi_x, rbi_y);
+} return void;
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) (2):() then rbd_t_cmd:("409,150,1.5")
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(414) (1):() then rbd_t_cmd:("414,1,Title")
+given lp_t_font given rbd_t_up(1024) given rbd_t_tap(4, 14) (4):() then rbd_t_cmd:("308,24,12")
+given lp_t_font given rbd_t_up(1024) given rbd_t_tap(24, 0) (3):() then rbd_t_cmd:("409,200,2.0")
+given lp_t_font given rbd_t_up(1024) given rbd_t_tap(25, 0) (2):() then rbd_t_cmd:("414,2,Heading 1")
+given lp_t_font given rbd_t_up(1024) given rib_show((import rbd_t_r), 3) given rbd_t_tap(0, 0) (1):() then rbd_t_cmd:("504,1,Narrow")
+given lp_t_font given rbd_t_up(1024) given rib_show((import rbd_t_r), 3) given rbd_t_tap(1, 0) (1):() then rbd_t_cmd:("503,1,Landscape")
+given lp_t_font given rbd_t_up(1024) given rib_show((import rbd_t_r), 3) given rbd_t_tap(2, 0) (1):() then rbd_t_cmd:("502,1,A4")
+given lp_t_font given rbd_t_up(1024) given rib_show((import rbd_t_r), 3) given rbd_t_tap(3, 0) (2):() then rbd_t_cmd:("410,720,0.5 in")

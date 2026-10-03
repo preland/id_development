@@ -1,0 +1,31 @@
+// Test check: the box of the open gallery as x, y, width and height, comma separated.
+rbd_t_gr() {
+  GuiGallery rby = (import rbd_gal)[0];
+  string rbs_z = rby.rects[0] + "," + rby.rects[1] + "," + rby.rects[2] + "," + rby.rects[3];
+} return string rbs_z;
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(414) ():("10,30,222,146")
+given lp_t_font given rbd_t_up(1024) given rbe_gallery(414, ["A", "B"], [10, 10, 40, 20]) ():("10,30,222,50")
+
+// Test check: the box of the open menu as x, y, width and height, comma separated.
+rbd_t_mr() {
+  GuiMenu rbm = (import rbd_menu)[0];
+  string rbs_z = rbm.rects[0] + "," + rbm.rects[1] + "," + rbm.rects[2] + "," + rbm.rects[3];
+} return string rbs_z;
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) ():("10,30,53,158")
+given lp_t_font given rbd_t_up(1024) given rbd_t_open(308) ():("10,0,40,418")
+
+
+// Test setup: a tap on the control at index rbi_i of the open tab, rbi_dx pixels right of the middle of its rectangle: a press and a release there, the ribbon in rbd_t_r getting both.
+rbd_t_tap(int rbi_i, int rbi_dx) {
+  Ribbon rbr = (import rbd_t_r);
+  int rbi_q = rbi_i * 4;
+  int rbi_x = rbr.rects[rbi_q] + rbr.rects[rbi_q + 2] / 2 + rbi_dx;
+} chain (int rbi_i, int rbi_dx) {
+  int rbi_y = rbr.rects[rbi_q + 1] + rbr.rects[rbi_q + 3] / 2;
+  rbd_t_ev(3, rbi_x, rbi_y);
+  rbd_t_ev(4, rbi_x, rbi_y);
+} return void;
+given lp_t_font given rbd_t_up(1024) (7, 0):() then rbd_t_cmd:("301,0,")
+given lp_t_font given rbd_t_up(1024) (24, 0):() then rbd_t_pk:(1)
+given lp_t_font given rbd_t_up(1024) (14, 0):() then rbd_t_cmd:("311,12582912,")
+given lp_t_font given rbd_t_up(1024) (14, 12):() then rbd_t_pk:(3)

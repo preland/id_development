@@ -1,0 +1,39 @@
+// The group the control that starts at or after x (a group's left edge) of the ribbon rib belongs to, as its id in rb_group: the first control whose left is not left of x is the first of its group, because the controls come group by group.
+rbd_gid(Ribbon rib, int rbi_x) {
+  int[] rbl_r = rib.rects;
+  int rbi_i = 0;
+  while(rbl_r[rbi_i * 4] < rbi_x) {
+    rbi_i = rbi_i + 1;
+  }
+} chain (Ribbon rib, int rbi_x) {
+  int rbi_g = (import rb_group)[rib.items[rbi_i]];
+} return int rbi_g;
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 8):(1)
+given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 98):(2)
+
+// Paints group number rbi_g of the ribbon rib: a line down its right edge and its name centred along its bottom in the colour of captions.
+rbd_cap(Ribbon rib, int rbi_g) {
+  int[] rbl_r = rib.rects;
+  int rbi_q = (len(rib.items) + rbi_g) * 4;
+  int rbi_f = rbd_ui_f(0);
+} chain (Ribbon rib, int rbi_g) {
+  string rbs_t = (import grp_label)[rbd_gid(rib, rbl_r[rbi_q])];
+  d2_l_rect(rbl_r[rbi_q] + rbl_r[rbi_q + 2], rbl_r[rbi_q + 1] + 2, 1, rbl_r[rbi_q + 3] - 4, (import rbd_c_sep));
+  int rbi_tw = gui_text_width(rbi_f, rbs_t);
+} chain (Ribbon rib, int rbi_g) {
+  gui_text_draw(rbi_f, rbl_r[rbi_q] + (rbl_r[rbi_q + 2] - rbi_tw) / 2, rbl_r[rbi_q + 1] + rbl_r[rbi_q + 3] - gui_font_line(rbi_f) - 2, rbs_t, (import rbd_c_cap));
+} return void;
+given lp_t_font given rbd_t_up(1024) given vw_t_at(94, 80) ((import rbd_t_r), 0):() then vw_t_px:(13684944)
+given lp_t_font given rbd_t_up(1024) given vw_t_at(184, 80) ((import rbd_t_r), 0):() then vw_t_px:(0)
+
+// Paints the lines between the groups of the ribbon rib and the names under them: the groups come after the controls in its rectangles, as x, y, width and height each.
+rbd_caps(Ribbon rib) {
+  int rbi_n = len(rib.rects) / 4 - len(rib.items);
+  int rbi_g = 0;
+  while(rbi_g < rbi_n) {
+    rbd_cap(rib, rbi_g);
+    rbi_g = rbi_g + 1;
+  }
+} return void;
+given lp_t_font given rbd_t_up(1024) given vw_t_at(94, 80) ((import rbd_t_r)):() then vw_t_px:(13684944)
+given lp_t_font given rbd_t_up(1024) given vw_t_box0(20, 134, 84, 154) given vw_t_bg(15987699) ((import rbd_t_r)):() then vw_t_inked:(1)
