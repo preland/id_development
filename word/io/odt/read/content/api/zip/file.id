@@ -15,11 +15,12 @@ given orc_t_file("") ((import orc_tp)):([]) then orc_t_gone:(0)
 ("/nonexistent/none.odt"):([])
 
 // Remembers where a load went wrong, for odt_error to put in brackets after its message. A load starts by clearing it.
+// odt_why: Test fixture: the reason the last load went wrong, as odt_error will bracket it.
 orc_why(string msg) {
   export string odt_why = msg;
 } return void;
-("a"):() then orc_t_why:("a")
-(""):() then orc_t_why:("")
+("a"):() then (import odt_why):("a")
+(""):() then (import odt_why):("")
 
 // 1 when the bytes of xs are exactly the bytes of s.
 orc_same(int[] xs, string s) {

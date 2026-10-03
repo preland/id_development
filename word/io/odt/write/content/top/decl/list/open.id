@@ -1,10 +1,3 @@
-// Cell fd of level k in a list definition's levels.
-oc_cell(int[] oc_lvl, int oc_k, int oc_fd) {
-  int oc_cv = oc_lvl[oc_k * (import word_l_stride) + oc_fd];
-} return int oc_cv;
-([0, 8226, 0, 720, 360, 1, 0, 1, 1440, 360], 1, 3):(1440)
-([0, 8226, 0, 720, 360, 1, 0, 1, 1440, 360], 0, 1):(8226)
-
 // The numbering attributes of a numbered level: the suffix, the format (decimal, letters or roman numerals) and, unless it is 1, the number to start from.
 oc_lv_num(XmlW oc_w, int oc_ft, int oc_sv) {
   xw_attr(oc_w, "style:num-suffix", ".");
@@ -18,15 +11,15 @@ given oc_t_w(0) ((import oc_fw), 3, 4):() then oc_t_out:("<r style:num-suffix=\"
 
 // Opens the level style of level k: a bullet with its character, or a number with its format and start.
 oc_lv_open(XmlW oc_w, int[] oc_lvl, int oc_k) {
-  int oc_kd = oc_cell(oc_lvl, oc_k, (import word_l_kind));
-  int oc_ft = oc_cell(oc_lvl, oc_k, (import word_l_fmt));
+  int oc_kd = oc_lvl[oc_k * (import word_l_stride) + (import word_l_kind)];
+  int oc_ft = oc_lvl[oc_k * (import word_l_stride) + (import word_l_fmt)];
   xw_start(oc_w, (import odt_lv_el)[oc_kd]);
 } chain (XmlW oc_w, int[] oc_lvl, int oc_k) {
   xw_attr(oc_w, "text:level", "" + (oc_k + 1));
   if(oc_kd == 0) {
     xw_attr(oc_w, "text:bullet-char", utf8_str(oc_ft));
   } else {
-    oc_lv_num(oc_w, oc_ft, oc_cell(oc_lvl, oc_k, (import word_l_start)));
+    oc_lv_num(oc_w, oc_ft, oc_lvl[oc_k * (import word_l_stride) + (import word_l_start)]);
   }
 } return void;
 given oc_t_w(0) ((import oc_fw), [0, 8226, 0, 720, 360], 0):() then oc_t_out:("<r><text:list-level-style-bullet text:level=\"1\" text:bullet-char=\"•\"")

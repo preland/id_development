@@ -4,9 +4,9 @@
 deal() {
   init_piles();
   deal_tableau(0);
-  deal_stock();
+  move_pile((import deck), (import stock));
 } return void;
-given make_deck ():() then stock_len_check:(24)
+given make_deck ():() then len((import stock)):(24)
 given make_deck ():() then tab0_len_check:(1)
 
 init_piles() {
@@ -14,13 +14,15 @@ init_piles() {
   make_meta();
 } return void;
 ():() then calls make_tab:() then calls make_meta:()
-():() then tab_cols_check:(7) then found0_check:(0)
+():() then len((import tab)):(7) then (import found)[0]:(0)
 
-deal_stock() {
-  while(len((import deck)) > 0) {
-    int pop_v = pop((import deck));
-    push((import stock), pop_v);
+move_pile(int[] src, int[] dst) {
+  while(len(src) > 0) {
+    int pop_v = pop(src);
+    push(dst, pop_v);
   }
 } return void;
-given make_deck given make_sw ():() then stock_len_check:(52) then deck_len_check:(0)
-given make_deck given make_sw given deal_stock ():() then stock_len_check:(52)
+given make_deck given make_sw ((import deck), (import stock)):() then len((import stock)):(52) then len((import deck)):(0)
+given apply_board_setup ((import waste), (import stock)):() then len((import stock)):(1) then len((import waste)):(0)
+given apply_board_setup given push_waste_card2 ((import waste), (import stock)):() then len((import stock)):(2) then len((import waste)):(0)
+given make_sw ((import waste), (import stock)):() then len((import stock)):(0) then len((import waste)):(0)

@@ -1,10 +1,14 @@
 // The tableau: seven initially-empty card columns (an int[][]).
 
+// tab: Zero-argument witness for `then`, reading back the outer tab list's own
+// length -- the dealcards/boardstate fan-out (make_tab, add_cols, push_col,
+// init_piles) grows the number of columns, not a column's own contents,
+// and col_of/col_len both take an index so neither can stand in as a check.
 make_tab() {
   export int[][] tab = [];
   add_cols(0);
 } return void;
-():() then tab_cols_check:(7)
+():() then len((import tab)):(7)
 ():() then tab0_len_check:(0)
 
 add_cols(int i) {
@@ -13,12 +17,12 @@ add_cols(int i) {
     i = i + 1;
   }
 } return void;
-given make_tab (7):() then tab_cols_check:(7)
-given make_tab (0):() then tab_cols_check:(14)
+given make_tab (7):() then len((import tab)):(7)
+given make_tab (0):() then len((import tab)):(14)
 
 push_col() {
   int[] fresh = [];
   push((import tab), fresh);
 } return void;
-given make_tab ():() then tab_cols_check:(8)
-given make_tab given push_col ():() then tab_cols_check:(9)
+given make_tab ():() then len((import tab)):(8)
+given make_tab given push_col ():() then len((import tab)):(9)

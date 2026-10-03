@@ -3,22 +3,15 @@
 // draw, which already fills a 3-action budget on its own.
 
 add_target_pos() {
-  add_target_x();
-  add_target_z();
+  add_target_axis((import grid_w), (import tgx));
+  add_target_axis((import grid_h), (import tgz));
 } return void;
-given idstd_rnd_t_setup given targets_init ():() then calls add_target_x:[1]
-given idstd_rnd_t_setup given targets_init ():() then calls add_target_z:[1]
+given idstd_rnd_t_setup given targets_init ():() then calls add_target_axis:(15, (import tgx))
+given idstd_rnd_t_setup given targets_init ():() then calls add_target_axis:(13, (import tgz))
 
-add_target_x() {
-  int rand_room_x_v = rand_room_x();
-  push((import tgx), rand_room_x_v);
+add_target_axis(int cells, int[] pos) {
+  int rand_room_v = rand_room(cells);
+  push(pos, rand_room_v);
 } return void;
-given idstd_rnd_t_setup given targets_init ():() then calls rand_room_x:[1]
-given idstd_rnd_t_setup given targets_init ():() then calls rnd_next:[1]
-
-add_target_z() {
-  int rand_room_z_v = rand_room_z();
-  push((import tgz), rand_room_z_v);
-} return void;
-given idstd_rnd_t_setup given targets_init ():() then calls rand_room_z:[1]
-given idstd_rnd_t_setup given targets_init ():() then calls rnd_next:[1]
+given idstd_rnd_t_setup given targets_init (15, (import tgx)):() then calls rand_room:(15)
+given idstd_rnd_t_setup given targets_init (13, (import tgz)):() then calls rnd_next:[1]

@@ -7,7 +7,7 @@ in_run(string path, int h, int code) {
   }
 } return int got;
 given t_tmp_open stdin "hi" ((import tp), (import th), 0):(0) then t_src:("hi") then t_tmp_drop:(0)
-given t_tmp_open stdin "hi" ((import tp), -1, 13):(-1) then t_errno:(13) then t_tmp_drop:(0)
+given t_tmp_open stdin "hi" ((import tp), -1, 13):(-1) then (import jc)[(import c_errno)]:(13) then t_tmp_drop:(0)
 
 in_load(string path) {
   int h = fs_open(path, "r");
@@ -15,8 +15,8 @@ in_load(string path) {
   int r = in_run(path, h, code);
 } return int r;
 given t_tmp_make stdin "abc" ((import tp)):(0) then t_src:("abc") then t_tmp_drop:(0)
-given st_init ("/nonexistent/jsontool_none"):(-1) then t_errno:(2)
-given st_init ("/tmp"):(-1) then t_errno:(21)
+given st_init ("/nonexistent/jsontool_none"):(-1) then (import jc)[(import c_errno)]:(2)
+given st_init ("/tmp"):(-1) then (import jc)[(import c_errno)]:(21)
 
 buf_setup() {
   int n = (import jc)[(import c_len)] + 16;

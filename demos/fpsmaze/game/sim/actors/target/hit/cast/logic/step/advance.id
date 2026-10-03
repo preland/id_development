@@ -10,15 +10,15 @@ ray_advance() {
   ray_advance_z();
   ray_advance_step();
 } return void;
-given player_init given fx_trig_init given rc_setup ():() then calls rc_set:(0, 1000)
-given player_init given fx_trig_init given rc_setup ():() then calls rc_set:(2, 1)
+given player_init given fx_trig_init given rc_setup ():() then calls lset:((import rc), 0, 1000)
+given player_init given fx_trig_init given rc_setup ():() then calls lset:((import rc), 2, 1)
 
 // cell_x(1000) is always 8, an even (pillar) column, and target x-coordinates
 // are always odd (spawn/rand.id) -- so no target can ever sit there, and
 // ray_hit_now() at this rc is deterministically 0 no matter how the maze or
 // the target list were randomized.
 ray_hit_now() {
-  int rc_get_v = rc_get(0);
+  int rc_get_v = (import rc)[0];
   int cell_x_v = cell_x(rc_get_v);
   int ret_i = ray_hit_now_z(cell_x_v);
 } return int ret_i;
@@ -29,8 +29,8 @@ given open_room_setup given idstd_rnd_t_setup given targets_init given rc_setup 
 // rc_setup's fixed (1000,2000) -- is deterministically blocked, regardless
 // of how a real maze_build carve would have left it.
 ray_blocked_now() {
-  int rc_get_v = rc_get(0);
-  int rc_get_v2 = rc_get(1);
+  int rc_get_v = (import rc)[0];
+  int rc_get_v2 = (import rc)[1];
   int ret_i = blocked_at(rc_get_v, rc_get_v2);
 } return int ret_i;
 given maze_init given rc_setup ():(1)

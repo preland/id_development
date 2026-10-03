@@ -24,8 +24,8 @@ ost_rec_strs(XmlR os_r, string os_skind) {
 } chain (XmlR os_r, string os_skind) {
   string[] os_lrec = [os_sname, os_sparent, os_snext, os_slist, os_sdisp, "", os_sfam, os_skind];
 } return string[] os_lrec;
-given ost_t_open("<style:style style:name=\"P1\" style:family=\"paragraph\" style:parent-style-name=\"Standard\" style:list-style-name=\"L1\"/>") given ost_t_steps(1) ((import ost_t_r), "a"):(["P1", "Standard", "", "L1", "", "", "p", "a"])
-given ost_t_open("<style:style style:name=\"Strong_20_Emphasis\" style:display-name=\"Strong Emphasis\" style:family=\"text\"/>") given ost_t_steps(1) ((import ost_t_r), "n"):(["Strong_20_Emphasis", "", "", "", "Strong Emphasis", "", "t", "n"])
+given ost_t_open("<style:style style:name=\"P1\" style:family=\"paragraph\" style:parent-style-name=\"Standard\" style:list-style-name=\"L1\"/>") given xr_skip((import ost_t_r), 1) ((import ost_t_r), "a"):(["P1", "Standard", "", "L1", "", "", "p", "a"])
+given ost_t_open("<style:style style:name=\"Strong_20_Emphasis\" style:display-name=\"Strong Emphasis\" style:family=\"text\"/>") given xr_skip((import ost_t_r), 1) ((import ost_t_r), "n"):(["Strong_20_Emphasis", "", "", "", "Strong Emphasis", "", "t", "n"])
 
 // Adds a record for the style element the reader is at, with its attributes and empty rows, and answers its index; -1 and nothing added when its family is not one the reader models.
 ost_rec_add(StyBag os_b, XmlR os_r, string os_skind) {
@@ -36,5 +36,5 @@ ost_rec_add(StyBag os_b, XmlR os_r, string os_skind) {
     os_irec = ost_bag_n(os_b) - 1;
   }
 } return int os_irec;
-given ost_t_mkbag given ost_t_open("<style:style style:name=\"P1\" style:family=\"paragraph\"/>") given ost_t_steps(1) ((import ost_t_b), (import ost_t_r), "a"):(0) then ost_t_strs:(["P1", "", "", "", "", "", "p", "a"])
-given ost_t_mkbag given ost_t_open("<style:style style:name=\"G\" style:family=\"graphic\"/>") given ost_t_steps(1) ((import ost_t_b), (import ost_t_r), "n"):(-1) then ost_t_strs:([])
+given ost_t_mkbag given ost_t_open("<style:style style:name=\"P1\" style:family=\"paragraph\"/>") given xr_skip((import ost_t_r), 1) ((import ost_t_b), (import ost_t_r), "a"):(0) then ost_t_strs:(["P1", "", "", "", "", "", "p", "a"])
+given ost_t_mkbag given ost_t_open("<style:style style:name=\"G\" style:family=\"graphic\"/>") given xr_skip((import ost_t_r), 1) ((import ost_t_b), (import ost_t_r), "n"):(-1) then ost_t_strs:([])

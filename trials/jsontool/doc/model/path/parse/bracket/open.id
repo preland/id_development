@@ -4,8 +4,8 @@ br_quoted(string path, int i) {
   int q = q_finish(path, e, off);
 } return int q;
 given t_pinit ("[\"a b\"]", 2):(7) then t_segstr:(".a b")
-given t_pinit ("[\"ab", 2):(-1) then t_perr:(5)
-given t_pinit ("[\"a\"x", 2):(-1) then t_perr:(4)
+given t_pinit ("[\"ab", 2):(-1) then jc_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=2 perr=5 pep=4 fk=0 fr=0 seen=0")
+given t_pinit ("[\"a\"x", 2):(-1) then jc_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=1 perr=4 pep=4 fk=0 fr=0 seen=0")
 
 seg_bracket(string path, int i) {
   int q = 0;
@@ -17,7 +17,7 @@ seg_bracket(string path, int i) {
 } return int q;
 given t_pinit ("[3]", 0):(3) then t_segstr:("[3]")
 given t_pinit ("[\"k\"]", 0):(5) then t_segstr:(".k")
-given t_pinit ("[x]", 0):(-1) then t_perr:(3)
+given t_pinit ("[x]", 0):(-1) then (import jc)[(import c_perr)]:(3)
 
 seg_kind(int c) {
   int k = 0;

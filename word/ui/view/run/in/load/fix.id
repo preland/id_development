@@ -1,10 +1,3 @@
-// Test check: the message the viewer shows in place of a document, "" when it has one.
-vw_t_msg() {
-  string vws_m = (import vw_msg)[0];
-} return string vws_m;
-given lp_t_font given vw_t_op("") ():("ODT: the file could not be read; check that the path exists and that you may read it []")
-given lp_t_font given vw_t_op("/nonexistent/x.odt") ():("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/x.odt]")
-
 // Test check: how many pages the viewer's document has.
 vw_t_pages() {
   int vwi_n = lay_page_count((import vw_v));
@@ -17,4 +10,4 @@ vw_t_op(string vws_path) {
   int vwi_code = vw_open(vws_path);
 } return void;
 given gui_font_init ("/nonexistent/x.odt"):() then vw_t_pages:(1)
-given gui_font_init (""):() then vw_t_msg:("ODT: the file could not be read; check that the path exists and that you may read it []")
+given gui_font_init (""):() then (import vw_msg)[0]:("ODT: the file could not be read; check that the path exists and that you may read it []")

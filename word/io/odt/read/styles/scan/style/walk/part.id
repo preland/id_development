@@ -8,12 +8,12 @@ ost_rec_chars(StyBag os_b, XmlR os_r, int os_irec) {
     os_lss[os_irec * (import ost_s_width) + (import ost_s_font)] = os_sfont;
   }
 } return void;
-given ost_t_scan("<a><style:style style:name=\"A\" style:family=\"text\"/></a>") given ost_t_open("<style:text-properties style:font-name=\"Liberation Serif\" fo:font-weight=\"bold\"/>") given ost_t_steps(1) given ost_t_pick(0) ((import ost_t_b), (import ost_t_r), 0):((import ost_t_b), (import ost_t_r), 0) then ost_t_strs:(["A", "", "", "", "", "Liberation Serif", "t", "n"])
-given ost_t_scan("<a><style:style style:name=\"A\" style:family=\"text\"/></a>") given ost_t_open("<style:text-properties fo:color=\"#0000ff\"/>") given ost_t_steps(1) given ost_t_pick(0) ((import ost_t_b), (import ost_t_r), 0):((import ost_t_b), (import ost_t_r), 0) then ost_t_c:([0, -1, -1, 255, -1, 0, 0])
+given ost_t_scan("<a><style:style style:name=\"A\" style:family=\"text\"/></a>") given ost_t_open("<style:text-properties style:font-name=\"Liberation Serif\" fo:font-weight=\"bold\"/>") given xr_skip((import ost_t_r), 1) given ost_t_pick(0) ((import ost_t_b), (import ost_t_r), 0):((import ost_t_b), (import ost_t_r), 0) then ost_t_strs:(["A", "", "", "", "", "Liberation Serif", "t", "n"])
+given ost_t_scan("<a><style:style style:name=\"A\" style:family=\"text\"/></a>") given ost_t_open("<style:text-properties fo:color=\"#0000ff\"/>") given xr_skip((import ost_t_r), 1) given ost_t_pick(0) ((import ost_t_b), (import ost_t_r), 0):((import ost_t_b), (import ost_t_r), 0) then ost_t_c:([0, -1, -1, 255, -1, 0, 0])
 
 // Reads the properties element the reader is at into record irec of the bag: style:text-properties into its character row and font name, style:paragraph-properties into its paragraph row; any other element changes nothing.
 ost_rec_part(StyBag os_b, XmlR os_r, int os_irec) {
-  string os_sname = xr_name(os_r);
+  string os_sname = xr_get(os_r, (import xr_k_name));
   if(os_sname == "style:text-properties") {
     ost_rec_chars(os_b, os_r, os_irec);
   }
@@ -21,5 +21,5 @@ ost_rec_part(StyBag os_b, XmlR os_r, int os_irec) {
     ost_ptext(os_b.prows[os_irec], os_r);
   }
 } return void;
-given ost_t_scan("<a><style:style style:name=\"A\" style:family=\"paragraph\"/></a>") given ost_t_open("<style:paragraph-properties fo:text-align=\"end\"/>") given ost_t_steps(1) given ost_t_pick(0) ((import ost_t_b), (import ost_t_r), 0):((import ost_t_b), (import ost_t_r), 0) then ost_t_p:([-1, 2, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])
-given ost_t_scan("<a><style:style style:name=\"A\" style:family=\"paragraph\"/></a>") given ost_t_open("<style:tab-stops fo:text-align=\"end\"/>") given ost_t_steps(1) given ost_t_pick(0) ((import ost_t_b), (import ost_t_r), 0):((import ost_t_b), (import ost_t_r), 0) then ost_t_p:([-1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])
+given ost_t_scan("<a><style:style style:name=\"A\" style:family=\"paragraph\"/></a>") given ost_t_open("<style:paragraph-properties fo:text-align=\"end\"/>") given xr_skip((import ost_t_r), 1) given ost_t_pick(0) ((import ost_t_b), (import ost_t_r), 0):((import ost_t_b), (import ost_t_r), 0) then ost_t_p:([-1, 2, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])
+given ost_t_scan("<a><style:style style:name=\"A\" style:family=\"paragraph\"/></a>") given ost_t_open("<style:tab-stops fo:text-align=\"end\"/>") given xr_skip((import ost_t_r), 1) given ost_t_pick(0) ((import ost_t_b), (import ost_t_r), 0):((import ost_t_b), (import ost_t_r), 0) then ost_t_p:([-1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])

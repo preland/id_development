@@ -197,7 +197,7 @@ compiler:
 
 The public surface is small on purpose: `gui_new`, `gui_parse`, `gui_load`,
 `gui_diag`, `gui_dump`, `gui_bind`, `gui_layout`, `gui_rect_get`, `gui_find_cls`,
-`gui_count`, `gui_is_node`, `gui_node_name`, `gui_node_cls`, and the three font
+`gui_count`, `gui_is_node`, `gui_node_str`, and the three font
 functions (section 7). The record layout (`gui_get`, `gui_put`, every
 `gui_f_*`) is internal; an application reads a document through the readers, so a
 field can be added without breaking one. `uicheck` (section 11) is written that
@@ -628,7 +628,7 @@ What is in it, under `idstd/gfx/kit/gui/` unless a path says otherwise:
 | where | what | public names |
 | --- | --- | --- |
 | `idstd/conf.id` | every constant: record layout, kinds, error codes and messages, keyword tables | none: `idstd_gui_*` |
-| `core/doc/tape/` | the record tape, its builders, and the readers an application uses | `gui_new`, `gui_count`, `gui_is_node`, `gui_node_name`, `gui_node_cls` |
+| `core/doc/tape/` | the record tape, its builders, and the readers an application uses | `gui_new`, `gui_count`, `gui_is_node`, `gui_node_str` |
 | `core/doc/read/` | scanners, cursor, tokens, syntax, imports, diagnostics | `gui_parse`, `gui_load`, `gui_diag` |
 | `core/doc/show/` | `idstd_gui_raw_all`, `gui_dump` and the test fixtures | `gui_dump` |
 | `core/flow/` | binding and layout | `gui_bind`, `gui_layout`, `gui_rect_get`, `gui_find_cls`, the board (`gui_board`, `gui_num`, `gui_text`, `gui_set_num`, `gui_set_text`, `gui_edit`, the row and fire calls) and its function-value adapters (`gui_bind_fn`, `gui_pull_*`, `gui_dispatch`, `gui_push_model`) |

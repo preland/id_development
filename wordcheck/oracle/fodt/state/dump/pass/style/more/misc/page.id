@@ -3,8 +3,8 @@ ofd_layout(OfdSty owst, XmlR owr) {
   string owk = "g:" + xr_attr(owr, "style:name");
   ofd_add(owst, owk, "", "", "");
 } return void;
-given ofd_t_open("<style:page-layout style:name=\"Mpm1\"/>") given ofd_t_steps(1) (OfdSty([], [], []), (import ofd_t_r)):(OfdSty(["g:Mpm1"], [""], ["", "", ""]), (import ofd_t_r))
-given ofd_t_open("<style:page-layout/>") given ofd_t_steps(1) (OfdSty(["x"], ["y"], ["1", "2", "3"]), (import ofd_t_r)):(OfdSty(["x", "g:"], ["y", ""], ["1", "2", "3", "", "", ""]), (import ofd_t_r))
+given ofd_t_open("<style:page-layout style:name=\"Mpm1\"/>") given xr_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r)):(OfdSty(["g:Mpm1"], [""], ["", "", ""]), (import ofd_t_r))
+given ofd_t_open("<style:page-layout/>") given xr_skip((import ofd_t_r), 1) (OfdSty(["x"], ["y"], ["1", "2", "3"]), (import ofd_t_r)):(OfdSty(["x", "g:"], ["y", ""], ["1", "2", "3", "", "", ""]), (import ofd_t_r))
 
 // Reads the page-layout-properties element the reader is at into the bag of the last entry, which is the layout it belongs to.
 ofd_gprops(OfdSty owst, XmlR owr) {
@@ -12,13 +12,13 @@ ofd_gprops(OfdSty owst, XmlR owr) {
   int owi = len(owlp) - 1;
   owlp[owi] = owlp[owi] + ofd_attrs("", (import ow_gattr), owr);
 } return void;
-given ofd_t_open("<p fo:page-width=\"8.5in\" fo:margin-left=\"1in\"/>") given ofd_t_steps(1) (OfdSty(["g:L"], [""], ["", "", ""]), (import ofd_t_r)):(OfdSty(["g:L"], ["|fo:page-width=8.5in|fo:margin-left=1in"], ["", "", ""]), (import ofd_t_r))
-given ofd_t_open("<p/>") given ofd_t_steps(1) (OfdSty(["g:L"], ["|a=b"], ["", "", ""]), (import ofd_t_r)):(OfdSty(["g:L"], ["|a=b"], ["", "", ""]), (import ofd_t_r))
+given ofd_t_open("<p fo:page-width=\"8.5in\" fo:margin-left=\"1in\"/>") given xr_skip((import ofd_t_r), 1) (OfdSty(["g:L"], [""], ["", "", ""]), (import ofd_t_r)):(OfdSty(["g:L"], ["|fo:page-width=8.5in|fo:margin-left=1in"], ["", "", ""]), (import ofd_t_r))
+given ofd_t_open("<p/>") given xr_skip((import ofd_t_r), 1) (OfdSty(["g:L"], ["|a=b"], ["", "", ""]), (import ofd_t_r)):(OfdSty(["g:L"], ["|a=b"], ["", "", ""]), (import ofd_t_r))
 
 // Adds the master page the reader is at, keyed "m:" and its name, with the name of its page layout as its third meta string.
 ofd_master(OfdSty owst, XmlR owr) {
   string owk = "m:" + xr_attr(owr, "style:name");
   ofd_add(owst, owk, "", "", xr_attr(owr, "style:page-layout-name"));
 } return void;
-given ofd_t_open("<style:master-page style:name=\"Standard\" style:page-layout-name=\"Mpm1\"/>") given ofd_t_steps(1) (OfdSty([], [], []), (import ofd_t_r)):(OfdSty(["m:Standard"], [""], ["", "", "Mpm1"]), (import ofd_t_r))
-given ofd_t_open("<style:master-page style:name=\"W\" style:page-layout-name=\"L\"/>") given ofd_t_steps(1) (OfdSty(["x"], ["y"], ["1", "2", "3"]), (import ofd_t_r)):(OfdSty(["x", "m:W"], ["y", ""], ["1", "2", "3", "", "", "L"]), (import ofd_t_r))
+given ofd_t_open("<style:master-page style:name=\"Standard\" style:page-layout-name=\"Mpm1\"/>") given xr_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r)):(OfdSty(["m:Standard"], [""], ["", "", "Mpm1"]), (import ofd_t_r))
+given ofd_t_open("<style:master-page style:name=\"W\" style:page-layout-name=\"L\"/>") given xr_skip((import ofd_t_r), 1) (OfdSty(["x"], ["y"], ["1", "2", "3"]), (import ofd_t_r)):(OfdSty(["x", "m:W"], ["y", ""], ["1", "2", "3", "", "", "L"]), (import ofd_t_r))

@@ -9,7 +9,7 @@ seg_key(string path, int from, int to) {
   push_seg(0, off, to - from);
 } return void;
 given t_pinit ("a.bc", 2, 4):() then t_segstr:(".bc")
-given t_pinit ("a.bc", 2, 4):() then t_pk:(2)
+given t_pinit ("a.bc", 2, 4):() then jc_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=2 perr=0 pep=0 fk=0 fr=0 seen=0")
 given t_pinit ("abc", 0, 1):() then t_pkstr:("a")
 
 dot_empty(string path, int i) {
@@ -21,8 +21,8 @@ dot_empty(string path, int i) {
 } return int q;
 given t_pinit (".", 0):(1)
 given t_pinit (".[0]", 0):(1)
-given t_pinit ("..a", 0):(-1) then t_perr:(2)
-given t_pinit (".a.", 2):(-1) then t_pep:(3)
+given t_pinit ("..a", 0):(-1) then (import jc)[(import c_perr)]:(2)
+given t_pinit (".a.", 2):(-1) then (import jc)[(import c_pep)]:(3)
 
 seg_dot(string path, int i) {
   int e = name_end(path, i + 1);
@@ -37,6 +37,6 @@ seg_dot(string path, int i) {
 } return int q;
 given t_pinit (".ab", 0):(3) then t_segstr:(".ab")
 given t_pinit (".", 0):(1) then t_segs:(0)
-given t_pinit ("..", 0):(-1) then t_perr:(2)
+given t_pinit ("..", 0):(-1) then (import jc)[(import c_perr)]:(2)
 given t_pinit (".[", 0):(1) then t_segs:(0)
 given t_pinit (".a[0]", 0):(2) then t_segstr:(".a")

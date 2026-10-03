@@ -30,12 +30,12 @@ ost_pair(string[] os_lpairs, string os_sname) {
 
 // What one event of a content document says about the master page of the first paragraph: a style that names a master page adds a pair; the first paragraph or heading answers 1 to stop.
 ost_master_one(string[] os_lpairs, XmlR os_r, int os_iev) {
-  string os_sname = xr_name(os_r);
+  string os_sname = xr_get(os_r, (import xr_k_name));
   int os_istop = (os_sname == "text:p" || os_sname == "text:h") && os_iev != 2;
   if(os_sname == "style:style" && os_iev != 2 && xr_attr(os_r, "style:master-page-name") != "") {
     lst_str_extend(os_lpairs, [xr_attr(os_r, "style:name"), xr_attr(os_r, "style:master-page-name")]);
   }
 } return int os_istop;
-given ost_t_open("<style:style style:name=\"P1\" style:master-page-name=\"Letter\"/>") given ost_t_steps(1) ([], (import ost_t_r), 4):(0)
-given ost_t_open("<text:p text:style-name=\"P1\">x</text:p>") given ost_t_steps(1) ([], (import ost_t_r), 1):(1)
-given ost_t_open("<text:p>x</text:p>") given ost_t_steps(2) ([], (import ost_t_r), 3):(0)
+given ost_t_open("<style:style style:name=\"P1\" style:master-page-name=\"Letter\"/>") given xr_skip((import ost_t_r), 1) ([], (import ost_t_r), 4):(0)
+given ost_t_open("<text:p text:style-name=\"P1\">x</text:p>") given xr_skip((import ost_t_r), 1) ([], (import ost_t_r), 1):(1)
+given ost_t_open("<text:p>x</text:p>") given xr_skip((import ost_t_r), 2) ([], (import ost_t_r), 3):(0)

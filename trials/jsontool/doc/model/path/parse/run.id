@@ -12,15 +12,15 @@ seg_run(string path, int i, int k) {
 } return int q;
 given t_pinit ("[3]", 0, 2):(3)
 given t_pinit (".a", 0, 1):(2)
-given t_pinit ("x", 0, 0):(-1) then t_perr:(1)
-given t_pinit ("x", 0, 0):(-1) then t_pep:(0)
+given t_pinit ("x", 0, 0):(-1) then (import jc)[(import c_perr)]:(1)
+given t_pinit ("x", 0, 0):(-1) then (import jc)[(import c_pep)]:(0)
 
 path_seg(string path, int i) {
   int k = seg_kind(charat(path, i));
   int q = seg_run(path, i, k);
 } return int q;
 given t_pinit (".a", 0):(2)
-given t_pinit ("x", 0):(-1) then t_perr:(1)
+given t_pinit ("x", 0):(-1) then (import jc)[(import c_perr)]:(1)
 given t_pinit (".a[1]", 2):(5) then t_segstr:("[1]")
 
 path_parse(string path) {
@@ -35,10 +35,10 @@ path_parse(string path) {
 given st_init (".a.b[2].c"):(0) then t_segstr:(".a.b[2].c")
 given st_init ("."):(0) then t_segs:(0)
 given st_init (""):(0) then t_segs:(0)
-given st_init (".a["):(3) then t_pep:(3)
+given st_init (".a["):(3) then jc_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=1 perr=3 pep=3 fk=0 fr=0 seen=0")
 given st_init ("a"):(1)
 given st_init ("[-1]"):(0) then t_segstr:("[-1]")
-given st_init (".a..b"):(2) then t_pep:(3)
+given st_init (".a..b"):(2) then jc_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=1 perr=2 pep=3 fk=0 fr=0 seen=0")
 given st_init (".a[\"x.y\"].z"):(0) then t_segstr:(".a.x.y.z")
 given st_init (".[0]"):(0) then t_segstr:("[0]")
 given st_init ("[\"a\\\"b\"]"):(0) then t_pkstr:("a\"b")

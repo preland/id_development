@@ -8,9 +8,9 @@ ost_pg_orient(int[] os_lpg, XmlR os_r) {
 } chain (int[] os_lpg, XmlR os_r) {
   os_lpg[2] = os_il;
 } return void;
-given ost_t_open("<p style:print-orientation=\"landscape\"/>") given ost_t_steps(1) ([100, 200, 0, 1, 1, 1, 1], (import ost_t_r)):([100, 200, 1, 1, 1, 1, 1], (import ost_t_r))
-given ost_t_open("<p/>") given ost_t_steps(1) ([300, 200, 0, 1, 1, 1, 1], (import ost_t_r)):([300, 200, 1, 1, 1, 1, 1], (import ost_t_r))
-given ost_t_open("<p style:print-orientation=\"portrait\"/>") given ost_t_steps(1) ([300, 200, 1, 1, 1, 1, 1], (import ost_t_r)):([300, 200, 0, 1, 1, 1, 1], (import ost_t_r))
+given ost_t_open("<p style:print-orientation=\"landscape\"/>") given xr_skip((import ost_t_r), 1) ([100, 200, 0, 1, 1, 1, 1], (import ost_t_r)):([100, 200, 1, 1, 1, 1, 1], (import ost_t_r))
+given ost_t_open("<p/>") given xr_skip((import ost_t_r), 1) ([300, 200, 0, 1, 1, 1, 1], (import ost_t_r)):([300, 200, 1, 1, 1, 1, 1], (import ost_t_r))
+given ost_t_open("<p style:print-orientation=\"portrait\"/>") given xr_skip((import ost_t_r), 1) ([300, 200, 1, 1, 1, 1, 1], (import ost_t_r)):([300, 200, 0, 1, 1, 1, 1], (import ost_t_r))
 
 // Reads the page-layout-properties element the reader is at into the last layout of the table.
 ost_pg_props(PgTab os_pg, XmlR os_r) {
@@ -20,12 +20,12 @@ ost_pg_props(PgTab os_pg, XmlR os_r) {
 } chain (PgTab os_pg, XmlR os_r) {
   ost_pg_orient(os_lpg, os_r);
 } return void;
-given ost_t_pgone given ost_t_open("<p fo:page-width=\"1in\" fo:page-height=\"2in\"/>") given ost_t_steps(1) ((import ost_t_pg), (import ost_t_r)):((import ost_t_pg), (import ost_t_r)) then ost_t_vals:([1440, 2880, 0, 1440, 1440, 1440, 1440])
-given ost_t_pgone given ost_t_open("<p fo:page-width=\"3in\" fo:page-height=\"2in\"/>") given ost_t_steps(1) ((import ost_t_pg), (import ost_t_r)):((import ost_t_pg), (import ost_t_r)) then ost_t_vals:([4320, 2880, 1, 1440, 1440, 1440, 1440])
+given ost_t_pgone given ost_t_open("<p fo:page-width=\"1in\" fo:page-height=\"2in\"/>") given xr_skip((import ost_t_r), 1) ((import ost_t_pg), (import ost_t_r)):((import ost_t_pg), (import ost_t_r)) then ost_t_vals:([1440, 2880, 0, 1440, 1440, 1440, 1440])
+given ost_t_pgone given ost_t_open("<p fo:page-width=\"3in\" fo:page-height=\"2in\"/>") given xr_skip((import ost_t_r), 1) ((import ost_t_pg), (import ost_t_r)):((import ost_t_pg), (import ost_t_r)) then ost_t_vals:([4320, 2880, 1, 1440, 1440, 1440, 1440])
 
 // What one event of a styles document adds to the table: a page layout starts a layout with the default ints, its properties fill the last layout, a master page records its name and its layout's. Answers 1 to go on and 0 once the body begins.
 ost_pg_event(PgTab os_pg, XmlR os_r, int os_iev) {
-  string os_sname = xr_name(os_r);
+  string os_sname = xr_get(os_r, (import xr_k_name));
   int os_igo = 1;
   if(os_sname == "style:page-layout" && os_iev != 2) {
     ost_pg_start(os_pg, os_r);
@@ -41,7 +41,7 @@ ost_pg_event(PgTab os_pg, XmlR os_r, int os_iev) {
     os_igo = 0;
   }
 } return int os_igo;
-given ost_t_pgone given ost_t_open("<office:body/>") given ost_t_steps(1) ((import ost_t_pg), (import ost_t_r), 1):(0)
-given ost_t_pgone given ost_t_open("<style:master-page style:name=\"M\" style:page-layout-name=\"L\"/>") given ost_t_steps(1) ((import ost_t_pg), (import ost_t_r), 4):(1) then ost_t_masters:(["M", "L"])
-given ost_t_pgone given ost_t_open("<style:page-layout-properties fo:page-width=\"1in\"/>") given ost_t_steps(1) ((import ost_t_pg), (import ost_t_r), 4):(1) then ost_t_vals:([1440, 16838, 0, 1440, 1440, 1440, 1440])
-given ost_t_pgone given ost_t_open("<style:page-layout style:name=\"N\"/>") given ost_t_steps(1) ((import ost_t_pg), (import ost_t_r), 1):(1) then ost_t_vals:([11906, 16838, 0, 1440, 1440, 1440, 1440, 11906, 16838, 0, 1440, 1440, 1440, 1440])
+given ost_t_pgone given ost_t_open("<office:body/>") given xr_skip((import ost_t_r), 1) ((import ost_t_pg), (import ost_t_r), 1):(0)
+given ost_t_pgone given ost_t_open("<style:master-page style:name=\"M\" style:page-layout-name=\"L\"/>") given xr_skip((import ost_t_r), 1) ((import ost_t_pg), (import ost_t_r), 4):(1) then ost_t_masters:(["M", "L"])
+given ost_t_pgone given ost_t_open("<style:page-layout-properties fo:page-width=\"1in\"/>") given xr_skip((import ost_t_r), 1) ((import ost_t_pg), (import ost_t_r), 4):(1) then ost_t_vals:([1440, 16838, 0, 1440, 1440, 1440, 1440])
+given ost_t_pgone given ost_t_open("<style:page-layout style:name=\"N\"/>") given xr_skip((import ost_t_r), 1) ((import ost_t_pg), (import ost_t_r), 1):(1) then ost_t_vals:([11906, 16838, 0, 1440, 1440, 1440, 1440, 11906, 16838, 0, 1440, 1440, 1440, 1440])

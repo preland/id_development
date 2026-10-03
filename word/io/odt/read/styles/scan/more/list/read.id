@@ -1,6 +1,6 @@
 // Applies a child of a level element to the level at index ilevel: its label alignment or its (older) list-level properties; any other element changes nothing.
 ost_lvl_kid(int[] os_llv, XmlR os_r, int os_ilevel) {
-  string os_sname = xr_name(os_r);
+  string os_sname = xr_get(os_r, (import xr_k_name));
   int os_ib = os_ilevel * (import word_l_stride);
   if(os_sname == "style:list-level-label-alignment") {
     ost_lvl_align(os_llv, os_r, os_ib);
@@ -10,13 +10,13 @@ ost_lvl_kid(int[] os_llv, XmlR os_r, int os_ilevel) {
     ost_lvl_legacy(os_llv, os_r, os_ib);
   }
 } return void;
-given ost_t_open("<style:list-level-label-alignment fo:margin-left=\"0.5in\"/>") given ost_t_steps(1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0):([0, 0, 0, 720, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0)
-given ost_t_open("<style:list-level-properties text:space-before=\"0.25in\" text:min-label-width=\"0.25in\"/>") given ost_t_steps(1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 2):([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 720, 360], (import ost_t_r), 2)
-given ost_t_open("<other fo:margin-left=\"0.5in\"/>") given ost_t_steps(1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0):([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0)
+given ost_t_open("<style:list-level-label-alignment fo:margin-left=\"0.5in\"/>") given xr_skip((import ost_t_r), 1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0):([0, 0, 0, 720, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0)
+given ost_t_open("<style:list-level-properties text:space-before=\"0.25in\" text:min-label-width=\"0.25in\"/>") given xr_skip((import ost_t_r), 1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 2):([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 720, 360], (import ost_t_r), 2)
+given ost_t_open("<other fo:margin-left=\"0.5in\"/>") given xr_skip((import ost_t_r), 1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0):([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0)
 
 // What one event inside a list style does to the levels llv, given the level icur the last level element selected: a level element starts the level it names (-1 when the model keeps no such level), any other element applies to the current one. Answers the new current level.
 ost_lvl_event(int[] os_llv, XmlR os_r, int os_iev, int os_icur) {
-  int os_ihead = os_iev != 2 && str_starts(xr_name(os_r), "text:list-level-style-") == 1;
+  int os_ihead = os_iev != 2 && str_starts(xr_get(os_r, (import xr_k_name)), "text:list-level-style-") == 1;
   int os_inew = os_icur;
   if(os_ihead == 1) {
     os_inew = ost_level_of(os_r);
@@ -29,9 +29,9 @@ ost_lvl_event(int[] os_llv, XmlR os_r, int os_iev, int os_icur) {
     ost_lvl_kid(os_llv, os_r, os_inew);
   }
 } return int os_inew;
-given ost_t_open("<text:list-level-style-bullet text:level=\"2\"/>") given ost_t_steps(1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 1, 0):(1)
-given ost_t_open("<text:list-level-style-bullet text:level=\"4\"/>") given ost_t_steps(1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 1, 0):(-1)
-given ost_t_open("<style:list-level-label-alignment fo:margin-left=\"0.5in\"/>") given ost_t_steps(1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 1, 1):(1)
+given ost_t_open("<text:list-level-style-bullet text:level=\"2\"/>") given xr_skip((import ost_t_r), 1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 1, 0):(1)
+given ost_t_open("<text:list-level-style-bullet text:level=\"4\"/>") given xr_skip((import ost_t_r), 1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 1, 0):(-1)
+given ost_t_open("<style:list-level-label-alignment fo:margin-left=\"0.5in\"/>") given xr_skip((import ost_t_r), 1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 1, 1):(1)
 
 // Appends a list definition called os_sname with the levels llv to the document's lists; its kind is level 1's.
 ost_list_add(Fmt os_f, string os_sname, int[] os_llv) {

@@ -1,6 +1,6 @@
 // A text:s, text:tab or text:line-break as text: text:c spaces (one without it), a tab, a line feed.
 ofd_special(OfdSty owst, OfdAcc owacc, XmlR owr, string[] owspans) {
-  string owname = xr_name(owr);
+  string owname = xr_get(owr, (import xr_k_name));
   string owtext = "\t";
   int owc = to_int(xr_attr(owr, "text:c"));
 } chain (OfdSty owst, OfdAcc owacc, XmlR owr, string[] owspans) {
@@ -12,10 +12,10 @@ ofd_special(OfdSty owst, OfdAcc owacc, XmlR owr, string[] owspans) {
   }
   ofd_text(owst, owacc, owspans, owtext);
 } return void;
-given ofd_t_open("<text:s text:c=\"3\"/>") given ofd_t_steps(1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", "   "]), (import ofd_t_r), [])
-given ofd_t_open("<text:tab/>") given ofd_t_steps(1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", "\t"]), (import ofd_t_r), [])
-given ofd_t_open("<text:s/>") given ofd_t_steps(1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", " "]), (import ofd_t_r), [])
-given ofd_t_open("<text:line-break/>") given ofd_t_steps(1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", "\n"]), (import ofd_t_r), [])
+given ofd_t_open("<text:s text:c=\"3\"/>") given xr_skip((import ofd_t_r), 1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", "   "]), (import ofd_t_r), [])
+given ofd_t_open("<text:tab/>") given xr_skip((import ofd_t_r), 1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", "\t"]), (import ofd_t_r), [])
+given ofd_t_open("<text:s/>") given xr_skip((import ofd_t_r), 1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", " "]), (import ofd_t_r), [])
+given ofd_t_open("<text:line-break/>") given xr_skip((import ofd_t_r), 1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", "\n"]), (import ofd_t_r), [])
 
 // An inline object (a drawing frame, an image): one private-use character in the paragraph's text, and its subtree is skipped.
 ofd_frame(OfdSty owst, OfdAcc owacc, XmlR owr, int owev, string[] owspans) {
@@ -24,5 +24,5 @@ ofd_frame(OfdSty owst, OfdAcc owacc, XmlR owr, int owev, string[] owspans) {
   }
   ofd_skip_start(owacc, owr, owev);
 } return void;
-given ofd_t_open("<draw:frame><x/></draw:frame>") given ofd_t_steps(1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), 1, []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([0, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", ""]), (import ofd_t_r), 1, [])
-given ofd_t_open("<draw:frame><x/></draw:frame>") given ofd_t_steps(1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 0, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), 1, []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([0, 0, 0, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), 1, [])
+given ofd_t_open("<draw:frame><x/></draw:frame>") given xr_skip((import ofd_t_r), 1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), 1, []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([0, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", ""]), (import ofd_t_r), 1, [])
+given ofd_t_open("<draw:frame><x/></draw:frame>") given xr_skip((import ofd_t_r), 1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 0, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), 1, []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([0, 0, 0, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), 1, [])

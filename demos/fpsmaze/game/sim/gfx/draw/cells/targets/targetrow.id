@@ -8,7 +8,7 @@ given idstd_rnd_t_setup given targets_init given scene_init (9, 0):() then calls
 given idstd_rnd_t_setup given targets_init given scene_init (9, 1):() then calls target_mv:(9, 1)
 
 target_mv(int view, int i) {
-  int tgx_get_v = tgx_get(i);
+  int tgx_get_v = (import tgx)[i];
   int wx = world_x_of_cell(tgx_get_v);
   int ret_i = target_mv_z(view, wx, i);
 } return int ret_i;
@@ -16,8 +16,8 @@ given idstd_rnd_t_setup given targets_init (10, 0):(1) then calls target_mv_z:(1
 given idstd_rnd_t_setup_neg given targets_init (20, 0):(1) then calls target_mv_z:(20, -12000, 0)
 
 target_mv_z(int view, int wx, int i) {
-  int tgz_get_v = tgz_get(i);
-  int wz = world_z_of_cell(tgz_get_v);
+  int tgz_get_v = (import tgz)[i];
+  int wz = tgz_get_v * (import spacing) - ((import grid_h) * (import spacing)) / 2 + (import spacing) / 2;
   int ret_i = cell_compose(view, wx, wz);
 } return int ret_i;
 given idstd_rnd_t_setup given targets_init (3, 100, 0):(1) then calls cell_compose:(3, 100, -2000)

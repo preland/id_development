@@ -15,17 +15,17 @@ given open_room_setup given idstd_rnd_t_setup given targets_init given rc_setup 
 
 ray_check_stop() {
   int ray_should_stop_v = ray_should_stop();
-  rc_set(3, ray_should_stop_v);
+  lset((import rc), 3, ray_should_stop_v);
 } return void;
-given open_room_setup given idstd_rnd_t_setup given targets_init given rc_setup ():() then calls rc_set:(3, 1)
+given open_room_setup given idstd_rnd_t_setup given targets_init given rc_setup ():() then calls lset:((import rc), 3, 1)
 given open_room_setup given idstd_rnd_t_setup given targets_init given rc_setup ():() then calls ray_should_stop:[1]
 
 // advance.id's ray_hit_now needs a fourth action (the z lookup plus try_hit)
 // once its x half is named, one more than a block gets -- so the tail
 // lands here instead, beside the rest of the stop-checking logic.
 ray_hit_now_z(int cell_x_v) {
-  int rc_get_v2 = rc_get(1);
-  int cell_z_v = cell_z(rc_get_v2);
+  int rc_get_v2 = (import rc)[1];
+  int cell_z_v = (rc_get_v2 + ((import grid_h) * (import spacing)) / 2) / (import spacing);
   int ret_i = try_hit(cell_x_v, cell_z_v);
 } return int ret_i;
 given open_room_setup given idstd_rnd_t_setup given targets_init given rc_setup (8):(0)

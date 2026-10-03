@@ -5,17 +5,10 @@ lp_list(View v, int i) {
 given lp_t_new ((import lp_t_v), 0):(0)
 given lp_t_new given lp_t_row(0, 9, 2) ((import lp_t_v), 0):(2)
 
-// The list level (0 to 2) of paragraph i.
-lp_level(View v, int i) {
-  int lvl = lp_prop(v, i, (import word_p_level));
-} return int lvl;
-given lp_t_new ((import lp_t_v), 0):(0)
-given lp_t_new given lp_t_row(0, 10, 2) ((import lp_t_v), 0):(2)
-
 // What paragraph j, met while counting backwards for an item of list lid at level lvl, does to the count: 1 it is an item of the same list and level and counts, 2 it is an item of the same list at a shallower level and so ends the count, 0 anything else (another list, no list, a deeper item).
 lp_nd(View v, int j, int lid, int lvl) {
   int lj = lp_list(v, j);
-  int vj = lp_level(v, j);
+  int vj = lp_prop(v, j, (import word_p_level));
   int res = 0;
 } chain (View v, int j, int lid, int lvl) {
   if(lj == lid) {

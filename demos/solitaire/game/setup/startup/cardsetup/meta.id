@@ -2,23 +2,41 @@
 // foundation suit s (0 = empty); fd[col] is the number of face-down cards in a
 // tableau column (the rest, on top, are face up).
 
+// found: Zero-argument witnesses for `then`, wrapping functions this batch's void
+// apply/ functions can't be checked through directly: found0_check reads
+// back what found_do_tail recorded on foundation 0, and tab0_top_check
+// reads back the top of tableau column 0 after a push/move.
 make_meta() {
   export int[] fd = [0, 0, 0, 0, 0, 0, 0];
   export int[] found = [0, 0, 0, 0];
   make_sw();
 } return void;
-():() then fd0_check:(0) then found0_check:(0) then calls make_sw:()
-():() then fd1_check:(0) then stock_len_check:(0)
+():() then (import fd)[0]:(0) then (import found)[0]:(0) then calls make_sw:()
+():() then (import fd)[1]:(0) then len((import stock)):(0)
 
+// stock: Zero-argument witnesses for `then`, reading back state make_sw and
+// ui_init export -- stock/waste are plain lists with no other exported
+// reader, and ui is only otherwise read through ui_get, which takes an
+// index and so cannot be a check itself.
+// waste: Zero-argument witnesses for `then`, for void apply/ functions whose only
+// visible effect is a pop off the waste or a tableau column -- pop() is a
+// builtin, so `then calls` can't see it, and length is the cheapest proof
+// a card actually left the pile.
 make_sw() {
   export int[] stock = [];
   export int[] waste = [];
 } return void;
-():() then stock_len_check:(0) then waste_len_check:(0)
-given make_meta ():() then stock_len_check:(0) then found0_check:(0)
+():() then len((import stock)):(0) then len((import waste)):(0)
+given make_meta ():() then len((import stock)):(0) then (import found)[0]:(0)
 
+// ui: A reader for ui[2] (the source start index), same reasoning as
+// stock_len_check and friends -- ui is only otherwise read through
+// ui_get, which takes an index and so cannot be a check itself. setsrc.id
+// and srcb.id are both full, and this index is exactly what src_start and
+// set_src_tail (above) write, so it belongs beside them rather than in
+// cardsetup/checks.id, which is also full.
 ui_init() {
   export int[] ui = [6, 0 - 1, 0, 0, 0, 0];
 } return void;
-():() then ui0_check:(6) then ui1_check:(-1)
-given make_meta ():() then ui0_check:(6) then fd0_check:(0)
+():() then (import ui)[0]:(6) then (import ui)[1]:(-1)
+given make_meta ():() then (import ui)[0]:(6) then (import fd)[0]:(0)

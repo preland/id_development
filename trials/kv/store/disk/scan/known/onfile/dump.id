@@ -4,16 +4,16 @@ log_t_dump(int n) {
   int wrote = fs_write_mem(h, (import log_t_ad), n);
   int shut = fs_close(h);
 } return void;
-given log_t_ready (3):() then file_t_size:(3) then file_t_bytes:(216) then file_t_done:(0)
-given log_t_ready (0):() then file_t_size:(0) then file_t_done:(0)
+given log_t_ready (3):() then file_t_size:("size 3") then file_t_bytes:(216) then file_t_done:(0)
+given log_t_ready (0):() then file_t_size:("size 0") then file_t_done:(0)
 
 // The scratch file cut to the image's first three bytes, "IDK": the start of a header.
 log_t_stub() {
   log_t_ready();
   log_t_dump(3);
 } return void;
-():() then file_t_size:(3) then file_t_bytes:(216) then file_t_done:(0)
-():() then file_t_size:(3) then db_t_state:("0/0/0") then file_t_done:(0)
+():() then file_t_size:("size 3") then file_t_bytes:(216) then file_t_done:(0)
+():() then file_t_size:("size 3") then db_t_state:("0/0/0") then file_t_done:(0)
 
 // The scratch file holding an image whose magic is wrong: 57 bytes that are not a log.
 log_t_odd() {
@@ -21,5 +21,5 @@ log_t_odd() {
   file_t_empty();
   log_t_dump(57);
 } return void;
-():() then file_t_size:(57) then file_t_bytes:(2966) then file_t_done:(0)
-():() then file_t_size:(57) then db_t_state:("0/0/0") then file_t_done:(0)
+():() then file_t_size:("size 57") then file_t_bytes:(2966) then file_t_done:(0)
+():() then file_t_size:("size 57") then db_t_state:("0/0/0") then file_t_done:(0)

@@ -19,7 +19,7 @@ given orc_t_zip("<a/>", "application/vnd.oasis.opendocument.text") ((import orc_
 given orc_t_zip("<a/>", "") ((import orc_tzo)):(0)
 given orc_t_zip("", "") ((import orc_tzo)):(6)
 given orc_t_zip("<a/>", "x") ((import orc_tzo)):(5)
-(Zip([1, 2, 3], [], ["zip: broken"])):(2) then orc_t_why:("zip: broken")
+(Zip([1, 2, 3], [], ["zip: broken"])):(2) then (import odt_why):("zip: broken")
 
 // 0 when the mimetype entry (entry mi) is exactly the text document type; otherwise the mimetype code, with the entry's size kept as the reason.
 orc_mime(Zip z, int mi) {
@@ -31,7 +31,7 @@ orc_mime(Zip z, int mi) {
   }
 } return int code;
 given orc_t_zip("<a/>", "application/vnd.oasis.opendocument.text") ((import orc_tzo), 0):(0)
-given orc_t_zip("<a/>", "application/vnd.oasis.opendocument.texy") ((import orc_tzo), 0):(5) then orc_t_why:("the mimetype entry is 39 bytes and does not read application/vnd.oasis.opendocument.text")
+given orc_t_zip("<a/>", "application/vnd.oasis.opendocument.texy") ((import orc_tzo), 0):(5) then (import odt_why):("the mimetype entry is 39 bytes and does not read application/vnd.oasis.opendocument.text")
 
 // Reads the styles and then content.xml of a sound archive into the document: ost_load for what the style names mean, then the XML reader over the body, the read, and its code. A bad CRC on the way surfaces as the zip code.
 orc_parse(Zip z, Doc d) {

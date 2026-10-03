@@ -6,15 +6,9 @@ ost_t_open(string os_ss) {
 ("<a/>"):() then ost_t_name:("")
 ("<a><b/></a>"):() then ost_t_name:("")
 
-ost_t_steps(int os_in) {
-  xr_skip((import ost_t_r), os_in);
-} return void;
-given ost_t_open("<a/>") (1):() then ost_t_name:("a")
-given ost_t_open("<a/>") (0):() then ost_t_name:("")
-
 ost_t_name() {
   XmlR os_r = (import ost_t_r);
-  string os_sname = xr_name(os_r);
+  string os_sname = xr_get(os_r, (import xr_k_name));
 } return string os_sname;
-given ost_t_open("<ab/>") given ost_t_steps(1) ():("ab")
-given ost_t_open("<a><b/></a>") given ost_t_steps(2) ():("b")
+given ost_t_open("<ab/>") given xr_skip((import ost_t_r), 1) ():("ab")
+given ost_t_open("<a><b/></a>") given xr_skip((import ost_t_r), 2) ():("b")

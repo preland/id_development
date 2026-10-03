@@ -42,6 +42,8 @@ After the `return` clause, one case per line:
 
 ```
 given SETUP stdin "TEXT" timeout N (ARGS):(EXPECTED) then CHECK:(VALUE) [CONSTRAINTS]
+                                                    then (import NAME)[i]:(VALUE)
+                                                    then len((import NAME)):(VALUE)
 ```
 
 Most cases are just `(ARGS):(EXPECTED)`:
@@ -49,7 +51,7 @@ Most cases are just `(ARGS):(EXPECTED)`:
 - **`ARGS`** — the arguments, as `id` literals, in order. `()` for none.
 - **`EXPECTED`** — the value the call must produce, as an `id` literal.
 - **`CONSTRAINTS`** — optional, in square brackets. See below.
-- **`given SETUP`** (or **`given SETUP(LIT, ...)`**) and **`then CHECK:(VALUE)`** —
+- **`given SETUP`** (or **`given SETUP(LIT, ...)`**) and **`then CHECK:(VALUE)`**, or **`then (import NAME)[i]:(VALUE)`**, or **`then len((import NAME)):(VALUE)`** —
   optional, for functions whose behaviour is module state. See "Module state"
   below.
 - **`stdin "TEXT"`** and **`timeout N`** — optional, after any `given` and
@@ -195,6 +197,73 @@ count() {
   err.id:9: test failed: err_report("x") then count() = 1, expected 2
   ```
 
+- **`then (import NAME):(VALUE)`**, **`then (import NAME)[i]:(VALUE)`** and
+  **`then len((import NAME)):(VALUE)`**
+  read an export, one element of it, or its length, after the call and compare
+  it with the literal `VALUE`, at the export's type, at its element type, or
+  as an `int`. They are the way to look at state without writing a function
+  that only reads it:
+
+  ```
+  err_setup() {
+    export int[] err_n = [0, 0];
+  } return void;
+
+  err_note(string msg) {
+    err_bump(msg);
+  } return void;
+  given err_setup ("x"):() then (import err_n)[0]:(1)
+  given err_setup ("y"):() then (import err_n):([1, 0]) then len((import err_n)):(2)
+  ```
+
+  The element is `i`: an integer literal, or an `(import NAME)` of a conf.id
+  constant (below), of a list export; the whole form compares the export
+  itself, a list included, with a list literal; `len` takes a list or a string
+  export. A failing check is reported like a `then CHECK` one, with
+  `(import err_n)[0]` or `len((import err_n))` where the function's name would
+  be:
+
+  ```
+  err.id:9: test failed: err_note("x") then (import err_n)[0] = 1, expected 2
+  ```
+
+  Three rules, each an error at the case's line, and the third is the point of
+  the form: the case needs a `given` that reaches the export's declarer, as an
+  `(import NAME)` argument does -- unless the function under test reaches the
+  declarer itself, since a `given` of it would run it twice before the check
+  (a function that exports NAME is checked after its one call, and an export
+  it does not set at run time traps as uninitialised); the value is held to the export's type (its
+  element's with an index, `int` with `len`), which must be a list when there
+  is an index and a list or a string with `len`; and **the function under test
+  may not only read `(import NAME)`**. A check of the very read the body makes
+  would stay green whatever the body did to the value, so a function that reads
+  its export and never writes it is tested by an explicit check function
+  instead -- one that says what the whole state is supposed to be and is named
+  in `then CHECK:(VALUE)`. A function that writes it is checked after the
+  write, which is a real test of its effect: the writes the checker sees are a
+  declaration binding a list to the export, or to one of its elements
+  (`int[] c = (import err_n);` and `int[] row = (import rows)[i];`, the way an
+  element is assigned, since an import cannot be index-assigned directly) and a
+  call handed the export, or one of its elements, whole (`lset((import
+  err_n), ...)`, `push((import rows)[i], v)`, a function taking the list),
+  where only `len` is known not to write.
+  A callee that merely reads its list parameter therefore still counts as a
+  write, which errs towards allowing a check, never towards refusing one.
+  Reaching the export through a callee is fine: `err_note` above only calls
+  `err_bump`, and a function that declares the export without reading it is
+  fine too. The case's cache key covers the export's declaration as it covers
+  a function a case names
+  (`dg_case_ref`, `compiler/parse/mid/form/unique/dump/digest/keys/case/tok.id`).
+
+  **A conf.id constant may name the index, and only the index.**
+  `then (import tbl)[(import slot)]:(5)` reads the element of `tbl` that the
+  constant `slot` says. A constant says where to look; the value compared with
+  stays a literal, so the case cannot agree with itself. A constant is never
+  an expected value, an argument or a check's value (each is an error, and the
+  case's own cache key covers the constant, so changing it re-runs the case),
+  and an exported variable is never an index: its value is what the check is
+  testing.
+
 - **`(import NAME)`** may be an element of `ARGS` or `EXPECTED` — at the top of
   the tuple or inside a list literal, nested lists included, and never a
   check's value — in a case that has `given`. It is the export's value where
@@ -238,14 +307,21 @@ the case's line:
 | `then` naming a `void` function | `'then' names 'st', which returns void; a check takes none and returns the value it compares` |
 | a check with more or fewer than one value | `a 'then' check compares exactly one value, not 2` |
 | `(import NAME)` as a check's value | `a 'then' check compares a literal; (import g) may only be an argument or an expected value` |
-| `(import NAME)` in a case without `given` | `(import g) needs a 'given': an export has no value in a case until a setup has run; a setup's own arguments are read before it runs, so an (import NAME) there needs an earlier 'given' that sets it` |
+| `(import NAME)` in a case without `given`, when the function under test does not reach its declarer | `(import g) needs a 'given': an export has no value in a case until a setup has run; a setup's own arguments are read before it runs, so an (import NAME) there needs an earlier 'given' that sets it` |
 | `(import NAME)` of a name nothing exports | `(import zz): 'zz' is not an exported variable` |
 | `(import NAME)` exported by a function the setup does not reach through the call graph | `(import h): 'h' is exported by 'other', which the setup 'st' does not reach, so nothing sets it before the call` |
 | `(import NAME)` whose type is not exactly the one at that position | `this case gives (import xs), a int[], where a int is required` |
+| `then (import NAME)[i]` of an export that is not a list | `(import total)[...] reads one element, but 'total' is a int, not a list; drop the index, or name a list export` |
+| `then (import NAME)` under a function that reads `(import NAME)` and never writes it | `then (import cnt): the function under test, 'wrap', reads (import cnt) but never writes it, so this check would only repeat its own read; check an export the function changes, or write one check function that states the whole expected state and name it in 'then CHECK:(value)'` |
+| `then len((import NAME))` of an export that is not a list or a string | `len((import total)) measures a list or a string, but 'total' is a int; name a list or string export, or compare the value itself with then (import total):(value)` |
+| `then (import NAME)[(import VAR)]` with an exported variable in the index | `(import slot) is an exported variable, and only a conf.id constant may stand in a then check's index: a variable's value is what the check is testing; name a constant, or write the index as a number` |
+| `(import CONST)` of a conf.id constant as an argument or an expected value | `(import slot) is a conf.id constant, and a case names one only as a then check's index, as in then (import tbl)[(import slot)]:(value); write its value here as a literal` |
 
 The setup-argument and list-element rows are tested in
 `idc/tests/invalid/given_args_*.id` and `idc/tests/invalid/list_import_*.id`,
-and their working forms in `idc/tests/tests_feature.sh`.
+and their working forms in `idc/tests/tests_feature.sh`. The `then (import NAME)`
+rows are in `idc/tests/invalid/then_import_*.id`, with their working forms in
+the same script.
 
 The reachability is the dead-export check's, seeded from the setup instead of
 `main`: the setup itself, or anything it calls, may be what exports the name.

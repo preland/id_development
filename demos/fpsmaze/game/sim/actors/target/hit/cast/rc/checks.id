@@ -1,14 +1,10 @@
-// Zero-argument witnesses for rc's two fixed fields (used as `then` checks
-// elsewhere, since rc_get itself takes a parameter and can't be one).
-
-rc_x() {
-  int r = rc_get(0);
-} return int r;
-given rc_setup ():(1000)
-given rc_setup ():(1000) then rc_z:(2000)
-
-rc_z() {
-  int r = rc_get(1);
-} return int r;
-given rc_setup ():(2000)
-given rc_setup ():(2000) then rc_x:(1000)
+// Test check: the whole raycast state -- x, z, steps taken and the done flag,
+// each under its name -- so a case about the loop that walks it states where
+// the ray ended up and whether it stopped. ray_loop reads the step count and
+// the flag itself, so a check of either one alone would repeat its own read.
+rc_state() {
+  string rcs_s = "x=" + (import rc)[0] + " z=" + (import rc)[1];
+  rcs_s = rcs_s + " steps=" + (import rc)[2] + " done=" + (import rc)[3];
+} return string rcs_s;
+given ray_init(1000, 2000) ():("x=1000 z=2000 steps=0 done=0")
+given ray_init(555, 999) ():("x=555 z=999 steps=0 done=0")

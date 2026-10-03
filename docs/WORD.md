@@ -1058,11 +1058,10 @@ xw_done(XmlW w) -> int[]
 struct XmlR { int[] src; int[] st; string[] strs; }
 xr_open(int[] src) -> XmlR
 xr_next(XmlR r) -> int
-xr_name(XmlR r) -> string
+xr_get(XmlR r, int k) -> string   // k is xr_k_name (the element name) or xr_k_error (the first fault)
 xr_attr(XmlR r, string name) -> string
 xr_text(XmlR r) -> string
 xr_depth(XmlR r) -> int
-xr_error(XmlR r) -> string
 ```
 
 `xr_next` returns an event code (1 start, 2 end, 3 text, 4 empty element, 0 done,

@@ -2,19 +2,19 @@ t_tmp_open() {
   t_tmp_make();
   export int th = fs_open((import tp), "r");
 } return void;
-stdin "hi" ():() then t_tmp_size:(2) then t_tmp_drop:(0)
-stdin "" ():() then t_tmp_size:(0) then t_tmp_drop:(0)
+stdin "hi" ():() then t_tmp_size:("t_tmp_size 2") then t_tmp_drop:(0)
+stdin "" ():() then t_tmp_size:("t_tmp_size 0") then t_tmp_drop:(0)
 
 t_tmp_ready() {
   t_tmp_open();
   in_setup(0);
 } return void;
-stdin "hi" ():() then t_cap:(65536) then t_tmp_drop:(0)
-stdin "hi" ():() then t_len:(0) then t_tmp_drop:(0)
+stdin "hi" ():() then (import jc)[(import c_cap)]:(65536) then t_tmp_drop:(0)
+stdin "hi" ():() then (import jc)[(import c_len)]:(0) then t_tmp_drop:(0)
 
 t_errno_set() {
   st_init();
   int rc = in_load("/nonexistent/jsontool_none");
 } return void;
-():() then t_errno:(2)
-():() then t_len:(0)
+():() then (import jc)[(import c_errno)]:(2)
+():() then (import jc)[(import c_len)]:(0)

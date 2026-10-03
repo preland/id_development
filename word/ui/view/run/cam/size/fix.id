@@ -14,10 +14,10 @@ vw_t_two() {
 
 // Test check: the viewer's state list, comma separated: scroll x, scroll y, zoom, stale.
 vw_t_sts() {
-  string vws_z = dump_ints((import vw_st));
-} return string vws_z;
-given vw_state_new ():("0,0,100,1,")
-given vw_state_new given lset((import vw_st), 1, 7) ():("0,7,100,1,")
+  string vws_z_t = "sts " + (dump_ints((import vw_st)));
+} return string vws_z_t;
+given vw_state_new ():("sts 0,0,100,1,")
+given vw_state_new given lset((import vw_st), 1, 7) ():("sts 0,7,100,1,")
 
 // Test setup: the state is current (nothing stale) with the page area scrolled to vwi_y pixels at the zoom vwi_z.
 vw_t_at_y(int vwi_y, int vwi_z) {
@@ -27,5 +27,5 @@ vw_t_at_y(int vwi_y, int vwi_z) {
 } chain (int vwi_y, int vwi_z) {
   lset((import vw_st), (import vw_s_d), 0);
 } return void;
-(5, 100):() then vw_t_sts:("0,5,100,0,")
-(9, 150):() then vw_t_sts:("0,9,150,0,")
+(5, 100):() then vw_t_sts:("sts 0,5,100,0,")
+(9, 150):() then vw_t_sts:("sts 0,9,150,0,")

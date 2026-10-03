@@ -7,18 +7,21 @@ sol_init() {
   deal_and_ui();
 } return void;
 given idstd_rnd_t_setup ():() then calls labels_init:() then calls build_deck:() then calls deal_and_ui:()
-given idstd_rnd_t_setup_neg ():() then ranks1_check:("A") then stock_len_check:(24) then ui0_check:(6)
+given idstd_rnd_t_setup_neg ():() then (import ranks)[1]:("A") then len((import stock)):(24) then (import ui)[0]:(6)
 
+// ranks: Zero-argument witnesses for `then`, reading back the label tables
+// labels_init exports -- card_str reads both, but always through a card
+// number, so it cannot stand in as a check itself.
 labels_init() {
   export string[] ranks = ["", "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
   export string[] suits = ["C", "D", "H", "S"];
 } return void;
-():() then ranks1_check:("A") then suits0_check:("C")
-given make_meta ():() then ranks1_check:("A") then fd0_check:(0)
+():() then (import ranks)[1]:("A") then (import suits)[0]:("C")
+given make_meta ():() then (import ranks)[1]:("A") then (import fd)[0]:(0)
 
 deal_and_ui() {
   deal();
   ui_init();
 } return void;
 given idstd_rnd_t_setup given build_deck ():() then calls deal:() then calls ui_init:()
-given idstd_rnd_t_setup_neg given build_deck ():() then stock_len_check:(24) then tab0_len_check:(1)
+given idstd_rnd_t_setup_neg given build_deck ():() then len((import stock)):(24) then tab0_len_check:(1)

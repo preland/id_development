@@ -355,11 +355,13 @@ and keeps the names beside the text, so a different name is a different
 function there and the same text with one name different is this error. It
 says nothing when anything else differs (a literal, a callee, a second
 import), when more than one import differs (that is two values to
-parameterise), and when the function is a single statement: `s1_of` is
-`ns1[id]` and `s2_of` is `ns2[id]`, a named accessor of a module's global,
-and there is no logic in it to share — the function left after parameterising
-would be the same one line again for every global. Two functions identical in
-every way, imports included, are still the duplicate-logic error.
+parameterise). A function of one statement is no exception: `s1_of` was
+`ns1[id]` and `s2_of` `ns2[id]`, and the fix is the same -- there is no named
+accessor of a module's global, the call site reads `(import ns1)[id]` itself,
+and a test states a global's state with `then (import NAME)` (docs/TESTS.md) or,
+where that is refused, with one check function that states the whole state. Two
+functions identical in every way, imports included, are still the
+duplicate-logic error.
 
 A difference only in a literal is never reported, by an error or a warning. A
 named accessor, a fixture or a message per constant is how `id` is written; a

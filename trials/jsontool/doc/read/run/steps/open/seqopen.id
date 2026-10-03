@@ -1,17 +1,17 @@
 open_seq(int pos, int kind) {
   int node = node_new(kind, 0, -1);
   attach(node);
-  stk_push(node);
+  push((import stk), node);
 } chain (int pos, int kind) {
   int p = skip_ws(pos + 1);
   lset((import jc), (import c_pos), p);
   int nx = seq_first(kind, p);
 } return int nx;
 given t_load stdin "[]" (0, 5):(2) then t_dump:("5:0--1:-1:-1;")
-given t_load stdin "[1]" (0, 5):(0) then t_stk:(1)
-given t_load stdin "{}" (0, 6):(2) then t_root:(0)
-given t_load stdin "{\"a\"" (0, 6):(1) then t_pos:(1)
-given t_load stdin "[ ]" (0, 5):(2) then t_pos:(3)
+given t_load stdin "[1]" (0, 5):(0) then len((import stk)):(1)
+given t_load stdin "{}" (0, 6):(2) then (import jc)[(import c_root)]:(0)
+given t_load stdin "{\"a\"" (0, 6):(1) then (import jc)[(import c_pos)]:(1)
+given t_load stdin "[ ]" (0, 5):(2) then (import jc)[(import c_pos)]:(3)
 
 seq_first(int kind, int p) {
   int nx = seq_state(kind);
@@ -19,7 +19,7 @@ seq_first(int kind, int p) {
     nx = seq_close(p);
   }
 } return int nx;
-given t_parse stdin "[[]" (5, 2):(2) then t_stk:(0)
-given t_parse stdin "[" (5, 0):(0) then t_stk:(1)
+given t_parse stdin "[[]" (5, 2):(2) then len((import stk)):(0)
+given t_parse stdin "[" (5, 0):(0) then len((import stk)):(1)
 given t_parse stdin "{" (6, 0):(1)
-given t_parse stdin "{{}" (6, 2):(2) then t_stk:(0)
+given t_parse stdin "{{}" (6, 2):(2) then len((import stk)):(0)

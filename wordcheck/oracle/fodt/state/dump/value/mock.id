@@ -6,17 +6,10 @@ ofd_t_open(string owss) {
 ("<a/>"):() then ofd_t_name:("")
 ("<a><b/></a>"):() then ofd_t_name:("")
 
-// Test fixture: steps the fixture reader over n events.
-ofd_t_steps(int owi) {
-  xr_skip((import ofd_t_r), owi);
-} return void;
-given ofd_t_open("<a/>") (1):() then ofd_t_name:("a")
-given ofd_t_open("<a/>") (0):() then ofd_t_name:("")
-
 // Test fixture: the name of the fixture reader's element.
 ofd_t_name() {
   XmlR owr = (import ofd_t_r);
-  string own = xr_name(owr);
+  string own = xr_get(owr, (import xr_k_name));
 } return string own;
-given ofd_t_open("<ab/>") given ofd_t_steps(1) ():("ab")
-given ofd_t_open("<a><b/></a>") given ofd_t_steps(2) ():("b")
+given ofd_t_open("<ab/>") given xr_skip((import ofd_t_r), 1) ():("ab")
+given ofd_t_open("<a><b/></a>") given xr_skip((import ofd_t_r), 2) ():("b")

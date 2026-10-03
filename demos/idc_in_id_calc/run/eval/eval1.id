@@ -5,7 +5,7 @@
 eval_expr(int id) {
   int v = 0;
   if(node_kind(id) == 1) {
-    v = node_a(id);
+    v = (import na)[id];
   } else {
     v = eval_op(id);
   }
@@ -16,7 +16,7 @@ given ast_setup (2):(5)
 eval_op(int id) {
   int v = 0;
   if(node_kind(id) == 3) {
-    int node_a_v = node_a(id);
+    int node_a_v = (import na)[id];
     v = 0 - eval_expr(node_a_v);
   } else {
     v = eval_bin(id);
@@ -26,7 +26,7 @@ given ast_setup (2):(5)
 given ast_setup (3):(-2)
 
 eval_bin(int id) {
-  int node_a_v = node_a(id);
+  int node_a_v = (import na)[id];
   int l = eval_expr(node_a_v);
   int ret_i = eval_bin_right(id, l);
 } return int ret_i;

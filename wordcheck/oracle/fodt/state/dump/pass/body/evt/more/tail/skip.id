@@ -4,8 +4,8 @@ ofd_skipping(OfdAcc owacc, XmlR owr, int owev) {
     owacc.st[0] = 0 - 1;
   }
 } return void;
-given ofd_t_open("<a><b></b></a>") given ofd_t_steps(3) (OfdAcc([1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 2):(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 2)
-given ofd_t_open("<a><b></b></a>") given ofd_t_steps(3) (OfdAcc([0, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 2):(OfdAcc([0, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 2)
+given ofd_t_open("<a><b></b></a>") given xr_skip((import ofd_t_r), 3) (OfdAcc([1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 2):(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 2)
+given ofd_t_open("<a><b></b></a>") given xr_skip((import ofd_t_r), 3) (OfdAcc([0, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 2):(OfdAcc([0, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 2)
 
 // Starts skipping the element the reader is at, with everything inside it, unless it is empty and has nothing inside.
 ofd_skip_start(OfdAcc owacc, XmlR owr, int owev) {
@@ -13,8 +13,8 @@ ofd_skip_start(OfdAcc owacc, XmlR owr, int owev) {
     owacc.st[0] = xr_depth(owr);
   }
 } return void;
-given ofd_t_open("<a><b/></a>") given ofd_t_steps(1) (OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 1):(OfdAcc([0, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 1)
-given ofd_t_open("<a><b/></a>") given ofd_t_steps(2) (OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 4):(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 4)
+given ofd_t_open("<a><b/></a>") given xr_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 1):(OfdAcc([0, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 1)
+given ofd_t_open("<a><b/></a>") given xr_skip((import ofd_t_r), 2) (OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 4):(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 4)
 
 // An opaque block, such as a table: one "para N opaque" line, and its subtree is skipped.
 ofd_opaque(OfdAcc owacc, XmlR owr, int owev) {
@@ -24,5 +24,5 @@ ofd_opaque(OfdAcc owacc, XmlR owr, int owev) {
 } chain (OfdAcc owacc, XmlR owr, int owev) {
   ofd_skip_start(owacc, owr, owev);
 } return void;
-given ofd_t_open("<table:table><x/></table:table>") given ofd_t_steps(1) (OfdAcc([-1, 0, 0, 2], ["", "", "", "\nA", ""], []), (import ofd_t_r), 1):(OfdAcc([0, 0, 0, 3], ["", "", "", "\nA\npara 2 opaque", ""], []), (import ofd_t_r), 1)
-given ofd_t_open("<table:table/>") given ofd_t_steps(1) (OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 4):(OfdAcc([-1, 0, 0, 1], ["", "", "", "\npara 0 opaque", ""], []), (import ofd_t_r), 4)
+given ofd_t_open("<table:table><x/></table:table>") given xr_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 0, 2], ["", "", "", "\nA", ""], []), (import ofd_t_r), 1):(OfdAcc([0, 0, 0, 3], ["", "", "", "\nA\npara 2 opaque", ""], []), (import ofd_t_r), 1)
+given ofd_t_open("<table:table/>") given xr_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 4):(OfdAcc([-1, 0, 0, 1], ["", "", "", "\npara 0 opaque", ""], []), (import ofd_t_r), 4)

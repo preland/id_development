@@ -7,7 +7,7 @@ in_grow() {
   wset((import jw), (import w_src), fresh);
   lset((import jc), (import c_cap), cap * 2);
 } return void;
-given t_load stdin "abc" ():() then t_cap:(131072)
+given t_load stdin "abc" ():() then (import jc)[(import c_cap)]:(131072)
 given t_load stdin "abc" ():() then t_src:("abc")
 
 in_room() {
@@ -15,8 +15,8 @@ in_room() {
     in_grow();
   }
 } return void;
-given t_load stdin "abc" ():() then t_cap:(65536)
-given t_full ():() then t_cap:(131072)
+given t_load stdin "abc" ():() then jc_state:("pos=0 len=3 cap=65536 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=0 perr=0 pep=0 fk=0 fr=0 seen=0")
+given t_full ():() then jc_state:("pos=0 len=65536 cap=131072 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=0 perr=0 pep=0 fk=0 fr=0 seen=0")
 
 in_pull(int h) {
   in_room();
@@ -27,6 +27,6 @@ in_pull(int h) {
     lset((import jc), (import c_len), n + got);
   }
 } return int got;
-given t_tmp_ready stdin "hi" ((import th)):(2) then t_len:(2) then t_tmp_drop:(0)
-given t_tmp_ready stdin "" ((import th)):(0) then t_len:(0) then t_tmp_drop:(0)
-given t_tmp_ready stdin "hi" (-1):(-1) then t_len:(0) then t_tmp_drop:(0)
+given t_tmp_ready stdin "hi" ((import th)):(2) then (import jc)[(import c_len)]:(2) then t_tmp_drop:(0)
+given t_tmp_ready stdin "" ((import th)):(0) then (import jc)[(import c_len)]:(0) then t_tmp_drop:(0)
+given t_tmp_ready stdin "hi" (-1):(-1) then (import jc)[(import c_len)]:(0) then t_tmp_drop:(0)

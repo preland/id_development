@@ -23,9 +23,9 @@ note_seen(int bit) {
   int seen = (import jc)[(import c_seen)] | bit;
   lset((import jc), (import c_seen), seen);
 } return void;
-given st_init (1):() then t_seen:(1)
-given st_init (4):() then t_seen:(4)
-given t_noted (4):() then t_seen:(7)
+given st_init (1):() then (import jc)[(import c_seen)]:(1)
+given st_init (4):() then (import jc)[(import c_seen)]:(4)
+given t_noted (4):() then (import jc)[(import c_seen)]:(7)
 
 indent_store(int n, string txt, int nxt) {
   int r = nxt;
@@ -37,7 +37,7 @@ indent_store(int n, string txt, int nxt) {
     note_seen(1);
   }
 } return int r;
-given st_init (5, "5", 7):(7) then t_ind:(5)
-given st_init (5, "5", 7):(7) then t_seen:(1)
+given st_init (5, "5", 7):(7) then (import jc)[(import c_ind)]:(5)
+given st_init (5, "5", 7):(7) then (import jc)[(import c_seen)]:(1)
 given st_init (-1, "abc", 7):(-1) then eprints:("jsontool: --indent needs an integer from 0 to 64, got 'abc'\n")
-given st_init (-1, "abc", 7):(-1) then t_ind:(2)
+given st_init (-1, "abc", 7):(-1) then (import jc)[(import c_ind)]:(2)

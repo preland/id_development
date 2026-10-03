@@ -1,6 +1,6 @@
 // What one event of a styles document changes: whether the reader is inside office:automatic-styles (1 or 0, -1 once the body has begun and nothing more is wanted), and a record when the event starts a style:style or the default paragraph style.
 ost_scan_one(StyBag os_b, XmlR os_r, int os_iev, int os_iauto) {
-  string os_sname = xr_name(os_r);
+  string os_sname = xr_get(os_r, (import xr_k_name));
   int os_inext = os_iauto;
   string os_skind = ost_kind(os_iauto);
 } chain (StyBag os_b, XmlR os_r, int os_iev, int os_iauto) {
@@ -18,12 +18,12 @@ ost_scan_one(StyBag os_b, XmlR os_r, int os_iev, int os_iauto) {
     ost_rec_read(os_b, os_r, os_iev, "d");
   }
 } return int os_inext;
-given ost_t_mkbag given ost_t_open("<style:default-style style:family=\"paragraph\"><style:text-properties fo:font-size=\"12pt\"/></style:default-style>") given ost_t_steps(1) given ost_t_pick(0) ((import ost_t_b), (import ost_t_r), 1, 0):(0) then ost_t_c:([0, -1, 24, -1, -1, 0, 0])
-given ost_t_mkbag given ost_t_open("<style:default-style style:family=\"table\"><style:text-properties fo:font-size=\"12pt\"/></style:default-style>") given ost_t_steps(1) ((import ost_t_b), (import ost_t_r), 1, 0):(0) then ost_t_strs:([])
-given ost_t_mkbag given ost_t_open("<office:automatic-styles/>") given ost_t_steps(1) ((import ost_t_b), (import ost_t_r), 4, 1):(0)
-given ost_t_mkbag given ost_t_open("<office:automatic-styles><a/></office:automatic-styles>") given ost_t_steps(1) ((import ost_t_b), (import ost_t_r), 1, 0):(1)
-given ost_t_mkbag given ost_t_open("<office:body/>") given ost_t_steps(1) ((import ost_t_b), (import ost_t_r), 1, 1):(-1)
-given ost_t_mkbag given ost_t_open("<style:style style:name=\"P\" style:family=\"paragraph\"/>") given ost_t_steps(1) ((import ost_t_b), (import ost_t_r), 4, 1):(1) then ost_t_strs:(["P", "", "", "", "", "", "p", "a"])
+given ost_t_mkbag given ost_t_open("<style:default-style style:family=\"paragraph\"><style:text-properties fo:font-size=\"12pt\"/></style:default-style>") given xr_skip((import ost_t_r), 1) given ost_t_pick(0) ((import ost_t_b), (import ost_t_r), 1, 0):(0) then ost_t_c:([0, -1, 24, -1, -1, 0, 0])
+given ost_t_mkbag given ost_t_open("<style:default-style style:family=\"table\"><style:text-properties fo:font-size=\"12pt\"/></style:default-style>") given xr_skip((import ost_t_r), 1) ((import ost_t_b), (import ost_t_r), 1, 0):(0) then ost_t_strs:([])
+given ost_t_mkbag given ost_t_open("<office:automatic-styles/>") given xr_skip((import ost_t_r), 1) ((import ost_t_b), (import ost_t_r), 4, 1):(0)
+given ost_t_mkbag given ost_t_open("<office:automatic-styles><a/></office:automatic-styles>") given xr_skip((import ost_t_r), 1) ((import ost_t_b), (import ost_t_r), 1, 0):(1)
+given ost_t_mkbag given ost_t_open("<office:body/>") given xr_skip((import ost_t_r), 1) ((import ost_t_b), (import ost_t_r), 1, 1):(-1)
+given ost_t_mkbag given ost_t_open("<style:style style:name=\"P\" style:family=\"paragraph\"/>") given xr_skip((import ost_t_r), 1) ((import ost_t_b), (import ost_t_r), 4, 1):(1) then ost_t_strs:(["P", "", "", "", "", "", "p", "a"])
 
 // Reads a whole styles or content document into the bag: every style:style (named, or automatic inside office:automatic-styles) and the default paragraph style, up to the body.
 ost_scan(StyBag os_b, XmlR os_r) {
