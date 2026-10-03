@@ -1,0 +1,31 @@
+// Test check: the text of the paragraphs of the test document, one after another with a bar between them.
+cv_t_dump() {
+  Doc cvd = (import lp_t_d);
+  string cvs_z = "";
+  int cvi_k = 0;
+} chain () {
+  while(cvi_k < len(cvd.body.paras)) {
+    cvs_z = cv_t_join(cvs_z, cvd, cvi_k);
+    cvi_k = cvi_k + 1;
+  }
+} return string cvs_z;
+given lp_t_new ():("")
+given lp_t_new given lp_t_ins(0, "AB") given lp_t_split(0, 1) ():("A|B")
+
+// Test check helper: cvs_z with the text of paragraph cvi_k of cvd added, after a bar unless it is the first.
+cv_t_join(string cvs_z, Doc cvd, int cvi_k) {
+  string cvs_t = vw_cps_text(cvd.body.paras[cvi_k].txt.cps, 0);
+  string cvs_r = cvs_z + cvs_t;
+  if(cvi_k > 0) {
+    cvs_r = cvs_z + "|" + cvs_t;
+  }
+} return string cvs_r;
+given cv_t_view("AB|CD") ("", (import lp_t_d), 0):("AB")
+given cv_t_view("AB|CD") ("A", (import lp_t_d), 1):("A|CD")
+
+// Test setup: paragraph cvi_p of the view is marked stale, as an edit marks the paragraphs it touches (its height is -1 until it is laid out again).
+cv_t_mark(View cvv, int cvi_p) {
+  cvv.doc.body.paras[cvi_p].lay.h = 0 - 1;
+} return void;
+given cv_t_view("AB|CD") ((import lp_t_v), 0):((import lp_t_v), 0) then lp_t_h0:(-1)
+given cv_t_view("AB|CD") ((import lp_t_v), 1):((import lp_t_v), 1) then lp_t_h0:(1664)

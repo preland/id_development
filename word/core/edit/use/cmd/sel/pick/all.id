@@ -24,8 +24,8 @@ given fx_setup("") ((import fxd), (import fxc)):((import fxd), (import fxc)) the
 // Selects the word at ps by the word rule (what a double click does).
 ed_select_word(Doc d, Ctl ctl, Pos ps) {
   Para p = d.body.paras[ps.para];
-  int lo = para_word_lo(p, ps.off);
-  int hi = para_word_hi(p, ps.off);
+  int lo = utf8_cps_word_lo(p.txt.cps, ps.off);
+  int hi = utf8_cps_word_hi(p.txt.cps, ps.off);
 } chain (Doc d, Ctl ctl, Pos ps) {
   ed_place(d, ctl, pos_new(ps.para, lo), 0);
   sel_put(ctl.sel, ps.para, hi, 1);

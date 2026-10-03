@@ -1,0 +1,37 @@
+// Paints rectangle cvi_k of the flat list cvl_o ([x, y, width, height] each in lu from the top left of the sheet) on the page whose geometry is cvl_g, in the selection's colour with its coverage, so that the text under it shows through. The corners are rounded to pixels as the text is, and it is at least one pixel in each direction.
+cv_rect(int[] cvl_o, int cvi_k, int[] cvl_g) {
+  int cvi_z = cvl_g[(import vw_g_z)];
+  int cvi_x = cvl_g[(import vw_g_x)] + vw_px(cvl_o[4 * cvi_k], cvi_z);
+  int cvi_y = cvl_g[(import vw_g_y)] + vw_px(cvl_o[4 * cvi_k + 1], cvi_z);
+} chain (int[] cvl_o, int cvi_k, int[] cvl_g) {
+  int cvi_r = cvl_g[(import vw_g_x)] + vw_px(cvl_o[4 * cvi_k] + cvl_o[4 * cvi_k + 2], cvi_z);
+  int cvi_b = cvl_g[(import vw_g_y)] + vw_px(cvl_o[4 * cvi_k + 1] + cvl_o[4 * cvi_k + 3], cvi_z);
+  int cvi_w = fx_max(cvi_r - cvi_x, 1);
+} chain (int[] cvl_o, int cvi_k, int[] cvl_g) {
+  d2_l_arect(cvi_x, cvi_y, cvi_w, fx_max(cvi_b - cvi_y, 1), (import cv_c_sel), (import cv_sel_a));
+} return void;
+given sf_l_init(40, 40) given d2_l_rect(0, 0, 40, 40, 16777215) given vw_t_at(15, 15) ([640, 640, 640, 640], 0, [0, 0, 100, 0, 0]):() then vw_t_px:(12049407)
+given sf_l_init(40, 40) given d2_l_rect(0, 0, 40, 40, 16777215) given vw_t_at(5, 15) ([640, 640, 640, 640], 0, [0, 0, 100, 0, 0]):() then vw_t_px:(16777215)
+
+// Paints the rectangles cvl_o holds (cvi_n of them) one after another on the page whose geometry is cvl_g.
+cv_rects(int[] cvl_o, int cvi_n, int[] cvl_g) {
+  int cvi_k = 0;
+  while(cvi_k < cvi_n) {
+    cv_rect(cvl_o, cvi_k, cvl_g);
+    cvi_k = cvi_k + 1;
+  }
+} return void;
+given sf_l_init(40, 40) given d2_l_rect(0, 0, 40, 40, 16777215) given vw_t_at(35, 35) ([640, 640, 640, 640, 1920, 1920, 640, 640], 2, [0, 0, 100, 0, 0]):() then vw_t_px:(12049407)
+given sf_l_init(40, 40) given d2_l_rect(0, 0, 40, 40, 16777215) given vw_t_at(35, 35) ([640, 640, 640, 640, 1920, 1920, 640, 640], 1, [0, 0, 100, 0, 0]):() then vw_t_px:(16777215)
+given sf_l_init(40, 40) given d2_l_rect(0, 0, 40, 40, 16777215) given vw_t_at(15, 15) ([640, 640, 640, 640, 1920, 1920, 640, 640], 2, [0, 0, 100, 0, 0]):() then vw_t_px:(12049407)
+
+// Paints the selection of the controller on page cvi_k, whose geometry is cvl_g: a rectangle for each line of the page that it covers, as the layout's lay_sel_rects gives them.
+cv_sel_page(View cvv, int cvi_k, int[] cvl_g) {
+  Ctl cvc = (import vw_ctl);
+  int[] cvl_o = [];
+  int cvi_n = lay_sel_rects(cvv, cvc.sel, cvi_k, cvl_o);
+} chain (View cvv, int cvi_k, int[] cvl_g) {
+  cv_rects(cvl_o, cvi_n, cvl_g);
+} return void;
+given cv_t_ed("AB AB AB") given ed_select_all((import lp_t_d), (import vw_ctl)) given sf_l_init(400, 300) given d2_l_rect(0, 0, 400, 300, 16777215) given vw_t_at(185, 165) ((import lp_t_v), 0, [142, 152, 100, 2560, 640]):() then vw_t_px:(12049407)
+given cv_t_ed("AB AB AB") given sf_l_init(400, 300) given d2_l_rect(0, 0, 400, 300, 16777215) given vw_t_at(185, 165) ((import lp_t_v), 0, [142, 152, 100, 2560, 640]):() then vw_t_px:(16777215)

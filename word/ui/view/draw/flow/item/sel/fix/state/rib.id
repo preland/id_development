@@ -1,0 +1,21 @@
+// Test setup: asks for what the selection of the controller is like in the field cvi_f of sel_state (a word_c_* offset, or 200 plus a word_p_* offset); cv_t_ans answers.
+cv_t_ask(int cvi_f) {
+  export int cv_t_f = cvi_f;
+} return void;
+given cv_t_ed("AB") (1):() then cv_t_ans:(0)
+given cv_t_ed("AB") (2):() then cv_t_ans:(24)
+
+// Test check: the answer of sel_state for the field cv_t_ask chose, for the selection of the controller.
+cv_t_ans() {
+  Ctl cvc = (import vw_ctl);
+  int cvi_s = sel_state((import lp_t_d), cvc, (import cv_t_f));
+} return int cvi_s;
+given cv_t_ed("AB") given cv_t_ask(2) ():(24)
+given cv_t_ed("AB") given cv_t_ask(201) ():(0)
+
+// Test check: the list vw_lk of what the selection looks like, comma separated.
+cv_t_lk() {
+  string cvs_z = dump_ints((import vw_lk));
+} return string cvs_z;
+given cv_t_ed("AB") ():("0,0,0,0,0,0,1,0,0,0,0,24,1,")
+given cv_t_ed("AB") given lset((import vw_lk), 12, 0) ():("0,0,0,0,0,0,1,0,0,0,0,24,0,")

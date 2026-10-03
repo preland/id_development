@@ -1,0 +1,26 @@
+// Test setup: cv_t_view over the text cvs_t, then the edit state for that view (the controller, the hook, the band list, the view as vw_v) as vw_open leaves it, the viewer's state at the top of the first sheet and the chrome fitted to a surface of 400 by 300 pixels, so the page area is 384 by 150 pixels at (0, 128) and its sheets are 100 pixels wide, centred, the first one's top at 152.
+cv_t_ed(string cvs_t) {
+  cv_t_view(cvs_t);
+  cv_ed_new((import lp_t_v));
+  vw_t_up(400, 300);
+} chain (string cvs_t) {
+  vw_t_at_y(0, 100);
+} return void;
+("AB"):() then cv_t_sel:("0:0-0:0")
+("AB|CD"):() then vw_t_sts:("0,0,100,0,")
+
+// Test check: the selection of the controller as anchor paragraph, offset, a dash, then the caret's.
+cv_t_sel() {
+  Ctl cvc = (import vw_ctl);
+  Sel cvsl = cvc.sel;
+  string cvs_z = cvsl.anchor.para + ":" + cvsl.anchor.off + "-" + cvsl.caret.para + ":" + cvsl.caret.off;
+} return string cvs_z;
+given cv_t_ed("AB") ():("0:0-0:0")
+given cv_t_ed("AB") given ed_move((import lp_t_d), (import vw_ctl), 1, 0, 1) ():("0:0-0:1")
+
+// Test check: the edit state list, comma separated.
+cv_t_eds() {
+  string cvs_z = dump_ints((import vw_ed));
+} return string cvs_z;
+given cv_t_ed("AB") ():("0,0,0,0,0,-1,-1,-1,")
+given cv_t_ed("AB") given lset((import vw_ed), 1, 7) ():("0,7,0,0,0,-1,-1,-1,")

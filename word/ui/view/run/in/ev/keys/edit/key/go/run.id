@@ -1,0 +1,42 @@
+// Types the code point cvi_cp at the caret (replacing the selection) when no Ctrl or Alt is held, as one command: the picture is asked to change where it did and the caret is brought into view.
+cv_text(View cvv, int cvi_cp, int cvi_mods) {
+  Ctl cvc = (import vw_ctl);
+  int cvi_ok = (cvi_mods & 6) == 0 && cvi_cp >= 32;
+  if(cvi_ok == 1) {
+    cv_begin(cvv);
+    ed_type(cvv.doc, cvc, cvi_cp);
+    cv_end(cvv);
+  }
+} return void;
+given cv_t_ed("AB") ((import lp_t_v), 120, 0):() then cv_t_dump:("xAB")
+given cv_t_ed("AB") ((import lp_t_v), 120, 2):() then cv_t_dump:("AB")
+given cv_t_ed("AB") ((import lp_t_v), 9, 0):() then cv_t_dump:("AB")
+
+// A key (an event of kind 1: key id cvi_key, modifiers cvi_mods): when the ribbon's key table has a command for it, or it is a navigation or editing key (Escape is not), it is done as one command.
+cv_key(View cvv, int cvi_key, int cvi_mods) {
+  int cvi_cmd = key_cmd(cvi_mods, cvi_key);
+  int cvi_go = cvi_cmd != 0 || (cvi_key > 1000 && cvi_key != 1011);
+  if(cvi_go == 1) {
+    cv_begin(cvv);
+    cv_do(cvv, cvi_key, cvi_mods, cvi_cmd);
+    cv_end(cvv);
+  }
+} return void;
+given cv_t_ed("AB") ((import lp_t_v), 1009, 0):() then cv_t_dump:("|AB")
+given cv_t_ed("AB") ((import lp_t_v), 97, 0):() then cv_t_dump:("AB")
+given cv_t_ed("AB") ((import lp_t_v), 1011, 0):() then cv_t_sel:("0:0-0:0")
+given cv_t_ed("AB AB") ((import lp_t_v), 97, 2):() then cv_t_sel:("0:0-0:5")
+given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) given ed_toggle((import lp_t_d), (import vw_ctl), 1) given cv_look((import lp_t_v)) given lset((import vw_lk), 12, 0) ((import lp_t_v), 122, 2):() then cv_t_lk:("0,0,0,0,0,0,1,0,0,0,0,24,1,")
+
+// Does a key as one command: the command the table gives (a Tab with no modifier is typed, not the table's list command), then the caret movement or the text change the key is.
+cv_do(View cvv, int cvi_key, int cvi_mods, int cvi_cmd) {
+  int cvi_c = cvi_cmd;
+  if(cvi_key == 1010 && cvi_mods == 0) {
+    cvi_c = 0;
+  }
+  cv_cmd(cvv, cvi_c);
+} chain (View cvv, int cvi_key, int cvi_mods, int cvi_cmd) {
+  cv_edit(cvv, cvi_key, cvi_mods, cvi_c);
+} return void;
+given cv_t_ed("AB") ((import lp_t_v), 1010, 0, 414):() then cv_t_dump:("\tAB")
+given cv_t_ed("AB") ((import lp_t_v), 97, 2, 206):() then cv_t_sel:("0:0-0:2")

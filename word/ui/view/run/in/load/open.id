@@ -1,4 +1,4 @@
-// Opens the document at the path for the viewer: it is read by odt_load, laid out and paginated, and kept as the view vw_v. A document that cannot be read leaves an empty one in its place and the message that names the fix as the one entry of vw_msg (the window shows it); a good one leaves vw_msg empty. Answers odt_load's code.
+// Opens the document at the path for the viewer: it is read by odt_load, laid out and paginated, and kept as the view vw_v (exported by cv_ed_new, which also starts its editing state). A document that cannot be read leaves an empty one in its place and the message that names the fix as the one entry of vw_msg (the window shows it); a good one leaves vw_msg empty. Answers odt_load's code.
 vw_open(string vws_path) {
   Doc vwd = doc_new();
   int vwi_code = odt_load(vws_path, vwd);
@@ -13,8 +13,8 @@ vw_open(string vws_path) {
 } chain (string vws_path) {
   lay_paginate(vwv, 0);
   export string[] vw_msg = [vws_msg];
-  export View vw_v = vwv;
+  cv_ed_new(vwv);
 } return int vwi_code;
-given lp_t_font given orc_t_zip("<r><office:text><text:p>Hi</text:p></office:text></r>", "") given orc_t_save ((import orc_tp)):(0) then vw_t_msg:("") then vw_t_pages:(1) then orc_t_gone:(0)
-given gui_font_init ("/nonexistent/none.odt"):(1) then vw_t_msg:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/none.odt]") then vw_t_pages:(1)
+given lp_t_font given orc_t_zip("<r><office:text><text:p>Hi</text:p></office:text></r>", "") given orc_t_save ((import orc_tp)):(0) then vw_t_msg:("") then vw_t_pages:(1) then orc_t_gone:(0) then cv_t_sel:("0:0-0:0")
+given gui_font_init ("/nonexistent/none.odt"):(1) then vw_t_msg:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/none.odt]") then vw_t_pages:(1) then cv_t_eds:("0,0,0,0,0,-1,-1,-1,")
 

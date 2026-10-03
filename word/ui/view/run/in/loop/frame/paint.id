@@ -1,11 +1,24 @@
-// Paints the window when the picture is stale and there is no quit pending (vwi_q is 0), and shows it; when the window did not take the picture the state stays stale so the next frame paints again.
+// Paints the window when the picture is stale and there is no quit pending (vwi_q is 0), and shows it: the whole of it when it is stale in whole (1), only what the band of rows asked for needs when it is stale in part (2, cv_part), except that a menu, a colour grid or a combo box list of the ribbon lies over the page and a band painted alone would paint the page over it, so while one is open a stale part is painted as a whole; when the window did not take the picture the state stays stale in whole so the next frame paints again.
 vw_paint(View vwv, int vwi_q) {
   int[] vwl_st = (import vw_st);
-  if(vwl_st[(import vw_s_d)] == 1 && vwi_q == 0) {
+  int vwi_d = vwl_st[(import vw_s_d)];
+  if(vwi_d == 2 && rib_open((import vw_rb)) == 1) {
+    vwi_d = 1;
+  }
+} chain (View vwv, int vwi_q) {
+  if(vwi_d == 1 && vwi_q == 0) {
     vw_draw_all(vwv);
     lset(vwl_st, (import vw_s_d), 1 - gfx_show());
   }
+  if(vwi_d == 2 && vwi_q == 0) {
+    cv_part(vwv);
+    lset(vwl_st, (import vw_s_d), 1 - gfx_show());
+  }
 } return void;
+given vw_t_boot("/nonexistent/x.odt", 400, 300) given lset((import vw_st), 3, 0) given cv_mark(178, 188) given d2_l_rect(0, 156, 384, 122, 255) given vw_t_at(5, 183) ((import vw_v), 0):() then vw_t_px:(13619151)
+given vw_t_boot("/nonexistent/x.odt", 400, 300) given lset((import vw_st), 3, 0) given cv_mark(178, 188) given d2_l_rect(0, 156, 384, 122, 255) given vw_t_at(5, 168) ((import vw_v), 0):() then vw_t_px:(255)
+given vw_t_boot("/nonexistent/x.odt", 400, 300) given lset((import vw_st), 3, 2) given cv_mark(178, 188) given vw_t_at(2, 60) ((import vw_v), 0):() then vw_t_px:(0)
+given vw_t_boot("/nonexistent/x.odt", 400, 300) given lset((import vw_st), 3, 2) given cv_mark(178, 188) given rbd_t_open(409) given vw_t_at(2, 60) ((import vw_v), 0):() then vw_t_px:(15987699)
 given vw_t_boot("/nonexistent/x.odt", 400, 300) given vw_t_at(2, 60) ((import vw_v), 0):() then vw_t_px:(15987699)
 given vw_t_boot("/nonexistent/x.odt", 400, 300) given vw_t_at(2, 60) ((import vw_v), 1):() then vw_t_px:(0)
 given vw_t_boot("/nonexistent/x.odt", 400, 300) given vw_draw_all((import vw_v)) given vw_draw_all((import vw_v)) given vw_t_at(2, 60) ((import vw_v), 0):() then vw_t_px:(15987699)

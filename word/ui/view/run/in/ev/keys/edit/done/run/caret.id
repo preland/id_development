@@ -1,0 +1,53 @@
+// How far to scroll, in pixels and down positive, to bring the span from cvi_top to cvi_bot of a line of content into a window cvi_ch tall whose first row of content is cvi_sy, keeping cv_see_px pixels clear of the window's edges: 0 when it is in view; when the span is too tall for the window its top is what shows.
+// By hand: a span from 300 to 320 in a window of 150 whose content starts at 100 runs to 344 with its room, 94 below the window's end at 250, so 94 down; one from 60 to 80 lies 36 above the top at 100 with its room, so 64 up.
+cv_dy(int cvi_top, int cvi_bot, int cvi_sy, int cvi_ch) {
+  int cvi_m = (import cv_see_px);
+  int cvi_d = 0;
+  if(cvi_bot + cvi_m > cvi_sy + cvi_ch) {
+    cvi_d = cvi_bot + cvi_m - cvi_sy - cvi_ch;
+  }
+} chain (int cvi_top, int cvi_bot, int cvi_sy, int cvi_ch) {
+  if(cvi_top - cvi_m < cvi_sy + cvi_d) {
+    cvi_d = cvi_top - cvi_m - cvi_sy;
+  }
+} return int cvi_d;
+(300, 320, 100, 150):(94)
+(60, 80, 100, 150):(-64)
+(130, 150, 100, 150):(0)
+(0, 400, 100, 150):(-124)
+(220, 240, 100, 150):(14)
+
+// Scrolls the page area as far as it takes to bring the caret's line into view, down or up and, when the sheets are wider than the area, sideways. The caret is where lay_caret puts it; nothing moves when it is in view already.
+cv_see(View cvv) {
+  int[] cvl_o = cv_where(cvv);
+  int[] cvl_st = (import vw_st);
+  int cvi_z = cvl_st[(import vw_s_z)];
+} chain (View cvv) {
+  int cvi_t = vw_top(cvv, cvl_o[0], cvi_z) + vw_px(cvl_o[2], cvi_z);
+  int cvi_ch = vw_box("canvas", 3);
+  int cvi_b = cvi_t + fx_max(vw_px(cvl_o[3], cvi_z), 1);
+} chain (View cvv) {
+  vw_scroll(cvv, cv_dy(cvi_t, cvi_b, cvl_st[(import vw_s_y)], cvi_ch), cvi_ch);
+  int cvi_cw = vw_box("canvas", 2);
+  int cvi_x = vw_sx(cvv, cvi_z, cvi_cw, cvl_st[(import vw_s_x)]) + cvl_st[(import vw_s_x)] + vw_px(cvl_o[1], cvi_z);
+} chain (View cvv) {
+  vw_scroll_x(cvv, cv_dy(cvi_x, cvi_x + 1, cvl_st[(import vw_s_x)], cvi_cw), cvi_cw);
+} return void;
+given cv_t_ed("AB|CD") ((import lp_t_v)):() then vw_t_sts:("0,0,100,0,")
+given cv_t_ed("AB AB AB") given vw_zoom((import lp_t_v), 400, 150) given vw_scroll_x((import lp_t_v), 200, 384) given ed_move((import lp_t_d), (import vw_ctl), 1, 0, 0) given ed_move((import lp_t_d), (import vw_ctl), 1, 0, 0) ((import lp_t_v)):() then vw_t_sts:("200,110,400,1,")
+given cv_t_ed("A|A|A|A|A|A|A|A") given ed_move((import lp_t_d), (import vw_ctl), 1, 5, 0) ((import lp_t_v)):() then vw_t_sts:("0,204,100,1,")
+
+// Once a frame: when the caret has gone into the other half of its blink the line it is on is asked to be repainted, and a drag that rests outside the page area is followed.
+cv_tick(View cvv) {
+  int cvi_p = cv_on();
+  int[] cvl_e = (import vw_ed);
+  int cvi_c = cvi_p != cvl_e[(import cv_e_ph)];
+} chain (View cvv) {
+  if(cvi_c == 1) {
+    lset(cvl_e, (import cv_e_ph), cvi_p);
+    cv_caret_dirty(cvv);
+  }
+  cv_pull(cvv);
+} return void;
+given cv_t_ed("AB") given cv_t_clock(530) ((import lp_t_v)):() then cv_t_eds:("0,0,0,0,0,530,-1,-1,") then vw_t_sts:("0,0,100,0,")
+given cv_t_ed("AB") given cv_t_clock(1) ((import lp_t_v)):() then cv_t_eds:("0,0,0,0,1,1,187,211,") then vw_t_sts:("0,0,100,2,")

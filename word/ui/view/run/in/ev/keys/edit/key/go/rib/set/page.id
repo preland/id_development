@@ -1,0 +1,46 @@
+// The style the command cmd_style names: the style of the document that has the name cvs_name is applied (a paragraph style to the paragraphs the selection touches, a character style to the selected text); a name the document has no style of changes nothing.
+cv_style(View cvv, Ctl cvc, int cvi_cmd, string cvs_name) {
+  int cvi_s = style_find(cvv.doc.fmt, cvs_name);
+  if(cvi_cmd == (import cmd_style) && cvi_s >= 0) {
+    ed_set_style(cvv.doc, cvc, cvi_s);
+  }
+} return void;
+given cv_t_ed("AB") given cv_t_ask(200) ((import lp_t_v), (import vw_ctl), 414, "Normal"):() then calls ed_set_style:[1]
+given cv_t_ed("AB") given cv_t_ask(200) ((import lp_t_v), (import vw_ctl), 414, "No Such Style"):() then calls ed_set_style:[0]
+
+// The page the command cmd_page_size, cmd_page_orient or cmd_page_margins asks for, as the seven numbers of ed_set_page's fields (the width, the height and the orientation, then the top, right, bottom and left margin), -1 for each that stays as it is: the paper at position cvi_arg of rbd_paper (kept in the orientation the page has), the orientation cvi_arg (turning the page puts its width and height the other way round), or the margins at position cvi_arg of rbd_margins.
+cv_sheet(View cvv, int cvi_cmd, int cvi_arg) {
+  int[] cvl_s = cvv.doc.body.page.size;
+  int[] cvl_v = [-1, -1, -1, -1, -1, -1, -1];
+  int cvi_o = cvl_s[2];
+} chain (View cvv, int cvi_cmd, int cvi_arg) {
+  if(cvi_cmd == (import cmd_page_size)) {
+    cvl_v = [(import rbd_paper)[2 * cvi_arg + cvi_o], (import rbd_paper)[2 * cvi_arg + 1 - cvi_o], -1, -1, -1, -1, -1];
+  }
+  if(cvi_cmd == (import cmd_page_orient) && cvi_arg != cvi_o) {
+    cvl_v = [cvl_s[1], cvl_s[0], cvi_arg, -1, -1, -1, -1];
+  }
+  if(cvi_cmd == (import cmd_page_margins)) {
+    cvl_v = lst_slice((import rbd_margins), 4 * cvi_arg, 4);
+    lst_splice(cvl_v, 0, 0, [-1, -1, -1]);
+  }
+} return int[] cvl_v;
+given cv_t_ed("AB") ((import lp_t_v), 502, 1):([11906, 16838, -1, -1, -1, -1, -1])
+given cv_t_ed("AB") ((import lp_t_v), 503, 1):([3000, 1500, 1, -1, -1, -1, -1])
+given cv_t_ed("AB") ((import lp_t_v), 504, 1):([-1, -1, -1, 720, 720, 720, 720])
+given cv_t_ed("AB") ((import lp_t_v), 301, 1):([-1, -1, -1, -1, -1, -1, -1])
+
+// Does the page setup command cvi_cmd, with the argument cvi_arg, to the document: each field that cv_sheet has a value for is set, one undo step a field.
+cv_page(View cvv, Ctl cvc, int cvi_cmd, int cvi_arg) {
+  int[] cvl_v = cv_sheet(cvv, cvi_cmd, cvi_arg);
+  int cvi_k = 0;
+  while(cvi_k < len(cvl_v)) {
+    if(cvl_v[cvi_k] >= 0) {
+      ed_set_page(cvv.doc, cvc, cvi_k, cvl_v[cvi_k]);
+    }
+    cvi_k = cvi_k + 1;
+  }
+} return void;
+given cv_t_ed("AB") ((import lp_t_v), (import vw_ctl), 502, 1):() then calls ed_set_page:[2]
+given cv_t_ed("AB") ((import lp_t_v), (import vw_ctl), 504, 1):() then calls ed_set_page:[4]
+given cv_t_ed("AB") ((import lp_t_v), (import vw_ctl), 301, 1):() then calls ed_set_page:[0]

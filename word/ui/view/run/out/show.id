@@ -1,4 +1,4 @@
-// Paints page vwi_k with its sheet's top at vwi_top: the sheet with its shadow, centred across the page area vwl_r, and the page's text on it.
+// Paints page vwi_k with its sheet's top at vwi_top: the sheet with its shadow, centred across the page area vwl_r, the page's text on it (only what reaches into the band being painted), and over the text the selection and the caret.
 vw_show(View vwv, int vwi_k, int[] vwl_r, int vwi_top) {
   int[] vwl_st = (import vw_st);
   int vwi_z = vwl_st[(import vw_s_z)];
@@ -6,10 +6,16 @@ vw_show(View vwv, int vwi_k, int[] vwl_r, int vwi_top) {
 } chain (View vwv, int vwi_k, int[] vwl_r, int vwi_top) {
   int vwi_pw = vw_px(lay_sheet(vwv.doc, 0), vwi_z);
   int vwi_ph = vw_px(lay_sheet(vwv.doc, 1), vwi_z);
-  vw_sheet(vwi_x, vwi_top, vwi_pw, vwi_ph);
+  vw_sheet(vwi_x, vwi_top, vwi_pw, vwi_ph, vwl_r[(import cv_a_y0)], vwl_r[(import cv_a_y1)]);
 } chain (View vwv, int vwi_k, int[] vwl_r, int vwi_top) {
   int[] vwl_g = vw_geom(vwv, vwi_x, vwi_top, vwi_z);
+  cv_cull(vwl_g, vwl_r[(import cv_a_y0)], vwl_r[(import cv_a_y1)]);
   vw_page(vwv, vwi_k, vwl_g);
+} chain (View vwv, int vwi_k, int[] vwl_r, int vwi_top) {
+  cv_over(vwv, vwi_k, vwl_g);
 } return void;
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(142, 152) ((import lp_t_v), 0, [0, 128, 384, 150], 152):() then vw_t_px:(16777215)
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(141, 152) ((import lp_t_v), 0, [0, 128, 384, 150], 152):() then vw_t_px:(0)
+given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(142, 152) ((import lp_t_v), 0, [0, 128, 384, 150, 128, 278], 152):() then vw_t_px:(16777215)
+given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(141, 152) ((import lp_t_v), 0, [0, 128, 384, 150, 128, 278], 152):() then vw_t_px:(0)
+given vw_t_two given vw_state_new given vw_t_up(400, 300) given ed_select_all((import lp_t_d), (import vw_ctl)) given vw_t_at(186, 178) ((import lp_t_v), 0, [0, 128, 384, 150, 128, 278], 152):() then vw_t_px:(12049407)
+given vw_t_two given vw_state_new given vw_t_up(400, 300) given d2_l_rect(0, 0, 400, 300, 16777215) given cv_t_clock(530) given vw_t_box0(182, 162, 193, 177) given vw_t_bg(16777215) ((import lp_t_v), 0, [0, 128, 384, 150, 152, 160], 152):() then vw_t_inked:(0)
+given vw_t_two given vw_state_new given vw_t_up(400, 300) given d2_l_rect(0, 0, 400, 300, 16777215) given cv_t_clock(530) given vw_t_box0(182, 162, 193, 177) given vw_t_bg(16777215) ((import lp_t_v), 0, [0, 128, 384, 150, 152, 278], 152):() then vw_t_inked:(1)

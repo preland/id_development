@@ -1,0 +1,44 @@
+// What the selection says about each flag command of cv_f_cmd, in its order: 0 none of it has the flag, 1 all of it, 2 part of it (sel_state; with nothing selected, the text typed next).
+cv_flags(View cvv, Ctl cvc) {
+  int[] cvl_f = [];
+  int cvi_k = 0;
+  while(cvi_k < len((import cv_f_bit))) {
+    push(cvl_f, sel_state(cvv.doc, cvc, (import ed_s_flag) + (import cv_f_bit)[cvi_k]));
+    cvi_k = cvi_k + 1;
+  }
+} return int[] cvl_f;
+given cv_t_ed("AB") given ed_move((import lp_t_d), (import vw_ctl), 1, 0, 1) given ed_toggle((import lp_t_d), (import vw_ctl), 1) given ed_select_all((import lp_t_d), (import vw_ctl)) ((import lp_t_v), (import vw_ctl)):([2, 0, 0, 0, 0, 0])
+given cv_t_ed("AB") ((import lp_t_v), (import vw_ctl)):([0, 0, 0, 0, 0, 0])
+
+// What the paragraphs of the selection say about each alignment command of cv_al_cmd, in its order: 1 for the alignment they all have, else 0.
+cv_aligns(View cvv, Ctl cvc) {
+  int cvi_a = sel_state(cvv.doc, cvc, (import ed_s_para) + (import word_p_align));
+  int[] cvl_a = [];
+  int cvi_k = 0;
+} chain (View cvv, Ctl cvc) {
+  while(cvi_k < len((import cv_al_cmd))) {
+    push(cvl_a, cvi_a == cvi_k);
+    cvi_k = cvi_k + 1;
+  }
+} return int[] cvl_a;
+given cv_t_ed("AB") ((import lp_t_v), (import vw_ctl)):([1, 0, 0, 0])
+given cv_t_ed("AB") given cv_arg((import lp_t_v), 402, 0, "") ((import lp_t_v), (import vw_ctl)):([0, 1, 0, 0])
+
+// Notes what the selection looks like, for the ribbon, in the list vw_lk (see cv_lk_dirty): the flags, the alignments, the font and the size; and when any of them is not as it was last noted, that the ribbon has to be told (vw_rib_look does it once a frame).
+cv_look(View cvv) {
+  Ctl cvc = (import vw_ctl);
+  int[] cvl_n = cv_flags(cvv, cvc);
+  lst_extend(cvl_n, cv_aligns(cvv, cvc));
+} chain (View cvv) {
+  push(cvl_n, sel_state(cvv.doc, cvc, (import word_c_font)));
+  push(cvl_n, sel_state(cvv.doc, cvc, (import word_c_size)));
+  int[] cvl_o = lst_slice((import vw_lk), 0, len(cvl_n));
+} chain (View cvv) {
+  int cvi_c = dump_ints(cvl_n) != dump_ints(cvl_o);
+  if(cvi_c == 1) {
+    lst_splice((import vw_lk), 0, len(cvl_n), cvl_n);
+    lset((import vw_lk), (import cv_lk_dirty), 1);
+  }
+} return void;
+given cv_t_ed("AB") given lset((import vw_lk), 12, 0) ((import lp_t_v)):() then cv_t_lk:("0,0,0,0,0,0,1,0,0,0,0,24,0,")
+given cv_t_ed("AB") given lset((import vw_lk), 12, 0) given ed_select_all((import lp_t_d), (import vw_ctl)) given ed_toggle((import lp_t_d), (import vw_ctl), 1) ((import lp_t_v)):() then cv_t_lk:("1,0,0,0,0,0,1,0,0,0,0,24,1,")

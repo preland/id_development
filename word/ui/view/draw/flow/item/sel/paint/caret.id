@@ -1,0 +1,31 @@
+// Paints the caret as a bar one pixel wide and as tall as its line, at the pixel the pen of its code point is on, the page's geometry cvl_g and the caret's [page, x, y, height] cvl_o in lu from the top left of the sheet.
+cv_bar(int[] cvl_o, int[] cvl_g) {
+  int cvi_z = cvl_g[(import vw_g_z)];
+  int cvi_x = cvl_g[(import vw_g_x)] + vw_px(cvl_o[1], cvi_z);
+  int cvi_y = cvl_g[(import vw_g_y)] + vw_px(cvl_o[2], cvi_z);
+} chain (int[] cvl_o, int[] cvl_g) {
+  int cvi_h = fx_max(vw_px(cvl_o[3], cvi_z), 1);
+  d2_l_rect(cvi_x, cvi_y, 1, cvi_h, (import cv_c_caret));
+} return void;
+given sf_l_init(40, 40) given d2_l_rect(0, 0, 40, 40, 16777215) given vw_t_at(10, 25) ([0, 640, 1280, 1088], [0, 0, 100, 0, 0]):() then vw_t_px:(0)
+given sf_l_init(40, 40) given d2_l_rect(0, 0, 40, 40, 16777215) given vw_t_at(11, 25) ([0, 640, 1280, 1088], [0, 0, 100, 0, 0]):() then vw_t_px:(16777215)
+given sf_l_init(40, 40) given d2_l_rect(0, 0, 40, 40, 16777215) given vw_t_at(10, 18) ([0, 640, 1280, 1088], [0, 0, 100, 0, 0]):() then vw_t_px:(16777215)
+
+// Paints the caret of the controller if it is on page cvi_k (whose geometry is cvl_g) and in the solid half of its blink.
+cv_caret_page(View cvv, int cvi_k, int[] cvl_g) {
+  int[] cvl_o = cv_where(cvv);
+  if(cvl_o[0] == cvi_k && cv_on() == 1) {
+    cv_bar(cvl_o, cvl_g);
+  }
+} return void;
+given cv_t_ed("AB AB AB") given cv_t_clock(0) given sf_l_init(400, 300) given d2_l_rect(0, 0, 400, 300, 16777215) given vw_t_at(182, 165) ((import lp_t_v), 0, [142, 152, 100, 2560, 640]):() then vw_t_px:(0)
+given cv_t_ed("AB AB AB") given cv_t_clock(530) given sf_l_init(400, 300) given d2_l_rect(0, 0, 400, 300, 16777215) given vw_t_at(182, 165) ((import lp_t_v), 0, [142, 152, 100, 2560, 640]):() then vw_t_px:(16777215)
+given cv_t_ed("AB AB AB") given sf_l_init(400, 300) given d2_l_rect(0, 0, 400, 300, 16777215) given vw_t_at(182, 165) ((import lp_t_v), 1, [142, 152, 100, 2560, 640]):() then vw_t_px:(16777215)
+
+// Paints what lies over the text of page cvi_k, whose geometry is cvl_g: the selection, then the caret.
+cv_over(View cvv, int cvi_k, int[] cvl_g) {
+  cv_sel_page(cvv, cvi_k, cvl_g);
+  cv_caret_page(cvv, cvi_k, cvl_g);
+} return void;
+given cv_t_ed("AB AB AB") given cv_t_clock(530) given ed_select_all((import lp_t_d), (import vw_ctl)) given sf_l_init(400, 300) given d2_l_rect(0, 0, 400, 300, 16777215) given vw_t_at(185, 165) ((import lp_t_v), 0, [142, 152, 100, 2560, 640]):() then vw_t_px:(12049407)
+given cv_t_ed("AB AB AB") given cv_t_clock(0) given sf_l_init(400, 300) given d2_l_rect(0, 0, 400, 300, 16777215) given vw_t_at(182, 165) ((import lp_t_v), 0, [142, 152, 100, 2560, 640]):() then vw_t_px:(0)

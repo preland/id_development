@@ -1,0 +1,51 @@
+// What the viewer does for a command of the ribbon with its argument and name: the three zoom commands zoom the page area (vwi_arg and vws_name are not used by any of them), every other command is the canvas's, which does it to the document if it is one it does (cv_rib) and otherwise leaves everything as it is.
+vw_cmd(View vwv, int vwi_cmd, int vwi_arg, string vws_name) {
+  int vwi_z = (import vw_st)[(import vw_s_z)];
+  int vwi_ch = vw_box("canvas", 3);
+  if(vwi_cmd == (import cmd_zoom_in)) {
+    vw_zoom(vwv, vwi_z + (import vw_zoom_step), vwi_ch);
+  }
+} chain (View vwv, int vwi_cmd, int vwi_arg, string vws_name) {
+  if(vwi_cmd == (import cmd_zoom_out)) {
+    vw_zoom(vwv, vwi_z - (import vw_zoom_step), vwi_ch);
+  }
+  if(vwi_cmd == (import cmd_zoom_100)) {
+    vw_zoom(vwv, 100, vwi_ch);
+  }
+  cv_rib(vwv, vwi_cmd, vwi_arg, vws_name);
+} return void;
+given vw_t_two given vw_t_up(400, 300) given vw_t_at_y(0, 100) ((import lp_t_v), 601, 0, ""):() then vw_t_sts:("0,0,110,1,")
+given vw_t_two given vw_t_up(400, 300) given vw_t_at_y(0, 150) ((import lp_t_v), 603, 0, ""):() then vw_t_sts:("0,0,100,1,")
+given vw_t_two given vw_t_up(400, 300) given vw_t_at_y(0, 150) ((import lp_t_v), 101, 0, ""):() then vw_t_sts:("0,0,150,0,")
+given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) given cv_t_ask(2) ((import lp_t_v), 308, 40, ""):() then cv_t_ans:(40)
+
+// Once a frame: the tooltip's check, and what the selection looks like (vw_rib_look); the picture is stale when a tooltip has come on show or gone, or the ribbon was told something.
+vw_rib_tick() {
+  int vwi_t = rib_tick((import vw_rb));
+  int vwi_l = vw_rib_look();
+  if(vwi_t == 1 || vwi_l == 1) {
+    lset((import vw_st), (import vw_s_d), 1);
+  }
+} return void;
+given lp_t_font given vw_t_up(400, 300) given rbd_ui_set(1, 1, 1) given vw_rib_make given cv_t_view("AB") given cv_ed_new((import lp_t_v)) given vw_state_new given lset((import vw_st), 3, 0) given lset((import vw_lk), 12, 0) ():() then vw_t_sts:("0,0,100,0,")
+given lp_t_font given vw_t_up(400, 300) given rbd_ui_set(1, 1, 1) given vw_rib_make given vw_rib_fit given cv_t_view("AB") given cv_ed_new((import lp_t_v)) given vw_state_new given lset((import vw_st), 3, 0) given rbd_t_clock(1000) given rbd_t_show("a") given rbd_t_clock(1600) ():() then vw_t_sts:("0,0,100,1,")
+given lp_t_font given vw_t_up(400, 300) given rbd_ui_set(1, 1, 1) given vw_rib_make given vw_rib_fit given cv_t_view("AB") given cv_ed_new((import lp_t_v)) given vw_state_new given lset((import vw_st), 3, 0) ():() then vw_t_sts:("0,0,100,1,")
+
+// One event of the window for the ribbon first: a mouse event, the wheel or a key goes to it, and the picture is stale when it asks to be painted again, its command is run, and answers 1 when the ribbon took the event, so that nothing else sees it (a press in its band, or any event while one of its menus is open).
+vw_rib_event(View vwv, int vwi_kind, int[] vwl_ev) {
+  int vwi_for = vwi_kind == 1 || vwi_kind == 2 || vwi_kind == 3 || vwi_kind == 4 || vwi_kind == 5 || vwi_kind == 8;
+  int vwi_b = 0;
+  if(vwi_for == 1) {
+    vwi_b = rib_event((import vw_rb), vwi_kind, vwl_ev);
+  }
+} chain (View vwv, int vwi_kind, int[] vwl_ev) {
+  if((vwi_b & 1) != 0) {
+    lset((import vw_st), (import vw_s_d), 1);
+  }
+  if((vwi_b & 2) != 0) {
+    vw_cmd(vwv, rib_cmd((import vw_rb)), rib_arg((import vw_rb)), rib_name((import vw_rb)));
+  }
+  int vwi_took = (vwi_b & 8) != 0;
+} return int vwi_took;
+given lp_t_font given vw_t_two given vw_t_up(400, 300) given rbd_ui_set(1, 1, 1) given vw_rib_make given vw_rib_fit given vw_t_at_y(0, 100) ((import lp_t_v), 3, [3, 20, 100, 1, 0]):(1)
+given lp_t_font given vw_t_two given vw_t_up(400, 300) given rbd_ui_set(1, 1, 1) given vw_rib_make given vw_rib_fit given vw_t_at_y(0, 100) ((import lp_t_v), 3, [3, 20, 250, 1, 0]):(0)

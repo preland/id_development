@@ -1,0 +1,48 @@
+// Runs the command cvi_cmd (the ids of the ribbon table, word/conf.id) that the canvas itself can do: undo and redo, the clipboard commands, select all, bold, italic, underline, strikethrough and the page break. Any other command is the shell's and is left alone here.
+cv_cmd(View cvv, int cvi_cmd) {
+  Ctl cvc = (import vw_ctl);
+  cv_hist(cvv, cvc, cvi_cmd);
+  cv_clip(cvv, cvc, cvi_cmd);
+} chain (View cvv, int cvi_cmd) {
+  cv_fmt(cvv, cvc, cvi_cmd);
+  if(cvi_cmd == (import cmd_select_all)) {
+    ed_select_all(cvv.doc, cvc);
+  }
+} return void;
+given cv_t_ed("AB AB") ((import lp_t_v), 206):() then cv_t_sel:("0:0-0:5")
+given cv_t_ed("AB AB") ((import lp_t_v), 101):() then cv_t_sel:("0:0-0:0")
+given cv_t_ed("AB") given ed_type((import lp_t_d), (import vw_ctl), 120) ((import lp_t_v), 201):() then cv_t_dump:("AB")
+given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) ((import lp_t_v), 203):() then cv_t_dump:("")
+given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) ((import lp_t_v), 301):() then cv_t_bold:(1)
+
+// Undoes (cmd_undo) or redoes (cmd_redo) the last change of the document, which puts the selection back as it was.
+cv_hist(View cvv, Ctl cvc, int cvi_cmd) {
+  int cvi_r = 0;
+  if(cvi_cmd == (import cmd_undo)) {
+    cvi_r = hist_undo(cvv.doc, cvc);
+  }
+  if(cvi_cmd == (import cmd_redo)) {
+    cvi_r = hist_redo(cvv.doc, cvc);
+  }
+} return void;
+given cv_t_ed("AB") given ed_type((import lp_t_d), (import vw_ctl), 120) ((import lp_t_v), (import vw_ctl), 201):() then cv_t_dump:("AB")
+given cv_t_ed("AB") given ed_type((import lp_t_d), (import vw_ctl), 120) given cv_hist((import lp_t_v), (import vw_ctl), 201) ((import lp_t_v), (import vw_ctl), 202):() then cv_t_dump:("xAB")
+
+// Cut (cmd_cut), copy (cmd_copy) and paste (cmd_paste): the selection goes to the controller's fragment and its text to the system clipboard (an empty selection leaves the clipboard alone), and paste puts what the clipboard holds in place of the selection; an empty clipboard changes nothing.
+cv_clip(View cvv, Ctl cvc, int cvi_cmd) {
+  string cvs_t = "";
+  if(cvi_cmd == (import cmd_cut)) {
+    cvs_t = ed_cut(cvv.doc, cvc);
+  }
+  if(cvi_cmd == (import cmd_copy)) {
+    cvs_t = ed_copy(cvv.doc, cvc);
+  }
+} chain (View cvv, Ctl cvc, int cvi_cmd) {
+  int cvi_s = len(cvs_t) > 0 && gfx_clip_set(cvs_t) == 1;
+  if(cvi_cmd == (import cmd_paste)) {
+    ed_paste(cvv.doc, cvc, gfx_clip_get());
+  }
+} return void;
+given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) ((import lp_t_v), (import vw_ctl), 203):() then cv_t_dump:("")
+given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) ((import lp_t_v), (import vw_ctl), 204):() then cv_t_dump:("AB") then cv_t_clip:("AB")
+given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) ((import lp_t_v), (import vw_ctl), 205):() then cv_t_dump:("AB")

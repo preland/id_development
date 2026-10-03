@@ -1,0 +1,59 @@
+// How much of the picture an edit that left the stale paragraphs cvl_r ([first, last]) moved, for a document that had cvi_np pages before: 0 nothing below the paragraphs moved, 1 what is below them moved, 2 the pages changed in number or paragraphs went without any being marked, so everything must be repainted. It compares the paragraph tops now with the ones vw_tp kept from before.
+cv_shift(View cvv, int[] cvl_r, int cvi_np) {
+  int[] cvl_tp = (import vw_tp);
+  int cvi_n = len(cvv.pages.tops);
+  int cvi_s = cvi_n != len(cvl_tp) - 1;
+} chain (View cvv, int[] cvl_r, int cvi_np) {
+  int cvi_k = cvl_r[1] + 1;
+  if(cvi_s == 0 && cvl_r[0] >= 0 && cvi_k < cvi_n) {
+    cvi_s = cvv.pages.tops[cvi_k] != cvl_tp[cvi_k];
+  }
+  if(cvl_r[0] < 0) {
+    cvi_s = 2 * cvi_s;
+  }
+} chain (View cvv, int[] cvl_r, int cvi_np) {
+  if(cvi_np != lay_page_count(cvv)) {
+    cvi_s = 2;
+  }
+} return int cvi_s;
+given cv_t_ed("AB|CD|EF") ((import lp_t_v), [1, 1], 1):(0)
+given cv_t_ed("AB|CD|EF") ((import lp_t_v), [1, 1], 2):(2)
+given cv_t_ed("AB|CD|EF") given lset((import vw_tp), 2, 0) ((import lp_t_v), [0, 1], 1):(1)
+given cv_t_ed("AB|CD|EF") given cv_snap((import vw_tp), [1, 2, 3]) ((import lp_t_v), [1, 1], 1):(1)
+given cv_t_ed("AB|CD|EF") given cv_snap((import vw_tp), [1, 2, 3]) ((import lp_t_v), [-1, -1], 1):(2)
+given cv_t_ed("AB|CD|EF") given lset((import vw_tp), 0, 7) ((import lp_t_v), [-1, -1], 1):(0)
+
+// Asks for what the stale paragraphs cvl_r cover to be repainted: from the top of the first, down to the bottom of the last when nothing below them moved (cvi_s 0) and as far as the end of the page area when it did (1). When the last paragraph of the document is among them it may have been taller before, which vw_tp kept as the end of the document, and what it was is repainted too.
+cv_stripe(View cvv, int[] cvl_r, int cvi_s) {
+  int cvi_y = cvv.pages.tops[cvl_r[0]];
+  int cvi_e = cv_end_y(cvv, cvl_r[1]);
+  if(cvi_s == 1) {
+    cvi_e = cvi_y + (import cv_far);
+  }
+} chain (View cvv, int[] cvl_r, int cvi_s) {
+  int[] cvl_tp = (import vw_tp);
+  int cvi_l = cvl_r[1] + 1 == len(cvv.pages.tops);
+  if(cvi_l == 1) {
+    cvi_e = fx_max(cvi_e, cvl_tp[len(cvl_tp) - 1]);
+  }
+} chain (View cvv, int[] cvl_r, int cvi_s) {
+  cv_band(cvv, cvi_y, cvi_e);
+} return void;
+given cv_t_ed("AB|CD|EF") ((import lp_t_v), [1, 1], 0):() then cv_t_eds:("0,0,0,0,0,-1,213,245,")
+given cv_t_ed("AB|CD|EF") ((import lp_t_v), [1, 1], 1):() then cv_t_eds:("0,0,0,0,0,-1,213,15844,")
+given cv_t_ed("AB|CD|EF") ((import lp_t_v), [2, 2], 0):() then cv_t_eds:("0,0,0,0,0,-1,239,263,")
+given cv_t_ed("AB|CD|EF") given lset((import vw_tp), 3, 6000) ((import lp_t_v), [2, 2], 0):() then cv_t_eds:("0,0,0,0,0,-1,239,276,")
+
+// Asks for the repainting that an edit that left the stale paragraphs cvl_r (and had cvi_np pages) needs: the whole picture when cv_shift says so, else the paragraphs and what is below them if that moved.
+cv_dirty(View cvv, int[] cvl_r, int cvi_np) {
+  int cvi_s = cv_shift(cvv, cvl_r, cvi_np);
+  if(cvi_s == 2) {
+    lset((import vw_st), (import vw_s_d), 1);
+  }
+  if(cvi_s < 2 && cvl_r[0] >= 0) {
+    cv_stripe(cvv, cvl_r, cvi_s);
+  }
+} return void;
+given cv_t_ed("AB|CD|EF") ((import lp_t_v), [1, 1], 2):() then vw_t_sts:("0,0,100,1,")
+given cv_t_ed("AB|CD|EF") ((import lp_t_v), [1, 1], 1):() then cv_t_eds:("0,0,0,0,0,-1,213,245,")
+given cv_t_ed("AB|CD|EF") ((import lp_t_v), [-1, -1], 1):() then cv_t_eds:("0,0,0,0,0,-1,-1,-1,")

@@ -18,7 +18,7 @@ page_ix(int field) {
 (1):(1)
 (6):(3)
 
-// SET_PAGE, at = [field], data = [the new value]: a page size entry (0 width, 1 height, 2 orientation) or a margin (3 top, 4 right, 5 bottom, 6 left). The inverse sets the old value.
+// SET_PAGE, at = [field], data = [the new value]: a page size entry (0 width, 1 height, 2 orientation) or a margin (3 top, 4 right, 5 bottom, 6 left). The inverse sets the old value. Every paragraph is marked stale, since the text area they are laid out in changes.
 ap_page(Doc d, Op eo) {
   int[] cells = page_list(d.body.page, eo.at[0]);
   int ix = page_ix(eo.at[0]);
@@ -29,6 +29,8 @@ ap_page(Doc d, Op eo) {
   int[] loc = lst_copy(eo.at);
 } chain (Doc d, Op eo) {
   Op inv = op_make((import ed_k_page), loc, old);
+  ed_stale_all(d);
 } return Op inv;
 given fx_setup("") ((import fxd), Op(9, [0], [5000])):(Op(9, [0], [11906])) then fx_dump:("G 5000,16838,0, 1440,1440,1440,1440, 0,0,0,\nP0  0:0:-1,")
 given fx_setup("") ((import fxd), Op(9, [6], [720])):(Op(9, [6], [1440])) then fx_dump:("G 11906,16838,0, 1440,1440,1440,720, 0,0,0,\nP0  0:0:-1,")
+given fx_setup("ab|cd") given fx_fresh ((import fxd), Op(9, [0], [5000])):(Op(9, [0], [11906])) then fx_stale:("-1,-1")

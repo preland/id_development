@@ -1,21 +1,29 @@
-// One event of the window, of kind vwi_kind with the fields vwl_ev: answers 1 when it asks to quit (the window closing, or the key that quits). A key is the keyboard's business, a wheel notch scrolls or zooms, the mouse goes to the scrollbar, and a resize makes the picture stale (the surface is fitted at the start of the next frame).
+// One event of the window, of kind vwi_kind with the fields vwl_ev: answers 1 when it asks to quit (the window closing, or the key that quits). A key and the text a key types are the canvas's business (it edits the document), a wheel notch scrolls or zooms, the mouse goes to the page area or the scrollbar, and a resize makes the picture stale (the surface is fitted at the start of the next frame).
 vw_on(View vwv, int vwi_kind, int[] vwl_ev) {
   int vwi_ch = vw_box("canvas", 3);
   int vwi_q = vwi_kind == 7;
-  if(vwi_kind == 1) {
+  int vwi_r = vw_rib_event(vwv, vwi_kind, vwl_ev);
+} chain (View vwv, int vwi_kind, int[] vwl_ev) {
+  if(vwi_kind == 1 && vwi_r == 0) {
     vwi_q = vw_key(vwv, vwl_ev[1], vwl_ev[2], vwi_ch);
   }
-} chain (View vwv, int vwi_kind, int[] vwl_ev) {
-  if(vwi_kind == 8) {
+  if(vwi_kind == 8 && vwi_r == 0) {
     vw_wheel(vwv, vwl_ev[1], vwl_ev[2], gfx_mods(), vwi_ch, vw_box("canvas", 2));
   }
-  if(vwi_kind >= 3 && vwi_kind <= 5) {
-    vw_mouse(vwi_kind, vwl_ev);
+  if(vwi_kind >= 3 && vwi_kind <= 5 && vwi_r == 0) {
+    vw_mouse(vwv, vwi_kind, vwl_ev);
   }
+} chain (View vwv, int vwi_kind, int[] vwl_ev) {
   if(vwi_kind == 6) {
     lset((import vw_st), (import vw_s_d), 1);
   }
+  if(vwi_kind == 2 && vwi_r == 0) {
+    cv_text(vwv, vwl_ev[1], vwl_ev[2]);
+  }
 } return int vwi_q;
+given vw_t_boot("/nonexistent/x.odt", 400, 300) given lset((import vw_st), 3, 0) given cv_t_clock(0) ((import vw_v), 2, [2, 120, 0, 0, 0]):(0) then cv_t_eds:("0,0,0,0,1,0,273,298,")
+given vw_t_boot("/nonexistent/x.odt", 400, 300) given lset((import vw_st), 3, 0) ((import vw_v), 2, [2, 120, 2, 0, 0]):(0) then cv_t_eds:("0,0,0,0,0,-1,-1,-1,")
+given vw_t_boot("/nonexistent/x.odt", 400, 300) given lset((import vw_st), 3, 0) given cv_t_clock(0) ((import vw_v), 3, [3, 190, 200, 1, 1]):(0) then cv_t_eds:("1,0,0,0,1,0,273,298,")
 given vw_t_boot("/nonexistent/x.odt", 400, 300) ((import vw_v), 7, [7, 0, 0, 0, 0]):(1)
 given vw_t_boot("/nonexistent/x.odt", 400, 300) ((import vw_v), 1, [1, 1011, 0, 0, 0]):(1)
 given vw_t_boot("/nonexistent/x.odt", 400, 300) ((import vw_v), 1, [1, 1004, 0, 0, 0]):(0)
@@ -44,8 +52,12 @@ vw_tick(View vwv) {
   }
   int vwi_q = vw_events(vwv);
 } chain (View vwv) {
+  cv_tick(vwv);
+  vw_rib_tick();
   vw_paint(vwv, vwi_q);
+} chain (View vwv) {
   sleep_ms(1);
 } return int vwi_q;
 given vw_t_boot("/nonexistent/x.odt", 400, 300) given vw_t_at(2, 60) ((import vw_v)):(0) then vw_t_px:(15987699)
-given vw_t_boot("/nonexistent/x.odt", 400, 300) given lset((import vw_st), 3, 0) given vw_t_at(2, 60) ((import vw_v)):(0) then vw_t_px:(0)
+given vw_t_boot("/nonexistent/x.odt", 400, 300) given lset((import vw_st), 3, 0) given lset((import vw_lk), 12, 0) given vw_t_at(2, 60) ((import vw_v)):(0) then vw_t_px:(0)
+given vw_t_boot("/nonexistent/x.odt", 400, 300) given lset((import vw_st), 3, 0) given lset((import vw_lk), 12, 0) given cv_t_clock(1) ((import vw_v)):(0) then cv_t_eds:("0,0,0,0,1,1,-1,-1,")

@@ -1,0 +1,49 @@
+// Tells the ribbon what the selection looks like, once whenever the canvas noted a change (the last cell of vw_lk): which flag and alignment buttons are on, and the family and the size the selection has. Answers 1 when it did, so that the picture is made again.
+vw_rib_look() {
+  int[] vwl_k = (import vw_lk);
+  int vwi_d = vwl_k[(import cv_lk_dirty)];
+  if(vwi_d == 1) {
+    vw_rib_put(vwl_k);
+    vw_rib_fields((import vw_v), vwl_k);
+    lset(vwl_k, (import cv_lk_dirty), 0);
+  }
+} return int vwi_d;
+given lp_t_font given vw_t_up(400, 300) given rbd_ui_set(1, 1, 1) given vw_rib_make given vw_rib_fit given cv_t_view("AB") given cv_ed_new((import lp_t_v)) ():(1)
+given lp_t_font given vw_t_up(400, 300) given rbd_ui_set(1, 1, 1) given vw_rib_make given vw_rib_fit given cv_t_view("AB") given cv_ed_new((import lp_t_v)) given lset((import vw_lk), 12, 0) ():(0)
+
+// Gives the ribbon the state of every flag command of cv_f_cmd and every alignment command of cv_al_cmd, as the list vwl_k says: the flags 0 off, 1 on, 2 mixed, then 1 for the alignment the paragraphs have, which the ribbon shows as on.
+vw_rib_put(int[] vwl_k) {
+  int vwi_k = 0;
+  while(vwi_k < len((import cv_f_cmd))) {
+    rib_put((import vw_rb), (import cv_f_cmd)[vwi_k], vwl_k[vwi_k]);
+    vwi_k = vwi_k + 1;
+  }
+  vwi_k = 0;
+} chain (int[] vwl_k) {
+  while(vwi_k < len((import cv_al_cmd))) {
+    rib_put((import vw_rb), (import cv_al_cmd)[vwi_k], vwl_k[len((import cv_f_cmd)) + vwi_k]);
+    vwi_k = vwi_k + 1;
+  }
+} return void;
+given lp_t_font given vw_t_up(400, 300) given rbd_ui_set(1, 1, 1) given vw_rib_make given vw_rib_fit ([2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]):() then vw_t_rs:("2,0")
+given lp_t_font given vw_t_up(400, 300) given rbd_ui_set(1, 1, 1) given vw_rib_make given vw_rib_fit ([0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]):() then vw_t_rs:("0,1")
+
+// Shows the family and the size the list vwl_k says the selection has in the ribbon's two combo boxes: the family is the one the document's list of fonts has at the number the list gives, the size in points with ".5" for an odd number of half-points; a selection that mixes them, or has none, shows an empty box.
+vw_rib_fields(View vwv, int[] vwl_k) {
+  int vwi_f = vwl_k[(import cv_lk_font)];
+  string vws_n = "";
+  if(vwi_f >= 0 && vwi_f < len(vwv.doc.ext.fonts)) {
+    vws_n = vwv.doc.ext.fonts[vwi_f];
+  }
+} chain (View vwv, int[] vwl_k) {
+  string vws_s = "";
+  if(vwl_k[(import cv_lk_size)] > 0) {
+    vws_s = oc_pt(vwl_k[(import cv_lk_size)]);
+    vws_s = str_slice(vws_s, 0, len(vws_s) - 2);
+  }
+  rib_text((import vw_rb), (import cmd_font_family), vws_n);
+} chain (View vwv, int[] vwl_k) {
+  rib_text((import vw_rb), (import cmd_font_size), vws_s);
+} return void;
+given lp_t_font given vw_t_up(400, 300) given rbd_ui_set(1, 1, 1) given vw_rib_make given vw_rib_fit given cv_t_view("AB") ((import lp_t_v), [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 21, 0]):() then rbd_t_cd:("0:serif|3|102,60,104,24;1:10.5|4|224,60,28,24")
+given lp_t_font given vw_t_up(400, 300) given rbd_ui_set(1, 1, 1) given vw_rib_make given vw_rib_fit given cv_t_view("AB") ((import lp_t_v), [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, -2, 0]):() then rbd_t_cd:("0:serif|3|102,60,104,24;1:|4|224,60,28,24")

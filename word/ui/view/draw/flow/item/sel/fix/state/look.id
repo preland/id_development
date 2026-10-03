@@ -1,0 +1,22 @@
+// Test check: whether the selection of the controller is bold, as sel_state tells it: 0 none of it, 1 all of it, 2 part of it.
+cv_t_bold() {
+  Ctl cvc = (import vw_ctl);
+  int cvi_s = sel_state((import lp_t_d), cvc, (import ed_s_flag) + (import word_f_bold));
+} return int cvi_s;
+given cv_t_ed("AB") ():(0)
+given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) given ed_toggle((import lp_t_d), (import vw_ctl), 1) ():(1)
+
+// Test check: the paragraph tops and the end of the last paragraph that the controller's state kept (vw_tp), comma separated.
+cv_t_tp() {
+  string cvs_z = dump_ints((import vw_tp));
+} return string cvs_z;
+given cv_t_view("AB") given cv_ed_new((import lp_t_v)) ():("640,1792,")
+given cv_t_view("AB|CD") given cv_ed_new((import lp_t_v)) ():("640,2304,3456,")
+
+// Test check: the plain text of the fragment the controller last copied.
+cv_t_clip() {
+  Ctl cvc = (import vw_ctl);
+  string cvs_t = frag_plain(cvc.clip);
+} return string cvs_t;
+given cv_t_ed("AB") ():("")
+given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) given cv_cmd((import lp_t_v), 204) ():("AB")

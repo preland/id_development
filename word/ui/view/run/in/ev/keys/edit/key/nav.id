@@ -1,0 +1,47 @@
+// What the key cvi_key (1001 to 1013) with the modifiers cvi_mods does to the caret when it is a movement key: the caret moves by the direction and unit the key tables give (with Ctrl, the Ctrl ones), and with Shift the selection grows instead of collapsing. Any other key leaves everything as it is.
+cv_nav(View cvv, int cvi_key, int cvi_mods) {
+  int cvi_i = cvi_key - 1001;
+  int cvi_c = (cvi_mods & 2) != 0;
+  int cvi_e = (cvi_mods & 1) != 0;
+} chain (View cvv, int cvi_key, int cvi_mods) {
+  if(cvi_i >= 0 && cvi_i < 13) {
+    cv_step(cvv, cvi_i, cvi_c, cvi_e);
+  }
+} return void;
+given cv_t_ed("AB AB AB") given ed_move((import lp_t_d), (import vw_ctl), 1, 5, 0) ((import lp_t_v), 1001, 0):() then cv_t_sel:("0:7-0:7")
+given cv_t_ed("AB AB AB") ((import lp_t_v), 1002, 1):() then cv_t_sel:("0:0-0:1")
+given cv_t_ed("AB AB AB") ((import lp_t_v), 97, 0):() then cv_t_sel:("0:0-0:0")
+
+// Moves the caret as movement key number cvi_i (the key less 1001) says, with Ctrl when cvi_c is 1 and extending the selection when cvi_e is 1. A key that is no movement (dir 0 in the tables) does nothing.
+cv_step(View cvv, int cvi_i, int cvi_c, int cvi_e) {
+  Ctl cvc = (import vw_ctl);
+  int[] cvl_d = (import cv_k_dir);
+  int[] cvl_u = (import cv_k_unit);
+} chain (View cvv, int cvi_i, int cvi_c, int cvi_e) {
+  if(cvi_c == 1) {
+    cvl_d = (import cv_k_cdir);
+    cvl_u = (import cv_k_cunit);
+  }
+  if(cvl_d[cvi_i] != 0) {
+    ed_move(cvv.doc, cvc, cvl_d[cvi_i], cvl_u[cvi_i], cvi_e);
+  }
+} return void;
+given cv_t_ed("AB AB AB") ((import lp_t_v), 1, 0, 0):() then cv_t_sel:("0:1-0:1")
+given cv_t_ed("AB AB AB") ((import lp_t_v), 3, 0, 0):() then cv_t_sel:("0:3-0:3")
+given cv_t_ed("AB AB AB") ((import lp_t_v), 1, 1, 0):() then cv_t_sel:("0:3-0:3")
+given cv_t_ed("AB AB AB") ((import lp_t_v), 3, 1, 1):() then cv_t_sel:("0:0-0:8")
+given cv_t_ed("AB AB AB") ((import lp_t_v), 7, 0, 0):() then cv_t_sel:("0:0-0:0")
+
+// What a key cvi_key with the modifiers cvi_mods does when the table has no command for it (cvi_cmd is 0) and no Alt or Super is held: it moves the caret, or it is Backspace, Delete, Enter or Tab and changes the text.
+cv_edit(View cvv, int cvi_key, int cvi_mods, int cvi_cmd) {
+  int cvi_c = (cvi_mods & 2) != 0;
+  int cvi_p = cvi_cmd == 0 && (cvi_mods & 12) == 0;
+  if(cvi_p == 1) {
+    cv_nav(cvv, cvi_key, cvi_mods);
+    cv_chg(cvv, cvi_key, cvi_c);
+  }
+} return void;
+given cv_t_ed("AB AB AB") ((import lp_t_v), 1002, 0, 0):() then cv_t_sel:("0:1-0:1")
+given cv_t_ed("AB AB AB") ((import lp_t_v), 1002, 0, 5):() then cv_t_sel:("0:0-0:0")
+given cv_t_ed("AB AB AB") ((import lp_t_v), 1002, 4, 0):() then cv_t_sel:("0:0-0:0")
+given cv_t_ed("AB AB") given ed_move((import lp_t_d), (import vw_ctl), 1, 5, 0) ((import lp_t_v), 1007, 2, 0):() then cv_t_dump:("AB ")

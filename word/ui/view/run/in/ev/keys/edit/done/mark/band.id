@@ -1,0 +1,50 @@
+// Asks for the rows cvi_a to cvi_b - 1 of the surface to be repainted by the next frame: they join the band already waiting, and a picture that is current becomes one to repaint in part (a picture already stale in whole stays so).
+cv_mark(int cvi_a, int cvi_b) {
+  int[] cvl_e = (import vw_ed);
+  int[] cvl_st = (import vw_st);
+  int cvi_w = cvl_e[(import cv_e_y1)] >= 0;
+} chain (int cvi_a, int cvi_b) {
+  int cvi_n0 = cvi_a;
+  int cvi_n1 = cvi_b;
+  if(cvi_w == 1) {
+    cvi_n0 = fx_min(cvi_a, cvl_e[(import cv_e_y0)]);
+    cvi_n1 = fx_max(cvi_b, cvl_e[(import cv_e_y1)]);
+  }
+} chain (int cvi_a, int cvi_b) {
+  lset(cvl_e, (import cv_e_y0), cvi_n0);
+  lset(cvl_e, (import cv_e_y1), cvi_n1);
+  if(cvl_st[(import vw_s_d)] == 0) {
+    lset(cvl_st, (import vw_s_d), 2);
+  }
+} return void;
+given cv_t_ed("AB") (10, 20):() then cv_t_eds:("0,0,0,0,0,-1,10,20,") then vw_t_sts:("0,0,100,2,")
+given cv_t_ed("AB") given cv_mark(5, 12) (10, 20):() then cv_t_eds:("0,0,0,0,0,-1,5,20,")
+given cv_t_ed("AB") given lset((import vw_st), 3, 1) (10, 20):() then vw_t_sts:("0,0,100,1,")
+
+// Asks for the part of the surface that the document's rows cvi_a to cvi_b - 1, in lu down the continuous document (where the paragraph tops are), cover to be repainted: a few pixels more on each side for the rounding of lu to pixels.
+// By hand: at 100 percent and no scroll, with the page area's top at 156, 1536 lu of gap are 24 px, so the rows 0 to 1088 are 156 + 24 = 180 to 180 + 17 = 197, and with 3 more each side 177 to 200.
+cv_band(View cvv, int cvi_a, int cvi_b) {
+  int[] cvl_st = (import vw_st);
+  int cvi_z = cvl_st[(import vw_s_z)];
+  int cvi_o = vw_box("canvas", 1) - cvl_st[(import vw_s_y)];
+} chain (View cvv, int cvi_a, int cvi_b) {
+  int cvi_g = (import word_lay_gap);
+  int cvi_t = cvi_o + vw_px(cvi_g + cvi_a, cvi_z) - (import cv_pad_px);
+  int cvi_u = cvi_o + vw_px(cvi_g + cvi_b, cvi_z) + (import cv_pad_px);
+} chain (View cvv, int cvi_a, int cvi_b) {
+  cv_mark(cvi_t, cvi_u);
+} return void;
+given cv_t_ed("AB") ((import lp_t_v), 0, 1088):() then cv_t_eds:("0,0,0,0,0,-1,177,200,")
+given cv_t_ed("AB") given lset((import vw_st), 1, 100) ((import lp_t_v), 0, 1088):() then cv_t_eds:("0,0,0,0,0,-1,77,100,")
+given cv_t_ed("AB") ((import lp_t_v), 640, 1728):() then cv_t_eds:("0,0,0,0,0,-1,187,210,")
+
+// The lu down the continuous document at which paragraph cvi_p ends, where the next one starts: the top of the next paragraph, or for the last paragraph the end of its last line.
+cv_end_y(View cvv, int cvi_p) {
+  int cvi_n = len(cvv.pages.tops);
+  int cvi_y = cv_last_y(cvv, cvi_p);
+  if(cvi_p + 1 < cvi_n) {
+    cvi_y = cvv.pages.tops[cvi_p + 1];
+  }
+} return int cvi_y;
+given cv_t_view("AB|CD") ((import lp_t_v), 0):(2304)
+given cv_t_view("AB|CD") ((import lp_t_v), 1):(3456)

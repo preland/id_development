@@ -1,0 +1,28 @@
+// Starts editing the document of the view cvv, which becomes the viewer's view, the export vw_v: a new controller kept in the export vw_ctl with the caret at the start, the edit state list vw_ed (no drag, the caret solid, the clock live, nothing to repaint) and vw_tp, the paragraph tops and the end of the last paragraph as they were before the last command (cv_keep), the layout hook of the line and page moves (lay_hook_install, installed here once) and vw_lk, what the selection looks like for the ribbon (cv_look).
+cv_ed_new(View cvv) {
+  Ctl cvc = ctl_new();
+  export Ctl vw_ctl = cvc;
+  export int[] vw_ed = [0, 0, 0, 0, 0, 0 - 1, 0 - 1, 0 - 1];
+} chain (View cvv) {
+  export int[] vw_tp = [];
+  cv_keep(cvv, vw_tp);
+  lay_hook_install(cvv);
+} chain (View cvv) {
+  export View vw_v = cvv;
+  export int[] vw_lk = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  cv_look(cvv);
+} return void;
+given cv_t_view("AB|CD") ((import lp_t_v)):() then cv_t_sel:("0:0-0:0") then cv_t_eds:("0,0,0,0,0,-1,-1,-1,")
+given cv_t_view("A") ((import lp_t_v)):() then cv_t_eds:("0,0,0,0,0,-1,-1,-1,") then vw_t_pages:(1) then cv_t_tp:("640,1792,")
+
+// Replaces the contents of the list cvl_d with those of cvl_s, keeping the room cvl_d has grown to.
+cv_snap(int[] cvl_d, int[] cvl_s) {
+  int cvi_k = 0;
+  lp_clear(cvl_d);
+  while(cvi_k < len(cvl_s)) {
+    push(cvl_d, cvl_s[cvi_k]);
+    cvi_k = cvi_k + 1;
+  }
+} return void;
+([9, 9], [1, 2]):([1, 2], [1, 2])
+([], [5]):([5], [5])

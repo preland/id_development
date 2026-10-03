@@ -1,0 +1,46 @@
+// The formatting commands the canvas does: bold (cmd_bold), italic, underline and strikethrough toggle their flag over the selection (or for what is typed next when nothing is selected), and cmd_page_break puts a page break before the caret.
+cv_fmt(View cvv, Ctl cvc, int cvi_cmd) {
+  int cvi_b = cv_bit(cvi_cmd);
+  if(cvi_b != 0) {
+    ed_toggle(cvv.doc, cvc, cvi_b);
+  }
+  if(cvi_cmd == (import cmd_page_break)) {
+    ed_page_break(cvv.doc, cvc);
+  }
+} return void;
+given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) ((import lp_t_v), (import vw_ctl), 301):() then cv_t_bold:(1)
+given cv_t_ed("AB") ((import lp_t_v), (import vw_ctl), 501):() then lp_t_np:(2)
+
+// The character flag bit a formatting command toggles: word_f_bold for cmd_bold, word_f_italic, word_f_under and word_f_strike for the commands of those names, 0 for any other command.
+cv_bit(int cvi_cmd) {
+  int cvi_k = lst_index_of((import cv_f_cmd), cvi_cmd);
+  int cvi_b = 0;
+  if(cvi_k >= 0) {
+    cvi_b = (import cv_f_bit)[cvi_k];
+  }
+} return int cvi_b;
+(301):(1)
+(303):(4)
+(206):(0)
+
+// Backspace (1007), Delete (1008), Enter (1009) and Tab (1010) change the text: the first two take a character or, with Ctrl (cvi_c 1), a word; Enter splits the paragraph and Tab types a tab. Any other key does nothing here.
+cv_chg(View cvv, int cvi_key, int cvi_c) {
+  Ctl cvc = (import vw_ctl);
+  if(cvi_key == 1007) {
+    ed_back(cvv.doc, cvc, cvi_c);
+  }
+  if(cvi_key == 1008) {
+    ed_delete(cvv.doc, cvc, cvi_c);
+  }
+} chain (View cvv, int cvi_key, int cvi_c) {
+  if(cvi_key == 1009) {
+    ed_enter(cvv.doc, cvc);
+  }
+  if(cvi_key == 1010) {
+    ed_type(cvv.doc, cvc, (import word_cp_tab));
+  }
+} return void;
+given cv_t_ed("AB") given ed_move((import lp_t_d), (import vw_ctl), 1, 0, 0) ((import lp_t_v), 1007, 0):() then cv_t_dump:("B")
+given cv_t_ed("AB") ((import lp_t_v), 1009, 0):() then cv_t_dump:("|AB")
+given cv_t_ed("AB") ((import lp_t_v), 1008, 0):() then cv_t_dump:("B")
+given cv_t_ed("AB") ((import lp_t_v), 1010, 0):() then cv_t_dump:("\tAB")

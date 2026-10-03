@@ -1,0 +1,36 @@
+// The first and the last paragraph that an edit marked stale, as [first, last], or [-1, -1] when none is.
+cv_stale(View cvv) {
+  int[] cvl_r = [0 - 1, 0 - 1];
+  int cvi_k = 0;
+  int cvi_n = len(cvv.doc.body.paras);
+} chain (View cvv) {
+  while(cvi_k < cvi_n) {
+    cv_touch(cvv, cvl_r, cvi_k);
+    cvi_k = cvi_k + 1;
+  }
+} return int[] cvl_r;
+given cv_t_view("AB|CD|EF") given cv_t_mark((import lp_t_v), 1) ((import lp_t_v)):([1, 1])
+given cv_t_view("AB|CD|EF") given cv_t_mark((import lp_t_v), 0) given cv_t_mark((import lp_t_v), 2) ((import lp_t_v)):([0, 2])
+given cv_t_view("AB|CD|EF") ((import lp_t_v)):([-1, -1])
+
+// Widens the range cvl_r of stale paragraphs to include paragraph cvi_k when it is stale.
+cv_touch(View cvv, int[] cvl_r, int cvi_k) {
+  int cvi_s = cvv.doc.body.paras[cvi_k].lay.h == 0 - 1;
+  if(cvi_s == 1 && cvl_r[0] < 0) {
+    lset(cvl_r, 0, cvi_k);
+  }
+  if(cvi_s == 1) {
+    lset(cvl_r, 1, cvi_k);
+  }
+} return void;
+given cv_t_view("AB|CD") given cv_t_mark((import lp_t_v), 1) ((import lp_t_v), [-1, -1], 1):((import lp_t_v), [1, 1], 1)
+given cv_t_view("AB|CD") ((import lp_t_v), [0, 0], 1):((import lp_t_v), [0, 0], 1)
+
+// The caret as lay_caret puts it, [page, x, y, height] with x, y and height in lu from the top left of the page's sheet.
+cv_where(View cvv) {
+  Ctl cvc = (import vw_ctl);
+  int[] cvl_o = [];
+  lay_caret(cvv, cvc.sel.caret, cvl_o);
+} return int[] cvl_o;
+given vw_t_two () ((import lp_t_v)):([0, 2560, 640, 1152])
+given cv_t_ed("A|A|A|A|A|A|A|A") given ed_move((import lp_t_d), (import vw_ctl), 1, 5, 0) ((import lp_t_v)):([1, 3243, 2304, 1152])

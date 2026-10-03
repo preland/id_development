@@ -1,16 +1,16 @@
 // The chrome's @references for a window w by h pixels, in basis points (hundredths of a percent) in the order of vw_names: the ribbon band and the status bar by their fixed pixels, the page row what they leave, the scrollbar by its fixed width, the page area what it leaves. Rounded up, so that a fixed size never comes out a pixel short.
-// By hand at 800 by 600: the ribbon band is 128 / 600 = 2133.4, so 2134; the status bar 22 / 600 = 366.7, so 367; the row takes the rest, 10000 - 2134 - 367 = 7499; the bar is 16 / 800 = 200 and the page area 9800.
+// By hand at 800 by 600: the ribbon band is 156 / 600 = 2600; the status bar 22 / 600 = 366.7, so 367; the row takes the rest, 10000 - 2600 - 367 = 7033; the bar is 16 / 800 = 200 and the page area 9800.
 vw_dims(int vwi_w, int vwi_h) {
   int vwi_hh = fx_max(vwi_h, 1);
-  int vwi_r = ((import vw_rib_px) * 10000 + vwi_hh - 1) / vwi_hh;
+  int vwi_r = ((import rbd_band_px) * 10000 + vwi_hh - 1) / vwi_hh;
   int vwi_s = ((import vw_st_px) * 10000 + vwi_hh - 1) / vwi_hh;
 } chain (int vwi_w, int vwi_h) {
   int vwi_ww = fx_max(vwi_w, 1);
   int vwi_b = ((import vw_bar_px) * 10000 + vwi_ww - 1) / vwi_ww;
   int[] vwl_d = [vwi_r, 10000 - vwi_r - vwi_s, 10000 - vwi_b, vwi_b, vwi_s];
 } return int[] vwl_d;
-(800, 600):([2134, 7499, 9800, 200, 367])
-(1000, 800):([1600, 8125, 9840, 160, 275])
+(800, 600):([2600, 7033, 9800, 200, 367])
+(1000, 800):([1950, 7775, 9840, 160, 275])
 
 // What the idml asks for by name (@rib_h and the others, see vw_names) as the last fit left it, in basis points; 0 for a name nobody knows.
 vw_dim(string vws_n) {
@@ -28,8 +28,8 @@ given vw_t_up(800, 600) ("nothing"):(0)
 // Fits the chrome to the surface: the answers for the surface's size, then the idml bound to them and laid out again. Call it after every change of the surface.
 vw_fit() {
   export int[] vw_dims_now = vw_dims((import sf_l_w), (import sf_l_h));
-  gui_bind((import vw_t), (import vw_s), vw_dim);
+  gui_bind_fn((import vw_t), (import vw_s), vw_dim);
   gui_layout((import vw_t), (import vw_rc), (import sf_l_w), (import sf_l_h));
 } return void;
-given sf_l_init(800, 600) given vw_t_make () ():() then vw_t_box:("0,0,800,128")
-given sf_l_init(1000, 800) given vw_t_make () ():() then vw_t_box:("0,0,1000,128")
+given sf_l_init(800, 600) given vw_t_make () ():() then vw_t_box:("0,0,800,156")
+given sf_l_init(1000, 800) given vw_t_make () ():() then vw_t_box:("0,0,1000,156")
