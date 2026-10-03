@@ -1,21 +1,22 @@
 // Runs every lane for fixture stem in a throwaway root under /tmp, prints its line, and removes the root, soffice's profile with it; the exit status of rep_exit.
 check_fixture(string bin, int n, string assets, string stem) {
   string root = fs_mktemp((import tmp_prefix), 1);
+  fs_drop_exit(root);
   int made = fs_mkdir(root + "/" + (import out_sub));
-  string src = assets + "/" + (import odt_sub) + "/" + stem + ".odt";
 } chain (string bin, int n, string assets, string stem) {
+  string src = assets + "/" + (import odt_sub) + "/" + stem + ".odt";
   int[] res = lane_all(bin, root, src, stem, n);
   int vt = wlane_text((import word_bin), root, src, stem);
-  int vp = wlane_pages((import word_bin), src, res[(import r_pages)], n);
 } chain (string bin, int n, string assets, string stem) {
+  int vp = wlane_pages((import word_bin), src, res[(import r_pages)], n);
   int[] vs = [vt, vp];
   string[] modes = (import word_modes);
-  string words = rep_word_all(modes, vs);
 } chain (string bin, int n, string assets, string stem) {
+  string words = rep_word_all(modes, vs);
   print(rep_line(n, stem, res, words));
   int ok = wlane_count(modes, vs, (import lane_ok));
-  int failed = wlane_count(modes, vs, (import lane_fail));
 } chain (string bin, int n, string assets, string stem) {
+  int failed = wlane_count(modes, vs, (import lane_fail));
   int gone = exec_drop(root);
   int code = rep_exit(res, len(modes) - ok, failed);
 } return int code;

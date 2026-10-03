@@ -23,12 +23,13 @@ dump_report(string owwbin, string owsrc, string owstem, int n, string owtheirs) 
 dump_run(string owsoff, string owwbin, int n, string owassets) {
   string owstem = fixt_name(owassets + "/" + (import odt_sub), n);
   string owroot = fs_mktemp((import tmp_prefix), 1);
-  int owmade = fs_mkdir(owroot + "/" + (import out_sub));
+  fs_drop_exit(owroot);
 } chain (string owsoff, string owwbin, int n, string owassets) {
+  int owmade = fs_mkdir(owroot + "/" + (import out_sub));
   string owsrc = owassets + "/" + (import odt_sub) + "/" + owstem + ".odt";
   int owcode = lane_soff(owsoff, owroot, (import r_fodt), owsrc);
-  string owtheirs = ofd_theirs(owroot, owstem);
 } chain (string owsoff, string owwbin, int n, string owassets) {
+  string owtheirs = ofd_theirs(owroot, owstem);
   int owres = dump_report(owwbin, owsrc, owstem, n, owtheirs);
   int owgone = exec_drop(owroot);
 } return int owres;

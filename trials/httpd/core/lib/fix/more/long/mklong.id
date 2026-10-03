@@ -1,9 +1,12 @@
 hd_t_openf(string body) {
   string q = fs_mktemp("hdt", 0);
   string p = fs_mktemp("hdt", 0);
-  hd_t_put(q, body);
+  fs_drop_exit(q);
 } chain (string body) {
+  fs_drop_exit(p);
+  hd_t_put(q, body);
   hd_t_mem();
+} chain (string body) {
   hd_t_wire(p, q, q);
 } return void;
 ("x"):() then hd_t_out:("")

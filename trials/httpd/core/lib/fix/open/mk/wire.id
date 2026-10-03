@@ -17,6 +17,8 @@ hd_t_wire(string p, string q, string src) {
 hd_t_open() {
   hd_t_mem();
   string p = fs_mktemp("hdt", 0);
+  fs_drop_exit(p);
+} chain () {
   hd_t_wire(p, "", "/dev/stdin");
 } return void;
 ():() then hd_t_out:("")
@@ -31,6 +33,8 @@ hd_t_opennul() {
   int w = fs_write_mem(h, (import hd_t_ad), 4);
   fs_close(h);
 } chain () {
+  fs_drop_exit(p);
+  fs_drop_exit(q);
   hd_t_wire(p, q, q);
 } return void;
 ():() then hd_t_out:("")

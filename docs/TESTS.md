@@ -96,6 +96,17 @@ checked always rather than under `--require-tests`: it is wrong in a program
 that writes cases voluntarily too, and a program with no cases has no
 duplicates, so there is nothing to phase in.
 
+A case that makes a file or directory under `/tmp` names it with `fs_mktemp`
+(never a fixed path) and registers it with `fs_drop_exit(path)` in the same
+fixture, straight after `fs_mktemp` and before anything that can fail. The path
+and everything under it is removed when the case's process exits, however it
+ends: a `then` that removes it does not run once an earlier `then` has failed or
+the case has trapped, which is how 80,000 scratch entries piled up in `/tmp`.
+A case that is killed outright (SIGKILL at its time limit) still leaks.
+`idc/tools/tmpguard` is the check: it builds a tree with the compiler cache off
+and fails when `/tmp` holds an entry afterwards that it did not hold before
+(`tests/run.sh --list` shows its `tmpguard_N` sections, one tree each).
+
 A `void` function is tested by what it leaves behind. Because a list has
 reference semantics, the expected side describes the arguments *after* the
 call:

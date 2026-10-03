@@ -1193,7 +1193,7 @@ own with an `odt/` inside and files named `NN_name.odt` works.
   deletes functions to go green is a failure (count cases before and after).
 * No inline comments; no function with more than three actions; three entries per
   directory; no duplicate logic; one concern per change.
-* A case that writes `/tmp` uses `fs_mktemp` (randomised names), never a fixed path.
+* A case that writes `/tmp` uses `fs_mktemp` (randomised names), never a fixed path, and registers it with `fs_drop_exit` (docs/TESTS.md).
 * No command over 60 s (memory: sixty-second rule; three-minute task limit).
   Anything slower (every `soffice` run) is **index-addressable and resumable**: the
   driver takes a fixture index and processes that fixture only, and a full sweep is

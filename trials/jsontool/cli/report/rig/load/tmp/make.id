@@ -1,10 +1,12 @@
 t_tmp_make() {
   st_init();
   export string tp = fs_mktemp("jsontool_", 0);
-  string txt = read_all();
+  fs_drop_exit(tp);
 } chain () {
+  string txt = read_all();
   int h = fs_open((import tp), "w");
   int w = fs_write_mem(h, mem_of_str(txt), len(txt));
+} chain () {
   int c = fs_close(h);
 } return void;
 stdin "hey" ():() then t_tmp_size:(3) then t_tmp_drop:(0)
