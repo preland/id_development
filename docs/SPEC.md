@@ -481,6 +481,10 @@ idstd's `stdio_slurp` / `stdio_read_mem`, or the store (`fs_read_mem`), for
 binary data (§8). A fixed-size buffer padded with NULs must be read with the
 length of its text, not its capacity.
 
+**A `\0` escape in a string literal is a compile error**, at the literal: a
+string never holds a NUL byte, so the diagnostic sends binary data to
+`stdio_read_mem`, `fs_read_mem` or the store (`tests/invalid/nul_in_string.id`).
+
 ## 5. Lists
 
 - `[a, b, c]` builds a list. **A list literal has no type of its own**: it
@@ -539,16 +543,24 @@ allocates in a loop grows until it exits or runs out. The rule (decided
 escapes — never returned, exported, stored in another list, or kept by a callee
 — when the scope that made it ends, and keeps anything it cannot prove, so
 freeing can never cause a use-after-free. No syntax marks it. Today it frees
-the lists local to a function (shallowly: the header and cells, not the
-elements) and no string.
+the lists local to a function and no string. A list is freed with its
+elements (decided 2026-10-02: deep) when it also **owns** them: every element
+that goes into it is a list literal written for it, and no element is read out
+into a position that keeps it -- a store, a return, an alias, or an argument
+the callee keeps. Only the elements that are themselves lists are freed, and
+only one level down: the lists in a `string[][]` are freed and its strings are
+not, and an `int[][][]` frees its middle lists and keeps the innermost. A list
+that fails any of these is freed shallowly (header and cells) if it is a local
+nothing keeps, and not at all otherwise; none of this is visible to a program
+except as memory use.
 
 **Every target frees the same allocations, unless a target is systemically
 unable to** (decided 2026-09-30): a program whose memory is reclaimed on one
 target and not another has no portable memory behaviour at all. The C target,
 the LLVM target, `--target wasm` (the C target's output recompiled for
-wasm32-wasi) and the freestanding runtime all free the same lists, and
-`tests/conform/free/` runs one program on C, LLVM and wasm and requires the same
-count. The exceptions, and why:
+wasm32-wasi) and the freestanding runtime all free the same lists, elements
+included, and `tests/conform/free/` runs programs on C, LLVM and wasm and
+requires the same count. The exceptions, and why:
 
 - **`idc/idc.py`'s own WASM generator** does not free. This is policy, not
   capability: `idc.py` is frozen and hash-checked, and its bump allocator over

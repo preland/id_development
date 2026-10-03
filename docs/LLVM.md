@@ -195,6 +195,17 @@ kernel's benefit.
 
 A trap is a `call` to `id_trap`, which the freestanding runtime provides.
 
+**String layout.** A `string` is a `ptr` to NUL-terminated bytes with the byte
+count in the `size_t` just before them (`docs/MEMORY.md`, F2e). A literal is a
+private global holding `<{ i64, [n x i8] }>` plus a private alias for the
+address of the bytes, which is what every use of the literal names; the count is
+the literal's length up to its first NUL, which is what a `strlen` said before
+the count existed. `main`'s `argv` strings are built with `id_str_of_cstr`. The
+count is `i64`, so a 32-bit LLVM triple would need `i32` there to match the
+runtime's `size_t`. The freestanding runtime writes the same count in every
+string it builds (`idc/runtime/lang/str/`, `mem/store/arena/bridge.id`) and
+`len` is a load of it, so one literal means the same thing under either runtime.
+
 ## Where this stands
 
 **The target works, self-hosts, and is the one `idc/tests/conform.sh` holds the

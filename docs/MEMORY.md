@@ -4,10 +4,11 @@
 > compiler frees a list or string it can prove never escapes, and keeps
 > anything it cannot prove, and that every target frees the same allocations
 > unless a target is systemically unable to. This document says how that can be
-> done in this compiler, what the first slice frees today (shallow frees of
-> function-local lists, on every target but one) and which decisions are still
-> open. Section 2a lists each target and why any is exempt; section 8 lists the
-> open forks.
+> done in this compiler, what the slice frees today (function-local lists on
+> every target, and the list elements of a list of lists that the list
+> provably owns) and which decisions are still open. Section 2a lists each
+> target and why any is exempt; section 8 lists the open forks (F1, shallow or
+> deep, was decided deep on 2026-10-02; section 3.2 says how far it goes).
 
 Counts and sizes that change (how many allocations a build makes, how big a
 binary is) are not written here. Section 9 gives the commands that produce
@@ -27,29 +28,35 @@ heap block goes through
 into one doubly linked list; an `atexit` hook frees the whole list. So the
 process does not leak, and a list the compiler frees is returned early.
 
-- A **string** is a NUL-terminated `char*` from `id_alloc`: the result of `+`,
-  `chr`, `str_of_int`, `str_of_mem`, `input`, `read_all`. A **literal** is a C
-  string literal in the image, not a block; a string in `argv` is whatever the
-  OS handed `main`. So a `string` value may or may not be a heap block, and
-  nothing in its type says which.
+- A **string** is a `char*` to NUL-terminated bytes with their byte count in
+  the `size_t` just before them (decided 2026-10-02, F2e below). A heap string
+  is one `id_alloc` block laid out `[count][bytes][NUL]`, built by
+  `id_str_new`/`id_str_from`: the result of `+`, `chr`, `str_of_int`,
+  `str_of_mem`, `input`, `read_all`, and now each `argv` element
+  (`id_str_of_cstr`). A **literal** is a `static const` object of the same
+  layout in the image (`ID_S`), not a block. So a `string` value may or may
+  not be a heap block, and nothing in its type says which -- that half of F2
+  is unchanged by the layout.
 - A **list** is a header (`len`, `cap`, `data`) plus a separate cell array,
   both from `id_alloc`. Cells are 8 bytes whatever the element type; a string
   cell is a pointer. Growth is `id_realloc` of the cell array.
 - The **flat store** (`alloc`, `peek`, `poke`) is one byte array that only
   grows, bump-allocated, addressed by `word`. It is not the list/string arena
   and this document does not propose to free it (section 3.6).
-- `id_slen` memoises string lengths keyed on the **address** of the string, and
-  its comment already relies on "a block is never released before exit", except
-  for `id_realloc`, which clears the memo when a block moves. Freeing strings
-  means the same clearing on every free (section 5).
+- `id_slen` is one load of the stored count. The eight-entry memo it replaced
+  was keyed on the **address** of the string, which is why freeing a string
+  once had to clear it; a freed string now has nothing stale to forget.
 
 **Freestanding target (`--freestanding`, the kernel).** `idc/runtime/` is
 ordinary `id`: `mem_alloc` is a bump pointer in the first words of the arena,
-lists and strings are built on it. The length memo lives in the arena too.
+lists and strings are built on it. A string there is the same `[count][bytes]
+[NUL]` layout (`lang/str/`, `mem/store/arena/bridge.id`), and the memo that
+used to live in the arena is gone.
 A bump pointer cannot give a block back, so lists take their header and cells
 through size-class free lists (`mem/store/arena/more/pool.id`), whose heads sit
-in the arena after the memo; `list_free` (`lang/list/more/drop.id`) is the
-runtime's `id_list_free`. Strings and the flat store still only bump.
+at the front of the arena, after the bump pointer; `list_free`
+(`lang/list/more/drop.id`) is the runtime's `id_list_free`. Strings and the
+flat store still only bump.
 
 **WASM.** `idc/bin/idc --target wasm` compiles the C target's own C for
 wasm32-wasi (wasi-libc has `malloc` and `free`), so it allocates and frees
@@ -63,20 +70,25 @@ no wasm target; idc/bin/idc accepts `--target wasm`.)
 
 ## 2. What the compiler proves today (the slice)
 
-Landed in `idc/compiler/parse/mid/types/check/store/assign/rule/escape/`, one analysis that the C emitter and the LLVM lowering both ask (section 4):
+Landed in `idc/compiler/parse/mid/types/check/store/assign/rule/escape/`, one analysis that the C emitter and the LLVM lowering both ask (section 4). Its three directories: `flow/` (`walk/`, the use rules, and `sum/`, the summaries), `own/` (which locals are owned, and the emit hooks) and `deep/` (which owned lists also own their elements, section 3.2):
 
 1. **Parameter summaries.** For every function, one bit per parameter: set when
    the body may keep that parameter past the call. A clear bit is a proof that
-   the caller may free what it passed once the call returns.
+   the caller may free what it passed once the call returns. A second mask of
+   bits, one per list parameter, says the callee may break the ownership of
+   the *elements* of that list (section 3.2). Both masks are 15 bits wide;
+   a function with more than fifteen parameters keeps and breaks everything.
 2. **Owned locals.** A local of list type is *owned* when it is declared in the
    function, is not exported, every store into it is a list literal, and no
    use of it keeps it.
-3. **Frees.** An owned local is freed (shallowly: header and cells, never the
-   elements) at every `return` of its function, and the value it replaces is
-   freed when it is assigned again, which is what makes a declaration inside a
-   loop free once per pass.
+3. **Frees.** An owned local is freed at every `return` of its function, and
+   the value it replaces is freed when it is assigned again, which is what
+   makes a declaration inside a loop free once per pass. The free is shallow
+   (header and cells) unless the list also owns its elements (section 3.2),
+   in which case it is `id_list_free_deep`: each element is freed as a list,
+   then the list.
 
-The use rules are a default-deny table (`walk/`): a use of `xs` is harmless only
+The use rules are a default-deny table (`flow/walk/`): a use of `xs` is harmless only
 in these positions, and anywhere else it is treated as keeping the list.
 
 | position | keeps `xs`? |
@@ -88,6 +100,16 @@ in these positions, and anywhere else it is treated as keeping the list.
 | element of a list literal, value of `ys[i] = v`, value argument of `push` | yes |
 | right of `=`, or of a declaration (an alias), an export's value | yes |
 | `return xs`, the return clause | yes |
+
+Four more positions decide whether `xs` also owns its **elements** (section
+3.2). They never make `xs` itself kept; they only withhold the deep free:
+
+| position | breaks the ownership of the elements of `xs`? |
+| --- | --- |
+| `xs[i]` read into a keeping position (a store, a return, an argument the callee keeps, an alias) | yes |
+| `xs[i]` read and only looked at (an operand, `len(xs[i])`, `xs[i][j]`, an argument the callee does not keep) | no |
+| `push(xs, v)` or `xs[i] = v` where `v` is not a list literal; a list literal `[a, b]` stored in `xs` with an element that is not a list literal | yes |
+| `xs` passed to an id function at parameter `i` whose second-mask bit is set | yes |
 
 Summaries are computed on demand and memoised in `esc_pe` (seeded at C emission;
 an empty table means the analysis is off, which is how the test cases that
@@ -113,8 +135,8 @@ Two rules in the table exist for a reason that is easy to miss:
 
 ### What the slice does not do
 
-Strings, return-value ownership, exports, elements of lists, lists inside lists, and
-temporaries. Each is a section below.
+Strings, return-value ownership, exports, and temporaries (section 3.2 says
+which list elements are freed). Each is a section below.
 
 ### 2a. Which targets free what
 
@@ -131,8 +153,15 @@ the same N from all three, with `ID_FREE_GUARD=1` so a wrong free is a trap.
 | `idc/bin/idc --target wasm` | yes | it is the C output recompiled, so it frees as C does |
 | freestanding (`--freestanding`, `--runtime`) | yes | |
 
-No target is systemically unable to free a list. Two differences remain that are
-not about which lists are freed:
+No target is systemically unable to free a list. The elements of a deep-owned
+list (section 3.2) are freed by every target the same way: the C runtime and
+`extern.id` have `id_list_free_deep`, the LLVM lowering calls it for the same
+locals (`lw_drop` asks `esc_free_fn`, which the C emitter asks too), `--target
+wasm` is the C one, and the freestanding runtime has `list_free_deep`
+(`idc/runtime/lang/list/more/init.id`). Each frees every element as a list and
+then the list, so the count in `ID_FREE_STATS` is the same on all of them
+(`tests/conform/free/04` to `06`). Two differences remain that are not about
+which lists are freed:
 
 - **The guard is hosted-only.** The freestanding runtime has no stderr and
   nothing to exit to, so a use after a wrong free is not a trap there. It marks
@@ -156,11 +185,12 @@ the elements of a list are separate objects that any other name may share. A
 shallow free can never double-free and never frees something somebody else
 holds; it leaves the elements to the arena.
 
-### 3.2 Lists, deep
+### 3.2 Lists, deep (landed for list elements, in the narrow form)
 
-To free the elements too, the analysis must prove the list **owns** them: each
-element was built for this list and no other name, list or return value holds
-it. Two things make that harder than section 3.1:
+Decided 2026-10-02 (F1: deep). To free the elements too, the analysis must
+prove the list **owns** them: each element was built for this list, no other
+name, list, export or return value holds it, and it was not read out into a
+keeping position. Two things make that harder than section 3.1:
 
 - Reading an element (`xs[i]`) mints a new name for it. The read must be in a
   non-keeping position, and so must every later use of what the read produced.
@@ -170,6 +200,55 @@ it. Two things make that harder than section 3.1:
 - The elements are frequently aliases by construction: `push(rows, row)` stores
   a list some other name also holds. Ownership has to be transferred, not
   assumed.
+
+**What landed** (`escape/deep/`, hooks in `own/free/`, the runtime on every
+target). A local `xs` whose declared type is a list of lists (`int[][]`,
+`string[][]`, `Point[][]`, deeper too, but only the outer elements count) is
+*deep-owned* when all of these hold:
+
+1. it is owned in the shallow sense (section 2);
+2. every element that goes into it is a **list literal**: the literals of a
+   declaration or assignment `xs = [[1], []]`, the value of `push(xs, [..])`
+   and of `xs[i] = [..]`. A literal is a fresh block that nothing else holds
+   yet, which is the whole of "built for this list". A name or a call's result
+   is not (flag bit 8 of the walk);
+3. no element is read out into a position that keeps it (flag bit 4): a store,
+   a return, an alias `row = xs[i]`, an argument whose callee keeps it;
+4. `xs` is passed only to callees that do neither of the above to *their*
+   parameter (the second summary mask, section 2).
+
+Then `xs` is freed with `id_list_free_deep`: each cell is freed as a list
+(shallowly), then `xs`. The elements' own elements are not touched: a
+`string[][]` frees its row lists and leaves every string, and an `int[][][]`
+frees the middle lists and leaves the innermost.
+
+Why this is sound without tracking flow. Elements can be read only in
+positions that look at them and let go within the statement, so no name for an
+element outlives the statement that read it; and nothing stores into the list a
+block someone else can reach. So there is no stale alias to find, and a free at
+a function exit, or when the declaration runs again, cannot dangle. The price
+is that an alias `row = xs[i]` is refused even when `row` itself never escapes.
+
+**What did not land, and why each is a separate step.**
+
+- **Moves.** `row = []; ...; push(rows, row)` stores a name, so `rows` is not
+  deep-owned. Allowing it needs a transfer rule: `row` must be a local
+  declared with one literal, moved once per execution of that declaration (not
+  from inside a loop that outlives it), and never read after the move while
+  `rows` could have been freed. That is flow facts about a different value
+  (the first bullet above). It is the idiom csvq's parser uses, and one reason
+  deep frees do not reach csvq (section 9).
+- **Moves through a callee.** `csv_keep(st, rows, ..., row, ...)` stores its
+  parameter into another parameter. A summary of "parameter i is stored as an
+  element of parameter j" would let the caller check the actual for `i`.
+- **Fresh returns (F8).** `xs = f()` is not owned, so a list of lists a
+  function returns is never freed by its caller, and `sorted` in csvq's
+  `srt_rows` keeps elements of `rows` that `rows` still holds.
+- **The replaced element.** `xs[i] = [..]` leaves the element it replaced
+  unfreed, because nothing proves no alias took it first; with the alias rule
+  above it could be freed.
+- **Struct elements.** A list of structs holds structs, and a struct's fields
+  are not followed (section 3.5b); a `Point[]` is not a deep candidate.
 
 ### 3.3 Strings
 
@@ -181,7 +260,8 @@ the block may be released. Two extra facts are needed that lists do not need:
   on **every** path that reaches the free, and the dominant idiom defeats that:
   `string s = ""; ... s = s + x;` is a literal on the path where the loop does
   not run (fork F2).
-- **The length memo.** Section 5.
+- **The length memo.** Gone: the length is in the string (F2e), so a free
+  has nothing to clear.
 
 `a + b + c` also makes a temporary per `+`; the inner result has exactly one
 reader and is provably dead after the outer `+`. That is the cheapest string
@@ -280,6 +360,11 @@ things at the same places; each C bullet is followed by where LLVM does it):
   into each owned slot in the entry block (`lw_own_init`); a name declared in
   two arms of an `if` has two slots and only the one `lw_slot` resolves, which
   is the one the lowering reads and writes, is loaded.
+- **Which free.** Every place above that frees a name asks `esc_free_fn(fn,
+  nm)` (`escape/deep/own.id`) for the runtime function to call:
+  `id_list_free` or, for a deep-owned list, `id_list_free_deep`. LLVM: `lw_drop`
+  takes the slot's name for it. A backend that frees must ask, or it frees
+  fewer allocations than the others and the parity cases notice.
 - **Which function.** The analysis asks `esc_cur()`, which reads `sqbase[0]`.
   The C emitter sets it in `emit_def`; the LLVM lowering sets it with
   `esc_enter` in `lw_func_tail`, and `ir_lower` seeds the summaries with
@@ -314,8 +399,14 @@ never reused. A later use traps with
 
 and exits 1 like every other trap (SPEC section 8). The checks are in the cold
 paths of the existing trap branches plus one test in `id_list_len`.
-Freeing the same list twice traps the same way. The guard is best-effort for
-strings (none are freed yet) and exact for lists. An AddressSanitizer build
+Freeing the same list twice traps the same way. `id_list_free_deep` frees each
+element through `id_list_free`, so an element is quarantined and trapped on
+the same terms as a list: a read of an element after a wrong deep free is the
+trap above, and so is a deep free of an element a shallow free already
+released. (`tests/conform/free/05-deep-refused` is built so that each way an
+element can escape is read by the caller after the function returns; editing
+the emitted C of any one of its four functions to free deep traps.) The guard
+is best-effort for strings (none are freed yet) and exact for lists. An AddressSanitizer build
 of the emitted C with the guard off is the stricter check for a real free.
 The LLVM target links `extern.id`, which carries the same helpers
 (`id_list_free`, `id_freed_trap`, `id_null_read` and the checks in the list
@@ -329,14 +420,13 @@ entirely (nothing freed, so nothing to be wrong about). Because traps call
 `exit`, the `atexit` arena sweep still runs, and it frees blocks that are still
 linked: `id_list_free` unlinks what it frees, so the sweep never frees twice.
 
-**The length memo.** `id_slen` is keyed by address, and freeing a string lets a
-later string reuse the address. A string free must clear the memo entry
-(`id_lm_forget` is the existing mechanism; clearing one slot is cheaper than
-all eight). The slice frees only lists, which are never memoised, so it needs
-nothing here.
+**The length memo.** There is none. It was keyed by address, which made a
+string free clear its entry; `id_slen` now reads the count the string carries
+(F2e), so freeing a string, when the analysis gets there, has no side table to
+keep in step.
 
-**A list that is not heap.** `id_args` holds `char*` from `argv`. The slice
-never frees a string. Lists are always heap blocks: there is no list literal in
+**A list that is not heap.** `id_args` holds the strings `id_str_of_cstr` made
+from `argv`, which are heap blocks. The slice never frees a string. Lists are always heap blocks: there is no list literal in
 the image (constants are built at startup by `id_list_lit`).
 
 ## 6. The arena
@@ -382,7 +472,12 @@ the live floor). Shallow is provable with the machinery in this slice; deep need
 a second analysis (who else holds this element?) and changes what a list of
 lists means to the optimiser. *Trade:* shallow is complete-for-what-it-does and
 small; deep is where the large memory wins are and where a wrong proof frees
-live data.
+live data. **Decided 2026-10-02: deep.** What landed is the narrow form of
+section 3.2 (list elements built by literal, no name for them read out); it
+changes nothing in csvq's `sort` (section 9), because `rows` there is filled
+by a callee storing a name and `sorted` aliases its elements, so what reaches
+the big floor is moves, summaries of stores into a parameter, and F8, not the
+free itself.
 
 **F2. Literal or heap.** A string may be a literal or an `argv` pointer. Options:
 (a) prove freshness on every path (sound, defeated by `""` initialisers);
@@ -398,6 +493,23 @@ carries its own length" option `docs/FRICTION.md` already names).
 *Trade:* (a) is free and weak; (e) fixes the length memo, the literal question
 and the `strlen` cost together and is a language-level change; (b)-(d) are
 runtime-only.
+
+**F2e. Decided 2026-10-02: strings carry their length** (the user merged
+length-prefixed strings). The count sits in the word before the bytes, the
+bytes stay NUL-terminated, and the eight-entry memo is removed. What that
+settles and what it does not:
+- Settled: the memo, and the `strlen` cost of `len`, `concat` and `charat`.
+  Every producer writes the count (`id_str_new`/`id_str_from`; `ID_S` and
+  `ID_SK` for literals; `id_str_of_cstr` for `argv` and for a wasm host; the
+  LLVM module's `{i64, [n x i8]}` literals and the freestanding runtime's own
+  builders), so no consumer measures.
+- Not settled: whether a string is a heap block. A literal is still a static
+  object, so the "is it a heap block at all?" question of F2 stands. The
+  count is not an ownership bit; F2's "owned" bit was not added.
+- NUL: a NUL still never enters a string. `chr(0)`, `str_of_mem`, `input` and
+  `read_all` trap rather than truncate, as before. A literal's `\0` escape
+  still ends the literal there, on every target, because the stored count is
+  the length up to it.
 
 **F3. Order: temporaries first or named locals first.** Freeing an unnamed
 temporary consumed by a copying builtin (`a + b + c`, `chr(c)` inside `+`) is
@@ -496,6 +608,25 @@ only variable is the release:
 The two targets free the same number of lists and land within 0.02% of each
 other. `csvq count` on the LLVM build peaks at 432,844 KB, the same floor.
 
+**With deep frees (2026-10-02).** The same four rows were rerun with the
+compiler that has section 3.2: C without frees 1,127,328 KB, C with 814,176
+KB, LLVM without 1,127,756 KB, LLVM with 814,220 KB; 2,575,553 lists freed on
+both; stdout md5 unchanged; `csvq count` 432,800 KB. Nothing moved, and the
+reason is in the emitted C, not in the measurement: `grep -c
+'id_list_free_deep('` over csvq's C finds no call, because csvq builds its
+lists of lists by passing a name to a callee that stores it (`csv_keep`), and
+`sorted` in `srt_rows` holds elements `rows` holds. Peak RSS is the live data
+at the moment of the sort, which no free can lower; the saving available there
+is the garbage made *on top of* it (section 9, the instrumented run), and that
+is `parts` and the like (F8), not the elements of a list of lists.
+
+**The compiler building itself.** Peak RSS of the stage-1 build of
+`compiler/parse` (`IDC_STAGE_PARSE` pinned to the original `bootstrap/idparse.c`
+built with `cc`, against the regenerated one): 2,804,588 KB and 2,805,124 KB.
+The regenerated `bootstrap/idparse.c` contains no call of
+`id_list_free_deep` in any function body: the compiler has no list of lists the
+deep rule accepts, so it frees nothing there either.
+
 The table above these two is the original C measurement, taken when the slice
 landed: a 28% reduction with identical output. The floor is the live data:
 `csvq count` on the same file peaks at 432,852 KB, so the slice removed
@@ -527,8 +658,23 @@ no trap.
 
 - ASan ran on csvq `sort` at 200,000 rows only, not on the compiler or the
   cases. The guard sees a use of the list header or cells after the free; it
-  cannot see a stale copy of an element pointer, because elements are not
-  freed by this slice.
+  cannot see a stale copy of an element pointer into an element freed deep
+  unless the element's own header or cells are read; the cases in
+  `tests/conform/free/` run under the guard, ASan was not run on them.
+- The deep rule (section 3.2) is argued, not proved: its soundness rests on
+  "an element is read only in positions that look and let go". Cases exist for
+  each escape the analysis names (`conform/free/05-deep-refused`, one function
+  per way) and each was made to trap by editing the emitted C to free deep; no
+  case exists for a way nobody thought of. Elements reached through a struct
+  field or an `asm`/native function are covered only by those being "keeps
+  everything".
+- Deep frees reach no real program in this repository that was measured: not
+  csvq's `sort`, not the compiler building itself (section 9). Their effect on
+  memory is shown only by the `kfree` fixture on the freestanding target and
+  the conformance counts.
+- `tests/fixtures/kfree` (the deep list in `probe_freed`) and the
+  freestanding `list_free_deep` were run by the steps recorded in the report
+  of 2026-10-02, not by a full `tests/kernel.sh`.
 - `extern.id` and `prelude.id` are two hand-kept copies of one text. They had
   drifted (extern had no `id_null_read`, no free helpers, no freed-list
   checks) and now agree on the list runtime, checked by reading a diff of the

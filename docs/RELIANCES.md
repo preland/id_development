@@ -118,7 +118,11 @@ the change that added list-constant locking to it.
 * **Hosted programs need an operating system.** The prelude calls exactly
   thirteen libc functions: `malloc`, `realloc`, `free`, `strlen`, `memcpy`,
   `fprintf`, `snprintf`, `fgets`, `fflush`, `read`, `write`, `exit`,
-  `clock_gettime`.
+  `clock_gettime`. `strlen` is no longer how an `id` string is measured: a
+  string carries its byte count in the word before its bytes (docs/MEMORY.md,
+  F2e), so `len`, `concat` and `charat` do not call it. What is left calls it
+  on a C string from outside -- `argv` through `id_str_of_cstr`, one line of
+  `input`.
 
 **Cost to move: medium, and most of it is done.** `idc/runtime/` — 46 files, about
 100 functions, 21 of them `asm` blocks — already implements the same

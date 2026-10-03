@@ -193,7 +193,7 @@ and are otherwise honest dead weight until step 1 lands.
 Two different things are called a backend in this repo: a **compiler target**
 (the code generator this document is about) and a **native backend** (a
 directory with a `backend.id` that supplies functions at link time — `idstd`'s
-`sys/io/fs`, `sys/io/ipc/proc`, `sys/io/ipc/sock`, `sys/win/gfx` and
+`sys/io/fs`, `sys/io/ipc/proc/be`, `sys/io/ipc/sock`, `sys/win/gfx` and
 `sys/win/gl`). A second compiler target must not drag the second kind along
 with it.
 
@@ -314,7 +314,7 @@ twin.id:5: error: native 'twin_a', reached from main by this call, has no
 ### Where the backends live, and how a platform chooses
 
 **In the standard library, inside the modules that wrap them**: `sys/io/fs`,
-`sys/io/ipc/proc`, `sys/io/ipc/sock`, `sys/win/gfx`, `sys/win/gl`. A program calls a library function (or, until the
+`sys/io/ipc/proc/be`, `sys/io/ipc/sock`, `sys/win/gfx`, `sys/win/gl`. A program calls a library function (or, until the
 functions over them exist, the native) and never names a backend.
 
 **Attachment is by `backend.id`, not by manifest.** `idc/bin/idc`'s

@@ -294,7 +294,7 @@ is how a library rots.
 
 ### Decomposition warnings
 
-Three more things are reported, but a build with one still succeeds — they are
+Two more things are reported, but a build with one still succeeds — they are
 **warnings**, `FILE:LINE: warning: ...` on stderr, both from a normal build and
 from `--check`. Each is a shape the 3-action and 3-function limits produce
 often enough, once code is split to fit them, that it is worth naming rather
@@ -315,22 +315,6 @@ as a function value elsewhere in the unit (it may exist only to adapt to a
 callee's — it narrows, widens or drops a parameter, which is adapting, not
 forwarding.
 
-**A literal-only near-duplicate** — two functions the duplicate-logic rule
-(`mid/form/unique/`, checked on every build) does *not* already reject,
-because that rule keeps a literal's value in its fingerprint
-(`add10` and `add16` differ, to it, exactly the way two calls to different
-functions would), but which are otherwise the same function with a different
-constant:
-
-```
-work.id:5: warning: 'add16' and 'add10' differ only in a literal value; parameterise one function
-```
-
-The fix is the one the message says: give the constant a parameter and call
-one function from both former call sites. Two functions identical in every
-way, literals included, are still the existing duplicate-logic **error**, not
-this warning — this is only the gap that rule leaves.
-
 **A generated parameter name** — a parameter whose name ends in `_v` or
 `_v<digits>` (the name `--fix` gives a call it hoists into a local, above) or
 matches this compiler's own `ret_i`/`ret_s`/`ret_li`/... return-local
@@ -349,6 +333,35 @@ program calls); that is a real instance of the same question the exclusions
 above ask for the other two warnings — is the public name worth carrying, or
 should the library rename the parameter — left to a human rather than
 decided by the checker.
+
+### Two functions that read different imports
+
+Not a warning: an **error**. Two functions whose logic is identical except for
+a single imported value — one reads `(import ia)` where the other reads
+`(import ib)`, and everything else is the same up to the spelling of their own
+variables — are one function written twice, with the value as the parameter it
+should have been:
+
+```
+work.id:11: error: function 'use_b' and 'use_a' (defined at work.id:6) differ only in the imported value they read ((import ib) in one, (import ia) in the other); parameterise one function and pass the value in -- replace the import with a parameter, call that one function from both places, and delete the other
+```
+
+The pair is found from the duplicate-logic fingerprint (`mid/form/unique/`),
+which writes an import as the position at which the function first read it
+and keeps the names beside the text, so a different name is a different
+function there and the same text with one name different is this error. It
+says nothing when anything else differs (a literal, a callee, a second
+import), when more than one import differs (that is two values to
+parameterise), and when the function is a single statement: `s1_of` is
+`ns1[id]` and `s2_of` is `ns2[id]`, a named accessor of a module's global,
+and there is no logic in it to share — the function left after parameterising
+would be the same one line again for every global. Two functions identical in
+every way, imports included, are still the duplicate-logic error.
+
+A difference only in a literal is never reported, by an error or a warning. A
+named accessor, a fixture or a message per constant is how `id` is written; a
+literal-only pair that is really one function (the byte-range predicates of
+`idstd`, the cube's three axes) is fixed by writing it once, not by a check.
 
 ### Every rule at once: `--check` and `--fix`
 

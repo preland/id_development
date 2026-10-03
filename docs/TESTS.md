@@ -523,7 +523,7 @@ tells the truth. Instead the runtime keeps two exact counters:
 
 | counter | incremented |
 | --- | --- |
-| `time` | once per loop iteration and once per function call, **plus the bytes each runtime helper actually touches** — `concat` charges both operands, `len` charges the string, `charat` charges a memo miss |
+| `time` | once per loop iteration and once per function call, **plus the bytes each runtime helper actually touches** — `concat` charges both operands, `len` charges the string, `charat` charges nothing: it is one load of the stored length |
 | `mem` | by the number of bytes each allocation requests |
 
 The second half of the `time` row is what makes the counter measure the right
@@ -582,7 +582,8 @@ none:
   the regression where a linear function silently becomes quadratic — which
   is the failure this repo actually had (`docs/GAPS.md` §3: `id_charat`
   called `strlen` on every access, and every text-processing program was
-  quadratic for months with nothing to notice) — and it does not catch an
+  quadratic for months with nothing to notice; strings now carry their length,
+  so `charat` is not charged) — and it does not catch an
   adversarial input.
 - **It counts work, not wall time**, so it will not catch a change that makes
   the same number of byte-touches slower — a worse cache pattern, say. That
@@ -620,6 +621,18 @@ That result is cached by the library's content and the compiler and `cc`
 identity, so a warm build pays nothing for it. A library function the
 program's cases call is still compiled into the harness as a callee; only its
 own cases move. `--no-std` skips the standard library's check.
+
+**A case that passed is not run again until something it can reach changes.**
+Each case is keyed on its own tokens and on everything it can reach: the
+functions it calls, the exported variables it reads (through the function that
+declares them), and the `conf.id` constants it reads, directly or through the
+initialiser of another constant. Editing a constant nothing reads reruns no
+case; editing one reruns exactly the cases that read it. What the source cannot
+say -- the compiler, `cc` and the host -- is part of every key. A case that
+reaches a `native` or an `asm` routine, or carries a scaling claim, is never
+cached. `IDC_CASE_STATS=1` prints how many cases were already passed and how
+many ran (`idc/tests/cache_reach.sh` counts reruns with it); `IDC_NO_CACHE=1`
+runs every case.
 
 **A case runs in the root of the source tree that owns its function**: the
 project root for the program's own cases, and a dependency's root for the
