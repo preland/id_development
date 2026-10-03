@@ -3,7 +3,7 @@
 > **Status: design, plus a first slice that runs.** The slice is the idml parser
 > and the layout pass, written in `id`, in `idstd/gfx/kit/gui/` (section 11), which
 > is where the toolkit lives (decided; section 4). Everything else in this document
-> is a proposal. The forks in section 12 are **not decided** except 2 and 5; where
+> is a proposal. The forks in section 12 are **not decided** except 1, 2 and 5; where
 > the slice had to pick one to exist, it says which and why.
 
 ## 1. What this is for, and the contract it keeps
@@ -61,7 +61,7 @@ fourth loader.
       |  (next)  gui_expand        define calls and Repeat rows become real nodes
       v
   tape, expanded
-      |  gui_bind(value source)    @ref dimensions and ?@ref gates get this frame's values
+      |  gui_bind(board)           @ref dimensions and ?@ref gates get this frame's values
       v
   tape, bound
       |  gui_layout(w, h)          exact-fill tiling -> one x,y,w,h per node
@@ -228,28 +228,106 @@ are paid by every program.
 The idml side is fixed (section 1). The `id` side has to supply: a **value
 source** (`@remaining`, `@pipeLead!`, `?@isReady`), a **handler** for each bare
 identifier (`addTodo`), a **model cell** for each `~name` (`~newtodo`, two-way),
-and **list rows** for `Repeat(@todos)` with `@item.text`.
+and **list rows** for `Repeat(@list)` with `@item.field`.
 
-What `id` offers for passing behaviour is `func(T) return R` values
-(`docs/SPEC.md` 1.1): a named top-level function passed as an argument, stored
-in an export, called. Not stored in a list, not returned, not used on the wasm
-target (SPEC section 11, S12). So the seam cannot be "a table of handlers".
+**Decided (Fork 1): option C, binding tables are the core and function values
+are a native-only convenience on top.** `func(T) return R` values
+(`docs/SPEC.md` 1.1) can be passed and called but not stored in a list, not
+returned, and do not exist on the wasm target (SPEC section 11, S8, S12), so a
+seam built on them stops the toolkit's core from running on the web. The seam is
+therefore a **board**: tables the application writes before a frame and the
+toolkit reads, and a queue the toolkit fills and the application reads after it.
+The function-value layer reads the application through callbacks, writes what
+they answer into a board, and then does exactly what the table path does, so the
+two paths cannot differ in what they bind; the parity cases (below) prove it.
 
-The slice already commits one point: `gui_bind(t, s, func(string) return int
-val)` takes the value source as a function value. It is the smallest useful
-binding (a dimension in basis points, or a gate's truthiness) and it is how the
-spec's own example is shaped. The rest is **Fork 1**:
+### 5.1 The board
 
-| option | shape | tradeoff |
+`GuiBd` is a struct (a reference: whatever takes a board changes the caller's
+board), made by `gui_board()`. Under it are idstd's `hmap_` (a name table:
+name to cell index), two parallel lists of cells (a number and a text per cell)
+and the queue of fired handlers. **A name is one cell**, with a number half and a
+text half; cell 0 is never written, so a name nobody wrote reads as `0` and `""`
+and no reader needs a branch.
+
+| kind | idml | the application writes | the toolkit reads |
+| --- | --- | --- | --- |
+| **value** | `@name`, `?@name`, a dimension `[@name,...]` | `gui_set_num(b, "name", v)`: basis points for a size, nonzero for a gate | `gui_num(b, "name")`; `gui_bind` does it for sizes and gates |
+| **text** | `Text(@name)` | `gui_set_text(b, "name", s)` | `gui_text(b, "name")` |
+| **row field** | `Repeat(@list)` with `@item.field` | `gui_set_num_at(b, col, row, v)`, `gui_set_text_at(b, col, row, s)`, and the row count as the value `list` | `gui_num_at`, `gui_text_at`, `gui_num(b, "list")` for the count |
+| **model cell** | `Input(~name)`, `Checkbox(~name)` | `gui_set_text(b, "name", s)` for the starting text | writes back with `gui_edit(b, "name", s)`; the app reads `gui_text`, and `gui_num(b, "name")` counts the edits |
+| **handler** | `Button("Add", addTodo)` | reads the queue after a frame | `gui_fire(b, "addTodo", arg)` queues it |
+
+**Handlers.** The toolkit queues the bare identifier with an argument (the row
+index for a handler inside a `Repeat`, else 0), in firing order. After a frame
+the application reads `gui_fired(b)` entries with `gui_fired_name(b, i)` and
+`gui_fired_arg(b, i)`, then calls `gui_fired_clear(b)`. A handler fires a frame
+before the application sees it; that is the price of the toolkit never calling
+out.
+
+**Row addressing: a column key and a row index, not a synthesised key per cell.**
+`@item.field` inside `Repeat(@list)` is the column `gui_col("list", "field")`
+(that is `"list.field"`) at the row's index. The option the fork named,
+`"todos.3.text"` built for every read, was rejected for one reason: **strings are
+never freed** (`docs/MEMORY.md`), so a key built per row per field per frame
+grows memory without bound. A column is a header cell, whose number half is the
+rows it has room for, followed by one cell per row; the name table holds the
+header. The toolkit builds the column key once, when it expands the `Repeat`
+(the expansion pass is not built yet), and keeps it in the tape's strings; the
+application passes a literal or a key it built once. A write past the end of a
+column makes room (twice what was asked, at least 8, the old block abandoned), so
+writing the same rows every frame allocates nothing. Consequences, stated: the
+name `list` is both the list's count (a number) and, if the application also
+wants it, a text; two `Repeat`s over the same list with the same field share a
+column; and a row field is read by `(column, row)`, so no two-argument callback
+type is needed on the table path.
+
+**One name, one cell.** `@count` as a number, `@count` as text and `~count` as a
+model are the same cell. That keeps the tables small and makes a model cell
+usable as a value; an application that wants them apart uses two names.
+
+**Layout reads through the seam.** `gui_bind(t, s, b)` writes the board's answers
+into the tape's effective sizes and hidden flags (every dimension `[@name,...]`
+and every `?@name` gate), and `gui_layout` reads only those, in basis points. A
+name the board does not hold reads as 0, which is a zero-size, or hidden for a
+gate; before this change a function answered it. Binding can run again after the
+state changes and only the bound nodes move.
+
+### 5.2 The function-value layer (native only)
+
+Each takes callbacks as arguments, not registrations: nothing is stored, so there
+is no initialisation order to get wrong.
+
+| function | callback | what it does |
 | --- | --- | --- |
-| **A. narrow function values** | the app passes `func(string) return int` (numbers and gates), `func(string) return string` (text), `func(string, int) return string` (row fields), `func(string) return void` (handler by name) | idiomatic, type-checked, testable by naming a function in a case. Needs a dispatcher `if(name == "addTodo")` chain in the app (an `if` costs an action; a long chain becomes a `chain`). Does not exist on the wasm target. |
-| **B. binding tables** | the app writes `hmap` entries (`idstd` `hmap_*`) before a frame and reads a queue of fired handler names after | works on every target including wasm; no dispatcher chain; the toolkit never calls out. Values are copied in every frame; a handler fires a frame late; strings as keys allocate. |
-| **C. both** | table backend is the core, function values are sugar on native | two paths to keep identical. |
+| `gui_bind_fn(t, s, f)` | `func(string) return int` | the old `gui_bind`: `gui_pull_num` into a board of its own, then `gui_bind` |
+| `gui_pull_num(t, s, b, f)` | `func(string) return int` | writes `f(name)` for every size and gate name on the tape |
+| `gui_pull_text(t, s, b, f)` | `func(string) return string` | writes `f(name)` for every `@name` argument, except `item.` row fields |
+| `gui_pull_rows_text(b, col, n, f)` | `func(string, int) return string` | writes `f(col, row)` for rows 0 to n-1 of the column |
+| `gui_pull_rows_num(b, col, n, f)` | `func(string, int) return int` | the same for numbers |
+| `gui_dispatch(b, f)` | `func(string, int) return void` | calls `f(name, arg)` for each fired handler in order, then clears the queue |
+| `gui_push_model(t, s, b, f)` | `func(string, string) return void` | calls `f(name, text)` for every `~name` on the tape |
 
-`@item.field` inside `Repeat` needs a row scope. The fork inside the fork is
-whether row values are addressed by a synthesised key (`"todos.3.text"`, simple,
-allocates) or by an `(name, row)` pair (no allocation, needs a two-argument
-callback type).
+The row pulls take the column key rather than `list` and `field` so they build no
+string. The `func(string) return int` of the slice's `gui_bind` is now
+`gui_bind_fn`; `gui_parse`'s import loader is still a function value (section 12),
+which is the one place the core still needs one.
+
+### 5.3 What proves the two paths agree
+
+The cases are in `idstd/gfx/kit/gui/core/flow/seam/` (`tab/` the board, `fn/` the
+layer, `fn/par/` the comparison). The flappy page is bound once through a board
+and once with `gui_bind_fn` and laid out 288x512, and the two rectangle lists must
+be equal; the pong page does the same at 640x480 with its one gate
+(`?@waiting`); the todo page is filled with `gui_set_text` and with
+`gui_pull_text` and the two boards must answer the same. Each comparison has a
+case that binds the function path differently and wants the lists to differ, so
+the comparison cannot pass by comparing two empty lists. Row fields,
+`gui_pull_num` and handlers are checked the other way round: the table path and
+the function path produce the same literal dump (the same expected string in a
+case of each). `demos/about` is the application on the table path: a block count
+and a `fresh` gate in values, the name box as the model cell `name`, the canvas
+text as the text value `say`, and the button as the handler `draw`.
 
 ## 6. The widget set for v1
 
@@ -460,7 +538,7 @@ drag-and-drop of selected text, and no clipboard INCR for text over one X reques
 | --- | --- | --- |
 | **native framebuffer** (first) | `sys/win/gfx`: `gfx_open`, `gfx_present(int[])`, `gfx_sync`, `gfx_show`, `gfx_event(int[])`, `gfx_mods`, `gfx_cursor`, `gfx_clip_set` and `gfx_clip_get`, `gfx_width/height` | `gfx_event` gives one event a call (key, text, mouse down with a click count, up, move, resize, quit, wheel); a mouse event carries no modifiers, so `gfx_mods()` is how a program learns whether Shift was down. The legacy `gfx_poll` and the polled mouse state still work. A resize is an event, and `gfx_sync` fits the surface to the window's real size before a frame is laid out. `gfx_cursor(1)` makes the pointer a text I-beam over the window and `gfx_cursor(0)` the arrow. See `idstd/sys/win/gfx/README.md` and `gfx.h`. |
 | **GL** | `sys/win/gl`: `glwin_*`, `gl_draw_tris`, `gl_read_pixels` | the toolkit's paint list can become triangles (rects) without touching layout; text needs a glyph atlas or stays in the software surface uploaded as one quad. No textured-quad primitive exists yet. |
-| **web** | today: idml's React renderer with `id` as wasm (`id_webdemo`, `id_flappy`) | the parser and layout are pure `id` and compile to wasm **if they use no function values and no natives**: `gui_parse` takes a loader function value, `gui_bind` a value function value, and wasm has neither (S8, S12). A table-based binding (Fork 1, B) is what makes the toolkit core runnable there. |
+| **web** | today: idml's React renderer with `id` as wasm (`id_webdemo`, `id_flappy`) | the parser and layout are pure `id` and compile to wasm **if they use no function values and no natives**: `gui_parse` takes a loader function value, and wasm has none (S8, S12). `gui_bind` reads a board of tables (section 5), which is what makes the rest of the core runnable there; `gui_bind_fn` and the other function-value adapters are native only. |
 
 The toolkit's painting talks to one interface: fill a rectangle, draw text, draw
 an image, push and pop a clip rectangle. The software surface implements it with
@@ -553,7 +631,7 @@ What is in it, under `idstd/gfx/kit/gui/` unless a path says otherwise:
 | `core/doc/tape/` | the record tape, its builders, and the readers an application uses | `gui_new`, `gui_count`, `gui_is_node`, `gui_node_name`, `gui_node_cls` |
 | `core/doc/read/` | scanners, cursor, tokens, syntax, imports, diagnostics | `gui_parse`, `gui_load`, `gui_diag` |
 | `core/doc/show/` | `idstd_gui_raw_all`, `gui_dump` and the test fixtures | `gui_dump` |
-| `core/flow/` | binding and layout | `gui_bind`, `gui_layout`, `gui_rect_get`, `gui_find_cls` |
+| `core/flow/` | binding and layout | `gui_bind`, `gui_layout`, `gui_rect_get`, `gui_find_cls`, the board (`gui_board`, `gui_num`, `gui_text`, `gui_set_num`, `gui_set_text`, `gui_edit`, the row and fire calls) and its function-value adapters (`gui_bind_fn`, `gui_pull_*`, `gui_dispatch`, `gui_push_model`) |
 | `core/real/` | real documents as cases | |
 | `font/` | the font seam and the font layer behind it (section 7) | `gui_font_open`, `gui_text_width`, `gui_text_draw`, `gui_text_x`, `gui_text_hit`, `gui_font_ascent`, `gui_font_descent`, `gui_font_line`, `gui_font_init`, `gui_fonts_find`, `gui_utf_cp`, `gui_utf_n`, `gui_utf_str`, and the old `gui_font_width`, `gui_font_height`, `gui_font_draw` |
 | `idstd/.tests/assets/gui/` | `todo.idml`, `flappy/` (three files), `pong/`: byte-for-byte copies, plus small fixtures | |
@@ -634,10 +712,7 @@ measurement, not a guarantee.
 Each is a real choice with a cost on both sides. None of them is made here
 except where the slice had to be something in order to exist; that is marked.
 
-**Fork 1 - how the application feeds and commands the toolkit** (section 5).
-Function values, binding tables, or both. The slice uses a function value for
-`gui_bind` and for the import loader, which is **provisional**: if tables win,
-those two signatures change and nothing else does.
+**Fork 1 - how the application feeds and commands the toolkit** (section 5) -- **decided: C, binding tables as the core and function values as a native-only convenience** (user decision). The board and its function-value layer are in section 5; `gui_parse`'s import loader is still a function value, and the one place the core needs one.
 
 **Fork 2 - fonts** (section 7) -- **decided: the editor's TrueType stack**, behind the font seam. Options were 8x8 bitmap only, the VGA 8x16 PSF, or
 the TrueType stack. It decides whether `fit`/`hug`/wrap can be exact, and

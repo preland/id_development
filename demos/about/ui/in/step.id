@@ -9,33 +9,34 @@ ab_span(int v, int lo, int n) {
 (525, 346, 179):(0)
 
 // The click count after one event, or -1 when it asks to quit. The name box sees the event first. A click
-// on the button counts on the press itself, so holding the button down adds one block, not one per frame,
-// and Enter in the name box counts as the button; then what the box holds is what the canvas shows.
+// on the button queues the handler draw on the page's board on the press itself, so holding the button
+// down queues one, not one per frame, and Enter in the name box queues it as the button does; the count
+// itself changes when ab_drain reads the queue.
 ab_on(int kind, int[] ev, int k) {
   int foc = gui_textbox_focused((import ab_tb));
   int r = gui_textbox_event((import ab_tb), kind, ev);
   int c = ab_click(kind, ev) + r / 2 % 2;
 } chain (int kind, int[] ev, int k) {
   int q = ab_quit(kind, ev[1], foc);
-  int nk = k + c;
+  int nk = k;
   ab_mark(r);
 } chain (int kind, int[] ev, int k) {
   if(c > 0) {
-    ab_tell();
+    gui_fire((import ab_bd), "draw", 0);
   }
   if(q == 1) {
     nk = 0 - 1;
   }
 } return int nk;
-given ab_fx (3, [3, 450, 150, 1, 1], 4):(5) then ab_say_text:("")
-given ab_fx given gui_textbox_set((import ab_tb), "Bo") (3, [3, 450, 150, 1, 1], 4):(5) then ab_say_text:("Bo")
-given ab_fx (1, [1, 1011, 0, 0, 0], 4):(-1)
-given ab_fx (6, [6, 800, 600, 0, 0], 4):(4)
-given ab_fx given gui_textbox_focus((import ab_tb), 1) (1, [1, 1011, 0, 0, 0], 4):(4)
-given ab_fx given gui_textbox_focus((import ab_tb), 1) given gui_textbox_set((import ab_tb), "Cy") (1, [1, 1009, 0, 0, 0], 4):(5) then ab_say_text:("Cy")
+given ab_fx (3, [3, 450, 150, 1, 1], 4):(4) then ab_nfire:(1)
+given ab_fx given gui_textbox_focus((import ab_tb), 1) given gui_textbox_set((import ab_tb), "Cy") (1, [1, 1009, 0, 0, 0], 4):(4) then ab_nfire:(1)
+given ab_fx (1, [1, 1011, 0, 0, 0], 4):(-1) then ab_nfire:(0)
+given ab_fx (6, [6, 800, 600, 0, 0], 4):(4) then ab_nfire:(0)
+given ab_fx given gui_textbox_focus((import ab_tb), 1) (1, [1, 1011, 0, 0, 0], 4):(4) then ab_nfire:(0)
 
-// The click count after every event the window has queued, or -1 when one of them quit, then the name
-// box's once-a-frame work. It stops at the first quit rather than reading on.
+// The click count after every event the window has queued, or -1 when one of them quit, then the name box's
+// once-a-frame work and, unless the window is closing, the handlers the events queued (ab_drain). It stops at
+// the first quit rather than reading on.
 ab_events(int k) {
   int[] ev = [0, 0, 0, 0, 0];
   int kind = gfx_event(ev);
@@ -46,6 +47,10 @@ ab_events(int k) {
     kind = gfx_event(ev);
   }
   ab_idle();
+  if(nk >= 0) {
+    nk = ab_drain(nk);
+  }
 } return int nk;
 given ab_fx (3):(3)
 given ab_fx (-1):(-1)
+given ab_fx given gui_fire((import ab_bd), "draw", 0) (3):(4)

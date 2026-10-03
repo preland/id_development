@@ -1,18 +1,23 @@
 // The page document: about.idml parsed into the toolkit's tape and tiled once at start-up (640x420);
-// ab_relayout tiles it again to every size the window takes. It also keeps the two small states the
-// program shares: whether the page has changed since it was drawn (ab_flag) and the text the canvas
-// shows (ab_say).
+// ab_relayout tiles it again to every size the window takes. The state the page and the program share
+// lives in a board (ab_bd), the toolkit's binding tables: the block count (blocks), whether the hint is
+// still shown (fresh, which the hint's ?@fresh gate reads), the name box's text (the model cell name)
+// and the text the canvas shows (say); the button's press is queued on it as the handler draw. It also
+// keeps whether the page has changed since it was drawn (ab_flag).
 ab_doc() {
   export int[] ab_t = [];
   export string[] ab_s = [];
   gui_new(ab_t, ab_s);
 } chain () {
   int ab_e = gui_load("about.idml", ab_t, ab_s);
+  export GuiBd ab_bd = gui_board();
   export int[] ab_rc = [];
+} chain () {
+  gui_set_num(ab_bd, "fresh", 1);
+  gui_bind(ab_t, ab_s, ab_bd);
   gui_layout(ab_t, ab_rc, 640, 420);
 } chain () {
   export int[] ab_flag = [0];
-  export string[] ab_say = [""];
 } return void;
 ():() then ab_btn_w:(179)
 ():() then ab_canvas_y:(189)

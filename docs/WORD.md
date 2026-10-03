@@ -429,8 +429,11 @@ The text-box rules are reused as rules, not as code: a word is a run of one
 `utf8_class` (`utf8_class(cp)` is public and takes a code point, so it works on
 `int[]`); double click selects the run under the click, triple selects the
 paragraph; Ctrl+Left/Right/Backspace/Delete use the same classes
-(`docs/UI.md` 7a "The word rule"). The functions are new (`para_word_next(Para,
-int)` and so on) because `utf8_word_*` take strings.
+(`docs/UI.md` 7a "The word rule"). `utf8_word_*` take strings, so the edit core
+calls idstd's `int[]` twins `utf8_cps_word_next(int[], int)`, `utf8_cps_word_prev`,
+`utf8_cps_word_lo`, `utf8_cps_word_hi`, `utf8_cps_pivot`, `utf8_cps_run_next`,
+`utf8_cps_run_prev` and `utf8_cps_cls_at` (NAMES.md 1.19a); the word tree keeps
+no copy of the rule.
 
 #### 3.2.2 Operations
 

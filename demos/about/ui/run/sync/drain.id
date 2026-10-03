@@ -1,0 +1,44 @@
+// What the program does with the board once a frame's events are in: read the queue of handlers the page
+// fired, and tell the page what changed.
+
+// The click count after reading the queue: one more for every draw that fired, with the name box first
+// copied into the model cell name (ab_name). When the count moved, the canvas text is taken from the cell
+// (ab_tell) and the page is told (ab_publish). The queue is empty afterwards.
+ab_drain(int k) {
+  ab_name();
+  int nk = k;
+  int i = 0;
+} chain (int k) {
+  while(i < gui_fired((import ab_bd))) {
+    nk = nk + (gui_fired_name((import ab_bd), i) == "draw");
+    i = i + 1;
+  }
+  gui_fired_clear((import ab_bd));
+  if(nk != k) {
+    ab_tell();
+    ab_publish(nk);
+  }
+} return int nk;
+given ab_fx given gui_textbox_set((import ab_tb), "Bo") given gui_fire((import ab_bd), "draw", 0) (3):(4) then ab_say_text:("Bo")
+given ab_fx given gui_fire((import ab_bd), "other", 0) (3):(3) then ab_nfire:(0)
+given ab_fx given gui_fire((import ab_bd), "draw", 0) given gui_fire((import ab_bd), "draw", 0) (3):(5) then ab_hint_w:(0)
+
+// Tell the page how many blocks there are: write blocks, and fresh (the hint's gate, on until the first
+// block), bind them into the layout and tile the page again at the surface's size.
+ab_publish(int k) {
+  gui_set_num((import ab_bd), "blocks", k);
+  gui_set_num((import ab_bd), "fresh", k == 0);
+  gui_bind((import ab_t), (import ab_s), (import ab_bd));
+} chain (int k) {
+  gui_layout((import ab_t), (import ab_rc), (import sf_l_w), (import sf_l_h));
+  ab_place();
+} return void;
+given ab_fx (0):() then ab_hint_w:(115)
+given ab_fx (1):() then ab_hint_w:(0)
+
+// The width the layout gave the hint, which is 0 once its gate has hidden it.
+ab_hint_w() {
+  int w = ab_box("hint", 2);
+} return int w;
+given ab_fx ():(115)
+given ab_fx given ab_publish(2) ():(0)

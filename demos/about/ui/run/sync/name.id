@@ -1,0 +1,27 @@
+// The name box and the board: the box is the widget, the model cell name is what the program reads.
+
+// Copy the name box's text into the model cell name, as the toolkit's write-back of an edit does, when
+// they differ. A frame in which the box did not change adds no edit.
+ab_name() {
+  string ab_nt = gui_textbox_text((import ab_tb));
+  if(gui_text((import ab_bd), "name") != ab_nt) {
+    gui_edit((import ab_bd), "name", ab_nt);
+  }
+} return void;
+given ab_fx given gui_textbox_set((import ab_tb), "Ada") ():() then ab_nedits:(1)
+given ab_fx given gui_textbox_set((import ab_tb), "Ada") given ab_name ():() then ab_nedits:(1)
+given ab_fx ():() then ab_nedits:(0)
+
+// How many edits the model cell name has taken.
+ab_nedits() {
+  int ab_ne = gui_num((import ab_bd), "name");
+} return int ab_ne;
+given ab_fx ():(0)
+given ab_fx given gui_edit((import ab_bd), "name", "x") ():(1)
+
+// How many handlers are queued on the board.
+ab_nfire() {
+  int ab_nq = gui_fired((import ab_bd));
+} return int ab_nq;
+given ab_fx ():(0)
+given ab_fx given gui_fire((import ab_bd), "draw", 0) ():(1)
