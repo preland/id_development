@@ -1,9 +1,8 @@
 // The strafe (right) vector: forward rotated -90 degrees, i.e.
-// (cos(yaw), -sin(yaw)) -- see fwd.id's derivation comment. right.z is
-// exactly -sin(yaw)*speed, the same value fwd.x computes (rotating 90
-// degrees swaps and sign-flips the axes), so it's just a call to fwd_dx()
-// rather than a second copy of that expression (idc's duplicate-logic check
-// would reject a byte-for-byte second copy anyway).
+// (cos(yaw), -sin(yaw)) -- see fwd.id's derivation comment. Only its x lives
+// here: right.z is exactly -sin(yaw)*speed, the same value fwd.x computes
+// (rotating 90 degrees swaps and sign-flips the axes), so strafing reads that
+// z from fwd_dx() rather than keeping a second function that only forwards to it.
 
 right_dx() {
   int ps_get_v = ps_get(2);
@@ -11,9 +10,3 @@ right_dx() {
 } return int ret_i;
 given player_init given fx_trig_init ():(70)
 given yaw90_setup ():(0)
-
-right_dz() {
-  int ret_i = fwd_dx();
-} return int ret_i;
-given player_init given fx_trig_init ():(0)
-given yaw90_setup ():(-70)

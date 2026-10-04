@@ -74,7 +74,7 @@ demos/gl3dgame/
     mainloop.id                   -- spin/tick, same shape as demos/gl3d/loop
     frame.id                     -- one frame: poll -> update -> render
   world/                          (3 entries)
-    world.id                     -- world_init/world_update/world_render
+    world.id                     -- world_init/world_update
     game/                         (3 entries: state/, input/, target/)
       state/                        (3 entries)
         gsinit.id                 -- the `mb` state list (px,pz,tx,tz,score) + gs_get

@@ -215,9 +215,9 @@ the image.
 Every directory holds at most 3 entries (`.id` files + subdirectories), every
 function at most 3 actions, nesting never exceeds 2 deep, and no function
 duplicates another's logic (idc's own compile-time checks caught several
-attempts at this while building — e.g. `right_dz()` turned out to compute
+attempts at this while building — e.g. a `right_dz()` turned out to compute
 exactly the same value as `fwd_dx()` by construction of the rotation, so it
-just calls it instead of repeating the expression).
+is called directly rather than through a forwarder).
 
 ```
 demos/fpsmaze/
