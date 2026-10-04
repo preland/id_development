@@ -716,10 +716,51 @@ declares them), and the `conf.id` constants it reads, directly or through the
 initialiser of another constant. Editing a constant nothing reads reruns no
 case; editing one reruns exactly the cases that read it. What the source cannot
 say -- the compiler, `cc` and the host -- is part of every key. A case that
-reaches a `native` or an `asm` routine, or carries a scaling claim, is never
-cached. `IDC_CASE_STATS=1` prints how many cases were already passed and how
+reaches a volatile `native`, a call to `ticks` or `getkey`, or an `asm` routine,
+or carries a scaling claim, is never cached (below says which natives are not
+volatile). `IDC_CASE_STATS=1` prints how many cases were already passed and how
 many ran (`idc/tests/cache_reach.sh` counts reruns with it); `IDC_NO_CACHE=1`
 runs every case.
+
+**Files a case reads.** A case that loads a font or a corpus reaches the file
+natives, which a source hash cannot see into, so it is keyed like any other
+case and bin/idc also records what it read. Two lists in
+`idc/compiler/parse/conf.id` say which natives that holds for; every other
+native is volatile, and so is a call to the clock (`ticks`) or the terminal
+(`getkey`). Each name is on a list only because the backend that implements it
+(idstd's `sys/io/fs/fs_posix.c`, `sys/io/ipc/env/env_posix.c`) keeps the list's
+promise through a log the harness gives each case (`$IDTC_READLOG`):
+
+- `cache_file_natives` (`fs_open`, `fs_close`, `fs_error`, `fs_read`,
+  `fs_read_mem`, `fs_size`, `fs_exists`, `fs_mtime`, `fs_list`,
+  `fs_drop_exit`) depend only on their arguments and the files they read. The
+  backend logs every path they open for reading, size, stat or list, found or
+  not, with the answer it saw.
+- `cache_taint_natives` (the writing `fs_` natives and the `env_` ones) are
+  allowed in a cached case but marked when called. A case that reaches one and
+  never calls it is cached; one that calls it is not, so it runs on every build.
+  A write is let through only inside a tree the case registered with
+  `fs_drop_exit`. (`fs_mktemp` is volatile, so today no cached case has such a
+  tree.)
+
+When a case with a real key passes, the pass list stores its key (with the hash
+of the backend's own source, since a log written by other code means nothing)
+and one entry for each distinct path it read: what it asked (`r` opened for
+reading, `s` size, `m` mtime, `e` exists, `l` listed), a hash of what it could
+see (the file's bytes, the size, the mtime, 0 or 1, or the sorted names of a
+directory with a letter for each name's type) and the absolute path. A path that
+was not there is recorded as not there. The next build skips the case only if
+its key is on the list and every recorded path still hashes the same, each
+distinct path once per build; so editing a file reruns the cases that read its
+bytes and not the ones that only asked whether it exists, creating a file
+reruns the cases that probed for it, and adding a file to a directory reruns the
+cases that listed it. A case is left out of the list, and so runs every build,
+if it wrote outside a registered tree, read a device or a `/proc`, `/sys` or
+`/dev` path, hit any error but "no such file", or if a path it read changed
+while it ran. The cases in `idc/tests/cache_files.sh` count each of these.
+A backend that implements a listed name without the log would be cached with
+nothing to invalidate it: attach such a backend only to builds whose cases are
+run uncached (`IDC_NO_CACHE=1`).
 
 **A case runs in the root of the source tree that owns its function**: the
 project root for the program's own cases, and a dependency's root for the
