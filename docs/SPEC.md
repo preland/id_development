@@ -793,6 +793,7 @@ catchable; `id` has no exceptions.
 | allocation refused by the host | `id: out of memory (N bytes)` |
 | a NUL byte reaching a string through `read_all`, `input`, `str_of_mem` | `id: a NUL byte reached a string (WHICH): use idstd stdio_slurp or stdio_read_mem, or the store (fs_read_mem), for binary data` |
 | `chr` of a code whose low byte is 0 | `id: a NUL byte reached a string (chr(0)): a string cannot hold NUL; use the store (poke8) for binary data` |
+| a `native` returning a list or struct whose `IdList` has a negative length (every other such result is copied into a list the runtime owns, so `push` works on it) | `id: a native returned a malformed list (len N): fill len cells at data, or size the list from id and return a count` |
 | reading an export whose declaring function has not run: a list anywhere; any type in a test case | `id: read of an uninitialised export (its declaring function has not run)` |
 
 The exact text is part of the specification, not an implementation detail:
