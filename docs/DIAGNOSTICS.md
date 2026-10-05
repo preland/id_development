@@ -379,7 +379,8 @@ grep -rnE '[^a-z_](tc_err|syn_err|case_err|sd_err|var_report)\(' idc/compiler --
 
 | code | diagnostic | message kept from | edit |
 | --- | --- | --- | --- |
-| E0101 E0102 | expected token; unexpected token, block comment | yes | |
+| E0101 E0102 | expected token; unexpected token, block comment, a `.` or `#!` that starts nothing | yes | |
+| E0103 E0104 | float exponent with no digits; float literal that overflows to infinity | new | |
 | E0201 E0202 E0203 E0204 | actions; nesting; functions per file; chain after a short segment | head only: the fix text moved to `help` | |
 | E0301 E0302 E0303 E0304 | undefined variable; declared twice; one name two types (`related:` the other declaration); no such function (the builtin list moved to `help`) | head only | |
 | E0305 E0306 E0307 E0308 E0309 | variable of another function; calling a variable; scope; named like a function; named like an export | head only | |

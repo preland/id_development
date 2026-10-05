@@ -1138,14 +1138,11 @@ point above).
 
 Each of these is a design question, left open.
 
-- **F8 (shebang).** `idrun` strips `#!` at the shell line, so scripts run; `idc`
-  and every other tool still reject it, so a script that has a `#!` line
-  cannot also be compiled with `idc`. Options: (1) the lexer ignores a first
-  line starting `#!` (one line in `scan_hashop`, the lexer's `#word` handler;
-  a syntax change, so it is yours); (2) every tool that reads a source file strips
-  it as `idrun` does (no language change, five places); (3) leave it as the
-  `idrun`-only convention. Trade: (1) is the only one under which `idc
-  script.id` and `idrun script.id` accept the same file.
+- **F8 (shebang). Decided: option (1).** The lexer ignores a first line starting
+  `#!` (docs/SPEC.md section 9), so `idc script.id` and `idrun script.id` accept
+  the same file and `idrun` no longer strips the line itself. The options that
+  were weighed: (1) the lexer, a syntax change; (2) every tool strips it as
+  `idrun` did; (3) an `idrun`-only convention.
 - **F1/F3 (script mode).** Measured above: the rules cost a 4 to 9-times
   line count and a 4 to 5 s edit loop through `idstd`, and the cases themselves
   are about a fifth of the lines and none of the loop. Options: keep every rule and make `idrun` fast

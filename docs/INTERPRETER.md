@@ -582,12 +582,11 @@ into a side table, not its bit pattern; neither is observable from `id`.
 Recursion depth is limited by memory, not by the host stack.
 
 **As a script runner (added after M1; measured in `docs/INTEROP.md`, "id instead
-of Python").** A first line starting `#!` is blanked before the compiler sees it
-(the shell line `idrun` assembles uses `sed '1s/^#!.*//'` instead of `cat`, so
-line numbers are unchanged), which makes `#!/usr/bin/env idrun` work; `idrun`
+of Python").** A first line starting `#!` is skipped by the
+lexer itself (docs/SPEC.md section 9), so `idrun`'s shell line is a plain `cat` and
+`idc script.id` accepts the same file; `#!/usr/bin/env idrun` works, and `idrun`
 found by bare name looks itself up on `$PATH` to find `.idc-cache` (or use
-`$IDC_CACHE_DIR`). The compiler itself still does not accept `#!` (F8 is open:
-`idc script.id` rejects the line). The memory-freeing emitter added
+`$IDC_CACHE_DIR`). F8 is closed. The memory-freeing emitter added
 `id_list_free` and `id_list_free_deep` to the IR; before they were treated as
 no-ops `idrun` refused every program ("called but not defined"). Arguments,
 standard input and the exit status reach `main` as for a compiled program.

@@ -90,6 +90,58 @@ main(int argc, string[] argv) {
 } return int x;
 ```
 
+Two more spellings are reported here with their own message. A `.` that starts
+an expression (`.5`, `.e5`) is not a float literal, which needs a digit before
+the point. A `#!` anywhere but the first line of a file is not a comment: only
+line 1 may be a shebang, so that `./script.id` can run; move the line to the top
+or turn it into a `//` comment.
+
+## E0103 a float literal with an exponent that has no digits
+
+A float's exponent is `e` or `E`, an optional `+` or `-`, and at least one digit.
+`1e` and `1e+` name no number. They are not read as `1` followed by a variable
+called `e`, which would report an undefined variable for a mistake in a number.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  float x = 1e;
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  float x = 1e5;
+} return int 0;
+```
+
+## E0104 a float literal too large to represent
+
+A `float` is an IEEE-754 binary64 and its largest finite value is about
+`1.7976931348623157e308`. A literal that rounds to infinity cannot be written:
+`1e999`, or any value at or above `2^1024 - 2^970`, the exact point where
+round-to-nearest-even leaves the largest finite value. A literal too small to
+represent rounds to zero, as it does in C, and is accepted.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  float x = 1e999;
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  float x = 1.7976931348623157e308;
+} return int 0;
+```
+
 ## E0201 a block performs more than three actions
 
 A block holds at most three actions: each statement, `if`, `else` and `while`

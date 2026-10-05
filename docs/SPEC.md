@@ -320,7 +320,8 @@ writing a number, not a property the number keeps:
 ```
 
 A literal too large for `int` is a `word`. There is no digit separator, no
-octal, and no exponent form for integers (`float` has none either — see §3).
+octal, and no exponent form for integers: a literal with an exponent is a
+`float`, never an `int` (§3).
 
 ### 2.1 Overflow wraps
 
@@ -444,8 +445,39 @@ separate piece of work. It is written down here so that the WASM target — whic
 does not implement float printing at all — implements *this* and not something
 of its own.
 
-**Float literals have no exponent form.** `1.0e20` does not lex. A literal is
-digits, a point, digits.
+**A float literal is digits, then a point and digits or an exponent or both.**
+The exponent is `e` or `E`, an optional `+` or `-`, and at least one digit:
+
+```
+1.5        0.8        6.02e23      1.5E+3      1e-30      2e10
+```
+
+*What makes a literal a float* is a point or an exponent. Without either it is an
+integer (§2.0), so `2e10` is a **float**, not the integer 20000000000: an integer
+has no exponent form, `2e10` does not fit an `int` and would otherwise silently be
+a `word`, and one rule ("an exponent or a point means float") is easier to hold
+than a rule that depends on the value. A literal is still never signed (`-1e-30`
+is the unary `-` applied to a literal), and the point must have a digit on each
+side (`.5`, `5.` and `.e5` are errors).
+
+**A literal's value is what C's `strtod` gives for the same text, on every
+target**, including subnormals (`4.9e-324` is the smallest one, `2^-1074`;
+`2.4703282292062327e-324`, just under half of it, is `0.0`) and every rounding
+tie (`conform/float/12-exponent-exact`). The compiler does not convert the
+digits: each backend hands the text to its own correctly-rounding reader. The
+only spelling it changes is a missing point before the exponent (`2e10` is passed
+on as `2.0e10`), because LLVM's text form requires one.
+
+**Two literals are errors, and both name the fix.** An exponent with no digits
+(`1e`, `1e+`) is E0103: it is not read as `1` followed by a variable `e`. A
+literal that rounds to infinity (`1e999`, or anything at or above
+`2^1024 - 2^970`, which is where round-to-nearest-even leaves `DBL_MAX` =
+`1.7976931348623157e308`) is E0104. A literal too small to represent rounds to
+zero, as it does in C, and is accepted.
+
+`idrun` (docs/INTERPRETER.md) reads the compiler's IR text itself and is exact
+only up to 15 digits and a net power of ten of 22; past that its last bit can
+differ from the compiled targets.
 
 ## 4. Strings
 
@@ -802,6 +834,12 @@ that words them differently makes the language feel different.
 
 ## 9. Program structure and I/O
 
+- **A first line that begins exactly `#!` is skipped**, so that a file can be run
+  as `./script.id` under `#!/usr/bin/env idrun`. It is the lexer's rule (and
+  every tool that tokenizes `id`, because they all use the lexer): it applies to
+  line 1 of a source file only, the line is not a token, and line 2 is still line
+  2 in every diagnostic. A `#!` anywhere else, or a `#` that does not begin
+  `#!`, is an error.
 - `main(int argc, string[] argv)` is the entry point. Its `int` return is the
   process exit status. `argv[0]` is the program name, whose spelling depends on
   how the program was launched and is therefore **not** specified.
