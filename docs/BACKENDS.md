@@ -372,6 +372,55 @@ read by `bin/idc` rather than compiled, and its C is compiled into `*.gen.o`
 beside the source; the LLVM target declares natives but links no backend; a
 project with no `main` links none.
 
+## Optimisation levels (`-O`)
+
+id's functions are small -- the three-action limit makes every program a deep
+chain of calls -- so what a build does about calls decides most of a program's
+speed and size. `-O LEVEL` (or `-O0` ... `-O3`, `-Os`) chooses, on every target:
+
+| level | C target | `--target llvm` | `--target wasm` | what it is for |
+| --- | --- | --- | --- | --- |
+| `0` | `-O0` per unit | IR passes off, `clang -O0` | `clang -O0` | quickest build; every id function is a call |
+| `1` | `-O1` per unit | IR passes on, `clang -O1` | `clang -O1` | edit-and-run: no whole-program step, so an edit rebuilds one unit |
+| `2` (default) | `-O2` plus `-flto` | IR passes on, `clang -O2 -flto` | `clang -O2 -flto`, `wasm-ld --lto-O2` | small functions inlined across the whole program |
+| `3` | `-O3 -flto` and a larger inline budget | `clang -O3 -flto` | `-O3 -flto`, `--lto-O3` | fastest code, larger binary |
+| `s` | `-Os -flto` | `clang -Os -flto` | `-Os -flto` | smallest binary; slower than `2` |
+
+**Why LTO is how inlining is done.** The C target splits the program into units
+so that an edit recompiles a few hundred lines (`unit_split` in `bin/idc`), and a
+function defined in one unit is only a prototype in the others, so no `-O` level
+can inline it into a caller in another unit; `bin/idc` does not mark program
+functions `static` either, because a unit that is not the whole program cannot
+know that nothing else calls them. With `-flto` the units are still compiled and
+cached one by one (as slim bitcode), and gcc's link step sees the whole program
+and tells the linker that only `main` is referenced from outside, which lets it
+inline across units, drop the out-of-line copies and specialise what is left. The
+price is that every relink compiles the whole program once more (`IDC_TIMES=1`
+prints what the units and the link cost); that is why `-O1` exists. A program
+with no `main` (a relocatable `.o`) and `--lib` are never linked with LTO, since
+they export their functions, and `--target llvm` hands the module and the C
+runtime to one `clang -flto`, which is what lets an id function inline the
+runtime's accessors (`id_list_get`, ...); a toolchain that cannot link that way
+is retried without it.
+
+**The runtime's accessors are `static inline` on every path.** `bin/idc` marks
+the prelude's `static` functions `static inline` once, on the C every later path
+(units, the whole-file fallback, `--emit-c`, `--lib`, `--target wasm`) starts from;
+before that only the unit path did, so the same program ran at different speeds
+depending on how it was built. A trap is still a call to code that prints its
+message and exits, whatever is inlined around it; `tests/opt.sh` checks the
+message and status at every level.
+
+**The test harness is always `-O0`**, and so is the build of a case: what a
+case checks is the program's meaning, which `-O` must not change, and a harness
+compiled with LTO would cost far more than it saves.
+
+`-O` also sets the IR pass level of `--target llvm` (0 off, anything else on;
+`s` is 1). Today the IR pipeline has no inlining pass of its own -- see
+`docs/LLVM.md`, whose table lists passes (`gvn`, `inline`, `licm`) that
+`back/ir/opt/run/pipe/run.id` does not contain, so `-O2` and `-O1` are the same
+IR.
+
 ## The rule that keeps this honest
 
 Every step keeps `idc/tools/parity.sh` at MATCH for the C target. Byte-identical

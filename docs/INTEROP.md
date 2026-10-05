@@ -33,21 +33,63 @@ unchanged in Node and, by construction, in a browser or bundler (tested only und
 and the driver says so.
 
 The sources are `idc/tools/jsbind/` (`glue.mjs`, the runtime; `gen.mjs`, which
-reads the wasm's imports and the root files' signatures and writes the
+reads the wasm's imports and the exported functions' signatures and writes the
 outputs; `shim.c`, the seven `idw_*` functions appended to the C before it is
 compiled for wasm). `idc/tests/wasm_js.sh` is the test (`tests/run.sh wasm_js wasm_js_std`).
 
 ### What is public: the export rule
 
-**Decision (a fork, see "Forks"):** the functions bound and exported are the
-ones defined in the project's **root files** -- the files directly in the
-directory named on the command line, or the one file when a file is named.
-A subdirectory is how a project is built; a root file is what it shows. This is
-the rule a C-ABI `--lib` mode is expected to use too, so one project has one
-public surface for C, Python and JavaScript. `--exports all` exports every
-function of the project and its imports, idstd excluded -- what `--target wasm`
-did before this section, and what a project whose root is just a `conf.id`
-needs. A project with no root function builds, says so, and exports none.
+**Decision (user, see "Forks"):** the functions bound and exported are exactly
+the ones named in the project's root `conf.id`, on one line:
+
+```
+import "../csvq/data"
+string[] lib_exports = ["csv_rows", "csv_sum"];
+```
+
+They may be defined anywhere in the project tree, or in a tree it imports; the
+rest of the program is not exported, so a public surface is a choice and not an
+accident of where files are. `idc --lib` reads the same list, so one project has
+one public surface for C, Python and JavaScript. The list is read by the driver
+(`resolve_export_list` in `idc/bin/idc`) and goes no further -- see "The
+constant" below. Each of these is an error that names the fix, before the cases
+run:
+
+| mistake | what idc says to do |
+|---|---|
+| a library, or a wasm build of a project with no `main`, and no `lib_exports` | add the line to `PROJECT/conf.id`; a single file has no `conf.id`, so put it in a directory |
+| an empty list, or one that is not `string[]` | name at least one function; write `string[] lib_exports = [...];` on one line |
+| a name that is not a function of the project | check the spelling, or remove the entry |
+| a name that is an idstd function | define a function of your own that calls it and list that |
+| `main` | move what `main` does into a function and list that |
+| the same name twice | remove one |
+
+Two more are found later, because they need the compiled program. A listed
+function whose signature cannot cross the boundary is an error in `libgen` (for
+`--lib`) and in `gen.mjs` (for wasm): remove it from the list or list a function
+that calls it. And in a wasm build of a program **with** a `main`, the compiler
+keeps only what `main` reaches, so a listed function it never calls is not in
+the module, and `gen.mjs` says so (`--no-js` skips that check). A command (a
+program with `main` and no list) exports nothing and is driven by `run()`.
+
+**`--exports all`** is a debugging escape and not an export rule: it exports
+every function of the project and its imports, idstd excluded, whatever the
+list says (or does not), and binds the ones that can cross, listing the rest in
+the `.d.ts` as comments. `--exports list` is the default.
+
+**The constant.** `lib_exports` is not compiled. `read_manifest` in
+`idc/bin/idc` drops that one declaration when it collects `conf.id`'s constants
+(a non-`string[]` one is an error there), the way `backend.id` is read by the
+driver and never compiled. Kept as an ordinary constant it would have been
+harmless to the unused-constant and one-type-per-name rules -- there is no such
+unused-constant rule, and a no-`main` project keeps every constant -- but two
+things went wrong with it: every library paid a global and a start-up
+initialiser for a list the program never reads, and a library that imports
+another library's tree failed with "constant 'lib_exports' is already declared
+... a constant has one home" (tested). The cost of the choice is that the
+compiler does not type-check the line, so the driver does the one check that
+matters (string list) and `(import lib_exports)` is an unknown name. The
+declaration must fit on one line, like every constant `read_manifest` takes.
 
 A function is bound when each parameter and its return are one of
 
@@ -241,7 +283,7 @@ the typed `rt.add(text)`. What broke between the webdemo's compiler era and now:
 | uniqueness | none | `toggle` (push to an imported list) is the same logic as idstd's `inf_emit`, and idstd is merged into every build; the app's own `toggle` had to change shape (a flag list flipped in place instead of an append-only log) |
 | the host's WASI stub | `fd_write`, `fd_read`, `args_*`, `proc_exit` | the module also imports `environ_get`, `environ_sizes_get`, `fd_close`, `fd_fdstat_get`, `fd_seek`; the stub fails with `LinkError: Import #0 "wasi_snapshot_preview1" "environ_get": function import requires a callable` |
 | string marshalling | `id_alloc(n+1)`, write bytes and a NUL | an id string now carries its byte length in the word before it; the old marshalling reads `len` as garbage. `greet("web")` (`"hi " + who`) returns `"hi "` -- **silently wrong, no error** -- while the webdemo's own `add`/`text` happened to keep working because they only store and echo the string. `lowerString` writes the header |
-| the exports | every function plus `id_alloc` and `memory` | the root files' functions, plus `idw_*` helpers; `--exports all` for the old behaviour |
+| the exports | every function plus `id_alloc` and `memory` | the functions in conf.id's `lib_exports`, plus `idw_*` helpers; `--exports all` for the old behaviour |
 
 ### Measurements
 
@@ -287,16 +329,13 @@ specialised arities and the in-place encode.
 
 ### Forks
 
-1. **The export rule** (decided above, not final). Root-only matches a C-ABI
-   `--lib` mode, but a root holds at most nine functions (three per file, three
-   entries per directory, and a `conf.id`'s imports are not root), and every root
-   function has to pass the uniqueness rule against the whole of idstd, so a public
-   surface is thin wrappers that must each differ in logic from the function they
-   wrap (see "Obstacles"). Options: (i) root-only, as built; (ii) every function
-   (`--exports all`), which exports internals; (iii) an explicit list in
-   `conf.id` -- a `string[]` constant is an exported global that reaches every
-   build, which `backend.id` was invented to avoid; (iv) a marker on the function
-   -- a language change, which this slice does not make.
+1. **The export rule** (decided by the user: option iii). Root-only capped a
+   public surface at nine functions and forced thin wrappers (see "Obstacles").
+   Options were (i) root-only; (ii) every function (`--exports all`), which
+   exports internals; (iii) an explicit list in `conf.id`, taken, read by the
+   driver and not compiled (see "The constant" above); (iv) a marker on the
+   function -- a language change, not taken. A list is a second place to keep in
+   step with the code; the errors above catch a list that has fallen behind it.
 2. **Who frees an argument.** The default is correct and leaks until `dispose()`;
    `freeArgs` is fast and the caller's promise. A compiler fact -- "this function
    never keeps parameter N", which the escape analysis already computes for its own
@@ -331,7 +370,8 @@ specialised arities and the in-place encode.
   same logic as idstd's `lget`; `slurp(path)` that only calls `fs_read_text` draws
   "only forwards to ..."; both rules exist to stop duplication and both punish the
   one function whose job is to be a stable name. Wrappers had to add a constant to
-  pass.
+  pass. (`lib_exports` removes the need for a facade of wrappers over the project's
+  own functions; a function of idstd still cannot be exported as itself.)
 * **Names share the C namespace.** A function called `at` is rejected because the
   runtime already defines `id_at`; the same prefix is the wasm export name.
 * **A return clause cannot be an expression**, so every accessor is two lines.
@@ -381,23 +421,27 @@ if (csv_rows(text, len, ',', &rows) == 0) {
 
 ### Which functions are exported
 
-**The top-level functions of the files directly in the project's root
-directory** (for a single-file project, the functions of that file). Helpers
-live in subdirectories and are not exported; the 3-entries-per-directory rule
-means a project's root is already its facade, so the rule costs nothing to
-follow. `main` cannot be exported: a project with one is refused, and the
-message says to move what `main` does into root-level functions.
+**Exactly the functions named in `string[] lib_exports = [...];` in the
+project's root `conf.id`**, wherever in the tree they are defined (the rule,
+the six mistakes it refuses and the reason the line is not compiled are under
+"What is public: the export rule", above; the wasm target reads the same
+list). `main` cannot be exported: a project with one is refused, and the message
+says to move what `main` does into a function and list that.
 
-A function in the root that cannot cross the boundary (see the types below) is
-an error that names the type and the fix, not a silent omission.
+```
+# trials/csvlib/conf.id
+import "../csvq/data"
+string[] lib_exports = ["csv_rows", "csv_errors", "csv_line", "csv_col", "csv_sum", "csv_cell"];
+```
 
-Other rules were considered:
+A listed function that cannot cross the boundary (see the types below) is an
+error that names the type and the fix, not a silent omission.
 
-| rule | needs syntax | why not (yet) |
-| --- | --- | --- |
-| every function outside idstd (what `--target wasm` exports) | no | exports helpers, test fixtures and every dependency's functions; the ABI becomes the whole program |
-| names listed in `conf.id`, e.g. `string[] lib_exports = [...]` | no, a convention over a list constant | a second place to keep in step with the code, and the list is only a string until a tool reads it; the better choice if a project needs to export a deep function without a facade |
-| an `export` marker on the declaration | **yes** | a language change, so it is a design fork; not taken |
+Other rules were considered: every function outside idstd (exports helpers and
+every dependency's functions, so the ABI becomes the whole program), the
+functions of the root files (a surface of at most nine, and thin wrappers), and
+an `export` marker on the declaration (a language change, so a design fork; not
+taken).
 
 ### Types
 
@@ -464,7 +508,7 @@ later call. In practice, no `export`ed variable written by one call and read
 by another. conf.id constants are fine; they are built once, outside any
 frame. Two guards exist, neither complete:
 
-* a root-level function that declares an `export` is refused, because its
+* a listed function that declares an `export` is refused, because its
   value would dangle: the message names `--lib-state`;
 * anything subtler (a helper three calls down that exports) is not detected.
   The symptom is a use of freed memory. Build with `--lib-state` while
