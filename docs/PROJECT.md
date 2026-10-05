@@ -486,6 +486,59 @@ idc/tools/dupscan.sh "$PWD/demos/moonbuggy" "$PWD/demos/solitaire" "$PWD/../idst
 
 Run it whenever a change touches more than one project.
 
+### The library is loaded by use
+
+The library is in every build, but a build parses, checks and compiles only the
+part of it your program reaches. A four-line program does not pay for two
+thousand functions, and a library ten times the size would not change what it
+costs. What this means in practice:
+
+- **What is reached.** Every identifier in your program names something: a
+  call, a function value, an export you `import`, a constant, a type. The
+  library functions those names are, and whatever their bodies reach in turn,
+  are loaded. The rest of the library is not read. A name you *write* is an
+  identifier too, so a function, variable or constant of yours that shares a
+  name with a library one loads that one, and the ordinary "already defined"
+  error is what you see, exactly as before.
+- **What is still checked against all of it.** A program may not repeat a
+  library function's body without calling it, so the library hands the
+  compiler an index of every function it did not load: its fingerprint and the
+  imports it reads. A function of yours that does what a library function does
+  is rejected with the same words whether or not you call the original, and
+  the diagnostic is on whichever of the two the build reads second
+  (`mid/names/symbols/check/conflict/more/core/ext/`).
+- **What is not checked.** An error inside a library function nothing of
+  yours reaches — a type error, a rule broken, a case that fails — does not
+  fail your build. It fails the library's own: `idc idstd` builds the whole
+  library as a project, and `idstd/run.sh whole` is that build. The cases of
+  the library functions you *do* reach are run for you, once per change of
+  those functions, and a failure is reported as the library's, never yours.
+- **The cost, and what is cached.** The first build after the library changes
+  reads each changed file once and keeps what it found, under the file's
+  content hash, in `$CACHE/stdidx` (override with `IDC_STD_IDX_DIR`). A file
+  that did not change is not read again, and one that only moved is not read
+  at all. A build that reaches the same functions of an unchanged library
+  re-parses nothing of it.
+- **Seeing it.** `IDC_TIMES=1` prints how many library functions the build
+  loaded, and the wall time at each stage of it (`planned` is the end of reading
+  the project and the library's index, `frontend` the end of the parse).
+- **Switching it off.** `IDC_STD_FULL=1` merges the whole library as it did
+  before, for a diagnosis or a comparison. So do `--fingerprints`, `--calls`,
+  `--list-untested`, `--fix` and `--emit-sources`, a program that lives inside
+  the library's own tree (the suites under `idstd/.tests`), and a library the
+  index cannot describe — one with a syntax error, an `asm` declaration, a name
+  defined twice, or a `conf.id` line that is not one constant.
+
+The emitted C is the same whichever way the library is merged, up to three
+things. A whole merge prints an empty `/* exported variables */` comment when
+the program reaches no export of the library. A local that is passed to a
+library function is freed at the end of its function more often, because the
+analysis that decides it treats a function a test case names in `then calls`
+as one that keeps its arguments, and the library's own cases are no longer in
+the build. And a project with no `main` (§6) holds the library functions it
+reaches rather than every function of the library, which is what a library
+object linked into a program wants.
+
 ### The trap with no line number of its own
 
 Two `idstd` modules hold state, and state in `id` is an `export` inside a
