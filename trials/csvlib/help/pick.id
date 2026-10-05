@@ -1,0 +1,39 @@
+// Helpers for the facade in the project's root. They live below it, so the
+// library does not export them.
+
+// Column `cs_col` of every row that has one.
+cl_pick(string[][] cs_rows, int cs_col) {
+  string[] cs_out = [];
+  int cs_i = 0;
+  int cs_n = len(cs_rows);
+} chain (string[][] cs_rows, int cs_col) {
+  while (cs_i < cs_n) {
+    cl_push(cs_rows[cs_i], cs_col, cs_out);
+    cs_i = cs_i + 1;
+  }
+} return string[] cs_out;
+([["a", "b"], ["c"], ["d", "e"]], 1):(["b", "e"])
+([], 0):([])
+
+// Push cs_row[cs_col] onto cs_out when the row is long enough.
+cl_push(string[] cs_row, int cs_col, string[] cs_out) {
+  if (len(cs_row) > cs_col) {
+    push(cs_out, cs_row[cs_col]);
+  }
+} return void;
+(["a", "b"], 1, []):(["a", "b"], 1, ["b"])
+(["a"], 1, ["z"]):(["a"], 1, ["z"])
+
+// The sum of the entries that are numbers.
+cl_total(string[] cs_vals) {
+  float cs_tot = 0.0;
+  int cs_i = 0;
+  int cs_n = len(cs_vals);
+} chain (string[] cs_vals) {
+  while (cs_i < cs_n) {
+    cs_tot = cs_tot + cl_numval(cs_vals[cs_i]);
+    cs_i = cs_i + 1;
+  }
+} return float cs_tot;
+(["1", "x", "2.5"]):(3.5)
+([]):(0.0)

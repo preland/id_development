@@ -345,3 +345,226 @@ specialised arities and the in-place encode.
   marshal than an int by a factor of the allocation.
 * `-o dir/x.wasm` into a missing directory fails inside `wasm-ld`, with that
   message, not idc's (pre-existing).
+
+## id as a library
+
+> **Status: a description** of what `idc --lib` does today, tested by
+> `idc/tests/lib.sh`.
+
+An id project with no `main` builds into a library that C, Python, JavaScript
+(Node) and anything else with a C foreign-function interface can call.
+
+```sh
+idc/bin/idc trials/csvlib --lib -o build/csv
+#   build/libcsv.so   shared library (depends on libc only)
+#   build/libcsv.a    static archive (link with -pthread)
+#   build/csv.h       the C header
+```
+
+The project's cases run first, exactly as in any build: a library whose cases
+fail is not built and leaves no file behind.
+
+```c
+#include "csv.h"
+
+csv_table rows;
+if (csv_rows(text, len, ',', &rows) == 0) {
+    printf("%s\n", rows.row[1].items[2]);
+    csv_table_free(&rows);
+} else {
+    fprintf(stderr, "csv: %s\n", csv_error());
+}
+```
+
+`cc host.c -Ibuild build/libcsv.a -pthread`, or
+`cc host.c -Ibuild -Lbuild -lcsv -Wl,-rpath,build`.
+
+### Which functions are exported
+
+**The top-level functions of the files directly in the project's root
+directory** (for a single-file project, the functions of that file). Helpers
+live in subdirectories and are not exported; the 3-entries-per-directory rule
+means a project's root is already its facade, so the rule costs nothing to
+follow. `main` cannot be exported: a project with one is refused, and the
+message says to move what `main` does into root-level functions.
+
+A function in the root that cannot cross the boundary (see the types below) is
+an error that names the type and the fix, not a silent omission.
+
+Other rules were considered:
+
+| rule | needs syntax | why not (yet) |
+| --- | --- | --- |
+| every function outside idstd (what `--target wasm` exports) | no | exports helpers, test fixtures and every dependency's functions; the ABI becomes the whole program |
+| names listed in `conf.id`, e.g. `string[] lib_exports = [...]` | no, a convention over a list constant | a second place to keep in step with the code, and the list is only a string until a tool reads it; the better choice if a project needs to export a deep function without a facade |
+| an `export` marker on the declaration | **yes** | a language change, so it is a design fork; not taken |
+
+### Types
+
+| id type | as a parameter | as the result (`out` parameters) |
+| --- | --- | --- |
+| `int` | `int32_t` | `int32_t* out` |
+| `word` | `int64_t` | `int64_t* out` |
+| `float` | `double` | `double* out` |
+| `string` | `const char* p, size_t p_len` | `char** out, size_t* out_len` |
+| `int[]` `word[]` `float[]` | `const T* p, size_t p_len` | `T** out, size_t* out_len` |
+| `string[]` | `const char* const* p, const size_t* p_lens, size_t p_count` | `NAME_strs* out` |
+| `string[][]` | not accepted | `NAME_table* out` |
+| `void` | | nothing |
+
+Parameters are named `in_0`, `in_1`, ... after their position, because the
+compiler's signature report keeps types, not names; the header's comment above
+each function gives the id types. A function whose name starts with `NAME_` is
+exported without doubling it (`csv_rows` in library `csv` is `csv_rows`).
+Structs, `func(...)` values and lists nested more than the `string[][]` result
+have no C form and are refused with the fix named.
+
+Every exported function returns `int`:
+
+| status | meaning |
+| --- | --- |
+| 0 | success; the `out` parameters hold the result |
+| 1 | the id code trapped (index out of bounds, division by zero, out of memory, `exit`, a freed list...). `NAME_error()` says what. Every `out` is empty |
+| 2 | an argument was invalid: a NUL byte inside a string (an id string cannot hold one; pass binary data as an `int[]`), or a NULL pointer with a nonzero length. Every `out` is empty |
+
+`NAME_error()` returns a NUL-terminated message valid until the next call into
+the library **on the same thread**. A successful call clears it.
+
+### Ownership
+
+* **Inputs belong to the caller** and are copied: the library never keeps a
+  pointer to them after the call returns, and never writes through one.
+  Because they are copies, an id function that mutates a list parameter does
+  not change the host's array.
+* **Results belong to the caller.** Everything returned through an `out` is
+  `malloc`ed and must be released:
+  * `string`, `int[]`, `word[]`, `float[]`: `NAME_free(ptr)`. A string result
+    is NUL-terminated as well as counted. A list result is non-null on success
+    even when empty.
+  * `string[]`: `NAME_strs_free(&strs)`. One allocation holds the item
+    pointers, the lengths and the bytes; `items[i]` are NUL-terminated.
+  * `string[][]`: `NAME_table_free(&table)`.
+  * An `out` of a failed call is empty (`NULL`/0) and needs no release.
+* `NAME_error()`'s string is the library's, and is not freed.
+* Nothing the id side allocates is visible to the host. Everything it
+  allocated during a call is released when the call returns (below).
+
+### Memory
+
+An id program's heap is an arena that is freed only at process exit. That
+suits a program and not a library, so a library call is a **frame**: the
+arena is marked on entry and everything the call allocated (strings, lists,
+`alloc`ed store memory) is freed on return, after the result has been copied
+out. Measured: 800000 calls, a quarter of them traps, move resident memory by
+less than 100 KB (`tests/lib/kit_host.c`).
+
+The consequence is the **contract for a scoped library (the default)**: a
+function must not leave an id heap value or flat-store contents behind for a
+later call. In practice, no `export`ed variable written by one call and read
+by another. conf.id constants are fine; they are built once, outside any
+frame. Two guards exist, neither complete:
+
+* a root-level function that declares an `export` is refused, because its
+  value would dangle: the message names `--lib-state`;
+* anything subtler (a helper three calls down that exports) is not detected.
+  The symptom is a use of freed memory. Build with `--lib-state` while
+  debugging to see whether that is the cause.
+
+`--lib-state` builds a library that frees nothing per call. State persists
+between calls (the pattern: a root function `reset()` makes an exported list
+that `add()` and `total()` read), and memory grows until the host calls
+`NAME_shutdown()`, which frees everything; id values made before it are gone
+afterwards, so call the setup function again. `tests/lib/tally` is the
+example.
+
+### Traps
+
+Every trap in the id runtime is a message on stderr followed by `exit(1)`:
+list bounds, division by zero, shifts, store addresses, NUL in a string,
+out of memory, a freed list, an id program's own `exit`. Inside a library the
+two are redirected: the message is captured for `NAME_error()` and control
+returns to the entry point by `longjmp`, which unwinds the frame and returns
+status 1. The host process is not exited.
+
+What cannot become an error return without a runtime redesign:
+
+* **Stack overflow** from runaway recursion is a SIGSEGV. The runtime has no
+  depth counter, and recovering from a stack fault needs a signal handler on an
+  alternate stack that can still only abandon the process safely.
+* **An infinite loop** never returns. There is no cancellation point.
+* **Native backends** (idstd's `fs`, `env`, sockets, windows) act on the host
+  process: a file the id code opened and did not close stays open if it traps
+  between the open and the close, and `print` writes to the host's stdout.
+* **Threads.** The runtime keeps its state in globals, so each library takes
+  a lock around every call. Calls from several threads are safe and are
+  serialised. A host that wants parallelism loads the library once per worker
+  process.
+
+### Linking, symbols, versions
+
+The library's only exported symbols are `NAME_*`: the exported functions plus
+`NAME_error`, `NAME_free`, `NAME_strs_free`, `NAME_table_free` and
+`NAME_shutdown`. The runtime, idstd and backend code are hidden (version script
+for the `.so`, `objcopy --keep-global-symbol` for the `.a`), so two id
+libraries link into one program (tested). Code the exports do not reach is
+removed (`--gc-sections`), which is why a library that uses only idstd's file
+and string functions does not drag in X11 or sockets.
+
+### Hosts
+
+* **C**: above; `idc/tests/lib/*_host.c`.
+* **Python** (ctypes): declare `argtypes`, pass `bytes` and lengths, define
+  `Structure`s for `NAME_strs` and `NAME_table`, free what you are given.
+* **Node**: Node 24 has no FFI. Node 26.2.0 ships `node:ffi` behind
+  `--experimental-ffi`: `ffi.dlopen(path, { fn: { parameters: [...], result } })`,
+  `buffer` for pointers to caller memory, `uint64` for `size_t` (a BigInt),
+  `ffi.toString(ptr)` and `ffi.toBuffer(ptr, n)` to read results, `pointer`
+  results as BigInt addresses.
+
+### Call overhead
+
+Measured on a loaded x86-64 Linux machine (load average about 15, so every
+figure is a range over 2 to 5 runs, not a point). `stash1` is a void call that
+writes one word to the flat store, `div` an `int`-in `int`-out call, `dot1000`
+the dot product of two 1000-element `int[]` (copied in on every call), and
+`csvsum1k` parses a 1000-row, 3-column CSV text with quoted fields and sums a
+column (`trials/csvlib`, `csv_sum`). "Native" is the same work written in the
+host language, not through the library. Scripts: the C host and the two
+FFI hosts are kept with the session's scratch files, not in the repository.
+
+| work | C: native | C: id library | Python: native | Python: ctypes | Node: native | Node: `node:ffi` |
+| --- | --- | --- | --- | --- | --- | --- |
+| `stash1` (call overhead) | 1.1-2.1 ns | 23.6-27.7 ns | 31-54 ns | 405-532 ns | 6-7 ns | 72-88 ns |
+| `div` (int in, int out) | 1.4-2.7 ns | 22.5-32.8 ns | 35-56 ns | 548-858 ns | 10-13 ns | 212-231 ns |
+| `dot1000`, arrays prebuilt | 192-247 ns | 780-1106 ns | 37-60 us (list, `sum(zip)`) | 1.6-2.4 us | 849-935 ns (`Int32Array`) | 990-1306 ns |
+| `dot1000`, arrays built per call | | | | 166-261 us | | |
+| `csvsum1k` | 55-143 us | 369-664 us | 166-256 us (`split`), 267-384 us (`csv` module) | 241-386 us | 151-185 us | 312-428 us |
+
+What this says:
+
+* The library's own fixed cost per call is about **23 ns** from C: the lock,
+  `setjmp`, opening and closing the memory frame, and copying scalars. That is
+  what a host pays before any id code runs.
+* **Python's ctypes costs 0.4-0.9 us per call** and dominates everything small;
+  against it the library's 23 ns is noise. A call that does real work
+  (`csvsum1k`) is on par with the `csv` module and pure-Python splitting.
+  Building a ctypes array per call (166-261 us for 1000 ints) costs far more
+  than the call; keep arrays alive across calls when the data repeats.
+* **Node's FFI costs 70-230 ns per call**, and a JS function costs 6-13 ns, so
+  a trivial call is 10-30 times slower across the boundary and an id library
+  only pays when it does more than roughly a microsecond of work. `dot1000`
+  on prebuilt buffers is within 1.5x of JIT-compiled JavaScript.
+* The id code itself, in C or in a host, is **3.5-5x slower than hand-written C
+  on list-heavy work** (`dot1000`, `csvsum1k`): lists are heap cells with a
+  bounds check per access, inputs are copied into them, and strings are
+  counted copies. The boundary is not where that goes.
+
+### Files
+
+* `idc/bin/idc`: `--lib`, `--lib-state`.
+* `idc/tools/libgen/`: an id program that turns the compiler's signature
+  report (`idparse --fingerprints`) into the header and the wrappers.
+* `idc/interop/idl_pre.h`, `idc/interop/idl.c`: the entry-point machinery
+  every library is built with (lock, trap redirection, frames, marshalling).
+* `idc/tests/lib.sh` (sections `lib`, `lib_csv`), `idc/tests/lib/`.
+* `trials/csvlib`: a library over `trials/csvq`'s CSV parser.

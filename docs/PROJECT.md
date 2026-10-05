@@ -691,6 +691,11 @@ file lib.o        # ELF 64-bit LSB relocatable
 Nothing is pruned — every function is an entry point — and everything is still
 checked.
 
+To call the library from C, Python or JavaScript instead of linking the `.o`
+into another id program, build it with `--lib`: that produces a shared library,
+a static archive and a C header for the top-level functions of the project's
+root directory (`docs/INTEROP.md`, "id as a library").
+
 A library that needs code from the program using it takes that code as a
 function value ([`SPEC.md`](SPEC.md) §1.1), not as a name the program must
 define:
