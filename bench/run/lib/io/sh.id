@@ -1,0 +1,26 @@
+br_sh(string cmd) {
+  int st = fs_run(cmd);
+  int code = st;
+  if(st > 0) {
+    code = st / 256;
+  }
+} return int code;
+("true"):(0)
+("exit 3"):(3)
+
+br_has(string rows, string key) {
+  int h = str_find(rows, key) >= 0;
+} return int h;
+("a\nB\tx\n", "B\tx"):(1)
+("a\n", "B\tx"):(0)
+
+br_append(string path, string text) {
+  int h = fs_open(path, "a");
+  word ad = mem_of_str(text);
+  int n = fs_write_mem(h, ad, len(text));
+} chain (string path, string text) {
+  int c = fs_close(h);
+  int ok = n == len(text);
+} return int ok;
+given fs_temp_text ("") ((import fs_temp_path), "ab"):(1) then fs_temp_read:("ab")
+given fs_temp_text ("xy") ((import fs_temp_path), "cd"):(1) then fs_temp_read:("xycd")

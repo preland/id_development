@@ -1,0 +1,31 @@
+ex_factor(string text, int[] cur) {
+  int v = 0;
+  if(ex_peek(text, cur) == 40) {
+    cur[0] = cur[0] + 1;
+    v = ex_expr(text, cur);
+    cur[0] = cur[0] + 1;
+  } else {
+    v = ex_num(text, cur);
+  }
+} return int v;
+("(2+3)", [0]):(5)
+("42", [0]):(42)
+
+ex_term(string text, int[] cur) {
+  int f = ex_factor(text, cur);
+  while(ex_is_t(ex_peek(text, cur)) == 1) {
+    f = ex_tail_t(text, cur, f);
+  }
+} return int f;
+("2*3*4", [0]):(24)
+("8/2/2", [0]):(2)
+("5/0", [0]):(0)
+
+ex_expr(string text, int[] cur) {
+  int t = ex_term(text, cur);
+  while(ex_is_e(ex_peek(text, cur)) == 1) {
+    t = ex_tail_e(text, cur, t);
+  }
+} return int t;
+("1+2*3-4", [0]):(3)
+("10-20", [0]):(1048566)

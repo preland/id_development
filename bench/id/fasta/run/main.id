@@ -1,0 +1,31 @@
+main(int argc, string[] argv) {
+  int n = fa_n(argc, argv);
+  fa_run(n);
+} return int 0;
+(2, ["p", "0"]):(0) then prints:(">ONE Homo sapiens alu\n>TWO IUB ambiguity codes\n>THREE Homo sapiens frequency\n")
+(2, ["p", "3"]):(0) then prints:(">ONE Homo sapiens alu\nGGCCGG\n>TWO IUB ambiguity codes\ncttBtatca\n>THREE Homo sapiens frequency\ngagccgatcctcaga\n")
+
+fa_n(int argc, string[] argv) {
+  int n = (import fa_default);
+  if(argc > 1) {
+    n = to_int(argv[1]);
+  }
+} return int n;
+(1, ["p"]):(1000)
+(2, ["p", "8"]):(8)
+
+fa_run(int n) {
+  int[] rng = [(import fa_seed)];
+  print(">ONE Homo sapiens alu");
+  fa_repeat((import fa_alu), n * 2, (import fa_width));
+} chain (int n) {
+  print(">TWO IUB ambiguity codes");
+  float[] iub = fa_cum((import fa_iub_p));
+  fa_random((import fa_iub_syms), iub, rng, n * 3, (import fa_width));
+} chain (int n) {
+  print(">THREE Homo sapiens frequency");
+  float[] hs = fa_cum((import fa_hs_p));
+  fa_random((import fa_hs_syms), hs, rng, n * 5, (import fa_width));
+} return void;
+(1):() then prints:(">ONE Homo sapiens alu\nGG\n>TWO IUB ambiguity codes\nctt\n>THREE Homo sapiens frequency\ntgagc\n")
+(0):() then prints:(">ONE Homo sapiens alu\n>TWO IUB ambiguity codes\n>THREE Homo sapiens frequency\n")

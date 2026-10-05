@@ -1,0 +1,37 @@
+main(int argc, string[] argv) {
+  string work = br_sarg(argv, 1, "");
+  int rc = br_go(work, argv);
+} return int rc;
+(1, ["p"]):(2) then eprints:("usage: p WORKDIR [REPS [CORE [BUDGET_S [FILTER]]]]  -- run from the repository root; see docs/PERFORMANCE.md\n")
+(2, ["p", "/proc/nonesuch/w"]):(4)
+
+br_go(string work, string[] argv) {
+  int rc = 2;
+  if(work == "") {
+    br_usage(argv[0]);
+  } else {
+    rc = br_exec(work, argv);
+  }
+} return int rc;
+("", ["p"]):(2) then eprints:("usage: p WORKDIR [REPS [CORE [BUDGET_S [FILTER]]]]  -- run from the repository root; see docs/PERFORMANCE.md\n")
+("/proc/nonesuch/w", ["p", "/proc/nonesuch/w"]):(4)
+
+br_exec(string work, string[] argv) {
+  int reps = br_iarg(argv, 2, 5);
+  int core = br_iarg(argv, 3, 11);
+  int budget = br_iarg(argv, 4, 50);
+} chain (string work, string[] argv) {
+  string filter = br_sarg(argv, 5, "");
+  int t0 = ticks();
+  string rustc = br_setup(work);
+} chain (string work, string[] argv) {
+  int rc = 4;
+  if(rustc != "") {
+    rc = br_phases(work, reps, core, t0, budget, filter);
+  }
+  if(rc == 0) {
+    br_report(work, len((import br_names)));
+  }
+} return int rc;
+("/proc/nonesuch/w", ["p", "/proc/nonesuch/w"]):(4)
+("/proc/nonesuch/v", ["p", "/proc/nonesuch/v", "1", "0", "0", "zzz"]):(4)

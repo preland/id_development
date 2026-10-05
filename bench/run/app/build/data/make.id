@@ -1,0 +1,26 @@
+br_gen_bin(string work, string src) {
+  string g = work + "/gen";
+  int rc = br_sh("gcc -O2 -o " + g + " " + src);
+  int have = fs_exists(g);
+} return int have;
+given br_t_work given br_t_root ((import br_tw), "$BR_ROOT/bench/ref/c/gen.c"):(1)
+given br_t_work given br_t_root ((import br_tw), "$BR_ROOT/bench/ref/c/none.c"):(0)
+
+br_data_one(string work, int i) {
+  string file = br_dpath(work, (import br_data)[i]);
+  int mk = fs_mkdir_p(work + "/data");
+  int rc = br_sh(br_gen_cmd(work, i, file));
+} chain (string work, int i) {
+  int size = fs_size(file) * (file != "");
+} return int size;
+given br_t_work given br_t_root given br_t_gen ((import br_tw), 6):(3)
+given br_t_work ((import br_tw), 0):(0)
+
+br_gen_cmd(string work, int i, string file) {
+  string cmd = "true";
+  if((import br_gen)[i] != "" && fs_exists(file) == 0) {
+    cmd = work + "/gen " + (import br_gen)[i] + " > " + file;
+  }
+} return string cmd;
+("w", 6, "f"):("w/gen dna 3000000 > f")
+("w", 0, "f"):("true")

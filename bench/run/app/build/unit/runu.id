@@ -1,0 +1,37 @@
+br_same(string work, int tc, string name, int rc) {
+  int same = 0;
+  if(rc == 0) {
+    same = br_sh("cmp -s " + br_outp(work, tc, name) + " " + br_outp(work, (import br_base), name)) == 0;
+  }
+} return int same;
+given br_t_work ((import br_tw), 0, "x", 1):(0)
+given br_t_work given br_t_out(0, "x", "hi") ((import br_tw), 0, "x", 0):(1)
+given br_t_work given br_t_out(0, "x", "hi") given br_t_out(5, "x", "ho") ((import br_tw), 5, "x", 0):(0)
+
+br_do_run(string work, int tc, int i, int rep, int core) {
+  string name = (import br_names)[i];
+  string out = br_outp(work, tc, name);
+  int mk = fs_mkdir_p(fs_dir_of(out));
+} chain (string work, int tc, int i, int rep, int core) {
+  string tf = br_tfp(work);
+  string cmd = br_run_cmd(core, br_bin(work, tc, name), (import br_args)[i], br_dpath(work, (import br_data)[i]), out, tf);
+  int rc = br_sh(cmd);
+} chain (string work, int tc, int i, int rep, int core) {
+  string line = br_last(tf);
+  int ok = br_same(work, tc, name, rc);
+  string row = br_row_r(tc, name, rep, line, ok);
+} chain (string work, int tc, int i, int rep, int core) {
+  int w = br_append(br_logp(work), row);
+} return void;
+given br_t_work given br_t_exe("exit 0", 0, "nbody") ((import br_tw), 0, 0, 0, 0):() then br_t_status:("1")
+given br_t_work given br_t_exe("exit 1", 0, "nbody") ((import br_tw), 0, 0, 0, 0):() then br_t_status:("0")
+
+br_run_one(string work, int tc, int i, int rep, int core) {
+  string key = "R\t" + (import br_tc)[tc] + "\t" + (import br_names)[i] + "\t" + rep + "\t";
+  string rows = fs_read_text(br_logp(work));
+  if(br_has(rows, key) == 0) {
+    br_do_run(work, tc, i, rep, core);
+  }
+} return void;
+given br_t_work ((import br_tw), 0, 0, 0, 0):() then br_t_count:(1)
+given br_t_work given br_t_row("R\tgcc-O2\tnbody\t0\t1\t1\t1\t1\t1\n") ((import br_tw), 0, 0, 0, 0):() then br_t_count:(1)

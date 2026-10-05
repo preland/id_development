@@ -1,0 +1,29 @@
+nb_factor(int k, float dpy, float sm) {
+  float f = 1.0;
+  if(k == 6) {
+    f = sm;
+  } else if(k >= 3) {
+    f = dpy;
+  }
+} return float f;
+(0, 2.0, 10.0):(1.0)
+(4, 2.0, 10.0):(2.0)
+
+nb_cell(float[] raw, int idx, float dpy, float sm) {
+  int k = idx % (import nb_stride);
+  float f = nb_factor(k, dpy, sm);
+  float v = raw[idx] * f;
+} return float v;
+([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0], 6, 2.0, 10.0):(70.0)
+([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0], 7, 2.0, 10.0):(8.0)
+
+nb_init(float[] raw, float dpy, float sm) {
+  float[] b = [];
+  int i = 0;
+  while(i < len(raw)) {
+    push(b, nb_cell(raw, i, dpy, sm));
+    i = i + 1;
+  }
+} return float[] b;
+([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 0.5], 2.0, 10.0):([1.0, 2.0, 3.0, 8.0, 10.0, 12.0, 5.0])
+([], 2.0, 10.0):([])

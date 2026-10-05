@@ -1,0 +1,27 @@
+br_t_status() {
+  string txt = fs_read_text((import br_tl));
+  string[] ls = str_split(str_trim(txt), "\n");
+  string[] fs = str_split(lst_str_last(ls), "\t");
+} chain () {
+  string stat_s = lst_str_last(fs);
+} return string stat_s;
+given br_t_work given br_t_row("B\tx\ty\t1\t2\t3\n") ():("3")
+given br_t_work ():("")
+
+br_t_exe(string body, int tc, string name) {
+  string path = br_bin((import br_tw), tc, name);
+  int mk = fs_mkdir_p(fs_dir_of(path));
+  int ok = br_append(path, "#!/bin/sh\n" + body + "\n");
+} chain (string body, int tc, string name) {
+  int rc = br_sh("chmod +x " + path);
+} return void;
+given br_t_work ("exit 0", 0, "x"):() then br_t_count:(0)
+given br_t_work ("exit 1", 5, "y"):() then br_t_count:(0)
+
+br_t_out(int tc, string name, string text) {
+  string path = br_outp((import br_tw), tc, name);
+  int mk = fs_mkdir_p(fs_dir_of(path));
+  int ok = br_append(path, text);
+} return void;
+given br_t_work (0, "x", "hi"):() then br_t_count:(0)
+given br_t_work (5, "y", "ho"):() then br_t_count:(0)

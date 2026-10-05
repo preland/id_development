@@ -1,0 +1,31 @@
+br_unit(string work, int kind, int tc, int i, int rep, int core) {
+  if(kind == 0) {
+    br_build_one(work, tc, (import br_names)[i]);
+  } else {
+    br_run_one(work, tc, i, rep, core);
+  }
+} return void;
+given br_t_work ((import br_tw), 0, 0, 5, 0, 0):() then br_t_count:(1)
+given br_t_work ((import br_tw), 1, 0, 0, 0, 0):() then br_t_count:(1)
+
+br_step(string work, int kind, int tc, int i, int rep, int core, int t0, int budget, string filter) {
+  int over = br_over(t0, budget);
+  if(over == 0 && br_want((import br_names)[i], filter) == 1) {
+    br_unit(work, kind, tc, i, rep, core);
+  }
+} return int over;
+given br_t_work ((import br_tw), 0, 0, 0, 0, 0, -100000, 1, ""):(1) then br_t_count:(0)
+given br_t_work ((import br_tw), 0, 0, 0, 0, 0, 0, 0, "zzz"):(0) then br_t_count:(0)
+
+br_cell(string work, int kind, int tc, int i, int reps, int core, int t0, int budget, string filter) {
+  int n = br_count(kind, reps);
+  int rep = 0;
+  int over = 0;
+} chain (string work, int kind, int tc, int i, int reps, int core, int t0, int budget, string filter) {
+  while(rep < n && over == 0) {
+    over = br_step(work, kind, tc, i, rep, core, t0, budget, filter);
+    rep = rep + 1;
+  }
+} return int over;
+given br_t_work ((import br_tw), 1, 0, 0, 3, 0, -100000, 1, ""):(1) then br_t_count:(0)
+given br_t_work ((import br_tw), 1, 0, 0, 3, 0, 0, 0, "zzz"):(0) then br_t_count:(0)

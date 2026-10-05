@@ -1,0 +1,33 @@
+br_trow(string rows, string rkind, int col, int mode, int div, int i) {
+  string name = (import br_names)[i];
+  string s = "| " + name + " |";
+  int tc = 0;
+} chain (string rows, string rkind, int col, int mode, int div, int i) {
+  while(tc < len((import br_tc))) {
+    s = s + " " + br_cellstr(rows, rkind, col, mode, div, tc, name) + " |";
+    tc = tc + 1;
+  }
+} return string s;
+("R\tgcc-O2\tnbody\t0\t100\t1\t1\t1\t1\nR\tgcc-O3n\tnbody\t0\t50\t1\t1\t1\t1\n", "R", 4, 0, 100, 0):("| nbody | 1.00 | 0.50 | - | - | - | - | - |")
+("", "R", 4, 0, 100, 1):("| spectral | - | - | - | - | - | - | - |")
+
+br_head(string title) {
+  print("");
+  print("### " + title);
+  print("| bench | " + str_join((import br_tc), " | ") + " |");
+} chain (string title) {
+  string sep = "|" + str_repeat("---|", len((import br_tc)) + 1);
+  print(sep);
+} return void;
+("t"):() then prints:("\n### t\n| bench | gcc-O2 | gcc-O3n | clang-O2 | rust-O3 | rust-O3n | id-c | id-llvm |\n|---|---|---|---|---|---|---|---|\n")
+("Peak"):() then prints:("\n### Peak\n| bench | gcc-O2 | gcc-O3n | clang-O2 | rust-O3 | rust-O3n | id-c | id-llvm |\n|---|---|---|---|---|---|---|---|\n")
+
+br_body(string rows, string rkind, int col, int mode, int div, int n) {
+  int i = 0;
+  while(i < n) {
+    print(br_trow(rows, rkind, col, mode, div, i));
+    i = i + 1;
+  }
+} return void;
+("", "R", 4, 0, 100, 1):() then prints:("| nbody | - | - | - | - | - | - | - |\n")
+("", "R", 4, 0, 100, 0):() then prints:("")

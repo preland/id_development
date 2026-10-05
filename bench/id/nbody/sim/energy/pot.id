@@ -1,0 +1,31 @@
+nb_ke(float[] b, int i) {
+  int q = i * (import nb_stride);
+  float v2 = b[q + 3] * b[q + 3] + b[q + 4] * b[q + 4] + b[q + 5] * b[q + 5];
+  float kin = 0.5 * b[q + 6] * v2;
+} return float kin;
+([0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 1.0], 0):(2.0)
+([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 3.0, 4.0, 2.0], 1):(25.0)
+
+nb_pe_from(float[] b, int i, int j, float e) {
+  float r = e;
+  while(j < len(b) / (import nb_stride)) {
+    r = r - nb_pe_pair(b, i, j);
+    j = j + 1;
+  }
+} return float r;
+([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0], 0, 1, 0.0):(-2.0)
+([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0], 0, 2, 5.0):(5.0)
+
+nb_pe_pair(float[] b, int i, int j) {
+  int p = i * (import nb_stride);
+  int q = j * (import nb_stride);
+  float dx = b[p] - b[q];
+} chain (float[] b, int i, int j) {
+  float dy = b[p + 1] - b[q + 1];
+  float dz = b[p + 2] - b[q + 2];
+  float d2 = dx * dx + dy * dy + dz * dz;
+} chain (float[] b, int i, int j) {
+  float u = b[p + 6] * b[q + 6] / msqrt(d2);
+} return float u;
+([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0], 0, 1):(2.0)
+([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 3.0, 4.0, 0.0, 0.0, 0.0, 10.0], 0, 1):(2.0)

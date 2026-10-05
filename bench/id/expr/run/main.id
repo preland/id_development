@@ -1,0 +1,27 @@
+main(int argc, string[] argv) {
+  string text = read_all();
+  ex_run(text);
+} return int 0;
+stdin "1+1\n2*3\n" (1, ["p"]):(0) then prints:("2\n8\n")
+stdin "7\n" (1, ["p"]):(0) then prints:("1\n7\n")
+
+ex_lines(string text, int[] cur, int[] acc) {
+  while(ex_peek(text, cur) >= 0) {
+    acc[0] = acc[0] + ex_expr(text, cur);
+    acc[1] = acc[1] + 1;
+    cur[0] = cur[0] + 1;
+  }
+} return void;
+("1+1\n2*3\n", [0], [0, 0]):("1+1\n2*3\n", [8], [8, 2])
+("", [0], [5, 5]):("", [0], [5, 5])
+
+ex_run(string text) {
+  int[] cur = [0];
+  int[] acc = [0, 0];
+  ex_lines(text, cur, acc);
+} chain (string text) {
+  print(acc[1]);
+  print(acc[0]);
+} return void;
+("1+1\n"):() then prints:("1\n2\n")
+(""):() then prints:("0\n0\n")

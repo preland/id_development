@@ -1,0 +1,30 @@
+bt_make(int d) {
+  Tree[] kids = [];
+  if(d > 0) {
+    push(kids, bt_make(d - 1));
+    push(kids, bt_make(d - 1));
+  }
+  Tree t = Tree(kids);
+} return Tree t;
+(0):(Tree([]))
+(1):(Tree([Tree([]), Tree([])]))
+
+bt_check(Tree t) {
+  int c = 1;
+  Tree[] ks = t.kids;
+  if(len(ks) > 0) {
+    c = 1 + bt_check(ks[0]) + bt_check(ks[1]);
+  }
+} return int c;
+(Tree([])):(1)
+(Tree([Tree([]), Tree([Tree([]), Tree([])])])):(5)
+
+bt_sum(int d, int iters) {
+  int sum = 0;
+  while(iters > 0) {
+    sum = sum + bt_check(bt_make(d));
+    iters = iters - 1;
+  }
+} return int sum;
+(2, 3):(21)
+(3, 0):(0)

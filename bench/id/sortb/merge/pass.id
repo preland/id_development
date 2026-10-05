@@ -1,0 +1,27 @@
+sb_span(int[] src, int[] dst, int lo, int w, int n) {
+  int mid = fx_min(lo + w, n);
+  int hi = fx_min(lo + 2 * w, n);
+  sb_merge(src, dst, lo, mid, hi);
+} return void;
+([3, 1, 2], [0, 0, 0], 0, 1, 3):([3, 1, 2], [1, 3, 0], 0, 1, 3)
+([3, 1, 2], [9, 9, 9], 2, 1, 3):([3, 1, 2], [9, 9, 2], 2, 1, 3)
+
+sb_pass(int[] src, int[] dst, int w, int n) {
+  int lo = 0;
+  while(lo < n) {
+    sb_span(src, dst, lo, w, n);
+    lo = lo + 2 * w;
+  }
+} return void;
+([3, 1, 2, 0], [0, 0, 0, 0], 1, 4):([3, 1, 2, 0], [1, 3, 0, 2], 1, 4)
+([1, 3, 0, 2], [9, 9, 9, 9], 2, 4):([1, 3, 0, 2], [0, 1, 2, 3], 2, 4)
+
+sb_dir(int[] a, int[] b, int w, int n, int flip) {
+  if(flip == 0) {
+    sb_pass(a, b, w, n);
+  } else {
+    sb_pass(b, a, w, n);
+  }
+} return void;
+([3, 1], [0, 0], 1, 2, 0):([3, 1], [1, 3], 1, 2, 0)
+([0, 0], [3, 1], 1, 2, 1):([1, 3], [3, 1], 1, 2, 1)

@@ -1,0 +1,23 @@
+br_t_work() {
+  export string br_tw = fs_mktemp("brw_", 1);
+  fs_drop_exit((import br_tw));
+  export string br_tl = br_logp((import br_tw));
+} return void export br_tw;
+():() then len((import br_tw)):(15)
+():() then br_t_count:(0)
+
+br_t_row(string text) {
+  int ok = br_append((import br_tl), text);
+} return void;
+given br_t_work ("a\tb\n"):() then br_t_count:(1)
+given br_t_work ("a\n"):() then br_t_status:("a")
+
+br_t_count() {
+  string log = str_trim(fs_read_text((import br_tl)));
+  int n = 0;
+  if(len(log) > 0) {
+    n = len(str_split(log, "\n"));
+  }
+} return int n;
+given br_t_work ():(0)
+given br_t_work given br_t_row("x\n") given br_t_row("y\n") ():(2)

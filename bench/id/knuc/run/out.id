@@ -1,0 +1,32 @@
+kn_frac(int f) {
+  string s = "" + f;
+  if(f < 10) {
+    s = "00" + s;
+  } else if(f < 100) {
+    s = "0" + s;
+  }
+} return string s;
+(7):("007")
+(123):("123")
+
+kn_line(string key, int cn, int total) {
+  word w = cn;
+  word pct = w * (import kn_scale) / total;
+  int ip = pct / 1000;
+} chain (string key, int cn, int total) {
+  int fp = pct % 1000;
+  string line = key + " " + ip + "." + kn_frac(fp);
+} return string line;
+("A", 1, 4):("A 25.000")
+("GT", 1, 3):("GT 33.333")
+
+kn_print(string[] ks, int[] cs, int total) {
+  int i = 0;
+  while(i < len(cs)) {
+    print(kn_line(ks[i], cs[i], total));
+    i = i + 1;
+  }
+  print("");
+} return void;
+(["a", "b"], [3, 1], 4):() then prints:("a 75.000\nb 25.000\n\n")
+([], [], 4):() then prints:("\n")

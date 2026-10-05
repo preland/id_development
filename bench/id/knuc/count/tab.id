@@ -1,0 +1,25 @@
+kn_add(string[] keys, int[] vals, int[] used, int[] cnt, string key) {
+  int v = hmap_get(keys, vals, used, key, 0);
+  hmap_put(keys, vals, used, cnt, key, v + 1);
+} return void;
+(["", "", "hi", "", "", "", "", ""], [0, 0, 99, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0], [1], "hi"):(["", "", "hi", "", "", "", "", ""], [0, 0, 100, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0], [1], "hi")
+(["", "", "hi", "", "", "", "", ""], [0, 0, 99, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0], [1], "c"):(["", "", "hi", "c", "", "", "", ""], [0, 0, 99, 1, 0, 0, 0, 0], [0, 0, 1, 1, 0, 0, 0, 0], [2], "c")
+
+kn_count(string seq, int k, string[] keys, int[] vals, int[] used, int[] cnt) {
+  int i = 0;
+  int last = len(seq) - k;
+  while(i <= last) {
+    string key = str_slice(seq, i, k);
+    kn_add(keys, vals, used, cnt, key);
+    i = i + 1;
+  }
+} return void;
+("AC", 1, ["", "", "", "", "", "", "", ""], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0]):("AC", 1, ["", "", "C", "", "A", "", "", ""], [0, 0, 1, 0, 1, 0, 0, 0], [0, 0, 1, 0, 1, 0, 0, 0], [2])
+("AA", 1, ["", "", "", "", "", "", "", ""], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0]):("AA", 1, ["", "", "", "", "A", "", "", ""], [0, 0, 0, 0, 2, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0], [1])
+
+kn_seq(string text) {
+  string[] lines = str_split(text, "\n");
+  string seq = str_join(lines, "");
+} return string seq;
+("AC\nGT\n"):("ACGT")
+("A"):("A")

@@ -1,0 +1,25 @@
+br_src(int tc, string name) {
+  string s = (import br_dir)[tc] + name + (import br_ext)[tc];
+} return string s;
+(0, "nbody"):("$BR_ROOT/bench/ref/c/nbody.c")
+(5, "nbody"):("$BR_ROOT/bench/id/nbody")
+
+br_build_cmd(int tc, string name, string out) {
+  string src = br_src(tc, name);
+  string cmd = (import br_pre)[tc] + src + (import br_mid)[tc];
+  cmd = cmd + out + (import br_post)[tc];
+} return string cmd;
+(0, "nbody", "x"):("gcc -O2 -ffp-contract=off $BR_ROOT/bench/ref/c/nbody.c -o x -lm")
+(6, "nbody", "x"):("$BR_ROOT/idc/bin/idc $BR_ROOT/bench/id/nbody -o x --target llvm")
+
+br_run_cmd(int core, string bin, string args, string input, string out, string tf) {
+  string src = "/dev/null";
+  if(input != "") {
+    src = input;
+  }
+  string pre = "taskset -c " + core + " time -f '%e %M %U %S' -o " + tf + " " + bin;
+} chain (int core, string bin, string args, string input, string out, string tf) {
+  string cmd = pre + " " + args + " < " + src + " > " + out;
+} return string cmd;
+(11, "b/x", "5", "", "o", "t"):("taskset -c 11 time -f '%e %M %U %S' -o t b/x 5 < /dev/null > o")
+(3, "b/y", "", "in.txt", "o", "t"):("taskset -c 3 time -f '%e %M %U %S' -o t b/y  < in.txt > o")

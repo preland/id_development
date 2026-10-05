@@ -1,0 +1,43 @@
+kn_freq(string seq, int k) {
+  string[] keys = [];
+  int[] vals = [];
+  int[] used = [];
+} chain (string seq, int k) {
+  int[] cnt = [];
+  hmap_init(keys, vals, used, cnt);
+  kn_count(seq, k, keys, vals, used, cnt);
+} chain (string seq, int k) {
+  string[] ks = [];
+  int[] cs = [];
+  kn_collect(keys, used, vals, ks, cs);
+} chain (string seq, int k) {
+  kn_sort(ks, cs);
+  kn_print(ks, cs, len(seq) - k + 1);
+} return void;
+("AACG", 1):() then prints:("A 50.000\nC 25.000\nG 25.000\n\n")
+("AACG", 2):() then prints:("AA 33.333\nAC 33.333\nCG 33.333\n\n")
+
+kn_query(string seq, string q) {
+  string[] keys = [];
+  int[] vals = [];
+  int[] used = [];
+} chain (string seq, string q) {
+  int[] cnt = [];
+  hmap_init(keys, vals, used, cnt);
+  kn_count(seq, len(q), keys, vals, used, cnt);
+} chain (string seq, string q) {
+  int c = hmap_get(keys, vals, used, q, 0);
+  print(c + "\t" + q);
+} return void;
+("AACG", "AA"):() then prints:("1\tAA\n")
+("AACG", "GG"):() then prints:("0\tGG\n")
+
+kn_each(string seq, string[] qs) {
+  int i = 0;
+  while(i < len(qs)) {
+    kn_query(seq, qs[i]);
+    i = i + 1;
+  }
+} return void;
+("AACG", ["AA", "CG"]):() then prints:("1\tAA\n1\tCG\n")
+("AACG", []):() then prints:("")

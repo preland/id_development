@@ -1,0 +1,34 @@
+main(int argc, string[] argv) {
+  string text = read_all();
+  int rc = jr_run(text);
+} return int rc;
+stdin "[1,2]" (1, ["p"]):(0) then prints:("3\n3\n0\n0\n0\n2\n")
+stdin "[1] x" (1, ["p"]):(1) then eprints:("json: trailing data after the top-level value\n")
+
+jr_end(string text, int[] cur) {
+  int rc = 0;
+  if(charat(text, cur[0]) >= 0) {
+    eprint("json: trailing data after the top-level value");
+    rc = 1;
+  }
+} return int rc;
+("[1]", [3]):(0)
+("[1] x", [4]):(1) then eprints:("json: trailing data after the top-level value\n")
+
+jr_run(string text) {
+  int[] cur = [0];
+  int[] tape = [];
+  jp_ws(text, cur);
+} chain (string text) {
+  int root = jp_value(text, cur, tape, 0);
+  jp_ws(text, cur);
+  int rc = jr_end(text, cur);
+} chain (string text) {
+  int[] acc = [0, 0, 0, 0, 0, 0];
+  if(rc == 0) {
+    jt_walk(tape, root, 1, acc);
+    jr_report(acc);
+  }
+} return int rc;
+("{\"a\":true,\"bc\":\"xyz\"}"):(0) then prints:("3\n0\n3\n3\n1\n2\n")
+("-5"):(0) then prints:("1\n-5\n0\n0\n0\n1\n")

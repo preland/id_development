@@ -1,0 +1,26 @@
+br_row_b(int tc, string name, int cs, int size, int rc) {
+  string row = "B\t" + (import br_tc)[tc] + "\t" + name + "\t" + cs + "\t" + size + "\t" + rc + "\n";
+} return string row;
+(0, "nbody", 29, 31984, 0):("B\tgcc-O2\tnbody\t29\t31984\t0\n")
+(5, "csv", 4610, 0, 1):("B\tid-c\tcsv\t4610\t0\t1\n")
+
+br_field(string[] fs, int k) {
+  string vs = "0";
+  if(k < len(fs)) {
+    vs = fs[k];
+  }
+} return string vs;
+(["a", "b"], 1):("b")
+(["a"], 3):("0")
+
+br_row_r(int tc, string name, int rep, string line, int ok) {
+  string[] fs = str_split(line, " ");
+  string head = "R\t" + (import br_tc)[tc] + "\t" + name + "\t" + rep + "\t";
+  int wall = br_cs(br_field(fs, 0));
+} chain (int tc, string name, int rep, string line, int ok) {
+  int user = br_cs(br_field(fs, 2));
+  int sys = br_cs(br_field(fs, 3));
+  string row = head + wall + "\t" + to_int(br_field(fs, 1)) + "\t" + user + "\t" + sys + "\t" + ok + "\n";
+} return string row;
+(0, "nbody", 0, "0.29 2264 0.28 0.01", 1):("R\tgcc-O2\tnbody\t0\t29\t2264\t28\t1\t1\n")
+(6, "csv", 2, "garbage", 0):("R\tid-llvm\tcsv\t2\t0\t0\t0\t0\t0\n")

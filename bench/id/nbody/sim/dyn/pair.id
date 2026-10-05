@@ -1,0 +1,23 @@
+nb_pair(float[] b, int i, int j, float dt) {
+  int p = i * (import nb_stride);
+  int q = j * (import nb_stride);
+  float dx = b[p] - b[q];
+} chain (float[] b, int i, int j, float dt) {
+  float dy = b[p + 1] - b[q + 1];
+  float dz = b[p + 2] - b[q + 2];
+  float d2 = dx * dx + dy * dy + dz * dz;
+} chain (float[] b, int i, int j, float dt) {
+  float mag = dt / (d2 * msqrt(d2));
+  float mi = b[p + 6];
+  float mj = b[q + 6];
+} chain (float[] b, int i, int j, float dt) {
+  b[p + 3] = b[p + 3] - dx * mj * mag;
+  b[p + 4] = b[p + 4] - dy * mj * mag;
+  b[p + 5] = b[p + 5] - dz * mj * mag;
+} chain (float[] b, int i, int j, float dt) {
+  b[q + 3] = b[q + 3] + dx * mi * mag;
+  b[q + 4] = b[q + 4] + dy * mi * mag;
+  b[q + 5] = b[q + 5] + dz * mi * mag;
+} return void;
+([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0], 0, 1, 8.0):([0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 1.0, 2.0, 0.0, 0.0, -2.0, 0.0, 0.0, 1.0])
+([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 4.0, 0.0, 0.0, 0.0, 0.0, 6.0], 0, 1, 64.0):([0.0, 0.0, 0.0, 0.0, 24.0, 0.0, 2.0, 0.0, 4.0, 0.0, 0.0, -8.0, 0.0, 6.0])

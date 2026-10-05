@@ -1,0 +1,31 @@
+br_row(string work, int kind, int i, int reps, int core, int t0, int budget, string filter) {
+  int tc = 0;
+  int over = 0;
+  while(tc < len((import br_tc)) && over == 0) {
+    over = br_cell(work, kind, tc, i, reps, core, t0, budget, filter);
+    tc = tc + 1;
+  }
+} return int over;
+given br_t_work ((import br_tw), 1, 0, 3, 0, -100000, 1, ""):(1) then br_t_count:(0)
+given br_t_work ((import br_tw), 1, 0, 3, 0, 0, 0, "zzz"):(0) then br_t_count:(0)
+
+br_phase(string work, int kind, int reps, int core, int t0, int budget, string filter) {
+  int i = 0;
+  int over = 0;
+  while(i < len((import br_names)) && over == 0) {
+    over = br_row(work, kind, i, reps, core, t0, budget, filter);
+    i = i + 1;
+  }
+} return int over;
+given br_t_work ((import br_tw), 1, 3, 0, -100000, 1, ""):(1) then br_t_count:(0)
+given br_t_work ((import br_tw), 1, 3, 0, 0, 0, "zzz"):(0) then br_t_count:(0)
+
+br_datas(string work, string filter) {
+  int i = 0;
+  while(i < len((import br_names))) {
+    br_data_when(work, i, filter);
+    i = i + 1;
+  }
+} return void;
+given br_t_work ((import br_tw), "zzz"):() then br_t_count:(0)
+given br_t_work ((import br_tw), "dna"):() then br_t_count:(0)

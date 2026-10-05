@@ -1,0 +1,37 @@
+br_fail(string rows, int tc, string name) {
+  int[] vl = br_pick(rows, "R", tc, name, 8);
+  int bad = len(vl) - lst_sum(vl);
+} return int bad;
+("R\tgcc-O2\tnbody\t0\t1\t1\t1\t1\t1\nR\tgcc-O2\tnbody\t1\t1\t1\t1\t1\t0\n", 0, "nbody"):(1)
+("R\tgcc-O2\tnbody\t0\t1\t1\t1\t1\t1\n", 0, "nbody"):(0)
+
+br_val(int mode, int[] vl, int bv, int div) {
+  string s = br_spread(vl) + "%";
+  if(mode == 0) {
+    int med = br_median(vl);
+    int rat = br_ratio(med, bv);
+    s = br_fmt2(rat);
+  } else if(mode == 1) {
+    int med2 = br_median(vl);
+    s = br_fmt2(med2 * 100 / div);
+  }
+} return string s;
+(0, [200, 250, 300], 100, 100):("2.50")
+(1, [2048], 0, 1024):("2.00")
+(2, [100, 110, 105], 0, 1):("9%")
+
+br_cellstr(string rows, string rkind, int col, int mode, int div, int tc, string name) {
+  int[] vl = br_pick(rows, rkind, tc, name, col);
+  int bv = br_med(rows, rkind, (import br_base), name, col);
+  string s = "-";
+} chain (string rows, string rkind, int col, int mode, int div, int tc, string name) {
+  if(len(vl) > 0) {
+    s = br_val(mode, vl, bv, div);
+  }
+  if(rkind == "R" && br_fail(rows, tc, name) > 0) {
+    s = "FAIL";
+  }
+} return string s;
+("R\tgcc-O2\tnbody\t0\t100\t1\t1\t1\t1\nR\tgcc-O3n\tnbody\t0\t50\t1\t1\t1\t1\n", "R", 4, 0, 100, 1, "nbody"):("0.50")
+("R\tgcc-O2\tnbody\t0\t100\t1\t1\t1\t1\nR\tgcc-O3n\tnbody\t0\t50\t1\t1\t1\t0\n", "R", 4, 0, 100, 1, "nbody"):("FAIL")
+("R\tgcc-O2\tnbody\t0\t100\t1\t1\t1\t1\n", "R", 4, 0, 100, 2, "nbody"):("-")

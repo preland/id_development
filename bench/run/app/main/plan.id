@@ -1,0 +1,42 @@
+br_setup(string work) {
+  int mk = fs_mkdir_p(work);
+  string rustc = "";
+  string root = "";
+} chain (string work) {
+  if(mk == 1) {
+    rustc = br_resolve((import br_rustc_probe), work + "/rustc.path");
+    root = br_resolve((import br_root_probe), work + "/root.path");
+  }
+  env_put("BR_RUSTC", rustc);
+  env_put("BR_ROOT", root);
+} chain (string work) {
+  int gen = br_gen_bin(work, "$BR_ROOT/bench/ref/c/gen.c");
+  int meta = br_sh(br_meta_cmd(work));
+} return string rustc;
+given br_t_work given br_t_root given env_put("BR_RUSTC", "/bin/true") ((import br_tw)):("/bin/true")
+("/proc/nonesuch/w"):("")
+
+br_phases(string work, int reps, int core, int t0, int budget, string filter) {
+  br_datas(work, filter);
+  int ob = br_phase(work, 0, reps, core, t0, budget, filter);
+  int orr = ob;
+} chain (string work, int reps, int core, int t0, int budget, string filter) {
+  if(ob == 0) {
+    orr = br_phase(work, 1, reps, core, t0, budget, filter);
+  }
+  int rc = orr * 3;
+} return int rc;
+given br_t_work ((import br_tw), 1, 0, 0, 0, "zzz"):(0)
+given br_t_work ((import br_tw), 1, 0, -100000, 1, "zzz"):(3)
+
+br_report(string work, int n) {
+  string rows = fs_read_text(br_logp(work));
+  print("```");
+  flush();
+} chain (string work, int n) {
+  int rc = br_sh("cat " + work + "/meta.txt 2>/dev/null");
+  print("```");
+  br_tables(rows, n);
+} return void;
+given br_t_work ((import br_tw), 0):() then prints:("```\n```\n\n### Wall time, ratio to gcc-O2 (lower is faster)\n| bench | gcc-O2 | gcc-O3n | clang-O2 | rust-O3 | rust-O3n | id-c | id-llvm |\n|---|---|---|---|---|---|---|---|\n\n### Wall time, median seconds\n| bench | gcc-O2 | gcc-O3n | clang-O2 | rust-O3 | rust-O3n | id-c | id-llvm |\n|---|---|---|---|---|---|---|---|\n\n### Wall time spread, (max - min) / median\n| bench | gcc-O2 | gcc-O3n | clang-O2 | rust-O3 | rust-O3n | id-c | id-llvm |\n|---|---|---|---|---|---|---|---|\n\n### Peak resident set, MB (median)\n| bench | gcc-O2 | gcc-O3n | clang-O2 | rust-O3 | rust-O3n | id-c | id-llvm |\n|---|---|---|---|---|---|---|---|\n\n### Binary size, KB\n| bench | gcc-O2 | gcc-O3n | clang-O2 | rust-O3 | rust-O3n | id-c | id-llvm |\n|---|---|---|---|---|---|---|---|\n\n### Compile time, seconds\n| bench | gcc-O2 | gcc-O3n | clang-O2 | rust-O3 | rust-O3n | id-c | id-llvm |\n|---|---|---|---|---|---|---|---|\n")
+given br_t_work ((import br_tw), 1):() then prints:("```\n```\n\n### Wall time, ratio to gcc-O2 (lower is faster)\n| bench | gcc-O2 | gcc-O3n | clang-O2 | rust-O3 | rust-O3n | id-c | id-llvm |\n|---|---|---|---|---|---|---|---|\n| nbody | - | - | - | - | - | - | - |\n\n### Wall time, median seconds\n| bench | gcc-O2 | gcc-O3n | clang-O2 | rust-O3 | rust-O3n | id-c | id-llvm |\n|---|---|---|---|---|---|---|---|\n| nbody | - | - | - | - | - | - | - |\n\n### Wall time spread, (max - min) / median\n| bench | gcc-O2 | gcc-O3n | clang-O2 | rust-O3 | rust-O3n | id-c | id-llvm |\n|---|---|---|---|---|---|---|---|\n| nbody | - | - | - | - | - | - | - |\n\n### Peak resident set, MB (median)\n| bench | gcc-O2 | gcc-O3n | clang-O2 | rust-O3 | rust-O3n | id-c | id-llvm |\n|---|---|---|---|---|---|---|---|\n| nbody | - | - | - | - | - | - | - |\n\n### Binary size, KB\n| bench | gcc-O2 | gcc-O3n | clang-O2 | rust-O3 | rust-O3n | id-c | id-llvm |\n|---|---|---|---|---|---|---|---|\n| nbody | - | - | - | - | - | - | - |\n\n### Compile time, seconds\n| bench | gcc-O2 | gcc-O3n | clang-O2 | rust-O3 | rust-O3n | id-c | id-llvm |\n|---|---|---|---|---|---|---|---|\n| nbody | - | - | - | - | - | - | - |\n")

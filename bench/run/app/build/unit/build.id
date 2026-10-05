@@ -1,0 +1,27 @@
+br_do_build(string work, int tc, string name) {
+  string bin = br_bin(work, tc, name);
+  int mk = fs_mkdir_p(fs_dir_of(bin));
+  string cmd = br_build_cmd(tc, name, bin);
+} chain (string work, int tc, string name) {
+  string tf = br_tfp(work);
+  string wrapped = br_wrap(cmd, tf, br_logp(work) + ".build");
+  int rc = br_sh(wrapped);
+} chain (string work, int tc, string name) {
+  int cs = br_cs(br_last(tf));
+  int size = fs_size(bin);
+  string row = br_row_b(tc, name, cs, size, rc);
+} chain (string work, int tc, string name) {
+  int ok = br_append(br_logp(work), row);
+} return void;
+given br_t_work given br_t_root ((import br_tw), 0, "nonesuch"):() then br_t_status:("1")
+given br_t_work given br_t_root ((import br_tw), 0, "nbody"):() then br_t_status:("0")
+
+br_build_one(string work, int tc, string name) {
+  string key = "B\t" + (import br_tc)[tc] + "\t" + name + "\t";
+  string rows = fs_read_text(br_logp(work));
+  if(br_has(rows, key) == 0) {
+    br_do_build(work, tc, name);
+  }
+} return void;
+given br_t_work ((import br_tw), 0, "nonesuch"):() then br_t_count:(1)
+given br_t_work given br_t_row("B\tgcc-O2\tnonesuch\t0\t0\t0\n") ((import br_tw), 0, "nonesuch"):() then br_t_count:(1)

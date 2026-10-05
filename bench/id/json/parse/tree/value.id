@@ -1,0 +1,38 @@
+jp_kind(int c) {
+  int k = (c == 116) * 2 + (c == 102);
+} return int k;
+(116):(2)
+(102):(1)
+(110):(0)
+
+jp_word(int c, int[] cur, int[] tape, int keylen) {
+  int kind = jp_kind(c);
+  cur[0] = cur[0] + 4 + (c == 102);
+  int node = jp_new(tape, kind, 0, keylen);
+} return int node;
+(116, [0], [], 7):(0)
+(110, [0], [1, 1, 1, 1, 1, 1], 7):(1)
+
+jp_value(string text, int[] cur, int[] tape, int keylen) {
+  int c = charat(text, cur[0]);
+  int node = 0 - 1;
+  if(c == 123) {
+    node = jp_obj(text, cur, tape, keylen);
+  }
+} chain (string text, int[] cur, int[] tape, int keylen) {
+  if(c == 91) {
+    node = jp_arr(text, cur, tape, keylen);
+  }
+  if(c == 34) {
+    node = jp_str(text, cur, tape, keylen);
+  }
+  if(c == 116 || c == 102 || c == 110) {
+    node = jp_word(c, cur, tape, keylen);
+  }
+} chain (string text, int[] cur, int[] tape, int keylen) {
+  if(node < 0) {
+    node = jp_num(text, cur, tape, keylen);
+  }
+} return int node;
+("[1]", [0], [], 0):(0)
+("12", [0], [], 0):(0)

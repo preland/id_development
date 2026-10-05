@@ -1,0 +1,29 @@
+cv_row(string line, string[] keys, int[] vals, int[] used, int[] cnt, int[] counts, int[] totals, word[] gt) {
+  string[] parts = str_split(line, ",");
+  int idx = cv_slot(keys, vals, used, cnt, counts, totals, parts[1]);
+  int amount = to_int(parts[2]) * to_int(parts[3]);
+} chain (string line, string[] keys, int[] vals, int[] used, int[] cnt, int[] counts, int[] totals, word[] gt) {
+  cv_bump(counts, totals, idx, amount);
+  gt[0] = gt[0] + amount;
+  gt[1] = gt[1] + 1;
+} return void;
+("7,C,2,3", ["", "", "C", "", "", "", "", ""], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0], [1], [1], [10], [10, 1]):("7,C,2,3", ["", "", "C", "", "", "", "", ""], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0], [1], [2], [16], [16, 2])
+("8,A,5,4", ["", "", "C", "", "", "", "", ""], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0], [1], [1], [10], [10, 1]):("8,A,5,4", ["", "", "C", "", "A", "", "", ""], [0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 1, 0, 1, 0, 0, 0], [2], [1, 1], [10, 20], [30, 2])
+
+cv_one(string line, string[] keys, int[] vals, int[] used, int[] cnt, int[] counts, int[] totals, word[] gt) {
+  if(len(line) > 0) {
+    cv_row(line, keys, vals, used, cnt, counts, totals, gt);
+  }
+} return void;
+("", ["", "", "C", "", "", "", "", ""], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0], [1], [1], [10], [10, 1]):("", ["", "", "C", "", "", "", "", ""], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0], [1], [1], [10], [10, 1])
+("7,C,2,3", ["", "", "C", "", "", "", "", ""], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0], [1], [1], [10], [10, 1]):("7,C,2,3", ["", "", "C", "", "", "", "", ""], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0], [1], [2], [16], [16, 2])
+
+cv_rows(string[] lines, string[] keys, int[] vals, int[] used, int[] cnt, int[] counts, int[] totals, word[] gt) {
+  int i = 1;
+  while(i < len(lines)) {
+    cv_one(lines[i], keys, vals, used, cnt, counts, totals, gt);
+    i = i + 1;
+  }
+} return void;
+(["id,customer,qty,price", "7,C,2,3", ""], ["", "", "C", "", "", "", "", ""], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0], [1], [1], [10], [10, 1]):(["id,customer,qty,price", "7,C,2,3", ""], ["", "", "C", "", "", "", "", ""], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0], [1], [2], [16], [16, 2])
+(["id,customer,qty,price"], ["", "", "C", "", "", "", "", ""], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0], [1], [1], [10], [10, 1]):(["id,customer,qty,price"], ["", "", "C", "", "", "", "", ""], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0], [1], [1], [10], [10, 1])
