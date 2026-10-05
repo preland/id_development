@@ -235,6 +235,7 @@ shapes, and the target of a name is the text before its first underscore:
 | `string[] TARGET_PLATFORM_sources = [...];` | the sources to compile for that target on that platform key; declaring it is what declares the platform |
 | `string[] TARGET_PLATFORM_cflags = [...];` | flags for compiling those sources (empty if absent) |
 | `string[] TARGET_PLATFORM_link = [...];` | flags for the final link (empty if absent) |
+| `string[] TARGET_PLATFORM_pkg = [...];` | pkg-config packages (C target): their `--cflags` are added to `_cflags` and their `--libs` to `_link`, at build time, and the resolved flags are in the cache keys. A package or `pkg-config` that is missing stops the build, naming the package and the fix |
 
 Platform keys are the ones the triple maps to (`linux`, `darwin`, `none`, or
 the triple's last field). The C target is `c`. **The LLVM target is not

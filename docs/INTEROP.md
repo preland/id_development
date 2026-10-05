@@ -29,13 +29,15 @@ app.dispose();
 `app.mjs` is self-contained -- the runtime, the WASI imports, the marshalling
 and the JS module of every backend the program reaches are in it -- and runs
 unchanged in Node and, by construction, in a browser or bundler (tested only under Node v24; see "Not done"). `--no-js` writes the
-`.wasm` alone, as before. Nothing is written when `node` is not on `PATH`,
-and the driver says so.
+`.wasm` alone, as before. The bindings are written by `jsgen`, so `node` is not
+needed to build them, only to run them.
 
-The sources are `idc/tools/jsbind/` (`glue.mjs`, the runtime; `gen.mjs`, which
+The sources are `idc/tools/jsbind/` (`glue.mjs`, the runtime, which runs in the
+host and so stays JavaScript; `shim.c`, the seven `idw_*` functions appended to
+the C before it is compiled for wasm) and `idc/tools/jsgen/`, an `id` program that
 reads the wasm's imports and the exported functions' signatures and writes the
-outputs; `shim.c`, the seven `idw_*` functions appended to the C before it is
-compiled for wasm). `idc/tests/wasm_js.sh` is the test (`tests/run.sh wasm_js wasm_js_std`).
+outputs (it is built on first use and cached like `libgen`; it needs `idstd`, not
+`node`). `idc/tests/wasm_js.sh` is the test (`tests/run.sh wasm_js wasm_js_std`).
 
 ### What is public: the export rule
 
@@ -66,10 +68,10 @@ run:
 
 Two more are found later, because they need the compiled program. A listed
 function whose signature cannot cross the boundary is an error in `libgen` (for
-`--lib`) and in `gen.mjs` (for wasm): remove it from the list or list a function
+`--lib`) and in `jsgen` (for wasm): remove it from the list or list a function
 that calls it. And in a wasm build of a program **with** a `main`, the compiler
 keeps only what `main` reaches, so a listed function it never calls is not in
-the module, and `gen.mjs` says so (`--no-js` skips that check). A command (a
+the module, and `jsgen` says so (`--no-js` skips that check). A command (a
 program with `main` and no list) exports nothing and is driven by `run()`.
 
 **`--exports all`** is a debugging escape and not an export rule: it exports
@@ -170,7 +172,7 @@ export default function (host) {
 }
 ```
 
-`gen.mjs` inlines the module into `app.mjs` by turning `export default function`
+`jsgen` inlines the module into `app.mjs` by turning `export default function`
 into a named function, so it is one file, and does it only for a backend whose
 native the linked wasm really imports (read from the binary, not guessed): the
 fixture `nobe` in `idc/tests/wasm_js/` attaches a backend and reaches nothing,
@@ -639,8 +641,7 @@ trials/gz/
 ```
 string name = "zl";
 string[] c_linux_sources = ["zl.c"];
-string[] c_linux_cflags = [];
-string[] c_linux_link = ["-lz"];
+string[] c_linux_pkg = ["zlib"];
 ```
 
 A native `native zl_gzip(word src, int n, word dst, int cap, int level) return int;` is emitted as the prototype `int id_zl_gzip(long long src, int n, long long dst, int cap, int level)`, so `zl.c` defines that symbol. The C ABI of each id type:
@@ -659,17 +660,10 @@ Two entry points of the generated program are meant for C: `unsigned char* id_st
 
 How to link a system library, and what is awkward about it:
 
-* `backend.id` is read by the shell, not compiled: only literal strings and string lists, no `$(pkg-config ...)`, no environment variables. `c_linux_link = ["-lz"]` works only if the build's `cc` already finds the library.
-* In this repo's devshell zlib is found, but not because `flake.nix` asks for it: `flake.nix` does not name zlib, and its include directory and library directory are in the shell's `NIX_CFLAGS_COMPILE` and `NIX_LDFLAGS` because another input of the shell depends on it. SQLite is not there (`pkg-config sqlite3` answers "not found"). Tested workaround for one command:
-
-  ```
-  export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -isystem /nix/store/...-sqlite-3.51.2-dev/include"
-  export NIX_LDFLAGS="$NIX_LDFLAGS -L/nix/store/...-sqlite-3.51.2/lib -rpath /nix/store/...-sqlite-3.51.2/lib"
-  idc/bin/idc trials/sqlq -o sqlq
-  ```
-
-  The durable fix is `sqlite` and `zlib` in the `buildInputs` of `flake.nix` next to `gfxLibs`, where the cc wrapper injects `-I`/`-L` and the rpath (not tested; the file is outside this workspace). `trials/sqlq` does not build in the stock devshell until that is done, so it is not in `idc/tests/run.sh`.
-* A `pkg-config` key (`c_linux_pkg = ["sqlite3"]`) would remove the dependence on the devshell. It is a change to the `backend.id` format, not to the language, and it adds a `pkg-config` dependency to every build that names one. Not implemented; it is an option, not a need.
+* `backend.id` is read by the shell, not compiled: only literal strings and string lists, no `$(pkg-config ...)`, no environment variables. Name the package in `c_linux_pkg = ["zlib"]` instead of writing `-lz` by hand: when a native of the backend is reached, `idc/bin/idc` runs `pkg-config --cflags` and `--libs` for the listed packages, adds the first to the backend's `_cflags` and the second to its `_link`. Both are part of the cache keys (the backend object's and the program's), so a library that moved or changed flags rebuilds them.
+* A package `pkg-config` cannot find, or no `pkg-config` on `PATH`, stops the build and names the package and the fix: add the package to the devshell (`flake.nix` `buildInputs`, which now carries `zlib` and `sqlite`) or install its development files, or point `PKG_CONFIG_PATH` at the directory holding its `.pc` file.
+* `trials/gz` and `trials/sqlq` use the key. `trials/sqlq` is in `idc/tests/run.sh` (`tmpguard_19`) now that the devshell provides sqlite. The audio seam and the Wayland backend deliberately `dlopen` their libraries and do not use it.
+* Only the C target reads `_pkg` (a host library has no meaning for the wasm module).
 
 Other things the mechanism does that are worth knowing before the first backend:
 
@@ -825,7 +819,7 @@ All commands from the workspace root, `IDSTD_HOME` set to the `idstd` beside it:
 
 ```
 idc/bin/idc trials/gz -o /tmp/gz && /tmp/gz c IN OUT 6 && gzip -dc OUT | cmp - IN
-idc/bin/idc trials/sqlq -o /tmp/sqlq            # needs libsqlite3 visible to cc, see section 1
+idc/bin/idc trials/sqlq -o /tmp/sqlq            # sq/backend.id names sqlite3 in c_linux_pkg, so pkg-config must find it (the devshell has it), see section 1
 idc/bin/idc idc/tools/hdr2id -o /tmp/hdr2id
 cc -E /path/to/zlib.h > zlib.i && /tmp/hdr2id zh zlib.h z - < zlib.i
 ```
