@@ -1,0 +1,16 @@
+td_iter(float zr, float zi, float cr, float ci, int i) {
+  int r = i;
+  if(i < (import td_max) && zr * zr + zi * zi <= 4.0) {
+    r = td_iter(zr * zr - zi * zi + cr, 2.0 * zr * zi + ci, cr, ci, i + 1);
+  }
+} return int r;
+(0.0, 0.0, 3.0, 3.0, 0):(1)
+(0.0, 0.0, 0.0, 0.0, 0):(1000)
+
+td_px(int y, int x) {
+  float cr = 3.0 * x / (import td_size) - 2.0;
+  float ci = 2.0 * y / (import td_size) - 1.0;
+  int it = td_iter(0.0, 0.0, cr, ci, 0);
+} return int it;
+(0, 0):(1)
+(600, 800):(1000)

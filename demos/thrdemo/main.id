@@ -1,0 +1,29 @@
+main(int argc, string[] argv) {
+  int th = td_threads(argc, argv);
+  int h = td_hash(th);
+  print("hash " + h);
+} return int 0;
+(1, ["p"]):(0) then prints:("hash 4135956\n")
+(2, ["p", "3"]):(0) then prints:("hash 4135956\n")
+
+td_threads(int argc, string[] argv) {
+  int t = 0 - 1;
+  if(argc > 1) {
+    t = to_int(argv[1]);
+  }
+} return int t;
+(1, ["p"]):(-1)
+(2, ["p", "4"]):(4)
+
+td_hash(int th) {
+  int[] rs = [];
+  if(th < 0) {
+    rs = thr_map_serial(td_row, (import td_size));
+  } else {
+    rs = thr_map(td_row, (import td_size), th);
+  }
+} chain (int th) {
+  int h = td_fold(rs);
+} return int h;
+(-1):(4135956)
+(2):(4135956)

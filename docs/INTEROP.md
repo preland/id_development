@@ -1248,3 +1248,151 @@ idc/bin/idc idc/tools/idrun -o idc/bin/idrun
 printf '#!/usr/bin/env idrun\nmain(int argc, string[] argv) {\n} return int 7;\n(1, ["x"]):(7)\n(2, ["x", "y"]):(7)\n' > hello.id
 PATH=$PWD/idc/bin:$PATH ./hello.id; echo $?          # 7
 ```
+
+## Translating C to id
+
+`c2id/` is a C-to-id compiler written in id. `c2id/tools/c2id.sh prog.c DIR`
+preprocesses `prog.c` (`cc -E`, with `c2id/include/` as the only system header
+path), translates it, and writes an id project to `DIR`. `idc DIR -o prog`
+builds it. `C2ID_CPPFLAGS` carries the program's own `-I` and `-D` flags.
+
+The translation is faithful and slow. C memory becomes one flat bounds-checked
+byte store (`alloc`, `peek8..64`, `poke8..64`). Every C function becomes a set
+of one-basic-block id functions that return the next block number, driven by a
+dispatch tree. Frames live on a software stack. libc comes from `c2id/crt/`
+and `c2id/rt/`.
+
+### Corpus
+
+Each program is preprocessed, translated, built with idc and run; stdout and
+exit status are compared with the same source built by `gcc -O2`.
+
+| program | C LoC | translated | builds | matches gcc | first failure |
+|---|---|---|---|---|---|
+| tests/c 010_arith | 13 | yes | yes | yes | - |
+| tests/c 020_bitwise | 12 | yes | yes | yes | - |
+| tests/c 030_control | 29 | yes | yes | yes | - |
+| tests/c 040_pointers | 22 | yes | yes | yes | - |
+| tests/c 050_structs | 23 | yes | yes | yes | - |
+| tests/c 060_funcptr | 15 | yes | yes | yes | - |
+| tests/c 070_recursion | 15 | yes | yes | yes | - |
+| mt1 (micro) | 56 | yes | yes | yes | - |
+| mt2 (micro) | 32 | yes | yes | yes | - |
+| inih | 530 | yes | yes | yes | - |
+| libmd md5 | 3433 | yes | yes | yes | - |
+| libmd sha1 | 3433 | yes | yes | yes | - |
+| libmd sha2 | 3433 | yes | yes | yes | - |
+| xxhash | 7345 | yes | yes | yes | - |
+| lz4 | 3728 | yes | yes | yes | - |
+| miniz tinfl | 2297 | yes | yes | yes | - |
+| cJSON | 3512 | yes (385 files) | no | - | float code: `double` arithmetic, `fabs`, `strtod`, `sscanf` need a float model; idc reports 10 errors, the first `unexpected token ')'` |
+
+sqlite3 and a zlib program were not tried. LoC counts the program's own
+`.c`/`.h` files, not the preprocessed text.
+
+### What broke in the baseline, and what was fixed
+
+The checked-in c2id no longer built under the current idc. Failure classes, in
+the order they appeared:
+
+1. Accessors that differ only in an imported value are rejected by the
+   uniqueness rule (36 errors). Inlined; where a case named the accessor it was
+   kept.
+2. Cases reading an export their function just declared need
+   `return void export NAME`, and cases that read a never-written export are
+   rejected. Added the clause to the `init_*` family, replaced vacuous checks.
+3. A string cannot hold NUL, so `str_of_mem` over padded buffers trapped.
+   `slice` now measures with `buf_zlen`.
+4. The generated project broke the layout rules: same-name directories,
+   numbered siblings, more than 3 entries per directory, more than 3 actions
+   per block, duplicate block bodies. The emitter now writes letter-coded
+   directories to depth 8, splits long blocks with a chain, and gives each
+   chain segment its own tag literal.
+5. Initializer lists, constant expressions over casts and `!`, static local
+   unsized arrays, parameter names, enums in constant expressions, void
+   ternary arms (`assert`) and compiler builtins were unsupported or wrong.
+   Fixed in `front/parse`, `front/fold`, `mid/lower`, `back/link`; builtins are
+   handled by `__has_builtin` being forced to 0 and by `rt/ext/builtin`.
+6. Frame renaming mis-scoped declaration-only blocks and `for` initializers,
+   giving wrong results for nested loops.
+7. Missing libc: `rt/` adds `printf` family, `fputs`, `sprintf`/`snprintf`,
+   `calloc`, `exit`/`abort`, ctype, read-only `fopen`/`fgets`, `fwrite`,
+   `bswap`, `ctz`, `clz`.
+
+The seven programs in `c2id/tests/c` all pass.
+
+### Performance against gcc -O2
+
+Wall time, one run each, same input, benchmark drivers in the corpus
+(`bench_md5`, `bench_xxh`, `bench_lz4`):
+
+| program | gcc -O2 | translated | ratio |
+|---|---|---|---|
+| md5 | 0.005 s | 0.377 s | 75x |
+| xxhash | 0.002 s | 0.354 s | 177x |
+| lz4 | 0.007 s | 1.285 s | 183x |
+
+idc `-O0`, `-O1`, `-O2` and `-O3` give 1.10 to 1.18 s user on the lz4 build:
+the optimizer level changes nothing measurable, so the cost is in the shape of
+the generated code, not in missed optimizations. (The three runs above are
+wall time of different builds from the table; the `-O` comparison is user time
+of one build.)
+
+Static shape of the lz4 project: 338 files, 9748 lines; 472 block functions and
+435 dispatch-tree nodes; 1891 tag lines against 2027 temporaries; 1249 peek and
+631 poke lines; 562 sign/zero-extension lines. Compiling the same project with
+`--emit-c` and `-O2 -fno-inline` took 8.2 s against about 2 s with inlining, so
+generated code depends on the C compiler inlining one-block functions.
+
+Sources of overhead, ranked by what the generated code contains, not by a
+profile (gprof produced no profile, so the ranking is a guess to confirm with
+`perf`):
+
+1. One function call per basic block plus a dispatch tree to pick it. A
+   C function with 472 blocks pays tree depth in calls per executed block.
+2. Flat memory model: every local lives in the software stack frame, so each
+   variable read or write is a `peek`/`poke` with a bounds check, not a
+   register.
+3. Multi-byte peek/poke are byte loops with a bounds check each.
+4. 32-bit C `int` semantics are emulated on 64-bit `word`: a sign or zero
+   extension after most arithmetic.
+5. Per-segment tag literals and `__tmp` temporaries added to satisfy the
+   uniqueness and 3-actions rules.
+
+### id blockers
+
+Where id's own rules made faithful translation impossible or costly:
+
+- No float-to-word or word-to-float bit-cast, and no `double` in the flat byte
+  store. `double` fields, `strtod`, `sscanf("%lf")` cannot be translated
+  faithfully; cJSON stops here. Fixing it needs a design decision (soft-float
+  in crt, or a bit-cast builtin).
+- Strings cannot contain NUL, so `str_of_mem` and `chr(0)` trap. All C buffers
+  stay as byte memory and every string function is reimplemented over it.
+- `len(string)` is `strlen` and concatenation never frees: emitted text work
+  is quadratic and the translator needs `ulimit -v` guarding.
+- At most 3 actions per block and nesting depth 2: every C basic block with
+  more than 3 statements is a chain, with a unique tag per segment to dodge the
+  duplicate-logic rule. This is the largest source of generated lines.
+- A call may not be an argument to a call, and a return clause is a name or a
+  literal: every nested C expression is flattened into temporaries.
+- One name has one type program-wide, including locals against exports: C
+  locals named `l`, `s`, `n` collide with translator variables, and the frame
+  pass renames locals to `name__N`.
+- At most 3 functions per file and 3 entries per directory: a 3500-line C
+  program becomes 385 files in 8 directory levels.
+- No `exit` builtin: `exit()` and `abort()` are emulated with a status word
+  that unwinds the runner loop.
+- Function pointers have no id equivalent that holds a C address: a pointer is
+  the function index plus one, called through generated dispatch trees.
+- Cases need a `given` that composes setups; a fixture for each new emitter
+  function costs more lines than the function.
+
+### Status and gaps
+
+- Cases for the functions added by this work are not written: 213 functions
+  are reported by `idc c2id/c2id --list-untested` as having fewer than two
+  cases. The project builds only with the deprecated `--allow-untested`.
+- No wasm or llvm target was tried on generated code.
+- The compiler test sections of `idc/tests/run.sh` were not run; no compiler
+  source was changed.
