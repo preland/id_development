@@ -1,0 +1,33 @@
+main(int argc, string[] argv) {
+  int rc = 2;
+  if (argc == 3) {
+    rc = cj_run(argv[1], argv[2]);
+  } else {
+    eprint("usage: csvjoin CUSTOMERS.csv ORDERS.csv");
+  }
+} return int rc;
+(1, ["csvjoin"]):(2) then eprints:("usage: csvjoin CUSTOMERS.csv ORDERS.csv\n")
+(3, ["csvjoin", "/no/such/cj_a", "/no/such/cj_b"]):(1) then eprints:("csvjoin: cannot read: no such file or directory\ncsvjoin: cannot read: no such file or directory\n")
+
+cj_run(string cpath, string opath) {
+  string[][] crows = [];
+  string[][] orows = [];
+  string[] diag = [];
+} chain (string cpath, string opath) {
+  int[] lines = [];
+  cj_load(cpath, crows, lines, diag);
+  cj_load(opath, orows, lines, diag);
+} chain (string cpath, string opath) {
+  int rc = cj_fail(diag);
+  if (rc == 0) {
+    cj_report(crows, orows);
+  }
+} return int rc;
+given fs_temp_text("id,name,region\n1,x,north\n") ((import fs_temp_path), (import fs_temp_path)):(0) then prints:("(unmatched): 1 orders, total 0.00\nnorth: 0 orders, total 0.00\n")
+("/no/such/cj_a", "/no/such/cj_b"):(1) then eprints:("csvjoin: cannot read: no such file or directory\ncsvjoin: cannot read: no such file or directory\n")
+
+cj_load(string path, string[][] rows, int[] lines, string[] diag) {
+  inp_file(path, (import ch_comma), rows, lines, diag);
+} return void;
+given fs_temp_text("a,b\n1,2\n") ((import fs_temp_path), [], [], []):((import fs_temp_path), [["a", "b"], ["1", "2"]], [1, 2], [])
+("/no/such/cj_a", [], [], []):("/no/such/cj_a", [], [], ["cannot read: no such file or directory"])

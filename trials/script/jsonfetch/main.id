@@ -1,0 +1,32 @@
+main(int argc, string[] argv) {
+  int rc = 2;
+  if (argc == 4) {
+    rc = jf_run(argv[1], to_int(argv[2]), argv[3]);
+  } else {
+    eprint("usage: jsonfetch HOST PORT PATH");
+  }
+} return int rc;
+(1, ["jsonfetch"]):(2) then eprints:("usage: jsonfetch HOST PORT PATH\n")
+(4, ["jsonfetch", "127.0.0.1", "1", "/users.json"]):(1) then eprints:("jsonfetch: cannot connect (error 111)\n")
+
+jf_run(string host, int port, string path) {
+  int[] st = [0, 0];
+  string body = http_get(host, port, path, st);
+  int rc = jf_got(st, body);
+} return int rc;
+("127.0.0.1", 1, "/"):(1) then eprints:("jsonfetch: cannot connect (error 111)\n")
+("127.0.0.1", 0, "/"):(1) then eprints:("jsonfetch: cannot connect (error 22)\n")
+
+jf_got(int[] st, string body) {
+  string why = jf_why(st);
+  int rc = 1;
+  if (why == "") {
+    rc = jf_report(body);
+  }
+} chain (int[] st, string body) {
+  if (why != "") {
+    eprint("jsonfetch: " + why);
+  }
+} return int rc;
+([200, 0], "{\"users\": []}"):(0) then prints:("users: 0\ntotal score: 0\n")
+([404, 0], ""):(1) then eprints:("jsonfetch: server answered 404 (expected 200)\n")

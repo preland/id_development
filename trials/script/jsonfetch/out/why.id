@@ -1,0 +1,32 @@
+jf_why(int[] st) {
+  string m = "";
+  if (st[0] == 0 - 1) {
+    m = "cannot connect (error " + st[1] + ")";
+  }
+  if (st[0] == 0 - 2) {
+    m = "chunked responses are not supported";
+  }
+} chain (int[] st) {
+  if (st[0] > 0 && st[0] != 200) {
+    m = "server answered " + st[0] + " (expected 200)";
+  }
+} return string m;
+([200, 0]):("")
+([-1, 111]):("cannot connect (error 111)")
+([-2, 0]):("chunked responses are not supported")
+([500, 0]):("server answered 500 (expected 200)")
+
+jf_report(string body) {
+  int n = json_count(body, "users");
+  int rc = 0;
+  if (n < 0) {
+    eprint("jsonfetch: the response has no \"users\" array");
+    rc = 1;
+  }
+} chain (string body) {
+  if (n >= 0) {
+    jf_list(body, n);
+  }
+} return int rc;
+("{\"users\": [{\"name\": \"a\", \"score\": 3}]}"):(0) then prints:("users: 1\ntotal score: 3\n1. a 3 (0 tags)\n")
+("{\"people\": []}"):(1) then eprints:("jsonfetch: the response has no \"users\" array\n")

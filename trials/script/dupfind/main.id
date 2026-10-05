@@ -1,0 +1,32 @@
+main(int argc, string[] argv) {
+  int rc = 2;
+  if (argc == 2) {
+    rc = df_run(argv[1]);
+  } else {
+    eprint("usage: dupfind DIR");
+  }
+} return int rc;
+(1, ["dupfind"]):(2) then eprints:("usage: dupfind DIR\n")
+(2, ["dupfind", "/no/such/dir_df"]):(1) then eprints:("dupfind: not a directory: /no/such/dir_df\n")
+
+df_run(string dir) {
+  int rc = 1;
+  if (fs_is_dir(dir) == 1) {
+    rc = df_report(dir);
+  } else {
+    eprint("dupfind: not a directory: " + dir);
+  }
+} return int rc;
+("/no/such/dir_df"):(1) then eprints:("dupfind: not a directory: /no/such/dir_df\n")
+given idstd_exec_t_tree ((import idstd_exec_root)):(0) then prints:("2 files, 3 bytes each:\n  a\n  b\n") then idstd_exec_t_done:(1)
+
+df_report(string dir) {
+  string[] files = path_files(dir);
+  int[] sizes = df_sizes(dir, files);
+  string[] cands = df_cands(files, sizes);
+} chain (string dir) {
+  string[][] groups = df_groups(dir, cands);
+  df_show(dir, groups);
+} return int 0;
+("/no/such/dir_df"):(0)
+given idstd_exec_t_tree ((import idstd_exec_root)):(0) then prints:("2 files, 3 bytes each:\n  a\n  b\n") then idstd_exec_t_done:(1)

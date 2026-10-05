@@ -1,0 +1,37 @@
+// The join is a hash table from customer id to a region number, plus one row of
+// totals per region; region 0 is the bucket for orders whose customer is not
+// in the customers file. State is exported because every step reads the same
+// seven lists, which is how a script would hold them as globals.
+
+cj_state() {
+  export string[] cj_keys = [];
+  export int[] cj_vals = [];
+  export int[] cj_used = [];
+} chain () {
+  export int[] cj_cnt = [];
+  export string[] cj_reg = [(import cj_none_name)];
+  export int[] cj_sum = [0];
+} chain () {
+  export int[] cj_num = [0];
+  hmap_init((import cj_keys), (import cj_vals), (import cj_used), (import cj_cnt));
+} return void;
+():() then cj_t_shape:("1 1 1 0")
+given cj_state given cj_cust(["1", "Z", "east"]) ():() then cj_t_shape:("1 1 1 0")
+
+cj_index(string[][] crows) {
+  int i = 1;
+  while (i < len(crows)) {
+    cj_cust(crows[i]);
+    i = i + 1;
+  }
+} return void;
+given cj_state ([["id", "name", "region"], ["7", "A", "north"], ["8", "B", "south"], ["9", "C", "north"]]):([["id", "name", "region"], ["7", "A", "north"], ["8", "B", "south"], ["9", "C", "north"]]) then (import cj_cnt)[0]:(3) then (import cj_reg):(["(unmatched)", "north", "south"])
+given cj_state ([["id", "name", "region"]]):([["id", "name", "region"]]) then (import cj_cnt)[0]:(0)
+
+cj_cust(string[] row) {
+  string id = lst_str_get_or(row, (import cj_c_id), "");
+  int r = cj_region(lst_str_get_or(row, (import cj_c_region), ""));
+  hmap_put((import cj_keys), (import cj_vals), (import cj_used), (import cj_cnt), id, r);
+} return void;
+given cj_state (["7", "A", "north"]):(["7", "A", "north"]) then (import cj_cnt)[0]:(1) then (import cj_reg):(["(unmatched)", "north"])
+given cj_state given cj_cust(["1", "Z", "east"]) (["7", "A", "north"]):(["7", "A", "north"]) then (import cj_cnt)[0]:(2) then (import cj_reg):(["(unmatched)", "east", "north"])

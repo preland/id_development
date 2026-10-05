@@ -1,0 +1,28 @@
+main(int argc, string[] argv) {
+  int rc = 2;
+  if (argc >= 2) {
+    rc = lt_run(argv[1], lt_top(argv));
+  } else {
+    eprint("usage: logtop FILE [N]");
+  }
+} return int rc;
+(1, ["logtop"]):(2) then eprints:("usage: logtop FILE [N]\n")
+(2, ["logtop", "/no/such/file_lt"]):(1) then eprints:("logtop: cannot read /no/such/file_lt\n")
+
+lt_top(string[] argv) {
+  string ns = lst_str_get_or(argv, 2, "10");
+  int n = to_int(ns);
+} return int n;
+(["logtop", "f"]):(10)
+(["logtop", "f", "3"]):(3)
+
+lt_run(string path, int n) {
+  int rc = 1;
+  if (fs_exists(path) == 1) {
+    rc = lt_report(path, n);
+  } else {
+    eprint("logtop: cannot read " + path);
+  }
+} return int rc;
+given fs_temp_text("") ((import fs_temp_path), 5):(0) then prints:("requests: 0\n")
+("/no/such/file_lt", 5):(1) then eprints:("logtop: cannot read /no/such/file_lt\n")

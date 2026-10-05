@@ -1,0 +1,30 @@
+main(int argc, string[] argv) {
+  int rc = 2;
+  if (argc == 2) {
+    rc = rs_run(argv[1]);
+  } else {
+    eprint("usage: repostat REPO");
+  }
+} return int rc;
+(1, ["repostat"]):(2) then eprints:("usage: repostat REPO\n")
+(2, ["repostat", "/no/such/repo_rs"]):(1) then eprints:("repostat: git log failed in /no/such/repo_rs (status 128); is it a git repository?\n")
+
+rs_run(string repo) {
+  int[] code = [0];
+  string text = exec_out(rs_git(repo), code);
+  int rc = 1;
+} chain (string repo) {
+  if (code[0] == 0) {
+    rc = rs_report(repo, text);
+  } else {
+    eprint("repostat: git log failed in " + repo + " (status " + code[0] + "); is it a git repository?");
+  }
+} return int rc;
+("/no/such/repo_rs"):(1) then eprints:("repostat: git log failed in /no/such/repo_rs (status 128); is it a git repository?\n")
+given rs_t_repo ((import rs_t_dir)):(0) then prints:("commits: 3\nauthor Alice: 2\nauthor Bob: 1\nfirst: 2026-01-02\nlast: 2026-03-04\nlongest subject: add parser for config files\nfiles: 2 (3005 bytes)\nlargest: big.txt 3000\n")
+
+rs_git(string repo) {
+  string cmd = "git\n-C\n" + repo + "\nlog\n--date=short\n--pretty=format:%an%x09%ad%x09%s\n";
+} return string cmd;
+("/r"):("git\n-C\n/r\nlog\n--date=short\n--pretty=format:%an%x09%ad%x09%s\n")
+("a b"):("git\n-C\na b\nlog\n--date=short\n--pretty=format:%an%x09%ad%x09%s\n")

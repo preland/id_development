@@ -1,0 +1,35 @@
+lt_report(string path, int n) {
+  string[] lines = str_lines(fs_read_text(path));
+  string[] pk = [];
+  int[] pv = [];
+} chain (string path, int n) {
+  lt_pass(lines, lt_path, pk, pv);
+  string[] sk = [];
+  int[] sv = [];
+} chain (string path, int n) {
+  lt_pass(lines, lt_status, sk, sv);
+  print("requests: " + len(lines));
+  lt_show("status", sk, sv, 100);
+} chain (string path, int n) {
+  lt_show("path", pk, pv, n);
+} return int 0;
+given fs_temp_text("a \"GET /x HTTP/1.1\" 200 1\na \"GET /y?q=1 HTTP/1.1\" 200 1\na \"GET /x HTTP/1.1\" 404 1\n") ((import fs_temp_path), 1):(0) then prints:("requests: 3\nstatus 200: 2\nstatus 404: 1\npath /x: 2\n")
+given fs_temp_text("a \"GET /x HTTP/1.1\" 200 1\na \"GET /y?q=1 HTTP/1.1\" 200 1\nbad line\n") ((import fs_temp_path), 5):(0) then prints:("requests: 3\nstatus 200: 2\npath /x: 1\npath /y: 1\n")
+
+lt_show(string label, string[] ks, int[] vs, int top) {
+  int[] ord = ord_desc(vs);
+  int cut = fx_min(top, len(ord));
+  lt_lines(label, ks, vs, ord, cut);
+} return void;
+("path", ["/a", "/b"], [1, 5], 1):("path", ["/a", "/b"], [1, 5], 1) then prints:("path /b: 5\n")
+("s", ["x", "y"], [2, 2], 9):("s", ["x", "y"], [2, 2], 9) then prints:("s x: 2\ns y: 2\n")
+
+lt_lines(string label, string[] ks, int[] vs, int[] ord, int cut) {
+  int i = 0;
+  while (i < cut) {
+    print(label + " " + ks[ord[i]] + ": " + vs[ord[i]]);
+    i = i + 1;
+  }
+} return void;
+("p", ["a", "b"], [1, 2], [1, 0], 2):("p", ["a", "b"], [1, 2], [1, 0], 2) then prints:("p b: 2\np a: 1\n")
+("p", ["a", "b"], [1, 2], [1, 0], 1):("p", ["a", "b"], [1, 2], [1, 0], 1) then prints:("p b: 2\n")

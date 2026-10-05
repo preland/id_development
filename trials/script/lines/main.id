@@ -1,0 +1,34 @@
+main(int argc, string[] argv) {
+  int rc = ln_run(argv);
+} return int rc;
+(1, ["lines"]):(0)
+(2, ["lines", "-q"]):(2) then eprints:("lines: unknown option '-q'; run with --help to list the options (try lines --help)\n")
+
+ln_run(string[] argv) {
+  string[] vals = [];
+  string[] rest = [];
+  string err = opt_parse((import ln_spec), argv, vals, rest);
+} chain (string[] argv) {
+  int rc = ln_go(err, vals, rest);
+} return int rc;
+stdin "a\nb\n" (["lines", "-n"]):(0) then prints:("1: a\n2: b\n")
+stdin "a\n\nb\n" (["lines", "--skip-blank", "--prefix=> ", "--max", "1"]):(0) then prints:("> a\n")
+(["lines", "--max", "x"]):(2) then eprints:("lines: option '--max' needs an integer, got 'x'; write digits only, such as --max 10 (try lines --help)\n")
+(["lines", "/no/such/file_ln"]):(1) then eprints:("lines: cannot read /no/such/file_ln\n")
+
+ln_go(string err, string[] vals, string[] rest) {
+  int rc = 0;
+  if (err == "help") {
+    print(opt_help("lines", (import ln_spec)));
+  }
+  if (err != "" && err != "help") {
+    eprint("lines: " + err + " (try lines --help)");
+    rc = 2;
+  }
+} chain (string err, string[] vals, string[] rest) {
+  if (err == "") {
+    rc = ln_files(vals, rest);
+  }
+} return int rc;
+("help", [], []):(0) then prints:("usage: lines [options] [args]\n\noptions:\n  -n, --number          prefix each line with its number [env LINES_NUMBER]\n  -m, --max INT         stop after this many lines (0 means all) (default 0) [env LINES_MAX]\n  -p, --prefix STR      text put before each line [env LINES_PREFIX]\n  -s, --skip-blank      do not print empty lines\n  -h, --help            show this help and exit\n")
+("bad", [], []):(2) then eprints:("lines: bad (try lines --help)\n")

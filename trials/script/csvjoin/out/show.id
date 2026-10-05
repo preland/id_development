@@ -1,0 +1,28 @@
+cj_report(string[][] crows, string[][] orows) {
+  cj_state();
+  cj_index(crows);
+  cj_tally(orows);
+} chain (string[][] crows, string[][] orows) {
+  int[] byname = ord_strs((import cj_reg));
+  int[] bysum = ord_desc(ord_by_ints((import cj_sum), byname));
+  cj_lines(ord_by_ints(byname, bysum));
+} return void;
+([["id", "n", "region"], ["1", "a", "north"]], [["o", "c", "a"], ["1", "1", "2.50"], ["2", "2", "1.00"]]):([["id", "n", "region"], ["1", "a", "north"]], [["o", "c", "a"], ["1", "1", "2.50"], ["2", "2", "1.00"]]) then prints:("north: 1 orders, total 2.50\n(unmatched): 1 orders, total 1.00\n")
+([["id", "n", "region"], ["1", "a", "west"], ["2", "b", "east"]], [["o", "c", "a"], ["1", "1", "1.00"], ["2", "2", "1.00"]]):([["id", "n", "region"], ["1", "a", "west"], ["2", "b", "east"]], [["o", "c", "a"], ["1", "1", "1.00"], ["2", "2", "1.00"]]) then prints:("east: 1 orders, total 1.00\nwest: 1 orders, total 1.00\n(unmatched): 0 orders, total 0.00\n")
+
+cj_lines(int[] order) {
+  int i = 0;
+  while (i < len(order)) {
+    print(cj_line(order[i]));
+    i = i + 1;
+  }
+} return void;
+given cj_state given cj_cust(["1", "a", "north"]) ([1, 0]):([1, 0]) then prints:("north: 0 orders, total 0.00\n(unmatched): 0 orders, total 0.00\n")
+given cj_state ([]):([])
+
+cj_line(int r) {
+  string name = (import cj_reg)[r];
+  string line = name + ": " + (import cj_num)[r] + " orders, total " + cj_money((import cj_sum)[r]);
+} return string line;
+given cj_state given cj_cust(["1", "a", "north"]) given cj_add(1, 250) (1):("north: 1 orders, total 2.50")
+given cj_state (0):("(unmatched): 0 orders, total 0.00")

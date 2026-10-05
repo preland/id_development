@@ -1,0 +1,29 @@
+rs_ls(string text, string[] names, int[] sizes) {
+  string[] lines = str_lines(text);
+  int i = 0;
+  while (i < len(lines)) {
+    rs_ls_row(lines[i], names, sizes);
+    i = i + 1;
+  }
+} return void;
+("total 8\n-rw-r--r-- 1 u g 5 2026-01-01 a.txt\ndrwxr-xr-x 2 u g 4096 2026-01-01 sub\n-rw-r--r-- 1 u g 3000 2026-01-01 big.txt\n", [], []):("total 8\n-rw-r--r-- 1 u g 5 2026-01-01 a.txt\ndrwxr-xr-x 2 u g 4096 2026-01-01 sub\n-rw-r--r-- 1 u g 3000 2026-01-01 big.txt\n", ["a.txt", "big.txt"], [5, 3000])
+("", [], []):("", [], [])
+
+rs_ls_row(string line, string[] names, int[] sizes) {
+  string[] w = str_words(line);
+  if (len(w) >= 7 && str_starts(w[0], "-") == 1) {
+    push(names, w[6]);
+    push(sizes, to_int(w[4]));
+  }
+} return void;
+("-rw-r--r--  1 u g 12 2026-01-01 f.txt", [], []):("-rw-r--r--  1 u g 12 2026-01-01 f.txt", ["f.txt"], [12])
+("drwxr-xr-x 2 u g 4096 2026-01-01 d", [], []):("drwxr-xr-x 2 u g 4096 2026-01-01 d", [], [])
+
+rs_big(string[] names, int[] sizes) {
+  int[] ord = ord_desc(sizes);
+  if (len(ord) > 0) {
+    print("largest: " + names[ord[0]] + " " + sizes[ord[0]]);
+  }
+} return void;
+(["a", "b", "c"], [3, 9, 9]):(["a", "b", "c"], [3, 9, 9]) then prints:("largest: b 9\n")
+([], []):([], [])

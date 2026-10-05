@@ -1,0 +1,35 @@
+rs_authors(string[][] rows) {
+  string[] keys = [];
+  int[] vals = [];
+  int[] used = [];
+} chain (string[][] rows) {
+  int[] cnt = [];
+  hmap_init(keys, vals, used, cnt);
+  rs_tally(rows, keys, vals, used, cnt);
+} chain (string[][] rows) {
+  rs_top(keys, vals, used);
+} return void;
+([["Al", "d", "s"], ["Bo", "d", "s"], ["Al", "d", "s"]]):([["Al", "d", "s"], ["Bo", "d", "s"], ["Al", "d", "s"]]) then prints:("author Al: 2\nauthor Bo: 1\n")
+([["Zed", "d", "s"], ["Abe", "d", "s"]]):([["Zed", "d", "s"], ["Abe", "d", "s"]]) then prints:("author Abe: 1\nauthor Zed: 1\n")
+
+rs_tally(string[][] rows, string[] keys, int[] vals, int[] used, int[] cnt) {
+  int i = 0;
+  while (i < len(rows)) {
+    string[] r = rows[i];
+    hmap_bump(keys, vals, used, cnt, r[0]);
+    i = i + 1;
+  }
+} return void;
+([["hello", "d", "s"]], ["", "", "", ""], [0, 0, 0, 0], [0, 0, 0, 0], [0]):([["hello", "d", "s"]], ["", "", "", "hello"], [0, 0, 0, 1], [0, 0, 0, 1], [1])
+([], ["", "", "", ""], [0, 0, 0, 0], [0, 0, 0, 0], [0]):([], ["", "", "", ""], [0, 0, 0, 0], [0, 0, 0, 0], [0])
+
+rs_top(string[] keys, int[] vals, int[] used) {
+  string[] ks = [];
+  int[] vs = [];
+  hmap_items(keys, vals, used, ks, vs);
+} chain (string[] keys, int[] vals, int[] used) {
+  int[] ord = ord_desc(vs);
+  rs_lines(ks, vs, ord);
+} return void;
+(["b", "", "a", ""], [1, 0, 3, 0], [1, 0, 1, 0]):(["b", "", "a", ""], [1, 0, 3, 0], [1, 0, 1, 0]) then prints:("author a: 3\nauthor b: 1\n")
+([""], [0], [0]):([""], [0], [0])

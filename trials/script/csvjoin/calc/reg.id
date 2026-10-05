@@ -1,0 +1,28 @@
+cj_region(string name) {
+  int r = lst_str_index((import cj_reg), name);
+  if (r < 0) {
+    push((import cj_reg), name);
+    push((import cj_sum), 0);
+    push((import cj_num), 0);
+  }
+  r = lst_str_index((import cj_reg), name);
+} return int r;
+given cj_state ("north"):(1)
+given cj_state given cj_cust(["1", "a", "north"]) ("north"):(1)
+given cj_state given cj_cust(["1", "a", "north"]) ("south"):(2)
+
+cj_add(int r, int cents) {
+  int[] sm = (import cj_sum);
+  int[] nm = (import cj_num);
+  sm[r] = sm[r] + cents;
+} chain (int r, int cents) {
+  nm[r] = nm[r] + 1;
+} return void;
+given cj_state (0, 250):(0, 250) then (import cj_sum):([250]) then (import cj_num):([1])
+given cj_state given cj_add(0, 5) (0, 7):(0, 7) then (import cj_sum):([12]) then (import cj_num):([2])
+
+cj_t_shape() {
+  string s = len((import cj_reg)) + " " + len((import cj_sum)) + " " + len((import cj_num)) + " " + (import cj_cnt)[0];
+} return string s;
+given cj_state ():("1 1 1 0")
+given cj_state given cj_cust(["1", "Z", "east"]) ():("2 2 2 1")

@@ -1,0 +1,35 @@
+rs_report(string repo, string text) {
+  string[][] rows = rs_rows(text);
+  print("commits: " + len(rows));
+  rs_authors(rows);
+} chain (string repo, string text) {
+  rs_span(rows);
+  rs_longest(rows);
+  rs_files(repo);
+} return int 0;
+("/no/such/repo_rs", "Al\t2026-01-02\tinit\nBo\t2026-01-03\tmore\n"):(0) then prints:("commits: 2\nauthor Al: 1\nauthor Bo: 1\nfirst: 2026-01-02\nlast: 2026-01-03\nlongest subject: init\nfiles: 0 (0 bytes)\n")
+("/no/such/repo_rs", ""):(0) then prints:("commits: 0\nfiles: 0 (0 bytes)\n")
+
+rs_lines(string[] ks, int[] vs, int[] ord) {
+  int i = 0;
+  while (i < len(ord)) {
+    print("author " + ks[ord[i]] + ": " + vs[ord[i]]);
+    i = i + 1;
+  }
+} return void;
+(["a", "b"], [1, 2], [1, 0]):(["a", "b"], [1, 2], [1, 0]) then prints:("author b: 2\nauthor a: 1\n")
+([], [], []):([], [], [])
+
+rs_files(string repo) {
+  int[] code = [0];
+  string text = exec_out("ls\n-l\n--time-style=+%F\n" + repo + "\n", code);
+  string[] names = [];
+} chain (string repo) {
+  int[] sizes = [];
+  rs_ls(text, names, sizes);
+  print("files: " + len(names) + " (" + lst_sum(sizes) + " bytes)");
+} chain (string repo) {
+  rs_big(names, sizes);
+} return void;
+given rs_t_repo ((import rs_t_dir)):((import rs_t_dir)) then prints:("files: 2 (3005 bytes)\nlargest: big.txt 3000\n")
+("/no/such/repo_rs"):("/no/such/repo_rs") then prints:("files: 0 (0 bytes)\n")

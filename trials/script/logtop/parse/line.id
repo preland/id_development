@@ -1,0 +1,41 @@
+// The combined log format: IP - USER [DATE] "METHOD PATH PROTO" STATUS BYTES "REF" "UA".
+// The request is the text between the first pair of double quotes; the status is
+// the three characters two past the closing one. A line that does not fit gives "".
+
+lt_close(string line) {
+  int a = str_find(line, "\"");
+  int b = 0 - 1;
+  if (a >= 0) {
+    b = str_findat(line, "\"", a + 1);
+  }
+} return int b;
+("a \"GET / HTTP/1.1\" 200"):(17)
+("no quotes"):(-1)
+("one \" only"):(-1)
+
+lt_req(string line) {
+  int a = str_find(line, "\"");
+  int b = lt_close(line);
+  string req = "";
+} chain (string line) {
+  if (b > a) {
+    req = str_slice(line, a + 1, b - a - 1);
+  }
+} return string req;
+("x \"GET /a HTTP/1.1\" 200"):("GET /a HTTP/1.1")
+("x \"\" 200"):("")
+("nothing"):("")
+
+lt_path(string line) {
+  string req = lt_req(line);
+  string[] parts = str_split(req, " ");
+  string path = lst_str_get_or(parts, 1, "");
+} chain (string line) {
+  int q = str_find(path, "?");
+  if (q >= 0) {
+    path = str_slice(path, 0, q);
+  }
+} return string path;
+("1.2.3.4 - - [d] \"GET /a/b?x=1 HTTP/1.1\" 200 5 \"-\" \"ua\""):("/a/b")
+("1.2.3.4 - - [d] \"GET /c HTTP/1.1\" 404 0 \"-\" \"ua\""):("/c")
+("garbage"):("")

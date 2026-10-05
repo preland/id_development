@@ -1,0 +1,35 @@
+// A real git repository under a scratch directory: three commits by two authors
+// on fixed dates, and two files (a.txt 5 bytes, big.txt 3000). Dates go through
+// the environment, which the child git inherits.
+
+rs_t_repo() {
+  export string rs_t_dir = fs_mktemp("rs_", 1);
+  int reg = fs_drop_exit((import rs_t_dir));
+  rs_t_git("init\n-q");
+} chain () {
+  exec_file_put((import rs_t_dir) + "/a.txt", "hello", 420);
+  exec_file_put((import rs_t_dir) + "/big.txt", str_repeat("x", 3000), 420);
+  rs_t_commit("Alice", "2026-01-02", "init");
+} chain () {
+  rs_t_commit("Bob", "2026-02-03", "add parser for config files");
+  rs_t_commit("Alice", "2026-03-04", "fix");
+} return void export rs_t_dir;
+():() then rs_t_count:(3)
+():() then rs_t_big:(3000)
+
+rs_t_commit(string name, string date, string msg) {
+  env_put("GIT_AUTHOR_DATE", date + "T12:00:00 +0000");
+  env_put("GIT_COMMITTER_DATE", date + "T12:00:00 +0000");
+  rs_t_git("add\n-A");
+} chain (string name, string date, string msg) {
+  rs_t_git("-c\nuser.name=" + name + "\n-c\nuser.email=a@x\ncommit\n--allow-empty\n-q\n-m\n" + msg);
+} return void;
+given rs_t_repo ("Zed", "2026-04-05", "late"):("Zed", "2026-04-05", "late") then rs_t_count:(4)
+given rs_t_repo ("Amy", "2026-04-06", "later"):("Amy", "2026-04-06", "later") then rs_t_count:(4)
+
+rs_t_git(string args) {
+  int[] code = [0];
+  exec_out("git\n-C\n" + (import rs_t_dir) + "\n" + args + "\n", code);
+} return void;
+given rs_t_repo ("status\n-s"):("status\n-s") then rs_t_count:(3)
+given rs_t_repo ("tag\nv1"):("tag\nv1") then rs_t_count:(3)

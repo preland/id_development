@@ -1,0 +1,34 @@
+jf_list(string body, int n) {
+  string[] names = [];
+  int[] scores = [];
+  int[] tags = [];
+} chain (string body, int n) {
+  jf_load(body, n, names, scores, tags);
+  jf_show(n, names, scores, tags);
+} return void;
+("{\"users\": [{\"name\": \"a\", \"score\": 3, \"tags\": [\"x\", \"y\"]}, {\"name\": \"b\", \"score\": 9}]}", 2):("{\"users\": [{\"name\": \"a\", \"score\": 3, \"tags\": [\"x\", \"y\"]}, {\"name\": \"b\", \"score\": 9}]}", 2) then prints:("users: 2\ntotal score: 12\n1. b 9 (0 tags)\n2. a 3 (2 tags)\n")
+("{\"users\": []}", 0):("{\"users\": []}", 0) then prints:("users: 0\ntotal score: 0\n")
+
+jf_load(string body, int n, string[] names, int[] scores, int[] tags) {
+  int p = json_find(body, "users.0");
+  int i = 0;
+  while (i < n) {
+    jf_user(body, p, names, scores, tags);
+    p = json_next(body, p);
+    i = i + 1;
+  }
+} return void;
+("{\"users\": [{\"name\": \"a\", \"score\": 3}, {\"name\": \"b\", \"score\": 4, \"tags\": [1]}]}", 2, [], [], []):("{\"users\": [{\"name\": \"a\", \"score\": 3}, {\"name\": \"b\", \"score\": 4, \"tags\": [1]}]}", 2, ["a", "b"], [3, 4], [0, 1])
+("{\"users\": []}", 0, [], [], []):("{\"users\": []}", 0, [], [], [])
+
+jf_user(string body, int pos, string[] names, int[] scores, int[] tags) {
+  string name = json_str(body, json_from(body, pos, "name"));
+  string score = json_str(body, json_from(body, pos, "score"));
+  int ntags = json_len(body, json_from(body, pos, "tags"));
+} chain (string body, int pos, string[] names, int[] scores, int[] tags) {
+  push(names, name);
+  push(scores, to_int(score));
+  push(tags, fx_max(ntags, 0));
+} return void;
+("{\"users\": [{\"name\": \"O\\\"Brien\", \"score\": 7, \"tags\": [\"t\"]}]}", 11, [], [], []):("{\"users\": [{\"name\": \"O\\\"Brien\", \"score\": 7, \"tags\": [\"t\"]}]}", 11, ["O\"Brien"], [7], [1])
+("{\"users\": [{\"name\": \"a\"}, {\"name\": \"b\", \"score\": -2}]}", 26, [], [], []):("{\"users\": [{\"name\": \"a\"}, {\"name\": \"b\", \"score\": -2}]}", 26, ["b"], [-2], [0])
