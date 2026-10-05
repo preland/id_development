@@ -50,13 +50,24 @@ it says nothing about it -- `id` has no warnings, only errors.
 Two errors, and they are worth reading in order:
 
 ```
-caesar.id:1: error: a block in 'main' performs 5 actions; the limit is 3 (each
-  statement, if, else, and while is one action; return is free) -- continue the
-  function into a chain: `} chain (same parameters) {`
-caesar.id:6: error: no such function 'shift_one'; available builtins: print,
-  input, read_all, len, push, pop, to_int, charat, chr, put, flush, getkey,
-  sleep_ms, ticks, alloc, store_size, peek8, ...
+caesar.id:1: error: a block in 'main' performs 5 actions; the limit is 3 (each statement, if, else, and while is one action; return is free) [E0201]
+  |
+1 | main(int argc, string[] argv) {
+  |
+  = why: a block that does more than three things is hard to read and to test at a glance, so the language caps it; ...
+  = help: continue the function into a chain: end this segment with `} chain (same parameters) {` and write the remaining statements after it ...
+caesar.id:6: error: no such function 'shift_one' [E0304]
+  |
+6 |   string s = shift_one(charat(text, i));
+  |              ^^^^^^^^^
+  = why: a call names a function this program defines, a builtin, or a function of the standard library, and nothing by this name is any of them
+  = help: check the spelling of 'shift_one', or define it as a function; the builtins are: print, input, read_all, len, ...
 ```
+
+Each diagnostic is a head line (`FILE:LINE: error: MESSAGE [CODE]`), the source
+line with a caret under what it names, and why and help lines; `idc --explain
+E0201` gives the long explanation (`docs/ERRORS.md`), and `--diagnostics=json`
+gives one JSON object per diagnostic (`docs/DIAGNOSTICS.md`).
 
 The first is the rule everyone meets first. The second is the last one to fix —
 `shift_one` genuinely does not exist yet.
