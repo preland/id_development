@@ -1,0 +1,42 @@
+// What a play run prints, and the tone writer.
+
+// Prints the three lines a run ends with: the file, the stream (backend, ring, quantum, and pl_dl, the delay sampled during the run) and the counters (frames moved, xruns, frames lost).
+pl_report(int pl_h, int[] pl_info, int pl_dl) {
+  string[] pl_fmts = ["s16", "f32"];
+  string[] pl_bes = ["null", "pw"];
+  print("play: " + pl_info[6] + " frames, " + pl_info[3] + " Hz, " + pl_info[2] + " ch, " + pl_fmts[pl_info[1]]);
+} chain (int pl_h, int[] pl_info, int pl_dl) {
+  int pl_ri = aud_info(pl_h, (import aud_i_ring));
+  int pl_q = aud_info(pl_h, (import aud_i_quantum));
+  int pl_be = aud_info(pl_h, (import aud_i_back));
+} chain (int pl_h, int[] pl_info, int pl_dl) {
+  print("play: backend " + pl_bes[pl_be] + ", ring " + pl_ri + " frames, quantum " + pl_q + " frames, delay " + pl_dl + " frames");
+  int pl_mv = aud_moved(pl_h);
+  int pl_xr = aud_xruns(pl_h);
+} chain (int pl_h, int[] pl_info, int pl_dl) {
+  int pl_lo = aud_info(pl_h, (import aud_i_lost));
+  print("play: moved " + pl_mv + " frames, " + pl_xr + " xruns, " + pl_lo + " frames lost");
+} return void;
+given pl_t_stream (800) ((import pl_t_h), (import pl_t_info), 0):() then prints:("play: 800 frames, 8000 Hz, 1 ch, s16\nplay: backend null, ring 800 frames, quantum 0 frames, delay 0 frames\nplay: moved 0 frames, 0 xruns, 0 frames lost\n")
+given pl_t_stream (800) ((import pl_t_h), [0, 1, 2, 48000, 44, 80, 10], 7):() then prints:("play: 10 frames, 48000 Hz, 2 ch, f32\nplay: backend null, ring 800 frames, quantum 0 frames, delay 7 frames\nplay: moved 0 frames, 0 xruns, 0 frames lost\n")
+
+// Writes SECONDS seconds of a mono 48000 Hz 16-bit sine of pl_hz hertz at pl_milli thousandths of full scale to the WAV file pl_out and says how big it is. Answers 0, or 1 with a line on standard error when the file will not open.
+pl_tone(string pl_out, int pl_hz, int pl_milli, int pl_secs) {
+  int pl_frames = 48000 * pl_secs;
+  word pl_buf = alloc(pl_frames * 2 + 8);
+  int pl_amp = pl_milli * 32767 / 1000;
+} chain (string pl_out, int pl_hz, int pl_milli, int pl_secs) {
+  int pl_made = aud_sine_s16(pl_buf, pl_frames, 1, pl_hz, 48000, pl_amp);
+  int pl_size = wav_save(pl_out, 0, 1, 48000, pl_buf, pl_frames);
+  int pl_rc = 1;
+} chain (string pl_out, int pl_hz, int pl_milli, int pl_secs) {
+  if (pl_size >= 0) {
+    print("wrote " + pl_size + " bytes: " + pl_frames + " frames of " + pl_hz + " Hz, " + pl_milli + "/1000 of full scale, 48000 Hz mono 16-bit");
+    pl_rc = 0;
+  }
+  if (pl_size < 0) {
+    eprint("play: cannot write " + pl_out + ": check that its directory exists and is writable");
+  }
+} return int pl_rc;
+("/nonexistent/play_no_such_dir/t.wav", 440, 30, 1):(1) then eprints:("play: cannot write /nonexistent/play_no_such_dir/t.wav: check that its directory exists and is writable\n")
+given fs_temp_text ("x") ((import fs_temp_path), 440, 30, 1):(0) then prints:("wrote 96044 bytes: 48000 frames of 440 Hz, 30/1000 of full scale, 48000 Hz mono 16-bit\n")

@@ -1,0 +1,41 @@
+// What a rec run prints, and the loudest sample.
+
+// Prints the three lines a run ends with: how many of the asked-for frames came, the stream (backend, ring, quantum), and the counters with the peak of what was recorded.
+rc_report(int rc_h, word rc_buf, int rc_n, int rc_frames) {
+  string[] rc_bes = ["null", "pw"];
+  int rc_ri = aud_info(rc_h, (import aud_i_ring));
+  int rc_q = aud_info(rc_h, (import aud_i_quantum));
+} chain (int rc_h, word rc_buf, int rc_n, int rc_frames) {
+  int rc_be = aud_info(rc_h, (import aud_i_back));
+  int rc_xr = aud_xruns(rc_h);
+  int rc_lo = aud_info(rc_h, (import aud_i_lost));
+} chain (int rc_h, word rc_buf, int rc_n, int rc_frames) {
+  print("rec: " + rc_n + " of " + rc_frames + " frames, 48000 Hz, 2 ch, s16");
+  print("rec: backend " + rc_bes[rc_be] + ", ring " + rc_ri + " frames, quantum " + rc_q + " frames");
+  int rc_pk = rc_peak(rc_buf, rc_n * 2);
+} chain (int rc_h, word rc_buf, int rc_n, int rc_frames) {
+  print("rec: " + rc_xr + " xruns, " + rc_lo + " frames lost, peak " + rc_pk + " of 32767");
+} return void;
+given idstd_aud_t_new given idstd_aud_t_mk ([0, 0, 0, 0, 0, 0, 0, 0], 2) given idstd_aud_t_open (1, 4) ((import idstd_aud_t_h), (import idstd_aud_t_a1), 4, 4):() then prints:("rec: 4 of 4 frames, 48000 Hz, 2 ch, s16\nrec: backend null, ring 4 frames, quantum 0 frames\nrec: 0 xruns, 0 frames lost, peak 0 of 32767\n")
+given idstd_aud_t_new given idstd_aud_t_mk ([3, -9, 4, 2, 1, 1, 0, 5], 2) given idstd_aud_t_open (1, 4) ((import idstd_aud_t_h), (import idstd_aud_t_a1), 3, 4):() then prints:("rec: 3 of 4 frames, 48000 Hz, 2 ch, s16\nrec: backend null, ring 4 frames, quantum 0 frames\nrec: 0 xruns, 0 frames lost, peak 9 of 32767\n")
+
+// The largest absolute value among the first rc_ns int16 samples at rc_buf: 0 means silence.
+rc_peak(word rc_buf, int rc_ns) {
+  int rc_i = 0;
+  int rc_pk = 0;
+  while (rc_i < rc_ns) {
+    rc_pk = rc_step(rc_buf, rc_i, rc_pk);
+    rc_i = rc_i + 1;
+  }
+} return int rc_pk;
+given idstd_aud_t_new given idstd_aud_t_mk ([3, -8, 5, 1], 2) ((import idstd_aud_t_a1), 4):(8)
+given idstd_aud_t_new given idstd_aud_t_mk ([3, -8], 2) ((import idstd_aud_t_a1), 0):(0)
+
+// The larger of rc_pk and the absolute value of sample rc_i at rc_buf.
+rc_step(word rc_buf, int rc_i, int rc_pk) {
+  int rc_s = aud_s16_at(rc_buf, rc_i);
+  int rc_a = fx_abs(rc_s);
+  int rc_m = fx_max(rc_pk, rc_a);
+} return int rc_m;
+given idstd_aud_t_new given idstd_aud_t_mk ([-5], 2) ((import idstd_aud_t_a1), 0, 3):(5)
+given idstd_aud_t_new given idstd_aud_t_mk ([-5], 2) ((import idstd_aud_t_a1), 0, 9):(9)

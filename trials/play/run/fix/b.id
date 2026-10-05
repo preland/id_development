@@ -1,0 +1,35 @@
+// Fixtures for the cases of play: the scratch WAV loaded, and played on a null stream.
+
+// Makes the scratch WAV, loads it, and exports the load as pl_t_box (the address of the file) and pl_t_info (wav_info's list).
+pl_t_load() {
+  pl_t_wav();
+  word[] pl_tbx = [0];
+  int[] pl_tin = wav_load((import fs_temp_path), pl_tbx);
+} chain () {
+  export word[] pl_t_box = pl_tbx;
+  export int[] pl_t_info = pl_tin;
+} return void;
+():() then pl_t_frames:(800)
+():() then idstd_aud_t_fsz:(411)
+
+// pl_t_load, then a null playback stream with a ring of pl_tring frames, exported as pl_t_h, and the address of the samples as pl_t_data.
+pl_t_stream(int pl_tring) {
+  pl_t_load();
+  int[] pl_tin = (import pl_t_info);
+  word[] pl_tbx = (import pl_t_box);
+} chain (int pl_tring) {
+  int pl_th = aud_open("null", "pl-test", 0, pl_tin[3], pl_tin[2], pl_tin[1], pl_tring);
+  word pl_td = pl_tbx[0] + pl_tin[4];
+  export int pl_t_h = pl_th;
+} chain (int pl_tring) {
+  export word pl_t_data = pl_td;
+} return void;
+(800):() then pl_t_ring:(800)
+(400):() then pl_t_ring:(400)
+
+// Writes pl_tn frames of the file to the stream pl_th.
+pl_t_write(int pl_th, int pl_tn) {
+  int pl_tk = aud_write(pl_th, (import pl_t_data), pl_tn);
+} return void;
+given pl_t_stream (800) ((import pl_t_h), 800):() then pl_t_queued:(800)
+given pl_t_stream (800) ((import pl_t_h), 300):() then pl_t_queued:(300)

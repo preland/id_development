@@ -1,0 +1,27 @@
+// rec OUT.wav SECONDS [BACKEND] records SECONDS seconds (1 to 60) of stereo 48000 Hz 16-bit audio from the default source to the WAV file OUT and prints what the stream did: frames asked for and delivered, xruns, and the loudest sample, so a silent source shows as a peak of 0. BACKEND is pw (PipeWire, the default) or null (no input: the stream is driven by the program and hears silence, for tests).
+// Status 0, 1 when the stream would not open, delivered fewer frames than asked, or the file would not write (a line on standard error says which), 2 for a bad command line.
+
+// Records for rc_argv[2] seconds on the backend rc_argv[3] (the default when absent) into the file rc_argv[1].
+rc_cmd(int rc_argc, string[] rc_argv) {
+  int rc_rc = 2;
+  string rc_bk = "";
+  if (rc_argc == 4) {
+    rc_bk = rc_argv[3];
+  }
+} chain (int rc_argc, string[] rc_argv) {
+  if ((rc_argc == 3) || (rc_argc == 4)) {
+    rc_rc = rc_rec(rc_argv[1], to_int(rc_argv[2]), rc_bk);
+  }
+} return int rc_rc;
+(2, ["rec", "x.wav"]):(2)
+(3, ["rec", "x.wav", "0"]):(2)
+
+// Checks the command line and runs it.
+main(int argc, string[] argv) {
+  int rc_status = rc_cmd(argc, argv);
+  if (rc_status == 2) {
+    eprint("usage: rec OUT.wav SECONDS [pw|null]");
+  }
+} return int rc_status;
+(1, ["rec"]):(2) then eprints:("usage: rec OUT.wav SECONDS [pw|null]\n")
+given fs_temp_text ("x") (4, ["rec", (import fs_temp_path), "1", "null"]):(0)

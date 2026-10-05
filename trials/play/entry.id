@@ -1,0 +1,42 @@
+// play FILE.wav [BACKEND] [LINGER_MS] plays a WAV file (16-bit PCM or 32-bit float) to the default sink and prints what the stream did. BACKEND is pw (PipeWire, the default) or null (no sound: the stream is driven by the program, for tests). LINGER_MS keeps the stream open that long after the last frame, so its node can be looked at with pw-dump.
+// play tone OUT.wav HZ MILLI SECONDS writes a mono 48000 Hz 16-bit sine of HZ at MILLI thousandths of full scale (30 is -30 dBFS) and SECONDS long, to play.
+// Status 0, 1 when the file or the stream would not open (a line on standard error says why), 2 for a bad command line.
+
+// Runs the command line: the tone writer for "tone" with five words, the player for a file name with two to four.
+pl_cmd(int pl_argc, string[] pl_argv) {
+  int pl_rc = 2;
+  if ((pl_argc == 6) && (pl_argv[1] == "tone")) {
+    pl_rc = pl_tone(pl_argv[2], to_int(pl_argv[3]), to_int(pl_argv[4]), to_int(pl_argv[5]));
+  }
+  if ((pl_argc >= 2) && (pl_argc <= 4) && (pl_argv[1] != "tone")) {
+    pl_rc = pl_args(pl_argv, pl_argc);
+  }
+} return int pl_rc;
+(2, ["play", "tone"]):(2)
+(2, ["play", "/nonexistent/play_no_such_file.wav"]):(1)
+
+// Plays the file pl_argv[1] on the backend pl_argv[2] (the default when it is absent) lingering pl_argv[3] ms (none when absent).
+pl_args(string[] pl_argv, int pl_argc) {
+  string pl_bk = "";
+  int pl_linger = 0;
+  if (pl_argc >= 3) {
+    pl_bk = pl_argv[2];
+  }
+} chain (string[] pl_argv, int pl_argc) {
+  if (pl_argc == 4) {
+    pl_linger = to_int(pl_argv[3]);
+  }
+  int pl_rc = pl_play(pl_argv[1], pl_bk, pl_linger);
+} return int pl_rc;
+(["play", "/nonexistent/play_no_such_file.wav"], 2):(1) then eprints:("play: /nonexistent/play_no_such_file.wav: the file could not be read: check its path and permissions\n")
+given pl_t_wav (["play", (import fs_temp_path), "null"], 3):(0) then prints:("play: 800 frames, 8000 Hz, 1 ch, s16\nplay: backend null, ring 800 frames, quantum 800 frames, delay 0 frames\nplay: moved 800 frames, 0 xruns, 0 frames lost\n")
+
+// Checks the command line and runs it.
+main(int argc, string[] argv) {
+  int pl_status = pl_cmd(argc, argv);
+  if (pl_status == 2) {
+    eprint("usage: play FILE.wav [pw|null] [LINGER_MS] | play tone OUT.wav HZ MILLI SECONDS");
+  }
+} return int pl_status;
+(1, ["play"]):(2) then eprints:("usage: play FILE.wav [pw|null] [LINGER_MS] | play tone OUT.wav HZ MILLI SECONDS\n")
+(2, ["play", "/nonexistent/play_no_such_file.wav"]):(1)

@@ -1,0 +1,22 @@
+// Fixtures for the cases of play: a scratch WAV file, and what is in it.
+
+// A scratch file (random name, removed at exit, its path in fs_temp_path) holding a WAV of 800 frames: a 440 Hz sine at 8000 Hz, mono, int16, amplitude 1000.
+pl_t_wav() {
+  word pl_tb = alloc(1700);
+  int pl_tn = aud_sine_s16(pl_tb, 800, 1, 440, 8000, 1000);
+  fs_temp_text("x");
+} chain () {
+  int pl_ts = wav_save((import fs_temp_path), 0, 1, 8000, pl_tb, 800);
+} return void;
+():() then pl_t_frames:(800)
+():() then idstd_aud_t_fsz:(411)
+
+// The frames the WAV in fs_temp_path says it holds.
+pl_t_frames() {
+  word[] pl_tbx = [0];
+  int[] pl_tin = wav_load((import fs_temp_path), pl_tbx);
+  int pl_tf = pl_tin[6];
+} return int pl_tf;
+given pl_t_wav ():(800)
+given fs_temp_text ("x") ():(0)
+
