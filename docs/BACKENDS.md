@@ -427,3 +427,64 @@ Every step keeps `idc/tools/parity.sh` at MATCH for the C target. Byte-identical
 output against a known-good compiler is the only cheap evidence available that
 a refactor changed nothing, and it stops being available the moment the C
 emitter is restructured without it.
+
+## The Wayland client (`idstd/sys/win/wl`)
+
+`gfx_open` and the rest of the `gfx_*` window calls choose their window system
+when a program runs. Under a Wayland session they speak the Wayland protocol to
+the compositor directly; otherwise they use the platform's own (`sys/win/gfx`:
+X11 on Linux, Cocoa on macOS). A program is built once and takes no change.
+
+**How the choice is made.** `gfx_open` tries Wayland when `WAYLAND_DISPLAY` is
+set and `IDSTD_GFX` is not `x11`, and a window of positive size is asked for.
+If Wayland opens, every later `gfx_*` call goes to it; if there is no
+compositor, or it lacks `wl_compositor`, `wl_shm` or `xdg_wm_base`, or it never
+answers, nothing is left open and `gfx_open` opens the platform window instead.
+The state is one integer kept in C (`wl_mode`), so a call made before any window
+exists (`gfx_width` in a program's setup) answers as the platform backend does.
+
+**Why the names moved.** `id` has one function per name, and a native is a
+function, so the choice cannot sit behind the same native. The platform
+backend's natives are now `gfx_sys_open`, `gfx_sys_present` and so on (their C
+keeps its `id_gfx_*` spelling; `gfx.h` renames the symbols), and `gfx_open`,
+`gfx_present`... are `id` functions in `sys/win/wl/cli/seam/wrap` that call one or
+the other. The sixteen wrappers are the whole seam; `gfx_sync`, `gfx_show` and
+`gfx_clip_get` are unchanged because they only call it.
+
+**What is `id` and what is C.** The wire protocol and the client are `id`:
+`sys/win/wl/wire` writes and reads messages by signature (a message is built and
+decoded from the tables `idc/tools/wlgen` generates from the protocol XML), and
+`sys/win/wl/cli` is the registry, the window, buffers, scale, pointer and
+keyboard. The generated block at the end of `idstd/conf.id` holds interface
+names, each request's and event's signature and flat index, and the enum
+entries, for `wayland.xml`, `xdg-shell`, `viewporter`, `fractional-scale-v1` and
+`cursor-shape-v1` (the XML is in `idc/tools/wlgen`; `idstd/run.sh wl`
+regenerates the block and fails when it differs). The C (`wl_linux.c`, 23
+natives) is only what `id` cannot name: a Unix socket that carries
+file descriptors, shared memory both sides map, and the keyboard layout.
+xkbcommon is not linked: the C declares the few functions it uses and loads
+`libxkbcommon.so.0` with `dlopen` when the first keymap arrives
+(`ID_XKBCOMMON_LIB` names another library), as `sys/os/audio` loads PipeWire.
+When it cannot be loaded the keymap is ignored and a built-in US layout answers
+(same key ids, characters and modifiers for a US keyboard), so nothing needs
+the library at build time and a program still works; only another layout is not
+followed.
+Handles are `(kind << 24) | (generation << 8) | slot`, the convention
+`trials/sqlq` and `docs/INTEROP.md` describe.
+
+**Tradeoff against a C backend over libwayland-client.** libwayland would be
+about 600 lines of C, would not need the generator and would be the more
+battle-tested path. It was not taken because the goal is as much `id` as
+possible with `idstd` as the foundation, and because the compositor fixture that
+tests the client (`idstd/.tests/wl`) needs the same codec on the server side:
+with the protocol in `id` the client and its test peer share one implementation
+of the wire format, and the whole thing runs headless with no compositor. The
+cost is real: about 150 small functions under the three-action, three-per-file
+and two-case rules, and a second keyboard path (the built-in US layout) to keep in step with xkbcommon's answers.
+
+**Not done.** The clipboard (`gfx_clip_*` answer 0 under Wayland: the
+data-device protocol needs pipes and server-created objects), key
+`gfx_poll` codes for non-ASCII text, IME, touch and tablets, subsurfaces,
+popups. A resize reaches the program as an event and a changed
+`gfx_width/height`; there is no way to refuse one. macOS: `wl_none.c` answers -1
+to everything, so Wayland is never chosen there (not compiled or run).
