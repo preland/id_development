@@ -1390,9 +1390,9 @@ Where id's own rules made faithful translation impossible or costly:
 
 ### Status and gaps
 
-- Cases for the functions added by this work are not written: 213 functions
-  are reported by `idc c2id/c2id --list-untested` as having fewer than two
-  cases. The project builds only with the deprecated `--allow-untested`.
+- Cases: every function in `c2id/c2id` now has two, and `idc c2id/c2id` builds
+  under the default test requirement. Writing the 213 that were missing found
+  three `str_slice` calls written for an older idstd (`c2id/docs/STATUS.md`).
 - No wasm or llvm target was tried on generated code.
 - The compiler test sections of `idc/tests/run.sh` were not run; no compiler
   source was changed.
