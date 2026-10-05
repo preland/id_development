@@ -5,15 +5,15 @@ orc_t_pop() {
   pop(pl);
 } return void;
 given orc_t_open("<a/>") ():() then orc_t_show:(" |  | ")
-given orc_t_open("<a/>") ():() then orc_t_slots:("0,0,0,0,0,0,0,0,")
+given orc_t_open("<a/>") ():() then (import orc_tc).cs.slots:([0, 0, 0, 0, 0, 0, 0, 0])
 
 // Test fixture: sets slot k of the read counters of orc_tc to val.
 orc_t_set(int k, int val) {
   Cx cx = (import orc_tc);
   lset(cx.cs.slots, k, val);
 } return void;
-given orc_t_open("<a/>") (1, 5):() then orc_t_slots:("0,5,0,0,0,0,0,0,")
-given orc_t_open("<a/>") (5, -1):() then orc_t_slots:("0,0,0,0,0,-1,0,0,")
+given orc_t_open("<a/>") (1, 5):() then (import orc_tc).cs.slots:([0, 5, 0, 0, 0, 0, 0, 0])
+given orc_t_open("<a/>") (5, -1):() then (import orc_tc).cs.slots:([0, 0, 0, 0, 0, -1, 0, 0])
 
 // Test fixture: reads all of the XML of orc_tc into the document of orc_td, as a load does, whatever the outcome.
 orc_t_load() {

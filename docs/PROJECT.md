@@ -358,8 +358,9 @@ import), when more than one import differs (that is two values to
 parameterise). A function of one statement is no exception: `s1_of` was
 `ns1[id]` and `s2_of` `ns2[id]`, and the fix is the same -- there is no named
 accessor of a module's global, the call site reads `(import ns1)[id]` itself,
-and a test states a global's state with `then (import NAME)` (docs/TESTS.md) or,
-where that is refused, with one check function that states the whole state. Two
+and a test states a global's state with `then (import NAME)`, or a field of a
+struct global with `then (import NAME).field` (docs/TESTS.md), or, where that
+is refused, with one check function that states the whole state. Two
 functions identical in every way, imports included, are still the
 duplicate-logic error.
 

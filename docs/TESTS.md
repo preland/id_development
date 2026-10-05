@@ -44,6 +44,7 @@ After the `return` clause, one case per line:
 given SETUP stdin "TEXT" timeout N (ARGS):(EXPECTED) then CHECK:(VALUE) [CONSTRAINTS]
                                                     then (import NAME)[i]:(VALUE)
                                                     then len((import NAME)):(VALUE)
+                                                    then (import NAME).a.b[i]:(VALUE)
 ```
 
 Most cases are just `(ARGS):(EXPECTED)`:
@@ -51,7 +52,8 @@ Most cases are just `(ARGS):(EXPECTED)`:
 - **`ARGS`** — the arguments, as `id` literals, in order. `()` for none.
 - **`EXPECTED`** — the value the call must produce, as an `id` literal.
 - **`CONSTRAINTS`** — optional, in square brackets. See below.
-- **`given SETUP`** (or **`given SETUP(LIT, ...)`**) and **`then CHECK:(VALUE)`**, or **`then (import NAME)[i]:(VALUE)`**, or **`then len((import NAME)):(VALUE)`** —
+- **`given SETUP`** (or **`given SETUP(LIT, ...)`**) and **`then CHECK:(VALUE)`**, or **`then (import NAME)[i]:(VALUE)`**, or **`then len((import NAME)):(VALUE)`**, or any of these through struct
+  fields, **`then (import NAME).a.b:(VALUE)`** —
   optional, for functions whose behaviour is module state. See "Module state"
   below.
 - **`stdin "TEXT"`** and **`timeout N`** — optional, after any `given` and
@@ -227,33 +229,110 @@ count() {
   err.id:9: test failed: err_note("x") then (import err_n)[0] = 1, expected 2
   ```
 
-  Three rules, each an error at the case's line, and the third is the point of
-  the form: the case needs a `given` that reaches the export's declarer, as an
-  `(import NAME)` argument does -- unless the function under test reaches the
-  declarer itself, since a `given` of it would run it twice before the check
-  (a function that exports NAME is checked after its one call, and an export
-  it does not set at run time traps as uninitialised); the value is held to the export's type (its
-  element's with an index, `int` with `len`), which must be a list when there
-  is an index and a list or a string with `len`; and **the function under test
-  may not only read `(import NAME)`**. A check of the very read the body makes
+  **A struct export's fields are read the same way:**
+  `then (import NAME).field:(VALUE)`, nested as
+  `then (import NAME).a.b:(VALUE)`, and with a trailing index or a length,
+  `then (import NAME).items[i]:(VALUE)` and
+  `then len((import NAME).items):(VALUE)`. The value is held to the type of the
+  last field (and, with an index, to its element type; with `len`, to `int`),
+  and a failing check shows the path as it was written. With `Page { int[]
+  starts; int count; }` and `Book { Page pages; string title; }`, each in a file
+  of its own:
+
+  ```
+  book_open() {
+    Page pg = Page([0, 0], 2);
+    export Book bk = Book(pg, "t");
+  } return void;
+
+  book_add(int n) {
+    book_grow((import bk), n);
+  } return void;
+  given book_open (1):() then (import bk).pages.count:(3) then len((import bk).pages.starts):(3)
+  given book_open (2):() then (import bk).pages.starts[2]:(2) then (import bk).title:("t")
+  ```
+
+  ```
+  book.id:14: test failed: book_add(1) then (import bk).pages.count = 3, expected 4
+  ```
+
+  Every rule below is judged on the export, `NAME`, not on the field: a
+  function that reads `(import bk)` and never writes it is refused whichever
+  field the check reads. A path that is not a field is an error at the case's
+  line that names the step and the fix: `(import cnt).len` of an `int` export
+  is "not a struct, so it has no fields", and `(import bk).pages.zz` is "struct
+  'Page' has no field 'zz'; its fields are starts, count". An index inside the
+  path, `(import bk).rows[0].n`, is not a form: bind it with a check function.
+
+  Four rules, each an error at the case's line, and the third and fourth are
+  the point of the form: the case needs a `given` that reaches the export's
+  declarer, as an `(import NAME)` argument does; the value is held to the
+  export's type (its element's with an index, `int` with `len`), which must be
+  a list when there is an index and a list or a string with `len`;
+  **the function under test may not only read `(import NAME)`**; and
+  **the function under test may not be, or call, the function that declares
+  `NAME` unless something in that call also writes it** (below). A check of the very read the body makes
   would stay green whatever the body did to the value, so a function that reads
   its export and never writes it is tested by an explicit check function
   instead -- one that says what the whole state is supposed to be and is named
   in `then CHECK:(VALUE)`. A function that writes it is checked after the
   write, which is a real test of its effect: the writes the checker sees are a
-  declaration binding a list to the export, or to one of its elements
-  (`int[] c = (import err_n);` and `int[] row = (import rows)[i];`, the way an
-  element is assigned, since an import cannot be index-assigned directly) and a
-  call handed the export, or one of its elements, whole (`lset((import
-  err_n), ...)`, `push((import rows)[i], v)`, a function taking the list),
-  where only `len` is known not to write.
+  declaration binding a list or a struct to the export, or to one of its
+  elements or fields, however deep (`int[] c = (import err_n);`, `int[] row =
+  (import rows)[i];` and `Page pg = (import bk).pages;`, the way an element
+  or a field is assigned, since an import cannot be assigned through
+  directly) and a call handed the export, or one of its elements or fields,
+  whole (`lset((import err_n), ...)`, `push((import rows)[i], v)`,
+  `push((import bk).pages.starts, v)`, a function taking the list or the
+  struct), where only `len` is known not to write.
   A callee that merely reads its list parameter therefore still counts as a
   write, which errs towards allowing a check, never towards refusing one.
-  Reaching the export through a callee is fine: `err_note` above only calls
-  `err_bump`, and a function that declares the export without reading it is
-  fine too. The case's cache key covers the export's declaration as it covers
-  a function a case names
-  (`dg_case_ref`, `compiler/parse/mid/form/unique/dump/digest/keys/case/tok.id`).
+  Reaching the export through a callee that only writes it is fine: `err_note`
+  above only calls `err_bump`.
+
+  **A case never reads back what its own call only declared.** `(import NAME)`
+  in a case -- a `then` check of any of the forms above, an argument, or an
+  expected value -- is an error when both of these hold: the function that
+  declares `NAME` (`export ... NAME = ...`) is the function under test or
+  anything it calls, however deep; and no function in that call writes `NAME`
+  apart from the declaring statement itself. The call would build the value and
+  the case would then read that same value back, so it would stay green whatever
+  the body did. What counts as a write is the same as for the rule above (a
+  call handed `NAME` or a path into it, an alias bound to it, an assignment to
+  it, and so on), so a variable that a function in the call really changes can
+  be checked, whoever declared it. A `given` setup's own arguments are exempt:
+  they are read before the call, and `given f given g((import NAME)) ():()` is
+  how a case runs `f` twice to show that the second run starts from scratch:
+
+  ```
+  m2rphi_make() { ... export int m2rphi_id = ir_insn(...); lset((import chk_id), 0, m2rphi_id); } return void;
+  given ir_rows ():() then (import m2rphi_id):(2)       // refused: nothing writes m2rphi_id after declaring it
+  given ir_rows ():() then (import chk_id)[0]:(2)       // fine: the call changed state it did not create
+  ```
+
+  Check an effect the call has on a variable it did not declare, or its return
+  value, or a call that is the behaviour (`then calls NAME:(ARGS)`). A function
+  that exists to initialize one exported variable says so in its return
+  clause, `} return void export NAME;` (docs/SPEC.md, section 9), and then its
+  own cases may check `NAME` in every form -- bare, `[i]`, `.field`, `len` --
+  though the cases of a function that calls it still may not, unless something
+  in their call writes it:
+
+  ```
+  init_tab() {
+    export int[] tab = [0, 0, 7];
+  } return void export tab;
+  given init_tab ():() then (import tab)[2]:(7) then len((import tab)):(3)
+  ```
+
+  `NAME` must be exported in that function's own body, and the clause names
+  exactly one variable, `void` only.
+  The case's cache key covers the export's declaration as it covers
+  a function a case names, and a field path's names are tokens of the case
+  line like any others, so a changed path re-runs it; a field is a position in
+  the struct, so reordering the struct's fields re-runs it too
+  (`dg_case_ref`, `compiler/parse/mid/form/unique/dump/digest/keys/case/tok.id`;
+  `idc/tests/tests_feature.sh` tests both).
 
   **A conf.id constant may name the index, and only the index.**
   `then (import tbl)[(import slot)]:(5)` reads the element of `tbl` that the
@@ -307,11 +386,17 @@ the case's line:
 | `then` naming a `void` function | `'then' names 'st', which returns void; a check takes none and returns the value it compares` |
 | a check with more or fewer than one value | `a 'then' check compares exactly one value, not 2` |
 | `(import NAME)` as a check's value | `a 'then' check compares a literal; (import g) may only be an argument or an expected value` |
-| `(import NAME)` in a case without `given`, when the function under test does not reach its declarer | `(import g) needs a 'given': an export has no value in a case until a setup has run; a setup's own arguments are read before it runs, so an (import NAME) there needs an earlier 'given' that sets it` |
+| `(import NAME)` in a case without `given` | `(import g) needs a 'given': an export has no value in a case until a setup has run; a setup's own arguments are read before it runs, so an (import NAME) there needs an earlier 'given' that sets it` |
 | `(import NAME)` of a name nothing exports | `(import zz): 'zz' is not an exported variable` |
 | `(import NAME)` exported by a function the setup does not reach through the call graph | `(import h): 'h' is exported by 'other', which the setup 'st' does not reach, so nothing sets it before the call` |
 | `(import NAME)` whose type is not exactly the one at that position | `this case gives (import xs), a int[], where a int is required` |
 | `then (import NAME)[i]` of an export that is not a list | `(import total)[...] reads one element, but 'total' is a int, not a list; drop the index, or name a list export` |
+| `then (import NAME).field` of an export that is not a struct | `(import cnt).len: (import cnt) is a int, not a struct, so it has no fields; drop '.len', or name an export that is a struct` |
+| `then (import NAME).field` of a field the struct does not have | `(import pt).z: struct 'Point' has no field 'z'; its fields are x, y; name one of them` |
+| `(import NAME)` of an export that the function under test declares, or that a function it calls declares, when nothing in that call writes it after declaring it, and the function under test has no `return void export NAME` (any form: a `then` check, an argument, an expected value; a setup's own arguments are exempt) | `(import made): 'made' is exported by 'make', which the function under test, 'outer', is or calls, and nothing in that call writes it after declaring it, so this case would read back a value its own call just made and stay green whatever the body did; check a variable the call changes (such as then (import other)[0]:(value)), or the return value, or, if 'make' exists to initialize 'made', say so in its return clause: '} return void export made;'` |
+| `} return void export NAME;` where the function does not export `NAME` in its own body | `'NAME' is named by the return clause of 'f' (return void export NAME), but 'f' does not export it in its own body; add 'export TYPE NAME = VALUE;' to 'f', or drop 'export NAME' from its return clause` |
+| `} return void export a, b;` | `a return clause names exactly one exported variable: write '} return void export NAME;' with the one variable this function exists to initialize` |
+| `} return int x export NAME;` | `only a void function can name the export it initializes: '} return int export NAME;' gives a value and a variable at once; drop 'export NAME' from the return clause, or make the function void` |
 | `then (import NAME)` under a function that reads `(import NAME)` and never writes it | `then (import cnt): the function under test, 'wrap', reads (import cnt) but never writes it, so this check would only repeat its own read; check an export the function changes, or write one check function that states the whole expected state and name it in 'then CHECK:(value)'` |
 | `then len((import NAME))` of an export that is not a list or a string | `len((import total)) measures a list or a string, but 'total' is a int; name a list or string export, or compare the value itself with then (import total):(value)` |
 | `then (import NAME)[(import VAR)]` with an exported variable in the index | `(import slot) is an exported variable, and only a conf.id constant may stand in a then check's index: a variable's value is what the check is testing; name a constant, or write the index as a number` |

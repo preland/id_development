@@ -19,9 +19,9 @@ app_boot(int wai_w, int wai_h, int wai_r, int wai_b, int wai_i) {
   Ui wau = Ui(wav, (import vw_rb), wash);
   App waa = App(wav.doc, (import vw_ctl), wau);
   export App wa_app = waa;
-} return App waa;
-given wa_t_app (400, 300, 1, 1, 1):((import wa_app)) then wa_t_state:("0,0,0,0,|0|0")
-given wa_t_app (640, 480, 1, 1, 1):((import wa_app)) then vw_t_box:("0,0,640,156")
+} return void export wa_app;
+given wa_t_app (400, 300, 1, 1, 1):() then wa_t_state:("0,0,0,0,|0|0")
+given wa_t_app (640, 480, 1, 1, 1):() then vw_t_box:("0,0,640,156")
 
 // Test setup: the app started in a surface 400 by 300 with the font file's faces, so that the picture does not depend on the machine's fonts.
 wa_t_app() {
@@ -30,7 +30,7 @@ wa_t_app() {
   int wai_b = gui_face_file("../editor/test_assets/LiberationSans-Regular.ttf", 13, 1);
 } chain () {
   int wai_i = gui_face_file("../editor/test_assets/LiberationSans-Regular.ttf", 13, 2);
-  App waa = app_boot(400, 300, wai_r, wai_b, wai_i);
+  app_boot(400, 300, wai_r, wai_b, wai_i);
 } return void;
 ():() then wa_t_state:("0,0,0,0,|0|0")
 ():() then vw_t_box:("0,0,400,156")
@@ -42,7 +42,7 @@ app_new() {
   int wai_b = gui_face("sans-serif", 13, 1);
 } chain () {
   int wai_i = gui_face("sans-serif", 13, 2);
-  App waa = app_boot((import wa_w), (import wa_h), wai_r, wai_b, wai_i);
-} return App waa;
-given wa_t_app ():((import wa_app)) then vw_t_box:("0,0,1180,156")
-given wa_t_app ():((import wa_app)) then wa_t_state:("0,0,0,0,|0|0")
+  app_boot((import wa_w), (import wa_h), wai_r, wai_b, wai_i);
+} return void;
+given wa_t_app ():() then vw_t_box:("0,0,1180,156") then calls gui_face:("sans-serif", 13, 0)
+given wa_t_app ():() then wa_t_state:("0,0,0,0,|0|0") then calls gui_face:("sans-serif", 13, 0)

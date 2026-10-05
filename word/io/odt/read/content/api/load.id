@@ -11,7 +11,7 @@ odt_load(string path, Doc d) {
   }
 } return int code;
 given orc_t_zip("<r><office:text><text:p>Hi</text:p></office:text></r>", "application/vnd.oasis.opendocument.text") given orc_t_save ((import orc_tp), (import orc_td)):(0) then orc_t_show:("P0 72,105, 2:0:-1, {0,0,0,0,0} |  | Pictures/a.png:1:3,") then orc_t_gone:(0)
-given orc_t_open("<a/>") ("/nonexistent/none.odt", (import orc_td)):(1) then (import odt_why):("/nonexistent/none.odt")
+given orc_t_open("<a/>") ("/nonexistent/none.odt", (import orc_td)):(1) then calls orc_file_bytes:[1]
 given orc_t_file("") given orc_t_open("<a/>") ((import orc_tp), (import orc_td)):(1) then orc_t_gone:(0)
 given orc_t_file("not a zip") given orc_t_open("<a/>") ((import orc_tp), (import orc_td)):(2) then orc_t_gone:(0)
 
@@ -34,8 +34,8 @@ odt_load_bytes(int[] zip, Doc d) {
 } return int code;
 given orc_t_zip("<r><office:text><text:p>Hi</text:p><text:p>There</text:p></office:text></r>", "application/vnd.oasis.opendocument.text") ((import orc_tz), (import orc_td)):(0) then orc_t_show:("P0 72,105, 2:0:-1, {0,0,0,0,0}\nP0 84,104,101,114,101, 5:0:-1, {0,0,0,0,0} |  | Pictures/a.png:1:3,")
 given orc_t_zip("<r><office:text><text:p>Hi</text:p></office:text></r>", "") ((import orc_tz), (import orc_td)):(0) then orc_t_show:("P0 72,105, 2:0:-1, {0,0,0,0,0} |  | Pictures/a.png:1:3,")
-given orc_t_zip("<r><office:text/></r>", "x") ((import orc_tz), (import orc_td)):(5) then (import odt_why):("the mimetype entry is 1 bytes and does not read application/vnd.oasis.opendocument.text")
-given orc_t_zip("<r><office:body><office:text><text:p>x</text:p>", "") ((import orc_tz), (import orc_td)):(3) then (import odt_why):("element is still open at the end of the input at byte 47")
+given orc_t_zip("<r><office:text/></r>", "x") ((import orc_tz), (import orc_td)):(5) then calls orc_why:("")
+given orc_t_zip("<r><office:body><office:text><text:p>x</text:p>", "") ((import orc_tz), (import orc_td)):(3) then calls orc_why:("")
 given orc_t_zip("", "") ((import orc_tz), (import orc_td)):(6)
 given orc_t_zip("<a/>", "") given orc_t_flip(41) ((import orc_tz), (import orc_td)):(2)
 given orc_t_open("<a/>") ([1, 2, 3], (import orc_td)):(2)

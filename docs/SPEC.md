@@ -847,6 +847,18 @@ that words them differently makes the language feel different.
   before. Reading one earlier is rejected at compile time when the exporting
   function is unreachable from `main`, and is otherwise the programmer's
   responsibility.
+- **`} return void export NAME;`** says that a function exists to initialize
+  the exported variable `NAME`. The function is still void and returns
+  nothing; the clause only states its purpose, and it changes nothing in what
+  is emitted, on any target. `NAME` must be exported in the function's own
+  body (`export TYPE NAME = ...;`), not in a function it calls, and exactly one
+  name is allowed; each of these is an error that says how to fix it, as is
+  `export NAME` after a return type that is not `void`. Its one effect is on
+  the function's own test cases: they may read `NAME` in every form of
+  `(import NAME)`, which a case otherwise may not do for a variable the
+  function under test only declares (`docs/TESTS.md`, "A case never reads back
+  what its own call made"). The cases of a function that calls it are still
+  held to that rule for `NAME`.
 - An exported variable whose declaring function is unreachable from `main` is
   not emitted at all, in a build that has a `main` and is not
   `--freestanding` -- the original `idc.py`, now deleted, did not prune

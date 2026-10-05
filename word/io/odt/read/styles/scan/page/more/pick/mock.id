@@ -5,9 +5,9 @@ ost_t_pgone() {
   push(os_pg.vals, lst_copy((import ost_pgdef)));
 } chain () {
   export PgTab ost_t_pg = os_pg;
-} return void;
+} return void export ost_t_pg;
 ():() then ost_t_vals:([11906, 16838, 0, 1440, 1440, 1440, 1440])
-given ost_t_pgone ():() then ost_t_masters:([])
+given ost_t_pgone ():() then (import ost_t_pg).masters:([])
 
 // Test fixture: the ints of every layout of the fixture table, one after the other.
 ost_t_vals() {
@@ -22,11 +22,3 @@ ost_t_vals() {
 } return int[] os_lall;
 given ost_t_pgone ():([11906, 16838, 0, 1440, 1440, 1440, 1440])
 given ost_t_pgone given ost_t_pgone ():([11906, 16838, 0, 1440, 1440, 1440, 1440])
-
-// Test fixture: the master page pairs of the fixture table.
-ost_t_masters() {
-  PgTab os_pg = (import ost_t_pg);
-  string[] os_lmast = os_pg.masters;
-} return string[] os_lmast;
-given ost_t_pgone ():([])
-given ost_t_pgone given ost_t_open("<style:master-page style:name=\"A\" style:page-layout-name=\"B\"/>") given xr_skip((import ost_t_r), 1) given ost_pg_master((import ost_t_pg), (import ost_t_r)) ():(["A", "B"])

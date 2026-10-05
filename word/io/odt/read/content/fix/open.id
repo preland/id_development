@@ -1,4 +1,4 @@
-// Test fixture: a new document orc_td and an XML reader orc_tr over the XML in xml, and a read of them, orc_tc, so a case can `given` it, run the function under test on it and read the result back with orc_t_show or orc_t_slots.
+// Test fixture: a new document orc_td and an XML reader orc_tr over the XML in xml, and a read of them, orc_tc, so a case can `given` it, run the function under test on it and read the result back with orc_t_show or `then (import orc_tc).cs.slots`.
 orc_t_open(string xml) {
   int[] bytes = exec_bytes(xml);
   XmlR rd = xr_open(bytes);
@@ -11,9 +11,9 @@ orc_t_open(string xml) {
   export XmlR orc_tr = rd;
   export Doc orc_td = d;
   export Cx orc_tc = orc_new(d, rd, osty);
-} return void;
+} return void export orc_tc;
 ("<a/>"):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | ")
-("<a>b</a>"):() then orc_t_slots:("0,0,0,0,0,0,0,0,")
+("<a>b</a>"):() then (import orc_tc).cs.slots:([0, 0, 0, 0, 0, 0, 0, 0])
 
 // Test fixture: every paragraph of the document of orc_tc as a line (its paragraph row, its code points and its runs), then " | ", the hyperlink targets, " | ", and the kept parts.
 orc_t_show() {

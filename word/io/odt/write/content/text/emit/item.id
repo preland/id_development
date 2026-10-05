@@ -3,8 +3,8 @@ oc_empty(XmlW oc_w, string oc_el) {
   xw_start(oc_w, oc_el);
   xw_end(oc_w);
 } return void;
-given oc_t_w(0) ((import oc_fw), "text:tab"):() then oc_t_out:("<r><text:tab/>")
-given oc_t_w(0) ((import oc_fw), "text:line-break"):() then oc_t_out:("<r><text:line-break/>")
+given oc_t_w(0) ((import oc_fw), "text:tab"):() then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 116, 97, 98, 47, 62])
+given oc_t_w(0) ((import oc_fw), "text:line-break"):() then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 108, 105, 110, 101, 45, 98, 114, 101, 97, 107, 47, 62])
 
 // A text:s element standing for n spaces; the count is written only when it is more than one.
 oc_sp_el(XmlW oc_w, int oc_n) {
@@ -14,8 +14,8 @@ oc_sp_el(XmlW oc_w, int oc_n) {
   }
   xw_end(oc_w);
 } return void;
-given oc_t_w(0) ((import oc_fw), 1):() then oc_t_out:("<r><text:s/>")
-given oc_t_w(0) ((import oc_fw), 3):() then oc_t_out:("<r><text:s text:c=\"3\"/>")
+given oc_t_w(0) ((import oc_fw), 1):() then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 115, 47, 62])
+given oc_t_w(0) ((import oc_fw), 3):() then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 115, 32, 116, 101, 120, 116, 58, 99, 61, 34, 51, 34, 47, 62])
 
 // Writes one text:s for the run of spaces that starts at i and stops at hi; answers how many spaces it covered.
 oc_spaces(XmlW oc_w, int[] oc_cps, int oc_i, int oc_hi) {
@@ -25,5 +25,5 @@ oc_spaces(XmlW oc_w, int[] oc_cps, int oc_i, int oc_hi) {
   }
   oc_sp_el(oc_w, oc_n);
 } return int oc_n;
-given oc_t_w(0) ((import oc_fw), [97, 32, 32, 32, 98], 1, 5):(3) then oc_t_out:("<r><text:s text:c=\"3\"/>")
-given oc_t_w(0) ((import oc_fw), [97, 32, 32, 32, 98], 1, 2):(1) then oc_t_out:("<r><text:s/>")
+given oc_t_w(0) ((import oc_fw), [97, 32, 32, 32, 98], 1, 5):(3) then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 115, 32, 116, 101, 120, 116, 58, 99, 61, 34, 51, 34, 47, 62])
+given oc_t_w(0) ((import oc_fw), [97, 32, 32, 32, 98], 1, 2):(1) then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 115, 47, 62])

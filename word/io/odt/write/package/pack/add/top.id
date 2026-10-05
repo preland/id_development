@@ -7,8 +7,8 @@ odp_mf(ZipW pkz, Ext pkx) {
   odp_manifest(pkw, pknames, pktypes);
   odp_put(pkz, "META-INF/manifest.xml", pkw);
 } return void;
-given odp_t_new ((import odp_t_z), (import odp_t_x)):() then odp_t_names:(",META-INF/manifest.xml")
-given odp_t_new given zw_add((import odp_t_z), "x", [1], 0) ((import odp_t_z), (import odp_t_x)):() then odp_t_names:(",x,META-INF/manifest.xml")
+given odp_t_new ((import odp_t_z), (import odp_t_x)):() then (import odp_t_z).names:(["", "META-INF/manifest.xml"])
+given odp_t_new given zw_add((import odp_t_z), "x", [1], 0) ((import odp_t_z), (import odp_t_x)):() then (import odp_t_z).names:(["", "x", "META-INF/manifest.xml"])
 
 // Fills an empty archive with the package of the document: mimetype first and stored, then META-INF/manifest.xml, content.xml (the caller's bytes), styles.xml, meta.xml and the preserved parts. Entries are all stored; zw_why on the archive says if one was refused.
 odp_pack(Doc pkd, int[] pkc, ZipW pkz) {
@@ -18,5 +18,5 @@ odp_pack(Doc pkd, int[] pkc, ZipW pkz) {
 } chain (Doc pkd, int[] pkc, ZipW pkz) {
   odp_parts(pkz, pkd.ext);
 } return void;
-given odp_t_new ((import odp_t_d), [1, 2], (import odp_t_z)):() then odp_t_names:(",mimetype,META-INF/manifest.xml,content.xml,styles.xml,meta.xml")
-given odp_t_new given odp_t_img () ((import odp_t_d), [], (import odp_t_z)):() then odp_t_names:(",mimetype,META-INF/manifest.xml,content.xml,styles.xml,meta.xml,Pictures/a.png")
+given odp_t_new ((import odp_t_d), [1, 2], (import odp_t_z)):() then (import odp_t_z).names:(["", "mimetype", "META-INF/manifest.xml", "content.xml", "styles.xml", "meta.xml"])
+given odp_t_new given odp_t_img () ((import odp_t_d), [], (import odp_t_z)):() then (import odp_t_z).names:(["", "mimetype", "META-INF/manifest.xml", "content.xml", "styles.xml", "meta.xml", "Pictures/a.png"])

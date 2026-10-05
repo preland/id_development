@@ -8,19 +8,19 @@ lay_top(View lgv, int lgi, int lgj, int[] lgs) {
     lset(lgv.pages.tops, lgi, lgt);
   }
 } return void;
-given lp_t_new given lg_t_s0(0, 0, 300) given lay_page_open((import lp_t_v), 0, 0) given lg_t_zeros(1) ((import lp_t_v), 0, 0, (import lg_t_s)):() then lg_t_tops:("6444,")
-given lp_t_new given lg_t_s0(0, 0, 300) given lay_page_open((import lp_t_v), 0, 0) given lg_t_zeros(1) ((import lp_t_v), 0, 1, (import lg_t_s)):() then lg_t_tops:("0,")
-given lp_t_new given lg_t_s0(0, 0, 300) given lay_page_open((import lp_t_v), 0, 0) given lay_page_open((import lp_t_v), 0, 5) given lg_t_zeros(1) ((import lp_t_v), 0, 0, (import lg_t_s)):() then lg_t_tops:("79822,")
+given lp_t_new given lg_t_s0(0, 0, 300) given lay_page_open((import lp_t_v), 0, 0) given lg_t_zeros(1) ((import lp_t_v), 0, 0, (import lg_t_s)):() then (import lp_t_v).pages.tops:([6444])
+given lp_t_new given lg_t_s0(0, 0, 300) given lay_page_open((import lp_t_v), 0, 0) given lg_t_zeros(1) ((import lp_t_v), 0, 1, (import lg_t_s)):() then (import lp_t_v).pages.tops:([0])
+given lp_t_new given lg_t_s0(0, 0, 300) given lay_page_open((import lp_t_v), 0, 0) given lay_page_open((import lp_t_v), 0, 5) given lg_t_zeros(1) ((import lp_t_v), 0, 0, (import lg_t_s)):() then (import lp_t_v).pages.tops:([79822])
 
 
 // Paginates the document from paragraph lgfrom on and answers how many paragraphs it walked: pages are filled with paragraphs in order, a paragraph is split between pages at a line, and a paragraph that asks for a break starts a page. Every paragraph must have been laid out (lay_all or lay_relayout). starts then holds the start of every page, and one more entry (the paragraph count, line 0) that ends the last; tops holds each paragraph's top in the continuous document. The walk resumes at the page before lgfrom and never stops early, so lgfrom only says where the document may be left as it was; lay_relayout is the one that stops when a page start matches (lay_walk).
 lay_paginate(View lgv, int lgfrom) {
   int lgn = lay_walk(lgv, lgfrom, len(lgv.doc.body.paras));
 } return int lgn;
-given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_paras(8) given lay_all((import lp_t_v)) ((import lp_t_v), 0):(8) then lg_t_starts:("0,0,6,0,8,0,") then lg_t_tops:("640,2304,3968,5632,7296,8960,14976,16640,")
-given lp_t_font given lp_t_paras(3) given lp_t_row(1, 8, 1) given lay_all((import lp_t_v)) ((import lp_t_v), 0):(3) then lg_t_starts:("0,0,1,0,3,0,") then lg_t_tops:("6144,79522,81186,")
-given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_ins(0, "AAAAAAAAAAAAAAAAAAAAAAAAAAAA") given lay_all((import lp_t_v)) ((import lp_t_v), 0):(1) then lg_t_starts:("0,0,0,8,1,0,") then lg_t_tops:("640,")
-given lp_t_font given lay_all((import lp_t_v)) ((import lp_t_v), 0):(1) then lg_t_starts:("0,0,1,0,") then lg_t_count:(1)
+given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_paras(8) given lay_all((import lp_t_v)) ((import lp_t_v), 0):(8) then (import lp_t_v).pages.starts:([0, 0, 6, 0, 8, 0]) then (import lp_t_v).pages.tops:([640, 2304, 3968, 5632, 7296, 8960, 14976, 16640])
+given lp_t_font given lp_t_paras(3) given lp_t_row(1, 8, 1) given lay_all((import lp_t_v)) ((import lp_t_v), 0):(3) then (import lp_t_v).pages.starts:([0, 0, 1, 0, 3, 0]) then (import lp_t_v).pages.tops:([6144, 79522, 81186])
+given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_ins(0, "AAAAAAAAAAAAAAAAAAAAAAAAAAAA") given lay_all((import lp_t_v)) ((import lp_t_v), 0):(1) then (import lp_t_v).pages.starts:([0, 0, 0, 8, 1, 0]) then (import lp_t_v).pages.tops:([640])
+given lp_t_font given lay_all((import lp_t_v)) ((import lp_t_v), 0):(1) then (import lp_t_v).pages.starts:([0, 0, 1, 0]) then (import lp_t_v).pages.count:(1)
 
 
 // The sentinel that ends the last page: the paragraph count and line 0.
@@ -28,6 +28,6 @@ lay_pages_close(View lgv) {
   push(lgv.pages.starts, len(lgv.doc.body.paras));
   push(lgv.pages.starts, 0);
 } return void;
-given lp_t_new given lp_t_paras(3) ((import lp_t_v)):() then lg_t_starts:("3,0,")
-given lp_t_new ((import lp_t_v)):() then lg_t_starts:("1,0,")
+given lp_t_new given lp_t_paras(3) ((import lp_t_v)):() then (import lp_t_v).pages.starts:([3, 0])
+given lp_t_new ((import lp_t_v)):() then (import lp_t_v).pages.starts:([1, 0])
 

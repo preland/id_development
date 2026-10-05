@@ -5,7 +5,7 @@ ost_pg_start(PgTab os_pg, XmlR os_r) {
   push(os_pg.vals, lst_copy((import ost_pgdef)));
 } return void;
 given ost_t_pgone given ost_t_open("<style:page-layout style:name=\"N\"/>") given xr_skip((import ost_t_r), 1) ((import ost_t_pg), (import ost_t_r)):((import ost_t_pg), (import ost_t_r)) then ost_t_vals:([11906, 16838, 0, 1440, 1440, 1440, 1440, 11906, 16838, 0, 1440, 1440, 1440, 1440])
-given ost_t_pgone given ost_t_open("<style:page-layout/>") given xr_skip((import ost_t_r), 1) ((import ost_t_pg), (import ost_t_r)):((import ost_t_pg), (import ost_t_r)) then ost_t_masters:([])
+given ost_t_pgone given ost_t_open("<style:page-layout/>") given xr_skip((import ost_t_r), 1) ((import ost_t_pg), (import ost_t_r)):((import ost_t_pg), (import ost_t_r)) then (import ost_t_pg).masters:([])
 
 // Records the master page the reader is at: its name and the name of its page layout.
 ost_pg_master(PgTab os_pg, XmlR os_r) {
@@ -13,8 +13,8 @@ ost_pg_master(PgTab os_pg, XmlR os_r) {
   string os_slay = xr_attr(os_r, "style:page-layout-name");
   lst_str_extend(os_pg.masters, [os_sname, os_slay]);
 } return void;
-given ost_t_pgone given ost_t_open("<style:master-page style:name=\"Standard\" style:page-layout-name=\"Mpm1\"/>") given xr_skip((import ost_t_r), 1) ((import ost_t_pg), (import ost_t_r)):((import ost_t_pg), (import ost_t_r)) then ost_t_masters:(["Standard", "Mpm1"])
-given ost_t_pgone given ost_t_open("<style:master-page style:name=\"A\" style:page-layout-name=\"B\"/>") given xr_skip((import ost_t_r), 1) given ost_pg_master((import ost_t_pg), (import ost_t_r)) ((import ost_t_pg), (import ost_t_r)):((import ost_t_pg), (import ost_t_r)) then ost_t_masters:(["A", "B", "A", "B"])
+given ost_t_pgone given ost_t_open("<style:master-page style:name=\"Standard\" style:page-layout-name=\"Mpm1\"/>") given xr_skip((import ost_t_r), 1) ((import ost_t_pg), (import ost_t_r)):((import ost_t_pg), (import ost_t_r)) then (import ost_t_pg).masters:(["Standard", "Mpm1"])
+given ost_t_pgone given ost_t_open("<style:master-page style:name=\"A\" style:page-layout-name=\"B\"/>") given xr_skip((import ost_t_r), 1) given ost_pg_master((import ost_t_pg), (import ost_t_r)) ((import ost_t_pg), (import ost_t_r)):((import ost_t_pg), (import ost_t_r)) then (import ost_t_pg).masters:(["A", "B", "A", "B"])
 
 // Reads the page layouts and master pages of a styles document into a table.
 ost_pg_scan(XmlR os_r) {
