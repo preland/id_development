@@ -6,7 +6,18 @@
 > is not emitted.
 
 Every diagnostic that has moved to the diagnostic record (`docs/DIAGNOSTICS.md`)
-ends its first line with a stable code in square brackets:
+carries a stable code in square brackets, after its severity in the human form and
+at the end of its first line in the plain one:
+
+```
+error[E0501]: function 'add' has 0 test case(s); --require-tests needs at least 2 (see docs/TESTS.md)
+  --> add.id:1:1
+  in add
+```
+
+That is the human form, the default on a terminal; `in add` is the function the diagnostic is in.
+`--diagnostics=plain`, the default when stderr is piped, keeps
+the one-line head `FILE:LINE: error: MESSAGE [CODE]`:
 
 ```
 add.id:1: error: function 'add' has 0 test case(s); --require-tests needs at least 2 (see docs/TESTS.md) [E0501]
@@ -34,6 +45,12 @@ the project tree.
 The parser needed a particular token to finish what it was reading and met a
 different one. The token it names is almost never where the mistake is: a
 missing `;`, `)` or `}` is noticed one token late, so look at the line before.
+
+A syntax error is followed by diagnostics that are only its echo: the parser skips
+tokens to recover, and the later stages read what is left (`int x 5;` also gives
+`unexpected token ';'` and `undefined variable ';'`). They are not hidden. Each
+says `= note: follows from the error at FILE:LINE above` (`"follows"` in the JSON),
+and fixing the error above it removes them.
 
 Incorrect:
 

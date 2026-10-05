@@ -28,6 +28,8 @@ A diagnostic is built in one place, `diag` in
 | why | why the rule exists, one line | `  why: TEXT` |
 | fixes | zero or more `help:` lines, each with zero or more edits | `  help: TEXT`, then `  edit: ...` |
 | related | other places that matter | `  related: FILE:LINE: note: TEXT` |
+| function | the function the diagnostic is in; `tools/iddiag` finds it in the source (below) when the compiler did not print one | `  in: NAME`, added by `iddiag`, not by the compiler |
+| follows | the earlier diagnostic this one only echoes (below) | `  follows: FILE:LINE: error: MESSAGE [CODE]`, added by `iddiag`, not by the compiler |
 
 The compiler does not know columns (its tokens carry lines), so a diagnostic names
 the text to underline (`at`) and `tools/iddiag` finds it on the line: the first
@@ -72,16 +74,20 @@ and the tools that read `idc`'s output match on it.
 
 ## The formats
 
-`idc PATH --diagnostics=human|json|plain` (default `human`; `IDC_DIAGNOSTICS` sets
+`idc PATH --diagnostics=human|json|plain` (default `auto`: human when stderr is a terminal, plain when it is piped or redirected; `IDC_DIAGNOSTICS` sets
 the default; the flag is the one the driver reads, `tools/iddiag` does the work).
 Diagnostics go to stderr in every format, as they always have, and the exit status
 does not depend on the format.
 
 **plain** is what the compiler prints and what a build nested inside another
 prints. It is grep-friendly: every head line is `FILE:LINE: error: MESSAGE [CODE]`,
-so `grep ': error:'`, an editor's problem matcher and the regexes in `bin/idc`,
-`casework.sh` and the MCP server of the local-model rails keep working. The
-indented lines are only for `tools/iddiag`.
+so `grep ': error:'` and an editor's problem matcher work on it. The head line of
+the human form is not this one (below), which is why the default is auto: a piped
+build, which is what every tool that parses `idc`'s output has, prints plain, so
+`grep ': error:'`, `casework.sh`, the `tests/*.sh` scripts and the local-model
+rails (`models/qwen-id/rails`) see the head they always did. `--diagnostics=human`
+or `IDC_DIAGNOSTICS=human` forces the snippet form into a pipe. The indented lines
+are only for `tools/iddiag`.
 
 ```
 a.id:1: error: function 'add' has 0 test case(s); --require-tests needs at least 2 (see docs/TESTS.md) [E0501]
@@ -91,16 +97,19 @@ a.id:1: error: function 'add' has 0 test case(s); --require-tests needs at least
   edit: placeholder	after-function	1		(ARG1_1, ARG1_2):(EXPECTED1)\n(ARG2_1, ARG2_2):(EXPECTED2)\n
 ```
 
-**human** is plain run through `tools/iddiag`: the same head line, then the source
-line with a caret run under `at`, then `= why`, `= help`, `= edit` and `= note`
-lines, and a summary naming the codes that have an explanation. The head line is
-the plain one, so a pipe to `grep` is as good as before. When one code repeats,
-only its first diagnostic prints the why and help in full; the rest say `(as for
-the first [E0501] above)`. Colour is on only when stderr is a terminal, `TERM` is
-not `dumb` and `NO_COLOR` is unset or empty; `--color=always|never|auto` overrides.
+**human** is plain run through `tools/iddiag`, with rustc's head: `error[CODE]:
+MESSAGE`, then `--> FILE:LINE:COLUMN` (the column only when `at` is found on the
+line), then `in FUNCTION`, then the source line with a caret run under `at`, then
+`= why`, `= help`, `= edit` and `= note` lines, and a summary naming the codes that
+have an explanation. When one code repeats, only its first diagnostic prints the
+why and help in full; the rest say `(as for the first [E0501] above)`. Colour is on
+only when stderr is a terminal, `TERM` is not `dumb` and `NO_COLOR` is unset or
+empty; `--color=always|never|auto` overrides.
 
 ```
-a.id:1: error: function 'add' has 0 test case(s); --require-tests needs at least 2 (see docs/TESTS.md) [E0501]
+error[E0501]: function 'add' has 0 test case(s); --require-tests needs at least 2 (see docs/TESTS.md)
+  --> a.id:1:1
+  in add
   |
 1 | add(int a, int b) {
   | ^^^
@@ -120,13 +129,14 @@ and the last line is a summary:
 
 ```
 {"kind":"diagnostic","severity":"error","code":"E0501","file":"a.id","line":1,
- "column":1,"end_column":4,"message":"function 'add' has 0 test case(s); ...",
+ "column":1,"end_column":4,"function":"add",
+ "message":"function 'add' has 0 test case(s); ...",
  "why":"a function is finished when ...",
  "fixes":[{"description":"write two cases directly under the function, ...",
    "applicability":"has-placeholders",
    "edits":[{"file":"a.id","line":4,"column":1,"end_line":4,"end_column":1,
              "text":"(ARG1_1, ARG1_2):(EXPECTED1)\n(ARG2_1, ARG2_2):(EXPECTED2)\n"}]}],
- "related":[],"rendered":"a.id:1: error: ... (the human text, without colour)"}
+ "related":[],"follows":null,"rendered":"error[E0501]: ... (the human text, without colour)"}
 {"kind":"summary","errors":1,"warnings":0,"codes":["E0501"]}
 ```
 
@@ -139,8 +149,60 @@ diagnostic that has not moved to the record yet. Messages the bash driver itself
 prints (a missing argument, a failed native check) are not diagnostics of the
 program and are not in the stream; see "Next steps".
 
+`function` is the name of the function the diagnostic is in, or `null`; `follows`
+is `{"file","line","code"}` of the earlier diagnostic this one echoes, or `null`.
+
 `idc --explain CODE` prints the `## CODE` section of `docs/ERRORS.md`; the code may
 be lower case or a bare number; an unknown code lists the ones that exist.
+
+### Follow-on diagnostics
+
+After a syntax error the parser skips tokens to recover and the later stages read
+what is left, so `int x 5;` also gives `unexpected token ';'` and `undefined
+variable ';'`. They are kept and tagged, not suppressed: a hidden error is worse than a
+labelled one. `tools/iddiag` adds a
+`follows:` line to a diagnostic (`run/sum/mark/follow/`), which the human form
+shows as `= note: follows from the error at FILE:LINE above` and the JSON carries
+as `follows`. The plain form is as the compiler printed it. The heuristic, in order:
+
+1. A diagnostic follows the first earlier syntax error (a code `E01xx`) of the same
+   file and the same line, whatever its own kind: the second error the parser
+   reports on a line and every semantic error on it are echoes of the first.
+2. A semantic diagnostic whose message quotes something that is not a name (its
+   first `'...'` starts with a character that is not a letter or `_`, as in
+   `undefined variable ';'` or `a block in ':'`) follows the nearest earlier
+   syntax error of its file, the last one at or above its line, else the last one.
+   Only recovery makes a symbol out of punctuation.
+3. Nothing else is tagged. A real error on the next line of the same function
+   (`undefined variable 'z'`) is a mistake of its own and carries no note.
+
+Known gaps: a syntax error that has no code yet (the `syn_err` sites listed under
+"Next steps") is not a root, so what follows from it is not tagged; an echo of a
+multi-line statement that lands on a later line, and a keyword read as a name
+(`undefined variable 'then'` on another line), are not tagged either. The fix for
+the first is to give the remaining syntax errors an `E01xx` code.
+
+### The function a diagnostic is in
+
+`in FUNCTION` and `"function"` come from the source: the nearest line at or above
+the diagnostic's that begins in column 0 with a name and `(` (`tools/lib/fnhead`),
+so a diagnostic on a test case is in the function the case is under, and one above
+the file's first function is in none. The compiler prints no such line yet; an
+`  in: NAME` line it prints itself would be used as it stands.
+
+### Finding a function: `idc --where`
+
+`idc --where NAME [PATH]` prints `FILE:LINE: SIGNATURE -> RETURN_TYPE` for the
+function `NAME` in PATH (a project directory, default `.`) and, when PATH has none,
+in the standard library (`--std`, `$IDSTD_HOME`, or the idstd beside the tree).
+`FILE::NAME` keeps only the functions of the file whose path ends with FILE. It
+reads the source as text (`tools/idwhere`, `tools/lib/fnhead`), so it needs no
+build slot and never rebuilds the compiler, and it answers in under 0.25 s warm
+without a cache: measured 0.01 to 0.08 s on the compiler and word trees, 0.2 s
+when the search goes on into idstd.
+A cached index was considered and left out because nothing needs it at that speed;
+if one is added, key it by function name, not by path. Exit status 1 when no
+function is found, with a message that names what to check.
 
 ## The rubric
 
@@ -238,6 +300,7 @@ The top confusions, most damaging first:
    that depends on it: 2 lines in the transcript above, 25 for one wrong expectation
    in a tool with ~60 cases while writing `tools/iddiag`, 100+ for one failed case in
    a function everything calls. The failing line is first, but it is not marked.
+   (Collapsed since: see "Next steps", 2.)
 3. **A violation at the function line, not the construct.** `nested too deeply` and
    the action limit report the function's line (or the block's), with no snippet and no
    pointer to which block; "split the inner block" does not say which is inner.
@@ -368,10 +431,12 @@ the compiler.
    `docs/ERRORS.md`; none is hard. The records of the ones already done are the
    templates.
 2. **Case-failure display.** The format `FILE:LINE: test failed: CALL = ACTUAL, expected
-   EXPECTED` is the right shape; what is wrong is the volume and the missing
-   pointer: print a failing case once, the code frame of the case's line, and *one*
-   line for the cases that did not run (`12 more cases not run because 'words_of'
-   failed its case above`), listing none of them unless asked (`--verbose`). A trap
+   EXPECTED` is the right shape. The volume is done: the cases that did not run are
+   one summary line, `idc: N case(s) failed; M more not run, because a function they
+   call failed a case (the first failure was a case of 'words_of' at F:L; ...)`, and
+   `IDC_SHOW_NOT_RUN=1` brings back a line for each. Still to do: the code frame of
+   the failing case's line, and a name for the function that failed the case in the
+   `FILE:LINE:` line itself rather than only in the summary (`--verbose`). A trap
    in a case should name the function that trapped; the runtime knows it. Make a
    case failure a diagnostic: `error[E08xx]: test failed`, so that `--diagnostics=json`
    carries `expected`, `actual` and the `call` as fields. The harness is C emitted
@@ -393,11 +458,13 @@ the compiler.
 6. **Did you mean.** `undefined variable` and `no such function` have the whole
    candidate set in hand (`dvname`, `fnames`, `bnames`); an edit-distance pick
    would turn the help into a `maybe` edit. Written in `id`, it is four short functions.
-7. **A syntax error ends the diagnostics.** After one the AST is not what was
-   written, which is what `--fix` already assumes (`synfail`). Printing only the
-   syntax errors, or marking later ones `follows from the syntax error above`,
-   removes the cascade of confusion 4. It changes what a program with two kinds of
-   mistake prints on the first run, so it needs a decision; it is not made here.
+7. **A syntax error ends the diagnostics: decided, tagging.** After one the AST is
+   not what was written, which is what `--fix` already assumes (`synfail`). The
+   decision was to keep the later diagnostics and mark the ones that echo the syntax
+   error `follows from the error at FILE:LINE above` (see "Follow-on diagnostics").
+   What is left: give every `syn_err` an `E01xx` code so that all syntax errors are
+   roots, and have the compiler print `follows:` itself, where it knows the token
+   positions, instead of `iddiag` guessing from lines.
 8. **The runtime traps** carry no location. A trap that names the function and the
    line it came from (the compiler has both at the call that emits the check)
    would remove confusion 1. It changes the generated C, so it waits for the agents
