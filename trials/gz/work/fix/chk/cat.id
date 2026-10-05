@@ -1,0 +1,10 @@
+// Whether the two-member file the cli fixture makes reads as the text twice.
+
+// 1 when `gzip -dc` of (import gz_t_dst) is (import gz_t_src) twice over.
+gz_t_cat_ok() {
+  string gz_tc = "cat " + (import gz_t_src) + " " + (import gz_t_src) + " > " + (import gz_t_out) + "; gzip -dc " + (import gz_t_dst) + " 2>/dev/null | cmp -s - " + (import gz_t_out);
+  int gz_tr = fs_run(gz_tc);
+  int gz_tk = gz_tr == 0;
+} return int gz_tk;
+given gz_t_put("ab") given gz_t_cli_enc ():(0)
+given gz_t_put("ab") given gz_t_cli_cat ():(1)

@@ -1,0 +1,23 @@
+// Stepping a prepared statement and reading what it gives, a stale handle's refusal, and running a command line from a setup.
+
+// Steps (import sqq_t_st) to its next row and answers column 0 of it as text.
+sqq_t_next() {
+  int sqq_tg = sq_step((import sqq_t_st));
+  string sqq_tt = sq_ctext((import sqq_t_st), 0);
+} return string sqq_tt;
+given sqq_t_mem given sqq_t_prep("select 'b'") ():("b")
+given sqq_t_mem given sqq_t_prep("select 6") ():("6")
+
+// 1 when (import sqq_t_db) is an open connection: asking it how many rows the last statement changed is answered, not refused.
+sqq_t_ok() {
+  int sqq_tk = sq_changes((import sqq_t_db)) >= 0;
+} return int sqq_tk;
+given sqq_t_mem ():(1)
+given sqq_t_mem given sqq_t_sql("create table t(a)") ():(1)
+
+// Runs the command line sqq_tv as sqlq would and ignores the status.
+sqq_t_cmd(string[] sqq_tv) {
+  int sqq_tr = sqq_cmd(sqq_tv);
+} return void;
+(["sqlq", ":memory:", "select 1"]):() then prints:("1\n")
+(["sqlq", ":memory:", "select 2"]):() then prints:("2\n")

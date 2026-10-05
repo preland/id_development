@@ -1,0 +1,31 @@
+// A handle that outlived what it named. The tables behind handles reuse their slots, so these are the cases that hold sq.c to refusing the old handle instead of serving the new one.
+
+// Closes (import sqq_t_db), after which the handle is stale.
+sqq_t_close() {
+  int sqq_tr = sq_close((import sqq_t_db));
+} return void;
+given sqq_t_mem ():() then sqq_t_ok:(0)
+given sqq_t_mem given sqq_t_sql("create table t(a)") ():() then sqq_t_ok:(0)
+
+// Opens and closes a database, opens another when sqq_tre is 1 (it takes the slot just freed), and answers what asking the first, closed, handle how many rows it changed gives: -1 when it is refused, 0 when it was served by whoever holds the slot.
+sqq_t_stale(int sqq_tre) {
+  int sqq_ta = sq_open(":memory:");
+  int sqq_tz = sq_close(sqq_ta);
+  int sqq_tn = sqq_ta;
+} chain (int sqq_tre) {
+  if (sqq_tre == 1) {
+    sqq_tn = sq_open(":memory:");
+  }
+  int sqq_tx = sq_changes(sqq_ta);
+} return int sqq_tx;
+(1):(-1)
+(0):(-1)
+
+// Opens a connection and prepares a statement on it, then hands the connection's handle to sq_step when sqq_tj is 0 and the statement's handle to sq_changes when it is 1. A handle taken for the other kind of thing would answer a step's 100 or a count of changes; one refused by kind answers -1.
+sqq_t_cross(int sqq_tj) {
+  int sqq_ta = sq_open(":memory:");
+  int sqq_tp = sq_prepare(sqq_ta, "select 1");
+  int sqq_tx = sq_step(sqq_ta) * (sqq_tj == 0) + sq_changes(sqq_tp) * (sqq_tj == 1);
+} return int sqq_tx;
+(0):(-1)
+(1):(-1)

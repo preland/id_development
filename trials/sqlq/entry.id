@@ -1,0 +1,45 @@
+// sqlq DB SQL [ARG...] runs one statement against the database file DB (":memory:" for none) and prints its rows, tab between cells. An ARG binds to the next ? in SQL: a whole integer as an integer, @FILE as the bytes of that file (a blob), anything else as text.
+// sqlq DB blob OUT SQL [ARG...] writes the first column of the first row, a blob, to the file OUT and prints its length.
+// Status 0, 1 when sqlite or a file refused (a line on standard error says which), 2 for a bad command line.
+
+// Runs the command line sqq_av against the open database sqq_db, as sqlq's two forms above.
+sqq_dispatch(int sqq_db, string[] sqq_av) {
+  int sqq_rc = 2;
+  if (sqq_av[2] == "blob" && len(sqq_av) >= 5) {
+    sqq_rc = sqq_save_blob(sqq_db, sqq_av);
+  }
+  if (sqq_av[2] != "blob") {
+    sqq_rc = sqq_run(sqq_db, sqq_av[2], lst_str_tail(sqq_av, 3));
+  }
+} return int sqq_rc;
+given sqq_t_mem ((import sqq_t_db), ["sqlq", ":memory:", "select 3"]):(0) then prints:("3\n")
+given sqq_t_mem ((import sqq_t_db), ["sqlq", ":memory:", "blob", "x"]):(2)
+given sqq_t_mem given sqq_t_file given sqq_t_want([0, 255, 16]) ((import sqq_t_db), ["sqlq", ":memory:", "blob", (import sqq_t_path), "select x'00ff10'"]):(0) then prints:("3\n") then sqq_t_same:(1)
+
+// Opens the database named by sqq_av[1], runs the command line against it, closes it. Answers the command's status, or 1 with a line on standard error when the database would not open.
+sqq_cmd(string[] sqq_av) {
+  int sqq_db = sq_open(sqq_av[1]);
+  int sqq_rc = 1;
+  if (sqq_db > 0) {
+    sqq_rc = sqq_dispatch(sqq_db, sqq_av);
+  }
+} chain (string[] sqq_av) {
+  if (sqq_db < 0) {
+    eprint("sqlq: cannot open " + sqq_av[1] + ": " + sq_errmsg(0 - 1));
+  }
+  int sqq_cl = sq_close(sqq_db);
+} return int sqq_rc;
+(["sqlq", ":memory:", "select 1+1, 'a'"]):(0) then prints:("2\ta\n")
+(["sqlq", "/tmp/sqq_t_no_dir/x.db", "select 1"]):(1) then eprints:("sqlq: cannot open /tmp/sqq_t_no_dir/x.db: unable to open database file\n")
+
+// Checks the command line has a database and a statement, and runs it.
+main(int argc, string[] argv) {
+  int sqq_status = 2;
+  if (argc >= 3) {
+    sqq_status = sqq_cmd(argv);
+  } else {
+    eprint("usage: sqlq DB SQL [ARG...] | sqlq DB blob OUT SQL [ARG...]");
+  }
+} return int sqq_status;
+(2, ["sqlq", "x"]):(2) then eprints:("usage: sqlq DB SQL [ARG...] | sqlq DB blob OUT SQL [ARG...]\n")
+given sqq_t_file given sqq_t_cmd(["sqlq", (import sqq_t_path), "create table t(a integer, b text)"]) given sqq_t_cmd(["sqlq", (import sqq_t_path), "insert into t values (?, ?)", "7", "seven"]) (4, ["sqlq", (import sqq_t_path), "select a, b from t"]):(0) then prints:("7\tseven\n")

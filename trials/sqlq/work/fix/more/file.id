@@ -1,0 +1,32 @@
+// Scratch files for the cases that move bytes: one the program writes, one holding the bytes it should have written.
+
+// Makes the scratch file the program writes: its path in (import sqq_t_path), empty. It is removed when the case's process exits.
+sqq_t_file() {
+  string sqq_tf = fs_mktemp("sqq_t_", 0);
+  export string sqq_t_path = sqq_tf;
+  fs_drop_exit(sqq_tf);
+} return void;
+given sqq_t_want([]) ():() then sqq_t_same:(1)
+given sqq_t_want([5]) ():() then sqq_t_same:(0)
+
+// Makes a second scratch file holding the bytes sqq_tb, its path in (import sqq_t_ref).
+sqq_t_want(int[] sqq_tb) {
+  string sqq_tw = fs_mktemp("sqq_t_", 0);
+  export string sqq_t_ref = sqq_tw;
+  fs_drop_exit(sqq_tw);
+} chain (int[] sqq_tb) {
+  int sqq_th = fs_open(sqq_tw, "w");
+  int sqq_tn = fs_write(sqq_th, sqq_tb, len(sqq_tb));
+  int sqq_tc = fs_close(sqq_th);
+} chain (int[] sqq_tb) {
+  export string sqq_t_at = "@" + sqq_tw;
+} return void;
+given sqq_t_file ([]):() then sqq_t_same:(1)
+given sqq_t_file ([5]):() then sqq_t_same:(0)
+
+// 1 when the two scratch files hold the same bytes.
+sqq_t_same() {
+  int sqq_ts = exec_file_same((import sqq_t_path), (import sqq_t_ref));
+} return int sqq_ts;
+given sqq_t_file given sqq_t_want([]) ():(1)
+given sqq_t_file given sqq_t_want([5]) ():(0)

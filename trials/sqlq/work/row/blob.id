@@ -1,0 +1,44 @@
+// A blob column out of the database and into a file.
+
+// Writes the first column of the current row of sqq_st, a blob, to the file sqq_out, and answers its length, or -1 when the file would not open.
+sqq_take(int sqq_st, string sqq_out) {
+  int sqq_nb = sq_cbytes(sqq_st, 0);
+  word sqq_ad = alloc(sqq_nb + 1);
+  int sqq_got = sq_cblob(sqq_st, 0, sqq_ad, sqq_nb);
+} chain (int sqq_st, string sqq_out) {
+  int sqq_w = fs_save(sqq_out, sqq_ad, sqq_got);
+} return int sqq_w;
+given sqq_t_mem given sqq_t_row("select x'00ff10'") given sqq_t_file given sqq_t_want([0, 255, 16]) ((import sqq_t_st), (import sqq_t_path)):(3) then sqq_t_same:(1)
+given sqq_t_mem given sqq_t_row("select x''") given sqq_t_file given sqq_t_want([]) ((import sqq_t_st), (import sqq_t_path)):(0) then sqq_t_same:(1)
+given sqq_t_mem given sqq_t_row("select x'41'") given sqq_t_file given sqq_t_want([66]) ((import sqq_t_st), (import sqq_t_path)):(1) then sqq_t_same:(0)
+
+// Runs the statement sqq_sql with sqq_args bound and writes the first column of its first row to the file sqq_out. Answers the bytes written, or -1 when the statement or the file failed or there was no row.
+sqq_blob(int sqq_db, string sqq_out, string sqq_sql, string[] sqq_args) {
+  int sqq_st = sq_prepare(sqq_db, sqq_sql);
+  int sqq_w = 0 - 1;
+  int sqq_b = sqq_bind(sqq_st, sqq_args);
+} chain (int sqq_db, string sqq_out, string sqq_sql, string[] sqq_args) {
+  if (sqq_b == 0 && sq_step(sqq_st) == 100) {
+    sqq_w = sqq_take(sqq_st, sqq_out);
+  }
+  int sqq_fin = sq_finalize(sqq_st);
+} return int sqq_w;
+given sqq_t_mem given sqq_t_file given sqq_t_want([1, 2]) ((import sqq_t_db), (import sqq_t_path), "select x'0102'", []):(2) then sqq_t_same:(1)
+given sqq_t_mem given sqq_t_file given sqq_t_want([1, 2]) ((import sqq_t_db), (import sqq_t_path), "select x'0102' where 0", []):(-1) then sqq_t_same:(0)
+given sqq_t_mem given sqq_t_file given sqq_t_want([9, 8, 7]) ((import sqq_t_db), (import sqq_t_path), "select ?", [(import sqq_t_at)]):(3) then sqq_t_same:(1)
+
+// Writes the blob a command line asks for, as sqq_blob does, and prints its length; a line on standard error when none was written. Answers 0, or 1 after that line.
+sqq_save_blob(int sqq_db, string[] sqq_av) {
+  int sqq_n = sqq_blob(sqq_db, sqq_av[3], sqq_av[4], lst_str_tail(sqq_av, 5));
+  int sqq_rc = 1;
+  if (sqq_n >= 0) {
+    print(sqq_n);
+    sqq_rc = 0;
+  }
+} chain (int sqq_db, string[] sqq_av) {
+  if (sqq_n < 0) {
+    eprint("sqlq: no blob written: the statement failed, gave no row or the file would not open");
+  }
+} return int sqq_rc;
+given sqq_t_mem given sqq_t_file given sqq_t_want([0, 255]) ((import sqq_t_db), ["sqlq", ":memory:", "blob", (import sqq_t_path), "select x'00ff'"]):(0) then prints:("2\n") then sqq_t_same:(1)
+given sqq_t_mem ((import sqq_t_db), ["sqlq", ":memory:", "blob", "/tmp/sqq_t_no_dir/o", "select x'00ff'"]):(1) then eprints:("sqlq: no blob written: the statement failed, gave no row or the file would not open\n")

@@ -1,0 +1,30 @@
+// Binding every argument of a command line to the parameters of one statement.
+
+// Binds sqq_a to parameter sqq_i of sqq_st by its kind. Answers 0 or sqlite's code, -1 when an @FILE would not open.
+sqq_bind_one(int sqq_st, int sqq_i, string sqq_a) {
+  int sqq_k = sqq_kind(sqq_a);
+  int sqq_rc = sq_bind_text(sqq_st, sqq_i, sqq_a);
+  if (sqq_k == 1) {
+    sqq_rc = sq_bind_int(sqq_st, sqq_i, to_int(sqq_a));
+  }
+} chain (int sqq_st, int sqq_i, string sqq_a) {
+  if (sqq_k == 2) {
+    string sqq_path = str_slice(sqq_a, 1, len(sqq_a) - 1);
+    sqq_rc = sqq_bind_file(sqq_st, sqq_i, sqq_path);
+  }
+} return int sqq_rc;
+given sqq_t_mem given sqq_t_prep("select typeof(?)") ((import sqq_t_st), 1, "42"):(0) then sqq_t_next:("integer")
+given sqq_t_mem given sqq_t_prep("select typeof(?)") ((import sqq_t_st), 1, "4x2"):(0) then sqq_t_next:("text")
+given sqq_t_mem given sqq_t_prep("select typeof(?)") given sqq_t_file ((import sqq_t_st), 1, "@/tmp/sqq_t_no_such_file"):(-1)
+
+// Binds sqq_args in order to parameters 1, 2, ... of sqq_st, stopping at the first that fails. Answers 0 or that failure's code.
+sqq_bind(int sqq_st, string[] sqq_args) {
+  int sqq_i = 0;
+  int sqq_rc = 0;
+  while (sqq_i < len(sqq_args) && sqq_rc == 0) {
+    sqq_rc = sqq_bind_one(sqq_st, sqq_i + 1, sqq_args[sqq_i]);
+    sqq_i = sqq_i + 1;
+  }
+} return int sqq_rc;
+given sqq_t_mem given sqq_t_prep("select ?, ?") ((import sqq_t_st), ["a", "2"]):(0)
+given sqq_t_mem given sqq_t_prep("select ?") ((import sqq_t_st), ["a", "b"]):(25)

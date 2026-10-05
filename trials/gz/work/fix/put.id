@@ -1,0 +1,45 @@
+// The files and memory the cases of this program work on. A case that needs files names gz_t_put and finds three scratch files in (import gz_t_src), (import gz_t_dst) and (import gz_t_out), the first holding the text it was given.
+
+// Makes the three scratch files and writes the text into the first. Each is removed when the case's process exits.
+gz_t_put(string gz_tx) {
+  string gz_ts = fs_mktemp("gz_t_", 0);
+  export string gz_t_src = gz_ts;
+  fs_drop_exit(gz_ts);
+} chain (string gz_tx) {
+  string gz_td = fs_mktemp("gz_t_", 0);
+  export string gz_t_dst = gz_td;
+  fs_drop_exit(gz_td);
+} chain (string gz_tx) {
+  string gz_to = fs_mktemp("gz_t_", 0);
+  export string gz_t_out = gz_to;
+  fs_drop_exit(gz_to);
+} chain (string gz_tx) {
+  int gz_tw = exec_file_put(gz_ts, gz_tx, 420);
+} return void;
+("abc"):() then gz_t_same:(0)
+(""):() then gz_t_same:(1)
+
+// Puts the bytes of gz_tv into the store: their address in (import gz_t_va), their count in (import gz_t_vn), and a box holding the address in (import gz_t_box).
+gz_t_vec(int[] gz_tv) {
+  int gz_tn = len(gz_tv);
+  word gz_ta = alloc(gz_tn + 1);
+  export word gz_t_va = gz_ta;
+} chain (int[] gz_tv) {
+  export int gz_t_vn = gz_tn;
+  export word[] gz_t_box = [gz_ta];
+  int gz_ti = 0;
+} chain (int[] gz_tv) {
+  while (gz_ti < gz_tn) {
+    poke8(gz_ta + gz_ti, gz_tv[gz_ti]);
+    gz_ti = gz_ti + 1;
+  }
+} return void;
+([1, 2, 3]):() then gz_t_vsum:(6)
+([200, 100]):() then gz_t_vsum:(300)
+
+// Replaces the file gz_tp with the text gz_tx.
+gz_t_wr(string gz_tp, string gz_tx) {
+  int gz_tw = exec_file_put(gz_tp, gz_tx, 420);
+} return void;
+given gz_t_put("a") ((import gz_t_out), "a"):() then gz_t_same:(1)
+given gz_t_put("a") ((import gz_t_out), "b"):() then gz_t_same:(0)

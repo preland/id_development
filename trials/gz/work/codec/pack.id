@@ -1,0 +1,33 @@
+// Compression: a run of the store to a gzip member, and a file to a gzip file.
+
+// Compresses gz_n bytes at gz_s as one gzip member at the given level (0 to 9). The member's address lands in gz_box[0] and the answer is its length, or -2 for a level zlib refuses.
+gz_deflate(word gz_s, int gz_n, word[] gz_box, int gz_lv) {
+  int gz_cap = zl_bound(gz_n, gz_lv);
+  int gz_m = 0 - 2;
+  gz_box[0] = alloc(gz_cap * (gz_cap > 0) + 1);
+} chain (word gz_s, int gz_n, word[] gz_box, int gz_lv) {
+  if (gz_cap > 0) {
+    gz_m = zl_gzip(gz_s, gz_n, gz_box[0], gz_cap, gz_lv);
+  }
+} return int gz_m;
+given gz_t_vec([104, 101, 108, 108, 111, 32, 104, 101, 108, 108, 111, 32, 104, 101, 108, 108, 111]) ((import gz_t_va), 17, (import gz_t_box), 6):(28)
+given gz_t_vec([104, 101, 108, 108, 111]) ((import gz_t_va), 5, (import gz_t_box), 0):(28)
+given gz_t_vec([104, 101, 108, 108, 111]) ((import gz_t_va), 5, (import gz_t_box), 99):(-2)
+
+// Compresses the file gz_fa into the gzip file gz_fb. Answers the bytes written, -1 when a file will not open, or -2 for a level zlib refuses.
+gz_deflate_file(string gz_fa, string gz_fb, int gz_lv) {
+  word[] gz_sb = [0];
+  word[] gz_db = [0];
+  int gz_n = fs_load(gz_fa, gz_sb);
+} chain (string gz_fa, string gz_fb, int gz_lv) {
+  int gz_r = gz_n;
+  if (gz_n >= 0) {
+    gz_r = gz_deflate(gz_sb[0], gz_n, gz_db, gz_lv);
+  }
+  if (gz_r >= 0) {
+    gz_r = fs_save(gz_fb, gz_db[0], gz_r);
+  }
+} return int gz_r;
+given gz_t_put("hello hello hello") ((import gz_t_src), (import gz_t_dst), 6):(28) then gz_t_cli_dec:(1)
+given gz_t_put("hello") ((import gz_t_src), (import gz_t_dst), 99):(-2)
+("/tmp/gz_t_no_such_file", "/tmp/gz_t_no_such_out", 6):(-1)

@@ -1,0 +1,46 @@
+// Running one statement: step it, print its rows, and say why when it did not finish.
+
+// Steps sqq_st to its end, printing each row as sqq_row gives it. Answers the code that ended it: 101 when it finished, anything else is an error.
+sqq_rows(int sqq_st) {
+  int sqq_rc = sq_step(sqq_st);
+  while (sqq_rc == 100) {
+    print(sqq_row(sqq_st));
+    sqq_rc = sq_step(sqq_st);
+  }
+} return int sqq_rc;
+given sqq_t_mem given sqq_t_prep("select 1 union all select 2") ((import sqq_t_st)):(101) then prints:("1\n2\n")
+given sqq_t_mem given sqq_t_prep("select 1 where 0") ((import sqq_t_st)):(101) then prints:("")
+
+// Runs the statement sqq_st that sqq_db prepared: binds sqq_args to its ? parameters, prints its rows, finalizes it. Answers 0 when it finished, 1 after a message on standard error.
+sqq_go(int sqq_db, int sqq_st, string[] sqq_args) {
+  int sqq_rc = sqq_bind(sqq_st, sqq_args);
+  if (sqq_rc == 0) {
+    sqq_rc = sqq_rows(sqq_st);
+  }
+  string sqq_msg = sqq_why(sqq_db, sqq_rc);
+} chain (int sqq_db, int sqq_st, string[] sqq_args) {
+  int sqq_ok = sqq_rc == 101;
+  int sqq_fin = sq_finalize(sqq_st);
+  if (sqq_ok == 0) {
+    eprint("sqlq: " + sqq_msg);
+  }
+} chain (int sqq_db, int sqq_st, string[] sqq_args) {
+  int sqq_res = 1 - sqq_ok;
+} return int sqq_res;
+given sqq_t_mem given sqq_t_prep("select ?, ?") ((import sqq_t_db), (import sqq_t_st), ["5", "five"]):(0) then prints:("5\tfive\n")
+given sqq_t_mem given sqq_t_prep("select 1") ((import sqq_t_db), (import sqq_t_st), ["extra"]):(1) then eprints:("sqlq: column index out of range\n")
+
+// Prepares the first statement of sqq_sql on sqq_db and runs it as sqq_go does. Answers 0 when it finished, 1 after a message on standard error, which a statement sqlite would not even prepare gets too.
+sqq_run(int sqq_db, string sqq_sql, string[] sqq_args) {
+  int sqq_st = sq_prepare(sqq_db, sqq_sql);
+  int sqq_rc = 1;
+  if (sqq_st > 0) {
+    sqq_rc = sqq_go(sqq_db, sqq_st, sqq_args);
+  }
+} chain (int sqq_db, string sqq_sql, string[] sqq_args) {
+  if (sqq_st < 0) {
+    eprint("sqlq: " + sq_errmsg(sqq_db));
+  }
+} return int sqq_rc;
+given sqq_t_mem ((import sqq_t_db), "select 1, 'a'", []):(0) then prints:("1\ta\n")
+given sqq_t_mem ((import sqq_t_db), "selec 1", []):(1) then eprints:("sqlq: near \"selec\": syntax error\n")

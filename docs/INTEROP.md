@@ -568,3 +568,222 @@ What this says:
   every library is built with (lock, trap redirection, frames, marshalling).
 * `idc/tests/lib.sh` (sections `lib`, `lib_csv`), `idc/tests/lib/`.
 * `trials/csvlib`: a library over `trials/csvq`'s CSV parser.
+
+## Calling C from id
+
+> **Status: measured on this tree, 2026-10-05.** Every command and number below was run unless a line says "not tested".
+
+An `id` program can call an existing C library today, from a project of its own, without touching `idstd`. The mechanism is the native backend of [`BACKENDS.md`](BACKENDS.md) and [`PROJECT.md`](PROJECT.md) section 7: a directory with a `backend.id`, a C source and `native` declarations. This section says what that costs, shows it on two real libraries (zlib and SQLite), lists what the language cannot express, and describes `hdr2id`, a tool that writes the declarations and shims from a C header.
+
+### 1. A project's own natives and backend
+
+Nothing had to change in the compiler or in `idstd`. A backend is any directory, anywhere in the project tree, that holds a `backend.id`; the `native` declarations may sit in that directory or in any directory below it (`trials/sqlq/sq/conn/open.id` is three levels down). The driver compiles and links the backend's C only when a native it declares is reachable from `main` (or from a test case).
+
+```
+trials/gz/
+  entry.id                 main
+  zl/
+    backend.id             how to link: sources, flags, libraries
+    zl.c                   the shim: C over zlib, exporting id_zl_<native>
+    zl.h                   the C prototypes (documentation, and what zl.c includes)
+    pack.id  info.id       the native declarations
+  work/ ...                ordinary id that calls them
+```
+
+`backend.id` for zlib (`trials/gz/zl/backend.id`):
+
+```
+string name = "zl";
+string[] c_linux_sources = ["zl.c"];
+string[] c_linux_cflags = [];
+string[] c_linux_link = ["-lz"];
+```
+
+A native `native zl_gzip(word src, int n, word dst, int cap, int level) return int;` is emitted as the prototype `int id_zl_gzip(long long src, int n, long long dst, int cap, int level)`, so `zl.c` defines that symbol. The C ABI of each id type:
+
+| id type | C type a shim sees | note |
+|---|---|---|
+| `int` | `int` | 32 bits always |
+| `word` | `long long` | also an address in the flat store |
+| `float` | `double` | |
+| `string` | `char*` (take it as `const char*`) | NUL terminated, a length in front of it; read it, copy it if you keep it, never write it |
+| `int[]`, `word[]`, `string[]`, a struct | `IdList*` | `typedef struct { int len, cap; long long* data; } IdList;` copied into each backend that uses it (`fs.h`, `gfx.h`, `sq.c`); one 8-byte cell per element or field |
+| `func(A, B) return R` | a C function pointer | `int (*)(int)`, `int (*)(char*)` and so on, for scalar, string, word, float and list parameters |
+| return `string` | `char*` | build it with `id_str_of_cstr(p)`, which the generated program exports; a plain `char*` has no length in front and breaks `len` |
+
+Two entry points of the generated program are meant for C: `unsigned char* id_store_span(long long addr, long long n)` (a pointer into the flat store, bounds-checked, valid until the next `alloc`) and `char* id_str_of_cstr(const char*)`. Declare them `extern` in the shim. Bytes cross as store addresses: `alloc`, `poke8`, `mem_of_str`, `fs_load` on the id side; `id_store_span` on the C side. `zl.c` takes every span it needs before it calls zlib and allocates nothing in between.
+
+How to link a system library, and what is awkward about it:
+
+* `backend.id` is read by the shell, not compiled: only literal strings and string lists, no `$(pkg-config ...)`, no environment variables. `c_linux_link = ["-lz"]` works only if the build's `cc` already finds the library.
+* In this repo's devshell zlib is found, but not because `flake.nix` asks for it: `flake.nix` does not name zlib, and its include directory and library directory are in the shell's `NIX_CFLAGS_COMPILE` and `NIX_LDFLAGS` because another input of the shell depends on it. SQLite is not there (`pkg-config sqlite3` answers "not found"). Tested workaround for one command:
+
+  ```
+  export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -isystem /nix/store/...-sqlite-3.51.2-dev/include"
+  export NIX_LDFLAGS="$NIX_LDFLAGS -L/nix/store/...-sqlite-3.51.2/lib -rpath /nix/store/...-sqlite-3.51.2/lib"
+  idc/bin/idc trials/sqlq -o sqlq
+  ```
+
+  The durable fix is `sqlite` and `zlib` in the `buildInputs` of `flake.nix` next to `gfxLibs`, where the cc wrapper injects `-I`/`-L` and the rpath (not tested; the file is outside this workspace). `trials/sqlq` does not build in the stock devshell until that is done, so it is not in `idc/tests/run.sh`.
+* A `pkg-config` key (`c_linux_pkg = ["sqlite3"]`) would remove the dependence on the devshell. It is a change to the `backend.id` format, not to the language, and it adds a `pkg-config` dependency to every build that names one. Not implemented; it is an option, not a need.
+
+Other things the mechanism does that are worth knowing before the first backend:
+
+* Natives count as functions: at most 3 per file, at most 3 entries per directory. The 19 natives of `sq` take seven files and three directories. Natives need no test cases; the `id` that wraps them does.
+* A native's name is reserved program-wide; its parameter names are not variables. `sq_*`, `zl_*` and `zh_*` are prefixes this repo has not used.
+* A project with no `main` builds to an object and ignores its backends (`idc: backend(s) ignored: this project has no main`); the cases of a library still link and run them.
+* `c_header` in `backend.id` is optional (`hdr2id` output has none).
+* The cases of a function that calls a native run it for real, so `gz`'s cases call `gzip`, `cmp` and `truncate` through `fs_run` and compare the program against them.
+
+### 2. Two real libraries
+
+Both are in `trials/`, obey every compiler rule, and have two or more cases per function. Neither touches `idstd` except through one addition, `fs_load` and `fs_save` (a whole file into the flat store and back, byte exact), which both programs needed and which therefore live in `sys/io/fs/data/mem/where/`.
+
+#### zlib: `trials/gz`
+
+`gz c IN OUT [LEVEL]` writes a gzip file, `gz d IN OUT` restores one. A buffer API: `zl_gzip`, `zl_gunzip`, `zl_bound`, `zl_crc32`, `zl_version`, over store addresses. `zl_gunzip` reads concatenated members as `gzip` does and tells "output buffer full" (-100) from "input ended inside a member" (-101), because zlib's own -5 cannot; `gz_inflate` starts from the ISIZE in the trailer and doubles on -100.
+
+Checked against the `gzip` command line in both directions, 2026-10-05 (`time -f`, one run each):
+
+| input | size | gz c: time, RSS | gzip -c: time, RSS | output: ours / gzip | gzip reads ours, gz reads gzip's |
+|---|---|---|---|---|---|
+| `SPEC.md`+`TESTS.md` | 111,348 B | 0.00 s, 2.4 MB | 0.00 s, 3.5 MB | 39,291 / 39,251 B | both identical |
+| 3 MB of `/dev/urandom` | 3,000,000 B | 0.05 s, 10.3 MB | 0.05 s, 3.6 MB | 3,000,938 / 3,000,487 B | both identical |
+| 20 MB of zeros | 20,000,000 B | 0.09 s, 67.7 MB | 0.02 s, 3.6 MB | 19,465 / 19,450 B | both identical |
+| empty file | 0 B | (not timed) | (not timed) | byte-identical to `gzip -n` | both identical |
+| 200 MB of zeros, level 1 | 200,000,000 B | 0.55 s, 526 MB | not run | 872,762 B | `gz d` back: `cmp` identical, 0.37 s, 526 MB |
+
+The sizes differ because `gzip -c` writes the file name and time into the header and `gz` writes none (`gzip -n`); byte parity is not the claim, interchange is. What the table shows is the cost of the buffer API: the whole input and the whole output sit in the flat store, which only grows (section 5), so memory is a multiple of the file. A streaming `z_stream` API would not have that cost, and it is the part zlib's header makes hardest to map (section 4).
+
+Falsified by hand: forcing the level in `zl.c` makes `gz_deflate`'s level 0 case red (25 instead of 28 bytes); dropping the member accumulation in `zl_gunzip` makes the two-member case red (1 instead of 1001); a doubling that stops after one step makes the same case red (-100).
+
+#### SQLite: `trials/sqlq`
+
+`sqlq DB SQL [ARG...]` runs one statement and prints its rows with tabs between cells. An `ARG` binds to the next `?`: a whole integer as an integer, `@FILE` as the bytes of that file (a blob), anything else as text. `sqlq DB blob OUT SQL [ARG...]` writes the first column of the first row, a blob, to `OUT`. Handle-based (connection, statement) and byte-buffer (blob in and out) in one program; 19 natives.
+
+```
+$ sqlq q.db "create table t(id integer primary key, name text, score real, pic blob)"
+$ sqlq q.db "insert into t(name, score, pic) values (?, ?, ?)" alice 3 @pic.bin      # pic.bin: 100,000 random bytes
+$ sqlq q.db "insert into t(name, score, pic) values (?, 2.5, null)" bob
+$ sqlq q.db "select id, name, score, length(pic), pic from t order by id"
+1	alice	3.0	100000	blob(100000)
+2	bob	2.5	NULL	NULL
+$ sqlq q.db blob out.bin "select pic from t where name = ?" alice          # prints 100000; cmp pic.bin out.bin: identical
+```
+
+Cross-checked against the `sqlite3` command line (3.53.3 reading what the 3.51.2 library wrote): the same two rows, `typeof(pic)` of `blob` and `null`, `pragma integrity_check` `ok`; and `sqlq` reading a database `sqlite3` wrote, including a NULL. Error paths: a syntax error prints `sqlq: near "selec": syntax error` and exits 1; an unwritable path prints `sqlq: cannot open /nonexistent/d.db: unable to open database file`, exit 1; too many arguments prints `column index out of range`, exit 1.
+
+Falsified by hand: making `sq_slot` ignore the generation turns the stale-handle case red; ignoring the kind turns both cross-kind cases red (`sq_step` of a connection handle returned 100 because it stepped the statement that held the same slot, and `sq_changes` of a statement handle was served as a connection).
+
+Build of each tree with `IDC_NO_CACHE=1`, cases included: `trials/gz` 35 s, `trials/sqlq` 45 s, `idc/tools/hdr2id` 45 s, on a machine whose load average was about 12.
+
+### 3. C handles in id
+
+`id` has no pointer type, so a C pointer cannot be a value. The convention already in `idstd`'s natives is a small integer that indexes a table kept in C: `fs` (`fs_open` answers a handle or -1, `fs_error()` says why, `FS_MAX_HANDLES` slots), `proc`, `sock`, `gl` (`gl_mat_*` answer an `int handle`). It has no generation, no kind and no message: `fs_open` takes the first free slot (`fs_posix.c`), so a closed handle's number is the next file's, and the old value then names the new file. Handle 0 is a valid handle.
+
+What `sq.c` adds, and `hdr2id`'s shims copy: a handle is `(kind << 24) | (generation << 8) | slot`. The slot's generation advances when it is filled and when it is emptied, so a handle that outlived its object answers -1 instead of reaching whatever holds the slot now; the kind (1 connection, 2 statement) makes a handle of one table refused by the other's calls. Generation is 16 bits: a stale handle is caught until its slot has been reused 65,536 times. Both are cases in `trials/sqlq/work/fix/more/stale.id`, and both were seen to go red with the check removed.
+
+What is still awkward, all of it measured or hit while writing the two programs:
+
+1. Every handle is an `int`. Nothing in the type system says `db` from `stmt`; the kind bits catch the mistake at run time, once.
+2. No destructor. A function that returns early leaves the handle open, and process exit does not close it. For `gzFile` that loses data: a program that called `zh_gzputs` on a file from `zh_gzopen` and exited without `zh_gzclose` left a 0-byte file (`gzip -dc`: "unexpected end of file"). The generated shims do not register an `atexit` close.
+3. Errors and handles share `int`. -1 means "full table", "refused call" and "stale handle" in `sq.c`, and SQLite's own positive codes (100, 101, 1 to 26) run through the same returns, so each native needs its own written convention; `sq_errmsg(db)` is the reason channel, a global last-error native.
+4. Tables are fixed at compile time (16 connections, 256 statements; 64 per tag in `hdr2id` output), and "table full" looks like "stale handle".
+5. A handle protocol is verbose under the action limit: running one statement is open, prepare, bind each, step in a loop, finalize, close, and `sqq_go` needs three `chain` segments for one statement.
+6. `sq_close` also finalizes the connection's statements and makes their handles stale; the same rule for gz files and streams has to be written for every library by hand.
+
+### 4. Mapping gaps
+
+Each row was run (`scratch/gaps`: a C file and a 15-line report program; the numbers in the "evidence" column are its output) or comes from `hdr2id`'s report on the two headers.
+
+| C feature | what id can express | what it cannot | workaround and its cost |
+|---|---|---|---|
+| **Callbacks** | `func(...) return R` becomes a C function pointer: `apply2(inc1, 3)` = 5; the parameters may be `int`, `word`, `float`, `string` and `int[]` (`func(string)` = 5 for "hello", `func(word)` = 42, `func(float)` = 2.5, `func(int[])` = 3). C may keep the pointer and fire it from a later native (41 gave 42). State lives in an exported list: `each(4, addacc)` summed 0..3 and left 4 entries. | A closure: an id function captures nothing, and a C API with a `void* user_data` has no place to put it. A callback whose C signature takes pointers (`qsort`'s comparator takes `const void*`). And: a callback that calls `alloc` can move the flat store while C holds a span; measured, the span's address changed (1). | A trampoline shim: for `qsort` over the store, a 14-line C file with a static function pointer and a comparator that reads the two elements and calls the id function (sorted `3 9 1 7 5` to `9 7 5 3 1`). One shim per callback shape. C must never hold a span across a call back into id. |
+| **Structs by value** | An id struct arrives as `IdList*`, one 8-byte cell per field in order: an `int` as itself, a `float` as the bits of a double, a `string` as a pointer, a `word` as itself (checked with `{float, string, word}`). A shim can read it: `{7, 3}` gave 703. | C returning a struct, or taking a C struct from a library that fills it: id has no way to make one, and the runtime's list constructor is `static`. A C `struct` in a library's own layout (`z_stream`, `gz_header`) cannot be declared at all. | Pass the fields as scalars and let the shim assemble the struct; keep a library-owned struct behind a handle created and filled by shim functions. The layout is the runtime's and is not documented as an interface: `IdList` is copied into three backends today. |
+| **Lists out of C** | A caller-sized list filled by C: `gp_fill([0,0,0,0])` wrote 0 1 4 9. A list returned from C can be read (length 3, first 5). | C cannot grow a list it was given (a request for 8 cells on a 2-cell list can only answer -1), and `push` on a list C returned crashed with SIGSEGV (exit 139): its storage is `malloc`, the runtime grows and frees arena blocks. | Size the list from id; return counts; or use store addresses. A native that returns an `int[]` is not safe. |
+| **Varargs** | Nothing: a native has a fixed arity. `hdr2id` reports 1 of zlib's 88 functions (`gzprintf`) and 6 of SQLite's 295. | Calling `printf`-style functions with an id-chosen shape. | One shim and one native per call shape, with the format string fixed in the shim, never forwarded from id (`gzprintf(f, "%s=%d\n", label, n)` as `native zh_printf_si(int file, string label, int n)`). `gzputs` already covers the plain-text case. |
+| **Out-parameters** | A scalar `T*`: pass a store address, `alloc(8)`, `poke64` before, `peek64` after; the shim takes a span of exactly `sizeof(T)`. In/out works (zlib's `destLen`: 64 in, 16 out). A `T**` that returns a new object: the shim writes the new handle into 4 bytes of the store (SQLite's `sqlite3_open` through generated code gave handle 16777472). Two results from one call: an `int[]` the caller sized, or two 32-bit values in one `word` (11 and 22 round trip). | A real multiple return, and a C pointer an out-parameter should hand back that is not a handle or a scalar. | `compress` takes five id statements (allocate, set, call, read, print) where the hand-written `zl_gzip` takes one; cost is steps, not correctness. A buffer length that is another parameter is the only thing standing between `id_store_span` and a wrong span, which is why `hdr2id` refuses to guess when two parameters could be the length (`gzfread`'s `size` and `nitems`). |
+| **Unsigned 32-bit** | `word` carries it: `crc32` as `word` is correct (907060870 for "hello", the trailer `gzip` writes). | An `unsigned` returned as `int` is negative above 2^31: 0xFFFFFFFF came back as -1. | Declare a 32-bit unsigned return as `word`; `hdr2id` maps `uInt` to `int` and `uLong` to `word`, so it gets this wrong for 32-bit unsigned values. |
+| **Strings** | Text without NULs, in and out. | A NUL: the store held `97 0 98 0` and a string can only see `97`. | Bytes go through the store (`fs_load`, `mem_of_str`, `str_of_mem` which traps on a NUL); text through strings. |
+| **Memory** | The store is a bump allocator; `alloc` is never freed individually. | Freeing, and any C allocation id could adopt. | A 200 MB file used 526 MB through a one-shot buffer API; streaming handles are the fix, and they are the caller-allocated-struct case above. |
+
+### 5. Generating the declarations and shims
+
+`hdr2id` (`idc/tools/hdr2id`, written in `id`, 41 files) reads a header that the C preprocessor has already flattened and writes a backend:
+
+```
+cc -E -I... zlib.h > zlib.i
+hdr2id zh zlib.h z OUT < zlib.i          # PREFIX HEADER LIB OUTDIR; OUTDIR "-" writes nothing and prints the report
+```
+
+It writes `OUT/backend.id` (`name`, the source, `-lLIB`), `OUT/zh.c` (the shims, and a handle table of the kind described in section 3 for each opaque struct) and `OUT/natives/...` (the `native` declarations, three to a file, in a tree whose directories hold three entries and are named for the first function under them). It prints one row per function and a summary. It is a tokenizer, a statement splitter, a typedef table, a prototype parser, a classifier and an emitter, each in its own directory, each function with its cases.
+
+What it maps, by the class it gives each parameter and return type:
+
+| C type | id type | shim |
+|---|---|---|
+| `char`, `short`, `int`, `unsigned`, enums, `_Bool` | `int` | cast |
+| `long`, `long long`, `size_t`, `off_t`, `uLong` | `word` | cast |
+| `float`, `double` | `float` | cast |
+| `const char *` (parameter or return) | `string` | the pointer; `id_str_of_cstr` on the way out |
+| pointer to an incomplete struct (`gzFile`, `sqlite3 *`) | `int` handle | table lookup, error value when stale |
+| `T **` where `T` is such a struct (`sqlite3 **`) | `word` address of 4 bytes | the shim passes a local and writes the new handle |
+| `void *`, `Bytef *`, `char *` with one parameter named like a length (`len`, `size`, `count`, `items`, `memb`, `bytes`, `n`) | `word` store address | `id_store_span(addr, length)`; the length may be a value or `*pointer` |
+| pointer to a scalar | `word` store address | `id_store_span(addr, sizeof(T))` |
+| `void` return | `int` | returns 0 |
+
+Left out, each with a reason that names the fix: `...`; function-pointer parameters; a struct by value or a pointer to a struct with fields the caller allocates (`z_stream`); a buffer with no single length parameter; a return of a pointer other than a string or a handle; `va_list`; arrays. Every function the tool maps is declared `#pragma weak` and its shim returns the error value when the address is null, because a header lists functions its library does not export: the first run on `sqlite3.h` failed to link on `sqlite3_win32_set_directory8`, `sqlite3_mutex_held`, `sqlite3_mutex_notheld` and `sqlite3_snapshot_recover`.
+
+Coverage, `hdr2id` run on the preprocessed headers of this machine:
+
+| header | functions | mapped exactly | mapped on an inferred length or out-parameter | left out |
+|---|---|---|---|---|
+| `zlib.h` (zlib 1.3.2) | 88 | 29 (32.9%) | 15 (17.0%) | 44 (50.0%) |
+| `sqlite3.h` (3.51.2) | 295 | 169 (57.2%) | 14 (4.7%) | 112 (37.9%) |
+
+Why the rest were left out:
+
+| reason | zlib.h | sqlite3.h |
+|---|---|---|
+| caller-allocated struct (`z_streamp`) | 38 | 3 |
+| callback parameter | 0 | 18 |
+| buffer with no single length parameter | 2 | 36 |
+| returns a pointer other than a string or handle | 2 | 37 |
+| variable arguments | 1 | 6 |
+| `va_list` or an unseen type | 1 | 1 |
+| other class (`const char **pzTail`, `char ***`) | 0 | 11 |
+
+The first count to read is zlib's 38 of 44: the whole streaming API takes a `z_streamp` the caller allocates, so what the generator cannot map in zlib is the part a program needs for large files. For SQLite, the 36 "buffer" rows are `void *` that are not buffers in the store at all: user data handed back to a callback (`pApp`, `pArg`, `pClientData`), UTF-16 text (`zSql`, `filename` of the `16` functions) and memory SQLite allocated itself (`sqlite3_free`, `sqlite3_msize`); the tool is right to refuse them. The 37 returns include `sqlite3_column_text` and `sqlite3_column_blob`, pointers into SQLite's memory, and the 18 callbacks include the destructor argument of `sqlite3_bind_text` and `sqlite3_bind_blob`; `trials/sqlq`'s hand-written `sq.c` (which copies with `SQLITE_TRANSIENT` and returns text through `id_str_of_cstr`) exists for exactly those, and for `sqlite3_prepare_v2`, whose `const char **pzTail` is one of the 11 other-class rows.
+
+The generated code was run, not only counted:
+
+* zlib: a program over the generated natives compressed 23 bytes to 16 with `zh_compress`, uncompressed them back to the same text with `zh_uncompress`, read `zh_zlibVersion()` (1.3.2), wrote a file through `zh_gzopen`, `zh_gzputs`, `zh_gzclose`, which `gzip -dc` read back, and a second `zh_gzclose` of the same handle answered -1.
+* SQLite: a program over the generated natives read `sqlite3_libversion` (3.51.2), opened `:memory:` through the out-handle (`sqlite3_open` answered 0, handle 16777472), asked `sqlite3_changes` (0), closed it (0), and the stale handle then answered -1 to `changes` and to a second `close`.
+
+What the heuristics cost: the buffer length comes from parameter names, so a library whose names do not say what the length is gets nothing mapped or, if two names tie, nothing guessed; a pointer to a scalar is taken as one element, so an `int *` that is really an array is mapped as one, and what C writes past it lands in the neighbouring bytes of the store (`id_store_span` checks that the span is inside the store, not what C does with it); the same holds for a buffer whose C function writes more than the length parameter says; a function is taken to release its handle when its name has `close`, `end`, `free`, `destroy`, `delete` or `release` and its first parameter is a handle; `uInt` is `int`. Those are the `HH` rows of the report, kept apart from the exact ones so the percentage does not hide them.
+
+`c2id` (`c2id/`) was not reused: it translates C function bodies into id, not declarations into natives. Reading a declaration needs the parts of a C parser `hdr2id` has, and none of the part `c2id` is for.
+
+### 6. Where id itself was the obstacle
+
+* A native cannot return a list or a struct, and cannot take a `size_t`-wide length (`int` is 32 bits): everything bigger than 2 GB or structured goes through store addresses.
+* There is no `handle` type, no destructor and no way to attach one: the generation and kind bits and the lack of automatic release are all in C, once per backend, written by hand or generated.
+* Natives count against the 3-per-file and 3-per-directory limits, so the 183 natives `hdr2id` maps for SQLite are a tree three directories deep; the file names have to pass the numbered-copy rule (`compress`, `compress2` cannot be siblings), which the tool avoids by naming each file for its first native with a fixed suffix.
+* A shim needs the runtime's `IdList` layout and two exported symbols, none of which is documented as an interface; `fs.h` and `gfx.h` and `sq.c` each carry a copy.
+* The unique-function rule refused four test checkers of this work that differ from a checker `idstd` already has only in which export they read (`gz_t_src_len` and `gz_t_dst_len` against `idstd_exec_t_len_a`, `gz_t_src_text` against `idstd_fs_t_got`, `gz_t_head` against `idstd_fs_t_peek`), and two list-building helpers (`pl_args`, `wr_weak`) whose loops have the shape of others. A `then CHECK` function takes no parameters, so a case that wants "this file's size" cannot share one function between two files; it checks something else instead.
+* The action limit makes every C-API call sequence a chain; a test fixture that opens, prepares and steps is four segments.
+* `native` parameters are checked against the C prototype nowhere: a wrong `int` for `word` in a declaration compiles, links and corrupts a store address. `hdr2id` generates both sides from one source, which is the only protection there is today.
+* A `backend.id` is skipped by the glob `*.id` of any shell command that deletes or lists a project's files; a `rm gp/*.id` in a scratch copy removed it and the next build said "not in an attached backend", which is accurate and not obvious.
+
+### 7. Reproducing
+
+All commands from the workspace root, `IDSTD_HOME` set to the `idstd` beside it:
+
+```
+idc/bin/idc trials/gz -o /tmp/gz && /tmp/gz c IN OUT 6 && gzip -dc OUT | cmp - IN
+idc/bin/idc trials/sqlq -o /tmp/sqlq            # needs libsqlite3 visible to cc, see section 1
+idc/bin/idc idc/tools/hdr2id -o /tmp/hdr2id
+cc -E /path/to/zlib.h > zlib.i && /tmp/hdr2id zh zlib.h z - < zlib.i
+```
+
+The generated backend is used by copying `OUT` into a project and calling `zh_*` from its `.id` files.

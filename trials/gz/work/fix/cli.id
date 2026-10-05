@@ -1,0 +1,25 @@
+// The gzip command line tool as the other side of the cases: it writes what the program should read, and truncates it.
+
+// Makes (import gz_t_dst) the gzip file `gzip -n` makes of (import gz_t_src).
+gz_t_cli_enc() {
+  string gz_tc = "gzip -nc " + (import gz_t_src) + " > " + (import gz_t_dst);
+  int gz_tr = fs_run(gz_tc);
+} return void;
+given gz_t_put("hello") ():() then gz_t_cli_dec:(1)
+given gz_t_put("a\nb\n") ():() then gz_t_cli_dec:(1)
+
+// Makes (import gz_t_dst) a gzip file of two members, each `gzip -n` of (import gz_t_src), which gzip reads as that text twice.
+gz_t_cli_cat() {
+  string gz_tc = "gzip -nc " + (import gz_t_src) + " > " + (import gz_t_dst) + "; gzip -nc " + (import gz_t_src) + " >> " + (import gz_t_dst);
+  int gz_tr = fs_run(gz_tc);
+} return void;
+given gz_t_put("ab") ():() then gz_t_cat_ok:(1)
+given gz_t_put("xyz") ():() then gz_t_cat_ok:(1)
+
+// Cuts (import gz_t_dst) to its first 12 bytes, which ends it inside the deflate data.
+gz_t_cut() {
+  string gz_tc = "truncate -s 12 " + (import gz_t_dst);
+  int gz_tr = fs_run(gz_tc);
+} return void;
+given gz_t_put("hello hello hello") given gz_t_cli_enc ():() then gz_t_cli_dec:(0)
+given gz_t_put("abcdefghijkl") given gz_t_cli_enc ():() then gz_t_cli_dec:(0)

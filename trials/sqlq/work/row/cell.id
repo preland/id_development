@@ -1,0 +1,48 @@
+// One value and one row of a statement's current result, as text: what a shell would show.
+
+// Column sqq_c of the current row of sqq_st: an integer, a float or text as sqlite writes it, NULL for a null, and blob(N) for a blob of N bytes. The type is asked before the text because asking for text converts a value in place.
+sqq_cell(int sqq_st, int sqq_c) {
+  int sqq_ty = sq_ctype(sqq_st, sqq_c);
+  string sqq_s = sq_ctext(sqq_st, sqq_c);
+  int sqq_nb = sq_cbytes(sqq_st, sqq_c);
+} chain (int sqq_st, int sqq_c) {
+  if (sqq_ty == 5) {
+    sqq_s = "NULL";
+  }
+  if (sqq_ty == 4) {
+    sqq_s = "blob(" + sqq_nb + ")";
+  }
+  if (sqq_ty == 1) {
+    sqq_s = "" + sq_cint(sqq_st, sqq_c);
+  }
+} return string sqq_s;
+given sqq_t_mem given sqq_t_row("select 'hi', null, x'0aff', 2.5, 42") ((import sqq_t_st), 0):("hi")
+given sqq_t_mem given sqq_t_row("select 'hi', null, x'0aff', 2.5, 42") ((import sqq_t_st), 1):("NULL")
+given sqq_t_mem given sqq_t_row("select 'hi', null, x'0aff', 2.5, 42") ((import sqq_t_st), 2):("blob(2)")
+given sqq_t_mem given sqq_t_row("select 'hi', null, x'0aff', 2.5, 42") ((import sqq_t_st), 3):("2.5")
+given sqq_t_mem given sqq_t_row("select 'hi', null, x'0aff', 2.5, 42") ((import sqq_t_st), 4):("42")
+
+// The current row of sqq_st, its cells in order with a tab between them.
+sqq_row(int sqq_st) {
+  int sqq_n = sq_cols(sqq_st);
+  int sqq_c = 0;
+  string[] sqq_cells = [];
+} chain (int sqq_st) {
+  while (sqq_c < sqq_n) {
+    push(sqq_cells, sqq_cell(sqq_st, sqq_c));
+    sqq_c = sqq_c + 1;
+  }
+  string sqq_line = str_join(sqq_cells, "\t");
+} return string sqq_line;
+given sqq_t_mem given sqq_t_row("select 'hi', null, x'0aff', 2.5, 42") ((import sqq_t_st)):("hi\tNULL\tblob(2)\t2.5\t42")
+given sqq_t_mem given sqq_t_row("select 7") ((import sqq_t_st)):("7")
+
+// What to tell the user when a statement ended with sqq_rc: sqlite's message for a database error, or the file a blob argument could not read.
+sqq_why(int sqq_db, int sqq_rc) {
+  string sqq_msg = "cannot read the file named by an @ argument";
+  if (sqq_rc > 0) {
+    sqq_msg = sq_errmsg(sqq_db);
+  }
+} return string sqq_msg;
+given sqq_t_mem given sqq_t_sql("create table t(a)") given sqq_t_sql("create table t(a)") ((import sqq_t_db), 1):("table t already exists")
+given sqq_t_mem ((import sqq_t_db), -1):("cannot read the file named by an @ argument")

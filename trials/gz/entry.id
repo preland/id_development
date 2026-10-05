@@ -1,0 +1,44 @@
+// gz c IN OUT [LEVEL] makes the gzip file OUT of IN, gz d IN OUT restores a file from a gzip file. Both print the bytes they wrote. Status 0, 1 when a file would not open or the data is bad, 2 for a bad command line.
+
+// Runs the command av[1] over the files av[2] and av[3]; level is av[4] when argc is 5, else 6. Prints the bytes written, or a line on stderr naming the code and the status 1.
+gz_run(string[] gz_av, int gz_argc) {
+  int gz_lv = 6;
+  int gz_r = 0 - 3;
+  if (gz_argc == 5) {
+    gz_lv = to_int(gz_av[4]);
+  }
+} chain (string[] gz_av, int gz_argc) {
+  if (gz_av[1] == "c") {
+    gz_r = gz_deflate_file(gz_av[2], gz_av[3], gz_lv);
+  }
+  if (gz_av[1] == "d") {
+    gz_r = gz_inflate_file(gz_av[2], gz_av[3]);
+  }
+  int gz_code = 1;
+} chain (string[] gz_av, int gz_argc) {
+  if (gz_r >= 0) {
+    print(gz_r);
+    gz_code = 0;
+  }
+  if (gz_r < 0) {
+    eprint("gz: " + gz_av[1] + " " + gz_av[2] + " failed (code " + gz_r + ")");
+  }
+} return int gz_code;
+given gz_t_put("hello hello hello") (["gz", "c", (import gz_t_src), (import gz_t_dst)], 4):(0) then prints:("28\n") then gz_t_cli_dec:(1)
+given gz_t_put("hello") given gz_t_cli_enc (["gz", "d", (import gz_t_dst), (import gz_t_out)], 4):(0) then prints:("5\n") then gz_t_same:(1)
+given gz_t_put("hello") (["gz", "c", (import gz_t_src), (import gz_t_dst), "0"], 5):(0) then prints:("28\n") then gz_t_cli_dec:(1)
+(["gz", "d", "/tmp/gz_t_no_such_file", "/tmp/gz_t_no_such_out"], 4):(1) then eprints:("gz: d /tmp/gz_t_no_such_file failed (code -1)\n")
+(["gz", "x", "a", "b"], 4):(1) then eprints:("gz: x a failed (code -3)\n")
+
+// Checks the command line shape and runs it. A line that is not `c IN OUT [LEVEL]` or `d IN OUT` is status 2 with the usage on stderr.
+main(int argc, string[] argv) {
+  int gz_status = 2;
+  if (argc == 4 || argc == 5) {
+    gz_status = gz_run(argv, argc);
+  } else {
+    eprint("usage: gz c IN OUT [LEVEL] | gz d IN OUT");
+  }
+} return int gz_status;
+(1, ["gz"]):(2) then eprints:("usage: gz c IN OUT [LEVEL] | gz d IN OUT\n")
+(6, ["gz", "c", "a", "b", "6", "7"]):(2) then eprints:("usage: gz c IN OUT [LEVEL] | gz d IN OUT\n")
+given gz_t_put("abc") (4, ["gz", "c", (import gz_t_src), (import gz_t_dst)]):(0) then prints:("23\n")

@@ -1,0 +1,23 @@
+// Statements prepared on (import sqq_t_db), and what they give back.
+
+// Prepares sqq_tq on (import sqq_t_db): its handle in (import sqq_t_st), -1 for a statement sqlite refuses.
+sqq_t_prep(string sqq_tq) {
+  export int sqq_t_st = sq_prepare((import sqq_t_db), sqq_tq);
+} return void;
+given sqq_t_mem ("select 'b'"):() then sqq_t_next:("b")
+given sqq_t_mem ("select 6"):() then sqq_t_next:("6")
+
+// Prepares sqq_tq as sqq_t_prep does and steps it to its first row.
+sqq_t_row(string sqq_tq) {
+  sqq_t_prep(sqq_tq);
+  int sqq_tg = sq_step((import sqq_t_st));
+} return void;
+given sqq_t_mem ("select 'a'"):() then sqq_t_first:("a")
+given sqq_t_mem ("select 8"):() then sqq_t_first:("8")
+
+// Column 0 of the current row of (import sqq_t_st), as text.
+sqq_t_first() {
+  string sqq_tt = sq_ctext((import sqq_t_st), 0);
+} return string sqq_tt;
+given sqq_t_mem given sqq_t_row("select 'a'") ():("a")
+given sqq_t_mem given sqq_t_row("select 5") ():("5")

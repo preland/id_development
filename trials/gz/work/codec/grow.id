@@ -1,0 +1,34 @@
+// Decompression of a run of the store, into a buffer that grows until it fits.
+
+// How many bytes to try first for a gzip file of gz_n bytes whose last four bytes read gz_tail. Those four are the size of its last member modulo 2^32: exact for one member, a low guess for several, and nonsense for a file too short to hold a trailer. The guess is held between 64 and 64 MiB, so a hostile trailer cannot ask for gigabytes up front.
+gz_guess(int gz_n, int gz_tail) {
+  int gz_g = 64;
+  if (gz_n >= 18) {
+    gz_g = gz_tail;
+  }
+  gz_g = fx_clamp(gz_g, 64, 67108864);
+} return int gz_g;
+(17, 1000):(64)
+(20, 1000):(1000)
+(20, 5):(64)
+(20, 2000000000):(67108864)
+
+// Decompresses the gzip members of the gz_n bytes at gz_s into a buffer it grows by doubling until they fit. The buffer's address lands in gz_box[0] and the answer is its length, -100 if even a gigabyte was too small, -101 for input that ends inside a member, or zlib's own negative code for data that is not gzip.
+gz_inflate(word gz_s, int gz_n, word[] gz_box) {
+  int gz_tail = 0;
+  if (gz_n >= 18) {
+    gz_tail = peek32(gz_s + gz_n - 4);
+  }
+  int gz_cap = gz_guess(gz_n, gz_tail) + 1;
+} chain (word gz_s, int gz_n, word[] gz_box) {
+  int gz_m = 0 - 100;
+  while (gz_m == 0 - 100 && gz_cap < 1073741824) {
+    gz_box[0] = alloc(gz_cap);
+    gz_m = zl_gunzip(gz_s, gz_n, gz_box[0], gz_cap);
+    gz_cap = gz_cap * 2;
+  }
+} return int gz_m;
+given gz_t_vec([31, 139, 8, 0, 0, 0, 0, 0, 0, 3, 203, 72, 205, 201, 201, 231, 2, 0, 32, 48, 58, 54, 6, 0, 0, 0]) ((import gz_t_va), 26, (import gz_t_box)):(6)
+given gz_t_vec([31, 139, 8, 0, 0, 0, 0, 0, 0, 3, 203, 72, 205, 201, 201, 231, 2, 0, 32, 48, 58, 54, 6, 0, 0, 0]) ((import gz_t_va), 20, (import gz_t_box)):(-101)
+given gz_t_vec([31, 139, 8, 0, 0, 0, 0, 0, 0, 3, 75, 76, 28, 5, 163, 96, 20, 12, 119, 0, 0, 3, 218, 56, 154, 232, 3, 0, 0, 31, 139, 8, 0, 0, 0, 0, 0, 0, 3, 75, 2, 0, 249, 239, 190, 113, 1, 0, 0, 0]) ((import gz_t_va), 50, (import gz_t_box)):(1001)
+given gz_t_vec([110, 111, 116, 32, 103, 122, 105, 112, 32, 97, 116, 32, 97, 108, 108, 46]) ((import gz_t_va), 16, (import gz_t_box)):(-3)

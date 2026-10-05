@@ -1,0 +1,28 @@
+// Whole-file comparisons by the system's own tools, so the program is held to gzip and cmp rather than to itself: each answers 1 when the files agree.
+
+// 1 when `gzip -dc` of (import gz_t_dst) is exactly (import gz_t_src).
+gz_t_cli_dec() {
+  string gz_tc = "gzip -dc " + (import gz_t_dst) + " 2>/dev/null | cmp -s - " + (import gz_t_src);
+  int gz_tr = fs_run(gz_tc);
+  int gz_tk = gz_tr == 0;
+} return int gz_tk;
+given gz_t_put("abc") given gz_t_cli_enc ():(1)
+given gz_t_put("abc") ():(0)
+
+// 1 when (import gz_t_out) is exactly (import gz_t_src).
+gz_t_same() {
+  string gz_tc = "cmp -s " + (import gz_t_out) + " " + (import gz_t_src);
+  int gz_tr = fs_run(gz_tc);
+  int gz_tk = gz_tr == 0;
+} return int gz_tk;
+given gz_t_put("abc") given gz_t_wr((import gz_t_out), "abc") ():(1)
+given gz_t_put("abc") given gz_t_wr((import gz_t_out), "abd") ():(0)
+
+// 1 when (import gz_t_out) is (import gz_t_src) twice over.
+gz_t_twice() {
+  string gz_tc = "cat " + (import gz_t_src) + " " + (import gz_t_src) + " | cmp -s - " + (import gz_t_out);
+  int gz_tr = fs_run(gz_tc);
+  int gz_tk = gz_tr == 0;
+} return int gz_tk;
+given gz_t_put("ab") given gz_t_wr((import gz_t_out), "abab") ():(1)
+given gz_t_put("ab") given gz_t_wr((import gz_t_out), "ab") ():(0)

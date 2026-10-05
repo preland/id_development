@@ -1,0 +1,30 @@
+// A command line word as a value for a ? parameter: a word that is a whole integer binds as an integer, @FILE binds the bytes of that file as a blob, anything else binds as text.
+
+// 0 for text, 1 for an integer written the way sqlite would write it back (so 007 and 1e3 stay text), 2 for @FILE.
+sqq_kind(string sqq_a) {
+  int sqq_k = 0;
+  if (str_starts(sqq_a, "@")) {
+    sqq_k = 2;
+  }
+  if (("" + to_int(sqq_a)) == sqq_a) {
+    sqq_k = 1;
+  }
+} return int sqq_k;
+("12"):(1)
+("-5"):(1)
+("007"):(0)
+("@f.bin"):(2)
+("hello"):(0)
+
+// Binds the bytes of the file sqq_path to parameter sqq_i of sqq_st as a blob. Answers 0 or sqlite's code, -1 when the file would not open.
+sqq_bind_file(int sqq_st, int sqq_i, string sqq_path) {
+  word[] sqq_box = [0];
+  int sqq_n = fs_load(sqq_path, sqq_box);
+  int sqq_rc = 0 - 1;
+} chain (int sqq_st, int sqq_i, string sqq_path) {
+  if (sqq_n >= 0) {
+    sqq_rc = sq_bind_blob(sqq_st, sqq_i, sqq_box[0], sqq_n);
+  }
+} return int sqq_rc;
+given sqq_t_mem given sqq_t_prep("select length(?)") given sqq_t_file ((import sqq_t_st), 1, (import sqq_t_path)):(0)
+given sqq_t_mem given sqq_t_prep("select length(?)") ((import sqq_t_st), 1, "/tmp/sqq_t_no_such_file"):(-1)
