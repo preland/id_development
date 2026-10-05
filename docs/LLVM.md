@@ -152,14 +152,12 @@ if it ever exists.
 | `mem2reg` | promotes allocas to SSA values, inserting phis | every other pass is blind while values live in memory |
 | `constfold` | folds operations on constant operands | |
 | `dce` | drops instructions with no users and no effects | what the other passes leave behind |
-| `simplifycfg` | folds constant branches, merges straight-line blocks | |
-| `gvn` | numbers equal expressions, keeps one | after `mem2reg`, most redundancy is visible |
-| `inline` | inlines small leaf functions | `id`'s 3-action limit makes every program a deep call chain, so this is not optional here the way it is elsewhere |
-| `licm` | hoists loop-invariant work | |
 
-`-O0` runs none. `-O1` runs `mem2reg constfold dce simplifycfg`. `-O2` adds
-`gvn inline licm` and repeats the pipeline until it reaches a fixed point or a
-bound.
+`-O0` runs none. Any level above 0 runs the same fixed sequence, once per
+function (`back/ir/opt/run/pipe/run.id`): predecessors, `mem2reg`, `constfold`,
+`dce`, `constfold`, `dce`. There is no `simplifycfg`, `gvn`, `inline` or `licm`
+yet, and no `-O2` pipeline that repeats to a fixed point; those are the passes
+this section's rationale argues for, not ones that exist.
 
 **`mem2reg` places phis maximally and then removes the trivial ones**, rather
 than computing dominance frontiers: a phi is inserted for every promotable slot
