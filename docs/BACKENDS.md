@@ -243,6 +243,16 @@ shape under `llvm_`: `llvm_linux_sources` compiled with `clang -target TRIPLE`
 and `llvm_linux_cflags`, and `llvm_linux_link` handed to the `clang` that links
 the module.
 
+**The wasm target reads `wasm_`**, with the platform key `wasi`, and one field
+that has no C counterpart: `string[] wasm_wasi_sources` (with `_cflags` and
+`_link`) is compiled with the WASI clang and linked, for natives that are plain
+libc over WASI (standard input and output); `string wasm_js = "FILE.mjs";`
+names a JavaScript module that answers every other native of the backend, which
+the wasm module imports as `env.id_NAME`. A backend that declares neither is
+not served: a native of it that the module keeps is refused at the call that
+reaches it. How the module is loaded and what the JS module receives are in
+`docs/INTEROP.md`, "id and JavaScript".
+
 **It is never compiled.** A `conf.id` constant is an exported global: its name
 is reserved program-wide and it is emitted in every build. Declared that way, a
 backend's facts would cost every program that attaches it — including, once a
