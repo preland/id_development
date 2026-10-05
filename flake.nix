@@ -35,7 +35,7 @@
           # on NixOS). macOS uses system frameworks, so nothing is needed there.
           gfxLibs = with pkgs;
             if stdenv.isDarwin then [ ]
-            else [ libx11 libGL libglvnd mesa ];
+            else [ libx11 libGL libglvnd mesa libxkbcommon pipewire zlib sqlite ];
           # `idc/bin/idc --target wasm` drives clang itself rather than through
           # the wrapper (the wrapper mis-handles `--target=wasm32-*`), so it
           # needs the unwrapped binary plus a wasm32-wasi sysroot and
@@ -66,6 +66,9 @@
             export IDC_WASI_SYSROOT_INCLUDE="${wasiLibc.dev}/include"
             export IDC_WASI_LIBDIR="${wasiLibc}/lib"
             export IDC_WASI_COMPILER_RT="${wasiCompilerRt}/lib/wasi/libclang_rt.builtins-wasm32.a"
+          '' + pkgs.lib.optionalString (!pkgs.stdenv.isDarwin) ''
+            export ID_PIPEWIRE_LIB="${pkgs.pipewire}/lib/libpipewire-0.3.so.0"
+            export ID_XKBCOMMON_LIB="${pkgs.libxkbcommon}/lib/libxkbcommon.so.0"
           '';
         in {
           default = pkgs.mkShell {
