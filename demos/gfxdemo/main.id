@@ -8,8 +8,8 @@
 // Close the window (or press Esc / q) to quit. Like the terminal engine, every
 // function obeys id's rules -- 3 actions, 2-deep nesting, 3 functions per file.
 
-// main()'s no-display path: gfx_force_no_display (loop/frame.id) forces
-// gfx_open() to fail the same way on every machine, whatever its own DISPLAY
+// main()'s no-display path: the build harness runs every case with IDSTD_GFX=none (docs/TESTS.md), which makes
+// gfx_open() fail the same way on every machine, whatever its own DISPLAY
 // is, so ok=0 and loop(ok) returns through spin's run<=0 branch without
 // entering the live poll -- the one path that does not depend on
 // GFX_MAX_FRAMES, an environment variable this build does not export. The
@@ -21,8 +21,8 @@ main(int argc, string[] argv) {
   sf_l_init(320, 200);
   loop(ok);
 } return int 0;
-given gfx_force_no_display (0, []):(0) then idstd_sf_l_t_sum:("px 0")
-given gfx_force_no_display (0, []):(0) then calls sf_l_init:(320, 200)
+(0, []):(0) then idstd_sf_l_t_sum:("px 0")
+(0, []):(0) then calls sf_l_init:(320, 200)
 
 // anim/box/box_paint draw a 40x30 box, so a surface smaller than that would
 // turn their x0/y0 modulo arithmetic against a non-positive divisor; 80x60

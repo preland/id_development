@@ -897,6 +897,21 @@ A program that uses a native backend gets the
 backend linked into its harness as well, so a tested function that calls into
 one really runs.
 
+**Cases never open a window.** `idc/bin/idc` starts every case with
+`IDSTD_GFX=none` in its environment, whatever the build machine's session is
+(sharded and single-process runs alike; a case-cache hit runs nothing). With
+it, `gfx_open` and `glwin_open` return 0 exactly as on a machine with no
+display, without touching X11 or Wayland, so a case that reaches a program's
+`main` takes its no-display path and no fixture clears `DISPLAY` or
+`WAYLAND_DISPLAY`. A case that genuinely needs a window opts out in its own
+setup with `env_put("IDSTD_GFX", "")` (back to automatic choice) or any other
+value, in the process it owns; today the only such case is the Wayland
+fixture compositor, `idstd/.tests/wl` (`sv/c/run/drive.id`), which also
+points `WAYLAND_DISPLAY` at its own socket and empties `DISPLAY`. Tools that
+run a built program rather than its cases (`idc/tools/headless.sh`,
+`idc/tests/backends.sh`) set `IDSTD_GFX` themselves. See docs/BACKENDS.md,
+"Headless graphics".
+
 `idparse --harness` writes the harness ahead of the program on the same
 stream, so one parse produces both, and the program is emitted exactly as it is
 without the flag. The harness's code is

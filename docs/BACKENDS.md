@@ -436,12 +436,20 @@ the compositor directly; otherwise they use the platform's own (`sys/win/gfx`:
 X11 on Linux, Cocoa on macOS). A program is built once and takes no change.
 
 **How the choice is made.** `gfx_open` tries Wayland when `WAYLAND_DISPLAY` is
-set and `IDSTD_GFX` is not `x11`, and a window of positive size is asked for.
+set and `IDSTD_GFX` is neither `x11` nor `none`, and a window of positive size is asked for.
 If Wayland opens, every later `gfx_*` call goes to it; if there is no
 compositor, or it lacks `wl_compositor`, `wl_shm` or `xdg_wm_base`, or it never
 answers, nothing is left open and `gfx_open` opens the platform window instead.
 The state is one integer kept in C (`wl_mode`), so a call made before any window
 exists (`gfx_width` in a program's setup) answers as the platform backend does.
+
+**Headless graphics.** `IDSTD_GFX=none` makes `gfx_open` (Wayland and
+platform both) and `glwin_open` return 0 at once, the same code as "no display
+available", and opens no connection to either server. `x11` skips Wayland;
+empty or unset chooses automatically. `idc/bin/idc` sets `none` for every test
+case (docs/TESTS.md, "Cases never open a window"); a case that needs a window
+sets `IDSTD_GFX` back with `env_put`. `idc/tools/headless.sh` sets `x11`, so a
+program run on its private Xvfb cannot pick the live Wayland session.
 
 **Why the names moved.** `id` has one function per name, and a native is a
 function, so the choice cannot sit behind the same native. The platform
