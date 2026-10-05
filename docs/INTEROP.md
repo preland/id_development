@@ -527,7 +527,8 @@ example.
 
 Every trap in the id runtime is a message on stderr followed by `exit(1)`:
 list bounds, division by zero, shifts, store addresses, NUL in a string,
-out of memory, a freed list, an id program's own `exit`. Inside a library the
+out of memory, a freed list, an id program's own `exit` or `fail(msg)` (which
+`NAME_error()` returns as `id: msg`). Inside a library the
 two are redirected: the message is captured for `NAME_error()` and control
 returns to the entry point by `longjmp`, which unwinds the frame and returns
 status 1. The host process is not exited.

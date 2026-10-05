@@ -479,6 +479,25 @@ zero, as it does in C, and is accepted.
 only up to 15 digits and a net power of ten of 22; past that its last bit can
 differ from the compiled targets.
 
+**Floats and their bits.** Four builtins move between a `float` and the bits
+that encode it, because a float in a list or a file is a bit pattern and the
+arithmetic that would rebuild one by hand is both long and wrong at the edges
+(subnormals, infinities, NaN).
+
+| call | meaning |
+| --- | --- |
+| `bits_of_float(f)` | the 64 bits of the binary64 `f`, as a `word` |
+| `float_of_bits(w)` | the `float` whose binary64 bits are the `word` `w` |
+| `bits32_of_float(f)` | `f` rounded to binary32 (round to nearest, ties to even), its 32 bits as a non-negative `word` |
+| `float_of_bits32(w)` | the `float` equal to the binary32 whose bits are the low 32 bits of `w` |
+
+The binary64 pair is exact in both directions, NaN payloads included.
+`bits32_of_float` of a value too large for binary32 is an infinity, and of a
+NaN a NaN, as C's `(float)` conversion gives. `bits_of_float` takes a `float`
+exactly: an `int` is made one by adding `0.0`. `float_of_bits` and
+`float_of_bits32` take an `int` or a `word`. A `float` stored in a list is
+already `bits_of_float` of itself (§5).
+
 ## 4. Strings
 
 A `string` is an immutable byte sequence. There is no mutation operator; `+`
@@ -555,6 +574,16 @@ address is arithmetic — none of which needs syntax.
 - `store_size()` is the high-water mark.
 - `peek8/16/32/64(addr)` and `poke8/16/32/64(addr, v)` load and store, **little
   endian**.
+- **A peek returns a `word`, and which word is spelled in the name.**
+  `peek8`, `peek16` and `peek32` read their bytes **zero-extended**: `peek32`
+  of `0xBF000000` is `3204448256`, in every expression. `peek8u`, `peek16u` and
+  `peek32u` are those same reads under a name that says so. `peek8s`,
+  `peek16s` and `peek32s` **sign-extend** instead: the same four bytes read
+  with `peek32s` are `-1090519040`. `peek64` has one reading. A `word` stored
+  into an `int` wraps (§1), so `int x = peek32(p);` holds `-1090519040` while
+  `peek32(p) + 0` is `3204448256` -- not two answers for one call but a
+  `word` and its narrowing. Write `peek32s` where a signed 32-bit field is
+  meant: `int x = peek32s(p);` and `peek32s(p) + 0` agree.
 - Every access is bounds-checked against the high-water mark and **traps**
   outside it. This is the entire reason the store is a primitive rather than a
   library: the mistake that silently corrupts memory in C is a clean abort
@@ -813,6 +842,7 @@ catchable; `id` has no exceptions.
 
 | condition | message |
 | --- | --- |
+| `fail(MSG)` | `id: MSG` |
 | `/` or `%` by zero | `id: division by zero` / `id: remainder by zero` |
 | `MIN / -1` | `id: division overflow` |
 | shift by a negative count | `id: shift by a negative amount` |
@@ -827,6 +857,14 @@ catchable; `id` has no exceptions.
 | `chr` of a code whose low byte is 0 | `id: a NUL byte reached a string (chr(0)): a string cannot hold NUL; use the store (poke8) for binary data` |
 | a `native` returning a list or struct whose `IdList` has a negative length (every other such result is copied into a list the runtime owns, so `push` works on it) | `id: a native returned a malformed list (len N): fill len cells at data, or size the list from id and return a count` |
 | reading an export whose declaring function has not run: a list anywhere; any type in a test case | `id: read of an uninitialised export (its declaring function has not run)` |
+
+`fail(msg)` is the program's own trap: `msg` is a `string`, the line is `id: `
+followed by it, and it returns nothing because it does not come back. It
+behaves as every trap does -- a case's `then traps:("TEXT")` matches it, a
+`--lib` call returns status 1 and `NAME_error()` holds the line, a wasm module
+raises `IdTrap` carrying it, and a trap in a worker thread ends the process.
+It is for a state the caller should not have reached; a condition the caller
+can recover from is a return value.
 
 The exact text is part of the specification, not an implementation detail:
 these messages are what a user sees when their program fails, and a target

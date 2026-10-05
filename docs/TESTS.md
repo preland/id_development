@@ -648,7 +648,9 @@ case fails (`... expected a trap containing X, but it returned`); if it traps
 differently, both messages are shown. The expected side must be `()`, and no
 other `then` may accompany `traps`, because nothing after a trap is captured.
 `given` works as usual. One `traps` per case, with one string; each misuse is
-an error at the case's line, tested in `idc/tests/invalid/traps_*.id`.
+an error at the case's line, tested in `idc/tests/invalid/traps_*.id`. A trap the
+function raises itself with `fail("MSG")` is the line `id: MSG`, so a case writes
+`traps:("MSG")` to pin the exact wording a caller will see.
 `stdin`, `timeout` and `traps` are keywords, like `prints` and `calls`.
 
 **`timeout N`**, after any `given` and any `stdin` and before the argument
