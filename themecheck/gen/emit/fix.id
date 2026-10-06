@@ -1,0 +1,32 @@
+// The fixture of the cases of the writers: a scratch directory, removed when the case's process exits.
+//
+// A scratch directory in tg_xd.
+tg_t_dir() {
+  export string tg_xd = fs_mktemp("themecheck_", 1);
+  int r = fs_drop_exit((import tg_xd));
+} return void export tg_xd;
+():() then len((import tg_xd)):(22)
+():() then len((import tg_xd)):(22) then len((import tg_xd)):(22)
+
+// A four-byte buffer in tc_xm that holds the colour 66051 (bytes 1, 2, 3), for the cases of the pixel writers: a
+// writer that leaves it alone and one that overwrites it are told apart.
+tc_t_mem() {
+  export word tc_xm = alloc(4);
+  poke8((import tc_xm), 1);
+  poke8((import tc_xm) + 1, 2);
+} chain () {
+  poke8((import tc_xm) + 2, 3);
+} return void export tc_xm;
+():() then tc_t_peek:(66051)
+():() then tc_t_peek:(66051) then tc_t_peek:(66051)
+
+// The three bytes of tc_xm read as one colour.
+tc_t_peek() {
+  int r = peek8((import tc_xm));
+  int g = peek8((import tc_xm) + 1);
+  int b = peek8((import tc_xm) + 2);
+} chain () {
+  int c = r * 65536 + g * 256 + b;
+} return int c;
+given tc_t_mem ():(66051)
+given tc_t_mem ():(66051) then tc_t_peek:(66051)

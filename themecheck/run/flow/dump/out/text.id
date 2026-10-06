@@ -1,0 +1,37 @@
+// How many lines each text broke into, and the pixels.
+//
+// One line per node that has text: its number and how many lines the text broke into.
+tc_texts(int[] t, string[] s, int[] rc, int[][] ys, int[] ns) {
+  string[] ls = [];
+  int i = 0;
+  while (i < len(ns)) {
+    tc_text1(ls, t, s, rc, ys, ns[i], i);
+    i = i + 1;
+  }
+} chain (int[] t, string[] s, int[] rc, int[][] ys, int[] ns) {
+  string txt = str_join(ls, "\n") + "\n";
+} return string txt;
+given tc_t_view ((import tc_tt), (import tc_ts), (import tc_xr), (import tc_xy), (import tc_xn)):("1|1\n")
+given tc_t_view ((import tc_tt), (import tc_ts), (import tc_xr), (import tc_xy), [5]):("\n")
+
+// The line of node i (record rec), when it has text.
+tc_text1(string[] ls, int[] t, string[] s, int[] rc, int[][] ys, int rec, int i) {
+  string[] ln = th_text_lines(t, s, rec, ys[rec], gui_rect_get(rc, rec, 2));
+  if (len(ln) > 0) {
+    push(ls, i + "|" + len(ln));
+  }
+} return void;
+given tc_t_view ([], (import tc_tt), (import tc_ts), (import tc_xr), (import tc_xy), 6, 1):(["1|1"], (import tc_tt), (import tc_ts), (import tc_xr), (import tc_xy), 6, 1)
+given tc_t_view ([], (import tc_tt), (import tc_ts), (import tc_xr), (import tc_xy), 5, 0):([], (import tc_tt), (import tc_ts), (import tc_xr), (import tc_xy), 5, 0)
+
+// Write the list surface to the file at path as a binary PPM (P6); the number of bytes written, or -1.
+tc_ppm(string path) {
+  string hd = "P6\n" + (import sf_l_w) + " " + (import sf_l_h) + "\n255\n";
+  word ad = alloc(len(hd) + (import sf_l_w) * (import sf_l_h) * 3);
+  str_blit(hd, 0, len(hd), ad);
+} chain (string path) {
+  tc_ppmpx(ad + len(hd), 0);
+  int n = fs_save(path, ad, len(hd) + (import sf_l_w) * (import sf_l_h) * 3);
+} return int n;
+given tg_t_dir given tg_t_pick("p.ppm") given tc_t_px(4276803) ((import tg_xn)):(14) then tg_t_fsize:(14)
+given tg_t_dir given tg_t_pick("none/p.ppm") given tc_t_px(4276803) ((import tg_xn)):(-1)

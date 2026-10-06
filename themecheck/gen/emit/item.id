@@ -1,0 +1,38 @@
+// One swatch of a row, and how wide the items of a row are.
+//
+// The share of its parent that item j of cnt takes, in percent, so that cnt items tile it exactly: 100 for one, 50
+// each for two, 40 then 30 and 30 for three. Every window the pages are drawn in divides into whole pixels by these.
+tg_pct(int cnt, int j) {
+  int p = 30 + 10 * (cnt == 3) * (j == 0) + 70 * (cnt == 1) + 20 * (cnt == 2);
+} return int p;
+(1, 0):(100)
+(2, 1):(50)
+(3, 0):(40)
+(3, 2):(30)
+
+// The line or lines of one swatch: a swatch with no kids is one line, a swatch with kids is an open line, a line a
+// kid and a close line.
+tg_item(string[] gl, string name, string kid, int w) {
+  if (len(kid) == 0) {
+    push(gl, "    " + name + "()[100," + w + ",top-left]{}");
+  } else {
+    tg_kids(gl, name, kid, w);
+  }
+} return void;
+([], "S1", "", 40):(["    S1()[100,40,top-left]{}"], "S1", "", 40)
+([], "S2", "K()[50,100,top-left]{}|L()[50,100,top-left]{}", 30):(["    S2()[100,30,top-left] {", "      K()[50,100,top-left]{}", "      L()[50,100,top-left]{}", "    }"], "S2", "K()[50,100,top-left]{}|L()[50,100,top-left]{}", 30)
+
+// A swatch that holds kids: the open line, one line for each of the kids (joined by "|" in kid), the close line.
+tg_kids(string[] gl, string name, string kid, int w) {
+  push(gl, "    " + name + "()[100," + w + ",top-left] {");
+  string[] ks = str_split(kid, "|");
+  int i = 0;
+} chain (string[] gl, string name, string kid, int w) {
+  while (i < len(ks)) {
+    push(gl, "      " + ks[i]);
+    i = i + 1;
+  }
+  push(gl, "    }");
+} return void;
+([], "S2", "K()[50,100,top-left]{}|L()[50,100,top-left]{}", 30):(["    S2()[100,30,top-left] {", "      K()[50,100,top-left]{}", "      L()[50,100,top-left]{}", "    }"], "S2", "K()[50,100,top-left]{}|L()[50,100,top-left]{}", 30)
+([], "S3", "K()[100,100,top-left]{}", 100):(["    S3()[100,100,top-left] {", "      K()[100,100,top-left]{}", "    }"], "S3", "K()[100,100,top-left]{}", 100)

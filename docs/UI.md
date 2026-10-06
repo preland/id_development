@@ -28,8 +28,9 @@ section 2): `@name` reads a value `id` publishes, a bare identifier such as
 `addTodo` names the `id` function to run when an item is activated, and
 `Repeat(@list)` with `@item.field` walks a list `id` publishes.
 
-Non-goals for v1: styling that CSS does and idml does not (shadows, borders,
-hover transitions), animation, right-to-left or complex text, accessibility
+Non-goals for v1: styling that CSS does and idml does not (hover transitions;
+shadows, borders, padding and gaps are now drawn from the design system's
+classes, `idstd/gfx/kit/gui/tb/theme/README.md`), animation, right-to-left or complex text, accessibility
 trees, and any change to the idml language. Section 12 lists what would change
 these.
 
@@ -78,8 +79,8 @@ fourth loader.
 
 `id` has no structs and no allocation of records, and every function is at most
 three actions, so a document is a **record-as-list** (the convention in
-`idstd/README.md`): two lists. `int[] t` holds fixed-width records (20 ints
-each: `(import gui_ns)`), so a record is an index and a field is an offset.
+`idstd/README.md`): two lists. `int[] t` holds fixed-width records (26 ints
+each: `(import idstd_gui_ns)`; the last six are the padding and gaps the design system's classes set), so a record is an index and a field is an offset.
 `string[] s` holds every string, and a string is an index into it. **Zero means
 "none" everywhere**: record 0 is the head, which nothing links to, and `s[0]` is
 `""`, so a zeroed record is a valid empty one and no sentinel needs writing.
@@ -171,7 +172,7 @@ and text. Paint, when it lands, has to hold that line: no string is built per
 frame.
 
 Not in the slice: `fit` and `fill` (need intrinsic size, so need text measuring,
-section 7), `pad`, `gap`, `scroll`/`overflow`, `Repeat` content flow, `Table`
+section 7), `scroll`/`overflow` (`pad` and `gap` are laid out when a design-system class sets them), `Repeat` content flow, `Table`
 expansion, and `define` expansion. They are parsed; layout treats them as plain
 tiles. Section 10 has the full table.
 
@@ -593,7 +594,7 @@ ignored by layout; **no** fails with a message that names the fix.
 | `fit`, `fit-w`, `fit-h`, `fill`, `fill-w`, `fill-h` | yes | as plain tiles | need text measure |
 | `Overlay` children anchored | yes | yes | `Modal` parsed as an overlay kind, not yet given a backdrop |
 | `Repeat`, `Table`, `Select`, `Children` slot | yes | no | expansion is a separate pass (next) |
-| `pad`, `gap`, `overflow`, `size` (vw), `radius`, `weight` props | stored as strings | no | read by the widget and paint passes |
+| `pad`, `gap`, `overflow`, `size` (vw), `radius`, `weight` props | stored as strings | no | read by the widget and paint passes; `radius`, `bg` and `fg` are also read by `gui_theme`, and padding and gap come from design-system classes (`p-2`, `gap-1`) |
 | colours `#rgb`, `#rrggbb`, both cases | yes (text kept) | n/a | conversion to a pixel value is paint's |
 | 2-decimal percentages | yes | yes | three or more decimals round half up at the third |
 

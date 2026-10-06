@@ -1,0 +1,40 @@
+// The names of the classes, for the files that list them (the guard exemption idml reads).
+//
+// The name of every class of family f, in token order.
+it_fnames(string[] out, int f) {
+  int k = 0;
+  while (len(th_cname(f, k)) > 0) {
+    push(out, th_cname(f, k));
+    k = k + 1;
+  }
+} return void;
+([], 3):(["border-0", "border", "border-2"], 3)
+([], 19):(["ease-standard"], 19)
+
+// The name of every class there is, family by family.
+it_cnames(string[] out) {
+  int f = 0;
+  while (f < len((import idstd_tt_fpre))) {
+    it_fnames(out, f);
+    f = f + 1;
+  }
+} return void;
+given it_t_out ((import it_xo)):() then len((import it_xo)):(244) then (import it_xo)[0]:("bg-window") then (import it_xo)[243]:("ease-standard")
+given it_t_out ((import it_xo)):() then (import it_xo)[84]:("border-0") then (import it_xo)[232]:("rounded-lg")
+
+// The class names as a JSON array, one to a line, for a tool that wants the list as data.
+it_cjson(string[] out) {
+  string[] names = [];
+  it_cnames(names);
+  push(out, "[");
+} chain (string[] out) {
+  int i = 0;
+  while (i < len(names)) {
+    string cm = it_comma(i, len(names));
+    push(out, "  \"" + names[i] + "\"" + cm);
+    i = i + 1;
+  }
+  push(out, "]");
+} return void;
+given it_t_out ((import it_xo)):() then len((import it_xo)):(246) then (import it_xo)[0]:("[") then (import it_xo)[1]:("  \"bg-window\",") then (import it_xo)[244]:("  \"ease-standard\"")
+given it_t_out ((import it_xo)):() then (import it_xo)[245]:("]")

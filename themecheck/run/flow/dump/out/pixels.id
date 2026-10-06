@@ -1,0 +1,33 @@
+// The pixels of a PPM.
+//
+// Write the pixels from index i on, three bytes each, at ad.
+tc_ppmpx(word ad, int i) {
+  while (i < len((import sf_l_px))) {
+    tc_poke3(ad + i * 3, (import sf_l_px)[i]);
+    i = i + 1;
+  }
+} return void;
+given tc_t_px(4276803) given tc_t_mem ((import tc_xm), 0):() then tc_t_peek:(4276803)
+given tc_t_px(4276803) given tc_t_mem ((import tc_xm), 1):() then tc_t_peek:(66051)
+
+// Three bytes at ad: the red, green and blue of colour c.
+tc_poke3(word ad, int c) {
+  poke8(ad, (c >> 16) & 255);
+  poke8(ad + 1, (c >> 8) & 255);
+  poke8(ad + 2, c & 255);
+} return void;
+given tc_t_mem ((import tc_xm), 11259375):() then tc_t_peek:(11259375)
+given tc_t_mem ((import tc_xm), 28036591):() then tc_t_peek:(11259375)
+
+// Everything a view writes into the directory dir, which is made when it is not there: rects.txt, computed.txt,
+// text.txt and page.ppm.
+tc_dump(string dir, int[] t, string[] s, int[] rc, int[][] ys, int[][] tq, int[] ns) {
+  int made = fs_mkdir_p(dir);
+  int w1 = tc_save(dir + "/rects.txt", tc_rects(t, s, rc, ns));
+  int w2 = tc_save(dir + "/computed.txt", tc_computed(ys, tq, ns));
+} chain (string dir, int[] t, string[] s, int[] rc, int[][] ys, int[][] tq, int[] ns) {
+  int w3 = tc_save(dir + "/text.txt", tc_texts(t, s, rc, ys, ns));
+  int w4 = tc_ppm(dir + "/page.ppm");
+} return void;
+given tg_t_dir given tg_t_pick("rects.txt") given tc_t_view ((import tg_xd), (import tc_tt), (import tc_ts), (import tc_xr), (import tc_xy), (import tc_xq), (import tc_xn)):() then tg_t_fsize:(42)
+given tg_t_dir given tg_t_pick("text.txt") given tc_t_view ((import tg_xd), (import tc_tt), (import tc_ts), (import tc_xr), (import tc_xy), (import tc_xq), [5]):() then tg_t_fsize:(1)

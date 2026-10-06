@@ -1,0 +1,46 @@
+// The swatches, one builder for each kind. Each pushes onto defs the variant lines of swatch j (one element, its lines
+// joined by a newline), onto names its name and onto kids the lines of its kids ("" for none); a state swatch also
+// pushes onto sts the line that forces it into its state.
+//
+// Kind 0: a colour swatch, which sets a background, a border width, a border colour and a text colour, the three
+// colours being three different roles so that no two classes agree by accident.
+tg_sw0(string[] defs, string[] names, string[] kids, string[] sts, int j) {
+  string c1 = th_cname(0, j) + " " + th_cname(3, 1);
+  string c2 = th_cname(2, (j + 7) % tg_n(0)) + " " + th_cname(1, (j + 14) % tg_n(0));
+  push(defs, "C" + j + ":Col `" + c1 + "`\n  `" + c2 + "`{}");
+} chain (string[] defs, string[] names, string[] kids, string[] sts, int j) {
+  push(names, "C" + j);
+  push(kids, "");
+} return void;
+([], [], [], [], 0):(["C0:Col `bg-window border`\n  `border-selection text-accent`{}"], ["C0"], [""], [], 0)
+([], [], [], [], 27):(["C27:Col `bg-scrim border`\n  `border-control-pressed text-link`{}"], ["C27"], [""], [], 27)
+
+// Kind 1: a spacing swatch, four to a step. The first sets the padding on all sides and the gap between rows, the
+// second the horizontal padding, the top padding and the gap between columns, the third the vertical padding, the
+// right padding and both gaps, the fourth the bottom and left padding; two kids in each show what they did.
+tg_sw1(string[] defs, string[] names, string[] kids, string[] sts, int j) {
+  int stp = j / 4;
+  int fm = j % 4;
+  string cl = tg_sp(stp, fm);
+} chain (string[] defs, string[] names, string[] kids, string[] sts, int j) {
+  push(defs, "P" + j + ":" + tg_axis(fm) + " `bg-surface-sunken " + cl + "`{}");
+  push(names, "P" + j);
+  push(kids, tg_kidl(fm));
+} return void;
+([], [], [], [], 0):(["P0:Col `bg-surface-sunken p-0 gap-y-0`{}"], ["P0"], ["Kid()[50,100,top-left]{}|Kid()[50,100,top-left]{}"], [], 0)
+([], [], [], [], 5):(["P5:Row `bg-surface-sunken px-0.5 pt-0.5 gap-x-0.5`{}"], ["P5"], ["Kid()[100,50,top-left]{}|Kid()[100,50,top-left]{}"], [], 5)
+([], [], [], [], 51):(["P51:Row `bg-surface-sunken pb-12 pl-12`{}"], ["P51"], ["Kid()[100,50,top-left]{}|Kid()[100,50,top-left]{}"], [], 51)
+
+// Kind 2: a type swatch: a style (text-caption to text-code), a weight on the body style, or a text long enough to
+// wrap, in a box with padding, as a Text variant under a Col.
+tg_sw2(string[] defs, string[] names, string[] kids, string[] sts, int j) {
+  string tw = tg_tx(j);
+  string cl = tg_tcl(j);
+  push(defs, "S" + j + ":Col `bg-surface-raised p-2`{}\nT" + j + ":Text(\"" + tw + "\") `" + cl + "`");
+} chain (string[] defs, string[] names, string[] kids, string[] sts, int j) {
+  push(names, "S" + j);
+  push(kids, "T" + j + "()[100,100,top-left]{}");
+} return void;
+([], [], [], [], 0):(["S0:Col `bg-surface-raised p-2`{}\nT0:Text(\"Sphinx of black quartz\") `text-label text-caption`"], ["S0"], ["T0()[100,100,top-left]{}"], [], 0)
+([], [], [], [], 8):(["S8:Col `bg-surface-raised p-2`{}\nT8:Text(\"Sphinx of black quartz\") `text-body text-label font-normal`"], ["S8"], ["T8()[100,100,top-left]{}"], [], 8)
+([], [], [], [], 12):(["S12:Col `bg-surface-raised p-2`{}\nT12:Text(\"A line long enough to wrap in a swatch.\") `text-body text-label`"], ["S12"], ["T12()[100,100,top-left]{}"], [], 12)

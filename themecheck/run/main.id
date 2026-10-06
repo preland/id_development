@@ -1,0 +1,43 @@
+// themecheck: render an idml page with the native gui kit and write down what it did, so another renderer's
+// answer can be compared with it.
+//
+//   themecheck render PAGE.idml light|dark W H OUT [SYSTEM.json [APP.json]]
+//   themecheck gen DIR
+//
+// It parses PAGE, binds the design system to it (the built-in theme with the system palette and then the app
+// palette over it; "-" skips a layer), lays it out in a W by H window and paints it, then writes OUT.rects (the
+// rectangle of every node), OUT.computed (every property a class or inline value set, in the web's spelling),
+// OUT.text (how many lines each text broke into) and OUT.ppm (the pixels); OUT is a directory, made when it is not
+// there. PAGE.states, when it is there, holds "node mask" lines that put a node in a state (1 hover, 2 focus,
+// 4 active, 8 disabled) before it is bound. gen writes the pages that stress every class of the design system, from
+// the class set itself, and gen.json listing them.
+main(int argc, string[] argv) {
+  int r = tc_go(argc, argv);
+} return int r;
+(1, ["themecheck"]):(2)
+(2, ["themecheck", "bogus"]):(2)
+
+// Run the command asked for, or say how to use the program.
+tc_go(int argc, string[] argv) {
+  int r = 2;
+  if (argc >= 7 && argv[1] == "render") {
+    r = tc_render(argc, argv);
+  }
+  if (argc >= 3 && argv[1] == "gen") {
+    r = tg_gen(argv[2]);
+  }
+} chain (int argc, string[] argv) {
+  if (r == 2) {
+    tc_usage();
+  }
+} return int r;
+(3, ["themecheck", "render", "x"]):(2)
+(7, ["themecheck", "render", "test_assets/none.idml", "light", "8", "8", "x"]):(1)
+given tg_t_dir (3, ["themecheck", "gen", (import tg_xd)]):(0)
+
+// How to use it.
+tc_usage() {
+  eprint("usage: themecheck render PAGE.idml light|dark W H OUT [SYSTEM.json [APP.json]]");
+} return void;
+():() then eprints:("usage: themecheck render PAGE.idml light|dark W H OUT [SYSTEM.json [APP.json]]\n")
+():() then prints:("usage: themecheck render PAGE.idml light|dark W H OUT [SYSTEM.json [APP.json]]\n")

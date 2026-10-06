@@ -1,0 +1,35 @@
+// The class strings of the swatches.
+//
+// The classes of spacing form fm (0 to 3) at step stp: the families of tg_forms, three to a form, the third being
+// -1 for a form with only two.
+tg_sp(int stp, int fm) {
+  int[] fa = (import tg_forms);
+  string cl = th_cname(fa[3 * fm], stp) + " " + th_cname(fa[3 * fm + 1], stp);
+  if (fa[3 * fm + 2] >= 0) {
+    cl = cl + " " + th_cname(fa[3 * fm + 2], stp);
+  }
+} return string cl;
+(0, 0):("p-0 gap-y-0")
+(5, 1):("px-2.5 pt-2.5 gap-x-2.5")
+(12, 2):("py-12 pr-12 gap-12")
+(3, 3):("pb-1.5 pl-1.5")
+
+// The container a spacing form's swatch is: forms 0 and 2 stack their kids in a Col, 1 and 3 line them up in a Row.
+tg_axis(int fm) {
+  string ax = "Col";
+  if (fm % 2 == 1) {
+    ax = "Row";
+  }
+} return string ax;
+(0):("Col")
+(3):("Row")
+
+// The kids a spacing swatch holds, two, each half of the content along the swatch's main axis.
+tg_kidl(int fm) {
+  string kl = "Kid()[50,100,top-left]{}|Kid()[50,100,top-left]{}";
+  if (fm % 2 == 1) {
+    kl = "Kid()[100,50,top-left]{}|Kid()[100,50,top-left]{}";
+  }
+} return string kl;
+(0):("Kid()[50,100,top-left]{}|Kid()[50,100,top-left]{}")
+(1):("Kid()[100,50,top-left]{}|Kid()[100,50,top-left]{}")

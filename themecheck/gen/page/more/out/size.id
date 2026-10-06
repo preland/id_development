@@ -1,0 +1,27 @@
+// Fixtures for the cases of the page writers: which file of the scratch directory to measure, its size, and a run of
+// the whole generator for the size cases to measure.
+//
+// Name the file of the scratch directory (tg_xd) that tg_t_fsize measures.
+tg_t_pick(string name) {
+  export string tg_xn = (import tg_xd) + "/" + name;
+} return void export tg_xn;
+given tg_t_dir ("a.idml"):() then len((import tg_xn)):(29)
+given tg_t_dir ("gen.json"):() then len((import tg_xn)):(31)
+
+// The size of the picked file in the scratch directory, or -1 when it is not there.
+tg_t_fsize() {
+  int e = fs_exists((import tg_xn));
+  int n = -1;
+  if(e == 1) {
+    n = len(fs_read_text((import tg_xn)));
+  }
+} return int n;
+given tg_t_dir given tg_t_pick("nothing.idml") ():(-1)
+given tg_t_dir given tg_t_gen given tg_t_pick("gen.json") ():(1190)
+
+// A run of the whole generator into the scratch directory.
+tg_t_gen() {
+  int r = tg_gen((import tg_xd));
+} return void;
+given tg_t_dir given tg_t_pick("gen.json") ():() then tg_t_fsize:(1190)
+given tg_t_dir given tg_t_pick("colors-1.idml") ():() then tg_t_fsize:(1158)

@@ -1,0 +1,36 @@
+// One line of a states file, and the paint.
+//
+// Put the node a line "node mask" names in the states of its mask. A line that is not two numbers is ignored.
+tc_flag1(int[] fl, int[] ns, string line) {
+  string[] pr = str_split(line, " ");
+  if (len(pr) == 2) {
+    fl[ns[to_int(pr[0])]] = to_int(pr[1]);
+  }
+} return void;
+([0, 0, 0], [1, 2], "1 8"):([0, 0, 8], [1, 2], "1 8")
+([0, 0, 0], [1, 2], ""):([0, 0, 0], [1, 2], "")
+([0, 0, 0], [1, 2], "0 3"):([0, 3, 0], [1, 2], "0 3")
+
+// Bind the themes to the page, lay it out in a w by h window, and paint it onto a fresh surface of that size, in
+// mode (0 light, 1 dark). The styles are left in ys and the rectangles in rc.
+tc_paint(int[] t, string[] s, int[][] tq, int mode, int[] fl, int[][] ys, int[] rc, int w, int h) {
+  gui_theme(t, s, tq, mode, fl, ys);
+  gui_layout(t, rc, w, h);
+  sf_l_init(w, h);
+} chain (int[] t, string[] s, int[][] tq, int mode, int[] fl, int[][] ys, int[] rc, int w, int h) {
+  gui_font_init();
+  gui_paint(t, s, rc, ys, tq);
+} return void;
+given idstd_th_t_mq given tc_t_page("test_assets/rows.idml") ((import tc_tt), (import tc_ts), (import idstd_th_xq), 0, [], [], [], 60, 40):() then (import sf_l_px)[0]:(15987699)
+given idstd_th_t_mq given tc_t_page("test_assets/rows.idml") ((import tc_tt), (import tc_ts), (import idstd_th_xq), 1, [], [], [], 60, 40):() then (import sf_l_px)[0]:(2039583)
+
+// The page of the file at path parsed into tc_tt and tc_ts, for the cases.
+tc_t_page(string path) {
+  export int[] tc_tt = [];
+  export string[] tc_ts = [];
+  gui_new(tc_tt, tc_ts);
+} chain (string path) {
+  int e = gui_load(path, tc_tt, tc_ts);
+} return void export tc_tt;
+("test_assets/tiny.idml"):() then len((import tc_tt)):(208)
+("test_assets/rows.idml"):() then len((import tc_tt)):(208)

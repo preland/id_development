@@ -1,0 +1,48 @@
+// Loading the page and viewing it.
+//
+// Parse argv[2] into a tape and view it; a page that does not parse is reported on stderr with its file's name and
+// answers 1, as uicheck does.
+tc_render(int argc, string[] argv) {
+  int[] t = [];
+  string[] s = [];
+  gui_new(t, s);
+} chain (int argc, string[] argv) {
+  int e = gui_load(argv[2], t, s);
+  int r = 1;
+  if (e == 0) {
+    r = tc_view(argc, argv, t, s);
+  }
+} chain (int argc, string[] argv) {
+  if (e != 0) {
+    eprint(argv[2] + ": " + gui_diag(t, s));
+  }
+} return int r;
+(7, ["themecheck", "render", "test_assets/none.idml", "light", "8", "8", "x"]):(1)
+(7, ["themecheck", "render", "test_assets/tiny.idml", "light", "8", "8", "/tmp/themecheck_never"]):(0)
+
+// The parsed page, themed, laid out, painted and written out. The window is argv[4] by argv[5] pixels, the mode
+// argv[3], the output prefix argv[6]; argv[7] and argv[8] are the system and app palettes.
+tc_view(int argc, string[] argv, int[] t, string[] s) {
+  int[][] tq = tc_themes(tc_arg(argc, argv, 7), tc_arg(argc, argv, 8));
+  int[] ns = tc_nodes(t);
+  int[] fl = tc_flags(argv[2] + ".states", ns, gui_count(t));
+} chain (int argc, string[] argv, int[] t, string[] s) {
+  int[][] ys = [];
+  int[] rc = [];
+  tc_paint(t, s, tq, argv[3] == "dark", fl, ys, rc, to_int(argv[4]), to_int(argv[5]));
+} chain (int argc, string[] argv, int[] t, string[] s) {
+  tc_dump(argv[6], t, s, rc, ys, tq, ns);
+} return int 0;
+given tg_t_dir given tg_t_pick("rects.txt") given tc_t_page("test_assets/rows.idml") (9, ["themecheck", "render", "test_assets/rows.idml", "light", "60", "40", (import tg_xd), "-", "-"], (import tc_tt), (import tc_ts)):(0) then tg_t_fsize:(42)
+given tg_t_dir given tg_t_pick("computed.txt") given tc_t_page("test_assets/rows.idml") (9, ["themecheck", "render", "test_assets/rows.idml", "dark", "60", "40", (import tg_xd), "-", "-"], (import tc_tt), (import tc_ts)):(0) then tg_t_fsize:(354)
+
+// Argument i, or "" when there are fewer or it is "-", which skips a palette layer.
+tc_arg(int argc, string[] argv, int i) {
+  string a = "";
+  if (i < argc && argv[i] != "-") {
+    a = argv[i];
+  }
+} return string a;
+(3, ["t", "r", "d"], 2):("d")
+(3, ["t", "r", "d"], 3):("")
+(4, ["t", "r", "d", "-"], 3):("")

@@ -1,0 +1,46 @@
+// The inputs of a view: the themes, the states, and the nodes the states are named by.
+//
+// The theme of each mode with every layer over it: index 0 the light one, 1 the dark one. sysf and appf are the
+// system palette and the app palette, "" for none.
+tc_themes(string sysf, string appf) {
+  int[][] tq = [];
+  int[] lt = th_layers(0, sysf, appf);
+  int[] dk = th_layers(1, sysf, appf);
+} chain (string sysf, string appf) {
+  push(tq, lt);
+  push(tq, dk);
+} return int[][] tq;
+("", ""):([[15987699, 16448250, 16777215, 16777215, 15987699, 15068921, 12769264, 12308972, 2105384, 6316128, 7039851, 10526880, 7763574, 353217, 2840474, 16777215, 4221092, 5601710, 14411510, 13684944, 8751763, 12582912, 16777215, 9067008, 3046706, 16777215, 3433963, 0, 0, 1, 2, 0, 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 40, 48, 11, 14, 400, 0, 12, 16, 400, 0, 14, 20, 400, 0, 14, 20, 600, 0, 16, 22, 600, 0, 20, 26, 600, 0, 26, 32, 600, 0, 13, 18, 400, 1, 400, 500, 600, 700, 0, 3, 6, 10, 16, 9999, 1, 2, 20, 4, 12, 25, 12, 32, 35, 0, 0, 0, 100, 180, 300], [2039583, 2500134, 2960685, 1579032, 3355443, 4015700, 4872819, 3100544, 15527152, 11579576, 9079444, 6710886, 9079444, 7123199, 7246808, 727859, 6588360, 5929911, 2767447, 3815994, 7304318, 16739179, 2752512, 15253600, 8111742, 732685, 8037119, 0, 0, 1, 2, 0, 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 40, 48, 11, 14, 400, 0, 12, 16, 400, 0, 14, 20, 400, 0, 14, 20, 600, 0, 16, 22, 600, 0, 20, 26, 600, 0, 26, 32, 600, 0, 13, 18, 400, 1, 400, 500, 600, 700, 0, 3, 6, 10, 16, 9999, 1, 2, 20, 4, 12, 25, 12, 32, 35, 0, 0, 0, 100, 180, 300]])
+("", "test_assets/app.json"):([[15987699, 16448250, 16777215, 16777215, 15987699, 15068921, 12769264, 12308972, 2105384, 6316128, 7039851, 10526880, 7763574, 353217, 689407, 16777215, 2330879, 3907071, 14411510, 13684944, 8751763, 12582912, 16777215, 9067008, 3046706, 16777215, 3433963, 0, 0, 1, 2, 0, 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 40, 48, 11, 14, 400, 0, 12, 16, 400, 0, 14, 20, 400, 0, 14, 20, 600, 0, 16, 22, 600, 0, 20, 26, 600, 0, 26, 32, 600, 0, 13, 18, 400, 1, 400, 500, 600, 700, 0, 3, 6, 10, 16, 9999, 1, 2, 20, 4, 12, 25, 12, 32, 35, 0, 0, 0, 100, 180, 300], [2039583, 2500134, 2960685, 1579032, 3355443, 4015700, 4872819, 3100544, 15527152, 11579576, 9079444, 6710886, 9079444, 7123199, 689407, 727859, 686827, 683990, 2767447, 3815994, 7304318, 16739179, 2752512, 15253600, 8111742, 732685, 8037119, 0, 0, 1, 2, 0, 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 40, 48, 11, 14, 400, 0, 12, 16, 400, 0, 14, 20, 400, 0, 14, 20, 600, 0, 16, 22, 600, 0, 20, 26, 600, 0, 26, 32, 600, 0, 13, 18, 400, 1, 400, 500, 600, 700, 0, 3, 6, 10, 16, 9999, 1, 2, 20, 4, 12, 25, 12, 32, 35, 0, 0, 0, 100, 180, 300]])
+
+// The records of the page that are nodes, in tape order, which is the order a document's elements are in: node
+// number i of a states file or a dump is ns[i].
+tc_nodes(int[] t) {
+  int[] ns = [];
+  int i = 1;
+  while (i < gui_count(t)) {
+    if (gui_is_node(t, i) == 1) {
+      push(ns, i);
+    }
+    i = i + 1;
+  }
+} return int[] ns;
+given tc_t_page ("test_assets/rows.idml") ((import tc_tt)):([5, 6, 7])
+given tc_t_page ("test_assets/tiny.idml") ((import tc_tt)):([2, 3, 4, 5, 7])
+
+// The states each record is in: one entry per record, 0 for none, filled from the lines "node mask" of the file
+// at path (node as tc_nodes numbers them, mask 1 hover, 2 focus, 4 active, 8 disabled). A missing file puts
+// nothing in any state.
+tc_flags(string path, int[] ns, int count) {
+  int[] fl = [];
+  lst_fill(fl, count, 0);
+  string[] ls = str_split(fs_read_text(path), "\n");
+} chain (string path, int[] ns, int count) {
+  int i = 0;
+  while (i < len(ls)) {
+    tc_flag1(fl, ns, ls[i]);
+    i = i + 1;
+  }
+} return int[] fl;
+("test_assets/rows.idml.states", [5, 6, 7], 8):([0, 0, 0, 0, 0, 2, 0, 8])
+("test_assets/rows.idml.nostates", [5, 6, 7], 8):([0, 0, 0, 0, 0, 0, 0, 0])

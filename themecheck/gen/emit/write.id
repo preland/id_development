@@ -1,0 +1,47 @@
+// Writing a generated page: the header, the variant lines, and the body of nested rows, which is the same at every
+// level so that a page of any kind is laid out by the same few rules.
+//
+// Write the page whose variants are defs and whose swatches are names, each with its kid lines in the same place of
+// kids ("" for none, kid lines joined by "|"), to path, under the header line hdr. Answers the bytes written.
+tg_emit(string path, string hdr, string[] defs, string[] names, string[] kids) {
+  string[] gl = [hdr, "# Every swatch carries classes the render check compares.", ""];
+  lst_str_extend(gl, defs);
+  push(gl, "");
+} chain (string path, string hdr, string[] defs, string[] names, string[] kids) {
+  push(gl, "./");
+  push(gl, "Col()[100,100,top-left] {");
+  tg_rows(gl, names, kids);
+} chain (string path, string hdr, string[] defs, string[] names, string[] kids) {
+  push(gl, "}");
+  string tx = str_join(gl, "\n") + "\n";
+  int n = fs_save(path, mem_of_str(tx), len(tx));
+} return int n;
+given tg_t_dir given tg_t_pick("f.idml") ((import tg_xn), "# p.idml", ["C0:Col `bg-window border`\n  `border-selection text-accent`{}"], ["C0"], [""]):(222) then tg_t_fsize:(222)
+given tg_t_dir given tg_t_pick("f.idml") ((import tg_xn), "# q.idml", [], ["A", "B", "C", "D"], ["", "", "K()[50,100,top-left]{}|L()[50,100,top-left]{}", ""]):(335) then tg_t_fsize:(335)
+
+// Every row of the swatches, as many as the swatches need at three to a row.
+tg_rows(string[] gl, string[] names, string[] kids) {
+  int rows = (len(names) + 2) / 3;
+  int r = 0;
+  while (r < rows) {
+    tg_row(gl, names, kids, r, rows);
+    r = r + 1;
+  }
+} return void;
+([], ["A", "B", "C", "D"], ["", "", "K()[50,100,top-left]{}|L()[50,100,top-left]{}", ""]):(["  Row()[50,100,top-left] {", "    A()[100,40,top-left]{}", "    B()[100,30,top-left]{}", "    C()[100,30,top-left] {", "      K()[50,100,top-left]{}", "      L()[50,100,top-left]{}", "    }", "  }", "  Row()[50,100,top-left] {", "    D()[100,100,top-left]{}", "  }"], ["A", "B", "C", "D"], ["", "", "K()[50,100,top-left]{}|L()[50,100,top-left]{}", ""])
+([], ["Z"], [""]):(["  Row()[100,100,top-left] {", "    Z()[100,100,top-left]{}", "  }"], ["Z"], [""])
+
+// Row r of rows: up to three swatches side by side, each as wide as tg_pct says, the row as tall as it says.
+tg_row(string[] gl, string[] names, string[] kids, int r, int rows) {
+  int nr = fx_min(3, len(names) - 3 * r);
+  push(gl, "  Row()[" + tg_pct(rows, r) + ",100,top-left] {");
+  int j = 0;
+} chain (string[] gl, string[] names, string[] kids, int r, int rows) {
+  while (j < nr) {
+    tg_item(gl, names[3 * r + j], kids[3 * r + j], tg_pct(nr, j));
+    j = j + 1;
+  }
+  push(gl, "  }");
+} return void;
+([], ["A", "B", "C", "D"], ["", "", "K()[50,100,top-left]{}|L()[50,100,top-left]{}", ""], 0, 2):(["  Row()[50,100,top-left] {", "    A()[100,40,top-left]{}", "    B()[100,30,top-left]{}", "    C()[100,30,top-left] {", "      K()[50,100,top-left]{}", "      L()[50,100,top-left]{}", "    }", "  }"], ["A", "B", "C", "D"], ["", "", "K()[50,100,top-left]{}|L()[50,100,top-left]{}", ""], 0, 2)
+([], ["A", "B", "C", "D"], ["", "", "K()[50,100,top-left]{}|L()[50,100,top-left]{}", ""], 1, 2):(["  Row()[50,100,top-left] {", "    D()[100,100,top-left]{}", "  }"], ["A", "B", "C", "D"], ["", "", "K()[50,100,top-left]{}|L()[50,100,top-left]{}", ""], 1, 2)

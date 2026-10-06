@@ -1,0 +1,42 @@
+// Writing all of them.
+//
+// Write the state lines to path, one to a line, unless there are none; the bytes written.
+tg_states(string path, string[] sts) {
+  string tx = str_join(sts, "\n") + "\n";
+  int n = 0;
+  if (len(sts) > 0) {
+    n = fs_save(path, mem_of_str(tx), len(tx));
+  }
+} return int n;
+given tg_t_dir given tg_t_pick("f.idml") ((import tg_xn), ["2 1", "7 4"]):(8) then tg_t_fsize:(8)
+given tg_t_dir given tg_t_pick("f.idml") ((import tg_xn), []):(0) then tg_t_fsize:(-1)
+
+// Every page of a kind, and a line of meta for each: its name and the size of the window it is drawn in, as the
+// JSON object the render check reads.
+tg_kind(string dir, int kind, string[] meta) {
+  int i = 0;
+  while (i < tg_pages(kind)) {
+    tg_page(dir, kind, i);
+    push(meta, "  {\"name\": \"" + tg_name(kind, i) + "\", \"w\": " + (import tg_wh)[2 * kind] + ", \"h\": " + (import tg_wh)[2 * kind + 1] + "}");
+    i = i + 1;
+  }
+} return void;
+given tg_t_dir given tg_t_pick("colors-1.idml") ((import tg_xd), 0, []):() then tg_t_fsize:(1158)
+given tg_t_dir given tg_t_pick("states-0.idml") ((import tg_xd), 4, ["x"]):() then tg_t_fsize:(1501)
+
+// Write every page of every kind into dir, which is made when it is not there, with gen.json listing them. Answers
+// 0 once gen.json was written.
+tg_gen(string dir) {
+  int made = fs_mkdir_p(dir);
+  string[] meta = [];
+  int k = 0;
+} chain (string dir) {
+  while (k < 5) {
+    tg_kind(dir, k, meta);
+    k = k + 1;
+  }
+  string tx = "[\n" + str_join(meta, ",\n") + "\n]\n";
+  int n = fs_save(dir + "/gen.json", mem_of_str(tx), len(tx));
+} return int 0;
+given tg_t_dir given tg_t_pick("gen.json") ((import tg_xd)):(0) then tg_t_fsize:(1190)
+given tg_t_dir given tg_t_pick("states-1.idml") ((import tg_xd)):(0) then tg_t_fsize:(1518)

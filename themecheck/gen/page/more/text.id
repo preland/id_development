@@ -1,0 +1,58 @@
+// The text of a type swatch, its classes, and the classes of a box swatch.
+//
+// The words of type swatch j: a pangram, or for the last swatch a sentence that wraps in a swatch's width.
+tg_tx(int j) {
+  string tw = "Sphinx of black quartz";
+  if (j >= tg_n(14) + tg_n(15)) {
+    tw = "A line long enough to wrap in a swatch.";
+  }
+} return string tw;
+(0):("Sphinx of black quartz")
+(12):("A line long enough to wrap in a swatch.")
+
+// The classes of type swatch j: a style for the first swatches (colour and style), a weight on the body style for
+// the next, and the plain body style for the last.
+tg_tcl(int j) {
+  int nt = tg_n(14);
+  int nw = tg_n(15);
+  string cx = "text-body text-label";
+} chain (int j) {
+  if (j < nt) {
+    cx = "text-label " + th_cname(14, j);
+  }
+  if (j >= nt && j < nt + nw) {
+    cx = cx + " " + th_cname(15, j - nt);
+  }
+} return string cx;
+(0):("text-label text-caption")
+(8):("text-body text-label font-normal")
+(11):("text-body text-label font-bold")
+(12):("text-body text-label")
+
+// The classes of box swatch j: a radius on an accent fill, a shadow on a raised surface, a border width with an
+// accent border, or a duration with the easing on a control face.
+tg_bcl(int j) {
+  int nr = tg_n(16);
+  int nh = tg_n(17);
+  int nb = tg_n(3);
+} chain (int j) {
+  string cx = "bg-accent " + th_cname(16, j % nr);
+  if (j >= nr) {
+    cx = "bg-surface-raised " + th_cname(17, (j - nr) % nh);
+  }
+  if (j >= nr + nh) {
+    cx = "bg-surface border-accent " + th_cname(3, (j - nr - nh) % nb);
+  }
+} chain (int j) {
+  if (j >= nr + nh + nb) {
+    cx = "bg-control " + th_cname(18, j - nr - nh - nb) + " " + th_cname(19, 0);
+  }
+} return string cx;
+(0):("bg-accent rounded-none")
+(6):("bg-accent rounded")
+(7):("bg-surface-raised shadow-1")
+(10):("bg-surface-raised shadow-none")
+(11):("bg-surface border-accent border-0")
+(13):("bg-surface border-accent border-2")
+(14):("bg-control duration-fast ease-standard")
+(16):("bg-control duration-slow ease-standard")
