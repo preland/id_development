@@ -800,6 +800,10 @@ A backend of your own is a directory with a `backend.id`, its sources and its
 `native` declarations, anywhere in a tree the build collects — your project, or
 a `conf.id` import. The driver finds it by its `backend.id`.
 
+A backend's own `id` code, and its cases, may call idstd's `core/` and nothing
+above it (`docs/BACKENDS.md`, "What a backend's own `id` code may call"). A
+call into `host/` or `kit/` is refused with the fix named.
+
 **Which implementation you get is chosen for you.** The build has a target
 triple, derived from the machine you are on unless you say otherwise, and the
 backend's `backend.id` is indexed by the platform in it. Nothing in your

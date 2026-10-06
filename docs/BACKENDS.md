@@ -322,6 +322,40 @@ twin.id:5: error: native 'twin_a', reached from main by this call, has no
   it is declared in twin.id, which is not in an attached backend
 ```
 
+### What a backend's own `id` code may call: `core/`, and nothing above it
+
+A backend directory may hold `id` code beside its natives (`fs_mkdir_p` over
+`fs_mkdir`, `fs_read_bytes` over `fs_read`), and that code has cases. When a
+program names a backend on its own (`--backend DIR`, or a `conf.id` import),
+`idc/bin/idc` builds and tests the backend as a library of its own
+(`run_backend_prechecks`), cached by content. That build includes idstd's
+`core/` and no other tier, because `core/` is freestanding and always present,
+the foundation everything stands on, so a backend leans on it instead of
+duplicating it:
+
+* The backend's functions and its cases may call any `core/` function
+  (`lst_fill`, `path_join`, `str_ends`, `ord_strs`, and so on). Only the
+  `core/` functions reached are parsed, as in any build.
+* Calling something in `host/` or `kit/` is refused, because backends sit
+  below those tiers. The diagnostic is `no such function` followed by a line
+  naming where the function lives and the two ways out: move it into `core/`
+  if it needs no host service, or move the calling code out of the backend into
+  the `host/` or `kit/` library that wraps it. A backend's cases may not
+  `given` a fixture from above `core/` either.
+* The checkout is the nearest ancestor of the backend with `core/`, `host/` and
+  a `conf.id`. A backend outside any idstd checkout keeps what it had: the whole
+  standard library when the build has one, else nothing (`--no-std`).
+* The pre-check's cache key includes the contents of `core/` and idstd's
+  `conf.id` (the constants `core/` reads), so a change to a `core/` function a
+  backend calls re-runs the backend's cases.
+* A program that is `--no-std` and imports a backend directly merges the
+  backend's `id` files as source, so it must import idstd's `core/` too
+  (`import "…/idstd/core"` in its `conf.id`) when the backend calls it.
+
+The pre-check runs the C target whatever `--target` the program asks for; the
+backend's `id` code is the same for the C, LLVM and wasm targets, so the
+answer is shared.
+
 ### Where the backends live, and how a platform chooses
 
 **In the standard library, inside the modules that wrap them**: `host/io/fs`,
