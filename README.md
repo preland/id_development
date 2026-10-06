@@ -314,11 +314,12 @@ idc/bin/idc prog.id --no-std         # build without it
 idc/bin/idc prog.id --std ../idstd   # build against a particular one
 ```
 
-It is resolved from, in order: `--std DIR`, `$IDSTD_HOME`, then an `idstd`
+It is resolved from, in order: `--no-std`, `--std DIR`, `IDC_NO_STD`, `$IDSTD_HOME`, then an `idstd`
 directory beside this repository. A checkout with none of those simply has no
 standard library, which is not an error — the compiler has to keep building its
 own bootstrap in a tree where the library does not exist. `IDC_NO_STD=1` is
-`--no-std` for scripts that cannot pass a flag.
+`--no-std` for scripts that cannot pass a flag, but an explicit `--std DIR` beats it,
+being the more specific of the two; `--no-std` together with `--std` is an error.
 
 The library is merged exactly like a source dependency named in a `conf.id`:
 the same layout rules apply to it, and its own `conf.id` is

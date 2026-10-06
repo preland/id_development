@@ -436,7 +436,7 @@ is and listed.
 
 `idstd` is imported by default. You do not name it, and you did not above:
 `chr_is_lower` resolved because the library is in every build. It is found
-from, in order, `--std DIR`, `$IDSTD_HOME`, then an `idstd` directory beside
+from, in order, `--no-std`, `--std DIR`, `IDC_NO_STD`, `$IDSTD_HOME`, then an `idstd` directory beside
 this repository.
 
 ```sh

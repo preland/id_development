@@ -130,8 +130,7 @@ checkout) with a `conf.id` of just the constants that tier reads, and builds
 it is what the library stands on. Uniqueness is whole-program, so the kernel may
 not define a function core has (`lset`, `sset` and `wset` were such copies and
 are gone), and a freestanding program that reaches `fail` links the runtime's
-`id_fail`. An `IDC_NO_STD=1` in the environment overrides `--std`, so unset it
-to run `kbuild` (`idc/tests/kernel.sh` does).
+`id_fail`. An `IDC_NO_STD=1` in the environment does not matter here: `--std` beats it.
 
 Test cases are the one place a freestanding build touches the host. They run
 there, in a harness built from the same source for the machine doing the build,
