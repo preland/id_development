@@ -206,7 +206,7 @@ way and is the proof.
 
 Two helpers the slice wrote are not layout, and went to the modules they belong
 to: `fx_pct` and `fx_align` (basis-point share, and a box in a span) in
-`core/math/fx/base/align.id`, and `fs_read_text` (a whole file as a string, the
+`core/math/fx/align.id`, and `fs_read_text` (a whole file as a string, the
 loader `gui_parse` is handed) in `sys/io/fs/data/mem/text.id`. The tree's
 path helpers (`gui_path_dir`, `gui_p_join`) are idml-specific import resolution
 and stay.
@@ -633,7 +633,7 @@ What is in it, under `idstd/gfx/kit/gui/` unless a path says otherwise:
 | `font/` | the font seam and the font layer behind it (section 7) | `gui_font_open`, `gui_text_width`, `gui_text_draw`, `gui_text_x`, `gui_text_hit`, `gui_font_ascent`, `gui_font_descent`, `gui_font_line`, `gui_font_init`, `gui_fonts_find`, `gui_utf_cp`, `gui_utf_n`, `gui_utf_str`, and the old `gui_font_width`, `gui_font_height`, `gui_font_draw` |
 | `idstd/.tests/assets/gui/` | `todo.idml`, `flappy/` (three files), `pong/`: byte-for-byte copies, plus small fixtures | |
 
-`fx_pct` and `fx_align` are in `core/math/fx/base/align.id` and `fs_read_text` in
+`fx_pct` and `fx_align` are in `core/math/fx/align.id` and `fs_read_text` in
 `sys/io/fs/data/mem/text.id`, where the next program that wants them finds them.
 
 How many functions and cases there are is a query, not a number to write down:

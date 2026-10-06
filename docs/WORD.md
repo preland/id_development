@@ -248,7 +248,7 @@ ribbon needs about a dozen more.
 | window, events, clipboard | `gfx_open/present/sync/show/event/mods/cursor/clip_set/clip_get` (`sys/win/gfx`); events: key, TEXT, mouse down/up/move, resize, quit, wheel; mods 1 shift 2 ctrl 4 alt 8 super | window **title** after open; F-keys as `gfx_event` keys (README "Not covered"); macOS shim is uncompiled |
 | surface | `sf_l_*`, `d2_l_rect`, `ppm_l_dump` | clip rectangle, alpha rectangle, line/polygon, blit with scaling |
 | fonts | `ttf_*` (outlines, exact-area coverage at 1-512 px, kerning, composites), `gui_font_*` | style (bold/italic) discovery and selection; code-point API; family list; open by file path for deterministic tests; synthetic bold/italic |
-| inflate | `inf_inflate`, `gz_decompress` (`core/data/seq/byte/pack/inflate`, NAMES 1.15) | **deflate compressor**, CRC-32 |
+| inflate | `inf_inflate`, `gz_decompress` (`core/fmt/inflate`, NAMES 1.15) | **deflate compressor**, CRC-32 |
 | zip | none (the editor's reader is in `editor/lib/zip`) | reader and **writer** as library |
 | xml | none general; the editor's pull parser; a purpose-built reader in `font/find/conf/xml` (`xt_`) | writer; one shared reader |
 | utf-8 | `utf8_cp`, `utf8_seq`, `utf8_str`, `utf8_class`, `utf8_word_*` (string based) | cp-list helpers (the plan uses `int[]` text) |
@@ -713,10 +713,10 @@ the keyboard up" (UI.md 7b) is how the find bar loses focus.
 
 | piece | home | why |
 | --- | --- | --- |
-| CRC-32 | `idstd/core/data/seq/byte/sum/` | generic; the zip reader and writer both need it |
-| ZIP reader and writer | `idstd/core/data/seq/byte/pack/zip/` | generic, and the editor's reader is the only copy: it moves out as a struct-based module (`Zip`, `ZipW`), prefix `zr_`/`zw_` |
-| DEFLATE compressor | `idstd/core/data/seq/byte/pack/deflate/` | pairs with `inflate`; v2 |
-| XML reader (struct-based pull parser) and writer | `idstd/core/text/xml/` | the editor's `xml_` is a global-state parser and idstd's font-config reader (`xt_`) is a second, purpose-built one; one shared library is what "duplicates go to idstd" asks for |
+| CRC-32 | `idstd/core/data/hash/` | generic; the zip reader and writer both need it |
+| ZIP reader and writer | `idstd/core/fmt/zip/` | generic, and the editor's reader is the only copy: it moves out as a struct-based module (`Zip`, `ZipW`), prefix `zr_`/`zw_` |
+| DEFLATE compressor | `idstd/core/fmt/deflate/` | pairs with `inflate`; v2 |
+| XML reader (struct-based pull parser) and writer | `idstd/core/fmt/xml/` | the editor's `xml_` is a global-state parser and idstd's font-config reader (`xt_`) is a second, purpose-built one; one shared library is what "duplicates go to idstd" asks for |
 | ODT model mapping (elements to rows, styles, lists, page layout) | `word/io/odt/` | ODT-specific, one project |
 
 New prefixes (`zr_`, `zw_`, `xr_`, `xw_`, `crc_`, `df_`) are chosen so that nothing
@@ -769,12 +769,12 @@ spacing `fo:margin-top`/`-bottom`, `fo:line-height` as a percentage, page
 | piece | home | package |
 | --- | --- | --- |
 | directory room, moves | `idstd/core/data/seq/byte`, `idstd/core/text` | W0 |
-| CRC-32, ZIP read/write | `idstd/core/data/seq/byte/{sum,pack}` | A1 |
-| XML writer | `idstd/core/text/xml/write` | A2 |
-| XML reader | `idstd/core/text/xml/read` | A2r |
+| CRC-32, ZIP read/write | `idstd/core/{data/hash,fmt/zip}` | A1 |
+| XML writer | `idstd/core/fmt/xml/write` | A2 |
+| XML reader | `idstd/core/fmt/xml/read` | A2r |
 | font style discovery, family list | `idstd/gfx/kit/gui/font/find` | A3a |
 | code-point text API, faux styles | `idstd/gfx/kit/gui/font/face`, `seam` | A3b |
-| clip, alpha rect, window title, list helpers | `idstd/gfx/px/l`, `idstd/sys/win/gfx`, `idstd/core/data/seq/lst` | A4, A7 |
+| clip, alpha rect, window title, list helpers | `idstd/gfx/px/l`, `idstd/sys/win/gfx`, `idstd/core/data/list` | A4, A7 |
 | widgets | `idstd/gfx/kit/wid/{ctl,pop}` | A5a, A5b, A5c |
 | path rasteriser, icons | `idstd/kit/media/font/ttf/raster` (entry), `idstd/gfx/kit/wid/vec` | A6 |
 | document model | `word/core/doc` | B1 |
@@ -1225,7 +1225,7 @@ own with an `odt/` inside and files named `NN_name.odt` works.
 
 | id | package | directories | depends | acceptance |
 | --- | --- | --- | --- | --- |
-| W0 | idstd room: `byte/{pack,sum,ttf}` with `inflate` moved to `pack/inflate` and `sha256` to `sum/sha256`; `core/text/{atom/{chr,fmt},str,xml}` with `chr` and `fmt` moved under `atom/`; a free slot in `core/data/seq/lst`; `gfx/kit/wid/` created empty | `idstd/core/data/seq/byte`, `idstd/core/text`, `idstd/core/data/seq/lst` (moves only), `idstd/NAMES.md` file columns | decision 7.5 | `idc ../idstd` exits 0 with the library's cases green; `idstd/run.sh` passes; `idlayout --room` shows the new slots; no function body changed (diff is renames plus NAMES.md paths) |
+| W0 | idstd room: `byte/{pack,sum,ttf}` with `inflate` moved to `pack/inflate` and `sha256` to `sum/sha256`; `core/text/{atom/{chr,fmt},str,xml}` with `chr` and `fmt` moved under `atom/`; a free slot in `core/data/seq/lst`; `gfx/kit/wid/` created empty | `idstd/core/data/seq/byte`, `idstd/core/text`, `idstd/core/data/list` (moves only), `idstd/NAMES.md` file columns | decision 7.5 | `idc ../idstd` exits 0 with the library's cases green; `idstd/run.sh` passes; `idlayout --room` shows the new slots; no function body changed (diff is renames plus NAMES.md paths) |
 
 The editor/word split is not part of W0: `word/` is a new root (decision 7.1) and
 nothing moves out of `editor/` until cutover.
@@ -1244,12 +1244,12 @@ the seam in section 4 with a stub, as noted.
 
 | id | package | directories | depends | acceptance |
 | --- | --- | --- | --- | --- |
-| A1 | CRC-32; ZIP reader (struct-based, CRC checked) and stored-entry ZIP writer; `mimetype`-first ordering helper | `idstd/core/data/seq/byte/sum/crc32`, `idstd/core/data/seq/byte/pack/zip` | W0 | `crc_32("123456789") = 0xCBF43926`; round trip of 0, 1, 300 and 70 000 byte entries and of an empty archive; reader accepts `editor/test_assets/empty.zip` and a LibreOffice-written `.odt` (committed under `wordcorpus`) with every CRC verified; one flipped bit in an entry is reported as a named CRC error; `soffice --headless --convert-to txt` opens an `.odt` whose parts were written by `zw_*` (manual first, then B9) |
-| A2 | XML writer (struct, escaping, declaration, attribute order = call order, nesting check) | `idstd/core/text/xml/write` | W0 | output of a hand-built tree equals expected bytes; `& < > "` escaping cases; unbalanced `xw_end` is a named error; output is accepted by the reader of A2r and by `soffice --convert-to txt` when it is `content.xml` of a fixture |
-| A2r | XML reader: the editor's pull parser re-founded on a struct, byte offsets in every error, entities, CDATA, comments, DOCTYPE skipped | `idstd/core/text/xml/read` | W0 | the editor's own `lib/doc/xml` cases ported and green (they are the spec); reads `content.xml`, `styles.xml` of the corpus; fuzz: 1000 truncations of a real `content.xml` give an error or end, never a trap (index-addressable sweep); event stream of the writer's output equals the writer's input |
+| A1 | CRC-32; ZIP reader (struct-based, CRC checked) and stored-entry ZIP writer; `mimetype`-first ordering helper | `idstd/core/data/hash/crc32`, `idstd/core/fmt/zip` | W0 | `crc_32("123456789") = 0xCBF43926`; round trip of 0, 1, 300 and 70 000 byte entries and of an empty archive; reader accepts `editor/test_assets/empty.zip` and a LibreOffice-written `.odt` (committed under `wordcorpus`) with every CRC verified; one flipped bit in an entry is reported as a named CRC error; `soffice --headless --convert-to txt` opens an `.odt` whose parts were written by `zw_*` (manual first, then B9) |
+| A2 | XML writer (struct, escaping, declaration, attribute order = call order, nesting check) | `idstd/core/fmt/xml/write` | W0 | output of a hand-built tree equals expected bytes; `& < > "` escaping cases; unbalanced `xw_end` is a named error; output is accepted by the reader of A2r and by `soffice --convert-to txt` when it is `content.xml` of a fixture |
+| A2r | XML reader: the editor's pull parser re-founded on a struct, byte offsets in every error, entities, CDATA, comments, DOCTYPE skipped | `idstd/core/fmt/xml/read` | W0 | the editor's own `lib/doc/xml` cases ported and green (they are the spec); reads `content.xml`, `styles.xml` of the corpus; fuzz: 1000 truncations of a real `content.xml` give an error or end, never a trap (index-addressable sweep); event stream of the writer's output equals the writer's input |
 | A3a | Font discovery by style (parse subfamily from the `name` table the scan already reads; add weight/slant to the cache record; `gui_fonts_find_style`, `gui_font_families`) | `idstd/gfx/kit/gui/font/find/**` | W0 | on this machine DejaVu Sans resolves Bold to `DejaVuSans-Bold.ttf`, Oblique to `DejaVuSans-Oblique.ttf`; an unknown style falls back to Regular and says so; cache file version bumps and an old cache is ignored, not trusted; `gui_font_families` is sorted and unique; all existing font cases still pass |
 | A4 | `sf_l_clip`/`sf_l_unclip` honoured by `sf_l_pset` and `d2_l_rect`; alpha rectangle; `gfx_title(string)` native (Linux; macOS translation marked uncompiled); wheel-with-mods check | `idstd/gfx/px/l`, `idstd/gfx/plane`, `idstd/sys/win/gfx` | W0 | pixel cases: rect crossing a clip edge draws only the inside; nested clips intersect; alpha blend of known colours equals hand-computed; `gfx_title` changes the title (checked by `xdotool getwindowname` in a headless X run: manual, recorded) |
-| A7 | List helpers: `lst_insert`, `lst_delete`, `lst_splice` for `int[]` and `string[]` | `idstd/core/data/seq/lst/**` (the slot W0 made) | W0 | cases at both ends, empty list, a splice that grows and one that shrinks; trap behaviour out of range is stated and cased |
+| A7 | List helpers: `lst_insert`, `lst_delete`, `lst_splice` for `int[]` and `string[]` | `idstd/core/data/list/**` (the slot W0 made) | W0 | cases at both ends, empty list, a splice that grows and one that shrinks; trap behaviour out of range is stated and cased |
 | B1 | Document model: structs, interning table, style set and defaults, resolvers, text and run primitives, paragraph split/join, default document | `word/core/doc/**`, `word/conf.id` (row offsets) | none (uses `utf8_*`, `lst_*`) | the 4.2 API with cases pinning run invariants after every primitive (covering, merged, empty-paragraph run); a randomised-but-seeded script of 2000 primitive calls keeps the invariants; `style_eff_c` resolves a three-level chain and a character style over a paragraph style; **publishes the struct files first** (within an hour) so B2-B7 can compile against them |
 | B7a | Ribbon data and logic without drawing: the table of tabs/groups/controls, command ids, shortcut table, group/column placement solver given control sizes, tooltip text and shortcut text, `cmd_state` plumbing signature | `word/ui/ribbon/model`, `word/conf.id` (ribbon and key tables) | none | every command id appears once in the table and in a shortcut/ribbon/menu route (a case walks the table and checks no id is orphaned, none duplicated); placement of the Home tab at widths 1280, 1024, 900 gives rectangles that do not overlap and fit the width (arithmetic cases, rect lists compared exactly); `key_cmd(ctrl, 'b')` = bold |
 | B9 | Oracle driver and corpus | `wordcheck/**`, `wordcorpus/**` | none (needs only the CLI contract of 4.9 and `soffice`) | corpus of 12 documents generated by `soffice --convert-to odt` from small `.fodt`/`.html` sources written in the repo (plain, headings, bold/italic/underline mix, colours, lists three levels, page break, A4/Letter/landscape, long text 20 pages, unicode, empty paragraphs, a table, an image); the driver prints one line per fixture and takes an index (`wordcheck N`); an isolated LibreOffice profile (`-env:UserInstallation=file://` under `fs_mktemp`) so runs do not collide; runs batch several files per `soffice` start; the first fixture completes inside 60 s on a cold start (measure; mitigation in 6.7) |
