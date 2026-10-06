@@ -625,12 +625,12 @@ What is in it, under `idstd/kit/ui/` unless a path says otherwise:
 | where | what | public names |
 | --- | --- | --- |
 | `idstd/conf.id` | every constant: record layout, kinds, error codes and messages, keyword tables | none: `idstd_gui_*` |
-| `core/doc/tape/` | the record tape, its builders, and the readers an application uses | `gui_new`, `gui_count`, `gui_is_node`, `gui_node_str` |
-| `core/doc/read/` | scanners, cursor, tokens, syntax, imports, diagnostics | `gui_parse`, `gui_load`, `gui_diag` |
-| `core/doc/show/` | `idstd_gui_raw_all`, `gui_dump` and the test fixtures | `gui_dump` |
-| `core/flow/` | binding and layout | `gui_bind`, `gui_layout`, `gui_rect_get`, `gui_find_cls`, the board (`gui_board`, `gui_num`, `gui_text`, `gui_set_num`, `gui_set_text`, `gui_edit`, the row and fire calls) and its function-value adapters (`gui_bind_fn`, `gui_pull_*`, `gui_dispatch`, `gui_push_model`) |
-| `core/real/` | real documents as cases | |
-| `font/` | the font seam and the font layer behind it (section 7) | `gui_font_open`, `gui_text_width`, `gui_text_draw`, `gui_text_x`, `gui_text_hit`, `gui_font_ascent`, `gui_font_descent`, `gui_font_line`, `gui_font_init`, `gui_fonts_find`, `gui_utf_cp`, `gui_utf_n`, `gui_utf_str`, and the old `gui_font_width`, `gui_font_height`, `gui_font_draw` |
+| `idml/tape/` | the record tape, its builders, and the readers an application uses | `gui_new`, `gui_count`, `gui_is_node`, `gui_node_str` |
+| `idml/{lex,scan,syntax}/` | scanners, cursor, tokens, syntax, imports, diagnostics | `gui_parse`, `gui_load`, `gui_diag` |
+| `idml/show/` | `idstd_gui_raw_all`, `gui_dump` and the test fixtures | `gui_dump` |
+| `idml/{bind,layout}/` | binding and layout | `gui_bind`, `gui_layout`, `gui_rect_get`, `gui_find_cls`, the board (`gui_board`, `gui_num`, `gui_text`, `gui_set_num`, `gui_set_text`, `gui_edit`, the row and fire calls) and its function-value adapters (`gui_bind_fn`, `gui_pull_*`, `gui_dispatch`, `gui_push_model`) |
+| `idml/real/` | real documents as cases | |
+| `idstd/kit/media/font/` | the font seam and the font layer behind it (section 7) | `gui_font_open`, `gui_text_width`, `gui_text_draw`, `gui_text_x`, `gui_text_hit`, `gui_font_ascent`, `gui_font_descent`, `gui_font_line`, `gui_font_init`, `gui_fonts_find`, `gui_utf_cp`, `gui_utf_n`, `gui_utf_str`, and the old `gui_font_width`, `gui_font_height`, `gui_font_draw` |
 | `idstd/.tests/assets/gui/` | `todo.idml`, `flappy/` (three files), `pong/`: byte-for-byte copies, plus small fixtures | |
 
 `fx_pct` and `fx_align` are in `core/math/fx/align.id` and `fs_read_text` in
