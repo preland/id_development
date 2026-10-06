@@ -70,7 +70,7 @@ Only `pt` sizes are read, and only the literal words `bold` and `italic`.
 
 ### The font
 
-The font is idstd's (`core/data/seq/byte/ttf`, NAMES.md 1.20), not the editor's:
+The font is idstd's (`kit/media/font/ttf`, NAMES.md 1.20), not the editor's:
 it was this directory's `lib/font` and was moved out and rewritten so that the
 standard GUI toolkit can use it too. `editor/lib/font` is now an adapter of a few
 functions that keeps the editor's one face in two exports and answers the

@@ -32,12 +32,18 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `idc/driver` | 7 | 18 | 36 | 0 | 0 |
 | `idc/runtime` | 47 | 88 | 3 | 1 | 86 |
 | `idc/tools` | 575 | 1447 | 3624 | 3 | 0 |
-| `idstd/core/data` | 219 | 556 | 1712 | 0 | 0 |
+| `idstd/core/data` | 98 | 256 | 610 | 0 | 0 |
+| `idstd/core/fmt` | 9 | 25 | 87 | 0 | 0 |
 | `idstd/core/math` | 21 | 54 | 136 | 0 | 0 |
-| `idstd/core/text` | 89 | 218 | 576 | 0 | 0 |
+| `idstd/core/text` | 94 | 231 | 623 | 0 | 0 |
 | `idstd/gfx/kit` | 446 | 1140 | 3565 | 0 | 0 |
 | `idstd/gfx/plane` | 5 | 10 | 22 | 0 | 0 |
 | `idstd/gfx/px` | 11 | 28 | 76 | 0 | 0 |
+| `idstd/host/io` | 7 | 18 | 41 | 0 | 0 |
+| `idstd/host/num` | 1 | 3 | 6 | 0 | 0 |
+| `idstd/host/os` | 3 | 5 | 12 | 0 | 0 |
+| `idstd/kit/app` | 11 | 30 | 76 | 0 | 0 |
+| `idstd/kit/media` | 85 | 206 | 833 | 0 | 0 |
 | `idstd/sys/io` | 82 | 144 | 314 | 0 | 0 |
 | `idstd/sys/os` | 40 | 89 | 187 | 1 | 0 |
 | `idstd/sys/win` | 104 | 210 | 436 | 0 | 0 |
@@ -67,12 +73,18 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `idc/driver` | 0 | 0 | 18 | 0 | 0 |
 | `idc/runtime` | 87 | 0 | 0 | 1 | 0 |
 | `idc/tools` | 3 | 0 | 1047 | 311 | 86 |
-| `idstd/core/data` | 0 | 0 | 323 | 156 | 77 |
+| `idstd/core/data` | 0 | 0 | 205 | 41 | 10 |
+| `idstd/core/fmt` | 0 | 0 | 1 | 22 | 2 |
 | `idstd/core/math` | 0 | 0 | 34 | 18 | 2 |
-| `idstd/core/text` | 0 | 0 | 152 | 52 | 14 |
+| `idstd/core/text` | 0 | 0 | 155 | 60 | 16 |
 | `idstd/gfx/kit` | 0 | 0 | 637 | 331 | 172 |
 | `idstd/gfx/plane` | 0 | 0 | 9 | 1 | 0 |
 | `idstd/gfx/px` | 0 | 0 | 19 | 7 | 2 |
+| `idstd/host/io` | 0 | 0 | 13 | 5 | 0 |
+| `idstd/host/num` | 0 | 0 | 3 | 0 | 0 |
+| `idstd/host/os` | 0 | 0 | 3 | 2 | 0 |
+| `idstd/kit/app` | 0 | 0 | 23 | 5 | 2 |
+| `idstd/kit/media` | 0 | 0 | 72 | 73 | 61 |
 | `idstd/sys/io` | 0 | 0 | 126 | 16 | 2 |
 | `idstd/sys/os` | 1 | 0 | 82 | 4 | 2 |
 | `idstd/sys/win` | 0 | 0 | 197 | 13 | 0 |
@@ -102,12 +114,18 @@ A distribution, not a mean: a mean of two is met by one function with many cases
 | `idc/driver` | 1 | 2 | 1 | 11 | 0 | 0 |
 | `idc/runtime` | 5 | 5 | 3 | 0 | 0 | 0 |
 | `idc/tools` | 22 | 7 | 4 | 22 | 135 | 3 |
-| `idstd/core/data` | 1 | 10 | 6 | 4 | 56 | 4 |
+| `idstd/core/data` | 1 | 9 | 5 | 4 | 29 | 4 |
+| `idstd/core/fmt` | 0 | 1 | 1 | 0 | 0 | 0 |
 | `idstd/core/math` | 0 | 3 | 2 | 3 | 7 | 0 |
-| `idstd/core/text` | 2 | 10 | 4 | 2 | 11 | 0 |
+| `idstd/core/text` | 2 | 10 | 4 | 2 | 12 | 0 |
 | `idstd/gfx/kit` | 6 | 10 | 6 | 0 | 54 | 3 |
 | `idstd/gfx/plane` | 0 | 1 | 1 | 1 | 0 | 0 |
 | `idstd/gfx/px` | 1 | 3 | 2 | 0 | 0 | 0 |
+| `idstd/host/io` | 0 | 2 | 1 | 0 | 1 | 0 |
+| `idstd/host/num` | 0 | 0 | 0 | 0 | 0 | 0 |
+| `idstd/host/os` | 0 | 1 | 1 | 0 | 0 | 0 |
+| `idstd/kit/app` | 0 | 2 | 2 | 0 | 1 | 0 |
+| `idstd/kit/media` | 0 | 3 | 3 | 0 | 24 | 0 |
 | `idstd/sys/io` | 1 | 6 | 4 | 0 | 8 | 5 |
 | `idstd/sys/os` | 2 | 5 | 3 | 3 | 4 | 0 |
 | `idstd/sys/win` | 12 | 7 | 5 | 0 | 4 | 0 |
