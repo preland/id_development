@@ -44,7 +44,7 @@ these.
 | `id_flappy`, `id_webdemo` | `id` compiled to wasm; idml renders the view in React; `@name` bound to exported `id` functions through `lib/id-runtime.ts` (only ints and strings cross). | Browser only. The bridge is JavaScript. |
 | `idem/engine/game/load/ui/` | A third loader: its own parser, an immediate-mode walk that resolves and paints in one descent, leaf painters, text-field editing, mouse through `inp_*`. Centipercent integer tiling, `Col`/`Row`/`Stack`/`Layer`. | Immediate mode keeps no tree, so no focus order or hit-test without re-walking; its note that real idml's `#` comment rule broke its colours is the same trap the toolkit's scanner handles (`idem/docs/IDML.md` section 4). Names are `ui_*`, so it cannot coexist with a library that uses them. |
 | `id_development/editor` | paragraph layout and wrapping, a caret, and an adapter over idstd's `ttf_` font (the TrueType parser and rasteriser moved to `idstd/kit/media/font/ttf`). | One font, no glyph cache, no widgets, no mouse. |
-| `idstd` `gfx/px`, `gfx/plane`, `host/dev/win/gfx`, `host/dev/win/gl` | A list-of-ints surface (`sf_l_*`), rectangles (`d2_l_rect`), an 8x8 face (`txt_g8_*`), a PPM dump, a software window (`gfx_open`, `gfx_present`, `gfx_poll`, `gfx_mouse_*`) and an OpenGL window. | Low level: one global surface, no clip stack, no text measuring beyond `txt_g8_width`. |
+| `idstd` `kit/media/image/px`, `kit/media/font/bitmap`, `host/dev/win/gfx`, `host/dev/win/gl` | A list-of-ints surface (`sf_l_*`), rectangles (`d2_l_rect`), an 8x8 face (`txt_g8_*`), a PPM dump, a software window (`gfx_open`, `gfx_present`, `gfx_poll`, `gfx_mouse_*`) and an OpenGL window. | Low level: one global surface, no clip stack, no text measuring beyond `txt_g8_width`. |
 
 The same tiler exists three times: in `build-scene.mjs` (JavaScript), in idml's
 id backend, and in idem's loader (read, not measured with `dupscan`).
@@ -356,12 +356,12 @@ fonts available, and what each costs:
 
 | face | where | fit |
 | --- | --- | --- |
-| 8x8 bitmap, integer magnification | `idstd/gfx/plane/txt` (`txt_g8_draw`, `txt_g8_width`) | pure `id`, exact, trivially testable, ASCII only, steps of 8 px. `1.45vw` of 640 is 9.3 px: round to 1x or 2x. Not behind the seam any more |
+| 8x8 bitmap, integer magnification | `idstd/kit/media/font/bitmap` (`txt_g8_draw`, `txt_g8_width`) | pure `id`, exact, trivially testable, ASCII only, steps of 8 px. `1.45vw` of 640 is 9.3 px: round to 1x or 2x. Not behind the seam any more |
 | IBM VGA 8x16 (PSF) | `idem/engine/gfx/d2/text`, loader at `engine/game/load/asset/fmt/font/psf.id` | same properties, taller, a loader exists |
 | TrueType, anti-aliased | `idstd/kit/media/font/ttf` (`ttf_open`, `ttf_glyph`, `ttf_advance`, `ttf_kern`, `ttf_render_at`, `ttf_px`) | real sizes, real widths, kerning (GPOS and kern), exact-area coverage for blending at whole or sub-pixel positions, any number of faces; no hinting, CFF outlines refused with a status. A face is a list; the font layer keeps the faces and a glyph cache. **The face behind the seam** |
 
 **Decided (Fork 2): the editor's TrueType stack is the face**, and it is now behind the seam: the
-layer in `idstd/gfx/kit/gui/font/` (`NAMES.md` 1.21) opens a family by name against the machine's own
+layer in `idstd/kit/media/font/` (`NAMES.md` 1.21) opens a family by name against the machine's own
 fonts, and draws anti-aliased glyphs with kerning, UTF-8 text and a glyph cache over `ttf_`.
 
 **The font layer** (`gui_font_init()` once, then):

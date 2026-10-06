@@ -36,16 +36,13 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `idstd/core/fmt` | 95 | 243 | 668 | 0 | 0 |
 | `idstd/core/math` | 21 | 54 | 136 | 0 | 0 |
 | `idstd/core/text` | 80 | 204 | 588 | 0 | 0 |
-| `idstd/gfx/kit` | 433 | 1103 | 3373 | 0 | 0 |
-| `idstd/gfx/plane` | 5 | 10 | 22 | 0 | 0 |
-| `idstd/gfx/px` | 11 | 28 | 76 | 0 | 0 |
+| `idstd/gfx/kit` | 336 | 842 | 2630 | 0 | 0 |
 | `idstd/host/dev` | 131 | 263 | 549 | 1 | 0 |
 | `idstd/host/io` | 56 | 100 | 216 | 0 | 0 |
 | `idstd/host/num` | 1 | 3 | 6 | 0 | 0 |
 | `idstd/host/os` | 35 | 64 | 144 | 0 | 0 |
 | `idstd/kit/app` | 11 | 30 | 76 | 0 | 0 |
-| `idstd/kit/media` | 85 | 206 | 833 | 0 | 0 |
-| `idstd/sys/os` | 8 | 23 | 48 | 0 | 0 |
+| `idstd/kit/media` | 206 | 528 | 1722 | 0 | 0 |
 | **all** | 6777 | 16815 | 39403 | 47 | 139 |
 | of which idstd | 1017 | 2449 | 7024 | 1 | 0 |
 
@@ -76,16 +73,13 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `idstd/core/fmt` | 0 | 0 | 145 | 81 | 17 |
 | `idstd/core/math` | 0 | 0 | 34 | 18 | 2 |
 | `idstd/core/text` | 0 | 0 | 137 | 38 | 29 |
-| `idstd/gfx/kit` | 0 | 0 | 637 | 318 | 148 |
-| `idstd/gfx/plane` | 0 | 0 | 9 | 1 | 0 |
-| `idstd/gfx/px` | 0 | 0 | 19 | 7 | 2 |
+| `idstd/gfx/kit` | 0 | 0 | 484 | 237 | 121 |
 | `idstd/host/dev` | 1 | 0 | 245 | 15 | 2 |
 | `idstd/host/io` | 0 | 0 | 86 | 14 | 0 |
 | `idstd/host/num` | 0 | 0 | 3 | 0 | 0 |
 | `idstd/host/os` | 0 | 0 | 54 | 8 | 2 |
 | `idstd/kit/app` | 0 | 0 | 23 | 5 | 2 |
-| `idstd/kit/media` | 0 | 0 | 72 | 73 | 61 |
-| `idstd/sys/os` | 0 | 0 | 21 | 2 | 0 |
+| `idstd/kit/media` | 0 | 0 | 274 | 164 | 90 |
 | **all** | 186 | 0 | 13669 | 2273 | 687 |
 | of which idstd | 1 | 0 | 1579 | 598 | 271 |
 
@@ -116,18 +110,15 @@ A distribution, not a mean: a mean of two is met by one function with many cases
 | `idstd/core/fmt` | 0 | 3 | 2 | 1 | 16 | 4 |
 | `idstd/core/math` | 0 | 1 | 1 | 3 | 7 | 0 |
 | `idstd/core/text` | 0 | 2 | 1 | 5 | 8 | 0 |
-| `idstd/gfx/kit` | 6 | 10 | 6 | 0 | 54 | 3 |
-| `idstd/gfx/plane` | 0 | 1 | 1 | 1 | 0 | 0 |
-| `idstd/gfx/px` | 1 | 3 | 2 | 0 | 0 | 0 |
+| `idstd/gfx/kit` | 1 | 9 | 6 | 0 | 27 | 3 |
 | `idstd/host/dev` | 0 | 3 | 3 | 0 | 8 | 0 |
 | `idstd/host/io` | 0 | 2 | 2 | 0 | 2 | 5 |
 | `idstd/host/num` | 0 | 0 | 0 | 0 | 0 | 0 |
 | `idstd/host/os` | 0 | 2 | 1 | 0 | 7 | 0 |
 | `idstd/kit/app` | 0 | 2 | 2 | 0 | 1 | 0 |
-| `idstd/kit/media` | 0 | 3 | 3 | 0 | 24 | 0 |
-| `idstd/sys/os` | 0 | 3 | 3 | 0 | 0 | 0 |
-| **all** | 180 | 15 | 6 | 417 | 929 | 371 |
-| of which idstd | 7 | 10 | 3 | 13 | 144 | 12 |
+| `idstd/kit/media` | 0 | 3 | 3 | 1 | 51 | 0 |
+| **all** | 174 | 15 | 6 | 417 | 929 | 371 |
+| of which idstd | 1 | 9 | 3 | 13 | 144 | 12 |
 
 *filler dirs* are directories named more, rest, tail, cont or partN. *depth* is the number of directories between a tree's root and a source file; *median* is the lower median. *silent*, *echo* and *bare* are the cases `mutscore lint` finds that prove nothing (docs/TESTS.md, "Mutation score").
 
