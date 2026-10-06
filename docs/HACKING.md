@@ -85,6 +85,9 @@ recompiled for wasm32-wasi), and `idc/tests/conform.sh`'s wasm lane and
 | emitted C for an expression | `back/tgt/c/emit/prog/code/expr/` |
 | function signatures, forward declarations | `back/tgt/c/emit/prog/code/func/def/` |
 | the exported-global block | `back/tgt/c/emit/prog/head/decl/` (LLVM: `back/tgt/ll/mod/sect/glob/`); which exports survive pruning: `back/drive/run/check/dce/export/keep.id` (which constants: `.../export/live/`) |
+| closures and function values (`bind`, docs/SPEC.md 1.1.1): the type of a `bind` and its checks | `mid/types/check/expr/call/args/err/msg/bind/` (the type is `type.id`; `type_of/call/builtin/poke.id`'s `call_shaped` asks it) |
+| closures and function values: the registry of which (function, values) pairs a unit uses, the C runtime text and the C emitters | `back/tgt/c/runtime/closure/` (`fv.id` the registry, `c/` C: runtime text, `bind`, a call through a value, the adapters and objects written at the unit's end) |
+| closures and function values on the LLVM target: lowering a `bind`, a reference and a call, and the adapters | `back/tgt/c/runtime/closure/ll/` (`ir/` the IR, `mod/` the module's text); the call through a value is `back/ir/build/expr/call/more/arg/ty/more/fpty.id`, a function named as a value `back/ir/build/expr/atom/lit/more/fnref.id` |
 | the C type spelling of an id type | `back/tgt/c/emit/prog/code/func/ctype/type_column.id` |
 | where emitted code leaves the compiler | `back/drive/sink/emit_line.id` |
 | the C runtime prelude | `idc/compiler/parse/back/tgt/c/runtime/prelude.id` (external linkage: `extern.id`), hand-maintained |

@@ -737,7 +737,7 @@ Each row was run (`scratch/gaps`: a C file and a 15-line report program; the num
 
 | C feature | what id can express | what it cannot | workaround and its cost |
 |---|---|---|---|
-| **Callbacks** | `func(...) return R` becomes a C function pointer: `apply2(inc1, 3)` = 5; the parameters may be `int`, `word`, `float`, `string` and `int[]` (`func(string)` = 5 for "hello", `func(word)` = 42, `func(float)` = 2.5, `func(int[])` = 3). C may keep the pointer and fire it from a later native (41 gave 42). State lives in an exported list: `each(4, addacc)` summed 0..3 and left 4 entries. | A closure: an id function captures nothing, and a C API with a `void* user_data` has no place to put it. A callback whose C signature takes pointers (`qsort`'s comparator takes `const void*`). And: a callback that calls `alloc` can move the flat store while C holds a span; measured, the span's address changed (1). | A trampoline shim: for `qsort` over the store, a 14-line C file with a static function pointer and a comparator that reads the two elements and calls the id function (sorted `3 9 1 7 5` to `9 7 5 3 1`). One shim per callback shape. C must never hold a span across a call back into id. |
+| **Callbacks** | `func(...) return R` becomes a C function pointer: `apply2(inc1, 3)` = 5; the parameters may be `int`, `word`, `float`, `string` and `int[]` (`func(string)` = 5 for "hello", `func(word)` = 42, `func(float)` = 2.5, `func(int[])` = 3). C may keep the pointer and fire it from a later native (41 gave 42). State lives in an exported list: `each(4, addacc)` summed 0..3 and left 4 entries. | A closure to C: `bind` (docs/SPEC.md 1.1.1) makes closures, but one is an id object with no C function pointer, so a plain function crosses and a closure passed to a native traps (`id: a closure cannot be passed to a native`); a C API with a `void* user_data` still has no place to put id state. A callback whose C signature takes pointers (`qsort`'s comparator takes `const void*`). And: a callback that calls `alloc` can move the flat store while C holds a span; measured, the span's address changed (1). | A trampoline shim: for `qsort` over the store, a 14-line C file with a static function pointer and a comparator that reads the two elements and calls the id function (sorted `3 9 1 7 5` to `9 7 5 3 1`). One shim per callback shape. C must never hold a span across a call back into id. |
 | **Structs by value** | An id struct arrives as `IdList*`, one 8-byte cell per field in order: an `int` as itself, a `float` as the bits of a double, a `string` as a pointer, a `word` as itself (checked with `{float, string, word}`). A shim can read it: `{7, 3}` gave 703. | C returning a struct, or taking a C struct from a library that fills it: id has no way to make one, and the runtime's list constructor is `static`. A C `struct` in a library's own layout (`z_stream`, `gz_header`) cannot be declared at all. | Pass the fields as scalars and let the shim assemble the struct; keep a library-owned struct behind a handle created and filled by shim functions. The layout is the runtime's and is not documented as an interface: `IdList` is copied into three backends today. |
 | **Lists out of C** | A caller-sized list filled by C: `gp_fill([0,0,0,0])` wrote 0 1 4 9. A list returned from C can be read (length 3, first 5). | C cannot grow a list it was given (a request for 8 cells on a 2-cell list can only answer -1). A list C returns is copied into a runtime-owned list at the call (`id_list_adopt`), so `push` on it works; the copy is shallow, an alias C handed back becomes a copy, C still owns and frees its original, and a negative length traps. | Size the list from id and return counts where C should write into id's list; a returned list is safe but costs a copy. |
 | **Varargs** | Nothing: a native has a fixed arity. `hdr2id` reports 1 of zlib's 88 functions (`gzprintf`) and 6 of SQLite's 295. | Calling `printf`-style functions with an id-chosen shape. | One shim and one native per call shape, with the format string fixed in the shim, never forwarded from id (`gzprintf(f, "%s=%d\n", label, n)` as `native zh_printf_si(int file, string label, int n)`). `gzputs` already covers the plain-text case. |
@@ -1056,9 +1056,10 @@ program. Each of these was written once in `idstd` so the six scripts share it.
   reports" is split in two. A case cannot name a `conf.id` constant, a
   computed string or a function's return in its expected value, so a test that
   needs a random scratch path exports it and checks through a function.
-- **A function value carries no state**, so the generic sort takes its keys
-  from an export and its comparator reads that export (`idstd_ord_ik`).
-  Closures would remove an export and a fixture from every comparator.
+- **A function value carried no state** (resolved: `bind`, SPEC.md 1.1.1), so the
+  generic sort took its keys from an export and its comparator read that export
+  (`idstd_ord_ik`). A comparator is now `bind(idstd_ord_gt_int, keys)`, and no
+  export or fixture exists for it.
 - **`len(s)` is a `strlen`** and `charat` memoises one string, which the code has
   to be written around: a loop `while (i < len(s))` is quadratic and nothing
   warns.
@@ -1155,12 +1156,13 @@ Each of these is a design question, left open.
   restructure ([`WORD.md`](WORD.md) 5.2) gives `core/` and `core/data/` room and
   the modules move (names do not change); or a rule that an `idstd` addition
   names its home before it is written.
-- **Closures or a keyed `sort`.** A comparator that cannot carry its keys forced
-  an export per sort and a fixture per comparator (`idstd_ord_gt_int`,
-  `idstd_ord_ik`). Options: function values that capture a list (a language
-  change); keep the export pattern; or give the sort the key list as a
-  parameter of the comparator's type (`func(int[], int, int) return int`),
-  which fixes ints and not strings.
+- **Closures or a keyed `sort`** (resolved: closures). `bind(f, v1, ...)` makes a
+  `func` value that captures by value, immutably (SPEC.md 1.1.1). Measured on
+  `idstd` ord (`core/data/psf/glue/ord`): 187 to 179 lines, 18 to 16 functions,
+  39 to 35 case lines, 5 exports to 0. Measured on `trials/csvq` `app/cmd/order`:
+  191 to 108 lines, 19 to 11 functions, 54 to 31 case lines, 7 `sp_` constants
+  in `conf.id` to 0. Still open: a `thr_map` of a closure is refused (THREADS.md
+  item 9), and a closure given to a native traps (SPEC.md 8).
 - **`hmap_` as a struct.** `Zip` shows structs work in `idstd`. Moving the table
   to one would cut about 40 per cent of the parameters in (a), (c) and (e).
   That is an `idstd` API break (NAMES.md section 0 promises none).

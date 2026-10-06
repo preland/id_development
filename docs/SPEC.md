@@ -100,9 +100,10 @@ everywhere in its unit, as every name does (§1).
 
 **The values.** A value of a function type is a named top-level function
 written in `id` -- one of the program's, the standard library's, or a `native`
-declaration. Nothing else is: there are no lambdas, no closures and no partial
-application, and a builtin (`print`, `len`, ...) or an `asm` function is not a
-value. A function's name where a value is expected denotes that function, and
+declaration -- or a closure that `bind` makes from one (§1.1.1). Nothing else
+is: there are no lambdas, and a builtin (`print`, `len`, ...) or an `asm`
+function is not a value. A function's name where a value is expected denotes
+that function, and
 its signature must be the type exactly: the same parameter types in the same
 order and the same return type. There is no conversion between function types;
 `func(int) return void` does not accept a function taking a `word`.
@@ -177,14 +178,183 @@ variable's position, like any other use of it, so renaming the parameter does
 not make a second function. A function named as a value is reachable exactly as
 a called one is: it is emitted, and an export it declares is live.
 
-**On the targets.** The C target spells a function type as a pointer to
-function through `__typeof__` -- `__typeof__(void (*)(int)) step` -- names a
-function value `id_NAME`, and calls through the variable, whose prototype
-converts the arguments. The LLVM target, `--freestanding` included, spells it
-`ptr`, names a function value by its symbol (`ptr @id_tick`) and calls through a
-loaded pointer (`call void %v7(i32 16)`), converting each argument to the
-parameter type the function type spells. WASM does not have function values
-(§11, S12).
+**On the targets.** A function value of either kind is a pointer to an object
+(§1.1.1 says what is in it). The C target spells every function type `IdFn*`,
+names the object of a plain function `ID_FNV(tick__0)`, and calls through the
+variable by casting the object's `fn` to the function's signature, with the
+object first, so each argument converts to the parameter type the function type
+spells -- `((void (*)(IdFn*, int))step->fn)(step, 16)`. The LLVM target,
+`--freestanding` included, spells it `ptr`, gets the object of a plain function
+from the runtime (`call ptr @id_fn_plain(ptr @idfn_a_tick__0, ptr @id_tick)`) and
+calls through the adapter the runtime reads from the object (`%f = call ptr
+@id_clo_fn(ptr %v5)`, then `call void %f(ptr %v5, i32 16)`), converting each
+argument likewise. `--target wasm` is the C target's C, so it is the same.
+
+### 1.1.1 Closures: `bind`
+
+A function value carries no state, so "sort these rows by column `n`", with `n`
+known only at run time, used to need an export for `n` and a fixture in every
+case of every function that touched it. `bind` makes a function value that
+carries values.
+
+```
+cmp_col(int n, int[] a, int[] b) {
+  int c = a[n] < b[n];
+} return int c;
+
+sorted_by(int[][] rows, int n) {
+  func(int[], int[]) return int lt = bind(cmp_col, n);
+  int[][] out = sort_rows(rows, lt);
+} return int[][] out;
+```
+
+**The form.** `bind(NAME, v1, ..., vk)`, with `k >= 1`. `NAME` is the name of a
+function written in `id` (a function of the program, of the standard library, or
+a `native` declaration): the same names §1.1 lets stand as a value. It is
+partial application: the values fix the function's **leading** `k` parameters,
+and the result is a value that takes the rest. If `NAME` is `func(P1, ..., Pn)
+return R`, then `bind(NAME, v1, ..., vk)` has the type `func(Pk+1, ..., Pn)
+return R`; with `k = n` it takes nothing, `func() return R`. A value `vi` must
+fit `Pi` exactly as an argument fits a parameter, narrowing rule included (§1).
+`bind` is a builtin name, so a function cannot be called `bind`. It is an
+expression, so the calling rules of §7.1 apply to it as to any call: it nests
+one level inside an argument and its own values are names, literals and
+operators, not further calls.
+
+**Why a named function and not a lambda.** Both were weighed. An anonymous
+function would put a function inside a function: its body would be a block
+counted against the enclosing function's three actions or exempt from them; it
+would have no name, so the two cases every function owes and the
+duplicate-logic rule would have nothing to be attached to; and it would capture
+whatever variables it happened to mention, so what a closure holds would be
+read off its body rather than off the line that creates it. Partial application
+has none of those problems. The function stays a top-level, named, tested,
+uniqueness-checked unit (`cmp_col` above has its two cases and is callable on
+its own: `(0, [1], [2]):(1)`); what is captured is the list of values written on
+the `bind` line, in the order of the leading parameters; and the rules need no
+new exception. The price is that the captured values must be the function's
+leading parameters, so a function meant to be bound declares them first.
+
+**What is captured.** The values are evaluated once, left to right, when the
+`bind` runs, and what the closure holds is fixed from then on. Nothing the
+closure holds changes when the variables it was made from do, and a closure has
+no way to change what it holds.
+
+| a value of type | what the closure holds | immutable because |
+| --- | --- | --- |
+| `int`, `word`, `float` | the value | it is a value |
+| `string` | the same string | a string is immutable (§4) |
+| `int[]`, `word[]`, `float[]`, `string[]` | **a copy**: a new list of the same elements, made when `bind` runs and then locked | locking is the §8 constant-list lock: a `push`, `pop` or index assignment on it, anywhere, is the trap `id: cannot mutate a constant list`. The caller's own list is untouched, so later writes to it are not seen by the closure and the closure's calls cannot write to it |
+| `func(...)`, a plain function or another closure | the same value | a function value is immutable |
+
+A list is copied one level, so the copy of a `string[]` shares its strings
+(immutable) and nothing else. A **list of lists, a list of function values, and
+a struct** cannot be captured: an element that is itself a list or a struct is a
+reference, so a copy would share it with its owner and the closure would be
+neither a copy nor immutable. `bind(f, rows)` for a `int[][]` is the error `'bind' cannot capture ... a list of lists`; the fix is to capture the one
+row, or to flatten the rows into one list and capture that. (A deep copy was
+the other option and was refused: it makes `bind` cost the size of the data
+every time, which is the thing a comparator closure made once per sort and
+called n log n times must not do.) A function whose captured parameter is a
+list may read it freely: `a[i]`, `len(a)` and passing it to a function that
+only reads it all work, and writing it traps as above.
+
+**Freeing.** A closure is a block of the same kind as a string or a list, made
+by the runtime allocator, and so is each list copy it holds. In this slice they
+are released with the rest of the program's blocks at exit (§6 and
+docs/MEMORY.md): the escape analysis does not yet prove a closure local dead,
+and the free of a list is never based on a closure. What `bind` does not do is
+keep a reference to the caller's lists: a list handed to `bind` is **copied**,
+so the analysis treats the position as one that does not keep it, and the caller
+may still free its own list when it can prove it dead.
+
+**The type.** A closure has the type `func(...) return R` of §1.1, not a new
+one: `bind(cmp_col, n)` and a plain function `by_first(int[], int[]) return
+int` are both `func(int[], int[]) return int`, so everything that accepts one
+accepts the other, and a call through either is `f(a, b)`. Where a function
+value may be, a closure may be (a parameter, a local, an export read with
+`(import NAME)`), and where it may not (an operand, a list element, a return
+type, a builtin's argument) it may not be either. Nothing in the type says
+whether a value is plain or closed over: that is what lets a library take a
+callback and leaves the caller free to choose.
+
+**What the compiler says.**
+
+| written | error |
+| --- | --- |
+| `bind(inc)` | `'bind' takes the name of a function and at least one value to capture: write bind(NAME, value, ...); with no value to capture, NAME alone is already a function value` |
+| `bind(3, 4)` | `'bind' takes the name of a function written in id as its first argument, but it is a int; write bind(NAME, value, ...)` |
+| `bind(step, 4)` where `step` is a `func(int) return void` variable | `'bind' takes the name of a function written in id, but 'step' is a variable of type func(int) return void; bind the function by its own name where it is known, or pass 'step' on unchanged` |
+| `bind(len, xs)` | `'bind' cannot bind 'len': it is a builtin, not a function defined in id; write a function that calls 'len' and bind that` |
+| `bind(inc, 1, 2)` where `inc` has one parameter | `'bind' gives 2 values to 'inc', which takes 1 parameter(s); bind fixes the leading parameters, so give at most 1` |
+| `bind(inc, "x")` | `'bind' value 0 for 'inc' expects int, got string` |
+| `bind(inc, w)` with a `word` | `'bind' value 0 for 'inc' narrows word to int; declare a int local and pass that` |
+| `bind(f, rows)` with `rows` an `int[][]` | `'bind' value 0 for 'f' cannot be captured: it is a int[][], a list whose elements are themselves lists or structs, so a copy would still share them; capture a list of ints, words, floats or strings (one row, or the rows flattened into one list)` |
+| `bind(f, p)` with `p` a `Point` | `'bind' value 0 for 'f' cannot be captured: it is a Point, a struct, which is a reference the closure would share with its owner; capture the fields it needs as separate values` |
+| a closure where a function value may not be | the messages of §1.1, unchanged: they name the type |
+
+**Uniqueness and reachability.** `bind(NAME, ...)` names `NAME` as a called
+function is named: it is in the fingerprint the duplicate-logic rule compares
+and it makes `NAME` reachable. Two functions that differ only in which function
+they bind are different logic; the values bound are positions like any other
+argument, so renaming a local does not make a second function.
+
+**In a test case.** A closure is built where a function value is, and a case
+can give one in two ways. Through a setup, as for any function value:
+`given mk() (cl)`, where `mk` stores `bind(...)` in an export and the case
+passes `(import cl)`. Or directly, anywhere a position of a function type
+takes a function's name (docs/TESTS.md): `(bind(cmp_col, 1), ...)`, whose
+values are case literals. A closure compares by what it holds: two are equal
+when they are the same function with the same number of captured cells and the
+cells hold the same bits; a captured string is the same pointer only when it is
+the same literal, and a captured list is always a fresh copy, so a case that
+restates a closure capturing a list or string on an `EXPECTED` side
+cannot match -- write the case on the function's return value instead (the
+expected tuple may stop before the closure's parameter).
+
+**Across a boundary.** A closure is an `id` object, so it does not cross into
+code that is not `id`:
+
+- `--lib` and a library's C header refuse a `func(...)` parameter already
+  (docs/INTEROP.md); that is unchanged, and there is no way for C to hold a
+  closure.
+- A `native`'s `func(...)` parameter is a C function pointer. A **plain**
+  function passed there still is one. A **closure** has no function pointer to
+  give, so passing one traps (§8): `id: a closure cannot be passed to a native:
+  it takes a plain function pointer; pass the function by name, or give the
+  native the values another way`. The check is at the call, on the value, so
+  it is a trap and not a compile error: the compiler cannot see, through a
+  parameter of function type, which kind arrived.
+- `thr_map` is such a native: **a closure to `thr_map` traps in this slice.**
+  The reason is not the data: a closure's captured values are immutable and
+  copied, which is exactly what a pure function run on several threads may
+  read. The native is a C function that would have to call `f` with the closure
+  as its first argument, and that is a change to `thr_run`'s C ABI, which
+  docs/INTEROP.md documents as a plain pointer. It is recorded as a fork in
+  docs/THREADS.md.
+- `--target wasm` is the C target's output compiled for wasm32-wasi, so closures
+  are the same there; the JavaScript and WASM exports (`jsbind`, `wlgen`) take
+  scalars, strings and lists only and are unchanged.
+
+**On the targets.** Every function value is a pointer to an object of one
+layout, whether it is plain or a closure: a code pointer `fn` (a function that
+takes the object first, then the closure's remaining parameters), a pointer
+`raw` to the function itself (null for a closure), a count `n` of captured
+cells, and the cells, 8 bytes each, as a list cell is. A plain function used as
+a value is a constant object with `n = 0` that the translation unit defines once
+(`idfn_o_NAME__0`); `bind` allocates a new object and copies `n` and `fn` from
+the constant template of its (function, number of values) pair
+(`idfn_o_NAME__K`), then fills the cells. Calling `f(a, b)` loads `f->fn` and
+calls it with `f` and the arguments. `fn` is a small generated function per
+(function, number of values) that unpacks the cells and calls the real function
+with them in front, so the real function is an ordinary function with ordinary
+parameters and nothing in it knows it was bound. The unit defines these at its
+end, for exactly the pairs its code used. The LLVM target holds an object as
+`ptr` and never looks inside one: its module defines only the adapters, and the
+runtime makes objects and reads their cells (`id_fn_plain`, `id_clo_make`,
+`id_clo_set`, `id_clo_cell`, `id_clo_fn`), so the layout above is the C
+runtime's and `tools/idrun`, which runs the same module, keeps an object as one
+of its own lists.
 
 ### 1.2 Structs
 
@@ -849,6 +1019,7 @@ catchable; `id` has no exceptions.
 | list index outside the list | `id: index N out of bounds (len M)` |
 | `pop` of an empty list | `id: pop from empty list` |
 | mutating a conf.id list constant (`push`, `pop`, index-assignment) | `id: cannot mutate a constant list` |
+| a closure (§1.1.1) passed to a `native`'s `func(...)` parameter | `id: a closure cannot be passed to a native: it takes a plain function pointer; pass the function by name, or give the native the values another way` |
 | flat-store access outside the store | `id: store address N out of range (size M)` |
 | a list grown past its capacity limit | `id: list capacity overflow` |
 | a size computation that overflows | `id: allocation size overflow (WHAT)` |
@@ -1009,5 +1180,7 @@ statement that needed sequencing.
 `idc/tests/conform/order/` holds the cases, now passing on all three targets.
 
 | **S12** | **Function values (§1.1) on WASM.** This row said they were missing because the WASM target was then built by the deleted `idc.py`. `idc/bin/idc` now builds wasm from the C target's C, which has them; `idc/tests/conform.sh` prints any remaining `wasm:fn` gap under "gaps". | WASM |
+
+| **S13** | **Closures (§1.1.1) on `--freestanding`.** The runtime written in `id` has the calls a module makes (`clo_make`, `clo_set`, `clo_cell`, `clo_fn`, `fn_plain`, `fn_raw`, `clo_copy`; `idc/runtime/mem/clo/`), and a program that binds builds and links. Two things differ from the hosted runtimes, both for want of a place to trap to: the list a closure captures is not locked, so a write to it is unchecked (as it is for every list constant there, §8), and a closure given to a native's function-pointer parameter reaches it as a null rather than stopping the program. A `float` captured needs `id_box_f`, which that runtime does not define for a list either. | freestanding |
 
 `docs/BACKENDS.md` is the plan for the compiler restructuring these imply.

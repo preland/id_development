@@ -293,15 +293,42 @@ the free-the-replaced-value rule the slice already emits for locals.
 
 ### 3.5 Function values
 
-Function values are named top-level functions (SPEC section 1.1): no closures, no
-partial application, so a function value **captures nothing**. That removes the
-hardest part of the problem in most languages. What remains is a call through a
-value: the callee is unknown at the call site. Because a function value can only
-be a name written at a line the compiler can find, the set of functions a given
-function *type* can denote is finite and known (the named functions of that
-type that occur as values). A call through a value can therefore use the
-**meet of those functions' summaries** instead of "keeps everything", which the
-slice uses today (fork F6 asks whether to do the meet).
+A function value is a named top-level function (SPEC section 1.1) or a closure
+`bind` makes from one (SPEC section 1.1.1): a **partial application that copies
+what it fixes**, so a closure captures no variable of the function that made it.
+That keeps the hardest part of the problem out: there is no environment that
+can point into a frame, and nothing a closure holds is shared with a name that
+can change it. What remains is a call through a value: the callee is unknown at
+the call site. Because a function value can only be a name, or a `bind` of one,
+written at a line the compiler can find, the set of functions a given function
+*type* can denote is finite and known. A call through a value can therefore use
+the **meet of those functions' summaries** instead of "keeps everything", which
+the slice uses today (fork F6 asks whether to do the meet).
+
+**What a closure owns, and who frees it.** A closure is one runtime block
+(`id_clo_new`: a header and the captured cells), and each list it captured is a
+copy the runtime made (`id_clo_copy`: a new list of the same cells, locked with
+`id_list_lock`, so a write to it is the trap `id: cannot mutate a constant
+list`). Strings and function values are shared, because they are immutable. All
+of these are ordinary allocator blocks, so they are released with the rest at
+exit; **none is freed earlier in this slice**. The analysis needs no new row
+for them:
+
+| position | keeps `xs`? |
+| --- | --- |
+| a list passed as a value of `bind` | no: `bind` copies it, and `bind` is a builtin, which the table already treats as not keeping |
+| a closure local or parameter | it is not a list, so it is neither owned nor freed |
+| a call through a closure | the same row as a call through any function value: keeps its arguments |
+
+What it would take to free a closure's blocks early is the same thing it takes
+for a string (section 3.3): proving the value fresh and dead. A closure is the
+easier case, because it is built in one expression whose every part is a fresh
+block the closure alone holds (`id_clo_copy` is a fresh list), so a local that
+is assigned only from `bind`, and is never returned, exported or passed to a
+callee that keeps it, could free the object and each copied list at its
+function's exit. That is not built, and nothing above depends on it. A closure
+that is stored in an export, or handed to `thr_map`'s worker threads, is never
+a candidate.
 
 ### 3.5b Structs
 
@@ -447,7 +474,7 @@ here.
 | rule | what it gives | where it stops |
 | --- | --- | --- |
 | Single-owner exports, `(import x)[i] = v` rejected | the readers of an export are a syntactic set; the writer is one function | the *values* read are ordinary lists, and a read that binds a name needs the whole section 2 check on that name |
-| No closures, function values are named functions | a call through a value captures nothing; the candidate set is finite | the call site still has to use the set (F6) |
+| Function values are named functions, or a `bind` of one that copies what it holds (SPEC 1.1.1) | a call through a value captures no variable; the candidate set is finite | the call site still has to use the set (F6), and a closure's blocks are not freed early (section 3.5) |
 | 3 actions per block, nesting 2, structured control | a function body is one walk; every exit is syntactic | precision is interprocedural, not local |
 | One type per name per unit | a name identifies a variable in a function; no alias by shadowing | the same name in two functions are two variables, so summaries are keyed by function |
 | Return clause is a name or a literal | the returned value is always a name; `return xs` is one syntactic form | none |

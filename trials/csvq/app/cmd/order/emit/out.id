@@ -16,15 +16,16 @@ srt_out(string[] hdr, string[][] rows, int[] order, int[] o) {
 (["k"], [["a"], ["b"]], [1, 0], [44, 0, 0, 0, 0]):(["k"], [["a"], ["b"]], [1, 0], [44, 0, 0, 0, 0]) then prints:("k\nb\na\n")
 (["k"], [["a"], ["b"]], [1, 0], [44, 0, 0, 1, 0]):(["k"], [["a"], ["b"]], [1, 0], [44, 0, 0, 1, 0]) then prints:("b\na\n")
 
-srt_do(int[] order, string[] sk, float[] nk, int[] o) {
+srt_do(int n, string[] sk, float[] nk, int[] o) {
   int dir = 1 - 2 * o[(import o_desc)];
+  func(int, int) return int gt = bind(srt_gtext, sk, dir);
   if (o[(import o_num)] == 1) {
-    srt_run(order, sk, nk, srt_cnum, dir);
-  } else {
-    srt_run(order, sk, nk, srt_ctext, dir);
+    gt = bind(srt_gnum, nk, dir);
   }
-} return void;
-([0, 1, 2], ["b", "c", "a"], [], [44, 0, 0, 0, 0]):([2, 0, 1])
-([0, 1, 2], ["b", "c", "a"], [], [44, 1, 0, 0, 0]):([1, 0, 2])
-([0, 1, 2], [], [2.0, 10.0, 1.0], [44, 0, 1, 0, 0]):([2, 0, 1])
-([0, 1, 2], [], [2.0, 10.0, 1.0], [44, 1, 1, 0, 0]):([1, 0, 2])
+} chain (int n, string[] sk, float[] nk, int[] o) {
+  int[] order = ord_by(n, gt);
+} return int[] order;
+(3, ["b", "c", "a"], [], [44, 0, 0, 0, 0]):([2, 0, 1])
+(3, ["b", "c", "a"], [], [44, 1, 0, 0, 0]):([1, 0, 2])
+(3, [], [2.0, 10.0, 1.0], [44, 0, 1, 0, 0]):([2, 0, 1])
+(3, [], [2.0, 10.0, 1.0], [44, 1, 1, 0, 0]):([1, 0, 2])

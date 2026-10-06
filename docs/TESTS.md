@@ -446,6 +446,46 @@ harness carries the named function whether or not anything else calls it. It
 adds nothing to `n`. A failing case prints a function value as
 `a function value`: the running harness has the pointer, not the name.
 
+**A closure** (docs/SPEC.md 1.1.1) is a function value too, and a case builds one
+where it is wanted, with `bind` written as a function value's name is, its
+values the literals a case takes anywhere:
+
+```
+by_key(int[] keys, int a, int b) {
+  int r = keys[a] > keys[b];
+} return int r;
+([5, 3], 0, 1):(1)
+([5, 5], 0, 1):(0)
+
+first(func(int, int) return int gt, int a, int b) {
+  int r = a;
+  if(gt(a, b) == 1) {
+    r = b;
+  }
+} return int r;
+(bind(by_key, [5, 3]), 0, 1):(1)
+(bind(by_key, [3, 5]), 0, 1):(0)
+```
+
+`by_key` is tested as the function it is, with its captured parameter as an
+ordinary first argument, which is the reason `bind` binds a *named* function;
+`first` is handed a closure by the second pair. The form is checked like a call:
+the first name must be a function of the build, at least one value must follow,
+and each value must fit the parameter it fixes and be something a closure can
+capture (`this case gives 'f', a func(int) return int, ...`). The function is
+carried into the harness whether or not anything else calls it, like a function
+named as an argument, and it adds nothing to `n`.
+
+A case can also get a closure the way it gets any value a literal cannot spell,
+from a setup that stores `bind(...)` in an export and `(import NAME)`; that is
+what a case needs when it passes the same closure twice, because a closure
+compares equal to itself, to a plain function by its name, and to another
+closure of the same function holding the same cells, but a closure that
+captured a list or a string is never equal to a second `bind` of it, which makes
+its own copy. So a `void` function that is given a closure must restate it on
+the expected side as `(import NAME)`, not as a second `bind(...)`, and a function
+that returns a value need not restate its arguments at all.
+
 **A struct** (docs/SPEC.md 1.2) is written as its constructor, anywhere a value
 of its type may be: an argument, an expected value, a `then` check's value, or a
 setup's argument. Its arguments are case literals in turn, so a field that is a

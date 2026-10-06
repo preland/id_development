@@ -196,6 +196,20 @@ kernel's benefit.
 
 A trap is a `call` to `id_trap`, which the freestanding runtime provides.
 
+**Function values and closures** (`docs/SPEC.md` 1.1.1). A function value is a
+`ptr` to an object the module never looks inside, so the same module runs on
+every runtime, `tools/idrun` included, whatever its object layout is. A function
+named as a value is `call ptr @id_fn_plain(ptr @idfn_a_NAME__0, ptr @id_NAME)`,
+`bind(NAME, v1, ..., vk)` is `@id_clo_make(ptr @idfn_a_NAME__k, i32 k)` and one
+`@id_clo_set(ptr, i32, i64)` per value (a list value first goes through
+`@id_clo_copy`), and a call through a value reads the adapter with
+`@id_clo_fn(ptr)` and calls it with the object first. The module defines the
+adapters, one per (function, number of values) pair it uses: `@idfn_a_NAME__k`
+takes the object and the unbound parameters, reads the bound ones with
+`@id_clo_cell(ptr, i32)` and calls `@id_NAME`. The C runtime these `id_*` names
+come from is `back/tgt/c/runtime/closure/c/`, and a native's function-pointer
+parameter is given `@id_fn_raw(ptr)`, which stops a closure.
+
 **String layout.** A `string` is a `ptr` to NUL-terminated bytes with the byte
 count in the `size_t` just before them (`docs/MEMORY.md`, F2e). A literal is a
 private global holding `<{ i64, [n x i8] }>` plus a private alias for the

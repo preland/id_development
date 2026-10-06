@@ -308,6 +308,21 @@ an impure one. Ordered by how much each blocks:
    there.
 8. **A conformance case.** `idc/tests/conform/` has no case for threads; one should
    assert `thr_map == thr_map_serial` for several thread counts on every target.
+9. **Closures (`bind`, docs/SPEC.md 1.1.1) and `thr_map`.** A closure's captured
+   values are copied at `bind` and immutable (a captured list is locked), which
+   is exactly what a pure function run on several threads may read, so the data
+   is not what stops `thr_map(bind(f, keys), n, t)`. What stops it is the
+   native: `thr_run` takes a C function pointer, a closure has none, and
+   passing one traps (`id: a closure cannot be passed to a native`). The
+   workers' arenas are not a problem either, because a worker only reads the
+   caller's blocks, which nothing frees while `thr_map` waits. **Design fork:**
+   (i) leave it, so `thr_map` takes plain functions only and a program with
+   state passes it through an export, as before; (ii) give `thr_run` the object
+   and call `f->fn(f, i)` from C, which changes the one documented C ABI of a
+   `func` parameter (docs/INTEROP.md) for this native only, by declaring it with
+   a different type than `func`; (iii) add `thr_map_clo(f, n, t)` beside it,
+   which hands C the object, so the plain-pointer contract of every other native
+   is untouched. (iii) is the smallest and keeps the contract; the user decides.
 
 ## 6. Measurements
 
