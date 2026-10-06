@@ -69,6 +69,13 @@ these places. This is the
 same strictness `xs[a]` has always had, which used to look inconsistent with
 both of the others.
 
+**A variable name has one type across the whole program.** Every parameter and
+local of that name, in every function and every imported tree, has the same
+type, and so does the standard library's: a program's `string n` is an error
+when the library declares an `int n` anywhere, loaded or not (E0303, at the
+program's declaration, with the library's as the related location). Exports are
+outside the rule, being one global each.
+
 ### 1.1 Function values
 
 A library sometimes needs code from its user: an engine runs a frame by calling
@@ -96,7 +103,7 @@ the return type: `func(int) return int[]` returns a list. `func` is a keyword
 and cannot be a name. However it is spaced, a function type is one type: two
 spellings are the same type exactly when they list the same types in the same
 order, and a name that is a function type in one place has that same type
-everywhere in its unit, as every name does (§1).
+everywhere in the program, as every name does (§1).
 
 **The values.** A value of a function type is a named top-level function
 written in `id` -- one of the program's, the standard library's, or a `native`
@@ -401,7 +408,7 @@ cannot be named like a function or a builtin, because `Point(1, 2)` and
 `point(1, 2)` are told apart by looking the name up. Field names live in the
 struct's own namespace: `p.x` and `s.x` may have different types, and a field
 may share a name with a variable or an export. Variables keep the rule of §1:
-a name has one type across a unit, so `Point c` in one function and `Conn c` in
+a name has one type across the program, so `Point c` in one function and `Conn c` in
 another is an error.
 
 **Constructing.** `Point(1, 2)` builds a struct, one value per field, in

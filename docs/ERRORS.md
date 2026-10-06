@@ -337,6 +337,23 @@ A name keeps one type across the whole program, so one name always means one
 kind of value wherever a reader meets it. Two functions may each have a local
 called `total`, but only if both are `int`.
 
+The whole program is one scope: its own tree and every tree it imports. The
+standard library is in it too. A name the library also declares has the
+library's type, so a variable of yours named like one of the library's and
+typed differently is reported at your declaration, with the library's as the
+related location. The library's declaration cannot change with your program;
+rename yours. A build that loads only the functions it reaches reports the same
+pair as one that loads the whole library, because the library's index records
+every variable it declares and its type.
+
+```text
+app.id:3: error: variable 'n' is declared string here but int in the standard library [E0303]
+  at: n
+  why: a name must keep one type across the whole program, the standard library included, so that one name always means one kind of value wherever it appears
+  help: rename this variable so that it differs from the library's; the library's declaration is the one that cannot change
+  related: idstd/core/num.id:12: note: the standard library's declaration, which is int
+```
+
 Incorrect:
 
 ```id
@@ -533,6 +550,39 @@ main(int argc, string[] argv) {
 } return int depth;
 ```
 
+## E0310 a parameter with a generated name
+
+A parameter named for how it was made, not for what it holds, carries that
+spelling into every caller that reads it. The spellings are `_v` or
+`_v<digits>` (what `--fix` names a call it hoists into a local) and the
+`ret_i`, `ret_s`, `ret_li` family of return locals. Rename the parameter to what
+it holds, in the signature and at every use in the body. A local with such a
+name is not reported: it never leaves its function.
+
+Incorrect:
+
+```id
+helper(int asset_at_v) {
+  int total = asset_at_v + 1;
+} return int total;
+
+main(int argc, string[] argv) {
+  int n = helper(argc);
+} return int 0;
+```
+
+Correct:
+
+```id
+helper(int asset) {
+  int total = asset + 1;
+} return int total;
+
+main(int argc, string[] argv) {
+  int n = helper(argc);
+} return int 0;
+```
+
 ## E0401 two functions with one name
 
 A function is called by its name alone, so a name can mean only one function.
@@ -675,6 +725,45 @@ main(int argc, string[] argv) {
   int a = use(1, 3);
   int b = use(1, 4);
   print("" + a + " " + b);
+} return int 0;
+```
+
+## E0406 a function that only forwards to another
+
+A function whose whole body is one call to another function, passing its own
+parameters unchanged and in the same order and returning the result, adds a name
+to read and a call to follow and says nothing the target does not. Delete it and
+call the target at every site that called it; test cases the forwarder carried
+move onto the target. Not reported: `main`, a `native`, a function read as a
+function value somewhere in the program (it may exist to adapt to a `func(...)`
+type), and a function whose signature differs from its target's, which adapts
+rather than forwards.
+
+Incorrect:
+
+```id
+callee(int x) {
+  int y = x * 2;
+} return int y;
+
+forwarder(int x) {
+  int z = callee(x);
+} return int z;
+
+main(int argc, string[] argv) {
+  int n = forwarder(argc);
+} return int 0;
+```
+
+Correct:
+
+```id
+callee(int x) {
+  int y = x * 2;
+} return int y;
+
+main(int argc, string[] argv) {
+  int n = callee(argc);
 } return int 0;
 ```
 
@@ -1216,7 +1305,7 @@ inner(int x) {
 } return int y;
 
 pure outer(int x) {
-  int y = inner(x);
+  int y = inner(x) * 2;
 } return int y;
 
 main(int argc, string[] argv) {
@@ -1232,7 +1321,7 @@ pure inner(int x) {
 } return int y;
 
 pure outer(int x) {
-  int y = inner(x);
+  int y = inner(x) * 2;
 } return int y;
 
 main(int argc, string[] argv) {

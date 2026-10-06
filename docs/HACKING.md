@@ -135,7 +135,7 @@ The friction that used to make people give up and edit `idc.py` instead:
 - **A block may perform 3 actions.** Adding a call to an existing function
   often means finding one with a free slot, or splitting it. Look for a
   function that already does 2 things before inventing a new one.
-- **A name has one type per compilation unit**, and this tree is one unit.
+- **A name has one type across the whole program**, the standard library included.
   `int r`, `string s`, `int i`, `int[] pos` are the established vocabulary;
   reusing them costs nothing and inventing a synonym may collide.
 - **Two functions may not share a signature and a body** up to renaming. If a

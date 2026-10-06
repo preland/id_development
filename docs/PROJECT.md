@@ -299,51 +299,51 @@ caesar/dead.id:1: error: a block in 'never_called' performs 4 actions; the
 That is deliberate — code that stopped being checked because nothing called it
 is how a library rots.
 
-### Decomposition warnings
+### Decomposition errors
 
-Two more things are reported, but a build with one still succeeds — they are
-**warnings**, `FILE:LINE: warning: ...` on stderr, both from a normal build and
-from `--check`. Each is a shape the 3-action and 3-function limits produce
-often enough, once code is split to fit them, that it is worth naming rather
-than leaving for a reader to notice by hand.
+Two more shapes are errors, `FILE:LINE: error: ...` with a code, from a normal
+build and from `--check`. Each is a shape the 3-action and 3-function limits
+produce often enough, once code is split to fit them, that it is named rather
+than left for a reader to notice by hand. `id` has no warnings: a shape is
+allowed or it is an error, and each of these has a fix that is always available.
 
-**A pure forwarder** — a function whose body is exactly one statement that
-calls another function with its own parameters, all of them, unchanged, in
+**A pure forwarder** (E0406) — a function whose body is exactly one statement
+that calls another function with its own parameters, all of them, unchanged, in
 the same order, and returns that call's result (or returns void right after):
 
 ```
-helper.id:5: warning: 'forwarder' only forwards to 'callee'; call 'callee' directly
+helper.id:5: error: function 'forwarder' only forwards to 'callee' [E0406]
+  help: delete 'forwarder' and call 'callee' directly at every site that called it; move any test cases of 'forwarder' onto 'callee'
 ```
 
 The fix is to delete `forwarder` and call `callee` at every site that used to
-call it. Not reported: `main`; a `native`; a function whose name is also read
-as a function value elsewhere in the unit (it may exist only to adapt to a
-`func(...)` type there); and a forwarder whose signature does not match its
+call it; the cases the forwarder carried move onto `callee`, so the coverage
+they added stays. Not reported: `main`; a `native`; a function whose name is
+also read as a function value elsewhere in the unit (it may exist only to adapt
+to a `func(...)` type there); and a forwarder whose signature does not match its
 callee's — it narrows, widens or drops a parameter, which is adapting, not
 forwarding.
 
-**A generated parameter name** — a parameter whose name ends in `_v` or
+**A generated parameter name** (E0310) — a parameter whose name ends in `_v` or
 `_v<digits>` (the name `--fix` gives a call it hoists into a local, above) or
 matches this compiler's own `ret_i`/`ret_s`/`ret_li`/... return-local
 convention:
 
 ```
-helper.id:1: warning: parameter 'asset_at_v' of 'helper' has a generated name; name it for what it holds
+helper.id:1: error: parameter 'asset_at_v' of 'helper' has a generated name [E0310]
+  help: rename the parameter to what it holds, in the signature and at every use of it in the body
 ```
 
-the parameter carries a mechanically-generated spelling into every caller
-that reads it, rather than a name chosen for what the value is. A local
-named this way is not reported — it never leaves the function, so it costs a
-reader nothing. Measured across idstd, 8 of its own public functions forward
-a `--fix`-hoisted local this way (`lset`'s `idstd_v` being the one every
-program calls); that is a real instance of the same question the exclusions
-above ask for the other two warnings — is the public name worth carrying, or
-should the library rename the parameter — left to a human rather than
-decided by the checker.
+the parameter carries a mechanically-generated spelling into every caller that
+reads it, rather than a name chosen for what the value is. A local named this
+way is not reported — it never leaves the function, so it costs a reader
+nothing. A leading `idstd_` is looked past, so the library's own prefix does
+not hide the shape: `idstd_v` is read as `v`, which is not generated, and
+`idstd_asset_at_v` is generated.
 
 ### Two functions that read different imports
 
-Not a warning: an **error**. Two functions whose logic is identical except for
+An **error** too (E0405). Two functions whose logic is identical except for
 a single imported value — one reads `(import ia)` where the other reads
 `(import ib)`, and everything else is the same up to the spelling of their own
 variables — are one function written twice, with the value as the parameter it
@@ -368,7 +368,7 @@ is refused, with one check function that states the whole state. Two
 functions identical in every way, imports included, are still the
 duplicate-logic error.
 
-A difference only in a literal is never reported, by an error or a warning. A
+A difference only in a literal is never reported. A
 named accessor, a fixture or a message per constant is how `id` is written; a
 literal-only pair that is really one function (the byte-range predicates of
 `idstd`, the cube's three axes) is fixed by writing it once, not by a check.
@@ -690,24 +690,26 @@ import "../mylib"
 
 The dependency is merged as source, transitively, and its own `conf.id` is
 followed. Every rule applies to it — including the 3-functions-per-file
-limit — with one exception that matters: **a name keeps one type within a
-compilation unit, and an imported tree is its own unit.** Your `int s` and a
-library's `string s` do not collide. Inside your own tree they do, and that is
-where it still bites:
+limit — and so does this one: **a name keeps one type across the whole
+program, its imported trees and the standard library included.** Your `int s`
+and a library's `string s` collide, and so do two trees' `s`:
 
 ```
-caesar/shift.id:3: error: argument 'c' of 'shift_one' expects int, got string
-caesar/shift.id:8: error: chr expects an int, got string
-caesar/shift.id:9: error: argument 'c' of 'chr_is_lower' expects int, got string
+app/main.id:3: error: variable 's' is declared int here but string in the standard library [E0303]
+  at: s
+  related: idstd/core/text/str.id:12: note: the standard library's declaration, which is string
 ```
 
-Every one of those lines is in `shift.id`. The cause was a brand-new file
-declaring `noisy(string c)` — and no diagnostic names it. When a type error
-appears in a file you did not edit, look for a new declaration of that name
-somewhere else in the tree.
+The error is at the declaration that can change: yours, never the library's, and
+its `help` says to rename it. The library's own internals are `idstd_`-prefixed
+(docs/HACKING.md), so what collides is a public name, a parameter or local of
+yours spelled like one. A build that loads only the library functions it reaches
+finds the same pair as one that loads all of it: the library's index records
+every variable it declares and its type.
 
-> **Pitfall 6.** A name has one type across your whole tree. Breaking that
-> reports the error everywhere *except* where you broke it.
+> **Pitfall 6.** A name has one type across your whole program. The error is
+> at your declaration and names the other one; when a type error appears in a
+> file you did not edit, look for a new declaration of that name elsewhere.
 
 ### Importing part of a tree
 
@@ -922,8 +924,7 @@ Seven things, in the order you will meet them.
    `fx_trig_init`, `err_init`, and anything of yours that does the same.
 5. **`conf.id` is a manifest, and only at a root.** Elsewhere it is an error.
    Imports before constants.
-6. **A name has one type across your whole tree** — and the errors appear
-   everywhere except where you broke it.
+6. **A name has one type across your whole program** — the standard library included; the error is at your declaration, and names the other one.
 7. **A backend is part of the build, not the source.** The platform is chosen
    from the target triple; an unsupported one stops the build by name.
 

@@ -28,10 +28,10 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `uicheck` | 7 | 19 | 40 | 0 | 0 |
 | `word` | 614 | 1467 | 3989 | 0 | 0 |
 | `wordcheck` | 74 | 188 | 538 | 0 | 0 |
-| `idc/compiler` | 1209 | 3268 | 6897 | 0 | 0 |
+| `idc/compiler` | 1217 | 3284 | 6938 | 0 | 0 |
 | `idc/driver` | 7 | 18 | 36 | 0 | 0 |
 | `idc/runtime` | 47 | 88 | 3 | 1 | 86 |
-| `idc/tools` | 575 | 1447 | 3625 | 3 | 0 |
+| `idc/tools` | 575 | 1447 | 3624 | 3 | 0 |
 | `idstd/core/data` | 219 | 556 | 1712 | 0 | 0 |
 | `idstd/core/math` | 21 | 54 | 136 | 0 | 0 |
 | `idstd/core/text` | 89 | 218 | 576 | 0 | 0 |
@@ -41,7 +41,7 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `idstd/sys/io` | 82 | 144 | 314 | 0 | 0 |
 | `idstd/sys/os` | 40 | 89 | 187 | 1 | 0 |
 | `idstd/sys/win` | 104 | 210 | 436 | 0 | 0 |
-| **all** | 6757 | 16771 | 39305 | 47 | 138 |
+| **all** | 6765 | 16787 | 39345 | 47 | 138 |
 | of which idstd | 1017 | 2449 | 7024 | 1 | 0 |
 
 *short of two* counts the functions with fewer than two test cases that the compiler does not exempt: a freestanding function that reaches an `asm` body is exempt, and `kernel` and `idc/runtime` are asked of the compiler with the flags `idc/tools/kbuild` builds them with. Functions are found by their headers (`idc/tools/lib/fnhead`) and their cases by `mutscore lint`, not by the compiler's own parse. `idc/tests` is not counted: it holds the inputs of the compiler's own tests, some of which break the rules on purpose. `statusgen --untested [TREE]` lists the functions that are short.
@@ -63,10 +63,10 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `uicheck` | 0 | 0 | 17 | 2 | 0 |
 | `word` | 0 | 0 | 932 | 425 | 110 |
 | `wordcheck` | 0 | 0 | 94 | 78 | 16 |
-| `idc/compiler` | 0 | 0 | 3025 | 222 | 21 |
+| `idc/compiler` | 0 | 0 | 3035 | 228 | 21 |
 | `idc/driver` | 0 | 0 | 18 | 0 | 0 |
 | `idc/runtime` | 87 | 0 | 0 | 1 | 0 |
-| `idc/tools` | 3 | 0 | 1046 | 312 | 86 |
+| `idc/tools` | 3 | 0 | 1047 | 311 | 86 |
 | `idstd/core/data` | 0 | 0 | 323 | 156 | 77 |
 | `idstd/core/math` | 0 | 0 | 34 | 18 | 2 |
 | `idstd/core/text` | 0 | 0 | 152 | 52 | 14 |
@@ -76,7 +76,7 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `idstd/sys/io` | 0 | 0 | 126 | 16 | 2 |
 | `idstd/sys/os` | 1 | 0 | 82 | 4 | 2 |
 | `idstd/sys/win` | 0 | 0 | 197 | 13 | 0 |
-| **all** | 185 | 0 | 13634 | 2265 | 687 |
+| **all** | 185 | 0 | 13645 | 2270 | 687 |
 | of which idstd | 1 | 0 | 1579 | 598 | 271 |
 
 A distribution, not a mean: a mean of two is met by one function with many cases beside others with none.
@@ -98,7 +98,7 @@ A distribution, not a mean: a mean of two is met by one function with many cases
 | `uicheck` | 0 | 2 | 1 | 3 | 2 | 0 |
 | `word` | 16 | 11 | 6 | 1 | 80 | 0 |
 | `wordcheck` | 4 | 9 | 5 | 1 | 27 | 0 |
-| `idc/compiler` | 67 | 14 | 8 | 130 | 99 | 48 |
+| `idc/compiler` | 67 | 14 | 8 | 130 | 100 | 48 |
 | `idc/driver` | 1 | 2 | 1 | 11 | 0 | 0 |
 | `idc/runtime` | 5 | 5 | 3 | 0 | 0 | 0 |
 | `idc/tools` | 22 | 7 | 4 | 22 | 135 | 3 |
@@ -111,7 +111,7 @@ A distribution, not a mean: a mean of two is met by one function with many cases
 | `idstd/sys/io` | 1 | 6 | 4 | 0 | 8 | 5 |
 | `idstd/sys/os` | 2 | 5 | 3 | 3 | 4 | 0 |
 | `idstd/sys/win` | 12 | 7 | 5 | 0 | 4 | 0 |
-| **all** | 198 | 15 | 6 | 417 | 926 | 371 |
+| **all** | 198 | 15 | 6 | 417 | 927 | 371 |
 | of which idstd | 25 | 10 | 5 | 13 | 144 | 12 |
 
 *filler dirs* are directories named more, rest, tail, cont or partN. *depth* is the number of directories between a tree's root and a source file; *median* is the lower median. *silent*, *echo* and *bare* are the cases `mutscore lint` finds that prove nothing (docs/TESTS.md, "Mutation score").

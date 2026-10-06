@@ -312,7 +312,7 @@ Q1 B it is a list of addresses. `==` and `print` on a struct are undecided.
 
 ### Q10. Which unit a struct belongs to
 
-An imported tree is its own unit for one-type-per-name, so a struct declared
+An imported tree is its own unit for struct identity, so a struct declared
 in idstd and the same struct in a program are two types, and a program cannot
 pass one to an idstd function. Options: (a) nominal by unit, (b) one struct
 per whole program, an identical declaration elsewhere a duplicate. **Recommend

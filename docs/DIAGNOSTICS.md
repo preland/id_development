@@ -20,7 +20,7 @@ A diagnostic is built in one place, `diag` in
 | field | what | in the plain text |
 | --- | --- | --- |
 | code | `E0123`, stable, one per kind of diagnostic (`docs/ERRORS.md`) | ` [E0123]` at the end of the head line |
-| severity | `error` (a `warning` or `note` keeps the old text for now) | `error:` in the head line |
+| severity | `error`; `id` has no warnings, so no diagnostic is a `warning` (`note` is only the severity of a `related:` line) | `error:` in the head line |
 | file, line | where; the line is always known | `FILE:LINE:` at the start of the head line |
 | column, end column | the span to underline, in bytes from 1 | not printed; found by `at` |
 | message | the violation, one line | the rest of the head line |
@@ -137,7 +137,7 @@ and the last line is a summary:
    "edits":[{"file":"a.id","line":4,"column":1,"end_line":4,"end_column":1,
              "text":"(ARG1_1, ARG1_2):(EXPECTED1)\n(ARG2_1, ARG2_2):(EXPECTED2)\n"}]}],
  "related":[],"follows":null,"rendered":"error[E0501]: ... (the human text, without colour)"}
-{"kind":"summary","errors":1,"warnings":0,"codes":["E0501"]}
+{"kind":"summary","errors":1,"codes":["E0501"]}
 ```
 
 Lines and columns are 1-based, columns count bytes, an end is exclusive, and an
@@ -383,8 +383,9 @@ grep -rnE '[^a-z_](tc_err|syn_err|case_err|sd_err|var_report)\(' idc/compiler --
 | E0101 E0102 | expected token; unexpected token, block comment, a `.` or `#!` that starts nothing | yes | |
 | E0103 E0104 | float exponent with no digits; float literal that overflows to infinity | new | |
 | E0201 E0202 E0203 E0204 | actions; nesting; functions per file; chain after a short segment | head only: the fix text moved to `help` | |
-| E0301 E0302 E0303 E0304 | undefined variable; declared twice; one name two types (`related:` the other declaration); no such function (the builtin list moved to `help`) | head only | |
+| E0301 E0302 E0303 E0304 | undefined variable; declared twice; one name two types across the program and the library (`related:` the other declaration, the library's when the program's name collides with it); no such function (the builtin list moved to `help`) | head only | |
 | E0305 E0306 E0307 E0308 E0309 | variable of another function; calling a variable; scope; named like a function; named like an export | head only | |
+| E0310 E0406 | a parameter with a generated name; a function that only forwards to another | new | |
 | E0401 E0402 E0403 E0405 | same name (`related:` the first); same logic (`related:` the other); constant wrapper; differ only in an import | yes | |
 | E0501 E0502 E0503 E0504 E0505 | too few cases; repeated case (`related:` the first); case arity; expected arity; return arity | yes | E0501: `placeholder` skeleton after the function |
 | E0601 E0602 E0604 E0605 E0606 | bitwise and comparison; return type; compare; call arity; argument type | yes | E0601: `machine` replace |
