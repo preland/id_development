@@ -516,7 +516,7 @@ range);
 (d) allocate all strings from ranges the runtime owns so membership is a range
 test (changes the arena);
 (e) represent strings as `(ptr,len)` with a bit for "owned" (the "string that
-carries its own length" option `docs/FRICTION.md` already names).
+carries its own length" option `docs/FRICTION.md` (retired; `git show 479234a^:docs/FRICTION.md`) already names).
 *Trade:* (a) is free and weak; (e) fixes the length memo, the literal question
 and the `strlen` cost together and is a language-level change; (b)-(d) are
 runtime-only.

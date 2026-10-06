@@ -273,8 +273,9 @@ visible in a program's *output*:
 
 ### Not done yet
 
-* **Performance is 8% behind the C target** on the compiler's own workload
-  (4.82 s vs 5.20 s for five front-end runs). Expected at this stage: every
+* **Performance is behind the C target.** The `id-llvm` and `id-c` columns of
+  `bench/results/results.md` (docs/PERFORMANCE.md) are the current figures.
+  Expected at this stage: every
   builtin is still a call into the C runtime, and there is no inlining, no GVN
   and no licm. The store builtins becoming instructions is the first item, and
   it is also what the kernel needs (below).

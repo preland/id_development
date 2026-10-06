@@ -1,8 +1,8 @@
 # The document editor
 
 > **Status: it reads and draws.** Everything below is checked by
-> `idc/tests/editor.sh` — 163 assertions across five suites, none of them against a
-> golden blob.
+> `idc/tests/editor.sh` (its suites and their assertion counts are what that
+> script prints), none of them against a golden blob.
 
 ```sh
 idc/bin/idc editor -o editor
@@ -23,7 +23,7 @@ them full of the things a language is bad at: bit-packed Huffman codes, a
 central directory read backwards from the end of a file, big-endian tables of
 signed 16-bit deltas, quadratic Béziers, and a winding rule.
 
-The two together are why `docs/FRICTION.md` exists. A kernel finds what a
+The two together are why `docs/FRICTION.md` (retired; `git show 479234a^:docs/FRICTION.md`) exists. A kernel finds what a
 language cannot say about hardware; a document reader finds what it cannot say
 about data. They found mostly the same things, which is what makes the list
 worth acting on.
@@ -33,8 +33,8 @@ worth acting on.
 ```
 editor/
   lib/
-    zip/    DEFLATE (RFC 1951) and the archive        49 + 25 functions
-    doc/    an XML pull parser and the ODT model      91 + 47
+    zip/    DEFLATE (RFC 1951) and the archive
+    doc/    an XML pull parser and the ODT model
     font/   the editor's one font, as an adapter over idstd's `ttf_`
   app/
     doc/    reading the file, writing the image

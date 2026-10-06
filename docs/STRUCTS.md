@@ -15,7 +15,7 @@
 > the largest thing `id` has ever added, it interacts with every rule the
 > language already has, and three of those interactions had no obvious answer.
 
-`docs/FRICTION.md` asks for this four times, from four directions:
+`docs/FRICTION.md` (retired; `git show 479234a^:docs/FRICTION.md`) asks for this four times, from four directions:
 
 * **§1**, a Huffman decoder keeps five values that belong together and has to
   spell them `xs[0]` through `xs[4]`.
@@ -66,7 +66,7 @@ This is the shape the language already has for everything else: a thing is
 declared in one place, and the code that acts on it is spread by *what the code
 does* rather than by what it acts on. A method list would be the first place in
 `id` where a function's home was decided by its first argument, and
-`docs/FRICTION.md` §6 is already the record of how much that decision costs
+`docs/FRICTION.md` (retired; `git show 479234a^:docs/FRICTION.md`) §6 is already the record of how much that decision costs
 when the language gets it wrong.
 
 `init` and `drop` are in the struct's file because they are the two functions
@@ -172,7 +172,7 @@ stay an `int` until a struct has a defined release (Q2).
 
 ## Then, a tuple
 
-`docs/FRICTION.md` §20 asks for a pair as the first record, and it should be
+`docs/FRICTION.md` (retired; `git show 479234a^:docs/FRICTION.md`) §20 asks for a pair as the first record, and it should be
 the first one built, because it is the one that proves the design: a point is
 two `int`s, it is passed and returned constantly, and the rasteriser has six
 functions that carry one as two parameters and eleven numbers in one `int[]`

@@ -970,7 +970,7 @@ a block that gains a name may have to give up a statement, and a function that
 gains a statement may have to continue into a `chain` or become two. Across
 this repository the two rules
 cost about 1600 new names and several hundred new functions. That is the trade,
-made deliberately: `docs/FRICTION.md` §14 and §15 are what the other side of it
+made deliberately: `docs/FRICTION.md` (retired; `git show 479234a^:docs/FRICTION.md`) §14 and §15 are what the other side of it
 was costing.
 
 Two places cannot be repaired by naming, so nesting beyond one level there
@@ -1231,7 +1231,7 @@ The rows below say what each one was and why it happened.
 | **S1** | Overflow wraps only because gcc chooses to; C calls it undefined. Needs `-fwrapv` or unsigned-routed arithmetic. Not currently observable, which is exactly why it is worth fixing before an optimiser makes it so. | C |
 | **S2** | Shifts with a count outside `0..W` gave three different answers: `(0 - 8) >> 32` was `-1` (§2.3) on C, `0` on LLVM, and `-8` on WASM, which masks the count to 5 bits. Both now route through helpers that give §2.3's answer. | LLVM, WASM |
 | **S3** | `str_of_int` was wrong for `INT_MIN`: `2147483647 + 1` printed `-./,),(-*,(`, because the digit loop negated a negative value, which overflows, and every digit then came out as `'0' - d`. It now folds into the negative half of the range, which is always representable. | WASM |
-| **S4** | `int` division and remainder by zero did not trap: LLVM raised SIGFPE (exit 136) and WASM aborted (exit 134) where C prints a line and exits 1. The checked-division fix recorded as C2 in `docs/GAPS.md` had been applied to the C runtime only. | LLVM, WASM |
+| **S4** | `int` division and remainder by zero did not trap: LLVM raised SIGFPE (exit 136) and WASM aborted (exit 134) where C prints a line and exits 1. The checked-division fix recorded as C2 in `docs/GAPS.md` (retired; `git show 479234a^:docs/GAPS.md`) had been applied to the C runtime only. | LLVM, WASM |
 | **S5** | Float-to-string is not implemented, so printing or concatenating a float fails to compile — the 10 remaining gaps, and now the only one left. | WASM |
 | **S6** | `word`, the flat store and the unsigned builtins were rejected — 21 of 30 builtins, making §6 unimplementable. LLVM now calls the C runtime's helpers (which it already links); WASM implements the store in its own WAT over linear memory, which is its natural home. Only the real-time I/O builtins remain C-only, and those are genuinely platform-bound. | LLVM, WASM |
 | **S7** | Because of S6, `idstd` did not build — `core/data/buf/buf.id` uses `word`. Fixed with S6. | LLVM, WASM |

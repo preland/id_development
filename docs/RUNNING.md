@@ -87,7 +87,7 @@ the keyboard path rather than the serial one.
 ### Check it
 
 ```sh
-idc/tests/kernel.sh              # 15 checks
+idc/tests/kernel.sh              # the kernel's checks
 ```
 
 ---
@@ -175,7 +175,7 @@ font face at a time, and no scrolling, so only the first page's worth is drawn.
 ### Check it
 
 ```sh
-idc/tests/editor.sh              # 163 checks across five suites
+idc/tests/editor.sh              # the editor's suites
 ```
 
 ---
@@ -183,7 +183,7 @@ idc/tests/editor.sh              # 163 checks across five suites
 ## Everything at once
 
 ```sh
-idc/tools/devshell.sh 'idc/tests/run.sh'          # the whole suite, ~4 minutes
+idc/tools/devshell.sh 'idc/tests/run.sh'          # the whole suite (over a minute: run it by section)
 idc/tools/devshell.sh 'idc/tests/run.sh --list'   # the sections, to run one
 ```
 
@@ -196,12 +196,7 @@ instead of starting over; `run.sh --resume` does the same for whole sections.
 
 ## Where to look for what to work on next
 
-* [`docs/FRICTION.md`](FRICTION.md) — twenty-two places the language costs more
-  than it should, each naming the code that hit it, and the eight worth acting
-  on.
-* [`docs/KERNEL.md`](KERNEL.md) — "what is not there yet", in order: an IDT that
-  routes `id`'s own traps, a frame allocator, paging the kernel manages, a
-  timer and a scheduler, user mode.
-* [`docs/EDITOR.md`](EDITOR.md) — the same, for the editor: no editing, one font
-  face, no tables or images, no scrolling, no CRC on the archive.
-* [`docs/TODO.md`](TODO.md) — everything else, ordered by what unblocks the most.
+* [`docs/KERNEL.md`](KERNEL.md) — "what is not there yet", in order.
+* [`docs/EDITOR.md`](EDITOR.md) — the same, for the editor.
+* [`docs/STATUS.md`](STATUS.md) — what is measured: which trees exist, which
+  functions still lack their cases, how the cases are distributed.

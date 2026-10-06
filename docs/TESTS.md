@@ -33,7 +33,7 @@ the declaration makes three things true that a suite cannot:
 - **The cases are documentation that cannot rot.** The example next to `add`
   is checked on every build, so it cannot drift from what `add` does — which
   is exactly what happens to the examples in a comment, and has happened twice
-  in this repo already (`docs/GAPS.md` E2, and the stale fallback text in the
+  in this repo already (`docs/GAPS.md` (retired; `git show 479234a^:docs/GAPS.md`) E2, and the stale fallback text in the
   README).
 
 ## The form
@@ -919,7 +919,7 @@ none:
 - **It does not prove a bound.** It compares two points on a curve. A function
   that is O(n) up to the sizes tested and O(n²) beyond passes. This catches
   the regression where a linear function silently becomes quadratic — which
-  is the failure this repo actually had (`docs/GAPS.md` §3: `id_charat`
+  is the failure this repo actually had (`docs/GAPS.md` (retired; `git show 479234a^:docs/GAPS.md`) §3: `id_charat`
   called `strlen` on every access, and every text-processing program was
   quadratic for months with nothing to notice; strings now carry their length,
   so `charat` is not charged) — and it does not catch an
@@ -1159,7 +1159,8 @@ runs"), so a freestanding tree can be cased like any other.
 >
 > **How far adoption has actually got** is not written here, because any
 > number written here is out of date by the next merge. Ask for it:
-> `idc/tools/statusgen.sh` prints functions and cases per repository, and
+> `docs/STATUS.md` (written by `idc/tools/statusgen`) has functions and cases per tree, and
+> `idc/tools/statusgen --untested [TREE]` lists the functions that are short; and
 > `idc/bin/idc TREE --list-untested` lists every function in one tree that is
 > still short of two cases.
 >
@@ -1176,7 +1177,7 @@ runs"), so a freestanding tree can be cased like any other.
 > compile error, with no flag either way. Whether a case fits its function —
 > its argument count, its expected values, the types of its literals — is
 > checked on every build as well, in
-> `mid/names/limits/shape/cases/more/fit/`. `idstd`'s 230 cases all pass
+> `mid/names/limits/shape/cases/more/fit/`. `idstd`'s cases all pass
 > under it.
 >
 > **`given`, `then` and `(import NAME)` are understood by the primary compiler
@@ -1214,15 +1215,13 @@ runs"), so a freestanding tree can be cased like any other.
 > Outside this suite, two builds still put `idstd` through `idc/idc.py`:
 > `c2id` builds itself with it (`c2id/tools/c2id.sh`, `c2id/tests/run.sh`),
 > because it does not yet obey two rules `idc/bin/idc` enforces
-> (`docs/GAPS.md` B6/B7), and `idem`'s `IDEM_COMPILER=idc.py` switch selects it
+> (`docs/GAPS.md` (retired; `git show 479234a^:docs/GAPS.md`) B6/B7), and `idem`'s `IDEM_COMPILER=idc.py` switch selects it
 > on request. A `given` in `idstd` breaks both.
 >
 > **The two-case minimum is the default, as of 2026-09-13.** A build that lacks
-> cases passes the deprecated `--allow-untested` ("Enforcement, and the
-> migration", above), and every build in these repositories does.
->
-> Next: cases for `idstd`'s 59 functions that lack them, per the order above,
-> starting with `sys/err` and `core/data/buf`, whose cases can be committed now.
+> cases passes `--allow-untested` ("Enforcement, and the migration", above);
+> which trees still need it is `idc/tools/statusgen --untested`, and how far
+> adoption has got is `docs/STATUS.md`.
 
 > **Update: `idc.py` is deleted.** Every sentence above that says `idc.py`
 > parses, rejects or builds something describes the project as it stood on

@@ -89,7 +89,7 @@ target at all.
 
 ## Types as data, not as if-chains
 
-Today the answer to "how wide is an `int`" is spread across 26 files as
+When this was written the answer to "how wide is an `int`" was spread across many files as
 `if(t == "int")` chains — `c_type`, `box`, `unbox`, `to_str`, the type pass,
 the literal typer. Adding a type means finding all of them.
 

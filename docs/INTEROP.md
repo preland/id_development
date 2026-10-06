@@ -2,6 +2,9 @@
 
 > **Status: "id and JavaScript" describes what is built and is run by
 > `idc/tests/wasm_js.sh`; every other section carries its own status.**
+> The timings, sizes and counts in its tables are what the command beside each
+> printed on the day that section was written, on the machine named there; none
+> is a current figure, so do not copy one elsewhere: re-run the command.
 
 This file is shared between the interop slices; each section is written by the
 slice that owns it. A change to another slice's section belongs in that slice.
@@ -361,8 +364,10 @@ specialised arities and the in-place encode.
 * `stdio_read_some_mem` reads fd 0 with one `read(2)`, not through stdio's buffer
   (WASI has no `O_NONBLOCK`); do not mix it with `input()` on one stream. `fs_error`
   does not report a failure of a `stdio_*` call.
-* A cold build is slow because every build compiles and tests idstd's cases: about
-  30 s for a hello-world, 5-10 s when cached. `--no-std` builds are seconds.
+* A cold build is slow because every build compiles and tests idstd's cases;
+  a warm build answers from the caches, and `--no-std` builds skip the library.
+  Time `idc/bin/idc demos/hello -o hello` as it is and again with
+  `IDC_NO_CACHE=1` for the figures on the machine at hand.
 * `app.mjs` is not minified (about 24 KB with the memory file system and the WASI
   shim; 7.6 KB gzipped).
 
@@ -748,7 +753,7 @@ Each row was run (`scratch/gaps`: a C file and a 15-line report program; the num
 
 ### 5. Generating the declarations and shims
 
-`hdr2id` (`idc/tools/hdr2id`, written in `id`, 41 files) reads a header that the C preprocessor has already flattened and writes a backend:
+`hdr2id` (`idc/tools/hdr2id`, written in `id`) reads a header that the C preprocessor has already flattened and writes a backend:
 
 ```
 cc -E -I... zlib.h > zlib.i
@@ -1298,8 +1303,9 @@ the order they appeared:
 3. A string cannot hold NUL, so `str_of_mem` over padded buffers trapped.
    `slice` now measures with `buf_zlen`.
 4. The generated project broke the layout rules: same-name directories,
-   numbered siblings, more than 3 entries per directory, more than 3 actions
-   per block, duplicate block bodies. The emitter now writes letter-coded
+   numbered siblings, more than 3 actions
+   per block, duplicate block bodies (and, then, more than 3 entries per
+   directory, a limit since dropped). The emitter now writes letter-coded
    directories to depth 8, splits long blocks with a chain, and gives each
    chain segment its own tag literal.
 5. Initializer lists, constant expressions over casts and `!`, static local

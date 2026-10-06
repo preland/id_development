@@ -197,9 +197,9 @@ function `NAME` in PATH (a project directory, default `.`) and, when PATH has no
 in the standard library (`--std`, `$IDSTD_HOME`, or the idstd beside the tree).
 `FILE::NAME` keeps only the functions of the file whose path ends with FILE. It
 reads the source as text (`tools/idwhere`, `tools/lib/fnhead`), so it needs no
-build slot and never rebuilds the compiler, and it answers in under 0.25 s warm
-without a cache: measured 0.01 to 0.08 s on the compiler and word trees, 0.2 s
-when the search goes on into idstd.
+build slot and never rebuilds the compiler, so it answers without a cache at the
+speed of reading the files (time `idc/bin/idc --where NAME PATH` on the compiler
+tree to see; the search goes on into idstd when PATH has no such function).
 A cached index was considered and left out because nothing needs it at that speed;
 if one is added, key it by function name, not by path. Exit status 1 when no
 function is found, with a message that names what to check.

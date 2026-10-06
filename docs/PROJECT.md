@@ -4,14 +4,14 @@
 > against this tree on the date of the last commit to touch this file. If one
 > does not reproduce, that is a bug in this document.
 
-[`TUTORIAL.md`](TUTORIAL.md) teaches the *language* — it writes one program,
-`demos/wordcount`, and explains why `id` makes you spread it out. This document
+The retired `TUTORIAL.md` (`git show 479234a^:docs/TUTORIAL.md`) taught the *language* — it wrote one program,
+`demos/wordcount`, and explained why `id` makes you spread it out. This document
 is the other half: the *project*. How a directory becomes a program, where the
 binary goes, what a `conf.id` is for, how the standard library gets in, what
 happens when you need something the language does not have, and — mostly —
 what goes wrong at each of those steps and what the compiler says when it does.
 
-Read `TUTORIAL.md` first if you have never written `id`. Read this when you are
+Read `SPEC.md` and `demos/wordcount` first if you have never written `id`. Read this when you are
 about to start something of your own.
 
 The worked example is a Caesar cipher: text in on stdin, shifted text out.
@@ -383,8 +383,8 @@ runs the lexer, the parser and every rule over the tree and stops: no C, no
 `cc`, no test cases, no link. It prints exactly what a build prints before it
 emits anything, and exits 1 if there was a diagnostic. On a tree that breaks
 rules a build stops there too, so the two take the same time; on one that
-does not, `--check` skips the rest — 9 s against 14.5 s for the compiler's
-own parser, 0.15 s against 1.5 s for `demos/solitaire`.
+does not, `--check` skips the rest, so it is the faster of the two on a tree
+that obeys the rules (time `idc/bin/idc PATH --check` against `idc/bin/idc PATH`).
 
 ```sh
 idc/bin/idc caesar --fix --allow-untested
@@ -445,7 +445,7 @@ idc/bin/idc caesar --allow-untested --std ../idstd
 ```
 
 The habit to build is: **before writing a small helper, assume `idstd` has
-it.** It has about 128 functions — `fx_min`, `fx_max`, `str_split`, `lst_sort`,
+it.** It has the likes of `fx_min`, `fx_max`, `str_split`, `lst_sort`,
 `chr_is_digit`, `fmt_int`, `lset`. If you write your own anyway:
 
 ```
@@ -769,7 +769,7 @@ run_frame(func(int) return void step, int dt) {
 A library that calls a name its user defines instead makes every program that
 links it define that name, games or not — which is why `idem`'s engine, calling
 `g_step` and five siblings, needs `idem/stub/` for everything that is not a
-game ([`TODO.md`](TODO.md) 13). A function value is passed or stored where the
+game (item 13 of the retired `TODO.md`, `git show 479234a^:docs/TODO.md`). A function value is passed or stored where the
 reader can see it, and a program that does not need the seam does not supply
 one.
 
@@ -792,7 +792,7 @@ native fs_open(string path, string mode) return int;
 Its directory is merged into your build like any dependency, so a call into it
 is checked like any call: the wrong number or type of arguments, or a
 misspelled name, is the same error it would be for a function you wrote.
-`demos/fsdemo` is ~40 lines of `id` that never names C, and has no `conf.id`.
+`demos/fsdemo` is `id` that never names C, and has no `conf.id`.
 
 A backend of your own is a directory with a `backend.id`, its sources and its
 `native` declarations, anywhere in a tree the build collects — your project, or
@@ -929,7 +929,7 @@ Seven things, in the order you will meet them.
 
 ## Where to go next
 
-- [`TUTORIAL.md`](TUTORIAL.md) — the language, through one worked program.
+- `demos/wordcount` — the language, through one worked program (the retired `TUTORIAL.md` explained it).
 - [`SPEC.md`](SPEC.md) — what is guaranteed, independent of backend.
 - [`../README.md`](../README.md) — every builtin and every rule, in one list.
 - [`../idc/README.md`](../idc/README.md) — what `idc/bin/idc` does under the hood.

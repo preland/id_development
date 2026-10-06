@@ -212,17 +212,14 @@ path helpers (`gui_path_dir`, `gui_p_join`) are idml-specific import resolution
 and stay.
 
 **Cost.** The library's cases run once, in the pre-check, and are cached by the
-library's content. Measured on this machine (12 cores, load about 4), building
-`idstd/.tests/hello` with a cold library cache seeded only with the compiler
-binaries: about 5 s before the toolkit, about 10 s with it; one run under
-contention took 32 s wall for 11 s of CPU. Nothing is near the 60 s limit. A
-warm build of a program that never calls the toolkit still costs more: 0.45 s
-before, 1.3 s with it, and 14.9 KB of binary, because every unused `conf.id`
-constant is emitted (128 scalars cost 5.8 KB by themselves) and every list
-constant is built at start-up. That contradicts `idstd/README.md`'s "near zero"
-cost line and is the reason to teach the compiler to drop constants nothing
-reaches, the way it already drops functions; until then the toolkit's constants
-are paid by every program.
+library's content, so any edit to the library makes every program pay the cold
+check once. What a program that never calls the toolkit pays is measured, not
+written here: `idstd/run.sh` builds hello-world with and without the library and
+prints the build time and binary size of each, and `IDC_TIMES=1` on any build
+prints how many library functions it loaded. When this section was first
+written an unused `conf.id` constant was emitted in every program, which made
+the toolkit's constants a cost to everyone; the compiler now emits only the
+constants the emitted code reads (docs/PROJECT.md §5), so that cost is gone.
 
 ## 5. How an application binds state and actions
 

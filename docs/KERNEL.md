@@ -158,9 +158,11 @@ in `EFER`, paging on, a GDT with a 64-bit code segment, a far jump into it, and
 here, and each is a deliberate deviation rather than an oversight:
 
 * **A trap has nowhere to go.** §7 says a trap writes one line to stderr and
-  exits 1. A kernel has neither. Division by zero is a `#DE` fault, which
-  without an IDT is a triple fault and a reset — which is a trap, just a louder
-  one. An IDT and a real panic path is the first thing to build next.
+  exits 1. A kernel has neither. Division by zero is a `#DE` fault, which the
+  kernel's IDT (`kernel/prog/sys/trap/idt/`, installed by `idt_init` at boot)
+  sends to a panic path (`kernel/prog/sys/trap/panic/`): one line naming the
+  vector, the error code and the faulting address on the serial port, then the
+  machine stops. That is a trap, spelled for a machine with no stderr.
 * **Only lists are given back.** §6 says the arena is released at process exit.
   There is no process, so a list the compiler proves unreachable goes onto a
   free list in the runtime (`runtime/mem/store/arena/more/pool.id`) and is
@@ -179,9 +181,10 @@ This is a kernel in the sense that nothing is under it, not in the sense that
 it does anything an operating system does. In rough order of what unblocks the
 most:
 
-1. **An IDT and a panic path**, so a fault says what happened instead of
-   resetting the machine. This is also what turns `docs/SPEC.md` §7's traps
-   back on.
+1. **Faults that can be handled.** The IDT and the panic path report a fault
+   and stop the machine; nothing yet turns one into an event the kernel
+   recovers from (a page fault answered by mapping the page, say), which is
+   what `docs/SPEC.md` §7's traps become once something can catch them.
 2. **A physical frame allocator** over the memory map the boot protocol hands
    over, instead of a bump pointer over whatever is above the image.
 3. **Paging the kernel actually manages**, rather than the identity map the

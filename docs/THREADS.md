@@ -18,7 +18,7 @@
 > compiler-proven-pure functions first, then share-nothing channels, then a
 > real-time tier. Shared-memory locks never enter the language.
 
-Why now (`PLATFORM_ROADMAP.md` section 4, ranks 2 and 3): an audio real-time
+Why now (ranks 2 and 3 of the platform roadmap, a planning note kept outside this repository): an audio real-time
 thread, video decode beside the UI, a compositor's input/render split and
 parallel compute (builds, image work) all need more than one thread, and `id`
 has none. Threads touch every promise the language makes: memory safety,

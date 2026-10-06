@@ -123,8 +123,8 @@ the change that added list-constant locking to it.
   on a C string from outside -- `argv` through `id_str_of_cstr`, one line of
   `input`.
 
-**Cost to move: medium, and most of it is done.** `idc/runtime/` — 46 files, about
-100 functions, 21 of them `asm` blocks — already implements the same
+**Cost to move: medium, and most of it is done.** `idc/runtime/` (its size and its
+`asm` functions are a row of `docs/STATUS.md`) already implements the same
 primitives in `id` with no libc at all. That is what the kernel runs on:
 `list_push`, `list_get`, `concat`, `charat`, `str_of_int`, `peek8`/`poke64`,
 `sdiv`, `shl`, `mem_alloc`, all of it in `id`.
@@ -163,7 +163,7 @@ on its own, and `qmon` is built on idstd's `sys/io/ipc/proc` and idstd's
 `sys/io/ipc/sock` (a child process, and a Unix-domain socket, were the two
 things `id` could not do that this tool needed).
 
-Anchor: `editor/lib/zip/` is 28 files of `id` that inflate DEFLATE and read a
+Anchor: `editor/lib/zip/` is `id` that inflates DEFLATE and reads a
 ZIP central directory. `mkodt` was easier than that.
 
 ## 5. idstd's native backends — 1 380 lines of C, and the one place to leave alone
@@ -210,7 +210,7 @@ addresses*, and the ELF note has to land in a specific section.
   section, emit a table of bytes at an alignment, or run before a stack exists.
 * `isr.S`: **partly movable.** The 32 stubs are the same three instructions
   with one immediate changed — exactly what a binary literal
-  (`docs/FRICTION.md` §7) plus an `asm` block could generate. Saves perhaps
+  (`docs/FRICTION.md` (retired; `git show 479234a^:docs/FRICTION.md`) §7) plus an `asm` block could generate. Saves perhaps
   60 of the 91 lines, and is worth doing mostly because it would prove the
   binary literal's worth.
 
@@ -229,7 +229,7 @@ server.
 
 This is the highest-value item in the table that is not on the critical path:
 it would make the language's own rules visible while typing, which is where
-`docs/FRICTION.md` §11 (name collisions found only at compile time) actually
+`docs/FRICTION.md` (retired; `git show 479234a^:docs/FRICTION.md`) §11 (name collisions found only at compile time) actually
 hurts.
 
 ## 8. What is not a reliance

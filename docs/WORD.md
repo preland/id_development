@@ -1,10 +1,16 @@
 # A word processor in `id`: the editor, grown into a Word replacement
 
-> **Status: plan.** Nothing in this file is built. It was written from the code
-> and docs as they are (`editor/`, `docs/EDITOR.md`, `docs/UI.md`, `docs/SPEC.md`
-> 1.2, `docs/STRUCTS.md`, idstd's `NAMES.md` and `README.md`), not from memory;
-> where a number or an API is a guess it says so and says what would confirm it.
-> Nothing was built or run to write it, so every cost is an estimate.
+> **Status: a plan, partly built.** The implementation is `word/` (`core/doc`,
+> `core/edit`, `core/lay`, `io/odt`, `ui/app`, `ui/ribbon`, `ui/view`), with
+> `wordcheck/` as the LibreOffice oracle and `wordcorpus/` as the test
+> documents; its size and its cases are rows of `docs/STATUS.md`. Sections 1-3
+> are the plan as it was written, section 4 is the seams the packages
+> implement, and where the code and this file differ the code is right. The
+> plan was written from the code and docs as they were (`editor/`,
+> `docs/EDITOR.md`, `docs/UI.md`, `docs/SPEC.md` 1.2, `docs/STRUCTS.md`,
+> idstd's `NAMES.md` and `README.md`), not from memory; where a number or an API
+> is a guess it says so and says what would confirm it, and every cost in it is
+> an estimate made before the work was done.
 
 Goal: a document editor with the ribbon at the top and `.odt` as its native
 format, close to Word's basic functionality, built only from `id`, idstd (with
@@ -173,8 +179,9 @@ Read from the code on this branch (`language-integrity`). "Editor" is
   globals: `odt_txts` (one string per run), `odt_plo`/`odt_phi` (paragraph to run
   range), `odt_keys`, `odt_fonts`, `odt_nums`, `odt_flags` (style table as
   parallel lists), `lay_g`/`lay_x`/`lay_y`/`lay_px`/`lay_st` (one row per glyph),
-  `ed_cur` (caret). There are about 427 functions
-  (`grep -rhoE '^[a-z_0-9]+\(' editor --include=*.id`). None of it uses a struct.
+  `ed_cur` (caret). The number of its functions is a row of `docs/STATUS.md`
+  (`grep -rhoE '^[a-z_0-9]+\(' editor --include=*.id` counts them). None of it
+  uses a struct.
 * **Document model** (`editor/lib/doc/odt/`): runs and paragraphs only. Styles
   are `style:style` rows with a font name, a size in points, a bold flag and an
   italic flag (`odt/walk/sty/prop.id`, `odt/get/style.id`). No parent styles, no
@@ -1194,8 +1201,8 @@ own with an `odt/` inside and files named `NN_name.odt` works.
 * Every function has two cases or an explicit CLI opt-out (docs/TESTS.md); case
   counts are verified with `idc/tools/casework.sh list`, and a package that
   deletes functions to go green is a failure (count cases before and after).
-* No inline comments; no function with more than three actions; three entries per
-  directory; no duplicate logic; one concern per change.
+* No inline comments; no function with more than three actions; three functions
+  per file; no duplicate logic; one concern per change.
 * A case that writes `/tmp` uses `fs_mktemp` (randomised names), never a fixed path, and registers it with `fs_drop_exit` (docs/TESTS.md).
 * No command over 60 s (memory: sixty-second rule; three-minute task limit).
   Anything slower (every `soffice` run) is **index-addressable and resumable**: the
@@ -1346,7 +1353,7 @@ shaping, drawing objects, equation editor, macros, macOS-only polish, Alt key ti
 | # | risk | why it bites here | mitigation |
 | --- | --- | --- | --- |
 | 6.1 | **Build time under the 60 s rule.** idstd's library pre-check runs once per library content and is cached; any idstd edit invalidates it for every program. UI.md measured about 10 s cold with the toolkit slice (5 s before) and noted an unused-constant cost on every program (1.3 s warm, 14.9 KB). This plan adds zip, xml, deflate, widgets, vectors, font changes and their cases: a guess is +20-40 s cold | every parallel agent pays the cold check after each idstd merge; the editor/`word` tree itself grows to many hundreds of functions with cases | measure at each package merge (budget +3 s per package, escalate at 45 s total, hard limit 60 s); keep cases cheap (no soffice, no big loops); ask for the compiler to drop unreachable constants (UI.md already proposes it); keep `word/` a separate root so only its own cases run; a package that blows the budget splits its cases |
-| 6.2 | **Three entries per directory and three functions per file** at idstd and `word/` scale | the room in idstd is nil outside `gfx/kit/` (2.3); a ribbon with 60 controls is a lot of tiny files | W0 first, then every package uses `idlayout --room`; depth is a feature (the path is the answer, HACKING.md); the ribbon is **data**, not code, so it costs table rows, not functions |
+| 6.2 | **Three functions per file** at idstd and `word/` scale (the three-entries-per-directory limit this row was written about has been dropped; a directory has no entry limit) | a ribbon with 60 controls is a lot of tiny files | depth is a feature (the path is the answer, HACKING.md); the ribbon is **data**, not code, so it costs table rows, not functions |
 | 6.3 | **No freeing for strings, structs and per-line lists.** Strings are never freed on any target; structs are not freed; lists are freed only when escape analysis proves they do not escape and a list stored in a struct field is "kept" (SPEC 1.2 "Memory"; MEMORY.md) | a paragraph relaid on every keystroke, a status string per frame, a struct per line would grow memory without bound | text is `int[]`; layout refills lists and allocates no struct or string; no string built per frame (the status bar string is rebuilt only when its numbers change); B3a/B11 run the 10 000-keystroke test and read the runtime's counters (`ID_FREE_STATS=1`, MEMORY.md 2a); if the list refill does not reuse storage (unmeasured, UI.md 3.3) the fix is a `lst_clear`-style helper in A7 |
 | 6.4 | **Performance of full re-layout and repaint.** About 3000 glyphs per page; 100 pages = 300 k code points. `gui_cp_adv` per code point is a glyph-table lookup (guess: about a microsecond, so ~0.3 s for a full relayout); a full 1280x800 repaint is about 1 M cell writes plus a present of a 64-bit-cell `int[]` (UI.md measured 4 ms per 2025 glyphs first draw, 2 ms cached, against 59 ms uncached) | opening a large document, resizing, zooming | incremental layout per paragraph (3.3.3); layout at 100% so zoom does not relayout; the first open lays out lazily (visible pages first, the rest in slices of at most 30 ms between events, resumable); dirty rectangles if the repaint exceeds budget; measure both numbers in B6 and B11, do not trust the guess |
 | 6.5 | **Multi-face fonts.** Discovery today picks Regular only (UI.md 7); a family may lack Bold or Italic; `.otf` CFF fonts are skipped; ODT documents name fonts the machine lacks (Calibri, Times New Roman) | wrong metrics, different line breaks than LibreOffice | A3a/A3b; rely on fontconfig aliases (already modelled) so Times New Roman maps to Liberation Serif, metric-compatible; synthetic bold/italic as the honest fallback; the default font is `serif`/`sans-serif`; record substitution in a status-bar warning |
