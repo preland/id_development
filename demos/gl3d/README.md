@@ -3,7 +3,7 @@
 The GPU counterpart to `demos/gfxdemo`: instead of painting an `int[]`
 framebuffer pixel by pixel, this program builds a cube mesh once, then every
 frame composes rotation/projection matrices and hands triangles straight to
-the GPU through `backends/gl` (see its README, idstd's `sys/win/gl/README.md`
+the GPU through `backends/gl` (see its README, idstd's `host/dev/win/gl/README.md`
 for the native side of this seam).
 
 ```sh

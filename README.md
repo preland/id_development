@@ -146,7 +146,7 @@ JavaScript).
 ## Development environment (Nix)
 
 Building the C target needs only a C compiler. The **graphics backends**
-(idstd's `sys/win/gfx`/`sys/win/gl`, attached by default and linked only when
+(idstd's `host/dev/win/gfx`/`host/dev/win/gl`, attached by default and linked only when
 a build reaches their natives) link native system libraries (OpenGL, X11),
 and the **`--target llvm`** and **`--target wasm`** paths need
 `clang`/`llc`/`wat2wasm`/`wasmtime`, and the kernel needs `ld.lld` and
@@ -279,13 +279,13 @@ resolves them as follows — revisit as the language evolves:
   `flush()` flushes stdout, `getkey()` polls one key **without blocking**
   (`-1` if none; raw mode is entered lazily and restored at exit),
   `sleep_ms(n)` sleeps, and `ticks()` returns monotonic milliseconds. On these,
-  idstd's `sys/io/term` is a small full-screen game engine, and `demos/moonbuggy`
+  idstd's `host/io/term` is a small full-screen game engine, and `demos/moonbuggy`
   (a real-time side-scroller) and `demos/solitaire` (Klondike) are games
   **written in `id`**.
 - **No file I/O among the builtins.** The list above is the whole of it: a
   program gets stdin, stdout and stderr, so working on a file means being a filter and
   letting the caller pick them (`./prog < in.txt > out.txt`). Files come from a
-  **native backend** instead — the standard library's `sys/io/fs` declares
+  **native backend** instead — the standard library's `host/io/fs` declares
   `fs_open`, `fs_read`, `fs_write`, `fs_close`, `fs_size`, `fs_exists`,
   `fs_remove` and `fs_error` as `native` functions (a signature in `id`, a body
   in C), so every call is checked like any call and the C is linked in; `demos/fsdemo` writes a file,

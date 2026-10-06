@@ -16,7 +16,7 @@ shebang files rather than kept here.
 | --- | ---: | --- | --- |
 | shell (`idc/bin/idc`, `idc/tests/`, `idc/tools/`, and the sibling repos' drivers) | see §2 | the driver is the bootstrap; the rest is test and tool glue that idstd's `proc`, `env` and `fs` can now run | **large in volume, and mostly unblocked** |
 | the C runtime prelude | 433 | hosted programs need libc | **medium**, and an `id` twin already exists |
-| idstd's native backends (`sys/io/fs`, `sys/win/gfx`, `sys/win/gl`) | 1 380 | this is the FFI boundary, by design | **should not move** |
+| idstd's native backends (`host/io/fs`, `host/dev/win/gfx`, `host/dev/win/gl`) | 1 380 | this is the FFI boundary, by design | **should not move** |
 | `kernel/boot/*.S` | 234 | code that runs before a calling convention exists | **mostly irreducible** |
 | `vscode/extension.js` | 259 | VS Code's extension host runs JavaScript | **medium**, and a shim survives |
 | `flake.nix`, `.envrc` | 52 | declaring an environment is not programming | **not a reliance** |
@@ -60,8 +60,8 @@ The orders agree by construction rather than by luck — a directory's name sort
 with its `/`, and `/` is 0x2F, below every letter and digit, so descending the
 moment a directory is reached is exactly a byte-order sort of the full paths.
 
-Environment access exists too: idstd's `sys/io/ipc/env` has `env_has`,
-`env_get` and `env_set`, and `sys/io/ipc/proc` spawns a child with captured
+Environment access exists too: idstd's `host/os/env` has `env_has`,
+`env_get` and `env_set`, and `host/os/proc` spawns a child with captured
 output and an exit status. What the library does not have is `flock`, and the
 driver uses `IDSTD_HOME`, `IDC_NO_STD` and `CC`, so a driver that bootstraps
 without idstd still cannot read them (item 1 below).
@@ -70,7 +70,7 @@ without idstd still cannot read them (item 1 below).
 is several times the size of the editor, and it is mechanical;
 `idc/tests/*.sh` is the least interesting code in the repository. The thin
 wrappers go first (`idc/tools/`, on idstd's test-harness layer,
-`idstd/sys/io/ipc/proc/run`, which spawns a program, keeps its stdout, stderr
+`idstd/host/os/proc`, which spawns a program, keeps its stdout, stderr
 and exit status, and removes a scratch directory), the suites next, and
 `idc/bin/idc` itself last. Two are done: `idc/tools/buildrun` (build a tool
 under `tools/` and run it) replaced `mkodt.sh`, `qmon.sh` and `fbtext.sh`, and
@@ -145,7 +145,7 @@ them, because the C target was the only target when the prelude was written.
 | --- | ---: | --- |
 | `flatten.py` | 565 | **deleted**: it was a one-off migration tool, not something to port |
 | `lint_idcpy.py` | 150 | **deleted**: it died with `idc/idc.py`'s freeze |
-| `qmon.py` | 142 | **ported**: `idc/tools/qmon/`, run by `tools/buildrun`, on two idstd backends (idstd's `sys/io/ipc/proc`, idstd's `sys/io/ipc/sock`) |
+| `qmon.py` | 142 | **ported**: `idc/tools/qmon/`, run by `tools/buildrun`, on two idstd backends (idstd's `host/os/proc`, idstd's `host/io/net/sock`) |
 | `gen_runtime_id.py` | 121 | **deleted**: it died with the C prelude becoming hand-maintained `id` source |
 | `mkfont.py` | 90 | **ported**: `idc/tools/mkfont/`, run by `tools/mkfont.sh`, which unpacks the gzipped font |
 | `fbtext.py` | 86 | **ported**: `idc/tools/fbtext/`, run by `tools/buildrun` |
@@ -159,8 +159,8 @@ respectively. Five more (450 lines) were portable, four with no new language
 feature and one — `qmon` — once it had one, and all five are now `id`
 programs: `mkfont`, `fbtext` and `mkkeymap` share `idc/tools/lib/` for
 whole-file reads and hexadecimal text, `mkodt` writes through the `fs` backend
-on its own, and `qmon` is built on idstd's `sys/io/ipc/proc` and idstd's
-`sys/io/ipc/sock` (a child process, and a Unix-domain socket, were the two
+on its own, and `qmon` is built on idstd's `host/os/proc` and idstd's
+`host/io/net/sock` (a child process, and a Unix-domain socket, were the two
 things `id` could not do that this tool needed).
 
 Anchor: `editor/lib/zip/` is `id` that inflates DEFLATE and reads a

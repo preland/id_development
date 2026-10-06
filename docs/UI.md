@@ -44,7 +44,7 @@ these.
 | `id_flappy`, `id_webdemo` | `id` compiled to wasm; idml renders the view in React; `@name` bound to exported `id` functions through `lib/id-runtime.ts` (only ints and strings cross). | Browser only. The bridge is JavaScript. |
 | `idem/engine/game/load/ui/` | A third loader: its own parser, an immediate-mode walk that resolves and paints in one descent, leaf painters, text-field editing, mouse through `inp_*`. Centipercent integer tiling, `Col`/`Row`/`Stack`/`Layer`. | Immediate mode keeps no tree, so no focus order or hit-test without re-walking; its note that real idml's `#` comment rule broke its colours is the same trap the toolkit's scanner handles (`idem/docs/IDML.md` section 4). Names are `ui_*`, so it cannot coexist with a library that uses them. |
 | `id_development/editor` | paragraph layout and wrapping, a caret, and an adapter over idstd's `ttf_` font (the TrueType parser and rasteriser moved to `idstd/kit/media/font/ttf`). | One font, no glyph cache, no widgets, no mouse. |
-| `idstd` `gfx/px`, `gfx/plane`, `sys/win/gfx`, `sys/win/gl` | A list-of-ints surface (`sf_l_*`), rectangles (`d2_l_rect`), an 8x8 face (`txt_g8_*`), a PPM dump, a software window (`gfx_open`, `gfx_present`, `gfx_poll`, `gfx_mouse_*`) and an OpenGL window. | Low level: one global surface, no clip stack, no text measuring beyond `txt_g8_width`. |
+| `idstd` `gfx/px`, `gfx/plane`, `host/dev/win/gfx`, `host/dev/win/gl` | A list-of-ints surface (`sf_l_*`), rectangles (`d2_l_rect`), an 8x8 face (`txt_g8_*`), a PPM dump, a software window (`gfx_open`, `gfx_present`, `gfx_poll`, `gfx_mouse_*`) and an OpenGL window. | Low level: one global surface, no clip stack, no text measuring beyond `txt_g8_width`. |
 
 The same tiler exists three times: in `build-scene.mjs` (JavaScript), in idml's
 id backend, and in idem's loader (read, not measured with `dupscan`).
@@ -207,7 +207,7 @@ way and is the proof.
 Two helpers the slice wrote are not layout, and went to the modules they belong
 to: `fx_pct` and `fx_align` (basis-point share, and a box in a span) in
 `core/math/fx/align.id`, and `fs_read_text` (a whole file as a string, the
-loader `gui_parse` is handed) in `sys/io/fs/data/mem/text.id`. The tree's
+loader `gui_parse` is handed) in `host/io/fs/data/text.id`. The tree's
 path helpers (`gui_path_dir`, `gui_p_join`) are idml-specific import resolution
 and stay.
 
@@ -534,8 +534,8 @@ drag-and-drop of selected text, and no clipboard INCR for text over one X reques
 
 | target | window and present | notes |
 | --- | --- | --- |
-| **native framebuffer** (first) | `sys/win/gfx`: `gfx_open`, `gfx_present(int[])`, `gfx_sync`, `gfx_show`, `gfx_event(int[])`, `gfx_mods`, `gfx_cursor`, `gfx_clip_set` and `gfx_clip_get`, `gfx_width/height` | `gfx_event` gives one event a call (key, text, mouse down with a click count, up, move, resize, quit, wheel); a mouse event carries no modifiers, so `gfx_mods()` is how a program learns whether Shift was down. The legacy `gfx_poll` and the polled mouse state still work. A resize is an event, and `gfx_sync` fits the surface to the window's real size before a frame is laid out. `gfx_cursor(1)` makes the pointer a text I-beam over the window and `gfx_cursor(0)` the arrow. See `idstd/sys/win/gfx/README.md` and `gfx.h`. |
-| **GL** | `sys/win/gl`: `glwin_*`, `gl_draw_tris`, `gl_read_pixels` | the toolkit's paint list can become triangles (rects) without touching layout; text needs a glyph atlas or stays in the software surface uploaded as one quad. No textured-quad primitive exists yet. |
+| **native framebuffer** (first) | `host/dev/win/gfx`: `gfx_open`, `gfx_present(int[])`, `gfx_sync`, `gfx_show`, `gfx_event(int[])`, `gfx_mods`, `gfx_cursor`, `gfx_clip_set` and `gfx_clip_get`, `gfx_width/height` | `gfx_event` gives one event a call (key, text, mouse down with a click count, up, move, resize, quit, wheel); a mouse event carries no modifiers, so `gfx_mods()` is how a program learns whether Shift was down. The legacy `gfx_poll` and the polled mouse state still work. A resize is an event, and `gfx_sync` fits the surface to the window's real size before a frame is laid out. `gfx_cursor(1)` makes the pointer a text I-beam over the window and `gfx_cursor(0)` the arrow. See `idstd/host/dev/win/gfx/README.md` and `gfx.h`. |
+| **GL** | `host/dev/win/gl`: `glwin_*`, `gl_draw_tris`, `gl_read_pixels` | the toolkit's paint list can become triangles (rects) without touching layout; text needs a glyph atlas or stays in the software surface uploaded as one quad. No textured-quad primitive exists yet. |
 | **web** | today: idml's React renderer with `id` as wasm (`id_webdemo`, `id_flappy`) | the parser and layout are pure `id` and compile to wasm **if they use no function values and no natives**: `gui_parse` takes a loader function value, and wasm has none (S8, S12). `gui_bind` reads a board of tables (section 5), which is what makes the rest of the core runnable there; `gui_bind_fn` and the other function-value adapters are native only. |
 
 The toolkit's painting talks to one interface: fill a rectangle, draw text, draw
@@ -634,7 +634,7 @@ What is in it, under `idstd/gfx/kit/gui/` unless a path says otherwise:
 | `idstd/.tests/assets/gui/` | `todo.idml`, `flappy/` (three files), `pong/`: byte-for-byte copies, plus small fixtures | |
 
 `fx_pct` and `fx_align` are in `core/math/fx/align.id` and `fs_read_text` in
-`sys/io/fs/data/mem/text.id`, where the next program that wants them finds them.
+`host/io/fs/data/text.id`, where the next program that wants them finds them.
 
 How many functions and cases there are is a query, not a number to write down:
 `idc/tools/casework.sh list ../idstd/gfx/kit/gui` lists every function short of

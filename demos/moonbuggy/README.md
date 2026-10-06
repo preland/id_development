@@ -1,7 +1,7 @@
 # Moon Buggy — a real-time side-scroller in id
 
 Drive a buggy across the lunar surface on the id terminal engine, idstd's
-`sys/io/term` (`term_init`, `term_text`, `term_render`, `term_key`). The terrain
+`host/io/term` (`term_init`, `term_text`, `term_render`, `term_key`). The terrain
 scrolls toward you and craters open in the ground; jump them or crash. This game
 and `demos/solitaire` each used to bundle a copy of that engine under `engine/`;
 the project is now only `game/` (the buggy's own code).

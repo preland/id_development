@@ -980,7 +980,7 @@ case and bin/idc also records what it read. Two lists in
 `idc/compiler/parse/conf.id` say which natives that holds for; every other
 native is volatile, and so is a call to the clock (`ticks`) or the terminal
 (`getkey`). Each name is on a list only because the backend that implements it
-(idstd's `sys/io/fs/fs_posix.c`, `sys/io/ipc/env/env_posix.c`) keeps the list's
+(idstd's `host/io/fs/fs_posix.c`, `host/os/env/env_posix.c`) keeps the list's
 promise through a log the harness gives each case (`$IDTC_READLOG`):
 
 - `cache_file_natives` (`fs_open`, `fs_close`, `fs_error`, `fs_read`,

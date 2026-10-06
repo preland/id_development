@@ -203,8 +203,8 @@ anything. Serving `fs_*` in JS makes a path mean the same thing on every target
 in a browser -- and the host decides what a path reaches.
 
 What exists: **idstd's `fs`** (all 22 natives: `stdio_*` in C over WASI, the rest
-in `sys/io/fs/fs.mjs`; `fs_run` runs `/bin/sh` in Node and answers ENOSYS in a
-browser) and **`env`** (`sys/io/ipc/env/env.mjs`). **`sock`, `proc`, `gfx` and
+in `host/io/fs/fs.mjs`; `fs_run` runs `/bin/sh` in Node and answers ENOSYS in a
+browser) and **`env`** (`host/os/env/env.mjs`). **`sock`, `proc`, `gfx` and
 `gl` declare neither** and are refused if a program keeps a call to them. Time is
 tier 1: `ticks()` and `sleep_ms` are `clock_time_get` and `poll_oneoff`; `sleep_ms`
 blocks with `Atomics.wait` where it may and spins in a browser's main thread,
@@ -681,7 +681,7 @@ Other things the mechanism does that are worth knowing before the first backend:
 
 ### 2. Two real libraries
 
-Both are in `trials/`, obey every compiler rule, and have two or more cases per function. Neither touches `idstd` except through one addition, `fs_load` and `fs_save` (a whole file into the flat store and back, byte exact), which both programs needed and which therefore live in `sys/io/fs/data/mem/where/`.
+Both are in `trials/`, obey every compiler rule, and have two or more cases per function. Neither touches `idstd` except through one addition, `fs_load` and `fs_save` (a whole file into the flat store and back, byte exact), which both programs needed and which therefore live in `host/io/fs/data/`.
 
 #### zlib: `trials/gz`
 

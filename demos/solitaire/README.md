@@ -1,6 +1,6 @@
 # Klondike Solitaire — in id
 
-A full Klondike solitaire on the id terminal engine, idstd's `sys/io/term`: stock,
+A full Klondike solitaire on the id terminal engine, idstd's `host/io/term`: stock,
 waste, four foundations, seven tableau columns, with colored cards and a
 cursor-driven, real-time interface. The engine used to be bundled here under
 `engine/`; the project is now only `game/` (the solitaire code).

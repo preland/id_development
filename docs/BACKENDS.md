@@ -193,8 +193,8 @@ and are otherwise honest dead weight until step 1 lands.
 Two different things are called a backend in this repo: a **compiler target**
 (the code generator this document is about) and a **native backend** (a
 directory with a `backend.id` that supplies functions at link time — `idstd`'s
-`sys/io/fs`, `sys/io/ipc/proc/be`, `sys/io/ipc/sock`, `sys/win/gfx` and
-`sys/win/gl`). A second compiler target must not drag the second kind along
+`host/io/fs`, `host/os/proc/be`, `host/io/net/sock`, `host/dev/win/gfx` and
+`host/dev/win/gl`). A second compiler target must not drag the second kind along
 with it.
 
 It does not have to. A native backend declares itself twice, both times in
@@ -324,14 +324,14 @@ twin.id:5: error: native 'twin_a', reached from main by this call, has no
 
 ### Where the backends live, and how a platform chooses
 
-**In the standard library, inside the modules that wrap them**: `sys/io/fs`,
-`sys/io/ipc/proc/be`, `sys/io/ipc/sock`, `sys/win/gfx`, `sys/win/gl`. A program calls a library function (or, until the
+**In the standard library, inside the modules that wrap them**: `host/io/fs`,
+`host/os/proc/be`, `host/io/net/sock`, `host/dev/win/gfx`, `host/dev/win/gl`. A program calls a library function (or, until the
 functions over them exist, the native) and never names a backend.
 
 **Attachment is by `backend.id`, not by manifest.** `idc/bin/idc`'s
 `collect_ids` records every directory holding a `backend.id` in any tree it
 collects — the library, a `conf.id` import, the project, a `--backend`
-directory. The alternative was a self-relative `import "sys/io/fs"` in the
+directory. The alternative was a self-relative `import "host/io/fs"` in the
 library's own `conf.id`. That is a second copy of the layout to keep in step
 with the tree, and every imported root is a compilation unit of its own, so
 each backend directory would have become a unit apart from the library that
@@ -429,11 +429,11 @@ output against a known-good compiler is the only cheap evidence available that
 a refactor changed nothing, and it stops being available the moment the C
 emitter is restructured without it.
 
-## The Wayland client (`idstd/sys/win/wl`)
+## The Wayland client (`idstd/host/dev/win/wl`)
 
 `gfx_open` and the rest of the `gfx_*` window calls choose their window system
 when a program runs. Under a Wayland session they speak the Wayland protocol to
-the compositor directly; otherwise they use the platform's own (`sys/win/gfx`:
+the compositor directly; otherwise they use the platform's own (`host/dev/win/gfx`:
 X11 on Linux, Cocoa on macOS). A program is built once and takes no change.
 
 **How the choice is made.** `gfx_open` tries Wayland when `WAYLAND_DISPLAY` is
@@ -456,14 +456,14 @@ program run on its private Xvfb cannot pick the live Wayland session.
 function, so the choice cannot sit behind the same native. The platform
 backend's natives are now `gfx_sys_open`, `gfx_sys_present` and so on (their C
 keeps its `id_gfx_*` spelling; `gfx.h` renames the symbols), and `gfx_open`,
-`gfx_present`... are `id` functions in `sys/win/wl/cli/seam/wrap` that call one or
+`gfx_present`... are `id` functions in `host/dev/win/wl/seam` that call one or
 the other. The sixteen wrappers are the whole seam; `gfx_sync`, `gfx_show` and
 `gfx_clip_get` are unchanged because they only call it.
 
 **What is `id` and what is C.** The wire protocol and the client are `id`:
-`sys/win/wl/wire` writes and reads messages by signature (a message is built and
+`host/dev/win/wl/wire` writes and reads messages by signature (a message is built and
 decoded from the tables `idc/tools/wlgen` generates from the protocol XML), and
-`sys/win/wl/cli` is the registry, the window, buffers, scale, pointer and
+`host/dev/win/wl/runtime` and `host/dev/win/wl/event` are the registry, the window, buffers, scale, pointer and
 keyboard. The generated block at the end of `idstd/conf.id` holds interface
 names, each request's and event's signature and flat index, and the enum
 entries, for `wayland.xml`, `xdg-shell`, `viewporter`, `fractional-scale-v1` and
@@ -473,7 +473,7 @@ natives) is only what `id` cannot name: a Unix socket that carries
 file descriptors, shared memory both sides map, and the keyboard layout.
 xkbcommon is not linked: the C declares the few functions it uses and loads
 `libxkbcommon.so.0` with `dlopen` when the first keymap arrives
-(`ID_XKBCOMMON_LIB` names another library), as `sys/os/audio` loads PipeWire.
+(`ID_XKBCOMMON_LIB` names another library), as `host/dev/audio` loads PipeWire.
 When it cannot be loaded the keymap is ignored and a built-in US layout answers
 (same key ids, characters and modifiers for a US keyboard), so nothing needs
 the library at build time and a program still works; only another layout is not

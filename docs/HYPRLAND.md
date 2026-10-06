@@ -41,8 +41,8 @@ program passed to `gfx_open`. The classes are:
 
 | backend | `WM_CLASS` |
 | --- | --- |
-| `sys/win/gfx` (software framebuffer) | `id-gfx` |
-| `sys/win/gl` (OpenGL) | `id-gl` |
+| `host/dev/win/gfx` (software framebuffer) | `id-gfx` |
+| `host/dev/win/gl` (OpenGL) | `id-gl` |
 
 On this machine Hyprland's user rules live in
 `~/.config/hypr-user/rules.lua`, which is loaded *after* ML4W's own rules and

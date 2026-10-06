@@ -241,7 +241,7 @@ What was built, without a syntax change:
   allocated, store included. Both are non-static so a native's separately
   compiled C can call them. Files: `prelude.id` and `extern.id` under
   `idc/compiler/parse/back/tgt/c/runtime/`, kept in step by hand as before.
-- **idstd `sys/io/ipc/proc/thr/`** (self-contained, so a layout move carries it
+- **idstd `host/os/thread/`** (self-contained, so a layout move carries it
   whole): `be/` is the backend (`thr.h`, `thr_linux.c`, `backend.id` linking
   `-pthread`, `map.id` declaring the natives `thr_run` and `thr_cpus`), `run/` is
   the id side (`thr_map`, `thr_map_serial`, with their cases and fixtures).

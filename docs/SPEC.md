@@ -1222,7 +1222,7 @@ Naming these keeps them from being discovered as bugs later:
 - Nothing about the order operands are evaluated in: §7 chooses it.
 - Anything reached through a native backend, which is by definition
   platform-specific — but see the `native` declarations in idstd's
-  `sys/io/fs/`, `sys/win/gfx/`, and `sys/win/gl/`, which are the contract in
+  `host/io/fs/`, `host/dev/win/gfx/`, and `host/dev/win/gl/`, which are the contract in
   `id`'s own types.
 
 ## 11. Where the targets have diverged from this specification

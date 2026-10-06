@@ -780,8 +780,8 @@ one.
 `id` has no file I/O. The builtins are stdin and stdout and nothing else, so a
 "file program" in `id` is a filter and the caller picks the files with
 `< in > out`. When that is not enough, a **native backend** supplies functions
-at link time, and the standard library carries three: files (`sys/io/fs`), a
-software window (`sys/win/gfx`) and an OpenGL window (`sys/win/gl`). There is
+at link time, and the standard library carries three: files (`host/io/fs`), a
+software window (`host/dev/win/gfx`) and an OpenGL window (`host/dev/win/gl`). There is
 nothing to name: `fs_open`, `fs_read`, `fs_write`, `fs_close`, `fs_size`,
 `fs_exists`, `fs_list`, `fs_remove` and `fs_error` are ordinary calls in every
 program. The backend declares each of them in `id`, as a function whose body
