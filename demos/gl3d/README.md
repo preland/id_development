@@ -63,7 +63,7 @@ milli-unit ints per triangle for `verts`, 3 packed `0xRRGGBB` ints per triangle
 for `colors`. This is the same "build the buffer, flush once" shape
 `gfxdemo`'s framebuffer uses, just for triangles instead of pixels.
 
-## Project tree (rule of 3)
+## Project tree
 
 ```
 demos/gl3d/
@@ -79,8 +79,9 @@ demos/gl3d/
     render/                      (3 files: init.id, frame.id, draw.id)
 ```
 
-Every directory holds at most 3 entries, every function body at most 3
-actions, nesting never exceeds 2 deep — the same fractal decomposition
+Every function body holds at most 3 actions and nesting never exceeds 2 deep
+(directories once held at most 3 entries too; that limit was dropped and the
+tree keeps its shape) — the same fractal decomposition
 `demos/gfxdemo` and `demos/engine` use, applied to matrix composition and mesh
 flattening instead of framebuffer fills.
 

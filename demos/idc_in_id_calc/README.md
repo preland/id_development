@@ -4,8 +4,8 @@ A recursive-descent arithmetic parser, evaluator, and S-expression printer —
 all written in the `id` language — fed by the stage-1 lexer through a pipe.
 
 ```sh
-./idc.py demos/idc_in_id    -o idlex
-./idc.py demos/idc_in_id_calc -o idcalc
+idc/bin/idc demos/idc_in_id    -o idlex
+idc/bin/idc demos/idc_in_id_calc -o idcalc
 echo "2 * (3 + 4) - 10 % 3" | ./idlex | ./idcalc
 # (- (* 2 (+ 3 4)) (% 10 3))
 # = 13

@@ -59,7 +59,7 @@ Dispatch on kind with a chain of helper functions (one decision each), e.g.
 `parse_*` / `fold_*` split. Compile and test with:
 
 ```
-./idc.py demos/idc_in_id -o /tmp/idlex
-./idc.py demos/idc_in_id_calc -o /tmp/idcalc
+idc/bin/idc demos/idc_in_id -o /tmp/idlex
+idc/bin/idc demos/idc_in_id_calc -o /tmp/idcalc
 echo "2 + 3 * 4" | /tmp/idlex | /tmp/idcalc
 ```

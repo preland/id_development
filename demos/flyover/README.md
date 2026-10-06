@@ -92,9 +92,9 @@ into `backends/gl/gl_linux.c` are:
 
 ## Rule-of-3 tree layout
 
-Every directory holds at most 3 `.id` files/subdirectories combined (READMEs
-don't count), every file at most 3 functions, every block at most 3 actions,
-nesting at most 2 deep — enforced by `idc.py`. The tree:
+Every file holds at most 3 functions, every block at most 3 actions, nesting at
+most 2 deep — enforced by `idc` (directories once held at most 3 entries too;
+that limit was dropped and the tree keeps its shape). The tree:
 
 ```
 demos/flyover/
@@ -137,9 +137,9 @@ demos/flyover/
 
 ## Verified run output
 
-Build (inside the mandatory dev shell; the `extern`/link-time warnings are
-expected — every backend call is an undeclared-until-link-time symbol, same
-as `demos/gl3d`/`demos/gl3dgame`):
+Build (inside the mandatory dev shell). Historical transcript: the
+link-time warnings below were printed by an older compiler; `id` has no
+warnings now and backends link (`docs/SPEC.md` S8):
 
 ```
 $ tools/devshell.sh 'idc/bin/idc demos/flyover --allow-untested -o /tmp/flyover'

@@ -1112,12 +1112,22 @@ in section 6.
 
 ### 3. What was added to `idstd`
 
-Everything below is in `idstd` under `core/data/psf/glue/` (and two functions in
-`core/data/hmap/`), with at least two cases per function, none of which was left
-red; registered in `NAMES.md` section 1.24, section 2.9 (names), section 3
-(exports). `idstd` has no free directory slot anywhere above `core/data/psf/`,
-so the module hangs from the one slot left there, the same last-resort
-placement `re_` uses; fork F6 below.
+Everything below is in `idstd`, with at least two cases per function, none of
+which was left red; registered in `NAMES.md` section 1.24, section 2.9 (names),
+section 3 (exports). When it was written the families shared one directory,
+`core/data/psf/glue/`, because no other slot was free; the idstd layout v2
+(`core/`, `host/`, `kit/`) gave each family its own home, and the names did not
+change:
+
+| family | home |
+| --- | --- |
+| `ord_` | `core/data/sort/` |
+| `path_` | `core/text/path/` (`path_files` is in `host/io/fsutil/`) |
+| `opt_` | `kit/app/cli/opt/` |
+| `json_` | `core/fmt/json/` |
+| `http_` | `host/io/net/http/` |
+| `fs_temp_text` | `host/io/fsutil/` |
+| `hmap_bump`, `hmap_items` | `core/data/hmap/` |
 
 | area | functions | replaces |
 | --- | --- | --- |
@@ -1156,14 +1166,14 @@ Each of these is a design question, left open.
   (in-process cases, a prechecked `idstd` image, M3-M4); or waive for
   single-file `#!` scripts. A waiver would not have helped here: every script
   needed `idstd`, a tree, and cases for its parsing.
-- **F6 (where `idstd` puts new modules).** A directory slot, not a design, decided
-  where `ord_`, `path_`, `opt_`, `json_` and `http_` live. Options: the W0
-  restructure ([`WORD.md`](WORD.md) 5.2) gives `core/` and `core/data/` room and
-  the modules move (names do not change); or a rule that an `idstd` addition
-  names its home before it is written.
+- **F6 (where `idstd` puts new modules). Resolved.** A directory slot, not a
+  design, had decided where `ord_`, `path_`, `opt_`, `json_` and `http_` lived.
+  The three-entries-per-directory rule that caused it is gone, and the idstd
+  layout v2 moved each family to its own home (table in section 3); the names
+  did not change.
 - **Closures or a keyed `sort`** (resolved: closures). `bind(f, v1, ...)` makes a
   `func` value that captures by value, immutably (SPEC.md 1.1.1). Measured on
-  `idstd` ord (`core/data/psf/glue/ord`): 187 to 179 lines, 18 to 16 functions,
+  `idstd` ord (then `core/data/psf/glue/ord`, now `core/data/sort/`): 187 to 179 lines, 18 to 16 functions,
   39 to 35 case lines, 5 exports to 0. Measured on `trials/csvq` `app/cmd/order`:
   191 to 108 lines, 19 to 11 functions, 54 to 31 case lines, 7 `sp_` constants
   in `conf.id` to 0. Still open: a `thr_map` of a closure is refused (THREADS.md

@@ -114,8 +114,8 @@ shape as the collision check, just iterated instead of one-shot.
 
 ## Verified
 
-Clean build (only the expected backend-extern-linking warnings, same as
-every `--backend` demo in this repo):
+Clean build (historical transcript: the warnings below came from an older
+compiler; `id` has no warnings now and backends link, `docs/SPEC.md` S8):
 
 ```
 $ tools/devshell.sh 'idc/bin/idc demos/fpsmaze --allow-untested -o /tmp/fpsmaze'
@@ -210,10 +210,11 @@ native matrix pool is an unfreed ring buffer (`backends/gl/README.md`'s
 *live* `gl_aspect_x1000()` every frame so a window resize never stretches
 the image.
 
-## Project tree (rule of 3)
+## Project tree
 
-Every directory holds at most 3 entries (`.id` files + subdirectories), every
-function at most 3 actions, nesting never exceeds 2 deep, and no function
+Every function holds at most 3 actions, nesting never exceeds 2 deep
+(directories once held at most 3 entries too; that limit was dropped and the
+tree keeps its shape), and no function
 duplicates another's logic (idc's own compile-time checks caught several
 attempts at this while building — e.g. a `right_dz()` turned out to compute
 exactly the same value as `fwd_dx()` by construction of the rotation, so it

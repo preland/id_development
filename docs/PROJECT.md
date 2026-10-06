@@ -450,7 +450,7 @@ it.** It has the likes of `fx_min`, `fx_max`, `str_split`, `lst_sort`,
 
 ```
 caesar/mine.id:1: error: function 'chr_is_lower' already defined at
-  /home/you/git/idstd/core/text/atom/range.id:28
+  /home/you/git/idstd/core/text/atom/range.id:29
 caesar/mine.id:4: error: cannot assign a int value to string 'r'
 caesar/mine.id:6: error: function 'chr_is_lower' returns int but the expression
   has type string
@@ -697,7 +697,7 @@ and a library's `string s` collide, and so do two trees' `s`:
 ```
 app/main.id:3: error: variable 's' is declared int here but string in the standard library [E0303]
   at: s
-  related: idstd/core/text/str.id:12: note: the standard library's declaration, which is string
+  related: idstd/core/text/str/cmp.id:27: note: the standard library's declaration, which is string
 ```
 
 The error is at the declaration that can change: yours, never the library's, and

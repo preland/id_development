@@ -55,8 +55,8 @@ Every one of these is enforced by the compiler and will reject your work:
   one; `return` is free. An `if`/`else` pair therefore costs **two**.
 - **2 levels of nesting.** A loop containing a loop is already at the limit, so
   its body must be a call.
-- **3 functions per file**, and **3 entries per directory**, counting `.id`
-  files and subdirectories together. `.md` files are free.
+- **3 functions per file.** Directories have no entry limit (the 3-entries
+  rule, E0701, is retired).
 - No structs, no pointers, no bitwise operators.
 - **One name, one type, across the entire program.** Declaring `int k` when some
   unrelated file uses `k` as a string is an error, and the diagnostic points at

@@ -15,9 +15,7 @@ itself worth reporting (say what was missing), not a reason to go searching.
 ## The packet
 
 Below is one section per function in your batch: its file:line, its current
-source (including any existing cases), how much room is left in its file (max
-3 functions) and directory (max 3 entries, `.id` files and subdirectories
-together), which exported globals its call closure transitively reads and
+source (including any existing cases), which exported globals its call closure transitively reads and
 which function declares each one, every zero-parameter `void` function
 already known to transitively reach all of those declaring functions
 (candidate `given` setups), every zero-parameter value-returning function
@@ -38,19 +36,11 @@ either pick a different candidate or refuse the function.
 
 A `given` may name any function anywhere in the program, so a fixture you
 write does not have to sit beside the function under test. Put it in the
-nearest file with fewer than 3 functions, or the nearest directory with fewer
-than 3 entries. To find them, run (after any build, which keeps the binary
-current):
-
-```sh
-idc/.idc-cache/idlayout --room {PROJECT_PATH} DIR
-```
-
-It prints up to 10 rows, nearest to DIR first: `file PATH N` (N more
-functions fit) and `dir PATH N` (N more entries fit). `idc/.idc-cache/idlayout
-{PROJECT_PATH} build` lists every layout violation at once, where a build
-stops at the first. Only if nothing reasonable has room, group two or more related
-existing files into a new subdirectory named for what they share. Never name
+nearest file with fewer than 3 functions; a directory has no entry limit, so
+a new file in the same directory is always allowed. `idc/.idc-cache/idlayout
+{PROJECT_PATH} build` (after any build, which keeps the binary current) lists
+every layout violation at once, where a build stops at the first. If you
+create a new subdirectory for related files, name it for what they share. Never name
 it after one of the moved files: `x/x.id` (a file named like its directory),
 `x.id` beside `x2.id` (numbered siblings), directories named like their parent,
 and generic names (helper, util, misc, common, stuff, tmp, temp) are all
@@ -199,7 +189,7 @@ After writing a function's two (or more) cases:
    ```
    (from the repo root that contains `idc/`; SCRATCH is a directory of your
    own, never a fixed `/tmp` name another agent could be writing too). A
-   clean run is EXIT 0 and prints nothing but warnings; a failing case prints
+   clean run is EXIT 0 and prints nothing; a failing case prints
    `FILE:LINE: test failed: ...` naming it. A dead build can print nothing at
    all, so always check EXIT.
 2. **Falsify by hand** — this is required, not optional, for every function

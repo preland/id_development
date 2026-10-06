@@ -65,7 +65,7 @@ than one grid spacing (1600), so — given grid-snapped movement — the two can
 only overlap when `abs(px-tx) = 0 && abs(pz-tz) = 0`. `check_hit()` runs every
 frame from `world/world.id`'s `world_update`.
 
-## Project tree (rule of 3)
+## Project tree
 
 ```
 demos/gl3dgame/
@@ -101,8 +101,9 @@ demos/gl3dgame/
           pillars/                     (2 files: loop.id, instance.id)
 ```
 
-Every directory holds at most 3 entries (`.id` files + subdirectories), every
-function at most 3 actions, nesting never exceeds 2 deep — the fractal
+Every function holds at most 3 actions and nesting never exceeds 2 deep
+(directories once held at most 3 entries too; that limit was dropped and the
+tree keeps its shape) — the fractal
 decomposition `demos/gl3d` and the other engine demos use, applied to a
 stateful, input-driven scene instead of a single static mesh.
 
@@ -164,8 +165,8 @@ the source.
   — `gfx_poll()` surfaces at most one key per frame and the backend has no
   key-up events, so "held key = continuous motion" isn't expressible without
   a native change; a discrete "tap to step" feel was chosen instead.
-- `id` has no way to print to stderr specifically (only `print()`, which
-  writes to stdout — see `idc.py`'s lexer/codegen, there is no such builtin);
+- This demo prints with `print()`, which writes to stdout (the `eprint`
+  builtin, `docs/SPEC.md`, writes to stderr and was not used here);
   game-state lines (`pos ...`, `score: ...`) go to stdout while the backend's
   own frame-count logging goes to stderr (`backends/gl/gl.h`'s
   `gl_end_frame`). Both show up together in an unredirected terminal run,

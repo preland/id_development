@@ -7,7 +7,7 @@ and `demos/solitaire` each used to bundle a copy of that engine under `engine/`;
 the project is now only `game/` (the buggy's own code).
 
 ```sh
-./idc.py demos/moonbuggy -o moonbuggy
+idc/bin/idc demos/moonbuggy -o moonbuggy
 ./moonbuggy
 ```
 

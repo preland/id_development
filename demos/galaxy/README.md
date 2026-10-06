@@ -124,16 +124,17 @@ demos/galaxy/
       pipeline/{frame,camera,draw}.id  -- per-frame matrices + GL calls
 ```
 
-Every directory holds at most 3 `.id`-files-and-subdirectories (README.md
-never counts), every file at most 3 functions, every block at most 3
-actions, nesting depth at most 2 -- deep dispatch (e.g. the sine
+Every file holds at most 3 functions, every block at most 3
+actions, nesting depth at most 2 (directories once held at most 3 entries
+too; that limit was dropped, and the tree below keeps its shape) -- deep dispatch (e.g. the sine
 quadrant split) is a chain of small named functions instead of a pyramid
 of nested branches.
 
 ## Verified run
 
-Built clean inside the dev shell (only the expected "not defined in any
-input file" `extern` warnings for backend calls):
+Built clean inside the dev shell. (Historical transcript: it was captured when
+the compiler still printed "not defined in any input file" warnings for backend
+calls; `id` has no warnings now and backends link, `docs/SPEC.md` S8.)
 
 ```
 $ tools/devshell.sh 'idc/bin/idc demos/galaxy --allow-untested -o /tmp/galaxy'

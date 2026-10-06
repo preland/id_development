@@ -256,7 +256,7 @@ by most programs of some size; L: rare.
 | syntax | expected X found Y, unexpected token | H for a model, M for a person |
 | uniqueness | duplicate logic, duplicate name, constant wrapper | M |
 | types | return type, argument types, comparisons | M |
-| tree shape | entries per directory, generic or numbered names | M (every project's first week) |
+| tree shape | generic or numbered names, layout (E0702..E0707) | M (every project's first week) |
 | structs, function values, natives | | L |
 | runtime traps | index out of bounds, out of memory | M, and always after a build that passed |
 

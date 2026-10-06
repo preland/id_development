@@ -163,8 +163,8 @@ then the list, so the count in `ID_FREE_STATS` is the same on all of them
 (`tests/conform/free/04` to `06`). Two differences remain that are not about
 which lists are freed:
 
-- **The guard is hosted-only.** The freestanding runtime has no stderr and
-  nothing to exit to, so a use after a wrong free is not a trap there. It marks
+- **The guard is hosted-only.** The freestanding runtime has no stderr
+  (`fail` writes the serial port, then powers off), so a use after a wrong free is not a trap there. It marks
   a freed header (cap -1) so a second free of the same list is ignored until the
   block is reused; that is all.
 - **Strings are not freed on any target.** The freestanding runtime also gives

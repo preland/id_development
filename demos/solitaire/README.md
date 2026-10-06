@@ -6,7 +6,7 @@ cursor-driven, real-time interface. The engine used to be bundled here under
 `engine/`; the project is now only `game/` (the solitaire code).
 
 ```sh
-./idc.py demos/solitaire -o solitaire
+idc/bin/idc demos/solitaire -o solitaire
 ./solitaire
 ```
 
