@@ -154,7 +154,7 @@ in `EFER`, paging on, a GDT with a 64-bit code segment, a far jump into it, and
 
 ## Where this departs from the specification
 
-`docs/SPEC.md` describes a hosted program. Three of its promises cannot be kept
+`docs/SPEC.md` describes a hosted program. Four of its promises cannot be kept
 here, and each is a deliberate deviation rather than an oversight:
 
 * **A trap has nowhere to go.** §7 says a trap writes one line to stderr and
@@ -170,6 +170,11 @@ here, and each is a deliberate deviation rather than an oversight:
   are handed out and never returned, and the identity map is the ceiling. There
   is no stderr to trap to either, so the hosted runtime's use-after-free guard
   does not exist here (docs/MEMORY.md 2a).
+* **`fail` has no stderr or exit.** `fail(msg)` writes `id: MSG` to stderr
+  and exits 1 hosted. The runtime's `fail` (`idc/runtime/io/fail.id`) writes
+  the same line to the serial port with `put` and `print`, which allocate
+  nothing, then writes ACPI's shutdown register (port 0x604, what the panic
+  path's `poweroff` writes) and spins on `hlt`, so it never returns.
 * **Floats are absent.** `id_box_f`, `id_unbox_f` and float printing are not
   implemented, so a kernel that uses a `float` fails to link. Enabling SSE is a
   handful of `CR0`/`CR4` bits and belongs with the rest of CPU setup, not with

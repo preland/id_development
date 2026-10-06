@@ -184,8 +184,9 @@ these are lowered **inline**, to instructions rather than calls:
   compare against the limit, store, return the old value.
 - `peek8/16/32/64`, `poke8/16/32/64` — a bounds compare and a `load`/`store`.
   (`peek8s/16s/32s`, `peek8u/16u/32u`, `bits_of_float`, `float_of_bits`, `bits32_of_float`,
-  `float_of_bits32` and `fail` are hosted runtime helpers only: `fail` needs the C runtime's trap,
-  and a freestanding build that calls one has an undefined `id_...` symbol at link time.)
+  `float_of_bits32` are hosted runtime helpers only, and a freestanding build that calls one has an
+  undefined `id_...` symbol at link time. `fail` is the exception: the freestanding runtime
+  defines `id_fail`, which writes `id: MSG` to the serial port and stops the machine.)
 - `store_size()` — a load.
 - the arithmetic builtins `udiv`, `umod`, `ult`, `ushr` — instructions.
 
