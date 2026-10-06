@@ -322,7 +322,12 @@ twin.id:5: error: native 'twin_a', reached from main by this call, has no
   it is declared in twin.id, which is not in an attached backend
 ```
 
-### What a backend's own `id` code may call: `core/`, and nothing above it
+### What a backend's own `id` code may call: `core/`, itself and natives
+
+A backend's `id` code may call builtins, `core/`, its own directory, and the
+natives of any backend (a native is a leaf C call, so the layering of the `id`
+code above it still holds). It may not call another backend's `id` functions, nor
+anything in `host/` or `kit/`.
 
 A backend directory may hold `id` code beside its natives (`fs_mkdir_p` over
 `fs_mkdir`, `fs_read_bytes` over `fs_read`), and that code has cases. When a
@@ -331,13 +336,18 @@ program names a backend on its own (`--backend DIR`, or a `conf.id` import),
 (`run_backend_prechecks`), cached by content. That build includes idstd's
 `core/` and no other tier, because `core/` is freestanding and always present,
 the foundation everything stands on, so a backend leans on it instead of
-duplicating it:
+duplicating it. The other backends of the checkout are present only as their
+native declarations, with their `backend.id` and C beside them so a case that
+calls one links: a copy of each is made in a scratch directory
+(`tier_native_shims`), holding the `native` lines of its `id` files and none of
+its `id` functions.
 
 * The backend's functions and its cases may call any `core/` function
   (`lst_fill`, `path_join`, `str_ends`, `ord_strs`, and so on). Only the
   `core/` functions reached are parsed, as in any build.
-* Calling something in `host/` or `kit/` is refused, because backends sit
-  below those tiers. The diagnostic is `no such function` followed by a line
+* Any backend's natives may be called, in the backend's code and in its cases.
+* Calling something in `host/` or `kit/`, or another backend's `id` function, is
+  refused, because backends sit below those tiers. The diagnostic is `no such function` followed by a line
   naming where the function lives and the two ways out: move it into `core/`
   if it needs no host service, or move the calling code out of the backend into
   the `host/` or `kit/` library that wraps it. A backend's cases may not
@@ -351,6 +361,32 @@ duplicating it:
 * A program that is `--no-std` and imports a backend directly merges the
   backend's `id` files as source, so it must import idstd's `core/` too
   (`import "…/idstd/core"` in its `conf.id`) when the backend calls it.
+
+The rule is also checked statically, without a program naming the backend:
+`idstd/run.sh layer` reads the call graph `idc idstd --calls` makes of the whole
+library and, for every directory holding a `backend.id` under `host/` or `kit/`,
+requires each callee of a function defined there to be a builtin, a function
+under that same directory (the backend's own natives included), a function
+under `core/`, or a native declared anywhere (the callee's line starts with
+`native `). Anything else is reported as
+`file:line: fn calls X, which lives in host/... -- move X into core/, or move fn
+out of the backend` (`file:line` is where `fn` is defined). The tool is
+`idstd/.tests/tool/layer`; `idstd/run.sh layerfalsify` runs it over a miniature
+idstd (`.tests/assets/layer`) and requires a call from its backend into `host/`,
+one into `kit/`, and one into another backend's `id` function to turn it red,
+and a call to another backend's native to stay green.
+
+A test fixture is exempt from the static check. A fixture is a function whose
+name follows `given` or `then` in some case line of the library (run.sh reads
+those names from the lines that start with `given ` or `(`; the call graph has no
+edge for a case line), and whose every incoming call edge in the graph comes from
+another such name, so no real code calls it. `idstd_wl_t_link`, which makes a
+scratch directory with `fs_mktemp`, is one. A function that does the same call
+but is also called from real code, or never named in a case, is still flagged
+(`layerfalsify`). The pre-check above has no such exemption: it cannot scope a
+function to the cases that name it, so a backend with a fixture that calls
+another backend's `id` function is refused when a program names that backend on
+its own, as it would be for any other such call (`wl`'s `idstd_wl_t_link` calls `fs_mktemp`, so naming `wl` alone is refused).
 
 The pre-check runs the C target whatever `--target` the program asks for; the
 backend's `id` code is the same for the C, LLVM and wasm targets, so the
@@ -490,8 +526,10 @@ program run on its private Xvfb cannot pick the live Wayland session.
 function, so the choice cannot sit behind the same native. The platform
 backend's natives are now `gfx_sys_open`, `gfx_sys_present` and so on (their C
 keeps its `id_gfx_*` spelling; `gfx.h` renames the symbols), and `gfx_open`,
-`gfx_present`... are `id` functions in `host/dev/win/wl/seam` that call one or
-the other. The sixteen wrappers are the whole seam; `gfx_sync`, `gfx_show` and
+`gfx_present`... are `id` functions in `host/dev/win/seam` that call one or
+the other, with the policy of which display to use (`idstd_gfx_want`, and
+`net.id` and `session.id`: the socket path, `idstd_wl_connect` and opening a window, which read the environment). The
+sixteen wrappers are the whole seam of calls; `gfx_sync`, `gfx_show` and
 `gfx_clip_get` are unchanged because they only call it.
 
 **What is `id` and what is C.** The wire protocol and the client are `id`:
