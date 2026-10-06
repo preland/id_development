@@ -14,8 +14,8 @@
       # exactly the toolchain the repo needs so that graphics (`--backend`) and
       # the LLVM/WASM targets build without any manual header/lib plumbing:
       #   - C toolchain
-      #   - python3                  (only the oracle suites: editor_*.sh and
-      #                              the pack round trip's checksum)
+      #   - nodejs + unzip           (the editor_*.sh oracles: zlib, zip listing,
+      #                              PPM analysis)
       #   - X11 + OpenGL/GLX + mesa  (the gfx/gl backends; Linux)
       #   - llvm/clang/lld           (`idc/bin/idc --target llvm`)
       #   - wabt + wasmtime          (inspecting and running `--target wasm`)
@@ -72,10 +72,10 @@
           '';
         in {
           default = pkgs.mkShell {
-            nativeBuildInputs = toolchain ++ [ pkgs.python3 ];
+            nativeBuildInputs = toolchain ++ [ pkgs.nodejs pkgs.unzip ];
             buildInputs = gfxLibs;
             shellHook = ''
-              echo "id dev shell: cc=$(command -v cc)  python3=$(python3 --version 2>&1)" >&2
+              echo "id dev shell: cc=$(command -v cc)  node=$(node --version 2>&1)" >&2
             '' + wasiEnv;
           };
           strict = pkgs.mkShell {

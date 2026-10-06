@@ -51,7 +51,7 @@ is a coordination problem before it is a language one.
 Stored, fixed-Huffman and dynamic-Huffman blocks, the code-length alphabet
 with its repeat codes, and LZ77 back-references copied forwards because the
 ranges overlap — that is how a run of one byte is expressed. Checked against
-Python's `zlib` and `zipfile` at test time, then fuzzed over 120 raw streams
+node's `zlib` and Info-ZIP `unzip` at test time, then fuzzed over 120 raw streams
 and 94 archive entries. **No CRC-32 check**, no Zip64, and no compression
 method but 0 and 8; each is reported rather than guessed at.
 
@@ -110,7 +110,7 @@ already-placed glyphs mutable after the fact.
 
 | suite | checks | reference |
 | --- | ---: | --- |
-| `editor_zip.sh` | 11 | Python's `zlib` and `zipfile`, at run time |
+| `editor_zip.sh` | 11 | node's `zlib` and `unzip`, at run time |
 | `editor_doc.sh` | 25 | the fixture's own `content.xml` |
 | `editor_render.sh` | 13 | the shape of the page, not its pixels |
 

@@ -109,7 +109,16 @@ async function web(browser, page, mode, layer, w, h, nat, dir) {
       if (mask & 8) await pg.evaluate((i) => { document.querySelector(`[data-sty="${i}"]`).disabled = true; }, ord);
     }
   }
-  await pg.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+  await pg.evaluate(async () => {
+    const frames = () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+    await document.fonts.ready;
+    await frames();
+    for (let i = 0; i < 50 && document.getAnimations().length > 0; i++) {
+      document.getAnimations().forEach((a) => a.finish());
+      await frames();
+    }
+    if (document.getAnimations().length > 0) throw new Error('animations still running after 50 rounds');
+  });
   const wanted = nat.computed.map((r) => [r.n, r.prop]);
   const textNodes = nat.text.map((r) => r.n);
   const got = await pg.evaluate((pairs, tn) => {

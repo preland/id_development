@@ -4,7 +4,7 @@
 > and the output shown is the output it produced.
 
 Everything below needs the dev shell, which carries the toolchain — `clang`,
-`lld`, `qemu`, X11, `python3`:
+`lld`, `qemu`, X11, `node`, `unzip`:
 
 ```sh
 nix develop                      # or `direnv allow` once, then it is automatic
@@ -145,13 +145,17 @@ is the faux italic `docs/EDITOR.md` describes.
 A PPM, which most viewers open directly. To read it in a terminal:
 
 ```sh
-python3 - /tmp/page.ppm <<'EOF'
-import sys
-d = open(sys.argv[1], "rb").read(); h = d.split(b"\n", 3)
-w, ht = map(int, h[1].split()); px = h[3]
-for y in range(0, 200, 2):
-    print("".join(" .*#"[min(3, (255 - px[(y * w + x) * 3]) // 64)]
-                  for x in range(0, 300)).rstrip())
+node - /tmp/page.ppm <<'EOF'
+const d = require("fs").readFileSync(process.argv[2]);
+let p = 0;
+const h = [];
+while (h.length < 3) { const n = d.indexOf(10, p); h.push(d.toString("latin1", p, n)); p = n + 1; }
+const w = Number(h[1].split(/\s+/)[0]);
+for (let y = 0; y < 200; y += 2) {
+  let s = "";
+  for (let x = 0; x < 300; x++) s += " .*#"[Math.min(3, (255 - d[p + (y * w + x) * 3]) >> 6)];
+  console.log(s.trimEnd());
+}
 EOF
 ```
 
