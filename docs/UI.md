@@ -1,7 +1,7 @@
 # A GUI toolkit for `id`, laid out by idml
 
 > **Status: design, plus a first slice that runs.** The slice is the idml parser
-> and the layout pass, written in `id`, in `idstd/gfx/kit/gui/` (section 11), which
+> and the layout pass, written in `id`, in `idstd/kit/ui/` (section 11), which
 > is where the toolkit lives (decided; section 4). Everything else in this document
 > is a proposal. The forks in section 12 are **not decided** except 1, 2 and 5; where
 > the slice had to pick one to exist, it says which and why.
@@ -30,7 +30,7 @@ section 2): `@name` reads a value `id` publishes, a bare identifier such as
 
 Non-goals for v1: styling that CSS does and idml does not (hover transitions;
 shadows, borders, padding and gaps are now drawn from the design system's
-classes, `idstd/gfx/kit/gui/tb/theme/README.md`), animation, right-to-left or complex text, accessibility
+classes, `idstd/kit/ui/theme/README.md`), animation, right-to-left or complex text, accessibility
 trees, and any change to the idml language. Section 12 lists what would change
 these.
 
@@ -139,7 +139,7 @@ main axis the children's percentages sum to 100 (or a `hug` child absorbs the
 remainder), across it each child is exactly 100. The toolkit therefore needs no
 flex solver: a container hands each child a slice of its own rectangle.
 
-Rules, as implemented (`idstd/gfx/kit/gui/core/flow/`, and pinned by cases):
+Rules, as implemented (`idstd/kit/ui/idml/layout/`, and pinned by cases):
 
 1. `Row` tiles along the width, every other kind along the height.
 2. A child's main size is `round_half_up(bp * extent / 10000)`, computed
@@ -178,7 +178,7 @@ tiles. Section 10 has the full table.
 
 ## 4. Where it lives
 
-**Decided: `idstd/gfx/kit/gui/`.** The toolkit is the standard way to build a
+**Decided: `idstd/kit/ui/`.** The toolkit is the standard way to build a
 graphical application in `id`, so it is part of the standard library, under the
 library's own rules. The options that were weighed were its own tree imported
 through `conf.id` (what the first slice was) and `idml/backends/id/`; the second
@@ -313,8 +313,8 @@ which is the one place the core still needs one.
 
 ### 5.3 What proves the two paths agree
 
-The cases are in `idstd/gfx/kit/gui/core/flow/seam/` (`tab/` the board, `fn/` the
-layer, `fn/par/` the comparison). The flappy page is bound once through a board
+The cases are in `idstd/kit/ui/idml/bind/` (the board in `bind/`, `fn/` the
+layer, `real/par_*.id` the comparison). The flappy page is bound once through a board
 and once with `gui_bind_fn` and laid out 288x512, and the two rectangle lists must
 be equal; the pong page does the same at 640x480 with its one gate
 (`?@waiting`); the todo page is filled with `gui_set_text` and with
@@ -346,7 +346,7 @@ Focus order is tree order over buttons, inputs and checkboxes; Tab and
 Shift-Tab move it, a click sets it. Hit testing walks the children back to
 front (later siblings and overlays on top) and skips hidden nodes.
 
-Each row of that table will be code under `idstd/gfx/kit/gui/` with its own cases; none of it
+Each row of that table will be code under `idstd/kit/ui/` with its own cases; none of it
 exists yet. What each needs from the platform is in section 8.
 
 ## 7. Text and fonts
@@ -410,7 +410,7 @@ Anchor-based text placement is already in the slice: `fx_align`.
 
 ## 7a. The text box model
 
-`idstd/gfx/kit/gui/tb/edit/` is the state and the operations of a single-line text
+`idstd/kit/ui/wid/textedit/` is the state and the operations of a single-line text
 field, in pure `id` with no window and no font. A text box is a `GuiTb` struct
 (a reference, so a function that takes one changes the caller's box): `text`
 (UTF-8), `sel.caret` and `sel.anchor` (byte indexes; the selection is the bytes
@@ -492,7 +492,7 @@ line of a case.
 
 ## 7b. The text box widget
 
-`idstd/gfx/kit/gui/tb/box/` (`NAMES.md` 1.19b) puts a window and a font on the model of 7a: a `GuiTextBox` is a
+`idstd/kit/ui/wid/textbox/` (`NAMES.md` 1.19b) puts a window and a font on the model of 7a: a `GuiTextBox` is a
 `GuiTb` with a rectangle, a font handle, a scroll, focus, a drag in progress and a caret clock. It draws on the
 list surface and takes the events `gfx_event` gives, and it holds no clipboard or window state of its own: the
 program passes each event in, calls `gui_textbox_tick` once a frame and `gui_textbox_draw` when the picture is stale.
@@ -603,7 +603,7 @@ invented declarations, which `idem/docs/IDML.md` section 1.2 says are not idml.
 
 ## 11. The first slice, and how to check it
 
-The slice is part of `idstd`, in `idstd/gfx/kit/gui/` (a library: no `main`).
+The slice is part of `idstd`, in `idstd/kit/ui/` (a library: no `main`).
 Commands run from the repository root with `IDSTD_HOME` set to the standard
 library, which is a sibling checkout:
 
@@ -620,7 +620,7 @@ cases` names a failure, and is cached by the library's content). The cases read
 their idml files from `idstd/.tests/assets/gui/`, because a case runs in its
 library's root.
 
-What is in it, under `idstd/gfx/kit/gui/` unless a path says otherwise:
+What is in it, under `idstd/kit/ui/` unless a path says otherwise:
 
 | where | what | public names |
 | --- | --- | --- |
@@ -637,7 +637,7 @@ What is in it, under `idstd/gfx/kit/gui/` unless a path says otherwise:
 `host/io/fs/data/text.id`, where the next program that wants them finds them.
 
 How many functions and cases there are is a query, not a number to write down:
-`idc/tools/casework.sh list ../idstd/gfx/kit/gui` lists every function short of
+`idc/tools/casework.sh list ../idstd/kit/ui` lists every function short of
 its two cases, and the build runs every case.
 
 `uicheck/` (at the repository root, beside `idc/` and `docs/`) is a small
@@ -658,7 +658,7 @@ a library must not depend on that library's test fixtures.
 
 ### 11.1 Parity with `build-scene.mjs` on `todo.idml`
 
-The expected values in `idstd/gfx/kit/gui/core/real/scene/` are **typed from
+The expected values in `idstd/kit/ui/idml/real/` are **typed from
 `id_nativeapp/id/todo/view/layout.gen.id`**, the committed output of
 `build-scene.mjs`, not copied from this toolkit's output. For a 640x460 window:
 
@@ -726,7 +726,7 @@ nothing enforces them natively and the TypeScript validator remains the only
 gate. The middle option keeps a native app able to load a file the web build
 refuses, which is either a feature or a drift.
 
-**Fork 5 - where it lives** (section 4) -- **decided: `idstd/gfx/kit/gui/`**. The options were `idstd/gui`, its own tree, or idml's id
+**Fork 5 - where it lives** (section 4) -- **decided: `idstd/kit/ui/`**. The options were `idstd/gui`, its own tree, or idml's id
 backend. The slice started in its own tree and has moved.
 
 **Fork 6 - define expansion: at parse or at layout.** Expanding a `define` call
