@@ -1,14 +1,22 @@
 # Threads for `id`
 
-> **Status: a design with a first slice built.** Sections 1 to 3 are the audit of
-> what in the runtime is shared, the four options, and a recommendation; they are
-> the user's to decide, and nothing in them is implemented beyond section 4.
-> Section 4 is a prototype that needs no syntax change: the C runtime keeps its
-> mutable state per thread, and idstd's `thr_map` runs a pure `func(int) return
-> int` over `0..n-1` on several OS threads. Section 5 lists what must still
-> change before it is safe by construction rather than by convention. Numbers
-> that change (timings, counts) are in section 6 with the commands that produce
-> them; do not copy them elsewhere.
+> **Status: a design with two slices built.** Sections 1 to 3 are the audit of
+> what in the runtime is shared, the four options, and a recommendation; the
+> user has decided the order (below), and nothing in them is implemented beyond
+> sections 4 and 7. Section 4 is phase 0: the C runtime keeps its mutable state
+> per thread, and idstd's `thr_map` runs a function over `0..n-1` on several OS
+> threads. Section 7 is phase 1: `pure` is a marker on functions that the
+> compiler proves (`docs/SPEC.md`, section 1.3), `thr_map` accepts only pure
+> functions, its results may be strings and lists, and a trap in a worker is
+> deterministic. Section 8 designs `pure noalloc` for the real-time tier and
+> builds none of it. Section 5 lists what is still open. Numbers that change
+> (timings, counts) are in section 6 with the commands that produce them; do not
+> copy them elsewhere.
+>
+> **The user's decisions.** A `pure` marker on functions, which also serves as
+> the real-time "no allocation" flag later. The order is `par_map` over
+> compiler-proven-pure functions first, then share-nothing channels, then a
+> real-time tier. Shared-memory locks never enter the language.
 
 Why now (`PLATFORM_ROADMAP.md` section 4, ranks 2 and 3): an audio real-time
 thread, video decode beside the UI, a compositor's input/render split and
@@ -267,33 +275,26 @@ state as well.
 
 ## 5. What must change before this is safe by construction
 
-The prototype is safe *for a pure `f`*, and nothing stops a caller from passing
-an impure one. Ordered by how much each blocks:
+Phase 0 was safe *for a pure `f`* and nothing stopped a caller from passing an
+impure one. Items 1 to 3 were that gap and are closed by phase 1 (section 7);
+what is left is ordered by how much it blocks:
 
-1. **A purity check at the call.** The compiler must refuse `thr_map(f, ...)` when
-   `f` is not pure, with a diagnostic that names the cause and the fix ("`f`
-   writes the export `counter`; return the value and fold it after the join").
-   Needs per-function summary bits beside the escape analysis's: *writes an
-   export*, *calls an I/O builtin*, *writes a list parameter*, *calls a native
-   not marked pure*, *calls a function value*. **Design fork:** how `thr_map`
-   says its parameter must be pure. (i) a name list inside the compiler, no
-   syntax change, brittle; (ii) a `pure` marker on a function type
-   (`pure func(int) return int`), a syntax change the user must decide; (iii) a
-   marker on the *callee* (`pure` before a function definition, checked), which
-   also serves option (d)'s "no allocation" bit.
-2. **Traps in a worker.** Today `exit(1)` from a worker ends the process with
-   whichever message got there first. Deterministic behaviour needs a per-thread
-   trap target (the `--lib` `longjmp` shape, one `jmp_buf` per thread), `thr_run`
-   returning the lowest failing index, and the id side trapping with that
-   index's message after the join.
-3. **Results other than `int`.** A list or string result lives in the worker's
-   arena, freed at `id_thread_leave`; it must be deep-copied into the caller's
-   arena first (`id_list_adopt` is the existing shape). Floats and words need
-   only a different cell type.
+1. **A purity check at the call.** Done: `pure` (`docs/SPEC.md`, section 1.3),
+   proved by `mid/types/check/store/assign/rule/escape/flow/pure/`, and a `pure
+   func` parameter on `thr_map`. Still open in it: a pure function may mutate a
+   list it was handed (`push(xs, v)` on a parameter is accepted), which is
+   harmless while `thr_map` passes only an index and becomes an error with the
+   first parallel map over a list (section 7.5).
+2. **Traps in a worker.** Done: the lowest index's trap wins, every worker is
+   joined, the calling thread traps with that message (section 7.4).
+3. **Results other than `int`.** Done for `string` and `int[]` (`thr_map_str`,
+   `thr_map_list`). Open: `float[]` and `word[]` (the same copy with another
+   type, and a native each), and `string[]` or nested lists, which need a deep
+   copy of the pointed-to blocks rather than of the cells.
 4. **Every native is single-threaded.** `fs_*` (a handle table), `proc_*`
    (`proc_slots`), `sock_*`, `gfx_*`, `gl_*` and `env_*` keep static state. A pure
-   `f` calls none of them (rule 1); the check must treat natives as impure by
-   default.
+   `f` calls none of them, because a native is impure unless its declaration is
+   `pure native` (section 7.1); nothing marks any of these.
 5. **The test harness's counters.** `time`/`mem` and the `calls` recorders are
    plain `static` globals. Either make them atomic, or count per thread and sum
    at join, so a constraint on a threaded function is deterministic. Until then,
@@ -308,21 +309,18 @@ an impure one. Ordered by how much each blocks:
    there.
 8. **A conformance case.** `idc/tests/conform/` has no case for threads; one should
    assert `thr_map == thr_map_serial` for several thread counts on every target.
-9. **Closures (`bind`, docs/SPEC.md 1.1.1) and `thr_map`.** A closure's captured
-   values are copied at `bind` and immutable (a captured list is locked), which
-   is exactly what a pure function run on several threads may read, so the data
-   is not what stops `thr_map(bind(f, keys), n, t)`. What stops it is the
-   native: `thr_run` takes a C function pointer, a closure has none, and
-   passing one traps (`id: a closure cannot be passed to a native`). The
-   workers' arenas are not a problem either, because a worker only reads the
-   caller's blocks, which nothing frees while `thr_map` waits. **Design fork:**
-   (i) leave it, so `thr_map` takes plain functions only and a program with
-   state passes it through an export, as before; (ii) give `thr_run` the object
-   and call `f->fn(f, i)` from C, which changes the one documented C ABI of a
-   `func` parameter (docs/INTEROP.md) for this native only, by declaring it with
-   a different type than `func`; (iii) add `thr_map_clo(f, n, t)` beside it,
-   which hands C the object, so the plain-pointer contract of every other native
-   is untouched. (iii) is the smallest and keeps the contract; the user decides.
+9. **Closures (`bind`, docs/SPEC.md 1.1.1) and `thr_map`.** Done, by option (iv), which
+   needs no change to the native ABI: a closure's captured values are copies that
+   `bind` made and locked, so a pure function may read them from any thread, and
+   nothing frees them while `thr_map` waits. The native takes a plain C pointer
+   and a closure has none, so `thr_map` stores its function in an export
+   (`idstd_thr_set`) and hands the native a plain function, `idstd_thr_call`, that
+   calls through the export; a worker reads the export (written once, before any
+   worker starts) and calls the closure, which reads its cells. `bind(f, k...)` is
+   accepted for a `pure` parameter when `f` is pure (`E0806` otherwise,
+   naming `bind(f, ...)`). Cost: one more indirect call per index, and
+   `thr_map` may not run on two threads at once, which it could not before
+   either (it is not pure, so no pure function can call it).
 
 ## 6. Measurements
 
@@ -382,6 +380,189 @@ matters, `-DID_TLS=` is the escape hatch, and a driver flag that defines it
 when no thread backend is reached would remove it by construction (not done:
 the backend `cflags` apply to the backend's sources, not to the program).
 
+**The same cost, measured again for phase 1** (the runtime now also carries the
+trap target, a second thread-local): `idc bench/id/NAME -O2 --emit-c`, the C built
+twice with `gcc -O2 -std=c11` (`-DID_TLS=` against the default), seven runs of
+each alternated and pinned with `taskset -c 5`, machine shared with other work;
+wall milliseconds, medians:
+
+| program | with TLS, median ms | without, median ms | difference | spread of the 7 runs (with / without) |
+| --- | --- | --- | --- | --- |
+| `btrees 17` | 4968 | 5109 | -2.8% | 4780-5296 / 4756-5433 |
+| `strbuild 16000000` | 3271 | 3205 | +2.1% | 3213-3556 / 3130-3500 |
+| `sortb 10000000` | 1558 | 1532 | +1.7% | 1507-1606 / 1484-1552 |
+
+The differences have both signs and are smaller than the spread inside either
+column, so there is no measurable cost of `ID_TLS` on these three programs, and the
+driver option the task asked for (define `ID_TLS` empty when no thread backend is
+reached) was not built: it would remove nothing that can be seen. The numbers
+come from `scratch/bench_tls.sh`, a bash loop outside the repository; reproduce
+with the two builds and the command line above.
+
+**Phase 1 checks.** `thr_map_list` and `thr_map_str` over 3000 indices on 4
+threads (a program that builds a list and a string per index, result folded to a
+hash; the serial reference `thr_map_*_serial` prints the same hash): ThreadSanitizer
+(`clang -fsanitize=thread -O1`) reports **0** races on the emitted C plus
+`thr_linux.c`, and **53** with `-DID_TLS=` as the control. A function that traps at
+index 4 (division by zero) and at 6 and above (index out of bounds), mapped over
+64 and 40 indices on 8 and 4 threads: 30 runs out of 30 print `id: division by
+zero` and exit 1, as the serial loop does.
+
 Function bodies, builtins and every id program are otherwise unchanged by this
 pass; the changes are the seven declarations and two functions in the runtime,
 the `ID_TLS` define in `idl_pre.h`, and the new idstd module.
+
+## 7. Phase 1: `pure`, and a `thr_map` that accepts only pure functions
+
+The user decided: a `pure` marker on functions, which also serves as the
+real-time "no allocation" flag later; `par_map` over compiler-proven-pure
+functions first, then share-nothing channels, then a real-time tier; shared-memory
+locks never enter the language. This is the first of those. The language side is
+specified in `docs/SPEC.md`, section 1.3, and its errors are `E0801` to `E0807` in
+`docs/ERRORS.md`.
+
+### 7.1 The marker, and the rule
+
+`pure` is written where `native` is, before the name, and before a parameter's
+function type:
+
+```
+pure sq(int x) { ... } return int r;
+pure native thr_run(pure func(int) return int f, int n, int threads, int[] out) return int;
+```
+
+The proof is one walk over each function's nodes (the range `reach_funcs` uses),
+a summary computed per function exactly as the escape analysis computes its, but
+simpler because the summary is a single bit: a function is pure when every node
+in it is allowed. A pure function writes no export, calls only the builtins on
+the `pure_builtins` list, calls only pure functions (marked, or `pure native`),
+and reads an export only if it is a constant of `conf.id`.
+
+**Reading exports.** The user said reading constants and "imports that are never
+written after init" should be allowed. Constants are. An export that is assigned
+once during start-up is not, because the compiler cannot see that the assignment
+has finished before the parallel region starts, and a list export can also be
+written through any function it is passed to, which needs the *written* bit per
+list parameter (section 7.5). The fix the error names, a parameter or a `conf.id`
+constant, is what the code that needed it can do. If a library needs init-once
+exports in pure functions, the sound extension is: an export declared at exactly
+one site, of a scalar or string type, in a function marked `return void export
+NAME`, and read only from functions the initialiser cannot reach.
+
+**Natives.** A native is impure unless declared `pure native`. That is the one
+claim the compiler believes rather than proves. `thr_run` and its two siblings are
+*not* marked pure: they write the list they are handed, which is the point of
+them, and so `thr_map` is not pure either, and cannot be called from a pure
+function. `thr_map_serial` and its siblings are pure.
+
+### 7.2 `thr_map` accepts only pure functions
+
+`thr_map(pure func(int) return int f, int n, int threads)`. A `pure` parameter is
+checked at every call (`E0806`): the argument must be the name of a pure function
+or a pure parameter of the caller, so the check is made where the function value
+is known. What happens where it is not known (a local, an export, a result) is the
+fork the task asked about:
+
+| option | what it is | costs |
+| --- | --- | --- |
+| **A. a pure parameter** (built) | `pure` qualifies the parameter; the argument must be a name, or a pure parameter, so a value that is not known is refused | cannot say "a list of pure functions" (none exists anyway), or hold a pure function in a local or an export; a library that stores a user's pure callback in an export cannot yet mark it pure; no change to any type rule, a pure function still has the type `func(int) return int` everywhere |
+| B. a type, `pure func(int) return int` | a subtype of the plain function type: pure converts to plain, never the reverse | allows locals and exports of that type, so a library can store a pure callback; changes the type registry's equality and conversion rules, every place two function types are compared, and the `--fix` and `case` code that spell types; the most invasive |
+| C. a runtime check | the compiler emits a table of the pure functions' addresses and `thr_run` refuses an address that is not in it | late: the bug is found when the line runs, not when it is written; helps only natives; needs the emitter to know which functions are pure, so it does the proof anyway |
+| D. a name list inside the compiler | `thr_map` and friends are special cased | no syntax change, and brittle: every new parallel function is another entry |
+
+A is built because it is the simplest sound option and every use in this phase
+(`thr_map`, `thr_map_str`, `thr_map_list`, their serial references) needs only
+names. B is where it would go if a library needs to hold pure callbacks, and A's
+diagnostics are written so that moving to B changes the fix they name and not
+the rule they state.
+
+Test cases are calls too: a case that passes a function to a pure parameter is
+held to the same rule (`E0806` at the case).
+
+### 7.3 Results other than `int`
+
+`thr_map_str` returns `string[]` and `thr_map_list` returns `int[][]`. A worker's
+arena is freed when it leaves, so a result cannot be left there: the worker that
+made `f(i)` copies it into plain `malloc` memory before it leaves, and the calling
+thread, after the join, copies each into its own arena (`id_str_of_cstr` for a
+string, a new list header and cells from `id_alloc` for a list), so the results
+are ordinary blocks the escape analysis frees like any other. The element of a
+list result must be a scalar; `string[]` and nested lists would copy pointers into
+the worker's arena and are refused by the type of the native, which is `int[]`.
+
+### 7.4 Traps in a worker
+
+The runtime redefines `exit` and `fprintf` (inside `#if !defined(exit) &&
+!defined(__wasm__)`, the same two names `--lib`'s `idl_pre.h` redirects, which is
+why that mode is unaffected): when a thread has armed a target (`id_trap_arm`,
+which returns the previous one so a `thr_map` inside a worker nests), a trap
+formats its message into a thread-local buffer and `longjmp`s to the target
+instead of printing and exiting. `id_thr_run` arms one per thread, records the
+lowest index that trapped with its message (a mutex-protected minimum; workers
+stop claiming indices at or above it), joins every worker, frees the half-made
+results, and calls `id_trap_raise`, which prints the message and exits on the
+calling thread: the message and exit status a serial loop would have given. In a
+nested call the same `id_trap_raise` lands on the enclosing worker's target.
+
+### 7.5 What is not done
+
+- **A pure function may mutate a list it was handed.** The compiler does not yet
+  prove it does not, because `thr_map` passes an int and a list reaches a worker
+  only if the function builds it. The first parallel map over a list needs a
+  *written* bit per list parameter next to the escape analysis's *kept* bit, an
+  error for a pure function that writes a parameter it did not allocate (or an
+  alias of one: `int[] a = p; push(a, 1)`), and the same bit across calls.
+- **`pure` for an export read once at start-up** (7.1).
+- **`pure` has no effect on code generation**: nothing is reordered, cached or
+  parallelised implicitly. Only the parallel maps use it.
+
+## 8. Design: `pure noalloc`, the real-time tier (not built)
+
+The user decided that `pure` is also the base of the real-time tier's "no
+allocation" flag. This is the design; none of it is implemented.
+
+**Syntax.** A second marker, written after `pure` in the same place:
+`pure noalloc process(int i) { ... } return int r;`. Two markers rather than one
+combined word because the rules differ and the real-time tier will not always want
+both: an audio callback must not allocate but must read and write the ring buffer
+in the flat store, which `pure` forbids (`peek*` and `poke*` are state outside the
+arguments). So `noalloc` is its own marker and `pure noalloc` is the conjunction.
+
+**The rule**, a call-graph property like purity, proved by the same walk with a
+second table. A `noalloc` function:
+
+- calls only `noalloc` functions (and natives declared `noalloc native`);
+- does not allocate: no list literal, no `push` (growth allocates), no `+` on
+  strings, no integer-to-string conversion, no `chr`, no struct constructor, no
+  `alloc`. Index reads and writes, `len`, `charat`, `peek*`, `poke*`, the
+  arithmetic builtins and string literals do not allocate;
+- does not recurse (the stack is the thread's, and is not grown) and has no
+  `while` whose bound the compiler cannot see, which is the open part: either a
+  `while` is accepted only in the counted form (`while(i < n)` with `i` changed
+  by a constant and `n` unwritten in the body), or the bound is stated with the
+  `time` constraint a test case already carries (`docs/TESTS.md`);
+- may trap, which is a fork the roadmap already lists: a trap in the audio
+  callback cannot `exit`. The options are a status return (`id_trap_arm` above is
+  the mechanism: the real-time thread's target returns to the host with a code) or
+  a proof that no index is out of range, which `id` cannot give without a
+  dependent type. The status return is the one that can be built.
+
+**Detection.** Allocation sites are node kinds and a few calls: `arr` (a list
+literal), a call to `push`, `chr`, `alloc`, `str_of_mem` or a struct constructor,
+and a `+` whose operands are strings, which needs `type_of` (`mid/types/type_of/`)
+where purity needed only node kinds. The marker is a second list beside
+`purenode` (`allocnode`), and `pure_kind` (`.../pure/scan/call/kind.id`) takes the
+table it consults as a parameter, which is the only change the walk needs.
+
+**Runtime.** The real-time thread's arena and store are preallocated at
+`id_thread_enter` and never grown; `id_alloc` on that thread is a trap, so the
+proof is also checked at run time by the case harness's `mem` constraint, which
+already counts allocations per case.
+
+**Test cases.** A `noalloc` function is a function from its arguments and the
+ring cells to the ring cells, so a case is "this block in, this block out", and
+the no-allocation claim is checked at build time and again by the counter. Nothing
+here needs a new case form.
+
+**wasm.** An `AudioWorklet` is the thread there and the ring a `SharedArrayBuffer`;
+until then the function runs serially, as `thr_map` does.

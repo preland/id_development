@@ -476,6 +476,86 @@ untested in the workspace this was written in, which has no WASI toolchain --
 while `idc/idc.py`, frozen, does not parse the syntax and builds nothing that
 merges one.
 
+### 1.3 Pure functions
+
+`pure` is a marker the compiler proves. A function written with it promises
+that its result depends on its arguments alone and that calling it changes
+nothing the rest of the program can see, which is what lets it run on another
+thread (`docs/THREADS.md`) or be called in any order. The marker is written
+before the name, in the same place `native` is, and the rest of the header is
+unchanged:
+
+```
+pure sq(int x) {
+  int r = x * x;
+} return int r;
+
+pure native thr_run(pure func(int) return int f, int n, int threads, int[] out) return int;
+
+run_all(pure func(int) return int step, int n) {
+  int i = 0;
+  while(i < n) {
+    step(i);
+    i = i + 1;
+  }
+} return void;
+```
+
+`pure` is a keyword, so it is not a name. It is not part of a type: `sq` and an
+unmarked function with the same signature have the same `func(int) return int`
+type, and a pure function may be passed wherever that type is expected.
+
+**What the compiler proves of `pure f`.** Each violation is an error that names
+the offending write or call and the fix (`docs/ERRORS.md`, `E0801`-`E0806`):
+
+- **`f` writes no export** (`E0801`). An `export` declaration is the only way
+  a function assigns an export, so a pure function has none.
+- **`f` does no I/O** (`E0802`). It may call only the builtins `len`, `push`,
+  `pop`, `to_int`, `charat`, `chr`, `udiv`, `umod`, `ult`, `ushr`, `fail`, `bind` and the four float bit-cast builtins (the list
+  is the `pure_builtins` constant of `idc/compiler/parse/conf.id`). `print`,
+  `put`, `flush`, `eprint`, `input`, `read_all`, `getkey`, `sleep_ms` and `ticks`
+  do I/O or read the clock, and `alloc`, `store_size`, `peek*`, `poke*`,
+  `str_of_mem` and `mem_of_str` read or write the flat store, whose contents are
+  not an argument. A builtin that is added later is refused until it is listed.
+- **`f` calls only pure functions** (`E0803`): functions marked `pure`, and
+  natives declared `pure native`. A native is impure unless its declaration says
+  otherwise, because the compiler cannot see its C; writing `pure native` is the
+  author's promise that the C writes no global and does no I/O, and it is the
+  one part of this rule that is believed rather than proved. An `asm` function
+  is never pure. A struct constructor and an allocation are fine: a pure
+  function may build lists and strings and mutate its own.
+- **`f` reads no mutable export** (`E0804`). An `(import NAME)` is allowed only
+  when `NAME` is a constant of `conf.id`, which is built before `main` and never
+  assigned again (a list constant is also locked, so it cannot be written
+  through an alias). Any other export is assigned by some function, and a read
+  of it makes the result depend on when the read ran. An export that is
+  assigned once during start-up is *not* accepted: that the assignment has
+  finished before a parallel region starts is an ordering fact the compiler does
+  not know. Pass the value as a parameter, or move it to `conf.id`.
+- **`f` calls a function value only through a pure parameter** (`E0805`).
+
+**A pure parameter.** `pure func(T) return R name`, written in a parameter list
+(and only there: `E0807` otherwise), says that the function a caller passes is
+pure. At every call, in a pure function or not, the argument written for a pure
+parameter has to be the name of a pure function, or a pure parameter of the
+caller (`E0806`); a local or an export that holds a function value is refused,
+because what it holds is decided where it is assigned. **A closure counts when the
+function it binds is pure**: `bind(f, v, ...)` (§1.1.1) is accepted for a pure
+parameter when `f` is a pure function or a pure parameter, because the values it
+captures are copies that nothing can write (a captured list is locked), so the
+closure does what `f` does and nothing more. `bind` is therefore on the list of
+builtins a pure function may call. Inside the callee, a call
+through the parameter counts as a call to a pure function. This is how idstd's
+`thr_map` accepts only pure functions at compile time (`docs/THREADS.md`).
+
+**What it does not prove.** A pure function may still trap (an index out of
+range, a division by zero), which is a result like any other, and may build
+lists and strings, so it may allocate and run out of memory. It does not prove
+that a pure function terminates. It does not yet prove that a pure function
+leaves a *list argument* unmodified: `push(xs, v)` on a parameter is accepted,
+and becomes an error when a parallel map takes a list as input
+(`docs/THREADS.md`, section 5).
+
 ## 2. Integer arithmetic
 
 ### 2.0 How an integer is written

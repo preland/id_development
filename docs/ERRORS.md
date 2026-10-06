@@ -38,7 +38,7 @@ built. A code is only ever added to the compiler together with its section here.
 
 Codes are grouped by what broke: `E01xx` syntax, `E02xx` the size limits, `E03xx`
 names and scope, `E04xx` uniqueness, `E05xx` test cases, `E06xx` types, `E07xx`
-the project tree.
+the project tree, `E08xx` pure functions.
 
 ## E0101 expected one token, found another
 
@@ -1133,6 +1133,261 @@ Correct:
 
 ```text
 p/conf.id  p/sub/limits.id
+```
+
+## E0801 a pure function writes an export
+
+A function marked `pure` promises that its result depends on its arguments alone
+and that calling it changes nothing the rest of the program can see
+(`docs/SPEC.md`, "Pure functions"). An `export` declaration is how a function
+assigns an export, and an export is state every function can read, so a pure
+function has none. Return the value and let the caller store it, or remove `pure`.
+
+Incorrect:
+
+```id
+pure bump(int x) {
+  export int counter = x;
+} return int x;
+
+main(int argc, string[] argv) {
+  int r = bump(1);
+} return int r;
+```
+
+Correct:
+
+```id
+pure bump(int x) {
+  int y = x + 1;
+} return int y;
+
+main(int argc, string[] argv) {
+  export int counter = bump(1);
+} return int 0;
+```
+
+## E0802 a pure function calls a builtin that does I/O or reads state
+
+A pure function may call only the builtins `len`, `push`, `pop`, `to_int`,
+`charat`, `chr`, `udiv`, `umod`, `ult` and `ushr`. `print`, `put`, `flush`,
+`eprint`, `input`, `read_all`, `getkey`, `sleep_ms` and `ticks` do I/O or read the
+clock, and `alloc`, `store_size`, `peek*`, `poke*`, `str_of_mem` and `mem_of_str`
+read or write the flat store, which holds state that is not an argument. Do the
+call in the caller and pass the result in, or remove `pure`.
+
+Incorrect:
+
+```id
+pure shout(int x) {
+  print(x);
+} return int x;
+
+main(int argc, string[] argv) {
+  int r = shout(1);
+} return int r;
+```
+
+Correct:
+
+```id
+pure shout(int x) {
+  int y = x + 1;
+} return int y;
+
+main(int argc, string[] argv) {
+  int r = shout(1);
+  print(r);
+} return int 0;
+```
+
+## E0803 a pure function calls a function that is not pure
+
+Whatever a callee writes or prints is an effect of the caller, so a pure function
+may call only functions marked `pure` and natives declared `pure native`. A native
+is impure unless its declaration says otherwise, because the compiler cannot see
+its C. Mark the callee `pure` and fix what it then reports, or stop calling it.
+
+Incorrect:
+
+```id
+inner(int x) {
+  int y = x + 1;
+} return int y;
+
+pure outer(int x) {
+  int y = inner(x);
+} return int y;
+
+main(int argc, string[] argv) {
+  int r = outer(1);
+} return int r;
+```
+
+Correct:
+
+```id
+pure inner(int x) {
+  int y = x + 1;
+} return int y;
+
+pure outer(int x) {
+  int y = inner(x);
+} return int y;
+
+main(int argc, string[] argv) {
+  int r = outer(1);
+} return int r;
+```
+
+## E0804 a pure function reads an export that a function writes
+
+A pure function may read an export only when it is a constant of `conf.id`, which
+is built before `main` and never assigned again. Any other export is assigned by
+some function, and a read of it makes the result depend on when it ran. Pass the
+value as a parameter, or declare it in `conf.id`.
+
+Incorrect:
+
+```id
+setup() {
+  export int level = 3;
+} return void;
+
+pure peek_it(int x) {
+  int y = x + (import level);
+} return int y;
+
+main(int argc, string[] argv) {
+  setup();
+  int r = peek_it(1);
+} return int r;
+```
+
+Correct:
+
+```id
+setup() {
+  export int level = 3;
+} return void;
+
+pure peek_it(int x, int lv) {
+  int y = x + lv;
+} return int y;
+
+main(int argc, string[] argv) {
+  setup();
+  int r = peek_it(1, (import level));
+} return int r;
+```
+
+## E0805 a pure function calls a function value that is not a pure parameter
+
+A call through a function value runs a function the compiler cannot see from the
+call, so a pure function may make one only through a parameter declared
+`pure func(...) return ...`, which obliges every caller to pass a pure function.
+
+Incorrect:
+
+```id
+pure apply(func(int) return int f, int x) {
+  int y = f(x);
+} return int y;
+
+pure inc(int x) {
+  int y = x + 1;
+} return int y;
+
+main(int argc, string[] argv) {
+  int r = apply(inc, 1);
+} return int r;
+```
+
+Correct:
+
+```id
+pure apply(pure func(int) return int f, int x) {
+  int y = f(x);
+} return int y;
+
+pure inc(int x) {
+  int y = x + 1;
+} return int y;
+
+main(int argc, string[] argv) {
+  int r = apply(inc, 1);
+} return int r;
+```
+
+## E0806 a pure parameter is given a function that is not known to be pure
+
+A parameter declared `pure func(...) return ...` promises the callee that whatever
+it calls through the parameter writes no export and does no I/O. The compiler
+checks that where the function is a name: at every call, the argument has to be
+the name of a function marked `pure`, or a pure parameter of the caller. A local or
+an export that holds a function value is refused, because what it holds is decided
+where it is assigned.
+
+Incorrect:
+
+```id
+pure apply(pure func(int) return int f, int x) {
+  int y = f(x);
+} return int y;
+
+inc(int x) {
+  int y = x + 1;
+} return int y;
+
+main(int argc, string[] argv) {
+  int r = apply(inc, 1);
+} return int r;
+```
+
+Correct:
+
+```id
+pure apply(pure func(int) return int f, int x) {
+  int y = f(x);
+} return int y;
+
+pure inc(int x) {
+  int y = x + 1;
+} return int y;
+
+main(int argc, string[] argv) {
+  int r = apply(inc, 1);
+} return int r;
+```
+
+## E0807 `pure` is not before a function type
+
+`pure` is written before a function's name, before `native`, and before a
+parameter whose type is a function type, where it says that the function a caller
+passes is pure. Before any other type it promises nothing, so it is refused.
+
+Incorrect:
+
+```id
+pure id2(pure int x) {
+  int y = x;
+} return int y;
+
+main(int argc, string[] argv) {
+  int r = id2(1);
+} return int r;
+```
+
+Correct:
+
+```id
+pure id2(int x) {
+  int y = x;
+} return int y;
+
+main(int argc, string[] argv) {
+  int r = id2(1);
+} return int r;
 ```
 
 ## Retired codes
