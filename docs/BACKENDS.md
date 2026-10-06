@@ -259,7 +259,7 @@ is reserved program-wide and it is emitted in every build. Declared that way, a
 backend's facts would cost every program that attaches it — including, once a
 standard library names every backend, hello-world — and two backends could not
 both say `c_linux_sources`. So `backend.id` is skipped by source collection and
-by the 3-entries rule exactly as `conf.id` is, and `idc/bin/idc`
+by the layout checks exactly as `conf.id` is, and `idc/bin/idc`
 (`backend_decls`) reads it, one backend at a time, only when a native of that
 backend is reached. The names need no backend prefix, because no two backends'
 files are ever read into one namespace.

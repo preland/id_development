@@ -3,7 +3,7 @@
 > **Status: describes current practice.** Every code below is emitted by the
 > tree, and `idc/tests/diagnostics.sh` fails when a code has no section here,
 > when a section's examples do not behave as written, or when a section's code
-> is not emitted.
+> is not emitted. Retired codes are listed at the end and are never reused.
 
 Every diagnostic that has moved to the diagnostic record (`docs/DIAGNOSTICS.md`)
 carries a stable code in square brackets, after its severity in the human form and
@@ -218,10 +218,8 @@ main(int argc, string[] argv) {
 ## E0203 too many functions in one file
 
 A file holds at most three functions, so the tree and not the file carries the
-structure. A function and its `chain` segments count as one. The directory it
-moves to may itself be full (a directory holds at most three files and
-directories, E0701): `idc/.idc-cache/idlayout --room PROJECT_ROOT DIR` lists the
-nearest places that have room.
+structure. A function and its `chain` segments count as one. Move the extra
+functions into a new file in the same directory, named for what they do.
 
 Incorrect:
 
@@ -1029,26 +1027,6 @@ main(int argc, string[] argv) {
 } return int r;
 ```
 
-## E0701 a directory holds more than three entries
-
-A directory holds at most three files and directories (`conf.id` and `backend.id`
-do not count), so every listing reads at a glance and the tree carries the
-structure. The diagnostic lists the entries, and names the nearest places that
-`idlayout --room` finds with room. Group related entries into a subdirectory named
-for what they have in common.
-
-Incorrect:
-
-```text
-p/a.id  p/b.id  p/c.id  p/d.id
-```
-
-Correct:
-
-```text
-p/a.id  p/b.id  p/rest/c.id  p/rest/d.id
-```
-
 ## E0702 a file with a generic name
 
 A name like `util.id`, `helper.id`, `misc.id` or `common.id` says nothing about
@@ -1156,3 +1134,12 @@ Correct:
 ```text
 p/conf.id  p/sub/limits.id
 ```
+
+## Retired codes
+
+A retired code is no longer emitted, has no section above, and is never reused for
+another diagnostic.
+
+| Code | Was | Retired because |
+| --- | --- | --- |
+| E0701 | a directory holds more than three entries | a directory has no entry limit; the 3-functions-per-file limit (E0203) stays |

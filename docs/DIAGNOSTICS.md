@@ -316,8 +316,9 @@ The top confusions, most damaging first:
    to fail at the C linker and a `s.length` miscompiled; the first is fixed, and
    what is left of the study's list is design, not wording.
 7. **Rules that need a number from elsewhere:** "too many functions in this file" did
-   not say where to put them, and a directory holds three entries, so the answer is
-   usually "a new directory", which the message did not say.
+   not say where to put them (the study's answer was "a new directory", because a
+   directory then held three entries; that limit is gone, so the message now says
+   "another file in the same directory").
 
 ### A scored sample of 30
 
@@ -387,7 +388,7 @@ grep -rnE '[^a-z_](tc_err|syn_err|case_err|sd_err|var_report)\(' idc/compiler --
 | E0401 E0402 E0403 E0405 | same name (`related:` the first); same logic (`related:` the other); constant wrapper; differ only in an import | yes | |
 | E0501 E0502 E0503 E0504 E0505 | too few cases; repeated case (`related:` the first); case arity; expected arity; return arity | yes | E0501: `placeholder` skeleton after the function |
 | E0601 E0602 E0604 E0605 E0606 | bitwise and comparison; return type; compare; call arity; argument type | yes | E0601: `machine` replace |
-| E0701 E0702 E0703 E0704 E0705 E0706 E0707 | tree shape (`tools/idlayout`); E0701's help names the nearest rooms `idlayout --room` finds | yes | |
+| E0702 E0703 E0704 E0705 E0706 E0707 | tree shape (`tools/idlayout`); E0701 (entries per directory) is retired and the limit is gone | yes | |
 
 ### Old to new (the pinned wording)
 
@@ -408,7 +409,7 @@ that named it were updated:
 | `a segment of 'f' performs N actions ... all 3 actions -- move the chain's work ...` | head ends at `all 3 actions`; the advice is `help` |
 | `... the same signature and logic as 'g' (defined at F:L); functions must be unique -- remove one ...` | head ends at `(defined at F:L)`; advice is `help`; `related:` names g |
 | `function 'f' and 'g' (...) differ only in the imported value they read (...); parameterise one ...` | head ends at the values; advice is `help` |
-| `a project directory may contain at most 3 ... but this one has N (.id files and subdirectories); split it into subdirectories (entries: a, b)` | `... but this one has N: a, b`; the counting rule is `why`; the advice, with the rooms, is `help` |
+| `a project directory may contain at most 3 ... but this one has N (.id files and subdirectories); split it into subdirectories (entries: a, b)` | retired with E0701: a directory has no entry limit |
 | `'import.id' is now called 'conf.id' -- it holds constants as well as dependencies. Rename it` | head `'import.id' is now called 'conf.id'`; the rest is `why` and `help` |
 | `file '...' has a generic name 'x'; name it for what it holds` | head ends at the name; the advice is `help` |
 

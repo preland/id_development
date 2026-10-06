@@ -668,7 +668,7 @@ How to link a system library, and what is awkward about it:
 
 Other things the mechanism does that are worth knowing before the first backend:
 
-* Natives count as functions: at most 3 per file, at most 3 entries per directory. The 19 natives of `sq` take seven files and three directories. Natives need no test cases; the `id` that wraps them does.
+* Natives count as functions: at most 3 per file (the 3-entries-per-directory limit has since been dropped). The 19 natives of `sq` take seven files and three directories. Natives need no test cases; the `id` that wraps them does.
 * A native's name is reserved program-wide; its parameter names are not variables. `sq_*`, `zl_*` and `zh_*` are prefixes this repo has not used.
 * A project with no `main` builds to an object and ignores its backends (`idc: backend(s) ignored: this project has no main`); the cases of a library still link and run them.
 * `c_header` in `backend.id` is optional (`hdr2id` output has none).
@@ -1039,7 +1039,7 @@ program. Each of these was written once in `idstd` so the six scripts share it.
   does two things into two or three `id` lines. The ratio of `id` lines to
   Python lines is 4x to 9x (table); this was not split between the action limit
   and the cases, which are about a fifth of the lines.
-- **Three functions per file and three entries per directory** turn a
+- **Three functions per file and (when this was measured; the limit is since dropped) three entries per directory** turn a
   15-line Python script into a tree of 4 to 8 files in 2 to 3 directories.
   Naming files is the slowest creative step: the compiler rejects a file named
   like its directory and several generic names (`temp.id`, `show/show.id`).
@@ -1373,7 +1373,7 @@ Where id's own rules made faithful translation impossible or costly:
 - One name has one type program-wide, including locals against exports: C
   locals named `l`, `s`, `n` collide with translator variables, and the frame
   pass renames locals to `name__N`.
-- At most 3 functions per file and 3 entries per directory: a 3500-line C
+- At most 3 functions per file and (then; since dropped) 3 entries per directory: a 3500-line C
   program becomes 385 files in 8 directory levels.
 - No `exit` builtin: `exit()` and `abort()` are emulated with a status word
   that unwinds the runner loop.

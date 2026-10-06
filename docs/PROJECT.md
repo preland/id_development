@@ -165,8 +165,8 @@ Two things happened that were not asked for.
 project directory and written into `build/`, which is `.gitignore`d — built
 binaries never land in the source tree. `-o` overrides both: `-o /tmp/caesar`.
 That makes `build/` at a project's root **output, never source**: nothing under
-it is compiled and it does not count toward the 3-entry limit, so a tree that
-has been built in place compiles exactly as a clean one does. Do not put `.id`
+it is compiled, so a tree that has been built in place compiles exactly as a
+clean one does. Do not put `.id`
 files there.
 
 **`chr_is_lower` and `chr_is_upper` were never defined.** They are `idstd`'s,
@@ -174,27 +174,20 @@ and `idstd` is in every build already. See §4.
 
 ## 3. The limits, and when they bite
 
-A file holds **at most 3 functions**. A directory holds **at most 3 entries**,
-counting `.id` files and subdirectories together. The second is the one that
-interrupts you, because it triggers on a directory you were not editing:
+A file holds **at most 3 functions**. A directory holds any number of entries:
+there is no limit on how many `.id` files and subdirectories it contains, so
+make a subdirectory when a group of files has a name of its own, not to make
+room.
 
-```
-caesar: error: a project directory may contain at most 3 files and directories
-  combined, but this one has 4 (.id files and subdirectories); split it into
-  subdirectories
-```
-
-The fix is always the same shape — push a pair of files down a level and name
-the level after *the stage of work*, not the data type:
+When a file has too many functions, move some of them into a new file in the
+same directory and name it for what those functions do:
 
 ```
 caesar/
 ├── conf.id
 ├── main.id
-└── shift/
-    ├── shift.id
-    └── more/
-        └── tail.id
+├── shift.id
+└── wrap.id
 ```
 
 The *function* limit has a second remedy, and often the better one. A function
@@ -291,9 +284,9 @@ This does not apply to a file directly in the project's own root --
 `caesar/caesar.id` is fine -- because the root's name is just where the
 project was checked out, not a level of the tree it wrote.
 
-> **Pitfall 2.** The entry limit fires on a directory you did not touch, at the
-> moment you add one file. Leave room. Name directories and files for what they
-> hold, not their data type or role in the project.
+> **Pitfall 2.** Name directories and files for what they hold, not their data
+> type or role in the project; `more/`, `rest/` and `tail/` say nothing about
+> what is inside.
 
 **Dead code is still checked.** A function nothing calls is not emitted, but it
 still obeys every rule:
@@ -696,7 +689,7 @@ import "../mylib"
 ```
 
 The dependency is merged as source, transitively, and its own `conf.id` is
-followed. Every rule applies to it — including the 3-entries-per-directory
+followed. Every rule applies to it — including the 3-functions-per-file
 limit — with one exception that matters: **a name keeps one type within a
 compilation unit, and an imported tree is its own unit.** Your `int s` and a
 library's `string s` do not collide. Inside your own tree they do, and that is
@@ -921,9 +914,8 @@ migration".
 Seven things, in the order you will meet them.
 
 1. **A call's argument may hold one level of call, not two.** Name the inner value when a call would sit two deep.
-2. **3 functions per file, 3 entries per directory.** The directory limit fires
-   on a directory you were not editing. Plan the levels early. A `chain`
-   continues a function without adding to the file's three.
+2. **3 functions per file.** A `chain` continues a function without adding to
+   the file's three. A directory has no entry limit.
 3. **Read the first error only.** One mistake produces a cascade; the lines
    below the first are consequences.
 4. **Anything that exports state needs its initialiser called from `main`** —

@@ -135,9 +135,6 @@ The friction that used to make people give up and edit `idc.py` instead:
 - **A block may perform 3 actions.** Adding a call to an existing function
   often means finding one with a free slot, or splitting it. Look for a
   function that already does 2 things before inventing a new one.
-- **A directory holds 3 entries.** Adding a file may mean adding a directory.
-  `find idc/compiler/parse -type d | while read d; do echo "$(ls $d|wc -l) $d"; done | sort -n`
-  lists the free slots.
 - **A name has one type per compilation unit**, and this tree is one unit.
   `int r`, `string s`, `int i`, `int[] pos` are the established vocabulary;
   reusing them costs nothing and inventing a synonym may collide.

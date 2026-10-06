@@ -250,7 +250,7 @@ ribbon needs about a dozen more.
 | tests | inline cases, `given`/`then`, casework tools | struct literals in cases exist (SPEC 1.2); harness prints structs |
 
 **Directory room.** `idc` caps a directory at three `.id` files plus
-subdirectories. Today `idstd/core/data/seq/byte/` is `inflate, sha256, ttf`,
+subdirectories. **Superseded: the 3-entries-per-directory limit has been dropped (E0701 is retired, `idlayout --room` is gone), so the "free slot" reasoning below, W0 and risk 6.2 no longer constrain the layout; the paused idstd restructure is re-planned around a flatter tree.** Today `idstd/core/data/seq/byte/` is `inflate, sha256, ttf`,
 `idstd/core/text/` is `chr, fmt, str`, `idstd/gfx/kit/` is `gui, space`, and
 `idstd/gfx/kit/gui/` is `core, font, tb`: only `gfx/kit/` has a free slot. Any
 addition elsewhere needs a restructure first (work package W0). Free slots are

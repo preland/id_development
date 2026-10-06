@@ -51,7 +51,7 @@ Requirements that follow, independent of architecture:
   pure `id`, so a new shell wrapper is not an option, and the interpreter's
   driver must not call `sha256sum` per file (finding below).
 - R4. **The same rules apply to the interpreter's own source**: 3 functions per
-  file, 3 entries per directory, the action limit, two cases per function.
+  file, the action limit, two cases per function.
 - R5. **Memory safety and limits**: the `docs/SPEC.md` section 8 trap table with
   its exact text; the 4 GiB address-space and 30 s per-case limits of
   `docs/TESTS.md`.
@@ -342,13 +342,17 @@ it, not whether it can.
   guarantee that motivated `docs/TESTS.md` ("a regression is a compile
   error") becomes opt-in, which is the thing that document argues against.
 
-### F2. The 3-entries-per-directory layout
+### F2. The directory layout checks
 
-A script is one file, so the layout rule has nothing to say about U1. It
-applies to U3 (a project tree), where it runs `idlayout` in about 13 ms. Forks:
-apply it to interpreted trees unchanged (one language, no surprises); or waive
-it in a scratch mode (faster to sketch, but a tree that runs interpreted and
-fails `idc` later is a trap, and the error then arrives far from the edit).
+The 3-entries-per-directory limit this fork was written about is gone; a
+directory has no entry limit. The remaining layout checks (`idlayout`: generic
+and numbered names, a file or directory named like its parent, manifest names)
+have nothing to say about U1, a single file. They apply to U3 (a project tree),
+where `idlayout` ran in about 13 ms (measured before the limit was dropped).
+Forks: apply them to interpreted trees unchanged (one language, no surprises);
+or waive them in a scratch mode (faster to sketch, but a tree that runs
+interpreted and fails `idc` later is a trap, and the error then arrives far from
+the edit).
 
 ### F3. Three functions per file, the action limit, the nested-call ban
 

@@ -39,7 +39,7 @@ and `idem/tools/blend_mesh.py`, which Blender runs.
 ## 2. Shell — the single biggest lever
 
 **What it is.** `idc/bin/idc` is the driver (`wc -l idc/bin/idc` for its size): it
-walks a project tree, enforces the three-entries-per-directory rule, reads
+walks a project tree, enforces the layout checks (`tools/idlayout`), reads
 `conf.id`, injects `#file` markers, pipes source through `idlex | idparse`, and
 invokes `cc`, `clang`, `llc`, `ld.lld` or the wasm32-wasi toolchain, limiting
 concurrent builds with `flock` slot files. The rest is `idc/tests/*.sh`, `idc/tools/*.sh` and the sibling
@@ -83,9 +83,8 @@ What remains before `idc/bin/idc` itself can be an `id` program:
    reason in item 4, so either the bootstrap C carries its own `getenv`, or
    the driver takes those three as flags. `flock` for the build slots is
    missing from idstd's `fs` backend as well.
-2. The three structural checks the driver does over the tree — the
-   3-entries-per-directory rule, the legacy `import.id` name, and a nested
-   `conf.id` — all of which are the same walk `idc/driver/` already does.
+2. The structural checks the driver does over the tree — the legacy
+   `import.id` name and a nested `conf.id` among them — all of which are the same walk `idc/driver/` already does.
 3. `conf.id` parsing, dependency resolution, and the `#file N|PATH` stream.
    `idc/bin/idc --emit-sources` prints exactly that stream, so it is an oracle
    to diff against rather than a specification to interpret.

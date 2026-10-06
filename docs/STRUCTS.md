@@ -92,7 +92,7 @@ different types. This is the first exception `id` would have to "a name has one
 type across a whole program", and it is unavoidable: without it every record in
 a program would have to agree on what `x` means.
 
-**Three entries per directory** applies unchanged, so a struct costs a file.
+A directory has no entry limit, so a struct costs a file and nothing more.
 
 ## The three things with no obvious answer
 
@@ -377,7 +377,7 @@ pair stays two lists unless Q9's `Row[]` is taken.
 | Test-case literals | Conflict: "literals only" has no struct form (Q7). `then` checks compare one literal at the check's return type, so a struct-returning check needs Q7 B. |
 | Exports' single owner | No conflict for exports of struct type. `init` returning a struct cannot itself be the owner in the struct's file (an export is a statement in a function), so the owner is whichever function calls it; a setup in a case owns its fixture. |
 | Memory freeing (SPEC §6, 2026-09-26) | Conflict with `drop`: a hand-written free is the syntax the decision excludes (Q2). Escape analysis must become field-sensitive: a list stored in a struct field counts as stored, a struct passed to a callee that keeps any field counts as kept. A value struct with list fields (Q1 A) makes "never escapes" harder to prove than a reference struct. Every target must free the same allocations. |
-| 3 functions per file, 3 entries per directory | No conflict; a struct costs a file and one directory slot, so kv-sized trees gain 3 to 5 small files. |
+| 3 functions per file | No conflict; a struct costs a file, so kv-sized trees gain 3 to 5 small files. |
 | `--target wasm` | No conflict of its own: `bin/idc` builds wasm from the C target's C, so a struct lowered for C reaches wasm with it (see Phase 4). |
 
 ## Effort

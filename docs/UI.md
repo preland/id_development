@@ -192,7 +192,7 @@ compiler:
 | --- | --- |
 | every parameter, local and internal function is `idstd_<name>` | parameters and locals are `idstd_gui_<name>`, because the bare `idstd_<name>` already means other things in the other modules (`idstd_t` is an `int`, a tape is an `int[]`); internal functions are `idstd_gui_<name>`; constants too (`idstd_gui_f_type`). A variable may not equal an internal function's name once prefixed, so `size` was `fsz` in the font seam; the font layer spells its names `idstd_gf_<name>` (NAMES.md 2.3) |
 | every public function and export has a `NAMES.md` row | section 1.18 lists every function, 2.1 the variable families, 3 the test exports, 4 the constants |
-| 3 entries per directory, 3 functions per file | `gfx/` was full (`px`, `plane`, `space`), so `space` moved to `gfx/kit/space/` to make room beside `gfx/kit/gui/`; the tree under `gui/` is the slice's own layout, unchanged |
+| 3 entries per directory (since dropped), 3 functions per file | `gfx/` was full (`px`, `plane`, `space`), so `space` moved to `gfx/kit/space/` to make room beside `gfx/kit/gui/`; the tree under `gui/` is the slice's own layout, unchanged |
 | the library's cases run in the library pre-check | they do: see "Cost" below |
 | constants live in the root `conf.id` | the slice's `ui/conf.id` is idstd's root `conf.id`; `idstd/conf.id` is new |
 
@@ -614,7 +614,6 @@ library, which is a sibling checkout:
 export IDSTD_HOME=$PWD/../idstd
 timeout 60 idc/bin/idc ../idstd -o /tmp/idstd.o      # runs every case, the toolkit's included; exit 0 is green
 idc/bin/idc ../idstd --check                         # the rules only
-idc/.idc-cache/idlayout --room ../idstd ../idstd/gfx/kit/gui   # free directory slots
 cd ../idstd && ./run.sh                              # NAMES.md, the idstd_ prefix, the suites
 ```
 
