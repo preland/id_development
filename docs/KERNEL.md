@@ -122,6 +122,17 @@ Two flags, and nothing else:
   no `declare` block, because a declaration beside a definition of one symbol
   is not something LLVM accepts.
 
+The kernel has a library under it: idstd's `core/` tier, the part of the
+standard library that is pure `id` and freestanding. `idc/tools/kbuild` stages
+`idc/build/std_core/`, a copy of `$IDSTD_HOME/core` (else the `idstd` beside the
+checkout) with a `conf.id` of just the constants that tier reads, and builds
+`kernel/prog` with `--std idc/build/std_core`. The runtime is built `--no-std`:
+it is what the library stands on. Uniqueness is whole-program, so the kernel may
+not define a function core has (`lset`, `sset` and `wset` were such copies and
+are gone), and a freestanding program that reaches `fail` links the runtime's
+`id_fail`. An `IDC_NO_STD=1` in the environment overrides `--std`, so unset it
+to run `kbuild` (`idc/tests/kernel.sh` does).
+
 Test cases are the one place a freestanding build touches the host. They run
 there, in a harness built from the same source for the machine doing the build,
 and the object is built only if every one passes (`docs/TESTS.md`, "A
