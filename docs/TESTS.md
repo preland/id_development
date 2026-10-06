@@ -786,6 +786,131 @@ no more than the claimed growth from `c1`, with a constant factor of slack —
 function has a fixed setup cost that dominates at small `n`; it is why the
 message above asks for a *different* size rather than a bigger one.
 
+## Mutation score: do the cases notice a bug?
+
+Two cases per function says how many cases there are, not whether they would
+catch anything. A function whose every case passes with its body deleted has
+two cases and no protection. The measure of a tree's cases is therefore the
+**mutation score**: break one function at a time, build, and count how many of
+the breaks some case notices. `idc/tools/mutscore` (an `id` program, built like
+any tree: `idc/bin/idc idc/tools/mutscore -o mutscore`) does it.
+
+```
+mutscore list   ROOT [--area SUB]
+mutscore run    ROOT --out DIR [--idc IDC] [--shard I/N] [--area SUB] [--with A,B] [--std] [--budget SECONDS]
+mutscore report DIR [--tsv]
+mutscore lint   ROOT [--area SUB] [--tsv]
+```
+
+**A mutant** is the source with one change in one function. The operators
+read the source as tokens (the lexer's own rules for strings, comments,
+`0x..`, `1e-30` and `2.5`), never as text, so `-` inside `1e-30` and `<` inside
+a string are not operators:
+
+| operator | change |
+| --- | --- |
+| `cmp` | `<` `<=` `>` `>=` `==` `!=` each become the neighbouring comparison (`<` to `<=`, `==` to `!=`) |
+| `arith` | `+` `-` `*` `/` `%` `&` `\|` `^` `<<` `>>` each become a counterpart (`+` to `-`, `*` to `/`) |
+| `logic` | `&&` and `\|\|` swap |
+| `lit` | a decimal integer goes up by one; a float's last digit, or its exponent, changes by one; `0x` and `0b` literals are left alone |
+| `idx` | an index `xs[i]` becomes `xs[i + 1]` (a `[` after a name, `]` or `)`; list literals and `T[]` types are not indexes) |
+| `del` | a statement is deleted: a call, an assignment, `break`; never a declaration, a `return`, or `blank` |
+| `ret0` `ret1` | the returned name is replaced by the type's zero (`0`, `0.0`, `""`, `[]`), and by `1` for an `int` or `word`; not for `void`, a literal, a struct or a function value |
+
+`bind(f, 3)`, `fail("x")`, `peek8s(a, i)` and the other builtins are ordinary
+calls, so their arguments are mutated like any other and a deleted `fail(...)`
+is a `del`. Every mutant is a single change; no two combine.
+
+**A mutant is judged by a build of a scratch copy.** `run` copies ROOT into a
+directory it makes with `fs_mktemp` (registered with `fs_drop_exit`), writes the
+mutant into the copy, builds the copy with `idc --allow-untested --emit-c`, puts
+the file back, and reads the answer:
+
+| answer | meaning |
+| --- | --- |
+| `killed` | a case failed, trapped or timed out (`: test failed` in the build's output) |
+| `survived` | the build passed: no case notices the change |
+| `invalid` | the mutant does not compile (a deleted line that something still reads, a segment that no longer fills its actions before a `chain`, two functions that became one) |
+| `hang` | the build was still running after 57 seconds with a run to itself. Either a case of the mutant never ends (a bound that no longer stops a loop; each case waits out its 30 s) or the machine was too slow; mutscore cannot tell which |
+| `error` | the build failed with neither a case failure nor a diagnostic |
+
+Invalid, hang and error mutants do not count: the score is
+`killed / (killed + survived)`, per function, per file and for the tree. A
+hang is listed in the `other` column; delete its line from `DIR/r-I-of-N.tsv`
+to build it again.
+Because the compiler's case cache is keyed on what each case can reach, a
+mutant's build reruns exactly the cases of the mutated function and of its
+callers, and nothing else; there is no separate call-graph step. The source
+tree is never written: a scratch directory holds the only mutants, and
+`idc/tests/run.sh mutscore` compares ROOT byte for byte before and after.
+
+**Baseline first.** A mutant is only "killed" if the unmutated copy passes, so
+`run` builds the copy before the first mutant and refuses (exit 3, the
+build's output in `DIR/base.log`) when it is red. A tree whose cases read files
+beside it needs those siblings beside the copy: `--with editor` links the
+sibling directory `../editor` of ROOT into the scratch directory (word reads
+`../editor/test_assets`).
+
+**A subject that is a library** (idstd) cannot be built as a tree, because the
+library is merged into every build. `--std` copies ROOT as the library home,
+points `IDSTD_HOME` at the copy, sets `IDC_STD_FULL=1` and builds a one-function
+program, so the library's own cases run against each mutant. Use `--area` to
+choose the part to mutate, for example `--area core/text/str/`.
+
+**It runs in pieces, by index.** The mutants are numbered in a fixed order
+(files in path order, functions in source order, and within a function the
+swaps, then the literals, the indexes, the deletions and the return values, each
+in source order). Shard I of N owns the numbers that are I modulo N, so `--shard 0/72`
+is a uniform sample of a tree, and `0/1` is all of it. Within a shard the
+mutants are built in a hash-scattered order, so a shard stopped early has built
+a sample spread over the whole tree, not its first files. A run appends each result
+to `DIR/r-I-of-N.tsv`, starts a mutant only while `--budget` seconds (default
+40) have not passed, gives every build what is left of 57 seconds, and exits
+saying how many mutants are left. Run the same command again until it says
+`0 left`; a mutant that is already in the file is not built twice, and a run
+killed from outside loses nothing but the one build in flight (its scratch
+directory is only removed by `fs_drop_exit` when mutscore itself exits). A
+baseline that cannot finish inside a run (a cold cache) exits 4 and continues
+from the cases it passed when the command is repeated.
+
+**The report.** `mutscore report DIR` merges every shard's file and prints the
+tree's score, then each **surviving mutant** as `file:line: function [operator]
+line => changed line` (the actionable part: each one is a change the cases
+cannot tell from the original), then the functions and the files from the worst
+score up. `--tsv` prints the same as rows for a program to read, two comment
+lines naming the columns first:
+
+```
+#group: level file fn killed survived invalid other score_pct
+#mutant: mutant file fn op line status change
+```
+
+`level` is `tree`, `file` or `fn`; `score_pct` is `-` when a group has no
+killed or survived mutants. Mutant rows are every result, not only survivors.
+
+**What a survivor means.** Either the cases do not pin that behaviour (add a
+case that fails on the change: ask "what would have to break for this to go
+red?"), or the mutant is **equivalent**: the change does not alter what the
+function means (`i < n` to `i <= n` where `i` never reaches `n`). Equivalent
+mutants are why 100 is not the goal. Two structural limits also shape the
+score: a function with a `chain` is close to mutation-proof by deletion (every
+deleted statement leaves a segment short of its three actions, so it is
+`invalid`), and an expression the compiler folds or rejects as a constant
+wrapper is `invalid` too.
+
+**`mutscore lint`** reads the cases without building anything and flags the
+three shapes that prove nothing, one line each, with a summary of how many
+cases and functions it read:
+
+| shape | meaning |
+| --- | --- |
+| `silent` | the only assertion is `prints:("")` (and `eprints:("")`): nothing is printed, which pins no result |
+| `echo` | the expected values are the arguments written again and no `then` clause checks anything else, so a function that does nothing passes |
+| `bare` | `():()`-style: no expected value and no `then`, on a function that returns a value or has a statement that does something; the case only shows the call does not trap |
+
+`--tsv` prints every case as `shape file fn line case` (shape `case` for one
+that proves something) and a `summary` row, for a status page to count.
+
 ## What this does not do
 
 Stated plainly, because a test feature that overstates itself is worse than
