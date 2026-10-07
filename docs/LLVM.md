@@ -175,11 +175,15 @@ before the loop. When there are any, the loop is lowered twice behind one guard
 (`back/ir/build/stmt/flow/loop/`): in the guarded copy those accesses call the runtime's
 `id_list_cell` and `id_list_cell_set`, which do not check, and the other copy is the loop as
 written, so a loop that would trap still traps at the same iteration with the same message.
-The analysis states its guard as C conditions; `loop/guard/` reads each one back (names, integer
-literals, `(long long)`, `->len` and `->cap`, `+ - *`, a comparison) into reverse Polish form and
-builds it in 64 bits, with `id_list_len_raw` and `id_list_cap_raw`, which answer -1 for a list
-that is not there. A clause it cannot read gives the loop up, so the checked loop is always the
-fallback. The runtime is the C one, so a freestanding build (`--freestanding`, `--runtime`) and
+The analysis states its guard as tokens in reverse Polish form, not as text (`lpg`, documented in
+`tgt/c/emit/prog/code/body/fast/state.id`): names and literals, `wide`, `len` and `cap`, sums,
+differences and products of N operands, comparisons, and `|` to end a clause. The C emitter prints
+them as one C condition (`fast/render/`); `loop/guard/` builds them in 64 bits, with
+`id_list_len_raw` and `id_list_cap_raw`, which answer -1 for a list that is not there. A token it
+does not know gives the loop up, so the checked loop is always the fallback, and `tests/conform.sh`
+counts the clauses of the guards each target builds for every conformance program with a loop,
+so a token one target stops understanding is a failure there rather than a slowdown. The
+runtime is the C one, so a freestanding build (`--freestanding`, `--runtime`) and
 `-O0`, whose IR `tools/idrun` interprets, are not versioned.
 
 ## The runtime, and why builtins are inlined rather than called

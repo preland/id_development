@@ -170,8 +170,8 @@ how. The ranking is the one the ladders measured before those changes.
    Accesses in a function the loop calls, and limits other than a variable, a
    literal or `len(xs)` (nbody's `len(b) / stride`), are not covered. The LLVM
    target does the same at the IR (`compiler/parse/back/ir/build/stmt/flow/loop/`):
-   it asks that analysis which loops and accesses qualify, reads its guard back
-   into IR (`guard/`), and lowers the loop twice, the covered accesses calling the
+   it asks that analysis which loops and accesses qualify, builds its guard (tokens both targets
+   share, not C text) into IR (`guard/`), and lowers the loop twice, the covered accesses calling the
    runtime's unchecked `id_list_cell` / `id_list_cell_set` in the guarded copy;
    a freestanding build and `-O0` keep the checked loop. wasm is the C target's C.*
 6. **Conf constants are mutable globals** (non-const, non-static): reloaded after
