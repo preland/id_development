@@ -158,7 +158,19 @@ how. The ranking is the one the ladders measured before those changes.
 5. **List accessors.** Every `xs[i]` is a null check, a bounds check and, for a
    write, a constant-lock check, then a 64-bit cell; an `int[]` is 8 bytes per
    element. Removing the checks is worth a modest fraction on numeric loops once
-   inlining is fixed.
+   inlining is fixed. *Partly addressed: the C target emits a `while (j < n ...)`
+   loop twice, behind one guard that proves every access in range for the whole
+   loop, and the checked loop as the fallback, so a loop that would trap still
+   traps at the same iteration with the same message
+   (`compiler/parse/back/tgt/c/emit/prog/code/body/fast/`). The guard covers
+   `xs[j]` and `xs[j + k]`, and an index that is a sum of literals, names the
+   body leaves alone, counters of the condition (`xs[j * w + c]`), a second
+   counter stepped once per iteration (`dst[k]` in a merge), and a local set
+   once from those at the top of the body (`int q = j * 7; xs[q + 3]`); the
+   guard compares the index's largest value with the length in 64 bits.
+   Accesses in a function the loop calls, and limits other than a variable, a
+   literal or `len(xs)` (nbody's `len(b) / stride`), are not covered. The LLVM
+   target keeps the checked loop; wasm is the C target's C.*
 6. **Conf constants are mutable globals** (non-const, non-static): reloaded after
    any call and never folded into index arithmetic. A small effect.
 7. **Native calls are opaque** (sqrt): an external call gcc must assume writes any
