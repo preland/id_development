@@ -474,6 +474,15 @@ runtime to one `clang -flto`, which is what lets an id function inline the
 runtime's accessors (`id_list_get`, ...); a toolchain that cannot link that way
 is retried without it.
 
+**A backend's natives inline too.** When a C-target program links with gcc LTO,
+`backend_build` compiles each backend's C with `-std=gnu17 -flto
+-ffat-lto-objects -fwrapv`, so a native such as `flt_sqrt` is inlined into its
+caller rather than called. The language standard has to match the units' or gcc
+will not inline across them, and the objects are fat because the test harness
+links the same object at `-O0` without LTO. The flags are part of the object's
+cache key. `--lib`, `--target llvm`, `--target wasm` and a clang `cc` keep the
+plain `-O2` object.
+
 **The runtime's accessors are `static inline` on every path.** `bin/idc` marks
 the prelude's `static` functions `static inline` once, on the C every later path
 (units, the whole-file fallback, `--emit-c`, `--lib`, `--target wasm`) starts from;
