@@ -11,7 +11,6 @@
 bench/ref/c/      one C program per benchmark, plus gen.c (the input generator)
 bench/ref/rust/   the same programs in Rust, std only
 bench/id/NAME/    the same programs in id, one project tree each
-bench/id/lib/flt  the one native id needs for these tasks: sqrt (id has no float sqrt)
 bench/run/        the harness, an id program with the same rules and cases as any other
 bench/results/    generated output of the harness
 ```
