@@ -1,7 +1,7 @@
 hd_lm_line(int mtm) {
   string l = "";
   if(mtm >= 0) {
-    string dt = hd_date_fmt(mtm);
+    string dt = date_http(mtm);
     l = "Last-Modified: " + dt + "\r\n";
   }
 } return string l;
@@ -10,21 +10,22 @@ hd_lm_line(int mtm) {
 (0):("Last-Modified: Thu, 01 Jan 1970 00:00:00 GMT\r\n")
 
 hd_ct_line(string fp) {
-  string ct = hd_mime(fp);
+  string ct = http_mime(fp);
   string l = "Content-Type: " + ct + "\r\n";
 } return string l;
 ("/a/b.html"):("Content-Type: text/html; charset=utf-8\r\n")
 ("/a/b.bin"):("Content-Type: application/octet-stream\r\n")
 
 hd_fresh(string[] rq, int mtm) {
-  int ts = hd_date_parse(hd_hdr_get(rq[6], "if-modified-since"));
+  word ts = date_http_read(http_hdr_get(rq[(import http_q_headers)], "if-modified-since"));
   int f = 0;
   if(ts >= 0 && mtm >= 0 && mtm <= ts) {
     f = 1;
   }
 } return int f;
-(["GET", "/", "HTTP/1.1", "", "", "", "If-Modified-Since: Sun, 06 Nov 1994 08:49:37 GMT"], 784111777):(1)
-(["GET", "/", "HTTP/1.1", "", "", "", "If-Modified-Since: Sun, 06 Nov 1994 08:49:37 GMT"], 784111778):(0)
-(["GET", "/", "HTTP/1.1", "", "", "", "If-Modified-Since: garbage"], 0):(0)
-(["GET", "/", "HTTP/1.1", "", "", "", "Host: h"], 0):(0)
-(["GET", "/", "HTTP/1.1", "", "", "", "If-Modified-Since: Sun, 06 Nov 1994 08:49:37 GMT"], -1):(0)
+(["GET", "/", "HTTP/1.1", "/", "", "If-Modified-Since: Sun, 06 Nov 1994 08:49:37 GMT", "GET / HTTP/1.1", "", "", "0"], 784111777):(1)
+(["GET", "/", "HTTP/1.1", "/", "", "If-Modified-Since: Sun, 06 Nov 1994 08:49:37 GMT", "GET / HTTP/1.1", "", "", "0"], 784111778):(0)
+(["GET", "/", "HTTP/1.1", "/", "", "If-Modified-Since: Tue, 19 Jan 2038 03:14:08 GMT", "GET / HTTP/1.1", "", "", "0"], 2147483647):(1)
+(["GET", "/", "HTTP/1.1", "/", "", "If-Modified-Since: garbage", "GET / HTTP/1.1", "", "", "0"], 0):(0)
+(["GET", "/", "HTTP/1.1", "/", "", "Host: h", "GET / HTTP/1.1", "", "", "0"], 0):(0)
+(["GET", "/", "HTTP/1.1", "/", "", "If-Modified-Since: Sun, 06 Nov 1994 08:49:37 GMT", "GET / HTTP/1.1", "", "", "0"], -1):(0)

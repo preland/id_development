@@ -1,30 +1,32 @@
 hd_query_sfx(string q) {
-  string rs = "";
+  string sfx = "";
   if(len(q) > 0) {
-    rs = "?" + q;
+    sfx = "?" + q;
   }
-} return string rs;
+} return string sfx;
 ("a=1"):("?a=1")
 (""):("")
 
-hd_redirect(string[] rq, int keep, int left, string[] out, int[] mt) {
-  string loc = hd_pct_encode(rq[3]);
-  string q = hd_query_sfx(rq[4]);
-  string head = hd_fail(301, "Location: " + loc + "/" + q + "\r\n", keep, left, out, mt);
-} return string head;
-(["GET", "/a b", "HTTP/1.1", "/a b", "x=1"], 0, 1, ["", ""], [0, 0, 0, 0]):("HTTP/1.1 301 Moved Permanently\r\nServer: httpd-id/1.0\r\nLocation: /a%20b/?x=1\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 121\r\nConnection: close\r\n\r\n")
-(["GET", "/d", "HTTP/1.1", "/d", ""], 1, 2, ["", ""], [0, 0, 0, 0]):("HTTP/1.1 301 Moved Permanently\r\nServer: httpd-id/1.0\r\nLocation: /d/\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 121\r\nConnection: keep-alive\r\nKeep-Alive: max=1\r\n\r\n")
+hd_redirect(string np, string[] rq, string[] rs) {
+  string loc = url_encode_path(np);
+  string q = hd_query_sfx(rq[(import http_q_query)]);
+  rs[(import http_s_headers)] = "Location: " + loc + "/" + q + "\r\n";
+} chain (string np, string[] rq, string[] rs) {
+  int c = 301;
+} return int c;
+given hd_t_rsnew ("/a b", ["GET", "/a b", "HTTP/1.1", "/a b", "x=1", "", "GET /a b HTTP/1.1", "", "", "0"], (import hd_t_rs)):(301) then (import hd_t_rs)[(import http_s_headers)]:("Location: /a%20b/?x=1\r\n")
+given hd_t_rsnew ("/d", ["GET", "/d", "HTTP/1.1", "/d", "", "", "GET /d HTTP/1.1", "", "", "0"], (import hd_t_rs)):(301) then (import hd_t_rs)[(import http_s_headers)]:("Location: /d/\r\n")
 
-hd_dir(string fp, string[] rq, int keep, int left, string[] out, int[] mt) {
+hd_dir(string fp, string np, string[] rq, string[] rs) {
   int slash = str_ends(fp, "/");
-  string head = "";
+  int c = 0;
   if(slash == 0) {
-    head = hd_redirect(rq, keep, left, out, mt);
+    c = hd_redirect(np, rq, rs);
   }
-} chain (string fp, string[] rq, int keep, int left, string[] out, int[] mt) {
+} chain (string fp, string np, string[] rq, string[] rs) {
   if(slash == 1) {
-    head = hd_index(fp, rq, keep, left, out, mt);
+    c = hd_index(fp, np, rq, rs);
   }
-} return string head;
-("/tmp", ["GET", "/tmp", "HTTP/1.1", "/tmp", ""], 0, 1, ["", ""], [0, 0, 0, 0]):("HTTP/1.1 301 Moved Permanently\r\nServer: httpd-id/1.0\r\nLocation: /tmp/\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 121\r\nConnection: close\r\n\r\n")
-given hd_t_site ((import hd_t_dir), ["GET", "/", "HTTP/1.1", "/", ""], 0, 1, ["", ""], [0, 0, 0, 0]):("HTTP/1.1 200 OK\r\nServer: httpd-id/1.0\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 279\r\nConnection: close\r\n\r\n") then hd_t_drop:(1)
+} return int c;
+given hd_t_rsnew ("/tmp", "/tmp", ["GET", "/tmp", "HTTP/1.1", "/tmp", "", "", "GET /tmp HTTP/1.1", "", "", "0"], (import hd_t_rs)):(301) then (import hd_t_rs)[(import http_s_headers)]:("Location: /tmp/\r\n")
+given hd_t_site given hd_t_rsnew ((import hd_t_dir), "/", ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import hd_t_rs)):(200) then hd_t_drop:(1)

@@ -1,14 +1,15 @@
-hd_index(string fp, string[] rq, int keep, int left, string[] out, int[] mt) {
+hd_index(string fp, string np, string[] rq, string[] rs) {
   string ix = fp + "index.html";
   int kd = hd_kind(ix);
-  string head = "";
-} chain (string fp, string[] rq, int keep, int left, string[] out, int[] mt) {
+  int c = 0;
+} chain (string fp, string np, string[] rq, string[] rs) {
   if(kd == 1) {
-    head = hd_file(ix, rq, keep, left, out, mt);
+    c = hd_file(ix, rq, rs);
   }
   if(kd != 1) {
-    head = hd_list(fp, rq, keep, left, out, mt);
+    c = hd_list(fp, np, rs);
   }
-} return string head;
-("/nonexistent-hd-x/", ["GET", "/", "HTTP/1.1", "/", "", "", ""], 0, 1, ["", ""], [0, 0, 0, 0]):("HTTP/1.1 404 Not Found\r\nServer: httpd-id/1.0\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 105\r\nConnection: close\r\n\r\n")
-given hd_t_site ((import hd_t_dir), ["GET", "/", "HTTP/1.1", "/", "", "", ""], 0, 1, ["", ""], [0, 0, 0, 0]):("HTTP/1.1 200 OK\r\nServer: httpd-id/1.0\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 279\r\nConnection: close\r\n\r\n") then hd_t_drop:(1)
+} return int c;
+given hd_t_rsnew ("/nonexistent-hd-x/", "/", ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import hd_t_rs)):(404)
+given hd_t_site given hd_t_rsnew ((import hd_t_dir), "/", ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import hd_t_rs)):(200) then (import hd_t_rs)[(import http_s_body)]:("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of /</title></head><body><h1>Index of /</h1><ul>\n<li><a href=\"a.txt\">a.txt</a></li>\n<li><a href=\"idx/\">idx/</a></li>\n<li><a href=\"sp%20ace.txt\">sp ace.txt</a></li>\n<li><a href=\"sub/\">sub/</a></li>\n</ul></body></html>\n") then hd_t_drop:(1)
+given hd_t_site given hd_t_rsnew ((import hd_t_idir), "/idx/", ["GET", "/idx/", "HTTP/1.1", "/idx/", "", "", "GET /idx/ HTTP/1.1", "", "", "0"], (import hd_t_rs)):(200) then (import hd_t_rs)[(import http_s_body)]:("") then hd_t_drop:(1)

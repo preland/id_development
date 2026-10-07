@@ -3,8 +3,10 @@ hd_tcp_run(int ln, string host, string root, int rounds) {
   string fm = hd_up_msg(host, pt, root);
   eprint(fm);
 } chain (int ln, string host, string root, int rounds) {
-  int served = hd_tcp_loop(ln, root, rounds, -1);
+  func(string[], string[]) return int fn = bind(hd_handle, root);
+  int served = http_serve(ln, fn, http_opts(1), rounds, -1);
   sock_close(ln);
+} chain (int ln, string host, string root, int rounds) {
   int rc = 0;
 } return int rc;
 given hd_t_lsn0 ((import hd_t_ln), "127.0.0.1", "/tmp", 0):(0) then hd_t_sweep:(0)

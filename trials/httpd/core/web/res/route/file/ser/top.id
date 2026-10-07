@@ -1,13 +1,10 @@
-hd_file(string fp, string[] rq, int keep, int left, string[] out, int[] mt) {
+hd_file(string fp, string[] rq, string[] rs) {
   int code = hd_probe(fp);
-  string head = "";
-  if(code != 0) {
-    head = hd_fail(code, "", keep, left, out, mt);
-  }
-} chain (string fp, string[] rq, int keep, int left, string[] out, int[] mt) {
   if(code == 0) {
-    head = hd_ok(fp, rq, keep, left, out, mt);
+    code = hd_ok(fp, rq, rs);
   }
-} return string head;
-("/nonexistent-hd-x", ["GET", "/", "HTTP/1.1", "", "", "", ""], 0, 1, ["", ""], [0, 0, 0, 0]):("HTTP/1.1 404 Not Found\r\nServer: httpd-id/1.0\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 105\r\nConnection: close\r\n\r\n")
-("/nonexistent-hd-y/z", ["GET", "/", "HTTP/1.1", "", "", "", ""], 1, 5, ["", ""], [0, 0, 0, 0]):("HTTP/1.1 404 Not Found\r\nServer: httpd-id/1.0\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 105\r\nConnection: keep-alive\r\nKeep-Alive: max=4\r\n\r\n")
+} return int code;
+given hd_t_rsnew ("/nonexistent-hd-x", ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import hd_t_rs)):(404) then (import hd_t_rs)[(import http_s_file)]:("")
+given hd_t_rsnew ("/nonexistent-hd-y/z", ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import hd_t_rs)):(404)
+given hd_t_site given hd_t_rsnew ((import hd_t_apath), ["GET", "/a.txt", "HTTP/1.1", "/a.txt", "", "", "GET /a.txt HTTP/1.1", "", "", "0"], (import hd_t_rs)):(200) then hd_t_rsfile:(1) then hd_t_drop:(1)
+given hd_t_site given hd_t_rsnew ((import hd_t_apath), ["GET", "/a.txt", "HTTP/1.1", "/a.txt", "", "If-Modified-Since: Tue, 19 Jan 2038 03:14:07 GMT", "GET /a.txt HTTP/1.1", "", "", "0"], (import hd_t_rs)):(304) then hd_t_drop:(1)
