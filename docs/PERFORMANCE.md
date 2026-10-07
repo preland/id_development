@@ -63,7 +63,7 @@ results file (`meta.txt`, printed at the top).
 | rust-O3 | `rustc -C opt-level=3` (nixpkgs#rustc) |
 | rust-O3n | `rustc -C opt-level=3 -C target-cpu=native` |
 | id-c | `idc/bin/idc DIR -o OUT`: idc emits C and runs `cc -std=c11 -O2` per unit, see section 5 |
-| id-llvm | `idc/bin/idc DIR -o OUT --target llvm`: idc emits IR, `clang -O2` |
+| id-llvm | `idc/bin/idc DIR -o OUT --target llvm`: idc emits IR, `clang -O2 -flto` over the module, the C runtime and the backends |
 
 `-ffp-contract=off` keeps fused multiply-add out of the C builds so the float
 benchmarks print identical digits; Rust never fuses. `--target wasm` is not
@@ -170,13 +170,20 @@ how. The ranking is the one the ladders measured before those changes.
    guard compares the index's largest value with the length in 64 bits.
    Accesses in a function the loop calls, and limits other than a variable, a
    literal or `len(xs)` (nbody's `len(b) / stride`), are not covered. The LLVM
-   target keeps the checked loop; wasm is the C target's C.*
+   target does the same at the IR (`compiler/parse/back/ir/build/stmt/flow/loop/`):
+   it asks that analysis which loops and accesses qualify, reads its guard back
+   into IR (`guard/`), and lowers the loop twice, the covered accesses calling the
+   runtime's unchecked `id_list_cell` / `id_list_cell_set` in the guarded copy;
+   a freestanding build and `-O0` keep the checked loop. wasm is the C target's C.*
 6. **Conf constants are mutable globals** (non-const, non-static): reloaded after
    any call and never folded into index arithmetic. A small effect.
 7. **Native calls are opaque** (sqrt): an external call gcc must assume writes any
    memory. Small next to item 1; an intrinsic also removes the call. *Addressed:
    under LTO a backend's C is compiled for LTO too, so a native inlines, and
-   idstd's `flt_` library (host/num) gives sqrt and the rest of libm.*
+   idstd's `flt_` library (host/num) gives sqrt and the rest of libm. The LLVM
+   target does the same with clang: a program's backends are compiled with
+   `-flto -ffat-lto-objects`, and the link raises the LTO inliner's threshold to
+   400 so the runtime's `id_list_set` and friends inline as gcc's do.*
 8. **Overflow checks** in allocation size computations, the exit-time arena walk,
    and the arena list maintenance: each measured at a few percent or less.
 9. **Float boxing** (`id_box_f` / `id_unbox_f`) compiles to plain `movsd` loads and

@@ -167,6 +167,21 @@ value and itself) is replaced by it, to a fixed point. On the reducible CFGs
 that `if`/`while` produce this reaches the same answer as the frontier
 algorithm, and it is a page of code rather than three.
 
+### Loop versioning
+
+The lowering of a `while` asks the C emitter's analysis (`back/tgt/c/emit/prog/code/body/fast/`,
+docs/PERFORMANCE.md section 5, item 5) which of its list accesses it can prove in range once,
+before the loop. When there are any, the loop is lowered twice behind one guard
+(`back/ir/build/stmt/flow/loop/`): in the guarded copy those accesses call the runtime's
+`id_list_cell` and `id_list_cell_set`, which do not check, and the other copy is the loop as
+written, so a loop that would trap still traps at the same iteration with the same message.
+The analysis states its guard as C conditions; `loop/guard/` reads each one back (names, integer
+literals, `(long long)`, `->len` and `->cap`, `+ - *`, a comparison) into reverse Polish form and
+builds it in 64 bits, with `id_list_len_raw` and `id_list_cap_raw`, which answer -1 for a list
+that is not there. A clause it cannot read gives the loop up, so the checked loop is always the
+fallback. The runtime is the C one, so a freestanding build (`--freestanding`, `--runtime`) and
+`-O0`, whose IR `tools/idrun` interprets, are not versioned.
+
 ## The runtime, and why builtins are inlined rather than called
 
 `idc/idc.py`'s LLVM target (since deleted) linked the C runtime: every builtin is a `call` to an
