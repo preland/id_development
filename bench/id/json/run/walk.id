@@ -13,11 +13,11 @@ jt_kind(int kind, int pay, int[] acc) {
 (0, 5, [0, 1, 2, 3, 4, 5]):(0, 5, [0, 1, 2, 3, 4, 5])
 
 jt_visit(int[] tape, int node, int depth, int[] acc) {
-  int kind = tape[jn_at(node, (import jf_kind))];
-  int pay = tape[jn_at(node, (import jf_pay))];
+  int kind = tape[lst_cell(node, (import jn_stride), (import jf_kind))];
+  int pay = tape[lst_cell(node, (import jn_stride), (import jf_pay))];
   acc[0] = acc[0] + 1;
 } chain (int[] tape, int node, int depth, int[] acc) {
-  acc[3] = acc[3] + tape[jn_at(node, (import jf_key))];
+  acc[3] = acc[3] + tape[lst_cell(node, (import jn_stride), (import jf_key))];
   acc[5] = fx_max(acc[5], depth);
   jt_kind(kind, pay, acc);
 } return void;
@@ -26,10 +26,10 @@ jt_visit(int[] tape, int node, int depth, int[] acc) {
 
 jt_walk(int[] tape, int node, int depth, int[] acc) {
   jt_visit(tape, node, depth, acc);
-  int c = tape[jn_at(node, (import jf_first))];
+  int c = tape[lst_cell(node, (import jn_stride), (import jf_first))];
   while(c >= 0) {
     jt_walk(tape, c, depth + 1, acc);
-    c = tape[jn_at(c, (import jf_next))];
+    c = tape[lst_cell(c, (import jn_stride), (import jf_next))];
   }
 } return void;
 ([5, 0, 1, 1, -1, 0, 3, 8, -1, -1, -1, 0], 0, 1, [0, 0, 0, 0, 0, 0]):([5, 0, 1, 1, -1, 0, 3, 8, -1, -1, -1, 0], 0, 1, [2, 8, 0, 0, 0, 2])
