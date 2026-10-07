@@ -142,6 +142,57 @@ main(int argc, string[] argv) {
 } return int 0;
 ```
 
+## E0105 an opening bracket is never closed
+
+A `(` or `[` needs its `)` or `]`. The parser does not supply a missing one at
+the end of the statement: the diagnostic is at the token where the closing bracket
+was expected, and its `related:` line names the line the unclosed bracket opened
+on. With several brackets open on one line the fix is the one the parser reports,
+the outermost bracket that is still open, so the missing closer goes last, just
+before the `;`, `{` or `:` named in `at`.
+
+The same check covers a function's parameter list, a call's arguments, an array
+literal, an index, an `if` or `while` condition, a case's `(args):(expected)`
+tuples, and an expression in a `conf.id` constant.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  int x = (1 + (2 * 3);
+} return int x;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  int x = (1 + (2 * 3));
+} return int x;
+```
+
+## E0106 a closing bracket nothing opened
+
+A `)` or `]` where an operand belongs closes nothing: the brackets on the statement
+do not balance. Either the bracket is one too many, so delete it, or an opening
+bracket is missing earlier in the statement.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  int x = (1 + 2));
+} return int x;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  int x = (1 + 2);
+} return int x;
+```
+
 ## E0201 a block performs more than three actions
 
 A block holds at most three actions: each statement, `if`, `else` and `while`
