@@ -591,11 +591,9 @@ octal, and no exponent form for integers: a literal with an exponent is a
 ```
 
 This is a **choice**, and it is deliberately stronger than C, where signed
-overflow is undefined. Today's C target gets the specified answer only because
-gcc happens to wrap; an optimiser is entitled to assume overflow cannot happen
-and produce something else. Making this true rather than lucky needs `-fwrapv`
-on the C target, or arithmetic routed through unsigned. **The C target does not
-do this yet** — see §10.
+overflow is undefined and an optimiser is entitled to assume it cannot happen.
+Every C compile, the wasm one included, passes `-fwrapv` so the emitted C
+means what `id` means (§10, S1).
 
 Wrapping was chosen over trapping because `id` compiles to code that runs at C
 speed and a check on every arithmetic operation is the one cost that would
@@ -1235,7 +1233,7 @@ The rows below say what each one was and why it happened.
 
 | # | what | affected |
 | --- | --- | --- |
-| **S1** | Overflow wraps only because gcc chooses to; C calls it undefined. Needs `-fwrapv` or unsigned-routed arithmetic. Not currently observable, which is exactly why it is worth fixing before an optimiser makes it so. | C |
+| **S1** | Overflow wrapped only because the compiler chose to; C calls it undefined. nixpkgs' gcc wrapper adds `-fno-strict-overflow`, which hid it, while the unwrapped clang of the wasm target folded `x + 1 > x` to `1` at `INT_MAX`. Every C compile now passes `-fwrapv`, and `conform/int/18-overflow-not-assumed` is what fails without it. | C, WASM |
 | **S2** | Shifts with a count outside `0..W` gave three different answers: `(0 - 8) >> 32` was `-1` (§2.3) on C, `0` on LLVM, and `-8` on WASM, which masks the count to 5 bits. Both now route through helpers that give §2.3's answer. | LLVM, WASM |
 | **S3** | `str_of_int` was wrong for `INT_MIN`: `2147483647 + 1` printed `-./,),(-*,(`, because the digit loop negated a negative value, which overflows, and every digit then came out as `'0' - d`. It now folds into the negative half of the range, which is always representable. | WASM |
 | **S4** | `int` division and remainder by zero did not trap: LLVM raised SIGFPE (exit 136) and WASM aborted (exit 134) where C prints a line and exits 1. The checked-division fix recorded as C2 in `docs/GAPS.md` (retired; `git show 479234a^:docs/GAPS.md`) had been applied to the C runtime only. | LLVM, WASM |
