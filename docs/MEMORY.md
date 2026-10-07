@@ -8,8 +8,9 @@
 > list, struct or string that nothing keeps, on every target; the list
 > elements of a list of lists that the list provably owns; the temporaries of
 > a `+` chain; a block a function returns fresh, by whoever receives it, and
-> one passed straight to a function that does not keep it) and which decisions
-> are still open. Section 2a lists each target and why any is exempt; section
+> one passed straight to a function that does not keep it; the strings of a
+> list of strings and the fields of a struct, when each is the holder's alone)
+> and which decisions are still open. Section 2a lists each target and why any is exempt; section
 > 8 lists the forks (F1, shallow or deep, was decided deep on 2026-10-02;
 > section 3.2 says how far it goes; F7 and F8 are landed, sections 2 and
 > 3.1b).
@@ -50,6 +51,13 @@ tells a heap string from a literal (F2, option d).
   are 8 bytes whatever the element type; a string cell is a pointer. Growth
   moves the cells to a separate block and leaves the header in place, because
   a list is a reference and every holder must see the same `IdList*`.
+- Giving back more than one block: `id_list_free_deep` frees the cells of a
+  list of lists as lists; `id_list_free_strs` frees the cells of a list of
+  strings as strings; `id_free_walk(list, descriptor)` frees a struct by its
+  type with a work list (section 3.5b), and each such struct has a generated
+  wrapper `idfr_NAME` that passes its descriptor. All three go through
+  `id_list_free` and `id_str_free`, so the guard and the counters see every
+  block.
 - The **flat store** (`alloc`, `peek`, `poke`) is one byte array that only
   grows, bump-allocated, addressed by `word`. It is not the list/string pool
   and this document does not propose to free it (section 3.6).
@@ -103,8 +111,10 @@ Landed in `idc/compiler/parse/mid/types/check/store/assign/rule/escape/`, one an
    the one the return clause names, and the value it replaces is freed when it
    is assigned again, which is what makes a declaration inside a loop free
    once per pass. The free is shallow (header and cells) unless the list also
-   owns its elements (section 3.2), in which case it is `id_list_free_deep`:
-   each element is freed as a list, then the list.
+   owns its elements (section 3.2), in which case it is `id_list_free_deep`
+   (each element is freed as a list, then the list), `id_list_free_strs`
+   (a list of strings) or `idfr_NAME` (a struct that owns its fields, section
+   3.5b); `esc_free_fn` picks the call by the declared type.
 4. **Temporaries.** A block that nothing names is freed by the caller: the
    result of a `+` that another `+` consumes (section 3.3), a fresh call
    passed straight to a function whose summary does not keep that parameter
@@ -130,8 +140,16 @@ Four more positions decide whether `xs` also owns its **elements** (section
 | --- | --- |
 | `xs[i]` read into a keeping position (a store, a return, an argument the callee keeps, an alias) | yes |
 | `xs[i]` read and only looked at (an operand, `len(xs[i])`, `xs[i][j]`, an argument the callee does not keep) | no |
-| `push(xs, v)` or `xs[i] = v` where `v` is not a list literal; a list literal `[a, b]` stored in `xs` with an element that is not a list literal | yes |
+| `xs[i]` read where the element has nothing to free (an int, a float) | no |
+| `push(xs, v)` or `xs[i] = v` where `v` is not a list literal; a list literal `[a, b]` stored in `xs` with an element that is not a list literal | yes (a list of lists) |
+| `push(xs, v)` or `xs[i] = v` where `v` is a string, list or struct that is not fresh (`esc_ownv`); a literal stored in `xs` with such an element | yes (a list of strings, a list of structs, a struct) |
 | `xs` passed to an id function at parameter `i` whose second-mask bit is set | yes |
+
+For a type that carries a struct the same two rows are asked of every path from
+`xs` (`xs.f`, `xs.f[i].g`), and a path read into a keeping position, or into a
+callee that may break what it is handed, is flag bit 32 (section 3.5b). A bare
+name handed to a struct's constructor is flag bit 64: a keeper unless the move
+proof of section 3.2 says the struct takes it.
 
 Summaries are computed on demand and memoised in `esc_pe` (seeded at C emission;
 an empty table means the analysis is off, which is how the test cases that
@@ -184,11 +202,11 @@ Two rules in the table exist for a reason that is easy to miss:
 
 ### What the slice does not do
 
-Exports (section 3.4), function values and closures (3.5), a struct's fields
-(3.5b), the flat store (3.6), the elements of a list of strings or of structs,
-and elements that reach a list by name or through a callee (section 3.2).
-Strings, return-value ownership and temporaries have landed (sections 3.1b
-and 3.3); section 3.2 says which list elements are freed.
+Exports (section 3.4), function values and closures (3.5), the flat store
+(3.6), and elements that reach a list by name (a name moved into a list of
+lists, a moved name that is a string or a struct, section 3.2). Strings,
+return-value ownership, temporaries, the strings of a list of strings and the
+fields of a struct have landed (sections 3.1b, 3.2, 3.3 and 3.5b).
 
 ### 2a. Which targets free what
 
@@ -221,7 +239,12 @@ which lists are freed:
   block is reused; that is all.
 - **The freestanding runtime owns no string.** Its strings are bump-allocated
   and there is nothing to give back to, so `esc_hosted` is false and no string
-  is owned or consumed there. It also gives the old cell array back when a list
+  is owned or consumed there, which also means no list of strings and no
+  struct is freed by its type there (`id_list_free_strs`, `id_free_walk` and
+  the `idfr_` wrappers are hosted only; `esc_dkind` is 0 for them, so a struct
+  stays shallow-freed as before). That is an exemption with a reason, the
+  same one the strings have, and it would go if the freestanding runtime grew
+  a work-list walker in `id`. It also gives the old cell array back when a list
   grows, as the hosted `id_realloc` does; that is the runtime's own bookkeeping
   and no analysis is involved.
 
@@ -268,7 +291,8 @@ What the caller does with it, which is the whole of the win:
   returns, whose last value is the caller's own caller's), and the value it
   replaces is freed when it is assigned again. A struct is a list at run
   time, so a local struct from a constructor or a fresh call is owned and
-  freed the same way (shallowly: its fields are not followed, section 3.5b).
+  freed the same way: shallowly, unless it also owns its fields, in which
+  case by its type, all the way down (section 3.5b).
 - `g(f(x))` with `f` fresh and `g` a function of the program whose bit for
   that parameter is clear frees the temporary after the call: the C target
   holds it in a variable of a GNU statement expression
@@ -355,22 +379,45 @@ is that an alias `row = xs[i]` is refused even when `row` itself never escapes.
 - **Moves through a callee.** `csv_keep(st, rows, ..., row, ...)` stores its
   parameter into another parameter. A summary of "parameter i is stored as an
   element of parameter j" would let the caller check the actual for `i`.
-- **Fresh returns (F8), partly.** Landed for the list itself and for a list of
-  lists whose rows are literals (section 3.1b): `xs = f()` is owned, and deep
-  when `f` returns its rows as its own. Not landed: a list whose rows reach it
-  by name or through a callee (`str_split` pushes its pieces from a helper and,
-  for an empty separator, pushes its own argument, so its result is fresh but
-  its elements are neither fresh nor the result's alone), and a list of
-  strings, which `id_list_free_deep` would free as lists. The pieces of a list
-  of strings need their own runtime free (`id_str_free` per cell), a summary
-  of "parameter i is stored as an element of parameter j" for the helper, and
-  the empty-separator branch to stop pushing its argument. `sorted` in csvq's
-  `srt_rows` still keeps elements of `rows` that `rows` still holds.
+- **Fresh returns (F8).** Landed for the list itself, for a list of lists
+  whose rows are literals (section 3.1b) and, below, for a list of strings:
+  `xs = f()` is owned, and deep when `f` returns its elements as its own.
+  `sorted` in csvq's `srt_rows` still keeps elements of `rows` that `rows`
+  still holds.
 - **The replaced element.** `xs[i] = [..]` leaves the element it replaced
-  unfreed, because nothing proves no alias took it first; with the alias rule
-  above it could be freed.
-- **Struct elements.** A list of structs holds structs, and a struct's fields
-  are not followed (section 3.5b); a `Point[]` is not a deep candidate.
+  unfreed, because nothing proves no alias took it first.
+
+**A list of strings** (landed). `string[]` is a second kind of deep-owned list
+(`deep/ty/kind.id`, `esc_dkind` 2): owned in the shallow sense, every string
+that goes into it (`push`, `xs[i] = v`, a list literal) is *fresh* -- a
+concatenation, a builtin that makes a string, a call of a function that
+returns fresh (`esc_ownv`, `deep/elem/own.id`); a string literal is not, being
+no heap block, and neither is a name -- and no element is read out into a
+position that keeps it, nor passed to a callee that may. It is freed with
+`id_list_free_strs`, which frees each cell as a string and then the list, on
+every hosted target. The rule for a list of lists is unchanged (its rows are
+freed shallowly, so a row may hold anything); the stricter one applies to a
+type that is `string[]` or carries a struct (`esc_strong`).
+`str_split` (idstd `core/text/str/field.id`) now pushes only fresh pieces --
+the empty-separator branch pushes a slice of its argument, not the argument --
+so its result is fresh with elements of its own, and `lines =
+str_split(text, "\n")` frees every line at the function's exit. A caller that
+reads one piece into a position that keeps it (csv's `parts[1]`, stored as a
+key by `hmap_put`) is not deep-owned, and stays shallow: whether one piece is
+kept is a fact about that piece, and the free is of the whole list.
+
+**Moves into a struct** (landed, narrow). The constructor of a struct that
+takes a local list is a move, not a keep, when `esc_deepk` proves it: the
+list is declared earlier in the same statement list as the constructor, is
+mentioned there once, is mentioned nowhere in the function outside the span
+from its declaration to that constructor (so nothing reads it afterwards, in
+a loop or not), and the walk finds nothing that keeps it, no non-fresh store,
+no element read out and no element that something else holds (`deep/mv/`).
+Only a list of a type whose elements are not lists themselves (`esc_mvty`) is
+taken: strings, structs, scalars. A moved name is not owned by its function
+(flag bit 64 is a keep until proved), so the function never frees it;
+the struct does, section 3.5b. Moves through a callee, a moved string, a moved
+struct and a moved list of lists are not done.
 
 ### 3.3 Strings
 
@@ -466,30 +513,75 @@ function's exit. That is not built, and nothing above depends on it. A closure
 that is stored in an export, or handed to `thr_map`'s worker threads, is never
 a candidate.
 
-### 3.5b Structs
+### 3.5b Structs (landed: owned fields, freed by type)
 
-A struct (SPEC section 1.2) is a list at run time, one cell per field, so it is
-a reference that can hold lists and strings. The analysis is **not
-field-sensitive**: a list stored in a field is treated as kept, always, until
-someone proves otherwise per field. Both ways a list gets into a struct already
-land on a "keeps" row of the table in section 2: the constructor `Point(xs)` is
-a call to a name that is no function of the program, which "keeps everything"
-(`esc_opaque`), and `p.f = xs;` is an index assignment, whose value is kept. A
-local list that went into a struct is therefore never *owned*, so it is never
-freed at its function's return and the struct never dangles. A struct local is
-owned like a list when every store into it is a constructor or a call of a
-function that returns fresh (section 3.1b) and no use of it keeps it, and is
-then freed *shallowly*: header and cells, never the fields. So the struct
-`bt_make` returns is owned by its caller and the one `bt_check(bt_make(d))`
-passes is freed after the call, while the list in its `kids` field and every
-node under it stay with the pool. Two cases in
-`mid/types/check/store/assign/rule/escape/walk/` pin both rows, and
-`idc/tests/tests_feature.sh` runs a program that returns a struct holding a list
-the function made, under `ID_FREE_GUARD=1`; `tests/conform/free/16` pins the
-struct as owner and temporary. A field-sensitive analysis could free what a
-struct holds when the struct dies, which needs the struct to be provably owned
-(it is now) and each field to be provably the struct's alone; that is future
-work and nothing here decides it.
+A struct (SPEC section 1.2) is a list at run time, one cell per field, so it
+is a reference that can hold lists, strings and other structs. A local struct
+from a constructor or a fresh call is owned like a list (section 2). It is
+freed *shallowly* -- its own block -- unless the analysis proves it also owns
+what its fields hold, in which case it is freed by its type, all the way down
+(`esc_dkind` 3, `deep/ty/kind.id`). The analysis is field-sensitive only in
+the sense that it follows paths from the struct's name (`t.kids[0].v` starts at
+`t`, `deep/elem/root.id`); it is not a points-to analysis.
+
+**What "owns its fields" asks** (`esc_deepk`, `deep/mv/sown.id`; a struct with a
+string, a list or a struct for a field, `esc_sheap`). The struct is owned in
+the shallow sense, and:
+
+1. **Every value that goes into a field is fresh** (`esc_ownv`): a list
+   literal of fresh things, a constructor whose arguments are, a concatenation,
+   a call of a function that returns fresh with fields of its own (the sign
+   bit of the summary, section 3.1b), or -- for a list only -- a local the
+   constructor takes over (the move above, section 3.2). A name, a literal
+   string or a field read from another struct is not. A constructor with such
+   an argument sets flag bit 128, a `t.f = v` or `push(t.f, v)` or
+   `t.f[i].g = v` of one sets bit 8.
+2. **Nothing reads a field out into a position that keeps it**, at any depth
+   (`t.kids`, `t.kids[0]`, `t.name`): flag bit 4 at the first step, bit 32 at
+   any step of a path that goes into a keeping position or into a callee that
+   may break what it is handed. A read of something with nothing to free (an
+   int) is never counted, and a path is asked only of a name whose type
+   carries a struct, so a list of lists is judged exactly as before.
+3. **Callees do not break it.** The second mask of the summary (bits 4, 8 and
+   32 of the parameter's walk) says a callee may read a field out or store a
+   non-fresh value into one; a struct handed to such a callee is not deep.
+4. **A read-only alias is not a keeper, for a parameter.** `Node[] ks =
+   n.kids;` is a name for what `n` holds, and the walk of `n` counts it as a
+   keeper -- unless `ks` is then only looked at: never returned, stored, passed
+   to a callee that keeps it or may break what it holds, nor an element read
+   out the same way (`ks` has none of bits 1, 4, 8, 32, 64, `flow/sum/ro.id`).
+   `esc_pflags` (`flow/sum/alias.id`) leaves such a declaration, when it is at
+   the top of the body, out of the parameter's walk. For a *local* this is not
+   done: the original can be freed (reassigned, or a loop's next pass) while
+   the alias is live, and proving it is not needs the statement-level facts
+   that the move proof has and the local alias does not yet have.
+
+**The free.** `idfr_NAME(p)`, one per such struct, defined by both backends
+(`emit_frees`, `back/tgt/c/emit/prog/head/decl/frees.id`; `ll_frees`,
+`back/tgt/ll/mod/sect/frees.id`), calls the runtime's `id_free_walk(p,
+descriptor)`. The descriptor (`esc_desc`, `deep/ty/desc.id`) is one string per
+type: `s` a string, `.` nothing to free, `l` and the descriptor of the elements
+for a list, `S`, the field count and the descriptors of the fields for a
+struct, `@N;` for a struct already being described at offset N (a tree of
+trees, a list of lists of itself). `id_free_walk` keeps an explicit work list
+(64 entries on the C stack, then pool blocks), so a chain of a million cells
+frees with no recursion; a block already freed under the guard is skipped, and
+its own `id_list_free` traps, so a double free is a trap there as for a list.
+The same free is used wherever a deep-owned value is given back: the exit and
+the replaced value of an owned local (`esc_free_fn`), a fresh call passed
+straight to a callee that neither keeps it nor may break it (`esc_tmp_fn`, so
+`bt_check(bt_make(d))` frees the whole tree), and a discarded fresh call
+(`esc_free_of`).
+
+**What is not done.** A struct reached only through a name the function did
+not make (a parameter, an element, an export) is never freed by this function.
+A string field must be fresh at every constructor: `Pt("lit")` leaves the
+struct shallow. A struct, a string or a list of lists moved by name into a
+constructor is not taken (a field built that way needs a literal or a call).
+A function value in a field is not freed. The freestanding build owns no
+string (section 2a) and frees no struct by type either; there `esc_dkind` is 0
+for kinds 2 and 3 and the shallow rule stands. `tests/conform/free/18` to `23`
+pin the rows above on C, LLVM and wasm, the refusals (`22`, `23`) included.
 
 ### 3.6 Words and the flat store
 
@@ -732,9 +824,11 @@ recursive walkers (the compiler's own parse/emit recursion).
 "returns fresh" bit per function that returns a list, a struct or a string
 (section 3.1b), and a second bit for the elements of a list of lists. A caller
 owns what it receives (`ys = f()`), frees a fresh block it passes straight to a
-function that does not keep it (`g(f(x))`) and one it discards. *Open inside
-it:* the pieces of a list of strings (section 3.2), and the fields of a struct
-(section 3.5b).
+function that does not keep it (`g(f(x))`) and one it discards. The pieces of
+a list of strings (section 3.2) and the fields of a struct (section 3.5b) are
+freed with it when the sign bit says they are the result's alone. *Open inside
+it:* a name moved into a list of lists, a string or a struct (moves into a
+struct take a list only).
 
 **F9. Natives.** Keep everything (today). Alternatives: a declaration form that
 says which parameters a native keeps (syntax, which SPEC section 6 rules out for the
@@ -860,9 +954,15 @@ control that differs from the treatment in one property (the compiler):
   stage 1, run each with `taskset -c N` and `/usr/bin/time -f '%e %M'` in
   alternating rounds, and compare the output md5 with `bench/ref/c`. The
   benchmarks that gain are those that build a list in a function and use it in
-  another (csv's per-row `str_split`); btrees frees only the root struct of
-  each tree, because the nodes under it hang off a field, and strbuild
-  frees nothing it did not before.
+  another. btrees frees every node of a tree through `idfr_Tree` and csv
+  frees the lines `str_split` made when `cv_run` returns (not each row's
+  pieces, one of which `hmap_put` keeps); strbuild frees nothing it did not
+  before. Peak resident set is the column to read for btrees; for csv the
+  garbage is freed at the exit of the function that made it, after the peak.
+  Generate the data with `bench/ref/c/gen.c` (`gen csv N`, `gen expr N`).
+  The control is the C that the bootstrap stage 0 of the commit before
+  (`cc -O2 bootstrap/idparse.c`) emits for the same source, so only the
+  compiler differs.
 - *ASan.* `IDC_STAGE_*` as above, `--cc` a one-line wrapper that runs
   `cc -fsanitize=address -fno-omit-frame-pointer -g "$@"`, run with and without
   `ID_FREE_GUARD=1`. The pool poisons a freed block under ASan, so a read of a
@@ -880,9 +980,13 @@ control that differs from the treatment in one property (the compiler):
 
 
 - ASan has been run on csvq `sort` at 200,000 rows, and on the benchmarks
-  btrees, strbuild, expr and csv and on the compiler building itself with the
-  analysis of section 3.1b (section 9, "Fresh returns"); not on every case of
-  `tests/conform/free/`, which run under the guard. The guard sees a use of the
+  btrees, strbuild, expr, sortb and csv (not json, which does not build:
+  E0405 against idstd's `idstd_wl_bi`), on idparse compiling `compiler/parse`
+  and idstd whole, with and without the guard, with the analysis of sections
+  3.2 and 3.5b (section 9, "Fresh returns"); not on every case of
+  `tests/conform/free/`, which run under the guard. Cases `22` and `23` pin
+  what is refused; editing the emitted C of `22` to free one of its structs by
+  type turns each into the guard's trap, as `05` does for lists. The guard sees a use of the
   list header or cells after the free; it cannot see a stale copy of an
   element pointer into an element freed deep unless the element's own header
   or cells are read.
@@ -890,8 +994,15 @@ control that differs from the treatment in one property (the compiler):
   "an element is read only in positions that look and let go". Cases exist for
   each escape the analysis names (`conform/free/05-deep-refused`, one function
   per way) and each was made to trap by editing the emitted C to free deep; no
-  case exists for a way nobody thought of. Elements reached through a struct
-  field or an `asm`/native function are covered only by those being "keeps
+  case exists for a way nobody thought of. The same holds, with a longer
+  list of ways, of the struct rule (section 3.5b: a field or path read out, a
+  non-fresh store at any depth, a callee that breaks, a moved list used after
+  the move, the same node held by two structs), and it rests further on three
+  facts that are argued: a string a concatenation or a string builtin makes is
+  always a heap block (`id_concat`, `id_str_from`), a function that returns
+  fresh returns a block no one else names (section 3.1b), and the work list of
+  `id_free_walk` reads a block's cells before it frees it. Elements reached
+  through an `asm`/native function are covered only by those being "keeps
   everything".
 - Deep frees reach no real program in this repository that was measured: not
   csvq's `sort`, not the compiler building itself (section 9). Their effect on
