@@ -594,3 +594,17 @@ found by bare name looks itself up on `$PATH` to find `.idc-cache` (or use
 `id_list_free` and `id_list_free_deep` to the IR; before they were treated as
 no-ops `idrun` refused every program ("called but not defined"). Arguments,
 standard input and the exit status reach `main` as for a compiled program.
+
+**The ownership helpers.** The memory steps (docs/MEMORY.md) added `id_concat_f`,
+`id_str_free`, `id_str_dup`, `id_list_free_strs` and `id_free_walk` (called by the
+generated `idfr_<Struct>` wrappers, with a descriptor constant `@idfrd_<Struct>`)
+to the IR. `idrun` runs them as follows: `id_concat_f` is `id_concat` (a string is
+an immutable handle, so there is no block to grow in place and the freshness mask
+changes nothing observable), `id_str_dup` answers its operand, and the three frees
+do nothing, because a handle is never reused and so a free can neither be observed
+nor be missed. The descriptor constant is raw text, not `\XX` escapes; the loader
+gives it an empty string, as nothing reads it. The loop-versioning readers
+(`id_list_cell`, `id_list_cell_set`, `id_list_len_raw`, `id_list_cap_raw`) occur
+only at `-O` above 0, which `idrun` does not run. `tests/tests_feature.sh` (the
+last check of chunk 4) fails, naming the helper, when the LLVM declarations or the
+IR builder can emit one that `conf.id` does not list.
