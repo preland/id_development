@@ -309,9 +309,10 @@ The top confusions, most damaging first:
    artefact of the parser's recovery. A model fixes the last one first.
 5. **Wording that names a rule but not the site.** `variable 'code' is declared int here
    but string elsewhere` did not say where elsewhere is (now a `related:` line). The
-   duplicate-logic rule compares each *chain segment* on its own, but names whole
+   duplicate-logic rule used to compare each *chain segment* on its own but name whole
    functions: two functions flagged as the same because only their first segments were
-   identical cost two builds here.
+   identical cost two builds here. Fixed: a chain function is one unit, and two functions
+   are duplicates only when the signature and every segment match.
 6. **Link-time and run-time discovery** (the 2026-07-04 study): an unknown builtin used
    to fail at the C linker and a `s.length` miscompiled; the first is fixed, and
    what is left of the study's list is design, not wording.

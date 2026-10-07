@@ -1159,10 +1159,10 @@ that words them differently makes the language feel different.
   toward the three-functions-per-file limit, and one pair of test cases covers
   them all, because the segments execute as a unit. The duplicate rule (§7.2's
   neighbour: two functions with the same signature and the same logic are one
-  function written twice) is the exception — there each segment is weighed on
-  its own, so a chain whose logic matches a function defined elsewhere is
-  rejected. A continuation that could have stood alone was not continuing
-  anything.
+  function written twice) compares a chain function whole, like any other:
+  the signature and every segment, in order, must match for two functions to
+  be duplicates. A later segment depends on what the earlier ones computed, so
+  it is not a unit of logic on its own.
 - `print(x)` writes a value and a newline to stdout; `put(s)` writes a string
   without one -- an int or a float is an error, as in `put("" + x)`; `flush()`
   flushes.
