@@ -858,8 +858,10 @@ allocates in a loop grows until it exits or runs out. The rule (decided
 2026-09-26) is that the compiler frees a list or string it can prove never
 escapes — never returned, exported, stored in another list, or kept by a callee
 — when the scope that made it ends, and keeps anything it cannot prove, so
-freeing can never cause a use-after-free. No syntax marks it. Today it frees
-the lists local to a function and no string. A list is freed with its
+freeing can never cause a use-after-free. No syntax marks it. It frees a local
+list, struct or string that nothing keeps, the string temporaries of an
+expression, and a block a function returns fresh, by whoever receives it
+(docs/MEMORY.md says how each is proved). A list is freed with its
 elements (decided 2026-10-02: deep) when it also **owns** them: every element
 that goes into it is a list literal written for it, and no element is read out
 into a position that keeps it -- a store, a return, an alias, or an argument
@@ -878,13 +880,11 @@ wasm32-wasi) and the freestanding runtime all free the same lists, elements
 included, and `tests/conform/free/` runs programs on C, LLVM and wasm and
 requires the same count. The exceptions, and why:
 
-- **`idc/idc.py`'s own WASM generator** does not free. This is policy, not
-  capability: `idc.py` is frozen and hash-checked, and its bump allocator over
-  linear memory could hold a free list. The exception ends when `idc.py` is
-  deleted.
 - **The freestanding runtime** frees but cannot check: a kernel has no stderr
   to trap to, so the use-after-free guard (`ID_FREE_GUARD`) is hosted-only, and
-  a wrong proof there corrupts memory where it would trap elsewhere.
+  a wrong proof there corrupts memory where it would trap elsewhere. It also
+  frees no string: its strings are bump-allocated, so there is nothing to give
+  a string back to.
 
 No target is systemically unable to free a list. docs/MEMORY.md is the design,
 the open decisions, and what each target frees today.
@@ -1257,8 +1257,11 @@ or `else if` condition stays where it was written, so it is still evaluated on
 every iteration and only when reached; `&&` and `||` keep C's own
 short-circuit. The emitter is `back/tgt/c/emit/prog/code/expr/atom/order/`.
 
-The output stays ISO C11, which matters because the compiler's own C is the
-stage-0 bootstrap. Names beginning `idsq_` are reserved for these temporaries
+The output is C11 plus one GNU extension, the statement expression `({ ... })`,
+which gcc and clang both accept: the runtime's `ID_S` and `ID_FNV` macros use
+it, and so does freeing a fresh call result passed straight to another call
+(`g(f(x))`, docs/MEMORY.md). That matters because the compiler's own C is the
+stage-0 bootstrap, so a compiler without the extension cannot build it. Names beginning `idsq_` are reserved for these temporaries
 and rejected in source. Byte-parity with the original `idc.py` was lost for every
 statement that needed sequencing.
 

@@ -1,14 +1,18 @@
 # Freeing memory before exit
 
-> **Status: a design, and a first slice of it.** docs/SPEC.md section 6 says the
-> compiler frees a list or string it can prove never escapes, and keeps
-> anything it cannot prove, and that every target frees the same allocations
-> unless a target is systemically unable to. This document says how that can be
-> done in this compiler, what the slice frees today (function-local lists on
-> every target, and the list elements of a list of lists that the list
-> provably owns) and which decisions are still open. Section 2a lists each
-> target and why any is exempt; section 8 lists the open forks (F1, shallow or
-> deep, was decided deep on 2026-10-02; section 3.2 says how far it goes).
+> **Status: a design, and the slices of it that have landed.** docs/SPEC.md
+> section 6 says the compiler frees a list or string it can prove never
+> escapes, and keeps anything it cannot prove, and that every target frees the
+> same allocations unless a target is systemically unable to. This document
+> says how that can be done in this compiler, what it frees today (a local
+> list, struct or string that nothing keeps, on every target; the list
+> elements of a list of lists that the list provably owns; the temporaries of
+> a `+` chain; a block a function returns fresh, by whoever receives it, and
+> one passed straight to a function that does not keep it) and which decisions
+> are still open. Section 2a lists each target and why any is exempt; section
+> 8 lists the forks (F1, shallow or deep, was decided deep on 2026-10-02;
+> section 3.2 says how far it goes; F7 and F8 are landed, sections 2 and
+> 3.1b).
 
 Counts and sizes that change (how many allocations a build makes, how big a
 binary is) are not written here. Section 9 gives the commands that produce
@@ -84,15 +88,27 @@ Landed in `idc/compiler/parse/mid/types/check/store/assign/rule/escape/`, one an
    bits, one per list parameter, says the callee may break the ownership of
    the *elements* of that list (section 3.2). Both masks are 15 bits wide;
    a function with more than fifteen parameters keeps and breaks everything.
-2. **Owned locals.** A local of list type is *owned* when it is declared in the
-   function, is not exported, every store into it is a list literal, and no
-   use of it keeps it.
-3. **Frees.** An owned local is freed at every `return` of its function, and
-   the value it replaces is freed when it is assigned again, which is what
-   makes a declaration inside a loop free once per pass. The free is shallow
-   (header and cells) unless the list also owns its elements (section 3.2),
-   in which case it is `id_list_free_deep`: each element is freed as a list,
-   then the list.
+   Two more bits describe the *result* of a function that returns a list, a
+   struct or a string (section 3.1b): bit 30 is set when it may return a
+   block that something else holds, the sign bit when the elements of what it
+   returns may be held too. Every bit set (-1) is the answer for anything
+   unknown, and is cautious for all three kinds of bit.
+2. **Owned locals.** A local of list, struct or string type is *owned* when it
+   is declared in the function, is not exported, every store into it is a
+   block this function made (a list literal, a constructor, a fresh string, or
+   a call of a function whose summary says it returns fresh), and no use of
+   it keeps it. The return clause is not a use that keeps: what the clause
+   returns is the value the name holds last, which the caller owns.
+3. **Frees.** An owned local is freed at every `return` of its function except
+   the one the return clause names, and the value it replaces is freed when it
+   is assigned again, which is what makes a declaration inside a loop free
+   once per pass. The free is shallow (header and cells) unless the list also
+   owns its elements (section 3.2), in which case it is `id_list_free_deep`:
+   each element is freed as a list, then the list.
+4. **Temporaries.** A block that nothing names is freed by the caller: the
+   result of a `+` that another `+` consumes (section 3.3), a fresh call
+   passed straight to a function whose summary does not keep that parameter
+   (`g(f(x))`), and the value of a fresh call used as a statement (`f(x);`).
 
 The use rules are a default-deny table (`flow/walk/`): a use of `xs` is harmless only
 in these positions, and anywhere else it is treated as keeping the list.
@@ -119,10 +135,37 @@ Four more positions decide whether `xs` also owns its **elements** (section
 
 Summaries are computed on demand and memoised in `esc_pe` (seeded at C emission;
 an empty table means the analysis is off, which is how the test cases that
-never run the emitter see no freeing). While a function is being summarised
-its row holds "keeps everything", so recursion is sound and is imprecise only
-inside the cycle. A fixpoint over the call graph would be more precise (fork
-F7).
+never run the emitter see no freeing). A function that calls itself, directly
+or through others, is solved as a whole (fork F7, decided and landed,
+`flow/sum/scc/`): it starts from the empty summary (nothing kept, everything
+fresh) and its body is summarised again, with every function that waits on it,
+until no mask grows. The state is four tables parallel to `fnames` (`esc_pe`
+the mask, `esc_st` 0 not started, 1 running, 2 finished but waiting on a
+running function, 3 final; `esc_dp` its depth, or the shallowest running
+function it waited on; `esc_mem` the waiting ones) and three cells (`esc_fx`:
+depth, shallowest running function read in this pass, number of masks that
+grew). It is Tarjan's lowlink on the way down and a repetition at the first
+function of each cycle on the way back; a function outside any cycle is
+summarised exactly once, as before.
+
+Why the fixpoint is sound, and why the two directions are one. Every bit of
+every summary is "may": a keeps bit, a second-mask bit, and the two result
+bits all turn on when the body does something that could be unsafe, and all
+turn on when anything the body reads is unknown. The summary of a body is
+monotone in the summaries it reads (a callee with more bits set can only turn
+more bits on in the caller). So the least fixpoint, reached by starting every
+function in a cycle at "no bit set" and only ever or-ing, is the smallest
+mask that is closed under the call graph. For the keeps bits that is the
+least fixpoint the question needs: a recursive function keeps a parameter only
+if some execution path stores, returns or passes it to something that keeps
+it, and every such path is finite. For the result bits it is what the
+question needs too, though it reads as "greatest" in the other spelling: a
+function that returns the result of calling itself on a smaller input is fresh
+if its base cases are, because the call it returns from is a call that
+returned fresh by the same argument one level down. A cycle with no base case
+never returns, so what it claims about a result is vacuous. An opaque function
+(a native, a recorded one, a name that is no function) is final at once with
+every bit set, and nothing in a cycle can lower that.
 
 Two rules in the table exist for a reason that is easy to miss:
 
@@ -141,8 +184,11 @@ Two rules in the table exist for a reason that is easy to miss:
 
 ### What the slice does not do
 
-Strings, return-value ownership, exports, and temporaries (section 3.2 says
-which list elements are freed). Each is a section below.
+Exports (section 3.4), function values and closures (3.5), a struct's fields
+(3.5b), the flat store (3.6), the elements of a list of strings or of structs,
+and elements that reach a list by name or through a callee (section 3.2).
+Strings, return-value ownership and temporaries have landed (sections 3.1b
+and 3.3); section 3.2 says which list elements are freed.
 
 ### 2a. Which targets free what
 
@@ -173,9 +219,11 @@ which lists are freed:
   (`fail` writes the serial port, then powers off), so a use after a wrong free is not a trap there. It marks
   a freed header (cap -1) so a second free of the same list is ignored until the
   block is reused; that is all.
-- **Strings are not freed on any target.** The freestanding runtime also gives
-  the old cell array back when a list grows, as the hosted `id_realloc` does;
-  that is the runtime's own bookkeeping and no analysis is involved.
+- **The freestanding runtime owns no string.** Its strings are bump-allocated
+  and there is nothing to give back to, so `esc_hosted` is false and no string
+  is owned or consumed there. It also gives the old cell array back when a list
+  grows, as the hosted `id_realloc` does; that is the runtime's own bookkeeping
+  and no analysis is involved.
 
 ## 3. What escape analysis has to prove, by kind of value
 
@@ -190,6 +238,66 @@ The proof obligations are the three in section 2. The free is shallow because
 the elements of a list are separate objects that any other name may share. A
 shallow free can never double-free and never frees something somebody else
 holds; it leaves the elements to be freed with the pool at exit.
+
+### 3.1b Results: who owns what a function returns (landed, F8)
+
+Decided 2026-10-06 and landed (`flow/sum/fresh/`). A function **returns fresh**
+when every path out of it hands back a block that this very call made and
+nothing else names. The summary says so in bit 30 (clear is fresh), for every
+function whose return type is a list, a struct or a string; for any other
+return type the question is not asked. The proof is local to the body, over
+what section 2 already computes:
+
+- the return clause is a list literal, or a name this function *owns* (section
+  2), where the return clause itself is not counted as a use that keeps it:
+  every store into the name is a block this function made, and nothing else
+  was given it;
+- every early `return` hands back a list literal (any other early return, a
+  string literal included, takes freshness away, because the value may be held
+  by another name or not be a heap block at all);
+- a store of a *call* into the name counts as a block this function made when
+  the callee's own bit 30 is clear, and a store of a struct constructor
+  always does. Both are the summaries of section 2 read at the call, so the
+  fixpoint of section 2 is what makes a recursive builder (`r = build(n - 1)`)
+  fresh.
+
+What the caller does with it, which is the whole of the win:
+
+- `ys = f()` makes `ys` an owned local, so every rule of section 2 applies: it
+  is freed at the function's exit (unless it is the name the return clause
+  returns, whose last value is the caller's own caller's), and the value it
+  replaces is freed when it is assigned again. A struct is a list at run
+  time, so a local struct from a constructor or a fresh call is owned and
+  freed the same way (shallowly: its fields are not followed, section 3.5b).
+- `g(f(x))` with `f` fresh and `g` a function of the program whose bit for
+  that parameter is clear frees the temporary after the call: the C target
+  holds it in a variable of a GNU statement expression
+  (`back/tgt/c/emit/prog/code/expr/call/temp_*.id`), the LLVM lowering calls
+  the free after the call (`lw_tmp_free`); both ask `esc_tmp_free`. A builtin,
+  a native and a constructor keep or are not asked. **Open decision (fork F12):**
+  the statement expression is a GNU extension (gcc and clang take it under
+  `-std=c11`, `-pedantic` does not), where docs/SPEC.md S11 promises ISO C11
+  output. The ISO alternatives are a thread-local stack of pending temporaries
+  popped by one runtime helper per result type, or temporaries hoisted to the
+  line before the statement the way the sequencer's `idsq_` ones are (not
+  possible inside a `while` condition). Neither is built.
+- `f(x);` as a statement frees the result (`esc_discard`, `lw_discard`).
+- a fresh string is also a fresh operand of `+` (`str_fresh_call`), so
+  `f(x) + "a"` builds in the block `f` made.
+
+The second result bit, the sign bit of the summary, says whether the
+*elements* of the list of lists returned are the result's alone: it is clear
+when the return clause is a list of list literals or a name that is
+deep-owned (section 3.2) in the callee. The caller of such a function owns a
+deep list (`esc_ndf` is what keeps bit 8 of its walk clear), and frees it with
+`id_list_free_deep`. A list of strings or of structs is never deep-owned (the
+runtime frees elements as lists), so this bit says nothing for them.
+
+What is *not* fresh, and the cases that pin it (`tests/conform/free/14`): a
+function that returns its parameter, one that stores the result in an export
+first, one that returns an export, one that returns a string that may be a
+literal, one with an early `return xs`. The guard turns a wrong claim of
+freshness into a trap at the caller's next use.
 
 ### 3.2 Lists, deep (landed for list elements, in the narrow form)
 
@@ -247,9 +355,17 @@ is that an alias `row = xs[i]` is refused even when `row` itself never escapes.
 - **Moves through a callee.** `csv_keep(st, rows, ..., row, ...)` stores its
   parameter into another parameter. A summary of "parameter i is stored as an
   element of parameter j" would let the caller check the actual for `i`.
-- **Fresh returns (F8).** `xs = f()` is not owned, so a list of lists a
-  function returns is never freed by its caller, and `sorted` in csvq's
-  `srt_rows` keeps elements of `rows` that `rows` still holds.
+- **Fresh returns (F8), partly.** Landed for the list itself and for a list of
+  lists whose rows are literals (section 3.1b): `xs = f()` is owned, and deep
+  when `f` returns its rows as its own. Not landed: a list whose rows reach it
+  by name or through a callee (`str_split` pushes its pieces from a helper and,
+  for an empty separator, pushes its own argument, so its result is fresh but
+  its elements are neither fresh nor the result's alone), and a list of
+  strings, which `id_list_free_deep` would free as lists. The pieces of a list
+  of strings need their own runtime free (`id_str_free` per cell), a summary
+  of "parameter i is stored as an element of parameter j" for the helper, and
+  the empty-separator branch to stop pushing its argument. `sorted` in csvq's
+  `srt_rows` still keeps elements of `rows` that `rows` still holds.
 - **The replaced element.** `xs[i] = [..]` leaves the element it replaced
   unfreed, because nothing proves no alias took it first; with the alias rule
   above it could be freed.
@@ -273,6 +389,20 @@ the block may be released. Two extra facts are needed that lists do not need:
 reader and is provably dead after the outer `+`. That is the cheapest string
 proof there is (an unnamed value consumed once by a builtin that copies), and
 it is independent of everything else (fork F3 asks whether to do it first).
+
+**What landed** (F2 option d, F3 temporaries first, decided 2026-10-06; the
+rules are in `escape/own/str/` and the header of `own/str/own.id`). A heap
+block is told from a literal by address (`id_pool_has`, section 1), but the
+compiler does not need to ask: a local string is *owned* when every store into
+it is a string literal (copied to the heap first, `esc_dup`, so every value it
+holds is a block of its own) or a fresh string (a `+`, a builtin that makes a
+string, and now a call of a function that returns fresh, section 3.1b), and no
+use of it keeps it. The old value is freed when a store replaces it, and the
+last one at the exit unless the return clause returns it. `s = s + x` with `s`
+read once builds in `s`'s own block (`id_concat_f`). The temporaries of a `+`
+chain are consumed by the next `+`. A freestanding build owns no string, its
+strings being bump-allocated. `tests/conform/free/07` to `12` and `13` to `17`
+pin these on C, LLVM and wasm.
 
 ### 3.4 Exports and imports
 
@@ -346,13 +476,20 @@ land on a "keeps" row of the table in section 2: the constructor `Point(xs)` is
 a call to a name that is no function of the program, which "keeps everything"
 (`esc_opaque`), and `p.f = xs;` is an index assignment, whose value is kept. A
 local list that went into a struct is therefore never *owned*, so it is never
-freed at its function's return and the struct never dangles; and a struct local
-is not a list, so it is not freed at all in this slice. Two cases in
+freed at its function's return and the struct never dangles. A struct local is
+owned like a list when every store into it is a constructor or a call of a
+function that returns fresh (section 3.1b) and no use of it keeps it, and is
+then freed *shallowly*: header and cells, never the fields. So the struct
+`bt_make` returns is owned by its caller and the one `bt_check(bt_make(d))`
+passes is freed after the call, while the list in its `kids` field and every
+node under it stay with the pool. Two cases in
 `mid/types/check/store/assign/rule/escape/walk/` pin both rows, and
 `idc/tests/tests_feature.sh` runs a program that returns a struct holding a list
-the function made, under `ID_FREE_GUARD=1`. A field-sensitive analysis could
-free a list a struct holds when the struct dies, which needs the struct to be
-provably owned first; that is future work and nothing here decides it.
+the function made, under `ID_FREE_GUARD=1`; `tests/conform/free/16` pins the
+struct as owner and temporary. A field-sensitive analysis could free what a
+struct holds when the struct dies, which needs the struct to be provably owned
+(it is now) and each field to be provably the struct's alone; that is future
+work and nothing here decides it.
 
 ### 3.6 Words and the flat store
 
@@ -380,9 +517,11 @@ things at the same places; each C bullet is followed by where LLVM does it):
 
 - **Function exit.** Before every `return`, the final one and each early one.
   The return value is a name or a literal (SPEC 7.1), computed after the frees,
-  which is sound because an owned list is never the value returned. LLVM:
+  which is sound because the one name that is returned is left out of the
+  frees (`esc_exit`: the name the return clause names is the caller's), and an
+  early `return xs` makes `xs` kept, so it is not owned at all. LLVM:
   `lw_ret_val` (the final return clause and an early `return` both go through
-  it) calls `lw_free_all`, which loads and frees every owned slot.
+  it) calls `lw_free_all`, which loads and frees every owned slot but that one.
 - **Before overwrite.** When an owned name is assigned, the old value is freed
   *after* the new one is computed (the new value's expression may read the old
   list). LLVM: `lw_store_at` loads the old value of an owned slot before the
@@ -439,7 +578,7 @@ trap above, and so is a deep free of an element a shallow free already
 released. (`tests/conform/free/05-deep-refused` is built so that each way an
 element can escape is read by the caller after the function returns; editing
 the emitted C of any one of its four functions to free deep traps.) The guard
-is best-effort for strings (none are freed yet) and exact for lists. An AddressSanitizer build
+is exact for lists (a use of a freed header or cell traps) and checked for strings only at a second free (`id_str_free` fills the block with 0xDD and marks the count, so a second free traps and a later read fails the size checks). An AddressSanitizer build
 of the emitted C with the guard off is the stricter check for a real free.
 The LLVM target links `extern.id`, which carries the same helpers
 (`id_list_free`, `id_freed_trap`, `id_null_read` and the checks in the list
@@ -460,7 +599,7 @@ string free clear its entry; `id_slen` now reads the count the string carries
 keep in step.
 
 **A list that is not heap.** `id_args` holds the strings `id_str_of_cstr` made
-from `argv`, which are heap blocks. The slice never frees a string. Lists are always heap blocks: there is no list literal in
+from `argv`, which are heap blocks; a string the compiler frees is always a block the function made (an owned string only ever holds heap copies, section 3.3), never one of these and never a literal. Lists are always heap blocks: there is no list literal in
 the image (constants are built at startup by `id_list_lit`).
 
 ## 6. The pool
@@ -498,8 +637,9 @@ Each is stated with what it costs and what it buys. Decided: F1 deep
 (2026-10-02), F2e strings carry their length (2026-10-02), F5 every target
 (2026-09-30), and on 2026-10-06 F2 option (d), F3 temporaries first, F4 the
 headerless pool, F7 a call-graph fixpoint, F8 a "returns fresh" bit, and F11
-the guard on in test builds and off otherwise with an ASan lane. The rest are
-open.
+the guard on in test builds and off otherwise with an ASan lane. F7 and F8 are
+landed (sections 2 and 3.1b); F12 is landed in its first form and open as a
+decision. The rest are open.
 
 **F1. Shallow or deep frees.** Shallow (landed) frees header and cells of an
 owned list and leaves the elements. Deep also frees elements that the list owns.
@@ -581,19 +721,20 @@ through a value; the meet is small and
 depends on the list of "functions named as values", which the compiler already
 collects for reachability.
 
-**F7. Summary precision.** On-demand memoised with "keeps everything" inside a
-cycle (today) versus a fixpoint over the call graph. *Trade:* the fixpoint
-recovers precision for mutually recursive walkers (the compiler's own
-parse/emit recursion); the on-demand form is half the code and cannot be wrong
-in the unsafe direction.
+**F7. Summary precision.** *Decided 2026-10-06 and landed:* a fixpoint over the
+call graph (section 2, `flow/sum/scc/`), not "keeps everything" inside a cycle.
+The cost is the state and the repetition of a cycle's bodies, and being wrong
+in the unsafe direction is a missed `or` rather than a missing rule (every bit
+only ever turns on). The gain is precision for recursive builders and mutually
+recursive walkers (the compiler's own parse/emit recursion).
 
-**F8. Who owns the returned value.** A function that returns a fresh list (a
-constructor like `str_split`) hands the caller an owned value. Recording that
-("returns fresh") lets the caller own what it receives, which is what frees
-`parts` in `wr_quote`. It needs a `return`-path proof and the literal/heap
-answer of F2 for strings. *Trade:* biggest remaining win for lists after F1;
-requires each function's "every return returns a fresh block" summary and a
-second bit per function.
+**F8. Who owns the returned value.** *Decided 2026-10-06 and landed:* a
+"returns fresh" bit per function that returns a list, a struct or a string
+(section 3.1b), and a second bit for the elements of a list of lists. A caller
+owns what it receives (`ys = f()`), frees a fresh block it passes straight to a
+function that does not keep it (`g(f(x))`) and one it discards. *Open inside
+it:* the pieces of a list of strings (section 3.2), and the fields of a struct
+(section 3.5b).
 
 **F9. Natives.** Keep everything (today). Alternatives: a declaration form that
 says which parameters a native keeps (syntax, which SPEC section 6 rules out for the
@@ -616,6 +757,19 @@ the guard on (quarantine instead of free), which gives up the memory win.
 whether a wrong proof is a trap or corruption. On the freestanding target the
 question is already answered, as corruption, because there is nowhere to trap
 to.
+
+**F12. How the C target gives back a temporary argument.** `g(f(x))` needs the
+block `f(x)` made held somewhere until `g` returns. (a) A GNU statement
+expression (landed): one variable per temporary, the call, the frees, and the
+call's value, in `({ ... })`. (b) A thread-local stack of pending temporaries,
+pushed as the argument is evaluated and popped, freeing, by one runtime helper
+per result type that wraps the call. (c) Temporaries hoisted to the line before
+the statement, as the sequencer does for `idsq_`, which cannot reach a `while`
+condition. *Trade:* (a) is one expression and no runtime but is not ISO C11,
+which SPEC S11 promises; (b) and (c) are ISO C, at the price of a runtime stack
+that deep recursion grows, or of a statement-level rewrite with a hole in loop
+conditions. The LLVM lowering has no such question: it calls the free after the
+call instruction.
 
 ## 9. Measurements and verification
 
@@ -690,14 +844,48 @@ build. A `return` edited by hand to read a list after freeing it is silent witho
 guard over the whole `compiler/parse` tree and its cases: emitted C identical,
 no trap.
 
+**Fresh returns (F7, F8).** The figures move with every change to the analysis
+and are not written here; these are the commands that produce them, each a
+control that differs from the treatment in one property (the compiler):
+
+- *Parity.* `tests/conform.sh free` builds `tests/conform/free/13` to `17` on C,
+  LLVM and wasm and requires the same stdout and the same
+  `id: freed N lists/strings` from all three, under the guard. `14` is the
+  case that must not free (a parameter, an export stored first, an export read
+  back): its count is the same before and after, and a wrong claim of
+  freshness is a trap there. Against a compiler built from the previous
+  `bootstrap/idparse.c` the counts of `13`, `15`, `16` and `17` are zero.
+- *Benchmarks.* Build `bench/id/NAME` with the stage compilers pinned
+  (`IDC_STAGE_LEX`, `IDC_STAGE_PARSE`) to the old stage 0 and to the new
+  stage 1, run each with `taskset -c N` and `/usr/bin/time -f '%e %M'` in
+  alternating rounds, and compare the output md5 with `bench/ref/c`. The
+  benchmarks that gain are those that build a list in a function and use it in
+  another (csv's per-row `str_split`); btrees frees only the root struct of
+  each tree, because the nodes under it hang off a field, and strbuild
+  frees nothing it did not before.
+- *ASan.* `IDC_STAGE_*` as above, `--cc` a one-line wrapper that runs
+  `cc -fsanitize=address -fno-omit-frame-pointer -g "$@"`, run with and without
+  `ID_FREE_GUARD=1`. The pool poisons a freed block under ASan, so a read of a
+  freed list or string is a report, not a guess.
+- *Compile time.* `time idc compiler/parse --allow-untested --emit-c F` with
+  `IDC_NO_CACHE=1`, a binary of the new source built *by the old stage 0* (so
+  both sides are compiled the same way) against the old stage 0 itself; peak
+  resident set from `/usr/bin/time -f %M` on the same two. The 4096 MB ceiling
+  is the build's own, not the analysis's.
+- *Fixpoint.* `tools/regen_bootstrap.sh`, then a build, then
+  `tools/regen_bootstrap.sh --check`: the compiler, built with its own
+  freeing, emits byte-identical C.
+
 ## 10. What is not verified
 
 
-- ASan ran on csvq `sort` at 200,000 rows only, not on the compiler or the
-  cases. The guard sees a use of the list header or cells after the free; it
-  cannot see a stale copy of an element pointer into an element freed deep
-  unless the element's own header or cells are read; the cases in
-  `tests/conform/free/` run under the guard, ASan was not run on them.
+- ASan has been run on csvq `sort` at 200,000 rows, and on the benchmarks
+  btrees, strbuild, expr and csv and on the compiler building itself with the
+  analysis of section 3.1b (section 9, "Fresh returns"); not on every case of
+  `tests/conform/free/`, which run under the guard. The guard sees a use of the
+  list header or cells after the free; it cannot see a stale copy of an
+  element pointer into an element freed deep unless the element's own header
+  or cells are read.
 - The deep rule (section 3.2) is argued, not proved: its soundness rests on
   "an element is read only in positions that look and let go". Cases exist for
   each escape the analysis names (`conform/free/05-deep-refused`, one function
@@ -733,6 +921,6 @@ no trap.
 - Cases that build the fixture AST with `given esc_fix` test the analysis on
   three hand-built functions. They do not test the analysis on code the
   parser would produce from text.
-- The cost of the analysis in compile time was not measured.
+- The cost of the analysis in compile time is measured by `time idc compiler/parse --allow-untested --emit-c F` against a stage 0 built from `git show HEAD:idc/bootstrap/idparse.c` (section 9, "Fresh returns"); the figure is not written here because it moves with every change to the analysis.
 - `tests/run.sh` sections that build `demos/` could not run: the private
   workspace has no `demos/`.
