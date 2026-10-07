@@ -181,7 +181,7 @@ where a human would write three points and a pen.
 ## Decisions needed
 
 Written 2026-09-30 from `trials/` (jsontool, csvq, kv, httpd) and the rules as
-`idc/bin/idc` enforces them. Nothing here is implemented. Each question lists
+`idc/bin/idc` enforced them then. The answers taken are the status line at the top; the questions are kept for the reasoning. Each question lists
 options, what the trials would have gained, and a recommendation (marked
 **Recommend**; a recommendation is a guess until the user picks).
 

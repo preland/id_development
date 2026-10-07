@@ -125,7 +125,11 @@ of the gap they explain in the benchmarks where they matter; the measured shares
 are in `bench/results/attribution.md` (ladders and profiles), and that file also
 says how far to trust them.
 
-1. **Program functions are not `static`.** Every function idc emits has external
+Items 1, 3 (the allocator half), 7 and 10 have since been addressed; each says
+how. The ranking is the one the ladders measured before those changes.
+
+1. **Program functions are not `static`.** *Addressed: `-O2`, the default, links
+   with LTO (docs/BACKENDS.md, "Optimisation levels").* Every function idc emits has external
    linkage, so gcc -O2 keeps a callable copy and inlines only where that shrinks
    the code. The three-action rule makes most functions small and called from one
    place; a `static` function called once is always inlined. In the numeric
@@ -139,7 +143,9 @@ says how far to trust them.
    program is several times slower. The unit split itself costs nothing
    measurable: a single translation unit with the same `inline` keywords runs at
    the speed of the split build.
-3. **Allocation.** A list is two `malloc`s (header and cells), a struct is a list,
+3. **Allocation.** *Allocator addressed 2026-10-06: a list is one block from a
+   headerless size-class pool (docs/MEMORY.md, section 1); unfreed structs and
+   strings remain.* Before that, a list was two `malloc`s (header and cells), a struct is a list,
    a struct holding a list is four; every block also carries a 16-byte intrusive
    arena header. In allocation-heavy programs libc malloc and free are the
    majority of user time, and the unfreed memory (structs, strings) makes the
@@ -156,17 +162,19 @@ says how far to trust them.
 6. **Conf constants are mutable globals** (non-const, non-static): reloaded after
    any call and never folded into index arithmetic. A small effect.
 7. **Native calls are opaque** (sqrt): an external call gcc must assume writes any
-   memory. Small next to item 1; an intrinsic also removes the call.
+   memory. Small next to item 1; an intrinsic also removes the call. *Addressed:
+   under LTO a backend's C is compiled for LTO too, so a native inlines, and
+   idstd's `flt_` library (host/num) gives sqrt and the rest of libm.*
 8. **Overflow checks** in allocation size computations, the exit-time arena walk,
    and the arena list maintenance: each measured at a few percent or less.
 9. **Float boxing** (`id_box_f` / `id_unbox_f`) compiles to plain `movsd` loads and
    stores; it costs nothing once the accessor is inlined.
-10. **Signed overflow** is undefined in the emitted C (no `-fwrapv`); not a cost,
-    but it limits what an optimiser may assume and what the spec promises.
+10. **Signed overflow** was undefined in the emitted C. *Addressed: every C
+    compile passes `-fwrapv` (SPEC.md §2.1).*
 
-The LLVM target (`--target llvm`) is slower than the C target on most of the suite
-and fails to assemble IR for nbody (a negative float literal inside a list literal
-is emitted as `double -`); the ratio is in the results file.
+The LLVM target (`--target llvm`) once failed to assemble IR for nbody (a
+negative float literal inside a list literal was emitted as `double -`); it now
+builds and matches the C reference. Its ratio is in the results file.
 
 ## 6. Roadmap, by expected gain per effort
 
