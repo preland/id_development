@@ -518,7 +518,7 @@ the offending write or call and the fix (`docs/ERRORS.md`, `E0801`-`E0806`):
 - **`f` writes no export** (`E0801`). An `export` declaration is the only way
   a function assigns an export, so a pure function has none.
 - **`f` does no I/O** (`E0802`). It may call only the builtins `len`, `push`,
-  `pop`, `to_int`, `charat`, `chr`, `udiv`, `umod`, `ult`, `ushr`, `fail`, `bind` and the four float bit-cast builtins (the list
+  `pop`, `to_int`, `charat`, `chr`, `str_sub`, `udiv`, `umod`, `ult`, `ushr`, `fail`, `bind` and the four float bit-cast builtins (the list
   is the `pure_builtins` constant of `idc/compiler/parse/conf.id`). `print`,
   `put`, `flush`, `eprint`, `input`, `read_all`, `getkey`, `sleep_ms` and `ticks`
   do I/O or read the clock, and `alloc`, `store_size`, `peek*`, `poke*`,
@@ -767,6 +767,7 @@ builds a new string.
   Reading past the end is a value, not a trap — it is how a scanner detects
   end-of-input.
 - `chr(n)` builds a one-byte string; `chr(0)` traps (below).
+- `str_sub(s, i, n)` is the `n` bytes of `s` from byte `i`, as a new string: one allocation, one copy. A span that is not inside `s` -- a negative `i` or `n`, or `i + n` past `len(s)` -- traps (§8). An empty span (`n` of 0) reads nothing, so it answers `""` for any `i >= 0`, past the end included. idstd's `str_slice` is this builtin with the same trap message.
 - `to_int(s)` parses a leading integer.
 
 **A string cannot contain a NUL byte.** This is a consequence of the C
@@ -1111,6 +1112,7 @@ catchable; `id` has no exceptions.
 | allocation refused by the host | `id: out of memory (N bytes)` |
 | a NUL byte reaching a string through `read_all`, `input`, `str_of_mem` | `id: a NUL byte reached a string (WHICH): use idstd stdio_slurp or stdio_read_mem, or the store (fs_read_mem), for binary data` |
 | `chr` of a code whose low byte is 0 | `id: a NUL byte reached a string (chr(0)): a string cannot hold NUL; use the store (poke8) for binary data` |
+| `str_sub(s, i, n)` with a span outside `s` | `id: str span out of bounds: i=I n=N in a string of length M; clamp i and n first (fx_min, fx_max)` |
 | a `native` returning a list or struct whose `IdList` has a negative length (every other such result is copied into a list the runtime owns, so `push` works on it) | `id: a native returned a malformed list (len N): fill len cells at data, or size the list from id and return a count` |
 | reading an export whose declaring function has not run: a list anywhere; any type in a test case | `id: read of an uninitialised export (its declaring function has not run)` |
 

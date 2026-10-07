@@ -1310,7 +1310,7 @@ main(int argc, string[] argv) {
 ## E0802 a pure function calls a builtin that does I/O or reads state
 
 A pure function may call only the builtins `len`, `push`, `pop`, `to_int`,
-`charat`, `chr`, `udiv`, `umod`, `ult` and `ushr`. `print`, `put`, `flush`,
+`charat`, `chr`, `str_sub`, `udiv`, `umod`, `ult` and `ushr`. `print`, `put`, `flush`,
 `eprint`, `input`, `read_all`, `getkey`, `sleep_ms` and `ticks` do I/O or read the
 clock, and `alloc`, `store_size`, `peek*`, `poke*`, `str_of_mem` and `mem_of_str`
 read or write the flat store, which holds state that is not an argument. Do the

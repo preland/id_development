@@ -40,7 +40,7 @@ tells a heap string from a literal (F2, option d).
 - A **string** is a `char*` to NUL-terminated bytes with their byte count in
   the `size_t` just before them (decided 2026-10-02, F2e below). A heap string
   is one `id_alloc` block laid out `[count][bytes][NUL]`, built by
-  `id_str_new`/`id_str_from`: the result of `+`, `chr`, `str_of_int`,
+  `id_str_new`/`id_str_from`: the result of `+`, `chr`, `str_sub`, `str_of_int`,
   `str_of_mem`, `input`, `read_all`, and now each `argv` element
   (`id_str_of_cstr`). A **literal** is a `static const` object of the same
   layout in the image (`ID_S`), not a block. So a `string` value may or may
