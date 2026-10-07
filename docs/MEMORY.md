@@ -23,10 +23,14 @@ build is the C one):
 prelude is one string in `idc/compiler/parse/back/tgt/c/runtime/prelude.id`
 (`extern.id` is the same text with external linkage, which is what the LLVM
 target links; docs/LLVM.md, "The runtime"; keep the two in step by hand). Every
-heap block goes through
-`id_alloc`/`id_realloc`, which prepend a two-pointer header and link the block
-into one doubly linked list; an `atexit` hook frees the whole list. So the
-process does not leak, and a list the compiler frees is returned early.
+heap block of 16 KB or less comes from a headerless size-class pool (decided
+2026-10-06, F4): per-thread free lists carved from 256 KB chunks, a block's
+size recovered from a list's `cap` or a string's count word. A larger block is
+a `malloc` with a two-pointer header, linked into one list. At exit, and at
+`id_thread_leave` for a thread's own pool, whole chunks are freed and the
+large-block list is swept; there is no per-block sweep. `id_pool_has(p)`
+answers whether an address lies in the pool's span, which is how a later step
+tells a heap string from a literal (F2, option d).
 
 - A **string** is a `char*` to NUL-terminated bytes with their byte count in
   the `size_t` just before them (decided 2026-10-02, F2e below). A heap string
@@ -37,11 +41,13 @@ process does not leak, and a list the compiler frees is returned early.
   layout in the image (`ID_S`), not a block. So a `string` value may or may
   not be a heap block, and nothing in its type says which -- that half of F2
   is unchanged by the layout.
-- A **list** is a header (`len`, `cap`, `data`) plus a separate cell array,
-  both from `id_alloc`. Cells are 8 bytes whatever the element type; a string
-  cell is a pointer. Growth is `id_realloc` of the cell array.
+- A **list** is one block: the header (`len`, `cap`, `data`) followed by its
+  first cells, `data` pointing at them, so the native ABI is unchanged. Cells
+  are 8 bytes whatever the element type; a string cell is a pointer. Growth
+  moves the cells to a separate block and leaves the header in place, because
+  a list is a reference and every holder must see the same `IdList*`.
 - The **flat store** (`alloc`, `peek`, `poke`) is one byte array that only
-  grows, bump-allocated, addressed by `word`. It is not the list/string arena
+  grows, bump-allocated, addressed by `word`. It is not the list/string pool
   and this document does not propose to free it (section 3.6).
 - `id_slen` is one load of the stored count. The eight-entry memo it replaced
   was keyed on the **address** of the string, which is why freeing a string
@@ -183,7 +189,7 @@ for it" can be.
 The proof obligations are the three in section 2. The free is shallow because
 the elements of a list are separate objects that any other name may share. A
 shallow free can never double-free and never frees something somebody else
-holds; it leaves the elements to the arena.
+holds; it leaves the elements to be freed with the pool at exit.
 
 ### 3.2 Lists, deep (landed for list elements, in the narrow form)
 
@@ -444,8 +450,9 @@ freestanding runtime has neither (section 2a).
 **Bounds and OOM traps.** Unchanged. A freed list in guard mode fails the
 existing bounds check; an out-of-memory trap is a different program state
 entirely (nothing freed, so nothing to be wrong about). Because traps call
-`exit`, the `atexit` arena sweep still runs, and it frees blocks that are still
-linked: `id_list_free` unlinks what it frees, so the sweep never frees twice.
+`exit`, the `atexit` hook still runs: it frees whole pool chunks, so a block
+freed early back into its free list is released with its chunk and never
+twice.
 
 **The length memo.** There is none. It was keyed by address, which made a
 string free clear its entry; `id_slen` now reads the count the string carries
@@ -456,18 +463,16 @@ keep in step.
 from `argv`, which are heap blocks. The slice never frees a string. Lists are always heap blocks: there is no list literal in
 the image (constants are built at startup by `id_list_lit`).
 
-## 6. The arena
+## 6. The pool
 
-The arena is one linked list of blocks. The slice leaves it in place: a freed
-block is unlinked and handed to `free()`, so the exit sweep sees only what
-was never freed. This keeps the exit-time guarantee ("nothing outlives the
-process") and is what makes a wrong free in guard mode safe (the block stays
-linked and the sweep frees it once).
-
-The arena as a *design* is what limits the next steps. It stores no sizes, so
-poisoning a string needs the length, and it cannot be compacted or
-region-reset. If regions ever become useful (fork F4), the place to put one is
-here.
+Until 2026-10-06 every block carried a two-pointer header and sat on one
+linked list that an exit hook walked. Measured on btrees, that header, the
+link and the separate cell block were most of the allocator's cost, so F4 was
+decided for a headerless size-class pool (section 1). Nothing outlives the
+process still holds, at chunk granularity: exit frees every chunk, and a
+thread's chunks go when it leaves. A wrong free in guard mode is still safe,
+because the guard quarantines instead of returning the block to a free list.
+Under ASan a freed block is poisoned, so a read after a free is reported.
 
 ## 7. What `id`'s rules make easy, and where they do not
 
@@ -487,9 +492,14 @@ ownership is not a tree until someone proves it), `(import x)` returns a list
 not a copy, natives and `asm` are opaque, and a `word` is an address that may
 alias anything in the store.
 
-## 8. Open design forks
+## 8. Design forks
 
-Nothing below is decided. Each is stated with what it costs and what it buys.
+Each is stated with what it costs and what it buys. Decided: F1 deep
+(2026-10-02), F2e strings carry their length (2026-10-02), F5 every target
+(2026-09-30), and on 2026-10-06 F2 option (d), F3 temporaries first, F4 the
+headerless pool, F7 a call-graph fixpoint, F8 a "returns fresh" bit, and F11
+the guard on in test builds and off otherwise with an ASan lane. The rest are
+open.
 
 **F1. Shallow or deep frees.** Shallow (landed) frees header and cells of an
 owned list and leaves the elements. Deep also frees elements that the list owns.

@@ -15,7 +15,7 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 
 | tree | files | functions | cases | short of two | exempt |
 |---|---:|---:|---:|---:|---:|
-| `bench` | 100 | 220 | 452 | 0 | 0 |
+| `bench` | 100 | 219 | 450 | 0 | 0 |
 | `c2id` | 530 | 1356 | 2675 | 42 | 0 |
 | `demos` | 341 | 761 | 1588 | 0 | 0 |
 | `editor` | 155 | 397 | 833 | 0 | 0 |
@@ -28,14 +28,14 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `uicheck` | 7 | 19 | 40 | 0 | 0 |
 | `word` | 614 | 1467 | 3989 | 0 | 0 |
 | `wordcheck` | 74 | 188 | 538 | 0 | 0 |
-| `idc/compiler` | 1217 | 3284 | 6938 | 0 | 0 |
+| `idc/compiler` | 1217 | 3284 | 6940 | 0 | 0 |
 | `idc/driver` | 7 | 18 | 36 | 0 | 0 |
 | `idc/runtime` | 48 | 89 | 3 | 1 | 87 |
 | `idc/tools` | 586 | 1477 | 3688 | 3 | 0 |
-| `idstd/core/data` | 45 | 118 | 289 | 0 | 0 |
+| `idstd/core/data` | 45 | 118 | 290 | 0 | 0 |
 | `idstd/core/fmt` | 103 | 265 | 741 | 0 | 0 |
 | `idstd/core/math` | 21 | 54 | 136 | 0 | 0 |
-| `idstd/core/text` | 80 | 204 | 588 | 0 | 0 |
+| `idstd/core/text` | 81 | 205 | 596 | 0 | 0 |
 | `idstd/host/dev` | 131 | 263 | 549 | 1 | 0 |
 | `idstd/host/io` | 156 | 281 | 679 | 0 | 0 |
 | `idstd/host/num` | 1 | 3 | 6 | 0 | 0 |
@@ -43,8 +43,8 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `idstd/kit/app` | 11 | 30 | 76 | 0 | 0 |
 | `idstd/kit/media` | 206 | 528 | 1722 | 0 | 0 |
 | `idstd/kit/ui` | 336 | 842 | 2630 | 0 | 0 |
-| **all** | 6962 | 17118 | 40207 | 47 | 139 |
-| of which idstd | 1202 | 2753 | 7830 | 1 | 0 |
+| **all** | 6963 | 17118 | 40216 | 47 | 139 |
+| of which idstd | 1203 | 2754 | 7839 | 1 | 0 |
 
 *short of two* counts the functions with fewer than two test cases that the compiler does not exempt: a freestanding function that reaches an `asm` body is exempt, and `kernel` and `idc/runtime` are asked of the compiler with the flags `idc/tools/kbuild` builds them with. Functions are found by their headers (`idc/tools/lib/fnhead`) and their cases by `mutscore lint`, not by the compiler's own parse. `idc/tests` is not counted: it holds the inputs of the compiler's own tests, some of which break the rules on purpose. `statusgen --untested [TREE]` lists the functions that are short.
 
@@ -52,7 +52,7 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 
 | tree | 0 cases | 1 | 2 | 3-4 | 5+ |
 |---|---:|---:|---:|---:|---:|
-| `bench` | 0 | 0 | 209 | 11 | 0 |
+| `bench` | 0 | 0 | 208 | 11 | 0 |
 | `c2id` | 42 | 0 | 1277 | 37 | 0 |
 | `demos` | 0 | 0 | 712 | 45 | 4 |
 | `editor` | 0 | 0 | 374 | 20 | 3 |
@@ -65,14 +65,14 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `uicheck` | 0 | 0 | 17 | 2 | 0 |
 | `word` | 0 | 0 | 932 | 425 | 110 |
 | `wordcheck` | 0 | 0 | 94 | 78 | 16 |
-| `idc/compiler` | 0 | 0 | 3035 | 228 | 21 |
+| `idc/compiler` | 0 | 0 | 3033 | 230 | 21 |
 | `idc/driver` | 0 | 0 | 18 | 0 | 0 |
 | `idc/runtime` | 88 | 0 | 0 | 1 | 0 |
 | `idc/tools` | 3 | 0 | 1074 | 314 | 86 |
-| `idstd/core/data` | 0 | 0 | 94 | 18 | 6 |
+| `idstd/core/data` | 0 | 0 | 93 | 19 | 6 |
 | `idstd/core/fmt` | 0 | 0 | 148 | 99 | 18 |
 | `idstd/core/math` | 0 | 0 | 34 | 18 | 2 |
-| `idstd/core/text` | 0 | 0 | 137 | 38 | 29 |
+| `idstd/core/text` | 0 | 0 | 135 | 40 | 30 |
 | `idstd/host/dev` | 1 | 0 | 245 | 15 | 2 |
 | `idstd/host/io` | 0 | 0 | 208 | 65 | 8 |
 | `idstd/host/num` | 0 | 0 | 3 | 0 | 0 |
@@ -80,8 +80,8 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `idstd/kit/app` | 0 | 0 | 23 | 5 | 2 |
 | `idstd/kit/media` | 0 | 0 | 274 | 164 | 90 |
 | `idstd/kit/ui` | 0 | 0 | 484 | 237 | 121 |
-| **all** | 186 | 0 | 13849 | 2381 | 702 |
-| of which idstd | 1 | 0 | 1760 | 706 | 286 |
+| **all** | 186 | 0 | 13843 | 2386 | 703 |
+| of which idstd | 1 | 0 | 1757 | 709 | 287 |
 
 A distribution, not a mean: a mean of two is met by one function with many cases beside others with none.
 
