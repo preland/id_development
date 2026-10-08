@@ -214,7 +214,7 @@ for a real function when it is worth a name a caller elsewhere could use.
 Occasionally the next step *cannot* be moved up. An `if`/`else` is one statement
 costing two actions — one for the `if`, one for the `else` — so a segment with a
 single slot left can neither hold it nor be continued by a chain, because a
-chain may only follow a segment that used all three. `blank` is the way out: a
+chain may only follow a segment of exactly three actions. `blank` is the way out: a
 statement that takes an action slot and does nothing.
 
 ```

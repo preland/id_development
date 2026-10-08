@@ -310,10 +310,12 @@ main(int argc, string[] argv) {
 
 ## E0204 a chain follows a segment that had room
 
-A `chain` continues a function that has run out of its three actions. A segment
+A `chain` may only follow a segment of exactly 3 actions, not fewer. A segment
 that still had room should have kept writing: there is one way to continue a
-function, not two. (`blank` pads a segment only when the chain's first
-statement is too large to move up.)
+function, not two. The fix is to move the chain's first statement up into the
+short segment until it has 3 actions. If that statement is an `if`/`else` (2
+actions) and only one slot is free, pad the segment with `blank`, which is
+accepted only in that case.
 
 Incorrect:
 
@@ -705,6 +707,13 @@ main(int argc, string[] argv) {
   int a = double_it(argc);
 } return int a;
 ```
+
+When the earlier function is in idstd, the project's copy is the one deleted and
+every caller calls idstd's. This is the rule working as intended, not a false
+positive: a function idstd already has is never written again in a project. If
+the project cannot reach idstd's (a freestanding build that does not link the
+layer it lives in), report it; the answer is a change to idstd, not a second
+copy.
 
 ## E0403 a function that only returns a constant
 

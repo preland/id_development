@@ -62,8 +62,9 @@ Every one of these is enforced by the compiler and will reject your work:
   unrelated file uses `k` as a string is an error, and the diagnostic points at
   *that* file, not yours. Where the project has a name registry (`NOTES.md`,
   `NAMES.md`), take a name from it instead of inventing one.
-- **A call may not be an argument to a call.** Name the value first, then pass
-  the name.
+- **At most one level of call nesting in an argument** (docs/SPEC.md §7.1).
+  `f(g(x))` is fine; `f(g(h(x)))` is not: name the inner value first, then
+  pass the name.
 
 A function is `name(type arg, ...) { ...body... } return TYPE value;` or
 `... } return void;`.
@@ -117,9 +118,30 @@ aborted the program the first time the cursor sat at the end of a line.
 - If a command runs longer than 60 seconds, kill it and say so. That is a
   project rule, not a preference.
 
+## Long-running commands
+
+A long command is one you expect to take more than 30 seconds: a full build, a
+test section, a bootstrap regeneration, a whole-library compile.
+
+1. **Avoid them unless the task cannot be finished without one.** Prefer the
+   narrowest command that answers your question: one file, one function, one
+   test section, `--check` instead of a full build.
+2. **Announce it before you run it.** In the message just before the tool call,
+   write one line: `LONG COMMAND: <what> — needed because <why> — ETA <N>s`.
+   Run it in the foreground under `timeout`. Never start a background job,
+   Monitor, or sleep/wait/poll loop to watch it.
+3. **Stop and ask for help** instead of continuing your current line of work if
+   either holds:
+   - you cannot give an ETA, or
+   - the command finished, or was killed by its timeout, after more than twice
+     the ETA you announced.
+   Stopping means: end your turn with a report whose first word is `BLOCKED:`,
+   naming the command, your ETA, the actual time (or "unknown"), and what you
+   would run next. The main session will reply with how to proceed.
+
 ## Your report
 
-1. `FAILED:` or `DONE:` as the first word.
+1. `FAILED:`, `BLOCKED:` or `DONE:` as the first word.
 2. The exact output of every verification command, pasted.
 3. Every file you created or changed.
 4. Anything you expected to exist and did not find.

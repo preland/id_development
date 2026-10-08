@@ -16,7 +16,7 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | tree | files | functions | cases | short of two | exempt |
 |---|---:|---:|---:|---:|---:|
 | `bench` | 98 | 218 | 448 | 0 | 0 |
-| `c2id` | 1051 | 2616 | 5083 | 306 | 0 |
+| `c2id` | 1071 | 2666 | 5256 | 306 | 0 |
 | `demos` | 341 | 761 | 1588 | 0 | 0 |
 | `editor` | 155 | 397 | 833 | 0 | 0 |
 | `iconcheck` | 5 | 10 | 25 | 0 | 0 |
@@ -38,14 +38,14 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `idstd/core/math` | 21 | 54 | 137 | 0 | 0 |
 | `idstd/core/text` | 85 | 213 | 641 | 0 | 0 |
 | `idstd/host/dev` | 134 | 271 | 573 | 0 | 0 |
-| `idstd/host/io` | 205 | 377 | 1074 | 0 | 0 |
+| `idstd/host/io` | 206 | 380 | 1080 | 0 | 0 |
 | `idstd/host/num` | 21 | 19 | 93 | 0 | 0 |
 | `idstd/host/os` | 113 | 168 | 420 | 0 | 0 |
 | `idstd/kit/app` | 11 | 30 | 76 | 0 | 0 |
 | `idstd/kit/media` | 209 | 536 | 1744 | 0 | 0 |
 | `idstd/kit/ui` | 336 | 842 | 2631 | 0 | 0 |
-| **all** | 7946 | 19336 | 45560 | 310 | 141 |
-| of which idstd | 1330 | 2999 | 9031 | 0 | 0 |
+| **all** | 7967 | 19389 | 45739 | 310 | 141 |
+| of which idstd | 1331 | 3002 | 9037 | 0 | 0 |
 
 *short of two* counts the functions with fewer than two test cases that the compiler does not exempt: a freestanding function that reaches an `asm` body is exempt, and `kernel` and `idc/runtime` are asked of the compiler with the flags `idc/tools/kbuild` builds them with. Functions are found by their headers (`idc/tools/lib/fnhead`) and their cases by `mutscore lint`, not by the compiler's own parse. `idc/tests` is not counted: it holds the inputs of the compiler's own tests, some of which break the rules on purpose. `statusgen --untested [TREE]` lists the functions that are short.
 
@@ -54,7 +54,7 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | tree | 0 cases | 1 | 2 | 3-4 | 5+ |
 |---|---:|---:|---:|---:|---:|
 | `bench` | 0 | 0 | 207 | 11 | 0 |
-| `c2id` | 306 | 0 | 2007 | 277 | 26 |
+| `c2id` | 306 | 0 | 2026 | 301 | 33 |
 | `demos` | 0 | 0 | 712 | 45 | 4 |
 | `editor` | 0 | 0 | 374 | 20 | 3 |
 | `iconcheck` | 0 | 0 | 6 | 4 | 0 |
@@ -76,14 +76,14 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `idstd/core/math` | 0 | 0 | 34 | 18 | 2 |
 | `idstd/core/text` | 0 | 0 | 136 | 43 | 34 |
 | `idstd/host/dev` | 0 | 0 | 250 | 19 | 2 |
-| `idstd/host/io` | 0 | 0 | 238 | 97 | 42 |
+| `idstd/host/io` | 0 | 0 | 241 | 97 | 42 |
 | `idstd/host/num` | 0 | 0 | 4 | 5 | 10 |
 | `idstd/host/os` | 0 | 0 | 113 | 47 | 8 |
 | `idstd/kit/app` | 0 | 0 | 23 | 5 | 2 |
 | `idstd/kit/media` | 0 | 0 | 278 | 167 | 91 |
 | `idstd/kit/ui` | 0 | 0 | 483 | 238 | 121 |
-| **all** | 451 | 0 | 15054 | 2977 | 854 |
-| of which idstd | 0 | 0 | 1803 | 802 | 394 |
+| **all** | 451 | 0 | 15076 | 3001 | 861 |
+| of which idstd | 0 | 0 | 1806 | 802 | 394 |
 
 A distribution, not a mean: a mean of two is met by one function with many cases beside others with none.
 
@@ -92,7 +92,7 @@ A distribution, not a mean: a mean of two is met by one function with many cases
 | tree | filler dirs | max depth | median depth | silent | echo | bare |
 |---|---:|---:|---:|---:|---:|---:|
 | `bench` | 0 | 5 | 3 | 4 | 15 | 0 |
-| `c2id` | 15 | 11 | 5 | 99 | 99 | 3 |
+| `c2id` | 15 | 11 | 5 | 99 | 102 | 3 |
 | `demos` | 2 | 9 | 4 | 47 | 35 | 47 |
 | `editor` | 5 | 8 | 5 | 2 | 17 | 41 |
 | `iconcheck` | 0 | 1 | 1 | 0 | 0 | 0 |
@@ -120,14 +120,14 @@ A distribution, not a mean: a mean of two is met by one function with many cases
 | `idstd/kit/app` | 0 | 2 | 2 | 0 | 0 | 0 |
 | `idstd/kit/media` | 0 | 3 | 3 | 0 | 3 | 0 |
 | `idstd/kit/ui` | 0 | 3 | 2 | 0 | 3 | 0 |
-| **all** | 173 | 15 | 5 | 374 | 834 | 359 |
+| **all** | 173 | 15 | 5 | 374 | 837 | 359 |
 | of which idstd | 0 | 4 | 2 | 0 | 20 | 0 |
 
 *filler dirs* are directories named more, rest, tail, cont or partN. *depth* is the number of directories between a tree's root and a source file; *median* is the lower median. *silent*, *echo* and *bare* are the cases `mutscore lint` finds that prove nothing (docs/TESTS.md, "Mutation score").
 
 ## Test sections
 
-`idc/tests/run.sh --list` shows the sections and their indices: `core`, `core_self`, `core_rest`, `invalid`, `diagnostics`, `diagnostics_docs` (3 parts), `runtime_invalid`, `self_host_build`, `backends_fs`, `backends_ipc`, `backends_link`, `backends_demos`, `backends_display`, `backends_galaxy`, `backends_galaxy_run`, `stdlib`, `wasm`, `wasm_js`, `wasm_js_std`, `lib`, `lib_csv`, `opt`, `conform` (3 parts), `tests_feature` (5 parts), `fix`, `idstd_real`, `kernel`, `editor`, `mutscore`, `statusgen`, `tmpguard` (22 parts)
+`idc/tests/run.sh --list` shows the sections and their indices: `core`, `core_self`, `core_rest`, `invalid`, `diagnostics`, `diagnostics_docs` (3 parts), `runtime_invalid`, `self_host_build`, `backends_fs`, `backends_ipc`, `backends_link`, `backends_link_lib`, `backends_link_att`, `backends_link_pkg`, `backends_link_gfx`, `backends_demos`, `backends_display`, `backends_galaxy`, `backends_galaxy_run`, `stdlib`, `wasm`, `wasm_js`, `wasm_js_std`, `lib`, `lib_csv`, `opt`, `conform` (3 parts), `tests_feature` (5 parts), `fix`, `idstd_real`, `kernel`, `editor`, `mutscore`, `statusgen`, `tmpguard` (22 parts)
 
 ## Benchmarks
 

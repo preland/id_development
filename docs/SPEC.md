@@ -1140,13 +1140,13 @@ that words them differently makes the language feel different.
   process exit status. `argv[0]` is the program name, whose spelling depends on
   how the program was launched and is therefore **not** specified.
 - A function may **continue into a `chain`** rather than split: `} chain (the
-  same parameters, restated) {`, followed by up to three more actions, and the
+  same parameters, restated) {`, followed by up to three more actions (the chain segment itself may be shorter), and the
   `return` clause at the end belongs to the whole function. A chain is a literal
   continuation — the parameters, the imports, and the locals declared by earlier
   segments are all still in scope. The restated parameter list must match the
   original exactly, in both type and name, and each segment is held to the
   three-action limit on its own rather than the segments being counted together.
-  A chain may only follow a segment that spent all three of its actions: a
+  A chain may only follow a segment of exactly three actions (E0204): a
   segment that still had room should have kept writing rather than starting a
   new one, so there is one way to continue a function rather than two.
 - `blank` is a statement that costs one action and does nothing. It exists to

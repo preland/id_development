@@ -100,13 +100,21 @@ checked always rather than under `--require-tests`: it is wrong in a program
 that writes cases voluntarily too, and a program with no cases has no
 duplicates, so there is nothing to phase in.
 
-A case that makes a file or directory under `/tmp` names it with `fs_mktemp`
-(never a fixed path) and registers it with `fs_drop_exit(path)` in the same
-fixture, straight after `fs_mktemp` and before anything that can fail. The path
-and everything under it is removed when the case's process exits, however it
-ends: a `then` that removes it does not run once an earlier `then` has failed or
-the case has trapped, which is how 80,000 scratch entries piled up in `/tmp`.
-A case that is killed outright (SIGKILL at its time limit) still leaks.
+A case that makes a file or directory names it with `fs_mktemp` (never a fixed
+path) and does nothing else about its removal: no `fs_drop_exit`, no `then`
+that deletes it. The harness gives every case a fresh, empty directory
+`/tmp/idcase_XXXXXX` and runs the case's process with `$TMPDIR` set to it, and
+`fs_mktemp` makes its names inside `$TMPDIR` (in `/tmp` when it is unset). Once
+the case's process has ended, however (it passed, failed, trapped, or was
+killed at its time limit), the harness kills every process left in the case's
+process group, so a child started with `exec_run` does not outlive its case,
+and removes the directory with everything in it. That covers what a teardown
+`then` cannot: it does not run once an earlier `then` has failed or the case has
+trapped, and it never sees a file the code under test derived from the scratch
+path (`path + ".bad"`), which is how 80,000 scratch entries piled up in `/tmp`.
+A scratch name built from a fixed `/tmp/...` literal is outside this and still
+leaks. `fs_drop_exit(path)` stays for a program that is not a test, which wants
+a path removed when its own process exits; it accepts only a path under `/tmp`.
 `idc/tools/tmpguard` is the check: it builds a tree with the compiler cache off
 and fails when `/tmp` holds an entry afterwards that it did not hold before
 (`tests/run.sh --list` shows its `tmpguard_N` sections, one tree each).
