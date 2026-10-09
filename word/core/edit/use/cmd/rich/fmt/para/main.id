@@ -31,7 +31,8 @@ ed_set_page(Doc d, Ctl ctl, int field, int value) {
   int[] dat = [value];
   txn_begin(ctl);
 } chain (Doc d, Ctl ctl, int field, int value) {
-  ed_run(d, ctl, op_make((import ed_k_page), loc, dat));
+  Op page_change = Op((import ed_k_page), loc, dat);
+  ed_run(d, ctl, page_change);
   ed_close(ctl);
 } return void;
 given fx_setup("") ((import fxd), (import fxc), 0, 5000):((import fxd), (import fxc), 0, 5000) then fx_dump:("G 5000,16838,0, 1440,1440,1440,1440, 0,0,0,\nP0  0:0:-1,") then fx_hist:("u1 r0 o-1 n1")

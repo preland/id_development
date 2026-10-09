@@ -12,10 +12,10 @@ A node is identified by an integer id. Its fields are read with these accessors
 
 | accessor | returns | meaning |
 |----------|---------|---------|
-| `node_kind(int id)` | `int` | the node kind code (below) |
+| `(import nkind)[id]` | `int` | the node kind code (below) |
 | `node_a(int id)`    | `int` | first int field |
 | `node_b(int id)`    | `int` | second int field |
-| `node_s(int id)`    | `string` | string field |
+| `(import ns)[id]`   | `string` | string field |
 
 Kinds:
 
@@ -55,7 +55,7 @@ Operators that appear: BINOP `node_s` is one of `+ - * / %`; UNOP `node_s` is
   string is converted (`"= " + 7`).
 
 Dispatch on kind with a chain of helper functions (one decision each), e.g.
-`eval_expr` checks `node_kind(id) == 1` then delegates — mirror the parser's
+`eval_expr` checks `(import nkind)[id] == 1` then delegates — mirror the parser's
 `parse_*` / `fold_*` split. Compile and test with:
 
 ```

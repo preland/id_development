@@ -1,13 +1,6 @@
-// Cooldown tick (stay solid), and the random crater start: a 1-in-4 chance per
-// eligible tick to open a crater 1..2 columns wide here (plus this column), and
-// arm a cooldown of 8..13 ticks before the next one.
-
-cool_tick() {
-  int gs_get_v = gs_get(6);
-  gs_set(6, gs_get_v - 1);
-} return int 1;
-given mb_setup ():(1) then mb_state:("0,0,0,1,0,0,19,0")
-given dirty_setup ():(1) then mb_state:("0,5,3,1,7,0,19,0")
+// The random crater start (the cooldown tick is nextcol.id's count_down): a
+// 1-in-4 chance per eligible tick to open a crater 1..2 columns wide here (plus
+// this column), and arm a cooldown of 8..13 ticks before the next one.
 
 roll_crater() {
   int c = 1;
@@ -20,7 +13,7 @@ given mb_setup ():(1) then mb_state:("0,0,0,1,0,0,20,0") then eprints:("")
 
 begin_crater() {
   int rng_range_v = rnd_range(0, 2 - 1);
-  gs_set(5, 1 + rng_range_v);
+  lset((import mb), 5, 1 + rng_range_v);
   begin_cooldown();
 } return int 0;
 given mb_setup ():(0) then mb_state:("0,0,0,1,0,2,10,0")

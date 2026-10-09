@@ -3,17 +3,17 @@
 // no room left for a third function, so it lives beside its sibling files.
 set_src_tail() {
   int src_start_v = src_start();
-  ui_set(2, src_start_v);
+  lset((import ui), 2, src_start_v);
 } return void;
-given apply_board_setup ():() then (import ui)[2]:(0)
-given apply_board_setup given fd0_one ():() then (import ui)[2]:(1)
+given apply_board_setup(0) ():() then (import ui)[2]:(0)
+given apply_board_setup(0) given fd0_one ():() then (import ui)[2]:(1)
 
 // A second waste card, distinct from apply_board_setup's, for the cases in
 // srcb.id (full) that need to tell the top of the waste from its bottom.
 push_waste_card2() {
   push((import waste), 8);
 } return void;
-given apply_board_setup ():() then len((import waste)):(2)
+given apply_board_setup(0) ():() then len((import waste)):(2)
 given make_sw ():() then len((import waste)):(1)
 
 // Test check: the whole stock pile -- how many cards, then each one, bottom
@@ -25,4 +25,4 @@ stock_state() {
   string sts_s = "stock " + len((import stock)) + ":" + sts_j;
 } return string sts_s;
 given make_sw ():("stock 0:")
-given apply_board_setup ():("stock 0:")
+given apply_board_setup(0) ():("stock 0:")

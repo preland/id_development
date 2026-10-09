@@ -1,16 +1,10 @@
 // Fixtures: records that rec_check must refuse. Each differs from rec_t_good in one place.
-// One value byte changed, checksum left alone.
-rec_t_flip() {
+// One byte of the good record set to rec_t_byte at offset rec_t_off, checksum left alone: a value byte, or a kind byte no record has.
+rec_t_poke(int rec_t_off, int rec_t_byte) {
   rec_t_good();
-  poke8((import mem_t_ad) + 15, 121);
+  poke8((import mem_t_ad) + rec_t_off, rec_t_byte);
 } return void;
-():() then mem_t_sum:(914)
-():() then rec_t_head:(1)
-
-// A kind byte no record has, checksum left alone.
-rec_t_kind() {
-  rec_t_good();
-  poke8((import mem_t_ad) + 4, 9);
-} return void;
-():() then mem_t_sum:(921)
-():() then rec_t_head:(9)
+(15, 121):() then mem_t_sum:(914)
+(15, 121):() then mem_t_at(4):(1)
+(4, 9):() then mem_t_sum:(921)
+(4, 9):() then mem_t_at(4):(9)

@@ -1,7 +1,7 @@
 io_message(string file) {
   int en = (import jc)[(import c_errno)];
   string why = errno_text(en);
-  string msg = "jsontool: " + disp_name(file) + ": cannot read: " + why;
+  string msg = "jsontool: " + src_name(file, "<stdin>") + ": cannot read: " + why;
 } return string msg;
 given t_errno_set ("x.json"):("jsontool: x.json: cannot read: no such file or directory")
 given t_errno_set ("-"):("jsontool: <stdin>: cannot read: no such file or directory")
@@ -11,8 +11,8 @@ path_message(string path) {
   int at = (import jc)[(import c_pep)];
   string msg = "jsontool: invalid path '" + path + "' at position " + (at + 1) + ": " + (import p_msg)[code];
 } return string msg;
-given t_path_bad ("a"):("jsontool: invalid path 'a' at position 1: a path must start with '.' or '['")
-given t_path_bad ("q"):("jsontool: invalid path 'q' at position 1: a path must start with '.' or '['")
+given t_path("a") ("a"):("jsontool: invalid path 'a' at position 1: a path must start with '.' or '['")
+given t_path("q") ("q"):("jsontool: invalid path 'q' at position 1: a path must start with '.' or '['")
 
 seg_body(int sk, int sa, int sb) {
   string t = "[" + sa + "]";
@@ -20,6 +20,6 @@ seg_body(int sk, int sa, int sb) {
     t = "." + str_of_mem((import jw)[(import w_pth)] + sa, sb);
   }
 } return string t;
-given t_wparse stdin "0" (0, 0, 1):(".a")
-given t_wparse stdin "0" (1, 7, 0):("[7]")
-given t_wparse stdin "0" (1, -1, 0):("[-1]")
+given t_wpath(".a[1]") stdin "0" (0, 0, 1):(".a")
+given t_wpath(".a[1]") stdin "0" (1, 7, 0):("[7]")
+given t_wpath(".a[1]") stdin "0" (1, -1, 0):("[-1]")

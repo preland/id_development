@@ -1,17 +1,19 @@
-// Line k of a list of lines, "" past the end.
-ofd_at(string[] owrows, int owik) {
-  string owline = "";
+// Line k of a list of lines, or the note owdef past the end.
+line_or(string[] owrows, int owik, string owdef) {
+  string owline = owdef;
   if(owik < len(owrows)) {
     owline = owrows[owik];
   }
 } return string owline;
-(["a", "b"], 1):("b")
-(["a", "b"], 2):("")
+(["a", "b"], 1, ""):("b")
+(["a", "b"], 2, ""):("")
+(["a"], 1, "(no such paragraph)"):("(no such paragraph)")
+(["a", "b"], 1, "(no such paragraph)"):("b")
 
 // The report lines for line owik of two dumps, "" when the lines are equal; the counters in owcnt follow the lines.
 ofd_kdiff(string[] owrowa, string[] owrowb, int owik, int[] owcnt) {
-  string owx = ofd_at(owrowa, owik);
-  string owy = ofd_at(owrowb, owik);
+  string owx = line_or(owrowa, owik, "");
+  string owy = line_or(owrowb, owik, "");
   string owline = owx;
 } chain (string[] owrowa, string[] owrowb, int owik, int[] owcnt) {
   if(owx == "") {

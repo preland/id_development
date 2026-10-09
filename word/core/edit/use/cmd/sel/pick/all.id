@@ -27,7 +27,8 @@ ed_select_word(Doc d, Ctl ctl, Pos ps) {
   int lo = utf8_cps_word_lo(p.txt.cps, ps.off);
   int hi = utf8_cps_word_hi(p.txt.cps, ps.off);
 } chain (Doc d, Ctl ctl, Pos ps) {
-  ed_place(d, ctl, pos_new(ps.para, lo), 0);
+  Pos word_anchor = Pos(ps.para, lo);
+  ed_place(d, ctl, word_anchor, 0);
   sel_put(ctl.sel, ps.para, hi, 1);
 } return void;
 given fx_setup("foo bar|baz") ((import fxd), (import fxc), Pos(0, 5)):((import fxd), (import fxc), Pos(0, 5)) then fx_sel:("0:4-0:7")

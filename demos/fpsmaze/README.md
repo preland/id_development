@@ -233,9 +233,7 @@ demos/fpsmaze/
                                   since auto-repeat can queue more than one)
   game/                        (3 entries)
     gameinit.id               -- game_init()/init_actors(): seed, carve, spawn
-    util/                       (2 entries)
-      trig/                       (1 file: table.id -- norm_deg, the yaw
-                                    fold; sin/cos are idstd's, see above)
+    util/                       (1 entry; the yaw fold and sin/cos are idstd's)
       rng/                        (3 files: Park-Miller PRNG, same generator
                                     demos/gl3dgame and demos/moonbuggy use)
     sim/                         (3 entries)

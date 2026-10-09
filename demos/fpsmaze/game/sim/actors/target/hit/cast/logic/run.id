@@ -5,12 +5,12 @@
 // instant it hits a target or a wall.
 
 shoot() {
-  int ps_get_v = ps_get(0);
-  int ps_get_v2 = ps_get(1);
+  int ps_get_v = (import ps)[0];
+  int ps_get_v2 = (import ps)[1];
   shoot_at(ps_get_v, ps_get_v2);
 } return void;
 given game_init ():() then calls shoot_at:(-12000, -10000)
-given game_init ():() then calls ps_get:(0)
+given game_init given lset((import ps), 0, 500) ():() then calls shoot_at:(500, -10000)
 
 shoot_at(int x, int z) {
   ray_init(x, z);
@@ -30,5 +30,5 @@ ray_loop() {
     ray_check_stop();
   }
 } return void;
-given open_room_setup given fx_trig_init given idstd_rnd_t_setup given targets_init given rc_setup ():() then calls lset:((import rc), 3, 1)
-given open_room_setup given fx_trig_init given idstd_rnd_t_setup given targets_init given rc_setup ():() then rc_state:("x=1000 z=1850 steps=1 done=1")
+given open_room_setup given fx_trig_init given rnd_init(1) given targets_init given rc_setup ():() then calls lset:((import rc), 3, 1)
+given open_room_setup given fx_trig_init given rnd_init(1) given targets_init given rc_setup ():() then rc_state:("x=1000 z=1850 steps=1 done=1")

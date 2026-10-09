@@ -1,24 +1,26 @@
-// The quit-requested state play() (game/core/engine/mb.id) needs to end its
-// own loop in a case: mb_setup alone never sets it (term_key() always
-// returns -1 headlessly, so 'q' is never read), and play()'s real loop has
-// no other way to stop -- see mb.id's note on why play/start are cased only
-// through this.
-quit_setup() {
+// mb_setup with one slot set: the quit-requested state (slot 7) play() (game/core/engine/mb.id) needs
+// to end its own loop in a case, since term_key() always returns -1 headlessly, so 'q' is never read
+// and play()'s real loop has no other way to stop (see mb.id's note on why play/start are cased only
+// through this); and the crashed state (slot 3) maybe_gameover/draw_gameover/update_dead's true branch
+// needs, which mb_setup alone never reaches (a fresh game starts alive).
+mb_setup_set(int mb_slot, int mb_val) {
   mb_setup();
-  gs_set(7, 1);
+  lset((import mb), mb_slot, mb_val);
 } return void;
-():()
-():() then eprints:("")
+(7, 1):()
+(7, 1):() then eprints:("")
+(3, 0):()
+(3, 0):() then eprints:("")
 
 // Non-zero height/velocity/tick -- the state reset_phys (clearstate.id)
 // needs to prove it actually zeroes them, which mb_setup's own already-zero
 // defaults could never distinguish from doing nothing.
 dirty_setup() {
   mb_setup();
-  gs_set(1, 5);
-  gs_set(2, 3);
+  lset((import mb), 1, 5);
+  lset((import mb), 2, 3);
 } chain () {
-  gs_set(4, 7);
+  lset((import mb), 4, 7);
 } return void;
 ():()
 ():() then eprints:("")

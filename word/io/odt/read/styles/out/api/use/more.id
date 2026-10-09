@@ -1,24 +1,18 @@
-// The character row for the text style called os_sname (a span's style), 0 (nothing set) when the name is "" or not defined.
-ost_text(OdtSty os_k, string os_sname) {
-  int os_ik = ost_key(os_k, "t:" + os_sname);
-  int os_ic = 0;
+// The row the lookup holds for the style called os_sname under the key prefix os_spre ("t:" a span's text style, "l:" a text:list's, "p:" a paragraph style), 0 (nothing set) when the name is "" or not defined.
+ost_row(OdtSty os_k, string os_spre, string os_sname) {
+  int os_ik = ost_key(os_k, os_spre + os_sname);
+  int os_ir = 0;
   if(os_ik >= 0) {
-    os_ic = os_k.ids[os_ik];
+    os_ir = os_k.ids[os_ik];
   }
-} return int os_ic;
-(OdtSty(["t:T1"], [6], [-1]), "T1"):(6)
-(OdtSty(["t:T1"], [6], [-1]), "T2"):(0)
-
-// The list definition called os_sname (a text:list's style), 0 (no list) when the name is "" or not defined.
-ost_list(OdtSty os_k, string os_sname) {
-  int os_ik = ost_key(os_k, "l:" + os_sname);
-  int os_il = 0;
-  if(os_ik >= 0) {
-    os_il = os_k.ids[os_ik];
-  }
-} return int os_il;
-(OdtSty(["l:L1"], [3], [-1]), "L1"):(3)
-(OdtSty(["l:L1"], [3], [-1]), ""):(0)
+} return int os_ir;
+(OdtSty(["t:T1"], [6], [-1]), "t:", "T1"):(6)
+(OdtSty(["t:T1"], [6], [-1]), "t:", "T2"):(0)
+(OdtSty(["l:L1"], [3], [-1]), "l:", "L1"):(3)
+(OdtSty(["l:L1"], [3], [-1]), "l:", ""):(0)
+(OdtSty(["p:Heading_20_1"], [4], [-1]), "p:", "Heading_20_1"):(4)
+(OdtSty(["p:Heading_20_1"], [4], [-1]), "p:", ""):(0)
+(OdtSty(["p:Heading_20_1"], [4], [-1]), "p:", "Other"):(0)
 
 // An empty lookup, to be filled by ost_load.
 ost_new() {

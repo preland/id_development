@@ -2,7 +2,9 @@
 ed_one(Doc d, Ctl ctl, int kind, int para) {
   int[] loc = [para];
   int[] none = [];
-  ed_run(d, ctl, op_make(kind, loc, none));
+  Op operation = Op(kind, loc, none);
+} chain (Doc d, Ctl ctl, int kind, int para) {
+  ed_run(d, ctl, operation);
 } return void;
 given fx_setup("a|b|c") given txn_begin((import fxc)) ((import fxd), (import fxc), 8, 1):((import fxd), (import fxc), 8, 1) then fx_show:("a|c") then fx_hist:("u1 r0 o0 n1")
 given fx_setup("a|b|c") given txn_begin((import fxc)) ((import fxd), (import fxc), 4, 0):((import fxd), (import fxc), 4, 0) then fx_show:("ab|c")
@@ -12,7 +14,8 @@ ed_del_in(Doc d, Ctl ctl, int para, int off, int n) {
   int[] loc = [para, off, n, -1, -1];
   int[] none = [];
   if(n > 0) {
-    ed_run(d, ctl, op_make((import ed_k_del), loc, none));
+    Op deletion = Op((import ed_k_del), loc, none);
+    ed_run(d, ctl, deletion);
   }
 } return void;
 given fx_setup("abcd") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 1, 2):((import fxd), (import fxc), 0, 1, 2) then fx_show:("ad") then fx_hist:("u1 r0 o0 n1")

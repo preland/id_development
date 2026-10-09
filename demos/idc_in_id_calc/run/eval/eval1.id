@@ -1,10 +1,10 @@
 // AST evaluator. Walks the tree via the node_* accessors and returns the
-// integer value of the subtree. Dispatch on node_kind with a chain of helpers
+// integer value of the subtree. Dispatch on (import nkind)[id] with a chain of helpers
 // (one decision each) so every block stays within the 3-action / 2-deep limits.
 
 eval_expr(int id) {
   int v = 0;
-  if(node_kind(id) == 1) {
+  if((import nkind)[id] == 1) {
     v = (import na)[id];
   } else {
     v = eval_op(id);
@@ -15,7 +15,7 @@ given ast_setup (2):(5)
 
 eval_op(int id) {
   int v = 0;
-  if(node_kind(id) == 3) {
+  if((import nkind)[id] == 3) {
     int node_a_v = (import na)[id];
     v = 0 - eval_expr(node_a_v);
   } else {

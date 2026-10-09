@@ -77,8 +77,8 @@ demos/gl3dgame/
     world.id                     -- world_init/world_update
     game/                         (3 entries: state/, input/, target/)
       state/                        (3 entries)
-        gsinit.id                 -- the `mb` state list (px,pz,tx,tz,score) + gs_get
-        mutate.id                -- gs_set + the generic lset helper
+        gsinit.id                 -- the `mb` state list (px,pz,tx,tz,score)
+        mutate.id                -- mb_hit_setup (the player on the target)
         rng/                       (2 files: rng.id, rng2.id -- Park-Miller PRNG,
                                      the same generator demos/moonbuggy uses)
       input/                        (2 files: keys.id, move.id)

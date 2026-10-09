@@ -19,12 +19,14 @@ file_t_extra() {
   int c = fs_close(a);
   int d = fs_close(b);
 } return void;
-():() then file_t_size:("size 0") then file_t_bad:(0) then file_t_done:(0)
+():() then file_t_size:("size 0") then file_t_aside(".bad"):(0) then file_t_done:(0)
 ():() then file_t_size:("size 0") then file_t_done:(0)
 
-// The size of the .bad file beside the scratch file, or -1.
-file_t_bad() {
-  int size = fs_size((import file_t_path) + ".bad");
+// The size of the file beside the scratch file whose name ends in file_t_ext (".bad" or ".compact"), or -1.
+file_t_aside(string file_t_ext) {
+  int size = fs_size((import file_t_path) + file_t_ext);
 } return int size;
-given file_t_extra ():(0) then file_t_done:(0)
-given file_t_empty ():(-1) then file_t_done:(0)
+given file_t_extra (".bad"):(0) then file_t_done:(0)
+given file_t_empty (".bad"):(-1) then file_t_done:(0)
+given file_t_twin (".compact"):(3) then file_t_done:(0)
+given file_t_ten (".compact"):(-1) then file_t_done:(0)

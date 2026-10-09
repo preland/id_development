@@ -27,7 +27,7 @@ ed_play_fmt(Doc d, Ctl ctl, int verb, string[] flds) {
     ed_clear_format(d, ctl);
   }
   if(verb == 75) {
-    ed_page_break(d, ctl);
+    ed_break(d, ctl, 1);
   }
 } chain (Doc d, Ctl ctl, int verb, string[] flds) {
   if(verb == 72) {
@@ -48,10 +48,15 @@ given fx_setup("abc") ((import fxd), (import fxc), 0, []):((import fxd), (import
 
 // S<para>:<off>:<para>:<off>: the first position becomes the anchor and the second the caret, as a click and a drag would.
 ed_play_pick(Doc d, Ctl ctl, string[] flds) {
-  Pos pa = pos_new(to_int(flds[0]), to_int(flds[1]));
-  Pos pb = pos_new(to_int(flds[2]), to_int(flds[3]));
-  ed_place(d, ctl, pa, 0);
+  int anchor_para = to_int(flds[0]);
+  int anchor_off = to_int(flds[1]);
+  int caret_para = to_int(flds[2]);
 } chain (Doc d, Ctl ctl, string[] flds) {
+  int caret_off = to_int(flds[3]);
+  Pos pa = Pos(anchor_para, anchor_off);
+  Pos pb = Pos(caret_para, caret_off);
+} chain (Doc d, Ctl ctl, string[] flds) {
+  ed_place(d, ctl, pa, 0);
   ed_place(d, ctl, pb, 1);
 } return void;
 given fx_setup("ab|cd") ((import fxd), (import fxc), ["0", "1", "1", "1"]):((import fxd), (import fxc), ["0", "1", "1", "1"]) then fx_sel:("0:1-1:1")

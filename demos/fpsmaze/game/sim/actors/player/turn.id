@@ -1,24 +1,24 @@
 // Q/E turning (see game/sim/actors/input): adjust yaw by (import turn_speed)
-// degrees and fold back into 0..359 (game/util/trig/table.id's norm_deg).
+// degrees and fold back into 0..359 (idstd fx_norm_deg, on millidegrees).
 
 turn_left() {
   int turn_speed_v = (import turn_speed);
   turn_by(0 - turn_speed_v);
 } return void;
-given player_init ():() then ps_yaw:(356)
-given player_init given turn_right ():() then ps_yaw:(0)
+given player_init ():() then (import ps)[2]:(356)
+given player_init given turn_right ():() then (import ps)[2]:(0)
 
 turn_right() {
   int turn_speed_v = (import turn_speed);
   turn_by(turn_speed_v);
 } return void;
-given player_init ():() then ps_yaw:(4)
-given player_init given turn_left ():() then ps_yaw:(0)
+given player_init ():() then (import ps)[2]:(4)
+given player_init given turn_left ():() then (import ps)[2]:(0)
 
 turn_by(int delta) {
-  int ps_get_v = ps_get(2);
-  int norm_deg_v = norm_deg(ps_get_v + delta);
-  ps_set(2, norm_deg_v);
+  int mdeg_v = ((import ps)[2] + delta) * (import mdeg_per_deg);
+  int fold_v = fx_norm_deg(mdeg_v);
+  lset((import ps), 2, fold_v / (import mdeg_per_deg));
 } return void;
-given player_init (4):() then ps_yaw:(4)
-given player_init (-4):() then ps_yaw:(356)
+given player_init (4):() then (import ps)[2]:(4)
+given player_init (-4):() then (import ps)[2]:(356)

@@ -16,8 +16,9 @@ given fx_setup("ab") given fx_opaque(0) ((import fxd), -1):(0)
 ed_split_row(Doc d, Ctl ctl, int pn) {
   int[] loc = [ctl.sel.caret.para, ctl.sel.caret.off];
   int[] dat = [pn, -1, -1, -1, -1];
-  ed_run(d, ctl, op_make((import ed_k_split), loc, dat));
+  Op paragraph_split = Op((import ed_k_split), loc, dat);
 } chain (Doc d, Ctl ctl, int pn) {
+  ed_run(d, ctl, paragraph_split);
   sel_put(ctl.sel, ctl.sel.caret.para + 1, 0, 0);
 } return void;
 given fx_setup("abcd") given fx_at(0, 2, 0, 2) given txn_begin((import fxc)) ((import fxd), (import fxc), 5):((import fxd), (import fxc), 5) then fx_show:("ab|{5}cd") then fx_sel:("1:0-1:0") then fx_hist:("u1 r0 o0 n1")

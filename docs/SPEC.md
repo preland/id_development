@@ -418,7 +418,10 @@ It is an **initialiser and nothing else**: `Point p = Point(1, 2);` and
 `export Point p = Point(1, 2);`. It is not an assignment's value, a list
 element, an argument or a return -- declare the struct, then use the name --
 so a struct is built on a line of its own, where the next line can see what it
-is. There is no empty struct and no default; a struct has the value it was
+is. The same holds for what goes in: a constructor's argument holds no call,
+function or builtin (E0607), so `Pos p = Pos(a, len(xs));` is written
+`int n = len(xs);` and then `Pos p = Pos(a, n);`. A literal, a name, a field
+read, a list literal or an operation on those is fine. There is no empty struct and no default; a struct has the value it was
 built with. An empty list literal is not a constructor's argument any more than
 it is a function's (§5): declare the list with its type (`int[] xs = [];`) and
 pass the name.

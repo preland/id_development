@@ -1,0 +1,40 @@
+// The two branches of the cavern and the four scenes under them, all read from
+// conf.id: fork 0 is the left tunnel (endings 1-4), fork 1 the right (5-8).
+
+scene_fork(int fk) {
+  string fk_ans = ask((import fork_ask)[fk]);
+  if(fk_ans == "1") {
+    scene_play(fk * 2);
+  } else {
+    if(fk_ans == "2") {
+      scene_play(fk * 2 + 1);
+    } else {
+      print((import fork_stray)[fk]);
+    }
+  }
+} return void;
+stdin "x\n" (0):() then prints:("The left tunnel forks at an underground RIVER.\n  1) Swim across the dark water\n  2) Search the walls for a BRIDGE\nChoose: \n>> You dither at the fork until the bats carry you off. THE END.\n")
+stdin "2\nx\n" (0):() then prints:("The left tunnel forks at an underground RIVER.\n  1) Swim across the dark water\n  2) Search the walls for a BRIDGE\nChoose: \nA rope BRIDGE sways over a chasm; a TROLL snores beneath it.\n  1) Tiptoe across quietly\n  2) Cut the bridge once you reach the far side\nChoose: \n>> You waver on the planks until they rot through beneath you. THE END.\n")
+stdin "x\n" (1):() then prints:("The right tunnel opens into a vast CHAMBER above a black PIT.\n  1) Explore the chamber\n  2) Lower yourself into the pit\nChoose: \n>> The darkness drinks your nerve and you simply stop. THE END.\n")
+stdin "1\nx\n" (1):() then prints:("The right tunnel opens into a vast CHAMBER above a black PIT.\n  1) Explore the chamber\n  2) Lower yourself into the pit\nChoose: \nA CROWN rests on a pedestal; a DRAGON sleeps coiled around it.\n  1) Seize the crown\n  2) Bow and back away slowly\nChoose: \n>> You stand gawking until the dragon rolls over in its sleep. THE END.\n")
+
+scene_play(int sc) {
+  string sc_ans = ask((import scene_ask)[sc]);
+  if(sc_ans == "1") {
+    print((import scene_end_one)[sc]);
+  } else {
+    if(sc_ans == "2") {
+      print((import scene_end_two)[sc]);
+    } else {
+      print((import scene_end_stray)[sc]);
+    }
+  }
+} return void;
+stdin "x\n" (0):() then prints:("Midstream, something cold brushes your leg.\n  1) Dive down to investigate\n  2) Sprint for the far bank\nChoose: \n>> Paralyzed by the choice, you slip under without a sound. THE END.\n")
+stdin "1\n" (0):() then prints:("Midstream, something cold brushes your leg.\n  1) Dive down to investigate\n  2) Sprint for the far bank\nChoose: \n>> ENDING 1 -- THE PEARL DIVER: you surface clutching a glowing pearl and walk out a living legend.\n")
+stdin "x\n" (1):() then prints:("A rope BRIDGE sways over a chasm; a TROLL snores beneath it.\n  1) Tiptoe across quietly\n  2) Cut the bridge once you reach the far side\nChoose: \n>> You waver on the planks until they rot through beneath you. THE END.\n")
+stdin "2\n" (1):() then prints:("A rope BRIDGE sways over a chasm; a TROLL snores beneath it.\n  1) Tiptoe across quietly\n  2) Cut the bridge once you reach the far side\nChoose: \n>> ENDING 4 -- THE TROLL'S REVENGE: the rope snaps a beat too early and the troll wakes very hungry. THE END.\n")
+stdin "x\n" (2):() then prints:("A CROWN rests on a pedestal; a DRAGON sleeps coiled around it.\n  1) Seize the crown\n  2) Bow and back away slowly\nChoose: \n>> You stand gawking until the dragon rolls over in its sleep. THE END.\n")
+stdin "1\n" (2):() then prints:("A CROWN rests on a pedestal; a DRAGON sleeps coiled around it.\n  1) Seize the crown\n  2) Bow and back away slowly\nChoose: \n>> ENDING 5 -- THE CROWNED FOOL: you lift the crown, the dragon's eye opens, and you reign for four glorious seconds.\n")
+stdin "x\n" (3):() then prints:("You land beside an ancient LANTERN and a locked DOOR.\n  1) Light the lantern\n  2) Force the door in the dark\nChoose: \n>> You sit in the pitch dark forever, still deciding. THE END.\n")
+stdin "2\n" (3):() then prints:("You land beside an ancient LANTERN and a locked DOOR.\n  1) Light the lantern\n  2) Force the door in the dark\nChoose: \n>> ENDING 8 -- THE LAST DOOR: it swings open onto a deeper black, and the black opens onto you. THE END.\n")

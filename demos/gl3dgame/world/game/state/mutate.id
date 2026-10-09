@@ -1,23 +1,16 @@
-// gs_set writes one `mb` slot. lset is the generic "store into a list
+// mb_hit_setup stores into `mb` with lset, the generic "store into a list
 // element" helper demos/moonbuggy/engine/core/core-1/cell/cell.id explains:
 // an imported list cannot be index-assigned directly, but passing it as a
 // parameter makes the lvalue an identifier again, and lists are
 // reference-semantic so the store is shared.
-
-gs_set(int i, int v) {
-  lset((import mb), i, v);
-} return void;
-given state_init (0, 7):() then mb_state:("7,0,3,3,0")
-given state_init (4, 2):() then mb_state:("0,0,3,3,2")
 
 // The player standing exactly on the target's cell -- the one state
 // hit_test's true branch (world/game/target/dist.id, hit.id) needs, which
 // state_init alone can never reach (its player and target start apart).
 mb_hit_setup() {
   state_init();
-  gs_set(0, 3);
-  gs_set(1, 3);
+  lset((import mb), 0, 3);
+  lset((import mb), 1, 3);
 } return void;
 ():() then mb_state:("3,3,3,3,0")
 ():() then mb_state:("3,3,3,3,0") then eprints:("")
-

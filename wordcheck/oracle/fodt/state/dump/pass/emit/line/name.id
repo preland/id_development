@@ -1,7 +1,7 @@
 // The name the dump gives a named style key: "Normal" for LibreOffice's "Standard" and for the default style, else its display name, else the name with each _20_ (an encoded space) read as a space.
 ofd_sname(OfdSty owst, string owk) {
   int owlen = fx_max(len(owk) - 2, 0);
-  string owname = str_slice(owk, 2, owlen);
+  string owname = str_sub(owk, 2, owlen);
   string owdisp = ofd_own(owst, owk, "d");
 } chain (OfdSty owst, string owk) {
   string owout = str_join(str_split(owname, "_20_"), " ");
@@ -29,14 +29,16 @@ ofd_named(OfdSty owst, string owpk) {
 (OfdSty(["p:Standard"], [""], ["", "", ""]), "p:Standard"):("p:Standard")
 (OfdSty(["p:P1"], ["|a=1"], ["", "", ""]), "p:P1"):("p:")
 
-// The list style name entry owk's own meta says, "" when the entry is unknown or has none.
-ofd_listof(OfdSty owst, string owk) {
+// The meta string at slot owpart (1 the list style name, 2 the master page name) that entry owk's own meta says, "" when the entry is unknown or has none. Bound with bind(ofd_meta, PART) to walk a style chain.
+ofd_meta(int owpart, OfdSty owst, string owk) {
   int owi = ofd_idx(owst, owk);
-  string owlist = "";
+  string owm = "";
   if(owi >= 0) {
-    owlist = owst.meta[owi * 3 + 1];
+    owm = owst.meta[owi * 3 + owpart];
   }
-} return string owlist;
-(OfdSty(["p:A"], [""], ["", "L1", ""]), "p:A"):("L1")
-(OfdSty(["p:A"], [""], ["", "L1", ""]), "p:Z"):("")
+} return string owm;
+(1, OfdSty(["p:A"], [""], ["", "L1", ""]), "p:A"):("L1")
+(1, OfdSty(["p:A"], [""], ["", "L1", ""]), "p:Z"):("")
+(2, OfdSty(["p:A"], [""], ["", "", "Wide"]), "p:A"):("Wide")
+(2, OfdSty(["p:A"], [""], ["", "", "Wide"]), "p:Z"):("")
 

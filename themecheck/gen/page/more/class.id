@@ -14,22 +14,15 @@ tg_sp(int stp, int fm) {
 (12, 2):("py-12 pr-12 gap-12")
 (3, 3):("pb-1.5 pl-1.5")
 
-// The container a spacing form's swatch is: forms 0 and 2 stack their kids in a Col, 1 and 3 line them up in a Row.
-tg_axis(int fm) {
-  string ax = "Col";
+// The value a spacing form takes from its parity: forms 0 and 2 take the even value, 1 and 3 the odd one. The swatch's container
+// is Col or Row, and its two kids each take half of the content along the main axis.
+tg_pick(int fm, string tg_even, string tg_odd) {
+  string tg_v = tg_even;
   if (fm % 2 == 1) {
-    ax = "Row";
+    tg_v = tg_odd;
   }
-} return string ax;
-(0):("Col")
-(3):("Row")
-
-// The kids a spacing swatch holds, two, each half of the content along the swatch's main axis.
-tg_kidl(int fm) {
-  string kl = "Kid()[50,100,top-left]{}|Kid()[50,100,top-left]{}";
-  if (fm % 2 == 1) {
-    kl = "Kid()[100,50,top-left]{}|Kid()[100,50,top-left]{}";
-  }
-} return string kl;
-(0):("Kid()[50,100,top-left]{}|Kid()[50,100,top-left]{}")
-(1):("Kid()[100,50,top-left]{}|Kid()[100,50,top-left]{}")
+} return string tg_v;
+(0, "Col", "Row"):("Col")
+(3, "Col", "Row"):("Row")
+(0, "Kid()[50,100,top-left]{}|Kid()[50,100,top-left]{}", "Kid()[100,50,top-left]{}|Kid()[100,50,top-left]{}"):("Kid()[50,100,top-left]{}|Kid()[50,100,top-left]{}")
+(1, "Kid()[50,100,top-left]{}|Kid()[50,100,top-left]{}", "Kid()[100,50,top-left]{}|Kid()[100,50,top-left]{}"):("Kid()[100,50,top-left]{}|Kid()[100,50,top-left]{}")

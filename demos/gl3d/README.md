@@ -46,12 +46,11 @@ instead of a matrix. `id` composes the scene by threading handles through
 ## The mesh
 
 A cube, 8 corners numbered 0..7, addressed by plain arithmetic instead of bit
-tricks (`demos/gl3d/scene/mesh/geom/corners.id`):
+tricks (idstd's `d3_cube_at(corner, step, half)`, step 1, 2 or 4 for x, y or z,
+called from `scene/mesh/meshbuild/vertpush/`, half = `cube_half` in conf.id):
 
 ```
-corner_x(int i) { } return int ((i % 2) * 2 - 1) * 1000;
-corner_y(int i) { } return int (((i / 2) % 2) * 2 - 1) * 1000;
-corner_z(int i) { } return int (((i / 4) % 2) * 2 - 1) * 1000;
+d3_cube_at(int cix, int step, int half) { } return int (((cix / step) % 2) * 2 - 1) * half;
 ```
 
 The 6 faces are a 36-entry table of corner indices (12 triangles * 3,
@@ -73,7 +72,7 @@ demos/gl3d/
     frame.id                  -- one frame: render(t), then poll
   scene/                       (2 entries)
     mesh/                        (3 entries)
-      geom/                        (2 files: corners.id, color.id)
+      geom/                        (1 file: color.id)
       meshbuild/                   (3 files: vertbuild.id, vertpush/pushvertex.id, colorbuild.id)
       api.id                    -- mesh_init()
     render/                      (3 files: init.id, frame.id, draw.id)

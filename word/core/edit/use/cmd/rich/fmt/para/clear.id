@@ -3,7 +3,8 @@ par_reset(Doc d, Ctl ctl, int para) {
   int[] loc = [para];
   int[] dat = [0];
   if(d.body.paras[para].pprop != 0 && ed_solid(d, para) == 0) {
-    ed_run(d, ctl, op_make((import ed_k_pprop), loc, dat));
+    Op row_change = Op((import ed_k_pprop), loc, dat);
+    ed_run(d, ctl, row_change);
   }
 } return void;
 given fx_setup("ab") given fx_style(0, 3) given txn_begin((import fxc)) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("ab") then fx_hist:("u1 r0 o0 n1")
@@ -13,11 +14,12 @@ given fx_setup("ab") given txn_begin((import fxc)) ((import fxd), (import fxc), 
 clr_run(Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
   int[] runs = runs_span(d.body.paras[para].txt, lo, hi);
   int[] old = lst_copy(runs);
-  runs_zero(runs);
+  runs_zero(runs, 3);
 } chain (Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
   if(ints_eq(runs, old) == 0) {
     int[] loc = [para, lo, hi];
-    ed_run(d, ctl, op_make((import ed_k_runs), loc, runs));
+    Op run_change = Op((import ed_k_runs), loc, runs);
+    ed_run(d, ctl, run_change);
   }
   par_reset(d, ctl, para);
 } return void;

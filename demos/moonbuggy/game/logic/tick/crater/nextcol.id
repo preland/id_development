@@ -4,8 +4,8 @@
 
 next_col() {
   int c = 1;
-  if(gs_get(5) > 0) {
-    c = pop_crater();
+  if((import mb)[5] > 0) {
+    c = count_down(5, 0);
   } else {
     c = ground_or_new();
   }
@@ -13,17 +13,19 @@ next_col() {
 given mb_setup ():(1) then mb_state:("0,0,0,1,0,0,19,0")
 given crater_setup ():(0) then mb_state:("0,0,0,1,0,1,20,0")
 
-pop_crater() {
-  int gs_get_v = gs_get(5);
-  gs_set(5, gs_get_v - 1);
-} return int 0;
-given crater_setup ():(0) then mb_state:("0,0,0,1,0,1,20,0")
-given crater_setup ():(0) then mb_state:("0,0,0,1,0,1,20,0") then eprints:("")
+count_down(int cd_slot, int cd_ret) {
+  int gs_get_v = (import mb)[cd_slot];
+  lset((import mb), cd_slot, gs_get_v - 1);
+} return int cd_ret;
+given crater_setup (5, 0):(0) then mb_state:("0,0,0,1,0,1,20,0")
+given crater_setup (5, 0):(0) then mb_state:("0,0,0,1,0,1,20,0") then eprints:("")
+given mb_setup (6, 1):(1) then mb_state:("0,0,0,1,0,0,19,0")
+given dirty_setup (6, 1):(1) then mb_state:("0,5,3,1,7,0,19,0")
 
 ground_or_new() {
   int c = 1;
-  if(gs_get(6) > 0) {
-    c = cool_tick();
+  if((import mb)[6] > 0) {
+    c = count_down(6, 1);
   } else {
     c = roll_crater();
   }

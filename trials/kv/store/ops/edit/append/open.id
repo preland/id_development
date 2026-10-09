@@ -1,21 +1,16 @@
-// Fixtures: the 57 byte log on a scratch file, loaded into the lists; and the same for the 52 byte torn one.
-log_t_open() {
-  log_t_file();
+// Fixtures: the scratch file cut to its first n bytes (57 whole, 52 torn), loaded into the lists.
+log_t_loaded(int log_t_n) {
+  log_t_dumped(log_t_n);
   db_load((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea));
 } return void;
-():() then db_t_state:("1/33/3") then file_t_done:(0)
-():() then db_t_meta:("57/57/0") then file_t_done:(0)
-
-log_t_topen() {
-  log_t_torn();
-  db_load((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea));
-} return void;
-():() then db_t_state:("2/0/2") then file_t_done:(0)
-():() then db_t_meta:("42/52/-1") then file_t_done:(0)
+(57):() then db_t_state:("1/33/3") then file_t_done:(0)
+(57):() then db_t_meta:("57/57/0") then file_t_done:(0)
+(52):() then db_t_state:("2/0/2") then file_t_done:(0)
+(52):() then db_t_meta:("42/52/-1") then file_t_done:(0)
 
 // The loaded 57 byte log, with the counters saying the log is nearly at log_max.
 log_t_full() {
-  log_t_open();
+  log_t_loaded(57);
   st_add((import db_t_st), (import st_size), 2147483583);
   st_add((import db_t_st), (import st_file), 2147483583);
 } return void;

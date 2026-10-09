@@ -3,10 +3,10 @@
 // Run:  idc/bin/idc demos/adventure -o adventure && ./adventure
 // At each scene, type an index (1 or 2) and press enter.
 //
-// The story is a binary tree three choices deep -> 8 endings. Each scene is
-// one function; the 3-function-per-file limit spreads them across three files
-// (engine / left / right). Functions and the shared `ask` helper resolve
-// across files automatically.
+// The story is a binary tree three choices deep -> 8 endings. The scene text
+// lives in conf.id and scenes.id plays any of it by index; engine.id holds the
+// entry point and the opening fork. Functions and the shared `ask` helper
+// resolve across files automatically.
 //
 // This demo is the reason the language grew an `input()` builtin: it reads one
 // line from stdin and returns it as a string, so a scene can branch on the
@@ -33,10 +33,10 @@ stdin "yes\n" (""):("yes") then prints:("\n")
 scene_gate() {
   string g = ask("You stand before two tunnels.\n  1) Enter the LEFT tunnel\n  2) Enter the RIGHT tunnel\nChoose: ");
   if(g == "1") {
-    scene_left();
+    scene_fork(0);
   } else {
     if(g == "2") {
-      scene_right();
+      scene_fork(1);
     } else {
       print(">> You freeze with indecision and your torch gutters out. THE END.");
     }

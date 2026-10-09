@@ -2,27 +2,27 @@
 // next rank up, is accepted.
 
 move_to_found() {
-  if(ui_get(0) >= 2) {
+  if((import ui)[0] >= 2) {
     found_move();
   } else {
     cancel_sel();
   }
 } return void;
-given apply_board_setup given select_waste_found ():() then calls found_move:()
-given apply_board_setup given select_stock_cursor ():() then calls cancel_sel:()
+given apply_board_setup(0) given select_cursor(0, 2, 1, 1) ():() then calls found_move:()
+given apply_board_setup(0) given select_stock_cursor ():() then calls cancel_sel:()
 
 found_move() {
-  int d = ui_get(0) - 2;
+  int d = (import ui)[0] - 2;
   int c = src_bottom();
   found_try(d, c);
 } return void;
-given apply_board_setup given select_waste_found ():() then calls found_try:(0, 0)
-given apply_board_setup_badcard given select_waste_found ():() then calls found_try:(0, 8)
+given apply_board_setup(0) given select_cursor(0, 2, 1, 1) ():() then calls found_try:(0, 0)
+given apply_board_setup(8) given select_cursor(0, 2, 1, 1) ():() then calls found_try:(0, 8)
 
 found_try(int d, int c) {
   if(found_ok(d, c)) {
     found_do(d, c);
   }
 } return void;
-given apply_board_setup given select_waste_found (0, 0):() then calls found_do:(0, 0)
-given apply_board_setup given select_waste_found (0, 8):() then calls found_do:[0]
+given apply_board_setup(0) given select_cursor(0, 2, 1, 1) (0, 0):() then calls found_do:(0, 0)
+given apply_board_setup(0) given select_cursor(0, 2, 1, 1) (0, 8):() then calls found_do:[0]

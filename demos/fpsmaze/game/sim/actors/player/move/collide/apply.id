@@ -6,21 +6,21 @@ try_apply_delta(int dx, int dz) {
   try_apply_x(dx);
   try_apply_z(dz);
 } return void;
-given player_init given maze_init (70, 70):() then ps_x:(-12000) then ps_z:(-10000)
-given open_room_setup (70, 70):() then ps_x:(-11930) then ps_z:(-9930)
+given player_init given maze_init (70, 70):() then (import ps)[0]:(-12000) then (import ps)[1]:(-10000)
+given open_room_setup (70, 70):() then (import ps)[0]:(-11930) then (import ps)[1]:(-9930)
 
 try_apply_x(int dx) {
-  int nx = ps_get(0) + dx;
-  int ps_get_v = ps_get(1);
-  if (blocked_at(nx, ps_get_v) = 0) { ps_set(0, nx); }
+  int nx = (import ps)[0] + dx;
+  int ps_get_v = (import ps)[1];
+  if (blocked_at(nx, ps_get_v) = 0) { lset((import ps), 0, nx); }
 } return void;
-given player_init given maze_init (70):() then ps_x:(-12000)
-given open_room_setup (70):() then ps_x:(-11930)
+given player_init given maze_init (70):() then (import ps)[0]:(-12000)
+given open_room_setup (70):() then (import ps)[0]:(-11930)
 
 try_apply_z(int dz) {
-  int nz = ps_get(1) + dz;
-  int ps_get_v = ps_get(0);
-  if (blocked_at(ps_get_v, nz) = 0) { ps_set(1, nz); }
+  int nz = (import ps)[1] + dz;
+  int ps_get_v = (import ps)[0];
+  if (blocked_at(ps_get_v, nz) = 0) { lset((import ps), 1, nz); }
 } return void;
-given player_init given maze_init (70):() then ps_z:(-10000)
-given open_room_setup (70):() then ps_z:(-9930)
+given player_init given maze_init (70):() then (import ps)[1]:(-10000)
+given open_room_setup (70):() then (import ps)[1]:(-9930)

@@ -3,29 +3,29 @@
 // card. src_count is how many cards the selection holds.
 
 set_src() {
-  int ui_get_v = ui_get(0);
-  ui_set(1, ui_get_v);
+  int ui_get_v = (import ui)[0];
+  lset((import ui), 1, ui_get_v);
   set_src_tail();
 } return void;
-given apply_board_setup ():() then (import ui)[1]:(6) then (import ui)[2]:(0)
-given apply_board_setup given fd0_one ():() then (import ui)[1]:(6) then (import ui)[2]:(1)
+given apply_board_setup(0) ():() then (import ui)[1]:(6) then (import ui)[2]:(0)
+given apply_board_setup(0) given fd0_one ():() then (import ui)[1]:(6) then (import ui)[2]:(1)
 
 src_start() {
   int g = 0;
-  if(ui_get(0) >= 6) {
-    g = (import fd)[ui_get(0) - 6];
+  if((import ui)[0] >= 6) {
+    g = (import fd)[(import ui)[0] - 6];
   }
 } return int g;
-given apply_board_setup given select_same_pile ():(0)
-given apply_board_setup given fd0_one ():(1)
+given apply_board_setup(0) given select_cursor(0, 1, 1, 1) ():(0)
+given apply_board_setup(0) given fd0_one ():(1)
 
 src_count() {
   int n = 1;
-  if(ui_get(1) >= 6) {
-    int ui_get_v = ui_get(1);
-    n = col_len(ui_get_v - 6) - ui_get(2);
+  if((import ui)[1] >= 6) {
+    int ui_get_v = (import ui)[1];
+    n = col_len(ui_get_v - 6) - (import ui)[2];
   }
 } return int n;
-given apply_board_setup ():(1)
-given apply_board_setup given select_tab0_as_src ():(0)
-given apply_board_setup given push_tab0_card given select_tab0_as_src ():(1)
+given apply_board_setup(0) ():(1)
+given apply_board_setup(0) given select_cursor(1, 6, 2, 0) ():(0)
+given apply_board_setup(0) given push_tab0_card(5) given select_cursor(1, 6, 2, 0) ():(1)

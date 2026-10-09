@@ -368,10 +368,40 @@ is refused, with one check function that states the whole state. Two
 functions identical in every way, imports included, are still the
 duplicate-logic error.
 
-A difference only in a literal is never reported. A
-named accessor, a fixture or a message per constant is how `id` is written; a
-literal-only pair that is really one function (the byte-range predicates of
-`idstd`, the cube's three axes) is fixed by writing it once, not by a check.
+### Two functions that differ only in literals
+
+An **error** as well (E0407). Two functions with the same signature whose logic
+is identical up to the spelling of their own variables **and up to the values of
+their literals** -- integers, words, floats, strings and characters -- are one
+function written twice, with every value that differs as a parameter it should
+have been:
+
+```
+work.id:11: error: function 'is_low' differs from 'is_digit' (defined at work.id:6) only in the values of its literals [E0407]
+```
+
+The check is the E0402 fingerprint with each literal reduced to its kind (integer,
+float or string; word and character literals are integers), so `x + 1` and `x + 2` match, `x + 1` and `x + 1.0` do not, and
+neither do `x + 1` and `x - 1`. Constant folding is switched off for it, so
+`1 + 1` and `3` are not made to agree. The identical-logic error (E0402) is
+reported first when the literals agree too; E0407 never repeats it. A named
+accessor per constant is still a constant wrapper (E0403), not this rule's
+business: the fix here is a parameter, and the constant's name lives in
+`conf.id`.
+
+### Padding
+
+Two more errors (E0409, E0410) refuse code that is longer without doing more,
+because it is how a rule is satisfied on paper while the code stays what it was
+(`x + y + 0` to stop a function being one operation, an `int pad = dt;` so that it
+has two statements). **An operation that cannot change its value** (E0409) is
+`e + 0`, `0 + e`, `e - 0`, `e * 1`, `1 * e`, `e / 1`, `e * 0`, `0 * e`, `- (- e)` and a sum in which
+a term is added and subtracted again (`a + b + b - b`); **a local that is declared
+and never read** (E0410) is one that no expression after its declaration, up to the
+end of its function, names, and that was given an expression that does nothing (a
+local given a call is how a function is run for its effect, and is left alone). The fix is to remove it. A rule that made anyone add it
+needs a different fix, and the diagnostic's help says to report that rule.
+docs/ERRORS.md has both sections.
 
 ### Every rule at once: `--check` and `--fix`
 

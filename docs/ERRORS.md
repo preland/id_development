@@ -115,6 +115,7 @@ Correct:
 ```id
 main(int argc, string[] argv) {
   float x = 1e5;
+  print("" + x);
 } return int 0;
 ```
 
@@ -139,6 +140,7 @@ Correct:
 ```id
 main(int argc, string[] argv) {
   float x = 1.7976931348623157e308;
+  print("" + x);
 } return int 0;
 ```
 
@@ -280,11 +282,11 @@ one(int x) {
 } return int y;
 
 two(int x) {
-  int y = x + 2;
+  int y = x * 2;
 } return int y;
 
 three(int x) {
-  int y = x + 3;
+  int y = x - 3;
 } return int y;
 
 main(int argc, string[] argv) {
@@ -300,7 +302,7 @@ one(int x) {
 } return int y;
 
 two(int x) {
-  int y = x + 2;
+  int y = x * 2;
 } return int y;
 
 main(int argc, string[] argv) {
@@ -649,7 +651,7 @@ twice(int x) {
 } return int y;
 
 twice(int x) {
-  int y = x * 3;
+  int y = x + 3;
 } return int y;
 
 main(int argc, string[] argv) {
@@ -665,7 +667,7 @@ twice(int x) {
 } return int y;
 
 thrice(int x) {
-  int y = x * 3;
+  int y = x + 3;
 } return int y;
 
 main(int argc, string[] argv) {
@@ -827,6 +829,223 @@ main(int argc, string[] argv) {
 } return int 0;
 ```
 
+## E0407 functions that differ only in the values of their literals
+
+Two functions with the same signature and the same logic, whose only difference
+is the value of a literal (an integer, a word, a float, a string or a
+character), are one function written twice. The diagnostic names both places.
+Two functions that also agree on every literal are E0402 instead.
+
+What the fix is depends on how much the functions do. When each is more than one
+operation on its inputs, the value is the only thing that varies, so it belongs
+in a parameter: the help says to keep one function, make each literal that
+differs a parameter, and call it from both places.
+
+When each is itself only one operation on its inputs (E0408's shape, with literals allowed: after substituting its locals, one
+operator, index, field read or call whose operands are parameters, literals or
+`(import NAME)`), a
+parameter would only keep a second spelling of that operation. The help then
+says to write the expression at each call site of each function and delete both;
+a literal that means something is named once as a constant in conf.id, not
+passed in.
+
+Incorrect:
+
+```id
+add_one(int x) {
+  int y = x + 1;
+} return int y;
+
+add_two(int x) {
+  int y = x + 2;
+} return int y;
+
+main(int argc, string[] argv) {
+  int a = add_one(argc);
+  int b = add_two(argc);
+  int c = a + b;
+} return int c;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  int a = argc + 1;
+  int b = argc + 2;
+  int c = a + b;
+} return int c;
+```
+
+For functions that do more than one operation, the parameter is the fix:
+
+```id
+add_by(int x, int step) {
+  int y = x + step;
+  int z = y * 2;
+} return int z;
+
+main(int argc, string[] argv) {
+  int a = add_by(argc, 1);
+  int b = add_by(argc, 2);
+  int c = a + b;
+} return int c;
+```
+
+## E0408 a function that is one operation on its inputs
+
+A function that is only one operation on its parameters is a second spelling of
+that operation: `cell(string[] xs, int i) { string v = xs[i]; } return string v;`
+is `xs[i]` under a name every reader has to open to learn it is nothing more.
+The call site should write the operation itself. It is the family of E0403 (a
+function that only returns a constant), E0406 (a pure forwarder) and E0407.
+
+A function with a body, other than `main` and a native, is reduced by
+substituting each local into the expression that uses it. The leaves are
+parameters and `(import NAME)`. Every other node is one operation: an operator,
+an index or field read, a call to any function or builtin, a list literal. The
+function is reported when all of these hold:
+
+- the reduced expression is exactly one operation;
+- no operand is a literal (`xs[0]`, `x + 1` and `f("a", x)` are not reported: a
+  literal is a value that deserves a name, which a constant in conf.id gives it
+  without a function);
+- nothing reads the function as a function value, in a function body or in a
+  case (`bind(f, 3)`);
+- it is not a test fixture: not named by a `given` or a `then` of any case
+  (`then CHECK(LIT, ...)` included), and not a helper that only such fixtures
+  call;
+- its name is not one the runtime provides: a function named for a builtin or a
+  runtime routine (the reserved names, and `eprint`) is the freestanding
+  implementation of it, as `poke8(word a, word v) { st8(a, v); } return void;`
+  is in `idc/runtime`, and generated code calls it by that fixed name, so there
+  is no call site to write the expression at.
+
+A function with an `if`, `while` or `chain`, with a local that is unused or used
+twice, with an assignment, or with any statement that is no part of the one
+expression is never reported. Neither is one with a local that converts, such as
+`word aw = a;` or `int x = w;`, since the declared type is the point of it. The
+report says VALUE (the function returns the expression) or VOID-CALL (a void
+function whose only statement is a call).
+
+The fix is to write the expression at each call site and delete the function,
+moving its cases to a caller that still pins the behaviour. The scan runs after
+every other check has passed, so a program with another error reports that
+first.
+
+Incorrect:
+
+```id
+cell(string[] xs, int i) {
+  string v = xs[i];
+} return string v;
+
+main(int argc, string[] argv) {
+  string a = cell(argv, 0);
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  string a = argv[0];
+} return int 0;
+```
+
+## E0409 an operation that cannot change its value
+
+An operation whose result is always the value it was given is padding: it looks
+like work, hides the real expression from the reader, and leaves the code doing
+exactly what it did without it. The cases it is reported for are these, each an
+`int` operation (a float `x + 0.0` is left alone, since it turns `-0.0` into
+`0.0`):
+
+- `e + 0`, `0 + e` and `e - 0`;
+- `e * 1`, `1 * e` and `e / 1`;
+- `e * 0` and `0 * e`, a product with a literal zero: it is `0` whatever `e` is, so
+  `x + 0 * (y)` never depends on `y`;
+- `- (- e)`, a negation of a negation;
+- a sum in which a term is added and subtracted again, as `a + b + b - b`: the
+  sum is flattened through its `+` and `-` into signed terms, and two terms with
+  opposite signs that are the same expression cancel, in whatever order they were
+  written (`b + a - b` too). A term that contains a call is never the same as
+  another, because a call may have an effect.
+
+`0 - e` and `1 / e` are not reported: they are not `e`. A constant from conf.id
+that happens to be 0 or 1 is not a literal, so `x + (import offset)` is not
+reported either. A `+` chain that contains a string literal is string
+concatenation, not a sum, and is left alone: `"built " + n + 0` appends the digit
+`0`, and `"left " + (a - b)` is not one sum with the text. (A chain of strings
+with no literal in it, such as `name + 0` for a string `name`, cannot be told
+from an `int` sum without types and would be reported.)
+
+It is an error whatever the reason it was written. The usual reason is another
+rule: E0408 refuses a function that is one operation on its inputs, and writing
+`x + y + 0` makes the function "two operations" without making it anything else.
+That is not the fix for E0408 (write the expression at the call site), and a
+rule that pushes anyone to write it needs a different fix, which is worth
+reporting rather than working round.
+
+The report names the function, the operation and which shape it is. The fix is
+to remove the operation.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  int n = argc + 0;
+} return int n;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  int n = argc;
+} return int n;
+```
+
+## E0410 a local that is declared and never read
+
+A local that is declared and then never read is dead weight: every reader has to
+find out that nothing uses it. Reading it means appearing as a variable in an
+expression after its declaration, up to the end of its function -- a condition,
+an argument, the right side of an assignment, an index, the return clause.
+A local that is assigned after its declaration (`x = f(y);`) is not reported
+either: the assignment is how a call's result is taken and ignored, and the call
+is the point. An exported local (`export int
+name = ...;`) is read by other functions as `(import name)`, so it is never
+reported, and neither is a parameter or a constant from conf.id.
+
+Only a local given an expression that does nothing is reported: operators over
+variables, literals and `(import NAME)`. A local given a call, or an index (which
+traps when it is out of range), is how a function that returns a value is run for
+its effect -- `int r = init_ir();` -- and dropping the declaration would drop the
+effect, so it is not reported.
+
+The usual reason for such a local is a rule worked round: `int pad = dt;` added so
+that a function has "more than one statement". If a rule made you add it, that
+rule needs a different fix -- report it. The fix for the local itself is to remove
+the declaration.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  int pad = argc;
+  int n = argc + 1;
+} return int n;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  int n = argc + 1;
+} return int n;
+```
+
 ## E0501 a function has fewer than two test cases
 
 A function is finished when two cases pass. The cases sit directly under the
@@ -840,7 +1059,7 @@ Incorrect:
 
 ```id tests
 add(int a, int b) {
-  int s = a + b;
+  int s = a + b + 1;
 } return int s;
 
 main(int argc, string[] argv) {
@@ -855,10 +1074,10 @@ Correct:
 
 ```id tests
 add(int a, int b) {
-  int s = a + b;
+  int s = a + b + 1;
 } return int s;
-(1, 2):(3)
-(0, 0):(0)
+(1, 2):(4)
+(0, 0):(1)
 
 main(int argc, string[] argv) {
   int c = add(1, 2);
@@ -879,10 +1098,10 @@ Incorrect:
 
 ```id tests
 add(int a, int b) {
-  int s = a + b;
+  int s = a + b + 1;
 } return int s;
-(1, 2):(3)
-(1, 2):(3)
+(1, 2):(4)
+(1, 2):(4)
 
 main(int argc, string[] argv) {
   int c = add(1, 2);
@@ -896,10 +1115,10 @@ Correct:
 
 ```id tests
 add(int a, int b) {
-  int s = a + b;
+  int s = a + b + 1;
 } return int s;
-(1, 2):(3)
-(0, 0):(0)
+(1, 2):(4)
+(0, 0):(1)
 
 main(int argc, string[] argv) {
   int c = add(1, 2);
@@ -918,10 +1137,10 @@ Incorrect:
 
 ```id tests
 add(int a, int b) {
-  int s = a + b;
+  int s = a + b + 1;
 } return int s;
 (1):(1)
-(0, 0):(0)
+(0, 0):(1)
 
 main(int argc, string[] argv) {
   int c = add(1, 2);
@@ -935,10 +1154,10 @@ Correct:
 
 ```id tests
 add(int a, int b) {
-  int s = a + b;
+  int s = a + b + 1;
 } return int s;
-(1, 2):(3)
-(0, 0):(0)
+(1, 2):(4)
+(0, 0):(1)
 
 main(int argc, string[] argv) {
   int c = add(1, 2);
@@ -998,10 +1217,10 @@ Incorrect:
 
 ```id tests
 add(int a, int b) {
-  int s = a + b;
+  int s = a + b + 1;
 } return int s;
 (1, 2):(3, 4)
-(0, 0):(0)
+(0, 0):(1)
 
 main(int argc, string[] argv) {
   int c = add(1, 2);
@@ -1015,10 +1234,10 @@ Correct:
 
 ```id tests
 add(int a, int b) {
-  int s = a + b;
+  int s = a + b + 1;
 } return int s;
-(1, 2):(3)
-(0, 0):(0)
+(1, 2):(4)
+(0, 0):(1)
 
 main(int argc, string[] argv) {
   int c = add(1, 2);
@@ -1174,6 +1393,52 @@ inc(int n) {
 main(int argc, string[] argv) {
   int r = inc(to_int("1"));
 } return int r;
+```
+
+## E0607 a constructor's argument is a call
+
+`Point(1, 2)` builds a struct on a line of its own, where the next line can see
+what it is. Its arguments are the same: values already named, a literal, a field
+read, a list literal or an operation on names. A call in one, whether a function
+or a builtin such as `len`, is a second action hiding inside the first, and the
+reader of the next line cannot see what the struct was built from. It is the
+constructor's own form of the call-nesting rule (docs/SPEC.md, section 7.1), one
+step stricter: a function's argument may hold one level of call, a constructor's
+may hold none.
+
+A function that exists only to build a struct (`point_new(int x, int y)` that is
+only `Point p = Point(x, y);`) is not the fix: it is E0408, one operation on its
+inputs. Declare the value first, then build the struct.
+
+Incorrect:
+
+```text
+// main.id
+main(int argc, string[] argv) {
+  Point p = Point(1, len(argv));
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
+```
+
+Correct:
+
+```text
+// main.id
+main(int argc, string[] argv) {
+  int count = len(argv);
+  Point p = Point(1, count);
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
 ```
 
 ## E0702 a file with a generic name
@@ -1404,7 +1669,7 @@ setup() {
 } return void;
 
 pure peek_it(int x) {
-  int y = x + (import level);
+  int y = x + (import level) + 1;
 } return int y;
 
 main(int argc, string[] argv) {
@@ -1421,7 +1686,7 @@ setup() {
 } return void;
 
 pure peek_it(int x, int lv) {
-  int y = x + lv;
+  int y = x + lv + 1;
 } return int y;
 
 main(int argc, string[] argv) {
@@ -1440,7 +1705,7 @@ Incorrect:
 
 ```id
 pure apply(func(int) return int f, int x) {
-  int y = f(x);
+  int y = f(x) + 1;
 } return int y;
 
 pure inc(int x) {
@@ -1456,7 +1721,7 @@ Correct:
 
 ```id
 pure apply(pure func(int) return int f, int x) {
-  int y = f(x);
+  int y = f(x) + 1;
 } return int y;
 
 pure inc(int x) {
@@ -1481,7 +1746,7 @@ Incorrect:
 
 ```id
 pure apply(pure func(int) return int f, int x) {
-  int y = f(x);
+  int y = f(x) + 1;
 } return int y;
 
 inc(int x) {
@@ -1497,7 +1762,7 @@ Correct:
 
 ```id
 pure apply(pure func(int) return int f, int x) {
-  int y = f(x);
+  int y = f(x) + 1;
 } return int y;
 
 pure inc(int x) {

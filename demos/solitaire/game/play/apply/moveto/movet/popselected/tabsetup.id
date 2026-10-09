@@ -1,27 +1,28 @@
 // Puts one card (a red 2, suit 1 rank 2) on tableau column 0 so this
 // batch's tab_* cases have a non-empty destination/source column to test
 // the sequence rule and the pop-from-tableau path against.
-push_tab0_card() {
-  int[] col0 = col_of(0);
-  push(col0, 5);
+push_tab0_card(int card_val) {
+  int[] col0 = (import tab)[0];
+  push(col0, card_val);
 } return void;
-given init_piles ():() then calls col_of:(0)
-given init_piles ():() then tab0_top_check:(5)
+given init_piles (5):() then (import tab)[0]:([5])
+given init_piles (5):() then tab0_top_check:(5)
+given init_piles (0):() then tab0_top_check:(0)
+given init_piles given push_tab0_card(5) (0):() then tab0_top_check:(0)
 
-// A second card on top of the first (an ace of clubs), so top_of and the
-// pop/push cases have a two-card column to distinguish bottom from top.
-push_tab0_card2() {
-  int[] col0 = col_of(0);
-  push(col0, 0);
+// Cursor and source pile, as two lset writes: (sc_a, sc_b) then (sc_c, sc_d). The four selections the
+// tableau and foundation cases need: the waste as source onto a tableau column (0, 6, 1, 1), the tableau
+// column's bottom card as source (1, 6, 2, 0), the waste pressed twice, a cancel (0, 1, 1, 1), and the
+// waste onto foundation 0 (0, 2, 1, 1).
+select_cursor(int sc_a, int sc_b, int sc_c, int sc_d) {
+  lset((import ui), sc_a, sc_b);
+  lset((import ui), sc_c, sc_d);
 } return void;
-given init_piles ():() then tab0_top_check:(0)
-given init_piles given push_tab0_card ():() then tab0_top_check:(0)
-
-// Cursor on tableau column 0, source pile the waste -- the selection a
-// "move waste card onto a tableau column" turn leaves in ui.
-select_tab0_waste_src() {
-  ui_set(0, 6);
-  ui_set(1, 1);
-} return void;
-given apply_board_setup ():() then calls ui_set:(0, 6)
-given apply_board_setup ():() then calls ui_set:(1, 1)
+given apply_board_setup(0) (0, 6, 1, 1):() then calls lset:((import ui), 0, 6)
+given apply_board_setup(0) (0, 6, 1, 1):() then calls lset:((import ui), 1, 1)
+given apply_board_setup(0) (1, 6, 2, 0):() then calls lset:((import ui), 1, 6)
+given apply_board_setup(0) (1, 6, 2, 0):() then calls lset:((import ui), 2, 0)
+given apply_board_setup(0) (0, 1, 1, 1):() then calls lset:((import ui), 0, 1)
+given apply_board_setup(0) (0, 1, 1, 1):() then calls lset:((import ui), 1, 1)
+given apply_board_setup(0) (0, 2, 1, 1):() then calls lset:((import ui), 0, 2)
+given apply_board_setup(0) (0, 2, 1, 1):() then calls lset:((import ui), 1, 1)

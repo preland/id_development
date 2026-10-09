@@ -1,20 +1,10 @@
-disp_name(string file) {
-  string name = file;
-  if (file = "-") {
-    name = "<stdin>";
-  }
-} return string name;
-("-"):("<stdin>")
-("a.json"):("a.json")
-("--"):("--")
-
 parse_message(string file) {
   int pos = (import jc)[(import c_erp)];
   int ln = err_line(pos);
   int col = err_col(pos);
 } chain (string file) {
   string txt = err_text();
-  string msg = disp_name(file) + ":" + ln + ":" + col + ": error: " + txt;
+  string msg = src_name(file, "<stdin>") + ":" + ln + ":" + col + ": error: " + txt;
 } return string msg;
 given t_parse stdin "[1 2]" ("f.json"):("f.json:1:4: error: expected ',' or ']' after an array element (found '2')")
 given t_parse stdin "[\n  1 2]" ("-"):("<stdin>:2:5: error: expected ',' or ']' after an array element (found '2')")

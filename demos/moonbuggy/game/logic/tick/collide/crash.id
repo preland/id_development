@@ -3,7 +3,7 @@
 
 collide() {
   if(in_pit()) {
-    gs_set(3, 0);
+    lset((import mb), 3, 0);
   }
 } return void;
 given mb_setup ():() then mb_state:("0,0,0,1,0,0,20,0")
@@ -11,7 +11,7 @@ given crater_setup ():() then mb_state:("0,0,0,0,0,2,20,0")
 
 in_pit() {
   int ok = 0;
-  if(gs_get(1) <= 0 && (import ground)[(import bx)] == 0) {
+  if((import mb)[1] <= 0 && (import ground)[(import bx)] == 0) {
     ok = 1;
   }
 } return int ok;
@@ -19,8 +19,8 @@ given mb_setup ():(0)
 given crater_setup ():(1)
 
 bump_score() {
-  int gs_get_v = gs_get(0);
-  gs_set(0, gs_get_v + 1);
+  int gs_get_v = (import mb)[0];
+  lset((import mb), 0, gs_get_v + 1);
   bump_tick();
 } return void;
 given mb_setup ():() then mb_state:("1,0,0,1,1,0,20,0")

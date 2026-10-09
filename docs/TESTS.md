@@ -41,7 +41,8 @@ the declaration makes three things true that a suite cannot:
 After the `return` clause, one case per line:
 
 ```
-given SETUP stdin "TEXT" timeout N (ARGS):(EXPECTED) then CHECK:(VALUE) [CONSTRAINTS]
+given SETUP(LIT, ...) stdin "TEXT" timeout N (ARGS):(EXPECTED) then CHECK:(VALUE) [CONSTRAINTS]
+                                                    then CHECK(LIT, ...):(VALUE)
                                                     then (import NAME)[i]:(VALUE)
                                                     then len((import NAME)):(VALUE)
                                                     then (import NAME).a.b[i]:(VALUE)
@@ -52,7 +53,7 @@ Most cases are just `(ARGS):(EXPECTED)`:
 - **`ARGS`** — the arguments, as `id` literals, in order. `()` for none.
 - **`EXPECTED`** — the value the call must produce, as an `id` literal.
 - **`CONSTRAINTS`** — optional, in square brackets. See below.
-- **`given SETUP`** (or **`given SETUP(LIT, ...)`**) and **`then CHECK:(VALUE)`**, or **`then (import NAME)[i]:(VALUE)`**, or **`then len((import NAME)):(VALUE)`**, or any of these through struct
+- **`given SETUP`** (or **`given SETUP(LIT, ...)`**) and **`then CHECK:(VALUE)`** (or **`then CHECK(LIT, ...):(VALUE)`**), or **`then (import NAME)[i]:(VALUE)`**, or **`then len((import NAME)):(VALUE)`**, or any of these through struct
   fields, **`then (import NAME).a.b:(VALUE)`** —
   optional, for functions whose behaviour is module state. See "Module state"
   below.
@@ -206,6 +207,43 @@ count() {
   ```
   err.id:9: test failed: err_report("x") then count() = 1, expected 2
   ```
+
+- **`then CHECK(LIT, ...):(VALUE)`** names a check that takes parameters and
+  calls it with the literals written in the parentheses, mirroring
+  `given SETUP(LIT, ...)`: one literal per parameter, each held to the
+  parameter's type as a case's own arguments are, and the result compared with
+  `VALUE` at the check's return type. It is what replaces a zero-parameter
+  check whose only job is to call another function with fixed values:
+
+  ```
+  slot(int i) {
+    int n = (import err_n)[i];
+  } return int n;
+  given err_setup ("x"):() then slot(0):(1)
+  given err_setup ("y"):() then slot(0):(1) then slot(1):(0)
+  ```
+
+  `slot` is one operation on its parameter, which E0408 would refuse in a
+  program, but a function a `then` names is a test fixture and exempt.
+
+  The check is called after the call under test and after the checks written
+  before it, in the order written, so an `(import NAME)` among the literals
+  is the value the export holds by then, and the rule against reading back
+  what the case's own call made (below) applies to it as to a check's
+  expected value; a setup's own arguments are the exemption, not a check's.
+  A function's name cannot be a literal here, as it cannot be for a setup. A
+  failing check shows the call with its arguments:
+
+  ```
+  err.id:9: test failed: err_report("x") then slot(1) = 0, expected 2
+  ```
+
+  `then CHECK:(VALUE)` still means a check with no parameters, and
+  `then CHECK():(VALUE)` reads the same. The literals are part of the case's
+  tokens, so changing one changes its cache key and the case runs again
+  (tested in `idc/tests/cache.sh`). A function named in `then CHECK(LIT, ...)`
+  is a test fixture exactly as one named in `then CHECK` is (E0408's
+  exemption, docs/ERRORS.md).
 
 - **`then (import NAME):(VALUE)`**, **`then (import NAME)[i]:(VALUE)`** and
   **`then len((import NAME)):(VALUE)`**
@@ -390,8 +428,10 @@ the case's line:
 | a function's name among a setup's arguments | `a setup's arguments are literals or (import NAME); 'mk' is a function name, which only a case's own arguments may pass` |
 | `given` naming a function that returns a value | `'given' names 'ret1', which returns int; a setup returns void, since the harness has nothing to compare its result with` |
 | `then` naming no function | `'then' names 'nope', which is not a function in this build` |
-| `then` naming a function with parameters | `'then' names 'f', which takes 1 parameter(s); a check takes none and returns the value it compares` |
-| `then` naming a `void` function | `'then' names 'st', which returns void; a check takes none and returns the value it compares` |
+| `then` naming a function with a different number of parameters than literals | `'then' names 'f', which takes 1 parameter(s), but this 'then' passes 0; a check is called with one literal per parameter, as in 'then f(1, 2):(value)', and with none as 'then f:(value)'` |
+| `then CHECK(LIT, ...)` with a literal of the wrong type | `this case gives a string where a int is required` (the diagnostic a case's own argument gets) |
+| `then CHECK(NAME, ...)` with a function's name as a literal | `a check's arguments are literals or (import NAME); 'g' is a function name, which only a case's own arguments may pass` |
+| `then` naming a `void` function | `'then' names 'st', which returns void; a check returns the value it compares` |
 | a check with more or fewer than one value | `a 'then' check compares exactly one value, not 2` |
 | `(import NAME)` as a check's value | `a 'then' check compares a literal; (import g) may only be an argument or an expected value` |
 | `(import NAME)` in a case without `given` | `(import g) needs a 'given': an export has no value in a case until a setup has run; a setup's own arguments are read before it runs, so an (import NAME) there needs an earlier 'given' that sets it` |

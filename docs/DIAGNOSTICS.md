@@ -387,9 +387,11 @@ grep -rnE '[^a-z_](tc_err|syn_err|case_err|sd_err|var_report)\(' idc/compiler --
 | E0301 E0302 E0303 E0304 | undefined variable; declared twice; one name two types across the program and the library (`related:` the other declaration, the library's when the program's name collides with it); no such function (the builtin list moved to `help`) | head only | |
 | E0305 E0306 E0307 E0308 E0309 | variable of another function; calling a variable; scope; named like a function; named like an export | head only | |
 | E0310 E0406 | a parameter with a generated name; a function that only forwards to another | new | |
-| E0401 E0402 E0403 E0405 | same name (`related:` the first); same logic (`related:` the other); constant wrapper; differ only in an import | yes | |
+| E0409 E0410 | an operation that cannot change its value; a local that is declared and never read | new | |
+| E0401 E0402 E0403 E0405 E0407 | same name (`related:` the first); same logic (`related:` the other); constant wrapper; differ only in an import; differ only in literal values (`related:` the other) | yes | |
 | E0501 E0502 E0503 E0504 E0505 | too few cases; repeated case (`related:` the first); case arity; expected arity; return arity | yes | E0501: `placeholder` skeleton after the function |
 | E0601 E0602 E0604 E0605 E0606 | bitwise and comparison; return type; compare; call arity; argument type | yes | E0601: `machine` replace |
+| E0607 | a constructor's argument is a call | new | |
 | E0702 E0703 E0704 E0705 E0706 E0707 | tree shape (`tools/idlayout`); E0701 (entries per directory) is retired and the limit is gone | yes | |
 
 ### Old to new (the pinned wording)

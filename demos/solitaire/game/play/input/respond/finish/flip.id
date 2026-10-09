@@ -3,20 +3,20 @@
 
 finish_move() {
   flip_src();
-  ui_set(1, 0 - 1);
+  lset((import ui), 1, 0 - 1);
   check_win();
 } return void;
-given apply_board_setup given select_tab0_as_src ():() then calls maybe_flip:(0) then calls ui_set:(1, -1)
-given apply_board_setup given select_waste_found ():() then calls maybe_flip:[0] then calls ui_set:(1, -1)
+given apply_board_setup(0) given select_cursor(1, 6, 2, 0) ():() then calls maybe_flip:(0) then calls lset:((import ui), 1, -1)
+given apply_board_setup(0) given select_cursor(0, 2, 1, 1) ():() then calls maybe_flip:[0] then calls lset:((import ui), 1, -1)
 
 flip_src() {
-  if(ui_get(1) >= 6) {
-    int ui_get_v = ui_get(1);
+  if((import ui)[1] >= 6) {
+    int ui_get_v = (import ui)[1];
     maybe_flip(ui_get_v - 6);
   }
 } return void;
-given apply_board_setup ():() then calls maybe_flip:[0]
-given apply_board_setup given select_tab0_as_src ():() then calls maybe_flip:(0)
+given apply_board_setup(0) ():() then calls maybe_flip:[0]
+given apply_board_setup(0) given select_cursor(1, 6, 2, 0) ():() then calls maybe_flip:(0)
 
 maybe_flip(int col) {
   if(needs_flip(col)) {
@@ -24,4 +24,4 @@ maybe_flip(int col) {
   }
 } return void;
 given init_piles (0):() then (import fd)[0]:(0)
-given init_piles given push_tab0_card given fd0_one (0):() then (import fd)[0]:(0)
+given init_piles given push_tab0_card(5) given fd0_one (0):() then (import fd)[0]:(0)

@@ -1,10 +1,3 @@
-// The key the benchmark uses for its i-th entry.
-bench_key(int i) {
-  string key = "key-" + i;
-} return string key;
-(0):("key-0")
-(49999):("key-49999")
-
 // The value for the i-th entry: about a hundred bytes, different for every i.
 bench_val(int i) {
   string val = "value-" + i + str_repeat(".", 80);
@@ -17,7 +10,7 @@ bench_put(string path, string[] keys, int[] vals, int[] used, int[] st, word[] e
   int code = 0;
   int i = 0;
   while(i < n && code == 0) {
-    code = put_arg(path, keys, vals, used, st, ea, bench_key(i), bench_val(i));
+    code = put_arg(path, keys, vals, used, st, ea, "key-" + i, bench_val(i));
     i = i + 1;
   }
 } return int code;

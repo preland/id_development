@@ -116,7 +116,7 @@ demos/flyover/
     │   │   ├── build.id          (mesh_init)
     │   │   ├── geom/             -- corner index/coordinate/color math
     │   │   │   ├── index.id      (local_of, corner_index, slot_corner)
-    │   │   │   ├── coords.id     (corner_x, corner_y, corner_z)
+    │   │   │   ├── coords.id     (corner_x, corner_z)
     │   │   │   └── color.id      (corner_color)
     │   │   └── meshbuild/        -- flatten into gl_draw_tris' lists
     │   │       ├── vertbuild.id  (build_verts, fill_verts)
@@ -124,7 +124,6 @@ demos/flyover/
     │   │       └── colorbuild.id (build_colors, fill_colors, push_color)
     │   └── color/                -- height-tier shading + fog
     │       ├── tiers.id          (height_color, height_color_high)
-    │       ├── pack.id           (shade_low, shade_mid, shade_high)
     │       └── fog.id            (fog_scale, apply_fog)
     └── flight/                   -- rebuilt every frame; no stored state
         ├── view/

@@ -1,13 +1,14 @@
-// Sets every run triple's character row to 0 (nothing set); lengths and links stay.
-runs_zero(int[] runs) {
+// Sets every step-th entry from the second to 0: with step 3 that is each run triple's character row (nothing set), and lengths and links stay.
+runs_zero(int[] runs, int step) {
   int i = 1;
   while(i < len(runs)) {
     runs[i] = 0;
-    i = i + 3;
+    i = i + step;
   }
 } return void;
-([2, 5, -1, 1, 8, 3]):([2, 0, -1, 1, 0, 3])
-([]):([])
+([2, 5, -1, 1, 8, 3], 3):([2, 0, -1, 1, 0, 3])
+([5, 6, 7], 1):([5, 0, 0])
+([], 3):([])
 
 // For ed_over: in code points lo..hi-1 of paragraph para, applies the character change acc = [field, value] (see fmt_row) as one SET_RUNS in the open undo step, or does nothing when the runs would come out unchanged.
 fmt_runs(Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
@@ -19,7 +20,8 @@ fmt_runs(Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
   int[] old = runs_span(p.txt, lo, hi);
   if(ints_eq(runs, old) == 0) {
     int[] loc = [para, lo, hi];
-    ed_run(d, ctl, op_make((import ed_k_runs), loc, runs));
+    Op run_change = Op((import ed_k_runs), loc, runs);
+    ed_run(d, ctl, run_change);
   }
 } return void;
 given fx_setup("abcd") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 1, 3, [101, 1]):((import fxd), (import fxc), 0, 1, 3, [101, 1]) then fx_show:("a*bc*d") then fx_hist:("u1 r0 o0 n1")

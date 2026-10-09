@@ -2,10 +2,12 @@
 par_set(Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
   Para p = d.body.paras[para];
   int pn = tab_with(d.fmt.paras, p.pprop, acc[0], acc[1]);
+  int[] loc = [para];
+} chain (Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
+  int[] dat = [pn];
   if(pn != p.pprop && ed_solid(d, para) == 0) {
-    int[] loc = [para];
-    int[] dat = [pn];
-    ed_run(d, ctl, op_make((import ed_k_pprop), loc, dat));
+    Op row_change = Op((import ed_k_pprop), loc, dat);
+    ed_run(d, ctl, row_change);
   }
 } return void;
 given fx_setup("ab") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 0, 2, [1, 2]):((import fxd), (import fxc), 0, 0, 2, [1, 2]) then fx_show:("{9}ab") then fx_hist:("u1 r0 o0 n1")

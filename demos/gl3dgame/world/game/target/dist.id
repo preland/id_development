@@ -2,25 +2,19 @@
 // limit -- see hit.id's abs_diff for what they feed.
 
 hit_test() {
-  int dx = hit_dx();
-  int dz = hit_dz();
+  int dx = hit_axis(0, 2);
+  int dz = hit_axis(1, 3);
   int ret_i = dx = 0 && dz = 0;
 } return int ret_i;
 given state_init ():(0)
 given mb_hit_setup ():(1)
 
-hit_dx() {
-  int gs_get_v = gs_get(0);
-  int gs_get_v2 = gs_get(2);
+hit_axis(int hit_ia, int hit_ib) {
+  int gs_get_v = (import mb)[hit_ia];
+  int gs_get_v2 = (import mb)[hit_ib];
   int ret_i = abs_diff(gs_get_v, gs_get_v2);
 } return int ret_i;
-given state_init ():(3)
-given mb_hit_setup ():(0)
-
-hit_dz() {
-  int gs_get_v3 = gs_get(1);
-  int gs_get_v4 = gs_get(3);
-  int ret_i = abs_diff(gs_get_v3, gs_get_v4);
-} return int ret_i;
-given state_init ():(3)
-given mb_hit_setup ():(0)
+given state_init (0, 2):(3)
+given mb_hit_setup (0, 2):(0)
+given state_init (1, 3):(3)
+given mb_hit_setup (1, 3):(0)

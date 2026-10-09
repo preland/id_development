@@ -19,8 +19,9 @@ given fx_setup("abc") ((import fxd), (import fxc)):((import fxd), (import fxc)) 
 ed_put_cps(Doc d, Ctl ctl, int[] cps) {
   int cprop = ed_cprop(d, ctl);
   int[] loc = [ctl.sel.caret.para, ctl.sel.caret.off, cprop, 0];
-  ed_run(d, ctl, op_make((import ed_k_ins), loc, cps));
+  Op insertion = Op((import ed_k_ins), loc, cps);
 } chain (Doc d, Ctl ctl, int[] cps) {
+  ed_run(d, ctl, insertion);
   sel_put(ctl.sel, ctl.sel.caret.para, ctl.sel.caret.off + len(cps), 0);
   typing_set(-1);
 } return void;

@@ -7,23 +7,14 @@ ground_state() {
 given mb_setup ():("1,60,1")
 given mb_setup ():("1,60,1") then eprints:("")
 
-// The crashed state maybe_gameover/draw_gameover/update_dead's true branch
-// needs, which mb_setup alone never reaches (a fresh game starts alive).
-crash_setup() {
-  mb_setup();
-  gs_set(3, 0);
-} return void;
-():()
-():() then eprints:("")
-
 // A crater already in progress, and one open at the buggy's own column --
-// the state pop_crater/next_col's crater-continuing branch and in_pit's/
+// the state count_down/next_col's crater-continuing branch and in_pit's/
 // solid_col's/reset_ground's crater-column branch each need, none of which
 // mb_setup alone ever reaches (a fresh game starts with crater_left 0 and
 // solid ground everywhere).
 crater_setup() {
   mb_setup();
-  gs_set(5, 2);
+  lset((import mb), 5, 2);
   lset((import ground), (import bx), 0);
 } return void;
 ():()

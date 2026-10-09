@@ -2,27 +2,27 @@
 // selection; otherwise dispatch to a foundation or tableau destination.
 
 do_move() {
-  if(ui_get(0) == ui_get(1)) {
+  if((import ui)[0] == (import ui)[1]) {
     cancel_sel();
   } else {
     try_move();
   }
 } return void;
-given apply_board_setup given select_waste_found ():() then calls try_move:()
-given apply_board_setup given select_same_pile ():() then calls cancel_sel:()
+given apply_board_setup(0) given select_cursor(0, 2, 1, 1) ():() then calls try_move:()
+given apply_board_setup(0) given select_cursor(0, 1, 1, 1) ():() then calls cancel_sel:()
 
 cancel_sel() {
-  ui_set(1, 0 - 1);
+  lset((import ui), 1, 0 - 1);
 } return void;
-given apply_board_setup given select_waste_found ():() then calls ui_set:(1, -1)
-given apply_board_setup given select_same_pile ():() then calls ui_set:(1, -1)
+given apply_board_setup(0) given select_cursor(0, 2, 1, 1) ():() then calls lset:((import ui), 1, -1)
+given apply_board_setup(0) given select_cursor(0, 1, 1, 1) ():() then calls lset:((import ui), 1, -1)
 
 try_move() {
-  if(ui_get(0) >= 6) {
+  if((import ui)[0] >= 6) {
     move_to_tab();
   } else {
     move_to_found();
   }
 } return void;
-given apply_board_setup given select_tab0_waste_src ():() then calls move_to_tab:()
-given apply_board_setup given select_waste_found ():() then calls move_to_found:()
+given apply_board_setup(0) given select_cursor(0, 6, 1, 1) ():() then calls move_to_tab:()
+given apply_board_setup(0) given select_cursor(0, 2, 1, 1) ():() then calls move_to_found:()

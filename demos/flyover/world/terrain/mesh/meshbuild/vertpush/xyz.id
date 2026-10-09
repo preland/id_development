@@ -1,6 +1,7 @@
 // One coordinate each, so push_xyz (push.id) stays within its own 3-action
-// budget while pushing all 3 -- the three bodies read alike but call
-// different corner_* functions, so they are not the same logic three times.
+// budget while pushing all 3 -- the three bodies read alike but read
+// different sources (corner_x, the height list, corner_z), so they are not
+// the same logic three times.
 
 push_x(int c) {
   int corner_x_v = corner_x(c);
@@ -10,7 +11,7 @@ given world_init (0):() then mesh_state:("-8400,8425,1338920,2808")
 given world_init (5):() then mesh_state:("-8400,8425,1338920,2808") then eprints:("")
 
 push_y(int c) {
-  int corner_y_v = corner_y(c);
+  int corner_y_v = (import heights)[c];
   push((import verts), corner_y_v);
 } return void;
 given world_init (0):() then mesh_state:("-8400,8425,1338920,2808")

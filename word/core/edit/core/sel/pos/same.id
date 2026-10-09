@@ -20,9 +20,10 @@ sel_empty(Sel sel) {
 
 // The earlier end of the selection in document order, as a position of its own.
 sel_lo(Sel sel) {
-  Pos ps = pos_new(sel.anchor.para, sel.anchor.off);
+  Pos ps = Pos(sel.anchor.para, sel.anchor.off);
   if(pos_lt(sel.caret, sel.anchor) == 1) {
-    ps = pos_new(sel.caret.para, sel.caret.off);
+    ps.para = sel.caret.para;
+    ps.off = sel.caret.off;
   }
 } return Pos ps;
 (Sel(Pos(1, 2), Pos(3, 0), -1)):(Pos(1, 2))

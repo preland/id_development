@@ -1,26 +1,7 @@
-// Source pile is tableau column 0, starting at its bottom card -- the
-// selection this batch's "remove from tableau" cases need, as opposed to
-// select_tab0_waste_src's "source is the waste" selection.
-select_tab0_as_src() {
-  ui_set(1, 6);
-  ui_set(2, 0);
-} return void;
-given apply_board_setup ():() then calls ui_set:(1, 6)
-given apply_board_setup ():() then calls ui_set:(2, 0)
-
-// Cursor moved back onto the stock pile (0 = stock), the ui_get(0) < 2
+// Cursor moved back onto the stock pile (0 = stock), the (import ui)[0] < 2
 // case move_to_found's dispatch needs.
 select_stock_cursor() {
-  ui_set(0, 0);
+  lset((import ui), 0, 0);
 } return void;
-given apply_board_setup ():() then calls ui_set:(0, 0)
-given apply_board_setup given select_waste_found ():() then calls ui_set:(0, 0)
-
-// Cursor and source pile the same (the waste both times) -- pressing the
-// pile that is already selected, which do_move must read as a cancel.
-select_same_pile() {
-  ui_set(0, 1);
-  ui_set(1, 1);
-} return void;
-given apply_board_setup ():() then calls ui_set:(0, 1)
-given apply_board_setup ():() then calls ui_set:(1, 1)
+given apply_board_setup(0) ():() then calls lset:((import ui), 0, 0)
+given apply_board_setup(0) given select_cursor(0, 2, 1, 1) ():() then calls lset:((import ui), 0, 0)
