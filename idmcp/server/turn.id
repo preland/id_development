@@ -1,0 +1,41 @@
+// One turn of the line loop: what wire_fill read becomes a reply line on stdout,
+// and nothing else ever does, since stdout is the protocol channel. A line that
+// was too long (-2) or held a NUL (-3) is answered with an error; a blank line
+// is ignored.
+
+server_input(int server_size, string server_line) {
+  string server_answer = server_reply(server_line);
+  if (server_size == -2) {
+    server_answer = wire_failure("null", -32600, "Request too large");
+  }
+  if (server_size == -3) {
+    server_answer = wire_failure("null", -32700, "Parse error: NUL byte in request");
+  }
+} chain (int server_size, string server_line) {
+  if (server_size >= 0 && str_trim(server_line) == "") {
+    server_answer = "";
+  }
+} return string server_answer;
+(3, "{ba"):("{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}")
+(3, "{x}"):("{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}")
+(-2, ""):("{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Request too large\"}}")
+(-3, ""):("{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error: NUL byte in request\"}}")
+(0, ""):("")
+(2, "  "):("")
+
+server_emit(string server_answer) {
+  if (server_answer != "") {
+    print(server_answer);
+    flush();
+  }
+} return void;
+("{}"):() then prints:("{}\n")
+(""):() then prints:("")
+
+server_turn(word server_buffer, int server_size) {
+  string server_line = wire_line_text(server_buffer, server_size);
+  string server_answer = server_input(server_size, server_line);
+  server_emit(server_answer);
+} return void;
+given wire_t_fill stdin "{bad\n" ((import wire_filled_buffer), (import wire_filled_size)):() then prints:("{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}\n")
+given wire_t_fill stdin "\n" ((import wire_filled_buffer), (import wire_filled_size)):() then prints:("")

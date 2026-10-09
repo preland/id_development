@@ -1,0 +1,34 @@
+// What each MCP method answers. initialize echoes the protocol version the
+// client asked for (any string, quoted back safely) and falls back to the
+// version in conf.id when it sent none; tools/list is the constant tool list.
+
+server_method(string server_line, string server_name, string server_id_text) {
+  string server_answer = wire_failure(server_id_text, -32601, "Method not found");
+  if (server_name == "initialize") {
+    server_answer = wire_result(server_id_text, server_initialize(server_line));
+  }
+  if (server_name == "tools/list") {
+    server_answer = wire_result(server_id_text, (import server_tool_list));
+  }
+} chain (string server_line, string server_name, string server_id_text) {
+  if (server_name == "tools/call") {
+    server_answer = server_call(server_line, server_id_text);
+  }
+} return string server_answer;
+("{}", "initialize", "1"):("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"protocolVersion\":\"2025-06-18\",\"capabilities\":{\"tools\":{}},\"serverInfo\":{\"name\":\"idmcp\",\"version\":\"0.1.0\"}}}")
+("{}", "tools/list", "\"a\""):("{\"jsonrpc\":\"2.0\",\"id\":\"a\",\"result\":{\"tools\":[{\"name\":\"echo\",\"description\":\"Returns the text it is given.\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"text\":{\"type\":\"string\"}},\"required\":[\"text\"]}}]}}")
+("{}", "resources/list", "2"):("{\"jsonrpc\":\"2.0\",\"id\":2,\"error\":{\"code\":-32601,\"message\":\"Method not found\"}}")
+("{\"params\":{\"name\":\"echo\",\"arguments\":{\"text\":\"x\"}}}", "tools/call", "3"):("{\"jsonrpc\":\"2.0\",\"id\":3,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"x\"}]}}")
+
+server_initialize(string server_line) {
+  string server_version_text = (import server_protocol_default);
+  if (wire_expect(server_line, "params.protocolVersion", "string") == 1) {
+    server_version_text = json_text(server_line, "params.protocolVersion");
+  }
+  string server_quoted = wire_quote(server_version_text);
+} chain (string server_line) {
+  string server_info = "{\"protocolVersion\":" + server_quoted + ",\"capabilities\":{\"tools\":{}},\"serverInfo\":{\"name\":\"idmcp\",\"version\":" + wire_quote((import server_version)) + "}}";
+} return string server_info;
+("{}"):("{\"protocolVersion\":\"2025-06-18\",\"capabilities\":{\"tools\":{}},\"serverInfo\":{\"name\":\"idmcp\",\"version\":\"0.1.0\"}}")
+("{\"params\":{\"protocolVersion\":\"2024-11-05\"}}"):("{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{}},\"serverInfo\":{\"name\":\"idmcp\",\"version\":\"0.1.0\"}}")
+("{\"params\":{\"protocolVersion\":5}}"):("{\"protocolVersion\":\"2025-06-18\",\"capabilities\":{\"tools\":{}},\"serverInfo\":{\"name\":\"idmcp\",\"version\":\"0.1.0\"}}")

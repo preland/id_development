@@ -1,0 +1,27 @@
+// What a \uXXXX escape becomes. A surrogate half (D800..DFFF) is not a character
+// by itself and U+0000 cannot live in a string, so those escapes are left as
+// written; everything else is encoded as UTF-8.
+
+wire_scalar(int wire_code) {
+  int wire_good = wire_code > 0 && (wire_code < 55296 || wire_code > 57343);
+} return int wire_good;
+(65):(1)
+(233):(1)
+(55295):(1)
+(57344):(1)
+(55296):(0)
+(57343):(0)
+(0):(0)
+(-1):(0)
+
+wire_piece(int wire_code, int wire_good) {
+  string wire_text = "\\u";
+  if (wire_good == 1) {
+    wire_text = utf8_str(wire_code);
+  }
+} return string wire_text;
+(65, 1):("A")
+(233, 1):("é")
+(20013, 1):("中")
+(55296, 0):("\\u")
+(-1, 0):("\\u")

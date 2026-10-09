@@ -1,0 +1,48 @@
+// What kind of JSON value starts at a position, from its first byte, so a
+// request can be type-checked without a parser. json_find answers -1 for a
+// member that is not there, which reads as "missing".
+
+wire_kind_of(int wire_char) {
+  string wire_class = "invalid";
+  if (wire_char == 34) {
+    wire_class = "string";
+  }
+  if (wire_char == 123) {
+    wire_class = "object";
+  }
+} chain (int wire_char) {
+  if (wire_char == 91) {
+    wire_class = "array";
+  }
+  if (wire_char == 116 || wire_char == 102) {
+    wire_class = "boolean";
+  }
+  if (wire_char == 110) {
+    wire_class = "null";
+  }
+} chain (int wire_char) {
+  if (wire_char == 45 || chr_is_digit(wire_char) == 1) {
+    wire_class = "number";
+  }
+} return string wire_class;
+(34):("string")
+(123):("object")
+(91):("array")
+(116):("boolean")
+(102):("boolean")
+(110):("null")
+(45):("number")
+(55):("number")
+(120):("invalid")
+(-1):("invalid")
+
+wire_kind(string wire_doc, int wire_pos) {
+  string wire_name = "missing";
+  if (wire_pos >= 0) {
+    wire_name = wire_kind_of(charat(wire_doc, wire_pos));
+  }
+} return string wire_name;
+("{\"a\": 1}", 6):("number")
+("{\"a\": \"s\"}", 6):("string")
+("[]", -1):("missing")
+("[]", 0):("array")

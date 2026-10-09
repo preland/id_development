@@ -1,0 +1,61 @@
+// Reading hex digits out of a request, for \uXXXX. Each answers -1 for anything
+// that is not hex, so a malformed escape is left as written instead of decoded
+// to nonsense.
+
+wire_digit(int wire_char) {
+  int wire_value = -1;
+  if (wire_char >= 48 && wire_char <= 57) {
+    wire_value = wire_char - 48;
+  }
+  if (wire_char >= 97 && wire_char <= 102) {
+    wire_value = wire_char - 87;
+  }
+} chain (int wire_char) {
+  if (wire_char >= 65 && wire_char <= 70) {
+    wire_value = wire_char - 55;
+  }
+} return int wire_value;
+(48):(0)
+(57):(9)
+(97):(10)
+(102):(15)
+(65):(10)
+(70):(15)
+(103):(-1)
+(71):(-1)
+(47):(-1)
+(-1):(-1)
+
+wire_hex2(string wire_text, int wire_at) {
+  int wire_high = wire_digit(charat(wire_text, wire_at));
+  int wire_low = wire_digit(charat(wire_text, wire_at + 1));
+  int wire_pair = wire_high * 16 + wire_low;
+} chain (string wire_text, int wire_at) {
+  if (wire_high < 0 || wire_low < 0) {
+    wire_pair = -1;
+  }
+} return int wire_pair;
+("0a", 0):(10)
+("xFF", 1):(255)
+("00", 0):(0)
+("0g", 0):(-1)
+("g0", 0):(-1)
+("7", 0):(-1)
+("", 0):(-1)
+
+wire_hex4(string wire_text, int wire_at) {
+  int wire_upper = wire_hex2(wire_text, wire_at);
+  int wire_lower = wire_hex2(wire_text, wire_at + 2);
+  int wire_code = wire_upper * 256 + wire_lower;
+} chain (string wire_text, int wire_at) {
+  if (wire_upper < 0 || wire_lower < 0) {
+    wire_code = -1;
+  }
+} return int wire_code;
+("0041", 0):(65)
+("\\u00e9", 2):(233)
+("4E2d", 0):(20013)
+("ffff", 0):(65535)
+("00zz", 0):(-1)
+("zz00", 0):(-1)
+("004", 0):(-1)

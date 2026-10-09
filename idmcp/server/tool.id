@@ -1,0 +1,35 @@
+// tools/call. An unknown tool name or a missing or non-string argument is a
+// -32602 (invalid params) error reply; echo answers its text back as MCP text
+// content.
+
+server_call(string server_line, string server_id_text) {
+  string server_tool = json_text(server_line, "params.name");
+  string server_answer = wire_failure(server_id_text, -32602, "Unknown tool: " + server_tool);
+  if (server_tool == "echo") {
+    server_answer = server_echo(server_line, server_id_text);
+  }
+} return string server_answer;
+("{\"params\":{\"name\":\"echo\",\"arguments\":{\"text\":\"hi\"}}}", "5"):("{\"jsonrpc\":\"2.0\",\"id\":5,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"hi\"}]}}")
+("{\"params\":{\"name\":\"nope\"}}", "6"):("{\"jsonrpc\":\"2.0\",\"id\":6,\"error\":{\"code\":-32602,\"message\":\"Unknown tool: nope\"}}")
+("{\"params\":{}}", "7"):("{\"jsonrpc\":\"2.0\",\"id\":7,\"error\":{\"code\":-32602,\"message\":\"Unknown tool: \"}}")
+
+server_echo(string server_line, string server_id_text) {
+  int server_ok = wire_expect(server_line, "params.arguments.text", "string");
+  string server_answer = wire_failure(server_id_text, -32602, "echo needs a string argument: text");
+  if (server_ok == 1) {
+    server_answer = server_content(server_line, server_id_text);
+  }
+} return string server_answer;
+("{\"params\":{\"arguments\":{\"text\":\"a\\\"b\\n\"}}}", "1"):("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"a\\\"b\\n\"}]}}")
+("{\"params\":{\"arguments\":{\"text\":3}}}", "1"):("{\"jsonrpc\":\"2.0\",\"id\":1,\"error\":{\"code\":-32602,\"message\":\"echo needs a string argument: text\"}}")
+("{\"params\":{\"arguments\":{}}}", "2"):("{\"jsonrpc\":\"2.0\",\"id\":2,\"error\":{\"code\":-32602,\"message\":\"echo needs a string argument: text\"}}")
+
+server_content(string server_line, string server_id_text) {
+  int server_pos = json_find(server_line, "params.arguments.text");
+  string server_text = wire_string(server_line, server_pos);
+  string server_body = "{\"content\":[{\"type\":\"text\",\"text\":" + wire_quote(server_text) + "}]}";
+} chain (string server_line, string server_id_text) {
+  string server_answer = wire_result(server_id_text, server_body);
+} return string server_answer;
+("{\"params\":{\"arguments\":{\"text\":\"caf\\u00e9 \\\\n\"}}}", "8"):("{\"jsonrpc\":\"2.0\",\"id\":8,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"café \\\\n\"}]}}")
+("{\"params\":{\"arguments\":{\"text\":\"\"}}}", "\"x\""):("{\"jsonrpc\":\"2.0\",\"id\":\"x\",\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"\"}]}}")

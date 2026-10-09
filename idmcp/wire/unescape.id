@@ -1,0 +1,39 @@
+// The text of a JSON string from the bytes between its quotes, every escape
+// undone including \uXXXX (idstd's json_text leaves those, and it undoes the
+// backslash pairs before looking, so it cannot tell an escaped backslash
+// followed by u0041 from the escape A). A doubled backslash is set aside
+// as byte 255 first, so what follows it is never read as an escape, and put
+// back last. Byte 255 is the one no decoded escape can produce (UTF-8 never
+// contains it, and \u0001 .. ÿ encode as one or two other bytes), so a raw
+// byte 255 in a request, which is not valid UTF-8, would come out as a backslash.
+
+wire_unescape(string wire_raw) {
+  string wire_hold = chr(255);
+  string wire_text = str_replace(wire_raw, "\\\\", wire_hold);
+  wire_text = str_replace(wire_text, "\\\"", "\"");
+} chain (string wire_raw) {
+  wire_text = str_replace(wire_text, "\\n", "\n");
+  wire_text = str_replace(wire_text, "\\t", "\t");
+  wire_text = str_replace(wire_text, "\\r", "\r");
+} chain (string wire_raw) {
+  wire_text = str_replace(wire_text, "\\/", "/");
+  wire_text = str_replace(wire_text, "\\b", chr(8));
+  wire_text = str_replace(wire_text, "\\f", chr(12));
+} chain (string wire_raw) {
+  wire_text = wire_unicode(wire_text);
+  wire_text = str_replace(wire_text, wire_hold, "\\");
+} return string wire_text;
+("abc"):("abc")
+("say \\\"hi\\\""):("say \"hi\"")
+("a\\nb\\tc\\rd"):("a\nb\tc\rd")
+("a\\\\nb"):("a\\nb")
+("a\\\\u0041"):("a\\u0041")
+("a\\u0041\\\\"):("aA\\")
+("\\/\\b\\f"):("/\x08\x0c")
+("\\u005cn"):("\\n")
+("caf\\u00e9 é"):("café é")
+("\\\\\\\\"):("\\\\")
+("a\\u0001z"):("a\x01z")
+("\\u00ff!"):("ÿ!")
+("aaaa\\nbbbb"):("aaaa\nbbbb")[time:O(n), mem:O(n)]
+("aaaa\\nbbbbaaaa\\nbbbbaaaa\\nbbbbaaaa\\nbbbb"):("aaaa\nbbbbaaaa\nbbbbaaaa\nbbbbaaaa\nbbbb")[time:O(n), mem:O(n)]

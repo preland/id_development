@@ -1,0 +1,44 @@
+// The reply to one request line, as a line of JSON, or "" when there is nothing
+// to send. A line that is not a request is refused (-32700, -32600) with an
+// error reply; a request without an "id" is a notification and never gets any
+// reply, whatever its method, as JSON-RPC 2.0 requires.
+
+server_reply(string server_line) {
+  int server_code = wire_check(server_line);
+  string server_answer = server_refusal(server_line, server_code);
+  if (server_code == 0) {
+    server_answer = server_dispatch(server_line);
+  }
+} return string server_answer;
+("{bad"):("{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}")
+("{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":5}"):("{\"jsonrpc\":\"2.0\",\"id\":4,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}")
+("{\"jsonrpc\":\"2.0\",\"id\":9,\"method\":\"nope\"}"):("{\"jsonrpc\":\"2.0\",\"id\":9,\"error\":{\"code\":-32601,\"message\":\"Method not found\"}}")
+("{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}"):("")
+
+server_refusal(string server_line, int server_code) {
+  string server_answer = "";
+  if (server_code == -32700) {
+    server_answer = wire_failure("null", server_code, "Parse error");
+  }
+  if (server_code == -32600) {
+    server_answer = wire_failure(wire_id(server_line), server_code, "Invalid Request");
+  }
+} return string server_answer;
+("{bad", -32700):("{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}")
+("{\"id\":\"s\"}", -32600):("{\"jsonrpc\":\"2.0\",\"id\":\"s\",\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}")
+("{\"id\":[1]}", -32600):("{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Invalid Request\"}}")
+("{}", 0):("")
+
+server_dispatch(string server_line) {
+  string server_method_name = json_text(server_line, "method");
+  string server_id_text = wire_id(server_line);
+  string server_answer = server_method(server_line, server_method_name, server_id_text);
+} chain (string server_line) {
+  if (json_find(server_line, "id") < 0) {
+    server_answer = "";
+  }
+} return string server_answer;
+("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\"}"):("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"tools\":[{\"name\":\"echo\",\"description\":\"Returns the text it is given.\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"text\":{\"type\":\"string\"}},\"required\":[\"text\"]}}]}}")
+("{\"jsonrpc\":\"2.0\",\"method\":\"tools/list\"}"):("")
+("{\"jsonrpc\":\"2.0\",\"method\":\"unknown\"}"):("")
+("{\"jsonrpc\":\"2.0\",\"id\":\"k\",\"method\":\"unknown\"}"):("{\"jsonrpc\":\"2.0\",\"id\":\"k\",\"error\":{\"code\":-32601,\"message\":\"Method not found\"}}")

@@ -1,0 +1,40 @@
+// Strings inside a request, read from the raw document. json_find says where a
+// value starts; the raw bytes are needed because json_text has already undone
+// the backslash pairs, which loses whether a later \u was escaped.
+
+wire_string_end(string wire_doc, int wire_pos) {
+  int wire_at = wire_pos + 1;
+  int wire_char = charat(wire_doc, wire_at);
+  while (wire_char >= 0 && wire_char != 34) {
+    if (wire_char == 92) {
+      wire_at = wire_at + 1;
+    }
+    wire_at = wire_at + 1;
+    wire_char = charat(wire_doc, wire_at);
+  }
+} chain (string wire_doc, int wire_pos) {
+  int wire_end = wire_at + 1;
+  if (wire_char < 0) {
+    wire_end = -1;
+  }
+} return int wire_end;
+("\"ab\"", 0):(4)
+("\"\"", 0):(2)
+("x\"a\\\"b\"y", 1):(7)
+("\"a\\\\\"z", 0):(5)
+("\"abc", 0):(-1)
+("\"a\\", 0):(-1)
+("\"aaaaaaaa\"", 0):(10)[time:O(n), mem:O(1)]
+("\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"", 0):(34)[time:O(n), mem:O(1)]
+
+wire_string(string wire_doc, int wire_pos) {
+  int wire_end = wire_string_end(wire_doc, wire_pos);
+  string wire_text = "";
+  if (wire_end >= 0) {
+    wire_text = wire_unescape(str_sub(wire_doc, wire_pos + 1, wire_end - wire_pos - 2));
+  }
+} return string wire_text;
+("{\"a\":\"x\\ny\"}", 5):("x\ny")
+("[\"caf\\u00e9\"]", 1):("café")
+("[\"\"]", 1):("")
+("\"open", 0):("")

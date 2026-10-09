@@ -1,0 +1,55 @@
+// A structural check that a line is one complete JSON object, because idstd's
+// reader answers wrong values for broken input instead of failing. It walks the
+// line once, skipping strings whole, and requires one { ... } with every bracket
+// closed and nothing after it. It does not match { against ], and it does not
+// check keys or values: that is the most a request line needs before the typed
+// member reads decide whether it is a valid request.
+
+wire_balanced(string wire_doc) {
+  string wire_text = str_trim(wire_doc);
+  int wire_at = 0;
+  int wire_depth_now = 0;
+} chain (string wire_doc) {
+  while (wire_at >= 0 && wire_at < len(wire_text) && (wire_depth_now > 0 || wire_at == 0)) {
+    wire_depth_now = wire_depth(wire_depth_now, charat(wire_text, wire_at));
+    wire_at = wire_balance_next(wire_text, wire_at);
+  }
+  int wire_good = wire_at == len(wire_text) && wire_depth_now == 0 && charat(wire_text, 0) == 123;
+} return int wire_good;
+("{}"):(1)
+("  {\"a\": [1, {\"b\": \"}\"}]}  "):(1)
+("{\"a\": \"q\\\"}\"}"):(1)
+("{bad"):(0)
+("{\"a\": 1"):(0)
+("{\"a\": \"open}"):(0)
+("{}x"):(0)
+("{} {}"):(0)
+("[1]"):(0)
+(""):(0)
+("}{"):(0)
+("{\"k\":1,\"k2\":[2]}"):(1)[time:O(n), mem:O(1)]
+("{\"k\":1,\"k2\":[2],\"k3\":1,\"k4\":[2],\"k5\":1,\"k6\":[2],\"k7\":1,\"k8\":[2]}"):(1)[time:O(n), mem:O(1)]
+
+wire_depth(int wire_depth_now, int wire_char) {
+  if (wire_char == 123 || wire_char == 91) {
+    wire_depth_now = wire_depth_now + 1;
+  }
+  if (wire_char == 125 || wire_char == 93) {
+    wire_depth_now = wire_depth_now - 1;
+  }
+} return int wire_depth_now;
+(0, 123):(1)
+(1, 91):(2)
+(2, 125):(1)
+(1, 93):(0)
+(1, 97):(1)
+
+wire_balance_next(string wire_text, int wire_at) {
+  int wire_next = wire_at + 1;
+  if (charat(wire_text, wire_at) == 34) {
+    wire_next = wire_string_end(wire_text, wire_at);
+  }
+} return int wire_next;
+("ab", 0):(1)
+("a\"bc\"d", 1):(5)
+("a\"bc", 1):(-1)

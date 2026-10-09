@@ -1,0 +1,62 @@
+// Reading one request line from stdin, because input() cuts a line at 1023 bytes
+// (measured: a 100000-byte line comes back as 1023). The bytes go into a buffer
+// the caller allocated once, one read call per byte on the same stdio stream
+// that input() and print() use, so nothing is lost between calls. The answer is
+// the line's length without its newline; -1 at end of input with nothing read;
+// -2 when the line is longer than the buffer (the rest of it is still consumed,
+// so the next call starts on the next line); -3 when it holds a NUL byte, which
+// a string cannot. The buffer must have room for cap + 1 bytes.
+
+wire_fill(word wire_ad, int wire_cap) {
+  int wire_total = 0;
+  int wire_size = 0;
+  int wire_got = stdio_read_some_mem(wire_ad, 1);
+} chain (word wire_ad, int wire_cap) {
+  while (wire_got > 0 && peek8(wire_ad + wire_size) != 10) {
+    wire_total = wire_total + 1;
+    if (wire_size < wire_cap) {
+      wire_size = wire_size + 1;
+    }
+    wire_got = stdio_read_some_mem(wire_ad + wire_size, 1);
+  }
+  int wire_code = wire_size;
+  if (wire_total > wire_cap) {
+    wire_code = -2;
+  }
+} chain (word wire_ad, int wire_cap) {
+  if (wire_code >= 0 && wire_clean(wire_ad, wire_code) == 0) {
+    wire_code = -3;
+  }
+  if (wire_got <= 0 && wire_total == 0) {
+    wire_code = -1;
+  }
+} return int wire_code;
+given wire_t_buffer stdin "abc\ndef\n" ((import wire_buffer), 8):(3)
+given wire_t_buffer stdin "\nrest\n" ((import wire_buffer), 8):(0)
+given wire_t_buffer stdin "last" ((import wire_buffer), 8):(4)
+given wire_t_buffer stdin "" ((import wire_buffer), 8):(-1)
+given wire_t_buffer stdin "0123456789\n" ((import wire_buffer), 8):(-2)
+given wire_t_buffer stdin "01234567\n" ((import wire_buffer), 8):(8)
+given wire_t_buffer stdin "aaaa\n" ((import wire_buffer), 60):(4)
+given wire_t_buffer stdin "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n" ((import wire_buffer), 60):(48)
+
+// The line wire_fill just read, as a string; "" for a line that could not be read.
+wire_line_text(word wire_ad, int wire_size) {
+  string wire_line = "";
+  if (wire_size > 0) {
+    wire_line = str_of_mem(wire_ad, wire_size);
+  }
+} return string wire_line;
+given wire_t_fill stdin "hello\n" ((import wire_filled_buffer), (import wire_filled_size)):("hello")
+given wire_t_fill stdin "caf\xc3\xa9 \"q\"\n" ((import wire_filled_buffer), (import wire_filled_size)):("café \"q\"")
+given wire_t_fill stdin "\n" ((import wire_filled_buffer), (import wire_filled_size)):("")
+given wire_t_fill stdin "" ((import wire_filled_buffer), (import wire_filled_size)):("")
+
+// Whether the first wire_size bytes hold no NUL, which str_of_mem would refuse.
+wire_clean(word wire_ad, int wire_size) {
+  int wire_ok = buf_zlen(wire_ad, wire_size) == wire_size;
+} return int wire_ok;
+given wire_t_buffer ((import wire_buffer), 2):(1)
+given wire_t_buffer ((import wire_buffer), 0):(1)
+given wire_t_buffer ((import wire_buffer), 3):(0)
+given wire_t_buffer ((import wire_buffer), 4):(0)

@@ -1,0 +1,45 @@
+// Decoding \uXXXX escapes in a string whose other escapes are already undone,
+// which idstd's reader does not do. The text is cut at each \u into pieces and
+// joined once, so a long request stays linear. An escape that is not four hex
+// digits, a surrogate half or \u0000 stays as written.
+
+wire_unicode(string wire_text) {
+  string[] wire_pieces = [];
+  int wire_from = 0;
+  int wire_at = str_findat(wire_text, "\\u", 0);
+} chain (string wire_text) {
+  while (wire_at >= 0) {
+    wire_from = wire_unicode_step(wire_text, wire_pieces, wire_from, wire_at);
+    wire_at = str_findat(wire_text, "\\u", wire_from);
+  }
+  string wire_tail = str_sub(wire_text, wire_from, len(wire_text) - wire_from);
+  push(wire_pieces, wire_tail);
+} chain (string wire_text) {
+  string wire_done = str_join(wire_pieces, "");
+} return string wire_done;
+("plain"):("plain")
+("A\\u0042C"):("ABC")
+("\\u00e9t\\u00E9"):("été")
+("\\u4e2d\\u6587!"):("中文!")
+("q\\u0022q"):("q\"q")
+("\\u0000x"):("\\u0000x")
+("\\ud83d\\ude00"):("\\ud83d\\ude00")
+("\\u12"):("\\u12")
+("\\uzzzz and \\u0041"):("\\uzzzz and A")
+("\\u0041\\u0041\\u0041\\u0041"):("AAAA")[time:O(n), mem:O(n)]
+("\\u0041\\u0041\\u0041\\u0041\\u0041\\u0041\\u0041\\u0041"):("AAAAAAAA")[time:O(n), mem:O(n)]
+
+// One escape at wire_at: the text before it and what it stands for go onto the
+// pieces, and the answer is where the scan resumes (six bytes on, or two when the
+// escape was not a character).
+wire_unicode_step(string wire_text, string[] wire_pieces, int wire_from, int wire_at) {
+  push(wire_pieces, str_sub(wire_text, wire_from, wire_at - wire_from));
+  int wire_code = wire_hex4(wire_text, wire_at + 2);
+  int wire_good = wire_scalar(wire_code);
+} chain (string wire_text, string[] wire_pieces, int wire_from, int wire_at) {
+  push(wire_pieces, wire_piece(wire_code, wire_good));
+  int wire_next = wire_at + 2 + 4 * wire_good;
+} return int wire_next;
+("x\\u0041y", [], 0, 1):(7)
+("\\uzz", [], 0, 0):(2)
+("\\ud800x", [], 0, 0):(2)

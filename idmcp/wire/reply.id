@@ -1,0 +1,36 @@
+// Building the reply lines. A reply is one line of JSON with no newline inside:
+// wire_quote escapes every control, so a message or a tool's text with newlines
+// stays on one line. The id is passed as JSON text (wire_id), so a number stays
+// a number and a string stays quoted.
+
+wire_result(string wire_id_text, string wire_result_text) {
+  string wire_reply = "{\"jsonrpc\":\"2.0\",\"id\":" + wire_id_text + ",\"result\":" + wire_result_text + "}";
+} return string wire_reply;
+("1", "{}"):("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{}}")
+("\"a\"", "[1]"):("{\"jsonrpc\":\"2.0\",\"id\":\"a\",\"result\":[1]}")
+("null", "\"x\""):("{\"jsonrpc\":\"2.0\",\"id\":null,\"result\":\"x\"}")
+
+wire_failure(string wire_id_text, int wire_code, string wire_message) {
+  string wire_quoted = wire_quote(wire_message);
+  string wire_reply = "{\"jsonrpc\":\"2.0\",\"id\":" + wire_id_text + ",\"error\":{\"code\":" + wire_code + ",\"message\":" + wire_quoted + "}}";
+} return string wire_reply;
+("null", -32700, "Parse error"):("{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}")
+("7", -32601, "no \"such\"\nmethod"):("{\"jsonrpc\":\"2.0\",\"id\":7,\"error\":{\"code\":-32601,\"message\":\"no \\\"such\\\"\\nmethod\"}}")
+
+wire_id(string wire_line) {
+  int wire_pos = json_find(wire_line, "id");
+  string wire_kind_name = wire_kind(wire_line, wire_pos);
+  string wire_text = "null";
+} chain (string wire_line) {
+  if (wire_kind_name == "number") {
+    wire_text = json_str(wire_line, wire_pos);
+  }
+  if (wire_kind_name == "string") {
+    wire_text = wire_quote(wire_string(wire_line, wire_pos));
+  }
+} return string wire_text;
+("{\"id\":42,\"method\":\"m\"}"):("42")
+("{\"id\":\"ab\\\"c\",\"method\":\"m\"}"):("\"ab\\\"c\"")
+("{\"method\":\"m\"}"):("null")
+("{\"id\":[1],\"method\":\"m\"}"):("null")
+("{\"id\":-3.5e2}"):("-3.5e2")

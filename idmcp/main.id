@@ -1,0 +1,16 @@
+// An MCP server over stdio, written in id so that an agent can change id code
+// only through tools that keep it valid. It speaks JSON-RPC 2.0, one JSON
+// object per line on stdin and stdout. Nothing but protocol lines goes to
+// stdout; the buffer is allocated once and every line is read into it, up to
+// server_line_limit bytes.
+
+main(int argc, string[] argv) {
+  word server_buffer = alloc((import server_line_limit) + 1);
+  int server_size = wire_fill(server_buffer, (import server_line_limit));
+  while (server_size != -1) {
+    server_turn(server_buffer, server_size);
+    server_size = wire_fill(server_buffer, (import server_line_limit));
+  }
+} return int 0;
+stdin "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"echo\",\"arguments\":{\"text\":\"a\"}}}\n{bad\n\n" (1, ["idmcp"]):(0) then prints:("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"a\"}]}}\n{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}\n")
+stdin "" (1, ["idmcp"]):(0) then prints:("")

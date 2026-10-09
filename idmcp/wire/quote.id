@@ -1,0 +1,47 @@
+// Writing a string as a JSON string literal, which idstd lacks: str_quote escapes
+// every non-ASCII code point as \u{...}, which is not JSON. Here a quote, a
+// backslash and the controls are escaped (\n \t \r by name, every other control
+// as \u00XX), and everything else, UTF-8 included, passes through as bytes.
+// The backslash goes first so the escapes added after it are not doubled.
+
+wire_quote(string wire_text) {
+  string wire_body = str_replace(wire_text, "\\", "\\\\");
+  wire_body = str_replace(wire_body, "\"", "\\\"");
+  wire_body = wire_escape_space(wire_body);
+} chain (string wire_text) {
+  wire_body = wire_escape_control(wire_body);
+  string wire_literal = "\"" + wire_body + "\"";
+} return string wire_literal;
+("a"):("\"a\"")
+(""):("\"\"")
+("say \"hi\""):("\"say \\\"hi\\\"\"")
+("a\\b"):("\"a\\\\b\"")
+("l1\nl2\ttab\rcr"):("\"l1\\nl2\\ttab\\rcr\"")
+("bell\x07 end"):("\"bell\\u0007 end\"")
+("café 中"):("\"café 中\"")
+("\\\"\n"):("\"\\\\\\\"\\n\"")
+("aaaa\n\"\x01"):("\"aaaa\\n\\\"\\u0001\"")[time:O(n), mem:O(n)]
+("zzzzzzzzzzzzzzzz\n\"\x01zzzzzzzzzzzzzzzz\n\"\x01"):("\"zzzzzzzzzzzzzzzz\\n\\\"\\u0001zzzzzzzzzzzzzzzz\\n\\\"\\u0001\"")[time:O(n), mem:O(n)]
+
+// The three controls JSON has short names for.
+wire_escape_space(string wire_text) {
+  string wire_body = str_replace(wire_text, "\n", "\\n");
+  wire_body = str_replace(wire_body, "\t", "\\t");
+  wire_body = str_replace(wire_body, "\r", "\\r");
+} return string wire_body;
+("a\nb"):("a\\nb")
+("\t\r"):("\\t\\r")
+("plain"):("plain")
+
+// Every other control byte 1..31 as \u00XX. Byte 0 cannot occur: a string holds no NUL.
+wire_escape_control(string wire_text) {
+  int wire_code = 1;
+  while (wire_code < 32) {
+    wire_text = str_replace(wire_text, chr(wire_code), "\\u" + fmt_hex4(wire_code));
+    wire_code = wire_code + 1;
+  }
+} return string wire_text;
+("a\x1f"):("a\\u001f")
+("\x01\x02"):("\\u0001\\u0002")
+("none"):("none")
+("é"):("é")
