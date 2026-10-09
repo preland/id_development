@@ -583,6 +583,11 @@ A literal too large for `int` is a `word`. There is no digit separator, no
 octal, and no exponent form for integers: a literal with an exponent is a
 `float`, never an `int` (§3).
 
+The largest literal is 18446744073709551615, which is `0xffffffffffffffff`: a
+larger one, in any spelling, is a compile error (E0107). A literal outside the
+`int` range may not be stored in an `int` by a declaration or an assignment
+(E0608), though `-2147483648` is fine, being the lowest `int`.
+
 ### 2.1 Overflow wraps
 
 `int` and `word` arithmetic that exceeds the type's range **wraps**, modulo
@@ -794,6 +799,13 @@ length of its text, not its capacity.
 **A `\0` escape in a string literal is a compile error**, at the literal: a
 string never holds a NUL byte, so the diagnostic sends binary data to
 `stdio_read_mem`, `fs_read_mem` or the store (`tests/invalid/nul_in_string.id`).
+`\x00` is the same byte and the same error.
+
+**`\xHH` in a string literal is exactly two hex digits**, one byte, on every
+target: `"\x01aaaa"` is five characters, never one. A `\x` without two hex
+digits after it is a compile error (E0108, `tests/invalid/string_hex_escape_short.id`);
+the C emitter writes the literal so that C's own "as many digits as follow"
+rule never applies (`tests/conform/str/17-hex-escape-two-digits.id`).
 
 ## 5. Lists
 

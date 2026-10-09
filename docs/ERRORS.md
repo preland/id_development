@@ -195,6 +195,61 @@ main(int argc, string[] argv) {
 } return int x;
 ```
 
+## E0107 an integer literal that does not fit 64 bits
+
+A `word` is 64 bits, so the largest integer literal is `18446744073709551615`,
+which is also `0xffffffffffffffff`. A literal with one more bit used to wrap
+around without a message and store a different number than the one written, so
+it is refused where it is written. The same limit holds for a hex literal of
+more than 16 significant digits and a binary literal of more than 64. Leading
+zeros do not count.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  word huge = 18446744073709551616;
+  print(huge);
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  word huge = 18446744073709551615;
+  print(huge);
+} return int 0;
+```
+
+## E0108 a string escape \x without two hex digits
+
+In a string literal `\xHH` is the one byte whose value is the two hex digits
+`HH`: `"\x1b"` is ESC and `"\x41"` is `A`. It is exactly two digits on every
+target, so `"\x01aaaa"` is a `\x01` followed by four ordinary `a` characters;
+C's own rule reads as many digits as follow, and the compiler writes the literal
+so that rule never applies. A `\x` with fewer than two hex digits after it names
+no byte, and is refused where it is written. `\x00` is the NUL byte and is
+refused for the reason `\0` is (docs/SPEC.md, section 4).
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  string s = "a\x4";
+  print(s);
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  string s = "a\x04";
+  print(s);
+} return int 0;
+```
+
 ## E0201 a block performs more than three actions
 
 A block holds at most three actions: each statement, `if`, `else` and `while`
@@ -672,6 +727,38 @@ idc app.id --check --word-scan
 framebuffer_width(int framebuffer_height) {
   int framebuffer_area = framebuffer_height * 2;
 } return int framebuffer_area;
+```
+
+## E0312 a keyword used as a name
+
+A keyword is a whole word that begins a type, a statement or a clause: `int`,
+`float`, `string`, `word`, `void`, `if`, `else`, `while`, `return`, `break`,
+`export`, `import`, `chain`, `pure` and the rest. A local, a parameter or a
+function spelled as one cannot be told from the syntax it shares the word with,
+and before this check it went on to the C backend, where `int int;` is the first
+place anyone found out. The keywords that begin a test case (`given`, `then`,
+`prints`, `eprints`, `calls`, `stdin`, `timeout`), `func` and `struct` say so in
+their own messages.
+
+A keyword as one `_` piece of a longer name is a different word and stays
+legal: `int_total` and `while_open` are ordinary names.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  int int = 3;
+  print(int);
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  int int_total = 3;
+  print(int_total);
+} return int 0;
 ```
 
 ## E0401 two functions with one name
@@ -1475,6 +1562,33 @@ struct Point {
   int x;
   int y;
 }
+```
+
+## E0608 an integer literal does not fit the int it is stored in
+
+An `int` is 32 bits, from -2147483648 to 2147483647. A literal outside that
+range is a `word` (docs/SPEC.md, section 2), and a declaration or an assignment
+may narrow a `word` to an `int`, but a literal is the one value whose size is
+known on the line: `int big = 3000000000;` would keep only the low 32 bits and
+print -1294967296, with nothing to say a number had been dropped. The literal
+`-2147483648` is fine, since it is the lowest `int`; `-2147483649` is not.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  int big = 3000000000;
+  print(big);
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  word big = 3000000000;
+  print(big);
+} return int 0;
 ```
 
 ## E0702 a file with a generic name
