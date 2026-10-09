@@ -99,6 +99,16 @@ isolation, so keep pure logic in its own directory.
 **Write the cases before the bodies, and watch them fail.** If your first run is
 green before you have written any implementation, something is wrong — say so.
 
+**Pin how it scales when performance matters.** Any loop-, string- or
+float-heavy function, and any fix for a slowdown, gets a counted scaling
+constraint on two cases of different input size (docs/TESTS.md, "Constraints
+are counted, not timed"):
+
+    ([1, 2, 3, 4]):(10)[time:O(n), mem:O(1)]
+    ([1, 2, 3, 4, 5, 6, 7, 8]):(36)[time:O(n), mem:O(1)]
+
+The counts are deterministic, so a quadratic regression fails the build.
+
 **Pin the boundary, not the happy path.** The bug that ships is at the end of
 the string, the empty list, the zero count, the index one past the last. A real
 example from this codebase: a delete function passed every case it was given and
@@ -115,8 +125,18 @@ aborted the program the first time the cursor sat at the end of a line.
 - Do not run `git commit`, `git push`, `git checkout`, `git reset`, or `git add`.
   `git diff` and `git status` are fine. Someone else commits.
 - Do not edit outside the directory the task names.
-- If a command runs longer than 60 seconds, kill it and say so. That is a
-  project rule, not a preference.
+- Every command runs under `timeout N` with N <= 60. Only a bootstrap regen,
+  a whole-idstd build or one `tests/run.sh N` section may use up to 180. A
+  hook blocks anything else, plus background commands, sleeps over 5 s and
+  long timeouts inside loops. If a command hits its limit, report BLOCKED;
+  never raise the limit. That is a project rule, not a preference.
+
+## Keep your context small
+
+Every tool result stays in your context and is re-read on every later call,
+so a pasted log costs you again and again. Send build, test and regen output
+to a file and read only the summary lines (`tail -5`, `grep -E 'FAIL|error'`).
+Read big files in slices. Never paste a whole log, generated file or large diff.
 
 ## Long-running commands
 
