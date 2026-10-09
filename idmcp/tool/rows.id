@@ -1,0 +1,54 @@
+// The rows of `idc PROJECT --calls`, once project paths have been made relative
+// to the workspace root. A function row is name|file:line|cases (three fields);
+// an edge row is caller|file:line|callee|file:line|kind (five fields, kind call
+// or value, the callee's place empty for a builtin). Rows about idstd keep their
+// absolute paths, which is how a project row is told from a library one.
+
+tool_function_row(string rows_line) {
+  string[] rows_parts = str_split(rows_line, "|");
+  string rows_kept = "";
+  if (len(rows_parts) == 3 && str_starts(rows_parts[1], "/") == 0 && rows_parts[1] != "file:line") {
+    rows_kept = rows_line;
+  }
+} return string rows_kept;
+("main|math/count.id:3|2"):("main|math/count.id:3|2")
+("lib|/abs/x.id:3|2"):("")
+("fn|file:line|cases"):("")
+("a|f.id:3|b|g.id:4|call"):("")
+(""):("")
+
+tool_functions(string rows_text) {
+  string[] rows_lines = str_lines(rows_text);
+  string[] rows_found = [];
+  int rows_at = 0;
+} chain (string rows_text) {
+  while (rows_at < len(rows_lines)) {
+    string rows_one = tool_function_row(rows_lines[rows_at]);
+    if (rows_one != "") {
+      push(rows_found, rows_one);
+    }
+    rows_at = rows_at + 1;
+  }
+} return string[] rows_found;
+("a|x.id:1|2\nb|/std/y.id:2|2\nc|x.id:5|0\n"):(["a|x.id:1|2", "c|x.id:5|0"])
+(""):([])
+("a|x.id:1|2\nb|x.id:2|2\nc|x.id:5|0\nd|x.id:7|1\ne|x.id:9|3\nf|x.id:11|4\ng|x.id:12|4\nh|x.id:13|4\n"):(["a|x.id:1|2", "b|x.id:2|2", "c|x.id:5|0", "d|x.id:7|1", "e|x.id:9|3", "f|x.id:11|4", "g|x.id:12|4", "h|x.id:13|4"])[time:O(n), mem:O(n)]
+("a|x.id:1|2\nb|x.id:2|2\nc|x.id:5|0\nd|x.id:7|1\n"):(["a|x.id:1|2", "b|x.id:2|2", "c|x.id:5|0", "d|x.id:7|1"])[time:O(n), mem:O(n)]
+
+tool_edge(string rows_line, string rows_name, string rows_way) {
+  string[] rows_parts = str_split(rows_line, "|");
+  int rows_side = 2;
+  string rows_kept = "";
+} chain (string rows_line, string rows_name, string rows_way) {
+  if (rows_way == "callees") {
+    rows_side = 0;
+  }
+  if (len(rows_parts) == 5 && rows_parts[rows_side] == rows_name) {
+    rows_kept = rows_line;
+  }
+} return string rows_kept;
+("a|x.id:1|b|y.id:2|call", "a", "callees"):("a|x.id:1|b|y.id:2|call")
+("a|x.id:1|b|y.id:2|call", "a", "callers"):("")
+("a|x.id:1|b|y.id:2|call", "b", "callers"):("a|x.id:1|b|y.id:2|call")
+("a|x.id:1|2", "a", "callees"):("")
+("", "a", "callees"):("")

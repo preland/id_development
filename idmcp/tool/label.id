@@ -1,0 +1,23 @@
+// Members and lists of a tool's answer: a quoted text member, a JSON array
+// from members already written, and a number member.
+
+tool_label(string label_key, string label_text) {
+  string label_quoted = wire_quote(label_text);
+  string label_member = tool_field(label_key, label_quoted);
+} return string label_member;
+("name", "x"):("\"name\":\"x\"")
+("text", "a\nb"):("\"text\":\"a\\nb\"")
+
+tool_array(string[] label_items) {
+  string label_joined = str_join(label_items, ",");
+  string label_text = "[" + label_joined + "]";
+} return string label_text;
+(["1", "\"a\""]):("[1,\"a\"]")
+([]):("[]")
+
+tool_number(string label_key, int label_value) {
+  string label_digits = "" + label_value;
+  string label_member = tool_field(label_key, label_digits);
+} return string label_member;
+("n", 5):("\"n\":5")
+("count", -1):("\"count\":-1")

@@ -1,0 +1,29 @@
+// The check tool: `idc ROOT --check --diagnostics=json` on the workspace copy,
+// with the root cut off every path so files read as the project's own. The answer
+// is the error count and at most ten diagnostics, each with the compiler's own
+// first fix (its description and its edits).
+
+tool_checked(string check_text, string check_root) {
+  string check_clean = str_replace(check_text, check_root + "/", "");
+  string check_baseline = tool_baseline(check_clean);
+  string[] check_items = tool_diagnostics(check_clean, (import tool_match_limit));
+} chain (string check_text, string check_root) {
+  string check_errors = json_text(check_baseline, "errors");
+  string check_members = tool_field("errors", check_errors) + "," + tool_field("diagnostics", tool_array(check_items));
+  string check_answer = tool_success(check_members);
+} chain (string check_text, string check_root) {
+  if (check_errors == "-1") {
+    check_answer = tool_failure("compiler_unavailable", "idc printed neither diagnostics nor ok; check IDMCP_IDC");
+  }
+} return string check_answer;
+("ok: /r (3 functions, 6 cases)\n", "/r"):("{\"ok\":true,\"error\":null,\"errors\":0,\"diagnostics\":[]}")
+("{\"kind\":\"diagnostic\",\"severity\":\"error\",\"code\":\"E0304\",\"file\":\"/r/main.id\",\"line\":2,\"function\":\"main\",\"message\":\"no such function 'q'\",\"fixes\":[{\"description\":\"fix it\",\"edits\":[{\"file\":\"/r/main.id\",\"line\":2,\"text\":\"x\"}]}]}\n{\"kind\":\"summary\",\"errors\":1,\"codes\":[\"E0304\"]}\n", "/r"):("{\"ok\":true,\"error\":null,\"errors\":1,\"diagnostics\":[{\"code\":\"E0304\",\"file\":\"main.id\",\"line\":2,\"function\":\"main\",\"message\":\"no such function 'q'\",\"help\":\"fix it\",\"edits\":[{\"file\":\"main.id\",\"line\":2,\"text\":\"x\"}]}]}")
+("boom", "/r"):("{\"ok\":false,\"error\":\"compiler_unavailable\",\"message\":\"idc printed neither diagnostics nor ok; check IDMCP_IDC\"}")
+
+tool_checking() {
+  string check_root = env_text((import tool_root_key));
+  string check_text = tool_idc(check_root + "\n--check\n--diagnostics=json\n");
+  string check_answer = tool_checked(check_text, check_root);
+} return string check_answer;
+given tool_t_session ():("{\"ok\":true,\"error\":null,\"errors\":0,\"diagnostics\":[]}")
+given tool_t_session given env_put("IDMCP_IDC", "no_such_idc_program") ():("{\"ok\":false,\"error\":\"compiler_unavailable\",\"message\":\"idc printed neither diagnostics nor ok; check IDMCP_IDC\"}")

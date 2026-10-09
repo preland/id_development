@@ -1,0 +1,34 @@
+// The calls tool: the call graph around one function, depth levels out (1 to
+// 3), for callers, callees or both, never more than tool_edge_limit edges in
+// each direction. A name that is neither a project function nor in any edge is
+// not_found.
+
+tool_calling(string call_name, string call_way, int call_depth) {
+  string call_text = tool_calls();
+  int call_levels = fx_min(fx_max(call_depth, 1), 3);
+  string[] call_known = tool_functions(call_text);
+} chain (string call_name, string call_way, int call_depth) {
+  string[] call_up = [];
+  string[] call_down = [];
+  if (call_way != "callees") {
+    call_up = tool_edge_walk(call_text, call_name, "callers", call_levels);
+  }
+} chain (string call_name, string call_way, int call_depth) {
+  if (call_way != "callers") {
+    call_down = tool_edge_walk(call_text, call_name, "callees", call_levels);
+  }
+  string call_members = tool_label("name", call_name) + "," + tool_field("callers", tool_edge_list(call_up)) + "," + tool_field("callees", tool_edge_list(call_down));
+  string call_answer = tool_success(call_members);
+} chain (string call_name, string call_way, int call_depth) {
+  if (tool_has_function(call_known, call_name) == 0 && len(call_up) + len(call_down) == 0) {
+    call_answer = tool_failure("not_found", "no function named " + call_name + " in the call graph; use find");
+  }
+  if (call_way != "" && call_way != "callers" && call_way != "callees" && call_way != "both") {
+    call_answer = tool_failure("bad_argument", "direction is callers, callees or both");
+  }
+} return string call_answer;
+given tool_t_session ("sample_report", "callees", 1):("{\"ok\":true,\"error\":null,\"name\":\"sample_report\",\"callers\":[],\"callees\":[{\"from\":\"sample_report\",\"from_at\":\"report.id:4\",\"to\":\"sample_clamp\",\"to_at\":\"math/count.id:15\",\"kind\":\"call\"},{\"from\":\"sample_report\",\"from_at\":\"report.id:4\",\"to\":\"sample_count\",\"to_at\":\"math/count.id:3\",\"kind\":\"call\"}]}")
+given tool_t_session ("sample_count", "", 2):("{\"ok\":true,\"error\":null,\"name\":\"sample_count\",\"callers\":[{\"from\":\"sample_report\",\"from_at\":\"report.id:4\",\"to\":\"sample_count\",\"to_at\":\"math/count.id:3\",\"kind\":\"call\"}],\"callees\":[]}")
+given tool_t_session ("sample_count", "callees", 1):("{\"ok\":true,\"error\":null,\"name\":\"sample_count\",\"callers\":[],\"callees\":[]}")
+given tool_t_session ("no_such_function", "both", 1):("{\"ok\":false,\"error\":\"not_found\",\"message\":\"no function named no_such_function in the call graph; use find\"}")
+given tool_t_session ("sample_count", "sideways", 1):("{\"ok\":false,\"error\":\"bad_argument\",\"message\":\"direction is callers, callees or both\"}")

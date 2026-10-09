@@ -2,13 +2,14 @@
 
 A Model Context Protocol server in pure id: JSON-RPC 2.0 over stdio, one JSON
 object per line. The goal (later milestones) is that an agent changes id code
-only through tools that keep it valid. This milestone (M0 + M1) has the wire
-layer and a server with one tool, `echo`.
+only through tools that keep it valid. This milestone (M0 to M2) has the wire
+layer, the `echo` tool and the read-only project tools (below).
 
 Build: `idc/bin/idc idmcp -o idmcp/bin/idmcp` (every inline case runs in the build).
 
 Layout: `main.id` (line loop), `conf.id` (constants), `wire/` (JSON replies,
-escaping, request reading and type checks), `server/` (method dispatch, tools).
+escaping, request reading and type checks), `server/` (method dispatch, tools/call),
+`tool/` (the project tools, M2), `sample/` (a tiny library the tests open).
 stdout carries protocol lines only.
 
 ## M0 spikes (measured, warm compiler cache, one core, this machine)
@@ -88,3 +89,55 @@ too). Exit status 1. Note the second diagnostic has `code: null` and
 - Counted scaling constraints (`[time:O(n)]`) cannot be put on `wire_fill`: they
   need two cases whose argument sizes differ, and its size is the stdin, not an
   argument.
+
+## M2: read-only project tools (`tool/`)
+
+Every tool answers one text content block holding compact JSON with `ok`, `error`
+and the payload; a refusal is `{"ok":false,"error":CODE,"message":...}` inside a
+normal result (not `isError`). Codes: `no_project`, `outside_project`,
+`not_found`, `bad_argument`, `workspace_failed`, `compiler_unavailable`,
+`too_large`. A session has one project: `project_open` copies it into a private
+workspace under `$TMPDIR` (`fs_mktemp`) and every other tool works on the copy;
+the root and workspace live in the process environment (`IDMCP_ROOT`,
+`IDMCP_WORK`, cleared when the server starts). `IDMCP_IDC` names the compiler
+driver (default: the umbrella's `idc/bin/idc`, `tool_program_default` in conf.id).
+
+| Tool | Arguments | Answer |
+| --- | --- | --- |
+| `project_open` | `path` | `project{name,files,functions,cases,untested}`, `tree` (top two levels), `baseline{errors,codes}` |
+| `list` | `path`, `depth` (1 to 4) | `entries` (dirs, and files with their functions: name, line, cases) or, for a file, `functions` |
+| `read` | `name` [+ `std`] or `file` [+ `line`, `count` <= 200] | function: file, line, signature, doc sentence, text with cases, `callers`/`callees` (<= 10 each, with totals); file: a numbered slice |
+| `find` | `query`, `where` (`project`, `std`, or both) | <= 10 matches: exact name first, then project, then public idstd rows; signature, file, line, doc sentence |
+| `calls` | `name`, `direction` (`callers`, `callees`, both), `depth` (1 to 3) | edges (from, from_at, to, to_at, kind), <= 100 per direction |
+| `explain` | `code` (E and four digits) | `idc --explain` text |
+| `check` | none | `errors` and <= 10 diagnostics: code, file, line, function, message, help, edits (the compiler's first fix) |
+
+Scope: a path with a `..` segment, or one that `fs_realpath` resolves (symlinks
+followed) outside the workspace root, is `outside_project`. Names sent to the
+compiler (`--where`, `--explain`) must be letters, digits, `_` or `:` (`tool_safe`),
+since arguments are passed one per line and a newline could add an option.
+
+Commands run through `exec_run` with a 55 s limit (`tool_time_limit`), stdout
+and stderr merged. Cases run with the project directory as the working directory,
+so the tests find the compiler at `../idc/bin/idc` and the sample at `sample/`.
+
+### Findings and workarounds
+
+- `exec_run` drains a pipe 4 KB per 10 ms poll. `idc --calls` prints the whole
+  standard library (15000 rows, 3.6 MB): through a pipe that is 13 to 18 s. The call
+  graph is therefore written to a file by `sh -c 'exec "$1" "$2" --calls > "$3"'`
+  (arguments, not interpolation) and cut down to the rows that touch the project
+  (`tool_project_rows`). A fix belongs in idstd (read stdout without waiting on
+  stderr); then `tool_snapshot` can use `tool_idc` again.
+- Neighbours of an idstd function (`read` with `std`, `calls` on a library name)
+  are the project's callers only: library-internal edges are dropped at open time.
+- idc's cache is keyed by path, so the first `--calls` and `--check` of a fresh
+  workspace are cold: `project_open` of the 3-function sample takes about 8 s, of
+  which the two idc runs are nearly all. A big project will take longer; each run
+  is capped at 55 s.
+- The sample is inside this tree, so idc compiles it with idmcp: it has no
+  `main` (a library) and unique names (`sample_*`).
+- A function with a doc comment separated by a blank line has no doc: the span
+  starts at the comment block directly above the signature.
+- Old workspaces are never deleted (a reopen starts a new one): removing a
+  directory named by an environment variable is not done on trust.

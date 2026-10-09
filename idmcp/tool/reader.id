@@ -1,0 +1,47 @@
+// The read tool. By name it answers one function: where it is, its text with
+// its cases, who calls it and whom it calls (at most ten each, from the call
+// graph taken when the project was opened); with std true the name is looked up
+// in idstd only. By file it answers a slice of at most 200 lines.
+
+tool_read_function(string read_name, int read_std, string read_root) {
+  string read_scope = read_root;
+  string read_members = "";
+  string read_calls = tool_calls();
+} chain (string read_name, int read_std, string read_root) {
+  if (read_std == 1) {
+    read_scope = path_join(env_text((import tool_work_key)), "none");
+  }
+  read_members = tool_function_view(read_name, read_scope, read_root);
+  string read_text = tool_failure("not_found", "no function named " + read_name + "; use find to search by part of a name");
+} chain (string read_name, int read_std, string read_root) {
+  if (read_members != "") {
+    read_text = tool_success(read_members + "," + tool_neighbors(read_calls, read_name, "callers") + "," + tool_neighbors(read_calls, read_name, "callees"));
+  }
+} return string read_text;
+given tool_t_session ("sample_report", 0, "sample"):("{\"ok\":true,\"error\":null,\"name\":\"sample_report\",\"origin\":\"project\",\"file\":\"report.id\",\"line\":4,\"first_line\":4,\"signature\":\"sample_report(int sample_limit, int sample_top) -> string\",\"doc\":\"\",\"text\":\"sample_report(int sample_limit, int sample_top) {\\n  int sample_total = sample_count(sample_limit);\\n  int sample_shown = sample_clamp(sample_total, sample_top);\\n  string sample_line = \\\"total \\\" + sample_shown;\\n} return string sample_line;\\n(5, 7):(\\\"total 7\\\")\\n(3, 7):(\\\"total 3\\\")\",\"callers\":[],\"callers_total\":0,\"callees\":[{\"name\":\"sample_clamp\",\"at\":\"math/count.id:15\"},{\"name\":\"sample_count\",\"at\":\"math/count.id:3\"}],\"callees_total\":2}")
+given tool_t_session ("sample_count", 0, "sample"):("{\"ok\":true,\"error\":null,\"name\":\"sample_count\",\"origin\":\"project\",\"file\":\"math/count.id\",\"line\":3,\"first_line\":3,\"signature\":\"sample_count(int sample_limit) -> int\",\"doc\":\"\",\"text\":\"sample_count(int sample_limit) {\\n  int sample_index = 0;\\n  int sample_sum = 0;\\n  while (sample_index < sample_limit) {\\n    sample_sum = sample_sum + sample_index;\\n    sample_index = sample_index + 1;\\n  }\\n} return int sample_sum;\\n(4):(6)\\n(0):(0)\",\"callers\":[{\"name\":\"sample_report\",\"at\":\"report.id:4\"}],\"callers_total\":1,\"callees\":[],\"callees_total\":0}")
+given tool_t_session ("no_such_function_anywhere", 1, "sample"):("{\"ok\":false,\"error\":\"not_found\",\"message\":\"no function named no_such_function_anywhere; use find to search by part of a name\"}")
+
+tool_read_file(string read_file, int read_line, int read_count) {
+  string read_root = env_text((import tool_root_key));
+  int read_where = tool_scope(read_root, read_file);
+  string read_real = fs_realpath(tool_place(read_root, read_file));
+} chain (string read_file, int read_line, int read_count) {
+  string read_text = tool_failure("outside_project", "the path leaves the project root; use a path inside it");
+  string read_rel = tool_relative(read_root, read_real);
+  string read_head = tool_label("file", read_rel);
+} chain (string read_file, int read_line, int read_count) {
+  if (read_where == 2) {
+    read_text = tool_failure("not_found", "no such file in the project: " + read_file);
+  }
+  if (read_where == 0 && fs_is_dir(read_real) == 1) {
+    read_text = tool_failure("bad_argument", "that path is a directory; use list");
+  }
+  if (read_where == 0 && fs_is_dir(read_real) == 0) {
+    read_text = tool_success(read_head + "," + tool_file_slice(read_real, read_line, read_count));
+  }
+} return string read_text;
+given tool_t_session ("report.id", 9, 5):("{\"ok\":true,\"error\":null,\"file\":\"report.id\",\"first_line\":9,\"last_line\":10,\"total_lines\":10,\"text\":\"(5, 7):(\\\"total 7\\\")\\n(3, 7):(\\\"total 3\\\")\"}")
+given tool_t_session ("math", 1, 5):("{\"ok\":false,\"error\":\"bad_argument\",\"message\":\"that path is a directory; use list\"}")
+given tool_t_session ("../report.id", 1, 5):("{\"ok\":false,\"error\":\"outside_project\",\"message\":\"the path leaves the project root; use a path inside it\"}")
+given tool_t_session ("gone.id", 1, 5):("{\"ok\":false,\"error\":\"not_found\",\"message\":\"no such file in the project: gone.id\"}")

@@ -1,0 +1,17 @@
+// The project object of project_open: its name, its source files, and the
+// totals the function rows add up to (untested: functions with fewer than two
+// cases).
+
+tool_overview(string over_root, string[] over_rows) {
+  string[] over_files = path_files(over_root);
+  string over_name = path_base(over_root);
+  int over_ids = tool_count_ids(over_files);
+} chain (string over_root, string[] over_rows) {
+  int over_cases = tool_total_cases(over_rows);
+  int over_short = tool_count_short(over_rows);
+  string[] over_fields = [tool_label("name", over_name), tool_number("files", over_ids), tool_number("functions", len(over_rows)), tool_number("cases", over_cases), tool_number("untested", over_short)];
+} chain (string over_root, string[] over_rows) {
+  string over_text = "{" + str_join(over_fields, ",") + "}";
+} return string over_text;
+("sample", ["a|report.id:4|2", "b|math/count.id:3|1"]):("{\"name\":\"sample\",\"files\":2,\"functions\":2,\"cases\":3,\"untested\":1}")
+("sample", []):("{\"name\":\"sample\",\"files\":2,\"functions\":0,\"cases\":0,\"untested\":0}")

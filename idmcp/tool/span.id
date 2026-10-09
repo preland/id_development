@@ -1,0 +1,50 @@
+// Cutting a function out of its file. The span starts at the comment block
+// directly above the signature line and runs to the end of the function's cases:
+// the line that begins "} return", then every following line up to the first
+// blank one. Lines are 0-based here; the callers convert from idc's 1-based ones.
+
+tool_end_line(string[] span_lines, int span_from) {
+  int span_at = span_from;
+  while (span_at < len(span_lines) && str_starts(span_lines[span_at], "} return") == 0) {
+    span_at = span_at + 1;
+  }
+  span_at = span_at + 1;
+} chain (string[] span_lines, int span_from) {
+  if (span_at > len(span_lines)) {
+    span_at = len(span_lines);
+  }
+  while (span_at < len(span_lines) && span_lines[span_at] != "") {
+    span_at = span_at + 1;
+  }
+} return int span_at;
+(["f() {", "} return int 1;", "():(1)", "():(2)", "", "g() {"], 0):(4)
+(["f() {", "} return int 1;", "", "g() {", "} return int 2;"], 3):(5)
+(["f() {", "} return int 1;"], 0):(2)
+(["f() {", "x"], 0):(2)
+
+tool_doc_start(string[] span_lines, int span_from) {
+  int span_up = span_from;
+  while (span_up > 0 && str_starts(span_lines[span_up - 1], "//") == 1) {
+    span_up = span_up - 1;
+  }
+} return int span_up;
+(["// a", "// b", "f() {"], 2):(0)
+(["x", "", "// b", "f() {"], 3):(2)
+(["x", "f() {"], 1):(1)
+(["f() {"], 0):(0)
+
+tool_slice(string[] span_lines, int span_first, int span_stop) {
+  string[] span_part = [];
+  int span_at = span_first;
+  while (span_at < span_stop && span_at < len(span_lines)) {
+    push(span_part, span_lines[span_at]);
+    span_at = span_at + 1;
+  }
+} chain (string[] span_lines, int span_first, int span_stop) {
+  string span_text = str_join(span_part, "\n");
+} return string span_text;
+(["a", "b", "c"], 0, 2):("a\nb")
+(["a", "b", "c"], 1, 9):("b\nc")
+(["a", "b", "c"], 2, 2):("")
+(["a", "b", "c", "d"], 0, 4):("a\nb\nc\nd")[time:O(n), mem:O(n)]
+(["a", "b", "c", "d", "e", "f", "g", "h"], 0, 8):("a\nb\nc\nd\ne\nf\ng\nh")[time:O(n), mem:O(n)]

@@ -1,0 +1,46 @@
+// The numbers project_open reports: how many source files a listing holds, how
+// many cases the function rows add up to, and how many functions have fewer
+// than the two cases docs/TESTS.md asks for.
+
+tool_count_ids(string[] count_files) {
+  int count_at = 0;
+  int count_ids = 0;
+  while (count_at < len(count_files)) {
+    if (path_ext(count_files[count_at]) == ".id") {
+      count_ids = count_ids + 1;
+    }
+    count_at = count_at + 1;
+  }
+} return int count_ids;
+(["a.id", "b/c.id", "README.md"]):(2)
+([]):(0)
+(["a.id", "b.txt", "c.id", "d/e.id", "f.md", "g.id", "h.c", "i.id"]):(5)[time:O(n), mem:O(1)]
+(["a.id", "b.txt", "c.id", "d/e.id"]):(3)[time:O(n), mem:O(1)]
+
+tool_total_cases(string[] count_rows) {
+  int count_at = 0;
+  int count_sum = 0;
+  while (count_at < len(count_rows)) {
+    count_sum = count_sum + to_int(str_field(count_rows[count_at], "|", 2));
+    count_at = count_at + 1;
+  }
+} return int count_sum;
+(["a|x.id:1|2", "b|x.id:5|3"]):(5)
+([]):(0)
+(["a|x.id:1|2", "b|x.id:5|3", "c|x.id:7|1", "d|x.id:9|0"]):(6)[time:O(n), mem:O(1)]
+(["a|x.id:1|2", "b|x.id:5|3", "c|x.id:7|1", "d|x.id:9|0", "e|x.id:11|4", "f|x.id:13|4", "g|x.id:14|4", "h|x.id:15|4"]):(22)[time:O(n), mem:O(1)]
+
+tool_count_short(string[] count_rows) {
+  int count_at = 0;
+  int count_short = 0;
+  while (count_at < len(count_rows)) {
+    if (to_int(str_field(count_rows[count_at], "|", 2)) < 2) {
+      count_short = count_short + 1;
+    }
+    count_at = count_at + 1;
+  }
+} return int count_short;
+(["a|x.id:1|2", "b|x.id:5|1", "c|x.id:7|0"]):(2)
+([]):(0)
+(["a|x.id:1|2", "b|x.id:5|1", "c|x.id:7|0", "d|x.id:9|5"]):(2)[time:O(n), mem:O(1)]
+(["a|x.id:1|2", "b|x.id:5|1", "c|x.id:7|0", "d|x.id:9|5", "e|x.id:11|1", "f|x.id:13|4", "g|x.id:14|4", "h|x.id:15|0"]):(4)[time:O(n), mem:O(1)]

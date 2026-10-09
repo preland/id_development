@@ -1,0 +1,47 @@
+// The functions next to one function in the call graph, as the read tool shows
+// them: at most tool_match_limit of them, each with the place it is defined,
+// and the total so a reader can tell the list was cut.
+
+tool_display(string show_root, string show_file) {
+  string show_text = show_file;
+  if (str_starts(show_file, show_root + "/") == 1) {
+    show_text = str_sub(show_file, len(show_root) + 1, len(show_file) - len(show_root) - 1);
+  }
+} return string show_text;
+("/r", "/r/a/b.id"):("a/b.id")
+("/r", "/s/a/b.id"):("/s/a/b.id")
+("/r", "/rx/b.id"):("/rx/b.id")
+
+tool_neighbor_json(string show_row, string show_way) {
+  string[] show_parts = str_split(show_row, "|");
+  string show_name = show_parts[2];
+  string show_at = show_parts[3];
+} chain (string show_row, string show_way) {
+  if (show_way == "callers") {
+    show_name = show_parts[0];
+    show_at = show_parts[1];
+  }
+  string show_text = "{" + tool_label("name", show_name) + "," + tool_label("at", show_at) + "}";
+} return string show_text;
+("a|x.id:1|b|y.id:2|call", "callees"):("{\"name\":\"b\",\"at\":\"y.id:2\"}")
+("a|x.id:1|b|y.id:2|call", "callers"):("{\"name\":\"a\",\"at\":\"x.id:1\"}")
+("a|x.id:1|print||call", "callees"):("{\"name\":\"print\",\"at\":\"\"}")
+
+tool_neighbors(string show_calls, string show_name, string show_way) {
+  string[] show_rows = tool_edge_walk(show_calls, show_name, show_way, 1);
+  string[] show_items = [];
+  int show_index = 0;
+} chain (string show_calls, string show_name, string show_way) {
+  while (show_index < len(show_rows) && show_index < (import tool_match_limit)) {
+    push(show_items, tool_neighbor_json(show_rows[show_index], show_way));
+    show_index = show_index + 1;
+  }
+  string show_array = tool_field(show_way, tool_array(show_items));
+  string show_total = tool_number(show_way + "_total", len(show_rows));
+} chain (string show_calls, string show_name, string show_way) {
+  string show_text = show_array + "," + show_total;
+} return string show_text;
+("a|x:1|b|y:2|call\na|x:1|c||call\n", "a", "callees"):("\"callees\":[{\"name\":\"b\",\"at\":\"y:2\"},{\"name\":\"c\",\"at\":\"\"}],\"callees_total\":2")
+("a|x:1|b|y:2|call\n", "a", "callers"):("\"callers\":[],\"callers_total\":0")
+("a|x:1|b|y:2|call\n", "b", "callers"):("\"callers\":[{\"name\":\"a\",\"at\":\"x:1\"}],\"callers_total\":1")
+("a|x:1|b1||call\na|x:1|b2||call\na|x:1|b3||call\na|x:1|b4||call\na|x:1|b5||call\na|x:1|b6||call\na|x:1|b7||call\na|x:1|b8||call\na|x:1|b9||call\na|x:1|b10||call\na|x:1|b11||call\na|x:1|b12||call\n", "a", "callees"):("\"callees\":[{\"name\":\"b1\",\"at\":\"\"},{\"name\":\"b2\",\"at\":\"\"},{\"name\":\"b3\",\"at\":\"\"},{\"name\":\"b4\",\"at\":\"\"},{\"name\":\"b5\",\"at\":\"\"},{\"name\":\"b6\",\"at\":\"\"},{\"name\":\"b7\",\"at\":\"\"},{\"name\":\"b8\",\"at\":\"\"},{\"name\":\"b9\",\"at\":\"\"},{\"name\":\"b10\",\"at\":\"\"}],\"callees_total\":12")

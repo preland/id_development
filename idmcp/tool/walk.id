@@ -1,0 +1,53 @@
+// Walking the call graph outward from one function, a level at a time, never
+// listing an edge twice and never more than a cap of edges (tool_edge_limit in
+// conf.id), so a function that everything calls cannot flood the answer. The
+// edge list is filled in place; the names to visit next are returned.
+
+tool_edge_take(string walk_row, string walk_way, string[] walk_edges) {
+  string walk_key = tool_edge_key(walk_row);
+  string[] walk_parts = str_split(walk_row, "|");
+  string walk_other = walk_parts[2];
+} chain (string walk_row, string walk_way, string[] walk_edges) {
+  if (walk_way == "callers") {
+    walk_other = walk_parts[0];
+  }
+  if (tool_known(walk_edges, walk_key) == 1) {
+    walk_other = "";
+  }
+  if (walk_other != "") {
+    push(walk_edges, walk_row);
+  }
+} return string walk_other;
+given tool_t_empty ("a|x:1|b|y:2|call", "callees", (import tool_t_edges)):("b") then (import tool_t_edges):(["a|x:1|b|y:2|call"])
+given tool_t_empty ("d|z:1|a|x:1|call", "callers", (import tool_t_edges)):("d") then (import tool_t_edges):(["d|z:1|a|x:1|call"])
+given tool_t_seeded ("a|x:1|b|y:2|call", "callees", (import tool_t_seed)):("") then (import tool_t_seed):(["a|x:1|b|y:2|value"])
+
+tool_edge_expand(string walk_text, string walk_name, string walk_way, string[] walk_edges, int walk_cap) {
+  string[] walk_rows = tool_matches(walk_text, walk_name, walk_way);
+  string[] walk_names = [];
+  int walk_at = 0;
+} chain (string walk_text, string walk_name, string walk_way, string[] walk_edges, int walk_cap) {
+  while (walk_at < len(walk_rows) && len(walk_edges) < walk_cap) {
+    string walk_one = tool_edge_take(walk_rows[walk_at], walk_way, walk_edges);
+    if (walk_one != "") {
+      push(walk_names, walk_one);
+    }
+    walk_at = walk_at + 1;
+  }
+} return string[] walk_names;
+given tool_t_empty ("a|x:1|b|y:2|call\na|x:1|c||call\n", "a", "callees", (import tool_t_edges), 5):(["b", "c"]) then (import tool_t_edges):(["a|x:1|b|y:2|call", "a|x:1|c||call"])
+given tool_t_empty ("a|x:1|b|y:2|call\na|x:1|c||call\n", "a", "callees", (import tool_t_edges), 1):(["b"]) then (import tool_t_edges):(["a|x:1|b|y:2|call"])
+given tool_t_empty ("", "a", "callers", (import tool_t_edges), 5):([]) then (import tool_t_edges):([])
+
+tool_edge_step(string walk_text, string[] walk_front, string walk_way, string[] walk_edges) {
+  string[] walk_next = [];
+  int walk_index = 0;
+  int walk_cap = (import tool_edge_limit);
+} chain (string walk_text, string[] walk_front, string walk_way, string[] walk_edges) {
+  while (walk_index < len(walk_front)) {
+    lst_str_extend(walk_next, tool_edge_expand(walk_text, walk_front[walk_index], walk_way, walk_edges, walk_cap));
+    walk_index = walk_index + 1;
+  }
+} return string[] walk_next;
+given tool_t_empty ("a|x:1|b|y:2|call\nb|y:2|c||call\n", ["a", "b"], "callees", (import tool_t_edges)):(["b", "c"]) then (import tool_t_edges):(["a|x:1|b|y:2|call", "b|y:2|c||call"])
+given tool_t_empty ("a|x:1|b|y:2|call\nb|y:2|c||call\n", ["b"], "callers", (import tool_t_edges)):(["a"]) then (import tool_t_edges):(["a|x:1|b|y:2|call"])

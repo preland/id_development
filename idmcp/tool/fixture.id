@@ -1,0 +1,20 @@
+// Setups for the cases of functions that fill a list in place: the list is an
+// export, so a case can pass it in and then check what it holds.
+
+tool_t_empty() {
+  export string[] tool_t_edges = [];
+} return void export tool_t_edges;
+():() then (import tool_t_edges):([])
+():() then len((import tool_t_edges)):(0)
+
+tool_t_seeded() {
+  export string[] tool_t_seed = ["a|x:1|b|y:2|value"];
+} return void export tool_t_seed;
+():() then (import tool_t_seed):(["a|x:1|b|y:2|value"])
+():() then len((import tool_t_seed)):(1)
+
+tool_t_scratch() {
+  export string tool_t_work = fs_mktemp("idmcp_t_", 1);
+} return void export tool_t_work;
+given tool_t_scratch ():() then fs_is_dir((import tool_t_work)):(1)
+given tool_t_scratch ():() then str_starts((import tool_t_work), "/"):(1)

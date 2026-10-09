@@ -1,0 +1,63 @@
+// A directory listing built from the sorted file paths of the project (idstd's
+// path_files), cut to a depth: a file at or above the depth is listed by its
+// name, anything deeper by the directory that holds it, with a trailing slash.
+// Directories that hold no file do not appear.
+
+tool_cut(string names_rest, int names_depth) {
+  int names_at = 0;
+  int names_seen = 0;
+  int names_end = -1;
+} chain (string names_rest, int names_depth) {
+  while (names_at < len(names_rest) && names_seen < names_depth) {
+    if (charat(names_rest, names_at) == 47) {
+      names_seen = names_seen + 1;
+    }
+    names_at = names_at + 1;
+  }
+  if (names_seen == names_depth && names_depth > 0) {
+    names_end = names_at;
+  }
+} return int names_end;
+("a/b.id", 1):(2)
+("a/b/c.id", 1):(2)
+("a/b/c.id", 2):(4)
+("a.id", 1):(-1)
+("a/b.id", 2):(-1)
+("a/b.id", 0):(-1)
+
+tool_entry(string names_file, string names_prefix, int names_depth) {
+  int names_inside = str_starts(names_file, names_prefix);
+  string names_rest = "";
+  if (names_inside == 1) {
+    names_rest = str_sub(names_file, len(names_prefix), len(names_file) - len(names_prefix));
+  }
+} chain (string names_file, string names_prefix, int names_depth) {
+  int names_cut = tool_cut(names_rest, names_depth);
+  string names_entry = names_rest;
+  if (names_cut >= 0) {
+    names_entry = str_sub(names_rest, 0, names_cut);
+  }
+} return string names_entry;
+("a/b.id", "", 1):("a/")
+("a/b.id", "", 2):("a/b.id")
+("a/b/c.id", "a/", 1):("b/")
+("a/b/c.id", "x/", 1):("")
+("top.id", "", 1):("top.id")
+
+tool_entries(string[] names_files, string names_prefix, int names_depth, int names_cap) {
+  string[] names_found = [];
+  int names_at = 0;
+  while (names_at < len(names_files) && len(names_found) < names_cap) {
+    string names_one = tool_entry(names_files[names_at], names_prefix, names_depth);
+    if (names_one != "" && lst_str_index(names_found, names_one) < 0) {
+      push(names_found, names_one);
+    }
+    names_at = names_at + 1;
+  }
+} return string[] names_found;
+(["a/b.id", "a/c.id", "d.id"], "", 1, 10):(["a/", "d.id"])
+(["a/b.id", "a/c.id", "d.id"], "a/", 1, 10):(["b.id", "c.id"])
+(["a/b.id", "a/c.id", "d.id"], "", 2, 1):(["a/b.id"])
+(["a/b.id", "a/c.id", "d.id"], "z/", 1, 10):([])
+(["a/b.id", "a/c.id", "a/d.id", "a/e.id"], "a/", 1, 10):(["b.id", "c.id", "d.id", "e.id"])
+(["a/b.id", "a/c.id", "a/d.id", "a/e.id", "a/f.id", "a/g.id", "a/h.id", "a/i.id"], "a/", 1, 10):(["b.id", "c.id", "d.id", "e.id", "f.id", "g.id", "h.id", "i.id"])

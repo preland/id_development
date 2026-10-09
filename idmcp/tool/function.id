@@ -1,0 +1,36 @@
+// One function as the read tool answers it: where it is, its signature, the
+// first sentence of its comment, and its whole text from that comment down to
+// its last case. origin says whether it came from the project or idstd.
+
+tool_view_members(string view_name, string[] view_parts, string view_root) {
+  string[] view_lines = str_split(fs_read_text(view_parts[0]), "\n");
+  int view_sig = to_int(view_parts[1]) - 1;
+  int view_first = tool_doc_start(view_lines, view_sig);
+} chain (string view_name, string[] view_parts, string view_root) {
+  int view_stop = tool_end_line(view_lines, view_sig);
+  string view_text = tool_slice(view_lines, view_first, view_stop);
+  string view_doc = tool_sentence(tool_slice(view_lines, view_first, view_sig));
+} chain (string view_name, string[] view_parts, string view_root) {
+  string view_file = tool_display(view_root, view_parts[0]);
+  string view_origin = "std";
+  if (str_starts(view_parts[0], view_root + "/") == 1) {
+    view_origin = "project";
+  }
+} chain (string view_name, string[] view_parts, string view_root) {
+  string[] view_fields = [tool_label("name", view_name), tool_label("origin", view_origin), tool_label("file", view_file), tool_number("line", view_sig + 1), tool_number("first_line", view_first + 1), tool_label("signature", view_parts[2]), tool_label("doc", view_doc), tool_label("text", view_text)];
+  string view_members = str_join(view_fields, ",");
+} return string view_members;
+("sample_clamp", ["sample/math/count.id", "15", "sample_clamp(int sample_value, int sample_top) -> int"], "sample"):("\"name\":\"sample_clamp\",\"origin\":\"project\",\"file\":\"math/count.id\",\"line\":15,\"first_line\":14,\"signature\":\"sample_clamp(int sample_value, int sample_top) -> int\",\"doc\":\"Keeps a value at or under a top.\",\"text\":\"// Keeps a value at or under a top. Anything lower stays as it is.\\nsample_clamp(int sample_value, int sample_top) {\\n  int sample_kept = sample_value;\\n  if (sample_value > sample_top) {\\n    sample_kept = sample_top;\\n  }\\n} return int sample_kept;\\n(9, 5):(5)\\n(3, 5):(3)\"")
+("sample_report", ["sample/report.id", "4", "sample_report(int sample_limit, int sample_top) -> string"], "elsewhere"):("\"name\":\"sample_report\",\"origin\":\"std\",\"file\":\"sample/report.id\",\"line\":4,\"first_line\":4,\"signature\":\"sample_report(int sample_limit, int sample_top) -> string\",\"doc\":\"\",\"text\":\"sample_report(int sample_limit, int sample_top) {\\n  int sample_total = sample_count(sample_limit);\\n  int sample_shown = sample_clamp(sample_total, sample_top);\\n  string sample_line = \\\"total \\\" + sample_shown;\\n} return string sample_line;\\n(5, 7):(\\\"total 7\\\")\\n(3, 7):(\\\"total 3\\\")\"")
+
+tool_function_view(string view_name, string view_scope, string view_root) {
+  string view_found = tool_locate(view_name, view_scope);
+  string[] view_parts = str_split(view_found, "|");
+  string view_members = "";
+} chain (string view_name, string view_scope, string view_root) {
+  if (view_found != "") {
+    view_members = tool_view_members(view_name, view_parts, view_root);
+  }
+} return string view_members;
+given tool_t_session ("sample_clamp", "sample", "sample"):("\"name\":\"sample_clamp\",\"origin\":\"project\",\"file\":\"math/count.id\",\"line\":15,\"first_line\":14,\"signature\":\"sample_clamp(int sample_value, int sample_top) -> int\",\"doc\":\"Keeps a value at or under a top.\",\"text\":\"// Keeps a value at or under a top. Anything lower stays as it is.\\nsample_clamp(int sample_value, int sample_top) {\\n  int sample_kept = sample_value;\\n  if (sample_value > sample_top) {\\n    sample_kept = sample_top;\\n  }\\n} return int sample_kept;\\n(9, 5):(5)\\n(3, 5):(3)\"")
+given tool_t_session ("zzz_not_a_function", "sample", "sample"):("")

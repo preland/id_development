@@ -1,0 +1,49 @@
+// Candidate names for the find tool: project functions whose name contains the
+// query, public idstd functions whose name contains it, and a pass that drops
+// repeats and stops at the match limit.
+
+tool_project_names(string[] pick_rows, string pick_query, int pick_cap) {
+  string[] pick_found = [];
+  int pick_at = 0;
+  while (pick_at < len(pick_rows) && len(pick_found) < pick_cap) {
+    if (str_find(str_before(pick_rows[pick_at], "|"), pick_query) >= 0) {
+      push(pick_found, str_before(pick_rows[pick_at], "|"));
+    }
+    pick_at = pick_at + 1;
+  }
+} return string[] pick_found;
+(["alpha|a.id:1|2", "beta|a.id:5|2", "alpha_two|b.id:1|2"], "alph", 5):(["alpha", "alpha_two"])
+(["alpha|a.id:1|2", "beta|a.id:5|2"], "zzz", 5):([])
+(["alpha|a.id:1|2", "alpha_two|b.id:1|2", "alpha_three|b.id:4|2"], "alpha", 2):(["alpha", "alpha_two"])
+([], "a", 5):([])
+
+tool_catalog_names(string pick_catalog, string pick_query, int pick_cap) {
+  string[] pick_lines = str_lines(pick_catalog);
+  string[] pick_found = [];
+  int pick_at = 0;
+} chain (string pick_catalog, string pick_query, int pick_cap) {
+  while (pick_at < len(pick_lines) && len(pick_found) < pick_cap) {
+    string pick_row = tool_catalog_row(pick_lines[pick_at]);
+    if (pick_row != "" && str_find(str_before(pick_row, "("), pick_query) >= 0) {
+      push(pick_found, str_before(pick_row, "("));
+    }
+    pick_at = pick_at + 1;
+  }
+} return string[] pick_found;
+("| `str_trim` | `(string) -> string` | pub | `a.id` |\n| `idstd_str_trim_end` | `(string) -> int` | int | `a.id` |\n| `str_trim_all` | `(string) -> string` | pub | `b.id` |\n", "trim", 5):(["str_trim", "str_trim_all"])
+("| `str_trim` | `(string) -> string` | pub | `a.id` |\n| `str_trim_all` | `(string) -> string` | pub | `b.id` |\n", "trim", 1):(["str_trim"])
+("", "trim", 5):([])
+
+tool_unique(string[] pick_names, int pick_cap) {
+  string[] pick_kept = [];
+  int pick_at = 0;
+  while (pick_at < len(pick_names) && len(pick_kept) < pick_cap) {
+    if (lst_str_index(pick_kept, pick_names[pick_at]) < 0) {
+      push(pick_kept, pick_names[pick_at]);
+    }
+    pick_at = pick_at + 1;
+  }
+} return string[] pick_kept;
+(["a", "b", "a", "c"], 5):(["a", "b", "c"])
+(["a", "b", "c"], 2):(["a", "b"])
+([], 3):([])

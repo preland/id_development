@@ -1,0 +1,46 @@
+// A compiler diagnostic as the check tool shows it. idc --diagnostics=json
+// prints one JSON object per line; a value is copied as the compiler wrote it
+// (null stays null, an array such as the fix's edits stays an array) except a
+// string, which is decoded and encoded again so it is valid whatever idc put in it.
+
+tool_value(string value_doc, string value_path) {
+  int value_pos = json_find(value_doc, value_path);
+  string value_kind = wire_kind(value_doc, value_pos);
+  string value_text = "null";
+} chain (string value_doc, string value_path) {
+  if (value_kind == "string") {
+    value_text = wire_quote(wire_string(value_doc, value_pos));
+  }
+  if (value_kind != "string" && value_kind != "missing") {
+    value_text = json_text(value_doc, value_path);
+  }
+} return string value_text;
+("{\"a\":\"x\\ny\",\"b\":4,\"c\":null,\"d\":[1,{\"e\":2}]}", "a"):("\"x\\ny\"")
+("{\"a\":\"x\\ny\",\"b\":4,\"c\":null,\"d\":[1,{\"e\":2}]}", "b"):("4")
+("{\"a\":\"x\\ny\",\"b\":4,\"c\":null,\"d\":[1,{\"e\":2}]}", "c"):("null")
+("{\"a\":\"x\\ny\",\"b\":4,\"c\":null,\"d\":[1,{\"e\":2}]}", "d"):("[1,{\"e\":2}]")
+("{\"a\":1}", "zz"):("null")
+
+tool_diagnostic_json(string diag_line) {
+  string[] diag_fields = [tool_field("code", tool_value(diag_line, "code")), tool_field("file", tool_value(diag_line, "file")), tool_field("line", tool_value(diag_line, "line")), tool_field("function", tool_value(diag_line, "function"))];
+  string[] diag_more = [tool_field("message", tool_value(diag_line, "message")), tool_field("help", tool_value(diag_line, "fixes.0.description")), tool_field("edits", tool_value(diag_line, "fixes.0.edits"))];
+  string diag_text = "{" + str_join(diag_fields, ",") + "," + str_join(diag_more, ",") + "}";
+} return string diag_text;
+("{\"kind\":\"diagnostic\",\"code\":\"E0304\",\"file\":\"main.id\",\"line\":2,\"function\":\"main\",\"message\":\"no such function 'q'\",\"fixes\":[{\"description\":\"check the spelling\",\"edits\":[]}]}"):("{\"code\":\"E0304\",\"file\":\"main.id\",\"line\":2,\"function\":\"main\",\"message\":\"no such function 'q'\",\"help\":\"check the spelling\",\"edits\":[]}")
+("{\"kind\":\"diagnostic\",\"code\":null,\"file\":\"a.id\",\"line\":5,\"function\":null,\"message\":\"m\",\"fixes\":[]}"):("{\"code\":null,\"file\":\"a.id\",\"line\":5,\"function\":null,\"message\":\"m\",\"help\":null,\"edits\":null}")
+
+tool_diagnostics(string diag_text, int diag_cap) {
+  string[] diag_lines = str_lines(diag_text);
+  string[] diag_items = [];
+  int diag_at = 0;
+} chain (string diag_text, int diag_cap) {
+  while (diag_at < len(diag_lines) && len(diag_items) < diag_cap) {
+    if (str_find(diag_lines[diag_at], "\"kind\":\"diagnostic\"") >= 0) {
+      push(diag_items, tool_diagnostic_json(diag_lines[diag_at]));
+    }
+    diag_at = diag_at + 1;
+  }
+} return string[] diag_items;
+("{\"kind\":\"diagnostic\",\"code\":\"E1\",\"file\":\"a.id\",\"line\":1,\"function\":\"f\",\"message\":\"m\",\"fixes\":[]}\n{\"kind\":\"summary\",\"errors\":1,\"codes\":[\"E1\"]}\n", 10):(["{\"code\":\"E1\",\"file\":\"a.id\",\"line\":1,\"function\":\"f\",\"message\":\"m\",\"help\":null,\"edits\":null}"])
+("ok: p (1 functions, 2 cases)\n", 10):([])
+("{\"kind\":\"diagnostic\",\"code\":\"E1\",\"file\":\"a.id\",\"line\":1,\"function\":\"f\",\"message\":\"m\",\"fixes\":[]}\n{\"kind\":\"diagnostic\",\"code\":\"E2\",\"file\":\"a.id\",\"line\":2,\"function\":\"f\",\"message\":\"m\",\"fixes\":[]}\n", 1):(["{\"code\":\"E1\",\"file\":\"a.id\",\"line\":1,\"function\":\"f\",\"message\":\"m\",\"help\":null,\"edits\":null}"])

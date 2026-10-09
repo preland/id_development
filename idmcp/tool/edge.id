@@ -1,0 +1,40 @@
+// Call edges as the calls tool shows them: caller and callee each with the
+// place it is defined (empty for a builtin), and whether the edge is a call or
+// the function used as a value.
+
+tool_edge_json(string edge_row) {
+  string[] edge_parts = str_split(edge_row, "|");
+  string[] edge_fields = [tool_label("from", edge_parts[0]), tool_label("from_at", edge_parts[1]), tool_label("to", edge_parts[2]), tool_label("to_at", edge_parts[3]), tool_label("kind", edge_parts[4])];
+  string edge_text = "{" + str_join(edge_fields, ",") + "}";
+} return string edge_text;
+("a|x.id:1|b|y.id:2|call"):("{\"from\":\"a\",\"from_at\":\"x.id:1\",\"to\":\"b\",\"to_at\":\"y.id:2\",\"kind\":\"call\"}")
+("a|x.id:1|print||value"):("{\"from\":\"a\",\"from_at\":\"x.id:1\",\"to\":\"print\",\"to_at\":\"\",\"kind\":\"value\"}")
+
+tool_edge_list(string[] edge_rows) {
+  string[] edge_items = [];
+  int edge_at = 0;
+  while (edge_at < len(edge_rows)) {
+    push(edge_items, tool_edge_json(edge_rows[edge_at]));
+    edge_at = edge_at + 1;
+  }
+} chain (string[] edge_rows) {
+  string edge_text = tool_array(edge_items);
+} return string edge_text;
+(["a|x.id:1|b|y.id:2|call", "b|y.id:2|c||call"]):("[{\"from\":\"a\",\"from_at\":\"x.id:1\",\"to\":\"b\",\"to_at\":\"y.id:2\",\"kind\":\"call\"},{\"from\":\"b\",\"from_at\":\"y.id:2\",\"to\":\"c\",\"to_at\":\"\",\"kind\":\"call\"}]")
+([]):("[]")
+
+tool_has_function(string[] have_rows, string have_name) {
+  int have_at = 0;
+  int have_found = 0;
+  while (have_at < len(have_rows)) {
+    if (str_before(have_rows[have_at], "|") == have_name) {
+      have_found = 1;
+    }
+    have_at = have_at + 1;
+  }
+} return int have_found;
+(["a|x.id:1|2", "b|x.id:5|2"], "b"):(1)
+(["a|x.id:1|2", "b|x.id:5|2"], "c"):(0)
+([], "a"):(0)
+(["a|x.id:1|2", "b|x.id:5|2", "c|x.id:6|2", "d|x.id:7|2"], "z"):(0)[time:O(n), mem:O(1)]
+(["a|x.id:1|2", "b|x.id:5|2", "c|x.id:6|2", "d|x.id:7|2", "e|x.id:8|2", "f|x.id:9|2", "g|x.id:10|2", "h|x.id:11|2"], "z"):(0)[time:O(n), mem:O(1)]

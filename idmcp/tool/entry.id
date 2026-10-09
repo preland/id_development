@@ -1,0 +1,43 @@
+// The pieces of the list tool's answer: one function as an object (name, line,
+// case count), the functions of one file, and one listed path as an object
+// (a directory by its name, a file with its functions).
+
+tool_function_json(string func_row) {
+  string[] func_parts = str_split(func_row, "|");
+  string func_line = str_after(func_parts[1], ":");
+  string[] func_fields = [tool_label("name", func_parts[0]), tool_field("line", func_line), tool_field("cases", func_parts[2])];
+} chain (string func_row) {
+  string func_text = "{" + str_join(func_fields, ",") + "}";
+} return string func_text;
+("clamp|math/count.id:14|2"):("{\"name\":\"clamp\",\"line\":14,\"cases\":2}")
+("a\"b|x.id:3|0"):("{\"name\":\"a\\\"b\",\"line\":3,\"cases\":0}")
+
+tool_file_functions(string[] file_rows, string file_name) {
+  string[] file_items = [];
+  int file_at = 0;
+  while (file_at < len(file_rows)) {
+    string file_place = str_field(file_rows[file_at], "|", 1);
+    if (str_before(file_place, ":") == file_name) {
+      push(file_items, tool_function_json(file_rows[file_at]));
+    }
+    file_at = file_at + 1;
+  }
+} chain (string[] file_rows, string file_name) {
+  string file_text = tool_array(file_items);
+} return string file_text;
+(["a|x.id:1|2", "b|y.id:4|0", "c|x.id:9|3"], "x.id"):("[{\"name\":\"a\",\"line\":1,\"cases\":2},{\"name\":\"c\",\"line\":9,\"cases\":3}]")
+(["a|x.id:1|2"], "z.id"):("[]")
+([], "x.id"):("[]")
+
+tool_entry_json(string[] item_rows, string item_path) {
+  string item_head = tool_label("path", item_path);
+  string item_list = tool_file_functions(item_rows, item_path);
+  string item_text = "{" + item_head + ",\"kind\":\"dir\"}";
+} chain (string[] item_rows, string item_path) {
+  if (str_ends(item_path, "/") == 0) {
+    item_text = "{" + item_head + ",\"kind\":\"file\",\"functions\":" + item_list + "}";
+  }
+} return string item_text;
+(["a|x.id:1|2"], "x.id"):("{\"path\":\"x.id\",\"kind\":\"file\",\"functions\":[{\"name\":\"a\",\"line\":1,\"cases\":2}]}")
+(["a|x.id:1|2"], "sub/"):("{\"path\":\"sub/\",\"kind\":\"dir\"}")
+([], "README.md"):("{\"path\":\"README.md\",\"kind\":\"file\",\"functions\":[]}")

@@ -1,0 +1,15 @@
+// A finished session for the cases of the read tools, without running the
+// compiler: the root is the sample project, and calls.txt holds the rows
+// `idc idmcp/sample --calls` prints for it (paths relative to the root).
+
+tool_t_session() {
+  string session_work = fs_mktemp("idmcp_t_", 1);
+  int session_wrote = exec_file_put(session_work + "/calls.txt", "sample_clamp|math/count.id:15|2\nsample_count|math/count.id:3|2\nsample_report|report.id:4|2\nsample_report|report.id:4|sample_clamp|math/count.id:15|call\nsample_report|report.id:4|sample_clamp|math/count.id:15|value\nsample_report|report.id:4|sample_count|math/count.id:3|call\nsample_report|report.id:4|sample_count|math/count.id:3|value\n", 420);
+  env_put((import tool_work_key), session_work);
+} chain () {
+  env_put((import tool_root_key), fs_realpath("sample"));
+  env_put("IDMCP_IDC", "../idc/bin/idc");
+  fs_mkdir(session_work + "/none");
+} return void;
+():() then tool_program():("../idc/bin/idc")
+given env_put("IDMCP_IDC", "zzz") ():() then tool_program():("../idc/bin/idc")

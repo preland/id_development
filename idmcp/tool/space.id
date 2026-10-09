@@ -1,0 +1,45 @@
+// The private workspace of a session: a copy of the opened project under a
+// scratch directory, so nothing the later tools do can touch the original, and
+// beside it calls.txt, the project's --calls rows with the workspace root cut
+// off every path (project paths become relative, idstd ones stay absolute). The
+// call graph is written by the shell to a file rather than read through a pipe:
+// it is megabytes, and exec_run drains a pipe 4 KB per 10 ms poll (about 15 s).
+
+tool_workspace(string space_real, string space_work) {
+  string space_root = path_join(space_work, path_base(space_real));
+  string space_lines = "cp\n-r\n" + space_real + "\n" + space_work + "\n";
+  string space_said = tool_run(space_lines);
+} chain (string space_real, string space_work) {
+  int space_ready = fs_is_dir(space_root);
+} return int space_ready;
+given tool_t_scratch ("sample", (import tool_t_work)):(1)
+given tool_t_scratch ("no_such_project_here", (import tool_t_work)):(0)
+
+tool_snapshot(string space_root, string space_work) {
+  string space_raw = space_work + "/calls_raw.txt";
+  string space_lines = "sh\n-c\nexec \"$1\" \"$2\" --calls > \"$3\" 2>/dev/null\nsh\n" + tool_program() + "\n" + space_root + "\n" + space_raw + "\n";
+  string space_said = tool_run(space_lines);
+} chain (string space_root, string space_work) {
+  string space_text = fs_read_text(space_raw);
+  string space_clean = str_replace(space_text, space_root + "/", "");
+  string space_kept = tool_project_rows(space_clean);
+} chain (string space_root, string space_work) {
+  int space_written = exec_file_put(space_work + "/calls.txt", space_kept, 420);
+  int space_saved = 0;
+  fs_mkdir(space_work + "/none");
+} chain (string space_root, string space_work) {
+  if (len(space_text) > 0 && space_written > 0) {
+    space_saved = 1;
+  }
+} return int space_saved;
+given env_put("IDMCP_IDC", "../idc/bin/idc") given tool_t_scratch ("sample", (import tool_t_work)):(1)
+given env_put("IDMCP_IDC", "echo") given tool_t_scratch ("x", (import tool_t_work)):(1)
+given env_put("IDMCP_IDC", "no_such_idc_program") given tool_t_scratch ("x", (import tool_t_work)):(0)
+
+tool_calls() {
+  string space_work = env_text((import tool_work_key));
+  string space_path = path_join(space_work, "calls.txt");
+  string space_text = fs_read_text(space_path);
+} return string space_text;
+given tool_t_session ():("sample_clamp|math/count.id:15|2\nsample_count|math/count.id:3|2\nsample_report|report.id:4|2\nsample_report|report.id:4|sample_clamp|math/count.id:15|call\nsample_report|report.id:4|sample_clamp|math/count.id:15|value\nsample_report|report.id:4|sample_count|math/count.id:3|call\nsample_report|report.id:4|sample_count|math/count.id:3|value\n")
+given env_put("IDMCP_WORK", "/no/such/dir") ():("")

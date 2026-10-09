@@ -1,0 +1,18 @@
+// The edges within depth levels of one function, in the order they are met.
+// "callees" follows what the function calls, "callers" what calls it.
+
+tool_edge_walk(string reach_text, string reach_name, string reach_way, int reach_depth) {
+  string[] reach_edges = [];
+  string[] reach_front = [reach_name];
+  int reach_level = 0;
+} chain (string reach_text, string reach_name, string reach_way, int reach_depth) {
+  while (reach_level < reach_depth && len(reach_front) > 0) {
+    reach_front = tool_edge_step(reach_text, reach_front, reach_way, reach_edges);
+    reach_level = reach_level + 1;
+  }
+} return string[] reach_edges;
+("a|x:1|b|y:2|call\nb|y:2|c||call\n", "a", "callees", 1):(["a|x:1|b|y:2|call"])
+("a|x:1|b|y:2|call\nb|y:2|c||call\n", "a", "callees", 2):(["a|x:1|b|y:2|call", "b|y:2|c||call"])
+("a|x:1|b|y:2|call\nb|y:2|a|x:1|call\n", "a", "callees", 5):(["a|x:1|b|y:2|call", "b|y:2|a|x:1|call"])
+("a|x:1|b|y:2|call\nb|y:2|c||call\n", "c", "callers", 2):(["b|y:2|c||call", "a|x:1|b|y:2|call"])
+("a|x:1|b|y:2|call\n", "a", "callees", 0):([])

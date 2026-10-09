@@ -1,0 +1,53 @@
+// The list tool. A directory answers its entries down to depth levels (1 to 4);
+// a file answers its functions. Paths are relative to the project root.
+
+tool_relative(string rel_root, string rel_real) {
+  string rel_text = "";
+  if (str_starts(rel_real, rel_root + "/") == 1) {
+    rel_text = str_sub(rel_real, len(rel_root) + 1, len(rel_real) - len(rel_root) - 1);
+  }
+} return string rel_text;
+("/r", "/r"):("")
+("/r", "/r/a/b"):("a/b")
+("/r", "/r/x"):("x")
+("/r", "/q/x"):("")
+("/r", ""):("")
+
+tool_list_dir(string[] dir_rows, string[] dir_files, string dir_prefix, int dir_depth) {
+  string[] dir_names = tool_entries(dir_files, dir_prefix, dir_depth, (import tool_entry_limit));
+  string[] dir_items = [];
+  int dir_at = 0;
+} chain (string[] dir_rows, string[] dir_files, string dir_prefix, int dir_depth) {
+  while (dir_at < len(dir_names)) {
+    push(dir_items, tool_entry_json(dir_rows, dir_prefix + dir_names[dir_at]));
+    dir_at = dir_at + 1;
+  }
+  string dir_text = tool_array(dir_items);
+} return string dir_text;
+(["a|x.id:1|2"], ["x.id", "sub/y.id"], "", 1):("[{\"path\":\"x.id\",\"kind\":\"file\",\"functions\":[{\"name\":\"a\",\"line\":1,\"cases\":2}]},{\"path\":\"sub/\",\"kind\":\"dir\"}]")
+([], ["x.id", "sub/y.id"], "sub/", 1):("[{\"path\":\"sub/y.id\",\"kind\":\"file\",\"functions\":[]}]")
+([], [], "", 1):("[]")
+
+tool_listed(string list_path, int list_depth) {
+  string list_root = env_text((import tool_root_key));
+  string list_real = fs_realpath(tool_place(list_root, list_path));
+  string list_rel = tool_relative(list_root, list_real);
+} chain (string list_path, int list_depth) {
+  string[] list_rows = tool_functions(tool_calls());
+  string[] list_files = path_files(list_root);
+  int list_levels = fx_min(fx_max(list_depth, 1), 4);
+} chain (string list_path, int list_depth) {
+  string list_prefix = "";
+  if (list_rel != "") {
+    list_prefix = list_rel + "/";
+  }
+  string list_members = tool_field("functions", tool_file_functions(list_rows, list_rel));
+} chain (string list_path, int list_depth) {
+  if (fs_is_dir(list_real) == 1) {
+    list_members = tool_field("entries", tool_list_dir(list_rows, list_files, list_prefix, list_levels));
+  }
+  string list_text = tool_success(tool_label("path", list_rel) + "," + list_members);
+} return string list_text;
+given tool_t_session ("", 1):("{\"ok\":true,\"error\":null,\"path\":\"\",\"entries\":[{\"path\":\"math/\",\"kind\":\"dir\"},{\"path\":\"report.id\",\"kind\":\"file\",\"functions\":[{\"name\":\"sample_report\",\"line\":4,\"cases\":2}]}]}")
+given tool_t_session ("math/count.id", 1):("{\"ok\":true,\"error\":null,\"path\":\"math/count.id\",\"functions\":[{\"name\":\"sample_clamp\",\"line\":15,\"cases\":2},{\"name\":\"sample_count\",\"line\":3,\"cases\":2}]}")
+given tool_t_session ("math", 9):("{\"ok\":true,\"error\":null,\"path\":\"math\",\"entries\":[{\"path\":\"math/count.id\",\"kind\":\"file\",\"functions\":[{\"name\":\"sample_clamp\",\"line\":15,\"cases\":2},{\"name\":\"sample_count\",\"line\":3,\"cases\":2}]}]}")

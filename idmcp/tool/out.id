@@ -1,0 +1,30 @@
+// What every tool answers: one JSON object with ok, error and the payload, so
+// a caller only ever has to look at ok first. A failure names its error with a
+// short code (outside_project, not_found, bad_argument, no_project, ...) and
+// says in a message what to do about it.
+
+tool_failure(string out_code, string out_message) {
+  string out_error = wire_quote(out_code);
+  string out_help = wire_quote(out_message);
+  string out_text = "{\"ok\":false,\"error\":" + out_error + ",\"message\":" + out_help + "}";
+} return string out_text;
+("outside_project", "use a path inside the project"):("{\"ok\":false,\"error\":\"outside_project\",\"message\":\"use a path inside the project\"}")
+("bad_argument", "say \"which\""):("{\"ok\":false,\"error\":\"bad_argument\",\"message\":\"say \\\"which\\\"\"}")
+
+tool_success(string out_members) {
+  string out_text = "{\"ok\":true,\"error\":null";
+  if (out_members != "") {
+    out_text = out_text + "," + out_members;
+  }
+  out_text = out_text + "}";
+} return string out_text;
+("\"n\":1"):("{\"ok\":true,\"error\":null,\"n\":1}")
+(""):("{\"ok\":true,\"error\":null}")
+
+tool_field(string out_key, string out_value) {
+  string out_name = wire_quote(out_key);
+  string out_member = out_name + ":" + out_value;
+} return string out_member;
+("n", "1"):("\"n\":1")
+("list", "[1,2]"):("\"list\":[1,2]")
+

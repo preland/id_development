@@ -1,0 +1,52 @@
+// project_open. The project is copied into a private workspace, the session's
+// root and workspace are remembered in the process environment (IDMCP_ROOT,
+// IDMCP_WORK) and every later tool works on the copy. The answer is the
+// project's size, the top two levels of its tree, and the compiler's baseline.
+// An earlier session's workspace is left where it is: deleting a directory
+// named by an environment variable is not something to do on trust.
+
+tool_session(string open_root, string open_work) {
+  env_put((import tool_root_key), open_root);
+  env_put((import tool_work_key), open_work);
+  int open_saved = tool_snapshot(open_root, open_work);
+} chain (string open_root, string open_work) {
+  string[] open_rows = tool_functions(tool_calls());
+  string open_check = tool_idc(open_root + "\n--check\n--diagnostics=json\n");
+  string[] open_files = path_files(open_root);
+} chain (string open_root, string open_work) {
+  string[] open_top = tool_entries(open_files, "", 2, 200);
+  string open_tree = tool_array(tool_quote_list(open_top));
+  string open_project = tool_overview(open_root, open_rows);
+} chain (string open_root, string open_work) {
+  string[] open_fields = [tool_field("project", open_project), tool_field("tree", open_tree), tool_field("baseline", tool_baseline(open_check))];
+  string open_text = tool_success(str_join(open_fields, ","));
+  if (open_saved == 0) {
+    open_text = tool_failure("compiler_unavailable", "idc printed no call graph; set IDMCP_IDC to the idc driver");
+  }
+} return string open_text;
+given env_put("IDMCP_IDC", "../idc/bin/idc") given tool_t_scratch ("sample", (import tool_t_work)):("{\"ok\":true,\"error\":null,\"project\":{\"name\":\"sample\",\"files\":2,\"functions\":3,\"cases\":6,\"untested\":0},\"tree\":[\"math/count.id\",\"report.id\"],\"baseline\":{\"errors\":0,\"codes\":[]}}")
+given env_put("IDMCP_IDC", "no_such_idc_program") given tool_t_scratch ("sample", (import tool_t_work)):("{\"ok\":false,\"error\":\"compiler_unavailable\",\"message\":\"idc printed no call graph; set IDMCP_IDC to the idc driver\"}")
+
+tool_begin(string open_real) {
+  string open_work = fs_mktemp("idmcp_", 1);
+  string open_root = path_join(open_work, path_base(open_real));
+  int open_ready = tool_workspace(open_real, open_work);
+} chain (string open_real) {
+  string open_text = tool_failure("workspace_failed", "the project could not be copied into a private workspace");
+  if (open_ready == 1) {
+    open_text = tool_session(open_root, open_work);
+  }
+} return string open_text;
+given env_put("IDMCP_IDC", "echo") ("sample"):("{\"ok\":true,\"error\":null,\"project\":{\"name\":\"sample\",\"files\":2,\"functions\":0,\"cases\":0,\"untested\":0},\"tree\":[\"math/count.id\",\"report.id\"],\"baseline\":{\"errors\":-1,\"codes\":[]}}")
+("no_such_project_dir"):("{\"ok\":false,\"error\":\"workspace_failed\",\"message\":\"the project could not be copied into a private workspace\"}")
+
+tool_open(string open_path) {
+  string open_real = fs_realpath(open_path);
+  string open_text = tool_failure("not_found", "project_open needs the path of an existing directory");
+  if (open_path != "" && fs_is_dir(open_real) == 1) {
+    open_text = tool_begin(open_real);
+  }
+} return string open_text;
+given env_put("IDMCP_IDC", "echo") ("sample"):("{\"ok\":true,\"error\":null,\"project\":{\"name\":\"sample\",\"files\":2,\"functions\":0,\"cases\":0,\"untested\":0},\"tree\":[\"math/count.id\",\"report.id\"],\"baseline\":{\"errors\":-1,\"codes\":[]}}")
+("no_such_project_dir"):("{\"ok\":false,\"error\":\"not_found\",\"message\":\"project_open needs the path of an existing directory\"}")
+(""):("{\"ok\":false,\"error\":\"not_found\",\"message\":\"project_open needs the path of an existing directory\"}")

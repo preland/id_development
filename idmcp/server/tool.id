@@ -1,6 +1,7 @@
 // tools/call. An unknown tool name or a missing or non-string argument is a
 // -32602 (invalid params) error reply; echo answers its text back as MCP text
-// content.
+// content. Every other tool is run by tool_invoke and its JSON answer is sent as
+// one text content block.
 
 server_call(string server_line, string server_id_text) {
   string server_tool = json_text(server_line, "params.name");
@@ -8,10 +9,16 @@ server_call(string server_line, string server_id_text) {
   if (server_tool == "echo") {
     server_answer = server_echo(server_line, server_id_text);
   }
+} chain (string server_line, string server_id_text) {
+  string server_text = tool_invoke(server_tool, server_line);
+  if (server_text != "") {
+    server_answer = wire_result(server_id_text, server_block(server_text));
+  }
 } return string server_answer;
 ("{\"params\":{\"name\":\"echo\",\"arguments\":{\"text\":\"hi\"}}}", "5"):("{\"jsonrpc\":\"2.0\",\"id\":5,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"hi\"}]}}")
 ("{\"params\":{\"name\":\"nope\"}}", "6"):("{\"jsonrpc\":\"2.0\",\"id\":6,\"error\":{\"code\":-32602,\"message\":\"Unknown tool: nope\"}}")
 ("{\"params\":{}}", "7"):("{\"jsonrpc\":\"2.0\",\"id\":7,\"error\":{\"code\":-32602,\"message\":\"Unknown tool: \"}}")
+given tool_t_session ("{\"params\":{\"name\":\"list\",\"arguments\":{\"path\":\"math/count.id\"}}}", "8"):("{\"jsonrpc\":\"2.0\",\"id\":8,\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"ok\\\":true,\\\"error\\\":null,\\\"path\\\":\\\"math/count.id\\\",\\\"functions\\\":[{\\\"name\\\":\\\"sample_clamp\\\",\\\"line\\\":15,\\\"cases\\\":2},{\\\"name\\\":\\\"sample_count\\\",\\\"line\\\":3,\\\"cases\\\":2}]}\"}]}}")
 
 server_echo(string server_line, string server_id_text) {
   int server_ok = wire_expect(server_line, "params.arguments.text", "string");

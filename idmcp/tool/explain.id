@@ -1,0 +1,25 @@
+// The explain tool: `idc --explain CODE`. The code is checked before it reaches
+// the command line (E and four digits), and the answer must begin with that code,
+// so a code idc does not know is not_found rather than a pasted usage message.
+
+tool_explain(string explain_code) {
+  string explain_text = "";
+  int explain_size = len(explain_code);
+  if (explain_size == 5 && str_starts(explain_code, "E") == 1 && tool_safe(explain_code) == 1) {
+    explain_text = tool_idc("--explain\n" + explain_code + "\n");
+  }
+} chain (string explain_code) {
+  int explain_cap = fx_min(len(explain_text), 6000);
+  string explain_cut = str_sub(explain_text, 0, explain_cap);
+  int explain_ok = str_starts(explain_text, explain_code + " ");
+} chain (string explain_code) {
+  string explain_members = tool_label("code", explain_code) + "," + tool_label("text", explain_cut);
+  string explain_answer = tool_failure("not_found", "idc has no explanation for that; error codes look like E0408");
+  if (explain_ok == 1) {
+    explain_answer = tool_success(explain_members);
+  }
+} return string explain_answer;
+given env_put("IDMCP_IDC", "../idc/bin/idc") ("E0306"):("{\"ok\":true,\"error\":null,\"code\":\"E0306\",\"text\":\"E0306 calling a variable\\n\\nA call runs a function by its name. A variable holds a value, and only a variable\\nof a function type (`func(...) return T`) can be called.\\n\\nIncorrect:\\n\\n```id\\nmain(int argc, string[] argv) {\\n  int thing = 1;\\n  int r = thing();\\n} return int r;\\n```\\n\\nCorrect:\\n\\n```id\\nmain(int argc, string[] argv) {\\n  int thing = 1;\\n  int r = thing + 1;\\n} return int r;\\n```\\n\"}")
+given env_put("IDMCP_IDC", "../idc/bin/idc") ("E9999"):("{\"ok\":false,\"error\":\"not_found\",\"message\":\"idc has no explanation for that; error codes look like E0408\"}")
+("E0408\n--help"):("{\"ok\":false,\"error\":\"not_found\",\"message\":\"idc has no explanation for that; error codes look like E0408\"}")
+("--version"):("{\"ok\":false,\"error\":\"not_found\",\"message\":\"idc has no explanation for that; error codes look like E0408\"}")

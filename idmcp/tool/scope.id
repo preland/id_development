@@ -1,0 +1,55 @@
+// Which paths a tool may touch. A session is scoped to the root of the open
+// project: a path that spells "..", or resolves (idstd's fs_realpath, so
+// symlinks are followed) to somewhere outside the root, is refused as
+// outside_project. Absolute paths are allowed only when they land inside.
+
+tool_dotdot(string scope_path) {
+  string[] scope_parts = str_split(scope_path, "/");
+  int scope_at = 0;
+  int scope_found = 0;
+} chain (string scope_path) {
+  while (scope_at < len(scope_parts)) {
+    if (scope_parts[scope_at] == "..") {
+      scope_found = 1;
+    }
+    scope_at = scope_at + 1;
+  }
+} return int scope_found;
+("a/b"):(0)
+("a/../b"):(1)
+(".."):(1)
+("a/.b/c.."):(0)
+("a/b/c/d/e/f/g/h"):(0)[time:O(n), mem:O(n)]
+("a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p"):(0)[time:O(n), mem:O(n)]
+
+tool_place(string place_root, string place_path) {
+  string place_text = path_join(place_root, place_path);
+  if (str_starts(place_path, "/") == 1) {
+    place_text = place_path;
+  }
+} return string place_text;
+("/r", "a/b"):("/r/a/b")
+("/r", "/abs"):("/abs")
+
+tool_scope(string scope_root, string scope_path) {
+  string scope_joined = tool_place(scope_root, scope_path);
+  string scope_real = fs_realpath(scope_joined);
+  int scope_code = 0;
+} chain (string scope_root, string scope_path) {
+  if (scope_real == "") {
+    scope_code = 2;
+  }
+  if (scope_real != "" && scope_real != scope_root && str_starts(scope_real, scope_root + "/") == 0) {
+    scope_code = 1;
+  }
+  if (tool_dotdot(scope_path) == 1) {
+    scope_code = 1;
+  }
+} return int scope_code;
+("/dev", "null"):(0)
+("/dev", "../etc"):(1)
+("/dev", "nosuchfile_idmcp"):(2)
+("/dev", "/etc"):(1)
+("/dev", "fd"):(1)
+("/dev", "."):(0)
+("/dev", "./../dev/null"):(1)

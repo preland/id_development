@@ -1,0 +1,35 @@
+// The find tool's front door. A match is skipped when idc --where cannot place
+// it (a NAMES.md row for a function that is not in this build), so every match
+// shown has a file and a line.
+
+tool_found_items(string[] found_names, string found_root) {
+  string[] found_items = [];
+  int found_at = 0;
+  while (found_at < len(found_names)) {
+    string found_one = tool_match_json(found_names[found_at], found_root);
+    if (found_one != "") {
+      push(found_items, found_one);
+    }
+    found_at = found_at + 1;
+  }
+} return string[] found_items;
+given tool_t_session (["sample_clamp", "no_such_thing", "sample_count"], "sample"):(["{\"name\":\"sample_clamp\",\"signature\":\"sample_clamp(int sample_value, int sample_top) -> int\",\"file\":\"math/count.id\",\"line\":15,\"doc\":\"Keeps a value at or under a top.\"}", "{\"name\":\"sample_count\",\"signature\":\"sample_count(int sample_limit) -> int\",\"file\":\"math/count.id\",\"line\":3,\"doc\":\"\"}"])
+given tool_t_session ([], "sample"):([])
+
+tool_finding(string find_query, string find_where) {
+  string find_root = env_text((import tool_root_key));
+  string[] find_names = tool_candidates(find_query, find_where, find_root);
+  string find_text = tool_failure("bad_argument", "find needs query (part of a function name); where is project, std or left out");
+} chain (string find_query, string find_where) {
+  string[] find_items = tool_found_items(find_names, find_root);
+  string find_array = tool_array(find_items);
+  string find_members = tool_label("query", find_query) + "," + tool_field("matches", find_array);
+} chain (string find_query, string find_where) {
+  if (find_query != "" && (find_where == "" || find_where == "all" || find_where == "project" || find_where == "std")) {
+    find_text = tool_success(find_members);
+  }
+} return string find_text;
+given tool_t_session ("sample_c", ""):("{\"ok\":true,\"error\":null,\"query\":\"sample_c\",\"matches\":[{\"name\":\"sample_clamp\",\"signature\":\"sample_clamp(int sample_value, int sample_top) -> int\",\"file\":\"math/count.id\",\"line\":15,\"doc\":\"Keeps a value at or under a top.\"},{\"name\":\"sample_count\",\"signature\":\"sample_count(int sample_limit) -> int\",\"file\":\"math/count.id\",\"line\":3,\"doc\":\"\"}]}")
+given tool_t_session ("", ""):("{\"ok\":false,\"error\":\"bad_argument\",\"message\":\"find needs query (part of a function name); where is project, std or left out\"}")
+given tool_t_session ("sample_c", "elsewhere"):("{\"ok\":false,\"error\":\"bad_argument\",\"message\":\"find needs query (part of a function name); where is project, std or left out\"}")
+given tool_t_session ("zzzqqq_nothing", "all"):("{\"ok\":true,\"error\":null,\"query\":\"zzzqqq_nothing\",\"matches\":[]}")

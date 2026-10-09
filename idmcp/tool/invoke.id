@@ -1,0 +1,59 @@
+// From a tools/call request to a tool. project_open and explain need no open
+// project; list, read, find, calls and check do, and without one they answer
+// no_project. A name no tool has answers "" so the server can say it is unknown.
+// An answer longer than tool_output_limit is replaced by an error rather than
+// cut, since a cut answer would no longer be valid JSON.
+
+tool_project_invoke(string invoke_name, string invoke_line) {
+  string invoke_text = "";
+  if (invoke_name == "list") {
+    invoke_text = tool_listing(tool_argument(invoke_line, "path"), tool_integer(invoke_line, "depth", 1));
+  }
+  if (invoke_name == "read") {
+    invoke_text = tool_reading(tool_argument(invoke_line, "name"), tool_argument(invoke_line, "file"), tool_boolean(invoke_line, "std"), tool_integer(invoke_line, "line", 1), tool_integer(invoke_line, "count", 200));
+  }
+} chain (string invoke_name, string invoke_line) {
+  if (invoke_name == "find") {
+    invoke_text = tool_finding(tool_argument(invoke_line, "query"), tool_argument(invoke_line, "where"));
+  }
+  if (invoke_name == "calls") {
+    invoke_text = tool_calling(tool_argument(invoke_line, "name"), tool_argument(invoke_line, "direction"), tool_integer(invoke_line, "depth", 1));
+  }
+  if (invoke_name == "check") {
+    invoke_text = tool_checking();
+  }
+} return string invoke_text;
+given tool_t_session ("list", "{\"params\":{\"arguments\":{\"path\":\"math\"}}}"):("{\"ok\":true,\"error\":null,\"path\":\"math\",\"entries\":[{\"path\":\"math/count.id\",\"kind\":\"file\",\"functions\":[{\"name\":\"sample_clamp\",\"line\":15,\"cases\":2},{\"name\":\"sample_count\",\"line\":3,\"cases\":2}]}]}")
+given tool_t_session ("calls", "{\"params\":{\"arguments\":{\"name\":\"sample_count\",\"direction\":\"callers\"}}}"):("{\"ok\":true,\"error\":null,\"name\":\"sample_count\",\"callers\":[{\"from\":\"sample_report\",\"from_at\":\"report.id:4\",\"to\":\"sample_count\",\"to_at\":\"math/count.id:3\",\"kind\":\"call\"}],\"callees\":[]}")
+given tool_t_session ("read", "{\"params\":{\"arguments\":{\"file\":\"report.id\",\"line\":10,\"count\":1}}}"):("{\"ok\":true,\"error\":null,\"file\":\"report.id\",\"first_line\":10,\"last_line\":10,\"total_lines\":10,\"text\":\"(3, 7):(\\\"total 3\\\")\"}")
+given tool_t_session ("find", "{\"params\":{\"arguments\":{\"query\":\"zzqq_nothing\",\"where\":\"project\"}}}"):("{\"ok\":true,\"error\":null,\"query\":\"zzqq_nothing\",\"matches\":[]}")
+given tool_t_session ("check", "{}"):("{\"ok\":true,\"error\":null,\"errors\":0,\"diagnostics\":[]}")
+given tool_t_session ("echo", "{}"):("")
+
+tool_invoke(string invoke_name, string invoke_line) {
+  string invoke_text = "";
+  if (invoke_name == "project_open") {
+    invoke_text = tool_open(tool_argument(invoke_line, "path"));
+  }
+  if (invoke_name == "explain") {
+    invoke_text = tool_explain(tool_argument(invoke_line, "code"));
+  }
+} chain (string invoke_name, string invoke_line) {
+  string invoke_root = env_text((import tool_root_key));
+  int invoke_needs = str_find(",list,read,find,calls,check,", "," + invoke_name + ",");
+  if (invoke_needs >= 0 && invoke_root == "") {
+    invoke_text = tool_failure("no_project", "open a project first with project_open");
+  }
+} chain (string invoke_name, string invoke_line) {
+  if (invoke_needs >= 0 && invoke_root != "") {
+    invoke_text = tool_project_invoke(invoke_name, invoke_line);
+  }
+  if (len(invoke_text) > (import tool_output_limit)) {
+    invoke_text = tool_failure("too_large", "the answer was too long to send; ask for less");
+  }
+} return string invoke_text;
+given env_put("IDMCP_ROOT", "") ("list", "{\"params\":{\"arguments\":{}}}"):("{\"ok\":false,\"error\":\"no_project\",\"message\":\"open a project first with project_open\"}")
+given env_put("IDMCP_ROOT", "") ("project_open", "{\"params\":{\"arguments\":{\"path\":\"no_such_project_dir\"}}}"):("{\"ok\":false,\"error\":\"not_found\",\"message\":\"project_open needs the path of an existing directory\"}")
+given env_put("IDMCP_ROOT", "") ("explain", "{\"params\":{\"arguments\":{\"code\":\"nonsense\"}}}"):("{\"ok\":false,\"error\":\"not_found\",\"message\":\"idc has no explanation for that; error codes look like E0408\"}")
+given tool_t_session ("no_such_tool", "{}"):("")
+given tool_t_session ("calls", "{\"params\":{\"arguments\":{\"name\":\"sample_count\",\"direction\":\"callers\"}}}"):("{\"ok\":true,\"error\":null,\"name\":\"sample_count\",\"callers\":[{\"from\":\"sample_report\",\"from_at\":\"report.id:4\",\"to\":\"sample_count\",\"to_at\":\"math/count.id:3\",\"kind\":\"call\"}],\"callees\":[]}")

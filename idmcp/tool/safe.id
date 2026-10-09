@@ -1,0 +1,57 @@
+// Names that may be passed to the compiler on its command line, and the public
+// rows of idstd's NAMES.md. Arguments are sent to idc one per line, so a name
+// holding a newline, or starting with a dash, could add an option of its own:
+// only letters, digits, underscore and colon (FILE::NAME) are let through.
+
+tool_safe(string safe_text) {
+  int safe_at = 0;
+  int safe_good = 1;
+  if (len(safe_text) == 0 || len(safe_text) > 100) {
+    safe_good = 0;
+  }
+} chain (string safe_text) {
+  while (safe_at < len(safe_text)) {
+    int safe_char = charat(safe_text, safe_at);
+    if (safe_char < 48 || (safe_char > 58 && safe_char < 65) || (safe_char > 90 && safe_char < 95) || safe_char == 96 || safe_char > 122) {
+      safe_good = 0;
+    }
+    safe_at = safe_at + 1;
+  }
+} return int safe_good;
+("sample_count"):(1)
+("A_b9:c"):(1)
+(""):(0)
+("a b"):(0)
+("a\n--help"):(0)
+("-x"):(0)
+("a`"):(0)
+("a{"):(0)
+("a@"):(0)
+("café"):(0)
+("a[b"):(0)
+
+tool_catalog_row(string catalog_line) {
+  string[] catalog_parts = str_split(catalog_line, "|");
+  string catalog_row = "";
+  if (len(catalog_parts) >= 5 && str_starts(str_trim(catalog_parts[3]), "pub") == 1) {
+    catalog_row = str_replace(str_trim(catalog_parts[1]), "`", "") + str_replace(str_trim(catalog_parts[2]), "`", "");
+  }
+} return string catalog_row;
+("| `str_trim` | `(string) -> string` | pub | `str/make/both.id` |"):("str_trim(string) -> string")
+("| `idstd_str_span` | `(string,int,int) -> int` | int | `str/scan.id` |"):("")
+("| `str_repeat` | `(string,int) -> string` | pub, pure | `str/make/repeat.id` |"):("str_repeat(string,int) -> string")
+("| function | signature | vis | file |"):("")
+("plain prose line"):("")
+
+tool_names_path() {
+  string names_program = tool_program();
+  string names_whole = names_program;
+  if (str_starts(names_program, "/") == 0) {
+    names_whole = path_join(fs_getcwd(), names_program);
+  }
+} chain () {
+  string names_joined = path_join(names_whole, "../../../idstd/NAMES.md");
+  string names_path = path_norm(names_joined);
+} return string names_path;
+given env_put("IDMCP_IDC", "/a/idc/bin/idc") ():("/a/idstd/NAMES.md")
+given env_put("IDMCP_IDC", "/x/y/idc/bin/idc") ():("/x/y/idstd/NAMES.md")

@@ -1,0 +1,35 @@
+// Running the compiler. Every external command goes through idstd's exec_run
+// with a time limit from conf.id (55 s, under the one-minute rule), stdout and
+// stderr merged because idc prints diagnostics on stderr and results on stdout.
+// IDMCP_IDC names the compiler driver; without it the umbrella's is used.
+
+tool_run(string run_lines) {
+  int[] run_none = [];
+  int[] run_said = [];
+  int run_code = exec_run(run_lines, 0, 0, run_none, run_said, run_said, (import tool_time_limit));
+} chain (string run_lines) {
+  string run_text = exec_text(run_said);
+  if (run_code == -2) {
+    run_text = "idmcp: timed out\n";
+  }
+} return string run_text;
+("printf\nhi\n"):("hi")
+("sh\n-c\necho a; echo b >&2\n"):("a\nb\n")
+("no_such_program_idmcp\n"):("")
+
+tool_program() {
+  string program_name = env_text("IDMCP_IDC");
+  if (program_name == "") {
+    program_name = (import tool_program_default);
+  }
+} return string program_name;
+given env_put("IDMCP_IDC", "") ():("/home/preland/git/id_development/idc/bin/idc")
+given env_put("IDMCP_IDC", "/x/idc") ():("/x/idc")
+
+tool_idc(string idc_args) {
+  string idc_program = tool_program();
+  string idc_lines = idc_program + "\n" + idc_args;
+  string idc_text = tool_run(idc_lines);
+} return string idc_text;
+given env_put("IDMCP_IDC", "echo") ("hello\nworld\n"):("hello world\n")
+given env_put("IDMCP_IDC", "echo") ("a\n"):("a\n")

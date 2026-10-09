@@ -1,0 +1,43 @@
+// Finding the edges of one function in the call rows without listing the same
+// pair twice: --calls prints a pair once for a call and again for a value use,
+// and a caller wants each neighbour once.
+
+tool_edge_key(string keys_row) {
+  string[] keys_parts = str_split(keys_row, "|");
+  string keys_text = keys_parts[0] + "|" + keys_parts[2];
+} return string keys_text;
+("a|x.id:1|b|y.id:2|call"):("a|b")
+("a|x.id:1|c|y.id:2|value"):("a|c")
+
+tool_known(string[] keys_rows, string keys_key) {
+  int keys_at = 0;
+  int keys_hit = 0;
+  while (keys_at < len(keys_rows)) {
+    if (tool_edge_key(keys_rows[keys_at]) == keys_key) {
+      keys_hit = 1;
+    }
+    keys_at = keys_at + 1;
+  }
+} return int keys_hit;
+(["a|x:1|b|y:2|call"], "a|b"):(1)
+(["a|x:1|b|y:2|call"], "a|c"):(0)
+([], "a|b"):(0)
+(["a|x:1|b|y:2|call", "a|x:1|c|y:2|call", "a|x:1|d|y:2|call", "a|x:1|e|y:2|call"], "a|z"):(0)[time:O(n), mem:O(1)]
+(["a|x:1|b|y:2|call", "a|x:1|c|y:2|call", "a|x:1|d|y:2|call", "a|x:1|e|y:2|call", "a|x:1|f|y:2|call", "a|x:1|g|y:2|call", "a|x:1|h|y:2|call", "a|x:1|i|y:2|call"], "a|z"):(0)[time:O(n), mem:O(1)]
+
+tool_matches(string keys_text, string keys_name, string keys_way) {
+  string[] keys_lines = str_lines(keys_text);
+  string[] keys_found = [];
+  int keys_index = 0;
+} chain (string keys_text, string keys_name, string keys_way) {
+  while (keys_index < len(keys_lines)) {
+    string keys_one = tool_edge(keys_lines[keys_index], keys_name, keys_way);
+    if (keys_one != "" && tool_known(keys_found, tool_edge_key(keys_one)) == 0) {
+      push(keys_found, keys_one);
+    }
+    keys_index = keys_index + 1;
+  }
+} return string[] keys_found;
+("a|x:1|b|y:2|call\na|x:1|b|y:2|value\na|x:1|c||call\nd|z:1|a|x:1|call\n", "a", "callees"):(["a|x:1|b|y:2|call", "a|x:1|c||call"])
+("a|x:1|b|y:2|call\nd|z:1|a|x:1|call\nd|z:1|a|x:1|value\n", "a", "callers"):(["d|z:1|a|x:1|call"])
+("", "a", "callers"):([])

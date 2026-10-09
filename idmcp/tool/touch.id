@@ -1,0 +1,44 @@
+// Cutting the call graph down to what concerns the project. `idc --calls`
+// prints a row for every function of the whole standard library (15000 rows),
+// and every tool would read them all again on each request; the rows kept are
+// the function rows of the project and the edges that start or end in it. The
+// project's paths are relative by now (idstd's are absolute), which is the test.
+
+tool_touches(string touch_line) {
+  string[] touch_parts = str_split(touch_line, "|");
+  int touch_count = len(touch_parts);
+  int touch_keep = 0;
+} chain (string touch_line) {
+  if (touch_count == 3 && str_starts(touch_parts[1], "/") == 0) {
+    touch_keep = 1;
+  }
+  if (touch_count == 5 && (str_starts(touch_parts[1], "/") == 0 || (touch_parts[3] != "" && str_starts(touch_parts[3], "/") == 0))) {
+    touch_keep = 1;
+  }
+} return int touch_keep;
+("f|x.id:1|2"):(1)
+("f|/s/a.id:1|2"):(0)
+("f|x.id:1|g|/s/a.id:2|call"):(1)
+("f|/s/a.id:1|g|x.id:2|call"):(1)
+("f|/s/a.id:1|g|/s/b.id:2|call"):(0)
+("f|x.id:1|print||call"):(1)
+("f|/s/a.id:1|print||call"):(0)
+(""):(0)
+
+tool_project_rows(string touch_text) {
+  string[] touch_lines = str_lines(touch_text);
+  string[] touch_kept = [];
+  int touch_at = 0;
+} chain (string touch_text) {
+  while (touch_at < len(touch_lines)) {
+    if (tool_touches(touch_lines[touch_at]) == 1) {
+      push(touch_kept, touch_lines[touch_at]);
+    }
+    touch_at = touch_at + 1;
+  }
+  string touch_out = str_join(touch_kept, "\n") + "\n";
+} return string touch_out;
+("f|x.id:1|2\ng|/s/a.id:1|2\nf|x.id:1|g|/s/a.id:2|call\ng|/s/a.id:1|h|/s/b.id:3|call\n"):("f|x.id:1|2\nf|x.id:1|g|/s/a.id:2|call\n")
+(""):("\n")
+("f|x.id:1|2\nf|x.id:1|g|/s/a.id:2|call\nh|/s/a.id:3|2\n"):("f|x.id:1|2\nf|x.id:1|g|/s/a.id:2|call\n")[time:O(n), mem:O(n)]
+("f|x.id:1|2\nf|x.id:1|g|/s/a.id:2|call\nh|/s/a.id:3|2\nf|x.id:1|2\nf|x.id:1|g|/s/a.id:2|call\nh|/s/a.id:3|2\nf|x.id:1|2\nf|x.id:1|g|/s/a.id:2|call\nh|/s/a.id:3|2\n"):("f|x.id:1|2\nf|x.id:1|g|/s/a.id:2|call\nf|x.id:1|2\nf|x.id:1|g|/s/a.id:2|call\nf|x.id:1|2\nf|x.id:1|g|/s/a.id:2|call\n")[time:O(n), mem:O(n)]

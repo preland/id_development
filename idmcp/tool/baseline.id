@@ -1,0 +1,42 @@
+// The state of the project when the session opened it: what
+// `idc PROJECT --check --diagnostics=json` ends with. A failing check ends in a
+// summary line (errors and their codes); a passing one prints "ok: ..." and no
+// summary. Anything else (a compiler that died, a missing program) is reported
+// as errors -1, so a broken tool chain is not mistaken for a clean project.
+
+tool_summary_line(string base_text) {
+  string[] base_lines = str_lines(base_text);
+  int base_at = 0;
+  string base_found = "";
+} chain (string base_text) {
+  while (base_at < len(base_lines)) {
+    if (str_find(base_lines[base_at], "\"kind\":\"summary\"") >= 0) {
+      base_found = base_lines[base_at];
+    }
+    base_at = base_at + 1;
+  }
+} return string base_found;
+("{\"kind\":\"diagnostic\"}\n{\"kind\":\"summary\",\"errors\":1,\"codes\":[\"E0304\"]}\n"):("{\"kind\":\"summary\",\"errors\":1,\"codes\":[\"E0304\"]}")
+("ok: p (1 functions, 2 cases)\n"):("")
+(""):("")
+("a\nb\nc\nd\n{\"kind\":\"summary\",\"errors\":2,\"codes\":[]}\n"):("{\"kind\":\"summary\",\"errors\":2,\"codes\":[]}")[time:O(n), mem:O(1)]
+("a\nb\nc\nd\na\nb\nc\nd\n{\"kind\":\"summary\",\"errors\":2,\"codes\":[]}\n"):("{\"kind\":\"summary\",\"errors\":2,\"codes\":[]}")[time:O(n), mem:O(1)]
+
+tool_baseline(string base_text) {
+  string base_line = tool_summary_line(base_text);
+  string base_errors = "0";
+  string base_codes = "[]";
+} chain (string base_text) {
+  if (base_line != "") {
+    base_errors = json_text(base_line, "errors");
+    base_codes = json_text(base_line, "codes");
+  }
+  if (base_line == "" && str_find(base_text, "ok:") < 0) {
+    base_errors = "-1";
+  }
+  string base_object = "{\"errors\":" + base_errors + ",\"codes\":" + base_codes + "}";
+} return string base_object;
+("{\"kind\":\"summary\",\"errors\":2,\"codes\":[\"E0304\",\"E0501\"]}\n"):("{\"errors\":2,\"codes\":[\"E0304\",\"E0501\"]}")
+("ok: p (1 functions, 2 cases)\n"):("{\"errors\":0,\"codes\":[]}")
+("boom"):("{\"errors\":-1,\"codes\":[]}")
+(""):("{\"errors\":-1,\"codes\":[]}")

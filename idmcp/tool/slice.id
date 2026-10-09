@@ -1,0 +1,23 @@
+// A slice of a file for the read tool: at most tool_slice_limit lines from a
+// 1-based first line, with the line numbers it covered and how many lines the
+// file has, so a reader can ask for the next slice.
+
+tool_file_slice(string file_path, int file_first, int file_count) {
+  string[] file_lines = str_split(fs_read_text(file_path), "\n");
+  int file_total = len(file_lines);
+  int file_from = fx_max(file_first, 1) - 1;
+} chain (string file_path, int file_first, int file_count) {
+  if (file_lines[file_total - 1] == "") {
+    file_total = file_total - 1;
+  }
+  int file_size = fx_min(fx_max(file_count, 1), (import tool_slice_limit));
+  int file_stop = fx_min(file_from + file_size, file_total);
+} chain (string file_path, int file_first, int file_count) {
+  string file_text = tool_slice(file_lines, file_from, file_stop);
+  string[] file_fields = [tool_number("first_line", file_from + 1), tool_number("last_line", file_stop), tool_number("total_lines", file_total), tool_label("text", file_text)];
+  string file_members = str_join(file_fields, ",");
+} return string file_members;
+("sample/report.id", 3, 2):("\"first_line\":3,\"last_line\":4,\"total_lines\":10,\"text\":\"\\nsample_report(int sample_limit, int sample_top) {\"")
+("sample/report.id", 9, 99):("\"first_line\":9,\"last_line\":10,\"total_lines\":10,\"text\":\"(5, 7):(\\\"total 7\\\")\\n(3, 7):(\\\"total 3\\\")\"")
+("sample/report.id", 0, 1):("\"first_line\":1,\"last_line\":1,\"total_lines\":10,\"text\":\"// A small library for the idmcp protocol tests: it counts, clamps and reports.\"")
+("sample/report.id", 11, 5):("\"first_line\":11,\"last_line\":10,\"total_lines\":10,\"text\":\"\"")

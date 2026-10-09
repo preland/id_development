@@ -1,0 +1,28 @@
+// tools/list: one entry per row of conf.id's tool_specs, each with its name,
+// description and JSON schema.
+
+tool_schema(string table_row) {
+  string[] table_fields = str_split(table_row, "~");
+  string table_props = tool_properties(table_fields[2]);
+  string table_need = tool_required(table_fields[3]);
+} chain (string table_row) {
+  string table_input = "{\"type\":\"object\",\"properties\":" + table_props + ",\"required\":" + table_need + "}";
+  string table_spec = "{\"name\":" + wire_quote(table_fields[0]) + ",\"description\":" + wire_quote(table_fields[1]) + ",\"inputSchema\":" + table_input + "}";
+} return string table_spec;
+("echo~Says it.~text:string~text"):("{\"name\":\"echo\",\"description\":\"Says it.\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"text\":{\"type\":\"string\"}},\"required\":[\"text\"]}}")
+("check~Runs \"it\".~~"):("{\"name\":\"check\",\"description\":\"Runs \\\"it\\\".\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}}")
+
+tool_list(string[] table_rows) {
+  string[] table_items = [];
+  int table_at = 0;
+  while (table_at < len(table_rows)) {
+    push(table_items, tool_schema(table_rows[table_at]));
+    table_at = table_at + 1;
+  }
+} chain (string[] table_rows) {
+  string table_text = "{\"tools\":[" + str_join(table_items, ",") + "]}";
+} return string table_text;
+(["a~b~~"]):("{\"tools\":[{\"name\":\"a\",\"description\":\"b\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}}]}")
+([]):("{\"tools\":[]}")
+(["a~b~~", "c~d~~", "e~f~~", "g~h~~"]):("{\"tools\":[{\"name\":\"a\",\"description\":\"b\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}},{\"name\":\"c\",\"description\":\"d\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}},{\"name\":\"e\",\"description\":\"f\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}},{\"name\":\"g\",\"description\":\"h\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}}]}")[time:O(n), mem:O(n)]
+(["a~b~~", "c~d~~", "e~f~~", "g~h~~", "i~j~~", "k~l~~", "m~n~~", "o~p~~"]):("{\"tools\":[{\"name\":\"a\",\"description\":\"b\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}},{\"name\":\"c\",\"description\":\"d\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}},{\"name\":\"e\",\"description\":\"f\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}},{\"name\":\"g\",\"description\":\"h\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}},{\"name\":\"i\",\"description\":\"j\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}},{\"name\":\"k\",\"description\":\"l\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}},{\"name\":\"m\",\"description\":\"n\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}},{\"name\":\"o\",\"description\":\"p\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}}]}")[time:O(n), mem:O(n)]

@@ -1,0 +1,17 @@
+// The read tool's front door: a name reads a function, a file reads a slice, and
+// a call with neither is a bad_argument that says what to send.
+
+tool_reading(string read_name, string read_file, int read_std, int read_line, int read_count) {
+  string read_root = env_text((import tool_root_key));
+  string read_text = tool_failure("bad_argument", "read needs name (a function) or file (a path in the project)");
+  if (read_name != "") {
+    read_text = tool_read_function(read_name, read_std, read_root);
+  }
+} chain (string read_name, string read_file, int read_std, int read_line, int read_count) {
+  if (read_name == "" && read_file != "") {
+    read_text = tool_read_file(read_file, read_line, read_count);
+  }
+} return string read_text;
+given tool_t_session ("no_such_function_anywhere", "", 0, 1, 5):("{\"ok\":false,\"error\":\"not_found\",\"message\":\"no function named no_such_function_anywhere; use find to search by part of a name\"}")
+given tool_t_session ("", "report.id", 0, 9, 5):("{\"ok\":true,\"error\":null,\"file\":\"report.id\",\"first_line\":9,\"last_line\":10,\"total_lines\":10,\"text\":\"(5, 7):(\\\"total 7\\\")\\n(3, 7):(\\\"total 3\\\")\"}")
+given tool_t_session ("", "", 0, 1, 5):("{\"ok\":false,\"error\":\"bad_argument\",\"message\":\"read needs name (a function) or file (a path in the project)\"}")

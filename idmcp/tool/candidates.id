@@ -1,0 +1,53 @@
+// The find tool: which names to show and how each is described. The exact name
+// comes first when idc --where knows it, then project functions whose name
+// contains the query, then public idstd functions that do. where narrows the
+// search to "project" or "std"; anything else searches both.
+
+tool_candidates(string cand_query, string cand_where, string cand_root) {
+  string[] cand_names = [];
+  string cand_scope = cand_root;
+  string[] cand_rows = tool_functions(tool_calls());
+} chain (string cand_query, string cand_where, string cand_root) {
+  if (cand_where == "std") {
+    cand_scope = path_join(env_text((import tool_work_key)), "none");
+  }
+  if (tool_safe(cand_query) == 1 && tool_locate(cand_query, cand_scope) != "") {
+    push(cand_names, cand_query);
+  }
+  if (cand_where != "std") {
+    lst_str_extend(cand_names, tool_project_names(cand_rows, cand_query, (import tool_match_limit)));
+  }
+} chain (string cand_query, string cand_where, string cand_root) {
+  string cand_catalog = "";
+  if (cand_where != "project") {
+    cand_catalog = fs_read_text(tool_names_path());
+  }
+  lst_str_extend(cand_names, tool_catalog_names(cand_catalog, cand_query, (import tool_match_limit)));
+} chain (string cand_query, string cand_where, string cand_root) {
+  string[] cand_unique = tool_unique(cand_names, (import tool_match_limit));
+} return string[] cand_unique;
+given tool_t_session ("sample_c", "", "sample"):(["sample_clamp", "sample_count"])
+given tool_t_session ("sample_clamp", "project", "sample"):(["sample_clamp"])
+given tool_t_session ("sample_clamp", "std", "sample"):([])
+given tool_t_session ("str_trim", "std", "sample"):(["str_trim"])
+
+tool_match_json(string match_name, string match_root) {
+  string match_found = tool_locate(match_name, match_root);
+  string[] match_parts = str_split(match_found + "||", "|");
+  string match_text = "";
+} chain (string match_name, string match_root) {
+  string[] match_lines = str_split(fs_read_text(match_parts[0]), "\n");
+  int match_sig = to_int(match_parts[1]) - 1;
+  int match_first = tool_doc_start(match_lines, match_sig);
+} chain (string match_name, string match_root) {
+  string match_doc = tool_sentence(tool_slice(match_lines, match_first, match_sig));
+  string match_file = tool_display(match_root, match_parts[0]);
+  string[] match_fields = [tool_label("name", match_name), tool_label("signature", match_parts[2]), tool_label("file", match_file), tool_number("line", match_sig + 1), tool_label("doc", match_doc)];
+} chain (string match_name, string match_root) {
+  if (match_found != "") {
+    match_text = "{" + str_join(match_fields, ",") + "}";
+  }
+} return string match_text;
+given tool_t_session ("sample_clamp", "sample"):("{\"name\":\"sample_clamp\",\"signature\":\"sample_clamp(int sample_value, int sample_top) -> int\",\"file\":\"math/count.id\",\"line\":15,\"doc\":\"Keeps a value at or under a top.\"}")
+given tool_t_session ("sample_report", "sample"):("{\"name\":\"sample_report\",\"signature\":\"sample_report(int sample_limit, int sample_top) -> string\",\"file\":\"report.id\",\"line\":4,\"doc\":\"\"}")
+given tool_t_session ("nothing_like_this", "sample"):("")
