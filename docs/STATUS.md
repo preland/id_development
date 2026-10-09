@@ -29,10 +29,10 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `videos` | 272 | 575 | 1485 | 0 | 0 |
 | `word` | 613 | 1457 | 3976 | 0 | 0 |
 | `wordcheck` | 74 | 186 | 538 | 0 | 0 |
-| `idc/compiler` | 1399 | 3609 | 8086 | 0 | 0 |
+| `idc/compiler` | 1410 | 3635 | 8159 | 0 | 0 |
 | `idc/driver` | 7 | 18 | 36 | 0 | 0 |
 | `idc/runtime` | 49 | 91 | 3 | 1 | 89 |
-| `idc/tools` | 584 | 1434 | 3682 | 3 | 0 |
+| `idc/tools` | 623 | 1526 | 3944 | 3 | 0 |
 | `idstd/core/data` | 49 | 118 | 296 | 0 | 0 |
 | `idstd/core/fmt` | 148 | 358 | 1336 | 0 | 0 |
 | `idstd/core/math` | 20 | 52 | 135 | 0 | 0 |
@@ -44,7 +44,7 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `idstd/kit/app` | 11 | 30 | 76 | 0 | 0 |
 | `idstd/kit/media` | 208 | 527 | 1735 | 0 | 0 |
 | `idstd/kit/ui` | 336 | 829 | 2612 | 0 | 0 |
-| **all** | 7993 | 19104 | 45690 | 310 | 140 |
+| **all** | 8043 | 19222 | 46025 | 310 | 140 |
 | of which idstd | 1330 | 2926 | 9026 | 0 | 0 |
 
 *short of two* counts the functions with fewer than two test cases that the compiler does not exempt: a freestanding function that reaches an `asm` body is exempt, and `kernel` and `idc/runtime` are asked of the compiler with the flags `idc/tools/kbuild` builds them with. Functions are found by their headers (`idc/tools/lib/fnhead`) and their cases by `mutscore lint`, not by the compiler's own parse. `idc/tests` is not counted: it holds the inputs of the compiler's own tests, some of which break the rules on purpose. `statusgen --untested [TREE]` lists the functions that are short.
@@ -67,10 +67,10 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `videos` | 0 | 0 | 379 | 167 | 29 |
 | `word` | 0 | 0 | 920 | 426 | 111 |
 | `wordcheck` | 0 | 0 | 90 | 80 | 16 |
-| `idc/compiler` | 0 | 0 | 3096 | 442 | 71 |
+| `idc/compiler` | 0 | 0 | 3112 | 448 | 75 |
 | `idc/driver` | 0 | 0 | 18 | 0 | 0 |
 | `idc/runtime` | 90 | 0 | 0 | 1 | 0 |
-| `idc/tools` | 3 | 0 | 1018 | 321 | 92 |
+| `idc/tools` | 3 | 0 | 1059 | 369 | 95 |
 | `idstd/core/data` | 0 | 0 | 88 | 24 | 6 |
 | `idstd/core/fmt` | 0 | 0 | 139 | 141 | 78 |
 | `idstd/core/math` | 0 | 0 | 32 | 17 | 3 |
@@ -82,7 +82,7 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `idstd/kit/app` | 0 | 0 | 23 | 5 | 2 |
 | `idstd/kit/media` | 0 | 0 | 269 | 166 | 92 |
 | `idstd/kit/ui` | 0 | 0 | 467 | 241 | 121 |
-| **all** | 450 | 0 | 14641 | 3077 | 936 |
+| **all** | 450 | 0 | 14698 | 3131 | 943 |
 | of which idstd | 0 | 0 | 1708 | 789 | 429 |
 
 A distribution, not a mean: a mean of two is met by one function with many cases beside others with none.
@@ -105,10 +105,10 @@ A distribution, not a mean: a mean of two is met by one function with many cases
 | `videos` | 0 | 2 | 1 | 0 | 75 | 0 |
 | `word` | 16 | 11 | 6 | 1 | 79 | 0 |
 | `wordcheck` | 4 | 9 | 5 | 1 | 27 | 0 |
-| `idc/compiler` | 67 | 14 | 8 | 125 | 96 | 48 |
+| `idc/compiler` | 67 | 14 | 8 | 126 | 98 | 48 |
 | `idc/driver` | 1 | 2 | 1 | 11 | 0 | 0 |
 | `idc/runtime` | 5 | 5 | 3 | 0 | 0 | 0 |
-| `idc/tools` | 22 | 7 | 4 | 20 | 134 | 3 |
+| `idc/tools` | 22 | 7 | 4 | 20 | 144 | 3 |
 | `idstd/core/data` | 0 | 2 | 1 | 0 | 4 | 0 |
 | `idstd/core/fmt` | 0 | 3 | 1 | 0 | 2 | 0 |
 | `idstd/core/math` | 0 | 1 | 1 | 0 | 3 | 0 |
@@ -120,14 +120,14 @@ A distribution, not a mean: a mean of two is met by one function with many cases
 | `idstd/kit/app` | 0 | 2 | 2 | 0 | 0 | 0 |
 | `idstd/kit/media` | 0 | 3 | 3 | 0 | 2 | 0 |
 | `idstd/kit/ui` | 0 | 3 | 2 | 0 | 3 | 0 |
-| **all** | 173 | 15 | 5 | 363 | 812 | 359 |
+| **all** | 173 | 15 | 5 | 364 | 824 | 359 |
 | of which idstd | 0 | 4 | 2 | 0 | 22 | 0 |
 
 *filler dirs* are directories named more, rest, tail, cont or partN. *depth* is the number of directories between a tree's root and a source file; *median* is the lower median. *silent*, *echo* and *bare* are the cases `mutscore lint` finds that prove nothing (docs/TESTS.md, "Mutation score").
 
 ## Test sections
 
-`idc/tests/run.sh --list` shows the sections and their indices: `core`, `core_self`, `core_rest`, `invalid_1of4`, `invalid_2of4`, `invalid_3of4`, `invalid_4of4`, `diagnostics`, `diagnostics_docs` (3 parts), `runtime_invalid`, `self_host_build_demos`, `self_host_build_link`, `self_host_build_project` (3 parts), `self_host_build_stage0`, `self_host_build_boot_cold`, `self_host_build_expr`, `backends_fs`, `backends_fs_list`, `backends_ipc`, `backends_link`, `backends_link_lib`, `backends_link_att`, `backends_link_pkg`, `backends_link_gfx`, `backends_demos`, `backends_display`, `backends_galaxy`, `backends_galaxy_run`, `stdlib_import`, `stdlib_dce`, `stdlib_precheck`, `wasm`, `wasm_js`, `wasm_js_std`, `lib`, `lib_csv`, `opt`, `conform_eprint`, `conform_float`, `conform_flow`, `conform_fn`, `conform_free`, `conform_int`, `conform_list_1of2`, `conform_list_2of2`, `conform_order`, `conform_store`, `conform_str`, `conform_struct`, `conform_trap`, `conform_closure`, `conform_const`, `tests_feature` (5 parts), `fix`, `idstd_real`, `kernel_build`, `kernel_boot`, `kernel_kfree`, `editor`, `mutscore`, `statusgen`, `tmpguard` (22 parts)
+`idc/tests/run.sh --list` shows the sections and their indices: `core`, `core_parse`, `core_guard`, `core_self`, `core_rest`, `invalid_1of4`, `invalid_2of4`, `invalid_3of4`, `invalid_4of4`, `diagnostics`, `diagnostics_docs` (3 parts), `runtime_invalid`, `self_host_build_demos`, `self_host_build_link`, `self_host_build_project` (3 parts), `self_host_build_stage0`, `self_host_build_boot_cold`, `self_host_build_expr`, `backends_fs`, `backends_fs_list`, `backends_ipc`, `backends_link`, `backends_link_lib`, `backends_link_att`, `backends_link_pkg`, `backends_link_gfx`, `backends_demos`, `backends_display`, `backends_galaxy`, `backends_galaxy_run`, `stdlib_import`, `stdlib_dce`, `stdlib_precheck`, `wasm`, `wasm_js`, `wasm_js_std`, `lib`, `lib_csv`, `opt`, `conform_eprint`, `conform_float`, `conform_flow`, `conform_fn`, `conform_free`, `conform_int`, `conform_list_1of2`, `conform_list_2of2`, `conform_order`, `conform_store`, `conform_str`, `conform_struct`, `conform_trap`, `conform_closure`, `conform_const`, `tests_feature` (5 parts), `fix`, `idstd_real` (3 parts), `kernel_build`, `kernel_boot`, `kernel_kfree`, `editor`, `mutscore`, `statusgen`, `tmpguard` (22 parts)
 
 ## Benchmarks
 

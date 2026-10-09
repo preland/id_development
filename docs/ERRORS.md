@@ -638,6 +638,42 @@ main(int argc, string[] argv) {
 } return int 0;
 ```
 
+## E0311 a name with a piece that is not a word
+
+A name is read by people who did not write it. `fb_w` means one thing to its author
+and nothing to anyone else; `framebuffer_width` means what it says. Every
+identifier the program declares (a function, a parameter, a local, an export, a
+conf.id constant, a struct and its fields) is split on `_`, and each piece must be
+a word: in `idc/data/words/english.txt` (an English dictionary, one lowercase word
+per line) or in `idc/data/words/allowed.txt` (valid names that are not English:
+brands and coding terms such as `utf8`, `json`, `wayland`, `ttf`; a line starting
+with `#` is a comment). The lookup ignores case. A piece with a digit in it, a
+one-letter piece and an empty piece (a leading, trailing or doubled `_`) are never
+words unless allowed.txt lists them. File and directory names are not checked.
+
+The check runs only under `idc PATH --word-scan` (use it with `--check`); an
+ordinary build does not read either file. It judges each distinct name once and
+ends with one line of totals. The fix is to spell out each piece it names, or, if
+the piece is a real term the dictionary does not know, to add it to allowed.txt.
+
+Incorrect:
+
+```text
+idc app.id --check --word-scan
+fb_w(int fb_h) {
+  int fb_a = fb_h * 2;
+} return int fb_a;
+```
+
+Correct:
+
+```text
+idc app.id --check --word-scan
+framebuffer_width(int framebuffer_height) {
+  int framebuffer_area = framebuffer_height * 2;
+} return int framebuffer_area;
+```
+
 ## E0401 two functions with one name
 
 A function is called by its name alone, so a name can mean only one function.

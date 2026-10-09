@@ -1265,7 +1265,7 @@ runs"), so a freestanding tree can be cased like any other.
 > `IDC_NO_STD=1`, or in `idc/tests/stdlib.sh` against the fixture library,
 > which never reads the real one. What moved, and what was lost with it:
 >
-> - `idc/tests/run.sh` (`core`): the lexer, parser, calculator and `idview`
+> - `idc/tests/run.sh` (`core`, `core_parse`, `core_guard`): the lexer, parser, calculator and `idview`
 >   builds, and `moonbuggy` and `solitaire`, are `idc/bin/idc` builds. The
 >   checks that compared `idc/idc.py`'s C for `compiler/lex` and
 >   `compiler/parse` with the self-hosted compiler's are now "self-hosting
@@ -1273,7 +1273,7 @@ runs"), so a freestanding tree can be cased like any other.
 >   it built, run over the same source. Lost: an independent implementation
 >   agreeing with the compiler on the compiler's own source and `idstd`.
 >   What is left of that is `idc/idc.py` agreeing on programs without the
->   library — the parity checks in `core`, `idc/tests/self_host_build.sh`,
+>   library — the parity checks in `core_self`, `idc/tests/self_host_build.sh`,
 >   `idc/tests/stdlib.sh` and `idc/tests/invalid.sh`.
 > - `idc/tests/backends.sh`: the six "backend build (idc.py)" checks on the
 >   graphics demos are gone; the six `idc/bin/idc` builds beside them stay.
