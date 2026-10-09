@@ -116,9 +116,18 @@ path (`path + ".bad"`), which is how 80,000 scratch entries piled up in `/tmp`.
 A scratch name built from a fixed `/tmp/...` literal is outside this and still
 leaks. `fs_drop_exit(path)` stays for a program that is not a test, which wants
 a path removed when its own process exits; it accepts only a path under `/tmp`.
-`idc/tools/tmpguard` is the check: it builds a tree with the compiler cache off
-and fails when `/tmp` holds an entry afterwards that it did not hold before
-(`tests/run.sh --list` shows its `tmpguard_N` sections, one tree each).
+`idc/tools/tmpguard` is the check: it builds a tree with `IDC_FRESH_CASES` naming
+it (every case of the tree runs; idstd's stay cached) and `TMPDIR` pointed at a
+directory of its own, which the case runner and the driver both put their
+scratch directories in, and fails when that directory holds anything afterwards
+or `/tmp` holds an entry it did not hold before. Another process writing to
+`/tmp` while it runs shows up too, so run it when nothing else is building.
+(`tests/run.sh --list` shows its `tmpguard_N` sections, one tree each.) Every
+section of `tests/run.sh` is meant to finish inside a minute with a warm cache,
+and is named for what it holds (`conform_float`, `invalid_2of4`, `stdlib_dce`,
+`self_host_build_project_1`); a check added to a script goes in the section whose
+name says what it is about, and a section that grows past the minute is split
+rather than left to be run in the background.
 
 A `void` function is tested by what it leaves behind. Because a list has
 reference semantics, the expected side describes the arguments *after* the
@@ -1015,18 +1024,30 @@ functions it calls, the exported variables it reads (through the function that
 declares them), and the `conf.id` constants it reads, directly or through the
 initialiser of another constant. Editing a constant nothing reads reruns no
 case; editing one reruns exactly the cases that read it. What the source cannot
-say -- the compiler, `cc` and the host -- is part of every key. A case that
-reaches a volatile `native`, a call to `ticks` or `getkey`, or an `asm` routine,
-or carries a scaling claim, is never cached (below says which natives are not
-volatile). `IDC_CASE_STATS=1` prints how many cases were already passed and how
-many ran (`idc/tests/cache_reach.sh` counts reruns with it); `IDC_NO_CACHE=1`
-runs every case.
+say -- the compiler, `cc` and the host -- is part of every key. Every case is cached, a scaling claim's and one that reaches a native whose result no hash can see (a call to `ticks` or `getkey`, an `asm` routine, the
+window, the environment): what a hash cannot see is covered
+by expiry (next paragraph). A scaling claim's cases are skipped together or run
+together, because the claim compares their counts; a claim that does not hold is
+never recorded as a pass. `IDC_CASE_STATS=1` prints how many cases were already
+passed and how many ran (`idc/tests/cache_reach.sh` counts reruns with it);
+`IDC_NO_CACHE=1` runs every case.
+
+**A pass expires.** Each entry of the pass list carries the time it was
+recorded, and a case whose entry is older than `IDC_CASE_MAX_AGE_DAYS` days
+(default 7; `0` reruns every case) runs again and is stamped afresh. A change
+invalidates a case at once; the weekly rerun is what catches what no change
+shows: hardware, firmware, the environment, the clock. Between reruns that
+flakiness goes unchecked, by decision. `IDC_FRESH_CASES=PATH` runs every case
+whose function belongs to the source tree at PATH (the tree the case runs in,
+see below) whatever the pass list says, and still reuses every other tree's
+results, idstd's above all; `idc/tools/tmpguard` uses it, so checking one tree
+for `/tmp` leaks costs seconds, not a rebuild and retest of the library.
 
 **Files a case reads.** A case that loads a font or a corpus reaches the file
 natives, which a source hash cannot see into, so it is keyed like any other
 case and bin/idc also records what it read. Two lists in
 `idc/compiler/parse/conf.id` say which natives that holds for; every other
-native is volatile, and so is a call to the clock (`ticks`) or the terminal
+native is unwatched, and so is a call to the clock (`ticks`) or the terminal
 (`getkey`). Each name is on a list only because the backend that implements it
 (idstd's `host/io/fs/fs_posix.c`, `host/os/env/env_posix.c`) keeps the list's
 promise through a log the harness gives each case (`$IDTC_READLOG`):
@@ -1037,11 +1058,10 @@ promise through a log the harness gives each case (`$IDTC_READLOG`):
   backend logs every path they open for reading, size, stat or list, found or
   not, with the answer it saw.
 - `cache_taint_natives` (the writing `fs_` natives and the `env_` ones) are
-  allowed in a cached case but marked when called. A case that reaches one and
-  never calls it is cached; one that calls it is not, so it runs on every build.
-  A write is let through only inside a tree the case registered with
-  `fs_drop_exit`. (`fs_mktemp` is volatile, so today no cached case has such a
-  tree.)
+  marked in the read log when called. The case is cached anyway: what it did to
+  the world is in no read set, and the weekly expiry covers it. A write inside
+  a tree the case made (registered with `fs_drop_exit`, or the harness's
+  scratch directory) is its own doing and is not marked.
 
 When a case with a real key passes, the pass list stores its key (with the hash
 of the backend's own source, since a log written by other code means nothing)
@@ -1054,10 +1074,13 @@ its key is on the list and every recorded path still hashes the same, each
 distinct path once per build; so editing a file reruns the cases that read its
 bytes and not the ones that only asked whether it exists, creating a file
 reruns the cases that probed for it, and adding a file to a directory reruns the
-cases that listed it. A case is left out of the list, and so runs every build,
-if it wrote outside a registered tree, read a device or a `/proc`, `/sys` or
-`/dev` path, hit any error but "no such file", or if a path it read changed
-while it ran. The cases in `idc/tests/cache_files.sh` count each of these.
+cases that listed it. A write outside the trees the case made (a registered
+tree, or the harness's scratch directory), a device or a `/proc`, `/sys` or
+`/dev` path, and any error but "no such file" are not in any read set; the case
+is cached all the same, and the weekly expiry (above) is what covers them. A
+read inside a tree the case made itself is not logged. A case is left out of the
+list, and so runs every build, only if a path it read changed while it ran and
+it wrote nothing. The cases in `idc/tests/cache_files.sh` count each of these.
 A backend that implements a listed name without the log would be cached with
 nothing to invalidate it: attach such a backend only to builds whose cases are
 run uncached (`IDC_NO_CACHE=1`).

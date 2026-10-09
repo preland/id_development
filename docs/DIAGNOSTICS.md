@@ -421,8 +421,8 @@ that named it were updated:
 
 The compiler's own cases pin the output of every migrated diagnostic, so
 `idc/tests/run.sh core core_rest` is the check that none changed unintentionally;
-`tests/run.sh invalid diagnostics diagnostics_docs_0 diagnostics_docs_1
-diagnostics_docs_2` checks the examples and the formats. Use
+`tests/run.sh invalid_1of4 invalid_2of4 invalid_3of4 invalid_4of4 diagnostics
+diagnostics_docs_0 diagnostics_docs_1 diagnostics_docs_2` checks the examples and the formats. Use
 `idc/tools/mapgen.sh --check` after adding functions (it regenerates
 `compiler/parse/MAP.md`) and `idc/tools/regen_bootstrap.sh --check` after a change to
 the compiler.

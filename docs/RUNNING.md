@@ -188,11 +188,20 @@ idc/tools/devshell.sh 'idc/tests/run.sh --list'   # the sections, to run one
 ```
 
 No step may run longer than a minute, so a script that would is cut into
-sections: `run.sh`'s, and for the two that were too long for one of them, pieces
-taken as arguments (`idc/tests/backends.sh --list`, `idc/tests/conform.sh AREA...`).
+sections: `run.sh`'s, each warm under the minute. A section names what it holds
+(`conform_float`, `invalid_1of4` to `invalid_4of4`, `stdlib_dce`,
+`self_host_build_project_2`, `kernel_boot`); `run.sh --list` prints them with their
+indices. The scripts behind them take the same pieces as arguments
+(`idc/tests/backends.sh --list`, `idc/tests/self_host_build.sh --list`,
+`idc/tests/conform.sh AREA...` with `AREA:K/N` for the Kth of N parts of an area,
+`idc/tests/invalid.sh K N`, `idc/tests/stdlib.sh 1|2|3`, `idc/tests/kernel.sh build|boot|kfree`).
 What a stopped run had finished is kept (parsed sources, compiled units, passed
 cases, the library's pre-check), so running the same command again continues
 instead of starting over; `run.sh --resume` does the same for whole sections.
+A cold cache is another matter: the first build after a compiler change
+rebuilds the compiler's own stages, which takes minutes. `idc/tools/regen_bootstrap.sh`
+takes the steps `stages`, `lex`, `parse-front`, `emit` and `compare`, each one
+result line, and skips a step whose inputs have not changed.
 
 ## Where to look for what to work on next
 
