@@ -585,8 +585,9 @@ octal, and no exponent form for integers: a literal with an exponent is a
 
 The largest literal is 18446744073709551615, which is `0xffffffffffffffff`: a
 larger one, in any spelling, is a compile error (E0107). A literal outside the
-`int` range may not be stored in an `int` by a declaration or an assignment
-(E0608), though `-2147483648` is fine, being the lowest `int`.
+`int` range may not be stored in an `int` by a declaration or an assignment,
+as an element of an `int[]` literal, by an element assignment `xs[i] = v` or by
+`push(xs, v)` (E0608), though `-2147483648` is fine, being the lowest `int`.
 
 ### 2.1 Overflow wraps
 
@@ -806,6 +807,12 @@ target: `"\x01aaaa"` is five characters, never one. A `\x` without two hex
 digits after it is a compile error (E0108, `tests/invalid/string_hex_escape_short.id`);
 the C emitter writes the literal so that C's own "as many digits as follow"
 rule never applies (`tests/conform/str/17-hex-escape-two-digits.id`).
+
+**A backslash and one to three octal digits in a string literal is one byte**,
+as in C, on every target: `"\033"` is ESC (27), `"\101"` is `A`, `"\1"` is the
+byte 1, and a fourth digit is an ordinary character (`"\0121"` is a newline and
+a `1`). A value above 255 keeps its low eight bits
+(`tests/conform/str/18-octal-escape.id`).
 
 ## 5. Lists
 

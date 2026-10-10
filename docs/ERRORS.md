@@ -1571,7 +1571,10 @@ range is a `word` (docs/SPEC.md, section 2), and a declaration or an assignment
 may narrow a `word` to an `int`, but a literal is the one value whose size is
 known on the line: `int big = 3000000000;` would keep only the low 32 bits and
 print -1294967296, with nothing to say a number had been dropped. The literal
-`-2147483648` is fine, since it is the lowest `int`; `-2147483649` is not.
+`-2147483648` is fine, since it is the lowest `int`; `-2147483649` is not. The
+same holds where a list holds the int: an element of an `int[]` literal
+(`[1, 3000000000]`), an element assignment (`xs[0] = 3000000000`) and
+`push(xs, 3000000000)`.
 
 Incorrect:
 
