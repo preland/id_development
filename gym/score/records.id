@@ -1,0 +1,22 @@
+// Personal records (spec P9: rewards are personal records on the scoreboard only). The only records are the
+// best week of two learning measures; there is nothing for showing up, time spent or work finished.
+
+// The best week of retention among the last `score_weeks` weeks ending at now: its accuracy and attempts. A
+// week counts only with at least `score_minimum` retention attempts; none that do is sample 0, enough 0.
+score_record_retention(Score_table score_table_in, word score_now, int score_weeks, int score_minimum) {
+  Score_figures score_weekly = score_retention_trend(score_table_in, score_now, score_weeks, score_minimum);
+  Score_figure score_result = score_best(score_weekly);
+} return Score_figure score_result;
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), 700000000, 2, 4):(Score_figure(4, 1, 0.75))
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), 700000000, 2, 5):(Score_figure(0, 0, 0.0))
+given score_fixture_build("", "") ((import score_fixture_table), 700000000, 2, 1):(Score_figure(0, 0, 0.0))
+
+// The best week of accuracy on held-out items among the last `score_weeks` weeks ending at now, counting only
+// weeks with at least `score_minimum` transfer attempts.
+score_record_transfer(Score_table score_table_in, word score_now, int score_weeks, int score_minimum) {
+  Score_figures score_weekly = score_transfer_trend(score_table_in, score_now, score_weeks, score_minimum);
+  Score_figure score_result = score_best(score_weekly);
+} return Score_figure score_result;
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), 700000000, 2, 2):(Score_figure(2, 1, 0.5))
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), 700000000, 2, 3):(Score_figure(0, 0, 0.0))
+given score_fixture_build("", "") ((import score_fixture_table), 700000000, 2, 1):(Score_figure(0, 0, 0.0))

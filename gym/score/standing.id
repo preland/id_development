@@ -1,0 +1,30 @@
+// Fluency and calibration over a whole table, and the confident errors.
+
+// Fluency (spec P9): the median seconds of the answers that were right with no hint and no tap-out.
+score_fluency(Score_table score_table_in, int score_minimum) {
+  int[] score_mask = score_clean(score_table_in.marks.corrects, score_table_in.marks.aid.hints, score_table_in.marks.aid.tapped);
+  Score_figure score_result = score_median(score_mask, score_table_in.moments.seconds, score_minimum);
+} return Score_figure score_result;
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), 5):(Score_figure(5, 1, 15.0))
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), 6):(Score_figure(5, 0, 0.0))
+given score_fixture_build("1000\tattempt\ti1\tx\t90\tcorrect\t0\t9\tyes\t\n2000\tattempt\ti1\tx\t90\tincorrect\t0\t8\tno\t\n", "item: i1\nconcepts: ca\n") ((import score_fixture_table), 1):(Score_figure(0, 0, 0.0))
+given score_fixture_build("", "") ((import score_fixture_table), 0):(Score_figure(0, 0, 0.0))
+
+// Calibration (spec P10): the Brier score of the confidence stated on the first attempt at each item.
+score_calibration(Score_table score_table_in, int score_minimum) {
+  int[] score_mask = score_first(score_table_in.moments.gaps);
+  Score_figure score_result = score_brier(score_mask, score_table_in.marks.confidences, score_table_in.marks.corrects, score_minimum);
+} return Score_figure score_result;
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), 3):(Score_figure(3, 1, 0.25))
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), 4):(Score_figure(3, 0, 0.0))
+given score_fixture_build("5000\tattempt\ti1\tx\t50\tcorrect\t0\t5\tno\t\n5000\tattempt\ti1\tx\t99\tincorrect\t0\t5\tno\t\n5000\tattempt\ti1\tx\t99\tincorrect\t0\t5\tno\t\n", "item: i1\nconcepts: ca\n") ((import score_fixture_table), 1):(Score_figure(1, 1, 0.25))
+given score_fixture_build("", "") ((import score_fixture_table), 0):(Score_figure(0, 0, 0.0))
+
+// The calibration table (spec P10): for each confidence level 50, 70, 90, 99 the first attempts made at it,
+// as three floats in a row: how many, the mean confidence, and the share right.
+score_calibration_table(Score_table score_table_in) {
+  int[] score_mask = score_first(score_table_in.moments.gaps);
+  float[] score_cells = score_bins(score_mask, score_table_in.marks.confidences, score_table_in.marks.corrects);
+} return float[] score_cells;
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table)):([1.0, 0.5, 1.0, 1.0, 0.7, 0.0, 1.0, 0.9, 1.0, 0.0, 0.0, 0.0])
+given score_fixture_build("", "") ((import score_fixture_table)):([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])

@@ -1,0 +1,14 @@
+// The setup the cases of every scoreboard function over a Score_table use: the table built from the log text
+// and the pack text a case gives, left in the export score_fixture_table. Building it is the code under test
+// elsewhere; here the cases only pin that the setup keeps what it was given.
+
+score_fixture_build(string score_log_text, string score_pack_text) {
+  Log_replay score_replayed = log_replay_text(score_log_text);
+  Pack score_book = pack_new("t");
+  pack_read_text(score_book, "t.txt", score_pack_text);
+} chain (string score_log_text, string score_pack_text) {
+  export Score_table score_fixture_table = score_table(score_replayed.events, score_book);
+} return void export score_fixture_table;
+("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n", "item: i1\nconcepts: ca\n"):() then (import score_fixture_table).moments.times:([86400000])
+("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n", "item: i1\nconcepts: ca\n"):() then (import score_fixture_table).labels.concepts:([",ca,"])
+("", ""):() then len((import score_fixture_table).marks.corrects):(0)

@@ -157,3 +157,86 @@ guess.
   tolerances of 1e-6 or more.
 - **`unparseable` also covers an item whose own reference cannot be read**; `pack
   check` refuses such items, so it is only reachable with an unchecked pack.
+
+## Scoreboard (`gym/score/`, 47 functions, 180 cases)
+
+Written by the agent that built the scoreboard from a replayed log and a pack.
+The whole `gym` tree still builds and runs every case in about 1.2 s warm.
+
+### What worked
+
+- **Plain-list primitives plus one table builder.** Every measure is "a 0/1 mask
+  and the columns it reads" (`score_retained`, `score_accuracy`, `score_median`),
+  so cases are short literal lists with numbers computed by hand, and the
+  24 h / 23.9 h boundary is pinned twice: on the mask (`score_retained`, gaps
+  86400000 and 86399999) and end to end through the builder (log text).
+- **`given score_fixture_build(LOG, PACK)`** (a `given` with arguments that
+  exports a whole struct) let each table-level function be tested from readable
+  log text. Two `given`s on one case (`pack_fixture_parse` plus a Log_events
+  literal) also worked.
+- **Oracle check.** Seven hand-made mutants (retention `>=` to `>`, week edge `<=`
+  to `<`, the out-of-order clamp, tap-out ignored in `corrects`, `score_best`
+  tie rule, median divisor, `str_find >= 0` to `>= 1`) all went red except the
+  last, which survived until the case `([" xp ", "streak"], "XP is shown first")`
+  was added. `mutscore` itself was not run (its binary is not built here).
+
+### Costs, in the order they were hit
+
+1. **Constants are one physical line.** A multi-line list constant in `conf.id`
+   (the metric definitions) is rejected: "imports come before constants in
+   conf.id; 'string[] ... = [' follows a constant declaration" and then "malformed
+   line". The message blames import order, not the line break. Fix?: say
+   "a constant must be on one line".
+2. **`(import CONSTANT)` is not allowed in a case's arguments** ("needs a 'given'"):
+   it is for function bodies only. So "the real metric names and definitions
+   contain no forbidden word" cannot pass the real list in as an argument; the
+   guard `score_forbidden_count(names)` reads the constants itself and the case
+   lists the seven names literally. Fix?: let a case read a conf constant.
+3. **Counted scaling constraints and `n`.** `n` is the largest list/string length
+   or the *value* of an int or word argument. Consequences: (a) two cases that
+   share a `now` of 1209600000 have the same `n` and fail "needs a second case
+   with a different input size", so cases were given `now` values that differ by 1
+   (`score_in_week`, `score_weekly_*`); (b) a threshold argument of 90 made `n` 90
+   for both cases, so `score_confident_errors` lost its level parameter and reads
+   `score_confident_level` from conf; (c) a function whose arguments are structs
+   (`Score_figures`) has no `n` at all, so `score_best` carries no constraint.
+4. **Probable code generator fault, not confirmed.** `score_in_week` written with
+   `(import score_week)` used in a declaration and again inside the loop's
+   `push(...)` expression produced C that did not compile: `redeclaration of
+   'idsq_20' with no linkage` in `id_score_in_week`. Keeping the imports in
+   declarations and none in the loop compiled. The diagnosis (import inside the
+   loop expression) is a guess; what would confirm it is a small function with only
+   that shape.
+5. **A struct constructor is only a declaration initialiser.**
+   `result = Score_figure(...)` is rejected; the message is clear and names the
+   fix, but "default, then overwrite" needs three scalar locals and a final
+   constructor (`score_best`, three chain segments).
+6. **Name collisions again (E0303).** `score_counts` (int in a mask loop, int[] in a
+   trend), `score_found` (int[] vs int), `score_aid` (int vs struct), and a struct
+   field called `values` risked clashing with `Pack_rows.values`, so the list of
+   figures uses `numbers`. The vocabulary table lives in my head again.
+7. **Test text is long.** A case that needs a nine-attempt log is about 700
+   characters, repeated for every function that reads the table (about 40 lines).
+   A compact fixture format ("time item confidence verdict hints seconds tapped",
+   one attempt per line) would make them readable, but is one more function to
+   test; not done.
+8. **Tooling.** Every shell command, even `cat`, needs a `timeout N` wrapper or the
+   hook blocks it; `--word-scan` on `gym` also prints idstd's 7118 failing names
+   (28k lines), so the gym result is found by filtering for `gym/` paths; a
+   control (a function named `score_xqzv`) confirmed the scan does reach gym code.
+
+### Design decisions the task left open (flagged for review)
+
+- **Correct** means the checker's verdict is `correct` and the learner did not
+  tap out. The learner's own `grade` field is not read.
+- **Solved** (the denominator of independence) is a correct attempt; an
+  independence figure with enough attempts but nothing solved is "not enough" and
+  `score_describe` says "nothing solved yet".
+- **Calibration** uses first attempts per item only; **confident errors** use every
+  attempt (confidence 90 or more, incorrect, tap-outs included).
+- **Weeks** are the `weeks` spans ending at `now`, `(now - (k+1) weeks, now - k weeks]`;
+  attempts older than that, and attempts after `now`, are in no week.
+- **Records** are the best week of retention and the best week of transfer accuracy
+  that has at least the minimum attempts; the earliest week wins a tie.
+- A log written out of order gives a gap of 0 (neither first nor delayed); an item
+  missing from the pack has no concepts and is not a transfer item.

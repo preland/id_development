@@ -1,0 +1,30 @@
+// Fluency per concept: the median seconds of the clean correct answers at items that test the concept.
+
+score_fluency_concept(Score_table score_table_in, string score_concept, int score_minimum) {
+  int[] score_mask = score_clean(score_table_in.marks.corrects, score_table_in.marks.aid.hints, score_table_in.marks.aid.tapped);
+  int[] score_scoped = score_with_concept(score_table_in.labels.concepts, score_concept);
+  int[] score_counted = score_both(score_mask, score_scoped);
+} chain (Score_table score_table_in, string score_concept, int score_minimum) {
+  Score_figure score_result = score_median(score_counted, score_table_in.moments.seconds, score_minimum);
+} return Score_figure score_result;
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), "ca", 4):(Score_figure(4, 1, 12.5))
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), "cb", 2):(Score_figure(2, 1, 27.5))
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), "cb", 3):(Score_figure(2, 0, 0.0))
+
+// Fluency for each concept id given, in that order; a concept without enough clean answers holds score_unknown.
+score_fluency_concepts(Score_table score_table_in, string[] score_concept_ids, int score_minimum) {
+  string[] score_names = [];
+  int[] score_tallies = [];
+  float[] score_numbers = [];
+} chain (Score_table score_table_in, string[] score_concept_ids, int score_minimum) {
+  Score_figures score_list = Score_figures(score_names, score_tallies, score_numbers);
+  int score_at = 0;
+  while (score_at < len(score_concept_ids)) {
+    Score_figure score_result = score_fluency_concept(score_table_in, score_concept_ids[score_at], score_minimum);
+    score_note(score_list, score_concept_ids[score_at], score_result);
+    score_at = score_at + 1;
+  }
+} return Score_figures score_list;
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), ["ca", "cb"], 2):(Score_figures(["ca", "cb"], [4, 2], [12.5, 27.5]))[time:O(n), mem:O(n)]
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), ["cb", "ca", "cb", "zz"], 3):(Score_figures(["cb", "ca", "cb", "zz"], [2, 4, 2, 0], [-1.0, 12.5, -1.0, -1.0]))[time:O(n), mem:O(n)]
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n", "concept: ca\nitem: i1\nconcepts: ca\n") ((import score_fixture_table), [], 1):(Score_figures([], [], []))

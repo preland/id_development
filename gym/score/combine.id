@@ -1,0 +1,50 @@
+// Narrowing a mask: to the attempts both masks count, to one concept, or to one week.
+
+// Both masks count the attempt. Lists of unequal length are read to the shorter one.
+score_both(int[] score_left_mask, int[] score_right_mask) {
+  int[] score_mask = [];
+  int score_at = 0;
+  while (score_at < len(score_left_mask) && score_at < len(score_right_mask)) {
+    push(score_mask, score_left_mask[score_at] == 1 && score_right_mask[score_at] == 1);
+    score_at = score_at + 1;
+  }
+} return int[] score_mask;
+([1, 1, 0, 1], [1, 0, 0, 1]):([1, 0, 0, 1])[time:O(n), mem:O(n)]
+([1, 1, 0, 1, 1, 1, 0, 1], [0, 1, 1, 1, 1, 1, 0, 0]):([0, 1, 0, 1, 1, 1, 0, 0])[time:O(n), mem:O(n)]
+([1, 1, 1], [1]):([1])
+([], [1, 1]):([])
+
+// The attempt is at an item of the concept; concepts[k] is the ",a,b," text of attempt k.
+score_with_concept(string[] score_texts, string score_concept) {
+  string score_needle = "," + score_concept + ",";
+  int[] score_mask = [];
+  int score_at = 0;
+} chain (string[] score_texts, string score_concept) {
+  while (score_at < len(score_texts)) {
+    push(score_mask, str_find(score_texts[score_at], score_needle) >= 0);
+    score_at = score_at + 1;
+  }
+} return int[] score_mask;
+([",a,", ",a,b,", ",b,", ","], "a"):([1, 1, 0, 0])[time:O(n), mem:O(n)]
+([",a,", ",a,b,", ",b,", ",", ",ab,", ",c,a,", ",b,a,", ",bb,"], "b"):([0, 1, 1, 0, 0, 0, 1, 0])[time:O(n), mem:O(n)]
+([], "a"):([])
+([",a,"], ""):([0])
+
+// The attempt happened in the week that ended `score_back` weeks before now: the half-open span
+// (now - (back + 1) weeks, now - back weeks]. back 0 is the latest week, now itself included; times after now
+// are in no week.
+score_in_week(word[] score_times, word score_now, int score_back) {
+  word score_upper = score_now - (import score_week) * score_back;
+  word score_lower = score_upper - (import score_week);
+  int[] score_mask = [];
+} chain (word[] score_times, word score_now, int score_back) {
+  int score_at = 0;
+  while (score_at < len(score_times)) {
+    push(score_mask, score_times[score_at] > score_lower && score_times[score_at] <= score_upper);
+    score_at = score_at + 1;
+  }
+} return int[] score_mask;
+([0, 1, 604800000, 604800001, 1209600000, 1209600001], 1209600000, 0):([0, 0, 0, 1, 1, 0])[time:O(n), mem:O(n)]
+([0, 1, 604800000, 604800001, 1209600000, 1209600001, 5, 604799999], 1209600001, 1):([0, 0, 1, 1, 0, 0, 1, 1])[time:O(n), mem:O(n)]
+([0, 1, 604800000], 1209600000, 2):([1, 0, 0])
+([], 5, 0):([])

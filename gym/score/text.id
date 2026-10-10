@@ -1,0 +1,36 @@
+// The words the UI shows next to a number: what the metric means (its definition, for the "what does this
+// mean" line) and how a figure reads, including the honest "not enough data".
+
+// The definition of a metric, by its name from score_metric_names ("retention", "transfer", "calibration",
+// "independence", "fluency", "best weekly retention", "best transfer accuracy"); "" for any other name.
+score_define(string score_metric) {
+  string[] score_definitions = (import score_metric_definitions);
+  int score_row = lst_str_index((import score_metric_names), score_metric);
+  string score_meaning = "";
+} chain (string score_metric) {
+  if (score_row >= 0) {
+    score_meaning = score_definitions[score_row];
+  }
+} return string score_meaning;
+("retention"):("Of the attempts on items you had last tried at least a day earlier, with no hints and no tap-out, the share you got right. It shows what stuck after a delay.")
+("fluency"):("The median seconds you took on answers that were right with no hints and no tap-out. A falling number shows the skill becoming automatic.")
+("best transfer accuracy"):("The highest accuracy you reached on held-out items in any one week that had enough attempts.")
+("streak"):("")
+(""):("")
+
+// A figure as a line: its value and sample size, or the reason there is no value. A figure with no solved
+// attempts but enough counted ones (independence) says so rather than asking for more attempts.
+score_describe(Score_figure score_figure_in, int score_minimum) {
+  string score_line = "not enough data (n = " + score_figure_in.sample + ", need " + score_minimum + ")";
+  if (score_figure_in.enough == 1) {
+    score_line = flt_text(score_figure_in.value) + " (n = " + score_figure_in.sample + ")";
+  }
+  if (score_figure_in.enough == 0 && score_figure_in.sample > 0 && score_figure_in.sample >= score_minimum) {
+    score_line = "nothing solved yet (n = " + score_figure_in.sample + ")";
+  }
+} return string score_line;
+(Score_figure(4, 1, 0.75), 5):("0.75 (n = 4)")
+(Score_figure(2, 0, 0.0), 5):("not enough data (n = 2, need 5)")
+(Score_figure(6, 0, 0.0), 5):("nothing solved yet (n = 6)")
+(Score_figure(0, 0, 0.0), 0):("not enough data (n = 0, need 0)")
+(Score_figure(1, 1, 12.5), 1):("12.5 (n = 1)")

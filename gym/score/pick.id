@@ -1,0 +1,34 @@
+// Reading a column through a mask, and the list of confident errors.
+
+// The values of the attempts a mask counts, in order. Lists of unequal length are read to the shorter one.
+score_pick(int[] score_chosen, int[] score_values) {
+  int[] score_picked = [];
+  int score_at = 0;
+  while (score_at < len(score_chosen) && score_at < len(score_values)) {
+    if (score_chosen[score_at] == 1) {
+      push(score_picked, score_values[score_at]);
+    }
+    score_at = score_at + 1;
+  }
+} return int[] score_picked;
+([1, 0, 1, 1], [5, 6, 7, 8]):([5, 7, 8])[time:O(n), mem:O(n)]
+([0, 1, 0, 0, 1, 1, 0, 1], [9, 8, 7, 6, 5, 4, 3, 2]):([8, 5, 4, 2])[time:O(n), mem:O(n)]
+([0, 0], [1, 2]):([])
+([1, 1, 1], [4]):([4])
+
+// The positions of the attempts made with a confidence of score_confident_level (90) or more that were wrong, newest first
+// (the log is in time order, so this is last to first). The cooldown screen shows these.
+score_confident_errors(int[] score_confidences, int[] score_corrects) {
+  int[] score_found = [];
+  int score_at = fx_min(len(score_confidences), len(score_corrects)) - 1;
+  while (score_at >= 0) {
+    if (score_confidences[score_at] >= (import score_confident_level) && score_corrects[score_at] == 0) {
+      push(score_found, score_at);
+    }
+    score_at = score_at - 1;
+  }
+} return int[] score_found;
+([90, 50, 99, 90, 70], [0, 0, 1, 0, 0]):([3, 0])[time:O(n), mem:O(n)]
+([99, 99, 99, 50, 90, 90, 99, 70], [0, 0, 1, 0, 0, 1, 0, 0]):([6, 4, 1, 0])[time:O(n), mem:O(n)]
+([70, 90, 99], [0, 0, 1]):([1])
+([], []):([])

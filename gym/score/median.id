@@ -1,0 +1,23 @@
+// Fluency: the median seconds of the counted attempts (give it the clean-correct mask). With an even number
+// of attempts the median is the mean of the two in the middle, so it may end in .5.
+
+score_median(int[] score_chosen, int[] score_seconds, int score_minimum) {
+  int[] score_picked = score_pick(score_chosen, score_seconds);
+  lst_sort(score_picked);
+  int score_sample = len(score_picked);
+} chain (int[] score_chosen, int[] score_seconds, int score_minimum) {
+  int score_enough = score_sample > 0 && score_sample >= score_minimum;
+  float score_value = 0.0;
+  if (score_enough == 1) {
+    score_value = (score_picked[(score_sample - 1) / 2] + score_picked[score_sample / 2]) / 2.0;
+  }
+} chain (int[] score_chosen, int[] score_seconds, int score_minimum) {
+  Score_figure score_result = Score_figure(score_sample, score_enough, score_value);
+} return Score_figure score_result;
+([1, 1, 1, 1, 1], [60, 5, 15, 10, 50], 5):(Score_figure(5, 1, 15.0))[time:O(n), mem:O(n)]
+([1, 0, 1, 1, 1, 1, 1, 1], [60, 999, 5, 15, 10, 8, 7, 12], 7):(Score_figure(7, 1, 10.0))[time:O(n), mem:O(n)]
+([1, 0, 1, 1, 1], [60, 999, 5, 15, 10], 4):(Score_figure(4, 1, 12.5))
+([1, 1, 1], [4, 4, 4], 3):(Score_figure(3, 1, 4.0))
+([1], [7], 1):(Score_figure(1, 1, 7.0))
+([1, 1], [7, 9], 5):(Score_figure(2, 0, 0.0))
+([], [], 0):(Score_figure(0, 0, 0.0))

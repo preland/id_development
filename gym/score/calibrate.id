@@ -1,0 +1,35 @@
+// Calibration: how well stated confidence predicts being right (spec P10). Give it the first-attempt mask,
+// so a re-attempt of an answer already seen does not count as a forecast.
+
+// The Brier score of the counted attempts (0.0 perfect, 0.25 for always saying 50 percent, lower is better).
+score_brier(int[] score_chosen, int[] score_confidences, int[] score_corrects, int score_minimum) {
+  int[] score_confidence_picks = score_pick(score_chosen, score_confidences);
+  int[] score_correct_picks = score_pick(score_chosen, score_corrects);
+  int score_sample = len(score_confidence_picks);
+} chain (int[] score_chosen, int[] score_confidences, int[] score_corrects, int score_minimum) {
+  int score_enough = score_sample > 0 && score_sample >= score_minimum;
+  float score_value = 0.0;
+  if (score_enough == 1) {
+    score_value = brier_score(score_confidence_picks, score_correct_picks);
+  }
+} chain (int[] score_chosen, int[] score_confidences, int[] score_corrects, int score_minimum) {
+  Score_figure score_result = Score_figure(score_sample, score_enough, score_value);
+} return Score_figure score_result;
+([1, 1, 1, 1], [50, 50, 50, 50], [1, 0, 1, 0], 4):(Score_figure(4, 1, 0.25))
+([1, 1, 1, 1, 1, 1, 1, 1], [50, 50, 50, 50, 50, 50, 50, 50], [1, 0, 1, 0, 1, 0, 1, 0], 8):(Score_figure(8, 1, 0.25))
+([1, 1, 0, 1], [90, 70, 99, 50], [1, 0, 0, 1], 3):(Score_figure(3, 1, 0.25))
+([1, 1, 0, 1], [90, 70, 99, 50], [1, 0, 0, 1], 4):(Score_figure(3, 0, 0.0))
+([1], [99], [0], 1):(Score_figure(1, 1, 0.9801))
+([], [], [], 0):(Score_figure(0, 0, 0.0))
+
+// The calibration table over the counted attempts: for each confidence level of the log (50, 70, 90, 99) three
+// floats in a row: how many attempts, the mean confidence as a fraction, and the share that were right. A level
+// nobody used is 0.0, 0.0, 0.0. A calibrated learner has the last two equal in every row.
+score_bins(int[] score_chosen, int[] score_confidences, int[] score_corrects) {
+  int[] score_confidence_picks = score_pick(score_chosen, score_confidences);
+  int[] score_correct_picks = score_pick(score_chosen, score_corrects);
+  float[] score_cells = brier_bins(score_confidence_picks, score_correct_picks, (import log_confidences));
+} return float[] score_cells;
+([1, 1, 0, 1], [90, 70, 99, 50], [1, 0, 0, 1]):([1.0, 0.5, 1.0, 1.0, 0.7, 0.0, 1.0, 0.9, 1.0, 0.0, 0.0, 0.0])
+([1, 1], [99, 99], [1, 0]):([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.99, 0.5])
+([], [], []):([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])

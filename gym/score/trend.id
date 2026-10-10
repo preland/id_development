@@ -1,0 +1,40 @@
+// A measure week by week, oldest to newest: `score_weeks` weeks ending at now, labelled by how many weeks
+// back they are ("2", "1", "0"). A week with too little data holds score_unknown. Attempts older than the
+// span, and any after now, are in no entry.
+
+score_weekly_accuracy(word[] score_times, int[] score_chosen, int[] score_corrects, word score_now, int score_weeks, int score_minimum) {
+  string[] score_names = [];
+  int[] score_tallies = [];
+  float[] score_numbers = [];
+} chain (word[] score_times, int[] score_chosen, int[] score_corrects, word score_now, int score_weeks, int score_minimum) {
+  Score_figures score_list = Score_figures(score_names, score_tallies, score_numbers);
+  int score_back = score_weeks - 1;
+  while (score_back >= 0) {
+    Score_figure score_result = score_week_accuracy(score_times, score_chosen, score_corrects, score_now, score_back, score_minimum);
+    score_note(score_list, "" + score_back, score_result);
+    score_back = score_back - 1;
+  }
+} return Score_figures score_list;
+([0, 1, 604800000, 604800001, 1209600000, 1209600001], [1, 1, 1, 1, 1, 1], [1, 0, 1, 1, 0, 1], 1209600000, 3, 1):(Score_figures(["2", "1", "0"], [1, 2, 2], [1.0, 0.5, 0.5]))[time:O(n), mem:O(n)]
+([0, 1, 604800000, 604800001, 1209600000, 1209600001, 5, 6], [1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 1, 1, 0, 1, 1, 1], 1209600001, 4, 2):(Score_figures(["3", "2", "1", "0"], [0, 2, 4, 2], [-1.0, 0.5, 1.0, 0.5]))[time:O(n), mem:O(n)]
+([0, 1, 604800000, 604800001, 1209600000, 1209600001], [1, 1, 1, 1, 1, 1], [1, 0, 1, 1, 0, 1], 1209600000, 3, 2):(Score_figures(["2", "1", "0"], [1, 2, 2], [-1.0, 0.5, 0.5]))
+([0, 1], [1, 1], [1, 1], 1209600000, 0, 1):(Score_figures([], [], []))
+
+// Hints plus tap-outs per solved attempt, week by week (oldest to newest).
+score_weekly_aid(word[] score_times, int[] score_corrects, int[] score_hints, int[] score_taps, word score_now, int score_weeks, int score_minimum) {
+  string[] score_names = [];
+  int[] score_tallies = [];
+  float[] score_numbers = [];
+} chain (word[] score_times, int[] score_corrects, int[] score_hints, int[] score_taps, word score_now, int score_weeks, int score_minimum) {
+  Score_figures score_list = Score_figures(score_names, score_tallies, score_numbers);
+  int score_back = score_weeks - 1;
+  while (score_back >= 0) {
+    Score_figure score_result = score_week_aid(score_times, score_corrects, score_hints, score_taps, score_now, score_back, score_minimum);
+    score_note(score_list, "" + score_back, score_result);
+    score_back = score_back - 1;
+  }
+} return Score_figures score_list;
+([0, 1, 604800000, 604800001, 1209600000, 1209600001], [1, 0, 1, 1, 0, 1], [0, 1, 0, 2, 0, 0], [0, 0, 0, 0, 1, 0], 1209600000, 3, 1):(Score_figures(["2", "1", "0"], [1, 2, 2], [0.0, 1.0, 3.0]))[time:O(n), mem:O(n)]
+([0, 1, 604800000, 604800001, 1209600000, 1209600001, 5, 6], [1, 0, 1, 1, 0, 1, 1, 1], [0, 1, 0, 2, 0, 2, 2, 0], [0, 0, 0, 0, 1, 0, 0, 0], 1209600001, 4, 1):(Score_figures(["3", "2", "1", "0"], [0, 2, 4, 2], [-1.0, 1.0, 1.0, 3.0]))[time:O(n), mem:O(n)]
+([0, 1, 604800000, 604800001, 1209600000, 1209600001], [1, 0, 1, 1, 0, 1], [0, 1, 0, 2, 0, 0], [0, 0, 0, 0, 1, 0], 1209600000, 3, 3):(Score_figures(["2", "1", "0"], [1, 2, 2], [-1.0, -1.0, -1.0]))
+([0, 1], [1, 1], [0, 0], [0, 0], 1209600000, 0, 1):(Score_figures([], [], []))

@@ -1,0 +1,23 @@
+// One week of a measure. Week `back` is the one that ended `back` weeks before now (0 is the latest), as
+// score_in_week defines it.
+
+// Accuracy among the attempts a mask counts that fall in the week.
+score_week_accuracy(word[] score_times, int[] score_chosen, int[] score_corrects, word score_now, int score_back, int score_minimum) {
+  int[] score_week_mask = score_in_week(score_times, score_now, score_back);
+  int[] score_counted = score_both(score_chosen, score_week_mask);
+  Score_figure score_result = score_accuracy(score_counted, score_corrects, score_minimum);
+} return Score_figure score_result;
+([0, 1, 604800000, 604800001, 1209600000, 1209600001], [1, 1, 1, 1, 1, 1], [1, 0, 1, 1, 0, 1], 1209600000, 1, 1):(Score_figure(2, 1, 0.5))
+([0, 1, 604800000, 604800001, 1209600000, 1209600001], [1, 1, 1, 0, 1, 1], [1, 0, 1, 1, 0, 1], 1209600000, 0, 1):(Score_figure(1, 1, 0.0))
+([0, 1, 604800000], [1, 1, 1], [1, 1, 1], 1209600000, 2, 2):(Score_figure(1, 0, 0.0))
+([], [], [], 5, 0, 1):(Score_figure(0, 0, 0.0))
+
+// Hints plus tap-outs per solved attempt among the attempts that fall in the week.
+score_week_aid(word[] score_times, int[] score_corrects, int[] score_hints, int[] score_taps, word score_now, int score_back, int score_minimum) {
+  int[] score_week_mask = score_in_week(score_times, score_now, score_back);
+  Score_figure score_result = score_per_solved(score_week_mask, score_corrects, score_hints, score_taps, score_minimum);
+} return Score_figure score_result;
+([0, 1, 604800000, 604800001, 1209600000, 1209600001], [1, 0, 1, 1, 0, 1], [0, 1, 0, 2, 0, 0], [0, 0, 0, 0, 1, 0], 1209600000, 0, 1):(Score_figure(2, 1, 3.0))
+([0, 1, 604800000, 604800001, 1209600000, 1209600001], [1, 0, 1, 1, 0, 1], [0, 1, 0, 2, 0, 0], [0, 0, 0, 0, 1, 0], 1209600000, 1, 1):(Score_figure(2, 1, 1.0))
+([0, 1, 604800000, 604800001, 1209600000, 1209600001], [1, 0, 1, 1, 0, 1], [0, 1, 0, 2, 0, 0], [0, 0, 0, 0, 1, 0], 1209600000, 1, 3):(Score_figure(2, 0, 0.0))
+([], [], [], [], 5, 0, 1):(Score_figure(0, 0, 0.0))

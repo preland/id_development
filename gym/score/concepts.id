@@ -1,0 +1,33 @@
+// Retention per concept: the retention rule applied to the attempts at items that test the concept (an item
+// with two concepts counts for both).
+
+score_retention_concept(Score_table score_table_in, string score_concept, int score_minimum) {
+  int[] score_mask = score_retained(score_table_in.moments.gaps, score_table_in.marks.aid.hints, score_table_in.marks.aid.tapped);
+  int[] score_scoped = score_with_concept(score_table_in.labels.concepts, score_concept);
+  int[] score_counted = score_both(score_mask, score_scoped);
+} chain (Score_table score_table_in, string score_concept, int score_minimum) {
+  Score_figure score_result = score_accuracy(score_counted, score_table_in.marks.corrects, score_minimum);
+} return Score_figure score_result;
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), "ca", 4):(Score_figure(4, 1, 0.75))
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), "cb", 1):(Score_figure(1, 1, 1.0))
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), "cb", 2):(Score_figure(1, 0, 0.0))
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n", "concept: ca\nitem: i1\nconcepts: ca\n") ((import score_fixture_table), "zz", 1):(Score_figure(0, 0, 0.0))
+
+// Retention for each concept id given (the pack's concept ids come from pack_ids(book, "concept")), in that
+// order; a concept without enough attempts holds score_unknown.
+score_retention_concepts(Score_table score_table_in, string[] score_concept_ids, int score_minimum) {
+  string[] score_names = [];
+  int[] score_tallies = [];
+  float[] score_numbers = [];
+} chain (Score_table score_table_in, string[] score_concept_ids, int score_minimum) {
+  Score_figures score_list = Score_figures(score_names, score_tallies, score_numbers);
+  int score_at = 0;
+  while (score_at < len(score_concept_ids)) {
+    Score_figure score_result = score_retention_concept(score_table_in, score_concept_ids[score_at], score_minimum);
+    score_note(score_list, score_concept_ids[score_at], score_result);
+    score_at = score_at + 1;
+  }
+} return Score_figures score_list;
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), ["ca", "cb"], 1):(Score_figures(["ca", "cb"], [4, 1], [0.75, 1.0]))[time:O(n), mem:O(n)]
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n86401000\tattempt\ti2\tx\t70\tincorrect\t0\t20\tno\t\n259200000\tattempt\ti1\tx\t90\tincorrect\t0\t30\tno\t\n259201000\tattempt\ti2\tx\t99\tcorrect\t1\t40\tno\t\n345600000\tattempt\ti3\tx\t50\tcorrect\t0\t50\tno\t\n432000000\tattempt\ti1\tx\t70\tcorrect\t0\t60\tno\t\n432001000\tattempt\ti3\tx\t90\tincorrect\t1\t70\tyes\t\n432002000\tattempt\ti2\tx\t50\tcorrect\t0\t5\tno\t\n604800000\tattempt\ti1\tx\t90\tcorrect\t0\t15\tno\t\n", "concept: ca\nconcept: cb\nitem: i1\nconcepts: ca\ntransfer: no\nitem: i2\nconcepts: ca, cb\ntransfer: no\nitem: i3\nconcepts: cb\ntransfer: yes\n") ((import score_fixture_table), ["ca", "cb", "ca", "zz"], 4):(Score_figures(["ca", "cb", "ca", "zz"], [4, 1, 4, 0], [0.75, -1.0, 0.75, -1.0]))[time:O(n), mem:O(n)]
+given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n", "concept: ca\nitem: i1\nconcepts: ca\n") ((import score_fixture_table), [], 1):(Score_figures([], [], []))

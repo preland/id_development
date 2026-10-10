@@ -1,0 +1,41 @@
+// Spec P9 forbids streaks, XP, minutes and completion percentages anywhere. These count how many of a list of
+// forbidden words appear in the text the scoreboard shows (its metric names and definitions), so a case can
+// pin that the count is 0 for the real text and above 0 for text that breaks the rule.
+
+// How many of the words the text contains; the text is lower-cased and padded with a space at each end, so a
+// word written with spaces (" xp ") matches only the whole word.
+score_mentions(string[] score_words, string score_text) {
+  string score_padded = " " + str_lower(score_text) + " ";
+  int score_hits = 0;
+  int score_at = 0;
+} chain (string[] score_words, string score_text) {
+  while (score_at < len(score_words)) {
+    score_hits = score_hits + (str_find(score_padded, score_words[score_at]) >= 0);
+    score_at = score_at + 1;
+  }
+} return int score_hits;
+(["streak", " xp "], "Keep your Streak going"):(1)[time:O(n), mem:O(n)]
+(["streak", " xp ", "minute", "badge", "points"], "Earn XP and a badge for every minute of practice, 40 points in all"):(4)[time:O(n), mem:O(n)]
+(["streak", " xp "], "the expected value"):(0)
+([" xp ", "streak"], "XP is shown first"):(1)
+(["streak"], ""):(0)
+([], "streak"):(0)
+
+// How many forbidden words (score_forbidden_words) appear in the named metrics' names and definitions. Give it
+// every name in score_metric_names; a case pins that the answer is 0.
+score_forbidden_count(string[] score_names) {
+  string[] score_words = (import score_forbidden_words);
+  int score_total = 0;
+  int score_at = 0;
+} chain (string[] score_names) {
+  while (score_at < len(score_names)) {
+    string score_name = score_names[score_at];
+    score_total = score_total + score_mentions(score_words, score_name) + score_mentions(score_words, score_define(score_name));
+    score_at = score_at + 1;
+  }
+} return int score_total;
+(["retention", "transfer", "calibration", "independence", "fluency", "best weekly retention", "best transfer accuracy"]):(0)[time:O(n), mem:O(n)]
+(["retention", "streak"]):(1)[time:O(n), mem:O(n)]
+(["fluency"]):(0)
+([]):(0)
+

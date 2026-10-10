@@ -1,0 +1,48 @@
+// The two ratio measures. Each takes a mask (which attempts count), the columns it reads and the minimum
+// number of attempts below which the answer is "not enough data" (enough 0, value 0.0).
+
+// The share of counted attempts that were right. No counted attempts is never enough, even with a minimum of 0.
+score_accuracy(int[] score_chosen, int[] score_corrects, int score_minimum) {
+  int[] score_picked = score_pick(score_chosen, score_corrects);
+  int score_sample = len(score_picked);
+  int score_right = lst_sum(score_picked);
+} chain (int[] score_chosen, int[] score_corrects, int score_minimum) {
+  int score_enough = score_sample > 0 && score_sample >= score_minimum;
+  float score_value = 0.0;
+  if (score_enough == 1) {
+    score_value = score_right * 1.0 / score_sample;
+  }
+} chain (int[] score_chosen, int[] score_corrects, int score_minimum) {
+  Score_figure score_result = Score_figure(score_sample, score_enough, score_value);
+} return Score_figure score_result;
+([1, 1, 0, 1, 1], [1, 0, 0, 1, 1], 2):(Score_figure(4, 1, 0.75))[time:O(n), mem:O(n)]
+([1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 0, 0, 0, 0], 5):(Score_figure(8, 1, 0.5))[time:O(n), mem:O(n)]
+([1, 1, 0], [1, 1, 1], 5):(Score_figure(2, 0, 0.0))
+([], [], 0):(Score_figure(0, 0, 0.0))
+([1], [0], 1):(Score_figure(1, 1, 0.0))
+
+// Hints shown plus tap-outs, divided by the attempts that were solved (right), among the counted attempts.
+// Nothing solved is never enough: the ratio would divide by nothing.
+score_per_solved(int[] score_chosen, int[] score_corrects, int[] score_hints, int[] score_taps, int score_minimum) {
+  int[] score_picked = score_pick(score_chosen, score_corrects);
+  int score_sample = len(score_picked);
+  int score_solved = lst_sum(score_picked);
+} chain (int[] score_chosen, int[] score_corrects, int[] score_hints, int[] score_taps, int score_minimum) {
+  int[] score_hint_picks = score_pick(score_chosen, score_hints);
+  int[] score_tap_picks = score_pick(score_chosen, score_taps);
+  int score_aid = lst_sum(score_hint_picks) + lst_sum(score_tap_picks);
+} chain (int[] score_chosen, int[] score_corrects, int[] score_hints, int[] score_taps, int score_minimum) {
+  int score_enough = score_solved > 0 && score_sample >= score_minimum;
+  float score_value = 0.0;
+  if (score_enough == 1) {
+    score_value = score_aid * 1.0 / score_solved;
+  }
+} chain (int[] score_chosen, int[] score_corrects, int[] score_hints, int[] score_taps, int score_minimum) {
+  Score_figure score_result = Score_figure(score_sample, score_enough, score_value);
+} return Score_figure score_result;
+([1, 1, 1, 1, 1, 1], [1, 0, 1, 1, 0, 1], [1, 0, 0, 2, 0, 0], [0, 1, 0, 0, 1, 0], 3):(Score_figure(6, 1, 1.25))[time:O(n), mem:O(n)]
+([1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1, 1], 8):(Score_figure(8, 1, 1.0))[time:O(n), mem:O(n)]
+([0, 1, 0, 1], [1, 1, 1, 0], [5, 1, 5, 0], [0, 0, 0, 1], 2):(Score_figure(2, 1, 2.0))
+([1, 1, 1, 1, 1, 1], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [1, 1, 1, 1, 1, 1], 5):(Score_figure(6, 0, 0.0))
+([1], [1], [0], [0], 1):(Score_figure(1, 1, 0.0))
+([1], [1], [0], [0], 5):(Score_figure(1, 0, 0.0))

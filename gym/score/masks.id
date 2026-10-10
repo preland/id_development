@@ -1,0 +1,46 @@
+// Masks: a mask is a list of 1 and 0, one per attempt, saying which attempts a measure counts. They are
+// combined with score_both, so each measure is "a mask, and the column it reads".
+
+// Which attempts count for retention (P9: delayed and unaided): the previous attempt at the same item was a
+// whole day (86400000 ms) or more earlier, no hint was shown and the learner did not tap out. A first attempt
+// has gap -1 and never counts.
+
+score_retained(word[] score_gaps, int[] score_hints, int[] score_taps) {
+  int[] score_mask = [];
+  int score_at = 0;
+  while (score_at < len(score_gaps)) {
+    int score_counts = score_gaps[score_at] >= (import score_day) && score_hints[score_at] == 0 && score_taps[score_at] == 0;
+    push(score_mask, score_counts);
+    score_at = score_at + 1;
+  }
+} return int[] score_mask;
+([86400000, 86399999, 172800000, -1, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]):([1, 0, 1, 0, 0])[time:O(n), mem:O(n)]
+([86040000, 86400000, 90000000, 604800000, 90000000, -1, 86400000, 86399000], [0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 1]):([0, 0, 0, 1, 1, 0, 1, 0])[time:O(n), mem:O(n)]
+([], [], []):([])
+
+// Which attempts were right, with no hint and no tap-out: the answers whose time measures fluency.
+score_clean(int[] score_corrects, int[] score_hints, int[] score_taps) {
+  int[] score_mask = [];
+  int score_at = 0;
+  while (score_at < len(score_corrects)) {
+    int score_counts = score_corrects[score_at] == 1 && score_hints[score_at] == 0 && score_taps[score_at] == 0;
+    push(score_mask, score_counts);
+    score_at = score_at + 1;
+  }
+} return int[] score_mask;
+([1, 1, 0, 1], [0, 1, 0, 0], [0, 0, 0, 0]):([1, 0, 0, 1])[time:O(n), mem:O(n)]
+([1, 1, 0, 1, 1, 0, 1, 1], [0, 0, 0, 0, 2, 0, 0, 0], [0, 0, 1, 0, 0, 0, 1, 0]):([1, 1, 0, 1, 0, 0, 0, 1])[time:O(n), mem:O(n)]
+([], [], []):([])
+
+// Which attempts were the first at their item: the gap to a previous attempt is -1 only for those.
+score_first(word[] score_gaps) {
+  int[] score_mask = [];
+  int score_at = 0;
+  while (score_at < len(score_gaps)) {
+    push(score_mask, score_gaps[score_at] < 0);
+    score_at = score_at + 1;
+  }
+} return int[] score_mask;
+([-1, 0, 5, -1]):([1, 0, 0, 1])[time:O(n), mem:O(n)]
+([-1, -1, 0, 100, -1, 7, 8, 0]):([1, 1, 0, 0, 1, 0, 0, 0])[time:O(n), mem:O(n)]
+([]):([])

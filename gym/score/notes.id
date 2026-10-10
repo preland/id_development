@@ -1,0 +1,46 @@
+// Lists of figures: adding one with its label, and picking the best of them (for the personal records).
+
+// Appends a label and its figure. A figure that is not enough is stored with the value score_unknown (-1.0),
+// so no list ever holds a misleading number; its sample is kept.
+score_note(Score_figures score_list, string score_label, Score_figure score_result) {
+  push(score_list.labels, score_label);
+  push(score_list.samples, score_result.sample);
+  float score_shown = (import score_unknown);
+} chain (Score_figures score_list, string score_label, Score_figure score_result) {
+  if (score_result.enough == 1) {
+    score_shown = score_result.value;
+  }
+  push(score_list.numbers, score_shown);
+} return void;
+(Score_figures([], [], []), "ca", Score_figure(4, 1, 0.75)):(Score_figures(["ca"], [4], [0.75]))
+(Score_figures(["ca"], [4], [0.75]), "cb", Score_figure(2, 0, 0.0)):(Score_figures(["ca", "cb"], [4, 2], [0.75, -1.0]))
+(Score_figures(["ca"], [4], [0.75]), "cb", Score_figure(1, 1, 0.0)):(Score_figures(["ca", "cb"], [4, 1], [0.75, 0.0]))
+
+// The highest value among the entries that are enough; the earliest one wins a tie. Nothing enough is a figure
+// with sample 0 and enough 0.
+score_best(Score_figures score_list) {
+  int score_best_at = 0 - 1;
+  int score_at = 0;
+  while (score_at < len(score_list.numbers)) {
+    if (score_list.numbers[score_at] >= 0.0 && (score_best_at < 0 || score_list.numbers[score_at] > score_list.numbers[score_best_at])) {
+      score_best_at = score_at;
+    }
+    score_at = score_at + 1;
+  }
+} chain (Score_figures score_list) {
+  int score_sample = 0;
+  int score_enough = 0;
+  float score_value = 0.0;
+} chain (Score_figures score_list) {
+  if (score_best_at >= 0) {
+    score_sample = score_list.samples[score_best_at];
+    score_enough = 1;
+    score_value = score_list.numbers[score_best_at];
+  }
+  Score_figure score_result = Score_figure(score_sample, score_enough, score_value);
+} return Score_figure score_result;
+(Score_figures(["2", "1", "0"], [0, 4, 6], [-1.0, 0.5, 0.75])):(Score_figure(6, 1, 0.75))
+(Score_figures(["4", "3", "2", "1", "0", "5"], [3, 9, 0, 2, 8, 7], [0.5, 0.75, -1.0, 0.5, 0.75, 0.25])):(Score_figure(9, 1, 0.75))
+(Score_figures(["1", "0"], [3, 9], [0.5, 0.5])):(Score_figure(3, 1, 0.5))
+(Score_figures(["1", "0"], [0, 2], [-1.0, -1.0])):(Score_figure(0, 0, 0.0))
+(Score_figures([], [], [])):(Score_figure(0, 0, 0.0))
