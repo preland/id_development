@@ -700,11 +700,19 @@ and nothing to anyone else; `framebuffer_width` means what it says. Every
 identifier the program declares (a function, a parameter, a local, an export, a
 conf.id constant, a struct and its fields) is split on `_`, and each piece must be
 a word: in `idc/data/words/english.txt` (an English dictionary, one lowercase word
-per line) or in `idc/data/words/allowed.txt` (valid names that are not English:
-brands and coding terms such as `utf8`, `json`, `wayland`, `ttf`; a line starting
-with `#` is a comment). The lookup ignores case. A piece with a digit in it, a
-one-letter piece and an empty piece (a leading, trailing or doubled `_`) are never
-words unless allowed.txt lists them. File and directory names are not checked.
+of three or more letters per line: SCOWL size 70), in `idc/data/words/short.txt`
+(the one- and two-letter words that are real English: `an`, `by`, `to`), or in
+`idc/data/words/allowed.txt` (valid names that are not English: brands and coding
+terms such as `utf8`, `json`, `wayland`, `ttf`; a line starting with `#` is a
+comment). `idc/data/words/denied.txt` lists programming abbreviations the
+dictionary happens to contain (`str`, `pos`, `len`, `idx`, `tmp`, `ptr`, `msg`,
+`min`, `max`, ...): it removes a word from english.txt, so such a piece fails
+unless short.txt or allowed.txt names it. The lookup ignores case. A piece with a
+digit in it, a one-letter piece and an empty piece (a leading, trailing or
+doubled `_`) are never words unless allowed.txt lists them; the one exception is
+`x`, `y` and `z`, which are words as one piece of a longer name (`delta_x`,
+`point_y`) and not as a whole name. File and directory names are not checked.
+The conf.id constants are checked like every other export.
 
 The check runs only under `idc PATH --word-scan` (use it with `--check`); an
 ordinary build does not read either file. It judges each distinct name once and
