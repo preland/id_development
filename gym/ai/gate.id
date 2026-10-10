@@ -1,0 +1,34 @@
+// The attempt gate: the code that makes "no reference answer before a committed
+// attempt" true. The grader and the coach are given a log path and the index of
+// an attempt in the replayed log, never the learner's text, and they build the
+// request only when this answers "". The index counts events as log_replay
+// keeps them (skipped lines are not events). An attempt is refused when it does
+// not exist, is another kind of event, belongs to another item, was a tap-out
+// (the learner gave up, there is nothing to grade) or holds no answer.
+
+model_gate(Log_events model_events, int model_index, string model_item) {
+  string model_refusal = "";
+  int model_attempt = model_index >= 0 && model_index < len(model_events.kinds) && model_events.kinds[model_index] == "attempt";
+  if (model_attempt == 0) {
+    model_refusal = "refused: the log has no attempt at that position";
+  }
+} chain (Log_events model_events, int model_index, string model_item) {
+  if (model_attempt == 1 && log_text_at(model_events, model_index, (import log_slot_item)) != model_item) {
+    model_refusal = "refused: that attempt is for another item";
+  }
+  if (model_attempt == 1 && log_tapped_at(model_events, model_index) == 1) {
+    model_refusal = "refused: a tap-out is not an answer to grade";
+  }
+  if (model_attempt == 1 && model_refusal == "" && log_text_at(model_events, model_index, (import log_slot_answer)) == "") {
+    model_refusal = "refused: the attempt holds no answer";
+  }
+} return string model_refusal;
+(Log_events([5], ["attempt"], [["5", "attempt", "i1", "3/8", "90", "correct", "0", "9", "no", ""]]), 0, "i1"):("")
+(Log_events([5], ["attempt"], [["5", "attempt", "i1", "3/8", "90", "correct", "0", "9", "no", ""]]), 1, "i1"):("refused: the log has no attempt at that position")
+(Log_events([5], ["attempt"], [["5", "attempt", "i1", "3/8", "90", "correct", "0", "9", "no", ""]]), -1, "i1"):("refused: the log has no attempt at that position")
+(Log_events([], [], []), 0, "i1"):("refused: the log has no attempt at that position")
+(Log_events([5], ["session_start"], [["5", "session_start"]]), 0, "i1"):("refused: the log has no attempt at that position")
+(Log_events([5], ["attempt"], [["5", "attempt", "i1", "3/8", "90", "correct", "0", "9", "no", ""]]), 0, "i2"):("refused: that attempt is for another item")
+(Log_events([5], ["attempt"], [["5", "attempt", "i1", "3/8", "90", "correct", "0", "9", "yes", ""]]), 0, "i1"):("refused: a tap-out is not an answer to grade")
+(Log_events([5], ["attempt"], [["5", "attempt", "i1", "", "90", "unparseable", "0", "9", "no", ""]]), 0, "i1"):("refused: the attempt holds no answer")
+(Log_events([5, 6], ["session_start", "attempt"], [["5", "session_start"], ["6", "attempt", "i1", "x", "50", "incorrect", "0", "9", "no", ""]]), 1, "i1"):("")

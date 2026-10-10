@@ -1,0 +1,33 @@
+// What the grader hands back: a list of grade_width texts read at the
+// grade_slot_* constants of conf.id (status, reason, verdict, right, flaw,
+// next_step, error_type, confidence), the way a log event is read. The status
+// is "graded" (every field usable), "self_grade" (usable but under
+// grade_confidence_floor: the learner marks it against the reference),
+// "unsure" (the reply was unparseable, had an empty field or praised without a
+// specific: show nothing from it and ask for a self-grade), "refused" (the
+// attempt gate said no; nothing was sent) or "unreachable" (the server did not
+// answer 200). The reason says why in words for every status but "graded". The
+// confidence is digits, or "" when the reply gave none. A struct would need
+// five nested three-field structs for these eight fields.
+
+grade_outcome(string grade_status, string grade_reason) {
+  string[] grade_cleared = [grade_status, grade_reason, "", "", "", "", "", ""];
+} return string[] grade_cleared;
+("refused", "why"):(["refused", "why", "", "", "", "", "", ""])
+("unsure", ""):(["unsure", "", "", "", "", "", "", ""])
+
+grade_confidence_of(string grade_confidence_text) {
+  int grade_confidence = -1;
+  if (log_digits_ok(grade_confidence_text, (import grade_confidence_digits)) == 1 && to_int(grade_confidence_text) <= 100) {
+    grade_confidence = to_int(grade_confidence_text);
+  }
+} return int grade_confidence;
+("85"):(85)
+("100"):(100)
+("0"):(0)
+("101"):(-1)
+("1000"):(-1)
+(""):(-1)
+("high"):(-1)
+("-5"):(-1)
+("8.5"):(-1)

@@ -1,0 +1,29 @@
+// The body of a chat request to the local model (a llama.cpp server). Assumed,
+// not checked against a running server: the OpenAI-compatible route accepts
+// model, messages, temperature, max_tokens, response_format of type json_schema
+// (the schema under json_schema.schema) and chat_template_kwargs, which turns
+// the Qwen3 thinking block off so the reply is only the JSON object. A schema
+// of "" leaves response_format out, which is what model_ask falls back to when
+// a server refuses the schema.
+
+model_message(string model_role, string model_content) {
+  string model_role_quoted = model_quote(model_role);
+  string model_content_quoted = model_quote(model_content);
+  string model_piece = "{\"role\":" + model_role_quoted + ",\"content\":" + model_content_quoted + "}";
+} return string model_piece;
+("user", "hi"):("{\"role\":\"user\",\"content\":\"hi\"}")
+("system", "a \"b\"\n"):("{\"role\":\"system\",\"content\":\"a \\\"b\\\"\\n\"}")
+
+model_request(string model_system_text, string model_user_text, string model_schema_text) {
+  string model_messages = "[" + model_message("system", model_system_text) + "," + model_message("user", model_user_text) + "]";
+  string model_format = "";
+  if (model_schema_text != "") {
+    model_format = ",\"response_format\":{\"type\":\"json_schema\",\"json_schema\":{\"name\":\"reply\",\"strict\":true,\"schema\":" + model_schema_text + "}}";
+  }
+} chain (string model_system_text, string model_user_text, string model_schema_text) {
+  string model_head = "{\"model\":" + model_quote((import model_name)) + ",\"temperature\":" + (import model_temperature) + ",\"max_tokens\":" + (import model_token_limit);
+  string model_tail = ",\"chat_template_kwargs\":" + (import model_think_off) + ",\"messages\":" + model_messages + model_format + "}";
+  string model_whole = model_head + model_tail;
+} return string model_whole;
+("S", "U", ""):("{\"model\":\"qwen3-4b\",\"temperature\":0.1,\"max_tokens\":700,\"chat_template_kwargs\":{\"enable_thinking\":false},\"messages\":[{\"role\":\"system\",\"content\":\"S\"},{\"role\":\"user\",\"content\":\"U\"}]}")
+("S", "U", "{}"):("{\"model\":\"qwen3-4b\",\"temperature\":0.1,\"max_tokens\":700,\"chat_template_kwargs\":{\"enable_thinking\":false},\"messages\":[{\"role\":\"system\",\"content\":\"S\"},{\"role\":\"user\",\"content\":\"U\"}],\"response_format\":{\"type\":\"json_schema\",\"json_schema\":{\"name\":\"reply\",\"strict\":true,\"schema\":{}}}}")

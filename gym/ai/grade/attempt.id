@@ -1,0 +1,40 @@
+// Grading one committed attempt. grade_attempt is the public entry: it replays
+// the learner's log, asks the gate (gate.id) about the attempt at the given
+// index and, only when the gate says "", hands over to grade_exchange, which is
+// the single place that builds the grader's message (reference answer included)
+// and sends it. The learner's answer is read from the log record itself, not
+// passed in, so nothing that was not committed can be graded. Every outcome is
+// a feedback list (feedback.id); a refused or unreachable one carries no model
+// words. url is model_address() in the app and a throwaway address in cases.
+
+grade_exchange(string grade_url, Log_events grade_events, int grade_index, Pack grade_book, int grade_block) {
+  string grade_user_text = grade_prompt(pack_field(grade_book, grade_block, "prompt"), log_text_at(grade_events, grade_index, (import log_slot_answer)), grade_rubric_text(grade_book, grade_block), pack_field(grade_book, grade_block, "answer"));
+  string[] grade_cells = ["", "", ""];
+  int grade_code = model_ask(grade_url, (import grade_system), grade_user_text, (import grade_schema), grade_cells);
+} chain (string grade_url, Log_events grade_events, int grade_index, Pack grade_book, int grade_block) {
+  string[] grade_result = grade_outcome("unreachable", "the model server answered " + grade_code);
+  if (grade_code == 200) {
+    grade_result = grade_from_server(grade_cells[(import http_r_body)]);
+  }
+} return string[] grade_result;
+given pack_fixture_parse("item: x\nprompt: P\nanswer: 1/3\nrubric: R\n") ("http://127.0.0.1:1", Log_events([5], ["attempt"], [["5", "attempt", "x", "3/8", "90", "incorrect", "0", "9", "no", ""]]), 0, (import pack_fixture_book), 0):(["unreachable", "the model server answered -1", "", "", "", "", "", ""])
+given pack_fixture_parse("item: x\nprompt: P\nanswer: 1/3\nrubric: R\n") ("ftp://127.0.0.1:1", Log_events([5], ["attempt"], [["5", "attempt", "x", "3/8", "90", "incorrect", "0", "9", "no", ""]]), 0, (import pack_fixture_book), 0):(["unreachable", "the model server answered -3", "", "", "", "", "", ""])
+
+grade_attempt(string grade_url, string grade_log_path, int grade_index, Pack grade_book, string grade_item_id) {
+  Log_replay grade_state = log_replay(grade_log_path);
+  string grade_refusal = model_gate(grade_state.events, grade_index, grade_item_id);
+  int grade_block = pack_find(grade_book, "item", grade_item_id);
+} chain (string grade_url, string grade_log_path, int grade_index, Pack grade_book, string grade_item_id) {
+  string[] grade_final = grade_outcome("refused", grade_refusal);
+  if (grade_refusal == "" && grade_block < 0) {
+    grade_final = grade_outcome("refused", "refused: the pack has no such item");
+  }
+  if (grade_refusal == "" && grade_block >= 0) {
+    grade_final = grade_exchange(grade_url, grade_state.events, grade_index, grade_book, grade_block);
+  }
+} return string[] grade_final;
+given model_fixture_log_file("5\tattempt\tx\t3/8\t90\tincorrect\t0\t9\tno\t\n") given model_fixture_pack("item: x\nprompt: P\nanswer: 1/3\nrubric: R\n") ("http://127.0.0.1:1", (import model_fixture_log), 0, (import model_fixture_book), "x"):(["unreachable", "the model server answered -1", "", "", "", "", "", ""])
+given model_fixture_log_file("5\tattempt\tx\t3/8\t90\tincorrect\t0\t9\tno\t\n") given model_fixture_pack("item: x\nprompt: P\nanswer: 1/3\nrubric: R\n") ("http://127.0.0.1:1", (import model_fixture_log), 1, (import model_fixture_book), "x"):(["refused", "refused: the log has no attempt at that position", "", "", "", "", "", ""])
+given model_fixture_log_file("") given model_fixture_pack("item: x\nprompt: P\nanswer: 1/3\nrubric: R\n") ("http://127.0.0.1:1", (import model_fixture_log), 0, (import model_fixture_book), "x"):(["refused", "refused: the log has no attempt at that position", "", "", "", "", "", ""])
+given model_fixture_log_file("5\tattempt\tx\t3/8\t90\tincorrect\t0\t9\tyes\t\n") given model_fixture_pack("item: x\nprompt: P\nanswer: 1/3\nrubric: R\n") ("http://127.0.0.1:1", (import model_fixture_log), 0, (import model_fixture_book), "x"):(["refused", "refused: a tap-out is not an answer to grade", "", "", "", "", "", ""])
+given model_fixture_log_file("5\tattempt\ty\t3/8\t90\tincorrect\t0\t9\tno\t\n") given model_fixture_pack("item: x\nprompt: P\nanswer: 1/3\nrubric: R\n") ("http://127.0.0.1:1", (import model_fixture_log), 0, (import model_fixture_book), "y"):(["refused", "refused: the pack has no such item", "", "", "", "", "", ""])

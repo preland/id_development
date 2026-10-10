@@ -1,0 +1,45 @@
+// Writing a string as a JSON string literal for the request to the model. idstd
+// has no such function (str_quote writes every non-ASCII code point as \u{...},
+// which is not JSON), so this is the same three functions idmcp/wire/quote.id
+// has under the prefix wire_; by the two-projects rule they belong in idstd as
+// one json_quote. A quote, a backslash and the controls are escaped and
+// everything else, UTF-8 included, passes through as bytes.
+
+model_quote(string model_text) {
+  string model_body = str_replace(model_text, "\\", "\\\\");
+  model_body = str_replace(model_body, "\"", "\\\"");
+  model_body = model_escape_space(model_body);
+} chain (string model_text) {
+  model_body = model_escape_control(model_body);
+  string model_literal = "\"" + model_body + "\"";
+} return string model_literal;
+("a"):("\"a\"")
+(""):("\"\"")
+("say \"hi\""):("\"say \\\"hi\\\"\"")
+("a\\b"):("\"a\\\\b\"")
+("l1\nl2\ttab\rcr"):("\"l1\\nl2\\ttab\\rcr\"")
+("bell\x07 end"):("\"bell\\u0007 end\"")
+("café 中"):("\"café 中\"")
+("aaaa\n\"\x01"):("\"aaaa\\n\\\"\\u0001\"")[time:O(n), mem:O(n)]
+("zzzzzzzzzzzzzzzz\n\"\x01zzzzzzzzzzzzzzzz\n\"\x01"):("\"zzzzzzzzzzzzzzzz\\n\\\"\\u0001zzzzzzzzzzzzzzzz\\n\\\"\\u0001\"")[time:O(n), mem:O(n)]
+
+model_escape_space(string model_text) {
+  string model_body = str_replace(model_text, "\n", "\\n");
+  model_body = str_replace(model_body, "\t", "\\t");
+  model_body = str_replace(model_body, "\r", "\\r");
+} return string model_body;
+("a\nb"):("a\\nb")
+("\t\r"):("\\t\\r")
+("plain"):("plain")
+
+model_escape_control(string model_text) {
+  int model_code = 1;
+  while (model_code < 32) {
+    model_text = str_replace(model_text, chr(model_code), "\\u" + fmt_hex4(model_code));
+    model_code = model_code + 1;
+  }
+} return string model_text;
+("a\x1f"):("a\\u001f")
+("\x01\x02"):("\\u0001\\u0002")
+("none"):("none")
+("é"):("é")

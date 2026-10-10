@@ -1,0 +1,59 @@
+// The coach's words. coach_prompt is the message the model gets: the item, the
+// learner's attempt and the authored rung, never the reference answer. The
+// authored rung is ground truth and the model only rewords it for this
+// learner's mistake. coach_flaw says what is wrong with a reworded hint ("" when
+// nothing is): empty, over coach_hint_limit bytes, or containing the reference
+// (leak.id). coach_judge takes the whole HTTP body of the server and answers
+// [text, source, reason]: the model's hint with source "model", or on any flaw,
+// any unparseable reply or a missing field the authored rung verbatim with
+// source "authored" and the reason. The rung-4 worked example normally holds
+// the answer, so a reworded one is normally rejected and the authored text shows.
+
+coach_prompt(string coach_label, string coach_authored, string coach_question, string coach_attempt) {
+  string coach_head = "Item: " + coach_question + "\n\nThe learner's attempt: " + coach_attempt;
+  string coach_tail = "\n\nAuthored hint (" + coach_label + "): " + coach_authored + "\n\nReword the authored hint for this learner's attempt.";
+  string coach_message = coach_head + coach_tail;
+} return string coach_message;
+("nudge", "Start with the outcomes.", "Q?", "3/8"):("Item: Q?\n\nThe learner's attempt: 3/8\n\nAuthored hint (nudge): Start with the outcomes.\n\nReword the authored hint for this learner's attempt.")
+("", "", "", ""):("Item: \n\nThe learner's attempt: \n\nAuthored hint (): \n\nReword the authored hint for this learner's attempt.")
+
+coach_flaw(string coach_words, string coach_kind, string coach_reference, string coach_tolerance) {
+  string coach_why = "";
+  if (str_trim(coach_words) == "") {
+    coach_why = "the model returned no hint";
+  }
+  if (coach_why == "" && len(coach_words) > (import coach_hint_limit)) {
+    coach_why = "the hint is too long";
+  }
+} chain (string coach_words, string coach_kind, string coach_reference, string coach_tolerance) {
+  if (coach_why == "" && coach_leaks(coach_words, coach_kind, coach_reference, coach_tolerance) == 1) {
+    coach_why = "the hint contains the reference answer";
+  }
+} return string coach_why;
+("Count the favourable outcomes.", "fraction", "1/3", ""):("")
+("   ", "fraction", "1/3", ""):("the model returned no hint")
+("So the probability is 2/6.", "fraction", "1/3", ""):("the hint contains the reference answer")
+("The answer is bayes rule", "text", "bayes rule", ""):("the hint contains the reference answer")
+("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "fraction", "1/3", ""):("the hint is too long")
+
+coach_judge(string coach_server_body, string coach_kind, string coach_reference, string coach_tolerance, string coach_authored) {
+  string coach_content = json_text(coach_server_body, "choices.0.message.content");
+  string coach_object = model_object_text(coach_content);
+  string coach_words = str_trim(grade_field(coach_object, "hint"));
+} chain (string coach_server_body, string coach_kind, string coach_reference, string coach_tolerance, string coach_authored) {
+  string[] coach_made = [coach_words, "model", ""];
+  string coach_why = "the reply was not a JSON object";
+  if (coach_object != "") {
+    coach_why = coach_flaw(coach_words, coach_kind, coach_reference, coach_tolerance);
+  }
+} chain (string coach_server_body, string coach_kind, string coach_reference, string coach_tolerance, string coach_authored) {
+  if (coach_why != "") {
+    coach_made = [coach_authored, "authored", coach_why];
+  }
+} return string[] coach_made;
+("{\"choices\":[{\"message\":{\"content\":\"{\\\"hint\\\":\\\"List every outcome of one roll.\\\"}\"}}]}", "fraction", "1/3", "", "Begin by writing the outcomes."):(["List every outcome of one roll.", "model", ""])
+("{\"choices\":[{\"message\":{\"content\":\"{\\\"hint\\\":\\\"So the probability is 2/6.\\\"}\"}}]}", "fraction", "1/3", "", "Begin by writing the outcomes."):(["Begin by writing the outcomes.", "authored", "the hint contains the reference answer"])
+("{\"choices\":[{\"message\":{\"content\":\"{\\\"hint\\\":\\\"\\\"}\"}}]}", "fraction", "1/3", "", "Begin by writing the outcomes."):(["Begin by writing the outcomes.", "authored", "the model returned no hint"])
+("{\"choices\":[{\"message\":{\"content\":\"{\\\"other\\\":\\\"x\\\"}\"}}]}", "fraction", "1/3", "", "Begin by writing the outcomes."):(["Begin by writing the outcomes.", "authored", "the model returned no hint"])
+("{\"choices\":[{\"message\":{\"content\":\"I would say: count them.\"}}]}", "fraction", "1/3", "", "Begin by writing the outcomes."):(["Begin by writing the outcomes.", "authored", "the reply was not a JSON object"])
+("{\"error\":\"down\"}", "fraction", "1/3", "", "Begin by writing the outcomes."):(["Begin by writing the outcomes.", "authored", "the reply was not a JSON object"])

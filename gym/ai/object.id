@@ -1,0 +1,34 @@
+// Cutting the JSON object out of what a model wrote. A model may put a thinking
+// block or a markdown fence around its answer, so the object is the text from
+// the first { to the last }. No brace, or a } before the first {, answers "": a
+// reply truncated before its closing brace is therefore unparseable, which the
+// readers treat as "unsure". idstd's json reader does not validate, so this is
+// the only structure check a reply gets before its fields are looked up.
+
+model_last_brace(string model_text) {
+  int model_end = len(model_text) - 1;
+  while (model_end >= 0 && charat(model_text, model_end) != 125) {
+    model_end = model_end - 1;
+  }
+} return int model_end;
+("{a}"):(2)
+("x"):(-1)
+("{\"a\":{}} tail"):(7)
+(""):(-1)
+("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"):(-1)[time:O(n), mem:O(1)]
+("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"):(-1)[time:O(n), mem:O(1)]
+
+model_object_text(string model_text) {
+  int model_open = str_find(model_text, "{");
+  int model_close = model_last_brace(model_text);
+  string model_object = "";
+} chain (string model_text) {
+  if (model_open >= 0 && model_close > model_open) {
+    model_object = str_sub(model_text, model_open, model_close - model_open + 1);
+  }
+} return string model_object;
+("{\"a\":1}"):("{\"a\":1}")
+("<think>x</think>\n```json\n{\"a\":1}\n```"):("{\"a\":1}")
+("no object here"):("")
+("} then {"):("")
+("{\"a\":\"cut off"):("")

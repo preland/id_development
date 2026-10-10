@@ -240,3 +240,55 @@ The whole `gym` tree still builds and runs every case in about 1.2 s warm.
   that has at least the minimum attempts; the earliest week wins a tie.
 - A log written out of order gives a gap of 0 (neither first nor delayed); an item
   missing from the pack has no concepts and is not a transfer item.
+## Phase 2: `gym/ai/` (grader and coach through the local model)
+
+22. **No JSON writer in idstd, and `str_quote` is not one.** `str_quote` writes every non-ASCII
+    code point as `\u{...}`, which JSON does not have. `model_quote` (+ `model_escape_space`,
+    `model_escape_control`) is the same three functions as `wire_quote` in `idmcp/wire/quote.id`:
+    a duplicate across two projects that belongs in idstd as one `json_quote`. Left as two copies
+    under two prefixes (inside one program they would be rejected as E0402).
+23. **`json_text` is a reader, not a validator.** A malformed document gives wrong answers, not
+    errors, so "reject unparseable JSON" needs a structure check of its own: `model_object_text`
+    cuts first `{` to last `}` (which also strips a thinking block or a markdown fence), and every
+    required field is then checked for presence. A JSON `null` reads as the text `null`; `grade_field`
+    maps it to "". A `json_valid(text)` in idstd would remove the guesswork.
+24. **`http_c_ms` is 5000 and is a conf constant of idstd.** A 4B model on CPU can take longer than
+    5 s to answer a grading request; `http_call_url` has no timeout argument. Not changed (outside
+    the lane); a GPU server is likely fast enough. A client timeout argument would be the fix.
+25. **A fake-server case is not possible in one process.** The client blocks in its read while the
+    only process is the one that would serve, and case syntax cannot start a second one. The
+    200-path is therefore checked with canned bodies (`grade_from_server`, `coach_judge`) and, once
+    by hand, with a throwaway node server driving the built `gymprobe` (not part of the tree).
+26. **A struct is capped at 3 fields and lives in a file of its own.** Eight feedback fields would be
+    five nested structs, so feedback is a `string[]` read at `grade_slot_*` constants (the way log
+    events are), with the confidence kept as digits text.
+27. **A case's `then` expression cannot call a user function** (`then len(path_base(...))` is a parse
+    error), and a fixture that exports two things must be split in two (`model_fixture_log_file`,
+    `model_fixture_pack`) because the return clause names one export. Two `given`s compose fine.
+    `fs_enter` into the fixture directory gives the same relative log path in every report.
+28. **A bool expression assigns straight into an `int`** (`int ok = a >= 0 && b == "x";`), which is
+    handy. Short-circuit evaluation was relied on for index guards (`i < len(x) && x[i] == ...`)
+    and held.
+29. **Names:** `pos` is not a word (`coach_pos` failed `--word-scan`), nor are `argc`/`argv` in a
+    `main` signature (idmcp has the same two). Locals sharing a name across files must share a
+    type: `coach_found` was a string in one function and an int in another, and the error pointed
+    at the other file.
+30. **Chain arithmetic:** a segment must have exactly three actions before a chain, so the order of
+    statements is a design step (put the declaration that makes the third action first, the `if`
+    last). It cost four edits in this lane.
+
+### Design decisions (gym/ai)
+
+- The grader reads the learner's answer **from the log record**, not from an argument; the caller
+  passes a log path and an event index. `model_gate` refuses a missing index, a non-attempt, another
+  item's attempt, a tap-out and an empty answer, and only a pass reaches `grade_exchange`, the one
+  place the reference answer is put into text.
+- The coach is gated the same way and never receives the reference answer; it gets the authored rung.
+  The leak check is stricter than the checker (every number in the hint is compared as an answer,
+  signed or not), so a hint that merely mentions a number equal to the answer falls back to the
+  authored rung. Rung 4 (the worked example) normally contains the answer, so it is normally
+  shown verbatim.
+- `response_format` (json_schema), `chat_template_kwargs.enable_thinking` and the
+  `/v1/chat/completions` route are assumptions about llama.cpp, from memory of its docs and not
+  checked against a real server (the throwaway node server only proved the request is valid JSON
+  and the reply is read correctly). A 400 with a schema is retried once without it.

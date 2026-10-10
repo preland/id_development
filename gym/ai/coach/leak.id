@@ -1,0 +1,71 @@
+// The leak check: does a hint the model wrote contain the item's reference
+// answer? It is deliberately stricter than the learner's checker. For a numeric
+// item every number in the hint (coach_numbers), with and without a minus sign,
+// is run through check_answer against the reference, so "3/8", "6/16", "0.375"
+// and "37.5%" all count as the answer; this also rejects a hint that merely
+// mentions a number equal to the answer, which only costs the learner the
+// authored rung. For a text item the normalised reference as a substring of the
+// normalised hint counts. For a choice item the letter in a form such as "(b)",
+// "option b" or "answer is b" counts. Number words ("one third") are not read.
+
+coach_number_named(string coach_hint_text, string coach_kind, string coach_reference, string coach_tolerance) {
+  string[] coach_tokens = coach_numbers(coach_hint_text);
+  int coach_hit = 0;
+  int coach_place = 0;
+} chain (string coach_hint_text, string coach_kind, string coach_reference, string coach_tolerance) {
+  while (coach_place < len(coach_tokens) && coach_hit == 0) {
+    coach_hit = check_answer(coach_kind, coach_reference, coach_tolerance, coach_tokens[coach_place]) == "correct" || check_answer(coach_kind, coach_reference, coach_tolerance, "-" + coach_tokens[coach_place]) == "correct";
+    coach_place = coach_place + 1;
+  }
+} return int coach_hit;
+("The chance is 1/3.", "fraction", "1/3", ""):(1)
+("Reduce 2/6 first", "fraction", "1/3", ""):(1)
+("About 0.33", "decimal", "0.333", "0.01"):(1)
+("That is 37.5% of the die", "percent", "3/8", ""):(1)
+("Subtract to get -1/2", "fraction", "1/2", ""):(1)
+("Its size is 1/2 but flip the sign", "fraction", "-1/2", ""):(1)
+("Count 2 outcomes out of 6", "fraction", "1/3", ""):(0)
+("Think about the sample space", "integer", "7", ""):(0)
+("About 0.5", "decimal", "0.333", "0.01"):(0)
+
+coach_choice_named(string coach_plain_text, string coach_letter) {
+  string coach_lower = str_lower(coach_letter);
+  int coach_form = 0;
+  int coach_found = 0;
+} chain (string coach_plain_text, string coach_letter) {
+  while (coach_lower != "" && coach_form < len((import coach_choice_templates)) && coach_found == 0) {
+    if (str_find(coach_plain_text, str_replace((import coach_choice_templates)[coach_form], "#", coach_lower)) >= 0) {
+      coach_found = 1;
+    }
+    coach_form = coach_form + 1;
+  }
+} return int coach_found;
+("the answer is b, look again", "B"):(1)
+("try option b", "B"):(1)
+("compare (c) with the rest", "C"):(1)
+("compare each option with the rest", "B"):(0)
+("answer is b", ""):(0)
+("the answer is c", "B"):(0)
+
+coach_leaks(string coach_hint_text, string coach_kind, string coach_reference, string coach_tolerance) {
+  string coach_plain = check_normal("text", coach_hint_text);
+  string coach_target = check_normal("text", coach_reference);
+  int coach_found = 0;
+} chain (string coach_hint_text, string coach_kind, string coach_reference, string coach_tolerance) {
+  if (coach_kind == "text" && coach_target != "" && str_find(coach_plain, coach_target) >= 0) {
+    coach_found = 1;
+  }
+  if (coach_kind == "choice") {
+    coach_found = coach_choice_named(coach_plain, check_normal("choice", coach_reference));
+  }
+  if (coach_kind != "text" && coach_kind != "choice") {
+    coach_found = coach_number_named(coach_hint_text, coach_kind, coach_reference, coach_tolerance);
+  }
+} return int coach_found;
+("The probability is 1/3.", "fraction", "1/3", ""):(1)
+("Count the favourable outcomes first.", "fraction", "1/3", ""):(0)
+("This is called  Bayes RULE", "text", "bayes rule", ""):(1)
+("Think about conditioning", "text", "bayes rule", ""):(0)
+("Think about conditioning", "text", "", ""):(0)
+("It must be (b)", "choice", "B", ""):(1)
+("Rule out the first two options", "choice", "B", ""):(0)

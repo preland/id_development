@@ -1,0 +1,58 @@
+// Deciding whether a parsed reply may be shown. grade_missing names the first
+// required field that is empty; grade_problem answers "" for a reply that is
+// complete and coherent, or the reason it is not (spec: empty fields are
+// rejected, praise needs a specific, the exact flaw is required). A verdict of
+// partly or incorrect with a flaw of "none", or with an error type of "none",
+// contradicts itself and is rejected the same way.
+
+grade_missing(string[] grade_reply) {
+  string grade_empty = "";
+  int grade_slot = (import grade_slot_verdict);
+  while (grade_slot <= (import grade_slot_error_type) && grade_empty == "") {
+    if (str_trim(grade_reply[grade_slot]) == "") {
+      grade_empty = "empty field: " + (import grade_field_names)[grade_slot - (import grade_slot_verdict)];
+    }
+    grade_slot = grade_slot + 1;
+  }
+} return string grade_empty;
+(["graded", "", "correct", "r", "none", "n", "none", "90"]):("")
+(["graded", "", "correct", "", "none", "n", "none", "90"]):("empty field: right")
+(["graded", "", "", "r", "none", "n", "none", "90"]):("empty field: verdict")
+(["graded", "", "correct", "r", "none", "n", "  ", "90"]):("empty field: error_type")
+(["graded", "", "incorrect", "r", "f", " ", "slip", "90"]):("empty field: next_step")
+
+grade_problem(string[] grade_reply) {
+  string grade_why = grade_missing(grade_reply);
+  int grade_verdict_known = lst_str_index((import grade_verdicts), grade_reply[(import grade_slot_verdict)]) >= 0;
+  int grade_type_known = lst_str_index((import grade_error_types), grade_reply[(import grade_slot_error_type)]) >= 0;
+} chain (string[] grade_reply) {
+  if (grade_why == "" && grade_verdict_known == 0) {
+    grade_why = "unknown verdict: " + grade_reply[(import grade_slot_verdict)];
+  }
+  if (grade_why == "" && grade_type_known == 0) {
+    grade_why = "unknown error type: " + grade_reply[(import grade_slot_error_type)];
+  }
+  if (grade_why == "" && grade_confidence_of(grade_reply[(import grade_slot_confidence)]) < 0) {
+    grade_why = "confidence is not a whole number from 0 to 100";
+  }
+} chain (string[] grade_reply) {
+  if (grade_why == "" && (grade_praise_only(grade_reply[(import grade_slot_right)]) == 1 || grade_praise_only(grade_reply[(import grade_slot_next_step)]) == 1)) {
+    grade_why = "praise without a specific";
+  }
+  if (grade_why == "" && grade_reply[(import grade_slot_verdict)] != "correct" && str_lower(grade_reply[(import grade_slot_flaw)]) == "none") {
+    grade_why = "no exact flaw for an answer that is not correct";
+  }
+  if (grade_why == "" && grade_reply[(import grade_slot_verdict)] != "correct" && grade_reply[(import grade_slot_error_type)] == "none") {
+    grade_why = "no error type for an answer that is not correct";
+  }
+} return string grade_why;
+(["graded", "", "correct", "Counted 2 of 6 outcomes.", "none", "Try a die with 8 sides.", "none", "90"]):("")
+(["graded", "", "incorrect", "Listed the outcomes.", "Used 4 not 6 as the total.", "Recount the sample space.", "slip", "80"]):("")
+(["graded", "", "correct", "", "none", "n", "none", "90"]):("empty field: right")
+(["graded", "", "great", "r", "f", "n", "slip", "90"]):("unknown verdict: great")
+(["graded", "", "incorrect", "r", "f", "n", "careless", "90"]):("unknown error type: careless")
+(["graded", "", "incorrect", "r", "f", "n", "slip", "very"]):("confidence is not a whole number from 0 to 100")
+(["graded", "", "incorrect", "Great job!", "f", "Recount the sample space.", "slip", "90"]):("praise without a specific")
+(["graded", "", "correct", "Counted the outcomes.", "none", "Well done", "none", "90"]):("praise without a specific")
+(["graded", "", "incorrect", "Listed the outcomes.", "None", "Recount the sample space.", "slip", "90"]):("no exact flaw for an answer that is not correct")
+(["graded", "", "partly", "Listed the outcomes.", "Stopped early.", "Recount the sample space.", "none", "90"]):("no error type for an answer that is not correct")

@@ -1,0 +1,30 @@
+// The setup the cases of grade_attempt and coach_hint use, in two parts that a
+// case composes. model_fixture_log_file makes a directory with fs_mktemp (so no
+// case shares one), writes the log text a case gives into learner.log there and
+// moves the process into it, so the log is the same relative path in every
+// report; each case is its own process. model_fixture_pack reads the pack text
+// a case gives through the real reader and leaves it in model_fixture_book.
+
+model_fixture_log_file(string model_log_text) {
+  string model_folder = fs_mktemp("model_t_", 1);
+  int model_wrote = fs_append_text(model_folder + "/learner.log", model_log_text);
+  string model_was = fs_enter(model_folder);
+} chain (string model_log_text) {
+  export string model_fixture_log = "learner.log";
+} return void export model_fixture_log;
+("1\tsession_start\n"):() then (import model_fixture_log):("learner.log")
+(""):() then (import model_fixture_log):("learner.log")
+
+model_fixture_pack(string model_pack_text) {
+  Pack model_made = pack_new("t");
+  pack_read_text(model_made, "t.txt", model_pack_text);
+  export Pack model_fixture_book = model_made;
+} return void export model_fixture_book;
+("item: a"):() then len((import model_fixture_book).blocks.files):(1)
+("item: a\nitem: b"):() then len((import model_fixture_book).blocks.files):(2)
+
+model_fixture_size() {
+  int model_size = len(fs_read_text((import model_fixture_log)));
+} return int model_size;
+given model_fixture_log_file("1\tsession_start\n") ():(16)
+given model_fixture_log_file("") ():(0)

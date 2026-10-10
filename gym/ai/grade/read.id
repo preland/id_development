@@ -1,0 +1,62 @@
+// Turning what the model wrote into feedback. grade_field is one field of the
+// reply object with a JSON null read as missing. grade_read takes the model's
+// message text and answers the feedback list (feedback.id): "graded", or
+// "self_grade" when the confidence is under grade_confidence_floor, or "unsure"
+// with the reason and no model words at all when the text is not an object, a
+// required field is empty, the verdict or error type is off the list, or the
+// feedback praises without a specific (problem.id). grade_from_server takes the
+// whole HTTP body of the server and takes the message out of it first, which is
+// the only function a canned server reply has to go through.
+
+grade_field(string grade_object, string grade_key) {
+  string grade_value = json_text(grade_object, grade_key);
+  if (grade_value == "null") {
+    grade_value = "";
+  }
+} return string grade_value;
+("{\"a\":\"x\"}", "a"):("x")
+("{\"a\":null}", "a"):("")
+("{\"a\":\"x\"}", "b"):("")
+("{\"a\":\"null\"}", "a"):("")
+
+grade_read(string grade_content) {
+  string grade_object = model_object_text(grade_content);
+  string[] grade_got = grade_outcome("unsure", "the reply was not a JSON object");
+  string grade_confidence_text = grade_field(grade_object, "confidence");
+} chain (string grade_content) {
+  if (grade_object != "") {
+    grade_got = ["graded", "", grade_field(grade_object, "verdict"), grade_field(grade_object, "right"), grade_field(grade_object, "flaw"), grade_field(grade_object, "next_step"), grade_field(grade_object, "error_type"), grade_confidence_text];
+  }
+  string grade_why = "";
+  if (grade_object != "") {
+    grade_why = grade_problem(grade_got);
+  }
+} chain (string grade_content) {
+  if (grade_why != "") {
+    grade_got = grade_outcome("unsure", grade_why);
+  }
+  if (grade_why == "" && grade_object != "" && grade_confidence_of(grade_confidence_text) < (import grade_confidence_floor)) {
+    grade_got = ["self_grade", "the grader is not sure enough: confidence " + grade_confidence_text, grade_got[2], grade_got[3], grade_got[4], grade_got[5], grade_got[6], grade_confidence_text];
+  }
+} return string[] grade_got;
+("{\"verdict\":\"incorrect\",\"right\":\"Listed all six outcomes.\",\"flaw\":\"Counted 3 outcomes above 4 instead of 2.\",\"next_step\":\"List the outcomes above 4 one by one.\",\"error_type\":\"slip\",\"confidence\":85}"):(["graded", "", "incorrect", "Listed all six outcomes.", "Counted 3 outcomes above 4 instead of 2.", "List the outcomes above 4 one by one.", "slip", "85"])
+("<think>hm</think>\n```json\n{\"verdict\":\"correct\",\"right\":\"Divided 2 favourable outcomes by 6.\",\"flaw\":\"none\",\"next_step\":\"Try a die with 8 sides.\",\"error_type\":\"none\",\"confidence\":\"95\"}\n```"):(["graded", "", "correct", "Divided 2 favourable outcomes by 6.", "none", "Try a die with 8 sides.", "none", "95"])
+("{\"verdict\":\"partly\",\"right\":\"Listed all six outcomes.\",\"flaw\":\"Never divided by the total.\",\"next_step\":\"Divide by 6.\",\"error_type\":\"incomplete\",\"confidence\":40}"):(["self_grade", "the grader is not sure enough: confidence 40", "partly", "Listed all six outcomes.", "Never divided by the total.", "Divide by 6.", "incomplete", "40"])
+("{\"verdict\":\"incorrect\",\"right\":\"\",\"flaw\":\"Counted 3.\",\"next_step\":\"Recount.\",\"error_type\":\"slip\",\"confidence\":85}"):(["unsure", "empty field: right", "", "", "", "", "", ""])
+("{\"verdict\":\"incorrect\",\"right\":null,\"flaw\":\"Counted 3.\",\"next_step\":\"Recount.\",\"error_type\":\"slip\",\"confidence\":85}"):(["unsure", "empty field: right", "", "", "", "", "", ""])
+("{\"verdict\":\"correct\",\"right\":\"Great job!\",\"flaw\":\"none\",\"next_step\":\"Try a die with 8 sides.\",\"error_type\":\"none\",\"confidence\":90}"):(["unsure", "praise without a specific", "", "", "", "", "", ""])
+("{\"verdict\":\"correct\",\"right\":\"Divided 2 by 6.\",\"flaw\":\"none\",\"next_step\":\"Next item.\",\"error_type\":\"none\"}"):(["unsure", "confidence is not a whole number from 0 to 100", "", "", "", "", "", ""])
+("I think the answer is right."):(["unsure", "the reply was not a JSON object", "", "", "", "", "", ""])
+("{\"verdict\":\"correct\",\"right\":\"Divided 2 by"):(["unsure", "the reply was not a JSON object", "", "", "", "", "", ""])
+
+grade_from_server(string grade_server_body) {
+  string grade_content = json_text(grade_server_body, "choices.0.message.content");
+  string[] grade_got = grade_outcome("unsure", "the server reply had no message text");
+  if (grade_content != "") {
+    grade_got = grade_read(grade_content);
+  }
+} return string[] grade_got;
+("{\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"{\\\"verdict\\\":\\\"incorrect\\\",\\\"right\\\":\\\"Listed all six outcomes.\\\",\\\"flaw\\\":\\\"Counted 3 outcomes above 4 instead of 2.\\\",\\\"next_step\\\":\\\"List the outcomes above 4 one by one.\\\",\\\"error_type\\\":\\\"slip\\\",\\\"confidence\\\":85}\"},\"finish_reason\":\"stop\"}]}"):(["graded", "", "incorrect", "Listed all six outcomes.", "Counted 3 outcomes above 4 instead of 2.", "List the outcomes above 4 one by one.", "slip", "85"])
+("{\"choices\":[]}"):(["unsure", "the server reply had no message text", "", "", "", "", "", ""])
+("{\"error\":{\"message\":\"boom\"}}"):(["unsure", "the server reply had no message text", "", "", "", "", "", ""])
+("{\"choices\":[{\"message\":{\"content\":\"sorry, no\"}}]}"):(["unsure", "the reply was not a JSON object", "", "", "", "", "", ""])

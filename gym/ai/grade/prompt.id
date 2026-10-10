@@ -1,0 +1,19 @@
+// The message the grader is given. This is the only place the reference answer
+// is put into text for a model, and grade_exchange (attempt.id) calls it only
+// after the attempt gate has passed. The rubric lines are the item's `rubric:`
+// fields, one bullet each; the learner's answer is the one the log holds.
+
+grade_rubric_text(Pack grade_book, int grade_block) {
+  string[] grade_lines = pack_fields(grade_book, grade_block, "rubric");
+  string grade_bullets = "- " + str_join(grade_lines, "\n- ");
+} return string grade_bullets;
+given pack_fixture_parse("item: x\nrubric: Counts outcomes.\nrubric: Divides by 6.\n") ((import pack_fixture_book), 0):("- Counts outcomes.\n- Divides by 6.")
+given pack_fixture_parse("item: x\nrubric: Only one.\nprompt: P\n") ((import pack_fixture_book), 0):("- Only one.")
+
+grade_prompt(string grade_question, string grade_answer, string grade_rubric, string grade_reference) {
+  string grade_head = "Item: " + grade_question + "\n\nLearner's committed answer: " + grade_answer;
+  string grade_tail = "\n\nRubric:\n" + grade_rubric + "\n\nReference answer: " + grade_reference;
+  string grade_message = grade_head + grade_tail;
+} return string grade_message;
+("Q?", "3/8", "- r1", "1/3"):("Item: Q?\n\nLearner's committed answer: 3/8\n\nRubric:\n- r1\n\nReference answer: 1/3")
+("", "", "", ""):("Item: \n\nLearner's committed answer: \n\nRubric:\n\n\nReference answer: ")

@@ -95,3 +95,68 @@ string[] score_metric_names = ["retention", "transfer", "calibration", "independ
 string[] score_metric_definitions = ["Of the attempts on items you had last tried at least a day earlier, with no hints and no tap-out, the share you got right. It shows what stuck after a delay.", "The share you got right on held-out items that are never used in practice, so the number cannot come from memorising answers.", "The Brier score of your confidence on the first attempt at each item: 0 is perfect, 0.25 is what saying 50 percent every time earns, 1 is always certain and always wrong. Lower is better.", "Hints used plus tap-outs, for each item you solved. Lower is better; a falling trend shows the scaffolding fading.", "The median seconds you took on answers that were right with no hints and no tap-out. A falling number shows the skill becoming automatic.", "The highest delayed, unaided accuracy you reached in any one week that had enough attempts.", "The highest accuracy you reached on held-out items in any one week that had enough attempts."];
 
 string[] score_forbidden_words = ["streak", "minute", "completion", "badge", " xp ", " points ", "percent complete"];
+string model_default_url = "http://127.0.0.1:8184";
+
+string model_url_key = "GYM_MODEL_URL";
+
+string model_name = "qwen3-4b";
+
+string model_temperature = "0.1";
+
+int model_token_limit = 700;
+
+string model_target_path = "/v1/chat/completions";
+
+string model_json_headers = "Content-Type: application/json\r\n";
+
+string model_think_off = "{\"enable_thinking\":false}";
+
+string grade_system = "You grade one learner answer for a practice item. Reply with one JSON object and nothing else, with the keys verdict (correct, partly or incorrect), right (what the learner got right, specifically), flaw (the exact flaw, or none), next_step (one concrete thing to do next), error_type (misconception, slip, incomplete, off_topic or none) and confidence (a whole number from 0 to 100: how sure you are of the grade). Judge the answer against the rubric lines and the reference. Never praise without saying what was right. Never write out the reference answer in next_step.";
+
+string grade_schema = "{\"type\":\"object\",\"properties\":{\"verdict\":{\"type\":\"string\",\"enum\":[\"correct\",\"partly\",\"incorrect\"]},\"right\":{\"type\":\"string\"},\"flaw\":{\"type\":\"string\"},\"next_step\":{\"type\":\"string\"},\"error_type\":{\"type\":\"string\",\"enum\":[\"misconception\",\"slip\",\"incomplete\",\"off_topic\",\"none\"]},\"confidence\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":100}},\"required\":[\"verdict\",\"right\",\"flaw\",\"next_step\",\"error_type\",\"confidence\"]}";
+
+string[] grade_field_names = ["verdict", "right", "flaw", "next_step", "error_type"];
+
+string[] grade_verdicts = ["correct", "partly", "incorrect"];
+
+string[] grade_error_types = ["misconception", "slip", "incomplete", "off_topic", "none"];
+
+string[] grade_praise_phrases = ["great job", "well done", "good job", "nice work", "nice job", "excellent", "fantastic", "awesome", "amazing", "perfect", "bravo", "you got it", "spot on", "good answer", "great answer"];
+
+int grade_slot_status = 0;
+
+int grade_slot_reason = 1;
+
+int grade_slot_verdict = 2;
+
+int grade_slot_right = 3;
+
+int grade_slot_flaw = 4;
+
+int grade_slot_next_step = 5;
+
+int grade_slot_error_type = 6;
+
+int grade_slot_confidence = 7;
+
+int grade_width = 8;
+
+int coach_slot_text = 0;
+
+int coach_slot_source = 1;
+
+int coach_slot_reason = 2;
+
+int grade_confidence_floor = 60;
+
+int grade_confidence_digits = 3;
+
+int grade_specific_letters = 20;
+
+string coach_system = "You reword one hint for a learner who has just made an attempt. Keep the same level of help as the authored hint, speak to what the attempt got wrong, add no new method and never state the final answer. Reply with one JSON object and nothing else: {\"hint\": \"...\"}.";
+
+string coach_schema = "{\"type\":\"object\",\"properties\":{\"hint\":{\"type\":\"string\"}},\"required\":[\"hint\"]}";
+
+int coach_hint_limit = 400;
+
+string[] coach_choice_templates = ["(#)", "#)", "option #", "answer #", "answer is #", "choose #", "pick #", "letter #"];

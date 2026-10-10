@@ -1,0 +1,41 @@
+// Telling praise from feedback. A text is praise only when it uses one of the
+// grade_praise_phrases and, with every such phrase taken out, fewer than
+// grade_specific_letters letters and digits remain: "Great job!" is praise,
+// "Great job: you cancelled the common factor 6" says something. It is a
+// heuristic that errs towards rejecting; a rejected reply costs the learner one
+// self-grade, a praised one costs the feedback its point (spec P3).
+
+grade_letters(string grade_text) {
+  int grade_count = 0;
+  int grade_at = 0;
+  while (grade_at < len(grade_text)) {
+    grade_count = grade_count + chr_is_alnum(charat(grade_text, grade_at));
+    grade_at = grade_at + 1;
+  }
+} return int grade_count;
+("ab 12!"):(4)
+(""):(0)
+("a-b-c"):(3)
+("aaaaaaaaaaaaaaaaaaaaaaaa"):(24)[time:O(n), mem:O(1)]
+("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"):(81)[time:O(n), mem:O(1)]
+
+grade_praise_only(string grade_text) {
+  string grade_rest = str_lower(grade_text);
+  int grade_phrase = 0;
+  int grade_found = 0;
+} chain (string grade_text) {
+  while (grade_phrase < len((import grade_praise_phrases))) {
+    if (str_find(grade_rest, (import grade_praise_phrases)[grade_phrase]) >= 0) {
+      grade_found = 1;
+    }
+    grade_rest = str_replace(grade_rest, (import grade_praise_phrases)[grade_phrase], "");
+    grade_phrase = grade_phrase + 1;
+  }
+  int grade_only = grade_found == 1 && grade_letters(grade_rest) < (import grade_specific_letters);
+} return int grade_only;
+("Great job!"):(1)
+("WELL DONE, nice work"):(1)
+("Great job: you cancelled the common factor 6 in both parts"):(0)
+("The sample space has six equally likely outcomes"):(0)
+(""):(0)
+("Excellent: 2 of 6"):(1)

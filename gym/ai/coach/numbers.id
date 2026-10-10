@@ -1,0 +1,66 @@
+// Finding the numbers in a hint, for the leak check. A number is a run of digits,
+// slashes, dots and percent signs ("3/8", "0.375", "37.5%", ".5"); a trailing
+// dot or slash ("is 3/8.") is cut off and a run with no digit in it is dropped.
+// A minus sign is not part of a number here: coach_number_named tries each
+// number with and without one. The scan is one pass; the open position of the
+// run being read lives in a one-element list so coach_step can move it.
+
+coach_trim_token(string coach_token) {
+  int coach_end = len(coach_token);
+  while (coach_end > 0 && (charat(coach_token, coach_end - 1) == 46 || charat(coach_token, coach_end - 1) == 47)) {
+    coach_end = coach_end - 1;
+  }
+  string coach_cut = str_sub(coach_token, 0, coach_end);
+} chain (string coach_token) {
+  if (check_digit_total(coach_cut) == 0) {
+    coach_cut = "";
+  }
+} return string coach_cut;
+("3/8."):("3/8")
+("37.5%"):("37.5%")
+(".5"):(".5")
+("..//"):("")
+("%"):("")
+("12345678901234567890..."):("12345678901234567890")[time:O(n), mem:O(1)]
+("1234567890123456789012345678901234567890123456789012345678901234567890..........."):("1234567890123456789012345678901234567890123456789012345678901234567890")[time:O(n), mem:O(1)]
+
+coach_step(string coach_text, string[] coach_tokens, int[] coach_open, int coach_at) {
+  int coach_code = 32;
+  if (coach_at < len(coach_text)) {
+    coach_code = charat(coach_text, coach_at);
+  }
+  int coach_inside = chr_is_digit(coach_code) == 1 || coach_code == 46 || coach_code == 47 || coach_code == 37;
+} chain (string coach_text, string[] coach_tokens, int[] coach_open, int coach_at) {
+  if (coach_inside == 1 && coach_open[0] < 0) {
+    coach_open[0] = coach_at;
+  }
+  if (coach_inside == 0 && coach_open[0] >= 0) {
+    string coach_number = coach_trim_token(str_sub(coach_text, coach_open[0], coach_at - coach_open[0]));
+    if (coach_number != "") {
+      push(coach_tokens, coach_number);
+    }
+    coach_open[0] = -1;
+  }
+} return void;
+("x 3/8 y", [], [2], 5):("x 3/8 y", ["3/8"], [-1])
+("x 3/8 y", [], [-1], 2):("x 3/8 y", [], [2])
+("a 12", [], [2], 4):("a 12", ["12"], [-1])
+("x 3/8 y", ["p"], [-1], 1):("x 3/8 y", ["p"], [-1])
+("a . b", [], [2], 3):("a . b", [], [-1])
+
+coach_numbers(string coach_text) {
+  string[] coach_tokens = [];
+  int[] coach_open = [-1];
+  int coach_at = 0;
+} chain (string coach_text) {
+  while (coach_at <= len(coach_text)) {
+    coach_step(coach_text, coach_tokens, coach_open, coach_at);
+    coach_at = coach_at + 1;
+  }
+} return string[] coach_tokens;
+("P is 3/8, or 0.375 (37.5%)."):(["3/8", "0.375", "37.5%"])
+("no numbers here."):([])
+("5"):(["5"])
+("2 of 6, then 1."):(["2", "6", "1"])
+("a 1 b 2 c 3 d 4"):(["1", "2", "3", "4"])[time:O(n), mem:O(n)]
+("a 1 b 2 c 3 d 4 e 5 f 6 g 7 h 8 i 9 j 10 k 11 l 12 m 13 n 14 o 15 p 16"):(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"])[time:O(n), mem:O(n)]
