@@ -1,0 +1,27 @@
+// `gym session start`: plan the session from the pack and the log, record it as
+// the current session, and print the plan (phase, item, reason) and the first
+// prompt. Exit 0 on success, 1 when the planner has nothing to offer, 2 when the
+// options are wrong. Every command in this directory answers [exit code, text].
+
+command_session_start(string[] command_values, word command_clock) {
+  string command_refusal = command_check(command_values, command_clock, ["pack", "log"]);
+  string[] command_out = ["2", command_refusal];
+  if (command_refusal != "") {
+    return command_out;
+  }
+} chain (string[] command_values, word command_clock) {
+  Pack command_book = pack_load(opt_get((import command_options), command_values, "pack"));
+  string command_log = opt_get((import command_options), command_values, "log");
+  word command_when = command_now(command_values, command_clock);
+} chain (string[] command_values, word command_clock) {
+  string[] command_started = session_start_plan(command_book, command_log, command_when, command_number(command_values, "seed", 1));
+  Log_replay command_replayed = log_replay(command_log);
+  command_out = ["1", "refused: " + command_started[1]];
+} chain (string[] command_values, word command_clock) {
+  if (command_started[0] == "ok") {
+    command_out = ["0", command_start_text(command_book, command_replayed.events, command_started[1])];
+  }
+} return string[] command_out;
+given command_fixture_files("concept: c\nitem: a\nconcepts: c\ndifficulty: 1000\nprompt: Q?\nanswer_kind: fraction\nanswer: 1/3\n", "") (["pack", "learner.log", "100", "", "", "", "", "", ""], 5):(["0", "plan, in the order you will meet it:\n1. main  a  new: no prerequisites; expected first-try success 50%\n\nitem 1 of 1 (main): a\nQ?\n\nanswer with: gym answer --text ANSWER --confidence 50|70|90|99 (or gym tapout to see the answer)"])
+given command_fixture_files("concept: c\nitem: a\nconcepts: c\ndifficulty: 1000\nprompt: Q?\nanswer_kind: fraction\nanswer: 1/3\n", "") (["pack", "", "100", "", "", "", "", "", ""], 5):(["2", "error: --log is required; gym --help lists every option"])
+given command_fixture_files("concept: c\nitem: a\nconcepts: c\ndifficulty: 1000\ntransfer: yes\nprompt: Q?\nanswer_kind: fraction\nanswer: 1/3\n", "") (["pack", "learner.log", "100", "", "", "", "", "", ""], 5):(["1", "refused: nothing to practise: no concept is due or weak and none is new"])

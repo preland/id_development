@@ -1,0 +1,35 @@
+// The tap-out: the learner asks for the full answer, nothing is locked. It is
+// logged as an attempt with an empty answer, the verdict incorrect, all four
+// rungs counted as used and the tapped flag set, so the planner brings the item
+// back sooner and the scoreboard counts it against independence. It is allowed in
+// any phase, only while the item on screen has no attempt (the same gate as an
+// answer, run with a placeholder text), and it answers ["refused", why] or ["ok",
+// "", "tapped out", reference, rubric lines, item, phase, worked example].
+
+session_tap_out(Pack session_book, string session_log_path, word session_now, int session_confidence, int session_seconds) {
+  Log_replay session_replayed = log_replay(session_log_path);
+  string[] session_shown = session_view(session_replayed.events);
+  string session_refusal = session_answer_gate(session_shown, "tap-out", session_confidence);
+} chain (Pack session_book, string session_log_path, word session_now, int session_confidence, int session_seconds) {
+  int session_block = pack_find(session_book, "item", session_shown[(import session_slot_item)]);
+  int session_written = 0 - 1;
+  if (session_refusal == "" && session_block < 0) {
+    session_refusal = "the pack has no item " + session_shown[(import session_slot_item)];
+  }
+} chain (Pack session_book, string session_log_path, word session_now, int session_confidence, int session_seconds) {
+  if (session_refusal == "") {
+    session_written = log_record_attempt(session_log_path, session_now, session_shown[(import session_slot_item)], "", session_confidence, "incorrect", (import log_hint_top), session_seconds, 1, "");
+  }
+  if (session_refusal == "" && session_written < 0) {
+    session_refusal = "the log could not be written";
+  }
+  string[] session_result = ["refused", session_refusal];
+} chain (Pack session_book, string session_log_path, word session_now, int session_confidence, int session_seconds) {
+  if (session_refusal == "") {
+    session_result = ["ok", "", "tapped out", pack_field(session_book, session_block, "answer"), str_join(pack_fields(session_book, session_block, "rubric"), "\n"), session_shown[(import session_slot_item)], session_shown[(import session_slot_phase)], pack_field(session_book, session_block, "hint_example")];
+  }
+} return string[] session_result;
+given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\nrubric: R1\nhint_example: Eg 1/3.\n") ((import model_fixture_book), (import model_fixture_log), 100, 50, 8):(["ok", "", "tapped out", "1/3", "R1", "a", "main", "Eg 1/3."]) then model_fixture_size:(73)
+given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n2\tattempt\ta\t1/2\t90\tincorrect\t0\t5\tno\t\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\nrubric: R1\nhint_example: Eg 1/3.\n") ((import model_fixture_book), (import model_fixture_log), 100, 50, 8):(["refused", "this item already has an attempt: run gym next for the following one"]) then model_fixture_size:(73)
+given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\nrubric: R1\nhint_example: Eg 1/3.\n") ((import model_fixture_book), (import model_fixture_log), 100, 80, 8):(["refused", "no answer without a confidence: pass --confidence 50, 70, 90 or 99"]) then model_fixture_size:(36)
+given model_fixture_log_file("") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\nrubric: R1\nhint_example: Eg 1/3.\n") ((import model_fixture_book), (import model_fixture_log), 100, 50, 8):(["refused", "no session is running: start one with gym session start"]) then model_fixture_size:(0)

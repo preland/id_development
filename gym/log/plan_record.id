@@ -1,0 +1,17 @@
+// Appending the two session events, each refused unless its line is valid, as
+// the other recorders are: the bytes written, or -1 when nothing was written.
+
+log_record_plan(string log_path, word log_time, string[] log_plan_ids, string[] log_plan_phases, string[] log_plan_reasons) {
+  string log_event = log_line_plan(log_time, log_plan_ids, log_plan_phases, log_plan_reasons);
+  int log_written = log_append_line(log_path, log_event);
+} return int log_written;
+given fs_temp_text("") ((import fs_temp_path), 1760000000000, ["a", "b"], ["warmup", "main"], ["due", "new"]):(52) then fs_temp_read:("1760000000000\tsession_plan\ta,b\twarmup,main\tdue\\nnew\n")
+given fs_temp_text("") ((import fs_temp_path), 1, ["a", "b"], ["warmup"], ["due", "new"]):(-1) then fs_temp_read:("")
+given fs_temp_text("") ((import fs_temp_path), 1, [], [], []):(-1) then fs_temp_read:("")
+
+log_record_next(string log_path, word log_time, string log_item) {
+  string log_event = log_line_next(log_time, log_item);
+  int log_written = log_append_line(log_path, log_event);
+} return int log_written;
+given fs_temp_text("") ((import fs_temp_path), 1760000000000, "dice_1"):(34) then fs_temp_read:("1760000000000\tsession_next\tdice_1\n")
+given fs_temp_text("") ((import fs_temp_path), 1, ""):(-1) then fs_temp_read:("")

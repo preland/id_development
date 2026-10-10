@@ -1,0 +1,20 @@
+// The program behind `main`: parse the argument list, run the command, answer
+// [exit code, text]. A parse failure names the fix (opt_parse) and exits 2; --help
+// prints the usage and the option table and exits 0.
+
+command_run(string[] command_arguments, word command_clock) {
+  string[] command_values = [];
+  string[] command_rest = [];
+  string command_error = opt_parse((import command_options), command_arguments, command_values, command_rest);
+} chain (string[] command_arguments, word command_clock) {
+  string[] command_out = ["0", (import command_usage) + "\n\n" + opt_help("gym", (import command_options))];
+  if (command_error == "") {
+    command_out = command_dispatch(command_values, command_rest, command_clock);
+  }
+  if (command_error != "" && command_error != "help") {
+    command_out = ["2", "error: " + command_error];
+  }
+} return string[] command_out;
+(["gym", "--bogus"], 5):(["2", "error: unknown option '--bogus'; run with --help to list the options"])
+(["gym", "--text"], 5):(["2", "error: option '--text' needs a value; write --text VALUE or --text=VALUE"])
+(["gym", "--help"], 5):(["0", "gym session start --pack DIR --log FILE [--now MS] [--seed N]\ngym answer --pack DIR --log FILE --text ANSWER --confidence 50|70|90|99 [--seconds N] [--now MS]\ngym hint --pack DIR --log FILE [--url URL] [--now MS]\ngym tapout --pack DIR --log FILE [--seconds N] [--now MS]\ngym next --pack DIR --log FILE [--now MS]\ngym score --pack DIR --log FILE [--now MS]\ngym why ITEM --pack DIR --log FILE [--now MS] [--seed N]\ngym pack check DIR\ngym grade --pack DIR --item ID --text ANSWER [--url URL]\n\nusage: gym [options] [args]\n\noptions:\n      --pack STR        the pack directory: concepts and items as .txt files\n      --log STR         the learner's log file, append-only; it is the only state\n      --now STR         the clock, in milliseconds since the epoch (default: the real clock)\n      --seed STR        the plan's tie-breaking seed (default 1)\n      --text STR        your answer\n      --confidence STR  50, 70, 90 or 99; an answer is not taken without one\n      --seconds STR     seconds you took (default 0)\n      --url STR         the model server (default: GYM_MODEL_URL, else http://127.0.0.1:8184)\n      --item STR        an item id\n  -h, --help            show this help and exit"])

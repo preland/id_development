@@ -18,11 +18,26 @@ log_fields_ok(string[] log_fields) {
     log_ok = log_digits_ok(log_fields[(import log_slot_rung)], 1) == 1 && to_int(log_fields[(import log_slot_rung)]) >= 1 && to_int(log_fields[(import log_slot_rung)]) <= (import log_hint_top) && log_fields[(import log_slot_item)] != "";
   }
 } chain (string[] log_fields) {
-  if (log_shaped == 1 && str_starts(log_fields[1], "session_") && log_wide == (import log_session_width)) {
+  if (log_shaped == 1 && (log_fields[1] == "session_start" || log_fields[1] == "session_end") && log_wide == (import log_session_width)) {
     log_ok = 1;
+  }
+  if (log_shaped == 1 && log_fields[1] == "session_plan" && log_wide == (import log_plan_width)) {
+    log_ok = log_plan_ok(log_fields);
+  }
+  if (log_shaped == 1 && log_fields[1] == "session_next" && log_wide == (import log_next_width)) {
+    log_ok = log_fields[(import log_slot_item)] != "";
   }
 } return int log_ok;
 (["1", "session_start"]):(1)
+(["1", "session_plan", "a,b", "warmup,main", "x\\ny"]):(1)
+(["1", "session_plan", "a,b", "warmup,main", "x"]):(0)
+(["1", "session_plan", "a,b", "warmup,main"]):(0)
+(["1", "session_plan", "a", "main", "x", "y"]):(0)
+(["1", "session_plan", "", "", ""]):(0)
+(["1", "session_next", "a"]):(1)
+(["1", "session_next", ""]):(0)
+(["1", "session_next"]):(0)
+(["1", "session_other"]):(0)
 (["1", "session_end", "extra"]):(0)
 (["1", "hint_shown", "i", "3"]):(1)
 (["1", "hint_shown", "i", "0"]):(0)

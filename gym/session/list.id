@@ -1,0 +1,24 @@
+// Reading the plan back out of its session_plan event, and counting the hints
+// shown for one item since that plan began. The slot is log_slot_ids,
+// log_slot_phases or log_slot_reasons and the separator is the one the line
+// used ("," for ids and phases, a line break for the reasons).
+
+session_list(Log_events session_events, int session_plan_at, int session_slot, string session_separator) {
+  string session_text = log_text_at(session_events, session_plan_at, session_slot);
+  string[] session_parts = str_split(session_text, session_separator);
+} return string[] session_parts;
+given log_fixture_parse("1\tsession_plan\ta,b\tmain,warmup\tr1\\nr2\n") ((import log_fixture_events), 0, 2, ","):(["a", "b"])
+given log_fixture_parse("1\tsession_plan\ta,b\tmain,warmup\tr1\\nr2\n") ((import log_fixture_events), 0, 3, ","):(["main", "warmup"])
+given log_fixture_parse("1\tsession_plan\ta,b\tmain,warmup\tr1\\nr2\n") ((import log_fixture_events), 0, 4, "\n"):(["r1", "r2"])
+
+session_hint_count(Log_events session_events, int session_plan_at, string session_item_id) {
+  int session_total = 0;
+  int session_at = session_plan_at + 1;
+  while (session_at < len(session_events.kinds)) {
+    session_total = session_total + (session_events.kinds[session_at] == "hint_shown" && log_text_at(session_events, session_at, (import log_slot_item)) == session_item_id);
+    session_at = session_at + 1;
+  }
+} return int session_total;
+given log_fixture_parse("1\tsession_plan\ta\tmain\tr\n2\thint_shown\ta\t1\n3\thint_shown\ta\t2\n4\thint_shown\tb\t1\n") ((import log_fixture_events), 0, "a"):(2)
+given log_fixture_parse("1\tsession_plan\ta\tmain\tr\n2\thint_shown\ta\t1\n3\thint_shown\ta\t2\n4\thint_shown\tb\t1\n") ((import log_fixture_events), 0, "b"):(1)
+given log_fixture_parse("1\thint_shown\ta\t1\n2\tsession_plan\ta\tmain\tr\n") ((import log_fixture_events), 1, "a"):(0)

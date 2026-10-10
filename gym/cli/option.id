@@ -1,0 +1,53 @@
+// Reading the options of a command. The values arrive in the order of
+// command_options (conf.id), as opt_parse fills them, and "" means the option
+// was not given. The real clock is an argument of the whole program, never read
+// here, so every command is a function of its words and the clock it is handed.
+
+command_now(string[] command_values, word command_clock) {
+  string command_now_text = opt_get((import command_options), command_values, "now");
+  word command_now_value = command_clock;
+  if (command_now_text != "") {
+    command_now_value = 0 - 1;
+  }
+} chain (string[] command_values, word command_clock) {
+  if (command_now_text != "" && log_digits_ok(command_now_text, (import log_time_digits)) == 1) {
+    command_now_value = check_word_value(command_now_text);
+  }
+} return word command_now_value;
+(["", "", "86400000", "", "", "", "", "", ""], 5):(86400000)
+(["", "", "", "", "", "", "", "", ""], 5):(5)
+(["", "", "soon", "", "", "", "", "", ""], 5):(-1)
+(["", "", "1760000000000", "", "", "", "", "", ""], 5):(1760000000000)
+
+command_number(string[] command_values, string command_name, int command_fallback) {
+  string command_number_text = opt_get((import command_options), command_values, command_name);
+  int command_number_value = command_fallback;
+  if (command_number_text != "") {
+    command_number_value = 0 - 1;
+  }
+} chain (string[] command_values, string command_name, int command_fallback) {
+  if (command_number_text != "" && log_digits_ok(command_number_text, (import command_digits_limit)) == 1) {
+    command_number_value = to_int(command_number_text);
+  }
+} return int command_number_value;
+(["", "", "", "7", "", "", "", "", ""], "seed", 1):(7)
+(["", "", "", "", "", "", "", "", ""], "seed", 1):(1)
+(["", "", "", "", "", "90", "", "", ""], "confidence", 0):(90)
+(["", "", "", "", "", "ninety", "", "", ""], "confidence", 0):(-1)
+(["", "", "", "", "", "-5", "", "", ""], "confidence", 0):(-1)
+
+command_required(string[] command_values, string[] command_names) {
+  string command_missing = "";
+  int command_at = 0;
+  while (command_at < len(command_names)) {
+    if (command_missing == "" && opt_get((import command_options), command_values, command_names[command_at]) == "") {
+      command_missing = "error: --" + command_names[command_at] + " is required; gym --help lists every option";
+    }
+    command_at = command_at + 1;
+  }
+} return string command_missing;
+(["d", "l", "", "", "", "", "", "", ""], ["pack", "log"]):("")
+(["d", "", "", "", "", "", "", "", ""], ["pack", "log"]):("error: --log is required; gym --help lists every option")
+(["", "", "", "", "", "", "", "", ""], ["pack", "log"]):("error: --pack is required; gym --help lists every option")
+(["", "", "", "", "", "", "", "", ""], []):("")
+(["d", "l", "", "", "", "", "", "", ""], ["pack", "log", "text"]):("error: --text is required; gym --help lists every option")

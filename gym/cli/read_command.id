@@ -1,0 +1,31 @@
+// `gym next`, `gym score` and `gym why`: moving on (with the cooldown after the
+// last item), the scoreboard, and the reason an item is on the plan. They answer
+// [exit code, text] like the other commands.
+
+command_next(string[] command_values, word command_clock) {
+  string command_refusal = command_check(command_values, command_clock, ["pack", "log"]);
+  string[] command_out = ["2", command_refusal];
+  if (command_refusal != "") {
+    return command_out;
+  }
+} chain (string[] command_values, word command_clock) {
+  Pack command_book = pack_load(opt_get((import command_options), command_values, "pack"));
+  string command_log = opt_get((import command_options), command_values, "log");
+  word command_when = command_now(command_values, command_clock);
+} chain (string[] command_values, word command_clock) {
+  string[] command_result = session_move_on(command_log, command_when);
+  Log_replay command_replayed = log_replay(command_log);
+  string[] command_shown = session_view(command_replayed.events);
+} chain (string[] command_values, word command_clock) {
+  command_out = ["1", "refused: " + command_result[1]];
+  if (command_result[0] == "ok") {
+    command_out = ["0", command_prompt_text(command_book, command_shown)];
+  }
+  if (command_result[0] == "ok" && command_result[2] == "closed") {
+    command_out = ["0", session_cool_down_text(command_book, command_replayed.events, command_when)];
+  }
+} return string[] command_out;
+given command_fixture_files("item: a\nprompt: Q1?\nanswer_kind: fraction\nanswer: 1/3\nitem: b\nprompt: Q2?\nanswer_kind: fraction\nanswer: 1/2\n", "1\tsession_plan\ta,b\tmain,main\tr\\nr\n2\tattempt\ta\t1/2\t90\tincorrect\t0\t5\tno\t\n") (["pack", "learner.log", "100", "", "", "", "", "", ""], 5):(["0", "item 2 of 2 (main): b\nQ2?\n\nanswer with: gym answer --text ANSWER --confidence 50|70|90|99 (or gym tapout to see the answer)"])
+given command_fixture_files("item: a\nprompt: Q1?\nanswer_kind: fraction\nanswer: 1/3\nitem: b\nprompt: Q2?\nanswer_kind: fraction\nanswer: 1/2\n", "1\tsession_plan\ta,b\tmain,main\tr\\nr\n") (["pack", "learner.log", "100", "", "", "", "", "", ""], 5):(["1", "refused: answer this item or tap out first: the next item opens only after an attempt"])
+given command_fixture_files("concept: c\nitem: a\nconcepts: c\ndifficulty: 1000\nprompt: Q1?\nanswer_kind: fraction\nanswer: 1/3\n", "1000\tsession_plan\ta\tmain\tr\n2000\tattempt\ta\t1/2\t99\tincorrect\t0\t5\tno\t\n") (["pack", "learner.log", "3000", "", "", "", "", "", ""], 5):(["0", "session complete\nitems this session: 1\nwrong at 90% or more confidence: a (99%)\nconcepts due a day from now: 1"]) then fs_read_text("learner.log"):("1000\tsession_plan\ta\tmain\tr\n2000\tattempt\ta\t1/2\t99\tincorrect\t0\t5\tno\t\n3000\tsession_next\ta\n3000\tsession_end\n")
+given command_fixture_files("item: a\nprompt: Q1?\nanswer_kind: fraction\nanswer: 1/3\nitem: b\nprompt: Q2?\nanswer_kind: fraction\nanswer: 1/2\n", "") (["pack", "", "100", "", "", "", "", "", ""], 5):(["2", "error: --log is required; gym --help lists every option"])

@@ -1,0 +1,23 @@
+// Writing the text of the two events a running session adds to the log. A
+// session_plan line is the record of "the current session": the item ids, their
+// phases and the reason each one was planned, fixed at the moment the session
+// started so that later answers cannot change what is on the list. Ids and phases
+// are comma-separated, reasons are one per line, and all three pass through
+// log_escape. A session_next line says the learner moved on from one item.
+
+log_line_plan(word log_time, string[] log_plan_ids, string[] log_plan_phases, string[] log_plan_reasons) {
+  string log_ids_text = log_escape(str_join(log_plan_ids, ","));
+  string log_phases_text = log_escape(str_join(log_plan_phases, ","));
+  string log_reasons_text = log_escape(str_join(log_plan_reasons, "\n"));
+} chain (word log_time, string[] log_plan_ids, string[] log_plan_phases, string[] log_plan_reasons) {
+  string[] log_fields = ["" + log_time, "session_plan", log_ids_text, log_phases_text, log_reasons_text];
+  string log_event = str_join(log_fields, "\t");
+} return string log_event;
+(1760000000000, ["a", "b"], ["warmup", "main"], ["due: x", "new: y"]):("1760000000000\tsession_plan\ta,b\twarmup,main\tdue: x\\nnew: y")
+(5, ["a"], ["main"], ["why; with, commas"]):("5\tsession_plan\ta\tmain\twhy; with, commas")
+
+log_line_next(word log_time, string log_item) {
+  string log_fields_next = str_join(["" + log_time, "session_next", log_escape(log_item)], "\t");
+} return string log_fields_next;
+(1760000000000, "dice_1"):("1760000000000\tsession_next\tdice_1")
+(9, "a\tb"):("9\tsession_next\ta\\tb")

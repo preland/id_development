@@ -1,0 +1,17 @@
+// Whether the three lists of a session_plan line agree: the item ids and the
+// phases are comma-separated and the reasons are one per line, so a plan is good
+// when it has at least one item and every item has a phase and a reason. The
+// fields arrive in their escaped form, as log_fields_ok holds them.
+
+log_plan_ok(string[] log_fields) {
+  int log_id_count = len(str_split(log_fields[(import log_slot_ids)], ","));
+  int log_phase_count = len(str_split(log_fields[(import log_slot_phases)], ","));
+  string[] log_reason_lines = str_split(log_restore(log_fields[(import log_slot_reasons)]), "\n");
+} chain (string[] log_fields) {
+  int log_plan_good = log_fields[(import log_slot_ids)] != "" && log_id_count == log_phase_count && log_id_count == len(log_reason_lines);
+} return int log_plan_good;
+(["1", "session_plan", "a,b", "warmup,main", "x\\ny"]):(1)
+(["1", "session_plan", "a", "main", "x"]):(1)
+(["1", "session_plan", "a,b", "warmup,main", "x"]):(0)
+(["1", "session_plan", "a,b", "warmup", "x\\ny"]):(0)
+(["1", "session_plan", "", "", ""]):(0)

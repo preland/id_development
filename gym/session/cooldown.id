@@ -1,0 +1,41 @@
+// The cooldown at the end of a session (spec, "A session", step 4): where the
+// learner's confidence was off, and how many concepts will be due a day on.
+// session_misses lists the attempts of the current session that were wrong at a
+// confidence of 90 or more, newest last, as "item (99%)" (hypercorrection, P10:
+// these are the ones worth a sentence). session_cool_down_text writes the lines
+// from the pack, the replayed log and the clock; the due count is the planner's
+// own (plan_due_count) a day after the clock.
+
+session_misses(Log_events session_events, int session_plan_at) {
+  string[] session_missed = [];
+  int session_at = session_plan_at + 1;
+  while (session_at < len(session_events.kinds)) {
+    if (session_events.kinds[session_at] == "attempt" && log_number_at(session_events, session_at, (import log_slot_confidence)) >= (import score_confident_level) && log_text_at(session_events, session_at, (import log_slot_verdict)) != "correct") {
+      push(session_missed, log_text_at(session_events, session_at, (import log_slot_item)) + " (" + log_text_at(session_events, session_at, (import log_slot_confidence)) + "%)");
+    }
+    session_at = session_at + 1;
+  }
+} return string[] session_missed;
+given log_fixture_parse("1\tsession_plan\ta,b\tmain,main\tr\\nr\n2\tattempt\ta\tx\t99\tincorrect\t0\t5\tno\t\n3\tattempt\tb\tx\t90\tcorrect\t0\t5\tno\t\n") ((import log_fixture_events), 0):(["a (99%)"])
+given log_fixture_parse("1\tsession_plan\ta,b\tmain,main\tr\\nr\n2\tattempt\ta\tx\t90\tincorrect\t0\t5\tno\t\n3\tattempt\tb\tx\t99\tunparseable\t0\t5\tno\t\n4\tattempt\tc\tx\t70\tincorrect\t0\t5\tno\t\n") ((import log_fixture_events), 0):(["a (90%)", "b (99%)"])
+given log_fixture_parse("1\tattempt\tz\tx\t99\tincorrect\t0\t5\tno\t\n2\tsession_plan\ta\tmain\tr\n") ((import log_fixture_events), 1):([])
+given log_fixture_parse("1\tsession_plan\ta,b,c,d\tmain,main,main,main\tr\\nr\\nr\\nr\n2\tattempt\ta\tx\t99\tincorrect\t0\t5\tno\t\n3\tattempt\tb\tx\t99\tincorrect\t0\t5\tno\t\n4\tattempt\tc\tx\t99\tincorrect\t0\t5\tno\t\n5\tattempt\td\tx\t99\tincorrect\t0\t5\tno\t\n") ((import log_fixture_events), 0):(["a (99%)", "b (99%)", "c (99%)", "d (99%)"])
+given log_fixture_parse("1\tsession_plan\ta,b\tmain,main\tr\\nr\n2\tattempt\ta\tx\t99\tincorrect\t0\t5\tno\t\n3\tattempt\tb\tx\t99\tincorrect\t0\t5\tno\t\n") ((import log_fixture_events), 0):(["a (99%)", "b (99%)"])
+
+session_cool_down_text(Pack session_book, Log_events session_events, word session_now) {
+  Plan_book session_numbers = plan_build_book(session_book);
+  Plan_learner session_learner = plan_replay(session_numbers, session_events);
+  int session_plan_at = session_plan_index(session_events);
+} chain (Pack session_book, Log_events session_events, word session_now) {
+  string[] session_missed = session_misses(session_events, session_plan_at);
+  string[] session_ids = session_list(session_events, session_plan_at, (import log_slot_ids), ",");
+  int session_due = plan_due_count(session_learner, session_now + (import score_day));
+} chain (Pack session_book, Log_events session_events, word session_now) {
+  string session_calibration = "none this session: your confidence matched your results";
+  if (len(session_missed) > 0) {
+    session_calibration = "wrong at 90% or more confidence: " + str_join(session_missed, ", ");
+  }
+  string session_text = "session complete\nitems this session: " + len(session_ids) + "\n" + session_calibration + "\nconcepts due a day from now: " + session_due;
+} return string session_text;
+given log_fixture_parse("1000\tsession_plan\ta\tmain\tr\n2000\tattempt\ta\tx\t99\tincorrect\t0\t5\tno\t\n3000\tsession_next\ta\n3000\tsession_end\n") given model_fixture_pack("concept: c\nitem: a\nconcepts: c\ndifficulty: 1000\n") ((import model_fixture_book), (import log_fixture_events), 3000):("session complete\nitems this session: 1\nwrong at 90% or more confidence: a (99%)\nconcepts due a day from now: 1")
+given log_fixture_parse("1000\tsession_plan\ta\tmain\tr\n2000\tattempt\ta\tx\t50\tcorrect\t0\t5\tno\t\n3000\tsession_next\ta\n3000\tsession_end\n") given model_fixture_pack("concept: c\nitem: a\nconcepts: c\ndifficulty: 1000\n") ((import model_fixture_book), (import log_fixture_events), 3000):("session complete\nitems this session: 1\nnone this session: your confidence matched your results\nconcepts due a day from now: 0")

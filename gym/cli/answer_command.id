@@ -1,0 +1,71 @@
+// `gym answer`, `gym hint` and `gym tapout`: the three things a learner does to
+// the item on screen. Each reads the log fresh, so no state lives between
+// commands, and each answers [exit code, text]: 0 done, 1 refused by a rule of
+// the design (no confidence, no attempt yet, the warm-up), 2 wrong options.
+
+command_answer(string[] command_values, word command_clock) {
+  string command_refusal = command_check(command_values, command_clock, ["pack", "log", "text"]);
+  string[] command_out = ["2", command_refusal];
+  if (command_refusal != "") {
+    return command_out;
+  }
+} chain (string[] command_values, word command_clock) {
+  Pack command_book = pack_load(opt_get((import command_options), command_values, "pack"));
+  word command_when = command_now(command_values, command_clock);
+  int command_confidence = command_number(command_values, "confidence", 0);
+} chain (string[] command_values, word command_clock) {
+  int command_seconds = command_number(command_values, "seconds", 0);
+  string[] command_result = session_answer_item(command_book, opt_get((import command_options), command_values, "log"), command_when, opt_get((import command_options), command_values, "text"), command_confidence, command_seconds);
+  command_out = ["1", command_answer_text(command_result)];
+} chain (string[] command_values, word command_clock) {
+  if (command_result[0] == "ok") {
+    command_out[0] = "0";
+  }
+} return string[] command_out;
+given command_fixture_files("item: a\nprompt: Q?\nanswer_kind: fraction\nanswer: 1/3\nrubric: R1\n", "1\tsession_plan\ta\tmain\tr\n") (["pack", "learner.log", "100", "", "2/6", "90", "", "", ""], 5):(["0", "verdict: correct\nreference: 1/3\nwhy, what a good solution shows:\n  - R1\nnext: gym hint for help (not in the warm-up), gym next to move on"])
+given command_fixture_files("item: a\nprompt: Q?\nanswer_kind: fraction\nanswer: 1/3\nrubric: R1\n", "1\tsession_plan\ta\tmain\tr\n") (["pack", "learner.log", "100", "", "2/6", "", "", "", ""], 5):(["1", "refused: no answer without a confidence: pass --confidence 50, 70, 90 or 99"])
+given command_fixture_files("item: a\nprompt: Q?\nanswer_kind: fraction\nanswer: 1/3\nrubric: R1\n", "1\tsession_plan\ta\tmain\tr\n") (["pack", "learner.log", "100", "", "", "90", "", "", ""], 5):(["2", "error: --text is required; gym --help lists every option"])
+given command_fixture_files("item: a\nprompt: Q?\nanswer_kind: fraction\nanswer: 1/3\nrubric: R1\n", "1\tsession_plan\ta\tmain\tr\n") (["pack", "learner.log", "100", "", "1/2", "99", "7", "", ""], 5):(["0", "verdict: incorrect\nreference: 1/3\nwhy, what a good solution shows:\n  - R1\nnext: gym hint for help (not in the warm-up), gym next to move on"]) then fs_read_text("learner.log"):("1\tsession_plan\ta\tmain\tr\n100\tattempt\ta\t1/2\t99\tincorrect\t0\t7\tno\t\n")
+
+command_hint(string[] command_values, word command_clock) {
+  string command_refusal = command_check(command_values, command_clock, ["pack", "log"]);
+  string[] command_out = ["2", command_refusal];
+  if (command_refusal != "") {
+    return command_out;
+  }
+} chain (string[] command_values, word command_clock) {
+  Pack command_book = pack_load(opt_get((import command_options), command_values, "pack"));
+  string command_url = opt_get((import command_options), command_values, "url");
+  if (command_url == "") {
+    command_url = model_address();
+  }
+} chain (string[] command_values, word command_clock) {
+  string[] command_result = session_hint_next(command_book, opt_get((import command_options), command_values, "log"), command_now(command_values, command_clock), command_url);
+  command_out = ["1", command_hint_text(command_result)];
+  if (command_result[0] == "ok") {
+    command_out[0] = "0";
+  }
+} return string[] command_out;
+given command_fixture_files("item: a\nprompt: Q?\nanswer_kind: fraction\nanswer: 1/3\nhint_nudge: Begin.\n", "1\tsession_plan\ta\tmain\tr\n2\tattempt\ta\t1/2\t90\tincorrect\t0\t5\tno\t\n") (["pack", "learner.log", "100", "", "", "", "", "http://127.0.0.1:1", ""], 5):(["0", "hint 1 of 4 (nudge): Begin.\nsource: the pack's own words (the model server answered -1)"])
+given command_fixture_files("item: a\nprompt: Q?\nanswer_kind: fraction\nanswer: 1/3\nhint_nudge: Begin.\n", "1\tsession_plan\ta\tmain\tr\n") (["pack", "learner.log", "100", "", "", "", "", "http://127.0.0.1:1", ""], 5):(["1", "refused: answer first: a hint comes only after you commit an attempt (an answer and a confidence); if you are stuck, gym tapout shows the worked example"])
+given command_fixture_files("item: a\n", "") (["pack", "", "", "", "", "", "", "", ""], 5):(["2", "error: --log is required; gym --help lists every option"])
+
+command_tap_out(string[] command_values, word command_clock) {
+  string command_refusal = command_check(command_values, command_clock, ["pack", "log"]);
+  string[] command_out = ["2", command_refusal];
+  if (command_refusal != "") {
+    return command_out;
+  }
+} chain (string[] command_values, word command_clock) {
+  Pack command_book = pack_load(opt_get((import command_options), command_values, "pack"));
+  int command_confidence = command_number(command_values, "confidence", (import session_confidence_default));
+  int command_seconds = command_number(command_values, "seconds", 0);
+} chain (string[] command_values, word command_clock) {
+  string[] command_result = session_tap_out(command_book, opt_get((import command_options), command_values, "log"), command_now(command_values, command_clock), command_confidence, command_seconds);
+  command_out = ["1", command_tap_text(command_result)];
+  if (command_result[0] == "ok") {
+    command_out[0] = "0";
+  }
+} return string[] command_out;
+given command_fixture_files("item: a\nprompt: Q?\nanswer_kind: fraction\nanswer: 1/3\nrubric: R1\nhint_example: Eg.\n", "1\tsession_plan\ta\tmain\tr\n") (["pack", "learner.log", "100", "", "", "", "9", "", ""], 5):(["0", "tapped out: the answer is 1/3\nwhy, what a good solution shows:\n  - R1\nworked example: Eg.\nthis counts as a miss, so the item comes back sooner\nnext: gym next"]) then fs_read_text("learner.log"):("1\tsession_plan\ta\tmain\tr\n100\tattempt\ta\t\t50\tincorrect\t4\t9\tyes\t\n")
+given command_fixture_files("item: a\nprompt: Q?\nanswer_kind: fraction\nanswer: 1/3\n", "") (["pack", "learner.log", "100", "", "", "", "", "", ""], 5):(["1", "refused: no session is running: start one with gym session start"])

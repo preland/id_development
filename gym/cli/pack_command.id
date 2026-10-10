@@ -1,0 +1,48 @@
+// `gym pack check DIR` and `gym grade`. The first validates a pack with
+// pack_check and says "pack ok" with the counts or lists every problem as
+// file:line: message (exit 1). The second is the old gymprobe: grade one answer
+// to one item against the model server, with a throwaway log, to see the grader
+// work before it is wired into a session (exit 1 when the model gave no grade).
+
+command_pack_check(string[] command_values, string[] command_rest) {
+  string command_directory = command_word(command_rest, 2);
+  if (command_directory == "") {
+    command_directory = opt_get((import command_options), command_values, "pack");
+  }
+  string[] command_out = ["2", "error: say which pack: gym pack check DIR"];
+} chain (string[] command_values, string[] command_rest) {
+  Pack command_book = pack_load(command_directory);
+  string[] command_problems = pack_check(command_directory);
+  if (command_directory != "" && len(command_problems) == 0) {
+    command_out = ["0", "pack ok: concepts " + len(pack_ids(command_book, "concept")) + ", items " + len(pack_ids(command_book, "item"))];
+  }
+} chain (string[] command_values, string[] command_rest) {
+  if (command_directory != "" && len(command_problems) > 0) {
+    command_out = ["1", str_join(command_problems, "\n")];
+  }
+} return string[] command_out;
+given command_fixture_files("concept: c\nname: C\nsummary: S\nsource: Src\nitem: a\nconcepts: c\nkind: solve\nanswer_kind: fraction\ndifficulty: 1000\nverified: tool\nprompt: Q?\nanswer: 1/3\nrubric: R\nhint_nudge: n\nhint_question: q\nhint_step: s\nhint_example: e\n", "") (["", "", "", "", "", "", "", "", ""], ["pack", "check", "pack"]):(["0", "pack ok: concepts 1, items 1"])
+given command_fixture_files("concept: c\nname: C\nsummary: S\nsource: Src\nitem: a\nconcepts: c\nkind: solve\nanswer_kind: fraction\ndifficulty: 1000\nverified: tool\nprompt: Q?\nanswer: 1/3\nrubric: R\nhint_nudge: n\nhint_question: q\nhint_step: s\nhint_example: e\n", "") (["pack", "", "", "", "", "", "", "", ""], ["pack", "check"]):(["0", "pack ok: concepts 1, items 1"])
+given command_fixture_files("concept: c\nname: C\nsummary: S\nsource: Src\n", "") (["", "", "", "", "", "", "", "", ""], ["pack", "check", "pack"]):(["1", "pack: the pack has no 'item:' blocks"])
+given command_fixture_files("item: a\n", "") (["", "", "", "", "", "", "", "", ""], ["pack", "check"]):(["2", "error: say which pack: gym pack check DIR"])
+
+command_grade(string[] command_values, word command_clock) {
+  string command_refusal = command_check(command_values, command_clock, ["pack", "item", "text"]);
+  string[] command_out = ["2", command_refusal];
+  if (command_refusal != "") {
+    return command_out;
+  }
+} chain (string[] command_values, word command_clock) {
+  string command_url = opt_get((import command_options), command_values, "url");
+  if (command_url == "") {
+    command_url = model_address();
+  }
+  string[] command_feedback = probe_attempt(command_url, opt_get((import command_options), command_values, "pack"), opt_get((import command_options), command_values, "item"), opt_get((import command_options), command_values, "text"));
+} chain (string[] command_values, word command_clock) {
+  command_out = ["0", probe_lines(command_feedback)];
+  if (command_feedback[0] == "refused" || command_feedback[0] == "unreachable") {
+    command_out[0] = "1";
+  }
+} return string[] command_out;
+given command_fixture_files("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "") (["pack", "", "", "", "3/8", "", "", "http://127.0.0.1:1", "x"], 5):(["1", "status: unreachable\nreason: the model server answered -1\nverdict: \nright: \nflaw: \nnext_step: \nerror_type: \nconfidence: "])
+given command_fixture_files("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "") (["pack", "", "", "", "3/8", "", "", "http://127.0.0.1:1", ""], 5):(["2", "error: --item is required; gym --help lists every option"])

@@ -1,0 +1,43 @@
+// Starting a session. The plan comes from plan_for_log over the pack and the
+// replayed log; it is then written into the log as a session_start event and a
+// session_plan event, which is the whole of the "current session" state (no other
+// file exists). A session that was still going is closed first with a
+// session_end, so an abandoned session stays visible in the log rather than being
+// silently replaced. It answers ["refused", why] or ["ok", note], where the note
+// is "" or says that the previous session was left unfinished.
+
+session_start_plan(Pack session_book, string session_log_path, word session_now, int session_seed) {
+  Log_replay session_replayed = log_replay(session_log_path);
+  string[] session_shown = session_view(session_replayed.events);
+  Plan_session session_plan = plan_for_log(session_book, session_replayed.events, session_now, session_seed);
+} chain (Pack session_book, string session_log_path, word session_now, int session_seed) {
+  int session_open = session_shown[(import session_slot_state)] != "none" && session_shown[(import session_slot_state)] != "closed";
+  int session_closed = 0 - 1;
+  int session_opened = 0 - 1;
+} chain (Pack session_book, string session_log_path, word session_now, int session_seed) {
+  if (len(session_plan.ids) > 0 && session_open == 1) {
+    session_closed = log_record_session(session_log_path, session_now, "end");
+  }
+  if (len(session_plan.ids) > 0) {
+    session_opened = log_record_session(session_log_path, session_now, "start");
+  }
+  int session_recorded = 0 - 1;
+} chain (Pack session_book, string session_log_path, word session_now, int session_seed) {
+  if (session_opened >= 0) {
+    session_recorded = log_record_plan(session_log_path, session_now, session_plan.ids, session_plan.phases, session_plan.reasons);
+  }
+  string[] session_result = ["refused", "nothing to practise: no concept is due or weak and none is new"];
+  if (len(session_plan.ids) > 0 && session_recorded < 0) {
+    session_result = ["refused", "the log could not be written"];
+  }
+} chain (Pack session_book, string session_log_path, word session_now, int session_seed) {
+  if (session_recorded >= 0 && session_open == 1) {
+    session_result = ["ok", "the previous session was left unfinished and is closed"];
+  }
+  if (session_recorded >= 0 && session_open == 0) {
+    session_result = ["ok", ""];
+  }
+} return string[] session_result;
+given model_fixture_log_file("") given model_fixture_pack("concept: c1\nconcept: c2\nrequires: c1\nitem: a\nconcepts: c1\ndifficulty: 1000\nitem: b\nconcepts: c2\ndifficulty: 1000\n") ((import model_fixture_book), (import model_fixture_log), 100, 1):(["ok", ""]) then fs_read_text("learner.log"):("100\tsession_start\n100\tsession_plan\ta\tmain\tnew: no prerequisites; expected first-try success 50%\n")
+given model_fixture_log_file("1\tsession_start\n1\tsession_plan\ta\tmain\tr\n") given model_fixture_pack("concept: c1\nconcept: c2\nrequires: c1\nitem: a\nconcepts: c1\ndifficulty: 1000\nitem: b\nconcepts: c2\ndifficulty: 1000\n") ((import model_fixture_book), (import model_fixture_log), 100, 1):(["ok", "the previous session was left unfinished and is closed"]) then fs_read_text("learner.log"):("1\tsession_start\n1\tsession_plan\ta\tmain\tr\n100\tsession_end\n100\tsession_start\n100\tsession_plan\ta\tmain\tnew: no prerequisites; expected first-try success 50%\n")
+given model_fixture_log_file("") given model_fixture_pack("") ((import model_fixture_book), (import model_fixture_log), 100, 1):(["refused", "nothing to practise: no concept is due or weak and none is new"]) then model_fixture_size:(0)

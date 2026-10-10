@@ -1,0 +1,57 @@
+// The golden transcript: the whole scripted session of conf.id's golden_script
+// (a session on the probability pack, a day-later session, and the scoreboard)
+// run through command_run against a fresh log, with every clock given by --now.
+// golden_block runs one command and writes it as a block: the command, its
+// output, its exit status and the log's size before and after. It also marks a
+// violation of the append-only rule: the log got smaller, or a refused command
+// changed it. golden_run replays the script up to a step and answers that
+// step's block and the number of violations so far, so each case below is one
+// readable moment of the session and also proves nothing before it broke the log.
+// The cases run in the gym directory, so the pack is packs/probability.
+
+golden_block(string golden_log, string golden_line) {
+  int golden_before = len(fs_read_text(golden_log));
+  string[] golden_arguments = str_split("gym|" + golden_line + "|--pack|packs/probability|--log|" + golden_log, "|");
+  string[] golden_result = command_run(golden_arguments, 0);
+} chain (string golden_log, string golden_line) {
+  int golden_after = len(fs_read_text(golden_log));
+  int golden_bad = golden_after < golden_before;
+  if (golden_result[0] != "0" && golden_after != golden_before) {
+    golden_bad = 1;
+  }
+} chain (string golden_log, string golden_line) {
+  string golden_text = "$ gym " + str_replace(golden_line, "|", " ") + "\n" + golden_result[1] + "\n[exit " + golden_result[0] + "; log " + golden_before + " -> " + golden_after + " bytes]";
+  string[] golden_made = [golden_text, "" + golden_bad];
+} return string[] golden_made;
+given fs_temp_text("") ((import fs_temp_path), "answer|--text|1/3|--now|5"):(["$ gym answer --text 1/3 --now 5\nrefused: no session is running: start one with gym session start\n[exit 1; log 0 -> 0 bytes]", "0"])
+given fs_temp_text("") ((import fs_temp_path), "hint|--now|5"):(["$ gym hint --now 5\nrefused: no session is running: start one with gym session start\n[exit 1; log 0 -> 0 bytes]", "0"])
+
+golden_run(int golden_count) {
+  string golden_log = fs_mktemp("golden_", 1) + "/learner.log";
+  string[] golden_lines = (import golden_script);
+  string[] golden_last = ["", "0"];
+} chain (int golden_count) {
+  int golden_at = 0;
+  int golden_total = 0;
+  while (golden_at < golden_count) {
+    golden_last = golden_block(golden_log, golden_lines[golden_at]);
+    golden_total = golden_total + to_int(golden_last[1]);
+    golden_at = golden_at + 1;
+  }
+} chain (int golden_count) {
+  string[] golden_report = [golden_last[0], "" + golden_total];
+} return string[] golden_report;
+(1):(["$ gym session start --now 1760000000000\nplan, in the order you will meet it:\n1. main  space_1  new: no prerequisites; expected first-try success 76%\n2. main  space_2  new: no prerequisites; expected first-try success 70%\n3. main  space_3  new: no prerequisites; expected first-try success 57%\n\nitem 1 of 3 (main): space_1\nA fair six-sided die is rolled once. What is the probability of rolling a number greater than 4? Give a fraction.\n\nanswer with: gym answer --text ANSWER --confidence 50|70|90|99 (or gym tapout to see the answer)\n[exit 0; log 0 -> 258 bytes]", "0"])
+(2):(["$ gym hint --now 1760000001000\nrefused: answer first: a hint comes only after you commit an attempt (an answer and a confidence); if you are stuck, gym tapout shows the worked example\n[exit 1; log 258 -> 258 bytes]", "0"])
+(3):(["$ gym answer --text 1/3 --now 1760000002000\nrefused: no answer without a confidence: pass --confidence 50, 70, 90 or 99\n[exit 1; log 258 -> 258 bytes]", "0"])
+(4):(["$ gym answer --text 1/3 --confidence 90 --seconds 12 --now 1760000060000\nverdict: correct\nreference: 1/3\nwhy, what a good solution shows:\n  - Lists or counts the six equally likely outcomes.\n  - Counts the outcomes greater than 4 and divides by the total.\nnext: gym hint for help (not in the warm-up), gym next to move on\n[exit 0; log 258 -> 312 bytes]", "0"])
+(6):(["$ gym answer --text 1/3 --confidence 99 --seconds 20 --now 1760000120000\nverdict: incorrect\nreference: 1/2\nwhy, what a good solution shows:\n  - Treats the two coins as distinguishable and lists HH, HT, TH, TT.\n  - Counts HT and TH as two separate outcomes.\nnext: gym hint for help (not in the warm-up), gym next to move on\n[exit 0; log 347 -> 403 bytes]", "0"])
+(7):(["$ gym hint --url http://127.0.0.1:1 --now 1760000121000\nhint 1 of 4 (nudge): List the outcomes of two flips as ordered pairs, because the first coin and the second coin are different coins.\nsource: the pack's own words (the model server answered -1)\n[exit 0; log 403 -> 438 bytes]", "0"])
+(8):(["$ gym next --now 1760000122000\nitem 3 of 3 (main): space_3\nTwo fair six-sided dice are rolled, one red and one blue. What is the probability that the sum is 7? Give a fraction.\n\nanswer with: gym answer --text ANSWER --confidence 50|70|90|99 (or gym tapout to see the answer)\n[exit 0; log 438 -> 473 bytes]", "0"])
+(9):(["$ gym tapout --seconds 30 --now 1760000150000\ntapped out: the answer is 1/6\nwhy, what a good solution shows:\n  - Uses the 36 equally likely (red, blue) pairs as the sample space.\n  - Finds all pairs that add to 7 without missing the reversed ones.\nworked example: There are 36 pairs in total. Sum 7: (1,6), (2,5), (3,4), (4,3), (5,2), (6,1), which is 6 pairs. So P = 6/36 = 1/6.\nthis counts as a miss, so the item comes back sooner\nnext: gym next\n[exit 0; log 473 -> 527 bytes]", "0"])
+(10):(["$ gym next --now 1760000151000\nsession complete\nitems this session: 3\nwrong at 90% or more confidence: space_2 (99%)\nconcepts due a day from now: 1\n[exit 0; log 527 -> 588 bytes]", "0"])
+(11):(["$ gym session start --now 1760086400000\nplan, in the order you will meet it:\n1. warmup  space_1  due: recall predicted 0.89 at 1.0 days; expected first-try success 73%\n2. main  independence_1  new: prerequisites done; expected first-try success 76%\n3. main  addition_3  new: prerequisites done; expected first-try success 70%\n4. main  complement_1  new: prerequisites done; expected first-try success 76%\n5. main  independence_2  new: prerequisites done; expected first-try success 70%\n6. main  addition_1  new: prerequisites done; expected first-try success 64%\n7. main  complement_2  new: prerequisites done; expected first-try success 74%\n8. main  independence_3  new: prerequisites done; expected first-try success 57%\n9. main  addition_2  new: prerequisites done; expected first-try success 57%\n10. main  complement_3  new: prerequisites done; expected first-try success 57%\n11. transfer  space_transfer  transfer probe for sample_space\n\nitem 1 of 11 (warmup): space_1\nA fair six-sided die is rolled once. What is the probability of rolling a number greater than 4? Give a fraction.\n\nanswer with: gym answer --text ANSWER --confidence 50|70|90|99 (or gym tapout to see the answer)\n[exit 0; log 588 -> 1461 bytes]", "0"])
+(12):(["$ gym answer --text 1/3 --confidence 90 --seconds 9 --now 1760086520000\nverdict: correct\nreference: 1/3\nwhy, what a good solution shows:\n  - Lists or counts the six equally likely outcomes.\n  - Counts the outcomes greater than 4 and divides by the total.\nnext: gym hint for help (not in the warm-up), gym next to move on\n[exit 0; log 1461 -> 1514 bytes]", "0"])
+(13):(["$ gym hint --url http://127.0.0.1:1 --now 1760086521000\nrefused: hints are unavailable in the warm-up, which is the cold strength test\n[exit 1; log 1514 -> 1514 bytes]", "0"])
+(14):(["$ gym score --now 1760086522000\nscoreboard from 4 logged attempts; only delayed, unassisted and held-out results count\nretention: not enough data (n = 1, need 5)\n  Of the attempts on items you had last tried at least a day earlier, with no hints and no tap-out, the share you got right. It shows what stuck after a delay.\ntransfer: not enough data (n = 0, need 5)\n  The share you got right on held-out items that are never used in practice, so the number cannot come from memorising answers.\ncalibration: not enough data (n = 3, need 5)\n  The Brier score of your confidence on the first attempt at each item: 0 is perfect, 0.25 is what saying 50 percent every time earns, 1 is always certain and always wrong. Lower is better.\nindependence: not enough data (n = 4, need 5)\n  Hints used plus tap-outs, for each item you solved. Lower is better; a falling trend shows the scaffolding fading.\nfluency: not enough data (n = 2, need 5)\n  The median seconds you took on answers that were right with no hints and no tap-out. A falling number shows the skill becoming automatic.\n[exit 0; log 1514 -> 1514 bytes]", "0"])
+(15):(["$ gym why independence_1 --now 1760086523000\nindependence_1 (place 2 in the current session): new: prerequisites done; expected first-try success 76%\n[exit 0; log 1514 -> 1514 bytes]", "0"])

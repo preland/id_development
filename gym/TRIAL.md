@@ -355,3 +355,83 @@ every case in about 20 s cold. Costs in the order they were hit.
     test directory; cases cannot name a directory (the working directory is not
     the tree), so the fixtures are string constants in conf.id. A pack that lives
     in files would need a fixture that finds its own path.
+
+## Wiring: gym as one program (`main.id`, `session/`, `cli/`, `golden/`)
+
+Written by the agent that made `gym/` a program with a command line: about 40 functions and 150 cases on top
+of the modules above. A warm build of the whole tree is a couple of seconds.
+
+### What worked
+
+- **`opt_parse` from idstd** gave `--pack`, `--log`, `--now`, errors that name the fix and `--help` for
+  the price of one constant. Nothing had to be written for it.
+- **A pure engine over a replayed log.** `session_view(events)` (eight text slots) is the whole answer to
+  "where are we", so every gate (`session_hint_gate`, `session_answer_gate`, `session_move_gate`) is a function
+  of that list and its cases are one line each. The operations that append (`session_answer_item`, ...) are
+  tested with `model_fixture_log_file` and `then model_fixture_size:(N)`, which pins both the result and
+  that a refusal wrote nothing.
+- **Golden cases as one function.** `golden_run(k)` replays the script of `conf.id` up to step k against a
+  fresh `fs_mktemp` log and answers step k's block plus a violation count (the log shrank, or a refused
+  command changed it). Each case is one readable moment of the session, and each also proves everything
+  before it kept the log append-only.
+- **Everything is a function of (arguments, clock).** The real clock is read once, in `main`, and passed
+  down, so `command_run(arguments, clock)` has deterministic cases for every command, including the ones
+  that print.
+
+### Costs, in the order they were hit
+
+1. **`lst_find` answers 0 or 1, not an index.** `lst_find(list, v) < 0` is never true, so the commit rule
+   (no answer without a confidence) was silently off until its own case went red. The name reads like
+   "find" and `lst_index_of` is the one that answers -1; NAMES.md lists both with the same shape.
+   Fix?: rename `lst_find` to `lst_has`.
+2. **A chain may follow only a segment of exactly three actions**, and that shaped every long function.
+   Each time a block had 2 or 4 actions the fix was to move one declaration across the seam, which is
+   mechanical but changes where a value is declared; `session_start_plan` was reshuffled three times.
+   E0204 says "performs 2 actions" but not which neighbour to pull up (entry 2 above).
+3. **The hook blocks any command whose text contains `while` or a `for` loop**, even inside a heredoc that
+   writes an `.id` file or a note (entry 21 above). Files with loops were written with the editor tool; a
+   shell loop to generate cases was blocked too, so repeated cases were typed or generated with `awk`.
+4. **Floats print badly for people.** `flt_text(10.0)` is `1e+01` and a Brier score of 0.01 prints as
+   `0.009999999999999995`. `score_describe` uses it, so the scoreboard text needed its own fixed-decimal
+   line; the only fixed-decimal formatter in the tree is `plan_decimal`, in the planner, which the
+   scoreboard text now calls. Fix?: a `flt_fixed(float, places)` in idstd.
+5. **Counted constraints need an `n`.** A function whose arguments are structs (`Log_events`) has none,
+   and `[time:O(n)]` on its cases fails with "needs a second case with a different input size"; there is no
+   way to say "linear in the number of events". The loops over events carry no constraint (as `score_table`).
+6. **Cases run with the gym directory as the working directory in this build**, and nothing documents it
+   (entry 12 above says the opposite for the earlier setup). Found by returning `fs_getcwd()` from a
+   probe, which E0408 first rejected as "only `fs_getcwd()`" so the probe had to add a "!". The golden cases
+   read the real pack as `packs/probability` because of it; a build from another directory would not find it.
+7. **Two `given` fixtures that both `fs_enter` fight**, the later wins, so a case that needs a pack
+   directory and a log file in one place needed its own setup (`command_fixture_files`).
+8. **A failing multi-line expectation prints raw newlines**, so the golden cases could not be copied from
+   the failure message; they were extracted with `awk` and escaped. Printing expected and actual as id
+   literals (with `\n`) would make a failure pasteable.
+9. **`--word-scan` rejects `argc` and `argv`**, the parameter names of `main`; `main(int main_count,
+   string[] main_arguments)` is accepted, which the docs do not say. Also rejected: `tapout`, `cooldown`,
+   `vals`, `argv` inside my own names.
+10. **No way to append one list to another**, so building `argv` for a command is
+    `str_split("gym|" + line + "|--pack|...", "|")`.
+11. **Nine-value option vectors in every case.** `opt_parse` fills one value per spec line, so a case for a
+    command spells all nine option values (`["pack", "learner.log", "100", "", ...]`). Reading them is easy,
+    writing them is not.
+12. **Shell quoting**: a `\n` in a `sed` replacement is a newline, so expected strings written by `sed`
+    came out as real line breaks (rejected: "a test case takes literals only").
+
+### Design decisions the task left open (flagged for review)
+
+- **A hint is a `hint_shown` line after the committed attempt, not a field of it.** The scoreboard's
+  independence reads the HINTS field of the attempt (hints used before answering), so hints given after
+  the commit do not move it. A hint after the answer helps the next attempt at the item, not this one.
+  If a hint should count against the attempt, `score_push_marks` must also count the `hint_shown` events
+  between this attempt and the next at the same item.
+- **An answer that cannot be read as the item's kind (`banana` for a fraction) is refused and not logged**,
+  so a typing slip is not a failed rep. The log still accepts the verdict `unparseable`. One line in
+  `session_answer_item` flips this.
+- **A tap-out is logged with confidence 50 (or `--confidence`), `HINTS` 4, an empty answer, verdict
+  `incorrect`**, matching the reference UI's "every rung used". It is a miss for the planner, for retention
+  and for calibration at 50 percent.
+- **`text` answer kinds are judged by exact match** (`check_answer` kind `text`); the model grader is the
+  separate `gym grade` and its result is not written to the log.
+- **Starting a session while one is open closes the old one** with a `session_end`, so abandoned sessions
+  are visible rather than replaced.

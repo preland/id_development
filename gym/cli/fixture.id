@@ -1,0 +1,15 @@
+// The setup the cases of the commands use: a fresh directory (fs_mktemp, so no
+// case shares one) holding the pack text a case gives as pack/a.txt and the log
+// text as learner.log, with the process moved into it, so the options are always
+// --pack pack --log learner.log. Each case is its own process.
+
+command_fixture_files(string command_pack_text, string command_log_text) {
+  string command_folder = fs_mktemp("command_t_", 1);
+  int command_made = fs_mkdir_p(command_folder + "/pack");
+  int command_wrote = fs_append_text(command_folder + "/pack/a.txt", command_pack_text);
+} chain (string command_pack_text, string command_log_text) {
+  int command_wrote_log = fs_append_text(command_folder + "/learner.log", command_log_text);
+  string command_was = fs_enter(command_folder);
+} return void;
+("item: a\n", "1\tsession_start\n"):() then fs_read_text("learner.log"):("1\tsession_start\n")
+("item: a\n", ""):() then fs_read_text("pack/a.txt"):("item: a\n")

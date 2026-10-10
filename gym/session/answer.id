@@ -1,0 +1,76 @@
+// Committing an attempt. session_answer_gate says why an answer may not be taken
+// now ("" when it may): there must be a session with an item waiting, the answer
+// must not be empty and, the commit rule (P1), it must come with a confidence of
+// 50, 70, 90 or 99. session_answer_item then checks the answer with check_answer,
+// refuses one that cannot be read as the item's kind (nothing is logged, since a
+// typing slip is not a failed retrieval), and appends the attempt. It answers
+// ["refused", why] or ["ok", "", verdict, reference, rubric lines, item, phase].
+
+session_answer_gate(string[] session_shown, string session_text, int session_confidence) {
+  string session_refusal = "";
+  if (session_shown[(import session_slot_state)] == "none") {
+    session_refusal = "no session is running: start one with gym session start";
+  }
+  if (session_refusal == "" && (session_shown[(import session_slot_state)] == "over" || session_shown[(import session_slot_state)] == "closed")) {
+    session_refusal = "the session is over: start another with gym session start";
+  }
+} chain (string[] session_shown, string session_text, int session_confidence) {
+  if (session_refusal == "" && session_shown[(import session_slot_state)] == "committed") {
+    session_refusal = "this item already has an attempt: run gym next for the following one";
+  }
+  if (session_refusal == "" && lst_find((import log_confidences), session_confidence) == 0) {
+    session_refusal = "no answer without a confidence: pass --confidence 50, 70, 90 or 99";
+  }
+  if (session_refusal == "" && session_text == "") {
+    session_refusal = "type an answer with --text, or tap out with gym tapout";
+  }
+} return string session_refusal;
+(["none", "", "", "", "", "", "0", "no"], "1/3", 90):("no session is running: start one with gym session start")
+(["over", "3", "2", "", "", "", "0", "no"], "1/3", 90):("the session is over: start another with gym session start")
+(["closed", "3", "2", "", "", "", "0", "no"], "1/3", 90):("the session is over: start another with gym session start")
+(["committed", "1", "2", "a", "main", "r", "0", "no"], "1/3", 90):("this item already has an attempt: run gym next for the following one")
+(["waiting", "1", "2", "a", "main", "r", "0", "no"], "1/3", 0):("no answer without a confidence: pass --confidence 50, 70, 90 or 99")
+(["waiting", "1", "2", "a", "main", "r", "0", "no"], "1/3", 80):("no answer without a confidence: pass --confidence 50, 70, 90 or 99")
+(["waiting", "1", "2", "a", "main", "r", "0", "no"], "", 90):("type an answer with --text, or tap out with gym tapout")
+(["waiting", "1", "2", "a", "main", "r", "0", "no"], "1/3", 99):("")
+(["waiting", "1", "2", "a", "main", "r", "0", "no"], "1/3", 50):("")
+
+session_answer_item(Pack session_book, string session_log_path, word session_now, string session_text, int session_confidence, int session_seconds) {
+  Log_replay session_replayed = log_replay(session_log_path);
+  string[] session_shown = session_view(session_replayed.events);
+  string session_refusal = session_answer_gate(session_shown, session_text, session_confidence);
+} chain (Pack session_book, string session_log_path, word session_now, string session_text, int session_confidence, int session_seconds) {
+  int session_block = pack_find(session_book, "item", session_shown[(import session_slot_item)]);
+  string session_verdict = "";
+  if (session_refusal == "" && session_block < 0) {
+    session_refusal = "the pack has no item " + session_shown[(import session_slot_item)];
+  }
+} chain (Pack session_book, string session_log_path, word session_now, string session_text, int session_confidence, int session_seconds) {
+  string session_kind = "";
+  if (session_refusal == "") {
+    session_kind = pack_field(session_book, session_block, "answer_kind");
+    session_verdict = check_answer(session_kind, pack_field(session_book, session_block, "answer"), pack_field(session_book, session_block, "tolerance"), session_text);
+  }
+  if (session_verdict == "unparseable") {
+    session_refusal = "that answer cannot be read as a " + session_kind + " answer, so nothing was logged: write it the way the prompt asks";
+  }
+} chain (Pack session_book, string session_log_path, word session_now, string session_text, int session_confidence, int session_seconds) {
+  int session_written = 0 - 1;
+  if (session_refusal == "") {
+    session_written = log_record_attempt(session_log_path, session_now, session_shown[(import session_slot_item)], session_text, session_confidence, session_verdict, 0, session_seconds, 0, "");
+  }
+  if (session_refusal == "" && session_written < 0) {
+    session_refusal = "the log could not be written";
+  }
+} chain (Pack session_book, string session_log_path, word session_now, string session_text, int session_confidence, int session_seconds) {
+  string[] session_result = ["refused", session_refusal];
+  if (session_refusal == "") {
+    session_result = ["ok", "", session_verdict, pack_field(session_book, session_block, "answer"), str_join(pack_fields(session_book, session_block, "rubric"), "\n"), session_shown[(import session_slot_item)], session_shown[(import session_slot_phase)]];
+  }
+} return string[] session_result;
+given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\nrubric: R1\nrubric: R2\nitem: b\nprompt: Q\nanswer_kind: integer\nanswer: 7\nrubric: R3\n") ((import model_fixture_book), (import model_fixture_log), 100, "2/6", 90, 12):(["ok", "", "correct", "1/3", "R1\nR2", "a", "main"]) then model_fixture_size:(74)
+given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\nrubric: R1\nrubric: R2\nitem: b\nprompt: Q\nanswer_kind: integer\nanswer: 7\nrubric: R3\n") ((import model_fixture_book), (import model_fixture_log), 100, "1/2", 99, 3):(["ok", "", "incorrect", "1/3", "R1\nR2", "a", "main"]) then model_fixture_size:(75)
+given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\nrubric: R1\nrubric: R2\nitem: b\nprompt: Q\nanswer_kind: integer\nanswer: 7\nrubric: R3\n") ((import model_fixture_book), (import model_fixture_log), 100, "1/2", 0, 3):(["refused", "no answer without a confidence: pass --confidence 50, 70, 90 or 99"]) then model_fixture_size:(36)
+given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\nrubric: R1\nrubric: R2\nitem: b\nprompt: Q\nanswer_kind: integer\nanswer: 7\nrubric: R3\n") ((import model_fixture_book), (import model_fixture_log), 100, "banana", 90, 3):(["refused", "that answer cannot be read as a fraction answer, so nothing was logged: write it the way the prompt asks"]) then model_fixture_size:(36)
+given model_fixture_log_file("") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\nrubric: R1\nrubric: R2\nitem: b\nprompt: Q\nanswer_kind: integer\nanswer: 7\nrubric: R3\n") ((import model_fixture_book), (import model_fixture_log), 100, "1/3", 90, 3):(["refused", "no session is running: start one with gym session start"]) then model_fixture_size:(0)
+given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n2\tattempt\ta\t1/3\t90\tcorrect\t0\t1\tno\t\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\nrubric: R1\nrubric: R2\nitem: b\nprompt: Q\nanswer_kind: integer\nanswer: 7\nrubric: R3\n") ((import model_fixture_book), (import model_fixture_log), 100, "1/3", 90, 3):(["refused", "this item already has an attempt: run gym next for the following one"])

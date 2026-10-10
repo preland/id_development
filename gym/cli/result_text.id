@@ -1,0 +1,37 @@
+// The words that follow an answer, a hint and a tap-out, from the result lists of
+// session_answer_item, session_hint_next and session_tap_out. A refusal is
+// always "refused: " and the reason, so a script can tell it from a result by the
+// first word (the program also exits 1).
+
+command_answer_text(string[] command_result) {
+  string command_text = "refused: " + command_result[1];
+  if (command_result[0] == "ok") {
+    command_text = "verdict: " + command_result[2] + "\nreference: " + command_result[3] + "\nwhy, what a good solution shows:\n  - " + str_replace(command_result[4], "\n", "\n  - ") + "\nnext: gym hint for help (not in the warm-up), gym next to move on";
+  }
+} return string command_text;
+(["refused", "no session is running"]):("refused: no session is running")
+(["ok", "", "incorrect", "1/3", "R1\nR2", "a", "main"]):("verdict: incorrect\nreference: 1/3\nwhy, what a good solution shows:\n  - R1\n  - R2\nnext: gym hint for help (not in the warm-up), gym next to move on")
+(["ok", "", "correct", "7", "R3", "b", "warmup"]):("verdict: correct\nreference: 7\nwhy, what a good solution shows:\n  - R3\nnext: gym hint for help (not in the warm-up), gym next to move on")
+
+command_hint_text(string[] command_result) {
+  string command_text = "refused: " + command_result[1];
+  if (command_result[0] == "ok" && command_result[3] == "model") {
+    command_text = "hint " + command_result[5] + " of 4 (" + command_result[4] + "): " + command_result[2] + "\nsource: reworded by the model for your attempt";
+  }
+  if (command_result[0] == "ok" && command_result[3] == "authored") {
+    command_text = "hint " + command_result[5] + " of 4 (" + command_result[4] + "): " + command_result[2] + "\nsource: the pack's own words (" + command_result[6] + ")";
+  }
+} return string command_text;
+(["refused", "answer first"]):("refused: answer first")
+(["ok", "", "Begin.", "authored", "nudge", "1", "the model server answered -1"]):("hint 1 of 4 (nudge): Begin.\nsource: the pack's own words (the model server answered -1)")
+(["ok", "", "Count them.", "model", "guiding question", "2", ""]):("hint 2 of 4 (guiding question): Count them.\nsource: reworded by the model for your attempt")
+
+command_tap_text(string[] command_result) {
+  string command_text = "refused: " + command_result[1];
+  if (command_result[0] == "ok") {
+    command_text = "tapped out: the answer is " + command_result[3] + "\nwhy, what a good solution shows:\n  - " + str_replace(command_result[4], "\n", "\n  - ") + "\nworked example: " + command_result[7] + "\nthis counts as a miss, so the item comes back sooner\nnext: gym next";
+  }
+} return string command_text;
+(["refused", "this item already has an attempt"]):("refused: this item already has an attempt")
+(["ok", "", "tapped out", "1/3", "R1", "a", "main", "Eg 1/3."]):("tapped out: the answer is 1/3\nwhy, what a good solution shows:\n  - R1\nworked example: Eg 1/3.\nthis counts as a miss, so the item comes back sooner\nnext: gym next")
+(["ok", "", "tapped out", "7", "R3\nR4", "b", "transfer", "Eg 7."]):("tapped out: the answer is 7\nwhy, what a good solution shows:\n  - R3\n  - R4\nworked example: Eg 7.\nthis counts as a miss, so the item comes back sooner\nnext: gym next")

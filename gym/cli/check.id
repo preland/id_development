@@ -1,0 +1,39 @@
+// What every command checks before it does anything: the options it needs are
+// there, the clock is a number, the pack directory holds pack files. command_word
+// reads the n-th plain word of the command line ("" past the end). A failed check
+// is a message that names the fix, and the program exits 2.
+
+command_word(string[] command_rest, int command_index) {
+  string command_found = "";
+  if (command_index < len(command_rest)) {
+    command_found = command_rest[command_index];
+  }
+} return string command_found;
+(["session", "start"], 1):("start")
+(["session", "start"], 2):("")
+([], 0):("")
+
+command_check(string[] command_values, word command_clock, string[] command_names) {
+  string command_refusal = command_required(command_values, command_names);
+  word command_stamp = command_now(command_values, command_clock);
+  string[] command_files = path_files(opt_get((import command_options), command_values, "pack"));
+} chain (string[] command_values, word command_clock, string[] command_names) {
+  int command_wanted_seed = command_number(command_values, "seed", 1);
+  int command_wanted_seconds = command_number(command_values, "seconds", 0);
+  if (command_refusal == "" && command_stamp < 0) {
+    command_refusal = "error: --now must be whole milliseconds since the epoch, such as --now 1760000000000";
+  }
+} chain (string[] command_values, word command_clock, string[] command_names) {
+  if (command_refusal == "" && (command_wanted_seed < 0 || command_wanted_seconds < 0)) {
+    command_refusal = "error: --seed and --seconds must be whole numbers, such as --seconds 12";
+  }
+  if (command_refusal == "" && lst_str_index(command_names, "pack") >= 0 && len(command_files) == 0) {
+    command_refusal = "error: --pack " + opt_get((import command_options), command_values, "pack") + " holds no .txt pack files; point it at a pack directory such as gym/packs/probability";
+  }
+} return string command_refusal;
+given command_fixture_files("item: a\n", "") (["pack", "learner.log", "", "", "", "", "", "", ""], 5, ["pack", "log"]):("")
+given command_fixture_files("item: a\n", "") (["pack", "", "", "", "", "", "", "", ""], 5, ["pack", "log"]):("error: --log is required; gym --help lists every option")
+given command_fixture_files("item: a\n", "") (["pack", "learner.log", "soon", "", "", "", "", "", ""], 5, ["pack", "log"]):("error: --now must be whole milliseconds since the epoch, such as --now 1760000000000")
+given command_fixture_files("item: a\n", "") (["pack", "learner.log", "", "x", "", "", "", "", ""], 5, ["pack", "log"]):("error: --seed and --seconds must be whole numbers, such as --seconds 12")
+given command_fixture_files("item: a\n", "") (["nowhere", "learner.log", "", "", "", "", "", "", ""], 5, ["pack", "log"]):("error: --pack nowhere holds no .txt pack files; point it at a pack directory such as gym/packs/probability")
+given command_fixture_files("item: a\n", "") (["", "learner.log", "", "", "", "", "", "", ""], 5, ["log"]):("")

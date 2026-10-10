@@ -1,0 +1,60 @@
+// What the learner reads. command_plan_text lists a session's plan the way P11
+// asks for it: where each item sits, which phase, and why it was chosen.
+// command_prompt_text shows the item on screen from session_view's slots: the
+// prompt while an answer is awaited (never the reference), and what to do next
+// once it is answered. Both are pure, so a window can show the same words.
+
+command_plan_text(string[] command_ids, string[] command_phases, string[] command_reasons) {
+  string[] command_lines = ["plan, in the order you will meet it:"];
+  int command_at = 0;
+  while (command_at < len(command_ids)) {
+    push(command_lines, "" + (command_at + 1) + ". " + command_phases[command_at] + "  " + command_ids[command_at] + "  " + command_reasons[command_at]);
+    command_at = command_at + 1;
+  }
+} chain (string[] command_ids, string[] command_phases, string[] command_reasons) {
+  string command_text = str_join(command_lines, "\n");
+} return string command_text;
+(["a", "b"], ["warmup", "main"], ["due: x", "new: y"]):("plan, in the order you will meet it:\n1. warmup  a  due: x\n2. main  b  new: y")
+(["a"], ["transfer"], ["transfer probe for odds"]):("plan, in the order you will meet it:\n1. transfer  a  transfer probe for odds")
+(["a", "b", "c", "d"], ["main", "main", "main", "main"], ["r", "r", "r", "r"]):("plan, in the order you will meet it:\n1. main  a  r\n2. main  b  r\n3. main  c  r\n4. main  d  r")[time:O(n), mem:O(n)]
+(["a", "b", "c", "d", "e", "f", "g", "h"], ["main", "main", "main", "main", "main", "main", "main", "main"], ["r", "r", "r", "r", "r", "r", "r", "r"]):("plan, in the order you will meet it:\n1. main  a  r\n2. main  b  r\n3. main  c  r\n4. main  d  r\n5. main  e  r\n6. main  f  r\n7. main  g  r\n8. main  h  r")[time:O(n), mem:O(n)]
+
+command_prompt_text(Pack command_book, string[] command_shown) {
+  string command_state = command_shown[(import session_slot_state)];
+  int command_block = pack_find(command_book, "item", command_shown[(import session_slot_item)]);
+  string command_head = "item " + command_shown[(import session_slot_number)] + " of " + command_shown[(import session_slot_total)] + " (" + command_shown[(import session_slot_phase)] + "): " + command_shown[(import session_slot_item)];
+} chain (Pack command_book, string[] command_shown) {
+  string command_words = "no session is running: start one with gym session start";
+  if (command_state == "waiting") {
+    command_words = command_head + "\n" + pack_field(command_book, command_block, "prompt") + "\n\nanswer with: gym answer --text ANSWER --confidence 50|70|90|99 (or gym tapout to see the answer)";
+  }
+  if (command_state == "committed") {
+    command_words = command_head + " is answered: gym hint asks for help, gym next moves on";
+  }
+} chain (Pack command_book, string[] command_shown) {
+  if (command_state == "over" || command_state == "closed") {
+    command_words = "the session is over: gym score shows where you stand";
+  }
+} return string command_words;
+given model_fixture_pack("item: a\nprompt: What is 1/2 + 1/2?\nanswer: 1\n") ((import model_fixture_book), ["waiting", "1", "3", "a", "warmup", "r", "0", "no"]):("item 1 of 3 (warmup): a\nWhat is 1/2 + 1/2?\n\nanswer with: gym answer --text ANSWER --confidence 50|70|90|99 (or gym tapout to see the answer)")
+given model_fixture_pack("item: a\nprompt: What is 1/2 + 1/2?\nanswer: 1\n") ((import model_fixture_book), ["committed", "1", "3", "a", "main", "r", "0", "no"]):("item 1 of 3 (main): a is answered: gym hint asks for help, gym next moves on")
+given model_fixture_pack("item: a\nprompt: What is 1/2 + 1/2?\nanswer: 1\n") ((import model_fixture_book), ["over", "4", "3", "", "", "", "0", "no"]):("the session is over: gym score shows where you stand")
+given model_fixture_pack("item: a\nprompt: What is 1/2 + 1/2?\nanswer: 1\n") ((import model_fixture_book), ["none", "", "", "", "", "", "0", "no"]):("no session is running: start one with gym session start")
+
+command_start_text(Pack command_book, Log_events command_events, string command_note) {
+  int command_plan_at = session_plan_index(command_events);
+  string[] command_ids = session_list(command_events, command_plan_at, (import log_slot_ids), ",");
+  string[] command_phases = session_list(command_events, command_plan_at, (import log_slot_phases), ",");
+} chain (Pack command_book, Log_events command_events, string command_note) {
+  string[] command_reasons = session_list(command_events, command_plan_at, (import log_slot_reasons), "\n");
+  string command_plan_words = command_plan_text(command_ids, command_phases, command_reasons);
+  string[] command_shown = session_view(command_events);
+} chain (Pack command_book, Log_events command_events, string command_note) {
+  string command_note_words = "";
+  if (command_note != "") {
+    command_note_words = command_note + "\n";
+  }
+  string command_started_words = command_note_words + command_plan_words + "\n\n" + command_prompt_text(command_book, command_shown);
+} return string command_started_words;
+given log_fixture_parse("1\tsession_plan\ta,b\twarmup,main\tdue: x\\nnew: y\n") given model_fixture_pack("item: a\nprompt: Q?\nanswer: 1\n") ((import model_fixture_book), (import log_fixture_events), ""):("plan, in the order you will meet it:\n1. warmup  a  due: x\n2. main  b  new: y\n\nitem 1 of 2 (warmup): a\nQ?\n\nanswer with: gym answer --text ANSWER --confidence 50|70|90|99 (or gym tapout to see the answer)")
+given log_fixture_parse("1\tsession_plan\ta\tmain\tnew: y\n") given model_fixture_pack("item: a\nprompt: Q?\nanswer: 1\n") ((import model_fixture_book), (import log_fixture_events), "the previous session was left unfinished and is closed"):("the previous session was left unfinished and is closed\nplan, in the order you will meet it:\n1. main  a  new: y\n\nitem 1 of 1 (main): a\nQ?\n\nanswer with: gym answer --text ANSWER --confidence 50|70|90|99 (or gym tapout to see the answer)")

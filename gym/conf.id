@@ -46,7 +46,7 @@ string[] log_grades = ["", "correct", "partial", "incorrect"];
 
 string[] log_flags = ["no", "yes"];
 
-string[] log_kinds = ["attempt", "hint_shown", "session_start", "session_end"];
+string[] log_kinds = ["attempt", "hint_shown", "session_start", "session_end", "session_plan", "session_next"];
 
 int log_hint_top = 4;
 
@@ -61,6 +61,16 @@ int log_attempt_width = 10;
 int log_hint_width = 4;
 
 int log_session_width = 2;
+
+int log_plan_width = 5;
+
+int log_next_width = 3;
+
+int log_slot_ids = 2;
+
+int log_slot_phases = 3;
+
+int log_slot_reasons = 4;
 
 int log_slot_item = 2;
 
@@ -201,3 +211,31 @@ int plan_item_none = 1000000;
 int plan_again_cost = 400;
 
 int plan_attempt_cost = 10;
+
+int session_slot_state = 0;
+
+int session_slot_number = 1;
+
+int session_slot_total = 2;
+
+int session_slot_item = 3;
+
+int session_slot_phase = 4;
+
+int session_slot_reason = 5;
+
+int session_slot_hints = 6;
+
+int session_slot_tapped = 7;
+
+int session_view_width = 8;
+
+int session_confidence_default = 50;
+
+string[] command_options = ["|pack|str|||the pack directory: concepts and items as .txt files", "|log|str|||the learner's log file, append-only; it is the only state", "|now|str|||the clock, in milliseconds since the epoch (default: the real clock)", "|seed|str|||the plan's tie-breaking seed (default 1)", "|text|str|||your answer", "|confidence|str|||50, 70, 90 or 99; an answer is not taken without one", "|seconds|str|||seconds you took (default 0)", "|url|str|||the model server (default: GYM_MODEL_URL, else http://127.0.0.1:8184)", "|item|str|||an item id"];
+
+string command_usage = "gym session start --pack DIR --log FILE [--now MS] [--seed N]\ngym answer --pack DIR --log FILE --text ANSWER --confidence 50|70|90|99 [--seconds N] [--now MS]\ngym hint --pack DIR --log FILE [--url URL] [--now MS]\ngym tapout --pack DIR --log FILE [--seconds N] [--now MS]\ngym next --pack DIR --log FILE [--now MS]\ngym score --pack DIR --log FILE [--now MS]\ngym why ITEM --pack DIR --log FILE [--now MS] [--seed N]\ngym pack check DIR\ngym grade --pack DIR --item ID --text ANSWER [--url URL]";
+
+int command_digits_limit = 9;
+
+string[] golden_script = ["session|start|--now|1760000000000", "hint|--now|1760000001000", "answer|--text|1/3|--now|1760000002000", "answer|--text|1/3|--confidence|90|--seconds|12|--now|1760000060000", "next|--now|1760000061000", "answer|--text|1/3|--confidence|99|--seconds|20|--now|1760000120000", "hint|--url|http://127.0.0.1:1|--now|1760000121000", "next|--now|1760000122000", "tapout|--seconds|30|--now|1760000150000", "next|--now|1760000151000", "session|start|--now|1760086400000", "answer|--text|1/3|--confidence|90|--seconds|9|--now|1760086520000", "hint|--url|http://127.0.0.1:1|--now|1760086521000", "score|--now|1760086522000", "why|independence_1|--now|1760086523000"];
