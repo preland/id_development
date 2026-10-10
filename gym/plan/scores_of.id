@@ -1,0 +1,38 @@
+// The planner ranks by whole-number scores, lower first. plan_scores holds each
+// concept's recall in thousandths (plan_never_score for a concept never reviewed).
+// plan_lowest picks the concept with the lowest score at or under a limit, the
+// earliest in the pack when two tie, or -1 when none qualifies; a picked concept
+// is then set to plan_never_score by the caller so it is not picked twice.
+
+plan_scores(Plan_learner plan_learner, word plan_now) {
+  int[] plan_all = [];
+  int plan_at = 0;
+  while (plan_at < len(plan_learner.memory.lasts)) {
+    push(plan_all, plan_recall_score(plan_learner, plan_at, plan_now));
+    plan_at = plan_at + 1;
+  }
+} return int[] plan_all;
+(Plan_learner(Plan_memory([5.0, 0.0], [10.0, 0.0], [0, -1]), Plan_skill([1000.0, 1000.0], [1, 0]), Plan_shelf([], [], [])), 864000000):([900, 2000])
+(Plan_learner(Plan_memory([], [], []), Plan_skill([], []), Plan_shelf([], [], [])), 864000000):([])
+(Plan_learner(Plan_memory([5.0, 5.0, 5.0], [10.0, 10.0, 10.0], [0, 864000000, 0]), Plan_skill([1000.0, 1000.0, 1000.0], [1, 1, 1]), Plan_shelf([], [], [])), 864000000):([900, 1000, 900])
+
+plan_lowest(int[] plan_marks, int plan_limit) {
+  int plan_least = 0 - 1;
+  int plan_least_mark = plan_limit + 1;
+  int plan_at = 0;
+} chain (int[] plan_marks, int plan_limit) {
+  while (plan_at < len(plan_marks)) {
+    if (plan_marks[plan_at] < plan_least_mark) {
+      plan_least = plan_at;
+      plan_least_mark = plan_marks[plan_at];
+    }
+    plan_at = plan_at + 1;
+  }
+} return int plan_least;
+([900, 700, 950, 700], 900):(1)
+([900, 950], 899):(-1)
+([2000, 2000], 950):(-1)
+([], 950):(-1)
+([950, 900], 950):(1)
+([5, 3, 9, 7], 9):(1)[time:O(n), mem:O(1)]
+([5, 3, 9, 7, 6, 8, 2, 4, 5, 3, 9, 7, 6, 8, 2, 4], 9):(6)[time:O(n), mem:O(1)]

@@ -1,0 +1,23 @@
+// The learner every replay starts from. See blank_of.id for what blank means.
+
+plan_blank_shelf(Plan_catalog plan_catalog) {
+  int plan_item_total = len(plan_catalog.items);
+  float[] plan_from_pack = plan_item_floats(plan_catalog.bases);
+  int[] plan_unseen = lst_filled(plan_item_total, 0);
+} chain (Plan_catalog plan_catalog) {
+  int[] plan_no_grades = lst_filled(plan_item_total, 0);
+  Plan_shelf plan_shelf = Plan_shelf(plan_from_pack, plan_unseen, plan_no_grades);
+} return Plan_shelf plan_shelf;
+(Plan_catalog(["a"], ["i", "j"], [900, 1100])):(Plan_shelf([900.0, 1100.0], [0, 0], [0, 0]))
+(Plan_catalog(["a"], [], [])):(Plan_shelf([], [], []))
+
+plan_blank_learner(Plan_book plan_book) {
+  int plan_concept_total = len(plan_book.catalog.concepts);
+  Plan_memory plan_memory = plan_blank_memory(plan_concept_total);
+  Plan_skill plan_skill = plan_blank_skill(plan_concept_total);
+} chain (Plan_book plan_book) {
+  Plan_shelf plan_shelf = plan_blank_shelf(plan_book.catalog);
+  Plan_learner plan_learner = Plan_learner(plan_memory, plan_skill, plan_shelf);
+} return Plan_learner plan_learner;
+(Plan_book(Plan_catalog(["a", "b"], ["i"], [900]), Plan_links([0], [1], [0]), Plan_needs([], []))):(Plan_learner(Plan_memory([0.0, 0.0], [0.0, 0.0], [-1, -1]), Plan_skill([1000.0, 1000.0], [0, 0]), Plan_shelf([900.0], [0], [0])))
+(Plan_book(Plan_catalog([], [], []), Plan_links([], [], []), Plan_needs([], []))):(Plan_learner(Plan_memory([], [], []), Plan_skill([], []), Plan_shelf([], [], [])))

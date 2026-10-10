@@ -292,3 +292,68 @@ The whole `gym` tree still builds and runs every case in about 1.2 s warm.
   `/v1/chat/completions` route are assumptions about llama.cpp, from memory of its docs and not
   checked against a real server (the throwaway node server only proved the request is valid JSON
   and the reply is read correctly). A 400 with a schema is retried once without it.
+## Session planner (gym/plan/), added by the agent that built it
+
+74 functions in 33 files plus 9 struct files, 249 cases; the whole gym tree builds and runs
+every case in about 20 s cold. Costs in the order they were hit.
+
+1. **Constants cannot be case arguments.** A conf.id constant is allowed only as
+   an index in a check, never as an argument or an expected value, so the shared
+   test pack could not be written once and passed to every case. Workaround: the
+   packs and logs are list constants and a setup takes an index
+   (`given plan_world_book(0) given plan_world_learner(0, 1)`). Works, but a case
+   now reads as numbers that name a scene in another file. Fix?: allow a constant
+   as an argument when the case also pins a literal result.
+2. **A counted constraint is impossible on a function that takes structs.** "n" is
+   the largest list or string, or the *value* of an int argument; a struct counts
+   as 0, so `[time:O(n)]` on the two cases of `plan_scores(learner, now)` fails
+   with "needs a second case with a different input size". Worse, an int argument
+   counts by value: `plan_lowest(marks, 100)` had n = 100 in both cases until I
+   changed the limit to 9. Only the list and string helpers (`plan_lowest`,
+   `plan_strike`, `plan_floats`, `plan_words`, `plan_pieces`, `plan_item_bases`,
+   `plan_item_floats`) carry constraints; the loops over a pack and a log
+   (`plan_replay`, `plan_choose`, `plan_new_concepts`) cannot be pinned.
+   Fix?: let n be the sum of the lengths of the lists inside a struct argument.
+3. **A function that returns a value cannot show a side effect.** `plan_strike`
+   answers an index and also overwrites a list; the case form allows exactly one
+   expected value for a function that returns one, so the overwrite was invisible
+   until I put the list in an export (`plan_marks_fixture`) and checked it with
+   `then`. Void functions are the opposite and easy: the expected tuple is the
+   post-state of the first arguments, a prefix is enough, and that is how the
+   dealing loops are pinned. This shaped the design (the dealing functions are
+   void and the caller reads `len(session.ids)`).
+4. **Struct constructors take names, not calls (E0607)**, so every
+   `Plan_memory(plan_floats(n, 0.0), ...)` became locals first. Nine of the
+   chains in this module exist for that.
+5. **Float expected values must be exact, and the failure prints six digits.**
+   `(5.0, 10.0, 10.0, 3):(32.0267)` fails ("= 32.0267, expected 32.0267"). I got
+   the exact value from a throwaway driver (`logs/planrun`, `flt_text`), but a
+   failing case blocks the build of the driver, so I had to delete the case
+   first. Fix?: print the shortest round-trip text in failures, or give a case a
+   tolerance (idstd has `learn_near` but a case cannot call it on a result).
+6. **`idc gym --check` does not run the cases**, only counts them ("ok: gym
+   (189 functions, 794 cases)" with expected values I had left wrong). `idc gym -o
+   x.o` runs them. The name suggests the opposite.
+7. **A setup may export one variable** (`return void export a, b` is refused), so
+   a case that needs a book and a learner repeats `given` twice, in order; fine,
+   but every one of the 100+ planner cases carries the pair.
+8. **A zero-parameter function has one case**, so `plan_world_parse()` took a
+   pack index it did not need, to have two cases.
+9. **Names.** Three struct and variable names failed the word scan on a natural
+   word: `stabilities`, `hardnesses`, `warmup` (written `warm_up`). The program-wide
+   one-name-one-type rule cost renames of `found`, `gap`, `before` and `chance_now`
+   (each used as an int in one file and a list or float in another), and a
+   variable may not share a name with a function (`plan_session` the parameter
+   versus the function). A prefix per module was not enough; I kept a table by
+   hand again.
+10. **E0204 again.** I wrote "a segment of two actions, then chain" six times; the
+    message says exactly what to do, but a writer thinks in blocks, not segments.
+    The compiler could suggest merging the chain back when the whole body fits in
+    three actions.
+11. **Hooks.** A heredoc containing `while` is read as a shell loop and blocked;
+    the editor tool avoids it. Any command not starting with `timeout` is blocked,
+    including a `sed` or a `grep`.
+12. **Case files for packs and logs.** The brief asked for a pack and logs in a
+    test directory; cases cannot name a directory (the working directory is not
+    the tree), so the fixtures are string constants in conf.id. A pack that lives
+    in files would need a fixture that finds its own path.

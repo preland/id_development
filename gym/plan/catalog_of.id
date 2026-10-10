@@ -1,0 +1,31 @@
+// The ids of a pack's concepts and items in file order, with each item's starting
+// rating: its difficulty: line, or 1000 when it has none. Every other planner list
+// is indexed by these positions.
+
+plan_item_bases(Pack plan_pack, int[] plan_blocks) {
+  int[] plan_found = [];
+  int plan_at = 0;
+  int plan_base = 0;
+} chain (Pack plan_pack, int[] plan_blocks) {
+  while (plan_at < len(plan_blocks)) {
+    plan_base = plan_difficulty(plan_pack, plan_blocks[plan_at]);
+    push(plan_found, plan_base);
+    plan_at = plan_at + 1;
+  }
+} return int[] plan_found;
+given pack_fixture_parse("item: i\ndifficulty: 850\nitem: j\nitem: k\ndifficulty: 1500\n") ((import pack_fixture_book), [0, 1, 2]):([850, 1000, 1500])
+given pack_fixture_parse("item: i\ndifficulty: 850\nitem: j\nitem: k\ndifficulty: 1500\n") ((import pack_fixture_book), [2]):([1500])
+given pack_fixture_parse("") ((import pack_fixture_book), []):([])
+given pack_fixture_parse("item: a\ndifficulty: 300\nitem: b\ndifficulty: 400\nitem: c\ndifficulty: 500\nitem: d\ndifficulty: 600\n") ((import pack_fixture_book), [0, 1, 2, 3]):([300, 400, 500, 600])[time:O(n), mem:O(n)]
+given pack_fixture_parse("item: a\ndifficulty: 300\nitem: b\ndifficulty: 400\nitem: c\ndifficulty: 500\nitem: d\ndifficulty: 600\nitem: e\ndifficulty: 700\nitem: f\ndifficulty: 800\nitem: g\ndifficulty: 900\nitem: h\ndifficulty: 1000\n") ((import pack_fixture_book), [0, 1, 2, 3, 4, 5, 6, 7]):([300, 400, 500, 600, 700, 800, 900, 1000])[time:O(n), mem:O(n)]
+
+plan_catalog_of(Pack plan_pack) {
+  string[] plan_concept_ids = pack_ids(plan_pack, "concept");
+  string[] plan_item_ids = pack_ids(plan_pack, "item");
+  int[] plan_item_blocks = pack_blocks_of(plan_pack, "item");
+} chain (Pack plan_pack) {
+  int[] plan_starts = plan_item_bases(plan_pack, plan_item_blocks);
+  Plan_catalog plan_catalog = Plan_catalog(plan_concept_ids, plan_item_ids, plan_starts);
+} return Plan_catalog plan_catalog;
+given pack_fixture_parse("concept: a\nconcept: b\nitem: i\ndifficulty: 900\nitem: j\n") ((import pack_fixture_book)):(Plan_catalog(["a", "b"], ["i", "j"], [900, 1000]))
+given pack_fixture_parse("") ((import pack_fixture_book)):(Plan_catalog([], [], []))

@@ -1,0 +1,23 @@
+// The main set, 13 minutes of the session: weak concepts first (at most
+// plan_review_slots rows, the 70 percent), then new concepts fill what review left,
+// up to plan_main_slots rows in all. The rows are dealt into their own session with
+// a sort key each, ordered by key (round by round, the seed breaking ties) and only
+// then added to the plan, so concepts interleave and one concept's items are not
+// back to back unless it is the only concept there is.
+
+plan_main(Plan_book plan_book, Plan_learner plan_learner, word plan_now, int plan_seed, int[] plan_marks, int[] plan_taken, Plan_session plan_session) {
+  string[] plan_main_ids = [];
+  string[] plan_main_phases = [];
+  string[] plan_main_reasons = [];
+} chain (Plan_book plan_book, Plan_learner plan_learner, word plan_now, int plan_seed, int[] plan_marks, int[] plan_taken, Plan_session plan_session) {
+  Plan_session plan_main_rows = Plan_session(plan_main_ids, plan_main_phases, plan_main_reasons);
+  int[] plan_main_keys = [];
+  plan_weak(plan_book, plan_learner, plan_now, plan_marks, plan_taken, plan_main_rows, plan_main_keys, plan_seed, (import plan_review_slots));
+} chain (Plan_book plan_book, Plan_learner plan_learner, word plan_now, int plan_seed, int[] plan_marks, int[] plan_taken, Plan_session plan_session) {
+  plan_fresh_lane(plan_book, plan_learner, plan_taken, plan_main_rows, plan_main_keys, plan_seed, (import plan_main_slots));
+  Plan_session plan_main_arranged = plan_sorted(plan_main_rows, plan_main_keys);
+  plan_append(plan_session, plan_main_arranged);
+} return void;
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), 864000000, 0, [2000, 2000, 2000, 2000, 2000], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session([], [], [])):((import plan_fixture_book), (import plan_fixture_learner), 864000000, 0, [2000, 2000, 2000, 2000, 2000], [1, 1, 0, 0, 0, 0, 0, 0, 1, 0], Plan_session(["coin_1", "flat_1", "coin_2"], ["main", "main", "main"], ["new: no prerequisites; expected first-try success 76%", "new: no prerequisites; expected first-try success 50%", "new: no prerequisites; expected first-try success 50%"]))
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), 864000000, 0, [2000, 2000, 2000, 2000, 2000], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session(["warm_row"], ["warmup"], ["why"])):((import plan_fixture_book), (import plan_fixture_learner), 864000000, 0, [2000, 2000, 2000, 2000, 2000], [1, 1, 0, 0, 0, 0, 0, 0, 1, 0], Plan_session(["warm_row", "coin_1", "flat_1", "coin_2"], ["warmup", "main", "main", "main"], ["why", "new: no prerequisites; expected first-try success 76%", "new: no prerequisites; expected first-try success 50%", "new: no prerequisites; expected first-try success 50%"]))
+given plan_world_book(0) given plan_world_learner(0, 1) ((import plan_fixture_book), (import plan_fixture_learner), 864000000, 0, [940, 2000, 2000, 2000, 2000], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session([], [], [])):((import plan_fixture_book), (import plan_fixture_learner), 864000000, 0, [2000, 2000, 2000, 2000, 2000], [1, 0, 0, 1, 1, 0, 0, 0, 1, 0], Plan_session(["coin_1", "flat_1", "dice_1", "dice_2"], ["main", "main", "main", "main"], ["weak: recall predicted 0.62 at 5.0 days; expected first-try success 70%", "new: no prerequisites; expected first-try success 50%", "new: prerequisites done; expected first-try success 64%", "new: prerequisites done; expected first-try success 36%"]))

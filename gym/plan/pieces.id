@@ -1,0 +1,42 @@
+// The planner reads a pack through an index of numbers, so a loop never compares
+// ids as text. Pieces: the trimmed, non-empty parts of a comma list such as a
+// concepts: or requires: value.
+
+plan_pieces(string plan_text) {
+  string[] plan_split = str_split(plan_text, ",");
+  string[] plan_kept = [];
+  int plan_at = 0;
+} chain (string plan_text) {
+  while (plan_at < len(plan_split)) {
+    if (str_trim(plan_split[plan_at]) != "") {
+      push(plan_kept, str_trim(plan_split[plan_at]));
+    }
+    plan_at = plan_at + 1;
+  }
+} return string[] plan_kept;
+("a, b"):(["a", "b"])
+(""):([])
+(" x ,, y,"):(["x", "y"])
+("a,b,c,d"):(["a", "b", "c", "d"])[time:O(n), mem:O(n)]
+("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p"):(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p"])[time:O(n), mem:O(n)]
+
+plan_difficulty(Pack plan_pack, int plan_block) {
+  string plan_text = pack_field(plan_pack, plan_block, "difficulty");
+  int plan_rating = (import plan_start_rating);
+  if (plan_text != "") {
+    plan_rating = to_int(plan_text);
+  }
+} return int plan_rating;
+given pack_fixture_parse("item: i\ndifficulty: 850\n") ((import pack_fixture_book), 0):(850)
+given pack_fixture_parse("item: i\n") ((import pack_fixture_book), 0):(1000)
+given pack_fixture_parse("concept: c\nitem: i\ndifficulty: 2100\n") ((import pack_fixture_book), 1):(2100)
+
+plan_held_flag(Pack plan_pack, int plan_block) {
+  int plan_held = 0;
+  if (pack_field(plan_pack, plan_block, "transfer") == "yes") {
+    plan_held = 1;
+  }
+} return int plan_held;
+given pack_fixture_parse("item: i\ntransfer: yes\n") ((import pack_fixture_book), 0):(1)
+given pack_fixture_parse("item: i\ntransfer: no\nitem: j\n") ((import pack_fixture_book), 0):(0)
+given pack_fixture_parse("item: i\ntransfer: no\nitem: j\n") ((import pack_fixture_book), 1):(0)

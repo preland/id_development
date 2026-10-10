@@ -1,0 +1,36 @@
+// How likely the learner is to recall a concept at a given time, from its FSRS
+// stability and the days since its last review. A concept never reviewed has no
+// memory to measure: its recall is 0.0, its days since are -1.0, and its score is
+// plan_never_score, which no limit selects. The score is the recall in thousandths,
+// so the planner ranks and compares whole numbers.
+
+plan_recall(Plan_learner plan_learner, int plan_concept_number, word plan_now) {
+  float plan_chance = 0.0;
+  if (plan_learner.memory.lasts[plan_concept_number] >= 0) {
+    plan_chance = fsrs_retrievability((plan_now - plan_learner.memory.lasts[plan_concept_number]) / (import plan_day), plan_learner.memory.strengths[plan_concept_number]);
+  }
+} return float plan_chance;
+(Plan_learner(Plan_memory([5.0], [10.0], [0]), Plan_skill([1000.0], [1]), Plan_shelf([], [], [])), 0, 864000000):(0.9)
+(Plan_learner(Plan_memory([5.0], [10.0], [0]), Plan_skill([1000.0], [1]), Plan_shelf([], [], [])), 0, 0):(1.0)
+(Plan_learner(Plan_memory([0.0], [0.0], [-1]), Plan_skill([1000.0], [0]), Plan_shelf([], [], [])), 0, 864000000):(0.0)
+
+plan_days_since(Plan_learner plan_learner, int plan_concept_number, word plan_now) {
+  float plan_days = 0.0 - 1.0;
+  if (plan_learner.memory.lasts[plan_concept_number] >= 0) {
+    plan_days = (plan_now - plan_learner.memory.lasts[plan_concept_number]) / (import plan_day);
+  }
+} return float plan_days;
+(Plan_learner(Plan_memory([5.0], [10.0], [0]), Plan_skill([1000.0], [1]), Plan_shelf([], [], [])), 0, 864000000):(10.0)
+(Plan_learner(Plan_memory([5.0, 5.0], [10.0, 10.0], [0, 43200000]), Plan_skill([1000.0, 1000.0], [1, 1]), Plan_shelf([], [], [])), 1, 86400000):(0.5)
+(Plan_learner(Plan_memory([0.0], [0.0], [-1]), Plan_skill([1000.0], [0]), Plan_shelf([], [], [])), 0, 864000000):(-1.0)
+
+plan_recall_score(Plan_learner plan_learner, int plan_concept_number, word plan_now) {
+  int plan_score_now = (import plan_never_score);
+  float plan_chance_now = plan_recall(plan_learner, plan_concept_number, plan_now);
+  if (plan_learner.memory.lasts[plan_concept_number] >= 0) {
+    plan_score_now = plan_chance_now * 1000.0 + 0.5;
+  }
+} return int plan_score_now;
+(Plan_learner(Plan_memory([5.0], [10.0], [0]), Plan_skill([1000.0], [1]), Plan_shelf([], [], [])), 0, 864000000):(900)
+(Plan_learner(Plan_memory([5.0], [10.0], [0]), Plan_skill([1000.0], [1]), Plan_shelf([], [], [])), 0, 0):(1000)
+(Plan_learner(Plan_memory([0.0], [0.0], [-1]), Plan_skill([1000.0], [0]), Plan_shelf([], [], [])), 0, 864000000):(2000)

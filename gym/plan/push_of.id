@@ -1,0 +1,31 @@
+// Adding rows to a Plan_session. A row is an item id, the phase it belongs to and
+// the one-line reason; plan_push also marks the item as taken so it cannot be dealt
+// twice in one session. plan_append puts one session's rows after another's.
+
+plan_push(Plan_session plan_session, int[] plan_taken, int plan_item_number, string plan_item_id, string plan_phase, string plan_reason) {
+  push(plan_session.ids, plan_item_id);
+  push(plan_session.phases, plan_phase);
+  push(plan_session.reasons, plan_reason);
+} chain (Plan_session plan_session, int[] plan_taken, int plan_item_number, string plan_item_id, string plan_phase, string plan_reason) {
+  lset(plan_taken, plan_item_number, 1);
+} return void;
+(Plan_session([], [], []), [0, 0, 0], 1, "b", "main", "why b"):(Plan_session(["b"], ["main"], ["why b"]), [0, 1, 0], 1, "b", "main", "why b")
+(Plan_session(["a"], ["warmup"], ["why a"]), [1, 0], 1, "b", "transfer", "why b"):(Plan_session(["a", "b"], ["warmup", "transfer"], ["why a", "why b"]), [1, 1], 1, "b", "transfer", "why b")
+
+plan_copy_row(Plan_session plan_session, Plan_session plan_extra, int plan_row_number) {
+  push(plan_session.ids, plan_extra.ids[plan_row_number]);
+  push(plan_session.phases, plan_extra.phases[plan_row_number]);
+  push(plan_session.reasons, plan_extra.reasons[plan_row_number]);
+} return void;
+(Plan_session([], [], []), Plan_session(["a", "b"], ["main", "main"], ["x", "y"]), 1):(Plan_session(["b"], ["main"], ["y"]), Plan_session(["a", "b"], ["main", "main"], ["x", "y"]), 1)
+(Plan_session(["z"], ["warmup"], ["w"]), Plan_session(["a", "b"], ["main", "main"], ["x", "y"]), 0):(Plan_session(["z", "a"], ["warmup", "main"], ["w", "x"]), Plan_session(["a", "b"], ["main", "main"], ["x", "y"]), 0)
+
+plan_append(Plan_session plan_session, Plan_session plan_extra) {
+  int plan_at = 0;
+  while (plan_at < len(plan_extra.ids)) {
+    plan_copy_row(plan_session, plan_extra, plan_at);
+    plan_at = plan_at + 1;
+  }
+} return void;
+(Plan_session(["z"], ["warmup"], ["w"]), Plan_session(["a", "b"], ["main", "main"], ["x", "y"])):(Plan_session(["z", "a", "b"], ["warmup", "main", "main"], ["w", "x", "y"]), Plan_session(["a", "b"], ["main", "main"], ["x", "y"]))
+(Plan_session([], [], []), Plan_session(["a"], ["m"], ["1"])):(Plan_session(["a"], ["m"], ["1"]), Plan_session(["a"], ["m"], ["1"]))

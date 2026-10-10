@@ -1,0 +1,25 @@
+// What the CLI and the window call. plan_for_log goes from a loaded pack and a
+// replayed log to a plan in one step; plan_why answers the "why am I seeing this?"
+// question for one item of a plan ("" when the item is not in it). A program that
+// also needs the learner (for plan_due_count, say) calls plan_build_book and
+// plan_replay itself, then plan_build_session.
+
+plan_for_log(Pack plan_pack, Log_events plan_events, word plan_now, int plan_seed) {
+  Plan_book plan_book = plan_build_book(plan_pack);
+  Plan_learner plan_learner = plan_replay(plan_book, plan_events);
+  Plan_session plan_planned = plan_build_session(plan_book, plan_learner, plan_now, plan_seed);
+} return Plan_session plan_planned;
+given plan_world_parse(0) ((import plan_fixture_pack), Log_events([], [], []), 864000000, 0):(Plan_session(["coin_1", "flat_1", "coin_2"], ["main", "main", "main"], ["new: no prerequisites; expected first-try success 76%", "new: no prerequisites; expected first-try success 50%", "new: no prerequisites; expected first-try success 50%"]))
+given plan_world_parse(1) ((import plan_fixture_pack), Log_events([], [], []), 864000000, 0):(Plan_session(["coin_1", "coin_2"], ["main", "main"], ["new: no prerequisites; expected first-try success 76%", "new: no prerequisites; expected first-try success 50%"]))
+
+plan_why(Plan_session plan_session_in, string plan_item_id_in) {
+  int plan_row_found = lst_str_index(plan_session_in.ids, plan_item_id_in);
+  string plan_why_line = "";
+  if (plan_row_found >= 0) {
+    plan_why_line = plan_session_in.reasons[plan_row_found];
+  }
+} return string plan_why_line;
+(Plan_session(["a", "b"], ["main", "main"], ["first", "second"]), "b"):("second")
+(Plan_session(["a", "b"], ["main", "main"], ["first", "second"]), "a"):("first")
+(Plan_session(["a", "b"], ["main", "main"], ["first", "second"]), "c"):("")
+(Plan_session([], [], []), "a"):("")

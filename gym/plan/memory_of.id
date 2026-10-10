@@ -1,0 +1,51 @@
+// Memory per concept, by FSRS-6 from idstd's core/learn: difficulty, stability in
+// days and the time of the last review. A first review starts from the initial
+// values of the grade. A later review less than a day after the last one is a
+// same-day review, a lapse (grade 1) uses the lapse formula, and anything else is
+// a recall. The difficulty used in the stability formula is the one before the
+// review, as in FSRS.
+
+plan_next_strength(float plan_hardness, float plan_strength, float plan_gap, int plan_grade_given) {
+  float plan_chance = fsrs_retrievability(plan_gap, plan_strength);
+  float plan_next = fsrs_stability_recall(plan_hardness, plan_strength, plan_chance, plan_grade_given);
+  if (plan_gap < 1.0) {
+    plan_next = fsrs_stability_short(plan_strength, plan_grade_given);
+  }
+} chain (float plan_hardness, float plan_strength, float plan_gap, int plan_grade_given) {
+  if (plan_gap >= 1.0 && plan_grade_given == 1) {
+    plan_next = fsrs_stability_lapse(plan_hardness, plan_strength, plan_chance);
+  }
+} return float plan_next;
+(5.0, 10.0, 10.0, 3):(32.02672948198673)
+(5.0, 10.0, 0.5, 3):(10.0)
+(5.0, 10.0, 10.0, 1):(1.391986972954693)
+
+plan_store(Plan_memory plan_memory, int plan_concept_number, float plan_hardness, float plan_strength, word plan_when) {
+  float[] plan_hard_levels = plan_memory.difficulties;
+  float[] plan_strengths = plan_memory.strengths;
+  word[] plan_times = plan_memory.lasts;
+} chain (Plan_memory plan_memory, int plan_concept_number, float plan_hardness, float plan_strength, word plan_when) {
+  plan_hard_levels[plan_concept_number] = plan_hardness;
+  plan_strengths[plan_concept_number] = plan_strength;
+  plan_times[plan_concept_number] = plan_when;
+} return void;
+(Plan_memory([0.0, 0.0], [0.0, 0.0], [-1, -1]), 1, 4.5, 2.5, 99):(Plan_memory([0.0, 4.5], [0.0, 2.5], [-1, 99]), 1, 4.5, 2.5, 99)
+(Plan_memory([1.0, 1.0], [1.0, 1.0], [5, 5]), 0, 7.0, 8.0, 9):(Plan_memory([7.0, 1.0], [8.0, 1.0], [9, 5]), 0, 7.0, 8.0, 9)
+
+plan_remember(Plan_memory plan_memory, int plan_concept_number, word plan_when, int plan_grade_given) {
+  float plan_hardness = fsrs_initial_difficulty(plan_grade_given);
+  float plan_strength = fsrs_initial_stability(plan_grade_given);
+  word plan_last = plan_memory.lasts[plan_concept_number];
+} chain (Plan_memory plan_memory, int plan_concept_number, word plan_when, int plan_grade_given) {
+  if (plan_last >= 0) {
+    float plan_before = plan_memory.difficulties[plan_concept_number];
+    plan_strength = plan_next_strength(plan_before, plan_memory.strengths[plan_concept_number], (plan_when - plan_last) / (import plan_day), plan_grade_given);
+    plan_hardness = fsrs_next_difficulty(plan_before, plan_grade_given);
+  }
+  plan_store(plan_memory, plan_concept_number, plan_hardness, plan_strength, plan_when);
+} return void;
+(Plan_memory([0.0], [0.0], [-1]), 0, 100, 3):(Plan_memory([2.118103970459015], [2.3065], [100]), 0, 100, 3)
+(Plan_memory([5.0], [10.0], [0]), 0, 864000000, 3):(Plan_memory([4.9902283692968386], [32.02672948198673], [864000000]), 0, 864000000, 3)
+(Plan_memory([5.0], [10.0], [0]), 0, 864000000, 1):(Plan_memory([8.341762369296838], [1.391986972954693], [864000000]), 0, 864000000, 1)
+(Plan_memory([5.0], [10.0], [0]), 0, 43200000, 3):(Plan_memory([4.9902283692968386], [10.0], [43200000]), 0, 43200000, 3)
+(Plan_memory([5.0], [10.0], [0]), 0, 864000000, 2):(Plan_memory([6.665995369296838], [23.246875110466817], [864000000]), 0, 864000000, 2)

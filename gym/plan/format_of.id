@@ -1,0 +1,27 @@
+// Numbers as the learner reads them. plan_decimal writes a non-negative number with
+// a fixed count of digits after the point ("0.71", "4.2"), rounded half up.
+
+plan_decimal(float plan_number_in, int plan_places) {
+  int plan_scale = 1;
+  int plan_step = 0;
+  while (plan_step < plan_places) {
+    plan_scale = plan_scale * 10;
+    plan_step = plan_step + 1;
+  }
+} chain (float plan_number_in, int plan_places) {
+  int plan_scaled = plan_number_in * plan_scale + 0.5;
+  string plan_tail = "" + plan_scaled % plan_scale;
+  while (len(plan_tail) < plan_places) {
+    plan_tail = "0" + plan_tail;
+  }
+} chain (float plan_number_in, int plan_places) {
+  string plan_written = "" + plan_scaled / plan_scale + "." + plan_tail;
+  if (plan_places == 0) {
+    plan_written = "" + plan_scaled;
+  }
+} return string plan_written;
+(0.714, 2):("0.71")
+(4.25, 1):("4.3")
+(0.05, 2):("0.05")
+(12.0, 1):("12.0")
+(3.4, 0):("3")

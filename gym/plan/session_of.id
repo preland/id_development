@@ -1,0 +1,57 @@
+// The session plan, four phases in 25 minutes. Rows come out in the order the
+// learner meets them, each tagged with its phase and its reason:
+//   "warmup"   5 min  due reviews, cold: hints are not offered (plan_hints_allowed)
+//   "main"    13 min  weak concepts first, then new ones; items chosen so the expected
+//                     first-try success sits in the 75 to 85 percent band when it can
+//   "transfer" 5 min  one or two held-out items from concepts already practised
+//   the cooldown (2 min) has no items: it shows plan_due_count for tomorrow.
+// The clock (now, in ms since the epoch) and the seed are arguments, so a plan for a
+// fixed time and seed is always the same. No item is in a plan twice.
+
+plan_build_session(Plan_book plan_book, Plan_learner plan_learner, word plan_now, int plan_seed) {
+  string[] plan_plan_ids = [];
+  string[] plan_plan_phases = [];
+  string[] plan_plan_reasons = [];
+} chain (Plan_book plan_book, Plan_learner plan_learner, word plan_now, int plan_seed) {
+  Plan_session plan_planned = Plan_session(plan_plan_ids, plan_plan_phases, plan_plan_reasons);
+  int[] plan_used_items = lst_filled(len(plan_book.catalog.items), 0);
+  int[] plan_recall_marks = plan_scores(plan_learner, plan_now);
+} chain (Plan_book plan_book, Plan_learner plan_learner, word plan_now, int plan_seed) {
+  plan_warm_up(plan_book, plan_learner, plan_now, plan_recall_marks, plan_used_items, plan_planned);
+  plan_main(plan_book, plan_learner, plan_now, plan_seed, plan_recall_marks, plan_used_items, plan_planned);
+  plan_transfer(plan_book, plan_learner, plan_used_items, plan_seed, plan_planned);
+} return Plan_session plan_planned;
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), 864000000, 0):(Plan_session(["coin_1", "flat_1", "coin_2"], ["main", "main", "main"], ["new: no prerequisites; expected first-try success 76%", "new: no prerequisites; expected first-try success 50%", "new: no prerequisites; expected first-try success 50%"]))
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), 864000000, 1):(Plan_session(["flat_1", "coin_1", "coin_2"], ["main", "main", "main"], ["new: no prerequisites; expected first-try success 50%", "new: no prerequisites; expected first-try success 76%", "new: no prerequisites; expected first-try success 50%"]))
+given plan_world_book(0) given plan_world_learner(0, 1) ((import plan_fixture_book), (import plan_fixture_learner), 864000000, 0):(Plan_session(["coin_1", "flat_1", "dice_1", "dice_2", "coin_x"], ["warmup", "main", "main", "main", "transfer"], ["due: recall predicted 0.62 at 5.0 days; expected first-try success 70%", "new: no prerequisites; expected first-try success 50%", "new: prerequisites done; expected first-try success 64%", "new: prerequisites done; expected first-try success 36%", "transfer probe for coin"]))
+given plan_world_book(0) given plan_world_learner(0, 4) ((import plan_fixture_book), (import plan_fixture_learner), 864000000, 0):(Plan_session(["odds_x", "coin_x"], ["transfer", "transfer"], ["transfer probe for odds, dice", "transfer probe for coin"]))
+given plan_world_book(0) given plan_world_learner(0, 5) ((import plan_fixture_book), (import plan_fixture_learner), 864000000, 0):(Plan_session(["coin_2", "flat_1", "dice_1", "dice_2", "coin_x"], ["warmup", "main", "main", "main", "transfer"], ["due: recall predicted 0.77 at 1.0 days; expected first-try success 47%", "new: no prerequisites; expected first-try success 50%", "new: prerequisites done; expected first-try success 64%", "new: prerequisites done; expected first-try success 36%", "transfer probe for coin"]))
+given plan_world_book(1) given plan_world_learner(1, 2) ((import plan_fixture_book), (import plan_fixture_learner), 864000000, 0):(Plan_session(["dice_1", "coin_1"], ["warmup", "main"], ["due: recall predicted 0.80 at 8.0 days; expected first-try success 67%", "weak: recall predicted 0.92 at 9.0 days; expected first-try success 79%"]))
+given plan_world_book(2) given plan_world_learner(2, 0) ((import plan_fixture_book), (import plan_fixture_learner), 864000000, 0):(Plan_session([], [], []))
+given plan_world_book(3) given plan_world_learner(3, 0) ((import plan_fixture_book), (import plan_fixture_learner), 864000000, 0):(Plan_session([], [], []))
+
+plan_hints_allowed(string plan_phase_name) {
+  int plan_hints_on = 1;
+  if (plan_phase_name == "warmup") {
+    plan_hints_on = 0;
+  }
+} return int plan_hints_on;
+("warmup"):(0)
+("main"):(1)
+("transfer"):(1)
+
+plan_due_count(Plan_learner plan_learner, word plan_at_time) {
+  int plan_due_total = 0;
+  int plan_at = 0;
+  while (plan_at < len(plan_learner.memory.lasts)) {
+    if (plan_recall_score(plan_learner, plan_at, plan_at_time) <= (import plan_due_score)) {
+      plan_due_total = plan_due_total + 1;
+    }
+    plan_at = plan_at + 1;
+  }
+} return int plan_due_total;
+given plan_world_learner(0, 1) ((import plan_fixture_learner), 864000000):(1)
+given plan_world_learner(0, 1) ((import plan_fixture_learner), 432000000):(0)
+given plan_world_learner(0, 0) ((import plan_fixture_learner), 864000000):(0)
+given plan_world_learner(0, 4) ((import plan_fixture_learner), 864000000):(0)
+given plan_world_learner(0, 4) ((import plan_fixture_learner), 8640000000):(4)

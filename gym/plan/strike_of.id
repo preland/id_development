@@ -1,0 +1,16 @@
+// Picking the lowest mark and striking it so it is not picked twice: the index of
+// the lowest mark at or under the limit is answered (-1 when none), and that mark is
+// overwritten with the struck value. Both the review lanes and the transfer lane use it.
+
+plan_strike(int[] plan_marks, int plan_limit, int plan_struck_value) {
+  int plan_struck_at = plan_lowest(plan_marks, plan_limit);
+  if (plan_struck_at >= 0) {
+    lset(plan_marks, plan_struck_at, plan_struck_value);
+  }
+} return int plan_struck_at;
+([900, 700, 950, 700], 900, 2000):(1)
+([900, 950], 899, 2000):(-1)
+([5, 3, 9, 7], 9, 9):(1)[time:O(n), mem:O(1)]
+([5, 3, 9, 7, 6, 8, 2, 4, 5, 3, 9, 7, 6, 8, 2, 4], 9, 9):(6)[time:O(n), mem:O(1)]
+given plan_marks_fixture ((import plan_fixture_marks), 900, 2000):(1) then (import plan_fixture_marks):([900, 2000, 950, 700])
+given plan_marks_fixture ((import plan_fixture_marks), 100, 2000):(-1) then (import plan_fixture_marks):([900, 700, 950, 700])

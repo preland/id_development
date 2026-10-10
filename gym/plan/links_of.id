@@ -1,0 +1,49 @@
+// The item-to-concept links of a pack: one row per (item, concept) pair, by
+// position in the catalog, with a flag for a held-out transfer item. A concept
+// the pack does not define is dropped here; `pack check` is what reports it.
+
+plan_link_add(Plan_links plan_links, int plan_item_number, int plan_concept_number, int plan_held) {
+  if (plan_concept_number >= 0) {
+    push(plan_links.link_items, plan_item_number);
+    push(plan_links.link_concepts, plan_concept_number);
+    push(plan_links.link_held, plan_held);
+  }
+} return void;
+(Plan_links([], [], []), 2, 1, 1):(Plan_links([2], [1], [1]))
+(Plan_links([0], [0], [0]), 3, 2, 0):(Plan_links([0, 3], [0, 2], [0, 0]))
+(Plan_links([0], [0], [0]), 3, -1, 1):(Plan_links([0], [0], [0]))
+
+plan_link_item(Plan_links plan_links, string[] plan_concept_ids, int plan_item_number, string plan_text, int plan_held) {
+  string[] plan_named = plan_pieces(plan_text);
+  int plan_at = 0;
+  int plan_looked = 0;
+} chain (Plan_links plan_links, string[] plan_concept_ids, int plan_item_number, string plan_text, int plan_held) {
+  while (plan_at < len(plan_named)) {
+    plan_looked = lst_str_index(plan_concept_ids, plan_named[plan_at]);
+    plan_link_add(plan_links, plan_item_number, plan_looked, plan_held);
+    plan_at = plan_at + 1;
+  }
+} return void;
+(Plan_links([], [], []), ["a", "b"], 3, "b, a", 1):(Plan_links([3, 3], [1, 0], [1, 1]))
+(Plan_links([], [], []), ["a", "b"], 0, "zz, b", 0):(Plan_links([0], [1], [0]))
+(Plan_links([], [], []), ["a", "b"], 0, "", 0):(Plan_links([], [], []))
+
+plan_build_links(Pack plan_pack, string[] plan_concept_ids) {
+  int[] plan_empty_items = [];
+  int[] plan_empty_concepts = [];
+  int[] plan_empty_held = [];
+} chain (Pack plan_pack, string[] plan_concept_ids) {
+  int[] plan_item_blocks = pack_blocks_of(plan_pack, "item");
+  Plan_links plan_links = Plan_links(plan_empty_items, plan_empty_concepts, plan_empty_held);
+  int plan_at = 0;
+} chain (Pack plan_pack, string[] plan_concept_ids) {
+  int plan_held = 0;
+  while (plan_at < len(plan_item_blocks)) {
+    plan_held = plan_held_flag(plan_pack, plan_item_blocks[plan_at]);
+    plan_link_item(plan_links, plan_concept_ids, plan_at, pack_field(plan_pack, plan_item_blocks[plan_at], "concepts"), plan_held);
+    plan_at = plan_at + 1;
+  }
+} return Plan_links plan_links;
+given pack_fixture_parse("concept: a\nconcept: b\nitem: i\nconcepts: a\nitem: j\nconcepts: a, b\ntransfer: yes\n") ((import pack_fixture_book), ["a", "b"]):(Plan_links([0, 1, 1], [0, 0, 1], [0, 1, 1]))
+given pack_fixture_parse("concept: a\nitem: i\nconcepts: q\n") ((import pack_fixture_book), ["a"]):(Plan_links([], [], []))
+given pack_fixture_parse("") ((import pack_fixture_book), []):(Plan_links([], [], []))

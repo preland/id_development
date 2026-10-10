@@ -1,0 +1,47 @@
+// How one attempt becomes the numbers the models take. This mapping is a knob,
+// kept in this one file so it can be changed without touching the models.
+//
+// FSRS grade (1 again, 2 hard, 3 good, 4 easy):
+//   tapped out, or the answer was incorrect or unparseable ... 1
+//   correct after using any hint .............................. 2
+//   correct, no hints, confidence below 90 .................... 3
+//   correct, no hints, confidence 90 or 99 .................... 4
+// Elo score of the attempt: grade 1 scores 0.0, grade 2 scores 0.5, grades 3 and
+// 4 score 1.0. The learner's own self-grade field is not used.
+
+plan_grade(string plan_verdict, int plan_confidence, int plan_hints, int plan_tapped) {
+  int plan_grade_given = 1;
+  if (plan_verdict == "correct" && plan_tapped == 0) {
+    plan_grade_given = 3;
+  }
+  if (plan_grade_given == 3 && plan_confidence >= 90) {
+    plan_grade_given = 4;
+  }
+} chain (string plan_verdict, int plan_confidence, int plan_hints, int plan_tapped) {
+  if (plan_grade_given > 1 && plan_hints > 0) {
+    plan_grade_given = 2;
+  }
+} return int plan_grade_given;
+("correct", 70, 0, 0):(3)
+("correct", 90, 0, 0):(4)
+("correct", 99, 0, 0):(4)
+("correct", 50, 2, 0):(2)
+("correct", 99, 1, 0):(2)
+("correct", 99, 0, 1):(1)
+("incorrect", 99, 0, 0):(1)
+("unparseable", 50, 0, 0):(1)
+("incorrect", 50, 3, 1):(1)
+
+plan_score(int plan_grade_given) {
+  float plan_scored = 1.0;
+  if (plan_grade_given == 1) {
+    plan_scored = 0.0;
+  }
+  if (plan_grade_given == 2) {
+    plan_scored = 0.5;
+  }
+} return float plan_scored;
+(1):(0.0)
+(2):(0.5)
+(3):(1.0)
+(4):(1.0)

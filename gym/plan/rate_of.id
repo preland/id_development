@@ -1,0 +1,42 @@
+// Skill per concept, by Elo from idstd's core/learn: the learner's rating in a
+// concept against the rating of the item attempted, both moved by plan_factor
+// (K = 32) after every attempt. plan_floats and plan_words make the starting lists.
+
+plan_rate(Plan_skill plan_skill, Plan_shelf plan_shelf, int plan_concept_number, int plan_item_number, float plan_scored) {
+  float[] plan_learner_ratings = plan_skill.ratings;
+  float[] plan_shelf_ratings = plan_shelf.item_ratings;
+  float plan_learner_after = elo_learner_update(plan_learner_ratings[plan_concept_number], plan_shelf_ratings[plan_item_number], plan_scored, (import plan_factor));
+} chain (Plan_skill plan_skill, Plan_shelf plan_shelf, int plan_concept_number, int plan_item_number, float plan_scored) {
+  float plan_item_after = elo_item_update(plan_learner_ratings[plan_concept_number], plan_shelf_ratings[plan_item_number], plan_scored, (import plan_factor));
+  plan_learner_ratings[plan_concept_number] = plan_learner_after;
+  plan_shelf_ratings[plan_item_number] = plan_item_after;
+} return void;
+(Plan_skill([1000.0], [0]), Plan_shelf([1000.0], [0], [0]), 0, 0, 1.0):(Plan_skill([1016.0], [0]), Plan_shelf([984.0], [0], [0]), 0, 0, 1.0)
+(Plan_skill([1000.0, 1000.0], [0, 0]), Plan_shelf([1000.0, 1000.0], [0, 0], [0, 0]), 1, 0, 0.0):(Plan_skill([1000.0, 984.0], [0, 0]), Plan_shelf([1016.0, 1000.0], [0, 0], [0, 0]), 1, 0, 0.0)
+(Plan_skill([1000.0, 1000.0], [0, 0]), Plan_shelf([1000.0, 1000.0], [0, 0], [0, 0]), 0, 1, 1.0):(Plan_skill([1016.0, 1000.0], [0, 0]), Plan_shelf([1000.0, 984.0], [0, 0], [0, 0]), 0, 1, 1.0)
+
+plan_floats(int plan_size, float plan_filler) {
+  float[] plan_made = [];
+  int plan_at = 0;
+  while (plan_at < plan_size) {
+    push(plan_made, plan_filler);
+    plan_at = plan_at + 1;
+  }
+} return float[] plan_made;
+(3, 1.5):([1.5, 1.5, 1.5])
+(0, 2.0):([])
+(4, 0.25):([0.25, 0.25, 0.25, 0.25])[time:O(n), mem:O(n)]
+(16, 0.25):([0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25])[time:O(n), mem:O(n)]
+
+plan_words(int plan_size, word plan_filler_time) {
+  word[] plan_made_times = [];
+  int plan_at = 0;
+  while (plan_at < plan_size) {
+    push(plan_made_times, plan_filler_time);
+    plan_at = plan_at + 1;
+  }
+} return word[] plan_made_times;
+(3, -1):([-1, -1, -1])
+(0, 5):([])
+(4, 7):([7, 7, 7, 7])[time:O(n), mem:O(n)]
+(8, 7):([7, 7, 7, 7, 7, 7, 7, 7])[time:O(n), mem:O(n)]

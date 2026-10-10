@@ -1,0 +1,39 @@
+// The answer to "why am I seeing this?" (principle P11): one line per planned item,
+// built from the numbers the planner used and from nothing else.
+//   review: "due: recall predicted 0.71 at 4.2 days; expected first-try success 78%"
+//           (label "due" for the warm-up, "weak" for the main set)
+//   new:    "new: prerequisites done; expected first-try success 64%"
+//           ("new: no prerequisites; ..." when the concept requires nothing)
+//   probe:  "transfer probe for coin, dice"
+
+plan_success_text(Plan_learner plan_learner, int plan_concept_number, int plan_item_number) {
+  int plan_thousandths = plan_success(plan_learner, plan_concept_number, plan_item_number);
+  string plan_text_percent = "expected first-try success " + (plan_thousandths + 5) / 10 + "%";
+} return string plan_text_percent;
+(Plan_learner(Plan_memory([], [], []), Plan_skill([1000.0], [0]), Plan_shelf([1000.0, 800.0], [0, 0], [0, 0])), 0, 0):("expected first-try success 50%")
+(Plan_learner(Plan_memory([], [], []), Plan_skill([1000.0], [0]), Plan_shelf([1000.0, 800.0], [0, 0], [0, 0])), 0, 1):("expected first-try success 76%")
+(Plan_learner(Plan_memory([], [], []), Plan_skill([1000.0, 1400.0], [0, 0]), Plan_shelf([1000.0, 800.0], [0, 0], [0, 0])), 1, 0):("expected first-try success 91%")
+
+plan_why_review(Plan_learner plan_learner, int plan_concept_number, int plan_item_number, word plan_now, string plan_label) {
+  float plan_chance_text_in = plan_recall(plan_learner, plan_concept_number, plan_now);
+  float plan_days_text_in = plan_days_since(plan_learner, plan_concept_number, plan_now);
+  string plan_recall_text = plan_decimal(plan_chance_text_in, 2);
+} chain (Plan_learner plan_learner, int plan_concept_number, int plan_item_number, word plan_now, string plan_label) {
+  string plan_days_text = plan_decimal(plan_days_text_in, 1);
+  string plan_success_line = plan_success_text(plan_learner, plan_concept_number, plan_item_number);
+  string plan_review_line = plan_label + ": recall predicted " + plan_recall_text + " at " + plan_days_text + " days; " + plan_success_line;
+} return string plan_review_line;
+(Plan_learner(Plan_memory([5.0], [10.0], [0]), Plan_skill([1000.0], [1]), Plan_shelf([1000.0], [1], [3])), 0, 0, 864000000, "due"):("due: recall predicted 0.90 at 10.0 days; expected first-try success 50%")
+(Plan_learner(Plan_memory([5.0], [10.0], [0]), Plan_skill([1000.0], [1]), Plan_shelf([800.0], [1], [3])), 0, 0, 0, "weak"):("weak: recall predicted 1.00 at 0.0 days; expected first-try success 76%")
+
+plan_why_new(Plan_book plan_book, Plan_learner plan_learner, int plan_concept_number, int plan_item_number) {
+  int plan_required_total = plan_requirement_count(plan_book, plan_concept_number);
+  string plan_success_line = plan_success_text(plan_learner, plan_concept_number, plan_item_number);
+  string plan_new_line = "new: no prerequisites; " + plan_success_line;
+} chain (Plan_book plan_book, Plan_learner plan_learner, int plan_concept_number, int plan_item_number) {
+  if (plan_required_total > 0) {
+    plan_new_line = "new: prerequisites done; " + plan_success_line;
+  }
+} return string plan_new_line;
+given plan_world_book(0) given plan_world_learner(0, 1) ((import plan_fixture_book), (import plan_fixture_learner), 1, 3):("new: prerequisites done; expected first-try success 64%")
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), 3, 8):("new: no prerequisites; expected first-try success 50%")

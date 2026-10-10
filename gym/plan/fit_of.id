@@ -1,0 +1,35 @@
+// How well an item suits a learner now, as a cost where lower is better. The
+// expected first-try success is the Elo expected score of the learner's rating in
+// the concept against the item's rating, in thousandths. The cost is how far that
+// falls outside the target band (plan_band_low to plan_band_high, 75 to 85 percent;
+// 0 inside it), plus plan_attempt_cost (10) for every earlier attempt at the item, so a fresh variant
+// beats a repeat, plus plan_again_cost (400) when the latest attempt at the item was an again (a
+// failure or a tap-out), so the variant is preferred over the item just missed.
+
+plan_success(Plan_learner plan_learner, int plan_concept_number, int plan_item_number) {
+  float plan_chance_exact = elo_expected(plan_learner.skill.ratings[plan_concept_number], plan_learner.shelf.item_ratings[plan_item_number]);
+  int plan_chance_thousandths = plan_chance_exact * 1000.0 + 0.5;
+} return int plan_chance_thousandths;
+(Plan_learner(Plan_memory([], [], []), Plan_skill([1000.0], [0]), Plan_shelf([1000.0, 800.0], [0, 0], [0, 0])), 0, 0):(500)
+(Plan_learner(Plan_memory([], [], []), Plan_skill([1000.0], [0]), Plan_shelf([1000.0, 800.0], [0, 0], [0, 0])), 0, 1):(760)
+(Plan_learner(Plan_memory([], [], []), Plan_skill([1000.0, 1400.0], [0, 0]), Plan_shelf([1000.0, 800.0], [0, 0], [0, 0])), 1, 0):(909)
+
+plan_fit(Plan_learner plan_learner, int plan_concept_number, int plan_item_number) {
+  int plan_success_now = plan_success(plan_learner, plan_concept_number, plan_item_number);
+  int plan_band_gap = 0;
+  if (plan_success_now < (import plan_band_low)) {
+    plan_band_gap = (import plan_band_low) - plan_success_now;
+  }
+} chain (Plan_learner plan_learner, int plan_concept_number, int plan_item_number) {
+  if (plan_success_now > (import plan_band_high)) {
+    plan_band_gap = plan_success_now - (import plan_band_high);
+  }
+  int plan_cost = plan_band_gap + plan_learner.shelf.attempts[plan_item_number] * (import plan_attempt_cost);
+  if (plan_learner.shelf.last_grades[plan_item_number] == 1) {
+    plan_cost = plan_cost + (import plan_again_cost);
+  }
+} return int plan_cost;
+(Plan_learner(Plan_memory([], [], []), Plan_skill([1000.0], [0]), Plan_shelf([1000.0, 800.0, 1500.0, 600.0], [0, 2, 0, 0], [0, 0, 1, 0])), 0, 0):(250)
+(Plan_learner(Plan_memory([], [], []), Plan_skill([1000.0], [0]), Plan_shelf([1000.0, 800.0, 1500.0, 600.0], [0, 2, 0, 0], [0, 0, 1, 0])), 0, 1):(20)
+(Plan_learner(Plan_memory([], [], []), Plan_skill([1000.0], [0]), Plan_shelf([1000.0, 800.0, 1500.0, 600.0], [0, 2, 0, 0], [0, 0, 1, 0])), 0, 2):(1097)
+(Plan_learner(Plan_memory([], [], []), Plan_skill([1000.0], [0]), Plan_shelf([1000.0, 800.0, 1500.0, 600.0], [0, 2, 0, 0], [0, 0, 1, 0])), 0, 3):(59)

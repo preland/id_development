@@ -1,0 +1,28 @@
+// The two loops over plan_deal_review. The warm-up deals concepts whose recall is
+// at or under plan_due_score until it holds plan_warm_up_slots rows. The weak part of
+// the main set deals concepts under plan_mastery_score until it holds a quota of
+// rows, giving each row a sort key: its round is its position modulo plan_depth, so
+// the weak rows spread over the rounds the new concepts also use.
+
+plan_warm_up(Plan_book plan_book, Plan_learner plan_learner, word plan_now, int[] plan_marks, int[] plan_taken, Plan_session plan_session) {
+  while (plan_lowest(plan_marks, (import plan_due_score)) >= 0 && len(plan_session.ids) < (import plan_warm_up_slots)) {
+    plan_deal_review(plan_book, plan_learner, plan_now, plan_marks, plan_taken, plan_session, (import plan_due_score), "warmup", "due");
+  }
+} return void;
+given plan_world_book(0) given plan_world_learner(0, 1) ((import plan_fixture_book), (import plan_fixture_learner), 864000000, [900, 2000, 2000, 2000, 2000], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session([], [], [])):((import plan_fixture_book), (import plan_fixture_learner), 864000000, [2000, 2000, 2000, 2000, 2000], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session(["coin_1"], ["warmup"], ["due: recall predicted 0.62 at 5.0 days; expected first-try success 70%"]))
+given plan_world_book(0) given plan_world_learner(0, 1) ((import plan_fixture_book), (import plan_fixture_learner), 864000000, [900, 2000, 2000, 2000, 2000], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session(["a", "b", "c", "d", "e"], ["warmup", "warmup", "warmup", "warmup", "warmup"], ["1", "2", "3", "4", "5"])):((import plan_fixture_book), (import plan_fixture_learner), 864000000, [900, 2000, 2000, 2000, 2000], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session(["a", "b", "c", "d", "e"], ["warmup", "warmup", "warmup", "warmup", "warmup"], ["1", "2", "3", "4", "5"]))
+given plan_world_book(0) given plan_world_learner(0, 1) ((import plan_fixture_book), (import plan_fixture_learner), 864000000, [960, 2000, 2000, 2000, 2000], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session([], [], [])):((import plan_fixture_book), (import plan_fixture_learner), 864000000, [960, 2000, 2000, 2000, 2000], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session([], [], []))
+
+plan_weak(Plan_book plan_book, Plan_learner plan_learner, word plan_now, int[] plan_marks, int[] plan_taken, Plan_session plan_rows, int[] plan_keys, int plan_seed, int plan_quota) {
+  int plan_rows_before = 0;
+  while (plan_lowest(plan_marks, (import plan_mastery_score)) >= 0 && len(plan_rows.ids) < plan_quota) {
+    plan_rows_before = len(plan_rows.ids);
+    plan_deal_review(plan_book, plan_learner, plan_now, plan_marks, plan_taken, plan_rows, (import plan_mastery_score), "main", "weak");
+    if (len(plan_rows.ids) > plan_rows_before) {
+      push(plan_keys, plan_key(plan_seed, plan_rows_before % (import plan_depth), plan_rows_before));
+    }
+  }
+} return void;
+given plan_world_book(0) given plan_world_learner(0, 1) ((import plan_fixture_book), (import plan_fixture_learner), 864000000, [940, 2000, 2000, 2000, 2000], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session([], [], []), [], 0, 9):((import plan_fixture_book), (import plan_fixture_learner), 864000000, [2000, 2000, 2000, 2000, 2000], [1, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session(["coin_1"], ["main"], ["weak: recall predicted 0.62 at 5.0 days; expected first-try success 70%"]), [17])
+given plan_world_book(0) given plan_world_learner(0, 1) ((import plan_fixture_book), (import plan_fixture_learner), 864000000, [940, 2000, 2000, 2000, 2000], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session([], [], []), [], 1, 0):((import plan_fixture_book), (import plan_fixture_learner), 864000000, [940, 2000, 2000, 2000, 2000], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session([], [], []), [])
+given plan_world_book(0) given plan_world_learner(0, 1) ((import plan_fixture_book), (import plan_fixture_learner), 864000000, [940, 2000, 2000, 2000, 2000], [1, 1, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session([], [], []), [], 1, 9):((import plan_fixture_book), (import plan_fixture_learner), 864000000, [2000, 2000, 2000, 2000, 2000], [1, 1, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session([], [], []), [])

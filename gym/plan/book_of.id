@@ -1,0 +1,12 @@
+// The whole index of a pack in one value: catalog, links and prerequisites. Build
+// it once per session; the log replay and the planner both read it.
+
+plan_build_book(Pack plan_pack) {
+  Plan_catalog plan_catalog = plan_catalog_of(plan_pack);
+  Plan_links plan_links = plan_build_links(plan_pack, plan_catalog.concepts);
+  Plan_needs plan_needs = plan_build_needs(plan_pack, plan_catalog.concepts);
+} chain (Pack plan_pack) {
+  Plan_book plan_book = Plan_book(plan_catalog, plan_links, plan_needs);
+} return Plan_book plan_book;
+given pack_fixture_parse("concept: a\nconcept: b\nrequires: a\nitem: i\nconcepts: b\ndifficulty: 900\ntransfer: yes\n") ((import pack_fixture_book)):(Plan_book(Plan_catalog(["a", "b"], ["i"], [900]), Plan_links([0], [1], [1]), Plan_needs([1], [0])))
+given pack_fixture_parse("") ((import pack_fixture_book)):(Plan_book(Plan_catalog([], [], []), Plan_links([], [], []), Plan_needs([], [])))

@@ -1,0 +1,37 @@
+// Choosing the practice item of a concept for this session. Held-out transfer
+// items are never offered here, and an item already in the session (taken) is not
+// offered again. Among the rest the lowest plan_fit cost wins, the earliest in the
+// pack on a tie; -1 when the concept has no item left to offer.
+
+plan_link_cost(Plan_book plan_book, Plan_learner plan_learner, int plan_concept_number, int[] plan_taken, int plan_link_number) {
+  int plan_cost_here = 1000000;
+  if (plan_book.links.link_concepts[plan_link_number] == plan_concept_number && plan_book.links.link_held[plan_link_number] == 0 && plan_taken[plan_book.links.link_items[plan_link_number]] == 0) {
+    plan_cost_here = plan_fit(plan_learner, plan_concept_number, plan_book.links.link_items[plan_link_number]);
+  }
+} return int plan_cost_here;
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), 0, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0):(0)
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), 0, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 1):(250)
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), 0, [1, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0):(1000000)
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), 0, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 2):(1000000)
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), 0, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 3):(1000000)
+
+plan_choose(Plan_book plan_book, Plan_learner plan_learner, int plan_concept_number, int[] plan_taken) {
+  int plan_chosen = 0 - 1;
+  int plan_chosen_cost = 1000000;
+  int plan_at = 0;
+} chain (Plan_book plan_book, Plan_learner plan_learner, int plan_concept_number, int[] plan_taken) {
+  int plan_cost_found = 0;
+  while (plan_at < len(plan_book.links.link_items)) {
+    plan_cost_found = plan_link_cost(plan_book, plan_learner, plan_concept_number, plan_taken, plan_at);
+    if (plan_cost_found < plan_chosen_cost) {
+      plan_chosen = plan_book.links.link_items[plan_at];
+      plan_chosen_cost = plan_cost_found;
+    }
+    plan_at = plan_at + 1;
+  }
+} return int plan_chosen;
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), 0, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]):(0)
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), 0, [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]):(1)
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), 0, [1, 1, 0, 0, 0, 0, 0, 0, 0, 0]):(-1)
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), 1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]):(3)
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), 4, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]):(9)

@@ -1,0 +1,34 @@
+// Dealing the new part of the main set. The concepts are the unlocked, never
+// attempted ones (at most plan_new_limit), and the lane makes plan_depth rounds over
+// them, one item per concept per round, so a new concept's second item comes only
+// after every new concept has had its first. Rows stop at a quota on the total size
+// of the rows, which already hold the weak rows, so new work fills what review left.
+
+plan_fresh_round(Plan_book plan_book, Plan_learner plan_learner, int[] plan_taken, Plan_session plan_rows, int[] plan_keys, int plan_seed, int[] plan_picks, int plan_round, int plan_quota) {
+  int plan_at = 0;
+  int plan_item_pick = 0 - 1;
+  while (plan_at < len(plan_picks)) {
+    plan_item_pick = plan_choose(plan_book, plan_learner, plan_picks[plan_at], plan_taken);
+    if (plan_item_pick >= 0 && len(plan_rows.ids) < plan_quota) {
+      plan_push(plan_rows, plan_taken, plan_item_pick, plan_book.catalog.items[plan_item_pick], "main", plan_why_new(plan_book, plan_learner, plan_picks[plan_at], plan_item_pick));
+      push(plan_keys, plan_key(plan_seed, plan_round, plan_picks[plan_at]));
+    }
+    plan_at = plan_at + 1;
+  }
+} return void;
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session([], [], []), [], 0, [0, 3], 0, 13):((import plan_fixture_book), (import plan_fixture_learner), [1, 0, 0, 0, 0, 0, 0, 0, 1, 0], Plan_session(["coin_1", "flat_1"], ["main", "main"], ["new: no prerequisites; expected first-try success 76%", "new: no prerequisites; expected first-try success 50%"]), [17, 204])
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), [1, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session([], [], []), [], 0, [0, 3], 1, 13):((import plan_fixture_book), (import plan_fixture_learner), [1, 1, 0, 0, 0, 0, 0, 0, 1, 0], Plan_session(["coin_2", "flat_1"], ["main", "main"], ["new: no prerequisites; expected first-try success 50%", "new: no prerequisites; expected first-try success 50%"]), [1017, 1204])
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session([], [], []), [], 0, [0, 3], 0, 1):((import plan_fixture_book), (import plan_fixture_learner), [1, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session(["coin_1"], ["main"], ["new: no prerequisites; expected first-try success 76%"]), [17])
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session([], [], []), [], 0, [], 0, 13):((import plan_fixture_book), (import plan_fixture_learner), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session([], [], []), [])
+
+plan_fresh_lane(Plan_book plan_book, Plan_learner plan_learner, int[] plan_taken, Plan_session plan_rows, int[] plan_keys, int plan_seed, int plan_quota) {
+  int[] plan_fresh_picks = plan_new_concepts(plan_book, plan_learner);
+  int plan_round = 0;
+  while (plan_round < (import plan_depth) && len(plan_rows.ids) < plan_quota) {
+    plan_fresh_round(plan_book, plan_learner, plan_taken, plan_rows, plan_keys, plan_seed, plan_fresh_picks, plan_round, plan_quota);
+    plan_round = plan_round + 1;
+  }
+} return void;
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session([], [], []), [], 0, 13):((import plan_fixture_book), (import plan_fixture_learner), [1, 1, 0, 0, 0, 0, 0, 0, 1, 0], Plan_session(["coin_1", "flat_1", "coin_2"], ["main", "main", "main"], ["new: no prerequisites; expected first-try success 76%", "new: no prerequisites; expected first-try success 50%", "new: no prerequisites; expected first-try success 50%"]), [17, 204, 1017])
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], Plan_session([], [], []), [], 0, 2):((import plan_fixture_book), (import plan_fixture_learner), [1, 0, 0, 0, 0, 0, 0, 0, 1, 0], Plan_session(["coin_1", "flat_1"], ["main", "main"], ["new: no prerequisites; expected first-try success 76%", "new: no prerequisites; expected first-try success 50%"]), [17, 204])
+given plan_world_book(2) given plan_world_learner(2, 0) ((import plan_fixture_book), (import plan_fixture_learner), [0, 0], Plan_session([], [], []), [], 0, 13):((import plan_fixture_book), (import plan_fixture_learner), [0, 0], Plan_session([], [], []), [])

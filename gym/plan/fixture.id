@@ -1,0 +1,37 @@
+// The setups the cases of the planner use. plan_world_packs (conf.id) holds the
+// packs: 0 is the full world (coin, then dice and odds, which need coin; flat, which
+// needs nothing; lone, which needs a concept that does not exist; a held-out transfer
+// item for coin and for odds-with-dice), 1 is coin and dice with no transfer item at
+// all, 2 is two concepts that both need a concept that is not there. plan_world_logs
+// holds the histories, scene by scene; "now" in the cases is day 10, 864000000 ms.
+// A constant cannot be a case argument, so a case names the world through these setups.
+
+plan_world_parse(int plan_variant) {
+  Pack plan_pack = pack_new("t");
+  pack_read_text(plan_pack, "t.txt", (import plan_world_packs)[plan_variant]);
+  export Pack plan_fixture_pack = plan_pack;
+} return void export plan_fixture_pack;
+(0):() then len((import plan_fixture_pack).blocks.files):(15)
+(1):() then len((import plan_fixture_pack).blocks.files):(5)
+
+plan_world_book(int plan_variant) {
+  plan_world_parse(plan_variant);
+  Plan_book plan_book = plan_build_book((import plan_fixture_pack));
+  export Plan_book plan_fixture_book = plan_book;
+} return void export plan_fixture_book;
+(0):() then len((import plan_fixture_book).catalog.items):(10)
+(0):() then (import plan_fixture_book).catalog.concepts:(["coin", "dice", "odds", "flat", "lone"])
+(2):() then (import plan_fixture_book).needs:(Plan_needs([0, 1], [-1, -1]))
+
+plan_world_learner(int plan_variant, int plan_scene) {
+  plan_world_parse(plan_variant);
+  Plan_book plan_book = plan_build_book((import plan_fixture_pack));
+  Log_replay plan_log = log_replay_text((import plan_world_logs)[plan_scene]);
+} chain (int plan_variant, int plan_scene) {
+  export Plan_learner plan_fixture_learner = plan_replay(plan_book, plan_log.events);
+} return void export plan_fixture_learner;
+(0, 0):() then (import plan_fixture_learner).skill.counts:([0, 0, 0, 0, 0])
+(0, 1):() then (import plan_fixture_learner).skill.counts:([3, 0, 0, 0, 0])
+(0, 1):() then (import plan_fixture_learner).shelf.attempts:([2, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+(0, 1):() then (import plan_fixture_learner).shelf.last_grades:([1, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+(0, 1):() then (import plan_fixture_learner).memory.lasts:([432000000, -1, -1, -1, -1])

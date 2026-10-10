@@ -1,0 +1,19 @@
+// The transfer finisher: up to plan_transfer_slots held-out items, lowest mark first,
+// each tagged "transfer". Items come only from concepts the learner has already
+// practised, and they are never offered anywhere else in the plan.
+
+plan_transfer(Plan_book plan_book, Plan_learner plan_learner, int[] plan_taken, int plan_seed, Plan_session plan_session) {
+  int[] plan_probe_marks = plan_transfer_marks(plan_book, plan_learner, plan_taken, plan_seed);
+  int plan_probe = plan_strike(plan_probe_marks, (import plan_item_none) - 1, (import plan_item_none));
+  int plan_probes_given = 0;
+} chain (Plan_book plan_book, Plan_learner plan_learner, int[] plan_taken, int plan_seed, Plan_session plan_session) {
+  while (plan_probe >= 0 && plan_probes_given < (import plan_transfer_slots)) {
+    plan_push(plan_session, plan_taken, plan_probe, plan_book.catalog.items[plan_probe], "transfer", plan_why_transfer(plan_book, plan_probe));
+    plan_probe = plan_strike(plan_probe_marks, (import plan_item_none) - 1, (import plan_item_none));
+    plan_probes_given = plan_probes_given + 1;
+  }
+} return void;
+given plan_world_book(0) given plan_world_learner(0, 3) ((import plan_fixture_book), (import plan_fixture_learner), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0, Plan_session([], [], [])):((import plan_fixture_book), (import plan_fixture_learner), [0, 0, 1, 0, 0, 0, 0, 1, 0, 0], 0, Plan_session(["odds_x", "coin_x"], ["transfer", "transfer"], ["transfer probe for odds, dice", "transfer probe for coin"]))
+given plan_world_book(0) given plan_world_learner(0, 2) ((import plan_fixture_book), (import plan_fixture_learner), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0, Plan_session([], [], [])):((import plan_fixture_book), (import plan_fixture_learner), [0, 0, 1, 0, 0, 0, 0, 0, 0, 0], 0, Plan_session(["coin_x"], ["transfer"], ["transfer probe for coin"]))
+given plan_world_book(0) given plan_world_learner(0, 0) ((import plan_fixture_book), (import plan_fixture_learner), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0, Plan_session([], [], [])):((import plan_fixture_book), (import plan_fixture_learner), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0, Plan_session([], [], []))
+given plan_world_book(1) given plan_world_learner(1, 3) ((import plan_fixture_book), (import plan_fixture_learner), [0, 0, 0, 0, 0], 0, Plan_session([], [], [])):((import plan_fixture_book), (import plan_fixture_learner), [0, 0, 0, 0, 0], 0, Plan_session([], [], []))

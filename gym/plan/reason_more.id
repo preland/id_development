@@ -1,0 +1,38 @@
+// The parts of a reason that read the pack: how many concepts a concept requires,
+// and the names of the concepts an item tests.
+
+plan_requirement_count(Plan_book plan_book, int plan_concept_number) {
+  int plan_required_total = 0;
+  int plan_at = 0;
+  while (plan_at < len(plan_book.needs.need_concepts)) {
+    if (plan_book.needs.need_concepts[plan_at] == plan_concept_number) {
+      plan_required_total = plan_required_total + 1;
+    }
+    plan_at = plan_at + 1;
+  }
+} return int plan_required_total;
+given plan_world_book(0) ((import plan_fixture_book), 2):(2)
+given plan_world_book(0) ((import plan_fixture_book), 1):(1)
+given plan_world_book(0) ((import plan_fixture_book), 3):(0)
+given plan_world_book(0) ((import plan_fixture_book), 4):(1)
+
+plan_concept_names(Plan_book plan_book, int plan_item_number) {
+  string[] plan_named_concepts = [];
+  int plan_at = 0;
+  while (plan_at < len(plan_book.links.link_items)) {
+    if (plan_book.links.link_items[plan_at] == plan_item_number) {
+      push(plan_named_concepts, plan_book.catalog.concepts[plan_book.links.link_concepts[plan_at]]);
+    }
+    plan_at = plan_at + 1;
+  }
+} return string[] plan_named_concepts;
+given plan_world_book(0) ((import plan_fixture_book), 7):(["odds", "dice"])
+given plan_world_book(0) ((import plan_fixture_book), 2):(["coin"])
+given plan_world_book(0) ((import plan_fixture_book), 10):([])
+
+plan_why_transfer(Plan_book plan_book, int plan_item_number) {
+  string[] plan_probe_concepts = plan_concept_names(plan_book, plan_item_number);
+  string plan_probe_line = "transfer probe for " + str_join(plan_probe_concepts, ", ");
+} return string plan_probe_line;
+given plan_world_book(0) ((import plan_fixture_book), 7):("transfer probe for odds, dice")
+given plan_world_book(0) ((import plan_fixture_book), 2):("transfer probe for coin")

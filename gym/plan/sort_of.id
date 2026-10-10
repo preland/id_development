@@ -1,0 +1,34 @@
+// Ordering the main set. Randomness is an argument, never read here: plan_noise
+// turns a seed and a tag into the same 0 to 999 every time. The key of a row is its
+// round times 1000 plus that noise, so the rows interleave round by round (every
+// concept's first item before any concept's second) and the seed breaks the order
+// inside a round. plan_sorted reorders a session's rows by their keys, ties staying
+// in the order they were dealt.
+
+plan_noise(int plan_seed, int plan_tag) {
+  int plan_mixed = (plan_seed % 100003) * 7919 + plan_tag * 104729 + 17;
+  int plan_spread = (plan_mixed % 1000 + 1000) % 1000;
+} return int plan_spread;
+(0, 0):(17)
+(1, 0):(936)
+(0, 1):(746)
+(-1, 0):(98)
+
+plan_key(int plan_seed, int plan_round, int plan_tag) {
+  int plan_ordering = plan_round * 1000 + plan_noise(plan_seed, plan_tag);
+} return int plan_ordering;
+(0, 0, 0):(17)
+(1, 2, 0):(2936)
+(7, 1, 3):(1637)
+
+plan_sorted(Plan_session plan_rows, int[] plan_keys) {
+  int[] plan_order = ord_ints(plan_keys);
+  string[] plan_sorted_ids = ord_by_strs(plan_rows.ids, plan_order);
+  string[] plan_sorted_phases = ord_by_strs(plan_rows.phases, plan_order);
+} chain (Plan_session plan_rows, int[] plan_keys) {
+  string[] plan_sorted_reasons = ord_by_strs(plan_rows.reasons, plan_order);
+  Plan_session plan_arranged = Plan_session(plan_sorted_ids, plan_sorted_phases, plan_sorted_reasons);
+} return Plan_session plan_arranged;
+(Plan_session(["a", "b", "c"], ["x", "y", "z"], ["1", "2", "3"]), [2000, 1017, 17]):(Plan_session(["c", "b", "a"], ["z", "y", "x"], ["3", "2", "1"]))
+(Plan_session(["a", "b", "c"], ["x", "y", "z"], ["1", "2", "3"]), [5, 5, 1]):(Plan_session(["c", "a", "b"], ["z", "x", "y"], ["3", "1", "2"]))
+(Plan_session([], [], []), []):(Plan_session([], [], []))
