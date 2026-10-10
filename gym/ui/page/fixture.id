@@ -1,0 +1,27 @@
+// Fixtures for the cases of the page and the paint: a surface and the font layer, the page and the widgets on top of them, and the page tiled and the widgets placed for the state in gym_fixture_state. Cases name these in `given`; nothing in the program calls them.
+
+// A 960 by 640 surface and the font layer, started.
+gym_fixture_fonts() {
+  sf_l_init(960, 640);
+  gui_font_init();
+} return void;
+():() then gym_fixture_pixel(0, 0):(0)
+():() then gym_fixture_pixel(959, 639):(0)
+
+// The surface and fonts, the idml page and the widgets.
+gym_fixture_ui() {
+  gym_fixture_fonts();
+  gym_page(960, 640);
+  gym_widgets();
+} return void;
+():() then gym_fixture_buttons():(16)
+():() then gym_fixture_boxes(0):("")
+
+// Everything a paint needs for the state in gym_fixture_state (made with gym_fixture_make): the surface, the widgets, the page tiled for the state's screen and the widgets placed and enabled.
+gym_fixture_ready() {
+  gym_fixture_ui();
+  gym_layout((import gym_fixture_state));
+  gym_place((import gym_fixture_state));
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock ():() then gym_fixture_area("prompt", 2):(960)
+given gym_fixture_make(0) given gym_fixture_stock ():() then gym_fixture_area("score_list", 2):(0)

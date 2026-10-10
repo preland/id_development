@@ -1,0 +1,39 @@
+// Mouse events to commands. Every button is sent the event, so each keeps its own hover and press look; the command answered is the one whose button was pressed and released inside itself.
+
+// Send one mouse event (gym_kind: 3 down, 4 up, 5 move; gym_pointer as gfx_event fills it) to every button. Answers the number of the command whose button was activated by it, or -1 when none was.
+gym_press(int gym_kind, int[] gym_pointer) {
+  int gym_found = 0 - 1;
+  int gym_command = 0;
+  while(gym_command < (import gym_command_count)) {
+    gym_found = gym_press_one(gym_kind, gym_pointer, gym_command, gym_found);
+    gym_command = gym_command + 1;
+  }
+} return int gym_found;
+given gym_live_open given gym_fixture_ready_live (3, [3, 700, 280, 1, 1]):(-1)
+given gym_live_open given gym_fixture_ready_live given gym_fixture_down(700, 280) (4, [4, 700, 280, 1, 0]):(2)
+given gym_live_open given gym_fixture_ready_live given gym_fixture_down(700, 280) (4, [4, 10, 600, 1, 0]):(-1)
+
+// Send the event to button gym_command; answers gym_found, or gym_command when this button was activated and none was before it.
+gym_press_one(int gym_kind, int[] gym_pointer, int gym_command, int gym_found) {
+  int gym_bits = gui_btn_event((import gym_buttons)[gym_command], gym_kind, gym_pointer);
+  int gym_fired = gym_bits / 2 % 2;
+  if(gym_fired == 1 && gym_found < 0) {
+    gym_found = gym_command;
+  }
+} return int gym_found;
+given gym_live_open given gym_fixture_ready_live given gym_fixture_down(700, 280) (4, [4, 700, 280, 1, 0], 2, -1):(2)
+given gym_live_open given gym_fixture_ready_live given gym_fixture_down(700, 280) (4, [4, 700, 280, 1, 0], 2, 5):(5)
+given gym_live_open given gym_fixture_ready_live given gym_fixture_down(700, 280) (4, [4, 700, 280, 1, 0], 3, -1):(-1)
+
+// A click at (gym_left, gym_top): a press and a release there. Answers the command of the button it lands on, or -1.
+gym_hit(int gym_left, int gym_top) {
+  int[] gym_down = [3, gym_left, gym_top, 1, 1];
+  int[] gym_up = [4, gym_left, gym_top, 1, 0];
+  int gym_armed = gym_press(3, gym_down);
+} chain (int gym_left, int gym_top) {
+  int gym_found = gym_press(4, gym_up);
+} return int gym_found;
+given gym_live_open given gym_fixture_ready_live (700, 280):(2)
+given gym_live_open given gym_fixture_ready_live (480, 40):(-1)
+given gym_live_open given gym_fixture_ready_live (100, 330):(-1)
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_dispatch_text(1, "1/2") given gym_fixture_live_set(2, 90) given gym_fixture_ready_live (100, 330):(4)

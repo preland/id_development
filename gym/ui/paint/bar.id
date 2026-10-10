@@ -1,0 +1,47 @@
+// The session bar: the four phases in a row with the one the clock is in marked, and the time left in it. It shows where the learner is in the session and says nothing about how much is done.
+
+// Draw the session bar in the cell of the page called phases: the four phases, then a line with the current phase and the time left in it.
+gym_paint_bar(Session gym_state) {
+  int[] gym_box = gym_rectangle_of("phases");
+  int gym_index = 0;
+  while(gym_index < len((import gym_phase_names))) {
+    gym_paint_phase(gym_state, gym_box, gym_index);
+    gym_index = gym_index + 1;
+  }
+} chain (Session gym_state) {
+  gym_paint_status(gym_state, gym_box);
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_pixel(14, 12):(2840474) then gym_fixture_pixel(280, 12):(15987699) then gym_fixture_inked(12, 44, 150, 18, 0):(1)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(7, 3) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_pixel(14, 12):(14411510) then gym_fixture_pixel(413, 12):(2840474)
+
+// Draw phase gym_index in its quarter of the bar: the current phase in the accent colour, the ones behind it pale, the ones to come plain, each labelled with its name.
+gym_paint_phase(Session gym_state, int[] gym_box, int gym_index) {
+  int gym_now = gym_state.cells[(import gym_cell_phase)];
+  int gym_slot = (gym_box[2] - 24) / len((import gym_phase_names));
+  int gym_left = gym_box[0] + 12 + gym_index * gym_slot;
+} chain (Session gym_state, int[] gym_box, int gym_index) {
+  int[] gym_look = gym_phase_look(gym_index, gym_now);
+  gym_card(gym_left, gym_box[1] + 10, gym_slot - 6, 28, gym_look[0], (import th_l_separator));
+  string gym_name = (import gym_phase_names)[gym_index];
+} chain (Session gym_state, int[] gym_box, int gym_index) {
+  int gym_font = gui_face("sans-serif", 14, 0);
+  int gym_wide = gui_text_width(gym_font, gym_name);
+  gym_label(gym_name, gym_left + (gym_slot - 6 - gym_wide) / 2, gym_box[1] + 10, 28, gym_look[1]);
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ((import gym_fixture_state), [0, 0, 557, 70], 0):() then gym_fixture_pixel(14, 12):(2840474) then gym_fixture_pixel(12, 10):(13684944) then gym_fixture_inked(14, 12, 126, 24, 2840474):(1)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ((import gym_fixture_state), [0, 0, 557, 70], 1):() then gym_fixture_pixel(147, 12):(15987699) then gym_fixture_pixel(14, 12):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(7, 2) given gym_fixture_ready ((import gym_fixture_state), [0, 0, 557, 70], 0):() then gym_fixture_pixel(14, 12):(14411510)
+
+// The fill colour and the text colour of phase gym_index when the clock is in phase gym_now.
+gym_phase_look(int gym_index, int gym_now) {
+  int[] gym_look = [(import th_l_control), (import th_l_label_tertiary)];
+  if(gym_index == gym_now) {
+    gym_look = [(import th_l_accent), (import th_l_on_accent)];
+  }
+  if(gym_index < gym_now) {
+    gym_look = [(import th_l_accent_subtle), (import th_l_label_secondary)];
+  }
+} return int[] gym_look;
+(0, 1):([14411510, 6316128])
+(1, 1):([2840474, 16777215])
+(3, 1):([15987699, 7039851])

@@ -1,0 +1,33 @@
+// Stand-in contents for the cases that paint: the texts of an item of the gym_fixture_ tables (prompt, reference answer, the why line as the rubric, the four rungs) put in the state held in gym_fixture_state, and a cool-down text. The window never calls these; it reads the pack.
+
+// Fill the state's prompt, reference, rubric and four rung texts from the stand-in item the state is at.
+gym_fixture_stock() {
+  string[] gym_texts = (import gym_fixture_state).texts;
+  int gym_item = (import gym_fixture_state).cells[(import gym_cell_item)];
+  gym_texts[(import gym_text_prompt)] = (import gym_fixture_prompts)[gym_item];
+} chain () {
+  gym_texts[(import gym_text_reference)] = (import gym_fixture_answers)[gym_item];
+  gym_texts[(import gym_text_rubric)] = (import gym_fixture_reasons)[gym_item];
+  gym_fixture_rung_texts(gym_texts, gym_item);
+} return void;
+given gym_fixture_make(2) ():() then gym_fixture_text(3):("0.15") then gym_fixture_text(6):("Ask what independent means for the chance of both happening.")
+given gym_fixture_make(0) ():() then gym_fixture_text(2):("A fair six-sided die is rolled once. What is the probability of an even number? Answer as a fraction in lowest terms.") then gym_fixture_text(9):("P = favourable / possible = 3/6 = 1/2.")
+
+// Put the four rungs of stand-in item gym_item in the rung cells of gym_texts.
+gym_fixture_rung_texts(string[] gym_texts, int gym_item) {
+  int gym_rung = 0;
+  while(gym_rung < (import gym_rung_count)) {
+    gym_texts[(import gym_text_rung) + gym_rung] = (import gym_fixture_rungs)[gym_item * (import gym_rung_count) + gym_rung];
+    gym_rung = gym_rung + 1;
+  }
+} return void;
+(["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""], 1):(["", "", "", "", "", "", "Think about whether one toss changes the other.", "If two events are independent, how do their probabilities combine?", "Each coin has the same chance of heads; combine the two chances.", "P(both heads) = 1/2 * 1/2 = 1/4.", "", "", "", "", "", "", "", "", "", "", ""])
+(["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""], 3):(["", "", "", "", "", "", "The second draw depends on what the first draw took.", "After one red marble is gone, how many marbles are left, and how many of them are red?", "The first draw is red with chance 3/4; now work out the second draw the same way.", "P = 3/4 * 2/3 = 6/12 = 1/2.", "", "", "", "", "", "", "", "", "", "", ""])
+
+// Put a finished session's cool-down text in the state: three items, one confident miss, two concepts due.
+gym_fixture_cooled() {
+  string[] gym_texts = (import gym_fixture_state).texts;
+  gym_texts[(import gym_text_cool)] = "session complete\nitems this session: 3\nwrong at 90% or more confidence: space_2 (99%), space_3 (90%)\nconcepts due a day from now: 2";
+} return void;
+given gym_fixture_make(0) ():() then gym_fixture_text(10):("session complete\nitems this session: 3\nwrong at 90% or more confidence: space_2 (99%), space_3 (90%)\nconcepts due a day from now: 2")
+given gym_fixture_make(1) ():() then gym_fixture_text(0):("")

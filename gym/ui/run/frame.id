@@ -1,0 +1,42 @@
+// One frame of the window loop.
+
+// One frame: the surface is fitted to the window, the waiting events are taken in, the picture is painted when it is the first frame, the window was resized, or something changed, and it is shown. Every frame is shown, painted or not, so a window that is not drawn again keeps its picture. Answers 1 when the window was closed.
+gym_frame(int gym_first) {
+  int gym_changed = gfx_sync();
+  int gym_bits = gym_events();
+  if(gym_first + gym_changed + gym_bits % 2 > 0) {
+    gym_paint((import gym_live)[0]);
+  }
+} chain (int gym_first) {
+  int gym_shown = gfx_present((import sf_l_px));
+  sleep_ms(10);
+  int gym_quit = gym_bits / 2;
+} return int gym_quit;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_mark_clock given gym_fixture_ready_live (1):(0) then gym_fixture_pixel(14, 12):(2840474)
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_mark_clock given gym_fixture_ready_live (0):(0) then gym_fixture_pixel(14, 12):(0)
+
+// Every event waiting, until gfx_event has none or one closes the window, then the once-a-frame work. Answers 1 for the picture to be painted again plus 2 when the window was closed.
+gym_events() {
+  int[] gym_input = [0, 0, 0, 0, 0];
+  int gym_kind = gfx_event(gym_input);
+  int gym_bits = 0;
+} chain () {
+  while(gym_kind != 0 && gym_bits / 2 == 0) {
+    gym_bits = gym_merge(gym_bits, gym_take(gym_kind, gym_input));
+    gym_kind = gfx_event(gym_input);
+  }
+  gym_bits = gym_merge(gym_bits, gym_idle());
+} return int gym_bits;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_mark_clock given gym_fixture_ready_live ():(0)
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_mark_clock given gym_fixture_back(2000) given gym_fixture_ready_live ():(1) then gym_fixture_live_cell(6):(2)
+
+// Two answers of the event functions put together: paint again if either says so (bit 1), close if either says so (bit 2).
+gym_merge(int gym_left_bits, int gym_right_bits) {
+  int gym_paint_again = gym_left_bits % 2 || gym_right_bits % 2;
+  int gym_close = gym_left_bits / 2 || gym_right_bits / 2;
+  int gym_both = gym_paint_again + 2 * gym_close;
+} return int gym_both;
+(0, 0):(0)
+(1, 0):(1)
+(0, 2):(2)
+(1, 3):(3)

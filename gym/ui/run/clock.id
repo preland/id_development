@@ -1,0 +1,23 @@
+// The wall clock, turned into the session's clock. This is the one place the program reads a clock; the reducer only ever sees the tick events made here.
+
+// Start the clock the ticks are counted from: now, in the one-cell export gym_mark.
+gym_mark_clock() {
+  int gym_now = ticks();
+  export int[] gym_mark = [gym_now];
+} return void export gym_mark;
+given gym_mark_clock ():() then gym_fixture_seconds():(0)
+given gym_mark_clock given gym_fixture_back(3000) ():() then gym_fixture_seconds():(0)
+
+// Turn the wall clock into the session's clock: for each whole second since the mark, a tick event, and the mark moves up by that many seconds. Answers 1 when it sent one.
+gym_pulse() {
+  int[] gym_cell = (import gym_mark);
+  int gym_passed = (ticks() - gym_cell[0]) / 1000;
+  gym_cell[0] = gym_cell[0] + gym_passed * 1000;
+} chain () {
+  if(gym_passed > 0) {
+    gym_dispatch_number((import gym_event_tick), gym_passed);
+  }
+  int gym_sent = gym_passed > 0;
+} return int gym_sent;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_mark_clock given gym_fixture_back(3500) ():(1) then gym_fixture_live_cell(6):(3)
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_mark_clock ():(0) then gym_fixture_live_cell(6):(0)

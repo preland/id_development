@@ -1,0 +1,37 @@
+// The scoreboard screen: the five metrics, the confidence-versus-accuracy table, and the definition of the metric the learner asked about. Only what the log can show counts; there is no streak, no points, no minutes studied and no completion figure on it, by design (spec P9).
+
+// Draw the scoreboard for the state: the list of metrics, the table and the open definition, all read from the lines the engine layer wrote.
+gym_paint_score(Session gym_state) {
+  gym_paint_list(gym_state);
+  gym_paint_table(gym_state);
+  gym_paint_definition(gym_state);
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 1) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_pixel(900, 300):(16448250) then gym_fixture_pixel(900, 600):(14411510) then gym_fixture_pixel(400, 165):(16777215)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 1) given gym_fixture_set(9, 2) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_colored(26, 478, 150, 22, 2105384):(1) then gym_fixture_colored(26, 482, 400, 20, 6316128):(0)
+
+// The heading of the metric list and a row for each metric.
+gym_paint_list(Session gym_state) {
+  int[] gym_box = gym_rectangle_of("score_list");
+  int gym_metric = 0;
+  int gym_end = gym_block(20, 1, "Scoreboard", gym_box[0] + 16, gym_box[1] + 8, gym_box[2] - 32, (import th_l_label));
+} chain (Session gym_state) {
+  gym_label("Delayed, unassisted, new-context results only; " + gym_state.texts[(import gym_text_head)] + ".", gym_box[0] + 16, gym_box[1] + 30, 20, (import th_l_label_tertiary));
+  while(gym_metric < len((import gym_metric_names))) {
+    gym_paint_row(gym_state, gym_metric);
+    gym_metric = gym_metric + 1;
+  }
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 1) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_colored(16, 78, 120, 24, 2105384):(1) then gym_fixture_colored(16, 100, 300, 20, 7039851):(1) then gym_fixture_pixel(400, 326):(16777215)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 1) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_pixel(10, 122):(13684944) then gym_fixture_pixel(400, 395):(16777215)
+
+// One metric: a card with its name over its line. The "?" button that opens its definition is drawn over the card's right end.
+gym_paint_row(Session gym_state, int gym_metric) {
+  int[] gym_box = gym_rectangle_of("score_list");
+  int gym_top = gym_metric_top(gym_metric);
+  gym_card(gym_box[0] + 10, gym_top, gym_box[2] - 20, (import gym_metric_step) - 8, (import th_l_surface_raised), (import th_l_separator));
+} chain (Session gym_state, int gym_metric) {
+  int gym_end = gym_block(15, 1, (import gym_metric_names)[gym_metric], gym_box[0] + 24, gym_top + 6, gym_box[2] - 90, (import th_l_label));
+  gym_label(gym_state.texts[(import gym_text_metric) + gym_metric], gym_box[0] + 24, gym_top + 26, 20, (import th_l_label_secondary));
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 1) given gym_fixture_put(11, "0.750 (n = 6)") given gym_fixture_ready ((import gym_fixture_state), 0):() then gym_fixture_pixel(400, 165):(16777215) then gym_fixture_pixel(10, 122):(13684944) then gym_fixture_colored(24, 128, 150, 18, 2105384):(1) then gym_fixture_colored(24, 148, 200, 20, 6316128):(1)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 1) given gym_fixture_ready ((import gym_fixture_state), 4):() then gym_fixture_pixel(400, 395):(16777215) then gym_fixture_colored(24, 360, 150, 18, 2105384):(1) then gym_fixture_inked(0, 122, 960, 200, 0):(0)

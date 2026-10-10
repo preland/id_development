@@ -1,0 +1,21 @@
+// The state of the rep in the words of the engine's gates. The gates (session_answer_gate, session_hint_gate, session_move_gate) read the eight slots of session_view; the window keeps the same facts as numbers, so this puts them back into slots, and the buttons ask the engine's own rules whether they may be pressed.
+
+// The eight slots of session_view for the state: the stage as waiting or committed (closed when no item is in play), the position and the size of the plan, the phase the plan gave the item, the hint rungs showing and whether the learner tapped out.
+gym_seen(Session gym_state) {
+  int[] gym_cells = gym_state.cells;
+  string gym_stage_word = (import gym_stage_states)[gym_cells[(import gym_cell_stage)]];
+  string gym_phase_word = (import gym_plan_phases)[fx_min(gym_cells[(import gym_cell_phase)], 2)];
+} chain (Session gym_state) {
+  string gym_tapped_word = "no";
+  if(gym_cells[(import gym_cell_closed)] == 1) {
+    gym_stage_word = "closed";
+  }
+  if(gym_cells[(import gym_cell_stage)] == (import gym_stage_tapped)) {
+    gym_tapped_word = "yes";
+  }
+} chain (Session gym_state) {
+  string[] gym_slots = [gym_stage_word, "" + (gym_cells[(import gym_cell_item)] + 1), "" + gym_cells[(import gym_cell_total)], "", gym_phase_word, "", "" + gym_cells[(import gym_cell_hints)], gym_tapped_word];
+} return string[] gym_slots;
+given gym_fixture_make(0) given gym_fixture_stock ((import gym_fixture_state)):(["waiting", "1", "0", "", "warmup", "", "0", "no"])
+given gym_fixture_make(2) given gym_fixture_stock given gym_fixture_set(3, 2) given gym_fixture_set(5, 4) given gym_fixture_set(7, 2) given gym_fixture_set(13, 5) ((import gym_fixture_state)):(["committed", "3", "5", "", "transfer", "", "4", "yes"])
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(14, 1) given gym_fixture_set(7, 4) ((import gym_fixture_state)):(["closed", "1", "0", "", "transfer", "", "0", "no"])

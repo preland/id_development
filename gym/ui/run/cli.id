@@ -1,0 +1,50 @@
+// The window command of gym: `gym` with no command, or `gym window`, opens the window; `gym window --script S.txt` replays a script without one. The options the other commands take (--pack, --log, --now, --seed, --url) are read by the same table and checked by the same rules; only --script, --dump and --render-after belong to the window and are read here.
+
+// 1 when the command line asks for the window: no command at all, or the word window first.
+gym_wants_window(int gym_count, string[] gym_words) {
+  int gym_asked = gym_count == 1 || (gym_count > 1 && gym_words[1] == "window");
+} return int gym_asked;
+(1, ["gym"]):(1)
+(2, ["gym", "window"]):(1)
+(3, ["gym", "score", "--pack"]):(0)
+(2, ["gym", "--help"]):(0)
+
+// What gym does for the window command line: the options are checked like any command's (a refusal names its fix and exits 2); with --script the script is replayed and, with --dump, the state and scoreboard it ends in are printed and, with --render-after, the screen it ends on is written; otherwise the window opens. Answers the exit status.
+gym_window_command(int gym_count, string[] gym_words, word gym_wall) {
+  string[] gym_values = [];
+  string[] gym_leftover = [];
+  string gym_trouble = opt_parse((import command_options), gym_strip_window(gym_count, gym_words), gym_values, gym_leftover);
+} chain (int gym_count, string[] gym_words, word gym_wall) {
+  string gym_refusal = gym_error_text(gym_trouble);
+  int gym_status = 2;
+  if(gym_trouble == "") {
+    gym_refusal = command_check(gym_values, gym_wall, ["pack", "log"]);
+  }
+} chain (int gym_count, string[] gym_words, word gym_wall) {
+  if(gym_refusal == "") {
+    gym_status = gym_window_start(gym_count, gym_words, gym_values, gym_wall);
+  }
+  if(gym_refusal == "help") {
+    print((import gym_usage));
+    gym_status = 0;
+  }
+  if(gym_refusal != "" && gym_refusal != "help") {
+    eprint(gym_refusal + "\n" + (import gym_usage));
+  }
+} return int gym_status;
+(3, ["gym", "window", "--help"], 5):(0) then prints:("usage: gym window --pack DIR --log FILE [--now MS] [--seed N] [--url URL] [--script S.txt [--dump] [--render-after OUT.ppm]]\n  script words: type TEXT, confidence N, submit, hint, tapout, next, tick SECONDS, screen N, define N, note TEXT, save, key NAME, click X Y; a line starting with # is a note\n")
+(3, ["gym", "window", "--bogus"], 5):(2) then eprints:("error: unknown option '--bogus'; run with --help to list the options\nusage: gym window --pack DIR --log FILE [--now MS] [--seed N] [--url URL] [--script S.txt [--dump] [--render-after OUT.ppm]]\n  script words: type TEXT, confidence N, submit, hint, tapout, next, tick SECONDS, screen N, define N, note TEXT, save, key NAME, click X Y; a line starting with # is a note\n")
+(2, ["gym", "window"], 5):(2) then eprints:("error: --pack is required; gym --help lists every option\nusage: gym window --pack DIR --log FILE [--now MS] [--seed N] [--url URL] [--script S.txt [--dump] [--render-after OUT.ppm]]\n  script words: type TEXT, confidence N, submit, hint, tapout, next, tick SECONDS, screen N, define N, note TEXT, save, key NAME, click X Y; a line starting with # is a note\n")
+
+// The command line without the words only the window knows (the command word, --dump, and --script and --render-after with their values), so the shared option table can read the rest.
+gym_strip_window(int gym_count, string[] gym_words) {
+  string[] gym_kept = [gym_words[0]];
+  int gym_at = 1;
+  while(gym_at < gym_count) {
+    gym_keep_word(gym_kept, gym_words, gym_at);
+    gym_at = gym_at + gym_option_span(gym_words, gym_at);
+  }
+} return string[] gym_kept;
+(1, ["gym"]):(["gym"])
+(7, ["gym", "window", "--pack", "p", "--script", "s.txt", "--dump"]):(["gym", "--pack", "p"])
+(6, ["gym", "--log", "l", "--render-after", "o.ppm", "--now"]):(["gym", "--log", "l", "--now"])

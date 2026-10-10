@@ -1,0 +1,30 @@
+// A click as an event for the reducer.
+
+// The reducer event command gym_command stands for (its kind and value in the command tables); for -1, no command, the event of kind 0, which the reducer ignores.
+gym_command_event(int gym_command) {
+  int gym_kind = 0;
+  int gym_value = 0;
+  if(gym_command >= 0) {
+    gym_kind = (import gym_command_kinds)[gym_command];
+    gym_value = (import gym_command_values)[gym_command];
+  }
+} chain (int gym_command) {
+  Event gym_made = Event(gym_kind, gym_value, "");
+} return Event gym_made;
+(-1):(Event(0, 0, ""))
+(4):(Event(3, 0, ""))
+(2):(Event(2, 90, ""))
+(13):(Event(9, 2, ""))
+
+// The event of a click at (gym_left, gym_top) on the state: the page is tiled and the buttons placed for the state's screen, then the click is tried on every button.
+gym_click(Session gym_state, int gym_left, int gym_top) {
+  gym_layout(gym_state);
+  gym_place(gym_state);
+  int gym_found = gym_hit(gym_left, gym_top);
+} chain (Session gym_state, int gym_left, int gym_top) {
+  Event gym_made = gym_command_event(gym_found);
+} return Event gym_made;
+given gym_fixture_make(0) given gym_fixture_set(2, 90) given gym_fixture_say("1/2") given gym_fixture_ready ((import gym_fixture_state), 100, 330):(Event(3, 0, ""))
+given gym_fixture_make(0) given gym_fixture_ready ((import gym_fixture_state), 100, 330):(Event(0, 0, ""))
+given gym_fixture_make(0) given gym_fixture_ready ((import gym_fixture_state), 750, 30):(Event(8, 1, ""))
+given gym_fixture_make(0) given gym_fixture_ready ((import gym_fixture_state), 480, 40):(Event(0, 0, ""))

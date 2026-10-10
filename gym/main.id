@@ -1,16 +1,26 @@
 // `gym`: the Mental Gym command line, one program over the pack, check, log,
-// plan, score and ai modules. It reads the real clock once, here, and hands it
-// down; every command also takes --now MS, so a whole session can be scripted
-// and replayed exactly. All state is the append-only log named by --log (see
-// log/FORMAT.md), so there is nothing else to find, back up or lose. The exit
-// status is the first element of command_run's answer. Usage: gym --help.
+// plan, score and ai modules, and the window (ui/) on top of them. It reads the
+// real clock once, here, and hands it down; every command also takes --now MS,
+// so a whole session can be scripted and replayed exactly. All state is the
+// append-only log named by --log (see log/FORMAT.md), so there is nothing else
+// to find, back up or lose. `gym` with no command, or `gym window`, opens the
+// window; every other command prints and exits with the first element of
+// command_run's answer. Usage: gym --help.
 
 main(int main_count, string[] main_arguments) {
   word main_clock = clk_ns((import clk_real)) / 1000000;
-  string[] main_out = command_run(main_arguments, main_clock);
-  print(main_out[1]);
+  int main_window = gym_wants_window(main_count, main_arguments);
+  int main_code = 0;
 } chain (int main_count, string[] main_arguments) {
-  int main_code = to_int(main_out[0]);
+  if (main_window == 1) {
+    main_code = gym_window_command(main_count, main_arguments, main_clock);
+  }
+  if (main_window == 0) {
+    string[] main_out = command_run(main_arguments, main_clock);
+    print(main_out[1]);
+    main_code = to_int(main_out[0]);
+  }
 } return int main_code;
 (2, ["gym", "--bogus"]):(2) then prints:("error: unknown option '--bogus'; run with --help to list the options\n")
 (2, ["gym", "pack"]):(2) then prints:("error: say what to do, one of:\ngym session start --pack DIR --log FILE [--now MS] [--seed N]\ngym answer --pack DIR --log FILE --text ANSWER --confidence 50|70|90|99 [--seconds N] [--now MS]\ngym hint --pack DIR --log FILE [--url URL] [--now MS]\ngym tapout --pack DIR --log FILE [--seconds N] [--now MS]\ngym next --pack DIR --log FILE [--now MS]\ngym score --pack DIR --log FILE [--now MS]\ngym why ITEM --pack DIR --log FILE [--now MS] [--seed N]\ngym pack check DIR\ngym grade --pack DIR --item ID --text ANSWER [--url URL]\n")
+(3, ["gym", "window", "--bogus"]):(2) then eprints:("error: unknown option '--bogus'; run with --help to list the options\nusage: gym window --pack DIR --log FILE [--now MS] [--seed N] [--url URL] [--script S.txt [--dump] [--render-after OUT.ppm]]\n  script words: type TEXT, confidence N, submit, hint, tapout, next, tick SECONDS, screen N, define N, note TEXT, save, key NAME, click X Y; a line starting with # is a note\n")

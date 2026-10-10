@@ -17,6 +17,7 @@ TIME <TAB> session_start
 TIME <TAB> session_end
 TIME <TAB> session_plan  <TAB> IDS <TAB> PHASES <TAB> REASONS
 TIME <TAB> session_next  <TAB> ITEM
+TIME <TAB> cooldown_note <TAB> NOTE
 ```
 
 | field | meaning | values |
@@ -36,7 +37,8 @@ TIME <TAB> session_next  <TAB> ITEM
 `GRADE` field is last and may be empty, so such a line ends in a TAB.
 
 `session_start` and `session_end` have 2 fields, `session_plan` 5 and
-`session_next` 3.
+`session_next` and `cooldown_note` 3. `NOTE` is the one line the learner wrote on the cool-down screen
+(escaped like `ANSWER`, non-empty); it is written by the window and no metric reads it.
 
 ## The current session
 

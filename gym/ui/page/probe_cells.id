@@ -1,0 +1,31 @@
+// Probes of the small state of the widgets, for the cases of the functions that place them.
+
+// Cell gym_field of the small state of button gym_command (0 x, 1 y, 2 width, 3 height, 4 look, 5 enabled, 7 font).
+gym_fixture_button(int gym_command, int gym_field) {
+  int gym_held_cell = gui_btn_cell((import gym_buttons)[gym_command], gym_field);
+} return int gym_held_cell;
+given gym_fixture_fonts given gym_widgets (4, 5):(1)
+given gym_fixture_fonts given gym_widgets (4, 2):(0)
+
+// Cell gym_field of the small state of the answer box (gym_which 0) or the note box (1): 0 x, 1 y, 2 width, 3 height, 5 whether it has the keyboard.
+gym_fixture_box_cell(int gym_which, int gym_field) {
+  int gym_held_cell = gui_textbox_cell((import gym_answer_box), gym_field);
+  if(gym_which == 1) {
+    gym_held_cell = gui_textbox_cell((import gym_note_box), gym_field);
+  }
+} return int gym_held_cell;
+given gym_fixture_fonts given gym_widgets (0, 2):(0)
+given gym_fixture_fonts given gym_widgets given gui_textbox_place((import gym_note_box), 1, 2, 30, 4) (1, 2):(30)
+
+// 1 when some pixel of the gym_span by gym_tall rectangle at (gym_left, gym_top) is exactly colour gym_color.
+gym_fixture_colored(int gym_left, int gym_top, int gym_span, int gym_tall, int gym_color) {
+  int gym_across = 0;
+  int gym_found = 0;
+  while(gym_across < gym_span * gym_tall && gym_found == 0) {
+    gym_found = gym_fixture_pixel(gym_left + gym_across % gym_span, gym_top + gym_across / gym_span) == gym_color;
+    gym_across = gym_across + 1;
+  }
+} return int gym_found;
+given gym_fixture_fonts given d2_l_rect(3, 3, 1, 1, 7) (0, 0, 10, 10, 7):(1)
+given gym_fixture_fonts given d2_l_rect(3, 3, 1, 1, 7) (0, 0, 10, 10, 8):(0)
+given gym_fixture_fonts given d2_l_rect(3, 3, 1, 1, 7) (4, 4, 5, 5, 7):(0)

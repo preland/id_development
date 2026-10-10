@@ -1,0 +1,55 @@
+// Text and boxes on the surface: breaking a text into lines that fit a width, drawing a block of it, and the filled rectangle with a border every card is made of.
+
+// The lines the text gym_text breaks into when each may be gym_width pixels wide in font gym_font: words stay whole and share a line while they fit, and a word wider than the width gets a line to itself.
+gym_wrap_lines(int gym_font, string gym_text, int gym_width) {
+  string[] gym_lines = [];
+  string[] gym_pieces = str_words(gym_text);
+  string gym_current = "";
+} chain (int gym_font, string gym_text, int gym_width) {
+  int gym_at = 0;
+  while(gym_at < len(gym_pieces)) {
+    gym_current = gym_wrap_step(gym_lines, gym_font, gym_current, gym_pieces[gym_at], gym_width);
+    gym_at = gym_at + 1;
+  }
+  if(len(gym_current) > 0) {
+    push(gym_lines, gym_current);
+  }
+} return string[] gym_lines;
+given gym_fixture_fonts given gym_fixture_open(14) (0, "", 1000):([])
+given gym_fixture_fonts given gym_fixture_open(14) (0, "alpha beta gamma", 1000):(["alpha beta gamma"])
+given gym_fixture_fonts given gym_fixture_open(14) (0, "alpha beta gamma", 1):(["alpha", "beta", "gamma"])[time:O(n), mem:O(n)]
+given gym_fixture_fonts given gym_fixture_open(14) (0, "alpha beta gamma alpha beta gamma alpha beta gamma alpha beta gamma", 1):(["alpha", "beta", "gamma", "alpha", "beta", "gamma", "alpha", "beta", "gamma", "alpha", "beta", "gamma"])[time:O(n), mem:O(n)]
+
+// Add word gym_piece to the line being built, gym_current, when it still fits in gym_width; else push gym_current onto gym_lines and start the next line with the word. Answers the line being built.
+gym_wrap_step(string[] gym_lines, int gym_font, string gym_current, string gym_piece, int gym_width) {
+  int gym_room = gym_width - gui_text_width(gym_font, gym_current);
+  int gym_need = gui_text_width(gym_font, " " + gym_piece);
+  string gym_carry = gym_piece;
+} chain (string[] gym_lines, int gym_font, string gym_current, string gym_piece, int gym_width) {
+  if(len(gym_current) > 0 && gym_need <= gym_room) {
+    gym_carry = gym_current + " " + gym_piece;
+  }
+  if(len(gym_current) > 0 && gym_need > gym_room) {
+    push(gym_lines, gym_current);
+  }
+} return string gym_carry;
+given gym_fixture_fonts given gym_fixture_open(14) ([], 0, "ab", "cd", 1000):("ab cd")
+given gym_fixture_fonts given gym_fixture_open(14) ([], 0, "ab", "cd", 1):("cd")
+given gym_fixture_fonts given gym_fixture_open(14) ([], 0, "", "cd", 1):("cd")
+
+// Draw gym_text wrapped to gym_span pixels at (gym_left, gym_top) in the sans-serif at gym_size pixels (bold when gym_bold is 1) and colour gym_color. Answers the y just under the last line.
+gym_block(int gym_size, int gym_bold, string gym_text, int gym_left, int gym_top, int gym_span, int gym_color) {
+  int gym_font = gui_face("sans-serif", gym_size, gym_bold);
+  string[] gym_lines = gym_wrap_lines(gym_font, gym_text, gym_span);
+  int gym_step = gui_font_line(gym_font) + 3;
+} chain (int gym_size, int gym_bold, string gym_text, int gym_left, int gym_top, int gym_span, int gym_color) {
+  int gym_row = 0;
+  int gym_end = gym_top + len(gym_lines) * gym_step;
+  while(gym_row < len(gym_lines)) {
+    gui_text_draw(gym_font, gym_left, gym_top + gym_row * gym_step, gym_lines[gym_row], gym_color);
+    gym_row = gym_row + 1;
+  }
+} return int gym_end;
+given gym_fixture_fonts (15, 0, "hello world", 10, 10, 600, 255):(30) then gym_fixture_inked(10, 10, 100, 17, 0):(1) then gym_fixture_inked(10, 30, 100, 17, 0):(0)
+given gym_fixture_fonts (15, 0, "hello world", 10, 10, 20, 255):(50) then gym_fixture_inked(10, 30, 60, 17, 0):(1)
+given gym_fixture_fonts (15, 0, "", 10, 10, 600, 255):(10) then gym_fixture_inked(0, 0, 200, 60, 0):(0)

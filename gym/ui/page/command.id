@@ -1,0 +1,73 @@
+// Which commands show on a screen, which are enabled in a state, and where each button sits. The enabled rules are the engine's own gates, so the screen shows what the engine would accept.
+
+// 1 when command gym_command has a button on the screen the state shows: the confidence levels, Submit, Hint, Tap out and Next on the rep screen, the three screen buttons always, and the "?" of each metric on the scoreboard.
+gym_command_visible(Session gym_state, int gym_command) {
+  int gym_shown = gym_state.cells[(import gym_cell_screen)];
+  int gym_always = gym_command >= (import gym_command_screens) && gym_command < (import gym_command_help);
+  int gym_visible = gym_always + (gym_command < (import gym_command_screens) && gym_shown == (import gym_screen_rep)) + (gym_command >= (import gym_command_help) && gym_shown == (import gym_screen_score));
+} return int gym_visible;
+given gym_fixture_make(0) given gym_fixture_stock ((import gym_fixture_state), 4):(1)
+given gym_fixture_make(0) given gym_fixture_stock ((import gym_fixture_state), 11):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 1) ((import gym_fixture_state), 11):(1)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 1) ((import gym_fixture_state), 4):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 2) ((import gym_fixture_state), 9):(1)
+
+// 1 when the button of command gym_command can be pressed in the state, as the engine's own gates say (gym/session): the levels and Tap out while the rep waits for its attempt, Submit with an answer and a confidence, Hint only after a committed attempt and never in the warm-up, Next once the rep is finished. The screen buttons and the scoreboard "?" are always on.
+gym_command_enabled(Session gym_state, int gym_command) {
+  string[] gym_seen_now = gym_seen(gym_state);
+  string gym_typed = gym_state.texts[(import gym_text_answer)];
+  int gym_ready = 1;
+} chain (Session gym_state, int gym_command) {
+  if(gym_command < (import gym_command_submit) || gym_command == (import gym_command_tap_out)) {
+    gym_ready = session_answer_gate(gym_seen_now, "tap-out", (import session_confidence_default)) == "";
+  }
+  if(gym_command == (import gym_command_submit)) {
+    gym_ready = session_answer_gate(gym_seen_now, gym_typed, gym_state.cells[(import gym_cell_confidence)]) == "";
+  }
+  if(gym_command == (import gym_command_hint)) {
+    gym_ready = session_hint_gate(gym_seen_now) == "";
+  }
+} chain (Session gym_state, int gym_command) {
+  if(gym_command == (import gym_command_next)) {
+    gym_ready = session_move_gate(gym_seen_now) == "";
+  }
+} return int gym_ready;
+given gym_fixture_make(0) given gym_fixture_stock ((import gym_fixture_state), 4):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(2, 90) ((import gym_fixture_state), 4):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_say("1/2") ((import gym_fixture_state), 4):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(2, 90) given gym_fixture_say("1/2") ((import gym_fixture_state), 4):(1)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(3, 1) given gym_fixture_set(2, 90) given gym_fixture_say("1/2") ((import gym_fixture_state), 4):(0)
+given gym_fixture_make(0) given gym_fixture_stock ((import gym_fixture_state), 5):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(3, 1) given gym_fixture_set(7, 1) ((import gym_fixture_state), 5):(1)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(3, 1) ((import gym_fixture_state), 5):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(3, 1) given gym_fixture_set(7, 2) ((import gym_fixture_state), 5):(1)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(3, 1) given gym_fixture_set(5, 4) ((import gym_fixture_state), 5):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(3, 2) given gym_fixture_set(5, 4) ((import gym_fixture_state), 5):(0)
+given gym_fixture_make(0) given gym_fixture_stock ((import gym_fixture_state), 7):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(3, 2) ((import gym_fixture_state), 7):(1)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(3, 1) ((import gym_fixture_state), 2):(0)
+given gym_fixture_make(0) given gym_fixture_stock ((import gym_fixture_state), 2):(1)
+given gym_fixture_make(0) given gym_fixture_stock ((import gym_fixture_state), 6):(1)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(3, 1) ((import gym_fixture_state), 6):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(14, 1) ((import gym_fixture_state), 6):(0)
+given gym_fixture_make(0) given gym_fixture_stock ((import gym_fixture_state), 9):(1)
+
+// The rectangle of command gym_command's button: its cell on the page shrunk by the button inset, the "?" box of its row on the scoreboard, and all zero when the button is not on the screen the state shows.
+gym_command_box(Session gym_state, int gym_command) {
+  int[] gym_box = [0, 0, 0, 0];
+  if(gym_command < (import gym_command_help)) {
+    gym_box = gym_rectangle_of((import gym_command_cells)[gym_command]);
+    gym_inset(gym_box, (import gym_button_inset));
+  }
+  if(gym_command >= (import gym_command_help)) {
+    gym_box = gym_help_box(gym_command - (import gym_command_help));
+  }
+} chain (Session gym_state, int gym_command) {
+  if(gym_command_visible(gym_state, gym_command) == 0) {
+    gym_box = [0, 0, 0, 0];
+  }
+} return int[] gym_box;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ((import gym_fixture_state), 4):([8, 317, 234, 41])
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ((import gym_fixture_state), 11):([0, 0, 0, 0])
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 1) given gym_fixture_ready ((import gym_fixture_state), 11):([511, 126, 28, 28])
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ((import gym_fixture_state), 9):([699, 8, 118, 54])

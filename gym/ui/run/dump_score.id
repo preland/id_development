@@ -1,0 +1,28 @@
+// The scoreboard in a dump.
+
+// The five scoreboard lines, the four lines of the confidence table and the head, as the engine layer wrote them.
+gym_dump_score(Session gym_state) {
+  string[] gym_texts = gym_state.texts;
+  string[] gym_lines = [];
+  int gym_metric = 0;
+} chain (Session gym_state) {
+  while(gym_metric < len((import gym_metric_names))) {
+    push(gym_lines, (import gym_metric_names)[gym_metric] + ": " + gym_texts[(import gym_text_metric) + gym_metric]);
+    gym_metric = gym_metric + 1;
+  }
+  gym_dump_table(gym_lines, gym_texts);
+  push(gym_lines, "head " + gym_texts[(import gym_text_head)]);
+} return string[] gym_lines;
+(Session([0, 0, 0, 0, 0, 0, 0, 0, 300, -1, 0, 0, 0, 0, 0], ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""])):(["Retention: ", "Transfer: ", "Calibration: ", "Independence: ", "Fluency: ", "table ", "table ", "table ", "table ", "head "])
+(Session([0, 0, 0, 0, 0, 0, 0, 0, 300, -1, 0, 0, 0, 0, 0], ["", "", "", "", "", "", "", "", "", "", "", "0.5", "x", "", "", "z", "50%: no reps yet", "", "", "99%: 1 rep", "from 1 logged attempts"])):(["Retention: 0.5", "Transfer: x", "Calibration: ", "Independence: ", "Fluency: z", "table 50%: no reps yet", "table ", "table ", "table 99%: 1 rep", "head from 1 logged attempts"])
+
+// Add a line for each confidence level of the table, from the four texts that follow gym_text_bin.
+gym_dump_table(string[] gym_lines, string[] gym_texts) {
+  int gym_slot = 0;
+  while(gym_slot < len((import gym_levels))) {
+    push(gym_lines, "table " + gym_texts[(import gym_text_bin) + gym_slot]);
+    gym_slot = gym_slot + 1;
+  }
+} return void;
+([], ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "a", "b", "c", "d", ""]):(["table a", "table b", "table c", "table d"])
+(["x"], ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]):(["x", "table ", "table ", "table ", "table "])

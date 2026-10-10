@@ -17,6 +17,7 @@ default the real one), so a whole session can be scripted and replayed exactly. 
 | `gym why ITEM` | the reason the item is on the plan |
 | `gym pack check DIR` | validates a pack |
 | `gym grade --item ID --text A [--url URL]` | grades one answer through the model (the old gymprobe) |
+| `gym` or `gym window` | opens the window (ui/README.md); `--script S.txt [--dump] [--render-after O.ppm]` replays a script on the same engine without one |
 
 Layers: `session/` is the engine (pure functions of a replayed log, plus the operations that append to it),
 `cli/` turns options into engine calls and engine results into text, `golden/` replays a scripted session as

@@ -1,0 +1,18 @@
+// Probes that make input for the cases of the event functions.
+
+// A mouse event of kind gym_kind at (gym_left, gym_top), left button, given to the window's event handler.
+gym_fixture_send(int gym_kind, int gym_left, int gym_top) {
+  int[] gym_sent_event = [gym_kind, gym_left, gym_top, 1, 1];
+  int gym_sent_bits = gym_take(gym_kind, gym_sent_event);
+} return void;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_fixture_ready_live (3, 700, 280):() then gym_fixture_live_cell(2):(0)
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_fixture_ready_live given gym_fixture_send(3, 700, 280) (4, 700, 280):() then gym_fixture_live_cell(2):(90)
+
+// A left press at (gym_left, gym_top) sent to every button, without the release.
+gym_fixture_down(int gym_left, int gym_top) {
+  int[] gym_down_event = [3, gym_left, gym_top, 1, 1];
+  int gym_down_found = gym_press(3, gym_down_event);
+} return void;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_fixture_ready_live (0, 0):() then gym_fixture_button(0, 4):(0)
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_fixture_ready_live (700, 280):() then gym_fixture_button(2, 4):(2)
+

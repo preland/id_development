@@ -1,0 +1,16 @@
+// The live session: the window mode's one piece of changing state, a list of one Session in the export gym_live. The loop replaces the cell with the new state after every event (run/dispatch.id), so nothing else is ever changed in place.
+
+// Start the live session: the first item in play, nothing picked, the clock at zero. It knows nothing of the log yet; gym_live_begin reads that.
+gym_live_open() {
+  Session gym_opening = gym_start(0);
+  export Session[] gym_live = [gym_opening];
+} return void export gym_live;
+():() then gym_fixture_live_cell(1):(0) then gym_fixture_live_cell(8):(300)
+():() then gym_fixture_live_text(1):("") then gym_fixture_live_cell(9):(-1)
+
+// Put the session the world's log holds in the live session, planning one first when none is running.
+gym_live_begin() {
+  gym_begin_session((import gym_setting), (import gym_live));
+} return void;
+given gym_fixture_world("", 5) given gym_live_open ():() then gym_fixture_live_cell(13):(3) then gym_fixture_live_cell(7):(1)
+given gym_fixture_world("1\tsession_start\n1\tsession_plan\tspace_1,space_2\twarmup,main\tr\\nr\n", 5) given gym_live_open ():() then gym_fixture_live_cell(13):(2) then gym_fixture_live_cell(7):(0)

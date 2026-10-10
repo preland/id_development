@@ -1,0 +1,39 @@
+// A picture of a state in a file: the whole window painted on a fresh surface and written as a binary PPM, for --render-after and for looking at a screen without a display.
+
+// Open a surface of gym_width by gym_height, start the font layer, tile the idml page and make the widgets: all a paint needs. The window mode and the render both start here.
+gym_ui_open(int gym_width, int gym_height) {
+  sf_l_init(gym_width, gym_height);
+  gui_font_init();
+  gym_page(gym_width, gym_height);
+} chain (int gym_width, int gym_height) {
+  gym_widgets();
+} return void;
+(480, 320):() then gym_fixture_area("phases", 2):(278) then gym_fixture_buttons():(16)
+(960, 640):() then gym_fixture_area("phases", 2):(557) then gym_fixture_pixel(959, 639):(0)
+
+// Paint the state on a surface of the window's size and write it to the file at gym_path. Answers 0, or 1 after naming on stderr what went wrong.
+gym_render(Session gym_state, string gym_path) {
+  gym_ui_open((import gym_window_width), (import gym_window_height));
+  gym_paint(gym_state);
+  int gym_lost = gym_ppm_write(gym_path);
+} return int gym_lost;
+given gym_fixture_make(0) given gym_fixture_path ((import gym_fixture_state), (import gym_fixture_file)):(0) then fs_size((import gym_fixture_file)):(1843215)
+given gym_fixture_make(0) ((import gym_fixture_state), "/nonexistent/dir/x.ppm"):(1) then eprints:("gym window: the picture could not be written; check that the folder exists and that you may write to it [/nonexistent/dir/x.ppm]\n")
+
+// Write the surface to the file at gym_path as a binary PPM (P6, 255). Answers 0, or 1 after naming on stderr what went wrong and how to fix it.
+gym_ppm_write(string gym_path) {
+  int gym_handle = fs_open(gym_path, "w");
+  string gym_head = "P6\n" + (import sf_l_w) + " " + (import sf_l_h) + "\n255\n";
+  int gym_lost = 1;
+} chain (string gym_path) {
+  if(gym_handle >= 0) {
+    gym_lost = fs_write(gym_handle, exec_bytes(gym_head), len(gym_head)) - len(gym_head);
+    gym_lost = gym_lost + gym_ppm_rows(gym_handle);
+    gym_lost = gym_lost + fs_close(gym_handle);
+  }
+  if(gym_lost != 0) {
+    eprint("gym window: the picture could not be written; check that the folder exists and that you may write to it [" + gym_path + "]");
+  }
+} return int gym_lost;
+given gym_fixture_fonts given sf_l_init(4, 3) given gym_fixture_path ((import gym_fixture_file)):(0) then fs_size((import gym_fixture_file)):(47)
+given gym_fixture_fonts given sf_l_init(4, 3) ("/nonexistent/dir/y.ppm"):(1) then eprints:("gym window: the picture could not be written; check that the folder exists and that you may write to it [/nonexistent/dir/y.ppm]\n")

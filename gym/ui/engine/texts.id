@@ -1,0 +1,55 @@
+// Reading the words of the rep back from the pack: the prompt of the item in play and, once the attempt is committed, the reference answer and the rubric lines (the why of a good solution), and the hint rungs shown so far. Nothing here is kept between operations; the pack and the log are the truth.
+
+// Fill the prompt, reference and rubric texts for the item gym_view names. The reference and the rubric stay empty until the attempt is committed, so the answer is never in the state before the learner has tried.
+gym_adopt_texts(World gym_world, Session gym_state, string[] gym_view) {
+  string[] gym_texts = gym_state.texts;
+  int gym_found = pack_find(gym_world.book, "item", gym_view[(import session_slot_item)]);
+  int gym_playing = gym_state.cells[(import gym_cell_closed)] == 0 && gym_found >= 0;
+} chain (World gym_world, Session gym_state, string[] gym_view) {
+  int gym_done = gym_state.cells[(import gym_cell_stage)] != (import gym_stage_waiting);
+  gym_texts[(import gym_text_reference)] = "";
+  gym_texts[(import gym_text_rubric)] = "";
+} chain (World gym_world, Session gym_state, string[] gym_view) {
+  if(gym_playing == 1) {
+    gym_texts[(import gym_text_prompt)] = pack_field(gym_world.book, gym_found, "prompt");
+  }
+  if(gym_playing * gym_done == 1) {
+    gym_texts[(import gym_text_reference)] = pack_field(gym_world.book, gym_found, "answer");
+    gym_texts[(import gym_text_rubric)] = str_join(pack_fields(gym_world.book, gym_found, "rubric"), "\n");
+  }
+  gym_adopt_rungs(gym_world, gym_state, gym_found);
+} return void;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_fixture_make(0) ((import gym_setting), (import gym_fixture_state), ["waiting", "1", "3", "space_1", "main", "r", "0", "no"]):() then gym_fixture_text(2):("A fair six-sided die is rolled once. What is the probability of rolling a number greater than 4? Give a fraction.") then gym_fixture_text(3):("")
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_fixture_make(0) given gym_fixture_set(3, 1) ((import gym_setting), (import gym_fixture_state), ["committed", "1", "3", "space_1", "main", "r", "0", "no"]):() then gym_fixture_text(3):("1/3") then gym_fixture_text(4):("Lists or counts the six equally likely outcomes.\nCounts the outcomes greater than 4 and divides by the total.")
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_fixture_make(0) given gym_fixture_set(14, 1) given gym_fixture_put(2, "old") ((import gym_setting), (import gym_fixture_state), ["closed", "3", "3", "", "", "", "0", "no"]):() then gym_fixture_text(2):("old") then gym_fixture_text(3):("")
+
+// The hint rungs showing for the item in play, in the four text cells from gym_text_rung: rung r shows when fewer than the hints given have gone by (a tap-out shows only the worked example). A rung already holding its words keeps them, since the model may have reworded it; one that has none yet gets the pack's own.
+gym_adopt_rungs(World gym_world, Session gym_state, int gym_found) {
+  int gym_rung = 0;
+  while(gym_rung < (import gym_rung_count)) {
+    gym_adopt_rung(gym_world, gym_state, gym_found, gym_rung);
+    gym_rung = gym_rung + 1;
+  }
+} return void;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_fixture_make(0) given gym_fixture_set(3, 1) given gym_fixture_set(5, 2) ((import gym_setting), (import gym_fixture_state), 12):() then gym_fixture_text(6):("Begin by writing down every outcome one roll can have.") then gym_fixture_text(7):("Which of those outcomes count as \"greater than 4\", and how many outcomes are there altogether?") then gym_fixture_text(8):("")
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_fixture_make(0) given gym_fixture_set(3, 2) given gym_fixture_set(5, 4) ((import gym_setting), (import gym_fixture_state), 12):() then gym_fixture_text(6):("") then gym_fixture_text(9):("The outcomes are 1, 2, 3, 4, 5, 6. Those greater than 4 are 5 and 6, which is 2 outcomes. So P = 2/6 = 1/3.")
+
+// Set rung gym_rung's text: empty when the rung is not showing, what it already holds if it holds something, else the pack's hint for it.
+gym_adopt_rung(World gym_world, Session gym_state, int gym_found, int gym_rung) {
+  string[] gym_texts = gym_state.texts;
+  int gym_slot = (import gym_text_rung) + gym_rung;
+  int gym_tapped = gym_state.cells[(import gym_cell_stage)] == (import gym_stage_tapped);
+} chain (World gym_world, Session gym_state, int gym_found, int gym_rung) {
+  int gym_showing = (1 - gym_tapped) * (gym_rung < gym_state.cells[(import gym_cell_hints)]) + gym_tapped * (gym_rung == (import gym_rung_count) - 1);
+  string gym_wording = "";
+  if(gym_showing * (gym_found >= 0) == 1) {
+    gym_wording = pack_field(gym_world.book, gym_found, (import pack_rung_keys)[gym_rung]);
+  }
+} chain (World gym_world, Session gym_state, int gym_found, int gym_rung) {
+  if(gym_showing == 1 && len(gym_texts[gym_slot]) > 0) {
+    gym_wording = gym_texts[gym_slot];
+  }
+  gym_texts[gym_slot] = gym_wording;
+} return void;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_fixture_make(0) given gym_fixture_set(3, 1) given gym_fixture_set(5, 1) given gym_fixture_put(6, "reworded") ((import gym_setting), (import gym_fixture_state), 12, 0):() then gym_fixture_text(6):("reworded")
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_fixture_make(0) given gym_fixture_set(3, 1) given gym_fixture_set(5, 1) given gym_fixture_put(7, "left over") ((import gym_setting), (import gym_fixture_state), 12, 1):() then gym_fixture_text(7):("")

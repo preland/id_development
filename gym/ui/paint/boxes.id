@@ -1,0 +1,33 @@
+// The two text boxes. The state is the truth about what they hold: a window shell copies what the learner types into the state as an event (gym_lead), and every paint puts the state's text back in the box (gym_follow), which is what keeps an answer fixed once it is committed.
+
+// Make the text boxes hold the state's text: the typed answer in the answer box, the cool-down line in the note box.
+gym_boxes_follow(Session gym_state) {
+  gym_follow_box((import gym_answer_box), gym_state.texts[(import gym_text_answer)]);
+  gym_follow_box((import gym_note_box), gym_state.texts[(import gym_text_note)]);
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_say("1/2") given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_boxes(0):("1/2") then gym_fixture_boxes(1):("")
+given gym_fixture_make(0) given gym_fixture_stock given gym_apply((import gym_fixture_state), Event(10, 0, "memo")) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_boxes(1):("memo") then gym_fixture_boxes(0):("")
+
+// Put gym_wanted in text box gym_widget unless it holds that already, which keeps the caret and the selection where they are.
+gym_follow_box(GuiTextBox gym_widget, string gym_wanted) {
+  if(gui_textbox_text(gym_widget) != gym_wanted) {
+    gui_textbox_set(gym_widget, gym_wanted);
+  }
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ((import gym_answer_box), "x"):() then gym_fixture_boxes(0):("x")
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready given gui_textbox_set((import gym_answer_box), "y") ((import gym_answer_box), ""):() then gym_fixture_boxes(0):("")
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready given gui_textbox_set((import gym_answer_box), "x") ((import gym_answer_box), "x"):() then gym_fixture_boxes(0):("x")
+
+// Draw the text box of the screen the state shows: the answer box on the rep screen, the note box on the cool-down screen.
+gym_draw_boxes(Session gym_state) {
+  int gym_shown = gym_state.cells[(import gym_cell_screen)];
+  if(gym_shown == (import gym_screen_rep)) {
+    gui_textbox_draw((import gym_answer_box));
+  }
+  if(gym_shown == (import gym_screen_cool_down)) {
+    gui_textbox_draw((import gym_note_box));
+  }
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_inked(10, 221, 940, 21, 0):(1) then gym_fixture_inked(10, 347, 940, 55, 0):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 2) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_inked(10, 347, 940, 55, 0):(1) then gym_fixture_inked(10, 221, 940, 21, 0):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 1) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_inked(0, 0, 960, 640, 0):(0)

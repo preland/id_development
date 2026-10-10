@@ -1,0 +1,49 @@
+// One window event, given to the buttons, the text boxes and the reducer.
+
+// Take in one event as gfx_event wrote it (gym_kind and gym_input: 1 key, 2 text, 3 down, 4 up, 5 move, 7 close). The text boxes see it first; a press and release on a button gives that button's event to the reducer; a key the boxes did not have the keyboard for gives a key event, and Enter in a box gives an Enter. Answers 1 for the picture to be painted again plus 2 when the window was closed.
+gym_take(int gym_kind, int[] gym_input) {
+  int gym_typing = gym_typing_now();
+  int gym_box_bits = gym_boxes_event(gym_kind, gym_input);
+  int gym_synced = gym_lead();
+} chain (int gym_kind, int[] gym_input) {
+  int gym_command = 0 - 1;
+  if(gym_kind >= 3 && gym_kind <= 5) {
+    gym_command = gym_press(gym_kind, gym_input);
+  }
+  if(gym_command >= 0) {
+    gym_dispatch(gym_command_event(gym_command));
+  }
+} chain (int gym_kind, int[] gym_input) {
+  if(gym_kind == 1 && gym_typing == 0) {
+    gym_dispatch_number((import gym_event_key), gym_input[1]);
+  }
+  if(gym_box_bits / 2 % 2 == 1) {
+    gym_dispatch_number((import gym_event_key), (import gym_key_enter));
+  }
+  int gym_bits = 1 + 2 * (gym_kind == 7);
+} return int gym_bits;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_fixture_ready_live given gym_fixture_down(700, 280) (4, [4, 700, 280, 1, 0]):(1) then gym_fixture_live_cell(2):(90)
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_fixture_ready_live (7, [7, 0, 0, 0, 0]):(3)
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_fixture_live_set(2, 90) given gym_fixture_ready_live (1, [1, 1009, 0, 0, 0]):(1) then gym_fixture_live_cell(3):(0) then gym_fixture_live_text(5):("no session is running: start one with gym session start")
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_fixture_live_set(9, 3) given gym_fixture_ready_live given gui_textbox_focus((import gym_answer_box), 1) (1, [1, 1011, 0, 0, 0]):(1) then gym_fixture_live_cell(9):(3)
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_fixture_live_set(2, 90) given gym_fixture_ready_live given gui_textbox_focus((import gym_answer_box), 1) (1, [1, 1009, 0, 0, 0]):(1) then gym_fixture_live_cell(3):(0) then gym_fixture_live_text(5):("no session is running: start one with gym session start")
+
+// Give one event to both text boxes. Answers 1 if either wants to be drawn again plus 2 if either was activated (Enter in it).
+gym_boxes_event(int gym_kind, int[] gym_input) {
+  int gym_first_bits = gui_textbox_event((import gym_answer_box), gym_kind, gym_input);
+  int gym_second_bits = gui_textbox_event((import gym_note_box), gym_kind, gym_input);
+  int gym_bits = gym_merge(gym_first_bits % 2, gym_second_bits % 2) + 2 * (gym_first_bits / 2 % 2 || gym_second_bits / 2 % 2);
+} return int gym_bits;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_fixture_ready_live given gui_textbox_focus((import gym_answer_box), 1) (2, [2, 97, 0, 0, 0]):(1) then gym_fixture_boxes(0):("a")
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_fixture_ready_live (2, [2, 97, 0, 0, 0]):(0) then gym_fixture_boxes(0):("")
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_fixture_ready_live given gui_textbox_focus((import gym_answer_box), 1) (1, [1, 1009, 0, 0, 0]):(2)
+
+// 1 when either text box has the keyboard.
+gym_typing_now() {
+  int gym_answer_focus = gui_textbox_cell((import gym_answer_box), (import gui_tbw_o_focus));
+  int gym_note_focus = gui_textbox_cell((import gym_note_box), (import gui_tbw_o_focus));
+  int gym_typing = gym_answer_focus || gym_note_focus;
+} return int gym_typing;
+given gym_fixture_ui ():(0)
+given gym_fixture_ui given gui_textbox_focus((import gym_answer_box), 1) ():(1)
+given gym_fixture_ui given gui_textbox_focus((import gym_note_box), 1) ():(1)

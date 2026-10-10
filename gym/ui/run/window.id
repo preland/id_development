@@ -1,0 +1,47 @@
+// The window mode: a frame loop around the pure reducer, as word's app_frame does it. The loop owns the window and the clock; the reducer owns every rule. A web shell would replace this file with its own loop and keep everything else.
+
+// The window mode: make the surface, the page and the widgets, start a session, open a 960 by 640 window (when gym_open is 1, so a case can run the rest without one) and run frames until it is closed. Answers 0, or 1 after naming on stderr that no window could be opened.
+gym_window(int gym_open) {
+  gym_ui_open((import gym_window_width), (import gym_window_height));
+  gym_live_open();
+  gym_live_begin();
+} chain (int gym_open) {
+  gym_mark_clock();
+  int gym_ok = gym_open;
+  if(gym_open == 1) {
+    gym_ok = gfx_open((import gym_window_width), (import gym_window_height), "Mental Gym");
+  }
+} chain (int gym_open) {
+  int gym_frames = gym_loop(gym_ok, 0 - 1);
+  int gym_status = gym_closed(gym_open, gym_ok);
+} return int gym_status;
+given gym_fixture_world("", 5) (0):(0) then gym_fixture_live_cell(8):(780) then gym_fixture_buttons():(16)
+given gym_fixture_world("", 5) (0):(0) then gym_fixture_live_text(0):("") then gym_fixture_area("phases", 2):(557)
+
+// Frames until the window closes or gym_max have run (a negative gym_max is no limit): the first one paints. Answers how many ran. With no window (gym_ok 0) none run.
+gym_loop(int gym_ok, int gym_max) {
+  int gym_count = 0;
+  int gym_quit = gym_ok == 0;
+  while(gym_quit == 0 && gym_count != gym_max) {
+    gym_quit = gym_frame(gym_count == 0);
+    gym_count = gym_count + 1;
+  }
+} return int gym_count;
+(0, 5):(0)
+(1, 0):(0)
+
+// What the window mode answers once the loop is over: the window is closed if one was opened, and a window that was wanted but not opened is named on stderr (the answer is then 1).
+gym_closed(int gym_open, int gym_ok) {
+  int gym_gone = 0;
+  if(gym_open == 1) {
+    gym_gone = gfx_close();
+  }
+  if(gym_open == 1 && gym_ok == 0) {
+    eprint("gym window: no window could be opened; run it where a display is (DISPLAY or WAYLAND_DISPLAY), or use --script with --render-after");
+  }
+} chain (int gym_open, int gym_ok) {
+  int gym_status = gym_open * (1 - gym_ok);
+} return int gym_status;
+(0, 0):(0)
+(1, 1):(0)
+(1, 0):(1) then eprints:("gym window: no window could be opened; run it where a display is (DISPLAY or WAYLAND_DISPLAY), or use --script with --render-after\n")

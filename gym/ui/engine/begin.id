@@ -1,0 +1,26 @@
+// Opening a session in the window. The log is the only state, so a log whose last session is still going is picked up where it stopped; otherwise the planner makes a new session (gym/plan) and records it, exactly as `gym session start` does.
+
+// Put in gym_holder[0] the state of the session this world's log holds, planning a new one first when there is none running. When the planner has nothing to offer, the question card says why.
+gym_begin_session(World gym_world, Session[] gym_holder) {
+  Log_replay gym_replayed = log_replay(gym_world.record.log);
+  string[] gym_view = session_view(gym_replayed.events);
+  string[] gym_planning = ["ok", ""];
+} chain (World gym_world, Session[] gym_holder) {
+  int gym_vacant = gym_view[(import session_slot_state)] == "none" || gym_view[(import session_slot_state)] == "closed" || gym_view[(import session_slot_state)] == "over";
+  if(gym_vacant == 1) {
+    gym_planning = session_start_plan(gym_world.book, gym_world.record.log, gym_world.record.origin, gym_world.record.seed);
+  }
+  Session gym_fresh = gym_start(0);
+} chain (World gym_world, Session[] gym_holder) {
+  Log_replay gym_planned = log_replay(gym_world.record.log);
+  Session gym_beginning = gym_derive(gym_world, gym_fresh, gym_planned.events);
+  gym_beginning.texts[(import gym_text_notice)] = "";
+} chain (World gym_world, Session[] gym_holder) {
+  if(gym_planning[0] == "refused") {
+    gym_beginning.texts[(import gym_text_prompt)] = gym_planning[1];
+  }
+  gym_holder[0] = gym_beginning;
+} return void;
+given gym_fixture_world("", 1760000000000) given gym_live_open ((import gym_setting), (import gym_live)):() then gym_fixture_live_cell(13):(3) then gym_fixture_live_cell(14):(0) then gym_fixture_live_text(2):("A fair six-sided die is rolled once. What is the probability of rolling a number greater than 4? Give a fraction.")
+given gym_fixture_world("1\tsession_start\n2\tsession_plan\tspace_1,space_2\tmain,main\tr\\nr\n3\tattempt\tspace_1\t1/3\t90\tcorrect\t0\t5\tno\t\n4\tsession_next\tspace_1\n", 1760000000000) given gym_live_open ((import gym_setting), (import gym_live)):() then gym_fixture_live_cell(1):(1) then gym_fixture_live_cell(13):(2) then gym_fixture_live_text(2):("Two fair coins are flipped. What is the probability of getting exactly one head? Give a fraction.") then gym_fixture_logged():("1\tsession_start\n2\tsession_plan\tspace_1,space_2\tmain,main\tr\\nr\n3\tattempt\tspace_1\t1/3\t90\tcorrect\t0\t5\tno\t\n4\tsession_next\tspace_1\n")
+given gym_fixture_world("1\tsession_start\n2\tsession_plan\tspace_1\tmain\tr\n3\tattempt\tspace_1\t1/3\t90\tcorrect\t0\t5\tno\t\n4\tsession_next\tspace_1\n4\tsession_end\n", 1760000000000) given gym_live_open ((import gym_setting), (import gym_live)):() then gym_fixture_live_cell(1):(0) then gym_fixture_live_cell(14):(0)

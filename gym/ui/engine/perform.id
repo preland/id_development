@@ -1,0 +1,48 @@
+// Doing an engine operation for the learner: the call into gym/session that appends to the log, then reading the state back from the log. What the engine refuses (no confidence, no attempt yet, a hint in the warm-up) comes back as a notice for the screen, and nothing is written.
+
+// Do the operation gym_event stands for on the session in gym_holder[0] and replace it with the state the log now shows.
+gym_perform(World gym_world, Session[] gym_holder, Event gym_event) {
+  Session gym_before = gym_holder[0];
+  word gym_moment = gym_session_time(gym_world, gym_before);
+  string[] gym_result = gym_operate(gym_world, gym_before, gym_event.kind, gym_moment);
+} chain (World gym_world, Session[] gym_holder, Event gym_event) {
+  gym_adopt(gym_world, gym_holder, gym_event.kind, gym_result);
+} return void;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open ((import gym_setting), (import gym_live), Event(7, 0, "")):() then gym_fixture_live_text(5):("no session is running: start one with gym session start") then gym_fixture_live_cell(3):(0)
+given gym_fixture_world("", 1760000000000) given gym_live_open given gym_live_begin ((import gym_setting), (import gym_live), Event(3, 0, "")):() then gym_fixture_live_text(5):("no answer without a confidence: pass --confidence 50, 70, 90 or 99") then gym_fixture_logged():("1760000000000\tsession_start\n1760000000000\tsession_plan\tspace_1,space_2,space_3\tmain,main,main\tnew: no prerequisites; expected first-try success 76%\\nnew: no prerequisites; expected first-try success 70%\\nnew: no prerequisites; expected first-try success 57%\n")
+
+// Call the engine for event kind gym_kind with the state's answer, confidence and seconds spent: submit, hint, tap out, next or keep the line. Answers the engine's result, ["ok", ...] or ["refused", why].
+gym_operate(World gym_world, Session gym_state, int gym_kind, word gym_moment) {
+  string[] gym_result = ["refused", "that is not something to do now"];
+  int gym_spent = gym_state.cells[(import gym_cell_elapsed)] - gym_state.cells[(import gym_cell_started)];
+  string gym_typed = gym_state.texts[(import gym_text_answer)];
+} chain (World gym_world, Session gym_state, int gym_kind, word gym_moment) {
+  if(gym_kind == (import gym_event_submit)) {
+    gym_result = session_answer_item(gym_world.book, gym_world.record.log, gym_moment, gym_typed, gym_state.cells[(import gym_cell_confidence)], gym_spent);
+  }
+  if(gym_kind == (import gym_event_hint)) {
+    gym_result = session_hint_next(gym_world.book, gym_world.record.log, gym_moment, gym_world.url);
+  }
+  if(gym_kind == (import gym_event_tap_out)) {
+    gym_result = session_tap_out(gym_world.book, gym_world.record.log, gym_moment, gym_tap_level(gym_state), gym_spent);
+  }
+} chain (World gym_world, Session gym_state, int gym_kind, word gym_moment) {
+  if(gym_kind == (import gym_event_next)) {
+    gym_result = session_move_on(gym_world.record.log, gym_moment);
+  }
+  if(gym_kind == (import gym_event_save)) {
+    gym_result = gym_keep_note(gym_world, gym_state.texts[(import gym_text_note)], gym_moment);
+  }
+} return string[] gym_result;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_fixture_make(0) ((import gym_setting), (import gym_fixture_state), 9, 100):(["refused", "that is not something to do now"])
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_fixture_make(0) ((import gym_setting), (import gym_fixture_state), 3, 100):(["refused", "no session is running: start one with gym session start"])
+
+// The confidence a tap-out is logged with: the one the learner picked, else the engine's default.
+gym_tap_level(Session gym_state) {
+  int gym_level = gym_state.cells[(import gym_cell_confidence)];
+  if(gym_level == 0) {
+    gym_level = (import session_confidence_default);
+  }
+} return int gym_level;
+given gym_fixture_make(0) ((import gym_fixture_state)):(50)
+given gym_fixture_make(0) given gym_fixture_set(2, 90) ((import gym_fixture_state)):(90)

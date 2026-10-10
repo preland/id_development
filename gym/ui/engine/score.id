@@ -1,0 +1,32 @@
+// The scoreboard as the window shows it: the figures of gym/score over the replayed log, one line of text each, so the screen shows exactly what `gym score` prints. A figure with too few attempts says so ("not enough data") rather than a number.
+
+// Write the five metrics' lines, the head and the four lines of the confidence table into the state's texts.
+gym_adopt_score(World gym_world, Session gym_state, Log_events gym_entries) {
+  Score_table gym_table = score_table(gym_entries, gym_world.book);
+  string[] gym_texts = gym_state.texts;
+  int gym_least = (import score_default_minimum);
+} chain (World gym_world, Session gym_state, Log_events gym_entries) {
+  gym_texts[(import gym_text_metric)] = gym_metric_value(score_retention(gym_table, gym_least), gym_least, "");
+  gym_texts[(import gym_text_metric) + 1] = gym_metric_value(score_transfer(gym_table, gym_least), gym_least, "");
+  gym_texts[(import gym_text_metric) + 2] = gym_metric_value(score_calibration(gym_table, gym_least), gym_least, "");
+} chain (World gym_world, Session gym_state, Log_events gym_entries) {
+  gym_texts[(import gym_text_metric) + 3] = gym_metric_value(score_independence(gym_table, gym_least), gym_least, "");
+  gym_texts[(import gym_text_metric) + 4] = gym_metric_value(score_fluency(gym_table, gym_least), gym_least, " s");
+  gym_texts[(import gym_text_head)] = "from " + len(gym_table.moments.times) + " logged attempts";
+} chain (World gym_world, Session gym_state, Log_events gym_entries) {
+  gym_adopt_bins(gym_state, score_calibration_table(gym_table));
+} return void;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_fixture_make(0) ((import gym_setting), (import gym_fixture_state), Log_events([], [], [])):() then gym_fixture_text(11):("not enough data (n = 0, need 5)") then gym_fixture_text(20):("from 0 logged attempts") then gym_fixture_text(16):("50%: no reps yet")
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_fixture_make(0) ((import gym_setting), (import gym_fixture_state), Log_events([1000, 2000, 3000], ["attempt", "attempt", "attempt"], [["1000", "attempt", "space_1", "x", "90", "correct", "0", "9", "no", ""], ["2000", "attempt", "space_2", "x", "90", "incorrect", "0", "9", "no", ""], ["3000", "attempt", "space_3", "x", "50", "correct", "0", "9", "no", ""]])):() then gym_fixture_text(20):("from 3 logged attempts") then gym_fixture_text(18):("90%: 2 reps, 50% right") then gym_fixture_text(16):("50%: 1 rep, 100% right")
+
+// The lines of the confidence table, one for each level of log_confidences, from the three numbers per level that score_calibration_table answers (how many first attempts, the mean confidence, the share right).
+gym_adopt_bins(Session gym_state, float[] gym_bins) {
+  string[] gym_texts = gym_state.texts;
+  int gym_level = 0;
+  while(gym_level < len((import log_confidences))) {
+    gym_texts[(import gym_text_bin) + gym_level] = gym_bin_line((import log_confidences)[gym_level], gym_bins[gym_level * 3], gym_bins[gym_level * 3 + 2]);
+    gym_level = gym_level + 1;
+  }
+} return void;
+given gym_fixture_make(0) ((import gym_fixture_state), [1.0, 0.5, 1.0, 0.0, 0.0, 0.0, 3.0, 0.9, 0.67, 0.0, 0.0, 0.0]):() then gym_fixture_text(16):("50%: 1 rep, 100% right") then gym_fixture_text(17):("70%: no reps yet") then gym_fixture_text(18):("90%: 3 reps, 67% right")
+given gym_fixture_make(0) ((import gym_fixture_state), [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.99, 0.0]):() then gym_fixture_text(19):("99%: 2 reps, 0% right") then gym_fixture_text(16):("50%: no reps yet")

@@ -1,0 +1,38 @@
+// The one text the cool-down screen takes, and the keys: Esc closes an open definition and Tab goes to the next screen. Enter does the main thing of the screen (commit, move on, keep the line), but each of those is an engine operation, so the shell turns Enter into the event that stands for it (engine/translate.id) and the reducer sees it only as a key it has no rule for.
+
+// Replace the cool-down line, the answer to "what would you tell yourself an hour ago?". A line changed after it was kept is no longer the kept one.
+gym_note(Session gym_state, string gym_text) {
+  string[] gym_texts = gym_state.texts;
+  int[] gym_cells = gym_state.cells;
+  gym_texts[(import gym_text_note)] = gym_text;
+} chain (Session gym_state, string gym_text) {
+  gym_cells[(import gym_cell_saved)] = 0;
+} return void;
+given gym_fixture_make(0) ((import gym_fixture_state), "slow down"):() then gym_fixture_text(1):("slow down")
+given gym_fixture_make(0) given gym_fixture_say("1/2") ((import gym_fixture_state), "x"):() then gym_fixture_text(0):("1/2")
+given gym_fixture_make(0) given gym_fixture_set(12, 1) ((import gym_fixture_state), "x"):() then gym_fixture_cell(12):(0)
+
+// The cool-down line has been written to the log: mark it kept. A line that is empty is never kept, so the mark stays off.
+gym_saved(Session gym_state) {
+  int[] gym_cells = gym_state.cells;
+  if(len(gym_state.texts[(import gym_text_note)]) > 0) {
+    gym_cells[(import gym_cell_saved)] = 1;
+  }
+} return void;
+given gym_fixture_make(0) given gym_fixture_put(1, "check units") ((import gym_fixture_state)):() then gym_fixture_cell(12):(1)
+given gym_fixture_make(0) ((import gym_fixture_state)):() then gym_fixture_cell(12):(0)
+
+// A key press, by its code: Esc (close the open definition) or Tab (the next screen, round to the first). Any other key, Enter included, changes nothing here.
+gym_key(Session gym_state, int gym_code) {
+  int[] gym_cells = gym_state.cells;
+  if(gym_code == (import gym_key_escape)) {
+    gym_cells[(import gym_cell_define)] = 0 - 1;
+  }
+  if(gym_code == (import gym_key_tab)) {
+    gym_cells[(import gym_cell_screen)] = (gym_cells[(import gym_cell_screen)] + 1) % (import gym_screen_count);
+  }
+} return void;
+given gym_fixture_make(0) given gym_fixture_set(9, 3) ((import gym_fixture_state), 1011):() then gym_fixture_cell(9):(-1)
+given gym_fixture_make(0) given gym_fixture_set(0, 2) ((import gym_fixture_state), 1010):() then gym_fixture_cell(0):(0)
+given gym_fixture_make(0) given gym_fixture_set(2, 70) ((import gym_fixture_state), 1009):() then gym_fixture_cell(3):(0) then gym_fixture_cell(2):(70)
+given gym_fixture_make(0) ((import gym_fixture_state), 97):() then gym_fixture_cell(0):(0) then gym_fixture_cell(3):(0)

@@ -1,0 +1,37 @@
+// The hints a learner asked for after committing an attempt. The engine only gives a hint once an attempt is
+// committed (P1), so the hint is a hint_shown event after the attempt, never a field of it; independence has to
+// count those events, or a learner who leans on hints after every miss would look independent.
+
+// How many hint_shown events for the attempt's item follow attempt number `score_at`, before the next attempt
+// at the same item (hints for another item, and the later attempt's own hints, are not this attempt's).
+score_shown_after(Log_events score_events, int score_at) {
+  string score_item = log_text_at(score_events, score_at, (import log_slot_item));
+  int score_count = 0;
+  int score_next = score_at + 1;
+} chain (Log_events score_events, int score_at) {
+  int score_open = 1;
+  while (score_next < len(score_events.kinds) && score_open == 1) {
+    score_count = score_count + (score_events.kinds[score_next] == "hint_shown" && log_text_at(score_events, score_next, (import log_slot_item)) == score_item);
+    score_open = 1 - (score_events.kinds[score_next] == "attempt" && log_text_at(score_events, score_next, (import log_slot_item)) == score_item);
+    score_next = score_next + 1;
+  }
+} return int score_count;
+given log_fixture_parse("1\tattempt\ta\tx\t90\tincorrect\t0\t5\tno\t\n2\thint_shown\ta\t1\n3\thint_shown\ta\t2\n") ((import log_fixture_events), 0):(2)
+given log_fixture_parse("1\tattempt\ta\tx\t90\tincorrect\t0\t5\tno\t\n2\thint_shown\ta\t1\n3\tattempt\ta\tx\t90\tcorrect\t0\t5\tno\t\n4\thint_shown\ta\t1\n5\thint_shown\ta\t2\n6\thint_shown\ta\t3\n") ((import log_fixture_events), 0):(1)
+given log_fixture_parse("1\tattempt\ta\tx\t90\tincorrect\t0\t5\tno\t\n2\thint_shown\tb\t1\n3\thint_shown\ta\t1\n") ((import log_fixture_events), 0):(1)
+given log_fixture_parse("1\tattempt\ta\tx\t90\tcorrect\t0\t5\tno\t\n2\tsession_next\ta\n") ((import log_fixture_events), 0):(0)
+given log_fixture_parse("1\tattempt\ta\tx\t90\tincorrect\t0\t5\tno\t\n2\thint_shown\ta\t1\n3\tattempt\ta\tx\t90\tcorrect\t0\t5\tno\t\n4\thint_shown\ta\t1\n") ((import log_fixture_events), 2):(1)
+
+// Hints plus hints shown after the attempt, attempt by attempt: the hints column independence is measured on
+// (retention keeps reading the attempt's own hints, since a hint after the answer does not make the answer aided).
+score_helped(int[] score_hints, int[] score_after_hints) {
+  int[] score_summed = [];
+  int score_at = 0;
+  while (score_at < len(score_hints)) {
+    push(score_summed, score_hints[score_at] + score_after_hints[score_at]);
+    score_at = score_at + 1;
+  }
+} return int[] score_summed;
+([0, 4, 1, 0], [2, 0, 1, 0]):([2, 4, 2, 0])[time:O(n), mem:O(n)]
+([0, 0, 1, 2, 0, 3, 0, 0], [1, 1, 0, 0, 2, 0, 0, 1]):([1, 1, 1, 2, 2, 3, 0, 1])[time:O(n), mem:O(n)]
+([], []):([])

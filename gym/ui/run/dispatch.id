@@ -1,0 +1,25 @@
+// Giving an event to the live session (gym_deliver: the reducer, or the engine for the operations that write the log). The session is the one cell of the export gym_live; each event replaces the cell with the new state, so the old state stays valid for anyone still holding it.
+
+// Run one event on the live session.
+gym_dispatch(Event gym_event) {
+  Session[] gym_holder = (import gym_live);
+  gym_deliver((import gym_setting), gym_holder, gym_event);
+} return void;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open (Event(2, 90, "")):() then gym_fixture_live_cell(2):(90)
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open (Event(1, 0, "ab")):() then gym_fixture_live_text(0):("ab") then gym_fixture_live_cell(2):(0)
+
+// Run an event of kind gym_kind that carries the number gym_value (a key press with its code, a tick with its seconds) on the live session.
+gym_dispatch_number(int gym_kind, int gym_value) {
+  Event gym_event = Event(gym_kind, gym_value, "");
+  gym_dispatch(gym_event);
+} return void;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open (8, 1):() then gym_fixture_live_cell(0):(1)
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open (6, 30):() then gym_fixture_live_cell(6):(30)
+
+// Run an event of text kind gym_kind (type or note) carrying gym_text on the live session.
+gym_dispatch_text(int gym_kind, string gym_text) {
+  Event gym_event = Event(gym_kind, 0, gym_text);
+  gym_dispatch(gym_event);
+} return void;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open (1, "ab"):() then gym_fixture_live_text(0):("ab")
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open (10, "memo"):() then gym_fixture_live_text(1):("memo")

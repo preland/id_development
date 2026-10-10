@@ -1,0 +1,42 @@
+// The options of --script, and what a script replay does once it has run.
+
+// Where the option gym_flag is among the words of the command line (the first is the program), or -1.
+gym_flag_at(int gym_count, string[] gym_words, string gym_flag) {
+  int gym_at = 1;
+  int gym_found = 0 - 1;
+  while(gym_at < gym_count && gym_found < 0) {
+    gym_found = gym_at * (gym_words[gym_at] == gym_flag) - (gym_words[gym_at] != gym_flag);
+    gym_at = gym_at + 1;
+  }
+} return int gym_found;
+(3, ["gym", "--script", "s.txt"], "--dump"):(-1)
+(4, ["gym", "--script", "s.txt", "--dump"], "--dump"):(3)
+(5, ["gym", "--dump", "x", "y", "z"], "--dump"):(1)
+
+// The word after the option gym_flag, or "" when the option is missing or last.
+gym_flag_value(int gym_count, string[] gym_words, string gym_flag) {
+  int gym_at = gym_flag_at(gym_count, gym_words, gym_flag);
+  string gym_following = "";
+  if(gym_at >= 0 && gym_at + 1 < gym_count) {
+    gym_following = gym_words[gym_at + 1];
+  }
+} return string gym_following;
+(5, ["gym", "--script", "s.txt", "--render-after", "o.ppm"], "--render-after"):("o.ppm")
+(4, ["gym", "--script", "s.txt", "--render-after"], "--render-after"):("")
+(3, ["gym", "--script", "s.txt"], "--render-after"):("")
+
+// What a replay does with the state it ended in: print the dump when --dump is on the command line, write the screen when --render-after names a file. Answers 0, or 1 when the picture could not be written.
+gym_script_finish(int gym_count, string[] gym_words, Session gym_state) {
+  string gym_out = gym_flag_value(gym_count, gym_words, "--render-after");
+  int gym_status = 0;
+  if(gym_flag_at(gym_count, gym_words, "--dump") >= 0) {
+    print(gym_dump(gym_state));
+  }
+} chain (int gym_count, string[] gym_words, Session gym_state) {
+  if(len(gym_out) > 0) {
+    gym_status = gym_render(gym_state, gym_out);
+  }
+} return int gym_status;
+(3, ["gym", "window", "--script"], Session([0, 0, 0, 0, 0, 0, 0, 0, 300, -1, 0, 0, 0, 0, 0], ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""])):(0) then prints:("")
+(5, ["gym", "window", "--script", "s.txt", "--dump"], Session([0, 0, 0, 0, 0, 0, 0, 0, 300, -1, 0, 0, 0, 0, 0], ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""])):(0) then prints:("screen rep\nclock 0s, Warm-up, 300s left\nitem 1 of 0, confidence 0, stage waiting\ncorrect 0, hints 0, definition none\nanswer \nnote \nprompt \nRetention: \nTransfer: \nCalibration: \nIndependence: \nFluency: \ntable \ntable \ntable \ntable \nhead \n")
+(6, ["gym", "window", "--script", "s.txt", "--render-after", "/nonexistent/dir/o.ppm"], Session([0, 0, 0, 0, 0, 0, 0, 0, 300, -1, 0, 0, 0, 0, 0], ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""])):(1) then eprints:("gym window: the picture could not be written; check that the folder exists and that you may write to it [/nonexistent/dir/o.ppm]\n")

@@ -1,0 +1,29 @@
+// One metric as the scoreboard row says it, and one row of the confidence table.
+
+// A figure as the row's second line: the value (to three places, followed by gym_unit) and the number of attempts behind it, or the honest reason there is no value yet, as score_describe words it.
+gym_metric_value(Score_figure gym_figure, int gym_least, string gym_unit) {
+  string gym_line = score_describe(gym_figure, gym_least);
+  if(gym_figure.enough == 1) {
+    gym_line = plan_decimal(gym_figure.value, 3) + gym_unit + " (n = " + gym_figure.sample + ")";
+  }
+} return string gym_line;
+(Score_figure(4, 1, 0.75), 5, ""):("0.750 (n = 4)")
+(Score_figure(8, 1, 12.5), 5, " s"):("12.500 s (n = 8)")
+(Score_figure(2, 0, 0.0), 5, " s"):("not enough data (n = 2, need 5)")
+
+// The line for the confidence level gym_level: how many first attempts were made at it and the share that were right, or that none were.
+gym_bin_line(int gym_level, float gym_attempts, float gym_share) {
+  int gym_reps = gym_attempts + 0.5;
+  string gym_noun = "reps";
+  string gym_line = gym_level + "%: no reps yet";
+} chain (int gym_level, float gym_attempts, float gym_share) {
+  if(gym_reps == 1) {
+    gym_noun = "rep";
+  }
+  if(gym_reps > 0) {
+    gym_line = gym_level + "%: " + gym_reps + " " + gym_noun + ", " + plan_decimal(gym_share * 100.0, 0) + "% right";
+  }
+} return string gym_line;
+(90, 3.0, 0.667):("90%: 3 reps, 67% right")
+(50, 0.0, 0.0):("50%: no reps yet")
+(99, 1.0, 1.0):("99%: 1 rep, 100% right")

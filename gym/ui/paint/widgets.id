@@ -1,0 +1,33 @@
+// The widgets, drawn over the cards: the buttons of the screen in play, a frame round the chosen confidence and the current screen, and the text box of the screen.
+
+// Draw the visible buttons, mark the chosen ones, and draw the text box the screen has, after bringing its text in line with the state.
+gym_paint_widgets(Session gym_state) {
+  gym_boxes_follow(gym_state);
+  gym_draw_buttons(gym_state);
+  gym_mark_chosen(gym_state);
+} chain (Session gym_state) {
+  gym_draw_boxes(gym_state);
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(2, 90) given gym_fixture_say("1/2") given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_pixel(662, 270):(2840474) then gym_fixture_inked(10, 221, 940, 21, 0):(1) then gym_fixture_inked(8, 317, 234, 41, 0):(1) then gym_fixture_boxes(0):("1/2")
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 2) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_pixel(662, 270):(0) then gym_fixture_inked(10, 221, 940, 21, 0):(0) then gym_fixture_inked(10, 347, 940, 55, 0):(1)
+
+// Draw every button that has a place on the screen the state shows.
+gym_draw_buttons(Session gym_state) {
+  int gym_command = 0;
+  while(gym_command < (import gym_command_count)) {
+    gym_draw_button(gym_state, gym_command);
+    gym_command = gym_command + 1;
+  }
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_inked(8, 317, 234, 41, 0):(1) then gym_fixture_inked(699, 8, 118, 54, 0):(1) then gym_fixture_inked(0, 70, 960, 180, 0):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 2) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_inked(8, 317, 234, 41, 0):(0) then gym_fixture_inked(699, 8, 118, 54, 0):(1)
+
+// Draw button gym_command if the state shows it.
+gym_draw_button(Session gym_state, int gym_command) {
+  if(gym_command_visible(gym_state, gym_command) == 1) {
+    gui_btn_draw((import gym_buttons)[gym_command]);
+  }
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ((import gym_fixture_state), 4):() then gym_fixture_inked(8, 317, 234, 41, 0):(1) then gym_fixture_inked(262, 317, 234, 41, 0):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 1) given gym_fixture_ready ((import gym_fixture_state), 4):() then gym_fixture_inked(0, 0, 960, 640, 0):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 1) given gym_fixture_ready ((import gym_fixture_state), 11):() then gym_fixture_inked(511, 126, 28, 28, 0):(1)

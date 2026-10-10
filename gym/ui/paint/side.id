@@ -1,0 +1,32 @@
+// The other two parts of the cool-down screen.
+
+// The caption over the note box. It says how to keep the line (Enter writes it to the log) and, once it is kept, that it is.
+gym_paint_note(Session gym_state) {
+  int[] gym_area = gym_rectangle_of("cool_note");
+  string gym_caption = "What would you tell yourself an hour ago? Press Enter to keep it.";
+  if(gym_state.cells[(import gym_cell_saved)] == 1) {
+    gym_caption = "Kept in your log. Change it and press Enter to keep the new line.";
+  }
+} chain (Session gym_state) {
+  gym_label(gym_caption, gym_area[0] + 14, gym_area[1] + 2, 22, (import th_l_label_secondary));
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 2) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_colored(14, 323, 360, 22, 6316128):(1)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 2) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_inked(0, 0, 960, 320, 0):(0) then gym_fixture_inked(0, 345, 960, 295, 0):(0)
+
+// How many items the next session brings back, large, with a line saying which ones. Before the session is over the count is not known, and the card says so.
+gym_paint_due(Session gym_state) {
+  int[] gym_box = gym_rectangle_of("cool_due");
+  string[] gym_lines = str_lines(gym_state.texts[(import gym_text_cool)]);
+  string gym_due = "after the session";
+} chain (Session gym_state) {
+  gym_inset(gym_box, (import gym_card_inset));
+  gym_card(gym_box[0], gym_box[1], gym_box[2], gym_box[3], (import th_l_surface), (import th_l_separator));
+  if(len(gym_lines) >= 4) {
+    gym_due = str_after(gym_lines[3], ": ") + " due";
+  }
+} chain (Session gym_state) {
+  int gym_end = gym_block(28, 1, "Next session: " + gym_due, gym_box[0] + 16, gym_box[1] + 12, gym_box[2] - 32, (import th_l_label));
+  gym_end = gym_block(14, 0, "Items you missed, or needed a hint for, come back first.", gym_box[0] + 16, gym_end + 4, gym_box[2] - 32, (import th_l_label_secondary));
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 2) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_pixel(900, 600):(16448250) then gym_fixture_colored(26, 434, 400, 34, 2105384):(1) then gym_fixture_colored(26, 474, 600, 17, 6316128):(1)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 2) given gym_fixture_cooled given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_pixel(10, 422):(13684944) then gym_fixture_inked(0, 330, 960, 90, 0):(0)

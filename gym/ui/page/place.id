@@ -1,0 +1,33 @@
+// Putting every widget where the page says, in the state's screen. Done after every layout, before painting or hit-testing, so a window resize and a screen change both reach the widgets.
+
+// Place and enable all sixteen buttons and place the two text boxes for the state.
+gym_place(Session gym_state) {
+  int gym_command = 0;
+  while(gym_command < (import gym_command_count)) {
+    gym_place_button(gym_state, gym_command);
+    gym_command = gym_command + 1;
+  }
+  gym_place_boxes(gym_state);
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready given gym_fixture_set(2, 90) given gym_fixture_say("1/2") ((import gym_fixture_state)):() then gym_fixture_button(4, 5):(1) then gym_fixture_button(4, 2):(234)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready given gym_fixture_set(0, 1) ((import gym_fixture_state)):() then gym_fixture_button(4, 2):(0) then gym_fixture_button(9, 2):(118)
+
+// Put button gym_command at its rectangle and switch it on or off for the state; a button not on this screen gets an empty rectangle, so no click reaches it.
+gym_place_button(Session gym_state, int gym_command) {
+  GuiButton gym_pushed = (import gym_buttons)[gym_command];
+  int[] gym_box = gym_command_box(gym_state, gym_command);
+  gui_btn_place(gym_pushed, gym_box[0], gym_box[1], gym_box[2], gym_box[3]);
+} chain (Session gym_state, int gym_command) {
+  gui_btn_enable(gym_pushed, gym_command_enabled(gym_state, gym_command));
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ((import gym_fixture_state), 7):() then gym_fixture_button(7, 5):(0) then gym_fixture_button(7, 2):(195)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(3, 1) given gym_fixture_ready ((import gym_fixture_state), 7):() then gym_fixture_button(7, 5):(1)
+
+// Put the answer box in its cell on the rep screen and the note box in its cell on the cool-down screen; the box of a screen that is not showing gets no size.
+gym_place_boxes(Session gym_state) {
+  int gym_shown = gym_state.cells[(import gym_cell_screen)];
+  gym_place_box((import gym_answer_box), "answer", gym_shown == (import gym_screen_rep));
+  gym_place_box((import gym_note_box), "cool_note", gym_shown == (import gym_screen_cool_down));
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready given gui_textbox_place((import gym_answer_box), 0, 0, 5, 5) ((import gym_fixture_state)):() then gym_fixture_box_cell(0, 2):(940) then gym_fixture_box_cell(1, 2):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 2) given gym_fixture_ready given gui_textbox_place((import gym_note_box), 0, 0, 5, 5) ((import gym_fixture_state)):() then gym_fixture_box_cell(1, 2):(940) then gym_fixture_box_cell(0, 2):(0)

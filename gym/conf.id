@@ -46,7 +46,7 @@ string[] log_grades = ["", "correct", "partial", "incorrect"];
 
 string[] log_flags = ["no", "yes"];
 
-string[] log_kinds = ["attempt", "hint_shown", "session_start", "session_end", "session_plan", "session_next"];
+string[] log_kinds = ["attempt", "hint_shown", "session_start", "session_end", "session_plan", "session_next", "cooldown_note"];
 
 int log_hint_top = 4;
 
@@ -65,6 +65,8 @@ int log_session_width = 2;
 int log_plan_width = 5;
 
 int log_next_width = 3;
+
+int log_note_width = 3;
 
 int log_slot_ids = 2;
 
@@ -239,3 +241,140 @@ string command_usage = "gym session start --pack DIR --log FILE [--now MS] [--se
 int command_digits_limit = 9;
 
 string[] golden_script = ["session|start|--now|1760000000000", "hint|--now|1760000001000", "answer|--text|1/3|--now|1760000002000", "answer|--text|1/3|--confidence|90|--seconds|12|--now|1760000060000", "next|--now|1760000061000", "answer|--text|1/3|--confidence|99|--seconds|20|--now|1760000120000", "hint|--url|http://127.0.0.1:1|--now|1760000121000", "next|--now|1760000122000", "tapout|--seconds|30|--now|1760000150000", "next|--now|1760000151000", "session|start|--now|1760086400000", "answer|--text|1/3|--confidence|90|--seconds|9|--now|1760086520000", "hint|--url|http://127.0.0.1:1|--now|1760086521000", "score|--now|1760086522000", "why|independence_1|--now|1760086523000"];
+
+
+// Constants of the Mental Gym window (gym/ui): where each field of the session state sits, the events the reducer takes, and the session's four phases. The window plays the pack's items through the engine in gym/session; the gym_fixture_ tables hold stand-in items for the pixel cases.
+
+// The state's numbers, Session.cells. The window's own: which screen shows, the confidence picked (0 for none), the session clock in seconds, the scoreboard metric whose definition is open (-1 for none), the clock reading when the rep began, whether the cool-down line is saved. Read back from the log after every engine operation: the position of the item in play in the plan, the stage of the rep (waiting, committed, tapped out), whether the committed answer was right, how many hint rungs are revealed, the phase the plan puts the item in, the seconds left in that phase, the clock reading when the phase began, how many items the plan holds and whether no item is in play (1 before a plan exists and once every item is done).
+int gym_cell_screen = 0;
+int gym_cell_item = 1;
+int gym_cell_confidence = 2;
+int gym_cell_stage = 3;
+int gym_cell_correct = 4;
+int gym_cell_hints = 5;
+int gym_cell_elapsed = 6;
+int gym_cell_phase = 7;
+int gym_cell_remaining = 8;
+int gym_cell_define = 9;
+int gym_cell_started = 10;
+int gym_cell_phase_started = 11;
+int gym_cell_saved = 12;
+int gym_cell_total = 13;
+int gym_cell_closed = 14;
+
+// The state's texts, Session.texts. The typed answer and the cool-down line are the window's. The rest are read back from the log and the pack after every engine operation: the prompt of the item in play, the reference answer and the rubric lines (empty until the attempt is committed), the notice of the last refusal, the four hint rungs shown so far, the cool-down text, the five scoreboard lines, the four lines of the confidence table and the head of the scoreboard.
+int gym_text_answer = 0;
+int gym_text_note = 1;
+int gym_text_prompt = 2;
+int gym_text_reference = 3;
+int gym_text_rubric = 4;
+int gym_text_notice = 5;
+int gym_text_rung = 6;
+int gym_text_cool = 10;
+int gym_text_metric = 11;
+int gym_text_bin = 16;
+int gym_text_head = 20;
+
+
+
+// The screens, and the stages of a rep: waiting for an attempt, the attempt committed, the learner tapped out.
+int gym_screen_rep = 0;
+int gym_screen_score = 1;
+int gym_screen_cool_down = 2;
+int gym_stage_waiting = 0;
+int gym_stage_committed = 1;
+int gym_stage_tapped = 2;
+
+// The events the reducer takes (Event.kind). The value or the text each uses: type and note carry a text; confidence a level; tick the seconds that passed; screen a screen; define a metric; key a key code; save keeps the cool-down line in the log; the rest nothing.
+int gym_event_type = 1;
+int gym_event_confidence = 2;
+int gym_event_submit = 3;
+int gym_event_hint = 4;
+int gym_event_tap_out = 5;
+int gym_event_tick = 6;
+int gym_event_next = 7;
+int gym_event_screen = 8;
+int gym_event_define = 9;
+int gym_event_note = 10;
+int gym_event_key = 11;
+int gym_event_save = 12;
+
+// The key codes gym_event_key knows (the codes gfx_event gives): Esc, Enter and Tab.
+int gym_key_escape = 1011;
+int gym_key_enter = 1009;
+int gym_key_tab = 1010;
+
+// The confidence levels a learner can commit, in percent, and the number of hint rungs on the ladder.
+int[] gym_levels = [50, 70, 90, 99];
+int gym_rung_count = 4;
+
+// The session's four phases (spec, "A session"): their names and lengths in seconds, warm-up 5 minutes, main set 13, transfer 5, cool-down 2.
+string[] gym_phase_names = ["Warm-up", "Main set", "Transfer", "Cool-down"];
+int[] gym_phase_seconds = [300, 780, 300, 120];
+
+// The names of the rungs of the hint ladder, in the order they are revealed.
+string[] gym_rung_names = ["Nudge", "Guiding question", "Partial step", "Worked example"];
+
+// The five scoreboard metrics, in the order of score_metric_names; the definition shown for each is score_define's.
+string[] gym_metric_names = ["Retention", "Transfer", "Calibration", "Independence", "Fluency"];
+
+// Stand-in items for the pixel cases only (the window plays the pack's own items): a prompt, a reference answer, a why line and four hint rungs for each of four items.
+string[] gym_fixture_prompts = ["A fair six-sided die is rolled once. What is the probability of an even number? Answer as a fraction in lowest terms.", "Two fair coins are tossed. What is the probability that both land heads? Answer as a fraction.", "Events A and B are independent, P(A) = 0.3 and P(B) = 0.5. What is P(A and B)? Answer as a decimal.", "A bag holds 3 red and 1 blue marble. Two are drawn without replacement. What is the probability that both are red? Answer as a fraction in lowest terms."];
+string[] gym_fixture_answers = ["1/2", "1/4", "0.15", "1/2"];
+string[] gym_fixture_reasons = ["Faces 2, 4 and 6 are even, so 3 of the 6 outcomes count, and 3/6 reduces to 1/2.", "Each coin is heads with probability 1/2 and the tosses are independent, so the chances multiply: 1/2 * 1/2 = 1/4.", "For independent events the probabilities multiply: 0.3 * 0.5 = 0.15.", "The first marble is red with chance 3/4. Then 2 red remain among 3 marbles, so the second is red with chance 2/3, and 3/4 * 2/3 = 1/2."];
+string[] gym_fixture_rungs = ["Start by listing the outcomes that count as even.", "How many faces are even, and how many faces are there in all?", "Three faces count, out of six possible faces.", "P = favourable / possible = 3/6 = 1/2.", "Think about whether one toss changes the other.", "If two events are independent, how do their probabilities combine?", "Each coin has the same chance of heads; combine the two chances.", "P(both heads) = 1/2 * 1/2 = 1/4.", "Ask what independent means for the chance of both happening.", "What do you do to the two probabilities when the events do not affect each other?", "Combine 0.3 and 0.5 by the rule for independent events.", "P(A and B) = P(A) * P(B) = 0.3 * 0.5 = 0.15.", "The second draw depends on what the first draw took.", "After one red marble is gone, how many marbles are left, and how many of them are red?", "The first draw is red with chance 3/4; now work out the second draw the same way.", "P = 3/4 * 2/3 = 6/12 = 1/2."];
+
+// The index of the cool-down phase, the phase number a finished session has, and how many screens there are.
+int gym_phase_cool_down = 3;
+int gym_phase_over = 4;
+int gym_screen_count = 3;
+
+// The layout of the window in idml (kit/ui/idml), one line per element of the list: the session bar over three screens of which one shows at a time (the gates show_rep, show_score and show_cool). The program reads every rectangle from the tiled page and draws into it.
+string[] gym_page_lines = ["Phases:Col `phases` {}", "NavRep:Col `nav_rep` {}", "NavScore:Col `nav_score` {}", "NavCool:Col `nav_cool` {}", "Prompt:Col `prompt` {}", "Answer:Col `answer` {}", "ChoiceLabel:Col `choice_label` {}", "LevelA:Col `level_fifty` {}", "LevelB:Col `level_seventy` {}", "LevelC:Col `level_ninety` {}", "LevelD:Col `level_ninety_nine` {}", "SubmitCell:Col `submit` {}", "HintCell:Col `hint` {}", "TapCell:Col `tap_out` {}", "NextCell:Col `next_rep` {}", "Outcome:Col `outcome` {}", "ScoreList:Col `score_list` {}", "ScoreTable:Col `score_table` {}", "ScoreDefinition:Col `score_definition` {}", "CoolItems:Col `cool_items` {}", "CoolNote:Col `cool_note` {}", "CoolDue:Col `cool_due` {}", "./", "Col()[100,100,top-left] {", "  Row()[11,100,top-left] {", "    Phases()[100,58,top-left] {}", "    NavRep()[100,14,top-left] {}", "    NavScore()[100,14,top-left] {}", "    NavCool()[100,14,top-left] {}", "  }", "  Col()[89,100,top-left] {", "    Col()[100,100,top-left]?@show_rep {", "      Prompt()[22,100,top-left] {}", "      Answer()[10,100,top-left] {}", "      Row()[10,100,top-left] {", "        ChoiceLabel()[100,36,top-left] {}", "        LevelA()[100,16,top-left] {}", "        LevelB()[100,16,top-left] {}", "        LevelC()[100,16,top-left] {}", "        LevelD()[100,16,top-left] {}", "      }", "      Row()[10,100,top-left] {", "        SubmitCell()[100,26,top-left] {}", "        HintCell()[100,26,top-left] {}", "        TapCell()[100,26,top-left] {}", "        NextCell()[100,22,top-left] {}", "      }", "      Outcome()[48,100,top-left] {}", "    }", "    Col()[100,100,top-left]?@show_score {", "      Row()[68,100,top-left] {", "        ScoreList()[100,58,top-left] {}", "        ScoreTable()[100,42,top-left] {}", "      }", "      ScoreDefinition()[32,100,top-left] {}", "    }", "    Col()[100,100,top-left]?@show_cool {", "      CoolItems()[44,100,top-left] {}", "      CoolNote()[16,100,top-left] {}", "      CoolDue()[40,100,top-left] {}", "    }", "  }", "}"];
+int gym_window_width = 960;
+int gym_window_height = 640;
+
+// The commands the window's buttons stand for, by number: the four confidence levels, Submit, Hint, Tap out, Next, the three screens, and the "?" of each scoreboard metric. For each: the idml class of the cell it sits in ("" for a "?", which sits in a scoreboard row), its label, the event it gives the reducer (a gym_event_* kind and a value).
+int gym_command_count = 16;
+int gym_command_submit = 4;
+int gym_command_hint = 5;
+int gym_command_tap_out = 6;
+int gym_command_next = 7;
+int gym_command_screens = 8;
+int gym_command_help = 11;
+string[] gym_command_cells = ["level_fifty", "level_seventy", "level_ninety", "level_ninety_nine", "submit", "hint", "tap_out", "next_rep", "nav_rep", "nav_score", "nav_cool", "", "", "", "", ""];
+string[] gym_command_labels = ["50%", "70%", "90%", "99%", "Submit", "Hint", "Tap out", "Next", "Rep", "Scoreboard", "Cool-down", "?", "?", "?", "?", "?"];
+int[] gym_command_kinds = [2, 2, 2, 2, 3, 4, 5, 7, 8, 8, 8, 9, 9, 9, 9, 9];
+int[] gym_command_values = [50, 70, 90, 99, 0, 0, 0, 0, 0, 1, 2, 0, 1, 2, 3, 4];
+
+// Spacing in pixels: the inset of a card from its cell, and of a button from its cell.
+int gym_card_inset = 10;
+int gym_button_inset = 8;
+
+// The scoreboard's rows: the height of the heading above the first row, and the height of a row.
+int gym_metric_head = 52;
+int gym_metric_step = 58;
+
+// The words of a replay script, the event kind each gives the reducer (click gives the event of the button it lands on, so its kind here is 0), how many fields the line needs (the word included), whether its first argument is a number, and which word takes a key name. The names of the keys a script may write, with their codes; any other one-letter name is that letter.
+string[] gym_script_words = ["type", "confidence", "submit", "hint", "tapout", "next", "tick", "screen", "define", "note", "key", "click", "save"];
+int[] gym_script_kinds = [1, 2, 3, 4, 5, 7, 6, 8, 9, 10, 11, 0, 12];
+int[] gym_script_arity = [1, 2, 1, 1, 1, 1, 2, 2, 2, 1, 2, 3, 1];
+int[] gym_script_numeric = [0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0];
+int gym_script_key_slot = 10;
+string[] gym_key_names = ["enter", "esc", "tab"];
+int[] gym_key_codes = [1009, 1011, 1010];
+
+// The names a dump gives the screens and the stages of a rep.
+string[] gym_screen_names = ["rep", "scoreboard", "cool-down"];
+string[] gym_stage_names = ["waiting", "committed", "tapped out"];
+
+// What the command line says when it is not understood.
+string gym_usage = "usage: gym window --pack DIR --log FILE [--now MS] [--seed N] [--url URL] [--script S.txt [--dump] [--render-after OUT.ppm]]\n  script words: type TEXT, confidence N, submit, hint, tapout, next, tick SECONDS, screen N, define N, note TEXT, save, key NAME, click X Y; a line starting with # is a note";
+
+// How the engine's words and the window's numbers translate: the phases a plan gives an item (log/FORMAT.md) in the order of gym_phase_names, the engine's name for each stage of a rep (a tapped-out rep is committed, with the tapped flag on), and the events that are engine operations rather than rules of the reducer: submit, hint, tap out, next and keeping the cool-down line.
+string[] gym_plan_phases = ["warmup", "main", "transfer"];
+string[] gym_stage_states = ["waiting", "committed", "committed"];
+int[] gym_engine_kinds = [3, 4, 5, 7, 12];
+
+// The options only the window reads, each with a value of its own: the script to replay and the picture to write after it. (--dump has none.)
+string[] gym_window_options = ["--script", "--render-after"];

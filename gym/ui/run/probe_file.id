@@ -1,0 +1,24 @@
+// Probes of files and of the clock, for the cases of the functions that write a picture, read a script or count seconds.
+
+// Make a scratch file named by fs_mktemp (the harness removes it) and keep its path in the export gym_fixture_file.
+gym_fixture_path() {
+  string gym_made_path = fs_mktemp("gym_ui_case", 0);
+  export string gym_fixture_file = gym_made_path;
+} return void export gym_fixture_file;
+given gym_fixture_path ():() then fs_exists((import gym_fixture_file)):(1)
+given gym_fixture_path ():() then fs_size((import gym_fixture_file)):(0)
+
+// Put the text gym_script_text in the scratch file: the script a case replays.
+gym_fixture_script(string gym_script_text) {
+  int gym_written = fs_append_text((import gym_fixture_file), gym_script_text);
+} return void;
+given gym_fixture_path ("tick 5"):() then fs_size((import gym_fixture_file)):(6)
+given gym_fixture_path ("a\nb\n"):() then fs_size((import gym_fixture_file)):(4)
+
+// Open the scratch file for writing and keep its handle in the export gym_fixture_handle_number.
+gym_fixture_handle() {
+  int gym_opened_handle = fs_open((import gym_fixture_file), "w");
+  export int gym_fixture_handle_number = gym_opened_handle;
+} return void export gym_fixture_handle_number;
+given gym_fixture_path given gym_fixture_handle ():() then fs_close((import gym_fixture_handle_number)):(0)
+given gym_fixture_path given gym_fixture_handle ():() then fs_size((import gym_fixture_file)):(0)

@@ -1,0 +1,23 @@
+// Fixtures for the cases of the reducer: a state held in the export gym_fixture_state, built at the first item gym_item, and the readers a case uses to look inside it. Cases name these after the call under test; nothing in the program calls them.
+
+// Make a fresh state at item gym_item and keep it in the export gym_fixture_state.
+gym_fixture_make(int gym_item) {
+  Session gym_fresh = gym_start(gym_item);
+  export Session gym_fixture_state = gym_fresh;
+} return void;
+(0):() then gym_fixture_cell(1):(0)
+(3):() then gym_fixture_cell(1):(3)
+
+// Cell gym_index of the state's numbers.
+gym_fixture_cell(int gym_index) {
+  int gym_value = (import gym_fixture_state).cells[gym_index];
+} return int gym_value;
+given gym_fixture_make(2) (1):(2)
+given gym_fixture_make(0) (8):(300)
+
+// Text gym_index of the state's texts.
+gym_fixture_text(int gym_index) {
+  string gym_stored = (import gym_fixture_state).texts[gym_index];
+} return string gym_stored;
+given gym_fixture_make(0) (0):("")
+given gym_fixture_make(0) given gym_fixture_say("ab") (0):("ab")

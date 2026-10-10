@@ -1,0 +1,23 @@
+// Probes of the live session, for the cases of the functions that change it.
+
+// Number gym_index of the live session's numbers.
+gym_fixture_live_cell(int gym_index) {
+  int gym_live_value = (import gym_live)[0].cells[gym_index];
+} return int gym_live_value;
+given gym_live_open (8):(300)
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_dispatch_number(8, 1) (0):(1)
+
+// Text gym_index of the live session's texts.
+gym_fixture_live_text(int gym_index) {
+  string gym_live_held = (import gym_live)[0].texts[gym_index];
+} return string gym_live_held;
+given gym_live_open (0):("")
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_dispatch_text(1, "ab") (0):("ab")
+
+// Set number gym_index of the live session's numbers to gym_value, without going through a rule.
+gym_fixture_live_set(int gym_index, int gym_value) {
+  int[] gym_live_cells = (import gym_live)[0].cells;
+  gym_live_cells[gym_index] = gym_value;
+} return void;
+given gym_live_open (3, 2):() then gym_fixture_live_cell(3):(2)
+given gym_live_open (9, 4):() then gym_fixture_live_cell(9):(4)

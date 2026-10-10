@@ -1,0 +1,29 @@
+// The screen state, derived. After every engine operation the log is replayed and the state is rebuilt from it plus the window's own transient state (what is typed, the picked confidence, the screen, the open definition, the clock): nothing about the rep is remembered by the window itself.
+
+// The state after reading gym_entries: gym_before with everything the log and the pack decide replaced by what they say now.
+gym_derive(World gym_world, Session gym_before, Log_events gym_entries) {
+  Session gym_after = gym_copy(gym_before);
+  string[] gym_view = session_view(gym_entries);
+  int gym_plan_at = session_plan_index(gym_entries);
+} chain (World gym_world, Session gym_before, Log_events gym_entries) {
+  gym_adopt_cells(gym_after, gym_view, gym_entries, gym_plan_at);
+  gym_adopt_texts(gym_world, gym_after, gym_view);
+  gym_adopt_score(gym_world, gym_after, gym_entries);
+} chain (World gym_world, Session gym_before, Log_events gym_entries) {
+  gym_adopt_cool(gym_world, gym_after, gym_entries, gym_plan_at);
+} return Session gym_after;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_fixture_make(0) ((import gym_setting), (import gym_fixture_state), Log_events([1], ["session_plan"], [["1", "session_plan", "space_1,space_2", "main,main", "r1\\nr2"]])):(Session([0, 0, 0, 0, 0, 0, 0, 1, 780, -1, 0, 0, 0, 2, 0], ["", "", "A fair six-sided die is rolled once. What is the probability of rolling a number greater than 4? Give a fraction.", "", "", "", "", "", "", "", "", "not enough data (n = 0, need 5)", "not enough data (n = 0, need 5)", "not enough data (n = 0, need 5)", "not enough data (n = 0, need 5)", "not enough data (n = 0, need 5)", "50%: no reps yet", "70%: no reps yet", "90%: no reps yet", "99%: no reps yet", "from 0 logged attempts"]))
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_fixture_make(0) ((import gym_setting), (import gym_fixture_state), Log_events([], [], [])):(Session([0, 0, 0, 0, 0, 0, 0, 0, 300, -1, 0, 0, 0, 0, 1], ["", "", "", "", "", "", "", "", "", "", "", "not enough data (n = 0, need 5)", "not enough data (n = 0, need 5)", "not enough data (n = 0, need 5)", "not enough data (n = 0, need 5)", "not enough data (n = 0, need 5)", "50%: no reps yet", "70%: no reps yet", "90%: no reps yet", "99%: no reps yet", "from 0 logged attempts"]))
+
+// The cool-down text for a session that is over (session_cool_down_text: where confidence was off and what is due a day on), or nothing while the session is still going or was never planned.
+gym_adopt_cool(World gym_world, Session gym_state, Log_events gym_entries, int gym_plan_at) {
+  string gym_text = "";
+  word gym_moment = gym_session_time(gym_world, gym_state);
+  if(gym_state.cells[(import gym_cell_closed)] == 1 && gym_plan_at >= 0) {
+    gym_text = session_cool_down_text(gym_world.book, gym_entries, gym_moment);
+  }
+} chain (World gym_world, Session gym_state, Log_events gym_entries, int gym_plan_at) {
+  gym_state.texts[(import gym_text_cool)] = gym_text;
+} return void;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_fixture_make(0) ((import gym_setting), (import gym_fixture_state), Log_events([1], ["session_plan"], [["1", "session_plan", "space_1", "main", "r"]]), 0):() then gym_fixture_text(10):("")
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_fixture_make(0) given gym_fixture_set(14, 1) ((import gym_setting), (import gym_fixture_state), Log_events([1], ["session_plan"], [["1", "session_plan", "space_1", "main", "r"]]), 0):() then gym_fixture_text(10):("session complete\nitems this session: 1\nnone this session: your confidence matched your results\nconcepts due a day from now: 0")

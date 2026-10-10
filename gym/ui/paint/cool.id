@@ -1,0 +1,40 @@
+// The cool-down screen (spec, "A session", step 4): where confidence was off, one line to your earlier self, and what comes back next session. The facts are the lines of session_cool_down_text, read from the log by the engine layer; this only lays them out.
+
+// Draw the cool-down screen's cards and captions. The note box is a widget drawn last.
+gym_paint_cool(Session gym_state) {
+  gym_paint_off(gym_state);
+  gym_paint_note(gym_state);
+  gym_paint_due(gym_state);
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 2) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_pixel(900, 100):(16777215) then gym_fixture_pixel(900, 600):(16448250) then gym_fixture_inked(14, 323, 360, 22, 0):(1)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 2) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_inked(0, 0, 960, 70, 0):(0) then gym_fixture_inked(0, 400, 960, 20, 0):(0)
+
+// The card of where confidence was off: the items of the session and the answers that were wrong at 90 percent or more, or a plain line while the session is still going.
+gym_paint_off(Session gym_state) {
+  int[] gym_box = gym_rectangle_of("cool_items");
+  gym_inset(gym_box, (import gym_card_inset));
+  gym_card(gym_box[0], gym_box[1], gym_box[2], gym_box[3], (import th_l_surface_raised), (import th_l_separator));
+} chain (Session gym_state) {
+  string[] gym_lines = str_lines(gym_state.texts[(import gym_text_cool)]);
+  int gym_end = gym_block(18, 1, "Where your confidence was off", gym_box[0] + 16, gym_box[1] + 10, gym_box[2] - 32, (import th_l_label));
+  gym_paint_off_list(gym_lines, gym_box, gym_end);
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 2) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_pixel(900, 300):(16777215) then gym_fixture_colored(26, 90, 300, 24, 2105384):(1) then gym_fixture_colored(26, 118, 500, 17, 6316128):(1) then gym_fixture_inked(26, 145, 600, 17, 16777215):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 2) given gym_fixture_cooled given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_colored(26, 122, 600, 17, 6316128):(1) then gym_fixture_colored(26, 145, 600, 17, 6316128):(1)
+
+// The lines of the cool-down text that belong on the card of gym_box, under the heading that ends at gym_top: the number of items and the confident misses (the first line says the session is complete and the last is the due count, which has its own card). With no text yet, a line saying when it will come.
+gym_paint_off_list(string[] gym_lines, int[] gym_box, int gym_top) {
+  int gym_row = gym_top + 4;
+  int gym_at = 1;
+  if(len(gym_lines) == 0) {
+    gym_row = gym_block(14, 0, "This fills in when the last item is done: the answers you were sure of and got wrong.", gym_box[0] + 16, gym_row, gym_box[2] - 32, (import th_l_label_secondary));
+  }
+} chain (string[] gym_lines, int[] gym_box, int gym_top) {
+  while(gym_at < fx_min(len(gym_lines) - 1, 3)) {
+    gym_row = gym_block(14, 0, gym_lines[gym_at], gym_box[0] + 16, gym_row + 4, gym_box[2] - 32, (import th_l_label_secondary));
+    gym_at = gym_at + 1;
+  }
+} return void;
+given gym_fixture_fonts (["session complete", "items this session: 3", "wrong at 90% or more confidence: space_2 (99%)", "concepts due a day from now: 2"], [10, 80, 940, 231], 114):() then gym_fixture_colored(26, 122, 600, 17, 6316128):(1) then gym_fixture_colored(26, 145, 600, 17, 6316128):(1)
+given gym_fixture_fonts ([], [10, 80, 940, 231], 114):() then gym_fixture_colored(26, 118, 500, 17, 6316128):(1) then gym_fixture_inked(26, 145, 600, 17, 0):(0)
+given gym_fixture_fonts (["session complete", "items this session: 3", "none this session: your confidence matched your results", "extra", "concepts due a day from now: 0"], [10, 80, 940, 231], 114):() then gym_fixture_colored(26, 122, 600, 17, 6316128):(1) then gym_fixture_inked(26, 168, 600, 17, 0):(0)

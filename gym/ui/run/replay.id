@@ -1,0 +1,46 @@
+// Replaying a script on a session. The session lives in a one-cell list (gym_holder), which is the one place that is allowed to change: each event goes through gym_deliver, so a script drives the same reducer and the same engine operations a person would, and what it writes to the log is what a person's clicks would have written.
+
+// Run every line of the script text gym_script, in order, on the session in gym_holder[0]. A line that is none of the script words is named on stderr with its number and the words there are, and the rest still run. Answers how many lines could not be read.
+gym_replay(World gym_world, Session[] gym_holder, string gym_script) {
+  string[] gym_rows = str_split(gym_script, "\n");
+  int gym_at = 0;
+  int gym_bad = 0;
+} chain (World gym_world, Session[] gym_holder, string gym_script) {
+  while(gym_at < len(gym_rows)) {
+    gym_bad = gym_bad + gym_replay_line(gym_world, gym_holder, gym_rows[gym_at], gym_at + 1);
+    gym_at = gym_at + 1;
+  }
+} return int gym_bad;
+given gym_fixture_world("", 5) given gym_live_open given gym_live_begin ((import gym_setting), (import gym_live), "type 1/2\nconfidence 90\nsubmit"):(0) then gym_fixture_live_cell(3):(1) then gym_fixture_live_cell(4):(0)
+given gym_fixture_world("", 5) given gym_live_open given gym_live_begin ((import gym_setting), (import gym_live), "type 1/3\nconfidence 90\nsubmit"):(0) then gym_fixture_live_cell(3):(1) then gym_fixture_live_cell(4):(1)
+given gym_fixture_world("", 5) given gym_live_open given gym_live_begin ((import gym_setting), (import gym_live), "tick 5\nfly\ntick 3\n"):(1) then gym_fixture_live_cell(6):(8) then eprints:("gym window: script line 2: 'fly' is not a script word, or lacks its fields\nusage: gym window --pack DIR --log FILE [--now MS] [--seed N] [--url URL] [--script S.txt [--dump] [--render-after OUT.ppm]]\n  script words: type TEXT, confidence N, submit, hint, tapout, next, tick SECONDS, screen N, define N, note TEXT, save, key NAME, click X Y; a line starting with # is a note\n")
+given gym_fixture_world("", 5) given gym_live_open given gym_live_begin ((import gym_setting), (import gym_live), "# nothing\n\n"):(0) then gym_fixture_live_cell(6):(0)
+given gym_fixture_world("", 5) given gym_live_open given gym_live_begin ((import gym_setting), (import gym_live), "type 5\nconfidence 70\ntapout\n"):(0) then gym_fixture_live_cell(3):(2) then gym_fixture_live_cell(5):(4)
+given gym_fixture_world("", 5) given gym_live_open given gym_live_begin ((import gym_setting), (import gym_live), "hint\nsubmit\ntype 1/3\nsubmit\nconfidence 90\nhint\n"):(0) then gym_fixture_live_cell(3):(0) then gym_fixture_live_text(5):("answer first: a hint comes only after you commit an attempt (an answer and a confidence); if you are stuck, gym tapout shows the worked example")
+
+// Run script line gym_line (line number gym_number) on gym_holder[0]. Answers 1 for a line that could not be read, after naming it on stderr, and 0 otherwise.
+gym_replay_line(World gym_world, Session[] gym_holder, string gym_line, int gym_number) {
+  int gym_ok = gym_script_valid(gym_line);
+  Event gym_made = gym_script_event(gym_holder[0], gym_line);
+  gym_deliver(gym_world, gym_holder, gym_made);
+} chain (World gym_world, Session[] gym_holder, string gym_line, int gym_number) {
+  if(gym_ok == 0) {
+    eprint("gym window: script line " + gym_number + ": '" + gym_line + "' is not a script word, or lacks its fields\n" + (import gym_usage));
+  }
+  int gym_bad = 1 - gym_ok;
+} return int gym_bad;
+given gym_fixture_world("", 5) given gym_live_open given gym_live_begin ((import gym_setting), (import gym_live), "tick 5", 1):(0) then gym_fixture_live_cell(6):(5)
+given gym_fixture_world("", 5) given gym_live_open given gym_live_begin ((import gym_setting), (import gym_live), "fly", 7):(1) then gym_fixture_live_cell(6):(0) then eprints:("gym window: script line 7: 'fly' is not a script word, or lacks its fields\nusage: gym window --pack DIR --log FILE [--now MS] [--seed N] [--url URL] [--script S.txt [--dump] [--render-after OUT.ppm]]\n  script words: type TEXT, confidence N, submit, hint, tapout, next, tick SECONDS, screen N, define N, note TEXT, save, key NAME, click X Y; a line starting with # is a note\n")
+
+
+// 1 when gym_line can be read: it is blank, it is a note (it starts with #), or it is a script word with the fields it needs.
+gym_script_valid(string gym_line) {
+  string[] gym_fields = str_split(gym_line, " ");
+  int gym_slot = lst_str_index((import gym_script_words), gym_fields[0]);
+  int gym_good = gym_script_fits(gym_fields, gym_slot) || len(str_trim(gym_line)) == 0 || str_starts(gym_line, "#") == 1;
+} return int gym_good;
+("submit"):(1)
+("# a note"):(1)
+(""):(1)
+("tick"):(0)
+("fly 3"):(0)

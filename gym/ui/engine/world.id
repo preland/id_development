@@ -1,0 +1,12 @@
+// The world the engine operations run in, kept for the whole run in the export gym_setting: the window mode and a script replay both read it, and nothing writes it again. It is made once, from the command line.
+
+// Load the pack in directory gym_pack and keep it with the log file, the clock reading the window opened at (ms since the epoch), the model server and the plan seed.
+gym_world_open(string gym_pack, string gym_log, word gym_origin, string gym_url, int gym_seed) {
+  Pack gym_book = pack_load(gym_pack);
+  Record gym_record = Record(gym_log, gym_origin, gym_seed);
+  World gym_created = World(gym_book, gym_record, gym_url);
+} chain (string gym_pack, string gym_log, word gym_origin, string gym_url, int gym_seed) {
+  export World gym_setting = gym_created;
+} return void export gym_setting;
+("packs/probability", "x.log", 5, "http://127.0.0.1:1", 1):() then gym_fixture_logged():("") then gym_fixture_item_count():(60)
+("packs/probability", "y.log", 9, "", 3):() then gym_fixture_item_count():(60) then gym_fixture_seed():(3)

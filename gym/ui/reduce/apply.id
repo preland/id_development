@@ -1,0 +1,38 @@
+// The event table of the window's own rules: which rule an event runs. Time arrives only as a tick event, never from a clock read here. The events that need the engine (submit, hint, tap out, next, and keeping the cool-down line) are not here: the shell in engine/ performs them against the log and reads the state back; the reducer ignores them, like any other kind it does not know.
+
+// Run one event on gym_state in place: each kind of gym_event the reducer owns goes to the rule that owns it, and a kind that is none of them changes nothing.
+gym_apply(Session gym_state, Event gym_event) {
+  int gym_kind = gym_event.kind;
+  if(gym_kind == (import gym_event_type)) {
+    gym_type(gym_state, gym_event.text);
+  }
+  if(gym_kind == (import gym_event_confidence)) {
+    gym_choose(gym_state, gym_event.value);
+  }
+} chain (Session gym_state, Event gym_event) {
+  if(gym_kind == (import gym_event_tick)) {
+    gym_tick(gym_state, gym_event.value);
+  }
+  if(gym_kind == (import gym_event_screen)) {
+    gym_screen(gym_state, gym_event.value);
+  }
+  if(gym_kind == (import gym_event_define)) {
+    gym_define(gym_state, gym_event.value);
+  }
+} chain (Session gym_state, Event gym_event) {
+  if(gym_kind == (import gym_event_note)) {
+    gym_note(gym_state, gym_event.text);
+  }
+  if(gym_kind == (import gym_event_key)) {
+    gym_key(gym_state, gym_event.value);
+  }
+  if(gym_kind == (import gym_event_save)) {
+    gym_saved(gym_state);
+  }
+} return void;
+given gym_fixture_make(0) ((import gym_fixture_state), Event(2, 70, "")):() then gym_fixture_cell(2):(70)
+given gym_fixture_make(0) ((import gym_fixture_state), Event(1, 0, "1/2")):() then gym_fixture_text(0):("1/2")
+given gym_fixture_make(0) ((import gym_fixture_state), Event(8, 1, "")):() then gym_fixture_cell(0):(1)
+given gym_fixture_make(0) ((import gym_fixture_state), Event(99, 5, "x")):() then gym_fixture_cell(0):(0)
+given gym_fixture_make(0) given gym_fixture_set(2, 90) ((import gym_fixture_state), Event(3, 0, "")):() then gym_fixture_cell(3):(0) then gym_fixture_cell(2):(90)
+given gym_fixture_make(0) given gym_fixture_say("a") ((import gym_fixture_state), Event(10, 0, "b")):() then gym_fixture_text(1):("b")

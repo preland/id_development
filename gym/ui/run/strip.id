@@ -1,0 +1,33 @@
+// Which words of the window command line the shared option table must not see.
+
+// Push word number gym_at of gym_words onto gym_kept unless it is one only the window knows: the word window straight after the program name, --dump, or an option that takes a value of its own (the value is skipped by gym_option_span).
+gym_keep_word(string[] gym_kept, string[] gym_words, int gym_at) {
+  int gym_window_word = gym_at == 1 && gym_words[gym_at] == "window";
+  int gym_own = gym_window_word || gym_words[gym_at] == "--dump" || lst_str_index((import gym_window_options), gym_words[gym_at]) >= 0;
+  if(gym_own == 0) {
+    push(gym_kept, gym_words[gym_at]);
+  }
+} return void;
+(["gym"], ["gym", "window", "--pack"], 1):(["gym"])
+(["gym"], ["gym", "window", "--pack"], 2):(["gym", "--pack"])
+(["gym"], ["gym", "--dump", "--log"], 1):(["gym"])
+(["gym"], ["gym", "--script", "s"], 1):(["gym"])
+
+// How many words the option at gym_at takes from the command line: two for an option with a value of its own, else one.
+gym_option_span(string[] gym_words, int gym_at) {
+  int gym_taken = 1 + (lst_str_index((import gym_window_options), gym_words[gym_at]) >= 0);
+} return int gym_taken;
+(["gym", "--script", "s"], 1):(2)
+(["gym", "--render-after", "o"], 1):(2)
+(["gym", "--pack", "p"], 1):(1)
+
+// A parse trouble as the line to print: opt_parse's message gets the "error: " the other refusals already carry; nothing, or the help request, stays as it is.
+gym_error_text(string gym_trouble_text) {
+  string gym_printed = gym_trouble_text;
+  if(gym_trouble_text != "" && gym_trouble_text != "help") {
+    gym_printed = "error: " + gym_trouble_text;
+  }
+} return string gym_printed;
+("unknown option"):("error: unknown option")
+(""):("")
+("help"):("help")

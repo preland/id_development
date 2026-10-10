@@ -27,6 +27,10 @@ log_fields_ok(string[] log_fields) {
   if (log_shaped == 1 && log_fields[1] == "session_next" && log_wide == (import log_next_width)) {
     log_ok = log_fields[(import log_slot_item)] != "";
   }
+} chain (string[] log_fields) {
+  if (log_shaped == 1 && log_fields[1] == "cooldown_note" && log_wide == (import log_note_width)) {
+    log_ok = log_fields[(import log_slot_item)] != "";
+  }
 } return int log_ok;
 (["1", "session_start"]):(1)
 (["1", "session_plan", "a,b", "warmup,main", "x\\ny"]):(1)
@@ -37,6 +41,10 @@ log_fields_ok(string[] log_fields) {
 (["1", "session_next", "a"]):(1)
 (["1", "session_next", ""]):(0)
 (["1", "session_next"]):(0)
+(["1", "cooldown_note", "to my earlier self"]):(1)
+(["1", "cooldown_note", ""]):(0)
+(["1", "cooldown_note"]):(0)
+(["1", "cooldown_note", "a", "b"]):(0)
 (["1", "session_other"]):(0)
 (["1", "session_end", "extra"]):(0)
 (["1", "hint_shown", "i", "3"]):(1)

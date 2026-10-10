@@ -1,0 +1,46 @@
+// What a finished operation leaves on the screen: the state read back from the log, the notice of a refusal, the words of a hint, the mark that a line was kept.
+
+// Replace the session in gym_holder[0] by the state after the operation gym_kind gave gym_result: derived from the log as it now is, with the notice cleared or set to the engine's reason, a shown hint's words put on its rung, and a kept line marked.
+gym_adopt(World gym_world, Session[] gym_holder, int gym_kind, string[] gym_result) {
+  Log_replay gym_replayed = log_replay(gym_world.record.log);
+  Session gym_after = gym_derive(gym_world, gym_holder[0], gym_replayed.events);
+  string[] gym_texts = gym_after.texts;
+} chain (World gym_world, Session[] gym_holder, int gym_kind, string[] gym_result) {
+  int gym_good = gym_result[0] == "ok";
+  gym_texts[(import gym_text_notice)] = "";
+  if(gym_good == 0) {
+    gym_texts[(import gym_text_notice)] = gym_result[1];
+  }
+} chain (World gym_world, Session[] gym_holder, int gym_kind, string[] gym_result) {
+  if(gym_good == 1 && gym_kind == (import gym_event_hint)) {
+    int gym_rung_at = (import gym_text_rung) + to_int(gym_result[5]) - 1;
+    gym_texts[gym_rung_at] = gym_result[2];
+  }
+  if(gym_good == 1 && gym_kind == (import gym_event_save)) {
+    gym_saved(gym_after);
+  }
+  gym_holder[0] = gym_after;
+} return void;
+given gym_fixture_world("1\tsession_plan\tspace_1,space_2\tmain,main\tr\\nr\n", 5) given gym_live_open ((import gym_setting), (import gym_live), 7, ["refused", "no good"]):() then gym_fixture_live_text(5):("no good") then gym_fixture_live_cell(13):(2)
+given gym_fixture_world("1\tsession_plan\tspace_1,space_2\tmain,main\tr\\nr\n", 5) given gym_live_open given gym_dispatch_text(5, "old") ((import gym_setting), (import gym_live), 7, ["ok", ""]):() then gym_fixture_live_text(5):("")
+given gym_fixture_world("1\tsession_plan\tspace_1,space_2\tmain,main\tr\\nr\n", 5) given gym_live_open ((import gym_setting), (import gym_live), 4, ["ok", "", "reworded hint", "model", "nudge", "2", ""]):() then gym_fixture_live_text(7):("reworded hint") then gym_fixture_live_text(5):("")
+given gym_fixture_world("1\tsession_plan\tspace_1,space_2\tmain,main\tr\\nr\n", 5) given gym_live_open given gym_dispatch_text(10, "memo") ((import gym_setting), (import gym_live), 12, ["ok", ""]):() then gym_fixture_live_cell(12):(1)
+given gym_fixture_world("1\tsession_plan\tspace_1,space_2\tmain,main\tr\\nr\n", 5) given gym_live_open given gym_dispatch_text(10, "memo") ((import gym_setting), (import gym_live), 12, ["refused", "no"]):() then gym_fixture_live_cell(12):(0)
+
+// Keep the cool-down line in the log (a cooldown_note event, log/FORMAT.md). A line that is empty is refused, since nothing would be kept.
+gym_keep_note(World gym_world, string gym_line, word gym_moment) {
+  string[] gym_result = ["refused", "write a line first: what would you tell yourself an hour ago?"];
+  int gym_written = 0 - 1;
+  if(len(gym_line) > 0) {
+    gym_written = log_record_note(gym_world.record.log, gym_moment, gym_line);
+  }
+} chain (World gym_world, string gym_line, word gym_moment) {
+  if(gym_written >= 0) {
+    gym_result = ["ok", ""];
+  }
+  if(gym_written < 0 && len(gym_line) > 0) {
+    gym_result = ["refused", "the log could not be written; check that its folder exists and that you may write to it"];
+  }
+} return string[] gym_result;
+given gym_fixture_world("", 5) ((import gym_setting), "check units", 7000):(["ok", ""]) then gym_fixture_logged():("7000\tcooldown_note\tcheck units\n")
+given gym_fixture_world("", 5) ((import gym_setting), "", 7000):(["refused", "write a line first: what would you tell yourself an hour ago?"]) then gym_fixture_logged():("")

@@ -1,0 +1,25 @@
+// Probes of the window's clock and of the live session laid out, for the cases of the loop.
+
+// Move the clock mark gym_ms milliseconds into the past, as if that long had gone by since it was set.
+gym_fixture_back(int gym_ms) {
+  int[] gym_mark_cell = (import gym_mark);
+  gym_mark_cell[0] = gym_mark_cell[0] - gym_ms;
+} return void;
+given gym_mark_clock (5000):() then gym_fixture_seconds():(5)
+given gym_mark_clock (0):() then gym_fixture_seconds():(0)
+
+// Whole seconds between the clock mark and now.
+gym_fixture_seconds() {
+  int gym_spent_seconds = (ticks() - (import gym_mark)[0]) / 1000;
+} return int gym_spent_seconds;
+given gym_mark_clock ():(0)
+given gym_mark_clock given gym_fixture_back(2500) ():(2)
+
+// Everything a paint or a click needs for the live session: the surface, widgets and page, tiled and placed for the live session's screen.
+gym_fixture_ready_live() {
+  gym_fixture_ui();
+  gym_layout((import gym_live)[0]);
+  gym_place((import gym_live)[0]);
+} return void;
+given gym_live_open ():() then gym_fixture_area("prompt", 3):(125)
+given gym_live_open given gym_fixture_live_set(0, 1) ():() then gym_fixture_area("score_list", 2):(557)

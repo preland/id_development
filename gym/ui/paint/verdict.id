@@ -1,0 +1,44 @@
+// The first line of a finished rep. A tap-out is named plainly and carries no penalty wording: it says what happens next, not that anything was lost.
+
+// "Correct", "Not quite", or "Tapped out" for the rep in the state.
+gym_verdict_text(Session gym_state) {
+  int[] gym_cells = gym_state.cells;
+  string gym_phrase = "Not quite";
+  if(gym_cells[(import gym_cell_correct)] == 1) {
+    gym_phrase = "Correct";
+  }
+} chain (Session gym_state) {
+  if(gym_cells[(import gym_cell_stage)] == (import gym_stage_tapped)) {
+    gym_phrase = "Tapped out. The worked example is below; this item comes back sooner.";
+  }
+} return string gym_phrase;
+given gym_fixture_make(0) given gym_fixture_stock ((import gym_fixture_state)):("Not quite")
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(4, 1) ((import gym_fixture_state)):("Correct")
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(3, 2) ((import gym_fixture_state)):("Tapped out. The worked example is below; this item comes back sooner.")
+
+// The colour of that first line: green for right, red for wrong, plain for a tap-out.
+gym_verdict_color(Session gym_state) {
+  int[] gym_cells = gym_state.cells;
+  int gym_color = (import th_l_destructive);
+  if(gym_cells[(import gym_cell_correct)] == 1) {
+    gym_color = (import th_l_success);
+  }
+} chain (Session gym_state) {
+  if(gym_cells[(import gym_cell_stage)] == (import gym_stage_tapped)) {
+    gym_color = (import th_l_label);
+  }
+} return int gym_color;
+given gym_fixture_make(0) given gym_fixture_stock ((import gym_fixture_state)):(12582912)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(4, 1) ((import gym_fixture_state)):(3046706)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(3, 2) ((import gym_fixture_state)):(2105384)
+
+// The reason the engine gave for refusing the last thing the learner asked for, in the colour of an error, at the foot of the outcome card gym_box. With nothing refused the card is left alone.
+gym_paint_notice(Session gym_state, int[] gym_box) {
+  string gym_reason = gym_state.texts[(import gym_text_notice)];
+  int gym_end = 0;
+  if(len(gym_reason) > 0) {
+    gym_end = gym_block(14, 1, gym_reason, gym_box[0] + 16, gym_box[1] + gym_box[3] - 44, gym_box[2] - 32, (import th_l_destructive));
+  }
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_put(5, "Answer first: a hint comes only after you commit an attempt.") given gym_fixture_ready ((import gym_fixture_state), [20, 386, 920, 234]):() then gym_fixture_colored(36, 576, 600, 18, 12582912):(1)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ((import gym_fixture_state), [20, 386, 920, 234]):() then gym_fixture_colored(36, 576, 600, 18, 12582912):(0)

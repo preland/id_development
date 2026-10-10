@@ -1,0 +1,36 @@
+// Tiling the page for the screen in play, and reading a rectangle back out of it.
+
+// Open the screen the state is on (its gate in the page), bind the gates and tile the page again at the surface's size. Needs gym_page, and the surface made.
+gym_layout(Session gym_state) {
+  int gym_shown = gym_state.cells[(import gym_cell_screen)];
+  gui_set_num((import gym_board), "show_rep", gym_shown == (import gym_screen_rep));
+  gui_set_num((import gym_board), "show_score", gym_shown == (import gym_screen_score));
+} chain (Session gym_state) {
+  gui_set_num((import gym_board), "show_cool", gym_shown == (import gym_screen_cool_down));
+  gui_bind((import gym_tape), (import gym_strings), (import gym_board));
+  gui_layout((import gym_tape), (import gym_rectangles), (import sf_l_w), (import sf_l_h));
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ui ((import gym_fixture_state)):() then gym_fixture_area("prompt", 3):(125) then gym_fixture_area("score_list", 2):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 1) given gym_fixture_ui ((import gym_fixture_state)):() then gym_fixture_area("score_list", 2):(557) then gym_fixture_area("prompt", 3):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 2) given gym_fixture_ui ((import gym_fixture_state)):() then gym_fixture_area("cool_due", 1):(412)
+
+// The rectangle of the cell whose idml class is gym_class, as x, y, width and height in pixels; all zero for a cell on a screen that is not showing.
+gym_rectangle_of(string gym_class) {
+  int gym_node = gui_find_cls((import gym_tape), (import gym_strings), gym_class);
+  int[] gym_box = [gui_rect_get((import gym_rectangles), gym_node, 0), gui_rect_get((import gym_rectangles), gym_node, 1), gui_rect_get((import gym_rectangles), gym_node, 2), gui_rect_get((import gym_rectangles), gym_node, 3)];
+} return int[] gym_box;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ("prompt"):([0, 70, 960, 125])
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ("level_ninety"):([654, 252, 154, 57])
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ("score_list"):([0, 0, 0, 0])
+
+// Shrink the rectangle gym_box by gym_amount on every side.
+gym_inset(int[] gym_box, int gym_amount) {
+  gym_box[0] = gym_box[0] + gym_amount;
+  gym_box[1] = gym_box[1] + gym_amount;
+  gym_box[2] = gym_box[2] - 2 * gym_amount;
+} chain (int[] gym_box, int gym_amount) {
+  gym_box[3] = gym_box[3] - 2 * gym_amount;
+} return void;
+([10, 20, 100, 60], 8):([18, 28, 84, 44], 8)
+([1, 2, 40, 50], 3):([4, 5, 34, 44], 3)
+([5, 5, 10, 10], 5):([10, 10, 0, 0], 5)

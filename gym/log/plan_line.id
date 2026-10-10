@@ -3,7 +3,7 @@
 // phases and the reason each one was planned, fixed at the moment the session
 // started so that later answers cannot change what is on the list. Ids and phases
 // are comma-separated, reasons are one per line, and all three pass through
-// log_escape. A session_next line says the learner moved on from one item.
+// log_escape. A session_next line says the learner moved on from one item; a cooldown_note line holds the one line the learner wrote at the end.
 
 log_line_plan(word log_time, string[] log_plan_ids, string[] log_plan_phases, string[] log_plan_reasons) {
   string log_ids_text = log_escape(str_join(log_plan_ids, ","));
@@ -21,3 +21,9 @@ log_line_next(word log_time, string log_item) {
 } return string log_fields_next;
 (1760000000000, "dice_1"):("1760000000000\tsession_next\tdice_1")
 (9, "a\tb"):("9\tsession_next\ta\\tb")
+
+log_line_note(word log_time, string log_note) {
+  string log_fields_note = "" + log_time + "\tcooldown_note\t" + log_escape(log_note);
+} return string log_fields_note;
+(1760000000000, "check the units"):("1760000000000\tcooldown_note\tcheck the units")
+(9, "a\nb\tc"):("9\tcooldown_note\ta\\nb\\tc")

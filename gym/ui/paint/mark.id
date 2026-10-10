@@ -1,0 +1,23 @@
+// Showing which buttons are chosen: a frame in the accent colour round the confidence picked and round the button of the screen in play.
+
+// Frame the chosen confidence button (on the rep screen) and the button of the screen the state shows.
+gym_mark_chosen(Session gym_state) {
+  int[] gym_cells = gym_state.cells;
+  int gym_slot = lst_index_of((import gym_levels), gym_cells[(import gym_cell_confidence)]);
+  gym_mark_command(gym_state, (import gym_command_screens) + gym_cells[(import gym_cell_screen)]);
+} chain (Session gym_state) {
+  if(gym_slot >= 0 && gym_cells[(import gym_cell_screen)] == (import gym_screen_rep)) {
+    gym_mark_command(gym_state, gym_slot);
+  }
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(2, 90) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_pixel(662, 270):(2840474) then gym_fixture_pixel(565, 30):(2840474)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 1) given gym_fixture_set(2, 90) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_pixel(662, 270):(0) then gym_fixture_pixel(699, 30):(2840474)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_pixel(662, 270):(0)
+
+// Frame the button of command gym_command in the accent colour, three pixels thick.
+gym_mark_command(Session gym_state, int gym_command) {
+  int[] gym_box = gym_command_box(gym_state, gym_command);
+  gym_outline(gym_box, 3, (import th_l_accent));
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ((import gym_fixture_state), 4):() then gym_fixture_pixel(8, 330):(2840474) then gym_fixture_pixel(100, 318):(2840474) then gym_fixture_pixel(100, 335):(0)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ((import gym_fixture_state), 11):() then gym_fixture_inked(0, 0, 960, 640, 0):(0)

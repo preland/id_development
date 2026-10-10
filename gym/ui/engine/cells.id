@@ -1,0 +1,70 @@
+// Reading the state of the rep back from the log (session_view): which item of the plan is in play, whether any is, how far it has got, and the phase the plan puts it in. The window keeps none of this itself, so closing it and opening it again on the same log lands on the same screen.
+
+// Copy the numbers of gym_view (the eight slots of session_view) into the state: the position in the plan, whether an item is in play, how many the plan holds, then the help and the phase. Moving to another item starts a fresh rep.
+gym_adopt_cells(Session gym_state, string[] gym_view, Log_events gym_entries, int gym_plan_at) {
+  int[] gym_cells = gym_state.cells;
+  string gym_mode = gym_view[(import session_slot_state)];
+  int gym_open = gym_mode == "waiting" || gym_mode == "committed";
+} chain (Session gym_state, string[] gym_view, Log_events gym_entries, int gym_plan_at) {
+  int gym_position = fx_max(to_int(gym_view[(import session_slot_number)]) - 1, 0);
+  gym_cells[(import gym_cell_closed)] = 1 - gym_open;
+  gym_cells[(import gym_cell_total)] = to_int(gym_view[(import session_slot_total)]);
+} chain (Session gym_state, string[] gym_view, Log_events gym_entries, int gym_plan_at) {
+  if(gym_open == 1 && gym_position != gym_cells[(import gym_cell_item)]) {
+    gym_begin(gym_state, gym_position);
+  }
+  if(gym_open == 1) {
+    gym_adopt_help(gym_state, gym_view, gym_entries, gym_plan_at);
+  }
+  gym_adopt_phase(gym_state, gym_view);
+} return void;
+given gym_fixture_make(0) ((import gym_fixture_state), ["waiting", "2", "3", "b", "main", "r", "0", "no"], Log_events([], [], []), -1):() then gym_fixture_cell(1):(1) then gym_fixture_cell(13):(3) then gym_fixture_cell(14):(0) then gym_fixture_cell(7):(1)
+given gym_fixture_make(0) ((import gym_fixture_state), ["closed", "3", "3", "", "", "", "0", "no"], Log_events([], [], []), -1):() then gym_fixture_cell(14):(1) then gym_fixture_cell(7):(3) then gym_fixture_cell(0):(2)
+given gym_fixture_make(0) ((import gym_fixture_state), ["none", "", "", "", "", "", "0", "no"], Log_events([], [], []), -1):() then gym_fixture_cell(14):(1) then gym_fixture_cell(7):(0) then gym_fixture_cell(13):(0)
+given gym_fixture_make(2) given gym_fixture_say("x") given gym_fixture_set(2, 90) ((import gym_fixture_state), ["waiting", "4", "5", "d", "main", "r", "0", "no"], Log_events([], [], []), -1):() then gym_fixture_cell(1):(3) then gym_fixture_cell(2):(0) then gym_fixture_text(0):("")
+
+// The numbers that depend on the attempt: the stage of the rep (waiting, committed, tapped out), whether the committed answer was right, and how many hint rungs are showing (a tap-out shows them all, as the worked example). Only called while an item is in play.
+gym_adopt_help(Session gym_state, string[] gym_view, Log_events gym_entries, int gym_plan_at) {
+  int[] gym_cells = gym_state.cells;
+  int gym_tapped = gym_view[(import session_slot_tapped)] == "yes";
+  int gym_attempt = session_attempt_index(gym_entries, gym_plan_at, gym_cells[(import gym_cell_item)]);
+} chain (Session gym_state, string[] gym_view, Log_events gym_entries, int gym_plan_at) {
+  string gym_verdict = "";
+  gym_cells[(import gym_cell_stage)] = (gym_view[(import session_slot_state)] == "committed") * (1 + gym_tapped);
+  gym_cells[(import gym_cell_hints)] = to_int(gym_view[(import session_slot_hints)]) + gym_tapped * (import gym_rung_count);
+} chain (Session gym_state, string[] gym_view, Log_events gym_entries, int gym_plan_at) {
+  if(gym_attempt >= 0) {
+    gym_verdict = log_text_at(gym_entries, gym_attempt, (import log_slot_verdict));
+  }
+  gym_cells[(import gym_cell_correct)] = gym_verdict == "correct" && gym_tapped == 0;
+} return void;
+given gym_fixture_make(0) ((import gym_fixture_state), ["committed", "1", "2", "a", "main", "r", "2", "no"], Log_events([1, 2], ["session_plan", "attempt"], [["1", "session_plan", "a,b", "main,main", "r\nr"], ["2", "attempt", "a", "x", "90", "correct", "0", "5", "no", ""]]), 0):() then gym_fixture_cell(3):(1) then gym_fixture_cell(4):(1) then gym_fixture_cell(5):(2)
+given gym_fixture_make(0) ((import gym_fixture_state), ["committed", "1", "2", "a", "main", "r", "0", "yes"], Log_events([1, 2], ["session_plan", "attempt"], [["1", "session_plan", "a,b", "main,main", "r\nr"], ["2", "attempt", "a", "", "50", "incorrect", "4", "5", "yes", ""]]), 0):() then gym_fixture_cell(3):(2) then gym_fixture_cell(4):(0) then gym_fixture_cell(5):(4)
+given gym_fixture_make(0) ((import gym_fixture_state), ["waiting", "1", "2", "a", "main", "r", "1", "no"], Log_events([1], ["session_plan"], [["1", "session_plan", "a,b", "main,main", "r\nr"]]), 0):() then gym_fixture_cell(3):(0) then gym_fixture_cell(4):(0) then gym_fixture_cell(5):(1)
+
+// Put the state in the phase the plan gives the item in play (warm-up, main set, transfer), or in the cool-down once nothing is left to play; a plan that was never made changes nothing. A new phase starts its own clock, and entering the cool-down shows that screen.
+gym_adopt_phase(Session gym_state, string[] gym_view) {
+  int[] gym_cells = gym_state.cells;
+  int gym_was = gym_cells[(import gym_cell_phase)];
+  int gym_now_phase = gym_was;
+} chain (Session gym_state, string[] gym_view) {
+  if(gym_cells[(import gym_cell_closed)] == 0) {
+    gym_now_phase = fx_max(lst_str_index((import gym_plan_phases), gym_view[(import session_slot_phase)]), 0);
+  }
+  if(gym_cells[(import gym_cell_closed)] == 1 && gym_view[(import session_slot_state)] != "none") {
+    gym_now_phase = fx_max(gym_was, (import gym_phase_cool_down));
+  }
+  if(gym_now_phase != gym_was) {
+    gym_cells[(import gym_cell_phase)] = gym_now_phase;
+    gym_cells[(import gym_cell_phase_started)] = gym_cells[(import gym_cell_elapsed)];
+  }
+} chain (Session gym_state, string[] gym_view) {
+  gym_clock(gym_state);
+  if(gym_now_phase == (import gym_phase_cool_down) && gym_was < (import gym_phase_cool_down)) {
+    gym_cells[(import gym_cell_screen)] = (import gym_screen_cool_down);
+  }
+} return void;
+given gym_fixture_make(0) ((import gym_fixture_state), ["waiting", "1", "3", "a", "transfer", "r", "0", "no"]):() then gym_fixture_cell(7):(2) then gym_fixture_cell(8):(300)
+given gym_fixture_make(0) given gym_fixture_set(6, 50) ((import gym_fixture_state), ["waiting", "1", "3", "a", "main", "r", "0", "no"]):() then gym_fixture_cell(7):(1) then gym_fixture_cell(11):(50) then gym_fixture_cell(8):(780)
+given gym_fixture_make(0) given gym_fixture_set(14, 1) ((import gym_fixture_state), ["closed", "3", "3", "", "", "", "0", "no"]):() then gym_fixture_cell(7):(3) then gym_fixture_cell(0):(2) then gym_fixture_cell(8):(120)
+given gym_fixture_make(0) given gym_fixture_set(7, 2) given gym_fixture_set(14, 1) ((import gym_fixture_state), ["none", "", "", "", "", "", "0", "no"]):() then gym_fixture_cell(7):(2) then gym_fixture_cell(0):(0)

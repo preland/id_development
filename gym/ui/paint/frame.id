@@ -1,0 +1,32 @@
+// One whole picture of a state: tile the page for its screen, put the widgets in place, draw the background, the session bar, the screen and then the widgets over it. Everything drawn comes from the state; nothing is read from a clock or a window.
+
+// Paint the state on the surface (sf_l_init made one): the whole window.
+gym_paint(Session gym_state) {
+  gym_layout(gym_state);
+  gym_place(gym_state);
+  d2_l_rect(0, 0, (import sf_l_w), (import sf_l_h), (import th_l_window));
+} chain (Session gym_state) {
+  gym_paint_bar(gym_state);
+  gym_paint_screen(gym_state);
+  gym_paint_widgets(gym_state);
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ui ((import gym_fixture_state)):() then gym_fixture_pixel(959, 639):(15987699) then gym_fixture_pixel(14, 12):(2840474) then gym_fixture_pixel(900, 100):(16777215) then gym_fixture_inked(699, 8, 118, 54, 15987699):(1)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 1) given gym_fixture_ui ((import gym_fixture_state)):() then gym_fixture_pixel(959, 639):(15987699) then gym_fixture_pixel(900, 100):(16448250) then gym_fixture_colored(26, 90, 300, 24, 2105384):(1)
+
+// The screen the state shows, under the session bar.
+gym_paint_screen(Session gym_state) {
+  int gym_shown = gym_state.cells[(import gym_cell_screen)];
+  if(gym_shown == (import gym_screen_rep)) {
+    gym_paint_rep(gym_state);
+  }
+  if(gym_shown == (import gym_screen_score)) {
+    gym_paint_score(gym_state);
+  }
+} chain (Session gym_state) {
+  if(gym_shown == (import gym_screen_cool_down)) {
+    gym_paint_cool(gym_state);
+  }
+} return void;
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_pixel(900, 100):(16777215) then gym_fixture_pixel(900, 600):(16448250)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 1) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_pixel(900, 100):(16448250) then gym_fixture_pixel(900, 400):(16448250)
+given gym_fixture_make(0) given gym_fixture_stock given gym_fixture_set(0, 2) given gym_fixture_ready ((import gym_fixture_state)):() then gym_fixture_pixel(900, 100):(16777215) then gym_fixture_pixel(900, 400):(0)

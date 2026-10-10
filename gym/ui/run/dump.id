@@ -1,0 +1,34 @@
+// The text a script replay prints with --dump: the state in words, what the engine layer read back from the log and the pack, the scoreboard and the cool-down. It is what the golden scripts compare against, so it names every number the screens are drawn from.
+
+// The state, the words read from the log, the scoreboard and the cool-down of gym_state as lines of text, one fact per line.
+gym_dump(Session gym_state) {
+  string[] gym_lines = gym_dump_state(gym_state);
+  lst_str_extend(gym_lines, gym_dump_words(gym_state));
+  lst_str_extend(gym_lines, gym_dump_score(gym_state));
+} chain (Session gym_state) {
+  lst_str_extend(gym_lines, gym_dump_cool(gym_state));
+  string gym_text = str_join(gym_lines, "\n");
+} return string gym_text;
+(Session([0, 0, 0, 0, 0, 0, 0, 0, 300, -1, 0, 0, 0, 0, 0], ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""])):("screen rep\nclock 0s, Warm-up, 300s left\nitem 1 of 0, confidence 0, stage waiting\ncorrect 0, hints 0, definition none\nanswer \nnote \nprompt \nRetention: \nTransfer: \nCalibration: \nIndependence: \nFluency: \ntable \ntable \ntable \ntable \nhead ")
+(Session([1, 2, 99, 1, 0, 0, 800, 2, 280, 2, 0, 520, 1, 3, 0], ["1/3", "slow", "P?", "1/2", "r1\nr2", "", "hint one", "", "", "", "session complete\nitems this session: 3", "0.500 (n = 6)", "", "", "", "", "", "", "", "", "from 6 logged attempts"])):("screen scoreboard\nclock 800s, Transfer, 280s left\nitem 3 of 3, confidence 99, stage committed\ncorrect 0, hints 0, definition Calibration\nanswer 1/3\nnote slow\nsaved\nprompt P?\nreference 1/2\nrubric r1; r2\nrung 1: hint one\nRetention: 0.500 (n = 6)\nTransfer: \nCalibration: \nIndependence: \nFluency: \ntable \ntable \ntable \ntable \nhead from 6 logged attempts\ncool session complete\ncool items this session: 3")
+
+// The numbers and texts of the state: screen, clock and phase, the item in play with its confidence and stage, the result, the open definition, the typed answer, the cool-down line, whether it was kept, and the notice if the engine refused something.
+gym_dump_state(Session gym_state) {
+  int[] gym_cells = gym_state.cells;
+  string gym_clock_line = "clock " + gym_cells[(import gym_cell_elapsed)] + "s, " + gym_phase_text(gym_cells[(import gym_cell_phase)]) + ", " + gym_cells[(import gym_cell_remaining)] + "s left";
+  string gym_item_line = "item " + (gym_cells[(import gym_cell_item)] + 1) + " of " + gym_cells[(import gym_cell_total)] + ", confidence " + gym_cells[(import gym_cell_confidence)] + ", stage " + (import gym_stage_names)[gym_cells[(import gym_cell_stage)]];
+} chain (Session gym_state) {
+  string gym_result_line = "correct " + gym_cells[(import gym_cell_correct)] + ", hints " + gym_cells[(import gym_cell_hints)] + ", definition " + gym_define_text(gym_cells[(import gym_cell_define)]);
+  string[] gym_lines = ["screen " + (import gym_screen_names)[gym_cells[(import gym_cell_screen)]], gym_clock_line, gym_item_line, gym_result_line];
+  push(gym_lines, "answer " + gym_state.texts[(import gym_text_answer)]);
+} chain (Session gym_state) {
+  push(gym_lines, "note " + gym_state.texts[(import gym_text_note)]);
+  if(gym_cells[(import gym_cell_saved)] == 1) {
+    push(gym_lines, "saved");
+  }
+  if(len(gym_state.texts[(import gym_text_notice)]) > 0) {
+    push(gym_lines, "notice " + gym_state.texts[(import gym_text_notice)]);
+  }
+} return string[] gym_lines;
+(Session([0, 0, 0, 0, 0, 0, 0, 0, 300, -1, 0, 0, 0, 3, 0], ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""])):(["screen rep", "clock 0s, Warm-up, 300s left", "item 1 of 3, confidence 0, stage waiting", "correct 0, hints 0, definition none", "answer ", "note "])
+(Session([2, 2, 90, 1, 1, 2, 40, 3, 80, 3, 0, 0, 1, 3, 1], ["1/2", "slow", "", "", "", "no", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""])):(["screen cool-down", "clock 40s, Cool-down, 80s left", "item 3 of 3, confidence 90, stage committed", "correct 1, hints 2, definition Independence", "answer 1/2", "note slow", "saved", "notice no"])

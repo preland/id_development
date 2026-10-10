@@ -1,0 +1,35 @@
+// What a frame does whether or not an event came: let the text boxes blink their caret, copy what was typed into the session, and turn the clock into a tick event.
+
+// The once-a-frame work. Answers 1 when the picture is to be painted again: a caret blinked, text was copied, or a second ticked.
+gym_idle() {
+  int gym_blink = gui_textbox_tick((import gym_answer_box)) % 2 || gui_textbox_tick((import gym_note_box)) % 2;
+  int gym_copied = gym_lead();
+  int gym_ticked = gym_pulse();
+} chain () {
+  int gym_bits = gym_blink || gym_copied || gym_ticked;
+} return int gym_bits;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_mark_clock given gym_fixture_ui ():(0)
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_mark_clock given gym_fixture_ui given gui_textbox_set((import gym_answer_box), "1/2") ():(1) then gym_fixture_live_text(0):("1/2")
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_mark_clock given gym_fixture_back(2000) given gym_fixture_ui ():(1) then gym_fixture_live_cell(6):(2)
+
+// Copy what the learner typed into the session as events: the answer box's text as a type event while the rep waits for its attempt, the note box's text as a note event. Answers 1 if it sent any.
+gym_lead() {
+  Session gym_state = (import gym_live)[0];
+  string gym_typed = gui_textbox_text((import gym_answer_box));
+  int gym_open = gym_state.cells[(import gym_cell_stage)] == (import gym_stage_waiting) && gym_typed != gym_state.texts[(import gym_text_answer)];
+} chain () {
+  string gym_noted = gui_textbox_text((import gym_note_box));
+  int gym_wrote = gym_noted != gym_state.texts[(import gym_text_note)];
+  if(gym_open == 1) {
+    gym_dispatch_text((import gym_event_type), gym_typed);
+  }
+} chain () {
+  if(gym_wrote == 1) {
+    gym_dispatch_text((import gym_event_note), gym_noted);
+  }
+  int gym_sent = gym_open || gym_wrote;
+} return int gym_sent;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_fixture_ui given gui_textbox_set((import gym_answer_box), "1/2") ():(1) then gym_fixture_live_text(0):("1/2")
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_fixture_ui ():(0) then gym_fixture_live_text(0):("")
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_fixture_ui given gym_fixture_live_set(3, 1) given gui_textbox_set((import gym_answer_box), "x") ():(0) then gym_fixture_live_text(0):("")
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open given gym_fixture_ui given gui_textbox_set((import gym_note_box), "memo") ():(1) then gym_fixture_live_text(1):("memo")

@@ -1,0 +1,42 @@
+// Reading the fields of a script line.
+
+// 1 when script word number gym_slot exists (it is not -1) and the line has all the fields the word needs.
+gym_script_fits(string[] gym_fields, int gym_slot) {
+  int gym_fits = gym_slot >= 0 && len(gym_fields) >= (import gym_script_arity)[fx_max(gym_slot, 0)];
+} return int gym_fits;
+(["submit"], 2):(1)
+(["tick"], 6):(0)
+(["tick", "30"], 6):(1)
+(["fly"], -1):(0)
+
+// The number a line carries: the integer after the word for the words that take one, the key code for key, 0 for the rest. Called only for a line that has its fields.
+gym_script_value(string[] gym_fields, int gym_slot) {
+  int gym_value = 0;
+  if((import gym_script_numeric)[gym_slot] == 1) {
+    gym_value = to_int(gym_fields[1]);
+  }
+  if(gym_slot == (import gym_script_key_slot)) {
+    gym_value = gym_key_code(gym_fields[1]);
+  }
+} return int gym_value;
+(["confidence", "90"], 1):(90)
+(["tick", "300"], 6):(300)
+(["key", "esc"], 10):(1011)
+(["submit"], 2):(0)
+
+// The code of the key a script calls gym_name: enter, esc and tab, or the letter itself for a one-letter name; 0 for any other name.
+gym_key_code(string gym_name) {
+  int gym_found = lst_str_index((import gym_key_names), gym_name);
+  int gym_code = 0;
+  if(gym_found >= 0) {
+    gym_code = (import gym_key_codes)[gym_found];
+  }
+} chain (string gym_name) {
+  if(gym_found < 0 && len(gym_name) == 1) {
+    gym_code = charat(gym_name, 0);
+  }
+} return int gym_code;
+("enter"):(1009)
+("tab"):(1010)
+("q"):(113)
+("shift"):(0)

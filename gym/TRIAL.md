@@ -435,3 +435,89 @@ of the modules above. A warm build of the whole tree is a couple of seconds.
   separate `gym grade` and its result is not written to the log.
 - **Starting a session while one is open closes the old one** with a `session_end`, so abandoned sessions
   are visible rather than replaced.
+
+## The window on the real engine (gym/ui, 2026-10-09)
+
+What was awkward moving the stand-in window onto `gym/session`. The first section of this file's window lessons
+are in `ui/` history (the stand-in lane's trial); these are the new ones.
+
+### Compiler and diagnostics
+
+1. **A codegen error, not a diagnostic**: `idc: harness.c: error: redeclaration of 'idsq_40' with no linkage`,
+   with no id file or line. It came from an assignment whose list index holds a call,
+   `gym_texts[(import gym_text_rung) + to_int(gym_result[5]) - 1] = gym_result[2];`, in a function that also
+   assigned another list element. Found by bisecting (cutting the statement out) at 25 s a build; the fix is a
+   local for the index (`int gym_rung_at = ...; gym_texts[gym_rung_at] = ...`). The call-nesting rule (SPEC 7.1)
+   does not cover this shape, so neither the compiler nor the docs said it was unsupported. A diagnostic naming
+   the function (`id_gym_adopt` was in the C error) would have saved most of the time.
+2. **E0407 and E0405 again** (see the stand-in lane): `log_line_note` differed from `log_line_next` only in two
+   string literals and had to be written another way (a `+` chain against `str_join`), and the cases'
+   `gym_fixture_held`/`gym_fixture_said` were rejected for differing from the existing live-session probes only in
+   the export they read. Both are right, and both pushed me to the worse code: an unnatural spelling in one case,
+   deleting my fixture and bending my cases to the other in the second.
+3. **One name, one type, and functions count as names**: 14 renames at the first compile, from a set of
+   fixed-vocabulary words (`gym_events`, `gym_shown`, `gym_now`, `gym_clock`, `gym_step`, `gym_span`,
+   `gym_wanted`, `gym_error`, `gym_made`, `gym_rest`, `gym_opened`, `gym_count`, `gym_live`, `gym_block`).
+   Half were a local of mine against another file's *function* of the same name (E0308), half a type clash (E0303).
+   A whole-word `sed` rename then hit a parameter that happened to have the name I was giving an export
+   (`gym_ground` in a pixel probe: E0309). Prefixing by directory (`engine_`) would have prevented all of it;
+   the project rule of one `gym_` prefix for the whole window makes the vocabulary shared.
+4. **A struct is limited to 3 fields** (the message names the fix and is good): `World` had five, so a `Record`
+   struct holds the log, the origin and the seed. The result reads `gym_world.record.log`, one more word at each
+   of about twenty sites, for a limit that has no cost to hit.
+5. **Cases cannot put `(import X)` inside a call inside `then`**: `then len(fs_read_text((import gym_setting).log))`
+   is a parse error (E0101 five times, naming `import`), while `then len((import x).field)` and
+   `then f((import x))` are fine. Wrapped in a reader function, it works. A parse error that says "expected ')'"
+   is a poor message for "this form is not allowed here".
+6. **`--require-tests` errors arrive last**: the five functions with no cases (E0501) were only reported after
+   every other error was gone, so each "fixed" build exposed new work. Listing them with the first compile error
+   (or `--list-untested` being part of the same pass) would have let me write the cases once.
+7. The exact-print cases are good, and so is the failure text that prints the whole actual value, which is how
+   the goldens were written: run, read the actual dump, check it by eye against the numbers worked out by hand
+   (retention 5/6, Brier 0.09, independence 2/11), then paste it. `print` adds a newline and `eprint` too, so a
+   message that ends in `\n` prints twice: three cases had to be rewritten to find that out.
+
+### Test shapes
+
+8. **A setup that changes the working directory** (`model_fixture_log_file` does `fs_enter`) breaks a relative
+   pack path, so the engine cases use `fs_mktemp` and an absolute log path and leave the directory alone. Nested
+   exports work (`gym_world_open` called inside a setup is read by the next function's `(import gym_setting)`),
+   which was not documented and is what makes the fixtures short.
+9. **A setup that plans a session writes a log**: `gym_live_begin` over a relative `x.log` would have created
+   `gym/x.log` in the working directory of every build. The bare state (`gym_live_open`) and the engine's session
+   (`gym_live_begin`) are two functions for that reason; every case that only needs the clock or a click opens
+   the first.
+10. **Goldens as cases and as files**: a case cannot name a file, so each golden script and dump is in
+    `ui/golden/` and, in full, in `golden/replay.id`; the README gives the `diff` that checks the two agree.
+    Seven scripts times two copies is the price of the rule; generating the case lines from the files took an
+    `awk` pass (escaping `\`, `"` and tabs) that I wrote and threw away.
+11. The mutation check was done by hand (two edits, build, restore): breaking the `hint_shown` count in
+    `score_helped` and the stage arithmetic in `gym_adopt_help` both turned cases red, and a mutation `* 1` was
+    refused by the compiler itself (E0409), which is the nicest way to learn a mutant is equivalent.
+
+### What the engine API made awkward
+
+12. **`session_view` is eight strings**, so the window turns them back into numbers (`to_int(slot)`) for its own
+    state and, for the buttons' enablement, back into strings again (`gym_seen`) because the gates take the slots.
+    A struct (`Session_view { string state; int number; ... }`) would have been a reading, not a parsing.
+13. **No function says whether the committed attempt was right.** The window reads the plan, finds the attempt
+    (`session_attempt_index`) and reads the verdict from the replayed events (`log_text_at`). The engine holds the
+    verdict in `session_answer_item`'s result only at the moment of the commit; after a restart it is the log again.
+14. **The hint's words are not in the log** (a `hint_shown` has the rung, not the text), so after a restart a
+    model-worded hint comes back as the pack's own. The window keeps the words it was given in the session state.
+15. **Tap-out is refused after an attempt**: `session_tap_out` runs the answer gate, so a committed item cannot be
+    tapped out. The spec says a learner can always ask for the full answer; after a commit the reference answer is
+    already shown and the fourth hint rung is the worked example, so the window disables the button instead of
+    offering one the engine would refuse. If a tap-out after a wrong attempt should be a real event (a flagged
+    second row, or a flag on the attempt), that is a decision for the engine, not the window.
+16. `command_options` is a nine-value table that every command's cases spell out, so the window's own options
+    (`--script`, `--dump`, `--render-after`) could not join it without editing hundreds of cases. The window command
+    strips its three words from the command line and hands the rest to the same table.
+
+### The independence bug (fixed)
+
+The "design decisions" above said a hint after the answer does not move independence. It did not, and that was the
+bug: a learner who answers wrong and then asks for all four hints looked perfectly independent. `score_independence`
+and its trend now count the `hint_shown` events between an attempt and the next attempt at the same item
+(`score/shown.id`), through a new column `Score_aid.shown`. Retention and fluency keep the attempt's own hints:
+dropping every hinted attempt from retention would drop the misses and raise the number.

@@ -1,0 +1,30 @@
+// The words the engine layer read from the pack, in a dump.
+
+// The prompt, then (once the attempt is committed) the reference answer and the rubric lines on one line, then each hint rung showing. A line is left out when its text is empty, except the prompt, which says "prompt " even with none.
+gym_dump_words(Session gym_state) {
+  string[] gym_texts = gym_state.texts;
+  string[] gym_lines = ["prompt " + gym_texts[(import gym_text_prompt)]];
+  if(len(gym_texts[(import gym_text_reference)]) > 0) {
+    push(gym_lines, "reference " + gym_texts[(import gym_text_reference)]);
+  }
+} chain (Session gym_state) {
+  if(len(gym_texts[(import gym_text_rubric)]) > 0) {
+    push(gym_lines, "rubric " + str_replace(gym_texts[(import gym_text_rubric)], "\n", "; "));
+  }
+  int gym_rung = 0;
+  while(gym_rung < (import gym_rung_count)) {
+    gym_dump_rung(gym_lines, gym_texts[(import gym_text_rung) + gym_rung], gym_rung);
+    gym_rung = gym_rung + 1;
+  }
+} return string[] gym_lines;
+(Session([0, 0, 0, 0, 0, 0, 0, 0, 300, -1, 0, 0, 0, 0, 0], ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""])):(["prompt "])
+(Session([0, 0, 0, 1, 0, 0, 0, 0, 300, -1, 0, 0, 0, 0, 0], ["", "", "P?", "1/2", "r1\nr2", "", "one", "", "three", "", "", "", "", "", "", "", "", "", "", "", ""])):(["prompt P?", "reference 1/2", "rubric r1; r2", "rung 1: one", "rung 3: three"])
+
+// Add the line for rung number gym_rung (counted from 0) to gym_lines when it has words.
+gym_dump_rung(string[] gym_lines, string gym_words_in, int gym_rung) {
+  if(len(gym_words_in) > 0) {
+    push(gym_lines, "rung " + (gym_rung + 1) + ": " + gym_words_in);
+  }
+} return void;
+(["a"], "words", 1):(["a", "rung 2: words"])
+(["a"], "", 1):(["a"])

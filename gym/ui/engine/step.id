@@ -1,0 +1,42 @@
+// One event on the live session: the shell of the pure reducer. Events the reducer owns go to gym_reduce; the five that are engine operations (commit the attempt, show a hint, tap out, move on, keep the cool-down line) are done against the log by gym_perform, which then reads the whole state back from it. Enter is turned into the operation it stands for on the screen it is pressed on.
+
+// Give event gym_event to the session in gym_holder[0]. The holder is the one cell that changes; the old state stays valid for anyone still holding it.
+gym_deliver(World gym_world, Session[] gym_holder, Event gym_event) {
+  Event gym_real = gym_translate(gym_holder[0], gym_event);
+  int gym_engine = lst_index_of((import gym_engine_kinds), gym_real.kind) >= 0;
+  if(gym_engine == 0) {
+    gym_holder[0] = gym_reduce(gym_holder[0], gym_real);
+  }
+} chain (World gym_world, Session[] gym_holder, Event gym_event) {
+  if(gym_engine == 1) {
+    gym_perform(gym_world, gym_holder, gym_real);
+  }
+} return void;
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open ((import gym_setting), (import gym_live), Event(2, 90, "")):() then gym_fixture_live_cell(2):(90)
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open ((import gym_setting), (import gym_live), Event(8, 2, "")):() then gym_fixture_live_cell(0):(2)
+given gym_world_open("packs/probability", "x.log", 5, "", 1) given gym_live_open ((import gym_setting), (import gym_live), Event(3, 0, "")):() then gym_fixture_live_text(5):("no session is running: start one with gym session start")
+
+// The event that stands for gym_event on the screen gym_state shows: Enter on the rep screen commits the attempt while the rep waits and moves on once it is finished; Enter on the cool-down screen keeps the line. Any other event is itself.
+gym_translate(Session gym_state, Event gym_event) {
+  int gym_kind = gym_event.kind;
+  int gym_enter = gym_event.kind == (import gym_event_key) && gym_event.value == (import gym_key_enter);
+  int gym_here = gym_state.cells[(import gym_cell_screen)];
+} chain (Session gym_state, Event gym_event) {
+  if(gym_enter == 1 && gym_here == (import gym_screen_rep)) {
+    gym_kind = (import gym_event_next);
+  }
+  if(gym_enter == 1 && gym_here == (import gym_screen_rep) && gym_state.cells[(import gym_cell_stage)] == (import gym_stage_waiting)) {
+    gym_kind = (import gym_event_submit);
+  }
+  if(gym_enter == 1 && gym_here == (import gym_screen_cool_down)) {
+    gym_kind = (import gym_event_save);
+  }
+} chain (Session gym_state, Event gym_event) {
+  Event gym_real = Event(gym_kind, gym_event.value, gym_event.text);
+} return Event gym_real;
+given gym_fixture_make(0) ((import gym_fixture_state), Event(11, 1009, "")):(Event(3, 1009, ""))
+given gym_fixture_make(0) given gym_fixture_set(3, 1) ((import gym_fixture_state), Event(11, 1009, "")):(Event(7, 1009, ""))
+given gym_fixture_make(0) given gym_fixture_set(0, 2) ((import gym_fixture_state), Event(11, 1009, "")):(Event(12, 1009, ""))
+given gym_fixture_make(0) given gym_fixture_set(0, 1) ((import gym_fixture_state), Event(11, 1009, "")):(Event(11, 1009, ""))
+given gym_fixture_make(0) ((import gym_fixture_state), Event(11, 1010, "")):(Event(11, 1010, ""))
+given gym_fixture_make(0) ((import gym_fixture_state), Event(3, 0, "")):(Event(3, 0, ""))

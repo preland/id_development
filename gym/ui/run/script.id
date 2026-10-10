@@ -1,0 +1,42 @@
+// One line of a replay script as a reducer event. A script is the headless way to drive the window: each word stands for the event the window would have made, and the same reducer runs them, so what a script leaves is what a person would have got.
+
+// The event of script line gym_line on the state: a word of gym_script_words with its arguments, or for click the event of the button at that point. A line that is blank, a note, or not a word gives the event of kind 0, which changes nothing.
+gym_script_event(Session gym_state, string gym_line) {
+  string[] gym_fields = str_split(gym_line, " ");
+  Event gym_made = gym_script_parse(gym_fields, gym_line);
+  if(gym_fields[0] == "click" && len(gym_fields) >= (import gym_script_arity)[11]) {
+    gym_made = gym_click(gym_state, to_int(gym_fields[1]), to_int(gym_fields[2]));
+  }
+} return Event gym_made;
+given gym_fixture_make(0) given gym_fixture_set(2, 90) given gym_fixture_say("1/2") given gym_fixture_ready ((import gym_fixture_state), "click 100 330"):(Event(3, 0, ""))
+given gym_fixture_make(0) given gym_fixture_ready ((import gym_fixture_state), "click 750 30"):(Event(8, 1, ""))
+given gym_fixture_make(0) given gym_fixture_ready ((import gym_fixture_state), "click 750"):(Event(0, 0, ""))
+given gym_fixture_make(0) given gym_fixture_ready ((import gym_fixture_state), "type 1/2"):(Event(1, 0, "1/2"))
+given gym_fixture_make(0) given gym_fixture_ready ((import gym_fixture_state), "fly 3"):(Event(0, 0, ""))
+
+// The event the words of a line give without looking at the screen; kind 0 when the first word is not a script word or the line has too few fields for it.
+gym_script_parse(string[] gym_fields, string gym_line) {
+  int gym_slot = lst_str_index((import gym_script_words), gym_fields[0]);
+  int gym_good = gym_script_fits(gym_fields, gym_slot);
+  Event gym_made = Event(0, 0, "");
+} chain (string[] gym_fields, string gym_line) {
+  if(gym_good == 1) {
+    gym_made = gym_script_make(gym_fields, gym_line, gym_slot);
+  }
+} return Event gym_made;
+(["tick", "30"], "tick 30"):(Event(6, 30, "30"))
+(["note", "hi", "there"], "note hi there"):(Event(10, 0, "hi there"))
+(["fly"], "fly"):(Event(0, 0, ""))
+(["tick"], "tick"):(Event(0, 0, ""))
+
+// The event of a line whose word is script word gym_slot and has the fields it needs: the word's kind, its number or key, and the rest of the line as the text.
+gym_script_make(string[] gym_fields, string gym_line, int gym_slot) {
+  int gym_kind = (import gym_script_kinds)[gym_slot];
+  int gym_value = gym_script_value(gym_fields, gym_slot);
+  string gym_rest = str_after(gym_line, " ");
+} chain (string[] gym_fields, string gym_line, int gym_slot) {
+  Event gym_made = Event(gym_kind, gym_value, gym_rest);
+} return Event gym_made;
+(["key", "tab"], "key tab", 10):(Event(11, 1010, "tab"))
+(["screen", "2"], "screen 2", 7):(Event(8, 2, "2"))
+(["submit"], "submit", 2):(Event(3, 0, ""))

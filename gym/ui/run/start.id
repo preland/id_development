@@ -1,0 +1,45 @@
+// Starting the window command once its options have passed their checks: the world is made from them, then either the window opens or a script is replayed.
+
+// Make the world from the checked options (gym_values, as opt_parse filled them) and run the mode the command line asks for: the script named by --script, else the window. Answers the exit status of the mode.
+gym_window_start(int gym_count, string[] gym_words, string[] gym_values, word gym_wall) {
+  word gym_origin = command_now(gym_values, gym_wall);
+  int gym_seed = command_number(gym_values, "seed", 1);
+  string gym_url = opt_get((import command_options), gym_values, "url");
+} chain (int gym_count, string[] gym_words, string[] gym_values, word gym_wall) {
+  int gym_status = 0;
+  if(gym_url == "") {
+    gym_url = model_address();
+  }
+  gym_world_open(opt_get((import command_options), gym_values, "pack"), opt_get((import command_options), gym_values, "log"), gym_origin, gym_url, gym_seed);
+} chain (int gym_count, string[] gym_words, string[] gym_values, word gym_wall) {
+  if(gym_flag_at(gym_count, gym_words, "--script") >= 0) {
+    gym_status = gym_script_run(gym_count, gym_words);
+  }
+  if(gym_flag_at(gym_count, gym_words, "--script") < 0) {
+    gym_status = gym_window(1);
+  }
+} return int gym_status;
+given gym_fixture_trail given gym_fixture_path given gym_fixture_script("tick 5\n") (4, ["gym", "window", "--script", (import gym_fixture_file)], ["packs/probability", (import gym_fixture_trail_log), "5", "", "", "", "", "http://127.0.0.1:1", ""], 7):(0) then fs_exists((import gym_fixture_trail_log)):(1)
+given gym_fixture_trail given gym_fixture_path (4, ["gym", "window", "--script", "/nonexistent/none.txt"], ["packs/probability", (import gym_fixture_trail_log), "5", "", "", "", "", "http://127.0.0.1:1", ""], 7):(1) then eprints:("gym window: the script could not be read; check that the file exists [/nonexistent/none.txt]\n") then fs_exists((import gym_fixture_trail_log)):(0)
+
+// Replay the script file named by --script on a session opened on the world's log, then print the dump and write the picture if the command line asks. Answers 0, or 1 when the file is missing, a line could not be read or the picture could not be written.
+gym_script_run(int gym_count, string[] gym_words) {
+  string gym_path = gym_flag_value(gym_count, gym_words, "--script");
+  Session gym_opening = gym_start(0);
+  Session[] gym_holder = [gym_opening];
+} chain (int gym_count, string[] gym_words) {
+  int gym_status = 1;
+  int gym_bad = 0;
+  if(fs_exists(gym_path) == 1) {
+    gym_begin_session((import gym_setting), gym_holder);
+    gym_bad = gym_replay((import gym_setting), gym_holder, fs_read_text(gym_path));
+    gym_status = gym_bad > 0 || gym_script_finish(gym_count, gym_words, gym_holder[0]);
+  }
+} chain (int gym_count, string[] gym_words) {
+  if(fs_exists(gym_path) == 0) {
+    eprint("gym window: the script could not be read; check that the file exists [" + gym_path + "]");
+  }
+} return int gym_status;
+given gym_fixture_world("", 5) given gym_fixture_path given gym_fixture_script("tick 5\n") (4, ["gym", "window", "--script", (import gym_fixture_file)]):(0)
+given gym_fixture_world("", 5) given gym_fixture_path given gym_fixture_script("fly\n") (4, ["gym", "window", "--script", (import gym_fixture_file)]):(1) then eprints:("gym window: script line 1: 'fly' is not a script word, or lacks its fields\nusage: gym window --pack DIR --log FILE [--now MS] [--seed N] [--url URL] [--script S.txt [--dump] [--render-after OUT.ppm]]\n  script words: type TEXT, confidence N, submit, hint, tapout, next, tick SECONDS, screen N, define N, note TEXT, save, key NAME, click X Y; a line starting with # is a note\n")
+(4, ["gym", "window", "--script", "/nonexistent/none.txt"]):(1) then eprints:("gym window: the script could not be read; check that the file exists [/nonexistent/none.txt]\n")

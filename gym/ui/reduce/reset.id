@@ -1,0 +1,43 @@
+// Starting a rep at a position of the plan, and the two settings that live on screen: which screen shows and which scoreboard definition is open.
+
+// Begin the rep at position gym_position of the plan: nothing picked or typed, no notice, and the rep clock set to the session clock. The shell calls it when the log says the learner moved to another item.
+gym_begin(Session gym_state, int gym_position) {
+  int[] gym_cells = gym_state.cells;
+  string[] gym_texts = gym_state.texts;
+  gym_cells[(import gym_cell_item)] = gym_position;
+} chain (Session gym_state, int gym_position) {
+  gym_cells[(import gym_cell_confidence)] = 0;
+  gym_cells[(import gym_cell_started)] = gym_cells[(import gym_cell_elapsed)];
+  gym_texts[(import gym_text_answer)] = "";
+} chain (Session gym_state, int gym_position) {
+  gym_texts[(import gym_text_notice)] = "";
+} return void;
+given gym_fixture_make(3) given gym_fixture_set(2, 90) given gym_fixture_set(6, 75) given gym_fixture_say("x") ((import gym_fixture_state), 4):() then gym_fixture_cell(1):(4) then gym_fixture_cell(2):(0) then gym_fixture_cell(10):(75) then gym_fixture_text(0):("")
+given gym_fixture_make(0) given gym_fixture_put(5, "no") ((import gym_fixture_state), 1):() then gym_fixture_text(5):("") then gym_fixture_cell(1):(1)
+
+// Show screen gym_target (a gym_screen_* value); a number that is no screen changes nothing.
+gym_screen(Session gym_state, int gym_target) {
+  int[] gym_cells = gym_state.cells;
+  if(gym_target >= 0 && gym_target < (import gym_screen_count)) {
+    gym_cells[(import gym_cell_screen)] = gym_target;
+  }
+} return void;
+given gym_fixture_make(0) ((import gym_fixture_state), 2):() then gym_fixture_cell(0):(2)
+given gym_fixture_make(0) ((import gym_fixture_state), 3):() then gym_fixture_cell(0):(0)
+given gym_fixture_make(0) ((import gym_fixture_state), -1):() then gym_fixture_cell(0):(0)
+
+// Open the definition of scoreboard metric gym_metric, or close it when it is the one already open; a number that is no metric changes nothing.
+gym_define(Session gym_state, int gym_metric) {
+  int[] gym_cells = gym_state.cells;
+  int gym_shown = gym_cells[(import gym_cell_define)];
+  if(gym_metric >= 0 && gym_metric < len((import gym_metric_names))) {
+    gym_cells[(import gym_cell_define)] = gym_metric;
+  }
+} chain (Session gym_state, int gym_metric) {
+  if(gym_shown == gym_metric) {
+    gym_cells[(import gym_cell_define)] = 0 - 1;
+  }
+} return void;
+given gym_fixture_make(0) ((import gym_fixture_state), 2):() then gym_fixture_cell(9):(2)
+given gym_fixture_make(0) given gym_fixture_set(9, 2) ((import gym_fixture_state), 2):() then gym_fixture_cell(9):(-1)
+given gym_fixture_make(0) ((import gym_fixture_state), 5):() then gym_fixture_cell(9):(-1)

@@ -1,0 +1,26 @@
+// The first half of a rep, as far as the window goes: type an answer and pick a confidence. Committing both is the engine's (session_answer_item); nothing after a commit can change what was committed (P1: the learner lifts first).
+
+// Replace the answer being typed, while the rep is still waiting for its attempt; once the attempt is committed the answer is fixed.
+gym_type(Session gym_state, string gym_text) {
+  int[] gym_cells = gym_state.cells;
+  string[] gym_texts = gym_state.texts;
+  if(gym_cells[(import gym_cell_stage)] == (import gym_stage_waiting)) {
+    gym_texts[(import gym_text_answer)] = gym_text;
+  }
+} return void;
+given gym_fixture_make(0) ((import gym_fixture_state), "1/2"):() then gym_fixture_text(0):("1/2")
+given gym_fixture_make(0) given gym_fixture_set(3, 1) ((import gym_fixture_state), "9"):() then gym_fixture_text(0):("")
+
+// Pick the confidence for the rep, one of gym_levels, while the rep is waiting; any other number, or a pick after the commit, changes nothing.
+gym_choose(Session gym_state, int gym_level) {
+  int[] gym_cells = gym_state.cells;
+  int gym_known = lst_index_of((import gym_levels), gym_level) >= 0;
+  int gym_waiting = gym_cells[(import gym_cell_stage)] == (import gym_stage_waiting);
+} chain (Session gym_state, int gym_level) {
+  if(gym_known * gym_waiting == 1) {
+    gym_cells[(import gym_cell_confidence)] = gym_level;
+  }
+} return void;
+given gym_fixture_make(0) ((import gym_fixture_state), 90):() then gym_fixture_cell(2):(90)
+given gym_fixture_make(0) ((import gym_fixture_state), 91):() then gym_fixture_cell(2):(0)
+given gym_fixture_make(0) given gym_fixture_set(3, 1) ((import gym_fixture_state), 50):() then gym_fixture_cell(2):(0)

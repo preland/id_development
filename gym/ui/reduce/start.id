@@ -1,0 +1,29 @@
+// The pure face of the session: a fresh state, a copy of a state, and the reducer (state, event) -> state that never touches the state it is given. The reducer owns the window's own rules (what is typed, picked, shown, ticked); the rules of a rep belong to the engine in gym/session, which the shell in engine/ calls and then reads back from the log. gym_reduce is the one that lets a shell keep the old state (an undo, a replay, a web shell that wants a new value per event).
+
+// A state at the start of a session: the item at position gym_item of the plan, nothing picked, nothing typed, the clock at zero in the warm-up with all of it left, no definition open, nothing read back from the log yet.
+gym_start(int gym_item) {
+  int gym_warm = (import gym_phase_seconds)[0];
+  int[] gym_cells = [0, gym_item, 0, 0, 0, 0, 0, 0, gym_warm, 0 - 1, 0, 0, 0, 0, 0];
+  string[] gym_texts = ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""];
+} chain (int gym_item) {
+  Session gym_fresh = Session(gym_cells, gym_texts);
+} return Session gym_fresh;
+(0):(Session([0, 0, 0, 0, 0, 0, 0, 0, 300, -1, 0, 0, 0, 0, 0], ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]))
+(2):(Session([0, 2, 0, 0, 0, 0, 0, 0, 300, -1, 0, 0, 0, 0, 0], ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]))
+
+// A state with lists of its own that hold what gym_state's hold, so changing one never changes the other.
+gym_copy(Session gym_state) {
+  int[] gym_cells = lst_copy(gym_state.cells);
+  string[] gym_texts = lst_str_tail(gym_state.texts, 0);
+  Session gym_after = Session(gym_cells, gym_texts);
+} return Session gym_after;
+given gym_fixture_make(2) ((import gym_fixture_state)):(Session([0, 2, 0, 0, 0, 0, 0, 0, 300, -1, 0, 0, 0, 0, 0], ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]))
+given gym_fixture_make(0) given gym_fixture_set(2, 90) given gym_fixture_say("x") ((import gym_fixture_state)):(Session([0, 0, 90, 0, 0, 0, 0, 0, 300, -1, 0, 0, 0, 0, 0], ["x", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]))
+
+// The state after the event, as a new value: gym_old is left exactly as it was.
+gym_reduce(Session gym_old, Event gym_event) {
+  Session gym_after = gym_copy(gym_old);
+  gym_apply(gym_after, gym_event);
+} return Session gym_after;
+given gym_fixture_make(0) ((import gym_fixture_state), Event(2, 90, "")):(Session([0, 0, 90, 0, 0, 0, 0, 0, 300, -1, 0, 0, 0, 0, 0], ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""])) then gym_fixture_cell(2):(0)
+given gym_fixture_make(1) ((import gym_fixture_state), Event(1, 0, "1/4")):(Session([0, 1, 0, 0, 0, 0, 0, 0, 300, -1, 0, 0, 0, 0, 0], ["1/4", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""])) then gym_fixture_text(0):("")
