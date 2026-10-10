@@ -1,0 +1,77 @@
+// check_answer is the whole checker: the kind of answer, the item's reference
+// answer and tolerance, and what the learner typed, in; "correct", "incorrect"
+// or "unparseable" out. It never traps. Unparseable covers garbage from the
+// learner and also an item whose own reference cannot be read, which
+// check_problem and `pack check` reject before an item is ever served; neither
+// is counted as a wrong answer by the callers.
+
+check_verdict(string check_kind, Ratio check_target, Ratio check_guess, Ratio check_margin_in) {
+  string check_status = "incorrect";
+  int check_hit = check_same(check_target, check_guess);
+  if (check_kind == "decimal") {
+    check_hit = check_within(check_target, check_guess, check_margin_in);
+  }
+} chain (string check_kind, Ratio check_target, Ratio check_guess, Ratio check_margin_in) {
+  if (check_hit == 1) {
+    check_status = "correct";
+  }
+} return string check_status;
+("fraction", Ratio(3, 8, 1), Ratio(3, 8, 1), Ratio(0, 1, 1)):("correct")
+("fraction", Ratio(3, 8, 1), Ratio(1, 3, 1), Ratio(0, 1, 1)):("incorrect")
+("decimal", Ratio(1, 2, 1), Ratio(51, 100, 1), Ratio(1, 100, 1)):("correct")
+("decimal", Ratio(1, 2, 1), Ratio(52, 100, 1), Ratio(1, 100, 1)):("incorrect")
+("fraction", Ratio(1, 2, 1), Ratio(51, 100, 1), Ratio(1, 100, 1)):("incorrect")
+
+check_judge(string check_kind, string check_reference, string check_slack, string check_attempt) {
+  Ratio check_target = check_read(check_kind, check_reference);
+  Ratio check_guess = check_read(check_kind, check_attempt);
+  Ratio check_margin_found = check_margin(check_kind, check_slack);
+} chain (string check_kind, string check_reference, string check_slack, string check_attempt) {
+  string check_status = "unparseable";
+  if (check_target.valid + check_guess.valid + check_margin_found.valid == 3) {
+    check_status = check_verdict(check_kind, check_target, check_guess, check_margin_found);
+  }
+} return string check_status;
+("fraction", "3/8", "", "6/16"):("correct")
+("percent", "37.5%", "", "0.375"):("correct")
+("percent", "3/8", "", "37.5 %"):("correct")
+("integer", "42", "", "43"):("incorrect")
+("integer", "42", "", "42.0"):("unparseable")
+("decimal", "0.4167", "0.001", "5/12"):("correct")
+("decimal", "0.4167", "0.00001", "5/12"):("incorrect")
+("decimal", "0.4167", "x", "5/12"):("unparseable")
+("fraction", "oops", "", "1/2"):("unparseable")
+
+check_answer(string check_kind, string check_reference, string check_slack, string check_attempt) {
+  string check_status = "unparseable";
+  if (check_kind == "choice") {
+    check_status = check_forms(check_choice_letter(check_reference), check_choice_letter(check_attempt));
+  }
+  if (check_kind == "text") {
+    check_status = check_forms(check_flatten(check_reference), check_flatten(check_attempt));
+  }
+} chain (string check_kind, string check_reference, string check_slack, string check_attempt) {
+  if (check_is_numeric(check_kind) == 1) {
+    check_status = check_judge(check_kind, check_reference, check_slack, check_attempt);
+  }
+} return string check_status;
+("integer", "42", "", " +42 "):("correct")
+("integer", "-3", "", "- 3"):("correct")
+("integer", "42", "", "forty-two"):("unparseable")
+("integer", "42", "", ""):("unparseable")
+("fraction", "3/8", "", "0.375"):("correct")
+("fraction", "3/8", "", "-3/8"):("incorrect")
+("decimal", "0.5", "0.01", ".51"):("correct")
+("decimal", "0.5", "0.01", ".52"):("incorrect")
+("percent", "37.5%", "", "3/8"):("correct")
+("percent", "37.5%", "", "37.5"):("incorrect")
+("choice", "B", "", " (b) "):("correct")
+("choice", "B", "", "c"):("incorrect")
+("choice", "B", "", "3"):("unparseable")
+("text", "dependent", "", "  DEPENDENT "):("correct")
+("text", "dependent", "", "independent"):("incorrect")
+("text", "dependent", "", "   "):("unparseable")
+("bogus", "1", "", "1"):("unparseable")
+("integer", "9223372036854775807", "", "9223372036854775807"):("unparseable")
+("integer", "123456789012345678", "", "123456789012345678"):("correct")
+("fraction", "1", "", "99999999999999999999999999999999"):("unparseable")

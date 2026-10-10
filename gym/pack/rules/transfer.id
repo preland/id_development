@@ -1,0 +1,57 @@
+// A transfer item is held out: it is never practised, only used to test whether
+// an idea carries to a new setting. That only means something if the concept has
+// ordinary practice items, so every concept a transfer item names needs at least
+// one item for it without "transfer: yes".
+
+pack_has_concept(Pack pack_book, int pack_block, string pack_concept_wanted) {
+  string[] pack_pieces = str_split(pack_field(pack_book, pack_block, "concepts"), ",");
+  int pack_at = 0;
+  int pack_present = 0;
+} chain (Pack pack_book, int pack_block, string pack_concept_wanted) {
+  while (pack_at < len(pack_pieces)) {
+    if (str_trim(pack_pieces[pack_at]) == pack_concept_wanted) {
+      return 1;
+    }
+    pack_at = pack_at + 1;
+  }
+} return int pack_present;
+given pack_fixture_parse("item: i\nconcepts: a, b\n") ((import pack_fixture_book), 0, "b"):(1)
+given pack_fixture_parse("item: i\nconcepts: a, b\n") ((import pack_fixture_book), 0, "c"):(0)
+given pack_fixture_parse("item: i\nconcepts: ab\n") ((import pack_fixture_book), 0, "a"):(0)
+given pack_fixture_parse("item: i\n") ((import pack_fixture_book), 0, "a"):(0)
+
+pack_practice_count(Pack pack_book, string pack_concept_wanted) {
+  int[] pack_item_blocks = pack_blocks_of(pack_book, "item");
+  int pack_at = 0;
+  int pack_tally = 0;
+} chain (Pack pack_book, string pack_concept_wanted) {
+  while (pack_at < len(pack_item_blocks)) {
+    if (pack_has_concept(pack_book, pack_item_blocks[pack_at], pack_concept_wanted) == 1 && pack_field(pack_book, pack_item_blocks[pack_at], "transfer") != "yes") {
+      pack_tally = pack_tally + 1;
+    }
+    pack_at = pack_at + 1;
+  }
+} return int pack_tally;
+given pack_fixture_parse("item: i\nconcepts: a\nitem: j\nconcepts: a, b\ntransfer: yes\nitem: k\nconcepts: b\ntransfer: no\n") ((import pack_fixture_book), "a"):(1)
+given pack_fixture_parse("item: i\nconcepts: a\nitem: j\nconcepts: a, b\ntransfer: yes\nitem: k\nconcepts: b\ntransfer: no\n") ((import pack_fixture_book), "b"):(1)
+given pack_fixture_parse("item: i\nconcepts: a\nitem: j\nconcepts: a, b\ntransfer: yes\n") ((import pack_fixture_book), "b"):(0)
+given pack_fixture_parse("") ((import pack_fixture_book), "a"):(0)
+
+pack_transfer_gaps(Pack pack_book, int pack_block) {
+  string[] pack_found_problems = [];
+  string pack_who = "transfer item '" + pack_id_of(pack_book, pack_block) + "'";
+  string[] pack_pieces = str_split(pack_field(pack_book, pack_block, "concepts"), ",");
+} chain (Pack pack_book, int pack_block) {
+  int pack_at = 0;
+  while (pack_field(pack_book, pack_block, "transfer") == "yes" && pack_at < len(pack_pieces)) {
+    string pack_concept_name = str_trim(pack_pieces[pack_at]);
+    if (pack_practice_count(pack_book, pack_concept_name) == 0) {
+      push(pack_found_problems, pack_say(pack_book, pack_block, "transfer", pack_who + " has no practice item for concept '" + pack_concept_name + "'; add one without 'transfer: yes'"));
+    }
+    pack_at = pack_at + 1;
+  }
+} return string[] pack_found_problems;
+given pack_fixture_parse("item: i\nconcepts: a\nitem: t\nconcepts: a\ntransfer: yes\n") ((import pack_fixture_book), 1):([])
+given pack_fixture_parse("item: t\nconcepts: a\ntransfer: yes\n") ((import pack_fixture_book), 0):(["t.txt:3: transfer item 't' has no practice item for concept 'a'; add one without 'transfer: yes'"])
+given pack_fixture_parse("item: i\nconcepts: a\nitem: t\nconcepts: a, b\ntransfer: yes\n") ((import pack_fixture_book), 1):(["t.txt:5: transfer item 't' has no practice item for concept 'b'; add one without 'transfer: yes'"])
+given pack_fixture_parse("item: t\nconcepts: a\ntransfer: no\n") ((import pack_fixture_book), 0):([])

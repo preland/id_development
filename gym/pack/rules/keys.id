@@ -1,0 +1,55 @@
+// Rules about the keys of one block, each answering the problems it finds as
+// "file:line: message" text (an empty list when there are none): a key that is
+// not in the format, a key written twice that the format reads once, and a key
+// the block must have but lacks or leaves blank.
+
+pack_unknown_keys(Pack pack_book, int pack_block) {
+  string[] pack_found_problems = [];
+  string pack_kind = pack_kind_of(pack_book, pack_block);
+  string[] pack_allowed = pack_allowed_keys(pack_kind);
+} chain (Pack pack_book, int pack_block) {
+  int pack_at = pack_book.blocks.firsts[pack_block];
+  int pack_end = pack_at + pack_book.blocks.counts[pack_block];
+  while (pack_at < pack_end) {
+    if (lst_str_index(pack_allowed, pack_book.rows.keys[pack_at]) < 0) {
+      push(pack_found_problems, pack_row_say(pack_book, pack_block, pack_at, "unknown key '" + pack_book.rows.keys[pack_at] + "' in a " + pack_kind + "; see gym/pack/FORMAT.md"));
+    }
+    pack_at = pack_at + 1;
+  }
+} return string[] pack_found_problems;
+given pack_fixture_parse("concept: a\nname: A\nsumary: typo\n") ((import pack_fixture_book), 0):(["t.txt:3: unknown key 'sumary' in a concept; see gym/pack/FORMAT.md"])
+given pack_fixture_parse("concept: a\nname: A\nitem: i\nprompt: P\nconcepts: a\nhint: x\n") ((import pack_fixture_book), 1):(["t.txt:6: unknown key 'hint' in a item; see gym/pack/FORMAT.md"])
+given pack_fixture_parse("concept: a\nname: A\nsummary: S\nsource: X\nrequires: b\nmisconception: m\n") ((import pack_fixture_book), 0):([])
+
+pack_repeated_keys(Pack pack_book, int pack_block) {
+  string[] pack_found_problems = [];
+  int pack_at = pack_book.blocks.firsts[pack_block];
+  int pack_end = pack_at + pack_book.blocks.counts[pack_block];
+} chain (Pack pack_book, int pack_block) {
+  while (pack_at < pack_end) {
+    if (lst_str_index((import pack_repeatable_keys), pack_book.rows.keys[pack_at]) < 0 && pack_row_index(pack_book, pack_block, pack_book.rows.keys[pack_at]) != pack_at) {
+      push(pack_found_problems, pack_row_say(pack_book, pack_block, pack_at, "'" + pack_book.rows.keys[pack_at] + "' is written twice; only the first counts, so delete one"));
+    }
+    pack_at = pack_at + 1;
+  }
+} return string[] pack_found_problems;
+given pack_fixture_parse("concept: a\nname: A\nname: B\n") ((import pack_fixture_book), 0):(["t.txt:3: 'name' is written twice; only the first counts, so delete one"])
+given pack_fixture_parse("concept: a\nmisconception: x\nmisconception: y\nname: A\n") ((import pack_fixture_book), 0):([])
+given pack_fixture_parse("concept: a\nname: A\nitem: i\nname: B\n") ((import pack_fixture_book), 1):([])
+
+pack_missing_keys(Pack pack_book, int pack_block) {
+  string[] pack_found_problems = [];
+  string pack_who = pack_kind_of(pack_book, pack_block) + " '" + pack_id_of(pack_book, pack_block) + "'";
+  string[] pack_required = pack_required_keys(pack_kind_of(pack_book, pack_block));
+} chain (Pack pack_book, int pack_block) {
+  int pack_at = 0;
+  while (pack_at < len(pack_required)) {
+    if (pack_field(pack_book, pack_block, pack_required[pack_at]) == "") {
+      push(pack_found_problems, pack_say(pack_book, pack_block, pack_required[pack_at], pack_who + " has no '" + pack_required[pack_at] + "' (missing or blank)"));
+    }
+    pack_at = pack_at + 1;
+  }
+} return string[] pack_found_problems;
+given pack_fixture_parse("concept: a\nname: A\nsummary:\n") ((import pack_fixture_book), 0):(["t.txt:3: concept 'a' has no 'summary' (missing or blank)", "t.txt:1: concept 'a' has no 'source' (missing or blank)"])
+given pack_fixture_parse("concept: a\nname: A\nsummary: S\nsource: X\n") ((import pack_fixture_book), 0):([])
+given pack_fixture_parse("item: i\nprompt: P\n") ((import pack_fixture_book), 0):(["t.txt:1: item 'i' has no 'concepts' (missing or blank)", "t.txt:1: item 'i' has no 'kind' (missing or blank)", "t.txt:1: item 'i' has no 'answer_kind' (missing or blank)", "t.txt:1: item 'i' has no 'difficulty' (missing or blank)", "t.txt:1: item 'i' has no 'verified' (missing or blank)", "t.txt:1: item 'i' has no 'answer' (missing or blank)", "t.txt:1: item 'i' has no 'rubric' (missing or blank)"])

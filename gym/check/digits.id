@@ -1,0 +1,31 @@
+// Reading the digits of a learner's number without ever overflowing a word: the
+// callers refuse more than check_digit_limit digits first, so a run of digits
+// always fits in 63 bits and the loop here needs no overflow test of its own.
+
+check_digit_total(string check_chars) {
+  int check_seen = 0;
+  int check_at = 0;
+  while (check_at < len(check_chars)) {
+    check_seen = check_seen + chr_is_digit(charat(check_chars, check_at));
+    check_at = check_at + 1;
+  }
+} return int check_seen;
+("12a4"):(3)
+(""):(0)
+("1.5"):(2)
+("12345678901234567890"):(20)[time:O(n), mem:O(1)]
+("12345678901234567890123456789012345678901234567890123456789012345678901234567890"):(80)[time:O(n), mem:O(1)]
+
+check_word_value(string check_chars) {
+  word check_accumulated = 0;
+  int check_at = 0;
+  while (check_at < len(check_chars)) {
+    check_accumulated = check_accumulated * 10 + to_int(str_sub(check_chars, check_at, 1));
+    check_at = check_at + 1;
+  }
+} return word check_accumulated;
+("0"):(0)
+("007"):(7)
+("123456789012345678"):(123456789012345678)
+("12345678"):(12345678)[time:O(n), mem:O(1)]
+("123456789012345678"):(123456789012345678)[time:O(n), mem:O(1)]

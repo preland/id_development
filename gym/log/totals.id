@@ -1,0 +1,40 @@
+// What a replayed log says about each item and each concept: how many attempts,
+// and when the latest one was. The log knows items only, so the concept table
+// takes two parallel lists from the pack, item_ids[k] belonging to
+// concept_ids[k] (an item with two concepts appears twice), and sums each
+// concept's items. A name that was never attempted has count 0 and last -1.
+
+log_item_summary(Log_events log_events_in) {
+  string[] log_summary_names = [];
+  int[] log_summary_counts = [];
+  word[] log_summary_lasts = [];
+} chain (Log_events log_events_in) {
+  Log_summary log_book = Log_summary(log_summary_names, log_summary_counts, log_summary_lasts);
+  int log_at = 0;
+  while (log_at < len(log_events_in.kinds)) {
+    if (log_events_in.kinds[log_at] == "attempt") {
+      log_tally(log_book, log_text_at(log_events_in, log_at, (import log_slot_item)), log_events_in.times[log_at], 1);
+    }
+    log_at = log_at + 1;
+  }
+} return Log_summary log_book;
+(Log_events([], [], [])):(Log_summary([], [], []))
+(Log_events([100, 200, 300, 400], ["attempt", "hint_shown", "attempt", "session_end"], [["100", "attempt", "dice", "3/8", "90", "correct", "0", "5", "no", ""], ["200", "hint_shown", "dice", "1"], ["300", "attempt", "dice", "x", "50", "incorrect", "0", "5", "no", ""], ["400", "session_end"]])):(Log_summary(["dice"], [2], [300]))
+(Log_events([100, 200, 150], ["attempt", "attempt", "attempt"], [["100", "attempt", "a", "1", "50", "correct", "0", "5", "no", ""], ["200", "attempt", "b", "1", "50", "correct", "0", "5", "no", ""], ["150", "attempt", "a", "1", "50", "correct", "0", "5", "no", ""]])):(Log_summary(["a", "b"], [2, 1], [150, 200]))
+
+log_concept_summary(Log_summary log_items_in, string[] log_item_ids, string[] log_concept_ids) {
+  string[] log_summary_names = [];
+  int[] log_summary_counts = [];
+  word[] log_summary_lasts = [];
+} chain (Log_summary log_items_in, string[] log_item_ids, string[] log_concept_ids) {
+  Log_summary log_book = Log_summary(log_summary_names, log_summary_counts, log_summary_lasts);
+  int log_at = 0;
+  while (log_at < len(log_item_ids) && log_at < len(log_concept_ids)) {
+    log_fold(log_items_in, log_book, log_item_ids[log_at], log_concept_ids[log_at]);
+    log_at = log_at + 1;
+  }
+} return Log_summary log_book;
+(Log_summary(["i", "j", "k"], [2, 5, 1], [10, 20, 30]), ["i", "j", "j", "k", "q"], ["c", "c", "d", "d", "e"]):(Log_summary(["c", "d"], [7, 6], [20, 30]))
+(Log_summary([], [], []), ["i"], ["c"]):(Log_summary([], [], []))
+(Log_summary(["i"], [2], [10]), [], []):(Log_summary([], [], []))
+(Log_summary(["i"], [2], [10]), ["i", "i"], ["c"]):(Log_summary(["c"], [2], [10]))

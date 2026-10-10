@@ -1,0 +1,97 @@
+# Probability fundamentals: the twelve concepts. Order is a sensible teaching
+# order; "requires" says what must be understood first. Format: gym/pack/FORMAT.md.
+
+concept: sample_space
+name: Sample spaces and equally likely outcomes
+summary: List every possible outcome; when they are equally likely, a probability is favourable outcomes over total outcomes.
+source: Classical definition (Laplace): for a finite sample space of equally likely outcomes, the probability of an event is the number of outcomes in the event divided by the number of outcomes in the sample space.
+misconception: Treating outcomes as equally likely when they are not, such as the eleven possible sums of two dice.
+misconception: Counting the outcomes of two dice as unordered, so that a 3 and a 4 looks like one outcome instead of two.
+
+concept: complement
+name: The complement rule
+summary: The probability that an event does not happen is 1 minus the probability that it does, which makes "at least one" questions easy.
+requires: sample_space
+source: For any event A, P(not A) = 1 - P(A), because A and not-A are mutually exclusive and together cover the whole sample space, whose probability is 1.
+misconception: Computing "at least one" by adding up every case instead of subtracting the "none" case from 1.
+misconception: Thinking the complement of "at least one" is "exactly one" rather than "none".
+
+concept: addition_rule
+name: The addition rule
+summary: P(A or B) = P(A) + P(B) - P(A and B); the overlap is counted once, not twice.
+requires: sample_space
+source: For any two events A and B, P(A or B) = P(A) + P(B) - P(A and B). When A and B cannot both happen the last term is zero.
+misconception: Adding P(A) and P(B) without subtracting the overlap when the events can happen together.
+misconception: Subtracting an overlap even when the events are mutually exclusive.
+
+concept: independence
+name: Independent events and the multiplication rule
+summary: Events are independent when one does not change the probability of the other, and then P(A and B) = P(A) times P(B).
+requires: sample_space
+source: Events A and B are independent exactly when P(A and B) = P(A) P(B). Separate flips of a fair coin or rolls of a fair die are independent.
+misconception: Multiplying probabilities of events that are not independent, such as two draws without replacement.
+misconception: Treating "mutually exclusive" and "independent" as the same thing; exclusive events with positive probability are never independent.
+
+concept: conditional
+name: Conditional probability
+summary: P(A given B) is the probability of A once we know B happened; shrink the sample space to B and recount.
+requires: sample_space, independence
+source: For P(B) > 0, P(A | B) = P(A and B) / P(B).
+misconception: Dividing by P(A) instead of P(B).
+misconception: Thinking P(A | B) and P(B | A) are the same number.
+
+concept: bayes_rule
+name: Bayes' rule
+summary: Turn P(evidence given hypothesis) into P(hypothesis given evidence) using the prior and the total probability of the evidence.
+requires: conditional, complement
+source: P(A | B) = P(B | A) P(A) / P(B), where P(B) = P(B | A) P(A) + P(B | not A) P(not A).
+misconception: Ignoring the prior (base rate) and reading the accuracy of a test as the probability that a positive result is right.
+misconception: Confusing P(positive given disease) with P(disease given positive).
+
+concept: expected_value
+name: Expected value
+summary: The long-run average of a random quantity: add up each value times its probability.
+requires: sample_space
+source: For a random variable X with values x_i and probabilities p_i, E[X] = sum of x_i p_i.
+misconception: Averaging the possible values without weighting them by their probabilities.
+misconception: Expecting the average to be a value that can actually occur on one trial.
+
+concept: variance
+name: Variance
+summary: How spread out a random quantity is: the expected squared distance from its mean, E[X squared] minus E[X] squared.
+requires: expected_value
+source: Var(X) = E[(X - E[X])^2] = E[X^2] - (E[X])^2, and Var(aX + b) = a^2 Var(X).
+misconception: Forgetting to square, so positive and negative deviations cancel.
+misconception: Thinking Var(aX) is a times Var(X) instead of a squared times Var(X).
+
+concept: counting
+name: Counting arrangements and selections
+summary: Count arrangements with factorials and selections with n choose k, then divide by the total number of equally likely outcomes.
+requires: sample_space
+source: There are n! orderings of n distinct objects, and n choose k = n! / (k! (n-k)!) ways to choose k of n objects when order does not matter.
+misconception: Using n choose k when order matters, or ordered counts when it does not.
+misconception: Forgetting that the number of ways to pick the other objects also counts, as in choosing 2 women and 1 man.
+
+concept: linearity
+name: Linearity of expectation
+summary: The expected value of a sum is the sum of the expected values, even when the pieces are dependent; indicator variables make hard counts easy.
+requires: expected_value
+source: For any random variables X and Y and constants a and b, E[aX + bY] = a E[X] + b E[Y], with no independence assumption.
+misconception: Believing E[X + Y] = E[X] + E[Y] needs independence.
+misconception: Believing E[X Y] = E[X] E[Y] always holds, which does need independence.
+
+concept: large_numbers
+name: The law of large numbers
+summary: Averages of many independent trials settle near the expected value, but the raw count of surplus successes does not shrink or get cancelled out.
+requires: expected_value, independence
+source: Weak law of large numbers: for independent identically distributed X_i with mean m, the sample average of n of them converges in probability to m as n grows.
+misconception: Believing the law of large numbers makes the next trials compensate for an earlier surplus or deficit.
+misconception: Believing the raw difference between heads and tails shrinks as the number of flips grows.
+
+concept: fallacies
+name: The gambler's fallacy and base-rate neglect
+summary: Two classic errors: expecting independent trials to "balance out", and ignoring how rare something is when weighing evidence.
+requires: independence, bayes_rule, large_numbers
+source: Independent trials have no memory, so P(heads next | five heads so far) stays 1/2 for a fair coin; and a positive result for a rare condition is evidence weighed against its base rate, not a certainty.
+misconception: Gambler's fallacy: believing a run of one outcome makes the opposite outcome "due".
+misconception: Base-rate neglect: answering "how good is the test" when asked "how likely is it that I have the condition".

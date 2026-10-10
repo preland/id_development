@@ -1,0 +1,29 @@
+// The only way anything gets into a log, and it only ever adds at the end:
+// fs_append_text opens the file for appending (creating it when it is not there),
+// so there is no code path that rewrites or truncates it. A line that would not
+// pass log_fields_ok is refused before it is written, so the file never gets a
+// line its own reader would skip. Each answers the bytes written, or -1 when the
+// line was refused or the file could not be written.
+
+log_append_line(string log_path, string log_event) {
+  int log_written = 0 - 1;
+  string[] log_cut = str_split(log_event, "\t");
+  if (log_fields_ok(log_cut) == 1) {
+    log_written = fs_append_text(log_path, log_event + "\n");
+  }
+} return int log_written;
+given fs_temp_text("") ((import fs_temp_path), "1\tsession_start"):(16) then fs_temp_read:("1\tsession_start\n")
+given fs_temp_text("old\n") ((import fs_temp_path), "2\tsession_end"):(14) then fs_temp_read:("old\n2\tsession_end\n")
+given fs_temp_text("keep\n") ((import fs_temp_path), "junk"):(-1) then fs_temp_read:("keep\n")
+given fs_temp_text("keep\n") ((import fs_temp_path), "1\tsession_start\tmore"):(-1) then fs_temp_read:("keep\n")
+("/nonexistent/gym/log/dir/log.txt", "1\tsession_start"):(-1)
+
+log_record_attempt(string log_path, word log_time, string log_item, string log_answer, int log_confidence, string log_verdict, int log_hints, int log_seconds, int log_tapped, string log_grade) {
+  string log_event = log_line_attempt(log_time, log_item, log_answer, log_confidence, log_verdict, log_hints, log_seconds, log_tapped, log_grade);
+  int log_written = log_append_line(log_path, log_event);
+} return int log_written;
+given fs_temp_text("") ((import fs_temp_path), 1760000000000, "dice_1", "3/8", 90, "correct", 0, 42, 0, ""):(53) then fs_temp_read:("1760000000000\tattempt\tdice_1\t3/8\t90\tcorrect\t0\t42\tno\t\n")
+given fs_temp_text("") ((import fs_temp_path), 5, "x", "a\tb", 70, "incorrect", 2, 9, 1, "partial"):(46) then fs_temp_read:("5\tattempt\tx\ta\\tb\t70\tincorrect\t2\t9\tyes\tpartial\n")
+given fs_temp_text("") ((import fs_temp_path), 5, "x", "a", 80, "incorrect", 2, 9, 1, "partial"):(-1) then fs_temp_read:("")
+given fs_temp_text("") ((import fs_temp_path), 5, "x", "a", 90, "correct", 5, 9, 0, ""):(-1) then fs_temp_read:("")
+given fs_temp_text("") ((import fs_temp_path), 5, "", "a", 90, "correct", 1, 9, 0, ""):(-1) then fs_temp_read:("")

@@ -1,0 +1,17 @@
+// The other two events a session writes, each refused unless its line is valid.
+
+log_record_hint(string log_path, word log_time, string log_item, int log_rung) {
+  string log_event = log_line_hint(log_time, log_item, log_rung);
+  int log_written = log_append_line(log_path, log_event);
+} return int log_written;
+given fs_temp_text("") ((import fs_temp_path), 1760000000000, "dice_1", 2):(34) then fs_temp_read:("1760000000000\thint_shown\tdice_1\t2\n")
+given fs_temp_text("") ((import fs_temp_path), 1, "dice_1", 0):(-1) then fs_temp_read:("")
+given fs_temp_text("") ((import fs_temp_path), 1, "dice_1", 5):(-1) then fs_temp_read:("")
+
+log_record_session(string log_path, word log_time, string log_edge) {
+  string log_event = log_line_session(log_time, log_edge);
+  int log_written = log_append_line(log_path, log_event);
+} return int log_written;
+given fs_temp_text("") ((import fs_temp_path), 1760000000000, "start"):(28) then fs_temp_read:("1760000000000\tsession_start\n")
+given fs_temp_text("") ((import fs_temp_path), 9, "end"):(14) then fs_temp_read:("9\tsession_end\n")
+given fs_temp_text("") ((import fs_temp_path), 9, "pause"):(-1) then fs_temp_read:("")

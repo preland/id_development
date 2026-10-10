@@ -1,0 +1,48 @@
+// Reading a pack file into a Pack, one line at a time. A blank line and a line
+// starting with # are skipped but still counted, so a reported line number is the
+// number an editor shows. A line that is not "key: value", or a field before the
+// first "concept:" or "item:", is reported and left out; the rest still loads.
+
+pack_add(Pack pack_book, string pack_file, int pack_number, string pack_key, string pack_value) {
+  if (pack_key == "concept" || pack_key == "item") {
+    pack_open(pack_book, pack_file);
+  }
+  if (len(pack_book.blocks.files) == 0) {
+    pack_report(pack_book, pack_file, pack_number, "this line comes before any 'concept:' or 'item:' line");
+    return;
+  }
+  pack_push(pack_book, pack_key, pack_value, pack_number);
+} return void;
+(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", [], 0)), "a.txt", 4, "concept", "a"):(Pack(Pack_rows(["concept"], ["a"], [4]), Pack_blocks(["a.txt"], [0], [1]), Pack_notes("r", [], 0)))
+(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", [], 0)), "a.txt", 4, "name", "A"):(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", ["a.txt:4: this line comes before any 'concept:' or 'item:' line"], 0)))
+(Pack(Pack_rows(["concept"], ["a"], [1]), Pack_blocks(["a.txt"], [0], [1]), Pack_notes("r", [], 0)), "a.txt", 2, "item", "i"):(Pack(Pack_rows(["concept", "item"], ["a", "i"], [1, 2]), Pack_blocks(["a.txt", "a.txt"], [0, 1], [1, 1]), Pack_notes("r", [], 0)))
+
+pack_take(Pack pack_book, string pack_file, int pack_number, string pack_line) {
+  string pack_text = str_trim(pack_line);
+  string[] pack_pair = pack_split(pack_text);
+  if (pack_text == "" || str_starts(pack_text, "#")) {
+    return;
+  }
+} chain (Pack pack_book, string pack_file, int pack_number, string pack_line) {
+  if (pack_pair[0] == "") {
+    pack_report(pack_book, pack_file, pack_number, "expected 'key: value' but found '" + pack_text + "'");
+    return;
+  }
+  pack_add(pack_book, pack_file, pack_number, pack_pair[0], pack_pair[1]);
+} return void;
+(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", [], 0)), "a.txt", 1, "  concept:  a "):(Pack(Pack_rows(["concept"], ["a"], [1]), Pack_blocks(["a.txt"], [0], [1]), Pack_notes("r", [], 0)))
+(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", [], 0)), "a.txt", 1, "   "):(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", [], 0)))
+(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", [], 0)), "a.txt", 1, "# concept: a"):(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", [], 0)))
+(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", [], 0)), "a.txt", 7, "oops"):(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", ["a.txt:7: expected 'key: value' but found 'oops'"], 0)))
+
+pack_read_text(Pack pack_book, string pack_file, string pack_text_in) {
+  string[] pack_pieces = str_lines(pack_text_in);
+  int pack_at = 0;
+  while (pack_at < len(pack_pieces)) {
+    pack_take(pack_book, pack_file, pack_at + 1, pack_pieces[pack_at]);
+    pack_at = pack_at + 1;
+  }
+} return void;
+(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", [], 0)), "a.txt", "concept: a\nname: A\n\n# note\nitem: i\nprompt: P"):(Pack(Pack_rows(["concept", "name", "item", "prompt"], ["a", "A", "i", "P"], [1, 2, 5, 6]), Pack_blocks(["a.txt", "a.txt"], [0, 2], [2, 2]), Pack_notes("r", [], 0)))
+(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", [], 0)), "a.txt", "name: x\njunk\nconcept: c"):(Pack(Pack_rows(["concept"], ["c"], [3]), Pack_blocks(["a.txt"], [0], [1]), Pack_notes("r", ["a.txt:1: this line comes before any 'concept:' or 'item:' line", "a.txt:2: expected 'key: value' but found 'junk'"], 0)))
+(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", [], 0)), "a.txt", ""):(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", [], 0)))

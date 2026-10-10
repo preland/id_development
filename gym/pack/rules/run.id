@@ -1,0 +1,46 @@
+// `pack check DIR`: load a pack and apply every rule. pack_collect runs one
+// rule over every block of one kind, appending what it finds to a list the
+// caller owns; pack_concept_problems and pack_item_problems name the rules of
+// each kind, and pack_check adds the load problems and the whole-pack rules. An
+// empty answer means the pack is good. Problems come grouped by rule, not
+// sorted, and each reads "file:line: message".
+
+pack_collect(Pack pack_book, string pack_kind, func(Pack, int) return string[] pack_rule, string[] pack_sink) {
+  int[] pack_kind_blocks = pack_blocks_of(pack_book, pack_kind);
+  int pack_at = 0;
+  while (pack_at < len(pack_kind_blocks)) {
+    lst_str_extend(pack_sink, pack_rule(pack_book, pack_kind_blocks[pack_at]));
+    pack_at = pack_at + 1;
+  }
+} return void;
+given pack_fixture_parse("concept: a\nzzz: 1\nconcept: b\nyyy: 2\nitem: i\n") ((import pack_fixture_book), "concept", pack_unknown_keys, []):((import pack_fixture_book), "concept", pack_unknown_keys, ["t.txt:2: unknown key 'zzz' in a concept; see gym/pack/FORMAT.md", "t.txt:4: unknown key 'yyy' in a concept; see gym/pack/FORMAT.md"])
+given pack_fixture_parse("concept: a\nzzz: 1\nitem: i\nyyy: 2\n") ((import pack_fixture_book), "item", pack_unknown_keys, ["earlier"]):((import pack_fixture_book), "item", pack_unknown_keys, ["earlier", "t.txt:4: unknown key 'yyy' in a item; see gym/pack/FORMAT.md"])
+
+pack_concept_problems(Pack pack_book) {
+  string[] pack_found_problems = [];
+  pack_collect(pack_book, "concept", pack_unknown_keys, pack_found_problems);
+  pack_collect(pack_book, "concept", pack_repeated_keys, pack_found_problems);
+} chain (Pack pack_book) {
+  pack_collect(pack_book, "concept", pack_missing_keys, pack_found_problems);
+  pack_collect(pack_book, "concept", bind(pack_listed_problems, "requires"), pack_found_problems);
+} return string[] pack_found_problems;
+given pack_fixture_parse("concept: a\nname: A\nsummary: S\nsource: P\n") ((import pack_fixture_book)):([])
+given pack_fixture_parse("concept: a\nname: A\nname: B\nsummary: S\nrequires: z\n") ((import pack_fixture_book)):(["t.txt:3: 'name' is written twice; only the first counts, so delete one", "t.txt:1: concept 'a' has no 'source' (missing or blank)", "t.txt:5: unknown concept 'z' in 'requires'"])
+
+pack_item_problems(Pack pack_book) {
+  string[] pack_found_problems = [];
+  pack_collect(pack_book, "item", pack_unknown_keys, pack_found_problems);
+  pack_collect(pack_book, "item", pack_repeated_keys, pack_found_problems);
+} chain (Pack pack_book) {
+  pack_collect(pack_book, "item", pack_missing_keys, pack_found_problems);
+  pack_collect(pack_book, "item", pack_missing_rungs, pack_found_problems);
+  pack_collect(pack_book, "item", bind(pack_listed_problems, "concepts"), pack_found_problems);
+} chain (Pack pack_book) {
+  pack_collect(pack_book, "item", pack_item_labels, pack_found_problems);
+  pack_collect(pack_book, "item", pack_item_rating, pack_found_problems);
+  pack_collect(pack_book, "item", pack_item_answer, pack_found_problems);
+} chain (Pack pack_book) {
+  pack_collect(pack_book, "item", pack_transfer_gaps, pack_found_problems);
+} return string[] pack_found_problems;
+given pack_fixture_parse("concept: a\nitem: i\nconcepts: a\nkind: solve\nanswer_kind: integer\ndifficulty: 1000\ntransfer: no\nverified: tool\nprompt: P\nanswer: 4\nrubric: r\nhint_nudge: n\nhint_question: q\nhint_step: s\nhint_example: e\n") ((import pack_fixture_book)):([])
+given pack_fixture_parse("item: i\nconcepts: a\n") ((import pack_fixture_book)):(["t.txt:1: item 'i' has no 'kind' (missing or blank)", "t.txt:1: item 'i' has no 'answer_kind' (missing or blank)", "t.txt:1: item 'i' has no 'difficulty' (missing or blank)", "t.txt:1: item 'i' has no 'verified' (missing or blank)", "t.txt:1: item 'i' has no 'prompt' (missing or blank)", "t.txt:1: item 'i' has no 'answer' (missing or blank)", "t.txt:1: item 'i' has no 'rubric' (missing or blank)", "t.txt:1: item 'i' has no rung 1, 'hint_nudge' (the nudge); a ladder has exactly 4 rungs", "t.txt:1: item 'i' has no rung 2, 'hint_question' (the guiding question); a ladder has exactly 4 rungs", "t.txt:1: item 'i' has no rung 3, 'hint_step' (the partial step); a ladder has exactly 4 rungs", "t.txt:1: item 'i' has no rung 4, 'hint_example' (the worked example); a ladder has exactly 4 rungs", "t.txt:2: unknown concept 'a' in 'concepts'"])

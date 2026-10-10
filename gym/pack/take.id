@@ -1,0 +1,29 @@
+// The three writes the reader makes into a Pack: a problem, a new block and a
+// row. A block is a concept or an item; it owns the rows from its first row for
+// its count, and a row belongs to the block that was last opened.
+
+pack_report(Pack pack_book, string pack_file, int pack_number, string pack_message) {
+  push(pack_book.notes.problems, pack_file + ":" + pack_number + ": " + pack_message);
+} return void;
+(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", [], 0)), "a.txt", 3, "bad"):(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", ["a.txt:3: bad"], 0)))
+(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", ["x"], 0)), "b.txt", 12, "worse"):(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", ["x", "b.txt:12: worse"], 0)))
+
+pack_open(Pack pack_book, string pack_file) {
+  push(pack_book.blocks.files, pack_file);
+  push(pack_book.blocks.firsts, len(pack_book.rows.keys));
+  push(pack_book.blocks.counts, 0);
+} return void;
+(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", [], 0)), "a.txt"):(Pack(Pack_rows([], [], []), Pack_blocks(["a.txt"], [0], [0]), Pack_notes("r", [], 0)))
+(Pack(Pack_rows(["concept", "name"], ["a", "A"], [1, 2]), Pack_blocks(["a.txt"], [0], [2]), Pack_notes("r", [], 0)), "b.txt"):(Pack(Pack_rows(["concept", "name"], ["a", "A"], [1, 2]), Pack_blocks(["a.txt", "b.txt"], [0, 2], [2, 0]), Pack_notes("r", [], 0)))
+
+pack_push(Pack pack_book, string pack_key, string pack_value, int pack_number) {
+  push(pack_book.rows.keys, pack_key);
+  push(pack_book.rows.values, pack_value);
+  push(pack_book.rows.lines, pack_number);
+} chain (Pack pack_book, string pack_key, string pack_value, int pack_number) {
+  int[] pack_sizes_now = pack_book.blocks.counts;
+  int pack_last = len(pack_sizes_now) - 1;
+  pack_sizes_now[pack_last] = pack_sizes_now[pack_last] + 1;
+} return void;
+(Pack(Pack_rows([], [], []), Pack_blocks(["a.txt"], [0], [0]), Pack_notes("r", [], 0)), "concept", "a", 1):(Pack(Pack_rows(["concept"], ["a"], [1]), Pack_blocks(["a.txt"], [0], [1]), Pack_notes("r", [], 0)))
+(Pack(Pack_rows(["concept"], ["a"], [1]), Pack_blocks(["a.txt"], [0], [1]), Pack_notes("r", [], 0)), "name", "A", 2):(Pack(Pack_rows(["concept", "name"], ["a", "A"], [1, 2]), Pack_blocks(["a.txt"], [0], [2]), Pack_notes("r", [], 0)))

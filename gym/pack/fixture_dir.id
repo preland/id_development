@@ -1,0 +1,23 @@
+// The setup for the cases that read a pack from disk: a fresh directory, made by
+// fs_mktemp so no case shares one, holding a.txt, sub/b.txt and a notes.md that
+// a pack must ignore, with the process moved into it so the cases can name the
+// pack "." and get the same file names in every report. Each case is its own
+// process, so the move touches nothing else.
+
+pack_fixture_directory(string pack_first_text, string pack_second_text) {
+  string pack_folder = fs_mktemp("pack_t_", 1);
+  int pack_created = fs_mkdir_p(pack_folder + "/sub");
+  int pack_wrote = fs_append_text(pack_folder + "/a.txt", pack_first_text);
+} chain (string pack_first_text, string pack_second_text) {
+  int pack_wrote_more = fs_append_text(pack_folder + "/sub/b.txt", pack_second_text);
+  int pack_wrote_notes = fs_append_text(pack_folder + "/notes.md", "concept: ignored");
+  string pack_was = fs_enter(pack_folder);
+} return void;
+("a", "b"):() then pack_fixture_listing:("a.txt\nnotes.md\nsub/b.txt")
+("", ""):() then pack_fixture_listing:("a.txt\nnotes.md\nsub/b.txt")
+
+pack_fixture_listing() {
+  string pack_found_all = str_join(path_files("."), "\n");
+} return string pack_found_all;
+given pack_fixture_directory("x", "y") ():("a.txt\nnotes.md\nsub/b.txt")
+given pack_fixture_directory("", "") ():("a.txt\nnotes.md\nsub/b.txt")

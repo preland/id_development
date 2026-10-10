@@ -1,0 +1,57 @@
+// A learner types "3 / 8", "- 3" and "37.5 %", and means 3/8, -3 and 37.5%. They
+// do not mean "1 1/2" as 11/2, so spaces are dropped only next to a sign, a slash
+// or a percent sign; a space anywhere else leaves the byte \x01 in the text,
+// which no number contains, so the text reads as unparseable instead of as the
+// wrong number. More than check_word_cap words is garbage and costs no copying.
+
+check_squeeze(string check_raw) {
+  string[] check_words = str_words(check_raw);
+  string check_joined = "";
+  if (len(check_words) > (import check_word_cap)) {
+    return "\x01";
+  }
+} chain (string check_raw) {
+  int check_at = 1;
+  if (len(check_words) > 0) {
+    check_joined = check_words[0];
+  }
+  while (check_at < len(check_words)) {
+    check_joined = check_glue(check_joined, check_words[check_at]);
+    check_at = check_at + 1;
+  }
+} return string check_joined;
+("3 / 8"):("3/8")
+("  - 3 "):("-3")
+("37.5 %"):("37.5%")
+("1 1/2"):("1\x011/2")
+("3 4"):("3\x014")
+("   "):("")
+("a b c d e f g"):("\x01")
+("1 / 2"):("1/2")[time:O(n), mem:O(n)]
+("1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9 / 1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9 / 1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9 / 1 / 2 / 3 / 4 / 5 / 6 / 7 / 8 / 9"):("\x01")[time:O(n), mem:O(n)]
+
+check_glue(string check_left, string check_right) {
+  string check_both = check_left + "\x01" + check_right;
+  if (check_may_join(check_left, check_right) == 1) {
+    check_both = check_left + check_right;
+  }
+} return string check_both;
+("3", "/"):("3/")
+("1", "2"):("1\x012")
+("-", "3"):("-3")
+("3", "%"):("3%")
+
+check_may_join(string check_left, string check_right) {
+  int check_votes = str_ends(check_left, "+") + str_ends(check_left, "-") + str_ends(check_left, "/") + str_starts(check_right, "/") + str_starts(check_right, "%");
+  int check_flag = 0;
+  if (check_votes > 0) {
+    check_flag = 1;
+  }
+} return int check_flag;
+("3", "/"):(1)
+("3", "%"):(1)
+("-", "3"):(1)
+("+", "3"):(1)
+("3/", "8"):(1)
+("3", "8"):(0)
+("3.5", "1"):(0)

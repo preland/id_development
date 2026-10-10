@@ -1,0 +1,243 @@
+# Practice items and one held-out transfer item for expected value, variance and
+# counting. Format: gym/pack/FORMAT.md.
+
+item: expected_1
+concepts: expected_value
+kind: solve
+answer_kind: decimal
+tolerance: 0.001
+difficulty: 800
+transfer: no
+verified: tool
+prompt: You roll a fair die and win as many dollars as the number shown. What is your expected winnings per roll, in dollars? Give a decimal.
+answer: 3.5
+rubric: Weights each face by its probability of 1/6.
+rubric: Adds the six products.
+hint_nudge: Expected value weights each possible winning by how likely it is.
+hint_question: What are the possible winnings and what is the probability of each?
+hint_step: Add up (value) x (probability) over all six faces; the six probabilities are equal.
+hint_example: Each face has probability 1/6, so E = (1 + 2 + 3 + 4 + 5 + 6) / 6 = 21/6 = 3.5 dollars.
+
+item: expected_2
+concepts: expected_value
+kind: solve
+answer_kind: integer
+difficulty: 850
+transfer: no
+verified: tool
+prompt: A game: flip a fair coin. Heads wins you $10, tails loses you $4. What is your expected profit per play, in dollars? Give a whole number.
+answer: 3
+rubric: Treats the loss as -4.
+rubric: Weights each result by 1/2.
+hint_nudge: Treat a loss as a negative number.
+hint_question: What are the two possible results (with their signs) and what is the probability of each?
+hint_step: Compute (probability of heads) x (profit on heads) + (probability of tails) x (profit on tails).
+hint_example: E = 0.5 x 10 + 0.5 x (-4) = 5 - 2 = 3 dollars.
+
+item: expected_3
+concepts: expected_value
+kind: solve
+answer_kind: integer
+difficulty: 950
+transfer: no
+verified: tool
+prompt: A raffle ticket costs $2. It has a 1 in 1000 chance of winning $1000, and otherwise wins nothing. What is the expected net gain per ticket, in dollars (use a negative number if you expect to lose)?
+answer: -1
+rubric: Computes the expected prize as 1.
+rubric: Subtracts the $2 cost.
+hint_nudge: Net gain includes what you paid for the ticket.
+hint_question: What is the expected prize, and what do you subtract from it?
+hint_step: E[net] = E[prize] - cost. Find E[prize] as (chance of winning) x (prize), since losing pays nothing.
+hint_example: E[prize] = (1/1000) x 1000 = 1 dollar. Net = 1 - 2 = -1 dollar per ticket.
+
+item: expected_4
+concepts: expected_value
+kind: solve
+answer_kind: fraction
+difficulty: 1000
+transfer: no
+verified: tool
+prompt: A random variable X takes the value 1 with probability 1/2, the value 2 with probability 1/4 and the value 5 with probability 1/4. What is E[X]? Give a fraction.
+answer: 9/4
+rubric: Forms the three products value x probability.
+rubric: Adds them correctly.
+hint_nudge: Multiply each value by its own probability.
+hint_question: What are the three products (value) x (probability), and what do they add up to?
+hint_step: Work with quarters so the fractions are easy: 1/2 is 2/4. Then add up the three products.
+hint_example: E[X] = 1 x 1/2 + 2 x 1/4 + 5 x 1/4 = 2/4 + 2/4 + 5/4 = 9/4.
+
+item: expected_transfer
+concepts: expected_value
+kind: solve
+answer_kind: decimal
+tolerance: 0.001
+difficulty: 1100
+transfer: yes
+verified: tool
+prompt: A parcel arrives on day 1 with probability 0.7, on day 2 with probability 0.2 and on day 3 with probability 0.1. What is the expected arrival day? Give a decimal.
+answer: 1.4
+rubric: Takes the day number as the value.
+rubric: Adds day x probability for the three days.
+hint_nudge: The "value" here is the day number.
+hint_question: What are the three products (day) x (probability)?
+hint_step: Add up day x probability for each of the three days.
+hint_example: E = 1 x 0.7 + 2 x 0.2 + 3 x 0.1 = 0.7 + 0.4 + 0.3 = 1.4 days.
+
+item: variance_1
+concepts: variance
+kind: solve
+answer_kind: fraction
+difficulty: 900
+transfer: no
+verified: tool
+prompt: X is 1 if a fair coin lands heads and 0 if it lands tails. What is Var(X)? Give a fraction.
+answer: 1/4
+rubric: Computes E[X] = 1/2 and E[X squared] = 1/2.
+rubric: Subtracts the square of the mean.
+hint_nudge: Use Var(X) = E[X^2] - (E[X])^2.
+hint_question: What is E[X], and what is E[X^2] (the average of the squared values)?
+hint_step: Find E[X] and E[X^2], then subtract the square of E[X] from E[X^2]. Squaring 0 or 1 changes nothing.
+hint_example: E[X] = 1/2. X^2 takes the same values as X, so E[X^2] = 1/2. Var(X) = 1/2 - (1/2)^2 = 1/2 - 1/4 = 1/4.
+
+item: variance_2
+concepts: variance
+kind: solve
+answer_kind: integer
+difficulty: 950
+transfer: no
+verified: tool
+prompt: X equals 0 or 10, each with probability 1/2. What is Var(X)? Give a whole number.
+answer: 25
+rubric: Computes the mean 5.
+rubric: Computes E[X squared] = 50 and subtracts 25.
+hint_nudge: First find the mean, then measure how far each value is from it.
+hint_question: What is E[X], and how far is each possible value from that mean?
+hint_step: Compute E[X^2] by squaring each value before weighting it, then use E[X^2] - (E[X])^2.
+hint_example: E[X] = 5. E[X^2] = (1/2)(0) + (1/2)(100) = 50. Var(X) = 50 - 25 = 25.
+
+item: variance_3
+concepts: variance
+kind: solve
+answer_kind: fraction
+difficulty: 1150
+transfer: no
+verified: tool
+prompt: What is the variance of the number shown by one roll of a fair die? Give a fraction.
+answer: 35/12
+rubric: Computes E[X] from the six faces.
+rubric: Computes E[X squared] from the six squares.
+rubric: Subtracts and simplifies.
+hint_nudge: You need E[X] and E[X^2]; the first is the familiar average roll.
+hint_question: What is E[X], and what is the average of the squares 1, 4, 9, 16, 25, 36?
+hint_step: E[X^2] is the sum of those six squares divided by 6, and E[X] is the sum of the faces divided by 6. Put them in Var = E[X^2] - (E[X])^2 and simplify.
+hint_example: E[X] = 7/2. E[X^2] = 91/6. Var = 91/6 - 49/4 = 182/12 - 147/12 = 35/12.
+
+item: variance_4
+concepts: variance
+kind: solve
+answer_kind: integer
+difficulty: 1000
+transfer: no
+verified: tool
+prompt: Var(X) = 4. What is Var(3X)? Give a whole number.
+answer: 36
+rubric: Squares the constant 3.
+hint_nudge: Scaling a random variable scales its spread, but variance measures squared spread.
+hint_question: By what factor does the standard deviation change when you multiply X by 3, and what does that mean for the variance?
+hint_step: Use Var(aX) = a^2 Var(X) with a = 3.
+hint_example: Var(3X) = 3^2 x Var(X) = 9 x 4 = 36.
+
+item: variance_transfer
+concepts: variance
+kind: solve
+answer_kind: integer
+difficulty: 1150
+transfer: yes
+verified: tool
+prompt: Daily sales are 100 units with probability 1/2 and 140 units with probability 1/2. What is the variance of daily sales? Give a whole number.
+answer: 400
+rubric: Finds the mean 120.
+rubric: Averages the squared deviations of 20.
+hint_nudge: Find the mean first and measure each value's distance from it.
+hint_question: What is the mean, and what is the squared distance of each value from the mean?
+hint_step: Var = E[(X - mean)^2]. Compute the mean, subtract it from each value, square the results and weight them by their probabilities.
+hint_example: Mean = 120. Deviations: -20 and +20. Squared: 400 and 400. Var = (1/2)(400) + (1/2)(400) = 400.
+
+item: counting_1
+concepts: counting
+kind: solve
+answer_kind: integer
+difficulty: 800
+transfer: no
+verified: tool
+prompt: In how many ways can you choose 2 students from a group of 5 to form a pair (the order within the pair does not matter)? Give a whole number.
+answer: 10
+rubric: Recognises that order does not matter.
+rubric: Computes 5 choose 2.
+hint_nudge: Order does not matter, so a pair counted as (A, B) and as (B, A) is the same pair.
+hint_question: How many ordered pairs are there, and how many times is each unordered pair counted among them?
+hint_step: Count the ordered pairs 5 x 4, then divide by the number of orderings of one pair. Or use "5 choose 2".
+hint_example: There are 5 x 4 = 20 ordered pairs, and each pair appears twice, so 20 / 2 = 10. This is 5 choose 2 = 10.
+
+item: counting_2
+concepts: counting
+kind: solve
+answer_kind: integer
+difficulty: 800
+transfer: no
+verified: tool
+prompt: In how many different orders can 4 different books be arranged on a shelf? Give a whole number.
+answer: 24
+rubric: Multiplies the choices for each place.
+hint_nudge: Fill the shelf one place at a time.
+hint_question: How many books can go in the first place, then how many are left for the second place, and so on?
+hint_step: Multiply the number of choices for each place, starting from 4 and counting down to 1.
+hint_example: 4 x 3 x 2 x 1 = 24 arrangements (4 factorial).
+
+item: counting_3
+concepts: counting
+kind: solve
+answer_kind: fraction
+difficulty: 1000
+transfer: no
+verified: tool
+prompt: A fair coin is flipped 5 times. What is the probability of exactly 2 heads? Give a fraction in lowest terms.
+answer: 5/16
+rubric: Counts 2^5 equally likely sequences.
+rubric: Counts the sequences with exactly 2 heads as 5 choose 2.
+hint_nudge: Count the sequences with exactly 2 heads, then divide by the total number of sequences.
+hint_question: How many equally likely sequences of 5 flips are there, and in how many ways can you choose which 2 of the 5 flips are heads?
+hint_step: The number of sequences is 2^5. The number with exactly 2 heads is "5 choose 2". Divide and reduce.
+hint_example: Total sequences: 2^5 = 32. Choose the positions of the 2 heads: 5 choose 2 = 10. So P = 10/32 = 5/16.
+
+item: counting_4
+concepts: counting
+kind: solve
+answer_kind: fraction
+difficulty: 1150
+transfer: no
+verified: tool
+prompt: A committee of 3 people is chosen at random from 4 men and 6 women. What is the probability that the committee has exactly 2 women? Give a fraction in lowest terms.
+answer: 1/2
+rubric: Counts all committees as 10 choose 3.
+rubric: Multiplies the ways to choose the women and the ways to choose the man.
+hint_nudge: All committees of 3 are equally likely; count the ones with exactly 2 women.
+hint_question: How many committees of 3 can be formed from 10 people, and in how many ways can you pick 2 women and then 1 man?
+hint_step: P = [ (ways to choose 2 of the 6 women) x (ways to choose 1 of the 4 men) ] / (ways to choose 3 of the 10 people).
+hint_example: 10 choose 3 = 120 committees. 6 choose 2 = 15 and 4 choose 1 = 4, so 15 x 4 = 60 are favourable. So P = 60/120 = 1/2.
+
+item: counting_transfer
+concepts: counting
+kind: solve
+answer_kind: fraction
+difficulty: 1250
+transfer: yes
+verified: tool
+prompt: A box holds 8 chips, 3 of which are defective. An inspector picks 3 chips at random without replacement. What is the probability that exactly one of the chosen chips is defective? Give a fraction in lowest terms.
+answer: 15/28
+rubric: Counts all sets of 3 chips as 8 choose 3.
+rubric: Counts 1 defective of 3 times 2 good of 5.
+hint_nudge: Every set of 3 chips is equally likely; count the sets with exactly one defective chip.
+hint_question: How many sets of 3 chips can you pick from 8, and in how many ways can you pick 1 of the 3 defective chips and 2 of the 5 good ones?
+hint_step: P = [ (3 choose 1) x (5 choose 2) ] / (8 choose 3). Evaluate each binomial coefficient and simplify.
+hint_example: 8 choose 3 = 56. 3 choose 1 = 3 and 5 choose 2 = 10, so 30 sets are favourable. So P = 30/56 = 15/28.

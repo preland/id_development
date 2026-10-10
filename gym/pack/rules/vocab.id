@@ -1,0 +1,21 @@
+// The vocabulary of the format, by kind of block: the keys a concept or an item
+// may use, and the ones it must have. The lists themselves are constants in
+// conf.id, so FORMAT.md and the code have one place to agree.
+
+pack_allowed_keys(string pack_kind) {
+  string[] pack_allowed = (import pack_concept_keys);
+  if (pack_kind == "item") {
+    pack_allowed = (import pack_item_keys);
+  }
+} return string[] pack_allowed;
+("concept"):(["concept", "name", "summary", "requires", "source", "misconception"])
+("item"):(["item", "concepts", "kind", "answer_kind", "tolerance", "difficulty", "transfer", "verified", "prompt", "answer", "rubric", "hint_nudge", "hint_question", "hint_step", "hint_example"])
+
+pack_required_keys(string pack_kind) {
+  string[] pack_required = (import pack_concept_required);
+  if (pack_kind == "item") {
+    pack_required = (import pack_item_required);
+  }
+} return string[] pack_required;
+("concept"):(["name", "summary", "source"])
+("item"):(["concepts", "kind", "answer_kind", "difficulty", "verified", "prompt", "answer", "rubric"])

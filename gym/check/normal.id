@@ -1,0 +1,55 @@
+// What the log stores as an attempt's normalised form, how two normalised
+// letters or texts are judged, and the tolerance of a decimal item.
+
+check_normal(string check_kind, string check_text) {
+  string check_form = "";
+  if (check_kind == "choice") {
+    check_form = check_choice_letter(check_text);
+  }
+  if (check_kind == "text") {
+    check_form = check_flatten(check_text);
+  }
+} chain (string check_kind, string check_text) {
+  if (check_is_numeric(check_kind) == 1) {
+    check_form = check_render(check_read(check_kind, check_text));
+  }
+} return string check_form;
+("integer", " +007 "):("7")
+("fraction", "6 / 16"):("3/8")
+("percent", "37.5%"):("3/8")
+("decimal", ".5"):("1/2")
+("integer", "2.5"):("")
+("choice", " (b)."):("B")
+("text", "  Bayes   RULE "):("bayes rule")
+("bogus", "x"):("")
+
+check_forms(string check_wanted, string check_offered) {
+  string check_status = "incorrect";
+  if (check_wanted == check_offered) {
+    check_status = "correct";
+  }
+  if (check_wanted == "" || check_offered == "") {
+    check_status = "unparseable";
+  }
+} return string check_status;
+("B", "B"):("correct")
+("B", "C"):("incorrect")
+("B", ""):("unparseable")
+("", "B"):("unparseable")
+("", ""):("unparseable")
+
+check_margin(string check_kind, string check_slack) {
+  Ratio check_found = Ratio(0, 1, 1);
+  if (check_kind == "decimal" && str_trim(check_slack) != "") {
+    check_found = check_number(check_slack);
+  }
+  if (check_found.top < 0) {
+    check_found.valid = 0;
+  }
+} return Ratio check_found;
+("decimal", "0.01"):(Ratio(1, 100, 1))
+("decimal", "1/100"):(Ratio(1, 100, 1))
+("decimal", ""):(Ratio(0, 1, 1))
+("decimal", "-0.01"):(Ratio(-1, 100, 0))
+("decimal", "wide"):(Ratio(0, 1, 0))
+("fraction", "wide"):(Ratio(0, 1, 1))

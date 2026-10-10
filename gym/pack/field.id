@@ -1,0 +1,44 @@
+// The value of a field in a block (the first one, when a key repeats), all the
+// values of a repeating field in file order, and where a field is written as
+// "file:line", which is where `pack check` points. A missing field is placed at
+// the line that opened its block.
+
+pack_field(Pack pack_book, int pack_block, string pack_key) {
+  int pack_row = pack_row_index(pack_book, pack_block, pack_key);
+  string pack_found = "";
+  if (pack_row >= 0) {
+    pack_found = pack_book.rows.values[pack_row];
+  }
+} return string pack_found;
+given pack_fixture_parse("concept: a\nname: A\nname: B\n") ((import pack_fixture_book), 0, "name"):("A")
+given pack_fixture_parse("concept: a\nname: A\n") ((import pack_fixture_book), 0, "summary"):("")
+given pack_fixture_parse("concept: a\nname: A\nitem: i\nprompt: P\n") ((import pack_fixture_book), 1, "prompt"):("P")
+given pack_fixture_parse("concept: a\nname: A\nitem: i\nprompt: P\n") ((import pack_fixture_book), 0, "prompt"):("")
+
+pack_fields(Pack pack_book, int pack_block, string pack_key) {
+  string[] pack_all = [];
+  int pack_at = pack_book.blocks.firsts[pack_block];
+  int pack_end = pack_at + pack_book.blocks.counts[pack_block];
+} chain (Pack pack_book, int pack_block, string pack_key) {
+  while (pack_at < pack_end) {
+    if (pack_book.rows.keys[pack_at] == pack_key) {
+      push(pack_all, pack_book.rows.values[pack_at]);
+    }
+    pack_at = pack_at + 1;
+  }
+} return string[] pack_all;
+given pack_fixture_parse("concept: a\nmisconception: x\nname: A\nmisconception: y\nconcept: b\nmisconception: z") ((import pack_fixture_book), 0, "misconception"):(["x", "y"])
+given pack_fixture_parse("concept: a\nmisconception: x\nname: A\nmisconception: y\nconcept: b\nmisconception: z") ((import pack_fixture_book), 1, "misconception"):(["z"])
+given pack_fixture_parse("concept: a\nname: A\n") ((import pack_fixture_book), 0, "misconception"):([])
+
+pack_where(Pack pack_book, int pack_block, string pack_key) {
+  int pack_row = pack_row_index(pack_book, pack_block, pack_key);
+  int pack_first = pack_book.blocks.firsts[pack_block];
+  if (pack_row < 0) {
+    pack_row = pack_first;
+  }
+} chain (Pack pack_book, int pack_block, string pack_key) {
+  string pack_place = pack_book.blocks.files[pack_block] + ":" + pack_book.rows.lines[pack_row];
+} return string pack_place;
+given pack_fixture_parse("concept: a\nname: A\n") ((import pack_fixture_book), 0, "name"):("t.txt:2")
+given pack_fixture_parse("\n\nconcept: a\nname: A\n") ((import pack_fixture_book), 0, "summary"):("t.txt:3")

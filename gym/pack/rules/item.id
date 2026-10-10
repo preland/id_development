@@ -1,0 +1,62 @@
+// Rules about the values of one item. A blank or absent value is not reported
+// here, because pack_missing_keys already says so at the same place; these rules
+// speak only when a value is there and is wrong. The ladder has exactly four
+// rungs, nudge then guiding question then partial step then worked example, and
+// a missing rung is the one problem that names which rung it was.
+
+pack_missing_rungs(Pack pack_book, int pack_block) {
+  string[] pack_found_problems = [];
+  string pack_who = "item '" + pack_id_of(pack_book, pack_block) + "'";
+  string[] pack_rungs = (import pack_rung_keys);
+} chain (Pack pack_book, int pack_block) {
+  string[] pack_labels = (import pack_rung_labels);
+  int pack_at = 0;
+  while (pack_at < len(pack_rungs)) {
+    if (pack_field(pack_book, pack_block, pack_rungs[pack_at]) == "") {
+      push(pack_found_problems, pack_say(pack_book, pack_block, pack_rungs[pack_at], pack_who + " has no rung " + (pack_at + 1) + ", '" + pack_rungs[pack_at] + "' (the " + pack_labels[pack_at] + "); a ladder has exactly 4 rungs"));
+    }
+    pack_at = pack_at + 1;
+  }
+} return string[] pack_found_problems;
+given pack_fixture_parse("item: i\nhint_nudge: n\nhint_question: q\nhint_step: s\nhint_example: e\n") ((import pack_fixture_book), 0):([])
+given pack_fixture_parse("item: i\nhint_nudge: n\nhint_question: q\nhint_example: e\n") ((import pack_fixture_book), 0):(["t.txt:1: item 'i' has no rung 3, 'hint_step' (the partial step); a ladder has exactly 4 rungs"])
+given pack_fixture_parse("item: i\nhint_nudge: n\nhint_question:\n") ((import pack_fixture_book), 0):(["t.txt:3: item 'i' has no rung 2, 'hint_question' (the guiding question); a ladder has exactly 4 rungs", "t.txt:1: item 'i' has no rung 3, 'hint_step' (the partial step); a ladder has exactly 4 rungs", "t.txt:1: item 'i' has no rung 4, 'hint_example' (the worked example); a ladder has exactly 4 rungs"])
+
+pack_item_rating(Pack pack_book, int pack_block) {
+  string[] pack_found_problems = [];
+  string pack_rating_text = pack_field(pack_book, pack_block, "difficulty");
+  int pack_rating_digits = check_digit_total(pack_rating_text);
+} chain (Pack pack_book, int pack_block) {
+  if (pack_rating_text != "" && (pack_rating_digits != len(pack_rating_text) || len(pack_rating_text) > 4 || to_int(pack_rating_text) < (import pack_difficulty_floor) || to_int(pack_rating_text) > (import pack_difficulty_ceiling))) {
+    push(pack_found_problems, pack_say(pack_book, pack_block, "difficulty", "difficulty '" + pack_rating_text + "' must be a whole number from 100 to 3000"));
+  }
+} return string[] pack_found_problems;
+given pack_fixture_parse("item: i\ndifficulty: 1000\n") ((import pack_fixture_book), 0):([])
+given pack_fixture_parse("item: i\ndifficulty: 100\n") ((import pack_fixture_book), 0):([])
+given pack_fixture_parse("item: i\ndifficulty: 3000\n") ((import pack_fixture_book), 0):([])
+given pack_fixture_parse("item: i\ndifficulty: 3001\n") ((import pack_fixture_book), 0):(["t.txt:2: difficulty '3001' must be a whole number from 100 to 3000"])
+given pack_fixture_parse("item: i\ndifficulty: 99\n") ((import pack_fixture_book), 0):(["t.txt:2: difficulty '99' must be a whole number from 100 to 3000"])
+given pack_fixture_parse("item: i\ndifficulty: hard\n") ((import pack_fixture_book), 0):(["t.txt:2: difficulty 'hard' must be a whole number from 100 to 3000"])
+given pack_fixture_parse("item: i\ndifficulty: 12345678901\n") ((import pack_fixture_book), 0):(["t.txt:2: difficulty '12345678901' must be a whole number from 100 to 3000"])
+given pack_fixture_parse("item: i\ndifficulty: -5\n") ((import pack_fixture_book), 0):(["t.txt:2: difficulty '-5' must be a whole number from 100 to 3000"])
+given pack_fixture_parse("item: i\n") ((import pack_fixture_book), 0):([])
+
+pack_item_answer(Pack pack_book, int pack_block) {
+  string[] pack_found_problems = [];
+  string pack_form_value = pack_field(pack_book, pack_block, "answer_kind");
+  string pack_answer_value = pack_field(pack_book, pack_block, "answer");
+} chain (Pack pack_book, int pack_block) {
+  string pack_answer_message = check_problem(pack_form_value, pack_answer_value, pack_field(pack_book, pack_block, "tolerance"));
+  if (pack_form_value != "" && pack_answer_value != "" && pack_answer_message != "") {
+    push(pack_found_problems, pack_say(pack_book, pack_block, "answer", pack_answer_message));
+  }
+} return string[] pack_found_problems;
+given pack_fixture_parse("item: i\nanswer_kind: fraction\nanswer: 3/8\n") ((import pack_fixture_book), 0):([])
+given pack_fixture_parse("item: i\nanswer_kind: fraction\nanswer: three eighths\n") ((import pack_fixture_book), 0):(["t.txt:3: reference answer 'three eighths' cannot be read as a fraction"])
+given pack_fixture_parse("item: i\nanswer_kind: decimal\ntolerance: 0.01\nanswer: 0.5\n") ((import pack_fixture_book), 0):([])
+given pack_fixture_parse("item: i\nanswer_kind: decimal\nanswer: 0.5\n") ((import pack_fixture_book), 0):(["t.txt:3: a decimal item needs a tolerance"])
+given pack_fixture_parse("item: i\nanswer_kind: integer\nanswer: 2.5\n") ((import pack_fixture_book), 0):(["t.txt:3: reference answer '2.5' cannot be read as a integer"])
+given pack_fixture_parse("item: i\nanswer_kind: choice\nanswer: Q9\n") ((import pack_fixture_book), 0):(["t.txt:3: reference answer 'Q9' cannot be read as a choice"])
+given pack_fixture_parse("item: i\nanswer_kind: dozen\nanswer: 12\n") ((import pack_fixture_book), 0):(["t.txt:3: unknown answer kind 'dozen'"])
+given pack_fixture_parse("item: i\nanswer: 12\n") ((import pack_fixture_book), 0):([])
+given pack_fixture_parse("item: i\nanswer_kind: integer\n") ((import pack_fixture_book), 0):([])

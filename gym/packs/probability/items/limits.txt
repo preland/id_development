@@ -1,0 +1,237 @@
+# Practice items and one held-out transfer item for linearity of expectation, the
+# law of large numbers and the two classic fallacies. Format: gym/pack/FORMAT.md.
+
+item: linearity_1
+concepts: linearity
+kind: solve
+answer_kind: integer
+difficulty: 850
+transfer: no
+verified: tool
+prompt: Two fair dice are rolled. What is the expected value of their sum? Give a whole number.
+answer: 7
+rubric: Uses E[X + Y] = E[X] + E[Y] instead of the distribution of the sum.
+rubric: Uses 3.5 for one die.
+hint_nudge: You do not need the distribution of the sum.
+hint_question: What is the expected value of one die, and how does the expected value of a sum relate to the individual expected values?
+hint_step: E[X + Y] = E[X] + E[Y]. Use the expected value of a single fair die twice.
+hint_example: E[one die] = 3.5, so E[sum] = 3.5 + 3.5 = 7.
+
+item: linearity_2
+concepts: linearity
+kind: solve
+answer_kind: integer
+difficulty: 800
+transfer: no
+verified: tool
+prompt: E[X] = 3 and E[Y] = 5. What is E[2X - Y]? Give a whole number.
+answer: 1
+rubric: Applies linearity with the constant 2 and the minus sign.
+hint_nudge: Expectation passes through sums and constant multiples.
+hint_question: How do the 2 and the minus sign affect each expected value?
+hint_step: E[2X - Y] = 2 E[X] - E[Y]. Substitute the two given numbers.
+hint_example: E[2X - Y] = 2(3) - 5 = 6 - 5 = 1.
+
+item: linearity_3
+concepts: linearity
+kind: solve
+answer_kind: integer
+difficulty: 900
+transfer: no
+verified: tool
+prompt: A fair die is rolled 12 times. What is the expected number of sixes? Give a whole number.
+answer: 2
+rubric: Writes the count of sixes as a sum of 12 indicator variables.
+rubric: Multiplies 12 by 1/6.
+hint_nudge: Write the number of sixes as a sum of 12 simple pieces, one per roll.
+hint_question: For a single roll, what is the expected number of sixes (it is 1 for a six and 0 otherwise)?
+hint_step: By linearity, the expected total is 12 times the expected value for one roll.
+hint_example: One roll has E = 1 x 1/6 + 0 x 5/6 = 1/6 sixes. Twelve rolls: 12 x 1/6 = 2.
+
+item: linearity_4
+concepts: linearity
+kind: solve
+answer_kind: integer
+difficulty: 1150
+transfer: no
+verified: source
+prompt: Five people each leave a hat at a party. The hats are returned in a completely random order, one to each person. What is the expected number of people who get their own hat back? Give a whole number.
+answer: 1
+rubric: Defines one indicator per person.
+rubric: Notes that each person has probability 1/5 and that no independence is needed.
+hint_nudge: Count with indicator variables: one for each person, switched on when that person gets their own hat.
+hint_question: For one particular person, what is the probability of getting their own hat back, and how many such people are there?
+hint_step: E[number of matches] is the sum over the 5 people of P(that person gets their own hat). Each term is the same.
+hint_example: Each person has probability 1/5 of getting their own hat. By linearity, E = 5 x 1/5 = 1. This holds for any number of people.
+
+item: linearity_transfer
+concepts: linearity
+kind: solve
+answer_kind: fraction
+difficulty: 1250
+transfer: yes
+verified: tool
+prompt: A standard 52-card deck is shuffled and the top 5 cards are dealt. What is the expected number of aces among them? Give a fraction in lowest terms.
+answer: 5/13
+rubric: Uses one indicator per dealt position even though the cards are dependent.
+rubric: Gives each position probability 4/52.
+hint_nudge: The cards are dependent, but linearity does not mind; give each dealt card its own indicator.
+hint_question: For one particular position among the 5 dealt cards, what is the probability it holds an ace?
+hint_step: E[aces] is the sum over the 5 positions of P(that card is an ace). The probability is the same for every position.
+hint_example: Each position holds an ace with probability 4/52 = 1/13. E = 5 x 1/13 = 5/13.
+
+item: large_numbers_1
+concepts: large_numbers
+kind: choice
+answer_kind: choice
+difficulty: 800
+transfer: no
+verified: source
+prompt: A fair coin is flipped 10,000 times. Which quantity is most likely to be very close to its "expected" value? A) The number of heads. B) The proportion of flips that are heads. C) The difference between the number of heads and the number of tails. D) The longest streak of heads.
+answer: B
+rubric: Distinguishes a proportion (an average) from a raw count or difference.
+hint_nudge: The law of large numbers is about averages, not about raw totals.
+hint_question: Which of the four quantities is an average or a proportion?
+hint_step: Compare how each quantity behaves as the number of flips grows: totals and differences can drift further from zero, while an average settles down.
+hint_example: The proportion of heads gets closer and closer to 1/2. The count of heads typically misses 5,000 by dozens, and the heads-minus-tails difference typically grows with the square root of the number of flips. So the answer is B.
+
+item: large_numbers_2
+concepts: large_numbers
+kind: estimate
+answer_kind: decimal
+tolerance: 0.1
+difficulty: 900
+transfer: no
+verified: tool
+prompt: You roll a fair die 10,000 times and compute the average of all the results. Estimate that average. Give a decimal.
+answer: 3.5
+rubric: Identifies the long-run average with the expected value of one roll.
+hint_nudge: The average of many independent rolls settles near the expected value of one roll.
+hint_question: What is the expected value of a single fair die roll?
+hint_step: By the law of large numbers, the long-run average is close to E[X] for one roll. Compute E[X] = (1 + 2 + 3 + 4 + 5 + 6) / 6.
+hint_example: E[X] = 21/6 = 3.5, so the average of 10,000 rolls should be about 3.5.
+
+item: large_numbers_3
+concepts: large_numbers
+kind: error_hunt
+answer_kind: choice
+difficulty: 950
+transfer: no
+verified: source
+prompt: A student flips a fair coin 10 times and gets 7 heads. She says: "By the law of large numbers, my next 10 flips will have about 3 more tails than heads, to balance this out." What is wrong? A) The law says averages approach the expected value as trials pile up; it does not make later flips compensate for earlier ones. B) The coin must be unfair. C) Ten flips is too many for the law to apply. D) Nothing is wrong.
+answer: A
+rubric: States that later independent flips do not compensate for an early surplus.
+rubric: Says the proportion converges because the surplus is diluted, not cancelled.
+hint_nudge: Ask whether the later flips even know about the earlier ones.
+hint_question: Are the next 10 flips independent of the first 10, and what does the law of large numbers actually claim?
+hint_step: The law concerns the long-run proportion. Ask what happens to the effect of an early surplus as the total number of flips grows.
+hint_example: Later flips are independent and fair, so they average 5 heads in 10. The early surplus of 2 heads is not cancelled; it just becomes a smaller fraction of a much bigger total, so the proportion drifts toward 1/2. The mistake is described by option A.
+
+item: large_numbers_4
+concepts: large_numbers
+kind: estimate
+answer_kind: integer
+difficulty: 1050
+transfer: no
+verified: tool
+prompt: A casino game gives the casino an expected profit of $0.05 for every $1 bet. Roughly how many dollars should the casino expect to win in total over 1,000,000 independent $1 bets? Give a whole number.
+answer: 50000
+rubric: Multiplies the expected profit per bet by the number of bets.
+hint_nudge: Over many independent bets the casino earns about its expected profit per bet, times the number of bets.
+hint_question: What is the casino's expected profit on one bet, and how many bets are there?
+hint_step: Multiply the expected profit per bet by the number of bets.
+hint_example: 0.05 x 1,000,000 = 50,000 dollars.
+
+item: large_numbers_transfer
+concepts: large_numbers, expected_value
+kind: estimate
+answer_kind: integer
+difficulty: 1000
+transfer: yes
+verified: tool
+prompt: An insurer expects an average claim of $800 per policy. Roughly how much should it set aside to pay claims on 100,000 independent policies, in millions of dollars? Give a whole number.
+answer: 80
+rubric: Multiplies the expected claim by the number of policies.
+rubric: Converts dollars to millions.
+hint_nudge: Many independent policies: the average claim per policy is close to its expected value.
+hint_question: What is the expected total, and how many millions of dollars is it?
+hint_step: Expected total = (number of policies) x (expected claim per policy). Then convert to millions.
+hint_example: 100,000 x 800 = 80,000,000 dollars, which is 80 million.
+
+item: fallacies_1
+concepts: fallacies
+kind: solve
+answer_kind: fraction
+difficulty: 800
+transfer: no
+verified: tool
+prompt: A fair coin has just landed heads five times in a row. What is the probability that the next flip is heads? Give a fraction.
+answer: 1/2
+rubric: States that independent flips have no memory.
+hint_nudge: Ask whether the coin has any memory.
+hint_question: Are the flips independent, and what does that say about the next flip?
+hint_step: For independent flips, the earlier results do not change the probability of the next one.
+hint_example: The flips are independent and the coin is fair, so the next flip is heads with probability 1/2 regardless of the earlier heads.
+
+item: fallacies_2
+concepts: fallacies
+kind: solve
+answer_kind: integer
+difficulty: 1050
+transfer: no
+verified: tool
+prompt: Of 1000 people, 2% have a rare condition. A test is positive for every person who has the condition and also, wrongly, for 5% of the people who do not. How many of the 1000 people are expected to test positive in total? Give a whole number.
+answer: 69
+rubric: Counts 20 people with the condition, all positive.
+rubric: Counts 5% of the other 980 as false positives.
+hint_nudge: Split the 1000 people into those with and those without the condition.
+hint_question: How many have the condition, how many do not, and how many from each group test positive?
+hint_step: Positives = (people with the condition, all of whom test positive) + 5% of the people without it.
+hint_example: 2% of 1000 = 20 have it, and all 20 test positive. 980 do not have it, and 5% of 980 = 49 test positive wrongly. Total = 20 + 49 = 69.
+
+item: fallacies_3
+concepts: fallacies, bayes_rule
+kind: solve
+answer_kind: fraction
+difficulty: 1150
+transfer: no
+verified: tool
+prompt: Of 1000 people, 2% have a rare condition. A test is positive for every person who has it and wrongly for 5% of the people who do not. A person tests positive. What fraction of the people who test positive actually have the condition? Give a fraction in lowest terms.
+answer: 20/69
+rubric: Divides true positives by all positives.
+rubric: Does not answer with the test's accuracy.
+hint_nudge: Compare true positives with all positives.
+hint_question: How many true positives and how many false positives are there among the 1000 people?
+hint_step: Fraction = (true positives) / (true positives + false positives). Find each count out of the 1000 people.
+hint_example: True positives: 20. False positives: 5% of 980 = 49. All positives: 69. So the fraction is 20/69.
+
+item: fallacies_4
+concepts: fallacies
+kind: choice
+answer_kind: choice
+difficulty: 850
+transfer: no
+verified: source
+prompt: A wheel is spun repeatedly; each spin is independent and red is as likely as black. After six reds in a row, a gambler bets on black because "black is due". Which statement is correct? A) Black is now more likely than red on the next spin. B) Red is now more likely than black on the next spin. C) Black and red are exactly as likely on the next spin as they always were. D) The wheel must be broken.
+answer: C
+rubric: Applies independence: past spins do not change the next one.
+hint_nudge: Check what the problem says about the spins being independent.
+hint_question: If spins are independent, can the earlier six spins change the probability of the next one?
+hint_step: Independent trials have no memory. Decide how the next spin's probabilities compare with those of any other spin.
+hint_example: Independent spins do not remember the past, so the probabilities for the next spin are the same as for every spin. Option C is correct; "black is due" is the gambler's fallacy.
+
+item: fallacies_transfer
+concepts: fallacies, bayes_rule
+kind: solve
+answer_kind: fraction
+difficulty: 1300
+transfer: yes
+verified: tool
+prompt: In a city, 85% of cabs are green and 15% are blue. A witness says a cab in an accident was blue. The witness correctly identifies the colour of a cab 80% of the time, and is wrong 20% of the time. What is the probability that the cab really was blue? Give a fraction in lowest terms.
+answer: 12/29
+rubric: Uses the 15% base rate of blue cabs.
+rubric: Adds the false-blue reports from green cabs to the denominator.
+hint_nudge: Do not forget how many cabs of each colour there are.
+hint_question: What fraction of all cabs are blue AND described as blue, and what fraction are green but described as blue?
+hint_step: P(blue | says blue) = P(blue and says blue) / [P(blue and says blue) + P(green and says blue)]. Compute both products.
+hint_example: Blue and called blue: 0.15 x 0.8 = 0.12. Green but called blue: 0.85 x 0.2 = 0.17. So P = 0.12 / (0.12 + 0.17) = 12/29.

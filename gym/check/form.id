@@ -1,0 +1,55 @@
+// The two non-numeric answer kinds. A choice is one letter, however the learner
+// decorates it: "B", "b", " (b) ", "b." and "B)" are all B, while "bc" and "3"
+// are no choice at all. A text of more than check_choice_reach bytes is no
+// choice, which also keeps the letter-by-letter copy below from growing with a
+// pasted paragraph. A short text is compared in lower case with every run of
+// spaces, tabs and line breaks collapsed to one space.
+
+check_letters(string check_typed) {
+  string check_kept = "";
+  int check_at = 0;
+  if (len(check_typed) > (import check_choice_reach)) {
+    return "";
+  }
+} chain (string check_typed) {
+  while (check_at < len(check_typed)) {
+    if (chr_is_alpha(charat(check_typed, check_at)) == 1) {
+      check_kept = check_kept + str_sub(check_typed, check_at, 1);
+    }
+    check_at = check_at + 1;
+  }
+} return string check_kept;
+("B)"):("B")
+("(b)"):("b")
+("12"):("")
+("a b c"):("abc")
+("abcdefghijklm"):("")
+("ab"):("ab")[time:O(n), mem:O(n)]
+("abababababababababababababababab"):("")[time:O(n), mem:O(n)]
+
+check_choice_letter(string check_typed) {
+  string check_letters_found = check_letters(str_trim(check_typed));
+  string check_letter = "";
+  if (len(check_letters_found) == 1 && check_digit_total(check_typed) == 0) {
+    check_letter = str_upper(check_letters_found);
+  }
+} return string check_letter;
+("b"):("B")
+(" (c) "):("C")
+("B."):("B")
+("bc"):("")
+("3"):("")
+("I think b"):("")
+("b2"):("")
+("2 b"):("")
+("           b             "):("B")
+
+check_flatten(string check_typed) {
+  string check_lowered = str_lower(str_replace(check_typed, "\n", " "));
+  string[] check_pieces = str_words(check_lowered);
+  string check_squashed = str_join(check_pieces, " ");
+} return string check_squashed;
+("  Law  of\tLarge Numbers "):("law of large numbers")
+("A\nB"):("a b")
+("   "):("")
+("Independent"):("independent")

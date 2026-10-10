@@ -1,0 +1,25 @@
+// A pack in memory is three tables that share row numbers, like a database made
+// of parallel lists (docs/STRUCTS.md, README "record-as-list"): Pack_rows has one
+// row per "key: value" line, Pack_blocks has one entry per concept or item, naming
+// the file it came from and the rows it owns, and Pack_notes keeps the directory
+// the pack was read from and every problem found while reading, as
+// "file:line: message" text.
+
+pack_new(string pack_root) {
+  string[] pack_keys = [];
+  string[] pack_values = [];
+  int[] pack_numbers = [];
+} chain (string pack_root) {
+  string[] pack_names = [];
+  int[] pack_firsts = [];
+  int[] pack_sizes = [];
+} chain (string pack_root) {
+  string[] pack_problems = [];
+  Pack_rows pack_rows = Pack_rows(pack_keys, pack_values, pack_numbers);
+  Pack_blocks pack_blocks = Pack_blocks(pack_names, pack_firsts, pack_sizes);
+} chain (string pack_root) {
+  Pack_notes pack_notes = Pack_notes(pack_root, pack_problems, 0);
+  Pack pack_book = Pack(pack_rows, pack_blocks, pack_notes);
+} return Pack pack_book;
+("a"):(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("a", [], 0)))
+("some/dir"):(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("some/dir", [], 0)))

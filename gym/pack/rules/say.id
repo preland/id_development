@@ -1,0 +1,16 @@
+// How a rule words a problem: always "file:line: message", the file and line
+// being where an author must look. pack_say points at a field of a block (or at
+// the line that opened the block when the field is missing), pack_row_say at one
+// row.
+
+pack_say(Pack pack_book, int pack_block, string pack_key, string pack_message) {
+  string pack_said = pack_where(pack_book, pack_block, pack_key) + ": " + pack_message;
+} return string pack_said;
+given pack_fixture_parse("concept: a\nname: A\n") ((import pack_fixture_book), 0, "name", "bad"):("t.txt:2: bad")
+given pack_fixture_parse("\nconcept: a\nname: A\n") ((import pack_fixture_book), 0, "summary", "no summary"):("t.txt:2: no summary")
+
+pack_row_say(Pack pack_book, int pack_block, int pack_row, string pack_message) {
+  string pack_said_row = pack_book.blocks.files[pack_block] + ":" + pack_book.rows.lines[pack_row] + ": " + pack_message;
+} return string pack_said_row;
+given pack_fixture_parse("concept: a\nname: A\n") ((import pack_fixture_book), 0, 1, "bad"):("t.txt:2: bad")
+given pack_fixture_parse("concept: a\n\n\nname: A\n") ((import pack_fixture_book), 0, 1, "worse"):("t.txt:4: worse")

@@ -1,0 +1,36 @@
+// The canonical text of a number (3, -3, 3/8: lowest terms, no plus sign, no
+// decimal point) and the words for the kinds of answer. The canonical text is
+// what the log stores as the normalised form of an attempt.
+
+check_render(Ratio check_ratio) {
+  string check_out = "";
+  if (check_ratio.valid == 1) {
+    check_out = "" + check_ratio.top;
+  }
+  if (check_ratio.valid == 1 && check_ratio.bottom != 1) {
+    check_out = check_out + "/" + check_ratio.bottom;
+  }
+} return string check_out;
+(Ratio(3, 8, 1)):("3/8")
+(Ratio(-3, 8, 1)):("-3/8")
+(Ratio(7, 1, 1)):("7")
+(Ratio(0, 1, 1)):("0")
+(Ratio(3, 8, 0)):("")
+
+check_known(string check_kind) {
+  int check_listed = lst_str_index((import check_kinds), check_kind) >= 0;
+} return int check_listed;
+("integer"):(1)
+("text"):(1)
+("decimal"):(1)
+("number"):(0)
+(""):(0)
+
+check_is_numeric(string check_kind) {
+  int check_numeric = check_known(check_kind) == 1 && check_kind != "choice" && check_kind != "text";
+} return int check_numeric;
+("fraction"):(1)
+("percent"):(1)
+("choice"):(0)
+("text"):(0)
+("bogus"):(0)

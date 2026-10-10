@@ -1,0 +1,30 @@
+// Reading one field of one event back, by its index in the events table and its
+// slot. The slots are the log_slot_* constants of conf.id, read at the call site
+// as (import log_slot_item) and the like: item, answer, verdict, tapped and grade
+// are text (unescaped), confidence, hints, seconds and rung are numbers. A slot
+// the event's kind does not have is the caller's mistake and stops the program
+// with an index error, so look at events.kinds[index] first.
+
+log_text_at(Log_events log_events_in, int log_index, int log_slot) {
+  string log_text_read = log_restore(log_events_in.fields[log_index][log_slot]);
+} return string log_text_read;
+given log_fixture_parse("100\tattempt\tdice_1\t3/8\t90\tcorrect\t2\t42\tyes\tpartial\n200\tattempt\tdice\\t2\ta\\tb\\n\t50\tincorrect\t0\t7\tno\t\n") ((import log_fixture_events), 0, 2):("dice_1")
+given log_fixture_parse("100\tattempt\tdice_1\t3/8\t90\tcorrect\t2\t42\tyes\tpartial\n200\tattempt\tdice\\t2\ta\\tb\\n\t50\tincorrect\t0\t7\tno\t\n") ((import log_fixture_events), 1, 2):("dice\t2")
+given log_fixture_parse("100\tattempt\tdice_1\t3/8\t90\tcorrect\t2\t42\tyes\tpartial\n200\tattempt\tdice\\t2\ta\\tb\\n\t50\tincorrect\t0\t7\tno\t\n") ((import log_fixture_events), 1, 3):("a\tb\n")
+given log_fixture_parse("100\tattempt\tdice_1\t3/8\t90\tcorrect\t2\t42\tyes\tpartial\n200\tattempt\tdice\\t2\ta\\tb\\n\t50\tincorrect\t0\t7\tno\t\n") ((import log_fixture_events), 0, 9):("partial")
+given log_fixture_parse("100\tattempt\tdice_1\t3/8\t90\tcorrect\t2\t42\tyes\tpartial\n200\tattempt\tdice\\t2\ta\\tb\\n\t50\tincorrect\t0\t7\tno\t\n") ((import log_fixture_events), 1, 9):("")
+
+log_number_at(Log_events log_events_in, int log_index, int log_slot) {
+  int log_number_read = to_int(log_events_in.fields[log_index][log_slot]);
+} return int log_number_read;
+given log_fixture_parse("100\tattempt\tdice_1\t3/8\t90\tcorrect\t2\t42\tyes\tpartial\n200\tattempt\tdice_2\tb\t50\tunparseable\t4\t0\tno\t\n300\thint_shown\tdice_1\t3\n") ((import log_fixture_events), 0, 4):(90)
+given log_fixture_parse("100\tattempt\tdice_1\t3/8\t90\tcorrect\t2\t42\tyes\tpartial\n200\tattempt\tdice_2\tb\t50\tunparseable\t4\t0\tno\t\n300\thint_shown\tdice_1\t3\n") ((import log_fixture_events), 1, 6):(4)
+given log_fixture_parse("100\tattempt\tdice_1\t3/8\t90\tcorrect\t2\t42\tyes\tpartial\n200\tattempt\tdice_2\tb\t50\tunparseable\t4\t0\tno\t\n300\thint_shown\tdice_1\t3\n") ((import log_fixture_events), 0, 7):(42)
+given log_fixture_parse("100\tattempt\tdice_1\t3/8\t90\tcorrect\t2\t42\tyes\tpartial\n200\tattempt\tdice_2\tb\t50\tunparseable\t4\t0\tno\t\n300\thint_shown\tdice_1\t3\n") ((import log_fixture_events), 1, 7):(0)
+given log_fixture_parse("100\tattempt\tdice_1\t3/8\t90\tcorrect\t2\t42\tyes\tpartial\n200\tattempt\tdice_2\tb\t50\tunparseable\t4\t0\tno\t\n300\thint_shown\tdice_1\t3\n") ((import log_fixture_events), 2, 3):(3)
+
+log_tapped_at(Log_events log_events_in, int log_index) {
+  int log_tapped_read = log_text_at(log_events_in, log_index, (import log_slot_tapped)) == "yes";
+} return int log_tapped_read;
+given log_fixture_parse("100\tattempt\tdice_1\t3/8\t90\tcorrect\t2\t42\tyes\tpartial\n200\tattempt\tdice_2\tb\t50\tunparseable\t4\t7\tno\t\n") ((import log_fixture_events), 0):(1)
+given log_fixture_parse("100\tattempt\tdice_1\t3/8\t90\tcorrect\t2\t42\tyes\tpartial\n200\tattempt\tdice_2\tb\t50\tunparseable\t4\t7\tno\t\n") ((import log_fixture_events), 1):(0)

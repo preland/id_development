@@ -1,0 +1,12 @@
+// The setup the cases of every pack function use: a Pack read from the text a
+// case gives, left in the export pack_fixture_book. Reading it is the code under test
+// elsewhere; here the cases only pin that the setup keeps what it was given.
+
+pack_fixture_parse(string pack_sample) {
+  Pack pack_made = pack_new("t");
+  pack_read_text(pack_made, "t.txt", pack_sample);
+  export Pack pack_fixture_book = pack_made;
+} return void export pack_fixture_book;
+("concept: a"):() then len((import pack_fixture_book).blocks.files):(1)
+("concept: a\nname: A"):() then (import pack_fixture_book).rows.values[1]:("A")
+("junk"):() then (import pack_fixture_book).notes.problems[0]:("t.txt:1: expected 'key: value' but found 'junk'")

@@ -1,0 +1,36 @@
+// An integer answer is stricter than a fraction answer: an optional sign and
+// digits, nothing else, so "3.5" and "7/2" are unparseable for it rather than
+// graded as numbers. check_read picks the reader for an answer kind.
+
+check_whole(string check_raw) {
+  string check_joined = check_squeeze(check_raw);
+  string check_body = check_unsigned(check_joined);
+  int check_clean = check_digit_total(check_body);
+} chain (string check_raw) {
+  Ratio check_value = Ratio(0, 1, 0);
+  if (check_clean == len(check_body)) {
+    check_value = check_decimal(check_joined);
+  }
+} return Ratio check_value;
+("3"):(Ratio(3, 1, 1))
+("+3"):(Ratio(3, 1, 1))
+("- 3"):(Ratio(-3, 1, 1))
+(" 12 "):(Ratio(12, 1, 1))
+("3.0"):(Ratio(0, 1, 0))
+("3/1"):(Ratio(0, 1, 0))
+("3%"):(Ratio(0, 1, 0))
+("1 2"):(Ratio(0, 1, 0))
+(""):(Ratio(0, 1, 0))
+("-"):(Ratio(0, 1, 0))
+
+check_read(string check_kind, string check_text) {
+  Ratio check_found = check_number(check_text);
+  if (check_kind == "integer") {
+    check_found = check_whole(check_text);
+  }
+} return Ratio check_found;
+("integer", "6"):(Ratio(6, 1, 1))
+("integer", "3/8"):(Ratio(0, 1, 0))
+("fraction", "6/16"):(Ratio(3, 8, 1))
+("percent", "37.5%"):(Ratio(3, 8, 1))
+("decimal", "0.25"):(Ratio(1, 4, 1))

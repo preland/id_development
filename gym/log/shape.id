@@ -1,0 +1,51 @@
+// Telling a good line from a bad one. log_fields_ok decides from the fields
+// alone; log_parse_line cuts a line at its tabs and answers the fields of a good
+// line, or an empty list for a bad one. Nothing here trusts a line: a bad one
+// is the caller's to count and skip, and never a reason to stop.
+
+log_fields_ok(string[] log_fields) {
+  int log_wide = len(log_fields);
+  int log_shaped = 0;
+  if (log_wide >= (import log_session_width) && log_digits_ok(log_fields[0], (import log_time_digits)) == 1) {
+    log_shaped = lst_str_index((import log_kinds), log_fields[1]) >= 0;
+  }
+} chain (string[] log_fields) {
+  int log_ok = 0;
+  if (log_shaped == 1 && log_fields[1] == "attempt" && log_wide == (import log_attempt_width)) {
+    log_ok = log_attempt_ok(log_fields) + log_effort_ok(log_fields) == 2;
+  }
+  if (log_shaped == 1 && log_fields[1] == "hint_shown" && log_wide == (import log_hint_width)) {
+    log_ok = log_digits_ok(log_fields[(import log_slot_rung)], 1) == 1 && to_int(log_fields[(import log_slot_rung)]) >= 1 && to_int(log_fields[(import log_slot_rung)]) <= (import log_hint_top) && log_fields[(import log_slot_item)] != "";
+  }
+} chain (string[] log_fields) {
+  if (log_shaped == 1 && str_starts(log_fields[1], "session_") && log_wide == (import log_session_width)) {
+    log_ok = 1;
+  }
+} return int log_ok;
+(["1", "session_start"]):(1)
+(["1", "session_end", "extra"]):(0)
+(["1", "hint_shown", "i", "3"]):(1)
+(["1", "hint_shown", "i", "0"]):(0)
+(["1", "hint_shown", "i", "5"]):(0)
+(["1", "hint_shown", "", "2"]):(0)
+(["1", "hint_shown", "i"]):(0)
+(["1", "attempt", "i", "a", "90", "correct", "0", "5", "no", ""]):(1)
+(["1", "attempt", "i", "a", "90", "correct", "0", "5", "no"]):(0)
+(["x", "session_start"]):(0)
+(["1", "dance"]):(0)
+(["1"]):(0)
+([]):(0)
+
+log_parse_line(string log_line) {
+  string[] log_cut = str_split(log_line, "\t");
+  string[] log_found = [];
+  if (log_fields_ok(log_cut) == 1) {
+    log_found = log_cut;
+  }
+} return string[] log_found;
+("1\tsession_start"):(["1", "session_start"])
+("12\tattempt\tdice\t3/8\t90\tcorrect\t0\t7\tyes\tpartial"):(["12", "attempt", "dice", "3/8", "90", "correct", "0", "7", "yes", "partial"])
+("12\tattempt\tdice\t3/8\t90\tcorrect\t0\t7\tyes"):([])
+("garbage"):([])
+(""):([])
+("1\tsession_start\t"):([])

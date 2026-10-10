@@ -1,0 +1,43 @@
+// Deciding whether two numbers are the same, or close enough. Equal is exact on
+// lowest terms and never overflows. Close needs the scaled comparison of
+// units.id, which exists for values up to check_scale_reach with a bottom of at
+// most check_scale_bottom; a value beyond that is compared exactly, because at
+// that size a tolerance of a billionth is meaningless.
+
+check_same(Ratio check_lead, Ratio check_follow) {
+  Ratio check_one = check_reduce(check_lead);
+  Ratio check_two = check_reduce(check_follow);
+  int check_equal = (check_one.valid == 1 && check_two.valid == 1 && check_one.top == check_two.top && check_one.bottom == check_two.bottom);
+} return int check_equal;
+(Ratio(3, 8, 1), Ratio(6, 16, 1)):(1)
+(Ratio(3, 8, 1), Ratio(3, 7, 1)):(0)
+(Ratio(-3, 8, 1), Ratio(3, 8, 1)):(0)
+(Ratio(0, 1, 0), Ratio(0, 1, 0)):(0)
+(Ratio(9223372036854775807, 9223372036854775806, 1), Ratio(9223372036854775807, 9223372036854775806, 1)):(1)
+
+check_fits(Ratio check_ratio) {
+  int check_inside = 0;
+  if (check_ratio.valid == 1 && check_ratio.bottom <= (import check_scale_bottom)) {
+    check_inside = check_absolute(check_ratio.top) / check_ratio.bottom <= (import check_scale_reach);
+  }
+} return int check_inside;
+(Ratio(5, 1, 1)):(1)
+(Ratio(-9000000000, 1, 1)):(1)
+(Ratio(9000000001, 1, 1)):(0)
+(Ratio(1, 900000000000000000, 1)):(1)
+(Ratio(1, 900000000000000001, 1)):(0)
+(Ratio(5, 1, 0)):(0)
+
+check_within(Ratio check_target, Ratio check_guess, Ratio check_allowance) {
+  int check_close = check_same(check_target, check_guess);
+  int check_countable = check_fits(check_target) + check_fits(check_guess) + check_fits(check_allowance);
+  if (check_countable == 3) {
+    check_close = check_scaled_close(check_target, check_guess, check_allowance);
+  }
+} return int check_close;
+(Ratio(1, 2, 1), Ratio(51, 100, 1), Ratio(1, 100, 1)):(1)
+(Ratio(1, 2, 1), Ratio(52, 100, 1), Ratio(1, 100, 1)):(0)
+(Ratio(1, 2, 1), Ratio(1, 2, 1), Ratio(0, 1, 1)):(1)
+(Ratio(100000000000, 1, 1), Ratio(100000000001, 1, 1), Ratio(5, 1, 1)):(0)
+(Ratio(100000000000, 1, 1), Ratio(100000000000, 1, 1), Ratio(5, 1, 1)):(1)
+(Ratio(1, 2, 1), Ratio(0, 1, 0), Ratio(1, 100, 1)):(0)

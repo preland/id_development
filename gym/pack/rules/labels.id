@@ -1,0 +1,32 @@
+// The words an item uses for its kind, its verification and its transfer flag
+// must be the ones the format lists, and a choice item must have a choice
+// answer. A blank value is left to pack_missing_keys, as in item.id.
+
+pack_item_labels(Pack pack_book, int pack_block) {
+  string[] pack_found_problems = [];
+  string pack_who = "item '" + pack_id_of(pack_book, pack_block) + "'";
+  string pack_kind_value = pack_field(pack_book, pack_block, "kind");
+} chain (Pack pack_book, int pack_block) {
+  string pack_verified_value = pack_field(pack_book, pack_block, "verified");
+  string pack_transfer_value = pack_field(pack_book, pack_block, "transfer");
+  string pack_form_value = pack_field(pack_book, pack_block, "answer_kind");
+} chain (Pack pack_book, int pack_block) {
+  if (pack_kind_value != "" && lst_str_index((import pack_item_kinds), pack_kind_value) < 0) {
+    push(pack_found_problems, pack_say(pack_book, pack_block, "kind", pack_who + " has kind '" + pack_kind_value + "', which FORMAT.md does not list"));
+  }
+  if (pack_verified_value != "" && lst_str_index((import pack_verifications), pack_verified_value) < 0) {
+    push(pack_found_problems, pack_say(pack_book, pack_block, "verified", pack_who + " has verified '" + pack_verified_value + "'; use tool, source or unverified"));
+  }
+  if (pack_transfer_value != "" && lst_str_index((import pack_transfer_flags), pack_transfer_value) < 0) {
+    push(pack_found_problems, pack_say(pack_book, pack_block, "transfer", pack_who + " has transfer '" + pack_transfer_value + "'; use yes or no"));
+  }
+} chain (Pack pack_book, int pack_block) {
+  if (pack_kind_value == "choice" && pack_form_value != "choice") {
+    push(pack_found_problems, pack_say(pack_book, pack_block, "answer_kind", pack_who + " is a choice item, so its answer_kind must be choice"));
+  }
+} return string[] pack_found_problems;
+given pack_fixture_parse("item: i\nkind: solve\nverified: tool\ntransfer: no\n") ((import pack_fixture_book), 0):([])
+given pack_fixture_parse("item: i\nkind: puzzle\nverified: maybe\ntransfer: sure\n") ((import pack_fixture_book), 0):(["t.txt:2: item 'i' has kind 'puzzle', which FORMAT.md does not list", "t.txt:3: item 'i' has verified 'maybe'; use tool, source or unverified", "t.txt:4: item 'i' has transfer 'sure'; use yes or no"])
+given pack_fixture_parse("item: i\nkind: choice\nanswer_kind: integer\n") ((import pack_fixture_book), 0):(["t.txt:3: item 'i' is a choice item, so its answer_kind must be choice"])
+given pack_fixture_parse("item: i\nkind: choice\nanswer_kind: choice\n") ((import pack_fixture_book), 0):([])
+given pack_fixture_parse("item: i\n") ((import pack_fixture_book), 0):([])

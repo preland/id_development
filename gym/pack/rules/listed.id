@@ -1,0 +1,39 @@
+// Rules about a field that lists concept ids, "requires" of a concept and
+// "concepts" of an item: comma-separated, spaces allowed, every id naming a
+// concept of the pack, and no concept requiring itself. The key comes first so
+// bind(pack_listed_problems, "requires") is a rule over (pack, block) like the
+// others. A blank field lists nothing and is not reported here.
+
+pack_list_problem(Pack pack_book, int pack_block, string pack_key, string pack_listed_id) {
+  string pack_found_text = "";
+  if (pack_find(pack_book, "concept", pack_listed_id) < 0) {
+    pack_found_text = pack_say(pack_book, pack_block, pack_key, "unknown concept '" + pack_listed_id + "' in '" + pack_key + "'");
+  }
+  if (pack_listed_id == pack_id_of(pack_book, pack_block) && pack_kind_of(pack_book, pack_block) == "concept") {
+    pack_found_text = pack_say(pack_book, pack_block, pack_key, "concept '" + pack_listed_id + "' lists itself in '" + pack_key + "'");
+  }
+} return string pack_found_text;
+given pack_fixture_parse("concept: a\nconcept: b\n") ((import pack_fixture_book), 0, "requires", "b"):("")
+given pack_fixture_parse("concept: a\nrequires: c\n") ((import pack_fixture_book), 0, "requires", "c"):("t.txt:2: unknown concept 'c' in 'requires'")
+given pack_fixture_parse("concept: a\nrequires: a\n") ((import pack_fixture_book), 0, "requires", "a"):("t.txt:2: concept 'a' lists itself in 'requires'")
+given pack_fixture_parse("concept: a\nitem: a\nconcepts: a\n") ((import pack_fixture_book), 1, "concepts", "a"):("")
+
+pack_listed_problems(string pack_key, Pack pack_book, int pack_block) {
+  string[] pack_found_problems = [];
+  string pack_list_text = pack_field(pack_book, pack_block, pack_key);
+  string[] pack_pieces = str_split(pack_list_text, ",");
+} chain (string pack_key, Pack pack_book, int pack_block) {
+  int pack_at = 0;
+  while (pack_list_text != "" && pack_at < len(pack_pieces)) {
+    string pack_one = pack_list_problem(pack_book, pack_block, pack_key, str_trim(pack_pieces[pack_at]));
+    if (pack_one != "") {
+      push(pack_found_problems, pack_one);
+    }
+    pack_at = pack_at + 1;
+  }
+} return string[] pack_found_problems;
+given pack_fixture_parse("concept: a\nrequires: b, c\nconcept: b\n") ("requires", (import pack_fixture_book), 0):(["t.txt:2: unknown concept 'c' in 'requires'"])
+given pack_fixture_parse("concept: a\nrequires: a\n") ("requires", (import pack_fixture_book), 0):(["t.txt:2: concept 'a' lists itself in 'requires'"])
+given pack_fixture_parse("concept: a\nitem: i\nconcepts: a, zz\n") ("concepts", (import pack_fixture_book), 1):(["t.txt:3: unknown concept 'zz' in 'concepts'"])
+given pack_fixture_parse("concept: a\nitem: i\nconcepts: a,\n") ("concepts", (import pack_fixture_book), 1):(["t.txt:3: unknown concept '' in 'concepts'"])
+given pack_fixture_parse("concept: a\nitem: i\n") ("concepts", (import pack_fixture_book), 1):([])

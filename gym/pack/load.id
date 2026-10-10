@@ -1,0 +1,47 @@
+// A pack on disk is a directory of .txt files, read in path order so a given
+// directory always loads the same way, subdirectories included. Other files
+// (notes.md, images) are ignored. A missing directory loads as an empty pack with
+// no files; `pack check` is what says so. The path of every file is the
+// directory as given plus the file's path below it, which is what a problem
+// report prints, so an editor can jump to it.
+
+pack_listing(string pack_directory) {
+  string[] pack_everything = path_files(pack_directory);
+  string[] pack_texts = [];
+  int pack_at = 0;
+} chain (string pack_directory) {
+  while (pack_at < len(pack_everything)) {
+    if (path_ext(pack_everything[pack_at]) == ".txt") {
+      push(pack_texts, pack_everything[pack_at]);
+    }
+    pack_at = pack_at + 1;
+  }
+} return string[] pack_texts;
+given pack_fixture_directory("x", "y") ("."):(["a.txt", "sub/b.txt"])
+given pack_fixture_directory("x", "y") ("sub"):(["b.txt"])
+("/nonexistent/gym/pack/dir"):([])
+
+pack_load_file(Pack pack_book, string pack_name) {
+  string pack_path = pack_book.notes.root + "/" + pack_name;
+  string pack_body = fs_read_text(pack_path);
+  pack_read_text(pack_book, pack_path, pack_body);
+} chain (Pack pack_book, string pack_name) {
+  Pack_notes pack_notes_now = pack_book.notes;
+  pack_notes_now.files = pack_notes_now.files + 1;
+} return void;
+given pack_fixture_directory("concept: a", "concept: b") (Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes(".", [], 0)), "a.txt"):(Pack(Pack_rows(["concept"], ["a"], [1]), Pack_blocks(["./a.txt"], [0], [1]), Pack_notes(".", [], 1)))
+given pack_fixture_directory("concept: a", "concept: b") (Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes(".", [], 0)), "sub/b.txt"):(Pack(Pack_rows(["concept"], ["b"], [1]), Pack_blocks(["./sub/b.txt"], [0], [1]), Pack_notes(".", [], 1)))
+
+pack_load(string pack_directory) {
+  Pack pack_book = pack_new(pack_directory);
+  string[] pack_named_files = pack_listing(pack_directory);
+  int pack_at = 0;
+} chain (string pack_directory) {
+  while (pack_at < len(pack_named_files)) {
+    pack_load_file(pack_book, pack_named_files[pack_at]);
+    pack_at = pack_at + 1;
+  }
+} return Pack pack_book;
+given pack_fixture_directory("concept: a\nname: A", "concept: b\nbad line") ("."):(Pack(Pack_rows(["concept", "name", "concept"], ["a", "A", "b"], [1, 2, 1]), Pack_blocks(["./a.txt", "./sub/b.txt"], [0, 2], [2, 1]), Pack_notes(".", ["./sub/b.txt:2: expected 'key: value' but found 'bad line'"], 2)))
+given pack_fixture_directory("", "") ("."):(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes(".", [], 2)))
+("/nonexistent/gym/pack/dir"):(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("/nonexistent/gym/pack/dir", [], 0)))

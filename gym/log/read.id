@@ -1,0 +1,52 @@
+// Replaying a log: every line is read, the good ones become events in three
+// tables that share an index (the time, the kind, and the validated fields still
+// in their escaped form) and the bad ones are counted in skipped and left out.
+// A blank line is neither. The file is only ever read. A log that does not exist
+// replays as an empty one, since the first session of a learner has no log yet.
+
+log_store(Log_events log_events_in, string[] log_good_fields) {
+  push(log_events_in.times, check_word_value(log_good_fields[0]));
+  push(log_events_in.kinds, log_good_fields[1]);
+  push(log_events_in.fields, log_good_fields);
+} return void;
+(Log_events([], [], []), ["12", "session_start"]):(Log_events([12], ["session_start"], [["12", "session_start"]]))
+(Log_events([12], ["session_start"], [["12", "session_start"]]), ["1760000000000", "session_end"]):(Log_events([12, 1760000000000], ["session_start", "session_end"], [["12", "session_start"], ["1760000000000", "session_end"]]))
+
+log_take(Log_replay log_state, string log_line) {
+  if (log_line == "") {
+    return;
+  }
+  string[] log_cut = log_parse_line(log_line);
+  log_state.lines = log_state.lines + 1;
+} chain (Log_replay log_state, string log_line) {
+  if (len(log_cut) == 0) {
+    log_state.skipped = log_state.skipped + 1;
+    return;
+  }
+  log_store(log_state.events, log_cut);
+} return void;
+(Log_replay(Log_events([], [], []), 0, 0), "5\tsession_start"):(Log_replay(Log_events([5], ["session_start"], [["5", "session_start"]]), 0, 1))
+(Log_replay(Log_events([], [], []), 0, 0), "junk"):(Log_replay(Log_events([], [], []), 1, 1))
+(Log_replay(Log_events([], [], []), 2, 3), ""):(Log_replay(Log_events([], [], []), 2, 3))
+
+log_replay_text(string log_text) {
+  word[] log_times = [];
+  string[] log_event_kinds = [];
+  string[][] log_event_fields = [];
+} chain (string log_text) {
+  Log_events log_events_made = Log_events(log_times, log_event_kinds, log_event_fields);
+  Log_replay log_replay_made = Log_replay(log_events_made, 0, 0);
+  string[] log_pieces = str_split(log_text, "\n");
+} chain (string log_text) {
+  int log_at = 0;
+  while (log_at < len(log_pieces)) {
+    log_take(log_replay_made, log_pieces[log_at]);
+    log_at = log_at + 1;
+  }
+} return Log_replay log_replay_made;
+(""):(Log_replay(Log_events([], [], []), 0, 0))
+("1\tsession_start\n2\thint_shown\tdice\t1\nnot a line\n\n3\tsession_end\n"):(Log_replay(Log_events([1, 2, 3], ["session_start", "hint_shown", "session_end"], [["1", "session_start"], ["2", "hint_shown", "dice", "1"], ["3", "session_end"]]), 1, 4))
+("1\tsession_start\n99\tattempt\ti\tx\t55\tcorrect\t0\t1\tno\t\n"):(Log_replay(Log_events([1], ["session_start"], [["1", "session_start"]]), 1, 2))
+("1\tsession_start"):(Log_replay(Log_events([1], ["session_start"], [["1", "session_start"]]), 0, 1))
+("1\tsession_start\n2\tsession_end\n3\tsession_start\n4\tsession_end\n5\tsession_start\n6\tsession_end\n7\tsession_start\n8\tsession_end\n"):(Log_replay(Log_events([1, 2, 3, 4, 5, 6, 7, 8], ["session_start", "session_end", "session_start", "session_end", "session_start", "session_end", "session_start", "session_end"], [["1", "session_start"], ["2", "session_end"], ["3", "session_start"], ["4", "session_end"], ["5", "session_start"], ["6", "session_end"], ["7", "session_start"], ["8", "session_end"]]), 0, 8))[time:O(n), mem:O(n)]
+("1\tsession_start\n2\tsession_end\n3\tsession_start\n4\tsession_end\n"):(Log_replay(Log_events([1, 2, 3, 4], ["session_start", "session_end", "session_start", "session_end"], [["1", "session_start"], ["2", "session_end"], ["3", "session_start"], ["4", "session_end"]]), 0, 4))[time:O(n), mem:O(n)]

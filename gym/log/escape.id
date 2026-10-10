@@ -1,0 +1,43 @@
+// A log line is tab-separated, so an answer the learner typed may not carry a
+// tab, a line break or the escape character itself. log_escape writes those four
+// as \\, \t, \n and \r; log_restore reads them back. The reader splits the text
+// at every backslash: a piece that is empty was a pair of backslashes (one
+// literal backslash, and the piece after the pair is plain text), any other
+// piece starts with the code that follows its backslash. A code that is not
+// t, n or r is kept as written, so a hand-edited line never loses text.
+
+log_escape(string log_raw) {
+  string log_slashed = str_replace(log_raw, "\\", "\\\\");
+  string log_tabbed = str_replace(log_slashed, "\t", "\\t");
+  string log_lined = str_replace(log_tabbed, "\n", "\\n");
+} chain (string log_raw) {
+  string log_escaped = str_replace(log_lined, "\r", "\\r");
+} return string log_escaped;
+("a\tb"):("a\\tb")
+("a\nb\r"):("a\\nb\\r")
+("c:\\dir"):("c:\\\\dir")
+("\\n"):("\\\\n")
+
+log_decode(string log_piece) {
+  string log_decoded = "\\" + log_piece;
+  if (log_piece == "") {
+    return log_decoded;
+  }
+  string log_rest = str_sub(log_piece, 1, len(log_piece) - 1);
+} chain (string log_piece) {
+  if (str_starts(log_piece, "n")) {
+    log_decoded = "\n" + log_rest;
+  }
+  if (str_starts(log_piece, "t")) {
+    log_decoded = "\t" + log_rest;
+  }
+  if (str_starts(log_piece, "r")) {
+    log_decoded = "\r" + log_rest;
+  }
+} return string log_decoded;
+("n"):("\n")
+("tab"):("\tab")
+("rest"):("\rest")
+("nx"):("\nx")
+(""):("\\")
+("q"):("\\q")

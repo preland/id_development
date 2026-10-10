@@ -1,0 +1,42 @@
+// Fractions in lowest terms and the one operation the parser needs, division.
+// The bottom of a valid Ratio is always at least 1, so check_reduce never meets
+// a zero divisor; an invalid Ratio is passed through as the same (0, 1, 0).
+
+check_reduce(Ratio check_input) {
+  word check_common = check_greatest_divisor(check_absolute(check_input.top), check_input.bottom);
+  Ratio check_lowest = Ratio(check_input.top / check_common, check_input.bottom / check_common, check_input.valid);
+} return Ratio check_lowest;
+(Ratio(6, 16, 1)):(Ratio(3, 8, 1))
+(Ratio(-6, 16, 1)):(Ratio(-3, 8, 1))
+(Ratio(0, 5, 1)):(Ratio(0, 1, 1))
+
+check_sign_of(word check_amount) {
+  int check_sign = 1;
+  if (check_amount < 0) {
+    check_sign = 0 - 1;
+  }
+} return int check_sign;
+(-9):(-1)
+(9):(1)
+(0):(1)
+
+check_divide(Ratio check_upper, Ratio check_lower) {
+  word check_above = check_times(check_absolute(check_upper.top), check_lower.bottom);
+  word check_below = check_times(check_upper.bottom, check_absolute(check_lower.top));
+  Ratio check_quotient = Ratio(0, 1, 0);
+} chain (Ratio check_upper, Ratio check_lower) {
+  int check_sound = check_upper.valid + check_lower.valid;
+  int check_sign = check_sign_of(check_upper.top) * check_sign_of(check_lower.top);
+  if (check_sound == 2 && check_above >= 0 && check_below > 0) {
+    check_quotient.top = check_above * check_sign;
+    check_quotient.bottom = check_below;
+    check_quotient.valid = 1;
+  }
+} return Ratio check_quotient;
+(Ratio(3, 1, 1), Ratio(8, 1, 1)):(Ratio(3, 8, 1))
+(Ratio(-3, 1, 1), Ratio(8, 1, 1)):(Ratio(-3, 8, 1))
+(Ratio(3, 1, 1), Ratio(-8, 1, 1)):(Ratio(-3, 8, 1))
+(Ratio(-3, 1, 1), Ratio(-8, 1, 1)):(Ratio(3, 8, 1))
+(Ratio(3, 1, 1), Ratio(0, 1, 1)):(Ratio(0, 1, 0))
+(Ratio(3, 1, 0), Ratio(8, 1, 1)):(Ratio(0, 1, 0))
+(Ratio(9223372036854775807, 1, 1), Ratio(9223372036854775807, 2, 1)):(Ratio(0, 1, 0))

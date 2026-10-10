@@ -1,0 +1,41 @@
+// Exact arithmetic on whole numbers held in a word. Nothing here may wrap: a
+// product that would pass check_word_maximum answers -1, because a wrapped
+// product would be a different, plausible, wrong fraction.
+
+check_greatest_divisor(word check_first, word check_second) {
+  word check_big = check_first;
+  word check_small = check_second;
+  while (check_small != 0) {
+    word check_remainder = check_big % check_small;
+    check_big = check_small;
+    check_small = check_remainder;
+  }
+} return word check_big;
+(12, 18):(6)
+(0, 5):(5)
+(7, 0):(7)
+(1, 1):(1)
+(1836311903, 1134903170):(1)[time:O(log n), mem:O(1)]
+(832040, 514229):(1)[time:O(log n), mem:O(1)]
+
+check_absolute(word check_signed) {
+  word check_flat = check_signed;
+  if (check_signed < 0) {
+    check_flat = 0 - check_signed;
+  }
+} return word check_flat;
+(-5):(5)
+(-9223372036854775807):(9223372036854775807)
+(-1):(1)
+
+check_times(word check_factor, word check_other) {
+  word check_product = 0 - 1;
+  if (check_factor == 0 || check_other <= (import check_word_maximum) / check_factor) {
+    check_product = check_factor * check_other;
+  }
+} return word check_product;
+(6, 7):(42)
+(0, 9223372036854775807):(0)
+(9223372036854775807, 1):(9223372036854775807)
+(4611686018427387904, 2):(-1)
+(3037000500, 3037000500):(-1)

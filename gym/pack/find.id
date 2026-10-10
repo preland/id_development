@@ -1,0 +1,46 @@
+// Finding blocks by kind and id. pack_blocks_of lists the block numbers of one
+// kind in file order, pack_ids their ids, and pack_find the block with one id
+// (the first, if a broken pack repeats it) or -1.
+
+pack_blocks_of(Pack pack_book, string pack_kind) {
+  int[] pack_found_blocks = [];
+  int pack_at = 0;
+  while (pack_at < len(pack_book.blocks.files)) {
+    if (pack_kind_of(pack_book, pack_at) == pack_kind) {
+      push(pack_found_blocks, pack_at);
+    }
+    pack_at = pack_at + 1;
+  }
+} return int[] pack_found_blocks;
+given pack_fixture_parse("concept: a\nitem: i\nconcept: b\nitem: j\nitem: k") ((import pack_fixture_book), "item"):([1, 3, 4])
+given pack_fixture_parse("concept: a\nitem: i\nconcept: b\nitem: j\nitem: k") ((import pack_fixture_book), "concept"):([0, 2])
+given pack_fixture_parse("") ((import pack_fixture_book), "item"):([])
+
+pack_ids(Pack pack_book, string pack_kind) {
+  string[] pack_named = [];
+  int pack_at = 0;
+  while (pack_at < len(pack_book.blocks.files)) {
+    if (pack_kind_of(pack_book, pack_at) == pack_kind) {
+      push(pack_named, pack_id_of(pack_book, pack_at));
+    }
+    pack_at = pack_at + 1;
+  }
+} return string[] pack_named;
+given pack_fixture_parse("concept: a\nitem: i\nconcept: b\nitem: j\nitem: k") ((import pack_fixture_book), "item"):(["i", "j", "k"])
+given pack_fixture_parse("concept: a\nitem: i\nconcept: b\nitem: j\nitem: k") ((import pack_fixture_book), "concept"):(["a", "b"])
+given pack_fixture_parse("") ((import pack_fixture_book), "concept"):([])
+
+pack_find(Pack pack_book, string pack_kind, string pack_id_wanted) {
+  int pack_at = 0;
+  int pack_missing = 0 - 1;
+  while (pack_at < len(pack_book.blocks.files)) {
+    if (pack_kind_of(pack_book, pack_at) == pack_kind && pack_id_of(pack_book, pack_at) == pack_id_wanted) {
+      return pack_at;
+    }
+    pack_at = pack_at + 1;
+  }
+} return int pack_missing;
+given pack_fixture_parse("concept: a\nitem: a\nconcept: b") ((import pack_fixture_book), "item", "a"):(1)
+given pack_fixture_parse("concept: a\nitem: a\nconcept: b") ((import pack_fixture_book), "concept", "b"):(2)
+given pack_fixture_parse("concept: a\nitem: a\nconcept: b") ((import pack_fixture_book), "item", "b"):(-1)
+given pack_fixture_parse("") ((import pack_fixture_book), "concept", "a"):(-1)

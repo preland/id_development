@@ -1,0 +1,34 @@
+// Reading an escaped field back. See escape.id for the rule: the field is split
+// at every backslash and each piece is decoded by what precedes it.
+
+log_part_text(string log_part, int log_plain) {
+  string log_text_out = log_part;
+  if (log_plain == 0) {
+    log_text_out = log_decode(log_part);
+  }
+} return string log_text_out;
+("n", 0):("\n")
+("n", 1):("n")
+("", 0):("\\")
+("", 1):("")
+
+log_restore(string log_field) {
+  string[] log_parts = str_split(log_field, "\\");
+  string[] log_pieces = [log_parts[0]];
+  int log_plain = 0;
+} chain (string log_field) {
+  int log_at = 1;
+  while (log_at < len(log_parts)) {
+    push(log_pieces, log_part_text(log_parts[log_at], log_plain));
+    log_plain = log_parts[log_at] == "" && log_plain == 0;
+    log_at = log_at + 1;
+  }
+  string log_result = str_join(log_pieces, "");
+} return string log_result;
+("a\\tb"):("a\tb")
+("a\\nb\\r"):("a\nb\r")
+("c:\\\\dir"):("c:\\dir")
+("\\\\n"):("\\n")
+("\\\\\\n"):("\\\n")
+("a\\tb"):("a\tb")[time:O(n), mem:O(n)]
+("a\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb\\tb"):("a\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb\tb")[time:O(n), mem:O(n)]

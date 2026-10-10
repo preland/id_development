@@ -1,0 +1,35 @@
+// A Log_summary is a small table: a name (an item or a concept), how many
+// attempts it has had, and the time of the latest one. log_tally adds to a row,
+// making the row when the name is new, and keeps the later of two times.
+
+log_tally(Log_summary log_book, string log_name, word log_when, int log_amount) {
+  int log_row = lst_str_index(log_book.names, log_name);
+  if (log_row < 0) {
+    push(log_book.names, log_name);
+    push(log_book.counts, 0);
+    push(log_book.lasts, 0 - 1);
+  }
+  int log_slot_now = lst_str_index(log_book.names, log_name);
+} chain (Log_summary log_book, string log_name, word log_when, int log_amount) {
+  int[] log_counts_now = log_book.counts;
+  word[] log_lasts_now = log_book.lasts;
+  log_counts_now[log_slot_now] = log_counts_now[log_slot_now] + log_amount;
+} chain (Log_summary log_book, string log_name, word log_when, int log_amount) {
+  if (log_when > log_lasts_now[log_slot_now]) {
+    log_lasts_now[log_slot_now] = log_when;
+  }
+} return void;
+(Log_summary([], [], []), "dice", 100, 1):(Log_summary(["dice"], [1], [100]))
+(Log_summary(["dice"], [1], [100]), "dice", 50, 2):(Log_summary(["dice"], [3], [100]))
+(Log_summary(["dice"], [1], [100]), "coin", 70, 1):(Log_summary(["dice", "coin"], [1, 1], [100, 70]))
+(Log_summary(["dice"], [1], [100]), "dice", 200, 1):(Log_summary(["dice"], [2], [200]))
+
+log_fold(Log_summary log_items_in, Log_summary log_book, string log_item_id, string log_concept_id) {
+  int log_row = lst_str_index(log_items_in.names, log_item_id);
+  if (log_row >= 0) {
+    log_tally(log_book, log_concept_id, log_items_in.lasts[log_row], log_items_in.counts[log_row]);
+  }
+} return void;
+(Log_summary(["i", "j"], [2, 5], [10, 20]), Log_summary([], [], []), "i", "c"):(Log_summary(["i", "j"], [2, 5], [10, 20]), Log_summary(["c"], [2], [10]))
+(Log_summary(["i", "j"], [2, 5], [10, 20]), Log_summary(["c"], [2], [10]), "j", "c"):(Log_summary(["i", "j"], [2, 5], [10, 20]), Log_summary(["c"], [7], [20]))
+(Log_summary(["i", "j"], [2, 5], [10, 20]), Log_summary([], [], []), "zz", "c"):(Log_summary(["i", "j"], [2, 5], [10, 20]), Log_summary([], [], []))

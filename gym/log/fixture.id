@@ -1,0 +1,11 @@
+// The setup the cases of every log reader use: the replay of the text a case
+// gives, left in log_fixture_replay, with its events in log_fixture_events.
+
+log_fixture_parse(string log_sample) {
+  Log_replay log_made = log_replay_text(log_sample);
+  export Log_replay log_fixture_replay = log_made;
+  export Log_events log_fixture_events = log_made.events;
+} return void export log_fixture_replay;
+("1\tsession_start\n"):() then (import log_fixture_replay).lines:(1)
+("junk\n1\tsession_start\n"):() then (import log_fixture_replay).skipped:(1)
+("junk\n1\tsession_start\n"):() then (import log_fixture_replay).events.kinds[0]:("session_start")

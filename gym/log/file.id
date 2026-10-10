@@ -1,0 +1,8 @@
+// Replaying a log that is a file on disk.
+
+log_replay(string log_path) {
+  string log_text_read = fs_read_text(log_path);
+  Log_replay log_replay_found = log_replay_text(log_text_read);
+} return Log_replay log_replay_found;
+given fs_temp_text("1\tsession_start\nbad\n") ((import fs_temp_path)):(Log_replay(Log_events([1], ["session_start"], [["1", "session_start"]]), 1, 2))
+("/nonexistent/gym/log/dir/log.txt"):(Log_replay(Log_events([], [], []), 0, 0))
