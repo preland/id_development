@@ -18,6 +18,8 @@ default the real one), so a whole session can be scripted and replayed exactly. 
 | `gym pack check DIR` | validates a pack |
 | `gym grade --item ID --text A [--url URL]` | grades one answer through the model (the old gymprobe) |
 | `gym` or `gym window` | opens the window (ui/README.md); `--script S.txt [--dump] [--render-after O.ppm]` replays a script on the same engine without one |
+| `gym grade eval SET RESULTS [FROM [COUNT]] --pack DIR [--url URL]` | grades attempts FROM.. of an evaluation set (ai/eval/set.txt) through the model and appends one row each to RESULTS; run it in slices of four |
+| `gym grade report RESULTS` | verdict and error-type agreement and the failure counts of a results file |
 
 Layers: `session/` is the engine (pure functions of a replayed log, plus the operations that append to it),
 `cli/` turns options into engine calls and engine results into text, `golden/` replays a scripted session as

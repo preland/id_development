@@ -35,12 +35,19 @@ command_dispatch(string[] command_values, string[] command_rest, word command_cl
   if (command_first == "pack" && command_second == "check") {
     command_out = command_pack_check(command_values, command_rest);
   }
-  if (command_first == "grade") {
+  if (command_first == "grade" && command_second != "eval" && command_second != "report") {
     command_out = command_grade(command_values, command_clock);
   }
+} chain (string[] command_values, string[] command_rest, word command_clock) {
+  if (command_first == "grade" && command_second == "eval") {
+    command_out = command_grade_eval(command_values, command_rest, command_clock);
+  }
+  if (command_first == "grade" && command_second == "report") {
+    command_out = command_grade_report(command_rest);
+  }
 } return string[] command_out;
-(["", "", "", "", "", "", "", "", ""], ["bogus"], 5):(["2", "error: say what to do, one of:\ngym session start --pack DIR --log FILE [--now MS] [--seed N]\ngym answer --pack DIR --log FILE --text ANSWER --confidence 50|70|90|99 [--seconds N] [--now MS]\ngym hint --pack DIR --log FILE [--url URL] [--now MS]\ngym tapout --pack DIR --log FILE [--seconds N] [--now MS]\ngym next --pack DIR --log FILE [--now MS]\ngym score --pack DIR --log FILE [--now MS]\ngym why ITEM --pack DIR --log FILE [--now MS] [--seed N]\ngym pack check DIR\ngym grade --pack DIR --item ID --text ANSWER [--url URL]"])
-(["", "", "", "", "", "", "", "", ""], ["session"], 5):(["2", "error: say what to do, one of:\ngym session start --pack DIR --log FILE [--now MS] [--seed N]\ngym answer --pack DIR --log FILE --text ANSWER --confidence 50|70|90|99 [--seconds N] [--now MS]\ngym hint --pack DIR --log FILE [--url URL] [--now MS]\ngym tapout --pack DIR --log FILE [--seconds N] [--now MS]\ngym next --pack DIR --log FILE [--now MS]\ngym score --pack DIR --log FILE [--now MS]\ngym why ITEM --pack DIR --log FILE [--now MS] [--seed N]\ngym pack check DIR\ngym grade --pack DIR --item ID --text ANSWER [--url URL]"])
+(["", "", "", "", "", "", "", "", ""], ["bogus"], 5):(["2", "error: say what to do, one of:\ngym session start --pack DIR --log FILE [--now MS] [--seed N]\ngym answer --pack DIR --log FILE --text ANSWER --confidence 50|70|90|99 [--seconds N] [--now MS]\ngym hint --pack DIR --log FILE [--url URL] [--now MS]\ngym tapout --pack DIR --log FILE [--seconds N] [--now MS]\ngym next --pack DIR --log FILE [--now MS]\ngym score --pack DIR --log FILE [--now MS]\ngym why ITEM --pack DIR --log FILE [--now MS] [--seed N]\ngym pack check DIR\ngym grade --pack DIR --item ID --text ANSWER [--url URL]\ngym grade eval SET RESULTS [FROM [COUNT]] --pack DIR [--url URL]\ngym grade report RESULTS\ngym [window] --pack DIR --log FILE [--now MS] [--seed N] [--url URL] [--script S.txt [--dump] [--render-after OUT.ppm]]"])
+(["", "", "", "", "", "", "", "", ""], ["session"], 5):(["2", "error: say what to do, one of:\ngym session start --pack DIR --log FILE [--now MS] [--seed N]\ngym answer --pack DIR --log FILE --text ANSWER --confidence 50|70|90|99 [--seconds N] [--now MS]\ngym hint --pack DIR --log FILE [--url URL] [--now MS]\ngym tapout --pack DIR --log FILE [--seconds N] [--now MS]\ngym next --pack DIR --log FILE [--now MS]\ngym score --pack DIR --log FILE [--now MS]\ngym why ITEM --pack DIR --log FILE [--now MS] [--seed N]\ngym pack check DIR\ngym grade --pack DIR --item ID --text ANSWER [--url URL]\ngym grade eval SET RESULTS [FROM [COUNT]] --pack DIR [--url URL]\ngym grade report RESULTS\ngym [window] --pack DIR --log FILE [--now MS] [--seed N] [--url URL] [--script S.txt [--dump] [--render-after OUT.ppm]]"])
 (["", "", "", "", "", "", "", "", ""], ["pack", "check"], 5):(["2", "error: say which pack: gym pack check DIR"])
 (["", "", "", "", "", "", "", "", ""], ["answer"], 5):(["2", "error: --pack is required; gym --help lists every option"])
 (["", "", "", "", "", "", "", "", ""], ["grade"], 5):(["2", "error: --pack is required; gym --help lists every option"])

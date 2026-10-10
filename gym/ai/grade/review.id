@@ -1,0 +1,22 @@
+// The check that needs the reference answer, run on a reply that already
+// passed grade_problem. A reply whose `right` repeats the reference answer
+// although the verdict is not correct is the model filling a required field
+// with the answer it was given (a sycophantic reply: nothing the learner did
+// is named), so it is shown as "unsure" and the learner self-grades. A
+// reference shorter than grade_reference_least is not searched for, because
+// "A" or "25" turns up in ordinary words and numbers.
+
+grade_review(string[] grade_feedback, string grade_reference) {
+  int grade_restates = (grade_feedback[(import grade_slot_status)] == "graded" || grade_feedback[(import grade_slot_status)] == "self_grade") && grade_feedback[(import grade_slot_verdict)] != "correct" && len(grade_reference) >= (import grade_reference_least) && grade_mentions(str_lower(grade_feedback[(import grade_slot_right)]), str_lower(grade_reference)) == 1;
+  string[] grade_checked = grade_feedback;
+  if (grade_restates == 1) {
+    grade_checked = grade_outcome("unsure", "right repeats the reference answer");
+  }
+} return string[] grade_checked;
+(["graded", "", "incorrect", "The learner got 1/3 by counting.", "Counted 3.", "Recount.", "slip", "85"], "1/3"):(["unsure", "right repeats the reference answer", "", "", "", "", "", ""])
+(["graded", "", "correct", "Divided 2 by 6 to get 1/3.", "none", "Next.", "none", "85"], "1/3"):(["graded", "", "correct", "Divided 2 by 6 to get 1/3.", "none", "Next.", "none", "85"])
+(["graded", "", "incorrect", "Listed the outcomes 1 to 6.", "Counted 3.", "Recount.", "slip", "85"], "1/3"):(["graded", "", "incorrect", "Listed the outcomes 1 to 6.", "Counted 3.", "Recount.", "slip", "85"])
+(["graded", "", "partly", "Reached 11/36 by subtracting.", "Slipped.", "Recheck.", "slip", "85"], "1/3"):(["graded", "", "partly", "Reached 11/36 by subtracting.", "Slipped.", "Recheck.", "slip", "85"])
+(["self_grade", "low", "partly", "Wrote 0.7 first.", "Slipped.", "Recheck.", "slip", "40"], "0.7"):(["unsure", "right repeats the reference answer", "", "", "", "", "", ""])
+(["graded", "", "incorrect", "Said A.", "Wrong.", "Recheck.", "slip", "85"], "A"):(["graded", "", "incorrect", "Said A.", "Wrong.", "Recheck.", "slip", "85"])
+(["refused", "why", "", "", "", "", "", ""], "1/3"):(["refused", "why", "", "", "", "", "", ""])

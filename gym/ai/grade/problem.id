@@ -45,6 +45,10 @@ grade_problem(string[] grade_reply) {
   if (grade_why == "" && grade_reply[(import grade_slot_verdict)] != "correct" && grade_reply[(import grade_slot_error_type)] == "none") {
     grade_why = "no error type for an answer that is not correct";
   }
+} chain (string[] grade_reply) {
+  if (grade_why == "" && len(grade_reply[(import grade_slot_flaw)]) > (import grade_flaw_limit)) {
+    grade_why = "flaw is longer than " + (import grade_flaw_limit) + " characters";
+  }
 } return string grade_why;
 (["graded", "", "correct", "Counted 2 of 6 outcomes.", "none", "Try a die with 8 sides.", "none", "90"]):("")
 (["graded", "", "incorrect", "Listed the outcomes.", "Used 4 not 6 as the total.", "Recount the sample space.", "slip", "80"]):("")
@@ -56,3 +60,5 @@ grade_problem(string[] grade_reply) {
 (["graded", "", "correct", "Counted the outcomes.", "none", "Well done", "none", "90"]):("praise without a specific")
 (["graded", "", "incorrect", "Listed the outcomes.", "None", "Recount the sample space.", "slip", "90"]):("no exact flaw for an answer that is not correct")
 (["graded", "", "partly", "Listed the outcomes.", "Stopped early.", "Recount the sample space.", "none", "90"]):("no error type for an answer that is not correct")
+(["graded", "", "incorrect", "Listed the outcomes.", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "Recount the sample space.", "slip", "90"]):("flaw is longer than 160 characters")
+(["graded", "", "incorrect", "Listed the outcomes.", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "Recount the sample space.", "slip", "90"]):("")

@@ -1,0 +1,55 @@
+// Finding the reference answer inside what the model wrote, as a whole token.
+// A plain substring test would find 1/3 inside 11/36 and 0.7 inside 0.75, and
+// call a correct explanation a repeat of the reference. grade_mentions answers
+// 1 when the needle stands apart in the text: the characters on either side
+// are not letters, digits, a slash or a decimal point (a full stop that ends
+// the sentence is fine). grade_edge says that of one character, grade_apart of
+// one place in the text.
+
+grade_edge(int grade_code) {
+  int grade_open = chr_is_alnum(grade_code) == 0 && grade_code != 47 && grade_code != 46;
+} return int grade_open;
+(32):(1)
+(47):(0)
+(46):(0)
+(55):(0)
+(41):(1)
+
+grade_apart(string grade_text, int grade_at, int grade_size) {
+  int grade_end = grade_at + grade_size;
+  int grade_before_ok = 1;
+  int grade_after_ok = 1;
+} chain (string grade_text, int grade_at, int grade_size) {
+  if (grade_at > 0) {
+    grade_before_ok = grade_edge(charat(grade_text, grade_at - 1));
+  }
+  if (grade_end < len(grade_text)) {
+    grade_after_ok = grade_edge(charat(grade_text, grade_end));
+  }
+  if (grade_end < len(grade_text) && charat(grade_text, grade_end) == 46 && (grade_end + 1 >= len(grade_text) || chr_is_alnum(charat(grade_text, grade_end + 1)) == 0)) {
+    grade_after_ok = 1;
+  }
+} chain (string grade_text, int grade_at, int grade_size) {
+  int grade_alone = grade_before_ok == 1 && grade_after_ok == 1;
+} return int grade_alone;
+("is 1/3.", 3, 3):(1)
+("is 11/36", 4, 3):(0)
+("0.75", 0, 3):(0)
+("(1/3)", 1, 3):(1)
+("x1/3", 1, 3):(0)
+("1/3.5", 0, 3):(0)
+("1/3", 0, 3):(1)
+
+grade_mentions(string grade_text, string grade_needle) {
+  int grade_from = str_find(grade_text, grade_needle);
+  int grade_found = 0;
+  while (grade_from >= 0 && grade_found == 0) {
+    grade_found = grade_apart(grade_text, grade_from, len(grade_needle));
+    grade_from = str_findat(grade_text, grade_needle, grade_from + 1);
+  }
+} return int grade_found;
+("the answer is 1/3.", "1/3"):(1)
+("the answer is 11/36", "1/3"):(0)
+("11/36 and then 1/3 too", "1/3"):(1)
+("nothing here", "1/3"):(0)
+("", "1/3"):(0)

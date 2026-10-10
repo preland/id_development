@@ -521,3 +521,23 @@ bug: a learner who answers wrong and then asks for all four hints looked perfect
 and its trend now count the `hint_shown` events between an attempt and the next attempt at the same item
 (`score/shown.id`), through a new column `Score_aid.shown`. Retention and fluency keep the attempt's own hints:
 dropping every hinted attempt from retention would drop the misses and raise the number.
+
+## Grader evaluation (qwen3-4b on CPU, 2026-10-09)
+
+Set: `ai/eval/set.txt`, 40 attempts, 30 tuning (0-29) and 10 held out (30-39). Results: `ai/eval/results/*.tsv`.
+Run in slices of four (about 10 s per grade): `gym grade eval ai/eval/set.txt ai/eval/results/NAME.tsv FROM 4 --pack packs/probability`.
+
+- Awkward: a case file is 13 tab cells wide because a results row must carry the model's `right`, `flaw` and the
+  reference for later analysis; `str_split` on a trailing empty cell kept all 13, which I only know because a case passed.
+- Awkward: `eval_case` first trapped (`index -1 out of bounds`) on a set row whose target is not in the pack: the
+  missing-item case I wrote for the reference lookup found it. `pack_field` with block -1 aborts instead of answering "".
+- Awkward: a plain substring test for "right repeats the reference" finds `1/3` in `11/36`; `grade_mentions` needs
+  token edges (letters, digits, slash, decimal point), which took three functions.
+- Awkward: a void function that mutates a list (`eval_total`) is tested by naming the mutated argument in the
+  expected tuple; the brief's examples all return values.
+- Labelling is the soft part: cases 3, 5, 7, 11, 29 (a wrong final answer from a wrong method) were labelled incorrect and the
+  model says partly in most runs because it credits a step the learner did write. Whether that is the model or my policy
+  is the question for the user's own judgement (spec: the learner's judgement is the oracle, here it is mine).
+- Noise: one grade differs between identical runs of two prompts by 1-3 cases of 30 at temperature 0.1. Differences of
+  one or two cases are not evidence.
+- I used one throwaway python3 here-document to edit two code blocks; the brief forbids Python even as scratch.

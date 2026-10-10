@@ -1,0 +1,64 @@
+// `gym grade eval` and `gym grade report`: the grader evaluation (ai/eval/set.txt)
+// from the command line. `gym grade eval SET RESULTS [FROM [COUNT]] --pack DIR`
+// grades the attempts of SET numbered FROM to FROM + COUNT - 1 (default from 0,
+// 1000 of them) through the model and appends one row each to RESULTS, so forty
+// attempts run in slices of a few that fit the time limit; `gym grade report
+// RESULTS` prints the agreement and failure counts of a results file. Neither
+// writes a log. command_whole reads FROM and COUNT: the fallback for no word, -1
+// for a word that is not a whole number.
+
+command_whole(string command_text, int command_fallback) {
+  int command_made = command_fallback;
+  if (command_text != "") {
+    command_made = 0 - 1;
+  }
+  if (log_digits_ok(command_text, 9) == 1) {
+    command_made = to_int(command_text);
+  }
+} return int command_made;
+("", 7):(7)
+("12", 7):(12)
+("x", 7):(-1)
+("-3", 7):(-1)
+
+command_grade_eval(string[] command_values, string[] command_rest, word command_clock) {
+  string command_refusal = command_check(command_values, command_clock, ["pack"]);
+  string command_set = command_word(command_rest, 2);
+  string command_results = command_word(command_rest, 3);
+} chain (string[] command_values, string[] command_rest, word command_clock) {
+  int command_from = command_whole(command_word(command_rest, 4), 0);
+  int command_count = command_whole(command_word(command_rest, 5), 1000);
+  string command_url = opt_get((import command_options), command_values, "url");
+} chain (string[] command_values, string[] command_rest, word command_clock) {
+  if (command_url == "") {
+    command_url = model_address();
+  }
+  if (command_refusal == "" && (command_set == "" || command_results == "")) {
+    command_refusal = "error: say which files: gym grade eval SET RESULTS [FROM [COUNT]] --pack DIR";
+  }
+  if (command_refusal == "" && (command_from < 0 || command_count < 0)) {
+    command_refusal = "error: FROM and COUNT are whole numbers, such as: gym grade eval set.txt results.tsv 0 4 --pack DIR";
+  }
+} chain (string[] command_values, string[] command_rest, word command_clock) {
+  int command_kept = 0;
+  string[] command_out = ["2", command_refusal];
+  if (command_refusal == "") {
+    command_kept = eval_slice(command_url, opt_get((import command_options), command_values, "pack"), command_set, command_results, command_from, command_count);
+    command_out = ["0", "graded " + command_kept + " attempts into " + command_results];
+  }
+} return string[] command_out;
+given command_fixture_files("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "item: 0\ntarget: x\nanswer: 3/8\nitem: 1\ntarget: x\nanswer: 1/3\n") (["pack", "", "", "", "", "", "", "http://127.0.0.1:1", ""], ["grade", "eval", "learner.log", "results.tsv", "1", "5"], 5):(["0", "graded 1 attempts into results.tsv"])
+given command_fixture_files("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "item: 0\ntarget: x\nanswer: 3/8\n") (["pack", "", "", "", "", "", "", "http://127.0.0.1:1", ""], ["grade", "eval", "learner.log"], 5):(["2", "error: say which files: gym grade eval SET RESULTS [FROM [COUNT]] --pack DIR"])
+given command_fixture_files("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "item: 0\ntarget: x\nanswer: 3/8\n") (["pack", "", "", "", "", "", "", "http://127.0.0.1:1", ""], ["grade", "eval", "learner.log", "results.tsv", "x"], 5):(["2", "error: FROM and COUNT are whole numbers, such as: gym grade eval set.txt results.tsv 0 4 --pack DIR"])
+given command_fixture_files("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "item: 0\ntarget: x\nanswer: 3/8\n") (["", "", "", "", "", "", "", "http://127.0.0.1:1", ""], ["grade", "eval", "learner.log", "results.tsv"], 5):(["2", "error: --pack is required; gym --help lists every option"])
+
+command_grade_report(string[] command_rest) {
+  string command_results = command_word(command_rest, 2);
+  string[] command_out = ["2", "error: say which results file: gym grade report RESULTS"];
+  if (command_results != "" && fs_exists(command_results) == 1) {
+    command_out = ["0", eval_report(fs_read_text(command_results))];
+  }
+} return string[] command_out;
+given command_fixture_files("", "3\ta\tpartly\tslip\tgraded\tpartly\tslip\t85\t100\tref\tr\tf\t\n") (["grade", "report", "learner.log"]):(["0", "rows: 1\nverdict agreement: 1 of 1\nerror_type agreement: 1 of 1\nvalid replies: 1 of 1 (the rest were refused, unreachable or unsure)\nself_grade (confidence under the floor): 0\nover-credit (said correct, the author did not): 0\nright restates the reference although the verdict is not correct: 0\nflaw longer than 160 characters: 0\ntotal milliseconds: 100"])
+given command_fixture_files("", "") (["grade", "report"]):(["2", "error: say which results file: gym grade report RESULTS"])
+given command_fixture_files("", "") (["grade", "report", "missing.tsv"]):(["2", "error: say which results file: gym grade report RESULTS"])

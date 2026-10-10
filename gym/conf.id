@@ -125,7 +125,7 @@ string model_json_headers = "Content-Type: application/json\r\n";
 
 string model_think_off = "{\"enable_thinking\":false}";
 
-string grade_system = "You grade one learner answer for a practice item. Reply with one JSON object and nothing else, with the keys verdict (correct, partly or incorrect), right (what the learner got right, specifically), flaw (the exact flaw, or none), next_step (one concrete thing to do next), error_type (misconception, slip, incomplete, off_topic or none) and confidence (a whole number from 0 to 100: how sure you are of the grade). Judge the answer against the rubric lines and the reference. Never praise without saying what was right. Never write out the reference answer in next_step.";
+string grade_system = "You grade one learner answer for a practice item. Reply with one JSON object and nothing else, with the keys verdict, right, flaw, next_step, error_type and confidence. First compare the learner's final answer with the reference answer, then judge the reasoning against the rubric lines. verdict: correct when the final answer matches the reference and the reasoning is sound; partly when the method is right but a slip or an unfinished step spoils the final answer, or when the final answer is right but the reasoning is wrong or missing; incorrect when the method is wrong, a misconception is used or the reply is off the point. right: one sentence of at most 20 words naming one step the learner actually wrote that is right; never credit a step the learner did not write and never copy the reference answer; if no step is right, name what the learner attempted. flaw: one short sentence of at most 20 words naming the exact wrong step, or none. next_step: one concrete thing to do next, without writing out the reference answer. error_type: misconception when the learner used a wrong rule or idea (such as adding probabilities that should be multiplied, ignoring the condition, or counting the wrong sample space), slip only when the idea is right and one number or reading is wrong, incomplete when the work stops early, off_topic when the reply does not address the question, none for a correct answer. confidence: a whole number from 0 to 100, how sure you are of the grade. Example. Item: a bag holds 3 red and 2 blue balls, what is the probability of drawing blue? Reference 2/5. Learner: there are 5 balls and 3 are red, so 3/5. Reply: {\"verdict\":\"partly\",\"right\":\"Used favourable over total with 5 balls.\",\"flaw\":\"Counted the 3 red balls instead of the 2 blue ones.\",\"next_step\":\"Underline the colour the question asks for before counting.\",\"error_type\":\"slip\",\"confidence\":85}";
 
 string grade_schema = "{\"type\":\"object\",\"properties\":{\"verdict\":{\"type\":\"string\",\"enum\":[\"correct\",\"partly\",\"incorrect\"]},\"right\":{\"type\":\"string\"},\"flaw\":{\"type\":\"string\"},\"next_step\":{\"type\":\"string\"},\"error_type\":{\"type\":\"string\",\"enum\":[\"misconception\",\"slip\",\"incomplete\",\"off_topic\",\"none\"]},\"confidence\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":100}},\"required\":[\"verdict\",\"right\",\"flaw\",\"next_step\",\"error_type\",\"confidence\"]}";
 
@@ -236,7 +236,7 @@ int session_confidence_default = 50;
 
 string[] command_options = ["|pack|str|||the pack directory: concepts and items as .txt files", "|log|str|||the learner's log file, append-only; it is the only state", "|now|str|||the clock, in milliseconds since the epoch (default: the real clock)", "|seed|str|||the plan's tie-breaking seed (default 1)", "|text|str|||your answer", "|confidence|str|||50, 70, 90 or 99; an answer is not taken without one", "|seconds|str|||seconds you took (default 0)", "|url|str|||the model server (default: GYM_MODEL_URL, else http://127.0.0.1:8184)", "|item|str|||an item id"];
 
-string command_usage = "gym session start --pack DIR --log FILE [--now MS] [--seed N]\ngym answer --pack DIR --log FILE --text ANSWER --confidence 50|70|90|99 [--seconds N] [--now MS]\ngym hint --pack DIR --log FILE [--url URL] [--now MS]\ngym tapout --pack DIR --log FILE [--seconds N] [--now MS]\ngym next --pack DIR --log FILE [--now MS]\ngym score --pack DIR --log FILE [--now MS]\ngym why ITEM --pack DIR --log FILE [--now MS] [--seed N]\ngym pack check DIR\ngym grade --pack DIR --item ID --text ANSWER [--url URL]";
+string command_usage = "gym session start --pack DIR --log FILE [--now MS] [--seed N]\ngym answer --pack DIR --log FILE --text ANSWER --confidence 50|70|90|99 [--seconds N] [--now MS]\ngym hint --pack DIR --log FILE [--url URL] [--now MS]\ngym tapout --pack DIR --log FILE [--seconds N] [--now MS]\ngym next --pack DIR --log FILE [--now MS]\ngym score --pack DIR --log FILE [--now MS]\ngym why ITEM --pack DIR --log FILE [--now MS] [--seed N]\ngym pack check DIR\ngym grade --pack DIR --item ID --text ANSWER [--url URL]\ngym grade eval SET RESULTS [FROM [COUNT]] --pack DIR [--url URL]\ngym grade report RESULTS\ngym [window] --pack DIR --log FILE [--now MS] [--seed N] [--url URL] [--script S.txt [--dump] [--render-after OUT.ppm]]";
 
 int command_digits_limit = 9;
 
@@ -378,3 +378,37 @@ int[] gym_engine_kinds = [3, 4, 5, 7, 12];
 
 // The options only the window reads, each with a value of its own: the script to replay and the picture to write after it. (--dump has none.)
 string[] gym_window_options = ["--script", "--render-after"];
+
+int grade_flaw_limit = 160;
+
+int eval_slot_number = 0;
+
+int eval_slot_target = 1;
+
+int eval_slot_expected_verdict = 2;
+
+int eval_slot_expected_error = 3;
+
+int eval_slot_status = 4;
+
+int eval_slot_verdict = 5;
+
+int eval_slot_error_type = 6;
+
+int eval_slot_confidence = 7;
+
+int eval_slot_milliseconds = 8;
+
+int eval_slot_reference = 9;
+
+int eval_slot_right = 10;
+
+int eval_slot_flaw = 11;
+
+int eval_slot_reason = 12;
+
+int eval_width = 13;
+
+int eval_mark_width = 9;
+
+int grade_reference_least = 3;

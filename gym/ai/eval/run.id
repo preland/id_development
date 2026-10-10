@@ -1,0 +1,51 @@
+// Running the grader evaluation: eval_case grades one attempt of the set
+// exactly as `gym grade` does (a throwaway log, the real gate, the real prompt)
+// and answers its row cells; eval_timed measures that exchange on the monotonic
+// clock, puts the milliseconds in the time cell and appends the row to the
+// results file; eval_slice does that for count attempts from number `from`, so
+// forty attempts at ten seconds each can be run in slices that fit the
+// one-minute limit. The results file is append-only, one run per file.
+
+eval_case(string eval_url, string eval_pack_directory, Pack eval_set, int eval_block) {
+  Pack eval_book = pack_load(eval_pack_directory);
+  string eval_target = pack_field(eval_set, eval_block, "target");
+  string[] eval_feedback = probe_attempt(eval_url, eval_pack_directory, eval_target, pack_field(eval_set, eval_block, "answer"));
+} chain (string eval_url, string eval_pack_directory, Pack eval_set, int eval_block) {
+  int eval_found = pack_find(eval_book, "item", eval_target);
+  string eval_reference = "";
+  if (eval_found >= 0) {
+    eval_reference = pack_field(eval_book, eval_found, "answer");
+  }
+} chain (string eval_url, string eval_pack_directory, Pack eval_set, int eval_block) {
+  string[] eval_case_made = eval_cells(eval_set, eval_block, eval_reference, eval_feedback);
+} return string[] eval_case_made;
+given pack_fixture_directory("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "") given pack_fixture_parse("item: 0\ntarget: x\nanswer: 3/8\nverdict: incorrect\nerror_type: slip\n") ("http://127.0.0.1:1", ".", (import pack_fixture_book), 0):(["0", "x", "incorrect", "slip", "unreachable", "", "", "", "", "1/3", "", "", "the model server answered -1"])
+given pack_fixture_directory("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "") given pack_fixture_parse("item: 1\ntarget: y\nanswer: 3/8\nverdict: correct\nerror_type: none\n") ("http://127.0.0.1:1", ".", (import pack_fixture_book), 0):(["1", "y", "correct", "none", "refused", "", "", "", "", "", "", "", "refused: the pack has no such item"])
+
+eval_timed(string eval_url, string eval_pack_directory, Pack eval_set, int eval_block, string eval_results_path) {
+  word eval_started = clk_ns((import clk_mono)) / 1000000;
+  string[] eval_cells_got = eval_case(eval_url, eval_pack_directory, eval_set, eval_block);
+  word eval_finished = clk_ns((import clk_mono)) / 1000000;
+} chain (string eval_url, string eval_pack_directory, Pack eval_set, int eval_block, string eval_results_path) {
+  eval_cells_got[(import eval_slot_milliseconds)] = "" + (eval_finished - eval_started);
+  int eval_written = fs_append_text(eval_results_path, str_join(eval_cells_got, "\t") + "\n");
+  int eval_kept = eval_written > 0;
+} return int eval_kept;
+given pack_fixture_directory("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "") given pack_fixture_parse("item: 0\ntarget: x\nanswer: 3/8\nverdict: incorrect\nerror_type: slip\n") ("http://127.0.0.1:1", ".", (import pack_fixture_book), 0, "results.tsv"):(1)
+given pack_fixture_directory("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "") given pack_fixture_parse("item: 0\ntarget: x\nanswer: 3/8\nverdict: incorrect\nerror_type: slip\n") ("http://127.0.0.1:1", ".", (import pack_fixture_book), 0, "nowhere/results.tsv"):(0)
+
+eval_slice(string eval_url, string eval_pack_directory, string eval_set_path, string eval_results_path, int eval_from, int eval_count) {
+  Pack eval_set = pack_new("eval");
+  int eval_at = eval_from;
+  int eval_kept = 0;
+} chain (string eval_url, string eval_pack_directory, string eval_set_path, string eval_results_path, int eval_from, int eval_count) {
+  pack_read_text(eval_set, eval_set_path, fs_read_text(eval_set_path));
+  int eval_all = len(pack_ids(eval_set, "item"));
+  while (eval_at < eval_all && eval_at < eval_from + eval_count) {
+    eval_kept = eval_kept + eval_timed(eval_url, eval_pack_directory, eval_set, eval_at, eval_results_path);
+    eval_at = eval_at + 1;
+  }
+} return int eval_kept;
+given command_fixture_files("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "item: 0\ntarget: x\nanswer: 3/8\nitem: 1\ntarget: x\nanswer: 1/3\nitem: 2\ntarget: x\nanswer: 1/2\n") ("http://127.0.0.1:1", "pack", "learner.log", "results.tsv", 1, 5):(2)
+given command_fixture_files("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "item: 0\ntarget: x\nanswer: 3/8\nitem: 1\ntarget: x\nanswer: 1/3\nitem: 2\ntarget: x\nanswer: 1/2\n") ("http://127.0.0.1:1", "pack", "learner.log", "results.tsv", 0, 1):(1)
+given command_fixture_files("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "item: 0\ntarget: x\nanswer: 3/8\n") ("http://127.0.0.1:1", "pack", "learner.log", "results.tsv", 4, 1):(0)
