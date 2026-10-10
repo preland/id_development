@@ -1,0 +1,16 @@
+// How one character of a collection body is kept when the commas at depth zero
+// are marked: the character at a position of the text is kept as it is, except a
+// comma outside every nested bracket (depth zero after reading it), which becomes
+// a line break.
+
+check_member_mark(string check_body, int check_where, int check_depth) {
+  string check_mark = str_sub(check_body, check_where, 1);
+  string check_kept = check_mark;
+  if (check_mark == "," && check_depth == 0) {
+    check_kept = "\n";
+  }
+} return string check_kept;
+("a,b", 1, 0):("\n")
+("a,b", 1, 1):(",")
+("a,b", 0, 0):("a")
+("a}b", 1, 0):("}")

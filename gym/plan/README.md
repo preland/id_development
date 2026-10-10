@@ -73,3 +73,47 @@ Cases use a built-in world (`plan_world_packs`, `plan_world_logs` in conf.id) th
 the setups in `fixture.id`; scene 0 is an empty log, 1 a failed coin history, 2 coin
 and dice practised, 3 adds odds and a seen transfer item, 4 everything mastered,
 5 a tapped-out item. "Now" in the cases is day 10, 864000000 ms.
+
+## Version 2 packs: kinds, presentations and synthesis
+
+Everything below applies only to a pack with a `part:` line on some concept (`pack_has_parts`); a version 1 pack
+is planned exactly as above. `plan_for_log` runs two steps after `plan_build_session`:
+
+1. **`plan_adjust`** (`retarget.id`, `row.id`, `order.id`, `order_put.id`). For each concept it reads the
+   learner's history (`tally.id`: attempts, misses, clean answers, sure errors, whether the latest answer was
+   fluent) and sets a level (`kinds.id`): *novice* (fewer than 2 attempts, or more misses than hits), *strong*
+   (at least 2 clean answers and at most a third missed) or *learning*. A main-set item may be swapped for
+   another practice item of the same concept that is not in the plan, when its kind ranks higher for the level
+   and its difficulty is within 400 of the original, raised by 100 when the latest answer was fluent. Then the
+   items of a concept that has two or more main rows are re-ordered by kind rank (novices: error hunt, choice,
+   recall, solve, ..., proof last; strong learners: proof, counterexample, compare, ... first), easiest first
+   within a kind. Ids and reasons move together, and every moved row says so in its reason.
+2. **`plan_with_synthesis`**. A synthesis item (`kind: synthesis`; the book gives it link flag 2, so it is
+   neither practice nor transfer) is offered only when every concept it lists has predicted recall of at least
+   0.85 at the planning time *and* at least one clean answer (right, no hint, no tap-out). The unlocked item
+   attempted least often is chosen; it replaces the last new-concept row of the main set, or is added at the
+   end of the main set when there is room (fewer than 13 rows). At most one per plan.
+
+### Presentation policy (`present.id`, `present_text.id`, `match.id`, `fade.id`)
+
+After a committed attempt (and, for a free answer, once graded) the engine chooses what to show from the attempt
+and the concept's earlier misses. Nothing is stored: `gym why ITEM` rebuilds the choice from the log.
+
+| attempt | shown | reason line |
+| --- | --- | --- |
+| wrong, confidence 90 or 99 | `show_non_example` (aimed at the written misconception the answer resembles, if any), then `show_definition` | `confident error (99% sure, and wrong): ...` |
+| wrong, lower confidence, first miss on the concept | `show_worked` in full | `wrong with low confidence (70%): the worked example in full ...` |
+| wrong, lower confidence, missed before | `show_worked` faded: the first half of its steps, the rest left to the learner | `... after 2 earlier miss(es) on the concept: the worked example faded ...` |
+| right, but with hints or slower than 90 s | `show_example` | `right, but with 2 hint(s): another example of the idea` |
+| right, no hints, 30 s or less, confidence 90 or more | nothing; item difficulty for the concept goes up (the next plan prefers items 100 harder) | `right, fast and confident (...): nothing to add; move on, ...` |
+| right otherwise | nothing | `right and unassisted: nothing to add` |
+
+The misconception is the concept's `misconception:` line sharing the most content words (5 letters or more)
+with the item's prompt and the learner's answer, at least two. When several `show_example`, `show_non_example`
+or `show_worked` lines exist, the one sharing most words with that belief (or the answer) is shown, else they
+rotate with the number of earlier misses. A presentation the concept lacks is replaced by the one the item's
+`presentation:` names. Thresholds: `plan_slow_seconds` 90, `plan_fast_seconds` 30, `score_confident_level` 90.
+
+Knobs (conf.id): `plan_kind_slack` 400, `plan_kind_weight` 200, `plan_difficulty_step` 100,
+`plan_solid_attempts` 2, `plan_synthesis_recall` 850, `plan_order_novice`, `plan_order_learning`,
+`plan_order_strong`.

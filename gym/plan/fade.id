@@ -1,0 +1,50 @@
+// A faded worked example: the first steps of a worked solution, with the last
+// ones left to the learner. A step ends at a semicolon, at ", so", at ", then" or
+// at a full stop followed by a space; plan_step_pieces cuts a text into the
+// pieces that start at those places, and plan_fade keeps the first half of them
+// (at least one). A text with no step boundary is cut by words instead, and a
+// text of one word is left whole, since nothing can be taken from it.
+
+plan_step_pieces(string plan_text) {
+  string plan_marked = plan_text;
+  int plan_at = 0;
+  while (plan_at < len((import plan_step_marks))) {
+    plan_marked = str_replace(plan_marked, (import plan_step_marks)[plan_at], "\n" + (import plan_step_marks)[plan_at]);
+    plan_at = plan_at + 1;
+  }
+} chain (string plan_text) {
+  string[] plan_split_pieces = str_split(plan_marked, "\n");
+} return string[] plan_split_pieces;
+("To show it, assume x; then y, so z. Done."):(["To show it, assume x", "; then y", ", so z", ". Done."])
+("one plain sentence"):(["one plain sentence"])
+("a; b; c"):(["a", "; b", "; c"])
+(""):([""])
+
+plan_fade(string plan_text) {
+  string[] plan_pieces_of = plan_step_pieces(plan_text);
+  string[] plan_units = plan_pieces_of;
+  string plan_joiner = "";
+} chain (string plan_text) {
+  if (len(plan_pieces_of) == 1) {
+    plan_units = str_words(plan_text);
+    plan_joiner = " ";
+  }
+  int plan_keep = fx_max(1, len(plan_units) / 2);
+  string[] plan_head = [];
+} chain (string plan_text) {
+  int plan_at = 0;
+  while (plan_at < plan_keep && plan_at < len(plan_units)) {
+    push(plan_head, plan_units[plan_at]);
+    plan_at = plan_at + 1;
+  }
+  string plan_faded = str_join(plan_head, plan_joiner) + " ... (your turn: finish the remaining steps yourself)";
+} chain (string plan_text) {
+  if (len(plan_units) <= 1) {
+    plan_faded = plan_text;
+  }
+} return string plan_faded;
+("To show it, assume x; then y, so z. Done."):("To show it, assume x; then y ... (your turn: finish the remaining steps yourself)")
+("assume f(a) = f(b); then 3a = 3b, so a = b"):("assume f(a) = f(b) ... (your turn: finish the remaining steps yourself)")
+("one two three four five six"):("one two three ... (your turn: finish the remaining steps yourself)")
+("word"):("word")
+(""):("")

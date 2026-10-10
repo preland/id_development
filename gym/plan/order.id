@@ -1,0 +1,47 @@
+// Putting a concept's items in the order that suits the learner. The planner often
+// deals several items of one concept into a session (one per round); which of them
+// comes first matters, because what a beginner needs first (an error hunt, a
+// choice) is not what an expert needs first (a proof, a counterexample). These
+// helpers find the main-set rows of one concept, give each row's item a sort key
+// (the kind's rank for the learner's level times 10000, plus the item's
+// difficulty, so equal kinds go easiest first) and are used by order_put.id to
+// hand the items back to those same rows in key order. The rows keep their places
+// in the session, so the concepts stay interleaved.
+
+plan_concept_rows(Plan_book plan_book, Plan_session plan_session, int plan_concept_number) {
+  int[] plan_rows_found = [];
+  int plan_at = 0;
+  while (plan_at < len(plan_session.ids)) {
+    if (plan_session.phases[plan_at] == "main" && plan_first_concept(plan_book, lst_str_index(plan_book.catalog.items, plan_session.ids[plan_at])) == plan_concept_number) {
+      push(plan_rows_found, plan_at);
+    }
+    plan_at = plan_at + 1;
+  }
+} return int[] plan_rows_found;
+(Plan_book(Plan_catalog(["c", "d"], ["i", "j", "k"], [1000, 1000, 1000]), Plan_links([0, 1, 2], [0, 1, 0], [0, 0, 0]), Plan_needs([], [])), Plan_session(["i", "j", "k"], ["main", "main", "main"], ["r", "r", "r"]), 0):([0, 2])
+(Plan_book(Plan_catalog(["c", "d"], ["i", "j", "k"], [1000, 1000, 1000]), Plan_links([0, 1, 2], [0, 1, 0], [0, 0, 0]), Plan_needs([], [])), Plan_session(["i", "j", "k"], ["main", "main", "main"], ["r", "r", "r"]), 1):([1])
+(Plan_book(Plan_catalog(["c", "d"], ["i", "j", "k"], [1000, 1000, 1000]), Plan_links([0, 1, 2], [0, 1, 0], [0, 0, 0]), Plan_needs([], [])), Plan_session(["i", "j", "k"], ["warmup", "main", "transfer"], ["r", "r", "r"]), 0):([])
+(Plan_book(Plan_catalog(["c"], ["i"], [1000]), Plan_links([0], [0], [0]), Plan_needs([], [])), Plan_session([], [], []), 0):([])
+
+plan_kind_key(Pack plan_pack, Plan_book plan_book, string plan_item_id, string plan_level) {
+  string plan_key_kind = pack_field(plan_pack, pack_find(plan_pack, "item", plan_item_id), "kind");
+  int plan_item_place = lst_str_index(plan_book.catalog.items, plan_item_id);
+  int plan_sort_key = plan_kind_rank(plan_level, plan_key_kind) * 10000 + plan_book.catalog.bases[plan_item_place];
+} return int plan_sort_key;
+given pack_fixture_parse("concept: c\nitem: p\nconcepts: c\nkind: proof\nitem: e\nconcepts: c\nkind: error_hunt\n") ((import pack_fixture_book), Plan_book(Plan_catalog(["c"], ["p", "e"], [1200, 900]), Plan_links([0, 1], [0, 0], [0, 0]), Plan_needs([], [])), "p", "novice"):(81200)
+given pack_fixture_parse("concept: c\nitem: p\nconcepts: c\nkind: proof\nitem: e\nconcepts: c\nkind: error_hunt\n") ((import pack_fixture_book), Plan_book(Plan_catalog(["c"], ["p", "e"], [1200, 900]), Plan_links([0, 1], [0, 0], [0, 0]), Plan_needs([], [])), "e", "novice"):(900)
+given pack_fixture_parse("concept: c\nitem: p\nconcepts: c\nkind: proof\nitem: e\nconcepts: c\nkind: error_hunt\n") ((import pack_fixture_book), Plan_book(Plan_catalog(["c"], ["p", "e"], [1200, 900]), Plan_links([0, 1], [0, 0], [0, 0]), Plan_needs([], [])), "p", "strong"):(1200)
+given pack_fixture_parse("concept: c\nitem: p\nconcepts: c\nkind: proof\nitem: e\nconcepts: c\nkind: error_hunt\n") ((import pack_fixture_book), Plan_book(Plan_catalog(["c"], ["p", "e"], [1200, 900]), Plan_links([0, 1], [0, 0], [0, 0]), Plan_needs([], [])), "e", "strong"):(60900)
+
+plan_row_keys(Pack plan_pack, Plan_book plan_book, Plan_session plan_session, int[] plan_row_list, string plan_level) {
+  int[] plan_keys = [];
+  int plan_at = 0;
+  while (plan_at < len(plan_row_list)) {
+    push(plan_keys, plan_kind_key(plan_pack, plan_book, plan_session.ids[plan_row_list[plan_at]], plan_level));
+    plan_at = plan_at + 1;
+  }
+} return int[] plan_keys;
+given pack_fixture_parse("concept: c\nitem: p\nconcepts: c\nkind: proof\nitem: e\nconcepts: c\nkind: error_hunt\n") ((import pack_fixture_book), Plan_book(Plan_catalog(["c"], ["p", "e"], [1200, 900]), Plan_links([0, 1], [0, 0], [0, 0]), Plan_needs([], [])), Plan_session(["p", "x", "e"], ["main", "main", "main"], ["r", "r", "r"]), [0, 2], "novice"):([81200, 900])[time:O(n), mem:O(n)]
+given pack_fixture_parse("concept: c\nitem: p\nconcepts: c\nkind: proof\nitem: e\nconcepts: c\nkind: error_hunt\n") ((import pack_fixture_book), Plan_book(Plan_catalog(["c"], ["p", "e"], [1200, 900]), Plan_links([0, 1], [0, 0], [0, 0]), Plan_needs([], [])), Plan_session(["p", "x", "e"], ["main", "main", "main"], ["r", "r", "r"]), [0, 2], "strong"):([1200, 60900])
+given pack_fixture_parse("concept: c\nitem: p\nconcepts: c\nkind: proof\nitem: e\nconcepts: c\nkind: error_hunt\n") ((import pack_fixture_book), Plan_book(Plan_catalog(["c"], ["p", "e"], [1200, 900]), Plan_links([0, 1], [0, 0], [0, 0]), Plan_needs([], [])), Plan_session(["p", "x", "e", "p", "e", "p", "e", "p"], ["main", "main", "main", "main", "main", "main", "main", "main"], ["r", "r", "r", "r", "r", "r", "r", "r"]), [0, 2, 3, 4, 5, 6, 7], "strong"):([1200, 60900, 1200, 60900, 1200, 60900, 1200])[time:O(n), mem:O(n)]
+given pack_fixture_parse("concept: c\n") ((import pack_fixture_book), Plan_book(Plan_catalog(["c"], [], []), Plan_links([], [], []), Plan_needs([], [])), Plan_session([], [], []), [], "novice"):([])

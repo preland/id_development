@@ -3,15 +3,23 @@
 // always "refused: " and the reason, so a script can tell it from a result by the
 // first word (the program also exits 1).
 
-command_answer_text(string[] command_result) {
+command_answer_text(string[] command_result, string[] command_route, string[] command_shown) {
   string command_text = "refused: " + command_result[1];
-  if (command_result[0] == "ok") {
-    command_text = "verdict: " + command_result[2] + "\nreference: " + command_result[3] + "\nwhy, what a good solution shows:\n  - " + str_replace(command_result[4], "\n", "\n  - ") + "\nnext: gym hint for help (not in the warm-up), gym next to move on";
+  string command_show = command_show_text(command_shown);
+  string command_tail = "next: gym hint for help (not in the warm-up), gym next to move on";
+} chain (string[] command_result, string[] command_route, string[] command_shown) {
+  if (command_result[0] == "ok" && command_result[2] != "pending") {
+    command_text = "verdict: " + command_result[2] + "\nreference: " + command_result[3] + "\nwhy, what a good solution shows:\n  - " + str_replace(command_result[4], "\n", "\n  - ") + "\n" + command_show + command_tail;
+  }
+  if (command_result[0] == "ok" && command_result[2] == "pending") {
+    command_text = command_free_text(command_result) + "\n" + command_route_text(command_route, command_shown);
   }
 } return string command_text;
-(["refused", "no session is running"]):("refused: no session is running")
-(["ok", "", "incorrect", "1/3", "R1\nR2", "a", "main"]):("verdict: incorrect\nreference: 1/3\nwhy, what a good solution shows:\n  - R1\n  - R2\nnext: gym hint for help (not in the warm-up), gym next to move on")
-(["ok", "", "correct", "7", "R3", "b", "warmup"]):("verdict: correct\nreference: 7\nwhy, what a good solution shows:\n  - R3\nnext: gym hint for help (not in the warm-up), gym next to move on")
+(["refused", "no session is running"], ["none", "", ""], ["", "", ""]):("refused: no session is running")
+(["ok", "", "incorrect", "1/3", "R1\nR2", "a", "main"], ["none", "", ""], ["", "", ""]):("verdict: incorrect\nreference: 1/3\nwhy, what a good solution shows:\n  - R1\n  - R2\nnext: gym hint for help (not in the warm-up), gym next to move on")
+(["ok", "", "correct", "7", "R3", "b", "warmup"], ["none", "", ""], ["", "right and unassisted: nothing to add", ""]):("verdict: correct\nreference: 7\nwhy, what a good solution shows:\n  - R3\npresentation: right and unassisted: nothing to add\nnext: gym hint for help (not in the warm-up), gym next to move on")
+(["ok", "", "pending", "model proof", "R1\nR2", "a", "main"], ["self", "", "the model server answered -1"], ["", "", ""]):("verdict: pending (a free answer is marked against the rubric, not decided by the checker)\nreference: model proof\nrubric, mark each line you met:\n  1. R1\n  2. R2\nthe grader could not be used (the model server answered -1), so mark your answer yourself, line by line:\n  gym selfgrade --met 1,0,... (one value per rubric line: 1 = met, 0 = not met)\nuntil you do, gym next is refused and the answer counts for nothing")
+(["ok", "", "pending", "model proof", "R1\nR2", "a", "main"], ["model", "incorrect", "missed the base case"], ["  worked: W", "wrong with low confidence (70%): the worked example in full, since this is the first miss on the concept", ""]):("verdict: pending (a free answer is marked against the rubric, not decided by the checker)\nreference: model proof\nrubric, mark each line you met:\n  1. R1\n  2. R2\ngraded by the model: incorrect\n  missed the base case\npresentation: wrong with low confidence (70%): the worked example in full, since this is the first miss on the concept\n  worked: W\nnext: gym hint for help (not in the warm-up), gym next to move on")
 
 command_hint_text(string[] command_result) {
   string command_text = "refused: " + command_result[1];

@@ -23,6 +23,7 @@ pack_concept_problems(Pack pack_book) {
 } chain (Pack pack_book) {
   pack_collect(pack_book, "concept", pack_missing_keys, pack_found_problems);
   pack_collect(pack_book, "concept", bind(pack_listed_problems, "requires"), pack_found_problems);
+  pack_collect(pack_book, "concept", pack_part_gaps, pack_found_problems);
 } return string[] pack_found_problems;
 given pack_fixture_parse("concept: a\nname: A\nsummary: S\nsource: P\n") ((import pack_fixture_book)):([])
 given pack_fixture_parse("concept: a\nname: A\nname: B\nsummary: S\nrequires: z\n") ((import pack_fixture_book)):(["t.txt:3: 'name' is written twice; only the first counts, so delete one", "t.txt:1: concept 'a' has no 'source' (missing or blank)", "t.txt:5: unknown concept 'z' in 'requires'"])
@@ -41,6 +42,10 @@ pack_item_problems(Pack pack_book) {
   pack_collect(pack_book, "item", pack_item_answer, pack_found_problems);
 } chain (Pack pack_book) {
   pack_collect(pack_book, "item", pack_transfer_gaps, pack_found_problems);
+  pack_collect(pack_book, "item", pack_synthesis_gaps, pack_found_problems);
+  pack_collect(pack_book, "item", pack_free_gaps, pack_found_problems);
+} chain (Pack pack_book) {
+  pack_collect(pack_book, "item", pack_presentation_label, pack_found_problems);
 } return string[] pack_found_problems;
 given pack_fixture_parse("concept: a\nitem: i\nconcepts: a\nkind: solve\nanswer_kind: integer\ndifficulty: 1000\ntransfer: no\nverified: tool\nprompt: P\nanswer: 4\nrubric: r\nhint_nudge: n\nhint_question: q\nhint_step: s\nhint_example: e\n") ((import pack_fixture_book)):([])
 given pack_fixture_parse("item: i\nconcepts: a\n") ((import pack_fixture_book)):(["t.txt:1: item 'i' has no 'kind' (missing or blank)", "t.txt:1: item 'i' has no 'answer_kind' (missing or blank)", "t.txt:1: item 'i' has no 'difficulty' (missing or blank)", "t.txt:1: item 'i' has no 'verified' (missing or blank)", "t.txt:1: item 'i' has no 'prompt' (missing or blank)", "t.txt:1: item 'i' has no 'answer' (missing or blank)", "t.txt:1: item 'i' has no 'rubric' (missing or blank)", "t.txt:1: item 'i' has no rung 1, 'hint_nudge' (the nudge); a ladder has exactly 4 rungs", "t.txt:1: item 'i' has no rung 2, 'hint_question' (the guiding question); a ladder has exactly 4 rungs", "t.txt:1: item 'i' has no rung 3, 'hint_step' (the partial step); a ladder has exactly 4 rungs", "t.txt:1: item 'i' has no rung 4, 'hint_example' (the worked example); a ladder has exactly 4 rungs", "t.txt:2: unknown concept 'a' in 'concepts'"])

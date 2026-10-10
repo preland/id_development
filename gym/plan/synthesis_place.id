@@ -1,0 +1,41 @@
+// Where a synthesis item goes in a finished plan, and why. It takes the place of
+// the last new-concept row of the main set (a synthesis item is preferred over
+// starting a new concept, for a learner whose component concepts are solid); when
+// the main set has no new-concept row it is added at the end of the main set if
+// that has room (fewer than plan_main_slots rows). plan_synthesis_row finds the
+// row to replace (-1 for none), plan_synthesis_slot the position just before the
+// transfer rows, and plan_synthesis_note words the reason `gym why` will show.
+
+plan_synthesis_row(Plan_session plan_session) {
+  int plan_found_row = 0 - 1;
+  int plan_at = 0;
+  while (plan_at < len(plan_session.ids)) {
+    if (plan_session.phases[plan_at] == "main" && str_starts(plan_session.reasons[plan_at], "new") == 1) {
+      plan_found_row = plan_at;
+    }
+    plan_at = plan_at + 1;
+  }
+} return int plan_found_row;
+(Plan_session(["a", "b", "c", "d"], ["warmup", "main", "main", "transfer"], ["due: x", "new: y", "weak: z", "transfer probe"])):(1)
+(Plan_session(["a", "b", "c"], ["main", "main", "main"], ["new: x", "weak: y", "new: z"])):(2)
+(Plan_session(["a", "b"], ["warmup", "main"], ["new: x", "weak: y"])):(-1)
+(Plan_session([], [], [])):(-1)
+
+plan_synthesis_slot(Plan_session plan_session) {
+  int plan_slot = 0;
+  while (plan_slot < len(plan_session.ids) && plan_session.phases[plan_slot] != "transfer") {
+    plan_slot = plan_slot + 1;
+  }
+} return int plan_slot;
+(Plan_session(["a", "b", "c"], ["warmup", "main", "transfer"], ["r", "r", "r"])):(2)
+(Plan_session(["a", "b"], ["warmup", "main"], ["r", "r"])):(2)
+(Plan_session(["a"], ["transfer"], ["r"])):(0)
+(Plan_session([], [], [])):(0)
+
+plan_synthesis_note(Pack plan_pack, Plan_book plan_book, int plan_item_number) {
+  string plan_listed_text = pack_field(plan_pack, pack_find(plan_pack, "item", plan_book.catalog.items[plan_item_number]), "concepts");
+  string plan_floor_text = "0." + (import plan_synthesis_recall) / 10;
+  string plan_note_text = "synthesis: combines " + plan_listed_text + ", each with predicted recall of at least " + plan_floor_text + " and a correct answer given alone";
+} return string plan_note_text;
+given pack_fixture_parse("concept: c\nconcept: d\nitem: s\nconcepts: c, d\nkind: synthesis\n") ((import pack_fixture_book), Plan_book(Plan_catalog(["c", "d"], ["s"], [1000]), Plan_links([0, 0], [0, 1], [2, 2]), Plan_needs([], [])), 0):("synthesis: combines c, d, each with predicted recall of at least 0.85 and a correct answer given alone")
+given pack_fixture_parse("item: x\nconcepts: a\nitem: s\nconcepts: a, b, c\nkind: synthesis\n") ((import pack_fixture_book), Plan_book(Plan_catalog(["a", "b", "c"], ["x", "s"], [1000, 1000]), Plan_links([0, 1, 1, 1], [0, 0, 1, 2], [0, 2, 2, 2]), Plan_needs([], [])), 1):("synthesis: combines a, b, c, each with predicted recall of at least 0.85 and a correct answer given alone")

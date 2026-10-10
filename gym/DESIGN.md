@@ -36,3 +36,14 @@ product: anything id or idstd makes awkward is written down in `TRIAL.md` as it 
   deterministic cases.
 - Nothing the learner sees comes from a source that is not in the pack or the log.
 - No XP, streaks, minutes or completion percentages anywhere (spec P9).
+
+## Format v2 (proof-based subjects)
+
+`pack/FORMAT_V2.md` is implemented across the same modules: `gym/pack/rules/parts.id`, `synthesis.id`, `free.id`
+(the version 2 rules), `gym/check/` (`set`, `truth`, `free` answers: `brackets.id`, `atom.id`, `members.id`,
+`collection.id`, `pending.id`), `gym/log/` (the `graded` line and the replay-time settling of pending attempts:
+`graded.id`, `settle.id`), `gym/session/` (`grade.id`, `take.id`, `marks.id`, `present.id`, `show.id`: free
+answers, self-grading, what to show with a result), `gym/plan/` (`present*.id`, `match.id`, `fade.id`,
+`tally.id`, `kinds.id`, `retarget.id`, `row.id`, `order*.id`, `synthesis*.id`: the presentation policy, kind
+ordering and synthesis) and `gym/score/synthesis.id` (the sixth number). Every choice the engine makes from
+behaviour carries a reason line that `gym why` prints.

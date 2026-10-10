@@ -144,3 +144,10 @@ good. It reports:
 
 Not checked: cycles in `requires`, whether a hint rung leaks the answer, whether
 the answer is actually right (`verified` says how it was established).
+
+## Version 2
+
+Packs for proof-based subjects add `part`, `show_*` presentations, the item kinds `proof`, `synthesis`,
+`compare`, `counterexample` and `negate`, the answer kinds `free`, `set` and `truth`, and the keys `bridge`
+and `presentation`. See `FORMAT_V2.md`; `gym pack check` applies its rules to any pack with a `part:` line and
+leaves every pack without one exactly as above.

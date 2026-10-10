@@ -1,0 +1,91 @@
+// The presentation that goes with a result: session_show_item looks at the newest
+// attempt at an item and answers [lines, reason, belief], where reason is the line
+// `gym why` prints, lines are the presentation texts to show (empty when the
+// policy says to add nothing) and belief is the written misconception the answer
+// resembles ("" when none). A free answer still waiting for its grade gets no
+// presentation, since whether it was right is not known. session_show_attempt does
+// it for one attempt, from the learner's history on the item's first concept up
+// to that attempt (plan_tally_until, plan_present_choice); session_show_lines words
+// the kinds the policy chose, in order. A synthesis or compare item also gets its `bridge` line, the general
+// principle it makes the learner extract, shown only now that the attempt is made. Presentations belong to version 2 packs: a
+// pack with no `part:` anywhere has none, so its results are shown exactly as before.
+
+session_show_lines(Pack session_book, int session_concept_block, int session_item_block, string session_kinds_text, string session_mode, string session_basis, int session_rotate) {
+  string[] session_kinds = [];
+  string[] session_rows = [];
+  int session_at = 0;
+} chain (Pack session_book, int session_concept_block, int session_item_block, string session_kinds_text, string session_mode, string session_basis, int session_rotate) {
+  if (session_kinds_text != "" && session_concept_block >= 0) {
+    session_kinds = str_split(session_kinds_text, ",");
+  }
+  while (session_at < len(session_kinds)) {
+    push(session_rows, session_line(session_book, session_concept_block, session_item_block, session_kinds[session_at], session_mode, session_basis, session_rotate));
+    session_at = session_at + 1;
+  }
+  string session_bridge_text = pack_field(session_book, session_item_block, "bridge");
+} chain (Pack session_book, int session_concept_block, int session_item_block, string session_kinds_text, string session_mode, string session_basis, int session_rotate) {
+  if (session_bridge_text != "") {
+    push(session_rows, "  the general idea (bridge): " + session_bridge_text);
+  }
+  string session_joined = str_join(session_rows, "\n");
+} return string session_joined;
+given pack_fixture_parse("concept: c\nshow_definition: D\nshow_non_example: N\nitem: i\nconcepts: c\n") ((import pack_fixture_book), 0, 1, "non_example,definition", "full", "", 0):("  non-example: N\n  definition: D")
+given pack_fixture_parse("concept: c\nshow_definition: D\nshow_non_example: N\nitem: i\nconcepts: c\n") ((import pack_fixture_book), 0, 1, "", "full", "", 0):("")
+given pack_fixture_parse("concept: c\nshow_definition: D\nshow_non_example: N\nitem: i\nconcepts: c\n") ((import pack_fixture_book), -1, 1, "definition", "full", "", 0):("")
+given pack_fixture_parse("concept: c\nshow_definition: D\nshow_non_example: N\nitem: i\nconcepts: c\n") ((import pack_fixture_book), 0, 1, "definition", "full", "", 0):("  definition: D")
+given pack_fixture_parse("concept: c\nshow_definition: D\nitem: i\nconcepts: c\nbridge: B\n") ((import pack_fixture_book), 0, 1, "definition", "full", "", 0):("  definition: D\n  the general idea (bridge): B")
+given pack_fixture_parse("concept: c\nshow_definition: D\nitem: i\nconcepts: c\nbridge: B\n") ((import pack_fixture_book), 0, 1, "", "full", "", 0):("  the general idea (bridge): B")
+
+session_show_attempt(Pack session_book, Log_events session_events, int session_attempt_at) {
+  Plan_book session_numbers = plan_build_book(session_book);
+  string session_item_id = log_text_at(session_events, session_attempt_at, (import log_slot_item));
+  int session_item_block = pack_find(session_book, "item", session_item_id);
+} chain (Pack session_book, Log_events session_events, int session_attempt_at) {
+  string[] session_listed = plan_pieces(pack_field(session_book, session_item_block, "concepts"));
+  string session_concept_id = "";
+  if (len(session_listed) > 0) {
+    session_concept_id = session_listed[0];
+  }
+} chain (Pack session_book, Log_events session_events, int session_attempt_at) {
+  int session_concept_block = pack_find(session_book, "concept", session_concept_id);
+  int session_concept_number = lst_str_index(session_numbers.catalog.concepts, session_concept_id);
+  int[] session_counts = plan_tally_until(session_numbers, session_events, session_concept_number, session_attempt_at);
+} chain (Pack session_book, Log_events session_events, int session_attempt_at) {
+  string[] session_choice = plan_present_choice(log_text_at(session_events, session_attempt_at, (import log_slot_verdict)), log_number_at(session_events, session_attempt_at, (import log_slot_confidence)), log_number_at(session_events, session_attempt_at, (import log_slot_hints)), log_number_at(session_events, session_attempt_at, (import log_slot_seconds)), session_counts[(import plan_tally_misses)]);
+  string session_basis_text = pack_field(session_book, session_item_block, "prompt") + " " + log_text_at(session_events, session_attempt_at, (import log_slot_answer));
+  int session_aimed = str_find(session_choice[0], "non_example") >= 0;
+} chain (Pack session_book, Log_events session_events, int session_attempt_at) {
+  string session_belief_found = "";
+  if (session_aimed == 1) {
+    session_belief_found = session_belief(session_book, session_concept_block, session_basis_text);
+  }
+  string session_target = session_basis_text;
+} chain (Pack session_book, Log_events session_events, int session_attempt_at) {
+  if (session_belief_found != "") {
+    session_target = session_belief_found;
+  }
+  string session_lines_found = session_show_lines(session_book, session_concept_block, session_item_block, session_choice[0], session_choice[1], session_target, session_counts[(import plan_tally_misses)]);
+  string[] session_shown_set = [session_lines_found, session_choice[2], session_belief_found];
+} return string[] session_shown_set;
+given log_fixture_parse("1\tattempt\ti\tB\t99\tincorrect\t0\t20\tno\t\n") given model_fixture_pack("concept: c\nshow_definition: D text\nshow_non_example: Order does not matter: {1, 2} equals {2, 1}\nmisconception: Order of elements matters in a set\nitem: i\nconcepts: c\nprompt: Is {1, 2} equal to {2, 1}? A student says order of elements matters.\n") ((import model_fixture_book), (import log_fixture_events), 0):(["  non-example: Order does not matter: {1, 2} equals {2, 1}\n  definition: D text", "confident error (99% sure, and wrong): a non-example aimed at the belief behind it, then the definition", "Order of elements matters in a set"])
+given log_fixture_parse("1\tattempt\ti\tB\t50\tincorrect\t0\t20\tno\t\n") given model_fixture_pack("concept: c\nshow_worked: assume x; then y, so z. Done.\nitem: i\nconcepts: c\nprompt: Prove it.\n") ((import model_fixture_book), (import log_fixture_events), 0):(["  worked: assume x; then y, so z. Done.", "wrong with low confidence (50%): the worked example in full, since this is the first miss on the concept", ""])
+given log_fixture_parse("1\tattempt\ti\tB\t50\tincorrect\t0\t20\tno\t\n2\tattempt\ti\tB\t50\tincorrect\t0\t20\tno\t\n") given model_fixture_pack("concept: c\nshow_worked: assume x; then y, so z. Done.\nitem: i\nconcepts: c\nprompt: Prove it.\n") ((import model_fixture_book), (import log_fixture_events), 1):(["  worked: assume x; then y ... (your turn: finish the remaining steps yourself)", "wrong with low confidence (50%) after 1 earlier miss(es) on the concept: the worked example faded, its last steps left to you", ""])
+given log_fixture_parse("1\tattempt\ti\tB\t99\tcorrect\t0\t12\tno\t\n") given model_fixture_pack("concept: c\nshow_definition: D\nitem: i\nconcepts: c\nprompt: Q\n") ((import model_fixture_book), (import log_fixture_events), 0):(["", "right, fast and confident (99%, 12 s): nothing to add; move on, and item difficulty for the concept goes up", ""])
+given log_fixture_parse("1\tattempt\ti\tB\t70\tcorrect\t2\t12\tno\t\n") given model_fixture_pack("concept: c\nshow_example: E\nitem: i\nconcepts: c\nprompt: Q\n") ((import model_fixture_book), (import log_fixture_events), 0):(["  example: E", "right, but with 2 hint(s): another example of the idea", ""])
+
+session_show_item(Pack session_book, Log_events session_events, string session_item_id) {
+  int session_attempt_at = session_last_attempt(session_events, log_escape(session_item_id));
+  string[] session_nothing = ["", "", ""];
+  if (session_attempt_at >= 0 && log_text_at(session_events, session_attempt_at, (import log_slot_verdict)) == "pending") {
+    session_nothing = ["", "waiting for a grade on your free answer: mark it with gym selfgrade", ""];
+  }
+} chain (Pack session_book, Log_events session_events, string session_item_id) {
+  if (session_attempt_at >= 0 && log_text_at(session_events, session_attempt_at, (import log_slot_verdict)) != "pending" && pack_has_parts(session_book) == 1) {
+    session_nothing = session_show_attempt(session_book, session_events, session_attempt_at);
+  }
+} return string[] session_nothing;
+given log_fixture_parse("1\tattempt\ti\tB\t50\tincorrect\t0\t20\tno\t\n") given model_fixture_pack("concept: c\npart: 1\nshow_worked: assume x\nitem: i\nconcepts: c\n") ((import model_fixture_book), (import log_fixture_events), "i"):(["  worked: assume x", "wrong with low confidence (50%): the worked example in full, since this is the first miss on the concept", ""])
+given log_fixture_parse("1\tattempt\ti\tB\t50\tincorrect\t0\t20\tno\t\n") given model_fixture_pack("concept: c\nshow_worked: assume x\nitem: i\nconcepts: c\n") ((import model_fixture_book), (import log_fixture_events), "i"):(["", "", ""])
+
+given log_fixture_parse("1\tattempt\ti\tB\t50\tpending\t0\t20\tno\t\n") given model_fixture_pack("concept: c\npart: 1\nshow_worked: assume x\nitem: i\nconcepts: c\n") ((import model_fixture_book), (import log_fixture_events), "i"):(["", "waiting for a grade on your free answer: mark it with gym selfgrade", ""])
+given log_fixture_parse("") given model_fixture_pack("concept: c\nitem: i\nconcepts: c\n") ((import model_fixture_book), (import log_fixture_events), "i"):(["", "", ""])

@@ -54,6 +54,16 @@ check_answer(string check_kind, string check_reference, string check_slack, stri
   if (check_is_numeric(check_kind) == 1) {
     check_status = check_judge(check_kind, check_reference, check_slack, check_attempt);
   }
+  if (check_kind == "set") {
+    check_status = check_forms(check_set_form(check_reference), check_set_form(check_attempt));
+  }
+  if (check_kind == "truth") {
+    check_status = check_forms(check_truth_form(check_reference), check_truth_form(check_attempt));
+  }
+} chain (string check_kind, string check_reference, string check_slack, string check_attempt) {
+  if (check_kind == "free") {
+    check_status = check_pending(check_attempt);
+  }
 } return string check_status;
 ("integer", "42", "", " +42 "):("correct")
 ("integer", "-3", "", "- 3"):("correct")
@@ -71,6 +81,16 @@ check_answer(string check_kind, string check_reference, string check_slack, stri
 ("text", "dependent", "", "  DEPENDENT "):("correct")
 ("text", "dependent", "", "independent"):("incorrect")
 ("text", "dependent", "", "   "):("unparseable")
+("set", "{1, 2}", "", "{2,1,1}"):("correct")
+("set", "{1, 2}", "", "{1}"):("incorrect")
+("set", "{1, 2}", "", "{1, 2"):("unparseable")
+("set", "{(1, 2)}", "", "{ (1,2) }"):("correct")
+("set", "{(1, 2)}", "", "{(2,1)}"):("incorrect")
+("truth", "TFFT", "", "t f f t"):("correct")
+("truth", "TFFT", "", "TFTT"):("incorrect")
+("truth", "TFFT", "", "10"):("unparseable")
+("free", "model proof", "", "my proof"):("pending")
+("free", "model proof", "", "  "):("unparseable")
 ("bogus", "1", "", "1"):("unparseable")
 ("integer", "9223372036854775807", "", "9223372036854775807"):("unparseable")
 ("integer", "123456789012345678", "", "123456789012345678"):("correct")

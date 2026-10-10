@@ -1,0 +1,59 @@
+// Which kind of exercise suits a learner on a concept, from how they have done on
+// it (the expertise reversal effect: what helps a beginner slows an expert down).
+// plan_level_of reads the five counts of tally.id:
+//   novice ..... fewer than plan_solid_attempts attempts, or more misses than hits:
+//                error hunts and choices before anything that asks for a proof
+//   strong ..... at least plan_solid_attempts clean answers and at most a third
+//                of the attempts missed: proofs and counterexamples first
+//   learning ... everything between: solving and negating first
+// plan_kind_order gives the kinds a level prefers, best first (the lists are in
+// conf.id), and plan_kind_rank the position of one kind in it. A kind a list does
+// not name (synthesis, handled by its own rule) ranks last.
+
+plan_level_of(int[] plan_counts) {
+  string plan_level = "learning";
+  int plan_attempts_seen = plan_counts[(import plan_tally_attempts)];
+  int plan_misses_seen = plan_counts[(import plan_tally_misses)];
+} chain (int[] plan_counts) {
+  if (plan_counts[(import plan_tally_clean)] >= (import plan_solid_attempts) && plan_misses_seen * 3 <= plan_attempts_seen) {
+    plan_level = "strong";
+  }
+  if (plan_attempts_seen < (import plan_solid_attempts) || plan_misses_seen * 2 > plan_attempts_seen) {
+    plan_level = "novice";
+  }
+} return string plan_level;
+([0, 0, 0, 0, 0]):("novice")
+([1, 0, 1, 0, 1]):("novice")
+([4, 3, 1, 1, 0]):("novice")
+([3, 1, 2, 0, 1]):("strong")
+([4, 2, 2, 0, 0]):("learning")
+([6, 2, 4, 0, 1]):("strong")
+([6, 3, 3, 0, 0]):("learning")
+
+plan_kind_order(string plan_level) {
+  string[] plan_kind_list = (import plan_order_learning);
+  if (plan_level == "novice") {
+    plan_kind_list = (import plan_order_novice);
+  }
+  if (plan_level == "strong") {
+    plan_kind_list = (import plan_order_strong);
+  }
+} return string[] plan_kind_list;
+("novice"):(["error_hunt", "choice", "recall", "solve", "estimate", "negate", "compare", "counterexample", "proof"])
+("learning"):(["solve", "negate", "error_hunt", "recall", "choice", "estimate", "compare", "counterexample", "proof"])
+("strong"):(["proof", "counterexample", "compare", "negate", "solve", "estimate", "error_hunt", "recall", "choice"])
+("other"):(["solve", "negate", "error_hunt", "recall", "choice", "estimate", "compare", "counterexample", "proof"])
+
+plan_kind_rank(string plan_level, string plan_kind) {
+  string[] plan_kind_list = plan_kind_order(plan_level);
+  int plan_place = lst_str_index(plan_kind_list, plan_kind);
+  if (plan_place < 0) {
+    plan_place = len(plan_kind_list);
+  }
+} return int plan_place;
+("novice", "error_hunt"):(0)
+("novice", "proof"):(8)
+("strong", "proof"):(0)
+("strong", "choice"):(8)
+("learning", "synthesis"):(9)
+("strong", ""):(9)

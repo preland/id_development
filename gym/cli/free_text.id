@@ -1,0 +1,55 @@
+// The words of a free answer and of a presentation. command_show_text turns the
+// result of session_show_item ([lines, reason, belief]) into the lines printed
+// with a result: always the reason (so the learner and `gym why` see why this
+// presentation), the belief a non-example is aimed at when there is one, then the
+// presentation texts. command_free_text lists the model answer and the rubric,
+// numbered, the way a learner marks them (kept free of the verdict "correct" or
+// "incorrect", because nothing has decided it yet). command_route_text says what
+// happened to the grading: the model graded it, or the learner must.
+
+command_show_text(string[] command_shown) {
+  string command_shown_text = "";
+  if (command_shown[1] != "") {
+    command_shown_text = "presentation: " + command_shown[1] + "\n";
+  }
+  if (command_shown_text != "" && command_shown[2] != "") {
+    command_shown_text = command_shown_text + "  aimed at the belief: " + command_shown[2] + "\n";
+  }
+} chain (string[] command_shown) {
+  if (command_shown_text != "" && command_shown[0] != "") {
+    command_shown_text = command_shown_text + command_shown[0] + "\n";
+  }
+} return string command_shown_text;
+(["  definition: D", "confident error (99% sure, and wrong): a non-example aimed at the belief behind it, then the definition", "Order matters"]):("presentation: confident error (99% sure, and wrong): a non-example aimed at the belief behind it, then the definition\n  aimed at the belief: Order matters\n  definition: D\n")
+(["", "right and unassisted: nothing to add", ""]):("presentation: right and unassisted: nothing to add\n")
+(["", "", ""]):("")
+(["  worked: W", "wrong with low confidence (50%): the worked example in full, since this is the first miss on the concept", ""]):("presentation: wrong with low confidence (50%): the worked example in full, since this is the first miss on the concept\n  worked: W\n")
+
+command_free_text(string[] command_result) {
+  string[] command_rubric_lines = str_split(command_result[4], "\n");
+  string[] command_numbered = [];
+  int command_at = 0;
+} chain (string[] command_result) {
+  while (command_at < len(command_rubric_lines)) {
+    push(command_numbered, "  " + (command_at + 1) + ". " + command_rubric_lines[command_at]);
+    command_at = command_at + 1;
+  }
+  string command_free = "verdict: pending (a free answer is marked against the rubric, not decided by the checker)\nreference: " + command_result[3] + "\nrubric, mark each line you met:\n" + str_join(command_numbered, "\n");
+} return string command_free;
+(["ok", "", "pending", "model proof", "R1\nR2", "a", "main"]):("verdict: pending (a free answer is marked against the rubric, not decided by the checker)\nreference: model proof\nrubric, mark each line you met:\n  1. R1\n  2. R2")
+(["ok", "", "pending", "m", "only line", "a", "main"]):("verdict: pending (a free answer is marked against the rubric, not decided by the checker)\nreference: m\nrubric, mark each line you met:\n  1. only line")
+(["ok", "", "pending", "m", "A\nB\nC\nD", "a", "main"]):("verdict: pending (a free answer is marked against the rubric, not decided by the checker)\nreference: m\nrubric, mark each line you met:\n  1. A\n  2. B\n  3. C\n  4. D")
+(["ok", "", "pending", "m", "A\nB\nC\nD\nE\nF\nG\nH", "a", "main"]):("verdict: pending (a free answer is marked against the rubric, not decided by the checker)\nreference: m\nrubric, mark each line you met:\n  1. A\n  2. B\n  3. C\n  4. D\n  5. E\n  6. F\n  7. G\n  8. H")
+
+command_route_text(string[] command_route, string[] command_shown) {
+  string command_route_words = "";
+  if (command_route[0] == "model") {
+    command_route_words = "graded by the model: " + command_route[1] + "\n  " + command_route[2] + "\n" + command_show_text(command_shown) + "next: gym hint for help (not in the warm-up), gym next to move on";
+  }
+  if (command_route[0] == "self") {
+    command_route_words = "the grader could not be used (" + command_route[2] + "), so mark your answer yourself, line by line:\n  gym selfgrade --met 1,0,... (one value per rubric line: 1 = met, 0 = not met)\nuntil you do, gym next is refused and the answer counts for nothing";
+  }
+} return string command_route_words;
+(["model", "correct", "all steps shown", ""], ["", "right, fast and confident (99%, 12 s): nothing to add; move on, and item difficulty for the concept goes up", ""]):("graded by the model: correct\n  all steps shown\npresentation: right, fast and confident (99%, 12 s): nothing to add; move on, and item difficulty for the concept goes up\nnext: gym hint for help (not in the warm-up), gym next to move on")
+(["self", "", "the model server answered -1"], ["", "", ""]):("the grader could not be used (the model server answered -1), so mark your answer yourself, line by line:\n  gym selfgrade --met 1,0,... (one value per rubric line: 1 = met, 0 = not met)\nuntil you do, gym next is refused and the answer counts for nothing")
+(["none", "", ""], ["", "", ""]):("")

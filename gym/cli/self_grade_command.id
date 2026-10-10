@@ -1,0 +1,40 @@
+// `gym selfgrade --met 1,0,1`: the learner marks a free answer against the rubric,
+// one 1 (met) or 0 (not met) per rubric line, when the grader could not be used.
+// The marks are logged as a graded line from the learner, which settles the
+// pending attempt: from then on it counts like any other, and the presentation
+// the policy chooses for the settled result is printed. Exit 0 done, 1 refused
+// (nothing waiting, wrong number of marks), 2 wrong options.
+
+command_self_grade_text(string[] command_result, string[] command_shown) {
+  int command_total = len(str_split(command_result[3], ","));
+  int command_zeros = len(str_split(command_result[3], "0")) - 1;
+  string command_self_grade_words = "self-grade logged for " + command_result[4] + ": " + (command_total - command_zeros) + " of " + command_total + " rubric lines met, so the answer counts as " + command_result[2] + "\n" + command_show_text(command_shown) + "next: gym hint for help (not in the warm-up), gym next to move on";
+} return string command_self_grade_words;
+(["ok", "", "correct", "1,1", "a", "R1\nR2"], ["", "", ""]):("self-grade logged for a: 2 of 2 rubric lines met, so the answer counts as correct\nnext: gym hint for help (not in the warm-up), gym next to move on")
+(["ok", "", "incorrect", "1,0,0", "b", "R1\nR2\nR3"], ["  worked: W", "wrong with low confidence (50%): the worked example in full, since this is the first miss on the concept", ""]):("self-grade logged for b: 1 of 3 rubric lines met, so the answer counts as incorrect\npresentation: wrong with low confidence (50%): the worked example in full, since this is the first miss on the concept\n  worked: W\nnext: gym hint for help (not in the warm-up), gym next to move on")
+(["ok", "", "incorrect", "0", "c", "R1"], ["", "", ""]):("self-grade logged for c: 0 of 1 rubric lines met, so the answer counts as incorrect\nnext: gym hint for help (not in the warm-up), gym next to move on")
+
+command_self_grade(string[] command_values, word command_clock) {
+  string command_refusal = command_check(command_values, command_clock, ["pack", "log", "met"]);
+  string[] command_out = ["2", command_refusal];
+  if (command_refusal != "") {
+    return command_out;
+  }
+} chain (string[] command_values, word command_clock) {
+  Pack command_book = pack_load(opt_get((import command_options), command_values, "pack"));
+  string command_log = opt_get((import command_options), command_values, "log");
+  string[] command_result = session_self_grade(command_book, command_log, command_now(command_values, command_clock), opt_get((import command_options), command_values, "met"));
+} chain (string[] command_values, word command_clock) {
+  Log_replay command_replayed = log_replay(command_log);
+  string[] command_shown = ["", "", ""];
+  command_out = ["1", "refused: " + command_result[1]];
+} chain (string[] command_values, word command_clock) {
+  if (command_result[0] == "ok") {
+    command_shown = session_show_item(command_book, command_replayed.events, command_result[4]);
+    command_out = ["0", command_self_grade_text(command_result, command_shown)];
+  }
+} return string[] command_out;
+given command_fixture_files("concept: c\nitem: a\nconcepts: c\nprompt: Q?\nanswer_kind: free\nanswer: model proof\nrubric: R1\nrubric: R2\n", "1\tsession_plan\ta\tmain\tr\n2\tattempt\ta\tmy proof\t90\tpending\t0\t7\tno\t\n") (["pack", "learner.log", "100", "", "", "", "", "", "", "1,0"], 5):(["0", "self-grade logged for a: 1 of 2 rubric lines met, so the answer counts as incorrect\nnext: gym hint for help (not in the warm-up), gym next to move on"]) then fs_read_text("learner.log"):("1\tsession_plan\ta\tmain\tr\n2\tattempt\ta\tmy proof\t90\tpending\t0\t7\tno\t\n100\tgraded\ta\tincorrect\tself\t1,0\n")
+given command_fixture_files("concept: c\nitem: a\nconcepts: c\nprompt: Q?\nanswer_kind: free\nanswer: model proof\nrubric: R1\nrubric: R2\n", "1\tsession_plan\ta\tmain\tr\n2\tattempt\ta\tmy proof\t90\tpending\t0\t7\tno\t\n") (["pack", "learner.log", "100", "", "", "", "", "", "", "1"], 5):(["1", "refused: the rubric has 2 line(s): pass --met with 2 values, each 1 (met) or 0 (not met), such as --met 1,1"])
+given command_fixture_files("concept: c\nitem: a\nconcepts: c\nprompt: Q?\nanswer_kind: free\nanswer: model proof\nrubric: R1\nrubric: R2\n", "1\tsession_plan\ta\tmain\tr\n") (["pack", "learner.log", "100", "", "", "", "", "", "", "1,1"], 5):(["1", "refused: no free answer is waiting to be graded: answer a free item with gym answer first"])
+given command_fixture_files("concept: c\nitem: a\nconcepts: c\nprompt: Q?\nanswer_kind: free\nanswer: model proof\nrubric: R1\nrubric: R2\n", "") (["pack", "learner.log", "100", "", "", "", "", "", "", ""], 5):(["2", "error: --met is required; gym --help lists every option"])

@@ -21,10 +21,10 @@ command_pack_check(string[] command_values, string[] command_rest) {
     command_out = ["1", str_join(command_problems, "\n")];
   }
 } return string[] command_out;
-given command_fixture_files("concept: c\nname: C\nsummary: S\nsource: Src\nitem: a\nconcepts: c\nkind: solve\nanswer_kind: fraction\ndifficulty: 1000\nverified: tool\nprompt: Q?\nanswer: 1/3\nrubric: R\nhint_nudge: n\nhint_question: q\nhint_step: s\nhint_example: e\n", "") (["", "", "", "", "", "", "", "", ""], ["pack", "check", "pack"]):(["0", "pack ok: concepts 1, items 1"])
-given command_fixture_files("concept: c\nname: C\nsummary: S\nsource: Src\nitem: a\nconcepts: c\nkind: solve\nanswer_kind: fraction\ndifficulty: 1000\nverified: tool\nprompt: Q?\nanswer: 1/3\nrubric: R\nhint_nudge: n\nhint_question: q\nhint_step: s\nhint_example: e\n", "") (["pack", "", "", "", "", "", "", "", ""], ["pack", "check"]):(["0", "pack ok: concepts 1, items 1"])
-given command_fixture_files("concept: c\nname: C\nsummary: S\nsource: Src\n", "") (["", "", "", "", "", "", "", "", ""], ["pack", "check", "pack"]):(["1", "pack: the pack has no 'item:' blocks"])
-given command_fixture_files("item: a\n", "") (["", "", "", "", "", "", "", "", ""], ["pack", "check"]):(["2", "error: say which pack: gym pack check DIR"])
+given command_fixture_files("concept: c\nname: C\nsummary: S\nsource: Src\nitem: a\nconcepts: c\nkind: solve\nanswer_kind: fraction\ndifficulty: 1000\nverified: tool\nprompt: Q?\nanswer: 1/3\nrubric: R\nhint_nudge: n\nhint_question: q\nhint_step: s\nhint_example: e\n", "") (["", "", "", "", "", "", "", "", "", ""], ["pack", "check", "pack"]):(["0", "pack ok: concepts 1, items 1"])
+given command_fixture_files("concept: c\nname: C\nsummary: S\nsource: Src\nitem: a\nconcepts: c\nkind: solve\nanswer_kind: fraction\ndifficulty: 1000\nverified: tool\nprompt: Q?\nanswer: 1/3\nrubric: R\nhint_nudge: n\nhint_question: q\nhint_step: s\nhint_example: e\n", "") (["pack", "", "", "", "", "", "", "", "", ""], ["pack", "check"]):(["0", "pack ok: concepts 1, items 1"])
+given command_fixture_files("concept: c\nname: C\nsummary: S\nsource: Src\n", "") (["", "", "", "", "", "", "", "", "", ""], ["pack", "check", "pack"]):(["1", "pack: the pack has no 'item:' blocks"])
+given command_fixture_files("item: a\n", "") (["", "", "", "", "", "", "", "", "", ""], ["pack", "check"]):(["2", "error: say which pack: gym pack check DIR"])
 
 command_grade(string[] command_values, word command_clock) {
   string command_refusal = command_check(command_values, command_clock, ["pack", "item", "text"]);
@@ -44,5 +44,5 @@ command_grade(string[] command_values, word command_clock) {
     command_out[0] = "1";
   }
 } return string[] command_out;
-given command_fixture_files("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "") (["pack", "", "", "", "3/8", "", "", "http://127.0.0.1:1", "x"], 5):(["1", "status: unreachable\nreason: the model server answered -1\nverdict: \nright: \nflaw: \nnext_step: \nerror_type: \nconfidence: "])
-given command_fixture_files("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "") (["pack", "", "", "", "3/8", "", "", "http://127.0.0.1:1", ""], 5):(["2", "error: --item is required; gym --help lists every option"])
+given command_fixture_files("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "") (["pack", "", "", "", "3/8", "", "", "http://127.0.0.1:1", "x", ""], 5):(["1", "status: unreachable\nreason: the model server answered -1\nverdict: \nright: \nflaw: \nnext_step: \nerror_type: \nconfidence: "])
+given command_fixture_files("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "") (["pack", "", "", "", "3/8", "", "", "http://127.0.0.1:1", "", ""], 5):(["2", "error: --item is required; gym --help lists every option"])

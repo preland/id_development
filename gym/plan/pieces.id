@@ -36,7 +36,12 @@ plan_held_flag(Pack plan_pack, int plan_block) {
   if (pack_field(plan_pack, plan_block, "transfer") == "yes") {
     plan_held = 1;
   }
+  if (pack_field(plan_pack, plan_block, "kind") == "synthesis") {
+    plan_held = 2;
+  }
 } return int plan_held;
 given pack_fixture_parse("item: i\ntransfer: yes\n") ((import pack_fixture_book), 0):(1)
+given pack_fixture_parse("item: i\nkind: synthesis\n") ((import pack_fixture_book), 0):(2)
+given pack_fixture_parse("item: i\nkind: solve\ntransfer: no\n") ((import pack_fixture_book), 0):(0)
 given pack_fixture_parse("item: i\ntransfer: no\nitem: j\n") ((import pack_fixture_book), 0):(0)
 given pack_fixture_parse("item: i\ntransfer: no\nitem: j\n") ((import pack_fixture_book), 1):(0)

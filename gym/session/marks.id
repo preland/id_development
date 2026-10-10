@@ -1,0 +1,52 @@
+// What a learner says when marking a free answer against the rubric: one 1 (the
+// line was met) or 0 (it was not) for every rubric line, separated by commas,
+// spaces allowed ("1, 0, 1"). session_met_marks answers the marks in a fixed
+// spelling ("1,0,1"), or "" when the count is not the rubric's or a mark is not
+// 0 or 1, so a slip is refused and never logged as a grade. session_verdict_of
+// turns marks into the verdict the log stores: correct only when every line was
+// met.
+
+session_met_marks(string session_met_text, int session_total) {
+  string[] session_pieces = str_split(str_replace(session_met_text, " ", ""), ",");
+  int session_at = 0;
+  int session_wrong = len(session_pieces) != session_total;
+} chain (string session_met_text, int session_total) {
+  while (session_at < len(session_pieces)) {
+    session_wrong = session_wrong || (session_pieces[session_at] != "0" && session_pieces[session_at] != "1");
+    session_at = session_at + 1;
+  }
+  string session_spelled = "";
+  if (session_wrong == 0) {
+    session_spelled = str_join(session_pieces, ",");
+  }
+} return string session_spelled;
+("1,0,1", 3):("1,0,1")
+(" 1 , 1 ", 2):("1,1")
+("1,0", 3):("")
+("1,0,1", 2):("")
+("1,2", 2):("")
+("yes", 1):("")
+("", 1):("")
+("1", 1):("1")
+("1,1,1,1,1,1,1,1", 8):("1,1,1,1,1,1,1,1")[time:O(n), mem:O(n)]
+("1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1", 16):("1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1")[time:O(n), mem:O(n)]
+
+session_verdict_of(string session_marks_spelled) {
+  string session_verdict_found = "incorrect";
+  if (session_marks_spelled != "" && str_find(session_marks_spelled, "0") < 0) {
+    session_verdict_found = "correct";
+  }
+} return string session_verdict_found;
+("1,1,1"):("correct")
+("1,0,1"):("incorrect")
+("0"):("incorrect")
+("1"):("correct")
+(""):("incorrect")
+
+session_met_example(int session_total) {
+  string session_example = str_repeat("1,", fx_max(session_total - 1, 0)) + "1";
+} return string session_example;
+(3):("1,1,1")
+(1):("1")
+(0):("1")
+(5):("1,1,1,1,1")

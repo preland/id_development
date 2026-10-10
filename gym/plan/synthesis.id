@@ -1,0 +1,37 @@
+// Synthesis items combine concepts from different parts of the source into one
+// more general idea, so they are offered only to a learner who already owns the
+// parts: an item unlocks when every concept it lists has predicted recall of at
+// least plan_synthesis_recall thousandths at the planning time and at least one
+// answer on that concept that was right with no hint and no tap-out (the "clean"
+// count of tally.id). An item listing fewer than two concepts never unlocks.
+// plan_concept_solid says it for one concept and plan_synthesis_ready for one
+// item. The planner book gives synthesis items no practice or transfer slot
+// (their links are marked 2, see pieces.id), so only this rule can offer them.
+
+plan_concept_solid(Plan_book plan_book, Plan_learner plan_learner, Log_events plan_events, word plan_now, int plan_concept_number) {
+  int[] plan_counts = plan_tally_until(plan_book, plan_events, plan_concept_number, len(plan_events.kinds));
+  int plan_recall_now = plan_recall(plan_learner, plan_concept_number, plan_now) * 1000.0;
+  int plan_solid = plan_recall_now >= (import plan_synthesis_recall) && plan_counts[(import plan_tally_clean)] >= 1;
+} return int plan_solid;
+(Plan_book(Plan_catalog(["c"], ["i"], [1000]), Plan_links([0], [0], [0]), Plan_needs([], [])), Plan_learner(Plan_memory([5.0], [10.0], [0]), Plan_skill([1000.0], [1]), Plan_shelf([1000.0], [1], [3])), Log_events([0], ["attempt"], [["0", "attempt", "i", "x", "70", "correct", "0", "5", "no", ""]]), 0, 0):(1)
+(Plan_book(Plan_catalog(["c"], ["i"], [1000]), Plan_links([0], [0], [0]), Plan_needs([], [])), Plan_learner(Plan_memory([5.0], [10.0], [0]), Plan_skill([1000.0], [1]), Plan_shelf([1000.0], [1], [3])), Log_events([0], ["attempt"], [["0", "attempt", "i", "x", "70", "correct", "1", "5", "no", ""]]), 0, 0):(0)
+(Plan_book(Plan_catalog(["c"], ["i"], [1000]), Plan_links([0], [0], [0]), Plan_needs([], [])), Plan_learner(Plan_memory([5.0], [10.0], [0]), Plan_skill([1000.0], [1]), Plan_shelf([1000.0], [1], [3])), Log_events([0], ["attempt"], [["0", "attempt", "i", "x", "70", "correct", "0", "5", "no", ""]]), 1728000000, 0):(0)
+(Plan_book(Plan_catalog(["c"], ["i"], [1000]), Plan_links([0], [0], [0]), Plan_needs([], [])), Plan_learner(Plan_memory([5.0], [10.0], [0]), Plan_skill([1000.0], [1]), Plan_shelf([1000.0], [1], [3])), Log_events([0], ["attempt"], [["0", "attempt", "i", "x", "70", "incorrect", "0", "5", "no", ""]]), 0, 0):(0)
+
+plan_synthesis_ready(Plan_book plan_book, Plan_learner plan_learner, Log_events plan_events, word plan_now, int plan_item_number) {
+  int plan_linked_total = 0;
+  int plan_solid_total = 0;
+  int plan_at = 0;
+} chain (Plan_book plan_book, Plan_learner plan_learner, Log_events plan_events, word plan_now, int plan_item_number) {
+  while (plan_at < len(plan_book.links.link_items)) {
+    if (plan_book.links.link_items[plan_at] == plan_item_number) {
+      plan_linked_total = plan_linked_total + 1;
+      plan_solid_total = plan_solid_total + plan_concept_solid(plan_book, plan_learner, plan_events, plan_now, plan_book.links.link_concepts[plan_at]);
+    }
+    plan_at = plan_at + 1;
+  }
+  int plan_ready = plan_linked_total >= 2 && plan_solid_total == plan_linked_total;
+} return int plan_ready;
+(Plan_book(Plan_catalog(["c", "d"], ["s"], [1000]), Plan_links([0, 0], [0, 1], [2, 2]), Plan_needs([], [])), Plan_learner(Plan_memory([5.0, 5.0], [10.0, 10.0], [0, 0]), Plan_skill([1000.0, 1000.0], [1, 1]), Plan_shelf([1000.0], [0], [0])), Log_events([0, 0], ["attempt", "attempt"], [["0", "attempt", "s", "x", "70", "correct", "0", "5", "no", ""], ["0", "attempt", "s", "x", "70", "correct", "0", "5", "no", ""]]), 0, 0):(1)
+(Plan_book(Plan_catalog(["c", "d"], ["s"], [1000]), Plan_links([0, 0], [0, 1], [2, 2]), Plan_needs([], [])), Plan_learner(Plan_memory([5.0, 0.0], [10.0, 0.0], [0, -1]), Plan_skill([1000.0, 1000.0], [1, 0]), Plan_shelf([1000.0], [0], [0])), Log_events([0], ["attempt"], [["0", "attempt", "s", "x", "70", "correct", "0", "5", "no", ""]]), 0, 0):(0)
+(Plan_book(Plan_catalog(["c"], ["s"], [1000]), Plan_links([0], [0], [2]), Plan_needs([], [])), Plan_learner(Plan_memory([5.0], [10.0], [0]), Plan_skill([1000.0], [1]), Plan_shelf([1000.0], [0], [0])), Log_events([0], ["attempt"], [["0", "attempt", "s", "x", "70", "correct", "0", "5", "no", ""]]), 0, 0):(0)

@@ -68,7 +68,7 @@ score_table(Log_events score_events, Pack score_book) {
 } chain (Log_events score_events, Pack score_book) {
   int score_at = 0;
   while (score_at < len(score_events.kinds)) {
-    if (score_events.kinds[score_at] == "attempt") {
+    if (score_events.kinds[score_at] == "attempt" && log_text_at(score_events, score_at, (import log_slot_verdict)) != "pending") {
       score_append(score_made, score_events, score_book, score_at, score_seen_items, score_seen_times);
     }
     score_at = score_at + 1;
@@ -77,3 +77,4 @@ score_table(Log_events score_events, Pack score_book) {
 given pack_fixture_parse("item: i1\nconcepts: ca, cb\ntransfer: yes\n") (Log_events([], [], []), (import pack_fixture_book)):(Score_table(Score_moments([], [], []), Score_labels([], [], []), Score_marks([], [], Score_aid([], [], []))))
 given pack_fixture_parse("item: i1\nconcepts: ca, cb\ntransfer: yes\n") (Log_events([1, 2, 3], ["session_start", "hint_shown", "attempt"], [["1", "session_start"], ["2", "hint_shown", "i1", "1"], ["3", "attempt", "i1", "a", "50", "correct", "2", "5", "no", "correct"]]), (import pack_fixture_book)):(Score_table(Score_moments([3], [-1], [5]), Score_labels(["i1"], [",ca,cb,"], [1]), Score_marks([50], [1], Score_aid([2], [0], [0]))))
 given pack_fixture_parse("item: i1\nconcepts: ca, cb\ntransfer: yes\n") (Log_events([1000, 86401000, 86401000, 5000, 86045000, 100], ["attempt", "attempt", "attempt", "attempt", "attempt", "attempt"], [["1000", "attempt", "i1", "a", "50", "correct", "0", "7", "no", ""], ["86401000", "attempt", "i1", "a", "70", "incorrect", "1", "8", "no", ""], ["86401000", "attempt", "i1", "a", "90", "correct", "0", "9", "yes", ""], ["5000", "attempt", "i2", "b", "99", "unparseable", "4", "3", "no", ""], ["86045000", "attempt", "i2", "b", "50", "correct", "0", "1", "no", ""], ["100", "attempt", "i2", "b", "50", "incorrect", "0", "1", "no", ""]]), (import pack_fixture_book)):(Score_table(Score_moments([1000, 86401000, 86401000, 5000, 86045000, 100], [-1, 86400000, 0, -1, 86040000, 0], [7, 8, 9, 3, 1, 1]), Score_labels(["i1", "i1", "i1", "i2", "i2", "i2"], [",ca,cb,", ",ca,cb,", ",ca,cb,", ",", ",", ","], [1, 1, 1, 0, 0, 0]), Score_marks([50, 70, 90, 99, 50, 50], [1, 0, 0, 0, 1, 0], Score_aid([0, 1, 0, 4, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0]))))
+given pack_fixture_parse("item: i1\nconcepts: ca, cb\ntransfer: yes\n") (Log_events([1, 2], ["attempt", "attempt"], [["1", "attempt", "i1", "a", "50", "pending", "0", "5", "no", ""], ["2", "attempt", "i1", "a", "50", "correct", "0", "5", "no", ""]]), (import pack_fixture_book)):(Score_table(Score_moments([2], [-1], [5]), Score_labels(["i1"], [",ca,cb,"], [1]), Score_marks([50], [1], Score_aid([0], [0], [0]))))

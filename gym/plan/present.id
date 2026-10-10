@@ -1,0 +1,56 @@
+// Which presentation of a concept to show with a result, from how the learner
+// behaved on that attempt and how often the concept was missed before it. Pure:
+// the answer is [kinds, mode, reason], where kinds is a comma list of
+// presentation names (empty for "show nothing"), mode is "full" or "partial"
+// (a faded worked example leaves its last steps to the learner) and reason is the
+// line `gym why` prints.
+//   wrong and sure of it (confidence 90 or more) ..... a non-example, then the definition
+//   wrong, not sure ................................... a worked example: full the first miss, faded after
+//   right, but with hints or slow ..................... another example
+//   right, fast and confident, no hints ............... nothing; move on, difficulty goes up
+//   right otherwise ................................... nothing added
+// The thresholds are knobs in conf.id (plan_slow_seconds, plan_fast_seconds,
+// score_confident_level). A confident error is the cheapest moment to correct a
+// belief, so it gets the contrast; a hesitant error needs support, so it gets
+// the scaffold, and the scaffold is taken away as the misses repeat.
+
+plan_present_choice(string plan_verdict, int plan_confidence, int plan_hints, int plan_seconds, int plan_misses_before) {
+  string[] plan_choice = ["", "full", "right and unassisted: nothing to add"];
+  int plan_wrong = plan_verdict != "correct";
+  int plan_sure = plan_wrong == 1 && plan_confidence >= (import score_confident_level);
+} chain (string plan_verdict, int plan_confidence, int plan_hints, int plan_seconds, int plan_misses_before) {
+  string plan_mode = (import plan_present_modes)[plan_misses_before > 0];
+  int plan_slow = plan_wrong == 0 && (plan_hints > 0 || plan_seconds > (import plan_slow_seconds));
+  int plan_fluent = plan_wrong == 0 && plan_hints == 0 && plan_seconds <= (import plan_fast_seconds) && plan_confidence >= (import score_confident_level);
+} chain (string plan_verdict, int plan_confidence, int plan_hints, int plan_seconds, int plan_misses_before) {
+  if (plan_sure == 1) {
+    plan_choice = ["non_example,definition", "full", "confident error (" + plan_confidence + "% sure, and wrong): a non-example aimed at the belief behind it, then the definition"];
+  }
+  if (plan_wrong == 1 && plan_sure == 0 && plan_misses_before == 0) {
+    plan_choice = ["worked", plan_mode, "wrong with low confidence (" + plan_confidence + "%): the worked example in full, since this is the first miss on the concept"];
+  }
+  if (plan_wrong == 1 && plan_sure == 0 && plan_misses_before > 0) {
+    plan_choice = ["worked", plan_mode, "wrong with low confidence (" + plan_confidence + "%) after " + plan_misses_before + " earlier miss(es) on the concept: the worked example faded, its last steps left to you"];
+  }
+} chain (string plan_verdict, int plan_confidence, int plan_hints, int plan_seconds, int plan_misses_before) {
+  if (plan_slow == 1 && plan_hints > 0) {
+    plan_choice = ["example", "full", "right, but with " + plan_hints + " hint(s): another example of the idea"];
+  }
+  if (plan_slow == 1 && plan_hints == 0) {
+    plan_choice = ["example", "full", "right, but slow (" + plan_seconds + " s): another example of the idea"];
+  }
+  if (plan_fluent == 1) {
+    plan_choice = ["", "full", "right, fast and confident (" + plan_confidence + "%, " + plan_seconds + " s): nothing to add; move on, and item difficulty for the concept goes up"];
+  }
+} return string[] plan_choice;
+("incorrect", 99, 0, 20, 0):(["non_example,definition", "full", "confident error (99% sure, and wrong): a non-example aimed at the belief behind it, then the definition"])
+("incorrect", 90, 2, 20, 3):(["non_example,definition", "full", "confident error (90% sure, and wrong): a non-example aimed at the belief behind it, then the definition"])
+("incorrect", 70, 0, 20, 0):(["worked", "full", "wrong with low confidence (70%): the worked example in full, since this is the first miss on the concept"])
+("incorrect", 50, 0, 20, 2):(["worked", "partial", "wrong with low confidence (50%) after 2 earlier miss(es) on the concept: the worked example faded, its last steps left to you"])
+("correct", 70, 2, 20, 0):(["example", "full", "right, but with 2 hint(s): another example of the idea"])
+("correct", 99, 0, 120, 0):(["example", "full", "right, but slow (120 s): another example of the idea"])
+("correct", 99, 0, 12, 0):(["", "full", "right, fast and confident (99%, 12 s): nothing to add; move on, and item difficulty for the concept goes up"])
+("correct", 90, 0, 30, 0):(["", "full", "right, fast and confident (90%, 30 s): nothing to add; move on, and item difficulty for the concept goes up"])
+("correct", 70, 0, 12, 0):(["", "full", "right and unassisted: nothing to add"])
+("correct", 99, 0, 60, 1):(["", "full", "right and unassisted: nothing to add"])
+("unparseable", 50, 0, 5, 0):(["worked", "full", "wrong with low confidence (50%): the worked example in full, since this is the first miss on the concept"])

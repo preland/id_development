@@ -1,0 +1,41 @@
+// Which brackets enclose a typed text (1 a set, 2 a tuple, 0 neither), and how canonical members are put in a fixed order with repeats dropped, which is what makes two sets equal whatever order or repetition the learner typed.
+
+check_set_shape(string check_text) {
+  int check_shape = 0;
+  int check_last = len(check_text) - 1;
+  if (len(check_text) >= 2 && str_sub(check_text, 0, 1) == "{" && str_sub(check_text, check_last, 1) == "}") {
+    check_shape = 1;
+  }
+} chain (string check_text) {
+  if (len(check_text) >= 2 && str_sub(check_text, 0, 1) == "(" && str_sub(check_text, check_last, 1) == ")") {
+    check_shape = 2;
+  }
+} return int check_shape;
+("{1, 2}"):(1)
+("{}"):(1)
+("(1, 2)"):(2)
+("()"):(2)
+("12"):(0)
+("{1, 2"):(0)
+("{"):(0)
+(""):(0)
+
+check_distinct_sorted(string[] check_members) {
+  int[] check_order = ord_strs(check_members);
+  string[] check_ranked = ord_by_strs(check_members, check_order);
+  string[] check_unique = [];
+} chain (string[] check_members) {
+  int check_at = 0;
+  while (check_at < len(check_ranked)) {
+    if (check_at == 0 || check_ranked[check_at] != check_ranked[check_at - 1]) {
+      push(check_unique, check_ranked[check_at]);
+    }
+    check_at = check_at + 1;
+  }
+} return string[] check_unique;
+(["b", "a", "b"]):(["a", "b"])
+([]):([])
+(["3", "1", "2", "1", "3"]):(["1", "2", "3"])
+(["x"]):(["x"])
+(["d", "c", "b", "a"]):(["a", "b", "c", "d"])[time:O(n log n), mem:O(n)]
+(["d", "c", "b", "a", "d", "c", "b", "a", "d", "c", "b", "a", "d", "c", "b", "a"]):(["a", "b", "c", "d"])[time:O(n log n), mem:O(n)]

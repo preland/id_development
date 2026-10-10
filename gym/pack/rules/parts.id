@@ -1,0 +1,47 @@
+// The extra rules of a version 2 pack (FORMAT_V2.md). A pack is version 2 when
+// any of its concepts says which part of the source it comes from (`part:`); in
+// such a pack every concept must carry the four presentations the engine chooses
+// between (intuition, definition, example, non-example) and a whole-number part,
+// so a learner who needs another presentation never finds the shelf empty. A
+// version 1 pack, with no `part:` anywhere, is not held to any of this.
+
+pack_has_parts(Pack pack_book) {
+  int[] pack_concept_blocks = pack_blocks_of(pack_book, "concept");
+  int pack_at = 0;
+  int pack_marked = 0;
+} chain (Pack pack_book) {
+  while (pack_at < len(pack_concept_blocks)) {
+    if (pack_field(pack_book, pack_concept_blocks[pack_at], "part") != "") {
+      pack_marked = 1;
+    }
+    pack_at = pack_at + 1;
+  }
+} return int pack_marked;
+given pack_fixture_parse("concept: a\nname: A\nconcept: b\npart: 2\n") ((import pack_fixture_book)):(1)
+given pack_fixture_parse("concept: a\nname: A\nitem: i\npart: 2\n") ((import pack_fixture_book)):(0)
+given pack_fixture_parse("") ((import pack_fixture_book)):(0)
+
+pack_part_gaps(Pack pack_book, int pack_block) {
+  string[] pack_found_problems = [];
+  string pack_who = "concept '" + pack_id_of(pack_book, pack_block) + "'";
+  string[] pack_needed = (import pack_part_required);
+} chain (Pack pack_book, int pack_block) {
+  int pack_at = 0;
+  int pack_has_parts_now = pack_has_parts(pack_book);
+  while (pack_has_parts_now == 1 && pack_at < len(pack_needed)) {
+    if (pack_field(pack_book, pack_block, pack_needed[pack_at]) == "") {
+      push(pack_found_problems, pack_say(pack_book, pack_block, pack_needed[pack_at], pack_who + " has no '" + pack_needed[pack_at] + "' (missing or blank); a concept in a v2 pack needs a part, an intuition, a definition, an example and a non-example"));
+    }
+    pack_at = pack_at + 1;
+  }
+} chain (Pack pack_book, int pack_block) {
+  string pack_part_text = pack_field(pack_book, pack_block, "part");
+  if (pack_part_text != "" && check_digit_total(pack_part_text) != len(pack_part_text)) {
+    push(pack_found_problems, pack_say(pack_book, pack_block, "part", pack_who + " has part '" + pack_part_text + "'; a part is a whole number"));
+  }
+} return string[] pack_found_problems;
+given pack_fixture_parse("concept: a\npart: 1\nshow_intuition: i\nshow_definition: d\nshow_example: e\nshow_non_example: n\n") ((import pack_fixture_book), 0):([])
+given pack_fixture_parse("concept: a\npart: 1\nshow_intuition: i\n") ((import pack_fixture_book), 0):(["t.txt:1: concept 'a' has no 'show_definition' (missing or blank); a concept in a v2 pack needs a part, an intuition, a definition, an example and a non-example", "t.txt:1: concept 'a' has no 'show_example' (missing or blank); a concept in a v2 pack needs a part, an intuition, a definition, an example and a non-example", "t.txt:1: concept 'a' has no 'show_non_example' (missing or blank); a concept in a v2 pack needs a part, an intuition, a definition, an example and a non-example"])
+given pack_fixture_parse("concept: a\npart: 1\nshow_intuition: i\nshow_definition: d\nshow_example: e\nshow_non_example: n\nconcept: b\nname: B\n") ((import pack_fixture_book), 1):(["t.txt:7: concept 'b' has no 'part' (missing or blank); a concept in a v2 pack needs a part, an intuition, a definition, an example and a non-example", "t.txt:7: concept 'b' has no 'show_intuition' (missing or blank); a concept in a v2 pack needs a part, an intuition, a definition, an example and a non-example", "t.txt:7: concept 'b' has no 'show_definition' (missing or blank); a concept in a v2 pack needs a part, an intuition, a definition, an example and a non-example", "t.txt:7: concept 'b' has no 'show_example' (missing or blank); a concept in a v2 pack needs a part, an intuition, a definition, an example and a non-example", "t.txt:7: concept 'b' has no 'show_non_example' (missing or blank); a concept in a v2 pack needs a part, an intuition, a definition, an example and a non-example"])
+given pack_fixture_parse("concept: a\nname: A\n") ((import pack_fixture_book), 0):([])
+given pack_fixture_parse("concept: a\npart: three\nshow_intuition: i\nshow_definition: d\nshow_example: e\nshow_non_example: n\n") ((import pack_fixture_book), 0):(["t.txt:2: concept 'a' has part 'three'; a part is a whole number"])

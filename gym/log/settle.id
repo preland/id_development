@@ -1,0 +1,43 @@
+// Settling a pending attempt when the log is replayed. A free answer is logged as
+// an attempt with the verdict pending; the grader's or the learner's verdict
+// arrives later as a `graded` line. The file is never rewritten: the replay copies
+// the graded verdict into the latest pending attempt at the same item, in memory,
+// so every reader of the events (planner, scoreboard, cooldown) sees one attempt
+// with its final verdict. log_pending_index finds that attempt, scanning back
+// from the position given, and log_settle does the copy when the newest event is
+// a graded line.
+
+log_pending_index(Log_events log_events_in, string log_item_wanted, int log_before) {
+  int log_at = log_before - 1;
+  int log_none = 0 - 1;
+  while (log_at >= 0) {
+    if (log_events_in.kinds[log_at] == "attempt" && log_events_in.fields[log_at][(import log_slot_item)] == log_item_wanted && log_events_in.fields[log_at][(import log_slot_verdict)] == "pending") {
+      return log_at;
+    }
+    log_at = log_at - 1;
+  }
+} return int log_none;
+(Log_events([1, 2, 3], ["attempt", "attempt", "graded"], [["1", "attempt", "i", "x", "70", "pending", "0", "5", "no", ""], ["2", "attempt", "j", "y", "70", "pending", "0", "5", "no", ""], ["3", "graded", "i", "correct", "self", "1"]]), "i", 2):(0)
+(Log_events([1, 2, 3], ["attempt", "attempt", "graded"], [["1", "attempt", "i", "x", "70", "pending", "0", "5", "no", ""], ["2", "attempt", "j", "y", "70", "pending", "0", "5", "no", ""], ["3", "graded", "i", "correct", "self", "1"]]), "j", 2):(1)
+(Log_events([1, 2], ["attempt", "attempt"], [["1", "attempt", "i", "x", "70", "pending", "0", "5", "no", ""], ["2", "attempt", "i", "y", "70", "correct", "0", "5", "no", ""]]), "i", 2):(0)
+(Log_events([1, 2], ["attempt", "attempt"], [["1", "attempt", "i", "x", "70", "pending", "0", "5", "no", ""], ["2", "attempt", "i", "y", "70", "pending", "0", "5", "no", ""]]), "i", 1):(0)
+(Log_events([1], ["attempt"], [["1", "attempt", "i", "x", "70", "incorrect", "0", "5", "no", ""]]), "i", 1):(-1)
+(Log_events([], [], []), "i", 0):(-1)
+
+log_settle(Log_events log_events_in) {
+  int log_last = len(log_events_in.kinds) - 1;
+  if (log_last < 0 || log_events_in.kinds[log_last] != "graded") {
+    return;
+  }
+  string[] log_graded_row = log_events_in.fields[log_last];
+} chain (Log_events log_events_in) {
+  int log_target = log_pending_index(log_events_in, log_graded_row[(import log_slot_item)], log_last);
+  if (log_target >= 0) {
+    string[] log_target_row = log_events_in.fields[log_target];
+    log_target_row[(import log_slot_verdict)] = log_graded_row[(import log_slot_graded_verdict)];
+  }
+} return void;
+(Log_events([1, 2], ["attempt", "graded"], [["1", "attempt", "i", "x", "70", "pending", "0", "5", "no", ""], ["2", "graded", "i", "incorrect", "self", "1,0"]])):(Log_events([1, 2], ["attempt", "graded"], [["1", "attempt", "i", "x", "70", "incorrect", "0", "5", "no", ""], ["2", "graded", "i", "incorrect", "self", "1,0"]]))
+(Log_events([1, 2, 3], ["attempt", "attempt", "graded"], [["1", "attempt", "i", "x", "70", "pending", "0", "5", "no", ""], ["2", "attempt", "j", "y", "50", "pending", "0", "5", "no", ""], ["3", "graded", "j", "correct", "model", ""]])):(Log_events([1, 2, 3], ["attempt", "attempt", "graded"], [["1", "attempt", "i", "x", "70", "pending", "0", "5", "no", ""], ["2", "attempt", "j", "y", "50", "correct", "0", "5", "no", ""], ["3", "graded", "j", "correct", "model", ""]]))
+(Log_events([1, 2], ["attempt", "session_end"], [["1", "attempt", "i", "x", "70", "pending", "0", "5", "no", ""], ["2", "session_end"]])):(Log_events([1, 2], ["attempt", "session_end"], [["1", "attempt", "i", "x", "70", "pending", "0", "5", "no", ""], ["2", "session_end"]]))
+(Log_events([], [], [])):(Log_events([], [], []))

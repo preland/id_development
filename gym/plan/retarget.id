@@ -1,0 +1,62 @@
+// Fitting the kind and the difficulty of each main-set item to the learner. The
+// planner picks an item per concept by how well its difficulty fits (fit_of.id);
+// this step, run on the finished plan of a version 2 pack, may swap an item for
+// another practice item of the same concept that suits the learner's behaviour
+// better: its kind ranks higher for the learner's level on the concept
+// (kinds.id), and its difficulty lies within plan_kind_slack of the item it
+// replaces, raised by plan_difficulty_step when the learner's latest attempt on
+// the concept was fluent (clean, confident, quick). The score of a candidate is
+// its kind rank times plan_kind_weight plus its distance from the target
+// difficulty; the lowest wins and the item already planned wins a tie, so a swap
+// happens only for a reason, and the reason is added to the row (row.id).
+// plan_candidate_score scores one item, plan_link_score one link of the book
+// (answering plan_item_none when the link is not an eligible alternative: another
+// concept, a held-out item, or an item already in the session), and
+// plan_first_concept finds the concept an item practises first.
+
+plan_first_concept(Plan_book plan_book, int plan_item_number) {
+  int plan_at = 0;
+  int plan_first = 0 - 1;
+  while (plan_at < len(plan_book.links.link_items) && plan_first < 0) {
+    if (plan_book.links.link_items[plan_at] == plan_item_number) {
+      plan_first = plan_book.links.link_concepts[plan_at];
+    }
+    plan_at = plan_at + 1;
+  }
+} return int plan_first;
+(Plan_book(Plan_catalog(["c", "d"], ["i", "j"], [1000, 1000]), Plan_links([0, 1, 1], [1, 0, 1], [0, 0, 0]), Plan_needs([], [])), 0):(1)
+(Plan_book(Plan_catalog(["c", "d"], ["i", "j"], [1000, 1000]), Plan_links([0, 1, 1], [1, 0, 1], [0, 0, 0]), Plan_needs([], [])), 1):(0)
+(Plan_book(Plan_catalog(["c", "d"], ["i", "j"], [1000, 1000]), Plan_links([0, 1, 1], [1, 0, 1], [0, 0, 0]), Plan_needs([], [])), 5):(-1)
+(Plan_book(Plan_catalog([], [], []), Plan_links([], [], []), Plan_needs([], [])), 0):(-1)
+
+plan_candidate_score(Plan_book plan_book, Pack plan_pack, int plan_item_number, string plan_level, int plan_target) {
+  int plan_candidate_total = (import plan_item_none);
+  int plan_block = pack_find(plan_pack, "item", plan_book.catalog.items[plan_item_number]);
+  int plan_base = plan_book.catalog.bases[plan_item_number];
+} chain (Plan_book plan_book, Pack plan_pack, int plan_item_number, string plan_level, int plan_target) {
+  int plan_distance = fx_max(plan_base - plan_target, plan_target - plan_base);
+  string plan_candidate_kind = pack_field(plan_pack, plan_block, "kind");
+  if (plan_distance <= (import plan_kind_slack)) {
+    plan_candidate_total = plan_kind_rank(plan_level, plan_candidate_kind) * (import plan_kind_weight) + plan_distance;
+  }
+} return int plan_candidate_total;
+given pack_fixture_parse("concept: c\nitem: p1\nconcepts: c\nkind: proof\ndifficulty: 1000\nitem: e1\nconcepts: c\nkind: error_hunt\ndifficulty: 1000\nitem: s1\nconcepts: c\nkind: solve\ndifficulty: 1100\n") (Plan_book(Plan_catalog(["c"], ["p1", "e1", "s1"], [1000, 1000, 1100]), Plan_links([0, 1, 2], [0, 0, 0], [0, 0, 0]), Plan_needs([], [])), (import pack_fixture_book), 0, "novice", 1000):(1600)
+given pack_fixture_parse("concept: c\nitem: p1\nconcepts: c\nkind: proof\ndifficulty: 1000\nitem: e1\nconcepts: c\nkind: error_hunt\ndifficulty: 1000\nitem: s1\nconcepts: c\nkind: solve\ndifficulty: 1100\n") (Plan_book(Plan_catalog(["c"], ["p1", "e1", "s1"], [1000, 1000, 1100]), Plan_links([0, 1, 2], [0, 0, 0], [0, 0, 0]), Plan_needs([], [])), (import pack_fixture_book), 1, "novice", 1000):(0)
+given pack_fixture_parse("concept: c\nitem: p1\nconcepts: c\nkind: proof\ndifficulty: 1000\nitem: e1\nconcepts: c\nkind: error_hunt\ndifficulty: 1000\nitem: s1\nconcepts: c\nkind: solve\ndifficulty: 1100\n") (Plan_book(Plan_catalog(["c"], ["p1", "e1", "s1"], [1000, 1000, 1100]), Plan_links([0, 1, 2], [0, 0, 0], [0, 0, 0]), Plan_needs([], [])), (import pack_fixture_book), 2, "strong", 1000):(900)
+given pack_fixture_parse("concept: c\nitem: p1\nconcepts: c\nkind: proof\ndifficulty: 1000\nitem: e1\nconcepts: c\nkind: error_hunt\ndifficulty: 1000\nitem: s1\nconcepts: c\nkind: solve\ndifficulty: 1100\n") (Plan_book(Plan_catalog(["c"], ["p1", "e1", "s1"], [1000, 1000, 1100]), Plan_links([0, 1, 2], [0, 0, 0], [0, 0, 0]), Plan_needs([], [])), (import pack_fixture_book), 2, "strong", 1501):(1000000)
+given pack_fixture_parse("concept: c\nitem: p1\nconcepts: c\nkind: proof\ndifficulty: 1000\nitem: e1\nconcepts: c\nkind: error_hunt\ndifficulty: 1000\nitem: s1\nconcepts: c\nkind: solve\ndifficulty: 1100\n") (Plan_book(Plan_catalog(["c"], ["p1", "e1", "s1"], [1000, 1000, 1100]), Plan_links([0, 1, 2], [0, 0, 0], [0, 0, 0]), Plan_needs([], [])), (import pack_fixture_book), 0, "strong", 1400):(400)
+
+plan_link_score(Plan_book plan_book, Pack plan_pack, Plan_session plan_session, int plan_concept_number, string plan_level, int plan_target, int plan_link_number) {
+  int plan_item_here = plan_book.links.link_items[plan_link_number];
+  int plan_eligible = plan_book.links.link_concepts[plan_link_number] == plan_concept_number && plan_book.links.link_held[plan_link_number] == 0;
+  int plan_scored_here = (import plan_item_none);
+} chain (Plan_book plan_book, Pack plan_pack, Plan_session plan_session, int plan_concept_number, string plan_level, int plan_target, int plan_link_number) {
+  if (plan_eligible == 1 && lst_str_index(plan_session.ids, plan_book.catalog.items[plan_item_here]) < 0) {
+    plan_scored_here = plan_candidate_score(plan_book, plan_pack, plan_item_here, plan_level, plan_target);
+  }
+} return int plan_scored_here;
+given pack_fixture_parse("concept: c\nitem: p1\nconcepts: c\nkind: proof\ndifficulty: 1000\nitem: e1\nconcepts: c\nkind: error_hunt\ndifficulty: 1000\nitem: s1\nconcepts: c\nkind: solve\ndifficulty: 1100\n") (Plan_book(Plan_catalog(["c"], ["p1", "e1", "s1"], [1000, 1000, 1100]), Plan_links([0, 1, 2], [0, 0, 0], [0, 0, 0]), Plan_needs([], [])), (import pack_fixture_book), Plan_session(["p1"], ["main"], ["r"]), 0, "novice", 1000, 1):(0)
+given pack_fixture_parse("concept: c\nitem: p1\nconcepts: c\nkind: proof\ndifficulty: 1000\nitem: e1\nconcepts: c\nkind: error_hunt\ndifficulty: 1000\nitem: s1\nconcepts: c\nkind: solve\ndifficulty: 1100\n") (Plan_book(Plan_catalog(["c"], ["p1", "e1", "s1"], [1000, 1000, 1100]), Plan_links([0, 1, 2], [0, 0, 0], [0, 0, 0]), Plan_needs([], [])), (import pack_fixture_book), Plan_session(["p1"], ["main"], ["r"]), 0, "novice", 1000, 0):(1000000)
+given pack_fixture_parse("concept: c\nitem: p1\nconcepts: c\nkind: proof\ndifficulty: 1000\nitem: e1\nconcepts: c\nkind: error_hunt\ndifficulty: 1000\nitem: s1\nconcepts: c\nkind: solve\ndifficulty: 1100\n") (Plan_book(Plan_catalog(["c"], ["p1", "e1", "s1"], [1000, 1000, 1100]), Plan_links([0, 1, 2], [0, 0, 0], [0, 1, 0]), Plan_needs([], [])), (import pack_fixture_book), Plan_session(["p1"], ["main"], ["r"]), 0, "novice", 1000, 1):(1000000)
+given pack_fixture_parse("concept: c\nitem: p1\nconcepts: c\nkind: proof\ndifficulty: 1000\nitem: e1\nconcepts: c\nkind: error_hunt\ndifficulty: 1000\nitem: s1\nconcepts: c\nkind: solve\ndifficulty: 1100\n") (Plan_book(Plan_catalog(["c"], ["p1", "e1", "s1"], [1000, 1000, 1100]), Plan_links([0, 1, 2], [0, 0, 0], [0, 0, 0]), Plan_needs([], [])), (import pack_fixture_book), Plan_session(["p1"], ["main"], ["r"]), 1, "novice", 1000, 1):(1000000)
+given pack_fixture_parse("concept: c\nitem: p1\nconcepts: c\nkind: proof\ndifficulty: 1000\nitem: e1\nconcepts: c\nkind: error_hunt\ndifficulty: 1000\nitem: s1\nconcepts: c\nkind: solve\ndifficulty: 1100\n") (Plan_book(Plan_catalog(["c"], ["p1", "e1", "s1"], [1000, 1000, 1100]), Plan_links([0, 1, 2], [0, 0, 0], [0, 0, 0]), Plan_needs([], [])), (import pack_fixture_book), Plan_session(["p1"], ["main"], ["r"]), 0, "novice", 1000, 2):(700)

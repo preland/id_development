@@ -1,4 +1,6 @@
-string[] check_kinds = ["integer", "fraction", "decimal", "percent", "choice", "text"];
+string[] check_kinds = ["integer", "fraction", "decimal", "percent", "choice", "text", "set", "truth", "free"];
+
+string[] check_plain_kinds = ["choice", "text", "set", "truth", "free"];
 
 int check_digit_limit = 18;
 
@@ -14,11 +16,19 @@ int check_word_cap = 5;
 
 int check_choice_reach = 12;
 
-string[] pack_concept_keys = ["concept", "name", "summary", "requires", "source", "misconception"];
+int check_atom_reach = 24;
 
-string[] pack_item_keys = ["item", "concepts", "kind", "answer_kind", "tolerance", "difficulty", "transfer", "verified", "prompt", "answer", "rubric", "hint_nudge", "hint_question", "hint_step", "hint_example"];
+int check_truth_reach = 64;
 
-string[] pack_repeatable_keys = ["misconception", "rubric"];
+string[] pack_concept_keys = ["concept", "name", "summary", "requires", "source", "misconception", "part", "show_intuition", "show_definition", "show_example", "show_non_example", "show_worked"];
+
+string[] pack_item_keys = ["item", "concepts", "kind", "answer_kind", "tolerance", "difficulty", "transfer", "verified", "prompt", "answer", "rubric", "hint_nudge", "hint_question", "hint_step", "hint_example", "bridge", "presentation"];
+
+string[] pack_repeatable_keys = ["misconception", "rubric", "show_example", "show_non_example", "show_worked"];
+
+string[] pack_part_required = ["part", "show_intuition", "show_definition", "show_example", "show_non_example"];
+
+string[] pack_presentations = ["intuition", "definition", "example", "non_example", "worked"];
 
 string[] pack_concept_required = ["name", "summary", "source"];
 
@@ -28,7 +38,7 @@ string[] pack_rung_keys = ["hint_nudge", "hint_question", "hint_step", "hint_exa
 
 string[] pack_rung_labels = ["nudge", "guiding question", "partial step", "worked example"];
 
-string[] pack_item_kinds = ["recall", "solve", "estimate", "choice", "error_hunt"];
+string[] pack_item_kinds = ["recall", "solve", "estimate", "choice", "error_hunt", "proof", "synthesis", "compare", "counterexample", "negate"];
 
 string[] pack_verifications = ["tool", "source", "unverified"];
 
@@ -40,13 +50,17 @@ int pack_difficulty_ceiling = 3000;
 
 int[] log_confidences = [50, 70, 90, 99];
 
-string[] log_verdicts = ["correct", "incorrect", "unparseable"];
+string[] log_verdicts = ["correct", "incorrect", "unparseable", "pending"];
+
+string[] log_graded_verdicts = ["correct", "incorrect"];
+
+string[] log_graded_sources = ["model", "self"];
 
 string[] log_grades = ["", "correct", "partial", "incorrect"];
 
 string[] log_flags = ["no", "yes"];
 
-string[] log_kinds = ["attempt", "hint_shown", "session_start", "session_end", "session_plan", "session_next", "cooldown_note"];
+string[] log_kinds = ["attempt", "hint_shown", "session_start", "session_end", "session_plan", "session_next", "cooldown_note", "graded"];
 
 int log_hint_top = 4;
 
@@ -67,6 +81,10 @@ int log_plan_width = 5;
 int log_next_width = 3;
 
 int log_note_width = 3;
+
+int log_graded_width = 6;
+
+int log_graded_met_reach = 64;
 
 int log_slot_ids = 2;
 
@@ -92,6 +110,12 @@ int log_slot_grade = 9;
 
 int log_slot_rung = 3;
 
+int log_slot_graded_verdict = 3;
+
+int log_slot_graded_source = 4;
+
+int log_slot_graded_met = 5;
+
 word score_day = 86400000;
 
 word score_week = 604800000;
@@ -102,9 +126,11 @@ int score_confident_level = 90;
 
 float score_unknown = -1.0;
 
-string[] score_metric_names = ["retention", "transfer", "calibration", "independence", "fluency", "best weekly retention", "best transfer accuracy"];
+string[] score_metric_names = ["retention", "transfer", "calibration", "independence", "fluency", "best weekly retention", "best transfer accuracy", "synthesis"];
 
-string[] score_metric_definitions = ["Of the attempts on items you had last tried at least a day earlier, with no hints and no tap-out, the share you got right. It shows what stuck after a delay.", "The share you got right on held-out items that are never used in practice, so the number cannot come from memorising answers.", "The Brier score of your confidence on the first attempt at each item: 0 is perfect, 0.25 is what saying 50 percent every time earns, 1 is always certain and always wrong. Lower is better.", "Hints used plus tap-outs, for each item you solved. Lower is better; a falling trend shows the scaffolding fading.", "The median seconds you took on answers that were right with no hints and no tap-out. A falling number shows the skill becoming automatic.", "The highest delayed, unaided accuracy you reached in any one week that had enough attempts.", "The highest accuracy you reached on held-out items in any one week that had enough attempts."];
+string[] score_metric_definitions = ["Of the attempts on items you had last tried at least a day earlier, with no hints and no tap-out, the share you got right. It shows what stuck after a delay.", "The share you got right on held-out items that are never used in practice, so the number cannot come from memorising answers.", "The Brier score of your confidence on the first attempt at each item: 0 is perfect, 0.25 is what saying 50 percent every time earns, 1 is always certain and always wrong. Lower is better.", "Hints used plus tap-outs, for each item you solved. Lower is better; a falling trend shows the scaffolding fading.", "The median seconds you took on answers that were right with no hints and no tap-out. A falling number shows the skill becoming automatic.", "The highest delayed, unaided accuracy you reached in any one week that had enough attempts.", "The highest accuracy you reached on held-out items in any one week that had enough attempts.", "The share you got right, with no hint and no tap-out, on synthesis items: questions that combine ideas from different parts of the subject. It shows whether separate pieces of knowledge have joined up."];
+
+string score_synthesis_mark = "~synthesis";
 
 string[] score_forbidden_words = ["streak", "minute", "completion", "badge", " xp ", " points ", "percent complete"];
 string model_default_url = "http://127.0.0.1:8184";
@@ -214,6 +240,46 @@ int plan_again_cost = 400;
 
 int plan_attempt_cost = 10;
 
+int plan_slow_seconds = 90;
+
+int plan_fast_seconds = 30;
+
+int plan_overlap_minimum = 2;
+
+int plan_word_reach = 5;
+
+int plan_tally_attempts = 0;
+
+int plan_tally_misses = 1;
+
+int plan_tally_clean = 2;
+
+int plan_tally_sure_errors = 3;
+
+int plan_tally_fluent = 4;
+
+string[] plan_order_novice = ["error_hunt", "choice", "recall", "solve", "estimate", "negate", "compare", "counterexample", "proof"];
+
+string[] plan_order_learning = ["solve", "negate", "error_hunt", "recall", "choice", "estimate", "compare", "counterexample", "proof"];
+
+string[] plan_order_strong = ["proof", "counterexample", "compare", "negate", "solve", "estimate", "error_hunt", "recall", "choice"];
+
+string[] plan_step_marks = ["; ", ", so ", ", then ", ". "];
+
+string[] plan_present_modes = ["full", "partial"];
+
+string[] plan_punctuation = [",", ".", ";", ":", "(", ")", "?", "!", "\"", "'", "=", "{", "}", "[", "]", "-", "/", "*", "^", "<", ">", "+"];
+
+int plan_kind_slack = 400;
+
+int plan_kind_weight = 200;
+
+int plan_difficulty_step = 100;
+
+int plan_solid_attempts = 2;
+
+int plan_synthesis_recall = 850;
+
 int session_slot_state = 0;
 
 int session_slot_number = 1;
@@ -234,9 +300,9 @@ int session_view_width = 8;
 
 int session_confidence_default = 50;
 
-string[] command_options = ["|pack|str|||the pack directory: concepts and items as .txt files", "|log|str|||the learner's log file, append-only; it is the only state", "|now|str|||the clock, in milliseconds since the epoch (default: the real clock)", "|seed|str|||the plan's tie-breaking seed (default 1)", "|text|str|||your answer", "|confidence|str|||50, 70, 90 or 99; an answer is not taken without one", "|seconds|str|||seconds you took (default 0)", "|url|str|||the model server (default: GYM_MODEL_URL, else http://127.0.0.1:8184)", "|item|str|||an item id"];
+string[] command_options = ["|pack|str|||the pack directory: concepts and items as .txt files", "|log|str|||the learner's log file, append-only; it is the only state", "|now|str|||the clock, in milliseconds since the epoch (default: the real clock)", "|seed|str|||the plan's tie-breaking seed (default 1)", "|text|str|||your answer", "|confidence|str|||50, 70, 90 or 99; an answer is not taken without one", "|seconds|str|||seconds you took (default 0)", "|url|str|||the model server (default: GYM_MODEL_URL, else http://127.0.0.1:8184)", "|item|str|||an item id", "|met|str|||for a free answer, which rubric lines you met: 1 or 0 for each, such as 1,0,1"];
 
-string command_usage = "gym session start --pack DIR --log FILE [--now MS] [--seed N]\ngym answer --pack DIR --log FILE --text ANSWER --confidence 50|70|90|99 [--seconds N] [--now MS]\ngym hint --pack DIR --log FILE [--url URL] [--now MS]\ngym tapout --pack DIR --log FILE [--seconds N] [--now MS]\ngym next --pack DIR --log FILE [--now MS]\ngym score --pack DIR --log FILE [--now MS]\ngym why ITEM --pack DIR --log FILE [--now MS] [--seed N]\ngym pack check DIR\ngym grade --pack DIR --item ID --text ANSWER [--url URL]\ngym grade eval SET RESULTS [FROM [COUNT]] --pack DIR [--url URL]\ngym grade report RESULTS\ngym [window] --pack DIR --log FILE [--now MS] [--seed N] [--url URL] [--script S.txt [--dump] [--render-after OUT.ppm]]";
+string command_usage = "gym session start --pack DIR --log FILE [--now MS] [--seed N]\ngym answer --pack DIR --log FILE --text ANSWER --confidence 50|70|90|99 [--seconds N] [--now MS]\ngym hint --pack DIR --log FILE [--url URL] [--now MS]\ngym tapout --pack DIR --log FILE [--seconds N] [--now MS]\ngym next --pack DIR --log FILE [--now MS]\ngym score --pack DIR --log FILE [--now MS]\ngym why ITEM --pack DIR --log FILE [--now MS] [--seed N]\ngym pack check DIR\ngym grade --pack DIR --item ID --text ANSWER [--url URL]\ngym selfgrade --pack DIR --log FILE --met 1,0,1 [--now MS]\ngym grade eval SET RESULTS [FROM [COUNT]] --pack DIR [--url URL]\ngym grade report RESULTS\ngym [window] --pack DIR --log FILE [--now MS] [--seed N] [--url URL] [--script S.txt [--dump] [--render-after OUT.ppm]]";
 
 int command_digits_limit = 9;
 

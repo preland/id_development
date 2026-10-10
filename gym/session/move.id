@@ -28,7 +28,7 @@ session_move_gate(string[] session_shown) {
 session_move_on(string session_log_path, word session_now) {
   Log_replay session_replayed = log_replay(session_log_path);
   string[] session_shown = session_view(session_replayed.events);
-  string session_refusal = session_move_gate(session_shown);
+  string session_refusal = session_move_refusal(session_replayed.events, session_shown);
 } chain (string session_log_path, word session_now) {
   int session_written = 0 - 1;
   int session_ending = session_refusal == "" && (session_shown[(import session_slot_state)] == "over" || session_shown[(import session_slot_number)] == session_shown[(import session_slot_total)]);
@@ -61,3 +61,15 @@ given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n2\tattem
 given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n") ((import model_fixture_log), 100):(["refused", "answer this item or tap out first: the next item opens only after an attempt"]) then model_fixture_size:(36)
 given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n2\tattempt\ta\t1/2\t90\tincorrect\t0\t5\tno\t\n3\tsession_next\ta\n4\tsession_next\tb\n") ((import model_fixture_log), 100):(["ok", "", "closed"]) then model_fixture_size:(123)
 given model_fixture_log_file("") ((import model_fixture_log), 100):(["refused", "no session is running: start one with gym session start"]) then model_fixture_size:(0)
+given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n2\tattempt\ta\tmy proof\t90\tpending\t0\t9\tno\t\n") ((import model_fixture_log), 100):(["refused", "this free answer is not graded yet: run gym selfgrade --met 1,0,... (one 1 or 0 per rubric line) so it counts, then gym next"]) then model_fixture_size:(76)
+
+session_move_refusal(Log_events session_events, string[] session_shown) {
+  string session_refusal = session_move_gate(session_shown);
+  int session_ungraded_now = session_ungraded(session_events, session_shown);
+  if (session_refusal == "" && session_ungraded_now == 1) {
+    session_refusal = "this free answer is not graded yet: run gym selfgrade --met 1,0,... (one 1 or 0 per rubric line) so it counts, then gym next";
+  }
+} return string session_refusal;
+(Log_events([1], ["attempt"], [["1", "attempt", "a", "x", "70", "pending", "0", "5", "no", ""]]), ["committed", "1", "2", "a", "main", "r", "0", "no"]):("this free answer is not graded yet: run gym selfgrade --met 1,0,... (one 1 or 0 per rubric line) so it counts, then gym next")
+(Log_events([1], ["attempt"], [["1", "attempt", "a", "x", "70", "correct", "0", "5", "no", ""]]), ["committed", "1", "2", "a", "main", "r", "0", "no"]):("")
+(Log_events([], [], []), ["waiting", "1", "2", "a", "main", "r", "0", "no"]):("answer this item or tap out first: the next item opens only after an attempt")

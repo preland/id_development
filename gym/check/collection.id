@@ -1,0 +1,90 @@
+// The canonical text of a set answer and of a truth-table answer, which is what
+// the checker compares and what the log stores. A set is {1, 2, {3}}: members
+// are integers, short words, nested sets, and ordered pairs or tuples (a, b)
+// that keep their order. Two sets are the same when their canonical texts are:
+// members are sorted and repeats dropped, spaces are ignored, so {2, 1, 1} and
+// { 1,2 } are {1,2}. Text that is not a well-formed set (an unclosed bracket, an
+// empty member, a stray character) has no canonical form: "" means unreadable.
+// A truth column is the letters T and F, any case, spaces ignored.
+
+check_set_form(string check_typed) {
+  string check_text = str_trim(str_replace(check_typed, "\n", " "));
+  int check_shape = check_set_shape(check_text);
+  string check_inner = "";
+} chain (string check_typed) {
+  if (check_shape > 0) {
+    check_inner = str_sub(check_text, 1, len(check_text) - 2);
+  }
+  string[] check_pieces = [];
+  string[] check_members = [];
+} chain (string check_typed) {
+  int check_closed = check_shape == 0 || check_balanced(check_inner) == 1;
+  if (check_closed == 1 && check_shape > 0 && str_trim(check_inner) != "") {
+    check_pieces = str_split(check_commas(check_inner), "\n");
+  }
+  int check_at = 0;
+} chain (string check_typed) {
+  while (check_at < len(check_pieces)) {
+    push(check_members, check_set_form(check_pieces[check_at]));
+    check_at = check_at + 1;
+  }
+  int check_clean = check_closed == 1 && lst_str_index(check_members, "") < 0;
+  string check_form = "";
+} chain (string check_typed) {
+  if (check_shape == 0) {
+    check_form = check_atom_form(check_text);
+  }
+  if (check_shape == 1 && check_clean == 1) {
+    check_form = "{" + str_join(check_distinct_sorted(check_members), ",") + "}";
+  }
+  if (check_shape == 2 && check_clean == 1 && len(check_members) > 0) {
+    check_form = "(" + str_join(check_members, ",") + ")";
+  }
+} return string check_form;
+("{1, 2, 3}"):("{1,2,3}")
+("{3,2,1,1}"):("{1,2,3}")
+("{}"):("{}")
+("{{}, {1}, {2}, {1, 2}}"):("{{1,2},{1},{2},{}}")
+("{{1, 2}, {2, 1}}"):("{{1,2}}")
+("{(1, 2), (2, 1)}"):("{(1,2),(2,1)}")
+("(1, 2)"):("(1,2)")
+("((1, 2), 3)"):("((1,2),3)")
+("{a, B, 007}"):("{7,a,b}")
+("7"):("7")
+("{1, 2"):("")
+("{1,, 2}"):("")
+("{1, 2,}"):("")
+("{1} {2}"):("")
+("()"):("")
+(""):("")
+("{x y}"):("")
+("{{1}, {1}, 1}"):("{1,{1}}")
+("{1,2,3,4}"):("{1,2,3,4}")[time:O(n log n), mem:O(n)]
+("{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16}"):("{1,10,11,12,13,14,15,16,2,3,4,5,6,7,8,9}")[time:O(n log n), mem:O(n)]
+
+check_truth_form(string check_typed) {
+  string check_joined = str_replace(check_flatten(check_typed), " ", "");
+  string check_column = str_upper(check_joined);
+  int check_at = 0;
+} chain (string check_typed) {
+  int check_marks = 0;
+  while (check_at < len(check_column)) {
+    check_marks = check_marks + (str_sub(check_column, check_at, 1) == "T" || str_sub(check_column, check_at, 1) == "F");
+    check_at = check_at + 1;
+  }
+  string check_truth = "";
+} chain (string check_typed) {
+  int check_short = len(check_column) <= (import check_truth_reach);
+  if (len(check_column) > 0 && check_marks == len(check_column) && check_short == 1) {
+    check_truth = check_column;
+  }
+} return string check_truth;
+("TFFT"):("TFFT")
+(" t f f t "):("TFFT")
+("T F\nF T"):("TFFT")
+("TFX"):("")
+("1001"):("")
+(""):("")
+("TTTT"):("TTTT")[time:O(n), mem:O(n)]
+("TTTTTTTTTTTTTTTT"):("TTTTTTTTTTTTTTTT")[time:O(n), mem:O(n)]
+("TFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFTFT"):("")

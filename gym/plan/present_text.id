@@ -1,0 +1,28 @@
+// The words of one presentation of a concept, from the pack. A concept carries
+// its presentations as show_intuition, show_definition, show_example,
+// show_non_example and show_worked lines (the last three may repeat). When there
+// are several, the one sharing the most content words with the basis text is
+// shown (plan_pick_overlap), and a rotating number picks among them when none
+// shares any, so a learner who misses the same concept again sees a different
+// instance. A worked example in mode "partial" is faded (fade.id). Answers ""
+// when the concept has no text for that presentation.
+
+plan_present_text(Pack plan_pack, int plan_concept_block, string plan_kind, string plan_mode, string plan_basis, int plan_rotate) {
+  string[] plan_texts = pack_fields(plan_pack, plan_concept_block, "show_" + plan_kind);
+  int plan_pick = plan_pick_overlap(plan_texts, plan_basis, plan_rotate);
+  string plan_text_found = "";
+} chain (Pack plan_pack, int plan_concept_block, string plan_kind, string plan_mode, string plan_basis, int plan_rotate) {
+  if (plan_pick >= 0) {
+    plan_text_found = plan_texts[plan_pick];
+  }
+  if (plan_pick >= 0 && plan_kind == "worked" && plan_mode == "partial") {
+    plan_text_found = plan_fade(plan_text_found);
+  }
+} return string plan_text_found;
+given pack_fixture_parse("concept: c\nshow_definition: D\nshow_example: alpha beta gamma\nshow_example: delta epsilon zeta\nshow_worked: assume x; then y, so z. Done.\nshow_non_example: n1\n") ((import pack_fixture_book), 0, "definition", "full", "", 0):("D")
+given pack_fixture_parse("concept: c\nshow_definition: D\nshow_example: alpha beta gamma\nshow_example: delta epsilon zeta\nshow_worked: assume x; then y, so z. Done.\nshow_non_example: n1\n") ((import pack_fixture_book), 0, "example", "full", "delta epsilon", 0):("delta epsilon zeta")
+given pack_fixture_parse("concept: c\nshow_definition: D\nshow_example: alpha beta gamma\nshow_example: delta epsilon zeta\nshow_worked: assume x; then y, so z. Done.\nshow_non_example: n1\n") ((import pack_fixture_book), 0, "example", "full", "unrelated words", 1):("delta epsilon zeta")
+given pack_fixture_parse("concept: c\nshow_definition: D\nshow_example: alpha beta gamma\nshow_example: delta epsilon zeta\nshow_worked: assume x; then y, so z. Done.\nshow_non_example: n1\n") ((import pack_fixture_book), 0, "example", "full", "unrelated words", 2):("alpha beta gamma")
+given pack_fixture_parse("concept: c\nshow_definition: D\nshow_example: alpha beta gamma\nshow_example: delta epsilon zeta\nshow_worked: assume x; then y, so z. Done.\nshow_non_example: n1\n") ((import pack_fixture_book), 0, "worked", "full", "", 0):("assume x; then y, so z. Done.")
+given pack_fixture_parse("concept: c\nshow_definition: D\nshow_example: alpha beta gamma\nshow_example: delta epsilon zeta\nshow_worked: assume x; then y, so z. Done.\nshow_non_example: n1\n") ((import pack_fixture_book), 0, "worked", "partial", "", 0):("assume x; then y ... (your turn: finish the remaining steps yourself)")
+given pack_fixture_parse("concept: c\nshow_definition: D\nshow_example: alpha beta gamma\nshow_example: delta epsilon zeta\nshow_worked: assume x; then y, so z. Done.\nshow_non_example: n1\n") ((import pack_fixture_book), 0, "intuition", "full", "", 0):("")

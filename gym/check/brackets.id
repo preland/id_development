@@ -1,0 +1,62 @@
+// Reading the brackets of a typed set or tuple. A set is written {1, 2, {3}} and
+// an ordered pair or tuple (1, 2); both nest. check_bracket_step is how one
+// character moves the depth, check_balanced says whether the text between the
+// outer brackets closes every bracket it opens and never closes one it has not
+// opened, and check_commas marks the commas that sit at depth zero with a line
+// break, so splitting on line breaks yields exactly the members of the outer
+// collection and a comma inside a nested one stays with its member.
+
+check_bracket_step(string check_mark) {
+  int check_change = 0;
+  if (check_mark == "{" || check_mark == "(") {
+    check_change = 1;
+  }
+  if (check_mark == "}" || check_mark == ")") {
+    check_change = 0 - 1;
+  }
+} return int check_change;
+("{"):(1)
+("("):(1)
+("}"):(-1)
+(")"):(-1)
+("x"):(0)
+(","):(0)
+
+check_balanced(string check_inner) {
+  int check_depth = 0;
+  int check_shallow = 0;
+  int check_at = 0;
+} chain (string check_inner) {
+  while (check_at < len(check_inner)) {
+    check_depth = check_depth + check_bracket_step(str_sub(check_inner, check_at, 1));
+    check_shallow = fx_min(check_shallow, check_depth);
+    check_at = check_at + 1;
+  }
+  int check_closed = check_depth == 0 && check_shallow == 0;
+} return int check_closed;
+("1, {2}, (3, 4)"):(1)
+(""):(1)
+("1}, {2"):(0)
+("{1, 2"):(0)
+("1, 2)"):(0)
+("{{{{{{{{}}}}}}}}"):(1)[time:O(n), mem:O(1)]
+("{{{{{{{{{{{{{{{{}}}}}}}}}}}}}}}}"):(1)[time:O(n), mem:O(1)]
+
+check_commas(string check_inner) {
+  string[] check_symbols = [];
+  int check_depth = 0;
+  int check_at = 0;
+} chain (string check_inner) {
+  while (check_at < len(check_inner)) {
+    check_depth = check_depth + check_bracket_step(str_sub(check_inner, check_at, 1));
+    push(check_symbols, check_member_mark(check_inner, check_at, check_depth));
+    check_at = check_at + 1;
+  }
+  string check_marked = str_join(check_symbols, "");
+} return string check_marked;
+("1, 2"):("1\n 2")
+("{1, 2}, 3"):("{1, 2}\n 3")
+("(1, 2), {3, {4, 5}}"):("(1, 2)\n {3, {4, 5}}")
+(""):("")
+("1,2,3,4"):("1\n2\n3\n4")[time:O(n), mem:O(n)]
+("1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7"):("1\n2\n3\n4\n5\n6\n7\n8\n9\n1\n2\n3\n4\n5\n6\n7")[time:O(n), mem:O(n)]

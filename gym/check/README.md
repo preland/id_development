@@ -25,3 +25,16 @@ form (the text the log stores). Neither can trap on any text a learner can type.
 - Decimal tolerance: both values are cut towards zero to a billionth and compared
   as whole numbers, so `0.51` against `0.5` with tolerance `0.01` is correct
   (binary floats get this wrong). Values above 9e9 are compared exactly.
+
+## `set`, `truth` and `free`
+
+| kind | learner input accepted | compared |
+| --- | --- | --- |
+| `set` | a finite set such as `{1, 2, {3}}`; members are integers (`007` is `7`), short words (letters, digits, `-`, `_`, `.`, at most 24 bytes, any case) and ordered pairs or tuples `(a, b)`, nested to any depth; white space is free | by canonical text: members sorted and repeats dropped, so `{2, 1, 1}` equals `{1, 2}`; tuples keep their order, so `(1, 2)` differs from `(2, 1)` |
+| `truth` | a column of `T` and `F`, any case, spaces and line breaks ignored (`t f f t`), at most 64 letters | the letters |
+| `free` | any non-blank text | never decided by the checker: `check_answer` answers `pending`, and the session sends it to the grader or to the learner |
+
+- A set that is not well formed (an unclosed bracket, an empty member such as `{1,,2}` or `{1,}`, a stray
+  character, `()`) is `unparseable`, never wrong; so is a blank free answer. `check_normal` gives the canonical
+  text the log stores (`{1,2}`, `TFFT`, a collapsed free answer).
+- `{}` is the empty set; `{{}}` is a set holding it; `{1, {1}}` has two members.

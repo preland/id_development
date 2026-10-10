@@ -1,0 +1,29 @@
+// What to do with the grader's answer about a pending free answer. Only a status
+// of "graded" (every field usable and the grader sure enough) becomes a verdict in
+// the log, from the model; the verdict is correct only when the grader says
+// correct, so "partly" is incorrect and comes back sooner. Any other status
+// (unreachable, unsure, a self-grade request, a refusal) logs nothing and sends
+// the learner to mark the rubric themselves. The route is ["model", verdict,
+// what the grader said] or ["self", "", why the grader could not be used].
+
+session_take_feedback(string session_log_path, word session_now, string session_item_id, string[] session_feedback) {
+  string session_status = session_feedback[(import grade_slot_status)];
+  string session_verdict = "incorrect";
+  if (session_feedback[(import grade_slot_verdict)] == "correct") {
+    session_verdict = "correct";
+  }
+} chain (string session_log_path, word session_now, string session_item_id, string[] session_feedback) {
+  string[] session_route = ["self", "", session_feedback[(import grade_slot_reason)]];
+  int session_written = 0 - 1;
+  if (session_status == "graded") {
+    session_written = log_record_graded(session_log_path, session_now, session_item_id, session_verdict, "model", "");
+  }
+} chain (string session_log_path, word session_now, string session_item_id, string[] session_feedback) {
+  if (session_status == "graded" && session_written >= 0) {
+    session_route = ["model", session_verdict, "the grader says it is " + session_feedback[(import grade_slot_verdict)] + "; right: " + session_feedback[(import grade_slot_right)] + "; flaw: " + session_feedback[(import grade_slot_flaw)] + "; next step: " + session_feedback[(import grade_slot_next_step)]];
+  }
+} return string[] session_route;
+given fs_temp_text("") ((import fs_temp_path), 5, "a", ["graded", "", "correct", "all steps", "none", "try a harder one", "none", "90"]):(["model", "correct", "the grader says it is correct; right: all steps; flaw: none; next step: try a harder one"]) then fs_temp_read:("5\tgraded\ta\tcorrect\tmodel\t\n")
+given fs_temp_text("") ((import fs_temp_path), 5, "a", ["graded", "", "partly", "base case", "no step", "redo the step", "incomplete", "80"]):(["model", "incorrect", "the grader says it is partly; right: base case; flaw: no step; next step: redo the step"]) then fs_temp_read:("5\tgraded\ta\tincorrect\tmodel\t\n")
+given fs_temp_text("") ((import fs_temp_path), 5, "a", ["unreachable", "the model server answered -1", "", "", "", "", "", ""]):(["self", "", "the model server answered -1"]) then fs_temp_read:("")
+given fs_temp_text("") ((import fs_temp_path), 5, "a", ["self_grade", "grader unsure", "correct", "x", "none", "n", "none", "40"]):(["self", "", "grader unsure"]) then fs_temp_read:("")

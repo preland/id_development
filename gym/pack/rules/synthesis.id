@@ -1,0 +1,61 @@
+// A synthesis item makes the learner combine ideas from different parts of the
+// source into one more general idea, so it must name at least two concepts, the
+// concepts must come from at least two different parts, and it must say in its
+// `bridge` line what general principle the combination is meant to expose. A
+// concept the pack does not define is reported by the listing rule and is not
+// counted here, so one mistake is not reported twice.
+
+pack_concept_part(Pack pack_book, string pack_concept_wanted) {
+  int pack_concept_block = pack_find(pack_book, "concept", pack_concept_wanted);
+  string pack_part_found = "";
+  if (pack_concept_block >= 0) {
+    pack_part_found = pack_field(pack_book, pack_concept_block, "part");
+  }
+} return string pack_part_found;
+given pack_fixture_parse("concept: a\npart: 3\nconcept: b\n") ((import pack_fixture_book), "a"):("3")
+given pack_fixture_parse("concept: a\npart: 3\nconcept: b\n") ((import pack_fixture_book), "b"):("")
+given pack_fixture_parse("concept: a\npart: 3\nconcept: b\n") ((import pack_fixture_book), "zz"):("")
+
+pack_part_count(Pack pack_book, int pack_block) {
+  string[] pack_listed = plan_pieces(pack_field(pack_book, pack_block, "concepts"));
+  string[] pack_seen_parts = [];
+  int pack_at = 0;
+} chain (Pack pack_book, int pack_block) {
+  while (pack_at < len(pack_listed)) {
+    string pack_part_here = pack_concept_part(pack_book, pack_listed[pack_at]);
+    if (pack_part_here != "" && lst_str_index(pack_seen_parts, pack_part_here) < 0) {
+      push(pack_seen_parts, pack_part_here);
+    }
+    pack_at = pack_at + 1;
+  }
+  int pack_part_total = len(pack_seen_parts);
+} return int pack_part_total;
+given pack_fixture_parse("concept: a\npart: 1\nconcept: b\npart: 2\nitem: i\nconcepts: a, b\n") ((import pack_fixture_book), 2):(2)
+given pack_fixture_parse("concept: a\npart: 1\nconcept: b\npart: 1\nitem: i\nconcepts: a, b\n") ((import pack_fixture_book), 2):(1)
+given pack_fixture_parse("concept: a\npart: 1\nitem: i\nconcepts: a, zz\n") ((import pack_fixture_book), 1):(1)
+given pack_fixture_parse("item: i\nconcepts: \n") ((import pack_fixture_book), 0):(0)
+
+pack_synthesis_gaps(Pack pack_book, int pack_block) {
+  string[] pack_found_problems = [];
+  string pack_who = "synthesis item '" + pack_id_of(pack_book, pack_block) + "'";
+  string pack_kind_found = pack_field(pack_book, pack_block, "kind");
+} chain (Pack pack_book, int pack_block) {
+  string[] pack_listed = plan_pieces(pack_field(pack_book, pack_block, "concepts"));
+  int pack_listed_total = len(pack_listed);
+  int pack_parts_found = pack_part_count(pack_book, pack_block);
+} chain (Pack pack_book, int pack_block) {
+  if (pack_kind_found == "synthesis" && pack_listed_total < 2) {
+    push(pack_found_problems, pack_say(pack_book, pack_block, "concepts", pack_who + " lists " + pack_listed_total + " concept(s); a synthesis item combines at least 2"));
+  }
+  if (pack_kind_found == "synthesis" && pack_listed_total >= 2 && pack_parts_found < 2) {
+    push(pack_found_problems, pack_say(pack_book, pack_block, "concepts", pack_who + " draws on " + pack_parts_found + " part(s); its concepts must come from at least 2 different parts"));
+  }
+  if (pack_kind_found == "synthesis" && pack_field(pack_book, pack_block, "bridge") == "") {
+    push(pack_found_problems, pack_say(pack_book, pack_block, "bridge", pack_who + " has no 'bridge' (missing or blank); name the general principle the combination exposes"));
+  }
+} return string[] pack_found_problems;
+given pack_fixture_parse("concept: a\npart: 1\nconcept: b\npart: 2\nitem: i\nconcepts: a, b\nkind: synthesis\nbridge: invariants\n") ((import pack_fixture_book), 2):([])
+given pack_fixture_parse("concept: a\npart: 1\nconcept: b\npart: 2\nitem: i\nconcepts: a, b\nkind: synthesis\n") ((import pack_fixture_book), 2):(["t.txt:5: synthesis item 'i' has no 'bridge' (missing or blank); name the general principle the combination exposes"])
+given pack_fixture_parse("concept: a\npart: 1\nconcept: b\npart: 1\nitem: i\nconcepts: a, b\nkind: synthesis\nbridge: x\n") ((import pack_fixture_book), 2):(["t.txt:6: synthesis item 'i' draws on 1 part(s); its concepts must come from at least 2 different parts"])
+given pack_fixture_parse("concept: a\npart: 1\nitem: i\nconcepts: a\nkind: synthesis\nbridge: x\n") ((import pack_fixture_book), 1):(["t.txt:4: synthesis item 'i' lists 1 concept(s); a synthesis item combines at least 2"])
+given pack_fixture_parse("concept: a\npart: 1\nitem: i\nconcepts: a\nkind: solve\n") ((import pack_fixture_book), 1):([])

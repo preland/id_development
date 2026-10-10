@@ -1,0 +1,56 @@
+// The content words of a text, for deciding which written belief a wrong answer
+// resembles: lower case, punctuation turned into spaces, words shorter than
+// plan_word_reach dropped (they are mostly "the" and "is"), repeats dropped.
+// plan_overlap counts how many of one list's words occur in another. This is a
+// deliberately plain measure (shared words), so the match a learner sees can be
+// explained in one sentence; plan_match_misconception below uses it.
+
+plan_blank_marks(string plan_text) {
+  string plan_spaced = plan_text;
+  int plan_at = 0;
+  while (plan_at < len((import plan_punctuation))) {
+    plan_spaced = str_replace(plan_spaced, (import plan_punctuation)[plan_at], " ");
+    plan_at = plan_at + 1;
+  }
+} return string plan_spaced;
+("a,b.c"):("a b c")
+("f(x) = 2x"):("f x    2x")
+("plain"):("plain")
+(""):("")
+("a,b,c,d,e,f,g,h"):("a b c d e f g h")[time:O(n), mem:O(n)]
+("a,b,c,d,e,f,g,h,a,b,c,d,e,f,g,h"):("a b c d e f g h a b c d e f g h")[time:O(n), mem:O(n)]
+
+plan_clean_words(string plan_text) {
+  string plan_lowered_text = str_lower(plan_text);
+  string plan_spaced_text = plan_blank_marks(plan_lowered_text);
+  string[] plan_pieces_found = str_words(plan_spaced_text);
+} chain (string plan_text) {
+  string[] plan_kept_words = [];
+  int plan_at = 0;
+  while (plan_at < len(plan_pieces_found)) {
+    if (len(plan_pieces_found[plan_at]) >= (import plan_word_reach) && lst_str_index(plan_kept_words, plan_pieces_found[plan_at]) < 0) {
+      push(plan_kept_words, plan_pieces_found[plan_at]);
+    }
+    plan_at = plan_at + 1;
+  }
+} return string[] plan_kept_words;
+("The domain, the Domain; image!"):(["domain", "image"])
+("a is of"):([])
+("same same same words"):(["words"])
+("Wrongly (assuming) wrong"):(["wrongly", "assuming", "wrong"])
+("alpha bravo charlie delta"):(["alpha", "bravo", "charlie", "delta"])[time:O(n^2), mem:O(n)]
+("alpha bravo charlie delta echoes foxtrot golfer hotels"):(["alpha", "bravo", "charlie", "delta", "echoes", "foxtrot", "golfer", "hotels"])[time:O(n^2), mem:O(n)]
+
+plan_overlap(string[] plan_listed, string[] plan_other) {
+  int plan_shared = 0;
+  int plan_at = 0;
+  while (plan_at < len(plan_listed)) {
+    plan_shared = plan_shared + (lst_str_index(plan_other, plan_listed[plan_at]) >= 0);
+    plan_at = plan_at + 1;
+  }
+} return int plan_shared;
+(["domain", "image"], ["image", "domain", "other"]):(2)
+(["domain", "image"], ["other"]):(0)
+([], ["a"]):(0)
+(["a", "b", "c", "d"], ["a", "b", "c", "d"]):(4)[time:O(n^2), mem:O(1)]
+(["a", "b", "c", "d", "e", "f", "g", "h"], ["a", "b", "c", "d", "e", "f", "g", "h"]):(8)[time:O(n^2), mem:O(1)]

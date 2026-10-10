@@ -1,6 +1,6 @@
 # Pack format, version 2 additions
 
-Everything in `FORMAT.md` still holds. Version 2 adds what a proof-based subject needs, and what lets the
+Everything in `FORMAT.md` still holds (checked by `gym pack check`, see the last section). Version 2 adds what a proof-based subject needs, and what lets the
 engine choose how to present a concept from how the learner behaves instead of following the source's
 order or layout.
 
@@ -64,3 +64,31 @@ Extra keys:
 
 A `synthesis` item lists at least two concepts, from at least two different `part`s. `rubric` lines for
 `free` items must be checkable statements ("states the inductive hypothesis explicitly"), never "good proof".
+
+## What `pack check` reports for version 2
+
+A pack is version 2 when any concept has a `part:` line. `gym pack check` then adds these rules (each
+reported as `file:line: message`, like the version 1 rules), and keeps every version 1 rule:
+
+- **a concept** needs `part` (a whole number), `show_intuition`, `show_definition`, at least one
+  `show_example` and at least one `show_non_example` (`show_worked` is optional);
+- **a `synthesis` item** needs at least 2 listed concepts, concepts from at least 2 different `part`s (a
+  concept the pack does not define is reported once, by the `concepts` rule, and not counted here) and a
+  `bridge` line;
+- **a `free` item** needs at least 2 `rubric` lines (a checklist to mark against, not a verdict);
+- **`presentation`**, when written, must be `intuition`, `definition`, `example`, `non_example` or `worked`;
+- **the reference `answer`** must be readable for its kind: a `set` must parse as a set, a `truth` answer
+  must be letters T and F; a `free` answer is any non-blank text (a model answer).
+
+Not checked: whether a `show_non_example` really targets a listed `misconception` (the engine looks for the
+misconception a wrong answer resembles by shared content words and only then picks the non-example).
+
+## How the engine uses the keys
+
+- `presentation:` is the best presentation for the item's answer; it stands in when the concept lacks the
+  presentation the policy asked for. The engine's choice from the learner's history is in
+  `gym/plan/README.md` ("Presentation policy").
+- `part:` makes the pack version 2 for the planner too: only then are presentations shown, items re-ordered by
+  kind, and synthesis items offered. A pack with no `part:` behaves exactly as before.
+- A `synthesis` item is never an ordinary practice or transfer item. It is offered only when every listed
+  concept is solid (`gym/plan/README.md`, "Synthesis").

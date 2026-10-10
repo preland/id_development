@@ -1,0 +1,20 @@
+// Synthesis (the sixth number): accuracy on synthesis items, those with
+// `kind: synthesis` in the pack, counting only attempts made without a hint and
+// without a tap-out, so it measures whether separate pieces of knowledge have
+// joined up and not how well the learner can be helped. Same rule as the other
+// figures: below the minimum number of counted attempts it is "not enough data".
+// The mask of unaided attempts is score_clean over a list of ones (every attempt counted as right).
+
+score_synthesis(Score_table score_table_in, int score_minimum) {
+  int[] score_synthesis_items = score_with_concept(score_table_in.labels.concepts, (import score_synthesis_mark));
+  int[] score_all_right = score_every(score_table_in.marks.corrects);
+  int[] score_unaided_mask = score_clean(score_all_right, score_table_in.marks.aid.hints, score_table_in.marks.aid.tapped);
+} chain (Score_table score_table_in, int score_minimum) {
+  int[] score_mask = score_both(score_synthesis_items, score_unaided_mask);
+  Score_figure score_result = score_accuracy(score_mask, score_table_in.marks.corrects, score_minimum);
+} return Score_figure score_result;
+given score_fixture_build("1000\tattempt\ts1\tx\t90\tcorrect\t0\t10\tno\t\n2000\tattempt\ts1\tx\t90\tincorrect\t0\t10\tno\t\n3000\tattempt\tp1\tx\t90\tcorrect\t0\t10\tno\t\n4000\tattempt\ts1\tx\t90\tcorrect\t1\t10\tno\t\n5000\tattempt\ts1\tx\t90\tcorrect\t0\t10\tyes\t\n", "item: s1\nconcepts: ca, cb\nkind: synthesis\nitem: p1\nconcepts: ca\n") ((import score_fixture_table), 2):(Score_figure(2, 1, 0.5))
+given score_fixture_build("1000\tattempt\ts1\tx\t90\tcorrect\t0\t10\tno\t\n2000\tattempt\ts1\tx\t90\tincorrect\t0\t10\tno\t\n", "item: s1\nconcepts: ca, cb\nkind: synthesis\n") ((import score_fixture_table), 3):(Score_figure(2, 0, 0.0))
+given score_fixture_build("3000\tattempt\tp1\tx\t90\tcorrect\t0\t10\tno\t\n", "item: s1\nconcepts: ca, cb\nkind: synthesis\nitem: p1\nconcepts: ca\n") ((import score_fixture_table), 1):(Score_figure(0, 0, 0.0))
+given score_fixture_build("1000\tattempt\ts1\tx\t90\tcorrect\t0\t10\tno\t\n2000\tattempt\ts1\tx\t90\tcorrect\t0\t10\tno\t\n", "item: s1\nconcepts: ca, cb\nkind: synthesis\n") ((import score_fixture_table), 2):(Score_figure(2, 1, 1.0))
+given score_fixture_build("", "") ((import score_fixture_table), 5):(Score_figure(0, 0, 0.0))

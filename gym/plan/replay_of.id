@@ -3,7 +3,7 @@
 // attempt at an item the pack does not have (a log from another pack) is skipped.
 
 plan_replay_event(Plan_book plan_book, Plan_learner plan_learner, Log_events plan_events, int plan_index) {
-  if (plan_events.kinds[plan_index] == "attempt") {
+  if (plan_events.kinds[plan_index] == "attempt" && log_text_at(plan_events, plan_index, (import log_slot_verdict)) != "pending") {
     int plan_item_number = lst_str_index(plan_book.catalog.items, log_text_at(plan_events, plan_index, (import log_slot_item)));
     if (plan_item_number >= 0) {
       int plan_grade_given = plan_grade(log_text_at(plan_events, plan_index, (import log_slot_verdict)), log_number_at(plan_events, plan_index, (import log_slot_confidence)), log_number_at(plan_events, plan_index, (import log_slot_hints)), log_tapped_at(plan_events, plan_index));
@@ -14,6 +14,8 @@ plan_replay_event(Plan_book plan_book, Plan_learner plan_learner, Log_events pla
 (Plan_book(Plan_catalog(["a"], ["i"], [1000]), Plan_links([0], [0], [0]), Plan_needs([], [])), Plan_learner(Plan_memory([0.0], [0.0], [-1]), Plan_skill([1000.0], [0]), Plan_shelf([1000.0], [0], [0])), Log_events([100], ["attempt"], [["100", "attempt", "i", "x", "70", "correct", "0", "5", "no", ""]]), 0):(Plan_book(Plan_catalog(["a"], ["i"], [1000]), Plan_links([0], [0], [0]), Plan_needs([], [])), Plan_learner(Plan_memory([2.118103970459015], [2.3065], [100]), Plan_skill([1016.0], [1]), Plan_shelf([984.0], [1], [3])), Log_events([100], ["attempt"], [["100", "attempt", "i", "x", "70", "correct", "0", "5", "no", ""]]), 0)
 (Plan_book(Plan_catalog(["a"], ["i"], [1000]), Plan_links([0], [0], [0]), Plan_needs([], [])), Plan_learner(Plan_memory([0.0], [0.0], [-1]), Plan_skill([1000.0], [0]), Plan_shelf([1000.0], [0], [0])), Log_events([100], ["attempt"], [["100", "attempt", "other", "x", "70", "correct", "0", "5", "no", ""]]), 0):(Plan_book(Plan_catalog(["a"], ["i"], [1000]), Plan_links([0], [0], [0]), Plan_needs([], [])), Plan_learner(Plan_memory([0.0], [0.0], [-1]), Plan_skill([1000.0], [0]), Plan_shelf([1000.0], [0], [0])), Log_events([100], ["attempt"], [["100", "attempt", "other", "x", "70", "correct", "0", "5", "no", ""]]), 0)
 (Plan_book(Plan_catalog(["a"], ["i"], [1000]), Plan_links([0], [0], [0]), Plan_needs([], [])), Plan_learner(Plan_memory([0.0], [0.0], [-1]), Plan_skill([1000.0], [0]), Plan_shelf([1000.0], [0], [0])), Log_events([100], ["hint_shown"], [["100", "hint_shown", "i", "1"]]), 0):(Plan_book(Plan_catalog(["a"], ["i"], [1000]), Plan_links([0], [0], [0]), Plan_needs([], [])), Plan_learner(Plan_memory([0.0], [0.0], [-1]), Plan_skill([1000.0], [0]), Plan_shelf([1000.0], [0], [0])), Log_events([100], ["hint_shown"], [["100", "hint_shown", "i", "1"]]), 0)
+
+(Plan_book(Plan_catalog(["a"], ["i"], [1000]), Plan_links([0], [0], [0]), Plan_needs([], [])), Plan_learner(Plan_memory([0.0], [0.0], [-1]), Plan_skill([1000.0], [0]), Plan_shelf([1000.0], [0], [0])), Log_events([100], ["attempt"], [["100", "attempt", "i", "x", "70", "pending", "0", "5", "no", ""]]), 0):(Plan_book(Plan_catalog(["a"], ["i"], [1000]), Plan_links([0], [0], [0]), Plan_needs([], [])), Plan_learner(Plan_memory([0.0], [0.0], [-1]), Plan_skill([1000.0], [0]), Plan_shelf([1000.0], [0], [0])), Log_events([100], ["attempt"], [["100", "attempt", "i", "x", "70", "pending", "0", "5", "no", ""]]), 0)
 
 plan_replay(Plan_book plan_book, Log_events plan_events) {
   Plan_learner plan_learner = plan_blank_learner(plan_book);

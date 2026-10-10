@@ -24,3 +24,16 @@ default the real one), so a whole session can be scripted and replayed exactly. 
 Layers: `session/` is the engine (pure functions of a replayed log, plus the operations that append to it),
 `cli/` turns options into engine calls and engine results into text, `golden/` replays a scripted session as
 cases.
+
+## Version 2 additions
+
+| command | does |
+| --- | --- |
+| `gym answer` for a `free` item | logs the answer as pending, asks the grader (`--url`, else the default model address); if the grader gave a usable grade it is logged from the model, otherwise the model answer and the numbered rubric are printed for self-grading |
+| `gym selfgrade --met 1,0,1` | marks the pending free answer on screen against its rubric, one 1 (met) or 0 (not met) per line; all met is correct, otherwise incorrect; logs a `graded` line from the learner and prints the presentation; refused when nothing is pending or the count is wrong |
+| `gym next` | also refused while the item on screen is a free answer not yet graded |
+| `gym answer`, `gym selfgrade` | in a version 2 pack print `presentation: <reason>` and the presentation texts the policy chose |
+| `gym why ITEM` | adds `presentation after your last attempt at it: <reason>` when the item has been attempted |
+| `gym score` | a sixth line, `synthesis` |
+
+There are ten option values now (`--met` is the tenth).

@@ -1,0 +1,55 @@
+// Which written belief a wrong answer resembles, and which of several texts is
+// closest to a basis text. Both count shared content words (words.id) and nothing
+// else, so "why this non-example?" always has the plain answer "it shares these
+// words with your answer". plan_match_misconception answers the position of the
+// belief sharing the most words with the haystack, or -1 when none shares
+// plan_overlap_minimum; the earliest belief wins a tie. plan_pick_overlap answers
+// the position of the text sharing the most words with the basis; when none
+// shares any it answers the fallback modulo the number of texts, so a rotating
+// fallback shows a different one each time; -1 when there are no texts.
+
+plan_match_misconception(string[] plan_beliefs, string plan_haystack) {
+  string[] plan_hay_words = plan_clean_words(plan_haystack);
+  int plan_best = 0 - 1;
+  int plan_best_score = (import plan_overlap_minimum) - 1;
+} chain (string[] plan_beliefs, string plan_haystack) {
+  int plan_at = 0;
+  while (plan_at < len(plan_beliefs)) {
+    int plan_score_here = plan_overlap(plan_clean_words(plan_beliefs[plan_at]), plan_hay_words);
+    if (plan_score_here > plan_best_score) {
+      plan_best = plan_at;
+      plan_best_score = plan_score_here;
+    }
+    plan_at = plan_at + 1;
+  }
+} return int plan_best;
+(["Checking every input has an output", "Order of elements matters in a set"], "A student says order of elements matters when comparing sets"):(1)
+(["Checking every input has an output", "Order of elements matters in a set"], "Every input needs an output, a student says"):(0)
+(["Checking every input has an output", "Order of elements matters in a set"], "something else entirely"):(-1)
+(["Order of elements matters in a set"], "elements only"):(-1)
+([], "anything at all"):(-1)
+(["alpha bravo", "alpha bravo charlie"], "alpha bravo charlie delta"):(1)
+
+plan_pick_overlap(string[] plan_texts, string plan_basis, int plan_fallback) {
+  string[] plan_basis_words = plan_clean_words(plan_basis);
+  int plan_chosen_text = 0 - 1;
+  int plan_chosen_score = 0;
+} chain (string[] plan_texts, string plan_basis, int plan_fallback) {
+  int plan_at = 0;
+  if (len(plan_texts) > 0) {
+    plan_chosen_text = plan_fallback % len(plan_texts);
+  }
+  while (plan_at < len(plan_texts)) {
+    int plan_score_here = plan_overlap(plan_clean_words(plan_texts[plan_at]), plan_basis_words);
+    if (plan_score_here > plan_chosen_score) {
+      plan_chosen_text = plan_at;
+      plan_chosen_score = plan_score_here;
+    }
+    plan_at = plan_at + 1;
+  }
+} return int plan_chosen_text;
+(["f(x) = x^2 has f(-1) = f(1)", "a map with every arrow single valued"], "arrow single valued checks", 0):(1)
+(["alpha text", "beta text"], "nothing common", 1):(1)
+(["alpha text", "beta text"], "nothing common", 2):(0)
+(["alpha"], "x", 5):(0)
+([], "x", 0):(-1)

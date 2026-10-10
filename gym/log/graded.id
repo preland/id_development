@@ -1,0 +1,38 @@
+// The `graded` event: the verdict on an answer that the checker could not decide
+// (a free answer, logged as an attempt with the verdict pending). Fields: ITEM,
+// VERDICT (correct or incorrect), SOURCE (model for the grader, self for the
+// learner marking the rubric) and MET, the rubric lines marked met as a comma
+// list of 1 and 0 ("1,0,1"; empty when the grader gave no per-line marks).
+// log_graded_ok is the validity rule, log_line_graded writes the line and
+// log_record_graded appends it, refused unless the reader would accept it.
+
+log_graded_ok(string[] log_fields) {
+  string log_met_text = log_fields[(import log_slot_graded_met)];
+  string log_without_zeros = str_replace(log_met_text, "0", "");
+  string log_without_ones = str_replace(log_without_zeros, "1", "");
+} chain (string[] log_fields) {
+  string log_bare = str_replace(log_without_ones, ",", "");
+  int log_graded_good = log_fields[(import log_slot_item)] != "" && lst_str_index((import log_graded_verdicts), log_fields[(import log_slot_graded_verdict)]) >= 0 && lst_str_index((import log_graded_sources), log_fields[(import log_slot_graded_source)]) >= 0;
+  int log_graded_valid = log_graded_good == 1 && log_bare == "" && len(log_met_text) <= (import log_graded_met_reach);
+} return int log_graded_valid;
+(["5", "graded", "i", "correct", "model", ""]):(1)
+(["5", "graded", "i", "incorrect", "self", "1,0,1"]):(1)
+(["5", "graded", "", "correct", "self", "1"]):(0)
+(["5", "graded", "i", "partly", "self", "1"]):(0)
+(["5", "graded", "i", "correct", "oracle", "1"]):(0)
+(["5", "graded", "i", "correct", "self", "1,2"]):(0)
+(["5", "graded", "i", "correct", "self", "yes"]):(0)
+
+log_line_graded(word log_time, string log_item, string log_verdict, string log_source, string log_met) {
+  string[] log_fields = ["" + log_time, "graded", log_escape(log_item), log_verdict, log_source, log_met];
+  string log_event = str_join(log_fields, "\t");
+} return string log_event;
+(7, "i", "correct", "self", "1,1"):("7\tgraded\ti\tcorrect\tself\t1,1")
+(8, "a\tb", "incorrect", "model", ""):("8\tgraded\ta\\tb\tincorrect\tmodel\t")
+
+log_record_graded(string log_path, word log_time, string log_item, string log_verdict, string log_source, string log_met) {
+  string log_event = log_line_graded(log_time, log_item, log_verdict, log_source, log_met);
+  int log_written = log_append_line(log_path, log_event);
+} return int log_written;
+given fs_temp_text("") ((import fs_temp_path), 9, "i", "correct", "self", "1,1"):(28) then fs_temp_read:("9\tgraded\ti\tcorrect\tself\t1,1\n")
+given fs_temp_text("old\n") ((import fs_temp_path), 9, "i", "partly", "self", "1,1"):(-1) then fs_temp_read:("old\n")

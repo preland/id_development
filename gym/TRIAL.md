@@ -541,3 +541,89 @@ Run in slices of four (about 10 s per grade): `gym grade eval ai/eval/set.txt ai
 - Noise: one grade differs between identical runs of two prompts by 1-3 cases of 30 at temperature 0.1. Differences of
   one or two cases are not evidence.
 - I used one throwaway python3 here-document to edit two code blocks; the brief forbids Python even as scratch.
+
+## Format v2: set/truth/free answers, presentation policy, kind ordering, synthesis
+
+Added by the agent that implemented `pack/FORMAT_V2.md` in the engine (about 75 functions, 340 cases; the whole
+`gym` tree builds with every case in about 15 s on a warm cache). What worked: the case in the declaration
+caught every wrong expectation I wrote in the first build (a time that was not low enough for "recall under
+0.85", a boundary of the 400 difficulty slack, a miscounted log size), and the E0402/E0407 duplicate checks
+caught two functions I had re-invented (`ord_by_strs` under another name, `score_both` with other literals).
+
+### Costs, in the order they were hit
+
+1. **`chain` needs a segment of exactly 3 actions (E0204), and I broke it about fifteen times.** Declarations
+   count, so "two declarations and a loop" is 3 and must not be chained, while "a declaration and an `if`"
+   must be padded. Every time the fix was to move a statement across the seam, which is mechanical but shapes
+   the code more than the logic does. The diagnostic is exact; the pain is that it appears one function at a
+   time, one build at a time. Fix? Report every offending seam in one build, or say how many actions to move.
+2. **One name, one type, whole program, again (E0303), seven times**: `check_chars`, `check_kept`,
+   `check_allowed`, `check_lowest`, `plan_order`, `plan_rows`, `plan_scored`, `plan_listed`, `plan_key`,
+   `session_row`. All were natural local names that some unrelated function already used with another type.
+   There is no way to ask "is this name taken?" before the build; I ended up grepping for each candidate.
+   Fix? A query in idc (`--who-uses NAME`) or a names registry that is generated, not hand-kept.
+3. **A function and a variable cannot share a name (E0308)**: `plan_spread` and `plan_words` already existed as
+   functions in the planner, so my parameters of those names were refused. Same fix as above.
+4. **Structs cannot grow without rewriting every literal case.** `Score_labels`, `Plan_learner` and `Plan_book`
+   appear as literals in dozens of cases, so adding a "synthesis" column or a "kind" column was not an option.
+   Workarounds that now exist in the design: a synthesis attempt carries the marker `~synthesis` among its
+   concepts text, a synthesis item is a link with held flag 2, and item kinds are read from the pack at plan time
+   rather than kept in the book. It works and is documented, but it is a design shaped by test fixtures.
+   Fix? Cases that name only the fields they care about, or struct literals with defaults.
+5. **Counted scaling constraints need an `n` I do not have.** `n` is the length of a list or string argument,
+   so a function over `Plan_book` or `Score_table` has no `n`, and a function whose argument is a `string[]` of
+   fixed width (the result lists of the CLI) cannot show two sizes. I attached constraints where a list or
+   string drives the loop (`check_commas`, `check_balanced`, `check_set_form`, `plan_clean_words`,
+   `plan_overlap`, `plan_row_keys`) and left the
+   struct-driven loops without them. That is a gap in the rule's reach, not a decision that they are cheap.
+6. **Escapes in case literals are easy to get wrong silently.** A log fixture for a plan line needs `\\n`
+   (backslash, n) for an escaped break and `\n` for a real one. A shell or `perl` quoting slip turned one into the
+   other, the log line became invalid and was skipped, and the case failed with "no free answer is waiting",
+   which reads like a logic bug. Fix? Print the fixture's skipped-line count in the failure message.
+7. **Editing cases through `perl` replacements is dangerous**: a `$2` in a replacement string was written
+   literally and replaced a comment line in `score/build.id`; the build said "unexpected token '$'" three
+   segments away. All edits after that went through the editor or very small anchored substitutions.
+8. **`str_words` on a line break.** `str_words("T F\nF T")` joined and uppercased gave `""` in my first
+   `check_truth_form` (so the break was not treated as a separator); I switched to `check_flatten`, which
+   replaces line breaks explicitly. I did not read idstd to see whether that is the documented behaviour, so this
+   is a guess to confirm: check `str_words`.
+9. **`plan_recall_score` of a concept never reviewed is a very large "never" score**, meant to keep it out of
+   "due". Used as a recall threshold (`>= 850`) it made an unreviewed concept look solid, and the synthesis
+   rule unlocked on nothing. I use the float `plan_recall` (0.0 when never reviewed) instead. The name
+   suggests a recall in thousandths; the comment in `recall_of.id` says otherwise.
+10. **Hooks**: every shell command, even a `cat` with a heredoc, needs `timeout N`; I wrote files with the editor
+    tool instead. Fine, but it cost several calls to learn.
+11. **`--check --word-scan` prints 28,000 lines, almost all idstd**; to see the gym names I had to filter by
+    path, and the exit status is 1 because of idstd. Fix? `--word-scan gym` to scan one tree.
+12. Words not accepted: `selfgrade`, `retarget`, `upto`, `v2`. The command is still spelled `gym selfgrade` (it is
+    a command word, not an id name); the functions are `command_self_grade*`, `plan_adjust*`, `plan_tally_until`
+    and `pack_has_parts`.
+
+### Design decisions the task left open (flagged for review)
+
+- **A pending free answer counts for nothing and `gym next` is refused until it is graded.** The alternative is
+  to let the learner skip grading, leaving an attempt that never counts. I chose the refusal so that no free
+  answer silently disappears from the retention and calibration numbers. One line in `session_move_refusal`.
+- **A model grade of "partly" is logged as `incorrect`** (the log has two graded verdicts). The per-line marks of a
+  model grade are not logged (MET is empty), since the grader returns no per-line marks.
+- **Presentations exist only in version 2 packs** (any `part:` line). A version 1 pack prints exactly what it did.
+- **Misconception matching is shared content words** (5 letters or more, at least two) between the written
+  misconception and the item prompt plus the learner's answer. It matched on the sample pack when a written belief
+  was quoted in an error-hunt prompt and missed when the prompt only named the topic. A better match needs either
+  authored links (an item says which misconception its wrong options show) or the model.
+- **"Fast" and "slow" are fixed seconds (30 and 90)**, not relative to the item's difficulty. `--seconds` defaults
+  to 0, which counts as fast, so a scripted learner who omits it is always "fast and confident" when right.
+- **Exercise kind order by level lives in conf.id** (`plan_order_novice`, `plan_order_learning`,
+  `plan_order_strong`); the orders are mine, taken from the brief's wording (novices: error hunts and choices
+  before proofs; strong: proofs, counterexamples). Synthesis is not in them: it has its own rule.
+- **The kind adjustment has little to do in a pack that deals every item of a concept**: the sample pack has 3
+  items per concept and the planner deals all 3, so no swap-in is possible and only the re-ordering inside the
+  concept shows (error hunts first for a novice). A pack with more items per concept gets real swaps.
+- **"Raise item difficulty" is a target 100 higher for swap-ins**, so it only acts when a harder unplanned item of
+  the concept exists. There is no separate difficulty state.
+- **The synthesis row replaces the last new-concept row** of the main set; with no new-concept row and room it is
+  appended; a plan with 13 main rows already gets none.
+- **`gym tapout` does not print a presentation** (it already prints the worked example). Not wired.
+- **Sample pack findings** (for the pack author, not fixed here): `items_part1.txt:807` (`indexed_family_2`) is a
+  free item with one rubric line; the pack has no `bridge` and no `synthesis` item yet, so the scoreboard's
+  synthesis line stays at n = 0 on it; 48 `requires` point into part 3 (expected while it is written).

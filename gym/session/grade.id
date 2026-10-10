@@ -1,0 +1,80 @@
+// Free answers: prose or a proof, which the checker cannot decide. The attempt is
+// logged first with the verdict pending (session_answer_item), so the reference
+// answer is shown only after a committed attempt. session_route_free then asks
+// the grader (grade_attempt) about it; a "graded" answer is written to the log as
+// a graded line from the model, anything else (server unreachable, unsure, low
+// confidence, a refusal) leaves the attempt pending and sends the learner to
+// mark it themselves with session_self_grade, which writes the marks they give
+// as a graded line from the learner. Nothing counts toward retention, the plan
+// or the scoreboard until a verdict is logged. session_ungraded says whether the
+// item on screen is still waiting for one, which is what stops `gym next`.
+
+session_ungraded(Log_events session_events, string[] session_shown) {
+  string session_escaped = log_escape(session_shown[(import session_slot_item)]);
+  int session_waiting_at = log_pending_index(session_events, session_escaped, len(session_events.kinds));
+  int session_waiting = session_shown[(import session_slot_state)] == "committed" && session_waiting_at >= 0;
+} return int session_waiting;
+(Log_events([1], ["attempt"], [["1", "attempt", "a", "x", "70", "pending", "0", "5", "no", ""]]), ["committed", "1", "2", "a", "main", "r", "0", "no"]):(1)
+(Log_events([1], ["attempt"], [["1", "attempt", "a", "x", "70", "correct", "0", "5", "no", ""]]), ["committed", "1", "2", "a", "main", "r", "0", "no"]):(0)
+(Log_events([1], ["attempt"], [["1", "attempt", "a", "x", "70", "pending", "0", "5", "no", ""]]), ["waiting", "1", "2", "a", "main", "r", "0", "no"]):(0)
+(Log_events([1], ["attempt"], [["1", "attempt", "a", "x", "70", "pending", "0", "5", "no", ""]]), ["committed", "1", "2", "b", "main", "r", "0", "no"]):(0)
+
+session_route_free(Pack session_book, string session_log_path, word session_now, string session_url) {
+  Log_replay session_replayed = log_replay(session_log_path);
+  string[] session_shown = session_view(session_replayed.events);
+  string session_item_id = session_shown[(import session_slot_item)];
+} chain (Pack session_book, string session_log_path, word session_now, string session_url) {
+  string session_escaped = log_escape(session_item_id);
+  int session_waiting_at = log_pending_index(session_replayed.events, session_escaped, len(session_replayed.events.kinds));
+  string[] session_feedback = grade_outcome("refused", "no free answer is waiting");
+} chain (Pack session_book, string session_log_path, word session_now, string session_url) {
+  if (session_waiting_at >= 0) {
+    session_feedback = grade_attempt(session_url, session_log_path, session_waiting_at, session_book, session_item_id);
+  }
+  string[] session_route = session_take_feedback(session_log_path, session_now, session_item_id, session_feedback);
+} return string[] session_route;
+given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n2\tattempt\ta\tmy proof\t90\tpending\t0\t9\tno\t\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: free\nanswer: model\nrubric: R1\nrubric: R2\nitem: b\nprompt: Q\nanswer_kind: integer\nanswer: 7\n") ((import model_fixture_book), (import model_fixture_log), 100, "http://127.0.0.1:1"):(["self", "", "the model server answered -1"]) then model_fixture_size:(76)
+given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: free\nanswer: model\nrubric: R1\nrubric: R2\n") ((import model_fixture_book), (import model_fixture_log), 100, "http://127.0.0.1:1"):(["self", "", "no free answer is waiting"]) then model_fixture_size:(36)
+
+session_self_grade(Pack session_book, string session_log_path, word session_now, string session_met_text) {
+  Log_replay session_replayed = log_replay(session_log_path);
+  string[] session_shown = session_view(session_replayed.events);
+  string session_escaped = log_escape(session_shown[(import session_slot_item)]);
+} chain (Pack session_book, string session_log_path, word session_now, string session_met_text) {
+  int session_waiting_at = log_pending_index(session_replayed.events, session_escaped, len(session_replayed.events.kinds));
+  int session_block = pack_find(session_book, "item", session_shown[(import session_slot_item)]);
+  string session_refusal = "";
+} chain (Pack session_book, string session_log_path, word session_now, string session_met_text) {
+  if (session_waiting_at < 0 || session_block < 0) {
+    session_refusal = "no free answer is waiting to be graded: answer a free item with gym answer first";
+  }
+  string[] session_rubric = [];
+  string session_marks = "";
+} chain (Pack session_book, string session_log_path, word session_now, string session_met_text) {
+  if (session_refusal == "") {
+    session_rubric = pack_fields(session_book, session_block, "rubric");
+    session_marks = session_met_marks(session_met_text, len(session_rubric));
+  }
+  string session_verdict = session_verdict_of(session_marks);
+  int session_written = 0 - 1;
+} chain (Pack session_book, string session_log_path, word session_now, string session_met_text) {
+  if (session_refusal == "" && session_marks == "") {
+    session_refusal = "the rubric has " + len(session_rubric) + " line(s): pass --met with " + len(session_rubric) + " values, each 1 (met) or 0 (not met), such as --met " + session_met_example(len(session_rubric));
+  }
+  if (session_refusal == "") {
+    session_written = log_record_graded(session_log_path, session_now, session_shown[(import session_slot_item)], session_verdict, "self", session_marks);
+  }
+  if (session_refusal == "" && session_written < 0) {
+    session_refusal = "the log could not be written";
+  }
+} chain (Pack session_book, string session_log_path, word session_now, string session_met_text) {
+  string[] session_result = ["refused", session_refusal];
+  if (session_refusal == "") {
+    session_result = ["ok", "", session_verdict, session_marks, session_shown[(import session_slot_item)], str_join(session_rubric, "\n")];
+  }
+} return string[] session_result;
+given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n2\tattempt\ta\tmy proof\t90\tpending\t0\t9\tno\t\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: free\nanswer: model\nrubric: R1\nrubric: R2\nitem: b\nprompt: Q\nanswer_kind: integer\nanswer: 7\n") ((import model_fixture_book), (import model_fixture_log), 100, "1,1"):(["ok", "", "correct", "1,1", "a", "R1\nR2"]) then model_fixture_size:(106)
+given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n2\tattempt\ta\tmy proof\t90\tpending\t0\t9\tno\t\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: free\nanswer: model\nrubric: R1\nrubric: R2\nitem: b\nprompt: Q\nanswer_kind: integer\nanswer: 7\n") ((import model_fixture_book), (import model_fixture_log), 100, "1,0"):(["ok", "", "incorrect", "1,0", "a", "R1\nR2"]) then model_fixture_size:(108)
+given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n2\tattempt\ta\tmy proof\t90\tpending\t0\t9\tno\t\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: free\nanswer: model\nrubric: R1\nrubric: R2\nitem: b\nprompt: Q\nanswer_kind: integer\nanswer: 7\n") ((import model_fixture_book), (import model_fixture_log), 100, "1"):(["refused", "the rubric has 2 line(s): pass --met with 2 values, each 1 (met) or 0 (not met), such as --met 1,1"]) then model_fixture_size:(76)
+given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n2\tattempt\ta\tmy proof\t90\tcorrect\t0\t9\tno\t\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: free\nanswer: model\nrubric: R1\nrubric: R2\n") ((import model_fixture_book), (import model_fixture_log), 100, "1,1"):(["refused", "no free answer is waiting to be graded: answer a free item with gym answer first"])
+given model_fixture_log_file("") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: free\nanswer: model\nrubric: R1\nrubric: R2\n") ((import model_fixture_book), (import model_fixture_log), 100, "1,1"):(["refused", "no free answer is waiting to be graded: answer a free item with gym answer first"])

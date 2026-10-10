@@ -92,3 +92,25 @@ and `log_record_next` build the line,
 refuse it unless the reader would accept it (answering -1 and writing nothing),
 and append it with one write at the end of the file, creating the file if it is
 not there.
+
+## Free answers: pending attempts and the `graded` line
+
+The checker cannot decide a `free` answer (prose or a proof). Such an answer is logged as an ordinary `attempt`
+with the verdict `pending`, and later settled by one more line:
+
+```
+TIME <TAB> graded <TAB> ITEM <TAB> VERDICT <TAB> SOURCE <TAB> MET
+```
+
+| field | meaning | values |
+| --- | --- | --- |
+| `VERDICT` | the verdict the pending attempt takes | `correct` or `incorrect` |
+| `SOURCE` | who graded it | `model` (the grader) or `self` (the learner marking the rubric) |
+| `MET` | the rubric lines marked met, one 1 or 0 each | `1,0,1`; empty for a model grade; at most 64 bytes |
+
+A `graded` line has exactly 6 fields. **The file is never rewritten**: when it is replayed, the verdict of the
+newest `pending` attempt at the same item *before* the graded line is replaced, in memory only, by the graded
+verdict (`log_settle`), so every reader sees one attempt with its final verdict. An attempt still `pending` counts
+for nothing: the planner, the scoreboard and the cooldown skip it. `gym next` refuses while the item on screen
+is pending. A `graded` line with no pending attempt before it changes nothing. A model "partly" is logged as
+`incorrect`.

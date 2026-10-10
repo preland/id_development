@@ -1,0 +1,58 @@
+// What to show with a result, rebuilt from the log alone (nothing is stored, so
+// `gym why` can say the same thing later). session_last_attempt finds the newest
+// attempt at an item; session_line words one presentation of the concept (an
+// item may name the presentation that best explains it, `presentation:`, and that
+// stands in when the concept has none of the kind the policy asked for);
+// session_belief finds the concept's written misconception that the wrong answer
+// most resembles (match.id), which is what a non-example is aimed at.
+
+session_last_attempt(Log_events session_events, string session_escaped_item) {
+  int session_at = len(session_events.kinds) - 1;
+  int session_none = 0 - 1;
+  while (session_at >= 0) {
+    if (session_events.kinds[session_at] == "attempt" && session_events.fields[session_at][(import log_slot_item)] == session_escaped_item) {
+      return session_at;
+    }
+    session_at = session_at - 1;
+  }
+} return int session_none;
+(Log_events([1, 2, 3], ["attempt", "attempt", "hint_shown"], [["1", "attempt", "a", "x", "70", "correct", "0", "5", "no", ""], ["2", "attempt", "b", "x", "70", "correct", "0", "5", "no", ""], ["3", "hint_shown", "a", "1"]]), "a"):(0)
+(Log_events([1, 2, 3], ["attempt", "attempt", "attempt"], [["1", "attempt", "a", "x", "70", "correct", "0", "5", "no", ""], ["2", "attempt", "b", "x", "70", "correct", "0", "5", "no", ""], ["3", "attempt", "a", "x", "70", "incorrect", "0", "5", "no", ""]]), "a"):(2)
+(Log_events([1], ["attempt"], [["1", "attempt", "a", "x", "70", "correct", "0", "5", "no", ""]]), "z"):(-1)
+(Log_events([], [], []), "a"):(-1)
+
+session_belief(Pack session_book, int session_concept_block, string session_basis) {
+  string[] session_beliefs = [];
+  string session_belief_text = "";
+  if (session_concept_block >= 0) {
+    session_beliefs = pack_fields(session_book, session_concept_block, "misconception");
+  }
+} chain (Pack session_book, int session_concept_block, string session_basis) {
+  int session_matched = plan_match_misconception(session_beliefs, session_basis);
+  if (session_matched >= 0) {
+    session_belief_text = session_beliefs[session_matched];
+  }
+} return string session_belief_text;
+given pack_fixture_parse("concept: c\nmisconception: Order of elements matters in a set\nmisconception: Checking every input has an output\n") ((import pack_fixture_book), 0, "A student says order of elements matters in sets"):("Order of elements matters in a set")
+given pack_fixture_parse("concept: c\nmisconception: Order of elements matters in a set\n") ((import pack_fixture_book), 0, "unrelated prose here"):("")
+given pack_fixture_parse("concept: c\nname: C\n") ((import pack_fixture_book), 0, "anything at all"):("")
+given pack_fixture_parse("concept: c\nmisconception: Order of elements matters in a set\n") ((import pack_fixture_book), -1, "order of elements matters"):("")
+
+session_line(Pack session_book, int session_concept_block, int session_item_block, string session_kind, string session_mode, string session_basis, int session_rotate) {
+  string session_text = plan_present_text(session_book, session_concept_block, session_kind, session_mode, session_basis, session_rotate);
+  string session_label = str_replace(session_kind, "_", "-");
+  string session_suggested = pack_field(session_book, session_item_block, "presentation");
+} chain (Pack session_book, int session_concept_block, int session_item_block, string session_kind, string session_mode, string session_basis, int session_rotate) {
+  if (session_text == "" && session_suggested != "" && session_suggested != session_kind) {
+    session_text = plan_present_text(session_book, session_concept_block, session_suggested, session_mode, session_basis, session_rotate);
+    session_label = str_replace(session_suggested, "_", "-") + " (the pack has no " + session_label + "; this item suggests it)";
+  }
+  if (session_text == "") {
+    session_text = "(the pack has none for this concept)";
+  }
+  string session_shown_row = "  " + session_label + ": " + session_text;
+} return string session_shown_row;
+given pack_fixture_parse("concept: c\nshow_definition: D\nshow_example: E1\nitem: i\nconcepts: c\npresentation: example\nitem: j\nconcepts: c\n") ((import pack_fixture_book), 0, 1, "definition", "full", "", 0):("  definition: D")
+given pack_fixture_parse("concept: c\nshow_definition: D\nshow_example: E1\nitem: i\nconcepts: c\npresentation: example\nitem: j\nconcepts: c\n") ((import pack_fixture_book), 0, 1, "worked", "full", "", 0):("  example (the pack has no worked; this item suggests it): E1")
+given pack_fixture_parse("concept: c\nshow_definition: D\nshow_example: E1\nitem: i\nconcepts: c\npresentation: example\nitem: j\nconcepts: c\n") ((import pack_fixture_book), 0, 2, "non_example", "full", "", 0):("  non-example: (the pack has none for this concept)")
+given pack_fixture_parse("concept: c\nshow_definition: D\nshow_example: E1\nitem: i\nconcepts: c\npresentation: example\nitem: j\nconcepts: c\n") ((import pack_fixture_book), 0, 1, "example", "full", "", 0):("  example: E1")

@@ -26,3 +26,10 @@ and `value` is 0.0: show `score_describe(figure, minimum)`, never the value. A `
 
 There are no streaks, XP, minutes or completion percentages here; `score_forbidden_count` is the
 guard that the shown text contains none.
+
+## The sixth number: synthesis
+
+`score_synthesis(table, minimum)`: accuracy on attempts at `kind: synthesis` items made without a hint and
+without a tap-out (an attempt still pending a grade is not in the table at all). The same "not enough data"
+rule applies. The pack labels such an attempt with the marker `~synthesis` among its concepts
+(`,ca,cb,~synthesis,`), so no struct changed. Its definition is `score_define("synthesis")`.

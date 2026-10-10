@@ -1,0 +1,51 @@
+// Handing a concept's items back to its main-set rows in kind order (order.id has
+// the keys). The ids and the reasons travel together, because a reason describes
+// the item it was written for ("expected first-try success 76%"), and every row
+// whose item changed gets a note saying it was ordered by kind and which kind now
+// stands there. plan_moved_text words the note ("" for a row that kept its item),
+// plan_rows_write writes the new ids and reasons, and plan_order_concept does the
+// whole thing for one concept: nothing happens to a concept with fewer than two
+// rows in the main set.
+
+plan_moved_text(Pack plan_pack, string plan_old_id, string plan_new_id, string plan_level, string plan_concept_id) {
+  string plan_new_kind_text = pack_field(plan_pack, pack_find(plan_pack, "item", plan_new_id), "kind");
+  string plan_moved = "";
+  if (plan_old_id != plan_new_id) {
+    plan_moved = "; ordered by exercise kind for a " + plan_level + " learner on " + plan_concept_id + " (" + plan_new_kind_text + " at this place)";
+  }
+} return string plan_moved;
+given pack_fixture_parse("item: p\nkind: proof\nitem: e\nkind: error_hunt\n") ((import pack_fixture_book), "p", "e", "novice", "c"):("; ordered by exercise kind for a novice learner on c (error_hunt at this place)")
+given pack_fixture_parse("item: p\nkind: proof\nitem: e\nkind: error_hunt\n") ((import pack_fixture_book), "p", "p", "novice", "c"):("")
+given pack_fixture_parse("item: p\nkind: proof\nitem: e\nkind: error_hunt\n") ((import pack_fixture_book), "e", "p", "strong", "d"):("; ordered by exercise kind for a strong learner on d (proof at this place)")
+
+plan_rows_write(Pack plan_pack, Plan_session plan_session, int[] plan_row_list, string[] plan_old_ids, string[] plan_new_ids, string[] plan_new_reasons, string plan_level, string plan_concept_id) {
+  int plan_at = 0;
+  while (plan_at < len(plan_row_list)) {
+    plan_session.ids[plan_row_list[plan_at]] = plan_new_ids[plan_at];
+    plan_session.reasons[plan_row_list[plan_at]] = plan_new_reasons[plan_at] + plan_moved_text(plan_pack, plan_old_ids[plan_at], plan_new_ids[plan_at], plan_level, plan_concept_id);
+    plan_at = plan_at + 1;
+  }
+} return void;
+given pack_fixture_parse("item: p\nkind: proof\nitem: e\nkind: error_hunt\n") ((import pack_fixture_book), Plan_session(["p", "x", "e"], ["main", "main", "main"], ["R0", "Rx", "R2"]), [0, 2], ["p", "e"], ["e", "p"], ["R2", "R0"], "novice", "c"):((import pack_fixture_book), Plan_session(["e", "x", "p"], ["main", "main", "main"], ["R2; ordered by exercise kind for a novice learner on c (error_hunt at this place)", "Rx", "R0; ordered by exercise kind for a novice learner on c (proof at this place)"]), [0, 2], ["p", "e"], ["e", "p"], ["R2", "R0"], "novice", "c")
+given pack_fixture_parse("item: p\nkind: proof\nitem: e\nkind: error_hunt\n") ((import pack_fixture_book), Plan_session(["p", "x", "e"], ["main", "main", "main"], ["R0", "Rx", "R2"]), [0, 2], ["p", "e"], ["p", "e"], ["R0", "R2"], "strong", "c"):((import pack_fixture_book), Plan_session(["p", "x", "e"], ["main", "main", "main"], ["R0", "Rx", "R2"]), [0, 2], ["p", "e"], ["p", "e"], ["R0", "R2"], "strong", "c")
+
+plan_order_concept(Pack plan_pack, Plan_book plan_book, Log_events plan_events, Plan_session plan_session, int plan_concept_number) {
+  int[] plan_rows_here = plan_concept_rows(plan_book, plan_session, plan_concept_number);
+  int[] plan_counts_here = plan_tally_until(plan_book, plan_events, plan_concept_number, len(plan_events.kinds));
+  string plan_level_here = plan_level_of(plan_counts_here);
+} chain (Pack plan_pack, Plan_book plan_book, Log_events plan_events, Plan_session plan_session, int plan_concept_number) {
+  int[] plan_order_keys = plan_row_keys(plan_pack, plan_book, plan_session, plan_rows_here, plan_level_here);
+  int[] plan_permutation = ord_ints(plan_order_keys);
+  string[] plan_old_ids_here = ord_by_strs(plan_session.ids, plan_rows_here);
+} chain (Pack plan_pack, Plan_book plan_book, Log_events plan_events, Plan_session plan_session, int plan_concept_number) {
+  string[] plan_old_reasons_here = ord_by_strs(plan_session.reasons, plan_rows_here);
+  string[] plan_new_ids_here = ord_by_strs(plan_old_ids_here, plan_permutation);
+  string[] plan_new_reasons_here = ord_by_strs(plan_old_reasons_here, plan_permutation);
+} chain (Pack plan_pack, Plan_book plan_book, Log_events plan_events, Plan_session plan_session, int plan_concept_number) {
+  if (len(plan_rows_here) > 1) {
+    plan_rows_write(plan_pack, plan_session, plan_rows_here, plan_old_ids_here, plan_new_ids_here, plan_new_reasons_here, plan_level_here, plan_book.catalog.concepts[plan_concept_number]);
+  }
+} return void;
+given pack_fixture_parse("concept: c\npart: 1\nitem: p\nconcepts: c\nkind: proof\nitem: e\nconcepts: c\nkind: error_hunt\n") ((import pack_fixture_book), Plan_book(Plan_catalog(["c"], ["p", "e"], [1200, 900]), Plan_links([0, 1], [0, 0], [0, 0]), Plan_needs([], [])), Log_events([], [], []), Plan_session(["p", "x", "e"], ["main", "main", "main"], ["R0", "Rx", "R2"]), 0):((import pack_fixture_book), Plan_book(Plan_catalog(["c"], ["p", "e"], [1200, 900]), Plan_links([0, 1], [0, 0], [0, 0]), Plan_needs([], [])), Log_events([], [], []), Plan_session(["e", "x", "p"], ["main", "main", "main"], ["R2; ordered by exercise kind for a novice learner on c (error_hunt at this place)", "Rx", "R0; ordered by exercise kind for a novice learner on c (proof at this place)"]), 0)
+given pack_fixture_parse("concept: c\npart: 1\nitem: p\nconcepts: c\nkind: proof\nitem: e\nconcepts: c\nkind: error_hunt\nitem: q\nconcepts: c\nkind: solve\n") ((import pack_fixture_book), Plan_book(Plan_catalog(["c"], ["p", "e", "q"], [1200, 900, 1000]), Plan_links([0, 1, 2], [0, 0, 0], [0, 0, 0]), Plan_needs([], [])), Log_events([1, 2], ["attempt", "attempt"], [["1", "attempt", "q", "x", "70", "correct", "0", "5", "no", ""], ["2", "attempt", "e", "x", "70", "correct", "0", "5", "no", ""]]), Plan_session(["e", "x", "p"], ["main", "main", "main"], ["R0", "Rx", "R2"]), 0):((import pack_fixture_book), Plan_book(Plan_catalog(["c"], ["p", "e", "q"], [1200, 900, 1000]), Plan_links([0, 1, 2], [0, 0, 0], [0, 0, 0]), Plan_needs([], [])), Log_events([1, 2], ["attempt", "attempt"], [["1", "attempt", "q", "x", "70", "correct", "0", "5", "no", ""], ["2", "attempt", "e", "x", "70", "correct", "0", "5", "no", ""]]), Plan_session(["p", "x", "e"], ["main", "main", "main"], ["R2; ordered by exercise kind for a strong learner on c (proof at this place)", "Rx", "R0; ordered by exercise kind for a strong learner on c (error_hunt at this place)"]), 0)
+given pack_fixture_parse("concept: c\npart: 1\nitem: p\nconcepts: c\nkind: proof\n") ((import pack_fixture_book), Plan_book(Plan_catalog(["c"], ["p"], [1200]), Plan_links([0], [0], [0]), Plan_needs([], [])), Log_events([], [], []), Plan_session(["p"], ["main"], ["R0"]), 0):((import pack_fixture_book), Plan_book(Plan_catalog(["c"], ["p"], [1200]), Plan_links([0], [0], [0]), Plan_needs([], [])), Log_events([], [], []), Plan_session(["p"], ["main"], ["R0"]), 0)

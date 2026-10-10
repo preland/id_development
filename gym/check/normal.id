@@ -13,6 +13,16 @@ check_normal(string check_kind, string check_text) {
   if (check_is_numeric(check_kind) == 1) {
     check_form = check_render(check_read(check_kind, check_text));
   }
+  if (check_kind == "set") {
+    check_form = check_set_form(check_text);
+  }
+  if (check_kind == "truth") {
+    check_form = check_truth_form(check_text);
+  }
+} chain (string check_kind, string check_text) {
+  if (check_kind == "free") {
+    check_form = check_flatten(check_text);
+  }
 } return string check_form;
 ("integer", " +007 "):("7")
 ("fraction", "6 / 16"):("3/8")
@@ -21,6 +31,10 @@ check_normal(string check_kind, string check_text) {
 ("integer", "2.5"):("")
 ("choice", " (b)."):("B")
 ("text", "  Bayes   RULE "):("bayes rule")
+("set", " { 2,1,1 } "):("{1,2}")
+("truth", "t f"):("TF")
+("free", "  Any   Proof "):("any proof")
+("set", "{1"):("")
 ("bogus", "x"):("")
 
 check_forms(string check_wanted, string check_offered) {

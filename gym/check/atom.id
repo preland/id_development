@@ -1,0 +1,50 @@
+// The smallest members of a set answer and how members are put in order. An atom
+// is an integer or a short word (letters, digits, hyphen, underscore, point), at
+// most check_atom_reach bytes; an integer is written in lowest form, so 007 and
+// 7 are the same member, and a word is lower-cased. check_set_shape tells which
+// brackets enclose a text, and check_distinct_sorted puts canonical members in a
+// fixed order with repeats dropped, which is what makes two sets equal whatever
+// order or repetition the learner typed.
+
+check_atom_char(int check_code) {
+  int check_permitted = chr_is_alnum(check_code) == 1 || check_code == 45 || check_code == 95 || check_code == 46;
+} return int check_permitted;
+(97):(1)
+(55):(1)
+(45):(1)
+(95):(1)
+(46):(1)
+(32):(0)
+(44):(0)
+(123):(0)
+
+check_atom_form(string check_atom) {
+  string check_lowered = str_lower(check_atom);
+  int check_at = 0;
+  int check_good = 0;
+} chain (string check_atom) {
+  while (check_at < len(check_lowered)) {
+    check_good = check_good + check_atom_char(charat(check_lowered, check_at));
+    check_at = check_at + 1;
+  }
+  Ratio check_number_found = check_read("integer", check_lowered);
+  string check_form = "";
+} chain (string check_atom) {
+  if (len(check_lowered) > 0 && check_good == len(check_lowered) && len(check_lowered) <= (import check_atom_reach)) {
+    check_form = check_lowered;
+  }
+  if (check_form != "" && check_number_found.valid == 1) {
+    check_form = check_render(check_number_found);
+  }
+} return string check_form;
+("7"):("7")
+("007"):("7")
+("-3"):("-3")
+("Cat"):("cat")
+("x_1"):("x_1")
+(""):("")
+("a b"):("")
+("{"):("")
+("abcdefghijklmnopqrstuvwxyz"):("")
+("aaaa"):("aaaa")[time:O(n), mem:O(1)]
+("aaaaaaaaaaaaaaaa"):("aaaaaaaaaaaaaaaa")[time:O(n), mem:O(1)]
