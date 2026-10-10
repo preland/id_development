@@ -7,8 +7,8 @@
 // a server refuses the schema.
 
 model_message(string model_role, string model_content) {
-  string model_role_quoted = model_quote(model_role);
-  string model_content_quoted = model_quote(model_content);
+  string model_role_quoted = json_quote(model_role);
+  string model_content_quoted = json_quote(model_content);
   string model_piece = "{\"role\":" + model_role_quoted + ",\"content\":" + model_content_quoted + "}";
 } return string model_piece;
 ("user", "hi"):("{\"role\":\"user\",\"content\":\"hi\"}")
@@ -21,7 +21,7 @@ model_request(string model_system_text, string model_user_text, string model_sch
     model_format = ",\"response_format\":{\"type\":\"json_schema\",\"json_schema\":{\"name\":\"reply\",\"strict\":true,\"schema\":" + model_schema_text + "}}";
   }
 } chain (string model_system_text, string model_user_text, string model_schema_text) {
-  string model_head = "{\"model\":" + model_quote((import model_name)) + ",\"temperature\":" + (import model_temperature) + ",\"max_tokens\":" + (import model_token_limit);
+  string model_head = "{\"model\":" + json_quote((import model_name)) + ",\"temperature\":" + (import model_temperature) + ",\"max_tokens\":" + (import model_token_limit);
   string model_tail = ",\"chat_template_kwargs\":" + (import model_think_off) + ",\"messages\":" + model_messages + model_format + "}";
   string model_whole = model_head + model_tail;
 } return string model_whole;

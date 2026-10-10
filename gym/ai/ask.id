@@ -1,6 +1,7 @@
 // The one place the app talks to the local model. model_address is where the
 // server is (GYM_MODEL_URL, else conf's default, port 8184); model_ask posts a
-// chat request and answers the HTTP status as http_call_url does (200 is a
+// chat request, waiting up to model_timeout_ms (conf) for each part of the reply
+// since a model on a CPU takes seconds, and answers the HTTP status as http_call_url does (200 is a
 // reply, -1 nothing listening, -3 a url that is not http://host:port), leaving
 // the reply body in model_cells[http_r_body]. A 400 with a schema usually means
 // the server does not take response_format, so the request is sent once more
@@ -20,11 +21,11 @@ given env_put("GYM_MODEL_URL", "http://127.0.0.1:9") ():("http://127.0.0.1:9")
 model_ask(string model_url, string model_system_text, string model_user_text, string model_schema_text, string[] model_cells) {
   string model_request_body = model_request(model_system_text, model_user_text, model_schema_text);
   string model_target = model_url + (import model_target_path);
-  int model_code = http_call_url("POST", model_target, (import model_json_headers), model_request_body, model_cells);
+  int model_code = http_call_url("POST", model_target, (import model_json_headers), model_request_body, model_cells, (import model_timeout_ms));
 } chain (string model_url, string model_system_text, string model_user_text, string model_schema_text, string[] model_cells) {
   if (model_code == 400 && model_schema_text != "") {
     model_request_body = model_request(model_system_text, model_user_text, "");
-    model_code = http_call_url("POST", model_target, (import model_json_headers), model_request_body, model_cells);
+    model_code = http_call_url("POST", model_target, (import model_json_headers), model_request_body, model_cells, (import model_timeout_ms));
   }
 } return int model_code;
 ("http://127.0.0.1:1", "s", "u", "{}", ["", "", ""]):(-1)

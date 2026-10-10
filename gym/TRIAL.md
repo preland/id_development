@@ -243,10 +243,8 @@ The whole `gym` tree still builds and runs every case in about 1.2 s warm.
 ## Phase 2: `gym/ai/` (grader and coach through the local model)
 
 22. **No JSON writer in idstd, and `str_quote` is not one.** `str_quote` writes every non-ASCII
-    code point as `\u{...}`, which JSON does not have. `model_quote` (+ `model_escape_space`,
-    `model_escape_control`) is the same three functions as `wire_quote` in `idmcp/wire/quote.id`:
-    a duplicate across two projects that belongs in idstd as one `json_quote`. Left as two copies
-    under two prefixes (inside one program they would be rejected as E0402).
+    code point as `\u{...}`, which JSON does not have. The copy that gym and idmcp each had
+    (`model_quote`, `wire_quote`) is now one idstd `json_quote` (`core/fmt/json/quote.id`).
 23. **`json_text` is a reader, not a validator.** A malformed document gives wrong answers, not
     errors, so "reject unparseable JSON" needs a structure check of its own: `model_object_text`
     cuts first `{` to last `}` (which also strips a thinking block or a markdown fence), and every

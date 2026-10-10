@@ -41,7 +41,7 @@ too). Exit status 1. Note the second diagnostic has `code: null` and
 
 ## Wire layer
 
-- `wire_quote(text)` writes a JSON string literal: `"` `\` as `\"` `\\`, newline,
+- idstd's `json_quote(text)` writes a JSON string literal: `"` `\` as `\"` `\\`, newline,
   tab, carriage return as `\n` `\t` `\r`, every other control byte 1..31 as
   `\u00XX`, everything else (UTF-8 included) as bytes.
 - `wire_unescape(raw)` undoes every escape in the bytes between a string's quotes,
@@ -77,7 +77,7 @@ too). Exit status 1. Note the second diagnostic has `code: null` and
 - `input()` truncates at 1023 bytes: replaced by `wire_fill` over
   `stdio_read_some_mem` (one syscall-level read per byte).
 - No JSON string encoder: `str_quote` escapes non-ASCII as `\u{...}`, which is not
-  JSON. `wire_quote` is the replacement (a candidate for idstd `core/fmt/json`).
+  JSON. idstd `json_quote` (`core/fmt/json/quote.id`) is the replacement.
 - `json_text` does not decode `\uXXXX`, and it undoes `\\` first, so an escaped
   backslash followed by `u0041` cannot be told from `A`; `wire_string`
   reads the raw token instead.

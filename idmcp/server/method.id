@@ -25,9 +25,9 @@ server_initialize(string server_line) {
   if (wire_expect(server_line, "params.protocolVersion", "string") == 1) {
     server_version_text = json_text(server_line, "params.protocolVersion");
   }
-  string server_quoted = wire_quote(server_version_text);
+  string server_quoted = json_quote(server_version_text);
 } chain (string server_line) {
-  string server_info = "{\"protocolVersion\":" + server_quoted + ",\"capabilities\":{\"tools\":{}},\"serverInfo\":{\"name\":\"idmcp\",\"version\":" + wire_quote((import server_version)) + "}}";
+  string server_info = "{\"protocolVersion\":" + server_quoted + ",\"capabilities\":{\"tools\":{}},\"serverInfo\":{\"name\":\"idmcp\",\"version\":" + json_quote((import server_version)) + "}}";
 } return string server_info;
 ("{}"):("{\"protocolVersion\":\"2025-06-18\",\"capabilities\":{\"tools\":{}},\"serverInfo\":{\"name\":\"idmcp\",\"version\":\"0.1.0\"}}")
 ("{\"params\":{\"protocolVersion\":\"2024-11-05\"}}"):("{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{}},\"serverInfo\":{\"name\":\"idmcp\",\"version\":\"0.1.0\"}}")

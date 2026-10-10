@@ -5,7 +5,7 @@
 tool_member(string spec_pair) {
   string spec_key = str_before(spec_pair, ":");
   string spec_type = str_after(spec_pair, ":");
-  string spec_member = wire_quote(spec_key) + ":{\"type\":" + wire_quote(spec_type) + "}";
+  string spec_member = json_quote(spec_key) + ":{\"type\":" + json_quote(spec_type) + "}";
 } return string spec_member;
 ("text:string"):("\"text\":{\"type\":\"string\"}")
 ("depth:integer"):("\"depth\":{\"type\":\"integer\"}")
@@ -32,7 +32,7 @@ tool_required(string spec_names) {
   int spec_at = 0;
 } chain (string spec_names) {
   while (spec_at < len(spec_parts) && spec_names != "") {
-    push(spec_quoted, wire_quote(spec_parts[spec_at]));
+    push(spec_quoted, json_quote(spec_parts[spec_at]));
     spec_at = spec_at + 1;
   }
   string spec_array = "[" + str_join(spec_quoted, ",") + "]";

@@ -1,5 +1,5 @@
 // Building the reply lines. A reply is one line of JSON with no newline inside:
-// wire_quote escapes every control, so a message or a tool's text with newlines
+// json_quote escapes every control, so a message or a tool's text with newlines
 // stays on one line. The id is passed as JSON text (wire_id), so a number stays
 // a number and a string stays quoted.
 
@@ -11,7 +11,7 @@ wire_result(string wire_id_text, string wire_result_text) {
 ("null", "\"x\""):("{\"jsonrpc\":\"2.0\",\"id\":null,\"result\":\"x\"}")
 
 wire_failure(string wire_id_text, int wire_code, string wire_message) {
-  string wire_quoted = wire_quote(wire_message);
+  string wire_quoted = json_quote(wire_message);
   string wire_reply = "{\"jsonrpc\":\"2.0\",\"id\":" + wire_id_text + ",\"error\":{\"code\":" + wire_code + ",\"message\":" + wire_quoted + "}}";
 } return string wire_reply;
 ("null", -32700, "Parse error"):("{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error\"}}")
@@ -26,7 +26,7 @@ wire_id(string wire_line) {
     wire_text = json_str(wire_line, wire_pos);
   }
   if (wire_kind_name == "string") {
-    wire_text = wire_quote(wire_string(wire_line, wire_pos));
+    wire_text = json_quote(wire_string(wire_line, wire_pos));
   }
 } return string wire_text;
 ("{\"id\":42,\"method\":\"m\"}"):("42")
