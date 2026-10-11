@@ -442,7 +442,7 @@ the case's line:
 | `then CHECK(NAME, ...)` with a function's name as a literal | `a check's arguments are literals or (import NAME); 'g' is a function name, which only a case's own arguments may pass` |
 | `then` naming a `void` function | `'then' names 'st', which returns void; a check returns the value it compares` |
 | a check with more or fewer than one value | `a 'then' check compares exactly one value, not 2` |
-| `(import NAME)` as a check's value | `a 'then' check compares a literal; (import g) may only be an argument or an expected value` |
+| `(import NAME)` as a check's value | `a 'then' check compares a literal; (import g) is not one, so write the value as a literal (for a conf.id constant, the constant's value)` |
 | `(import NAME)` in a case without `given` | `(import g) needs a 'given': an export has no value in a case until a setup has run; a setup's own arguments are read before it runs, so an (import NAME) there needs an earlier 'given' that sets it` |
 | `(import NAME)` of a name nothing exports | `(import zz): 'zz' is not an exported variable` |
 | `(import NAME)` exported by a function the setup does not reach through the call graph | `(import h): 'h' is exported by 'other', which the setup 'st' does not reach, so nothing sets it before the call` |
@@ -458,6 +458,8 @@ the case's line:
 | `then len((import NAME))` of an export that is not a list or a string | `len((import total)) measures a list or a string, but 'total' is a int; name a list or string export, or compare the value itself with then (import total):(value)` |
 | `then (import NAME)[(import VAR)]` with an exported variable in the index | `(import slot) is an exported variable, and only a conf.id constant may stand in a then check's index: a variable's value is what the check is testing; name a constant, or write the index as a number` |
 | `(import CONST)` of a conf.id constant as an argument or an expected value | `(import slot) is a conf.id constant, and a case names one only as a then check's index, as in then (import tbl)[(import slot)]:(value); write its value here as a literal` |
+| `(import CONST)` of a conf.id constant as a `then CHECK(...)` argument | `(import slot) is a conf.id constant, and a check's argument cannot name one: a conf.id constant is accepted only as a then check's index, as in then (import tbl)[(import slot)]:(value); write its value as a literal, as in then f(5):(value)` |
+| `then CHECK((import NAME)[i])` an indexed export as a check's argument | `an indexed export, (import cnt)[...], is not accepted as an argument of a case or of a check; an argument is a literal or (import cnt) whole, and to check one element write 'then (import cnt)[i]:(value)'` |
 
 The setup-argument and list-element rows are tested in
 `idc/tests/invalid/given_args_*.id` and `idc/tests/invalid/list_import_*.id`,
@@ -498,7 +500,7 @@ The function's signature must be exactly the position's type
 (`this case gives 'shout', a func(string) return void, where a func(int) return int is required`),
 the name must be a function of the build -- any other name is still a
 variable where a literal belongs
-(`a test case takes literals only (a number, a string, or a list of those); 'nope' is not a function in this build, which is the only name a case may pass`) -- and the
+(`a test case takes literals only (a number, a string, a list of those, or a struct written as P(1, 2)); 'nope' is not a function in this build, which is the only name a case may pass`) -- and the
 harness carries the named function whether or not anything else calls it. It
 adds nothing to `n`. A failing case prints a function value as
 `a function value`: the running harness has the pointer, not the name.
