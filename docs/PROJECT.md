@@ -443,7 +443,9 @@ What it keeps, and what it refuses:
   moves too, in order, since a name bound early must not skip past one:
   `bump(c) * 10 + twice(bump(c))` becomes two locals, not one. An index read
   or an `import` evaluated before it moves only when some call that also
-  moves could write (`fix/plan/decide/touch/`) — otherwise it is read exactly
+  moves, or sits inside one that moves, could write: run a function that
+  declares an export, assigns through an index, or calls `push`, `pop`, `lset`
+  or a `poke` (`fix/plan/decide/touch/`) — otherwise it is read exactly
   where it stood, and reads whatever the calls before it left there, same as
   before the rewrite. The accepted cost: two reads that would both trap may
   now report in a different order than they did before `--fix`.
