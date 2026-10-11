@@ -1,0 +1,27 @@
+// The node number of the function called text_name, adding it when it is new, and recording its file:line when text_location is not "" and its case count when number_cases is not negative. A callee read from an edge row has a location but no case count, a function row has both, a builtin has neither, so a node keeps whatever it was told at any point.
+call_graph_intern(string[][] strings_graph, int[][] table_graph, string text_name, string text_location, int number_cases) {
+  int number_old = len(strings_graph[(import call_graph_string_name)]);
+  int number_identifier = graph_node(strings_graph[(import call_graph_string_node_key)], table_graph[(import call_graph_integer_node_value)], table_graph[(import call_graph_integer_node_used)], table_graph[(import call_graph_integer_node_count)], strings_graph[(import call_graph_string_name)], text_name);
+  call_graph_slot(strings_graph, table_graph, number_identifier, number_old, text_location, number_cases);
+} return int number_identifier;
+given call_graph_test_open ((import call_graph_test_unit), (import call_graph_test_mark), "f", "a.id:1", 2):(0) then call_graph_test_view:("f|a.id:1|2|>")
+given call_graph_test_open given call_graph_row("f|a.id:1|2", (import call_graph_test_unit), (import call_graph_test_mark)) ((import call_graph_test_unit), (import call_graph_test_mark), "g", "", -1):(1) then call_graph_test_view:("f,g|a.id:1,|2,0|>")
+
+// Gives node number_identifier its place in the parallel lists: when it is the node just made (number_identifier is number_old, the count before) it gets an empty location and no cases, then a location other than "" and a case count other than -1 replace those.
+call_graph_slot(string[][] strings_graph, int[][] table_graph, int number_identifier, int number_old, string text_location, int number_cases) {
+  if (number_identifier == number_old) {
+    push(strings_graph[(import call_graph_string_location)], "");
+    push(table_graph[(import call_graph_integer_cases)], 0);
+  }
+  string[] fixture_location = strings_graph[(import call_graph_string_location)];
+  int[] list_cases = table_graph[(import call_graph_integer_cases)];
+} chain (string[][] strings_graph, int[][] table_graph, int number_identifier, int number_old, string text_location, int number_cases) {
+  if (text_location != "") {
+    fixture_location[number_identifier] = text_location;
+  }
+  if (number_cases >= 0) {
+    list_cases[number_identifier] = number_cases;
+  }
+} return void;
+given call_graph_test_open ((import call_graph_test_unit), (import call_graph_test_mark), 0, 0, "q:1", 7):() then call_graph_test_view:("|q:1|7|>")
+given call_graph_test_open given call_graph_row("f|a.id:1|2", (import call_graph_test_unit), (import call_graph_test_mark)) ((import call_graph_test_unit), (import call_graph_test_mark), 0, 1, "", 3):() then call_graph_test_view:("f|a.id:1|3|>")

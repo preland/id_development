@@ -1,0 +1,20 @@
+// The layout (graph_view_layout) of a tree from call_graph_tree at the width of each box's label in the 8x8 face: the labels (call_graph_labels) and the bits (graph_view_flag_repeat for a repeat) are appended to the empty lists fixture_labels and list_flags. Answers the layout.
+call_graph_lay(string[][] strings_graph, int[][] table_tree, string[] fixture_labels, int[] list_flags) {
+  call_graph_labels(strings_graph, table_tree, fixture_labels);
+  lst_extend(list_flags, table_tree[(import graph_view_tree_repeat)]);
+  int[][] table_tree_end = graph_view_tree_edges(table_tree[(import graph_view_tree_parent)]);
+} chain (string[][] strings_graph, int[][] table_tree, string[] fixture_labels, int[] list_flags) {
+  int[] list_width = graph_view_widths(fixture_labels);
+  int[][] table_layout = graph_view_layout(len(fixture_labels), table_tree_end[0], table_tree_end[1], list_width);
+} return int[][] table_layout;
+([["a", "b"]], [[0, 1], [-1, 0], [0, 0], [0, 1]], [], []):([[0, 0], [0, 44], [0, 1], [20, 20], [0], [1], [0], [2], [2, 2, 2]])
+([["f", "g"]], [[0, 1, 1], [-1, 0, 0], [0, 0, 1], [0, 1, 1]], [], []):([[18, 0, 32], [0, 44, 44], [0, 1, 1], [20, 20, 28], [0, 0], [1, 2], [0, 1], [2, 2], [3, 3, 2]])
+
+// The tree and its layout together, as [tree, layout]: call_graph_tree and then call_graph_lay. The window keeps the tree to find what a click or a search found, and lays out again only when the tree is different.
+call_graph_view_bundle(string[][] strings_graph, int[][] table_graph, int number_root, int number_depth, int[] list_overlap, string[] fixture_labels, int[] list_flags) {
+  int[][] table_tree = call_graph_tree(strings_graph, table_graph, number_root, number_depth, list_overlap);
+  int[][] table_layout = call_graph_lay(strings_graph, table_tree, fixture_labels, list_flags);
+  int[][][] bundle_value = [table_tree, table_layout];
+} return int[][][] bundle_value;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) ((import call_graph_test_unit), (import call_graph_test_mark), 0, 2, [0, 0], [], []):([[[0, 1], [-1, 0], [0, 0], [0, 1]], [[0, 0], [0, 44], [0, 1], [20, 20], [0], [1], [0], [2], [2, 2, 2]]])
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) ((import call_graph_test_unit), (import call_graph_test_mark), 0, 2, [2, 0], [], []):([[[0], [-1], [0], [0]], [[0], [0], [0], [20], [], [], [], [], [1, 1, 1]]])

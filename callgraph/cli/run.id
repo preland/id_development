@@ -1,0 +1,8 @@
+// callgraph --dump FILE --root NAME [--depth N] and callgraph --render FILE OUT.ppm --root NAME [--depth N]: reads the two options (the depth is 3 when not given) and shows the layout, as text for --dump and as a picture for --render. Answers 0, or 1 after naming on stderr what went wrong.
+call_graph_run(int argument_count, string[] argument_values, string text_out) {
+  string text_root = call_graph_option_value(argument_count, argument_values, "--root", "");
+  int number_depth = to_int(call_graph_option_value(argument_count, argument_values, "--depth", "3"));
+  int number_result_code = call_graph_graph_command(argument_values[2], text_root, number_depth, text_out);
+} return int number_result_code;
+given fs_temp_text("a|a.id:1|b|b.id:2|call\nb|b.id:2|c|c.id:3|call\n") (5, ["callgraph", "--dump", (import fs_temp_path), "--root", "a"], ""):(0) then prints:("a 0 0 0\nb 0 44 1\nc 0 88 2\n")
+given fs_temp_text("a|a.id:1|b|b.id:2|call\nb|b.id:2|c|c.id:3|call\n") (7, ["callgraph", "--dump", (import fs_temp_path), "--depth", "1", "--root", "a"], ""):(0) then prints:("a 0 0 0\nb 0 44 1\n")

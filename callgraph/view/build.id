@@ -1,0 +1,18 @@
+// The node number of the function called text_name, or -1 when the graph has none.
+call_graph_find(string[][] strings_graph, int[][] table_graph, string text_name) {
+  int number_identifier = hmap_get(strings_graph[(import call_graph_string_node_key)], table_graph[(import call_graph_integer_node_value)], table_graph[(import call_graph_integer_node_used)], text_name, -1);
+} return int number_identifier;
+given call_graph_test_open given call_graph_row("f|a.id:1|2", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_row("g|a.id:5|0", (import call_graph_test_unit), (import call_graph_test_mark)) ((import call_graph_test_unit), (import call_graph_test_mark), "g"):(1)
+given call_graph_test_open given call_graph_row("f|a.id:1|2", (import call_graph_test_unit), (import call_graph_test_mark)) ((import call_graph_test_unit), (import call_graph_test_mark), "zz"):(-1)
+
+// The tree (graph_view_tree) of what the function at node number_root calls to number_depth levels, over the calls between functions (call_graph_calls) and with the marks of list_overlap (1 shows the children of a node whatever the depth, 2 hides them, 0 leaves it to the depth).
+call_graph_tree(string[][] strings_graph, int[][] table_graph, int number_root, int number_depth, int[] list_overlap) {
+  int[][] table_edges = call_graph_calls(strings_graph, table_graph);
+  int number_count = len(strings_graph[(import call_graph_string_name)]);
+  int[] list_off = graph_off(number_count, table_edges[0]);
+} chain (string[][] strings_graph, int[][] table_graph, int number_root, int number_depth, int[] list_overlap) {
+  int[] list_adjacent = graph_adjacent(number_count, table_edges[0], table_edges[1], list_off);
+  int[][] table_tree = graph_view_tree(number_count, list_off, list_adjacent, number_root, number_depth, list_overlap);
+} return int[][] table_tree;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\nb|b.id:2|c|c.id:3|call\na|a.id:1|c|c.id:3|call\nb|b.id:2|print||call\n", (import call_graph_test_unit), (import call_graph_test_mark)) ((import call_graph_test_unit), (import call_graph_test_mark), 0, 2, [0, 0, 0, 0]):([[0, 1, 2, 2], [-1, 0, 0, 1], [0, 0, 0, 1], [0, 1, 1, 2]])
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\nb|b.id:2|c|c.id:3|call\na|a.id:1|c|c.id:3|call\nb|b.id:2|print||call\n", (import call_graph_test_unit), (import call_graph_test_mark)) ((import call_graph_test_unit), (import call_graph_test_mark), 0, 2, [2, 0, 0, 0]):([[0], [-1], [0], [0]])

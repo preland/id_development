@@ -1,0 +1,29 @@
+// Prints the figures of call_graph_stats for the graph in the file at text_path, three lines: the functions, the distinct call edges between functions, and all distinct call edges with the builtin calls. Answers 0, or 1 after naming on stderr what could not be read and how to fix it.
+call_graph_stats_command(string text_path) {
+  string text_text = fs_read_text(text_path);
+  int number_result_code = 1;
+  if (text_text != "") {
+    number_result_code = call_graph_print_stats(text_text);
+  }
+} chain (string text_path) {
+  if (text_text == "") {
+    eprint("callgraph: nothing could be read from the file; run `idc idstd --calls > FILE` first and check that the path exists [" + text_path + "]");
+  }
+} return int number_result_code;
+given fs_temp_text("a|a.id:1|b|b.id:2|call\na|a.id:1|print||call\n\nfn|file:line|cases\na|a.id:1|0\nb|b.id:2|0\n") ((import fs_temp_path)):(0) then prints:("functions 2\nedges 1\nedges_with_builtins 2\n")
+("/nonexistent/none.txt"):(1) then eprints:("callgraph: nothing could be read from the file; run `idc idstd --calls > FILE` first and check that the path exists [/nonexistent/none.txt]\n")
+
+// Loads calls text into a graph of its own and prints its figures; answers 0.
+call_graph_print_stats(string text_text) {
+  string[][] strings_graph = [];
+  int[][] table_graph = [];
+  call_graph_open(strings_graph, table_graph);
+} chain (string text_text) {
+  call_graph_load(text_text, strings_graph, table_graph);
+  int[] list_step = call_graph_stats(strings_graph, table_graph);
+  print("functions " + list_step[0] + "\nedges " + list_step[1] + "\nedges_with_builtins " + list_step[2]);
+} chain (string text_text) {
+  int number_result_code = 0;
+} return int number_result_code;
+("a|a.id:1|b|b.id:2|call\n"):(0) then prints:("functions 2\nedges 1\nedges_with_builtins 1\n")
+("a|a.id:1|b||call\na|a.id:1|c||call\n\nfn|file:line|cases\na|a.id:1|0\n"):(0) then prints:("functions 1\nedges 0\nedges_with_builtins 2\n")

@@ -1,0 +1,20 @@
+// Test check: call_graph_state_text of the session in call_graph_test_strings and call_graph_test_x.
+call_graph_test_state() {
+  string text_text = call_graph_state_text((import call_graph_test_strings), (import call_graph_test_x));
+} return string text_text;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ():("camera 470 12 100\nselected none\nsearch \nnodes 2\na 0 0 0\nb 0 44 1\n")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 0) ():("camera 470 12 100\nselected none\nsearch \nnodes 1\na 0 0 0\n")
+
+// Test setup: one event given to the session in call_graph_test_strings and call_graph_test_x, the answer of call_graph_step kept in the export call_graph_test_code.
+call_graph_test_event(int number_kind, int number_primary, int number_second, int number_third, int number_fourth) {
+  export int call_graph_test_code = call_graph_step((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), number_kind, number_primary, number_second, number_third, number_fourth);
+} return void;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) (6, 300, 200, 0, 0):() then call_graph_test_state:("camera 470 12 100\nselected none\nsearch \nnodes 2\na 0 0 0\nb 0 44 1\n") then call_graph_test_codes:("1")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) (5, 3, 4, 0, 0):() then call_graph_test_codes:("0")
+
+// Test check: the answer of the last call_graph_test_event.
+call_graph_test_codes() {
+  string text_code = "" + (import call_graph_test_code);
+} return string text_code;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given call_graph_test_event(5, 3, 4, 0, 0) ():("0")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given call_graph_test_event(6, 3, 4, 0, 0) ():("1")

@@ -1,0 +1,28 @@
+// 1 when the word text_name is among the words of the command line from the fifth on (a flag such as --dump), 0 when it is not.
+call_graph_flag(int argument_count, string[] argument_values, string text_name) {
+  int number_key = 4;
+  int number_has = 0;
+  while (number_key < argument_count) {
+    number_has = fx_max(number_has, argument_values[number_key] == text_name);
+    number_key = number_key + 1;
+  }
+} return int number_has;
+(6, ["callgraph", "--script", "s", "c", "--root", "--dump"], "--dump"):(1)
+(5, ["callgraph", "--script", "s", "c", "--root"], "--dump"):(0)
+
+// The window mode: callgraph CALLS.txt --root NAME [--depth N] reads the graph, finds the root and opens the window (call_graph_win). Answers 0, or 1 after naming on stderr what went wrong. number_open is 1 for a window, 0 to run everything but the window.
+call_graph_window_command(int argument_count, string[] argument_values, int number_open) {
+  string text_text = fs_read_text(argument_values[1]);
+  string text_root = call_graph_option_value(argument_count, argument_values, "--root", "");
+  int number_depth = to_int(call_graph_option_value(argument_count, argument_values, "--depth", "2"));
+} chain (int argument_count, string[] argument_values, int number_open) {
+  int number_result_code = 1;
+  if (text_text != "") {
+    number_result_code = call_graph_window_text(text_text, text_root, number_depth, number_open);
+  }
+  if (text_text == "") {
+    eprint("callgraph: nothing could be read from the file; run `idc idstd --calls > FILE` first and check that the path exists [" + argument_values[1] + "]");
+  }
+} return int number_result_code;
+(4, ["callgraph", "/nonexistent/none.txt", "--root", "a"], 0):(1) then eprints:("callgraph: nothing could be read from the file; run `idc idstd --calls > FILE` first and check that the path exists [/nonexistent/none.txt]\n")
+given fs_temp_text("a|a.id:1|b|b.id:2|call\n") (4, ["callgraph", (import fs_temp_path), "--root", "a"], 0):(0)

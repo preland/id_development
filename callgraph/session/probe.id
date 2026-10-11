@@ -1,0 +1,22 @@
+// Test setup: the empty bundles of a session, in the exports call_graph_test_strings (the text lists) and call_graph_test_x (the int lists), for call_graph_start to fill.
+call_graph_test_blank() {
+  export string[][] call_graph_test_strings = [];
+  export int[][][] call_graph_test_x = [];
+} return void;
+given call_graph_test_blank ():() then call_graph_test_count:("0,0")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_blank given call_graph_start((import call_graph_test_unit), (import call_graph_test_mark), 0, 1, (import call_graph_test_strings), (import call_graph_test_x)) ():() then call_graph_test_count:("0,0")
+
+// Test check: how many lists the two session bundles hold, "text,int", 3,3 once a session has started.
+call_graph_test_count() {
+  string text_count = len((import call_graph_test_strings)) + "," + len((import call_graph_test_x));
+} return string text_count;
+given call_graph_test_blank ():("0,0")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_blank given call_graph_start((import call_graph_test_unit), (import call_graph_test_mark), 0, 1, (import call_graph_test_strings), (import call_graph_test_x)) ():("3,3")
+
+// Test setup: a session over the graph in call_graph_test_unit and call_graph_test_mark, rooted at node number_root to number_depth levels, in call_graph_test_strings and call_graph_test_x.
+call_graph_test_begin(int number_root, int number_depth) {
+  call_graph_test_blank();
+  call_graph_start((import call_graph_test_unit), (import call_graph_test_mark), number_root, number_depth, (import call_graph_test_strings), (import call_graph_test_x));
+} return void;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) (0, 1):() then call_graph_test_count:("3,3")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) (1, 0):() then call_graph_test_state:("camera 470 12 100\nselected none\nsearch \nnodes 1\nb 0 0 0\n")

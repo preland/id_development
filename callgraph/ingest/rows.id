@@ -1,0 +1,31 @@
+// An edge row, caller|file:line|callee|file:line|kind, as its five fields: both ends become nodes (a callee with no location is a builtin) and the edge between them is recorded once.
+call_graph_edge(string[] fixture_flag, string[][] strings_graph, int[][] table_graph) {
+  int number_primary = call_graph_intern(strings_graph, table_graph, fixture_flag[0], fixture_flag[1], -1);
+  int number_second = call_graph_intern(strings_graph, table_graph, fixture_flag[2], fixture_flag[3], -1);
+  call_graph_link(strings_graph, table_graph, number_primary, number_second);
+} return void;
+given call_graph_test_open (["a", "a.id:1", "b", "", "call"], (import call_graph_test_unit), (import call_graph_test_mark)):() then call_graph_test_view:("a,b|a.id:1,|0,0|0>1")
+given call_graph_test_open (["a", "a.id:1", "b", "b.id:2", "call"], (import call_graph_test_unit), (import call_graph_test_mark)):() then call_graph_test_view:("a,b|a.id:1,b.id:2|0,0|0>1")
+
+// A function row, name|file:line|cases, as its three fields: the function becomes a node with its place and its case count. Answers the node number.
+call_graph_function(string[] fixture_flag, string[][] strings_graph, int[][] table_graph) {
+  int number_third = to_int(fixture_flag[2]);
+  int number_identifier = call_graph_intern(strings_graph, table_graph, fixture_flag[0], fixture_flag[1], number_third);
+} return int number_identifier;
+given call_graph_test_open (["f", "x.id:3", "4"], (import call_graph_test_unit), (import call_graph_test_mark)):(0) then call_graph_test_view:("f|x.id:3|4|>")
+given call_graph_test_open given call_graph_row("g|y.id:1|0", (import call_graph_test_unit), (import call_graph_test_mark)) (["f", "x.id:3", "0"], (import call_graph_test_unit), (import call_graph_test_mark)):(1) then call_graph_test_view:("g,f|y.id:1,x.id:3|0,0|>")
+
+// One line of --calls output: an edge row has five fields, a function row three, and the blank line between them and the "fn|file:line|cases" header have neither shape and are skipped.
+call_graph_row(string text_line, string[][] strings_graph, int[][] table_graph) {
+  string[] fixture_flag = str_split(text_line, "|");
+  if (len(fixture_flag) == 5) {
+    call_graph_edge(fixture_flag, strings_graph, table_graph);
+  }
+  if (len(fixture_flag) == 3 && fixture_flag[0] != "fn") {
+    call_graph_function(fixture_flag, strings_graph, table_graph);
+  }
+} return void;
+given call_graph_test_open ("a|a.id:1|b|b.id:2|call", (import call_graph_test_unit), (import call_graph_test_mark)):() then call_graph_test_view:("a,b|a.id:1,b.id:2|0,0|0>1")
+given call_graph_test_open ("fn|file:line|cases", (import call_graph_test_unit), (import call_graph_test_mark)):() then call_graph_test_view:("|||>")
+given call_graph_test_open ("", (import call_graph_test_unit), (import call_graph_test_mark)):() then call_graph_test_view:("|||>")
+given call_graph_test_open ("a|a.id:1|7", (import call_graph_test_unit), (import call_graph_test_mark)):() then call_graph_test_view:("a|a.id:1|7|>")

@@ -1,0 +1,27 @@
+// Writes the surface to the file at the path as a binary PPM (P6, 255), the picture a browser or an image viewer shows. Answers 0, or 1 after naming on stderr what could not be written and how to fix it.
+call_graph_picture(string text_path) {
+  int number_height = fs_open(text_path, "w");
+  string text_head = "P6\n" + (import sf_l_w) + " " + (import sf_l_h) + "\n255\n";
+  int number_lost = 1;
+} chain (string text_path) {
+  if (number_height >= 0) {
+    number_lost = fs_write(number_height, exec_bytes(text_head), len(text_head)) - len(text_head);
+    number_lost = number_lost + call_graph_rows(number_height);
+    number_lost = number_lost + fs_close(number_height);
+  }
+  if (number_lost != 0) {
+    eprint("callgraph: the picture could not be written; check that the folder exists and that you may write to it [" + text_path + "]");
+  }
+  int number_result_code = number_lost != 0;
+} return int number_result_code;
+given sf_l_init(2, 2) given d2_l_rect(0, 0, 2, 2, 1193046) given call_graph_test_file("c") ((import call_graph_test_position)):(0) then call_graph_test_got:(23)
+given sf_l_init(2, 2) ("/nonexistent/dir/o.ppm"):(1) then eprints:("callgraph: the picture could not be written; check that the folder exists and that you may write to it [/nonexistent/dir/o.ppm]\n")
+
+// Test setup: a scratch file named by fs_mktemp, in the export call_graph_test_position, open for writing in the export call_graph_test_height.
+call_graph_test_file(string text_tag) {
+  string text_pattern = fs_mktemp("cg_ppm_" + text_tag, 0);
+  export string call_graph_test_position = text_pattern;
+  export int call_graph_test_height = fs_open(text_pattern, "w");
+} return void;
+("a"):() then call_graph_test_got:(0)
+("b"):() then call_graph_test_got:(0)

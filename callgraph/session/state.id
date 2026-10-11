@@ -1,0 +1,33 @@
+// What a session looks like as text, for --dump after a script and for the cases: the camera, the selected box, the search text and the boxes with where the layout put them.
+call_graph_state_text(string[][] strings_session, int[][][] bundle) {
+  int[] list_state = bundle[(import call_graph_session_bundle_session)][(import call_graph_session_state)];
+  string text_camera = "camera " + list_state[(import graph_view_state_pan_x)] + " " + list_state[(import graph_view_state_pan_y)] + " " + list_state[(import graph_view_state_zoom)] + "\n";
+  string text_selected = "selected " + call_graph_selected_name(strings_session, list_state) + "\n";
+} chain (string[][] strings_session, int[][][] bundle) {
+  string text_find = "search " + strings_session[(import call_graph_text_text)][0] + "\n";
+  string text_text = text_camera + text_selected + text_find + "nodes " + len(strings_session[(import call_graph_text_labels)]) + "\n" + call_graph_node_lines(strings_session, bundle);
+} return string text_text;
+([["f", "g"], ["q"]], [[[3, 4, 150, 1, 960, 600, 0, 0, 0, 0, 0, 0, 0, 0, 0]], [[]], [[7, 8], [0, 44], [0, 1]]]):("camera 3 4 150\nselected g\nsearch q\nnodes 2\nf 7 0 0\ng 8 44 1\n")
+([[], [""]], [[[0, 0, 100, -1, 960, 600, 0, 0, 0, 0, 0, 0, 0, 0, 0]], [[]], [[], [], []]]):("camera 0 0 100\nselected none\nsearch \nnodes 0\n")
+
+// The name of the selected box, or "none".
+call_graph_selected_name(string[][] strings_session, int[] list_state) {
+  string text_name = "none";
+  if (list_state[(import graph_view_state_selected)] >= 0) {
+    text_name = strings_session[(import call_graph_text_labels)][list_state[(import graph_view_state_selected)]];
+  }
+} return string text_name;
+([["f", "g"]], [0, 0, 100, 1]):("g")
+([["f", "g"]], [0, 0, 100, -1]):("none")
+
+// One line, "label x y layer", for each box of the layout, in tree order.
+call_graph_node_lines(string[][] strings_session, int[][][] bundle) {
+  string text_lines = "";
+  int number_key = 0;
+  while (number_key < len(strings_session[(import call_graph_text_labels)])) {
+    text_lines = text_lines + strings_session[(import call_graph_text_labels)][number_key] + " " + bundle[(import call_graph_session_bundle_layout)][(import graph_view_layout_x)][number_key] + " " + bundle[(import call_graph_session_bundle_layout)][(import graph_view_layout_y)][number_key] + " " + bundle[(import call_graph_session_bundle_layout)][(import graph_view_layout_layer)][number_key] + "\n";
+    number_key = number_key + 1;
+  }
+} return string text_lines;
+([["f"]], [[[]], [[]], [[4], [8], [2]]]):("f 4 8 2\n")
+([[]], [[[]], [[]], [[], [], []]]):("")

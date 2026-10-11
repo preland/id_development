@@ -1,0 +1,14 @@
+// size W H: the view becomes W by H (a resize event).
+call_graph_do_size(string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle, string[] fixture_flag) {
+  call_graph_step(strings_graph, table_graph, strings_session, bundle, (import graph_view_event_size), to_int(fixture_flag[1]), to_int(fixture_flag[2]), 0, 0);
+} return void;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), ["size", "300", "200"]):() then call_graph_test_size:("300x200")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), ["size", "5", "6"]):() then call_graph_test_size:("5x6")
+
+// Test check: the size of the view of the session in call_graph_test_x, "WxH".
+call_graph_test_size() {
+  int[] list_state = (import call_graph_test_x)[(import call_graph_session_bundle_session)][(import call_graph_session_state)];
+  string text_size = list_state[(import graph_view_state_width)] + "x" + list_state[(import graph_view_state_height)];
+} return string text_size;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ():("960x600")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given call_graph_test_event(6, 11, 12, 0, 0) ():("11x12")

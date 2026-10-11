@@ -1,0 +1,35 @@
+// One event given to a session, in the form gfx_event gives it (kind, then a, b, c, d for ev[1] to ev[4]; gph_ev_ in conf.id). graph_view_event changes the view state; when it asks for the selected box to be expanded or collapsed the tree is rebuilt (call_graph_toggle), and when it asks for a search the text is looked for (call_graph_search). Answers 1 when the picture has to be painted again, 0 when nothing changed.
+call_graph_step(string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle, int number_kind, int number_primary, int number_second, int number_third, int number_fourth) {
+  int number_code = graph_view_event(bundle[(import call_graph_session_bundle_session)][(import call_graph_session_state)], strings_session[(import call_graph_text_text)], bundle[(import call_graph_session_bundle_layout)], number_kind, number_primary, number_second, number_third, number_fourth);
+  if (number_code / 2 % 2 == 1) {
+    call_graph_toggle(strings_graph, table_graph, strings_session, bundle);
+  }
+  if (number_code / 4 % 2 == 1) {
+    call_graph_search(strings_session, bundle);
+  }
+} chain (string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle, int number_kind, int number_primary, int number_second, int number_third, int number_fourth) {
+  int number_paint = number_code > 0;
+} return int number_paint;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\na|a.id:1|c|c.id:3|call\nb|b.id:2|d|d.id:4|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), 5, 3, 4, 0, 0):(0) then call_graph_test_state:("camera 454 12 100\nselected none\nsearch \nnodes 3\na 16 0 0\nb 0 44 1\nc 32 44 1\n")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\na|a.id:1|c|c.id:3|call\nb|b.id:2|d|d.id:4|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), 8, 0, -1, 0, 0):(1) then call_graph_test_state:("camera 568 15 125\nselected none\nsearch \nnodes 3\na 16 0 0\nb 0 44 1\nc 32 44 1\n")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\na|a.id:1|c|c.id:3|call\nb|b.id:2|d|d.id:4|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given call_graph_test_event(5, 700, 300, 0, 0) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), 8, 0, -1, 0, 0):(1) then call_graph_test_state:("camera 393 -60 125\nselected none\nsearch \nnodes 3\na 16 0 0\nb 0 44 1\nc 32 44 1\n")
+
+// The selected box expanded or collapsed: its mark (graph_view_toggle) is flipped, the tree is built again (call_graph_tree), and only when it came out different (call_graph_differs) is it laid out again and put in the session (call_graph_apply).
+call_graph_toggle(string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle) {
+  int number_mark = graph_view_toggle(bundle[(import call_graph_session_bundle_tree)], bundle[(import call_graph_session_bundle_session)][(import call_graph_session_overlap)], bundle[(import call_graph_session_bundle_session)][(import call_graph_session_state)][(import graph_view_state_selected)]);
+  int[][] table_tree_second = call_graph_tree(strings_graph, table_graph, bundle[(import call_graph_session_bundle_session)][(import call_graph_session_cell)][(import call_graph_setting_root)], bundle[(import call_graph_session_bundle_session)][(import call_graph_session_cell)][(import call_graph_setting_depth)], bundle[(import call_graph_session_bundle_session)][(import call_graph_session_overlap)]);
+  if (call_graph_differs(bundle[(import call_graph_session_bundle_tree)], table_tree_second) == 1) {
+    call_graph_apply(strings_graph, strings_session, bundle, table_tree_second);
+  }
+} return void;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\na|a.id:1|c|c.id:3|call\nb|b.id:2|d|d.id:4|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given call_graph_test_event(3, 460, 60, 1, 1) given call_graph_test_event(4, 460, 60, 1, 0) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x)):() then call_graph_test_state:("camera 470 248 100\nselected b\nsearch \nnodes 4\na 16 0 0\nb 0 44 1\nc 32 44 1\nd 0 88 2\n")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\na|a.id:1|c|c.id:3|call\nb|b.id:2|d|d.id:4|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 2) given call_graph_test_event(3, 460, 60, 1, 1) given call_graph_test_event(4, 460, 60, 1, 0) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x)):() then call_graph_test_state:("camera 470 248 100\nselected b\nsearch \nnodes 3\na 16 0 0\nb 0 44 1\nc 32 44 1\n")
+
+// 1 when two trees (graph_view_tree: node, parent, repeat, depth) are not the same tree.
+call_graph_differs(int[][] table_tree_first, int[][] table_tree_next) {
+  int number_same = lst_eq(table_tree_first[(import graph_view_tree_node)], table_tree_next[(import graph_view_tree_node)]) * lst_eq(table_tree_first[(import graph_view_tree_parent)], table_tree_next[(import graph_view_tree_parent)]) * lst_eq(table_tree_first[(import graph_view_tree_repeat)], table_tree_next[(import graph_view_tree_repeat)]);
+  int number_diff = 1 - number_same;
+} return int number_diff;
+([[0, 1], [-1, 0], [0, 0], [0, 1]], [[0, 1], [-1, 0], [0, 0], [0, 1]]):(0)
+([[0, 1], [-1, 0], [0, 0], [0, 1]], [[0, 1], [-1, 0], [0, 1], [0, 1]]):(1)
+([[0, 1], [-1, 0], [0, 0], [0, 1]], [[0], [-1], [0], [0]]):(1)

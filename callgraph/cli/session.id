@@ -1,0 +1,35 @@
+// A script run on a session: the session starts at the root (call_graph_start), the script is replayed (call_graph_replay), and then the state is printed when number_dump is 1 and the picture is written to text_out when that is not "". Answers 0, or 1 when a line of the script could not be read or the picture could not be written.
+call_graph_script_run(string[][] strings_graph, int[][] table_graph, int number_root, int number_depth, string text_script, int number_dump, string text_out) {
+  string[][] strings_session = [];
+  int[][][] bundle = [];
+  call_graph_start(strings_graph, table_graph, number_root, number_depth, strings_session, bundle);
+} chain (string[][] strings_graph, int[][] table_graph, int number_root, int number_depth, string text_script, int number_dump, string text_out) {
+  int number_bad = call_graph_replay(strings_graph, table_graph, strings_session, bundle, text_script);
+  int number_result_code = call_graph_report(strings_graph, table_graph, strings_session, bundle, number_dump, text_out);
+  int number_code = (number_bad + number_result_code > 0);
+} return int number_code;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) ((import call_graph_test_unit), (import call_graph_test_mark), 0, 1, "size 7 8\n", 1, ""):(0) then prints:("camera 470 12 100\nselected none\nsearch \nnodes 2\na 0 0 0\nb 0 44 1\n")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) ((import call_graph_test_unit), (import call_graph_test_mark), 0, 1, "size 7\n", 0, ""):(1) then eprints:("callgraph: script line 1: 'size 7' is not a word a script has or lacks its fields; the words are wheel X Y DY, down X Y [BUTTON [CLICKS]], up X Y, move X Y, key NAME, text STR, size W H\n")
+
+// What is left to do after a script: the state as text on stdout (without the last newline, print adding its own) and the picture of it (call_graph_surface, call_graph_picture). Answers 1 when the picture could not be written, 0 otherwise.
+call_graph_report(string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle, int number_dump, string text_out) {
+  string text_text = call_graph_state_text(strings_session, bundle);
+  if (number_dump == 1) {
+    string text_cut = str_sub(text_text, 0, len(text_text) - 1);
+    print(text_cut);
+  }
+  int number_result_code = call_graph_render_session(strings_graph, table_graph, strings_session, bundle, text_out);
+} return int number_result_code;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), 1, ""):(0) then prints:("camera 470 12 100\nselected none\nsearch \nnodes 2\na 0 0 0\nb 0 44 1\n")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), 0, ""):(0) then prints:("")
+
+// The picture of the session (call_graph_surface) written to the PPM file text_out (call_graph_picture); nothing when text_out is "". Answers 0, or 1 when the file could not be written.
+call_graph_render_session(string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle, string text_out) {
+  int number_result_code = 0;
+  if (text_out != "") {
+    call_graph_surface(strings_graph, table_graph, strings_session, bundle);
+    number_result_code = call_graph_picture(text_out);
+  }
+} return int number_result_code;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given call_graph_test_file("z") ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), (import call_graph_test_position)):(0) then call_graph_test_got:(1728015)
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), "/nonexistent/dir/o.ppm"):(1) then eprints:("callgraph: the picture could not be written; check that the folder exists and that you may write to it [/nonexistent/dir/o.ppm]\n")

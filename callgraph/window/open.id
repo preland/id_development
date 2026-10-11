@@ -1,0 +1,34 @@
+// The window mode: starts a session on the graph for the function at node number_root, opens a 960 by 600 window (when number_open is 1, so that a case can run the rest without one) and runs frames until it is closed. Answers 0, or 1 after naming on stderr that no window could be opened.
+call_graph_win(string[][] strings_graph, int[][] table_graph, int number_root, int number_depth, int number_open) {
+  string[][] strings_session = [];
+  int[][][] bundle = [];
+  call_graph_start(strings_graph, table_graph, number_root, number_depth, strings_session, bundle);
+} chain (string[][] strings_graph, int[][] table_graph, int number_root, int number_depth, int number_open) {
+  sf_l_init(960, 600);
+  txt_g8_init();
+  int number_ok = number_open;
+} chain (string[][] strings_graph, int[][] table_graph, int number_root, int number_depth, int number_open) {
+  if (number_open == 1) {
+    number_ok = gfx_open(960, 600, "callgraph");
+  }
+  int number_count = call_graph_loop(strings_graph, table_graph, strings_session, bundle, number_ok, 0 - 1);
+  int number_result_code = call_graph_closed(number_open, number_ok);
+} return int number_result_code;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) ((import call_graph_test_unit), (import call_graph_test_mark), 0, 1, 0):(0)
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) ((import call_graph_test_unit), (import call_graph_test_mark), 1, 2, 0):(0)
+
+// What the window mode answers once the loop is over: the window is closed if one was opened, and a window that was wanted but not opened is named on stderr (the answer is then 1).
+call_graph_closed(int number_open, int number_ok) {
+  int number_gone = 0;
+  if (number_open == 1) {
+    number_gone = gfx_close();
+  }
+  if (number_open == 1 && number_ok == 0) {
+    eprint("callgraph: no window could be opened; run it where a display is (DISPLAY or WAYLAND_DISPLAY), or use --script with --render-after");
+  }
+} chain (int number_open, int number_ok) {
+  int number_result_code = number_open * (1 - number_ok);
+} return int number_result_code;
+(0, 0):(0)
+(1, 1):(0)
+(1, 0):(1) then eprints:("callgraph: no window could be opened; run it where a display is (DISPLAY or WAYLAND_DISPLAY), or use --script with --render-after\n")

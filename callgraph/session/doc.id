@@ -1,0 +1,40 @@
+// The first line (cut to 60 characters, a tooltip being small) of the comment block just above line `line` (counted from 1) of the source text, with its // and the space after it taken off, or "" when the line above is not a comment. A block is the run of lines that start, after any indent, with //; its first line is the one that says what the function is for.
+call_graph_doc(string text_text, int number_line) {
+  string[] fixture_rows = str_split(text_text, "\n");
+  int number_up = fx_min(number_line - 2, len(fixture_rows) - 1);
+  int number_top = call_graph_top(fixture_rows, number_up);
+} chain (string text_text, int number_line) {
+  string text_doc = "";
+  if (number_top <= number_up) {
+    text_doc = call_graph_cut(str_trim(fixture_rows[number_top]));
+  }
+} return string text_doc;
+("// first\n// second\nf() {\n", 3):("first")
+("// only\nf() {\n", 2):("only")
+("x\n\nf() {\n", 3):("")
+("// c\nf() {\n", 1):("")
+("// c", 9):("c")
+("// 0123456789012345678901234567890123456789012345678901234567890123456789\nf\n", 2):("012345678901234567890123456789012345678901234567890123456789")
+
+// The line where the comment block that ends at row j of the lines begins: j + 1 when row j is not a comment, so no comment at all.
+call_graph_top(string[] fixture_rows, int number_inner) {
+  while (number_inner >= 0 && str_starts(str_trim(fixture_rows[number_inner]), "//")) {
+    number_inner = number_inner - 1;
+  }
+  int number_first = number_inner + 1;
+} return int number_first;
+(["// a", "// b", "f"], 1):(0)
+(["x", "// b", "f"], 1):(1)
+(["x", "y"], 1):(2)
+
+// The first comment line above line `line` of the file at the path (call_graph_doc), or "" when the file cannot be read. The file is read only now, when a tooltip first asks.
+call_graph_doc_of(string text_path, int number_line) {
+  string text_text = fs_read_text(text_path);
+  string text_doc = "";
+  if (text_text != "") {
+    text_doc = call_graph_doc(text_text, number_line);
+  }
+} return string text_doc;
+given fs_temp_text("// hello there\nf() {\n}\n") ((import fs_temp_path), 2):("hello there")
+("/nonexistent/none.id", 2):("")
+

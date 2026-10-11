@@ -1,0 +1,57 @@
+// The word of the command line at position number_index, or "" when the line has fewer.
+call_graph_argument(int argument_count, string[] argument_values, int number_index) {
+  string text_first = "";
+  if (number_index < argument_count) {
+    text_first = argument_values[number_index];
+  }
+} return string text_first;
+(3, ["callgraph", "a", "b"], 2):("b")
+(3, ["callgraph", "a", "b"], 3):("")
+
+// The word that follows the option text_name among the words from the third on (the first is the program, then the mode or the file), as in `--root idstd_foo`; text_definition when it is not given.
+call_graph_option_value(int argument_count, string[] argument_values, string text_name, string text_definition) {
+  int number_key = 2;
+  string text_value = text_definition;
+  while (number_key + 1 < argument_count) {
+    if (argument_values[number_key] == text_name) {
+      text_value = argument_values[number_key + 1];
+    }
+    number_key = number_key + 1;
+  }
+} return string text_value;
+(6, ["callgraph", "--dump", "f", "--root", "x", "--depth"], "--root", ""):("x")
+(5, ["callgraph", "--dump", "f", "--depth", "4"], "--root", "none"):("none")
+(5, ["callgraph", "--dump", "f", "--depth", "4"], "--depth", "3"):("4")
+(4, ["callgraph", "f", "--root", "x"], "--root", ""):("x")
+
+// What the program does for its command line. CALLS.txt --root NAME opens the window on what NAME calls; --script S.txt CALLS.txt --root NAME replays the events of S.txt without one, printing the state (--dump) and writing the picture (--render-after OUT.ppm). --stats FILE counts the functions and call edges of the graph in FILE (the output of `idc idstd --calls`). --dump FILE --root NAME [--depth N] prints where the layout puts each box of what NAME calls, to N levels (3 when not given). Answers 0, or the status of the mode; a line that is none of them says how to write one, on stderr, and answers 2.
+call_graph_main(int argument_count, string[] argument_values) {
+  string text_match = call_graph_argument(argument_count, argument_values, 1);
+  int number_result_code = 2;
+  if (text_match == "--stats" && argument_count == 3) {
+    number_result_code = call_graph_stats_command(argument_values[2]);
+  }
+} chain (int argument_count, string[] argument_values) {
+  if (text_match == "--dump" && argument_count >= 5) {
+    number_result_code = call_graph_run(argument_count, argument_values, "");
+  }
+  if (text_match == "--render" && argument_count >= 6) {
+    number_result_code = call_graph_run(argument_count, argument_values, argument_values[3]);
+  }
+  if (text_match == "--script" && argument_count >= 5) {
+    number_result_code = call_graph_script_command(argument_count, argument_values);
+  }
+} chain (int argument_count, string[] argument_values) {
+  if (argument_count >= 4 && str_starts(text_match, "--") == 0) {
+    number_result_code = call_graph_window_command(argument_count, argument_values, 1);
+  }
+  if (number_result_code == 2) {
+    eprint("usage: callgraph CALLS.txt --root NAME [--depth N] | --stats CALLS.txt | --dump CALLS.txt --root NAME [--depth N] | --render CALLS.txt OUT.ppm --root NAME [--depth N] | --script S.txt CALLS.txt --root NAME [--depth N] [--dump] [--render-after OUT.ppm]");
+  }
+} return int number_result_code;
+(2, ["callgraph", "--bogus"]):(2) then eprints:("usage: callgraph CALLS.txt --root NAME [--depth N] | --stats CALLS.txt | --dump CALLS.txt --root NAME [--depth N] | --render CALLS.txt OUT.ppm --root NAME [--depth N] | --script S.txt CALLS.txt --root NAME [--depth N] [--dump] [--render-after OUT.ppm]\n")
+(3, ["callgraph", "--stats", "/nonexistent/none.txt"]):(1) then eprints:("callgraph: nothing could be read from the file; run `idc idstd --calls > FILE` first and check that the path exists [/nonexistent/none.txt]\n")
+(5, ["callgraph", "--dump", "/nonexistent/none.txt", "--root", "x"]):(1) then eprints:("callgraph: nothing could be read from the file; run `idc idstd --calls > FILE` first and check that the path exists [/nonexistent/none.txt]\n")
+(6, ["callgraph", "--render", "/nonexistent/none.txt", "/nonexistent/out.ppm", "--root", "x"]):(1) then eprints:("callgraph: nothing could be read from the file; run `idc idstd --calls > FILE` first and check that the path exists [/nonexistent/none.txt]\n")
+(4, ["callgraph", "/nonexistent/none.txt", "--root", "a"]):(1) then eprints:("callgraph: nothing could be read from the file; run `idc idstd --calls > FILE` first and check that the path exists [/nonexistent/none.txt]\n")
+(5, ["callgraph", "--script", "/nonexistent/s.txt", "/nonexistent/c.txt", "--root"]):(1) then eprints:("callgraph: nothing could be read from the script; check that the path exists and that the file has a line to run [/nonexistent/s.txt]\ncallgraph: nothing could be read from the file; run `idc idstd --calls > FILE` first and check that the path exists [/nonexistent/c.txt]\n")

@@ -1,0 +1,28 @@
+// The session as a picture on the surface (sf_l_init has made one, txt_g8_init has loaded the face): graph_view_paint, then the tooltip of the box under the pointer.
+call_graph_draw(string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle) {
+  graph_view_paint(bundle[(import call_graph_session_bundle_session)][(import call_graph_session_state)], strings_session[(import call_graph_text_text)], bundle[(import call_graph_session_bundle_layout)], strings_session[(import call_graph_text_labels)], bundle[(import call_graph_session_bundle_session)][(import call_graph_session_flags)]);
+  call_graph_hover(strings_graph, table_graph, strings_session, bundle);
+} return void;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(472, 20) given idstd_graph_view_test_look(5, 5) given idstd_graph_view_test_look(494, 40) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x)):() then idstd_graph_view_test_seen:("16777215,16250873,16250873")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given call_graph_test_event(5, 480, 20, 0, 0) given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(472, 20) given idstd_graph_view_test_look(5, 5) given idstd_graph_view_test_look(494, 40) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x)):() then idstd_graph_view_test_seen:("16777215,16250873,16777215")
+
+// The tooltip (graph_view_tip, call_graph_tip_lines) of the box under the pointer, none while a drag is going or when the pointer is on no box.
+call_graph_hover(string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle) {
+  int[] list_state = bundle[(import call_graph_session_bundle_session)][(import call_graph_session_state)];
+  int number_key = graph_view_hit(bundle[(import call_graph_session_bundle_layout)], list_state, list_state[(import graph_view_state_mouse_x)], list_state[(import graph_view_state_mouse_y)]);
+  if (number_key >= 0 && list_state[(import graph_view_state_drag)] != 2) {
+    call_graph_show_tip(strings_graph, table_graph, strings_session, bundle, number_key);
+  }
+} return void;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given call_graph_test_event(5, 480, 20, 0, 0) given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(494, 40) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x)):() then idstd_graph_view_test_seen:("16777215")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given call_graph_test_event(5, 20, 20, 0, 0) given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(40, 40) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x)):() then idstd_graph_view_test_seen:("0")
+
+// The tooltip for tree box number_key at the pointer, when the function it stands for has a place to tell.
+call_graph_show_tip(string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle, int number_key) {
+  string[] fixture_tip = call_graph_tip_lines(strings_graph, table_graph, strings_session, bundle, bundle[(import call_graph_session_bundle_tree)][(import graph_view_tree_node)][number_key]);
+  if (len(fixture_tip) > 0) {
+    graph_view_tip(fixture_tip, bundle[(import call_graph_session_bundle_session)][(import call_graph_session_state)][(import graph_view_state_mouse_x)], bundle[(import call_graph_session_bundle_session)][(import call_graph_session_state)][(import graph_view_state_mouse_y)]);
+  }
+} return void;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given call_graph_test_event(5, 480, 20, 0, 0) given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(494, 40) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), 0):() then idstd_graph_view_test_seen:("16777215")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given call_graph_test_event(5, 485, 25, 0, 0) given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(499, 45) given idstd_graph_view_test_look(494, 40) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), 0):() then idstd_graph_view_test_seen:("16777215,0")

@@ -1,0 +1,40 @@
+// The lines of the tooltip for the function at node number_function: where it is (file:line), how many cases it has, and the first line of the comment above it when there is one. The comment is read from the file the first time a tooltip asks and kept (call_graph_session_seen, call_graph_text_doc), so hovering costs nothing after that. A builtin has no place and no tooltip: the list is empty.
+call_graph_tip_lines(string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle, int number_function) {
+  string[] fixture_tip = [];
+  if (strings_graph[(import call_graph_string_location)][number_function] != "") {
+    call_graph_read_doc(strings_graph, strings_session, bundle, number_function);
+    call_graph_fill_tip(strings_graph, table_graph, strings_session, number_function, fixture_tip);
+  }
+} return string[] fixture_tip;
+given call_graph_test_open given call_graph_load("a|a.id:1|print||call\nfn|file:line|cases\na|a.id:1|2\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), 1):([])
+given call_graph_test_open given call_graph_load("a|/nonexistent/none.id:1|b|b.id:2|call\nfn|file:line|cases\na|/nonexistent/none.id:1|1\nb|b.id:2|0\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), 0):(["/nonexistent/none.id:1", "1 case"])
+
+// Reads the comment of the function at node number_function into the session's cache if it has not been read.
+call_graph_read_doc(string[][] strings_graph, string[][] strings_session, int[][][] bundle, int number_function) {
+  string[] fixture_part = str_split(strings_graph[(import call_graph_string_location)][number_function], ":");
+  int[] list_seen = bundle[(import call_graph_session_bundle_session)][(import call_graph_session_seen)];
+  string[] fixture_doc = strings_session[(import call_graph_text_doc)];
+} chain (string[][] strings_graph, string[][] strings_session, int[][][] bundle, int number_function) {
+  if (list_seen[number_function] == 0) {
+    fixture_doc[number_function] = call_graph_doc_of(fixture_part[0], to_int(fixture_part[1]));
+    list_seen[number_function] = 1;
+  }
+} return void;
+given fs_temp_text("// what it does\nf() {\n}\n") given call_graph_test_open given call_graph_load("a|x:1|b|y:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given call_graph_test_place(0, "2") ((import call_graph_test_unit), (import call_graph_test_strings), (import call_graph_test_x), 0):() then call_graph_test_doc:("what it does")
+given fs_temp_text("// what it does\nf() {\n}\n") given call_graph_test_open given call_graph_load("a|x:1|b|y:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given call_graph_test_place(0, "9") ((import call_graph_test_unit), (import call_graph_test_strings), (import call_graph_test_x), 0):() then call_graph_test_doc:("")
+
+// The text of a tooltip as lines: the place, the number of cases ("1 case", "2 cases") and the comment line when the cache holds one for the function.
+call_graph_fill_tip(string[][] strings_graph, int[][] table_graph, string[][] strings_session, int number_function, string[] fixture_tip) {
+  string text_subject = "s";
+  if (table_graph[(import call_graph_integer_cases)][number_function] == 1) {
+    text_subject = "";
+  }
+  push(fixture_tip, strings_graph[(import call_graph_string_location)][number_function]);
+} chain (string[][] strings_graph, int[][] table_graph, string[][] strings_session, int number_function, string[] fixture_tip) {
+  push(fixture_tip, table_graph[(import call_graph_integer_cases)][number_function] + " case" + text_subject);
+  if (strings_session[(import call_graph_text_doc)][number_function] != "") {
+    push(fixture_tip, strings_session[(import call_graph_text_doc)][number_function]);
+  }
+} return void;
+([["f"], ["x.id:1"]], [[], [], [], [2]], [[], [], ["does"]], 0, []):([["f"], ["x.id:1"]], [[], [], [], [2]], [[], [], ["does"]], 0, ["x.id:1", "2 cases", "does"])
+([["f"], ["x.id:1"]], [[], [], [], [1]], [[], [], [""]], 0, []):([["f"], ["x.id:1"]], [[], [], [], [1]], [[], [], [""]], 0, ["x.id:1", "1 case"])

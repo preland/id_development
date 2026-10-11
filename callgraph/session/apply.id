@@ -1,0 +1,33 @@
+// A new tree goes on screen: it is laid out (call_graph_lay), the tree, the layout, the labels and the bits replace the session's, and the selected box, which has a different number in the new tree, is found again by its function (call_graph_reselect) and the camera is moved to it. A box must be selected.
+call_graph_apply(string[][] strings_graph, string[][] strings_session, int[][][] bundle, int[][] table_tree_second) {
+  int number_was = bundle[(import call_graph_session_bundle_tree)][(import graph_view_tree_node)][bundle[(import call_graph_session_bundle_session)][(import call_graph_session_state)][(import graph_view_state_selected)]];
+  string[] fixture_labels = [];
+  int[] list_flags = [];
+} chain (string[][] strings_graph, string[][] strings_session, int[][][] bundle, int[][] table_tree_second) {
+  int[][] table_layout_second = call_graph_lay(strings_graph, table_tree_second, fixture_labels, list_flags);
+  call_graph_swap(strings_session, bundle, table_tree_second, table_layout_second, fixture_labels, list_flags);
+  call_graph_reselect(bundle, number_was);
+} return void;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\na|a.id:1|c|c.id:3|call\nb|b.id:2|d|d.id:4|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given call_graph_test_event(3, 460, 60, 1, 1) given call_graph_test_event(4, 460, 60, 1, 0) ((import call_graph_test_unit), (import call_graph_test_strings), (import call_graph_test_x), [[0, 1, 2, 3], [-1, 0, 0, 1], [0, 0, 0, 0], [0, 1, 1, 2]]):() then call_graph_test_state:("camera 470 248 100\nselected b\nsearch \nnodes 4\na 16 0 0\nb 0 44 1\nc 32 44 1\nd 0 88 2\n")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\na|a.id:1|c|c.id:3|call\nb|b.id:2|d|d.id:4|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given call_graph_test_event(3, 460, 60, 1, 1) given call_graph_test_event(4, 460, 60, 1, 0) ((import call_graph_test_unit), (import call_graph_test_strings), (import call_graph_test_x), [[0, 1], [-1, 0], [0, 0], [0, 1]]):() then call_graph_test_state:("camera 470 248 100\nselected b\nsearch \nnodes 2\na 0 0 0\nb 0 44 1\n")
+
+// Puts a new tree, layout, labels and bits where the session keeps them.
+call_graph_swap(string[][] strings_session, int[][][] bundle, int[][] table_tree_second, int[][] table_layout_second, string[] fixture_labels, int[] list_flags) {
+  bundle[(import call_graph_session_bundle_tree)] = table_tree_second;
+  bundle[(import call_graph_session_bundle_layout)] = table_layout_second;
+  strings_session[(import call_graph_text_labels)] = fixture_labels;
+} chain (string[][] strings_session, int[][][] bundle, int[][] table_tree_second, int[][] table_layout_second, string[] fixture_labels, int[] list_flags) {
+  int[][] table_session = bundle[(import call_graph_session_bundle_session)];
+  table_session[(import call_graph_session_flags)] = list_flags;
+} return void;
+([["old"], [""]], [[[1, 2], [3], [4], [5], [6]], [[9]], [[8]]], [[1]], [[2]], ["n1", "n2"], [7]):([["n1", "n2"], [""]], [[[1, 2], [3], [7], [5], [6]], [[1]], [[2]]], [[1]], [[2]], ["n1", "n2"], [7])
+([[], []], [[[0], [0], [0]], [[]], [[]]], [[4, 5]], [[6]], [], []):([[], []], [[[0], [0], []], [[4, 5]], [[6]]], [[4, 5]], [[6]], [], [])
+
+// Selects the tree box that stands drawn out for the function at node number_was, or none when it is not in the tree, and moves the camera to it (graph_view_focus).
+call_graph_reselect(int[][][] bundle, int number_was) {
+  int[] list_state = bundle[(import call_graph_session_bundle_session)][(import call_graph_session_state)];
+  list_state[(import graph_view_state_selected)] = call_graph_drawn(bundle[(import call_graph_session_bundle_tree)], number_was);
+  int number_moved = graph_view_focus(list_state, bundle[(import call_graph_session_bundle_layout)], list_state[(import graph_view_state_selected)]);
+} return void;
+([[[0, 0, 100, -1, 400, 300]], [[0, 1], [-1, 0], [0, 0], [0, 1]], [[100, 0], [60, 44], [0, 1], [20, 20], [], [], [], [], [2, 2, 2]]], 1):([[[190, 98, 100, 1, 400, 300]], [[0, 1], [-1, 0], [0, 0], [0, 1]], [[100, 0], [60, 44], [0, 1], [20, 20], [], [], [], [], [2, 2, 2]]], 1)
+([[[0, 0, 100, 1, 400, 300]], [[0, 1], [-1, 0], [0, 0], [0, 1]], [[100, 0], [60, 44], [0, 1], [20, 20], [], [], [], [], [2, 2, 2]]], 9):([[[0, 0, 100, -1, 400, 300]], [[0, 1], [-1, 0], [0, 0], [0, 1]], [[100, 0], [60, 44], [0, 1], [20, 20], [], [], [], [], [2, 2, 2]]], 9)

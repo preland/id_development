@@ -1,0 +1,20 @@
+// Test setup: a graph opened by call_graph_open, in the exports call_graph_test_unit and call_graph_test_mark, for the cases of the functions that fill one.
+call_graph_test_open() {
+  string[][] strings_all = [];
+  int[][] table_all = [];
+  call_graph_open(strings_all, table_all);
+} chain () {
+  export string[][] call_graph_test_unit = strings_all;
+  export int[][] call_graph_test_mark = table_all;
+} return void;
+given call_graph_test_open ():() then call_graph_test_view:("|||>")
+given call_graph_test_open given call_graph_row("f|a.id:1|2", (import call_graph_test_unit), (import call_graph_test_mark)) ():() then call_graph_test_view:("|||>")
+
+// Test check: the graph in call_graph_test_unit and call_graph_test_mark as one line, "names|locations|cases|from>to", each list joined by commas, so a case states what the graph holds.
+call_graph_test_view() {
+  string text_first = str_join((import call_graph_test_unit)[(import call_graph_string_name)], ",") + "|" + str_join((import call_graph_test_unit)[(import call_graph_string_location)], ",") + "|";
+  string text_second = lst_text((import call_graph_test_mark)[(import call_graph_integer_cases)], ",") + "|" + lst_text((import call_graph_test_mark)[(import call_graph_integer_from)], ",");
+  string text_value = text_first + text_second + ">" + lst_text((import call_graph_test_mark)[(import call_graph_integer_to)], ",");
+} return string text_value;
+given call_graph_test_open ():("|||>")
+given call_graph_test_open given call_graph_row("f|a.id:1|2", (import call_graph_test_unit), (import call_graph_test_mark)) ():("f|a.id:1|2|>")

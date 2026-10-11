@@ -1,0 +1,24 @@
+// A whole script, one line at a time (call_graph_command), on the session. A line that cannot be read is named on stderr with its number and the words a script has, and the rest still run. Answers how many lines could not be read.
+call_graph_replay(string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle, string text_script) {
+  string[] fixture_rows = str_split(text_script, "\n");
+  int number_count = 0;
+  int number_bad = 0;
+} chain (string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle, string text_script) {
+  while (number_count < len(fixture_rows)) {
+    number_bad = number_bad + call_graph_line(strings_graph, table_graph, strings_session, bundle, fixture_rows[number_count], number_count + 1);
+    number_count = number_count + 1;
+  }
+} return int number_bad;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), "size 10 20\n# note\nsize 30 40\n"):(0) then call_graph_test_size:("30x40")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), "size 10 20\nfly\nsize 5\n"):(2) then call_graph_test_size:("10x20") then eprints:("callgraph: script line 2: 'fly' is not a word a script has or lacks its fields; the words are wheel X Y DY, down X Y [BUTTON [CLICKS]], up X Y, move X Y, key NAME, text STR, size W H\ncallgraph: script line 3: 'size 5' is not a word a script has or lacks its fields; the words are wheel X Y DY, down X Y [BUTTON [CLICKS]], up X Y, move X Y, key NAME, text STR, size W H\n")
+
+// Line number number_no of a script, run (call_graph_command); when it cannot be read it is named on stderr. Answers 1 for a line that could not be read, 0 otherwise.
+call_graph_line(string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle, string text_line, int number_no) {
+  int number_ok = call_graph_command(strings_graph, table_graph, strings_session, bundle, text_line);
+  if (number_ok == 0) {
+    eprint("callgraph: script line " + number_no + ": '" + text_line + "' is not a word a script has or lacks its fields; the words are wheel X Y DY, down X Y [BUTTON [CLICKS]], up X Y, move X Y, key NAME, text STR, size W H");
+  }
+  int number_bad = 1 - number_ok;
+} return int number_bad;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), "size 3 4", 1):(0) then call_graph_test_size:("3x4")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), "bad", 9):(1) then eprints:("callgraph: script line 9: 'bad' is not a word a script has or lacks its fields; the words are wheel X Y DY, down X Y [BUTTON [CLICKS]], up X Y, move X Y, key NAME, text STR, size W H\n")

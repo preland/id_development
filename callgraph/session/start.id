@@ -1,0 +1,36 @@
+// A session starts: the lists of bundle (call_graph_session_bundle_session, call_graph_session_bundle_tree, call_graph_session_bundle_layout) and of strings_session (call_graph_text_labels, call_graph_text_text, call_graph_text_doc) are pushed onto the two empty bundles it is given. The view state is graph_view_state_zero, no function is marked, the tree is that of the function at node number_root to number_depth levels and the camera is at its home position (graph_view_home) over that layout.
+call_graph_start(string[][] strings_graph, int[][] table_graph, int number_root, int number_depth, string[][] strings_session, int[][][] bundle) {
+  string[] fixture_labels = [];
+  int[][] table_session = call_graph_blank_session(len(strings_graph[(import call_graph_string_name)]), number_root, number_depth);
+  int[][][] bundle_value = call_graph_view_bundle(strings_graph, table_graph, number_root, number_depth, table_session[(import call_graph_session_overlap)], fixture_labels, table_session[(import call_graph_session_flags)]);
+} chain (string[][] strings_graph, int[][] table_graph, int number_root, int number_depth, string[][] strings_session, int[][][] bundle) {
+  push(bundle, table_session);
+  push(bundle, bundle_value[0]);
+  push(bundle, bundle_value[1]);
+} chain (string[][] strings_graph, int[][] table_graph, int number_root, int number_depth, string[][] strings_session, int[][][] bundle) {
+  push(strings_session, fixture_labels);
+  call_graph_start_text(strings_session, len(strings_graph[(import call_graph_string_name)]));
+  int number_moved = graph_view_home(table_session[(import call_graph_session_state)], bundle_value[1]);
+} return void;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\nb|b.id:2|c|c.id:3|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_blank ((import call_graph_test_unit), (import call_graph_test_mark), 0, 2, (import call_graph_test_strings), (import call_graph_test_x)):() then call_graph_test_state:("camera 470 12 100\nselected none\nsearch \nnodes 3\na 0 0 0\nb 0 44 1\nc 0 88 2\n")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\nb|b.id:2|c|c.id:3|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_blank ((import call_graph_test_unit), (import call_graph_test_mark), 1, 0, (import call_graph_test_strings), (import call_graph_test_x)):() then call_graph_test_state:("camera 470 12 100\nselected none\nsearch \nnodes 1\nb 0 0 0\n")
+
+// A session's lists as ints: [view state, marks, bits, [root, depth, 0], comments read], the view state a copy of graph_view_state_zero and the marks and the comments-read flags zero for each of the n functions.
+call_graph_blank_session(int number_count, int number_root, int number_depth) {
+  int[] list_flags = [];
+  int[] list_cell = [number_root, number_depth, 0];
+  int[][] table_session = [lst_copy((import graph_view_state_zero)), lst_filled(number_count, 0), list_flags, list_cell, lst_filled(number_count, 0)];
+} return int[][] table_session;
+(3, 1, 2):([[0, 0, 100, -1, 960, 600, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0], [], [1, 2, 0], [0, 0, 0]])
+(0, 5, 0):([[0, 0, 100, -1, 960, 600, 0, 0, 0, 0, 0, 0, 0, 0, 0], [], [], [5, 0, 0], []])
+
+// The text lists of a session: the search text (one empty cell) and the first comment line of each of the n functions, none read yet.
+call_graph_start_text(string[][] strings_session, int number_count) {
+  string[] fixture_doc = [];
+  lst_str_fill(fixture_doc, number_count, "");
+  push(strings_session, [""]);
+} chain (string[][] strings_session, int number_count) {
+  push(strings_session, fixture_doc);
+} return void;
+([["l"]], 2):([["l"], [""], ["", ""]], 2)
+([], 0):([[""], []], 0)

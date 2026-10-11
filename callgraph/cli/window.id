@@ -1,0 +1,19 @@
+// Loads the calls text into a graph, finds the root in it and runs the window mode on it (call_graph_win). Answers 0, or 1 after naming the root that is not in the graph.
+call_graph_window_text(string text_text, string text_root, int number_depth, int number_open) {
+  string[][] strings_graph = [];
+  int[][] table_graph = [];
+  call_graph_open(strings_graph, table_graph);
+} chain (string text_text, string text_root, int number_depth, int number_open) {
+  call_graph_load(text_text, strings_graph, table_graph);
+  int number_root = call_graph_find(strings_graph, table_graph, text_root);
+  int number_result_code = 1;
+} chain (string text_text, string text_root, int number_depth, int number_open) {
+  if (number_root >= 0) {
+    number_result_code = call_graph_win(strings_graph, table_graph, number_root, number_depth, number_open);
+  }
+  if (number_root < 0) {
+    eprint("callgraph: no function called '" + text_root + "' in the graph; give --root a name that is a function in the file");
+  }
+} return int number_result_code;
+("a|a.id:1|b|b.id:2|call\n", "a", 1, 0):(0)
+("a|a.id:1|b|b.id:2|call\n", "zz", 1, 0):(1) then eprints:("callgraph: no function called 'zz' in the graph; give --root a name that is a function in the file\n")

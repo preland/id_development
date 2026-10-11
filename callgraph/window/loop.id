@@ -1,0 +1,26 @@
+// One frame, as word's app_frame does it: the surface is fitted to the window, the waiting events are taken (call_graph_events), the picture is painted (call_graph_draw) when the first frame, a resize or an event asks for it, and it is shown. Every frame is shown, painted or not: GFX_MAX_FRAMES counts shown frames, and a window that is not drawn again keeps its last picture only if the program keeps presenting it. Answers 1 when the window was closed.
+call_graph_frame(string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle, int number_first) {
+  int number_changed = gfx_sync();
+  int number_bits = call_graph_events(strings_graph, table_graph, strings_session, bundle, number_changed);
+  if (number_first + number_changed + number_bits % 2 > 0) {
+    call_graph_draw(strings_graph, table_graph, strings_session, bundle);
+  }
+} chain (string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle, int number_first) {
+  int number_shown = gfx_present((import sf_l_px));
+  sleep_ms(1);
+  int number_quit = number_bits / 2;
+} return int number_quit;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(472, 20) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), 1):(0) then idstd_graph_view_test_seen:("16777215")
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(472, 20) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), 0):(0) then idstd_graph_view_test_seen:("0")
+
+// Frames until the window closes or number_maximum have run (a negative number_maximum is no limit): the first one paints. Answers how many ran. With no window (number_ok 0) none run.
+call_graph_loop(string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle, int number_ok, int number_maximum) {
+  int number_count = 0;
+  int number_quit = number_ok == 0;
+  while (number_quit == 0 && number_count != number_maximum) {
+    number_quit = call_graph_frame(strings_graph, table_graph, strings_session, bundle, number_count == 0);
+    number_count = number_count + 1;
+  }
+} return int number_count;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given idstd_graph_view_test_canvas(960, 600) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), 1, 3):(3)
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given idstd_graph_view_test_canvas(960, 600) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), 0, 5):(0)

@@ -1,0 +1,49 @@
+// callgraph --script S.txt CALLS.txt --root R [--depth N] [--dump] [--render-after OUT.ppm]: replays the events of the script on a session over the graph in CALLS.txt, then prints the state (--dump) and writes the picture (--render-after). Answers 0, or 1 after naming on stderr what could not be read or run.
+call_graph_script_command(int argument_count, string[] argument_values) {
+  string text_script = fs_read_text(argument_values[2]);
+  string text_calls = fs_read_text(argument_values[3]);
+  int number_result_code = 1;
+} chain (int argument_count, string[] argument_values) {
+  if (text_script != "" && text_calls != "") {
+    number_result_code = call_graph_script_arguments(argument_count, argument_values, text_script, text_calls);
+  }
+  if (text_script == "") {
+    eprint("callgraph: nothing could be read from the script; check that the path exists and that the file has a line to run [" + argument_values[2] + "]");
+  }
+  if (text_calls == "") {
+    eprint("callgraph: nothing could be read from the file; run `idc idstd --calls > FILE` first and check that the path exists [" + argument_values[3] + "]");
+  }
+} return int number_result_code;
+(4, ["callgraph", "--script", "/nonexistent/s.txt", "/nonexistent/c.txt"]):(1) then eprints:("callgraph: nothing could be read from the script; check that the path exists and that the file has a line to run [/nonexistent/s.txt]\ncallgraph: nothing could be read from the file; run `idc idstd --calls > FILE` first and check that the path exists [/nonexistent/c.txt]\n")
+given fs_temp_text("a|a.id:1|b|b.id:2|call\n") (4, ["callgraph", "--script", "/nonexistent/s.txt", (import fs_temp_path)]):(1) then eprints:("callgraph: nothing could be read from the script; check that the path exists and that the file has a line to run [/nonexistent/s.txt]\n")
+
+// The options of a script run (the root, the depth 2 when not given, the flag --dump, the picture file of --render-after) and the run itself.
+call_graph_script_arguments(int argument_count, string[] argument_values, string text_script, string text_calls) {
+  string text_root = call_graph_option_value(argument_count, argument_values, "--root", "");
+  int number_depth = to_int(call_graph_option_value(argument_count, argument_values, "--depth", "2"));
+  string text_out = call_graph_option_value(argument_count, argument_values, "--render-after", "");
+} chain (int argument_count, string[] argument_values, string text_script, string text_calls) {
+  int number_result_code = call_graph_script_go(text_calls, text_script, text_root, number_depth, call_graph_flag(argument_count, argument_values, "--dump"), text_out);
+} return int number_result_code;
+given fs_temp_text("size 7 8\n") (6, ["callgraph", "--script", (import fs_temp_path), "x", "--root", "a"], "size 7 8\n", "a|a.id:1|b|b.id:2|call\n"):(0)
+(6, ["callgraph", "--script", "s", "c", "--root", "zz"], "size 7 8\n", "a|a.id:1|b|b.id:2|call\n"):(1) then eprints:("callgraph: no function called 'zz' in the graph; give --root a name that is a function in the file\n")
+
+// Loads the calls text into a graph, finds the root and replays the script on a session (call_graph_script_run). Answers 0, or 1 after naming the root that is not in the graph.
+call_graph_script_go(string text_calls, string text_script, string text_root, int number_depth, int number_dump, string text_out) {
+  string[][] strings_graph = [];
+  int[][] table_graph = [];
+  call_graph_open(strings_graph, table_graph);
+} chain (string text_calls, string text_script, string text_root, int number_depth, int number_dump, string text_out) {
+  call_graph_load(text_calls, strings_graph, table_graph);
+  int number_root = call_graph_find(strings_graph, table_graph, text_root);
+  int number_result_code = 1;
+} chain (string text_calls, string text_script, string text_root, int number_depth, int number_dump, string text_out) {
+  if (number_root >= 0) {
+    number_result_code = call_graph_script_run(strings_graph, table_graph, number_root, number_depth, text_script, number_dump, text_out);
+  }
+  if (number_root < 0) {
+    eprint("callgraph: no function called '" + text_root + "' in the graph; give --root a name that is a function in the file");
+  }
+} return int number_result_code;
+("a|a.id:1|b|b.id:2|call\n", "size 7 8\n", "a", 1, 1, ""):(0) then prints:("camera 470 12 100\nselected none\nsearch \nnodes 2\na 0 0 0\nb 0 44 1\n")
+("a|a.id:1|b|b.id:2|call\n", "size 7 8\n", "zz", 1, 0, ""):(1) then eprints:("callgraph: no function called 'zz' in the graph; give --root a name that is a function in the file\n")

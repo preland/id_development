@@ -1,0 +1,35 @@
+// Reads the text of `idc PATH --calls` into the graph (opened by call_graph_open): every line goes through call_graph_row, in order, so a function that is only ever a callee and one that is only a row both end up as nodes.
+call_graph_load(string text_text, string[][] strings_graph, int[][] table_graph) {
+  string[] fixture_rows = str_split(text_text, "\n");
+  int number_row = 0;
+  while (number_row < len(fixture_rows)) {
+    call_graph_row(fixture_rows[number_row], strings_graph, table_graph);
+    number_row = number_row + 1;
+  }
+} return void;
+given call_graph_test_open ("a|a.id:1|b|b.id:2|call\na|a.id:1|b|b.id:2|value\na|a.id:1|print||call\n\nfn|file:line|cases\na|a.id:1|2\nb|b.id:2|0\n", (import call_graph_test_unit), (import call_graph_test_mark)):() then call_graph_test_view:("a,b,print|a.id:1,b.id:2,|2,0,0|0,0>1,2")
+given call_graph_test_open ("", (import call_graph_test_unit), (import call_graph_test_mark)):() then call_graph_test_view:("|||>")
+
+// How many functions the graph has and how many distinct call edges, as [functions, edges to functions, all edges]: a function is a node with a file:line, so a builtin does not count, and the middle figure leaves out the edges that end in a builtin.
+call_graph_stats(string[][] strings_graph, int[][] table_graph) {
+  int[] list_to = table_graph[(import call_graph_integer_to)];
+  string[] fixture_location = strings_graph[(import call_graph_string_location)];
+  int number_function = lst_str_filled(fixture_location);
+} chain (string[][] strings_graph, int[][] table_graph) {
+  int number_into = call_graph_known(fixture_location, list_to);
+  int[] list_step = [number_function, number_into, len(list_to)];
+} return int[] list_step;
+([["a", "b", "print"], ["a.id:1", "b.id:2", ""]], [[], [], [], [], [0, 0, 1], [1, 2, 2]]):([2, 1, 3])
+([[], []], [[], [], [], [], [], []]):([0, 0, 0])
+
+// How many of the nodes in list_identifiers have a file:line in fixture_location, that is are not builtins.
+call_graph_known(string[] fixture_location, int[] list_identifiers) {
+  int number_count = 0;
+  int number_key = 0;
+  while (number_key < len(list_identifiers)) {
+    number_count = number_count + (fixture_location[list_identifiers[number_key]] != "");
+    number_key = number_key + 1;
+  }
+} return int number_count;
+(["a", ""], [0, 1, 0]):(2)
+(["a", ""], [1, 1]):(0)

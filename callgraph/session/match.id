@@ -1,0 +1,24 @@
+// The first box whose label contains the text q and that is drawn out (flags[k] is 0: a repeat has the same name as the box it repeats and is not a place to go), or -1. The empty text matches nothing.
+call_graph_match(string[] fixture_labels, int[] list_flags, string text_query) {
+  int number_key = (text_query == "") * len(fixture_labels);
+  while (number_key < len(fixture_labels) && (list_flags[number_key] == 1 || str_find(fixture_labels[number_key], text_query) < 0)) {
+    number_key = number_key + 1;
+  }
+  int number_hit = number_key - (number_key >= len(fixture_labels)) * (number_key + 1);
+} return int number_hit;
+(["a", "b*", "bc"], [0, 1, 0], "b"):(2)
+(["a", "b*", "bc"], [0, 1, 0], "a"):(0)
+(["a", "b*", "bc"], [0, 1, 0], "zz"):(-1)
+(["a", "b*", "bc"], [0, 1, 0], ""):(-1)
+
+// The tree box that is drawn out (not a repeat) for the function at node v, or -1 when the tree does not have one.
+call_graph_drawn(int[][] table_tree, int number_function) {
+  int number_key = 0;
+  while (number_key < len(table_tree[(import graph_view_tree_node)]) && (table_tree[(import graph_view_tree_node)][number_key] != number_function || table_tree[(import graph_view_tree_repeat)][number_key] == 1)) {
+    number_key = number_key + 1;
+  }
+  int number_at = number_key - (number_key >= len(table_tree[(import graph_view_tree_node)])) * (number_key + 1);
+} return int number_at;
+([[0, 1, 2, 2], [-1, 0, 0, 1], [0, 0, 0, 1], [0, 1, 1, 2]], 2):(2)
+([[0, 1, 2, 2], [-1, 0, 0, 1], [0, 0, 0, 1], [0, 1, 1, 2]], 1):(1)
+([[0, 1, 2, 2], [-1, 0, 0, 1], [0, 0, 0, 1], [0, 1, 1, 2]], 9):(-1)

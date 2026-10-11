@@ -1,0 +1,22 @@
+// Test setup: puts the temporary file fs_temp_text made, and the line, as the place of the function at node number_function of the graph in call_graph_test_unit.
+call_graph_test_place(int number_function, string text_line) {
+  string[] fixture_location = (import call_graph_test_unit)[(import call_graph_string_location)];
+  fixture_location[number_function] = (import fs_temp_path) + ":" + text_line;
+} return void;
+given fs_temp_text("x") given call_graph_test_open given call_graph_load("a|x:1|b|y:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) (0, "3"):() then call_graph_test_here:(":3")
+given fs_temp_text("x") given call_graph_test_open given call_graph_load("a|x:1|b|y:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) (0, "12"):() then call_graph_test_here:(":12")
+
+// Test check: the first place of the graph in call_graph_test_unit from its last colon on.
+call_graph_test_here() {
+  string[] fixture_part = str_split((import call_graph_test_unit)[(import call_graph_string_location)][0], ":");
+  string text_here = ":" + fixture_part[len(fixture_part) - 1];
+} return string text_here;
+given call_graph_test_open given call_graph_load("a|x:1|b|y:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) ():(":1")
+given call_graph_test_open given call_graph_load("a|dir/f.id:42|b|y:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) ():(":42")
+
+// Test check: the first comment line the session in call_graph_test_strings holds for node 0.
+call_graph_test_doc() {
+  string text_doc = (import call_graph_test_strings)[(import call_graph_text_doc)][0];
+} return string text_doc;
+given call_graph_test_open given call_graph_load("a|x:1|b|y:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ():("")
+given fs_temp_text("// what it does\nf() {\n}\n") given call_graph_test_open given call_graph_load("a|x:1|b|y:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) given call_graph_test_place(0, "2") given call_graph_read_doc((import call_graph_test_unit), (import call_graph_test_strings), (import call_graph_test_x), 0) ():("what it does")

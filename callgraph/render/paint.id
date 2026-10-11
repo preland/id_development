@@ -1,0 +1,29 @@
+// Paints the layout on a new surface: as big as the picture and a margin of graph_view_constant_margin all round, the background colour, and graph_view_draw at a camera that is the identity but for the margin. The surface is the export sf_l_px, ready for call_graph_picture.
+call_graph_paint(int[][] table_layout, string[] fixture_labels, int[] list_flags) {
+  int[] list_size = graph_view_size(table_layout, 100);
+  int number_width = list_size[0] + 2 * (import graph_view_constant_margin);
+  int number_height = list_size[1] + 2 * (import graph_view_constant_margin);
+} chain (int[][] table_layout, string[] fixture_labels, int[] list_flags) {
+  sf_l_init(number_width, number_height);
+  txt_g8_init();
+  d2_l_rect(0, 0, number_width, number_height, (import graph_view_constant_background));
+} chain (int[][] table_layout, string[] fixture_labels, int[] list_flags) {
+  int[] list_camera = [(import graph_view_constant_margin), (import graph_view_constant_margin), 100, -1];
+  graph_view_draw(table_layout, fixture_labels, list_flags, list_camera);
+} return void;
+given idstd_graph_view_test_canvas(1, 1) given idstd_graph_view_test_look(15, 20) given idstd_graph_view_test_look(15, 64) given idstd_graph_view_test_look(22, 42) given idstd_graph_view_test_look(2, 2) ([[0, 0], [0, 44], [0, 1], [20, 20], [0], [1], [0], [2], [2, 2, 2]], ["a", "b"], [0, 0]):() then idstd_graph_view_test_seen:("16777215,16777215,7043737,16250873")
+given idstd_graph_view_test_canvas(1, 1) given idstd_graph_view_test_look(15, 20) given idstd_graph_view_test_look(15, 64) given idstd_graph_view_test_look(43, 83) ([[0, 0], [0, 44], [0, 1], [20, 20], [0], [1], [0], [2], [2, 2, 2]], ["a", "b"], [0, 1]):() then idstd_graph_view_test_seen:("16777215,15132910,16250873")
+given idstd_graph_view_test_canvas(1, 1) given idstd_graph_view_test_ink(3890066) ([[0, 0], [0, 44], [0, 1], [20, 20], [0], [1], [0], [2], [2, 2, 2]], ["a", "b"], [0, 0]):() then idstd_graph_view_test_seen:("120")
+given idstd_graph_view_test_canvas(1, 1) given idstd_graph_view_test_ink(3890066) ([[0], [0], [0], [20], [], [], [], [], [1, 1, 1]], ["a"], [0]):() then idstd_graph_view_test_seen:("60")
+
+// callgraph --render: the picture of what the function at node number_root calls to number_depth levels, written to the PPM file at text_out. Answers 0, or 1 after naming on stderr what could not be written.
+call_graph_render_to(string[][] strings_graph, int[][] table_graph, int number_root, int number_depth, string text_out) {
+  string[] fixture_labels = [];
+  int[] list_flags = [];
+  int[][] table_layout = call_graph_view(strings_graph, table_graph, number_root, number_depth, fixture_labels, list_flags);
+} chain (string[][] strings_graph, int[][] table_graph, int number_root, int number_depth, string text_out) {
+  call_graph_paint(table_layout, fixture_labels, list_flags);
+  int number_result_code = call_graph_picture(text_out);
+} return int number_result_code;
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_file("r") ((import call_graph_test_unit), (import call_graph_test_mark), 0, 2, (import call_graph_test_position)):(0) then call_graph_test_got:(11101)
+given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_file("s") ((import call_graph_test_unit), (import call_graph_test_mark), -1, 2, (import call_graph_test_position)):(0) then call_graph_test_got:(1741)
