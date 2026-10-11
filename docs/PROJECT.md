@@ -426,7 +426,7 @@ change what the program does:
 
 | violation | what `--fix` writes |
 | --- | --- |
-| a call two levels deep in a call's argument | the inner call as a new local just before the statement, `<callee>_v`, and the name in its place |
+| a call in a call's argument that itself holds a call | that argument call as a new local just before the statement, `<callee>_v`, and the name in its place; a statement the checker accepts is never edited |
 | an argument that is not itself a call but has a call two levels deep inside it | the whole argument as a new local, `<callee>_a0` (`_a1`, ...) for the callee it is an argument of, and the name in its place -- not one local per call inside it |
 | a return clause that is not a name or a literal | the value as the body's last statement, `ret_i` (`ret_s`, `ret_w`, `ret_li` ...), returned by name |
 | an argument that narrows (`word` to `int`) | a local of the parameter's type, which converts exactly as the argument would |
