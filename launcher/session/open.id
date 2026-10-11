@@ -3,12 +3,12 @@
 
 // The record's path from the environment (XDG_STATE_HOME, else HOME).
 session_record_path() {
-  string session_state = env_text("XDG_STATE_HOME");
-  string session_home = env_text("HOME");
+  string session_state = environment_text("XDG_STATE_HOME");
+  string session_home = environment_text("HOME");
   string session_path = record_location(session_state, session_home);
 } return string session_path;
-given env_put("XDG_STATE_HOME", "/zz/state") ():("/zz/state/id/built.tsv")
-given env_put("XDG_STATE_HOME", "") given env_put("HOME", "/zz/home") ():("/zz/home/.local/state/id/built.tsv")
+given environment_put("XDG_STATE_HOME", "/zz/state") ():("/zz/state/id/built.tsv")
+given environment_put("XDG_STATE_HOME", "") given environment_put("HOME", "/zz/home") ():("/zz/home/.local/state/id/built.tsv")
 
 // The rows of the record at session_path, newest first, each with its state word.
 session_rows(string session_path) {

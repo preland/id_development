@@ -21,9 +21,9 @@ tool_checked(string check_text, string check_root) {
 ("boom", "/r"):("{\"ok\":false,\"error\":\"compiler_unavailable\",\"message\":\"idc printed neither diagnostics nor ok; check IDMCP_IDC\"}")
 
 tool_checking() {
-  string check_root = env_text((import tool_root_key));
+  string check_root = environment_text((import tool_root_key));
   string check_text = tool_idc(check_root + "\n--check\n--diagnostics=json\n");
   string check_answer = tool_checked(check_text, check_root);
 } return string check_answer;
 given tool_t_session ():("{\"ok\":true,\"error\":null,\"errors\":0,\"diagnostics\":[]}")
-given tool_t_session given env_put("IDMCP_IDC", "no_such_idc_program") ():("{\"ok\":false,\"error\":\"compiler_unavailable\",\"message\":\"idc printed neither diagnostics nor ok; check IDMCP_IDC\"}")
+given tool_t_session given environment_put("IDMCP_IDC", "no_such_idc_program") ():("{\"ok\":false,\"error\":\"compiler_unavailable\",\"message\":\"idc printed neither diagnostics nor ok; check IDMCP_IDC\"}")

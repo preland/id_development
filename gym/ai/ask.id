@@ -9,14 +9,14 @@
 // opens a connection, and the gate (gate.id) runs before any caller reaches it.
 
 model_address() {
-  string model_url_set = env_text((import model_url_key));
+  string model_url_set = environment_text((import model_url_key));
   string model_url_chosen = (import model_default_url);
   if (model_url_set != "") {
     model_url_chosen = model_url_set;
   }
 } return string model_url_chosen;
-given env_put("GYM_MODEL_URL", "") ():("http://127.0.0.1:8184")
-given env_put("GYM_MODEL_URL", "http://127.0.0.1:9") ():("http://127.0.0.1:9")
+given environment_put("GYM_MODEL_URL", "") ():("http://127.0.0.1:8184")
+given environment_put("GYM_MODEL_URL", "http://127.0.0.1:9") ():("http://127.0.0.1:9")
 
 model_ask(string model_url, string model_system_text, string model_user_text, string model_schema_text, string[] model_cells) {
   string model_request_body = model_request(model_system_text, model_user_text, model_schema_text);

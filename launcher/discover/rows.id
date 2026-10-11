@@ -15,8 +15,8 @@ discover_real(string discover_path) {
 
 // The roots to scan now: the roots file of the configuration directory in the environment, links resolved.
 discover_roots_now() {
-  string discover_config = env_text("XDG_CONFIG_HOME");
-  string discover_home = env_text("HOME");
+  string discover_config = environment_text("XDG_CONFIG_HOME");
+  string discover_home = environment_text("HOME");
   string discover_body = fs_read_text(discover_config_path(discover_config, discover_home));
 } chain () {
   string[] discover_raw = discover_roots(discover_body, discover_home);
@@ -29,7 +29,7 @@ discover_roots_now() {
     discover_index = discover_index + 1;
   }
 } return string[] discover_real_roots;
-given env_put("HOME", "/proc/no_home") ():(["/proc/no_home/git/id_development", "/proc/no_home/.local/bin"])
+given environment_put("HOME", "/proc/no_home") ():(["/proc/no_home/git/id_development", "/proc/no_home/.local/bin"])
 given discover_t_config("/proc/no_root_a\n/proc/no_root_b\n") ():(["/proc/no_root_a", "/proc/no_root_b"])
 
 // The rows of the programs found under the roots, refreshing the scan cache that sits beside discover_record.
@@ -50,5 +50,5 @@ discover_rows(string discover_record) {
   string[] discover_shown = discover_unforgotten(discover_entry_rows, discover_hidden);
 } return string[] discover_shown;
 given discover_t_config("/proc/no_root_a\n") ("/proc/no_dir/id/built.tsv"):([])
-given discover_t_config("\n") given env_put("HOME", "/proc/no_home") ("/proc/no_dir/id/built.tsv"):([])
+given discover_t_config("\n") given environment_put("HOME", "/proc/no_home") ("/proc/no_dir/id/built.tsv"):([])
 

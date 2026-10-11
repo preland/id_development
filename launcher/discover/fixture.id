@@ -7,13 +7,13 @@ discover_t_config(string discover_t_body) {
   int discover_t_made = fs_mkdir_p(discover_t_dir + "/idlaunch");
   int discover_t_put = fs_write_text(discover_t_dir + "/idlaunch/roots", discover_t_body);
 } chain (string discover_t_body) {
-  env_put("XDG_CONFIG_HOME", discover_t_dir);
+  environment_put("XDG_CONFIG_HOME", discover_t_dir);
 } return void;
 ("/x\n"):() then discover_t_config_text():("/x\n")
 (""):() then discover_t_config_text():("")
 
 discover_t_config_text() {
-  string discover_t_read = fs_read_text(env_text("XDG_CONFIG_HOME") + "/idlaunch/roots");
+  string discover_t_read = fs_read_text(environment_text("XDG_CONFIG_HOME") + "/idlaunch/roots");
 } return string discover_t_read;
 given discover_t_config("a\nb\n") ():("a\nb\n")
 given discover_t_config("") ():("")

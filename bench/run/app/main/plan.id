@@ -7,13 +7,13 @@ br_setup(string work) {
     rustc = br_resolve((import br_rustc_probe), work + "/rustc.path");
     root = br_resolve((import br_root_probe), work + "/root.path");
   }
-  env_put("BR_RUSTC", rustc);
-  env_put("BR_ROOT", root);
+  environment_put("BR_RUSTC", rustc);
+  environment_put("BR_ROOT", root);
 } chain (string work) {
   int gen = br_gen_bin(work, "$BR_ROOT/bench/ref/c/gen.c");
   int meta = br_sh(br_meta_cmd(work));
 } return string rustc;
-given br_t_work given br_t_root given env_put("BR_RUSTC", "/bin/true") ((import br_tw)):("/bin/true")
+given br_t_work given br_t_root given environment_put("BR_RUSTC", "/bin/true") ((import br_tw)):("/bin/true")
 ("/proc/nonesuch/w"):("")
 
 br_phases(string work, int reps, int core, int t0, int budget, string filter) {

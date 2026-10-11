@@ -39,7 +39,7 @@ tool_invoke(string invoke_name, string invoke_line) {
     invoke_text = tool_explain(tool_argument(invoke_line, "code"));
   }
 } chain (string invoke_name, string invoke_line) {
-  string invoke_root = env_text((import tool_root_key));
+  string invoke_root = environment_text((import tool_root_key));
   int invoke_needs = str_find(",list,read,find,calls,check,", "," + invoke_name + ",");
   if (invoke_needs >= 0 && invoke_root == "") {
     invoke_text = tool_failure("no_project", "open a project first with project_open");
@@ -52,8 +52,8 @@ tool_invoke(string invoke_name, string invoke_line) {
     invoke_text = tool_failure("too_large", "the answer was too long to send; ask for less");
   }
 } return string invoke_text;
-given env_put("IDMCP_ROOT", "") ("list", "{\"params\":{\"arguments\":{}}}"):("{\"ok\":false,\"error\":\"no_project\",\"message\":\"open a project first with project_open\"}")
-given env_put("IDMCP_ROOT", "") ("project_open", "{\"params\":{\"arguments\":{\"path\":\"no_such_project_dir\"}}}"):("{\"ok\":false,\"error\":\"not_found\",\"message\":\"project_open needs the path of an existing directory\"}")
-given env_put("IDMCP_ROOT", "") ("explain", "{\"params\":{\"arguments\":{\"code\":\"nonsense\"}}}"):("{\"ok\":false,\"error\":\"not_found\",\"message\":\"idc has no explanation for that; error codes look like E0408\"}")
+given environment_put("IDMCP_ROOT", "") ("list", "{\"params\":{\"arguments\":{}}}"):("{\"ok\":false,\"error\":\"no_project\",\"message\":\"open a project first with project_open\"}")
+given environment_put("IDMCP_ROOT", "") ("project_open", "{\"params\":{\"arguments\":{\"path\":\"no_such_project_dir\"}}}"):("{\"ok\":false,\"error\":\"not_found\",\"message\":\"project_open needs the path of an existing directory\"}")
+given environment_put("IDMCP_ROOT", "") ("explain", "{\"params\":{\"arguments\":{\"code\":\"nonsense\"}}}"):("{\"ok\":false,\"error\":\"not_found\",\"message\":\"idc has no explanation for that; error codes look like E0408\"}")
 given tool_t_session ("no_such_tool", "{}"):("")
 given tool_t_session ("calls", "{\"params\":{\"arguments\":{\"name\":\"sample_count\",\"direction\":\"callers\"}}}"):("{\"ok\":true,\"error\":null,\"name\":\"sample_count\",\"callers\":[{\"from\":\"sample_report\",\"from_at\":\"report.id:4\",\"to\":\"sample_count\",\"to_at\":\"math/count.id:3\",\"kind\":\"call\"}],\"callees\":[]}")

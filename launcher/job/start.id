@@ -4,14 +4,14 @@
 // answers its exit status, 128 plus the signal for a killed one, -1 when it could not be started.
 job_run(string job_path, string[] job_words, int job_screen) {
   string job_name = path_base(job_path);
-  word job_began = clk_ns((import clk_mono));
+  word job_began = clock_nanoseconds((import clock_mono));
   int job_pid = job_launch(job_path, job_words, job_name, job_screen);
 } chain (string job_path, string[] job_words, int job_screen) {
   int job_status = -1;
   int[] job_flags = [0];
   if (job_pid > 0) {
     int job_packed = job_follow(job_pid, job_screen, job_flags);
-    int job_tenths = (clk_ns((import clk_mono)) - job_began) / 100000000;
+    int job_tenths = (clock_nanoseconds((import clock_mono)) - job_began) / 100000000;
     job_status = job_say(job_name, job_packed, job_tenths, job_flags[0]);
   }
 } return int job_status;

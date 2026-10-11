@@ -9,7 +9,7 @@ tool_read_function(string read_name, int read_std, string read_root) {
   string read_calls = tool_calls();
 } chain (string read_name, int read_std, string read_root) {
   if (read_std == 1) {
-    read_scope = path_join(env_text((import tool_work_key)), "none");
+    read_scope = path_join(environment_text((import tool_work_key)), "none");
   }
   read_members = tool_function_view(read_name, read_scope, read_root);
   string read_text = tool_failure("not_found", "no function named " + read_name + "; use find to search by part of a name");
@@ -23,7 +23,7 @@ given tool_t_session ("sample_count", 0, "sample"):("{\"ok\":true,\"error\":null
 given tool_t_session ("no_such_function_anywhere", 1, "sample"):("{\"ok\":false,\"error\":\"not_found\",\"message\":\"no function named no_such_function_anywhere; use find to search by part of a name\"}")
 
 tool_read_file(string read_file, int read_line, int read_count) {
-  string read_root = env_text((import tool_root_key));
+  string read_root = environment_text((import tool_root_key));
   int read_where = tool_scope(read_root, read_file);
   string read_real = fs_realpath(tool_place(read_root, read_file));
 } chain (string read_file, int read_line, int read_count) {
