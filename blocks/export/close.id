@@ -1,0 +1,49 @@
+// The lines of a body, one .blk line at a time. A body line has the indent of
+// its level (1 is the top of the function) and opens a block when its id text
+// ends in '{'; exporter_close writes the '}' of every block that the next line
+// is no longer inside (an 'else' stays inside the level of its 'if', and its
+// bar '} else {' is the closer), and exporter_push indents what a statement
+// became, one line to each part, skipping empty ones. The depth is a list of
+// one cell so the three functions share it.
+
+exporter_close(string[] exporter_texts_lines, int[] exporter_numbers_depth, int exporter_number_level, string exporter_text_line) {
+  int exporter_number_target = exporter_number_level - 1;
+  if (exporter_text_line == "else") {
+    exporter_number_target = exporter_number_level;
+  }
+  while (exporter_numbers_depth[0] > exporter_number_target) {
+    push(exporter_texts_lines, str_repeat("  ", exporter_numbers_depth[0]) + "}");
+    exporter_numbers_depth[0] = exporter_numbers_depth[0] - 1;
+  }
+} return void;
+(["a"], [2], 1, "x"):(["a", "    }", "  }"], [0])
+(["a"], [2], 1, "else"):(["a", "    }"], [1])
+(["a"], [1], 2, "x"):(["a"], [1])
+
+exporter_push(string[] exporter_texts_lines, int exporter_number_level, string exporter_text_statement) {
+  string[] exporter_texts_parts = str_split(exporter_text_statement, "\n");
+  int exporter_number_index = 0;
+  while (exporter_number_index < len(exporter_texts_parts)) {
+    if (exporter_texts_parts[exporter_number_index] != "") {
+      push(exporter_texts_lines, str_repeat("  ", exporter_number_level) + exporter_texts_parts[exporter_number_index]);
+    }
+    exporter_number_index = exporter_number_index + 1;
+  }
+} return void;
+([], 1, "a;\nb;\n"):(["  a;", "  b;"])
+(["x"], 2, "c;"):(["x", "    c;"])
+([], 1, ""):([])
+
+exporter_line(string[] exporter_texts_lines, int[] exporter_numbers_depth, int exporter_number_row, int exporter_number_function) {
+  int exporter_number_level = (import model_line_indents)[exporter_number_row];
+  string exporter_text_line = (import model_line_texts)[exporter_number_row];
+  exporter_close(exporter_texts_lines, exporter_numbers_depth, exporter_number_level, exporter_text_line);
+} chain (string[] exporter_texts_lines, int[] exporter_numbers_depth, int exporter_number_row, int exporter_number_function) {
+  string exporter_text_statement = exporter_statement(exporter_text_line, exporter_number_function);
+  exporter_push(exporter_texts_lines, exporter_number_level, exporter_text_statement);
+  if (str_ends(exporter_text_statement, "{")) {
+    exporter_numbers_depth[0] = exporter_number_level;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nvar int n\nfn f(int a) return void\n  if a > 1\n    n = a\n(1):()\n(2):()") ([], [0], 3, 0):(["  if (a > 1) {"], [1])
+given model_load("t.blk", "sprite S\nvar int n\nfn f(int a) return void\n  if a > 1\n    n = a\n(1):()\n(2):()") (["  if (a > 1) {"], [1], 4, 0):(["  if (a > 1) {", "    n_set(a);"], [1])

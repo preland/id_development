@@ -1,0 +1,44 @@
+// One token of an expression and the spaces before it, translated. A call's
+// word is found in the source text just before its parenthesis, so no state
+// has to be carried from one token to the next; the spaces of the source are
+// kept, which keeps the exported lines in the style they were written in.
+
+exporter_before(string exporter_text_line, int exporter_number_at) {
+  int exporter_number_from = exporter_number_at;
+  while (exporter_number_from > 0 && lexer_class(charat(exporter_text_line, exporter_number_from - 1)) == (import constant_class_word)) {
+    exporter_number_from = exporter_number_from - 1;
+  }
+  string exporter_text_word = str_sub(exporter_text_line, exporter_number_from, exporter_number_at - exporter_number_from);
+} return string exporter_text_word;
+("say(x)", 3):("say")
+("1 + f(x)", 5):("f")
+("(a)", 0):("")
+("a + (b)", 4):("")
+
+exporter_translate(string exporter_text_piece, string exporter_text_line, int exporter_number_scan, int exporter_number_function) {
+  string exporter_text_result = exporter_text_piece;
+  int exporter_number_class = lexer_class(charat(exporter_text_piece, 0));
+  if (exporter_number_class == (import constant_class_word)) {
+    exporter_text_result = exporter_word(exporter_text_piece, exporter_number_function);
+  }
+} chain (string exporter_text_piece, string exporter_text_line, int exporter_number_scan, int exporter_number_function) {
+  if (exporter_text_piece == "(") {
+    exporter_text_result = "(" + exporter_opening(exporter_before(exporter_text_line, exporter_number_scan), exporter_text_line, exporter_number_scan + 1, exporter_number_function);
+  }
+  if (exporter_text_piece == "insert" || exporter_text_piece == "delete") {
+    exporter_text_result = exporter_list_word(exporter_text_piece, exporter_text_line, exporter_number_scan + len(exporter_text_piece), exporter_number_function);
+  }
+} return string exporter_text_result;
+given model_load("t.blk", "sprite S\nvar int n\nfn f() return void") ("n", "n + 1", 0, 0):("(import n)")
+given model_load("t.blk", "sprite S\nvar int n\nfn f() return void") ("+", "n + 1", 2, 0):("+")
+given model_load("t.blk", "sprite S\nvar int n\nfn f() return void") ("(", "say(x)", 3, 0):("(\"S\", ")
+given model_load("t.blk", "sprite S\nvar int n\nfn f() return void") ("(", "f()", 1, 0):("(")
+given model_load("t.blk", "sprite S\nfn f(int[] xs) return void") ("insert", "insert(xs, 1, 7)", 0, 0):("lst_insert")
+
+exporter_piece(string exporter_text_line, int exporter_number_index, int exporter_number_end, int exporter_number_function) {
+  int exporter_number_scan = str_skip_space(exporter_text_line, exporter_number_index);
+  string exporter_text_piece = str_sub(exporter_text_line, exporter_number_scan, exporter_number_end - exporter_number_scan);
+  string exporter_text_result = str_sub(exporter_text_line, exporter_number_index, exporter_number_scan - exporter_number_index) + exporter_translate(exporter_text_piece, exporter_text_line, exporter_number_scan, exporter_number_function);
+} return string exporter_text_result;
+given model_load("t.blk", "sprite S\nvar int n\nfn f() return void") ("a + n", 1, 3, 0):(" +")
+given model_load("t.blk", "sprite S\nvar int n\nfn f() return void") ("a + n", 3, 5, 0):(" (import n)")

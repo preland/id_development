@@ -1,0 +1,40 @@
+// The project's files other than the scripts. conf.id holds the constants of
+// the runtime (none unless the program moves a sprite); variables.id starts
+// every variable, in segments of three because that is as many as a block
+// holds; its cases show the first variable back at its initial value and the
+// last one back after something else was put in it.
+
+exporter_conf() {
+  string exporter_text_constants = "";
+  if (exporter_motion() > 0) {
+    exporter_text_constants = (import constant_export_motion_conf);
+  }
+  exporter_add("conf.id", "// Constants of the exported program.\n" + exporter_text_constants);
+} return void;
+given exporter_initial given model_load("t.blk", "sprite S\nfn f() return void\n  move(1.0)\n(): ()\n(1): ()") ():() then (import exporter_contents):(["// Constants of the exported program.\nfloat motion_radians = 0.017453292519943295;\nfloat motion_snap = 1000000.0;\nfloat motion_turn = 360.0;\n"])
+given exporter_initial given model_load("t.blk", "sprite S\nfn f() return void\n  say(\"x\")\n(): ()\n(1): ()") ():() then (import exporter_contents):(["// Constants of the exported program.\n"])
+
+exporter_variables() {
+  int exporter_number_index = 0;
+  while (exporter_number_index < len((import model_variable_names))) {
+    exporter_variable_files(exporter_number_index);
+    exporter_number_index = exporter_number_index + 1;
+  }
+} return void;
+given exporter_initial given model_load("t.blk", "sprite S\nvar int a\nvar int b") ():() then (import exporter_paths):(["s/a.id", "s/b.id"])
+given exporter_initial given model_load("t.blk", "sprite S") ():() then (import exporter_paths):([])
+
+exporter_starts() {
+  string[] exporter_texts_lines = [];
+  int exporter_number_index = 0;
+  while (exporter_number_index < len((import model_variable_names))) {
+    exporter_push(exporter_texts_lines, 1, exporter_fill((import constant_template_initial), exporter_number_index));
+    exporter_number_index = exporter_number_index + 1;
+  }
+} chain () {
+  int exporter_number_last = len((import model_variable_names)) - 1;
+  string exporter_text_file = "variables_start() {\n" + exporter_chain(exporter_texts_lines, "") + "} return void;\n" + exporter_fill("():() then NAME_get:(INITIAL)\n", 0) + exporter_fill("given NAME_set(OTHER) ():() then NAME_get:(INITIAL)\n", exporter_number_last);
+  exporter_add("variables.id", exporter_text_file);
+} return void;
+given exporter_initial given model_load("t.blk", "sprite S\nvar int a") ():() then (import exporter_contents):(["variables_start() {\n  int initial_a = 0;\n  a_set(initial_a);\n} return void;\n():() then a_get:(0)\ngiven a_set(1) ():() then a_get:(0)\n"])
+given exporter_initial given model_load("t.blk", "sprite S\nvar int a\nvar int b\nvar int c\nvar int d") ():() then (import exporter_contents):(["variables_start() {\n  int initial_a = 0;\n  a_set(initial_a);\n  int initial_b = 0;\n} chain () {\n  b_set(initial_b);\n  int initial_c = 0;\n  c_set(initial_c);\n} chain () {\n  int initial_d = 0;\n  d_set(initial_d);\n} return void;\n():() then a_get:(0)\ngiven d_set(1) ():() then d_get:(0)\n"])

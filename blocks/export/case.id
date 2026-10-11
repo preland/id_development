@@ -1,0 +1,50 @@
+// One case line, and all the cases of one function.
+
+exporter_clauses(string[] exporter_texts_entries, string exporter_text_tag) {
+  string exporter_text_result = "";
+  int exporter_number_index = 0;
+  int exporter_number_size = len(exporter_texts_entries);
+} chain (string[] exporter_texts_entries, string exporter_text_tag) {
+  while (exporter_number_index < exporter_number_size) {
+    if (str_starts(exporter_texts_entries[exporter_number_index], exporter_text_tag) && exporter_text_tag == "G|") {
+      exporter_text_result = exporter_text_result + exporter_given(exporter_texts_entries[exporter_number_index]);
+    }
+    if (str_starts(exporter_texts_entries[exporter_number_index], exporter_text_tag) && exporter_text_tag == "T|") {
+      exporter_text_result = exporter_text_result + exporter_then(exporter_texts_entries[exporter_number_index]);
+    }
+    exporter_number_index = exporter_number_index + 1;
+  }
+} return string exporter_text_result;
+(["G|count = 10", "A|5"], "G|"):("given count_set(10) ")
+(["G|xs = [ 1 , 2 ]", "A|5", "G|n = 3"], "G|"):("given xs_set([1, 2]) given n_set(3) ")
+(["A|1", "E|2", "T|count|15", "T|n|3"], "T|"):(" then count_get:(15) then n_get:(3)")
+(["A|5", "E|1"], "G|"):("")
+
+exporter_case(string exporter_text_line, int exporter_number_function) {
+  string[] exporter_texts_entries = runner_parse(lexer_tokens(exporter_text_line));
+  string exporter_text_start = "";
+  if ((import model_function_names)[exporter_number_function] != "main" && len((import model_variable_names)) > 0) {
+    exporter_text_start = "given variables_start ";
+  }
+} chain (string exporter_text_line, int exporter_number_function) {
+  string exporter_text_arguments = exporter_tidy(runner_pick(exporter_texts_entries, "A|", ""));
+  string exporter_text_expected = exporter_tidy(runner_pick(exporter_texts_entries, "E|", ""));
+  string exporter_text_case = exporter_text_start + exporter_clauses(exporter_texts_entries, "G|") + "(" + exporter_text_arguments + "):(" + exporter_text_expected + ")" + exporter_clauses(exporter_texts_entries, "T|");
+} return string exporter_text_case;
+given model_load("t.blk", "sprite S\nvar int count\nfn f(int a) return int\n(1): (1)\ngiven count = 10 (5): (15) then count: (15)") ("(1): (1)", 0):("given variables_start (1):(1)")
+given model_load("t.blk", "sprite S\nvar int count\nfn f(int a) return int\n(1): (1)\ngiven count = 10 (5): (15) then count: (15)") ("given count = 10 (5): (15) then count: (15)", 0):("given variables_start given count_set(10) (5):(15) then count_get:(15)")
+given model_load("t.blk", "sprite S\nvar int count\nfn main(int argc, string[] argv) return int") ("(1, [\"blocks\"]): (0)", 0):("(1, [\"blocks\"]):(0)")
+given model_load("t.blk", "sprite S\nfn g() return void") ("(): ()", 0):("():()")
+
+exporter_cases(int exporter_number_function) {
+  string exporter_text_result = "";
+  int exporter_number_index = 0;
+  while (exporter_number_index < len((import model_can))) {
+    if ((import model_can)[exporter_number_index] == exporter_number_function) {
+      exporter_text_result = exporter_text_result + exporter_case((import model_cat)[exporter_number_index], exporter_number_function) + "\n";
+    }
+    exporter_number_index = exporter_number_index + 1;
+  }
+} return string exporter_text_result;
+given model_load("t.blk", "sprite S\nfn f(int a) return int\n(1): (1)\n(2): (3)\nfn g() return void\n(): ()\n(): ()") (0):("(1):(1)\n(2):(3)\n")
+given model_load("t.blk", "sprite S\nfn g() return void\n(): ()\n(1): ()") (0):("():()\n(1):()\n")

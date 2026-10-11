@@ -1,0 +1,28 @@
+// The files of the exported project, as two parallel lists: the path of each
+// relative to the project's directory, and its text. exporter_initial starts
+// them empty (it is what every case of this directory begins with) and
+// exporter_add appends one. exporter_put writes one file, making the
+// directories above it, and answers 1 when it could not; exporter_write
+// writes them all under a directory and prints each path as it goes.
+
+exporter_initial() {
+  export string[] exporter_paths = [];
+  export string[] exporter_contents = [];
+} return void export exporter_paths;
+():() then (import exporter_paths):([])
+given exporter_initial given exporter_add("a.id", "x") ():() then (import exporter_paths):([])
+
+exporter_add(string exporter_text_path, string exporter_text_content) {
+  push((import exporter_paths), exporter_text_path);
+  push((import exporter_contents), exporter_text_content);
+} return void;
+given exporter_initial ("a.id", "x"):() then (import exporter_paths):(["a.id"])
+given exporter_initial given exporter_add("a.id", "x") ("b.id", "y"):() then (import exporter_contents):(["x", "y"])
+
+exporter_put(string exporter_text_path, string exporter_text_content) {
+  int exporter_number_made = fs_mkdir_p(fs_dir_of(exporter_text_path));
+  int exporter_number_written = exec_file_put(exporter_text_path, exporter_text_content, 420);
+  int exporter_number_bad = exporter_number_made == 0 || exporter_number_written != len(exporter_text_content);
+} return int exporter_number_bad;
+given fs_temp_text ("old") ((import fs_temp_path), "new"):(0) then fs_temp_read:("new")
+("/proc/blocks_export_none/a.id", "x"):(1)

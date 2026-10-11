@@ -1,0 +1,44 @@
+// The statements that leave or start other scripts. A 'return' in the middle
+// of a body names a value or a literal, as id's does; a broadcast of a
+// literal message is the calls of the scripts that run on it, in the order
+// they are written, so the exported program starts them one after another
+// where the machine interleaves them (docs: what the export cannot say).
+
+exporter_return(string exporter_text_value, int exporter_number_function) {
+  string exporter_text_result = "return;";
+  string exporter_text_declaration = exporter_declaration(exporter_text_value, exporter_number_function);
+  if (exporter_text_value != "") {
+    exporter_text_result = "return " + exporter_clause(exporter_text_value, exporter_number_function) + ";";
+  }
+} chain (string exporter_text_value, int exporter_number_function) {
+  if (exporter_text_declaration != "") {
+    exporter_text_result = exporter_text_declaration + "\n" + exporter_text_result;
+  }
+} return string exporter_text_result;
+given model_load("t.blk", "sprite S\nfn f() return int") ("", 0):("return;")
+given model_load("t.blk", "sprite S\nfn f() return int") ("r", 0):("return r;")
+given model_load("t.blk", "sprite S\nfn f() return int") ("r + 1", 0):("int result_integer = r + 1;\nreturn result_integer;")
+
+exporter_handlers(string exporter_text_message) {
+  string exporter_text_calls = "";
+  int exporter_number_row = 0;
+  while (exporter_number_row < len((import model_function_names))) {
+    if ((import model_function_message)[exporter_number_row] == exporter_text_message) {
+      exporter_text_calls = exporter_text_calls + (import model_function_names)[exporter_number_row] + "();\n";
+    }
+    exporter_number_row = exporter_number_row + 1;
+  }
+} return string exporter_text_calls;
+given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\nfn b() return void\nfn c() return void on \"go\"") ("go"):("a();\nc();\n")
+given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\nfn b() return void") ("stop"):("")
+
+exporter_broadcast(string exporter_text_line, int exporter_number_function) {
+  string exporter_text_result = exporter_expression(exporter_text_line, exporter_number_function) + ";";
+  if (str_starts(exporter_text_line, "broadcast(\"") && str_ends(exporter_text_line, "\")")) {
+    string exporter_text_message = str_sub(exporter_text_line, 11, len(exporter_text_line) - 13);
+    exporter_text_result = exporter_handlers(exporter_text_message);
+  }
+} return string exporter_text_result;
+given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\nfn b() return void") ("broadcast(\"go\")", 1):("a();\n")
+given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\nfn b() return void") ("broadcast(\"stop\")", 1):("")
+given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\nfn b() return void") ("broadcast(m)", 1):("broadcast(m);")

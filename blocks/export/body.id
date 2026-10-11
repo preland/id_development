@@ -1,0 +1,52 @@
+// The body of a function as id lines, each indented to its depth. A body may
+// not be longer than three actions to a block; the lines that main gains
+// (variables_start) or that a return gains (its value in a local) can make it
+// longer than the .blk's was, so exporter_chain below splits what is left into
+// segments of exactly three actions.
+
+exporter_lines(int exporter_number_function) {
+  string[] exporter_texts_lines = [];
+  int[] exporter_numbers_depth = [0];
+  exporter_start(exporter_texts_lines, exporter_number_function);
+} chain (int exporter_number_function) {
+  int exporter_number_row = (import model_function_body_start)[exporter_number_function];
+  int exporter_number_end = (import model_function_body_end)[exporter_number_function] - exporter_has_return(exporter_number_function);
+  while (exporter_number_row < exporter_number_end) {
+    exporter_line(exporter_texts_lines, exporter_numbers_depth, exporter_number_row, exporter_number_function);
+    exporter_number_row = exporter_number_row + 1;
+  }
+} chain (int exporter_number_function) {
+  exporter_close(exporter_texts_lines, exporter_numbers_depth, 1, "end");
+  string exporter_text_value = exporter_returned(exporter_number_function);
+  exporter_push(exporter_texts_lines, 1, exporter_declaration(exporter_text_value, exporter_number_function));
+} return string[] exporter_texts_lines;
+given model_load("t.blk", "sprite S\nvar int n\nfn f(int a) return int\n  int r = a\n  if r > 1\n    n = r\n  else\n    n = 0\n  return r\n(1):(1)\n(2):(2)") (0):(["  int r = a;", "  if (r > 1) {", "    n_set(r);", "  } else {", "    n_set(0);", "  }"])
+given model_load("t.blk", "sprite S\nvar int n\nfn main(int argc, string[] argv) return int\n  return argc + 1\n(1, [\"x\"]):(2)\n(2, [\"x\"]):(3)") (0):(["  variables_start();", "  int result_integer = argc + 1;"])
+
+exporter_cost(string exporter_text_line) {
+  int exporter_number_cost = 0;
+  if (str_starts(exporter_text_line, "  ") && charat(exporter_text_line, 2) != 32) {
+    exporter_number_cost = 1;
+  }
+  if (exporter_text_line == "  }" || exporter_text_line == "  break;" || str_starts(exporter_text_line, "  return ") || exporter_text_line == "  return;") {
+    exporter_number_cost = 0;
+  }
+} return int exporter_number_cost;
+("  x = 1;"):(1)
+("  } else {"):(1)
+("    x = 1;"):(0)
+("  }"):(0)
+("  break;"):(0)
+("  return r;"):(0)
+("  return_x_set(1);"):(1)
+
+exporter_boundary(string exporter_text_line, int exporter_number_total, string exporter_text_parameters) {
+  string exporter_text_cut = "";
+  if (exporter_number_total >= 3 && exporter_cost(exporter_text_line) > 0 && str_starts(exporter_text_line, "  } else") == 0) {
+    exporter_text_cut = "} chain (" + exporter_text_parameters + ") {\n";
+  }
+} return string exporter_text_cut;
+("  x = 1;", 3, "int a"):("} chain (int a) {\n")
+("  x = 1;", 2, "int a"):("")
+("  } else {", 3, "int a"):("")
+("    x = 1;", 3, "int a"):("")

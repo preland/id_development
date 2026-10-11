@@ -1,0 +1,48 @@
+// What type a name has inside a function: a parameter, a local declared by a
+// body line ('int[] xs = ...'), or a variable of the program. The list blocks
+// insert and delete are spelled for the element type in id's library
+// (lst_insert for ints, lst_str_insert for strings), which only the type of
+// their first argument tells.
+
+exporter_declared(string exporter_text_line, string exporter_text_name) {
+  int exporter_number_type = 0 - 1;
+  string exporter_text_head = exporter_head(exporter_text_line);
+  if (lst_str_index((import constant_types), exporter_text_head) >= 0 && str_find(exporter_text_line, "=") >= 0) {
+    string[] exporter_texts_tokens = lexer_tokens(exporter_left(exporter_text_line));
+    if (exporter_texts_tokens[len(exporter_texts_tokens) - 1] == exporter_text_name) {
+      exporter_number_type = model_type(exporter_texts_tokens, 0);
+    }
+  }
+} return int exporter_number_type;
+("int[] xs = [1]", "xs"):(4)
+("string s = \"a\"", "s"):(3)
+("int[] xs = [1]", "ys"):(-1)
+("xs = [1]", "xs"):(-1)
+
+exporter_local_type(string exporter_text_name, int exporter_number_function) {
+  int exporter_number_type = 0 - 1;
+  int exporter_number_row = (import model_function_body_start)[exporter_number_function];
+  while (exporter_number_row < (import model_function_body_end)[exporter_number_function]) {
+    if (exporter_declared((import model_line_texts)[exporter_number_row], exporter_text_name) >= 0) {
+      exporter_number_type = exporter_declared((import model_line_texts)[exporter_number_row], exporter_text_name);
+    }
+    exporter_number_row = exporter_number_row + 1;
+  }
+} return int exporter_number_type;
+given model_load("t.blk", "sprite S\nfn f() return void\n  float[] fs = [1.5]\n  int n = 2\n(): ()\n(1): ()") ("fs", 0):(5)
+given model_load("t.blk", "sprite S\nfn f() return void\n  float[] fs = [1.5]\n  int n = 2\n(): ()\n(1): ()") ("n", 0):(1)
+given model_load("t.blk", "sprite S\nfn f() return void\n  float[] fs = [1.5]\n  int n = 2\n(): ()\n(1): ()") ("x", 0):(-1)
+
+exporter_parameter_type(string exporter_text_name, int exporter_number_function) {
+  int exporter_number_type = 0 - 1;
+  int exporter_number_row = (import model_function_parameter_start)[exporter_number_function];
+  while (exporter_number_row < (import model_function_parameter_start)[exporter_number_function] + (import model_function_parameter_count)[exporter_number_function]) {
+    if ((import model_pan)[exporter_number_row] == exporter_text_name) {
+      exporter_number_type = (import model_pat)[exporter_number_row];
+    }
+    exporter_number_row = exporter_number_row + 1;
+  }
+} return int exporter_number_type;
+given model_load("t.blk", "sprite S\nfn f(int[] xs, string s) return void") ("xs", 0):(4)
+given model_load("t.blk", "sprite S\nfn f(int[] xs, string s) return void") ("s", 0):(3)
+given model_load("t.blk", "sprite S\nfn f(int[] xs, string s) return void") ("t", 0):(-1)

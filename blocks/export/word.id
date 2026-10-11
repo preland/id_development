@@ -1,0 +1,50 @@
+// The words of an expression, as id spells them. A variable of the program
+// is exported in the id program, so a name that is one reads (import NAME);
+// a few blocks are spelled differently (constant_export_from); and the blocks
+// of a sprite (say, and the motion ones) take the sprite as their first
+// arguments, which exporter_inject names and exporter_opening writes after
+// the parenthesis of the call.
+
+exporter_word(string exporter_text_word, int exporter_number_function) {
+  string exporter_text_result = exporter_text_word;
+  if (exporter_is_global(exporter_text_word, exporter_number_function) == 1) {
+    exporter_text_result = "(import " + exporter_text_word + ")";
+  }
+  if (lst_str_index((import constant_export_from), exporter_text_word) >= 0) {
+    exporter_text_result = (import constant_export_to)[lst_str_index((import constant_export_from), exporter_text_word)];
+  }
+} return string exporter_text_result;
+given model_load("t.blk", "sprite S\nvar int n\nfn f(int p) return void\n  int q = 1") ("n", 0):("(import n)")
+given model_load("t.blk", "sprite S\nvar int n\nfn f(int p) return void\n  int q = 1") ("m", 0):("m")
+given model_load("t.blk", "sprite S\nvar int n\nfn f(int p) return void\n  int q = 1") ("xpos", 0):("sprite_cell")
+given model_load("t.blk", "sprite S\nvar int n\nfn f(int p) return void\n  int q = 1") ("str_to_int", 0):("to_int")
+given model_load("t.blk", "sprite S\nvar int p\nvar int q\nfn f(int p) return void\n  int q = 1") ("p", 0):("p")
+given model_load("t.blk", "sprite S\nvar int p\nvar int q\nfn f(int p) return void\n  int q = 1") ("q", 0):("q")
+
+exporter_inject(string exporter_text_word, int exporter_number_function) {
+  string exporter_text_extra = "";
+  int exporter_number_sprite = (import model_function_sprites)[exporter_number_function];
+  if (exporter_text_word == "say") {
+    exporter_text_extra = "\"" + (import model_sprite_names)[exporter_number_sprite] + "\"";
+  }
+} chain (string exporter_text_word, int exporter_number_function) {
+  int exporter_number_motion = lst_str_index((import constant_export_motion), exporter_text_word);
+  if (exporter_number_motion >= 0) {
+    exporter_text_extra = "(import " + (import constant_export_states) + "), " + exporter_number_sprite * (import constant_sprite_count) + (import constant_export_cell)[exporter_number_motion];
+  }
+} return string exporter_text_extra;
+given model_load("t.blk", "sprite A\nfn f() return void\nsprite B\nfn g() return void") ("say", 1):("\"B\"")
+given model_load("t.blk", "sprite A\nfn f() return void\nsprite B\nfn g() return void") ("move", 1):("(import sprite_states), 6")
+given model_load("t.blk", "sprite A\nfn f() return void\nsprite B\nfn g() return void") ("ypos", 0):("(import sprite_states), 0, 1")
+given model_load("t.blk", "sprite A\nfn f() return void\nsprite B\nfn g() return void") ("len", 1):("")
+
+exporter_opening(string exporter_text_before, string exporter_text_line, int exporter_number_end, int exporter_number_function) {
+  string exporter_text_extra = exporter_inject(exporter_text_before, exporter_number_function);
+  int exporter_number_next = str_skip_space(exporter_text_line, exporter_number_end);
+  if (exporter_text_extra != "" && charat(exporter_text_line, exporter_number_next) != 41) {
+    exporter_text_extra = exporter_text_extra + ", ";
+  }
+} return string exporter_text_extra;
+given model_load("t.blk", "sprite A\nfn f() return void") ("say", "say(x)", 4, 0):("\"A\", ")
+given model_load("t.blk", "sprite A\nfn f() return void") ("xpos", "xpos()", 5, 0):("(import sprite_states), 0, 0")
+given model_load("t.blk", "sprite A\nfn f() return void") ("len", "len(x)", 4, 0):("")

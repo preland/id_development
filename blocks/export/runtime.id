@@ -1,0 +1,24 @@
+// The blocks that id has no builtin for are written out as a small runtime in
+// the exported project (runtime/), from the texts in conf.id, but only the
+// parts the program calls: say and wait, the conversions between ints,
+// floats and text, and the motion blocks with the constants they read.
+
+exporter_runtime() {
+  if (exporter_uses("say") == 1 || exporter_uses("wait") == 1) {
+    exporter_add("runtime/say.id", (import constant_runtime_say));
+  }
+  if (exporter_uses("int_to_str") == 1 || exporter_uses("float_to_str") == 1) {
+    exporter_add("runtime/int_to_str.id", (import constant_runtime_integer));
+  }
+  if (exporter_uses("int_to_float") == 1 || exporter_uses("float_to_int") == 1) {
+    exporter_add("runtime/int_to_float.id", (import constant_runtime_float));
+  }
+} chain () {
+  if (exporter_motion() > 0) {
+    exporter_add("runtime/snap_position.id", (import constant_runtime_snap));
+    exporter_add("runtime/move.id", (import constant_runtime_move));
+    exporter_add("runtime/goto.id", (import constant_runtime_goto));
+  }
+} return void;
+given exporter_initial given model_load("t.blk", "sprite S\nfn f() return void\n  say(int_to_str(1))\n  move(1.0)\n(): ()\n(1): ()") ():() then (import exporter_paths):(["runtime/say.id", "runtime/int_to_str.id", "runtime/snap_position.id", "runtime/move.id", "runtime/goto.id"])
+given exporter_initial given model_load("t.blk", "sprite S\nfn f() return void\n  wait(1.0)\n  int x = float_to_int(2.0)\n(): ()\n(1): ()") ():() then (import exporter_paths):(["runtime/say.id", "runtime/int_to_float.id"])

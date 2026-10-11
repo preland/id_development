@@ -23,11 +23,14 @@ command_dispatch(string block_command_word, string block_path, string[] block_ar
     block_state = command_render(block_path, block_argument_values);
   }
 } chain (string block_command_word, string block_path, string[] block_argument_values) {
+  if (block_command_word == "export") {
+    block_state = command_export(block_path, block_argument_values);
+  }
   if (block_state == 2 && lst_str_index((import constant_commands), block_command_word) < 0) {
     eprint((import constant_usage));
   }
 } return int block_state;
-("bogus", "x.blk", ["blocks"]):(2) then eprints:("usage: blocks run FILE.blk [--frames N] | blocks check FILE.blk | blocks test FILE.blk | blocks edit FILE.blk [--script S.txt [--dump] [--boxes] [--render-after OUT.ppm]] | blocks render FILE.blk OUT.ppm [--size W H]\n")
+("bogus", "x.blk", ["blocks"]):(2) then eprints:("usage: blocks run FILE.blk [--frames N] | blocks check FILE.blk | blocks test FILE.blk | blocks edit FILE.blk [--script S.txt [--dump] [--boxes] [--render-after OUT.ppm]] | blocks render FILE.blk OUT.ppm [--size W H] | blocks export FILE.blk OUTDIR\n")
 ("check", "/nonexistent/none.blk", ["blocks"]):(2) then eprints:("blocks: cannot read /nonexistent/none.blk, or it is empty\n")
 ("edit", "/nonexistent/none.blk", ["blocks", "edit", "/nonexistent/none.blk"]):(2) then eprints:("blocks: cannot read /nonexistent/none.blk, or it is empty\n")
 ("render", "x.blk", ["blocks", "render", "x.blk"]):(2) then eprints:("blocks: render needs a .blk file that can be read and the picture to write: blocks render FILE.blk OUT.ppm [--size W H] [x.blk]\n")
@@ -40,5 +43,5 @@ command_main(int block_argument_count, string[] block_argument_values) {
     eprint((import constant_usage));
   }
 } return int block_state;
-(1, ["blocks"]):(2) then eprints:("usage: blocks run FILE.blk [--frames N] | blocks check FILE.blk | blocks test FILE.blk | blocks edit FILE.blk [--script S.txt [--dump] [--boxes] [--render-after OUT.ppm]] | blocks render FILE.blk OUT.ppm [--size W H]\n")
+(1, ["blocks"]):(2) then eprints:("usage: blocks run FILE.blk [--frames N] | blocks check FILE.blk | blocks test FILE.blk | blocks edit FILE.blk [--script S.txt [--dump] [--boxes] [--render-after OUT.ppm]] | blocks render FILE.blk OUT.ppm [--size W H] | blocks export FILE.blk OUTDIR\n")
 (3, ["blocks", "check", "/nonexistent/none.blk"]):(2) then eprints:("blocks: cannot read /nonexistent/none.blk, or it is empty\n")

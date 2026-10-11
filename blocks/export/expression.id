@@ -1,0 +1,17 @@
+// A whole .blk expression (or the rest of a statement) as id source: every
+// token goes through exporter_piece, and the text between tokens is kept as it
+// was written.
+
+exporter_expression(string exporter_text_line, int exporter_number_function) {
+  string exporter_text_result = "";
+  int exporter_number_index = 0;
+  while (exporter_number_index < len(exporter_text_line)) {
+    int exporter_number_end = lexer_end(exporter_text_line, str_skip_space(exporter_text_line, exporter_number_index));
+    exporter_text_result = exporter_text_result + exporter_piece(exporter_text_line, exporter_number_index, exporter_number_end, exporter_number_function);
+    exporter_number_index = exporter_number_end;
+  }
+} return string exporter_text_result;
+given model_load("t.blk", "sprite S\nvar int n\nfn f() return void") ("n + 1", 0):("(import n) + 1")
+given model_load("t.blk", "sprite S\nvar int n\nfn f() return void") ("say(str_to_int(\"7\"))", 0):("say(\"S\", to_int(\"7\"))")
+given model_load("t.blk", "sprite S\nvar int n\nfn f() return void") ("xpos() * 2.0 ", 0):("sprite_cell((import sprite_states), 0, 0) * 2.0 ")
+given model_load("t.blk", "sprite S\nvar int n\nfn f() return void") ("", 0):("")

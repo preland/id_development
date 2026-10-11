@@ -1,0 +1,25 @@
+// The pieces of a statement line: its first word, and what is left of an
+// assignment or a declaration on either side of its first '='.
+
+exporter_head(string exporter_text_line) {
+  string exporter_text_word = str_sub(exporter_text_line, 0, lexer_end(exporter_text_line, 0));
+} return string exporter_text_word;
+("if a < b"):("if")
+("int[] xs = []"):("int")
+("xs[1] = 2"):("xs")
+
+exporter_left(string exporter_text_line) {
+  int exporter_number_equals = str_find(exporter_text_line, "=");
+  string exporter_text_cut = str_sub(exporter_text_line, 0, exporter_number_equals);
+  string exporter_text_side = str_trim(exporter_text_cut);
+} return string exporter_text_side;
+("int r = 1"):("int r")
+("xs[i] = 2"):("xs[i]")
+
+exporter_right(string exporter_text_line) {
+  int exporter_number_equals = str_find(exporter_text_line, "=");
+  string exporter_text_cut = str_sub(exporter_text_line, exporter_number_equals + 1, len(exporter_text_line) - exporter_number_equals - 1);
+  string exporter_text_side = str_trim(exporter_text_cut);
+} return string exporter_text_side;
+("int r = 1"):("1")
+("a=b == c"):("b == c")

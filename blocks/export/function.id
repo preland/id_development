@@ -1,0 +1,33 @@
+// A function of the program as id text: its header from the parameter rows of
+// the model, its body, its return clause, and then its test cases (cases.id).
+
+exporter_parameter(int exporter_number_function, int exporter_number_index) {
+  int exporter_number_row = (import model_function_parameter_start)[exporter_number_function] + exporter_number_index;
+  string exporter_text_parameter = (import constant_type_full)[(import model_pat)[exporter_number_row]] + " " + (import model_pan)[exporter_number_row];
+  if (exporter_number_index > 0) {
+    exporter_text_parameter = ", " + exporter_text_parameter;
+  }
+} return string exporter_text_parameter;
+given model_load("t.blk", "sprite S\nfn f(int a, string[] b) return void") (0, 0):("int a")
+given model_load("t.blk", "sprite S\nfn f(int a, string[] b) return void") (0, 1):(", string[] b")
+
+exporter_parameters(int exporter_number_function) {
+  string exporter_text_list = "";
+  int exporter_number_index = 0;
+  while (exporter_number_index < (import model_function_parameter_count)[exporter_number_function]) {
+    exporter_text_list = exporter_text_list + exporter_parameter(exporter_number_function, exporter_number_index);
+    exporter_number_index = exporter_number_index + 1;
+  }
+} return string exporter_text_list;
+given model_load("t.blk", "sprite S\nfn f(int a, string[] b) return void\nfn g() return void") (0):("int a, string[] b")
+given model_load("t.blk", "sprite S\nfn f(int a, string[] b) return void\nfn g() return void") (1):("")
+
+exporter_function(int exporter_number_function) {
+  string exporter_text_parameters = exporter_parameters(exporter_number_function);
+  string[] exporter_texts_lines = exporter_lines(exporter_number_function);
+  string exporter_text_body = exporter_chain(exporter_texts_lines, exporter_text_parameters);
+} chain (int exporter_number_function) {
+  string exporter_text_function = (import model_function_names)[exporter_number_function] + "(" + exporter_text_parameters + ") {\n" + exporter_text_body + "} return " + exporter_tail(exporter_number_function) + ";\n" + exporter_cases(exporter_number_function);
+} return string exporter_text_function;
+given model_load("t.blk", "sprite S\nvar int n\nfn f(int a) return int\n  int r = a\n  if r > 1\n    n = r\n  else\n    n = 0\n  return r\n(1): (1)\n(2): (2)") (0):("f(int a) {\n  int r = a;\n  if (r > 1) {\n    n_set(r);\n  } else {\n    n_set(0);\n  }\n} return int r;\ngiven variables_start (1):(1)\ngiven variables_start (2):(2)\n")
+given model_load("t.blk", "sprite S\nfn g(int a, int b) return void\n  say(\"x\")\n(1, 2): ()\n(2, 3): ()") (0):("g(int a, int b) {\n  say(\"S\", \"x\");\n} return void;\n(1, 2):()\n(2, 3):()\n")

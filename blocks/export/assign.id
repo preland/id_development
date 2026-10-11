@@ -1,0 +1,72 @@
+// A statement of a script as id lines. A variable of the program lives in an
+// export that only its setters may write, so an assignment to one is a call
+// of NAME_set (a whole value) or NAME_at (an element of a list); anything else
+// keeps its shape. A line may become several (a broadcast is the calls of the
+// scripts that run on it) or none, and 'else' is the bar of '} else {'.
+
+exporter_assignment(string exporter_text_line, int exporter_number_function) {
+  string exporter_text_head = exporter_head(exporter_text_line);
+  string exporter_text_left = exporter_left(exporter_text_line);
+  int exporter_number_global = exporter_is_global(exporter_text_head, exporter_number_function);
+} chain (string exporter_text_line, int exporter_number_function) {
+  string exporter_text_right = exporter_expression(exporter_right(exporter_text_line), exporter_number_function);
+  string exporter_text_result = exporter_expression(exporter_text_left, exporter_number_function) + " = " + exporter_text_right + ";";
+  if (exporter_number_global == 1 && exporter_text_left == exporter_text_head) {
+    exporter_text_result = exporter_text_head + "_set(" + exporter_text_right + ");";
+  }
+} chain (string exporter_text_line, int exporter_number_function) {
+  if (exporter_number_global == 1 && exporter_text_left != exporter_text_head) {
+    string exporter_text_index = str_sub(exporter_text_left, len(exporter_text_head) + 1, len(exporter_text_left) - len(exporter_text_head) - 2);
+    exporter_text_result = exporter_text_head + "_at(" + exporter_expression(exporter_text_index, exporter_number_function) + ", " + exporter_text_right + ");";
+  }
+} return string exporter_text_result;
+given model_load("t.blk", "sprite S\nvar int count\nvar float[] fs\nfn f() return void") ("count = count + 1", 0):("count_set((import count) + 1);")
+given model_load("t.blk", "sprite S\nvar int count\nvar float[] fs\nfn f() return void") ("fs[1] = fs[0] + 1.0", 0):("fs_at(1, (import fs)[0] + 1.0);")
+given model_load("t.blk", "sprite S\nvar int count\nvar float[] fs\nfn f() return void") ("int r = 1", 0):("int r = 1;")
+given model_load("t.blk", "sprite S\nvar int count\nvar float[] fs\nfn f() return void") ("xs[count] = 2", 0):("xs[(import count)] = 2;")
+
+exporter_plain(string exporter_text_line, int exporter_number_function) {
+  string exporter_text_head = exporter_head(exporter_text_line);
+  int exporter_number_call = charat(exporter_text_line, len(exporter_text_head)) == 40;
+  string exporter_text_result = "";
+} chain (string exporter_text_line, int exporter_number_function) {
+  if (exporter_number_call == 1) {
+    exporter_text_result = exporter_expression(exporter_text_line, exporter_number_function) + ";";
+  } else {
+    exporter_text_result = exporter_assignment(exporter_text_line, exporter_number_function);
+  }
+} return string exporter_text_result;
+given model_load("t.blk", "sprite S\nvar int count\nfn f() return void") ("say(\"x\")", 0):("say(\"S\", \"x\");")
+given model_load("t.blk", "sprite S\nvar int count\nfn f() return void") ("count = 2", 0):("count_set(2);")
+
+exporter_statement(string exporter_text_line, int exporter_number_function) {
+  string exporter_text_head = exporter_head(exporter_text_line);
+  string exporter_text_result = "";
+  string exporter_text_rest = exporter_rest(exporter_text_line, exporter_text_head);
+} chain (string exporter_text_line, int exporter_number_function) {
+  if (exporter_text_head == "if" || exporter_text_head == "while") {
+    exporter_text_result = exporter_text_head + " (" + exporter_expression(exporter_text_rest, exporter_number_function) + ") {";
+  }
+  if (exporter_text_head == "else") {
+    exporter_text_result = "} else {";
+  }
+  if (exporter_text_head == "break") {
+    exporter_text_result = "break;";
+  }
+} chain (string exporter_text_line, int exporter_number_function) {
+  if (exporter_text_head == "return") {
+    exporter_text_result = exporter_return(exporter_text_rest, exporter_number_function);
+  }
+  if (exporter_text_head == "broadcast") {
+    exporter_text_result = exporter_broadcast(exporter_text_line, exporter_number_function);
+  }
+  if (exporter_text_result == "" && exporter_text_head != "broadcast") {
+    exporter_text_result = exporter_plain(exporter_text_line, exporter_number_function);
+  }
+} return string exporter_text_result;
+given model_load("t.blk", "sprite S\nvar int n\nfn f() return int") ("if n > 1 && n < 5", 0):("if ((import n) > 1 && (import n) < 5) {")
+given model_load("t.blk", "sprite S\nvar int n\nfn f() return int") ("while i < len(xs)", 0):("while (i < len(xs)) {")
+given model_load("t.blk", "sprite S\nvar int n\nfn f() return int") ("else", 0):("} else {")
+given model_load("t.blk", "sprite S\nvar int n\nfn f() return int") ("break", 0):("break;")
+given model_load("t.blk", "sprite S\nvar int n\nfn f() return int") ("return r", 0):("return r;")
+given model_load("t.blk", "sprite S\nvar int n\nfn f() return int") ("n = 3", 0):("n_set(3);")

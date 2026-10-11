@@ -198,7 +198,7 @@ float constant_snap = 1000000.0;
 float constant_turn = 360.0;
 int constant_frames_default = 600;
 int constant_case_frames = 2000;
-string constant_usage = "usage: blocks run FILE.blk [--frames N] | blocks check FILE.blk | blocks test FILE.blk | blocks edit FILE.blk [--script S.txt [--dump] [--boxes] [--render-after OUT.ppm]] | blocks render FILE.blk OUT.ppm [--size W H]";
+string constant_usage = "usage: blocks run FILE.blk [--frames N] | blocks check FILE.blk | blocks test FILE.blk | blocks edit FILE.blk [--script S.txt [--dump] [--boxes] [--render-after OUT.ppm]] | blocks render FILE.blk OUT.ppm [--size W H] | blocks export FILE.blk OUTDIR";
 string constant_prefix_system = "__";
 // The block editor (edit/). Kinds of line of a .blk file as the editor shows
 // it, then of box in a layout: a function's hat, a statement, an else bar, the
@@ -411,4 +411,31 @@ string[] constant_verbs = ["wheel", "down", "up", "move", "key", "text", "size",
 int[] constant_verb_need = [4, 3, 3, 3, 2, 2, 3, 5, 1, 1, 2, 2];
 string[] constant_mouse_verbs = ["down", "up", "move"];
 string constant_script_help = "wheel X Y DY, down X Y [BUTTON [CLICKS]], up X Y, move X Y, drag X1 Y1 X2 Y2, key NAME, text STR, size W H, flag, stop, frames N, save PATH";
-string[] constant_commands = ["run", "check", "test", "edit", "render"];
+string[] constant_commands = ["run", "check", "test", "edit", "render", "export"];
+// The exporter (export/). The words of an expression that are spelled
+// differently in id, the sprite blocks that take their sprite's state as the
+// first arguments (and, for the three readers, which cell), and the
+// stand-ins for the samples a generated variable's cases use, by type code.
+string[] constant_export_from = ["str_to_int", "xpos", "ypos", "direction"];
+string[] constant_export_to = ["to_int", "sprite_cell", "sprite_cell", "sprite_cell"];
+string[] constant_export_motion = ["move", "turn", "point", "goto", "show", "hide", "xpos", "ypos", "direction"];
+string[] constant_export_cell = ["", "", "", "", "", "", ", 0", ", 1", ", 2"];
+string[] constant_export_result = ["", "result_integer", "result_float", "result_string", "result_integer_list", "result_float_list", "result_string_list"];
+string[] constant_export_first = ["", "1", "1.5", "\"a\""];
+string[] constant_export_second = ["", "2", "2.5", "\"b\""];
+string[] constant_export_third = ["", "3", "3.5", "\"c\""];
+string[] constant_export_insert = ["", "", "", "", "lst_insert", "insert", "lst_str_insert"];
+string[] constant_export_delete = ["", "", "", "", "lst_delete", "delete", "lst_str_delete"];
+string constant_export_states = "sprite_states";
+string constant_export_state_initial = "0.0, 0.0, 90.0, 100.0, 1.0, -1.0";
+string constant_export_motion_conf = "float motion_radians = 0.017453292519943295;\nfloat motion_snap = 1000000.0;\nfloat motion_turn = 360.0;\n";
+string constant_template_set = "NAME_set(TYPE new_NAME) {\n  export TYPE NAME = new_NAME;\n} return void export NAME;\n(FIRST):() then (import NAME):(FIRST)\n(SECOND):() then (import NAME):(SECOND)\n";
+string constant_template_get = "NAME_get() {\n  TYPE old_NAME = (import NAME);\n  NAME_set(old_NAME);\n} return TYPE old_NAME;\ngiven NAME_set(FIRST) ():(FIRST)\ngiven NAME_set(SECOND) ():(SECOND)\n";
+string constant_template_initial = "TYPE initial_NAME = INITIAL;\nNAME_set(initial_NAME);";
+string constant_template_at = "NAME_at(int index_NAME, ELEMENT_TYPE value_NAME) {\n  TYPE alias_NAME = (import NAME);\n  alias_NAME[index_NAME] = value_NAME;\n} return void;\ngiven NAME_set([ELEMENT_ONE, ELEMENT_TWO]) (0, ELEMENT_THREE):() then NAME_get:([ELEMENT_THREE, ELEMENT_TWO])\ngiven NAME_set([ELEMENT_ONE, ELEMENT_TWO]) (1, ELEMENT_THREE):() then NAME_get:([ELEMENT_ONE, ELEMENT_THREE])\n";
+string constant_runtime_say = "say(string say_sprite, string say_text) {\n  print(say_sprite + \": \" + say_text);\n} return void;\n(\"Cat\", \"hi\"):() then prints:(\"Cat: hi\\n\")\n(\"Dog\", \"\"):() then prints:(\"Dog: \\n\")\n\nwait(float wait_seconds) {\n  int wait_milliseconds = wait_seconds * 1000.0;\n  sleep_ms(wait_milliseconds);\n} return void;\n(0.0):()\n(0.001):()\n";
+string constant_runtime_integer = "int_to_str(int convert_integer) {\n  string convert_text = \"\";\n  convert_text = convert_text + convert_integer;\n} return string convert_text;\n(5):(\"5\")\n(-12):(\"-12\")\n\nfloat_to_str(float convert_float) {\n  string convert_float_text = \"\" + convert_float;\n} return string convert_float_text;\n(2.5):(\"2.5\")\n(3.0):(\"3\")\n";
+string constant_runtime_float = "int_to_float(int convert_whole) {\n  float convert_widened = convert_whole;\n} return float convert_widened;\n(2):(2.0)\n(-1):(-1.0)\n\nfloat_to_int(float convert_fraction) {\n  int convert_truncated = convert_fraction;\n} return int convert_truncated;\n(2.9):(2)\n(-2.9):(-2)\n";
+string constant_runtime_snap = "snap_position(float snap_value) {\n  float snap_rounded = flt_round(snap_value * (import motion_snap)) / (import motion_snap);\n} return float snap_rounded;\n(2.5000004):(2.5)\n(9.9999999):(10.0)\n\nwrap_degrees(float wrap_value) {\n  float wrap_turned = wrap_value - (import motion_turn) * flt_floor(wrap_value / (import motion_turn));\n} return float wrap_turned;\n(370.0):(10.0)\n(-90.0):(270.0)\n\nsprite_cell(float[] cell_states, int cell_base, int cell_index) {\n  float cell_value = cell_states[cell_base + cell_index];\n} return float cell_value;\n([1.0, 2.0, 3.0], 0, 1):(2.0)\n([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], 3, 2):(6.0)\n";
+string constant_runtime_move = "move(float[] move_states, int move_base, float move_steps) {\n  float move_radians = move_states[move_base + 2] * (import motion_radians);\n  move_states[move_base] = snap_position(move_states[move_base] + move_steps * flt_sin(move_radians));\n  move_states[move_base + 1] = snap_position(move_states[move_base + 1] + move_steps * flt_cos(move_radians));\n} return void;\n([0.0, 0.0, 90.0, 100.0, 1.0, -1.0], 0, 10.0):([10.0, 0.0, 90.0, 100.0, 1.0, -1.0])\n([0.0, 0.0, 0.0, 100.0, 1.0, -1.0], 0, 5.0):([0.0, 5.0, 0.0, 100.0, 1.0, -1.0])\n\nturn(float[] turn_states, int turn_base, float turn_degrees) {\n  turn_states[turn_base + 2] = wrap_degrees(turn_states[turn_base + 2] + turn_degrees);\n} return void;\n([0.0, 0.0, 350.0, 100.0, 1.0, -1.0], 0, 15.0):([0.0, 0.0, 5.0, 100.0, 1.0, -1.0])\n([0.0, 0.0, 90.0, 100.0, 1.0, -1.0], 0, -90.0):([0.0, 0.0, 0.0, 100.0, 1.0, -1.0])\n\npoint(float[] point_states, int point_base, float point_degrees) {\n  point_states[point_base + 2] = wrap_degrees(point_degrees);\n} return void;\n([0.0, 0.0, 90.0, 100.0, 1.0, -1.0], 0, 450.0):([0.0, 0.0, 90.0, 100.0, 1.0, -1.0])\n([0.0, 0.0, 90.0, 100.0, 1.0, -1.0], 0, -90.0):([0.0, 0.0, 270.0, 100.0, 1.0, -1.0])\n";
+string constant_runtime_goto = "goto(float[] goto_states, int goto_base, float goto_x, float goto_y) {\n  goto_states[goto_base] = goto_x;\n  goto_states[goto_base + 1] = goto_y;\n} return void;\n([0.0, 0.0, 90.0, 100.0, 1.0, -1.0], 0, 4.0, 7.0):([4.0, 7.0, 90.0, 100.0, 1.0, -1.0])\n([9.0, 9.0, 90.0, 100.0, 1.0, -1.0, 0.0, 0.0, 90.0, 100.0, 1.0, -1.0], 6, 2.0, 3.0):([9.0, 9.0, 90.0, 100.0, 1.0, -1.0, 2.0, 3.0, 90.0, 100.0, 1.0, -1.0])\n\nshow(float[] show_states, int show_base) {\n  show_states[show_base + 4] = 1.0;\n} return void;\n([0.0, 0.0, 90.0, 100.0, 0.0, -1.0], 0):([0.0, 0.0, 90.0, 100.0, 1.0, -1.0])\n([0.0, 0.0, 90.0, 100.0, 0.0, -1.0, 0.0, 0.0, 90.0, 100.0, 0.0, -1.0], 6):([0.0, 0.0, 90.0, 100.0, 0.0, -1.0, 0.0, 0.0, 90.0, 100.0, 1.0, -1.0])\n\nhide(float[] hide_states, int hide_base) {\n  float hide_flag = 0.0;\n  hide_states[hide_base + 4] = hide_flag;\n} return void;\n([0.0, 0.0, 90.0, 100.0, 1.0, -1.0], 0):([0.0, 0.0, 90.0, 100.0, 0.0, -1.0])\n([0.0, 0.0, 90.0, 100.0, 1.0, -1.0, 0.0, 0.0, 90.0, 100.0, 1.0, -1.0], 6):([0.0, 0.0, 90.0, 100.0, 1.0, -1.0, 0.0, 0.0, 90.0, 100.0, 0.0, -1.0])\n";

@@ -1,0 +1,23 @@
+// The 'export' command: load the program, apply the rules, and write it as an
+// id project under the directory named after the file (export/). Its status
+// is 2 when the file cannot be read or the directory is missing from the
+// command line, 1 for rule violations or a file that could not be written.
+
+command_export(string block_path, string[] block_argument_values) {
+  int block_state = 2;
+  if (len(block_argument_values) >= 4) {
+    block_state = command_load(block_path);
+  } else {
+    eprint((import constant_usage));
+  }
+} chain (string block_path, string[] block_argument_values) {
+  if (block_state == 0) {
+    block_state = command_report();
+  }
+  if (block_state == 0) {
+    block_state = exporter_run(block_argument_values[3]);
+  }
+} return int block_state;
+("/nonexistent/none.blk", ["blocks", "export", "/nonexistent/none.blk"]):(2) then eprints:("usage: blocks run FILE.blk [--frames N] | blocks check FILE.blk | blocks test FILE.blk | blocks edit FILE.blk [--script S.txt [--dump] [--boxes] [--render-after OUT.ppm]] | blocks render FILE.blk OUT.ppm [--size W H] | blocks export FILE.blk OUTDIR\n")
+("/nonexistent/none.blk", ["blocks", "export", "/nonexistent/none.blk", "/proc/blocks_export_none"]):(2) then eprints:("blocks: cannot read /nonexistent/none.blk, or it is empty\n")
+given fs_temp_text ("sprite S\nfn f() return void\n  x = 1\n(): ()\n(1): ()") ((import fs_temp_path), ["blocks", "export", "p", "/proc/blocks_export_none"]):(1)

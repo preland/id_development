@@ -1,0 +1,41 @@
+// Segments. id allows three actions to a block, and a segment of a function
+// that continues (a 'chain') must have exactly three. exporter_total keeps
+// the count of the segment so far (it starts again at the line that opened a
+// new one), exporter_chain writes the lines with the chain headers between
+// them, and exporter_tail is the return clause that ends the function.
+
+exporter_total(string exporter_text_line, int exporter_number_total) {
+  int exporter_number_sum = exporter_number_total + exporter_cost(exporter_text_line);
+  if (exporter_boundary(exporter_text_line, exporter_number_total, "") != "") {
+    exporter_number_sum = exporter_cost(exporter_text_line);
+  }
+} return int exporter_number_sum;
+("  x = 1;", 1):(2)
+("  x = 1;", 3):(1)
+("  } else {", 3):(4)
+("    x = 1;", 3):(3)
+
+exporter_chain(string[] exporter_texts_lines, string exporter_text_parameters) {
+  string exporter_text_result = "";
+  int exporter_number_total = 0;
+  int exporter_number_index = 0;
+} chain (string[] exporter_texts_lines, string exporter_text_parameters) {
+  while (exporter_number_index < len(exporter_texts_lines)) {
+    exporter_text_result = exporter_text_result + exporter_boundary(exporter_texts_lines[exporter_number_index], exporter_number_total, exporter_text_parameters) + exporter_texts_lines[exporter_number_index] + "\n";
+    exporter_number_total = exporter_total(exporter_texts_lines[exporter_number_index], exporter_number_total);
+    exporter_number_index = exporter_number_index + 1;
+  }
+} return string exporter_text_result;
+(["  a;", "  b;", "  c;", "  d;"], "int x"):("  a;\n  b;\n  c;\n} chain (int x) {\n  d;\n")
+(["  a;", "  if (x) {", "    b;", "  }"], ""):("  a;\n  if (x) {\n    b;\n  }\n")
+([], "int x"):("")
+
+exporter_tail(int exporter_number_function) {
+  string exporter_text_clause = "void";
+  if ((import model_function_return_types)[exporter_number_function] != (import constant_type_void)) {
+    exporter_text_clause = (import constant_type_full)[(import model_function_return_types)[exporter_number_function]] + " " + exporter_clause(exporter_returned(exporter_number_function), exporter_number_function);
+  }
+} return string exporter_text_clause;
+given model_load("t.blk", "sprite S\nfn f() return int\n  return n + 1\n(): (1)\n(): (2)\nfn g() return void\n  say(\"x\")\n(): ()\n(1): ()") (0):("int result_integer")
+given model_load("t.blk", "sprite S\nfn f() return int\n  return n\n(): (1)\n(): (2)\nfn g() return void\n  say(\"x\")\n(): ()\n(1): ()") (0):("int n")
+given model_load("t.blk", "sprite S\nfn f() return int\n  return n\n(): (1)\n(): (2)\nfn g() return void\n  say(\"x\")\n(): ()\n(1): ()") (1):("void")

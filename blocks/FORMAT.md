@@ -21,6 +21,7 @@ blocks.bin test  FILE.blk                   # run every function's cases in the 
 blocks.bin edit  FILE.blk                   # the block editor, in a window (see "The editor")
 blocks.bin edit  FILE.blk --script S.txt [--dump] [--boxes] [--render-after OUT.ppm]   # the same, headless
 blocks.bin render FILE.blk OUT.ppm [--size W H]   # the picture of the editor on the file, as a PPM
+blocks.bin export FILE.blk OUTDIR         # write the program as an id project under OUTDIR (see "Export to id")
 ```
 
 ## The file
@@ -241,13 +242,84 @@ the state are `graph_view_state_` cells and `graph_view_event` is given the whee
 and drag of a pan with an empty view. `bke_event` is pure (lists in, bits out); `bke_step` does what
 the bits ask (check, run, save).
 
+## Export to id
+
+`blocks export FILE.blk OUTDIR` applies the rules (it writes nothing and answers
+1 when `check` would report something), then writes the program as an id
+project and prints each path it wrote, relative to OUTDIR. OUTDIR should be a
+new directory: files from an earlier export that this one does not write stay
+where they are and make the project fail to build.
+
+```
+conf.id                  constants of the runtime (the motion constants, when a sprite moves)
+main.id                  main, whichever sprite's page it was on
+variables.id             variables_start: every variable set to its declared initial value
+SPRITE/NAME.id           a sprite's page (lower case); its functions, named for the first
+SPRITE/VARIABLE.id       a variable's setter and getter (VARIABLE_set, VARIABLE_get)
+SPRITE/VARIABLE_at.id    VARIABLE_at, when a script assigns an element of the list
+runtime/*.id             say and wait, the conversions, the motion blocks and sprite_states;
+                         only the parts the program calls
+```
+
+A file whose name would be its directory's gets a `_variable` or `_function`
+suffix (E0703). Each function is exported with its body and every test case it
+carries; `blocks export` is checked by building the result:
+
+```
+blocks.bin export examples/tour.blk OUT | diff - golden/export_tour.tree
+idc/bin/idc --check OUT
+idc/bin/idc OUT -o tour.bin                    # builds, and runs every case in id
+./tour.bin | diff - golden/export_tour.out
+blocks.bin run examples/tour.blk | sed '/^-- state/,$d' | diff - golden/export_tour.out
+```
+
+(`hello`, `counter`, `broadcast` and `tour` each have a `.tree` and `.out`
+golden.) What the program said is compared, not the final state `run` prints
+after it: the exported program does not print its sprites.
+
+How the blocks map: `main` is `main` and starts with `variables_start()`; a
+variable is an export (`(import NAME)` reads it, `NAME_set(v)` writes it,
+`NAME_at(i, v)` writes an element), because id lets only the declaring
+function assign one; `given NAME = V` is `given NAME_set(V)` and `then NAME:(V)`
+is `then NAME_get:(V)`; every case of a function but `main` first runs
+`given variables_start`; `say(s)` is `say("SPRITE", s)`, the motion blocks and
+`xpos`, `ypos`, `direction` take `(import sprite_states), BASE` first (six cells a
+sprite); `int_to_str` and the other conversions are functions of `runtime/`;
+`str_to_int` is `to_int`; `insert` and `delete` are `lst_insert`/`lst_delete`
+(int lists) or `lst_str_insert`/`lst_str_delete` (string lists); a `return` of
+anything but a name or a literal becomes a local of the type
+(`result_integer`, ...) and a return of it; a body longer than three actions
+once `variables_start()` or such a local is added is split into `chain`
+segments of exactly three.
+
+**What the export cannot say yet** (each is refused by `idc --check` when it
+happens, never silently different, except where it says "differs"):
+
+* `broadcast` of anything but a string literal: it is written
+  `broadcast(EXPR);`, which id has no function for. A literal message is the
+  calls of the scripts that run on it, one after another, at the statement, so
+  the output **differs** when a script waits and another could have run meanwhile,
+  or when the broadcaster says something after the broadcast: the machine
+  interleaves the threads by frame, the exported program runs each to its end.
+* `wait(s)` is a real `sleep_ms`; the machine's 33 ms frame clock is not modelled.
+* `insert` and `delete` on a `float[]`: idstd has the helpers for int and string
+  lists only.
+* `NAME = []` and `f([])` for a list: id wants a typed context for an empty list
+  literal (a declaration), so the setter call is refused.
+* a block that holds three actions in `if`/`else` position where the added line
+  would cut between an `if` and its `else`, or a nested block that is full and
+  gains a line (a return of an expression inside an `if`): chain segments only
+  exist at the top of a function.
+* three levels of call in one argument (`say(f(g(x)))`) and a parameter or local
+  named like a variable: `blocks check` accepts both, id rejects both, so the
+  export fails to build. `check` should refuse them (its own rules, stage 2).
+* integers: the machine keeps an int in a float (exact to 2^53), the exported
+  program in a 64-bit word; they differ only past that.
+* `main`'s `argc` and `argv` are the program's own when it runs; the cases pass the
+  machine's (`1`, `["blocks"]`).
+
 ## What a later milestone needs
 
-* **Export to `id`:** the checker already works on the text a code generator
-  would need (canonical forms, types, actions); what is missing is a printer
-  from the `.blk` lines to `id`'s (sprite pages become directories; variables
-  become `conf.id` or exports; the builtin blocks map onto idstd, `flt_` and the
-  sprite state a small runtime module).
 * **Editor:** a slot holding an expression is one pill (the expression is not cut
   into nested pills); a function cannot be moved or added from the window, only
   its body; sprite and variable lines are shown, not edited; sprites do not

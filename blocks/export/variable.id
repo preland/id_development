@@ -1,0 +1,63 @@
+// A variable of the program in id. A .blk variable is global and every
+// script reads and writes it; in id that is an export, which only the
+// function that declares it can assign, so each variable gets a setter
+// (NAME_set) and a getter that the test cases name in 'then' (NAME_get); the
+// initial values are set by variables_start (tree.id); a list variable that a
+// script writes an element of also gets NAME_at. They are written
+// from the templates in conf.id, with the samples their own cases need.
+
+exporter_sample(int exporter_number_type, int exporter_number_which) {
+  int exporter_number_element = exporter_number_type;
+  string[] exporter_texts_pool = (import constant_export_first);
+  if (exporter_number_which == 2) {
+    exporter_texts_pool = (import constant_export_second);
+  }
+} chain (int exporter_number_type, int exporter_number_which) {
+  if (exporter_number_type > (import constant_type_list)) {
+    exporter_number_element = exporter_number_type - (import constant_type_list);
+  }
+  string exporter_text_sample = exporter_texts_pool[exporter_number_element];
+  if (exporter_number_type > (import constant_type_list)) {
+    exporter_text_sample = "[" + exporter_text_sample + "]";
+  }
+} return string exporter_text_sample;
+(1, 1):("1")
+(2, 2):("2.5")
+(6, 1):("[\"a\"]")
+(4, 2):("[2]")
+
+exporter_initial_text(int exporter_number_variable) {
+  string exporter_text_initial = (import model_variable_initials)[exporter_number_variable];
+  if (exporter_text_initial == "") {
+    exporter_text_initial = (import constant_defaults)[(import model_variable_types)[exporter_number_variable]];
+  }
+} return string exporter_text_initial;
+given model_load("t.blk", "sprite S\nvar int a\nvar string b = \"x\"\nvar float[] c") (0):("0")
+given model_load("t.blk", "sprite S\nvar int a\nvar string b = \"x\"\nvar float[] c") (1):("\"x\"")
+given model_load("t.blk", "sprite S\nvar int a\nvar string b = \"x\"\nvar float[] c") (2):("[]")
+
+exporter_fill(string exporter_text_template, int exporter_number_variable) {
+  int exporter_number_type = (import model_variable_types)[exporter_number_variable];
+  int exporter_number_element = exporter_number_type - (import constant_type_list);
+  string exporter_text_other = exporter_sample(exporter_number_type, 1);
+} chain (string exporter_text_template, int exporter_number_variable) {
+  if (exporter_text_other == exporter_initial_text(exporter_number_variable)) {
+    exporter_text_other = exporter_sample(exporter_number_type, 2);
+  }
+  string exporter_text_filled = str_replace(exporter_text_template, "ELEMENT_ONE", (import constant_export_first)[exporter_number_element * (exporter_number_element > 0)]);
+  exporter_text_filled = str_replace(exporter_text_filled, "ELEMENT_TWO", (import constant_export_second)[exporter_number_element * (exporter_number_element > 0)]);
+} chain (string exporter_text_template, int exporter_number_variable) {
+  exporter_text_filled = str_replace(exporter_text_filled, "ELEMENT_THREE", (import constant_export_third)[exporter_number_element * (exporter_number_element > 0)]);
+  exporter_text_filled = str_replace(exporter_text_filled, "ELEMENT_TYPE", (import constant_type_full)[exporter_number_element * (exporter_number_element > 0)]);
+  exporter_text_filled = str_replace(exporter_text_filled, "TYPE", (import constant_type_full)[exporter_number_type]);
+} chain (string exporter_text_template, int exporter_number_variable) {
+  exporter_text_filled = str_replace(exporter_text_filled, "NAME", (import model_variable_names)[exporter_number_variable]);
+  exporter_text_filled = str_replace(exporter_text_filled, "FIRST", exporter_sample(exporter_number_type, 1));
+  exporter_text_filled = str_replace(exporter_text_filled, "SECOND", exporter_sample(exporter_number_type, 2));
+} chain (string exporter_text_template, int exporter_number_variable) {
+  exporter_text_filled = str_replace(exporter_text_filled, "OTHER", exporter_text_other);
+  exporter_text_filled = str_replace(exporter_text_filled, "INITIAL", exporter_initial_text(exporter_number_variable));
+} return string exporter_text_filled;
+given model_load("t.blk", "sprite S\nvar int count") ("NAME_get(): TYPE FIRST SECOND INITIAL OTHER", 0):("count_get(): int 1 2 0 1")
+given model_load("t.blk", "sprite S\nvar int count = 1") ("OTHER INITIAL", 0):("2 1")
+given model_load("t.blk", "sprite S\nvar string[] words = [\"q\"]") ("ELEMENT_TYPE ELEMENT_ONE ELEMENT_TWO ELEMENT_THREE TYPE", 0):("string \"a\" \"b\" \"c\" string[]")

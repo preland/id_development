@@ -1,0 +1,42 @@
+// The scripts. A sprite's page becomes a directory named for it (lower case)
+// and the page's functions, which the checker keeps to three, the one file
+// that is named for the first of them. main goes to main.id at the root
+// whichever page it was on.
+
+exporter_page(int exporter_number_sprite) {
+  string exporter_text_page = "";
+  int exporter_number_index = 0;
+  while (exporter_number_index < len((import model_function_names))) {
+    if ((import model_function_sprites)[exporter_number_index] == exporter_number_sprite && (import model_function_names)[exporter_number_index] != "main" && str_starts((import model_function_names)[exporter_number_index], "__") == 0) {
+      exporter_text_page = exporter_text_page + exporter_function(exporter_number_index) + "\n";
+    }
+    exporter_number_index = exporter_number_index + 1;
+  }
+} chain (int exporter_number_sprite) {
+  if (exporter_text_page != "") {
+    int exporter_number_paren = str_find(exporter_text_page, "(");
+    string exporter_text_path = exporter_path(exporter_number_sprite, str_sub(exporter_text_page, 0, exporter_number_paren), "_function");
+    exporter_add(exporter_text_path + ".id", str_trim(exporter_text_page) + "\n");
+  }
+} return void;
+given exporter_initial given model_load("t.blk", "sprite S\nfn a() return void\n  say(\"x\")\n(): ()\n(1): ()\nfn main(int argc, string[] argv) return int\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)") (0):() then (import exporter_paths):(["s/a.id"])
+given exporter_initial given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)") (0):() then (import exporter_paths):([])
+
+exporter_pages() {
+  int exporter_number_index = 0;
+  while (exporter_number_index < len((import model_sprite_names))) {
+    exporter_page(exporter_number_index);
+    exporter_number_index = exporter_number_index + 1;
+  }
+} return void;
+given exporter_initial given model_load("t.blk", "sprite A\nfn a() return void\n  say(\"x\")\n(): ()\n(1): ()\nsprite B\nfn b() return void\n  say(\"y\")\n(): ()\n(1): ()") ():() then (import exporter_paths):(["a/a_function.id", "b/b_function.id"])
+given exporter_initial given model_load("t.blk", "sprite A") ():() then (import exporter_paths):([])
+
+exporter_main() {
+  int exporter_number_row = lst_str_index((import model_function_names), "main");
+  if (exporter_number_row >= 0) {
+    exporter_add("main.id", exporter_function(exporter_number_row));
+  }
+} return void;
+given exporter_initial given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)") ():() then (import exporter_paths):(["main.id"])
+given exporter_initial given model_load("t.blk", "sprite S") ():() then (import exporter_paths):([])

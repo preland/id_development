@@ -1,0 +1,31 @@
+// The files of one variable: NAME.id with its setter and getter, and
+// NAME_at.id with the element setter when some script assigns an element of
+// the list (an export cannot be assigned through, `(import xs)[i] = v`, so the
+// write goes through a function that holds the list as a local).
+
+exporter_variable_text(int exporter_number_variable) {
+  string exporter_text_file = exporter_fill((import constant_template_set), exporter_number_variable) + "\n" + exporter_fill((import constant_template_get), exporter_number_variable);
+} return string exporter_text_file;
+given model_load("t.blk", "sprite S\nvar int count") (0):("count_set(int new_count) {\n  export int count = new_count;\n} return void export count;\n(1):() then (import count):(1)\n(2):() then (import count):(2)\n\ncount_get() {\n  int old_count = (import count);\n  count_set(old_count);\n} return int old_count;\ngiven count_set(1) ():(1)\ngiven count_set(2) ():(2)\n")
+given model_load("t.blk", "sprite S\nvar string[] words = [\"q\"]") (0):("words_set(string[] new_words) {\n  export string[] words = new_words;\n} return void export words;\n([\"a\"]):() then (import words):([\"a\"])\n([\"b\"]):() then (import words):([\"b\"])\n\nwords_get() {\n  string[] old_words = (import words);\n  words_set(old_words);\n} return string[] old_words;\ngiven words_set([\"a\"]) ():([\"a\"])\ngiven words_set([\"b\"]) ():([\"b\"])\n")
+
+exporter_assigns_element(int exporter_number_variable) {
+  int exporter_number_found = 0;
+  int exporter_number_index = 0;
+  while (exporter_number_index < len((import model_line_texts))) {
+    exporter_number_found = exporter_number_found + str_starts((import model_line_texts)[exporter_number_index], (import model_variable_names)[exporter_number_variable] + "[");
+    exporter_number_index = exporter_number_index + 1;
+  }
+} return int exporter_number_found;
+given model_load("t.blk", "sprite S\nvar float[] fs\nvar int[] xs\nfn f() return void\n  fs[1] = 2.0\n(): ()\n(1): ()") (0):(1)
+given model_load("t.blk", "sprite S\nvar float[] fs\nvar int[] xs\nfn f() return void\n  fs[1] = 2.0\n(): ()\n(1): ()") (1):(0)
+
+exporter_variable_files(int exporter_number_variable) {
+  string exporter_text_path = exporter_path((import model_variable_sprites)[exporter_number_variable], (import model_variable_names)[exporter_number_variable], "_variable");
+  exporter_add(exporter_text_path + ".id", exporter_variable_text(exporter_number_variable));
+  if (exporter_assigns_element(exporter_number_variable) > 0) {
+    exporter_add(exporter_text_path + "_at.id", exporter_fill((import constant_template_at), exporter_number_variable));
+  }
+} return void;
+given exporter_initial given model_load("t.blk", "sprite S\nvar int count") (0):() then (import exporter_paths):(["s/count.id"])
+given exporter_initial given model_load("t.blk", "sprite S\nvar int[] xs\nfn f() return void\n  xs[0] = 1\n(): ()\n(1): ()") (0):() then (import exporter_paths):(["s/xs.id", "s/xs_at.id"])
