@@ -19,7 +19,9 @@ entry_bares(string[] entry_rows) {
   string[] entry_plain = [];
   int entry_index = 0;
   while (entry_index < len(entry_rows)) {
-    push(entry_plain, entry_bare(entry_rows[entry_index]));
+    if (entry_recorded(entry_rows[entry_index]) == 1) {
+      push(entry_plain, entry_bare(entry_rows[entry_index]));
+    }
     entry_index = entry_index + 1;
   }
 } return string[] entry_plain;
@@ -27,3 +29,14 @@ entry_bares(string[] entry_rows) {
 ([]):([])
 (["/o\t/s\tc\t5"]):(["/o\t/s\tc\t5"])[time:O(n), mem:O(n)]
 (["/o\t/s\tc\t5", "/o\t/s\tc\t5"]):(["/o\t/s\tc\t5", "/o\t/s\tc\t5"])[time:O(n), mem:O(n)]
+(["/o\t/s\tc\t5\tfresh", "/p\t/q\tfound\t6\t?", "/r\t/q\tguessed\t6\t?"]):(["/o\t/s\tc\t5"])
+
+// 0 for a row that discovery found (target found or guessed), which the record must not keep; 1 for every other row.
+entry_recorded(string entry_row) {
+  string entry_target = str_field(entry_row, "\t", 2);
+  int entry_keep = 1 - (entry_target == "found") - (entry_target == "guessed");
+} return int entry_keep;
+("/o\t/s\tc\t5"):(1)
+("/o\t/s\tscanned\t5"):(1)
+("/o\t/s\tfound\t5"):(0)
+("/o\t/s\tguessed\t5\t?"):(0)

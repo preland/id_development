@@ -1,0 +1,39 @@
+// Forgetting a discovered program for good. Discovery would list it again on the next start, so the
+// forget list beside the record holds `PATH \t MTIME` per forgotten program; the program stays hidden
+// until it is rebuilt, because a rebuild changes the mtime and so the line no longer matches.
+
+// The rows of discover_listing that are not on the forget list discover_hidden (same path and same mtime).
+discover_unforgotten(string[] discover_listing, string[] discover_hidden) {
+  string[] discover_shown = [];
+  int discover_index = 0;
+  while (discover_index < len(discover_listing)) {
+    string discover_key = str_field(discover_listing[discover_index], "\t", 0) + "\t" + str_field(discover_listing[discover_index], "\t", 3);
+    if (lst_str_index(discover_hidden, discover_key) < 0) {
+      push(discover_shown, discover_listing[discover_index]);
+    }
+    discover_index = discover_index + 1;
+  }
+} return string[] discover_shown;
+(["/a\t-\tfound\t5", "/b\t-\tfound\t6"], ["/a\t5"]):(["/b\t-\tfound\t6"])
+(["/a\t-\tfound\t6"], ["/a\t5"]):(["/a\t-\tfound\t6"])
+([], ["/a\t5"]):([])
+(["/a\t-\tfound\t5"], []):(["/a\t-\tfound\t5"])
+
+// Adds discover_path, as it is now, to the forget list beside the record; 1 when it was added, 0 when the program is not there.
+discover_forget(string discover_record, string discover_path) {
+  string discover_file = discover_beside(discover_record, "forgotten.tsv");
+  word[] discover_stat = [];
+  fs_stat_pad(discover_stat);
+} chain (string discover_record, string discover_path) {
+  int discover_rc = fs_stat(discover_path, discover_stat);
+  string discover_line = discover_path + "\t" + discover_stat[(import fs_st_mtime)] + "\n";
+  int discover_written = 0;
+} chain (string discover_record, string discover_path) {
+  if (discover_rc == 0) {
+    int discover_put = fs_write_text(discover_file, fs_read_text(discover_file) + discover_line);
+    discover_written = discover_put > 0;
+  }
+} return int discover_written;
+given record_t_file("") ((import record_t_path), "/no/such/program"):(0)
+given record_t_file("") given discover_t_image(100, "/src/a", "\x7fELF", 1) ((import record_t_path), (import discover_t_path)):(1) then discover_t_forgotten(0):(1)
+given record_t_file("") given discover_t_image(100, "/src/a", "\x7fELF", 1) ((import record_t_path), "/no/such/program"):(0) then discover_t_forgotten(0):(0)

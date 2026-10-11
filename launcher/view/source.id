@@ -1,0 +1,16 @@
+// The source column of a row. A source that discovery guessed by the program's name rather than read from the
+// program is written with a ? in front, so it is not mistaken for one the program named itself.
+
+// The row's source with the home abbreviated, and a leading ? when the row's target says it was guessed.
+view_source_shown(string view_entry, string view_base) {
+  string view_plain = view_home_path(str_field(view_entry, "\t", 1), view_base);
+  string view_mark = "";
+  if (str_field(view_entry, "\t", 2) == "guessed") {
+    view_mark = "?";
+  }
+} chain (string view_entry, string view_base) {
+  string view_marked_source = view_mark + view_plain;
+} return string view_marked_source;
+("/o/x\t/home/a/s\tguessed\t5\tfresh", "/home/a"):("?~/s")
+("/o/x\t/home/a/s\tfound\t5\tfresh", "/home/a"):("~/s")
+("/o/x\t-\tscanned\t5\t?", ""):("-")

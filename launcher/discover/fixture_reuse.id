@@ -1,0 +1,36 @@
+// Test fixtures for the forget list and the scan cache against a real scratch program: how many
+// forget-list lines name it after discover_t_times more forgets, and whether a cache row with a
+// doctored size or mtime is believed.
+
+discover_t_forgotten(int discover_t_times) {
+  int discover_t_again = 0;
+  while (discover_t_again < discover_t_times) {
+    int discover_t_done = discover_forget((import record_t_path), (import discover_t_path));
+    discover_t_again = discover_t_again + 1;
+  }
+  string discover_t_file = discover_beside((import record_t_path), "forgotten.tsv");
+} chain (int discover_t_times) {
+  string discover_t_body = fs_read_text(discover_t_file);
+  string[] discover_t_lines = str_lines(discover_t_body);
+  int discover_t_index = 0;
+} chain (int discover_t_times) {
+  int discover_t_named = 0;
+  while (discover_t_index < len(discover_t_lines)) {
+    discover_t_named = discover_t_named + (str_before(discover_t_lines[discover_t_index], "\t") == (import discover_t_path));
+    discover_t_index = discover_t_index + 1;
+  }
+} return int discover_t_named;
+given record_t_file("") given discover_t_image(100, "/src/a", "\x7fELF", 1) (0):(0)
+given record_t_file("") given discover_t_image(100, "/src/a", "\x7fELF", 1) (2):(2)
+
+discover_t_reuse(string discover_t_size_extra, string discover_t_time_extra) {
+  string[] discover_t_cands = discover_candidates([fs_dir_of((import discover_t_path))]);
+  string discover_t_row = discover_t_cands[0];
+  string discover_t_cached = str_field(discover_t_row, "\t", 0) + "\t" + str_field(discover_t_row, "\t", 1) + discover_t_size_extra + "\t" + str_field(discover_t_row, "\t", 2) + discover_t_time_extra + "\t/cached";
+} chain (string discover_t_size_extra, string discover_t_time_extra) {
+  string[] discover_t_resolved = discover_resolve(discover_t_cands, [discover_t_cached]);
+  string discover_t_word = str_field(discover_t_resolved[0], "\t", 3);
+} return string discover_t_word;
+given discover_t_image(100, "/src/a", "\x7fELF", 1) ("", ""):("/cached")
+given discover_t_image(100, "/src/a", "\x7fELF", 1) ("1", ""):("/src/a")
+given discover_t_image(100, "/src/a", "\x7fELF", 1) ("", "1"):("/src/a")

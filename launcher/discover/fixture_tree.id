@@ -1,0 +1,28 @@
+discover_t_tree() {
+  string discover_t_root_dir = fs_mktemp("discover_t_", 1);
+  export string discover_t_root = discover_t_root_dir;
+  int discover_t_one = fs_mkdir_p(discover_t_root_dir + "/proj/word");
+} chain () {
+  int discover_t_two = fs_write_text(discover_t_root_dir + "/proj/word/conf.id", "int x = 1;\n");
+  int discover_t_three = fs_mkdir_p(discover_t_root_dir + "/solo");
+  int discover_t_four = fs_write_text(discover_t_root_dir + "/solo/main.id", "main() {} return int 0;\n");
+} return void export discover_t_root;
+():() then discover_t_has("/proj/word/conf.id"):(1)
+():() then discover_t_has("/solo/main.id"):(1)
+
+discover_t_has(string discover_t_tail_path) {
+  int discover_t_there = fs_exists((import discover_t_root) + discover_t_tail_path);
+} return int discover_t_there;
+given discover_t_tree() ("/solo/main.id"):(1)
+given discover_t_tree() ("/none"):(0)
+
+discover_t_guessed(string discover_t_tail_path) {
+  string discover_t_found = discover_guess((import discover_t_root) + discover_t_tail_path, [(import discover_t_root)]);
+  string discover_t_short = "";
+  if (len(discover_t_found) > 0) {
+    discover_t_short = str_sub(discover_t_found, len((import discover_t_root)), len(discover_t_found) - len((import discover_t_root)));
+  }
+} return string discover_t_short;
+given discover_t_tree() ("/build/word"):("/proj/word")
+given discover_t_tree() ("/x/solo"):("/solo")
+given discover_t_tree() ("/build/none"):("")

@@ -1,0 +1,11 @@
+// Writes the cache when it changed: the bytes written, or 0 when it was already right (-1 when it cannot be written).
+discover_save(string discover_path, string[] discover_old, string[] discover_new) {
+  string discover_text = str_join(discover_new, "\n") + "\n";
+  int discover_saved = 0;
+  if (str_join(discover_old, "\n") != str_join(discover_new, "\n")) {
+    int discover_made = fs_mkdir_p(fs_dir_of(discover_path));
+    discover_saved = fs_write_text(discover_path, discover_text) + discover_made - 1;
+  }
+} return int discover_saved;
+given record_t_file("") ((import record_t_path), ["a"], ["b"]):(2) then fs_read_text((import record_t_path)):("b\n")
+given record_t_file("kept\n") ((import record_t_path), ["a"], ["a"]):(0) then fs_read_text((import record_t_path)):("kept\n")

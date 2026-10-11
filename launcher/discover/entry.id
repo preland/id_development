@@ -1,0 +1,57 @@
+// A discovered program as a row of the list: `PATH \t SOURCE \t TARGET \t SECONDS`, the shape of a
+// record row. TARGET is "found" when the source is the one the program carries (or unknown), and
+// "guessed" when the source was found by name; the view marks a guessed source with a "?".
+
+// The source of the program at discover_path guessed by name under discover_root_list, or "".
+discover_guess(string discover_path, string[] discover_root_list) {
+  string discover_root = discover_root_of(discover_path, discover_root_list);
+  string discover_name = path_base(discover_path);
+  string discover_found = "";
+} chain (string discover_path, string[] discover_root_list) {
+  if (len(discover_root) > 0 && discover_has_source(discover_root + "/" + discover_name) == 1) {
+    discover_found = discover_root + "/" + discover_name;
+  }
+  if (len(discover_root) > 0 && discover_found == "") {
+    discover_found = discover_nested(discover_root, discover_name);
+  }
+} return string discover_found;
+("/elsewhere/word", ["/no/root"]):("")
+("/proc/self/nothing", ["/proc/self"]):("")
+
+// The row for one resolved candidate `PATH \t SIZE \t MTIME \t SOURCEWORD`, or "" when the file is not a built program.
+discover_entry(string discover_resolved_row, string[] discover_root_list) {
+  string discover_path = str_field(discover_resolved_row, "\t", 0);
+  string discover_stamp = str_field(discover_resolved_row, "\t", 2);
+  string discover_word = str_field(discover_resolved_row, "\t", 3);
+} chain (string discover_resolved_row, string[] discover_root_list) {
+  string discover_guessed = "";
+  if (discover_word == "-") {
+    discover_guessed = discover_guess(discover_path, discover_root_list);
+  }
+  string discover_text = discover_path + "\t" + discover_word + "\tfound\t" + discover_stamp;
+} chain (string discover_resolved_row, string[] discover_root_list) {
+  if (len(discover_guessed) > 0) {
+    discover_text = discover_path + "\t" + discover_guessed + "\tguessed\t" + discover_stamp;
+  }
+  if (discover_word == "!") {
+    discover_text = "";
+  }
+} return string discover_text;
+("/o/x\t10\t77\t/src/x", []):("/o/x\t/src/x\tfound\t77")
+("/o/x\t10\t77\t-", []):("/o/x\t-\tfound\t77")
+("/o/x\t10\t77\t!", []):("")
+
+// The rows for every resolved candidate that is a built program, in order.
+discover_entries(string[] discover_resolved_rows, string[] discover_root_list) {
+  string[] discover_collected = [];
+  int discover_index = 0;
+  while (discover_index < len(discover_resolved_rows)) {
+    string discover_one = discover_entry(discover_resolved_rows[discover_index], discover_root_list);
+    if (len(discover_one) > 0) {
+      push(discover_collected, discover_one);
+    }
+    discover_index = discover_index + 1;
+  }
+} return string[] discover_collected;
+(["/o/a\t1\t2\t/s", "/o/b\t1\t2\t!", "/o/c\t1\t3\t-"], []):(["/o/a\t/s\tfound\t2", "/o/c\t-\tfound\t3"])
+([], []):([])

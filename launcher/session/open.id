@@ -13,8 +13,11 @@ given env_put("XDG_STATE_HOME", "") given env_put("HOME", "/zz/home") ():("/zz/h
 // The rows of the record at session_path, newest first, each with its state word.
 session_rows(string session_path) {
   string[] session_loaded = record_load(session_path);
-  entry_order(session_loaded);
-  string[] session_stamped = state_stamp(session_loaded);
+  string[] session_found = discover_rows(session_path);
+  string[] session_merged = discover_merge(session_found, session_loaded);
+} chain (string session_path) {
+  entry_order(session_merged);
+  string[] session_stamped = state_stamp(session_merged);
 } return string[] session_stamped;
-given record_t_file("/bin/sh\t-\tc\t5000\n/usr/bin/env\t-\tc\t9000\n/no/x\t-\tc\t7000\n/bin/sh\t/bin/sh\tc\t4000\n") ((import record_t_path)):(["/usr/bin/env\t-\tc\t9\t?", "/bin/sh\t/bin/sh\tc\t4\tfresh"])
-given record_t_file("") ((import record_t_path)):([])
+given discover_t_config("/proc/no_root\n") given record_t_file("/bin/sh\t-\tc\t5000\n/usr/bin/env\t-\tc\t9000\n/no/x\t-\tc\t7000\n/bin/sh\t/bin/sh\tc\t4000\n") ((import record_t_path)):(["/usr/bin/env\t-\tc\t9\t?", "/bin/sh\t/bin/sh\tc\t4\tfresh"])
+given discover_t_config("/proc/no_root\n") given record_t_file("") ((import record_t_path)):([])

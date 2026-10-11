@@ -1,0 +1,54 @@
+// Automatic discovery of built programs: the roots from the configuration, a walk that stats
+// every file, the cache so that an unchanged file is not opened again, and the rows that result.
+// The record stays authoritative for the programs it has: discovered rows only fill in the others,
+// and are never written into the record.
+
+// discover_path with symbolic links resolved, or itself when that cannot be done.
+discover_real(string discover_path) {
+  string discover_resolved = fs_realpath(discover_path);
+  if (len(discover_resolved) == 0) {
+    discover_resolved = discover_path;
+  }
+} return string discover_resolved;
+("/"):("/")
+("/no/such/place"):("/no/such/place")
+
+// The roots to scan now: the roots file of the configuration directory in the environment, links resolved.
+discover_roots_now() {
+  string discover_config = env_text("XDG_CONFIG_HOME");
+  string discover_home = env_text("HOME");
+  string discover_body = fs_read_text(discover_config_path(discover_config, discover_home));
+} chain () {
+  string[] discover_raw = discover_roots(discover_body, discover_home);
+  string[] discover_real_roots = [];
+  int discover_index = 0;
+} chain () {
+  while (discover_index < len(discover_raw)) {
+    string discover_one = discover_real(discover_raw[discover_index]);
+    push(discover_real_roots, discover_one);
+    discover_index = discover_index + 1;
+  }
+} return string[] discover_real_roots;
+given env_put("HOME", "/proc/no_home") ():(["/proc/no_home/git/id_development", "/proc/no_home/.local/bin"])
+given discover_t_config("/proc/no_root_a\n/proc/no_root_b\n") ():(["/proc/no_root_a", "/proc/no_root_b"])
+
+// The rows of the programs found under the roots, refreshing the scan cache that sits beside discover_record.
+discover_rows(string discover_record) {
+  string discover_cache_file = discover_beside(discover_record, "scan.tsv");
+  string[] discover_roots_list = discover_roots_now();
+  string[] discover_wanted = discover_candidates(discover_roots_list);
+} chain (string discover_record) {
+  string[] discover_before = str_lines(fs_read_text(discover_cache_file));
+  string[] discover_after = discover_resolve(discover_wanted, discover_before);
+  int discover_written = discover_save(discover_cache_file, discover_before, discover_after);
+} chain (string discover_record) {
+  string[] discover_entry_rows = discover_entries(discover_after, discover_roots_list);
+  string discover_forget_file = discover_beside(discover_record, "forgotten.tsv");
+  string discover_forget_body = fs_read_text(discover_forget_file);
+} chain (string discover_record) {
+  string[] discover_hidden = str_lines(discover_forget_body);
+  string[] discover_shown = discover_unforgotten(discover_entry_rows, discover_hidden);
+} return string[] discover_shown;
+given discover_t_config("/proc/no_root_a\n") ("/proc/no_dir/id/built.tsv"):([])
+given discover_t_config("\n") given env_put("HOME", "/proc/no_home") ("/proc/no_dir/id/built.tsv"):([])
+

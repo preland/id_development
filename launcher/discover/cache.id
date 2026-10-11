@@ -1,0 +1,31 @@
+// The scan cache, `PATH \t SIZE \t MTIME \t SOURCEWORD` per candidate, kept next to the record. A
+// candidate whose size and mtime are unchanged takes its source word from the cache and its file
+// is not opened; only new or changed files are read. Files that are not built programs are kept
+// too (word "!") so they are not read again either.
+
+// A file called discover_name beside the record at discover_record (the scan cache, the forget list).
+discover_beside(string discover_record, string discover_name) {
+  string discover_place = fs_dir_of(discover_record) + "/" + discover_name;
+} return string discover_place;
+("/s/id/built.tsv", "scan.tsv"):("/s/id/scan.tsv")
+("/x/built.tsv", "forgotten.tsv"):("/x/forgotten.tsv")
+
+// discover_candidate with its source word: from the cache row discover_cached (an index into
+// discover_cache, -1 for none) when that row is for the same size and mtime, else read from the file.
+discover_row(string discover_candidate, string[] discover_cache, int discover_cached) {
+  string discover_path = str_before(discover_candidate, "\t");
+  string discover_word = "";
+  if (discover_cached >= 0 && str_starts(discover_cache[discover_cached], discover_candidate + "\t") == 1) {
+    discover_word = str_field(discover_cache[discover_cached], "\t", 3);
+  }
+} chain (string discover_candidate, string[] discover_cache, int discover_cached) {
+  if (discover_word == "") {
+    discover_word = discover_source(discover_path);
+  }
+  string discover_text = discover_candidate + "\t" + discover_word;
+} return string discover_text;
+("/p\t10\t5", ["/p\t10\t5\t/src"], 0):("/p\t10\t5\t/src")
+("/p\t10\t6", ["/p\t10\t5\t/src"], 0):("/p\t10\t6\t!")
+("/p\t10\t5", [], -1):("/p\t10\t5\t!")
+
+

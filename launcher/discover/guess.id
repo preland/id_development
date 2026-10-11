@@ -1,0 +1,44 @@
+// Guessing the source of a program that does not say where it came from (built before programs
+// described themselves): a directory with a conf.id or main.id, named like the program, in the top
+// two levels of the root that holds the program (build/word -> the root's word/ or its x/word/).
+
+// The root among discover_root_list that discover_path lies under, or "".
+discover_root_of(string discover_path, string[] discover_root_list) {
+  string discover_found = "";
+  int discover_index = 0;
+  while (discover_index < len(discover_root_list)) {
+    if (str_starts(discover_path, discover_root_list[discover_index] + "/") == 1) {
+      discover_found = discover_root_list[discover_index];
+    }
+    discover_index = discover_index + 1;
+  }
+} return string discover_found;
+("/r/build/x", ["/q", "/r"]):("/r")
+("/z/x", ["/q", "/r"]):("")
+("/r", ["/r"]):("")
+
+// 1 when discover_dir holds a conf.id or a main.id.
+discover_has_source(string discover_dir) {
+  int discover_conf = fs_exists(discover_dir + "/conf.id");
+  int discover_main = fs_exists(discover_dir + "/main.id");
+  int discover_any = discover_conf + discover_main > 0;
+} return int discover_any;
+("/no/such/dir"):(0)
+("/proc"):(0)
+
+// The first discover_root/DIRECTORY/discover_name with a source in it, or "".
+discover_nested(string discover_root, string discover_name) {
+  string[] discover_subs = str_lines(fs_list_kind(discover_root, 2));
+  string discover_found = "";
+  int discover_index = 0;
+} chain (string discover_root, string discover_name) {
+  while (discover_index < len(discover_subs) && discover_found == "") {
+    string discover_candidate = discover_root + "/" + discover_subs[discover_index] + "/" + discover_name;
+    if (walk_skipped(discover_subs[discover_index], discover_root + "/" + discover_subs[discover_index]) == 0 && discover_has_source(discover_candidate) == 1) {
+      discover_found = discover_candidate;
+    }
+    discover_index = discover_index + 1;
+  }
+} return string discover_found;
+("/no/such/dir", "x"):("")
+("/proc/self", "no_such"):("")

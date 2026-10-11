@@ -1,0 +1,51 @@
+// Where the automatic discovery looks. The roots are one per line in
+// ${XDG_CONFIG_HOME:-$HOME/.config}/idlaunch/roots; a missing or blank file means the defaults.
+
+// The root line with a leading ~ written out as discover_home, and the spaces around it dropped.
+discover_expand(string discover_line, string discover_home) {
+  string discover_text = str_trim(discover_line);
+  if (discover_text == "~") {
+    discover_text = discover_home;
+  }
+  if (str_starts(discover_text, "~/") == 1) {
+    discover_text = discover_home + str_sub(discover_text, 1, len(discover_text) - 1);
+  }
+} return string discover_text;
+("~/git", "/h"):("/h/git")
+("  ~  ", "/h"):("/h")
+("/abs/~x", "/h"):("/abs/~x")
+("", "/h"):("")
+
+// The roots listed in discover_body, expanded; ~/git/id_development and ~/.local/bin when it lists none.
+discover_roots(string discover_body, string discover_home) {
+  string[] discover_lines = str_lines(discover_body);
+  string[] discover_listed_roots = [];
+  int discover_index = 0;
+} chain (string discover_body, string discover_home) {
+  while (discover_index < len(discover_lines)) {
+    string discover_root = discover_expand(discover_lines[discover_index], discover_home);
+    if (len(discover_root) > 0) {
+      push(discover_listed_roots, discover_root);
+    }
+    discover_index = discover_index + 1;
+  }
+  if (len(discover_listed_roots) == 0) {
+    push(discover_listed_roots, discover_home + "/git/id_development");
+    push(discover_listed_roots, discover_home + "/.local/bin");
+  }
+} return string[] discover_listed_roots;
+("/a\n~/b\n\n", "/h"):(["/a", "/h/b"])
+("", "/h"):(["/h/git/id_development", "/h/.local/bin"])
+("\n  \n", "/h"):(["/h/git/id_development", "/h/.local/bin"])
+("/only", "/h"):(["/only"])
+
+// The roots file under the configuration directory discover_config (or discover_home/.config when that is empty).
+discover_config_path(string discover_config, string discover_home) {
+  string discover_base = discover_config;
+  if (len(discover_config) == 0) {
+    discover_base = discover_home + "/.config";
+  }
+  string discover_file = discover_base + "/idlaunch/roots";
+} return string discover_file;
+("", "/h"):("/h/.config/idlaunch/roots")
+("/x", "/h"):("/x/idlaunch/roots")

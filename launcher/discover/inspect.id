@@ -1,0 +1,51 @@
+// Deciding what one candidate file is. The answer is a source word: the source path a program
+// carries, "-" for a built program that does not say (built before programs described themselves),
+// or "!" for anything else (a script, a foreign binary).
+
+// "-" when the runtime marker is anywhere in the rest of the file (read from just after discover_head), else "!".
+discover_sweep(int discover_handle, int[] discover_head) {
+  int discover_back = fs_seek(discover_handle, len(discover_head), 0);
+  int discover_hit = scan_sweep(discover_handle, discover_head);
+  string discover_word = "!";
+} chain (int discover_handle, int[] discover_head) {
+  if (discover_hit == 1) {
+    discover_word = "-";
+  }
+} return string discover_word;
+(-1, [65, 66]):("!")
+(-1, [105, 100, 95, 97, 114, 101, 110, 97, 95, 104, 101, 97, 100]):("-")
+
+// The source word of an ELF file whose first bytes are discover_head and whose length is discover_size.
+discover_inspect(int discover_handle, int[] discover_head, int discover_size) {
+  int[] discover_tail_cells = discover_tail(discover_handle, discover_size);
+  int discover_at = discover_stamp_at(discover_tail_cells);
+  string discover_word = "";
+} chain (int discover_handle, int[] discover_head, int discover_size) {
+  if (discover_at >= 0) {
+    discover_word = discover_stamp_text(discover_tail_cells, discover_at);
+  }
+  if (discover_at < 0) {
+    discover_word = discover_sweep(discover_handle, discover_head);
+  }
+} return string discover_word;
+(-1, [], 0):("!")
+(-1, [105, 100, 95, 97, 114, 101, 110, 97, 95, 104, 101, 97, 100], 0):("-")
+
+// The source word of the file at discover_path; "!" when it is not an ELF file or cannot be read.
+discover_source(string discover_path) {
+  int discover_handle = fs_open(discover_path, "r");
+  int[] discover_head = scan_chunk(discover_handle);
+  int discover_size = fs_size(discover_path);
+} chain (string discover_path) {
+  string discover_word = "!";
+  if (scan_elf(discover_head) == 1) {
+    discover_word = discover_inspect(discover_handle, discover_head, discover_size);
+  }
+  int discover_closed = fs_close(discover_handle);
+} return string discover_word;
+given discover_t_image(100, "/src/a", "\x7fELF", 1) ((import discover_t_path)):("/src/a")
+given discover_t_image(9000, "/src/b", "\x7fELF", 1) ((import discover_t_path)):("/src/b")
+given discover_t_image(9000, "", "\x7fELF", 1) ((import discover_t_path)):("-")
+given discover_t_image(9000, "", "\x7fELF", 0) ((import discover_t_path)):("!")
+given discover_t_image(9000, "/src/c", "NOPE", 1) ((import discover_t_path)):("!")
+("/no/such/file"):("!")

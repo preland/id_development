@@ -1,0 +1,44 @@
+// Reading the source path a program carries. idc appends `idc-build-info<TAB>SOURCE<NUL>` to every
+// executable it links, after everything the loader maps, so the last discover_tail_bytes bytes of
+// the file are enough to tell which source built it without reading the whole program.
+
+// The last discover_tail_bytes bytes of the open file (all of it when it is shorter), as a byte list.
+discover_tail(int discover_handle, int discover_size) {
+  int discover_from = discover_size - (import discover_tail_bytes);
+  if (discover_from < 0) {
+    discover_from = 0;
+  }
+  int discover_moved = fs_seek(discover_handle, discover_from, 0);
+} chain (int discover_handle, int discover_size) {
+  int[] discover_cells = scan_chunk(discover_handle);
+} return int[] discover_cells;
+(-1, 100):([])
+(-1, 0):([])
+
+// Where discover_marker_text first occurs in discover_cells, or -1.
+discover_stamp_at(int[] discover_cells) {
+  int discover_at = 0;
+  int discover_hit_at = -1;
+  while (discover_at < len(discover_cells) && discover_hit_at < 0) {
+    if (scan_match(discover_cells, discover_at, (import discover_marker_text)) == 1) {
+      discover_hit_at = discover_at;
+    }
+    discover_at = discover_at + 1;
+  }
+} return int discover_hit_at;
+([65, 105, 100, 99, 45, 98, 117, 105, 108, 100, 45, 105, 110, 102, 111, 9, 47, 120, 0]):(1)
+([65, 66, 67]):(-1)
+([]):(-1)
+
+// The text after the marker at discover_at, up to the NUL that ends it (or the end of the list).
+discover_stamp_text(int[] discover_cells, int discover_at) {
+  int discover_next = discover_at + len((import discover_marker_text));
+  string discover_text = "";
+  while (discover_next < len(discover_cells) && discover_cells[discover_next] != 0) {
+    discover_text = discover_text + chr(discover_cells[discover_next]);
+    discover_next = discover_next + 1;
+  }
+} return string discover_text;
+([105, 100, 99, 45, 98, 117, 105, 108, 100, 45, 105, 110, 102, 111, 9, 47, 120, 0, 65], 0):("/x")
+([105, 100, 99, 45, 98, 117, 105, 108, 100, 45, 105, 110, 102, 111, 9, 47, 121], 0):("/y")
+([105, 100, 99, 45, 98, 117, 105, 108, 100, 45, 105, 110, 102, 111, 9, 0], 0):("")

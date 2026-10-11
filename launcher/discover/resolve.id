@@ -1,0 +1,26 @@
+// Every candidate `PATH \t SIZE \t MTIME` with its source word, reusing discover_cache where unchanged.
+discover_resolve(string[] discover_listed, string[] discover_cache) {
+  string[] discover_keys = [];
+  int[] discover_values = [];
+  int[] discover_used = [];
+} chain (string[] discover_listed, string[] discover_cache) {
+  int[] discover_count = [];
+  hmap_init(discover_keys, discover_values, discover_used, discover_count);
+  int discover_at = 0;
+} chain (string[] discover_listed, string[] discover_cache) {
+  while (discover_at < len(discover_cache)) {
+    hmap_put(discover_keys, discover_values, discover_used, discover_count, str_before(discover_cache[discover_at], "\t"), discover_at);
+    discover_at = discover_at + 1;
+  }
+  string[] discover_done = [];
+  int discover_next = 0;
+} chain (string[] discover_listed, string[] discover_cache) {
+  while (discover_next < len(discover_listed)) {
+    int discover_slot = hmap_get(discover_keys, discover_values, discover_used, str_before(discover_listed[discover_next], "\t"), -1);
+    push(discover_done, discover_row(discover_listed[discover_next], discover_cache, discover_slot));
+    discover_next = discover_next + 1;
+  }
+} return string[] discover_done;
+(["/p\t10\t5", "/q\t10\t5"], ["/q\t10\t5\t/src", "/p\t10\t4\t/old"]):(["/p\t10\t5\t!", "/q\t10\t5\t/src"])
+(["/q\t10\t5"], ["/q\t10\t5\t/src"]):(["/q\t10\t5\t/src"])
+([], ["/q\t10\t5\t/src"]):([])
