@@ -1,0 +1,46 @@
+// What idlaunch was asked to do, and doing it. Three modes share one record and one way of
+// running a program: the menu, `--list` (the rows as text) and `--run N` (program N of that list,
+// run through exactly the same start, wait and shutdown as from the menu). The last two need
+// no terminal, which is what lets them be tested.
+
+// 0 for the menu (no arguments), 1 for --list, 2 for --run N (N a number), 3 for anything else.
+launch_mode(int launch_count, string[] launch_words) {
+  int launch_kind = 3;
+  if (launch_count == 1) {
+    launch_kind = 0;
+  }
+  if (launch_count == 2 && launch_words[1] == "--list") {
+    launch_kind = 1;
+  }
+} chain (int launch_count, string[] launch_words) {
+  if (launch_count >= 3 && launch_words[1] == "--run" && record_digits(launch_words[2]) == 1) {
+    launch_kind = 2;
+  }
+} return int launch_kind;
+(1, ["idlaunch"]):(0)
+(2, ["idlaunch", "--list"]):(1)
+(3, ["idlaunch", "--list", "x"]):(3)
+(3, ["idlaunch", "--run", "4"]):(2)
+(5, ["idlaunch", "--run", "4", "-a", "b"]):(2)
+(2, ["idlaunch", "--run"]):(3)
+(3, ["idlaunch", "--run", "four"]):(3)
+(2, ["idlaunch", "--bogus"]):(3)
+
+// Runs program N of the list (launch_words[2], counting from 1 as --list does) with the words after it as
+// arguments. Answers its exit status, or 1 after saying so when there is no program N.
+launch_run(string[] launch_rows, string[] launch_words) {
+  int launch_number = to_int(launch_words[2]);
+  int launch_code = 1;
+  if (launch_number < 1 || launch_number > len(launch_rows)) {
+    eprint("idlaunch: no program " + launch_words[2] + " in the list (idlaunch --list shows it)");
+    return launch_code;
+  }
+} chain (string[] launch_rows, string[] launch_words) {
+  string launch_binary = str_before(launch_rows[launch_number - 1], "\t");
+  string[] launch_extra = lst_str_tail(launch_words, 3);
+  launch_code = job_run(launch_binary, launch_extra, 0);
+} return int launch_code;
+(["/bin/sh\t-\tc\t5\t?"], ["idlaunch", "--run", "1", "-c", "exit 4"]):(4) then prints:("sh exited with status 4 after 0.0 s\n")
+(["/bin/sh\t-\tc\t5\t?", "/usr/bin/env\t-\tc\t4\t?"], ["idlaunch", "--run", "2", "-i", "/bin/sh", "-c", "exit 0"]):(0) then prints:("env exited with status 0 after 0.0 s\n")
+(["/bin/sh\t-\tc\t5\t?"], ["idlaunch", "--run", "2"]):(1) then eprints:("idlaunch: no program 2 in the list (idlaunch --list shows it)\n")
+([], ["idlaunch", "--run", "0"]):(1) then eprints:("idlaunch: no program 0 in the list (idlaunch --list shows it)\n")

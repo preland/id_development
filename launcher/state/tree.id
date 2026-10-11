@@ -1,0 +1,50 @@
+// Walking a source tree for a newer `.id` file. The walk stops at the first one it
+// finds, looks at a directory's files before descending, skips the directories of
+// walk_skipped, and goes no deeper than walk_depth_limit below the source.
+
+// 1 when some `.id` file in the names of state_dir is newer than state_built.
+state_files_newer(string state_dir, string[] state_names, int state_built) {
+  int state_index = 0;
+  int state_found = 0;
+  while (state_index < len(state_names) && state_found == 0) {
+    state_found = state_file(state_dir + "/" + state_names[state_index], state_built);
+    state_index = state_index + 1;
+  }
+} return int state_found;
+given state_t_tree(2000, 2000) ((import state_t_root), ["a.id", "notes.txt"], 1000):(0)
+given state_t_tree(2000, 2000) ((import state_t_root), ["notes.txt", "a.id"], 400):(1)
+given state_t_tree(2000, 2000) ((import state_t_root), [], 400):(0)
+
+// 1 when a `.id` file anywhere below state_dir, at most walk_depth_limit
+// levels down, is newer than state_built; state_depth is the level of state_dir.
+state_tree(string state_dir, int state_built, int state_depth) {
+  string[] state_files = str_lines(fs_list_kind(state_dir, 1));
+  int state_found = state_files_newer(state_dir, state_files, state_built);
+  if (state_found == 0 && state_depth < (import walk_depth_limit)) {
+    state_found = state_subdirs(state_dir, state_built, state_depth);
+  }
+} return int state_found;
+given state_t_tree(2000, 2000) ((import state_t_root), 1000, 0):(1)
+given state_t_tree(2000, 2000) ((import state_t_root), 3000, 0):(0)
+given state_t_tree(2000, 2000) ((import state_t_root), 1000, 6):(0)
+given state_t_tree(2000, 2000) ((import state_t_root), 1000, 5):(1)
+given state_t_tree(100, 2000) ((import state_t_root), 400, 0):(1)
+given state_t_tree(100, 2000) ((import state_t_root), 600, 0):(0)
+
+// The same over the subdirectories of state_dir that a walk enters.
+state_subdirs(string state_dir, int state_built, int state_depth) {
+  string[] state_names = str_lines(fs_list_kind(state_dir, 2));
+  int state_index = 0;
+  int state_found = 0;
+} chain (string state_dir, int state_built, int state_depth) {
+  while (state_index < len(state_names) && state_found == 0) {
+    int state_skipped = walk_skipped(state_names[state_index], state_dir + "/" + state_names[state_index]);
+    if (state_skipped == 0) {
+      state_found = state_tree(state_dir + "/" + state_names[state_index], state_built, state_depth + 1);
+    }
+    state_index = state_index + 1;
+  }
+} return int state_found;
+given state_t_tree(2000, 2000) ((import state_t_root), 1000, 0):(1)
+given state_t_tree(100, 2000) ((import state_t_root), 1000, 0):(0)
+given state_t_tree(2000, 2000) ((import state_t_root), 1000, 6):(1)

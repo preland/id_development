@@ -1,0 +1,19 @@
+// Test fixture for the launch cases: a record of the given text in a scratch state directory
+// that XDG_STATE_HOME points at, so no case reads or rewrites the real record.
+
+launch_t_state(string launch_t_body) {
+  string launch_t_dir = fs_mktemp("launch_t_", 1);
+  int launch_t_made = fs_mkdir_p(launch_t_dir + "/id");
+  int launch_t_put = fs_write_text(launch_t_dir + "/id/built.tsv", launch_t_body);
+} chain (string launch_t_body) {
+  env_put("XDG_STATE_HOME", launch_t_dir);
+} return void;
+("x"):() then launch_t_size:(1)
+("xyz"):() then launch_t_size:(3)
+
+launch_t_size() {
+  string launch_t_read = fs_read_text(session_record_path());
+  int launch_t_bytes = len(launch_t_read);
+} return int launch_t_bytes;
+given launch_t_state("abcd") ():(4)
+given launch_t_state("") ():(0)

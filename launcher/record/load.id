@@ -1,0 +1,20 @@
+// The record as the launcher sees it at start: the last line per output, only
+// binaries that still run. When that dropped anything (an older line of the same
+// output, a deleted binary, a torn line) the record is rewritten so it does not
+// grow without bound; a record that is missing stays missing.
+
+record_load(string record_path) {
+  string record_body = fs_read_text(record_path);
+  string[] record_newest = record_latest(record_parse(record_body));
+  string[] record_alive_rows = record_keep(record_newest);
+} chain (string record_path) {
+  int record_line_count = len(str_lines(record_body));
+  int record_saved = 0;
+  if (len(record_alive_rows) < record_line_count) {
+    record_saved = record_save(record_path, record_alive_rows);
+  }
+} return string[] record_alive_rows;
+given record_t_file("/bin/sh\t-\tc\t5000\n/no/such/x\t-\tc\t6000\n") ((import record_t_path)):(["/bin/sh\t-\tc\t5"]) then fs_read_text((import record_t_path)):("/bin/sh\t-\tc\t5000\n")
+given record_t_file("/bin/sh\t-\tc\t5000\n/bin/sh\t-\tc\t7000\njunk\n") ((import record_t_path)):(["/bin/sh\t-\tc\t7"]) then fs_read_text((import record_t_path)):("/bin/sh\t-\tc\t7000\n")
+given record_t_file("/bin/sh\t-\tc\t5000\n") ((import record_t_path)):(["/bin/sh\t-\tc\t5"]) then fs_read_text((import record_t_path)):("/bin/sh\t-\tc\t5000\n")
+("/proc/no_such_dir/record"):([])

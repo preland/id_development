@@ -1,0 +1,21 @@
+// Test fixture: the kind times 256 plus the code of the last wait this process did.
+
+job_t_last() {
+  int job_t_kind = proc_wait_kind();
+  int job_t_code = proc_wait_code();
+  int job_t_both = job_t_kind * 256 + job_t_code;
+} return int job_t_both;
+given job_t_start("exit 7") given job_t_wait(0) ():(7)
+given job_t_start("kill -9 $$") given job_t_wait(0) ():(265)
+
+job_t_flags() {
+  export int[] job_t_marks = [0];
+} return void export job_t_marks;
+():() then (import job_t_marks)[0]:(0)
+():() then len((import job_t_marks)):(1)
+
+job_t_settle() {
+  int job_t_slept = clk_sleep_ns(300000000);
+} return void;
+given job_t_start("exit 1") given job_t_wait(0) ():() then job_t_last:(1)
+given job_t_start("exit 2") given job_t_wait(0) ():() then job_t_last:(2)

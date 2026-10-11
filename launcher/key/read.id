@@ -1,0 +1,34 @@
+// Reading one key from standard input. Exactly one byte is taken, except after an Escape:
+// the bytes of an arrow or Page key follow it within a few milliseconds, and an Escape that
+// is not followed by any is a lone Escape. Taking one key at a time is what keeps pasted
+// text whole: nothing past the first key of a burst is thrown away.
+
+// Reads the bytes that follow an Escape already in key_bytes[0] (up to 7, waiting 30 ms for the
+// first) into the rest of key_bytes and answers how many bytes key_bytes holds now.
+key_gather(int[] key_bytes) {
+  int[] key_tail = lst_filled(7, 0);
+  int key_got = proc_fd_read(0, key_tail, 7, 30);
+  int key_total = key_copy(key_bytes, key_tail, key_got);
+} return int key_total;
+stdin "[A" ([27, 0, 0, 0, 0, 0, 0, 0]):(3)
+stdin "" ([27, 0, 0, 0, 0, 0, 0, 0]):(1)
+
+// The next key from standard input, waiting up to key_wait milliseconds (-1 for ever): the key
+// code of key_decode, 0 on a timeout, key_closed when input has closed.
+key_read(int key_wait) {
+  int[] key_bytes = lst_filled(8, 0);
+  int key_count = proc_fd_read(0, key_bytes, 1, key_wait);
+  int key_total = key_count;
+} chain (int key_wait) {
+  if (key_count == 1 && key_bytes[0] == 27) {
+    key_total = key_gather(key_bytes);
+  }
+  int key_code = key_decode(key_bytes, key_total);
+} return int key_code;
+stdin "q" (100):(113)
+stdin "\x1b[A" (100):(1001)
+stdin "" (100):(-1)
+stdin "\n" (100):(10)
+stdin "\x1b" (100):(27)
+stdin "\x1b[6~" (100):(1004)
+stdin "ab" (100):(97)

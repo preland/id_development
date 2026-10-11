@@ -1,0 +1,49 @@
+// Reducing the record to what is true now. An output path is built many times, so
+// only its last line says anything; and a binary that was deleted or is no longer
+// executable should not be offered.
+
+// How many rows after index record_from name the same output path as that row.
+record_repeats(string[] record_rows, int record_from) {
+  string record_name = str_before(record_rows[record_from], "\t");
+  int record_next = record_from + 1;
+  int record_count = 0;
+} chain (string[] record_rows, int record_from) {
+  while (record_next < len(record_rows)) {
+    record_count = record_count + (str_before(record_rows[record_next], "\t") == record_name);
+    record_next = record_next + 1;
+  }
+} return int record_count;
+(["/a\tx", "/b\tx", "/a\ty"], 0):(1)
+(["/a\tx", "/b\tx", "/a\ty"], 1):(0)
+(["/a\tx", "/a\ty", "/a\tz"], 0):(2)
+(["/a\tx"], 0):(0)
+
+// The rows whose output path is not named again later, in order: the last line
+// per path wins.
+record_latest(string[] record_rows) {
+  string[] record_kept = [];
+  int record_index = 0;
+  while (record_index < len(record_rows)) {
+    int record_later = record_repeats(record_rows, record_index);
+    if (record_later == 0) {
+      push(record_kept, record_rows[record_index]);
+    }
+    record_index = record_index + 1;
+  }
+} return string[] record_kept;
+(["/a\t1", "/b\t2", "/a\t3"]):(["/b\t2", "/a\t3"])
+([]):([])
+(["/a\t1", "/a\t2", "/a\t3"]):(["/a\t3"])
+(["/a\t1", "/b\t2"]):(["/a\t1", "/b\t2"])
+
+// 1 when record_path is a program that can be run now: not a directory, and
+// executable by this user. 0 for a path that is gone.
+record_present(string record_path) {
+  int record_runs = fs_can(record_path, 1);
+  int record_dir = fs_is_dir(record_path);
+  int record_ok = record_runs * (1 - record_dir);
+} return int record_ok;
+("/bin/sh"):(1)
+("/tmp"):(0)
+("/no/such/program"):(0)
+given idstd_fs_t_file ([1]) ((import idstd_fs_t_path)):(0)

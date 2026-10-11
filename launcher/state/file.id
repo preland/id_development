@@ -1,0 +1,31 @@
+// Whether a program is up to date with its source: is any `.id` file under the
+// source newer than the binary. Times are whole seconds (the binary's own mtime).
+
+// 1 when state_path is a `.id` file modified after state_built.
+state_file(string state_path, int state_built) {
+  int state_is_source = str_ends(state_path, ".id");
+  int state_later = fs_mtime(state_path) > state_built;
+  int state_hit = state_is_source * state_later;
+} return int state_hit;
+given state_t_tree(2000, 2000) ((import state_t_leaf), 1000):(1)
+given state_t_tree(2000, 2000) ((import state_t_leaf), 3000):(0)
+given state_t_tree(2000, 2000) ((import state_t_leaf), 2000):(0)
+given state_t_tree(2000, 2000) ((import state_t_plain), 1000):(0)
+("/no/such/file.id", 5):(0)
+
+// What the menu shows for a row: "?" when nothing is known about the source
+// (scanned, or gone), "stale" when a source file is newer than the binary, else "fresh".
+state_label(string state_source, int state_there, int state_newer_found) {
+  string state_text = "fresh";
+  if (state_source == "-" || state_there == 0) {
+    state_text = "?";
+  }
+  if (state_text == "fresh" && state_newer_found == 1) {
+    state_text = "stale";
+  }
+} return string state_text;
+("-", 0, 0):("?")
+("/s", 0, 0):("?")
+("/s", 1, 0):("fresh")
+("/s", 1, 1):("stale")
+("-", 1, 1):("?")

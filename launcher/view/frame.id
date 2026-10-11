@@ -1,0 +1,28 @@
+// The whole screen as one string, drawn from the top-left corner: title, rows, footer.
+// Every line ends by clearing to the end of its line and the frame ends by clearing
+// below, so a shorter screen never leaves the previous one's text behind. It is one write,
+// which is what stops the menu flickering.
+
+// The title line: how many programs are listed, and the filter when there is one.
+view_title(int view_count, int view_total, string view_filter) {
+  string view_text = "idlaunch  programs: " + view_count;
+  if (len(view_filter) > 0) {
+    view_text = "idlaunch  programs: " + view_count + " of " + view_total + "  filter: " + view_filter;
+  }
+} return string view_text;
+(5, 5, ""):("idlaunch  programs: 5")
+(2, 5, "he"):("idlaunch  programs: 2 of 5  filter: he")
+(0, 0, ""):("idlaunch  programs: 0")
+
+// The four footer lines for the selected row (or "" for none): its output path, its source
+// path (both in full, cut from the left to the width), the status message, and the key help.
+view_footer(string view_entry, string view_status, int view_width) {
+  string view_output = "output: " + view_cut(str_before(view_entry, "\t"), view_width - 8);
+  string view_source = "source: " + view_cut(str_field(view_entry, "\t", 1), view_width - 8);
+  string view_note = view_name(view_status, view_width);
+} chain (string view_entry, string view_status, int view_width) {
+  string view_keys = view_name((import view_help), view_width);
+  string view_text = view_output + "\x1b[K\n" + view_source + "\x1b[K\n" + view_note + "\x1b[K\n" + view_keys + "\x1b[K";
+} return string view_text;
+("/b/a\t/s/a\tc\t1\tfresh", "ok", 30):("output: /b/a\x1b[K\nsource: /s/a\x1b[K\nok                            \x1b[K\nUp/Down j/k move  PgUp/PgDn  d\x1b[K")
+("", "", 12):("output: \x1b[K\nsource: \x1b[K\n            \x1b[K\nUp/Down j/k \x1b[K")

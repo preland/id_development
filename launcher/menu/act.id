@@ -1,0 +1,44 @@
+// What a key does. Digits, Backspace and every other key end by passing through menu_type, so
+// a half-typed number never survives a key that is not part of it.
+
+menu_act(int menu_key, string[] menu_rows, string[] menu_words, int[] menu_place) {
+  int menu_delta = key_step(menu_key, menu_place[(import menu_at_page)]);
+  if (menu_key == 113 || menu_key == (import key_closed)) {
+    menu_place[(import menu_at_quit)] = 1;
+  }
+  if (menu_delta != 0) {
+    menu_move(menu_rows, menu_words, menu_place, menu_delta);
+  }
+} chain (int menu_key, string[] menu_rows, string[] menu_words, int[] menu_place) {
+  if (menu_key == (import key_enter)) {
+    menu_enter(menu_rows, menu_words, menu_place);
+  }
+  if (menu_key == (import key_escape)) {
+    menu_escape(menu_words, menu_place);
+  }
+  if (menu_key == 97) {
+    menu_ask_args(menu_rows, menu_words, menu_place);
+  }
+} chain (int menu_key, string[] menu_rows, string[] menu_words, int[] menu_place) {
+  if (menu_key == 47) {
+    menu_ask_filter(menu_words, menu_place);
+  }
+  if (menu_key == 120) {
+    menu_forget(menu_rows, menu_words, menu_place);
+  }
+  if (menu_key == 115) {
+    menu_scan(menu_rows, menu_words, menu_place);
+  }
+} chain (int menu_key, string[] menu_rows, string[] menu_words, int[] menu_place) {
+  if (menu_key == 114) {
+    menu_reload(menu_rows, menu_words, menu_place);
+  }
+  menu_type(menu_words, menu_key);
+} return void;
+(113, [], ["", "", "", "", ""], [0, 0, 0, 0, 0, 0]):(113, [], ["", "", "", "", ""], [0, 1, 0, 0, 0, 0])
+(-1, [], ["", "", "", "", ""], [0, 0, 0, 0, 0, 0]):(-1, [], ["", "", "", "", ""], [0, 1, 0, 0, 0, 0])
+(1002, ["/a\t-\tc\t1\t?", "/b\t-\tc\t1\t?"], ["", "", "", "", ""], [0, 0, 0, 5, 0, 0]):(1002, ["/a\t-\tc\t1\t?", "/b\t-\tc\t1\t?"], ["", "", "", "", ""], [1, 0, 0, 5, 0, 0])
+(51, ["/a\t-\tc\t1\t?"], ["", "12", "", "", ""], [0, 0, 0, 5, 0, 0]):(51, ["/a\t-\tc\t1\t?"], ["", "123", "", "", ""], [0, 0, 0, 5, 0, 0])
+(10, ["/a\t-\tc\t1\t?", "/b\t-\tc\t1\t?", "/c\t-\tc\t1\t?"], ["", "3", "", "", ""], [0, 0, 0, 5, 0, 0]):(10, ["/a\t-\tc\t1\t?", "/b\t-\tc\t1\t?", "/c\t-\tc\t1\t?"], ["", "", "", "", ""], [2, 0, 0, 5, 0, 0])
+(27, ["/a\t-\tc\t1\t?"], ["f", "", "", "", ""], [0, 0, 0, 5, 0, 0]):(27, ["/a\t-\tc\t1\t?"], ["", "", "", "", ""], [0, 0, 0, 5, 0, 0])
+(120, ["/a\t-\tc\t1\t?"], ["", "7", "", "/proc/no_such_dir/record", ""], [0, 0, 0, 5, 0, 0]):(120, [], ["", "", "", "/proc/no_such_dir/record", ""], [0, 0, 0, 5, 0, 0])

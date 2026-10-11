@@ -1,0 +1,30 @@
+// Putting rows in newest-first order by insertion: the list is a few dozen rows
+// and arrives nearly sorted (the record is appended in time order), so an
+// insertion sort does about one comparison per row.
+
+// Moves the row at entry_at forward until the row before it is not older.
+entry_sink(string[] entry_rows, int entry_at) {
+  int entry_pos = entry_at;
+  int entry_more = entry_newer(entry_rows, entry_pos);
+  while (entry_more == 1) {
+    entry_exchange(entry_rows, entry_pos);
+    entry_pos = entry_pos - 1;
+    entry_more = entry_newer(entry_rows, entry_pos);
+  }
+} return void;
+(["/a\t-\tc\t3", "/b\t-\tc\t2", "/c\t-\tc\t9"], 2):(["/c\t-\tc\t9", "/a\t-\tc\t3", "/b\t-\tc\t2"])
+(["/a\t-\tc\t3", "/b\t-\tc\t2"], 1):(["/a\t-\tc\t3", "/b\t-\tc\t2"])
+
+// Sorts the rows in place, newest build first.
+entry_order(string[] entry_rows) {
+  int entry_index = 1;
+  while (entry_index < len(entry_rows)) {
+    entry_sink(entry_rows, entry_index);
+    entry_index = entry_index + 1;
+  }
+} return void;
+(["/a\t-\tc\t1", "/b\t-\tc\t3", "/c\t-\tc\t2"]):(["/b\t-\tc\t3", "/c\t-\tc\t2", "/a\t-\tc\t1"])
+([]):([])
+(["/a\t-\tc\t5", "/b\t-\tc\t5"]):(["/a\t-\tc\t5", "/b\t-\tc\t5"])
+(["/d\t-\tc\t4", "/c\t-\tc\t3", "/b\t-\tc\t2", "/a\t-\tc\t1"]):(["/d\t-\tc\t4", "/c\t-\tc\t3", "/b\t-\tc\t2", "/a\t-\tc\t1"])[time:O(n), mem:O(1)]
+(["/h\t-\tc\t8", "/g\t-\tc\t7", "/f\t-\tc\t6", "/e\t-\tc\t5", "/d\t-\tc\t4", "/c\t-\tc\t3", "/b\t-\tc\t2", "/a\t-\tc\t1"]):(["/h\t-\tc\t8", "/g\t-\tc\t7", "/f\t-\tc\t6", "/e\t-\tc\t5", "/d\t-\tc\t4", "/c\t-\tc\t3", "/b\t-\tc\t2", "/a\t-\tc\t1"])[time:O(n), mem:O(1)]

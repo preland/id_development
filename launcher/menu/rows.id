@@ -1,0 +1,46 @@
+// Changing the list of rows the menu holds. The list is one shared string[] that every part of the
+// menu sees, so a change replaces its contents rather than handing back a new list.
+
+// Makes menu_target hold exactly the rows of menu_source, in order.
+menu_replace(string[] menu_target, string[] menu_source) {
+  int menu_index = 0;
+  while (len(menu_target) > 0) {
+    pop(menu_target);
+  }
+  while (menu_index < len(menu_source)) {
+    push(menu_target, menu_source[menu_index]);
+    menu_index = menu_index + 1;
+  }
+} return void;
+(["a", "b"], ["c"]):(["c"], ["c"])
+([], ["x", "y"]):(["x", "y"], ["x", "y"])
+(["a"], []):([], [])
+
+// The rows whose output path is not menu_path.
+menu_without(string[] menu_rows, string menu_path) {
+  string[] menu_left = [];
+  int menu_index = 0;
+  while (menu_index < len(menu_rows)) {
+    if (str_before(menu_rows[menu_index], "\t") != menu_path) {
+      push(menu_left, menu_rows[menu_index]);
+    }
+    menu_index = menu_index + 1;
+  }
+} return string[] menu_left;
+(["/a\t1", "/b\t2", "/a\t3"], "/a"):(["/b\t2"])
+(["/a\t1", "/b\t2"], "/c"):(["/a\t1", "/b\t2"])
+([], "/a"):([])
+
+// The rows with the scanned rows menu_found added: scanned rows are stamped, a path already
+// listed keeps the row it had (it knows its source), programs that no longer run are
+// dropped, and the whole is newest first again.
+menu_merge(string[] menu_rows, string[] menu_found) {
+  string[] menu_fresh = state_stamp(menu_found);
+  lst_str_extend(menu_fresh, menu_rows);
+  string[] menu_alive = record_keep(record_latest(menu_fresh));
+} chain (string[] menu_rows, string[] menu_found) {
+  entry_order(menu_alive);
+} return string[] menu_alive;
+(["/bin/sh\t/bin/sh\tc\t5\tfresh"], ["/usr/bin/env\t-\tscanned\t9", "/bin/sh\t-\tscanned\t99"]):(["/usr/bin/env\t-\tscanned\t9\t?", "/bin/sh\t/bin/sh\tc\t5\tfresh"])
+([], ["/no/such/prog\t-\tscanned\t9"]):([])
+(["/bin/sh\t/bin/sh\tc\t5\tfresh"], []):(["/bin/sh\t/bin/sh\tc\t5\tfresh"])

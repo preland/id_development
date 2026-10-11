@@ -1,0 +1,42 @@
+// Putting the menu on the screen: measuring it, choosing the status line, and writing one frame.
+
+// What the third footer line says: the number being typed when there is one, else the last message.
+menu_status_text(string[] menu_words) {
+  string menu_text = menu_words[(import menu_at_status)];
+  if (len(menu_words[(import menu_at_typed)]) > 0) {
+    menu_text = "go to: " + menu_words[(import menu_at_typed)] + " (Enter jumps)";
+  }
+} return string menu_text;
+(["", "", "last run: exit status 0", "", ""]):("last run: exit status 0")
+(["", "12", "last run: exit status 0", "", ""]):("go to: 12 (Enter jumps)")
+(["f", "", "", "", ""]):("")
+
+// Measures the screen and records its columns, its rows and how many list rows fit (rows less the
+// six lines of title and footer, at least 3) in menu_place.
+menu_measure(int[] menu_place) {
+  int menu_size = screen_measure();
+  menu_place[(import menu_at_columns)] = menu_size % 1000;
+  menu_place[(import menu_at_rows)] = menu_size / 1000;
+} chain (int[] menu_place) {
+  int menu_room = menu_place[(import menu_at_rows)] - 6;
+  if (menu_room < 3) {
+    menu_room = 3;
+  }
+  menu_place[(import menu_at_page)] = menu_room;
+} return void;
+stdin "\x1b[30;100R" ([0, 0, 0, 0, 0, 0]):([0, 0, 0, 24, 100, 30])
+stdin "" ([0, 0, 0, 0, 0, 0]):([0, 0, 0, 18, 80, 24])
+stdin "\x1b[5;40R" ([0, 0, 0, 0, 0, 0]):([0, 0, 0, 3, 40, 5])
+
+// Draws the menu: the rows that pass the filter, the selection kept inside them, the footer.
+menu_draw(string[] menu_rows, string[] menu_words, int[] menu_place) {
+  string[] menu_shown = filter_rows(menu_rows, menu_words[(import menu_at_filter)]);
+  string menu_note = menu_status_text(menu_words);
+  menu_place[(import menu_at_selected)] = menu_clamp(menu_place[(import menu_at_selected)], len(menu_shown));
+} chain (string[] menu_rows, string[] menu_words, int[] menu_place) {
+  string menu_frame = view_frame(menu_shown, menu_place[(import menu_at_selected)], menu_words[(import menu_at_filter)], menu_note, menu_place[(import menu_at_now)], menu_words[(import menu_at_home)], menu_place[(import menu_at_columns)], menu_place[(import menu_at_rows)], len(menu_rows));
+  put(menu_frame);
+  flush();
+} return void;
+(["/o/a\t/s\tc\t1000\tfresh"], ["", "", "", "", "/h"], [0, 0, 1000, 4, 40, 10]):(["/o/a\t/s\tc\t1000\tfresh"], ["", "", "", "", "/h"], [0, 0, 1000, 4, 40, 10]) then prints:("\x1b[Hidlaunch  programs: 1\x1b[K\n\x1b[7m  1 a                  fresh now  /s\x1b[0m\x1b[K\n\x1b[K\n\x1b[K\n\x1b[K\noutput: /o/a\x1b[K\nsource: /s\x1b[K\n                                        \x1b[K\nUp/Down j/k move  PgUp/PgDn  digits+Ente\x1b[K\x1b[J")
+(["/o/a\t/s\tc\t1000\tfresh"], ["a", "", "", "", "/h"], [9, 0, 1000, 4, 40, 10]):(["/o/a\t/s\tc\t1000\tfresh"], ["a", "", "", "", "/h"], [0, 0, 1000, 4, 40, 10]) then prints:("\x1b[Hidlaunch  programs: 1 of 1  filter: a\x1b[K\n\x1b[7m  1 a                  fresh now  /s\x1b[0m\x1b[K\n\x1b[K\n\x1b[K\n\x1b[K\noutput: /o/a\x1b[K\nsource: /s\x1b[K\n                                        \x1b[K\nUp/Down j/k move  PgUp/PgDn  digits+Ente\x1b[K\x1b[J")

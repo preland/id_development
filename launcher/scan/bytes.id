@@ -1,0 +1,49 @@
+// Recognising a built `id` program from its bytes: an ELF header, then the
+// runtime's marker string somewhere in the file (the runtime's arena symbol, which
+// every binary idc links and nothing else does). Over byte lists, one byte per cell.
+
+// 1 when scan_head starts with the ELF magic 0x7f 'E' 'L' 'F'.
+scan_elf(int[] scan_head) {
+  int scan_is = 0;
+  if (len(scan_head) >= 4) {
+    scan_is = (scan_head[0] == 127) * (scan_head[1] == 69) * (scan_head[2] == 76) * (scan_head[3] == 70);
+  }
+} return int scan_is;
+([127, 69, 76, 70, 2, 1]):(1)
+([127, 69, 76]):(0)
+([127, 69, 76, 71]):(0)
+([]):(0)
+
+// 1 when scan_text occurs in scan_bytes starting exactly at scan_at.
+scan_match(int[] scan_bytes, int scan_at, string scan_text) {
+  int scan_k = 0;
+  int scan_same = (scan_at + len(scan_text)) <= len(scan_bytes);
+  while (scan_k < len(scan_text) && scan_same == 1) {
+    scan_same = scan_bytes[scan_at + scan_k] == charat(scan_text, scan_k);
+    scan_k = scan_k + 1;
+  }
+} return int scan_same;
+([1, 97, 98, 99], 1, "abc"):(1)
+([1, 97, 98, 99], 2, "abc"):(0)
+([97, 98], 0, "abc"):(0)
+([97, 98, 99], 0, "abd"):(0)
+
+// 1 when scan_text occurs anywhere in scan_bytes; 0 for text that is empty.
+scan_find(int[] scan_bytes, string scan_text) {
+  int scan_first = charat(scan_text, 0);
+  int scan_at = 0;
+  int scan_hit = 0;
+} chain (int[] scan_bytes, string scan_text) {
+  while (scan_at < len(scan_bytes) && scan_hit == 0) {
+    if (scan_bytes[scan_at] == scan_first) {
+      scan_hit = scan_match(scan_bytes, scan_at, scan_text);
+    }
+    scan_at = scan_at + 1;
+  }
+} return int scan_hit;
+([1, 2, 97, 98, 99, 3], "abc"):(1)
+([1, 97, 98, 3, 97, 98, 99], "abc"):(1)
+([97, 98, 97, 98], "abc"):(0)
+([97, 98, 99], ""):(0)
+([1, 2, 3, 4], "abc"):(0)[time:O(n), mem:O(1)]
+([1, 2, 3, 4, 5, 6, 7, 8], "abc"):(0)[time:O(n), mem:O(1)]

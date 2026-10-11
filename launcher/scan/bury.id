@@ -1,0 +1,37 @@
+// Test fixtures that drive the scan's walk: a scratch program moved into a nested
+// directory, and a tally of what scan_visit, scan_files and scan_tree find around it.
+
+scan_t_bury(int scan_t_levels, string scan_t_folder) {
+  string scan_t_root_dir = fs_dir_of((import scan_t_path));
+  export string scan_t_root = scan_t_root_dir;
+  string scan_t_deep = scan_t_root_dir + "/" + scan_t_folder + str_repeat("/n", scan_t_levels);
+} chain (int scan_t_levels, string scan_t_folder) {
+  int scan_t_made = fs_mkdir_p(scan_t_deep);
+  int scan_t_moved = fs_rename((import scan_t_path), scan_t_deep + "/prog");
+} return void export scan_t_root;
+given scan_t_image(100, 20, "\x7fELF") (1, "n"):() then scan_t_tally(3):(1)
+given scan_t_image(100, 20, "\x7fELF") (1, ".git"):() then scan_t_tally(3):(0)
+
+scan_t_tally(int scan_t_mode) {
+  string[] scan_t_hits = [];
+  string scan_t_dir = fs_dir_of((import scan_t_path));
+  string scan_t_name = path_base((import scan_t_path));
+} chain (int scan_t_mode) {
+  if (scan_t_mode == 1) {
+    scan_visit(scan_t_dir, scan_t_name, scan_t_hits);
+  }
+  if (scan_t_mode == 2) {
+    scan_files(scan_t_dir, [scan_t_name, "missing"], scan_t_hits);
+  }
+  if (scan_t_mode == 3) {
+    scan_tree((import scan_t_root), 0, scan_t_hits);
+  }
+} chain (int scan_t_mode) {
+  int scan_t_count = len(scan_t_hits);
+} return int scan_t_count;
+given scan_t_image(100, 20, "\x7fELF") (1):(1)
+given scan_t_image(100, 20, "\x7fELF") (2):(1)
+given scan_t_image(100, 20, "NOPE") (2):(0)
+given scan_t_image(100, 20, "\x7fELF") given scan_t_bury(2, "n") (3):(1)
+given scan_t_image(100, 20, "\x7fELF") given scan_t_bury(5, "n") (3):(1)
+given scan_t_image(100, 20, "\x7fELF") given scan_t_bury(6, "n") (3):(0)

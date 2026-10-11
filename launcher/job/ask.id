@@ -1,0 +1,22 @@
+// The prompt shown when the program was stopped (Ctrl-Z). The terminal goes to key mode so that a
+// single c or k answers without Enter. The program's own line settings are not kept (idstd keeps one
+// set, the launcher's), so a program that set raw mode itself and does not redo it on SIGCONT, as
+// curses programs and shells do, will find the launcher's ordinary settings after a continue.
+
+// Asks `paused: [c]ontinue  [k]ill` in key mode and answers 1 for c, 0 for k or when input has
+// closed; any other key asks again.
+job_ask() {
+  int job_mode = term_mode_keys(0);
+  put("\r\npaused: [c]ontinue  [k]ill\r\n");
+  flush();
+} chain () {
+  int job_key = key_read(-1);
+  while (job_key != 99 && job_key != 107 && job_key != (import key_closed)) {
+    job_key = key_read(-1);
+  }
+  int job_go = job_key == 99;
+} return int job_go;
+stdin "c" ():(1) then prints:("\r\npaused: [c]ontinue  [k]ill\r\n")
+stdin "k" ():(0)
+stdin "" ():(0)
+stdin "c\n" ():(1)

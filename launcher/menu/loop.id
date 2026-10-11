@@ -1,0 +1,43 @@
+// The menu's own loop, and the terminal around it.
+
+// Draws the menu, reads a key and acts on it, until a key quits.
+menu_loop(string[] menu_rows, string[] menu_words, int[] menu_place) {
+  while (menu_place[(import menu_at_quit)] == 0) {
+    menu_draw(menu_rows, menu_words, menu_place);
+    int menu_key = key_read(-1);
+    menu_act(menu_key, menu_rows, menu_words, menu_place);
+  }
+} return void;
+stdin "q" ([], ["", "", "", "", ""], [0, 0, 1000, 4, 40, 10]):([], ["", "", "", "", ""], [0, 1, 1000, 4, 40, 10]) then prints:("\x1b[Hidlaunch  programs: 0\x1b[K\n  nothing to show: build a program with \x1b[K\n\x1b[K\n\x1b[K\n\x1b[K\noutput: \x1b[K\nsource: \x1b[K\n                                        \x1b[K\nUp/Down j/k move  PgUp/PgDn  digits+Ente\x1b[K\x1b[J")
+stdin "" ([], ["", "", "", "", ""], [0, 0, 1000, 4, 40, 10]):([], ["", "", "", "", ""], [0, 1, 1000, 4, 40, 10]) then prints:("\x1b[Hidlaunch  programs: 0\x1b[K\n  nothing to show: build a program with \x1b[K\n\x1b[K\n\x1b[K\n\x1b[K\noutput: \x1b[K\nsource: \x1b[K\n                                        \x1b[K\nUp/Down j/k move  PgUp/PgDn  digits+Ente\x1b[K\x1b[J")
+
+// Runs the menu on the terminal that is standard input: key mode on, a first measurement, the loop,
+// then the terminal as it was found and a clear screen. Answers 0, or 1 after saying so when standard input is not a terminal.
+menu_start(string[] menu_rows, string menu_record, string menu_home, int menu_now) {
+  string[] menu_words = ["", "", "", menu_record, menu_home];
+  int[] menu_place = [0, 0, menu_now, 18, 80, 24];
+  int menu_ready = term_keys_enter(0);
+} chain (string[] menu_rows, string menu_record, string menu_home, int menu_now) {
+  int menu_code = 1 - (menu_ready == 0);
+  if (menu_ready == 0) {
+    menu_measure(menu_place);
+    menu_loop(menu_rows, menu_words, menu_place);
+    menu_leave(1);
+  }
+  if (menu_ready != 0) {
+    eprint("idlaunch: standard input is not a terminal (use --list or --run N)");
+  }
+} return int menu_code;
+([], "", "/h", 5):(1) then eprints:("idlaunch: standard input is not a terminal (use --list or --run N)\n")
+(["/bin/sh\t-\tc\t5\t?"], "/x", "/h", 9):(1) then eprints:("idlaunch: standard input is not a terminal (use --list or --run N)\n")
+
+// Puts the terminal back as it was found and, when menu_clear is 1, clears the screen with the cursor at the top.
+menu_leave(int menu_clear) {
+  int menu_back = term_mode_back(0);
+  if (menu_clear == 1) {
+    put("\x1b[2J\x1b[H");
+    flush();
+  }
+} return void;
+(1):(1) then prints:("\x1b[2J\x1b[H")
+(0):(0) then prints:("")

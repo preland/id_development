@@ -1,0 +1,34 @@
+// Asking for a line of text at the bottom of the screen (the arguments, a filter, a directory
+// to scan) in key mode: the keys are echoed by hand, since the terminal's own echo is off.
+// Enter accepts; Escape, or input that closes, cancels, which is the answer of a lone Escape
+// character: nothing a person can type into the line.
+
+// Rewrites the prompt line as menu_label followed by menu_line.
+menu_echo(string menu_label, string menu_line) {
+  put("\r\x1b[K" + menu_label + menu_line);
+  flush();
+} return void;
+("a: ", "bc"):("a: ", "bc") then prints:("\r\x1b[Ka: bc")
+("", ""):("", "") then prints:("\r\x1b[K")
+
+// Reads a line starting from menu_initial; the line, or a lone Escape character when cancelled.
+menu_prompt(string menu_label, string menu_initial) {
+  put("\r\n");
+  menu_echo(menu_label, menu_initial);
+  string menu_line = menu_initial;
+} chain (string menu_label, string menu_initial) {
+  int menu_key = 0;
+  while (menu_key != (import key_enter) && menu_key != (import key_escape) && menu_key != (import key_closed)) {
+    menu_key = key_read(-1);
+    menu_line = key_edit(menu_line, menu_key);
+    menu_echo(menu_label, menu_line);
+  }
+  if (menu_key == (import key_escape) || menu_key == (import key_closed)) {
+    menu_line = chr(27);
+  }
+} return string menu_line;
+stdin "abc\n" ("p: ", ""):("abc") then prints:("\r\n\r\x1b[Kp: \r\x1b[Kp: a\r\x1b[Kp: ab\r\x1b[Kp: abc\r\x1b[Kp: abc")
+stdin "ab\x7fc\n" ("p: ", ""):("ac")
+stdin "x\n" ("p: ", "ab"):("abx")
+stdin "\x1b" ("p: ", "ab"):("\x1b")
+stdin "" ("p: ", ""):("\x1b")

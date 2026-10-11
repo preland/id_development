@@ -1,0 +1,20 @@
+// A stopped program (Ctrl-Z): take the terminal back, ask, and either let it go on or end it.
+
+// Handles one stop of job_pid (group job_group): takes the terminal for the launcher, asks, then
+// continues or terminates the program (setting job_flags[0] to 1 for a kill). Answers the kind of the
+// wait that follows, as job_resume and job_terminate do.
+job_pause(int job_pid, int job_group, int[] job_flags) {
+  int job_back = term_foreground(0, proc_getpgid(0));
+  int job_go = job_ask();
+  int job_kind = -1;
+} chain (int job_pid, int job_group, int[] job_flags) {
+  if (job_go == 1) {
+    job_kind = job_resume(job_pid, job_group);
+  }
+  if (job_go == 0) {
+    job_flags[0] = 1;
+    job_kind = job_terminate(job_pid, job_group);
+  }
+} return int job_kind;
+given job_t_start("kill -STOP $$; exit 5") given job_t_wait(2) given job_t_flags stdin "c" ((import job_t_pid), (import job_t_pid), (import job_t_marks)):(0) then job_t_last:(5) then (import job_t_marks)[0]:(0)
+given job_t_start("kill -STOP $$; sleep 4") given job_t_wait(2) given job_t_flags stdin "k" ((import job_t_pid), (import job_t_pid), (import job_t_marks)):(1) then job_t_last:(271) then (import job_t_marks)[0]:(1)

@@ -1,0 +1,33 @@
+// What the launcher does to a program that is stopped: let it go on, or end it.
+// Ending it is never "wait for it to die": TERM first (with CONT, so a stopped program can
+// act on it), two seconds' grace, then KILL, and then a wait that cannot block for ever.
+
+// Puts the launcher's line settings back, gives the terminal back to the program's group, continues it and waits for its next change of
+// state: its kind (exited 0, killed 1, stopped 2) or -1.
+job_resume(int job_pid, int job_group) {
+  int job_mode = term_mode_back(0);
+  int job_given = term_foreground(0, job_group);
+  int job_woken = proc_signal_group(job_group, (import sig_n_cont));
+} chain (int job_pid, int job_group) {
+  int job_seen = proc_waitpid(job_pid, (import proc_w_stopped));
+  int job_kind = job_event(job_seen);
+} return int job_kind;
+given job_t_start("kill -STOP $$; exit 5") given job_t_wait(2) ((import job_t_pid), (import job_t_pid)):(0) then job_t_last:(5)
+given job_t_start("kill -STOP $$; kill -9 $$") given job_t_wait(2) ((import job_t_pid), (import job_t_pid)):(1) then job_t_last:(265)
+
+// Ends the program: SIGTERM and SIGCONT to its group, up to 2 s for it to go, then SIGKILL.
+// Answers the kind of the final wait (killed, 1) or -1 when there was nothing to wait for.
+job_terminate(int job_pid, int job_group) {
+  int job_termed = proc_signal_group(job_group, (import sig_n_term));
+  int job_woken = proc_signal_group(job_group, (import sig_n_cont));
+  int job_reaped = job_poll(job_pid, 40);
+} chain (int job_pid, int job_group) {
+  if (job_reaped == 0) {
+    int job_killed = proc_signal_group(job_group, (import sig_n_kill));
+    job_reaped = proc_waitpid(job_pid, 0) > 0;
+  }
+  int job_kind = job_event(job_reaped);
+} return int job_kind;
+given job_t_start("sleep 4") ((import job_t_pid), (import job_t_pid)):(1) then job_t_last:(271)
+given job_t_start("trap '' TERM; sleep 4") given job_t_settle ((import job_t_pid), (import job_t_pid)):(1) then job_t_last:(265)
+(99999999, 99999999):(-1)

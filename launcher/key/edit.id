@@ -1,0 +1,56 @@
+// How far a key moves the selection: -1 for Up or k, 1 for Down or j, minus or plus
+// key_page for Page Up or Page Down, 0 for any other key.
+key_step(int key_code, int key_page) {
+  int key_delta = 0;
+  if (key_code == (import key_up) || key_code == 107) {
+    key_delta = -1;
+  }
+  if (key_code == (import key_down) || key_code == 106) {
+    key_delta = 1;
+  }
+} chain (int key_code, int key_page) {
+  if (key_code == (import key_page_up)) {
+    key_delta = 0 - key_page;
+  }
+  if (key_code == (import key_page_down)) {
+    key_delta = key_page;
+  }
+} return int key_delta;
+(1001, 10):(-1)
+(107, 10):(-1)
+(1002, 10):(1)
+(106, 10):(1)
+(1003, 10):(-10)
+(1004, 10):(10)
+(120, 10):(0)
+
+// The line after a key is typed into it: a printable key is added to the end
+// (up to 200 bytes), Backspace removes the last byte, any other key changes nothing.
+key_edit(string key_line, int key_code) {
+  string key_result = key_line;
+  if (key_code >= 32 && key_code < 127 && len(key_line) < 200) {
+    key_result = key_line + chr(key_code);
+  }
+  if (key_code == (import key_backspace) && len(key_line) > 0) {
+    key_result = str_sub(key_line, 0, len(key_line) - 1);
+  }
+} return string key_result;
+("ab", 99):("abc")
+("ab", 127):("a")
+("", 127):("")
+("ab", 1001):("ab")
+("ab", 10):("ab")
+
+// Copies key_got bytes from key_tail into key_bytes after its first byte and answers the new
+// count of bytes in key_bytes: 1 plus key_got, or 1 when key_got is not positive.
+key_copy(int[] key_bytes, int[] key_tail, int key_got) {
+  int key_index = 0;
+  while (key_index < key_got) {
+    key_bytes[key_index + 1] = key_tail[key_index];
+    key_index = key_index + 1;
+  }
+  int key_total = 1 + key_got * (key_got > 0);
+} return int key_total;
+([27, 0, 0, 0], [91, 65, 0], 2):(3)
+([27, 0], [], -2):(1)
+([27, 0, 0], [91, 66], 0):(1)

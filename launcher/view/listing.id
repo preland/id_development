@@ -1,0 +1,27 @@
+// The rows as plain tab-separated text for `idlaunch --list`: no terminal needed,
+// so the list can be looked at, grepped and compared in a test.
+
+// One line: number, name, state, age, output path, source path with the home abbreviated.
+view_list_line(string view_entry, int view_number, int view_now, string view_base) {
+  string view_output = str_before(view_entry, "\t");
+  string view_state = str_field(view_entry, "\t", 4);
+  int view_when = entry_seconds(view_entry);
+} chain (string view_entry, int view_number, int view_now, string view_base) {
+  string view_old = view_age(view_now, view_when);
+  string view_source = view_home_path(str_field(view_entry, "\t", 1), view_base);
+  string view_text = view_number + "\t" + path_base(view_output) + "\t" + view_state + "\t" + view_old + "\t" + view_output + "\t" + view_source;
+} return string view_text;
+("/home/ann/bin/hello\t/home/ann/src/hello\tc\t1000\tfresh", 1, 8300, "/home/ann"):("1\thello\tfresh\t2h\t/home/ann/bin/hello\t~/src/hello")
+("/o/x\t-\tscanned\t1000\t?", 12, 1010, ""):("12\tx\t?\tnow\t/o/x\t-")
+
+// Every row as a numbered line, newest first as the rows are, each ending in a newline.
+view_list(string[] view_rows, int view_now, string view_base) {
+  string view_all = "";
+  int view_index = 0;
+  while (view_index < len(view_rows)) {
+    view_all = view_all + view_list_line(view_rows[view_index], view_index + 1, view_now, view_base) + "\n";
+    view_index = view_index + 1;
+  }
+} return string view_all;
+(["/o/x\t-\tscanned\t1000\t?", "/o/y\t/s\tc\t500\tstale"], 1010, ""):("1\tx\t?\tnow\t/o/x\t-\n2\ty\tstale\t8m\t/o/y\t/s\n")
+([], 5, ""):("")

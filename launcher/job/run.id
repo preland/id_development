@@ -1,0 +1,37 @@
+// Running a program as the terminal's foreground job. The program gets this terminal as its
+// stdin, stdout and stderr in a process group of its own that owns the terminal, so
+// Ctrl-C, Ctrl-\ and Ctrl-Z reach it and not the launcher. job_screen is 1 in the menu (the
+// screen is cleared, a banner is printed and the screen repaired afterwards) and 0 for `--run`,
+// which has no screen to manage but goes through exactly the same start, wait and shutdown.
+
+// Clears the screen (job_screen 1), prints the banner, puts the terminal back as the launcher found
+// it and starts the program in its own foreground group. Its pid, or -1 after saying why not.
+job_launch(string job_path, string[] job_words, string job_name, int job_screen) {
+  if (job_screen == 1) {
+    put("\x1b[2J\x1b[Hidlaunch: running " + job_name + " (Ctrl-C stops it, Ctrl-Z pauses it)\n");
+    flush();
+  }
+  int job_mode = term_mode_back(0);
+  int job_pid = proc_start(job_argv(job_path, job_words), "", "", (import proc_f_foreground) + (import proc_f_group), -1, -1, -1);
+} chain (string job_path, string[] job_words, string job_name, int job_screen) {
+  if (job_pid < 0) {
+    eprint("idlaunch: cannot start " + job_name + " (error " + proc_error() + ")");
+  }
+} return int job_pid;
+("/no/such/program", [], "program", 0):(-1) then eprints:("idlaunch: cannot start program (error 2)\n")
+("/no/such/program", ["a"], "program", 1):(-1) then prints:("\x1b[2J\x1b[Hidlaunch: running program (Ctrl-C stops it, Ctrl-Z pauses it)\nidlaunch: cannot start program (error 2)\n")
+
+// Waits for the started program and shuts down whatever it left: how it ended as kind times 256
+// plus code (exited 0, killed 1; code the status or the signal). job_flags[0] is set when the
+// user ended a stopped program.
+job_follow(int job_pid, int job_screen, int[] job_flags) {
+  int job_grouped = proc_setpgid(job_pid, job_pid);
+  int job_handed = term_foreground(0, job_pid);
+  int job_kind = job_watch(job_pid, job_pid, job_flags);
+} chain (int job_pid, int job_screen, int[] job_flags) {
+  int job_code = proc_wait_code();
+  int job_swept = job_finish(job_pid, job_screen);
+  int job_packed = job_kind * 256 + job_code;
+} return int job_packed;
+given job_t_start("exit 4") given job_t_flags ((import job_t_pid), 0, (import job_t_marks)):(4)
+given job_t_start("kill -9 $$") given job_t_flags ((import job_t_pid), 0, (import job_t_marks)):(265)

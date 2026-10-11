@@ -1,0 +1,48 @@
+// What the keys that edit the menu's own small state do: digits typed for a jump, Escape,
+// and the selection moving.
+
+// Applies a key to the number being typed (menu_words[typed]): a digit adds to it (at most six),
+// Backspace removes the last one, and any other key abandons it.
+menu_type(string[] menu_words, int menu_key) {
+  string menu_before = menu_words[(import menu_at_typed)];
+  int menu_digit = (menu_key >= 48 && menu_key <= 57) || menu_key == (import key_backspace);
+  string menu_after = "";
+} chain (string[] menu_words, int menu_key) {
+  if (menu_digit == 1) {
+    menu_after = key_edit(menu_before, menu_key);
+  }
+  if (len(menu_after) > 6) {
+    menu_after = menu_before;
+  }
+  menu_words[(import menu_at_typed)] = menu_after;
+} return void;
+(["", "12", "", "", ""], 51):(["", "123", "", "", ""], 51)
+(["", "12", "", "", ""], 127):(["", "1", "", "", ""], 127)
+(["", "12", "", "", ""], 120):(["", "", "", "", ""], 120)
+(["", "123456", "", "", ""], 55):(["", "123456", "", "", ""], 55)
+(["", "", "", "", ""], 127):(["", "", "", "", ""], 127)
+
+// Escape: abandons a number being typed, and when there is none clears the filter and goes back to the first row.
+menu_escape(string[] menu_words, int[] menu_place) {
+  int menu_had = len(menu_words[(import menu_at_typed)]) > 0;
+  if (menu_had == 1) {
+    menu_words[(import menu_at_typed)] = "";
+  }
+  if (menu_had == 0) {
+    menu_words[(import menu_at_filter)] = "";
+    menu_place[(import menu_at_selected)] = 0;
+  }
+} return void;
+(["f", "12", "", "", ""], [3, 0, 0, 0, 0, 0]):(["f", "", "", "", ""], [3, 0, 0, 0, 0, 0])
+(["f", "", "", "", ""], [3, 0, 0, 0, 0, 0]):(["", "", "", "", ""], [0, 0, 0, 0, 0, 0])
+
+// Moves the selection menu_delta rows within the filtered list.
+menu_move(string[] menu_rows, string[] menu_words, int[] menu_place, int menu_delta) {
+  string[] menu_shown = filter_rows(menu_rows, menu_words[(import menu_at_filter)]);
+  int menu_goal = menu_place[(import menu_at_selected)] + menu_delta;
+  menu_place[(import menu_at_selected)] = menu_clamp(menu_goal, len(menu_shown));
+} return void;
+(["/a\t-\tc\t1\t?", "/b\t-\tc\t1\t?", "/c\t-\tc\t1\t?"], ["", "", "", "", ""], [0, 0, 0, 0, 0, 0], 1):(["/a\t-\tc\t1\t?", "/b\t-\tc\t1\t?", "/c\t-\tc\t1\t?"], ["", "", "", "", ""], [1, 0, 0, 0, 0, 0], 1)
+(["/a\t-\tc\t1\t?", "/b\t-\tc\t1\t?", "/c\t-\tc\t1\t?"], ["", "", "", "", ""], [2, 0, 0, 0, 0, 0], 5):(["/a\t-\tc\t1\t?", "/b\t-\tc\t1\t?", "/c\t-\tc\t1\t?"], ["", "", "", "", ""], [2, 0, 0, 0, 0, 0], 5)
+(["/a\t-\tc\t1\t?", "/b\t-\tc\t1\t?", "/c\t-\tc\t1\t?"], ["b", "", "", "", ""], [0, 0, 0, 0, 0, 0], 3):(["/a\t-\tc\t1\t?", "/b\t-\tc\t1\t?", "/c\t-\tc\t1\t?"], ["b", "", "", "", ""], [0, 0, 0, 0, 0, 0], 3)
+(["/a\t-\tc\t1\t?", "/b\t-\tc\t1\t?", "/c\t-\tc\t1\t?"], ["", "", "", "", ""], [2, 0, 0, 0, 0, 0], -9):(["/a\t-\tc\t1\t?", "/b\t-\tc\t1\t?", "/c\t-\tc\t1\t?"], ["", "", "", "", ""], [0, 0, 0, 0, 0, 0], -9)

@@ -1,0 +1,85 @@
+// Bytes from the terminal to key codes. A printable key is its own byte (113 for q); the
+// keys with no byte of their own are numbered in conf.id (key_up, key_page_down, ...);
+// Enter is always key_enter whether the terminal sends 10 or 13; 0 is "nothing to act on".
+
+// The key code of one plain byte: itself when printable, key_enter for CR or LF,
+// key_backspace for DEL or BS, 0 for any other control byte.
+key_plain(int key_byte) {
+  int key_code = 0;
+  if (key_byte >= 32 && key_byte < 127) {
+    key_code = key_byte;
+  }
+  if (key_byte == 10 || key_byte == 13) {
+    key_code = (import key_enter);
+  }
+} chain (int key_byte) {
+  if (key_byte == 127 || key_byte == 8) {
+    key_code = (import key_backspace);
+  }
+} return int key_code;
+(113):(113)
+(13):(10)
+(10):(10)
+(127):(127)
+(8):(127)
+(27):(0)
+(7):(0)
+(0):(0)
+(200):(0)
+
+// The key code of an escape sequence of key_count bytes whose second and third
+// bytes are key_second and key_third: a bare Escape, the arrow keys, Page Up and Page Down
+// (both the [ and the O forms), and 0 for any sequence this menu does not use.
+key_sequence(int key_count, int key_second, int key_third) {
+  int key_code = 0;
+  int key_csi = (key_second == 91 || key_second == 79) * (key_count > 2);
+  if (key_count == 1) {
+    key_code = (import key_escape);
+  }
+} chain (int key_count, int key_second, int key_third) {
+  if (key_csi == 1 && key_third == 65) {
+    key_code = (import key_up);
+  }
+  if (key_csi == 1 && key_third == 66) {
+    key_code = (import key_down);
+  }
+  if (key_csi == 1 && key_third == 53) {
+    key_code = (import key_page_up);
+  }
+} chain (int key_count, int key_second, int key_third) {
+  if (key_csi == 1 && key_third == 54) {
+    key_code = (import key_page_down);
+  }
+} return int key_code;
+(1, 0, 0):(27)
+(3, 91, 65):(1001)
+(3, 91, 66):(1002)
+(4, 91, 53):(1003)
+(4, 91, 54):(1004)
+(3, 79, 65):(1001)
+(3, 91, 67):(0)
+(2, 91, 65):(0)
+(2, 98, 0):(0)
+
+// The key code for the key_count bytes in key_bytes as read from a terminal: 0 when nothing came
+// (a timeout), key_closed when the input is closed or failed, a plain or escape-sequence key otherwise.
+key_decode(int[] key_bytes, int key_count) {
+  int key_first = lst_get_or(key_bytes, 0, 0);
+  int key_second = lst_get_or(key_bytes, 1, 0);
+  int key_third = lst_get_or(key_bytes, 2, 0);
+} chain (int[] key_bytes, int key_count) {
+  int key_code = key_plain(key_first);
+  if (key_first == 27) {
+    key_code = key_sequence(key_count, key_second, key_third);
+  }
+  if (key_count < 0) {
+    key_code = (import key_closed);
+  }
+} return int key_code;
+([113, 0, 0], 1):(113)
+([27, 91, 65, 0], 3):(1001)
+([27, 0, 0], 1):(27)
+([0, 0], 0):(0)
+([0, 0], -2):(-1)
+([13], 1):(10)
+([27, 91, 54, 126], 4):(1004)

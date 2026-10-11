@@ -1,0 +1,34 @@
+// Fitting text to a column, and choosing which rows are on screen.
+
+// The text padded with spaces to exactly view_width bytes, or cut on the right to that width.
+view_name(string view_text, int view_width) {
+  string view_clip = view_text;
+  if (len(view_text) > view_width) {
+    view_clip = str_sub(view_text, 0, view_width);
+  }
+  string view_padded = str_pad(view_clip, view_width);
+} return string view_padded;
+("hello", 8):("hello   ")
+("hello", 5):("hello")
+("hello world", 5):("hello")
+("", 3):("   ")
+
+// The first row shown when view_capacity rows fit, view_count rows exist and row
+// view_selected must be visible: the selection is kept near the middle, and the
+// window never runs past either end.
+view_top(int view_selected, int view_count, int view_capacity) {
+  int view_start = view_selected - view_capacity / 2;
+  int view_last = view_count - view_capacity;
+  if (view_start > view_last) {
+    view_start = view_last;
+  }
+} chain (int view_selected, int view_count, int view_capacity) {
+  if (view_start < 0) {
+    view_start = 0;
+  }
+} return int view_start;
+(0, 10, 5):(0)
+(4, 10, 5):(2)
+(9, 10, 5):(5)
+(0, 3, 5):(0)
+(7, 8, 5):(3)

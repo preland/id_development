@@ -1,0 +1,23 @@
+// The frame for a given list and size, and finding out the size. There is no call for the
+// terminal's size in idstd, so it is asked the portable way: move the cursor to the far
+// corner and ask where it is (the terminal answers ESC [ rows ; columns R on standard input).
+
+// The frame of view_shown (the rows to list, newest first) drawn for a screen view_width by
+// view_height: view_total is the number of programs before filtering, view_status a message for
+// the third footer line.
+view_frame(string[] view_shown, int view_selected, string view_filter, string view_status, int view_now, string view_base, int view_width, int view_height, int view_total) {
+  int view_capacity = view_height - 6;
+  if (view_capacity < 3) {
+    view_capacity = 3;
+  }
+  int view_first = view_top(view_selected, len(view_shown), view_capacity);
+} chain (string[] view_shown, int view_selected, string view_filter, string view_status, int view_now, string view_base, int view_width, int view_height, int view_total) {
+  string view_head = view_title(len(view_shown), view_total, view_filter);
+  string view_lines = view_body(view_shown, view_selected, view_first, view_capacity, view_now, view_base, view_width);
+  string view_entry = lst_str_get_or(view_shown, view_selected, "");
+} chain (string[] view_shown, int view_selected, string view_filter, string view_status, int view_now, string view_base, int view_width, int view_height, int view_total) {
+  string view_foot = view_footer(view_entry, view_status, view_width);
+  string view_text = "\x1b[H" + view_head + "\x1b[K\n" + view_lines + view_foot + "\x1b[J";
+} return string view_text;
+(["/o/a\t/s\tc\t1000\tfresh"], 0, "", "ok", 1000, "", 40, 10, 1):("\x1b[Hidlaunch  programs: 1\x1b[K\n\x1b[7m  1 a                  fresh now  /s\x1b[0m\x1b[K\n\x1b[K\n\x1b[K\n\x1b[K\noutput: /o/a\x1b[K\nsource: /s\x1b[K\nok                                      \x1b[K\nUp/Down j/k move  PgUp/PgDn  digits+Ente\x1b[K\x1b[J")
+([], 0, "zz", "", 1000, "", 40, 3, 4):("\x1b[Hidlaunch  programs: 0 of 4  filter: zz\x1b[K\n  nothing to show: build a program with \x1b[K\n\x1b[K\n\x1b[K\noutput: \x1b[K\nsource: \x1b[K\n                                        \x1b[K\nUp/Down j/k move  PgUp/PgDn  digits+Ente\x1b[K\x1b[J")

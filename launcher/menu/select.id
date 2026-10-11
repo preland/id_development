@@ -1,0 +1,44 @@
+// Which row is selected, and where a key or typed number moves the selection. The selection is an
+// index into the rows as filtered, so everything here takes the filter into account.
+
+// The selected row of the filtered list, or "" when nothing is listed.
+menu_row(string[] menu_rows, string[] menu_words, int[] menu_place) {
+  string[] menu_shown = filter_rows(menu_rows, menu_words[(import menu_at_filter)]);
+  string menu_chosen = lst_str_get_or(menu_shown, menu_place[(import menu_at_selected)], "");
+} return string menu_chosen;
+(["/b/one\t/s\tc\t1\tfresh", "/b/two\t/s\tc\t2\tfresh"], ["", "", "", "", ""], [1, 0, 0, 0, 0, 0]):("/b/two\t/s\tc\t2\tfresh")
+(["/b/one\t/s\tc\t1\tfresh", "/b/two\t/s\tc\t2\tfresh"], ["one", "", "", "", ""], [0, 0, 0, 0, 0, 0]):("/b/one\t/s\tc\t1\tfresh")
+(["/b/one\t/s\tc\t1\tfresh", "/b/two\t/s\tc\t2\tfresh"], ["two", "", "", "", ""], [1, 0, 0, 0, 0, 0]):("")
+([], ["", "", "", "", ""], [0, 0, 0, 0, 0, 0]):("")
+
+// menu_value kept inside the list: at least 0 and at most menu_count minus one (0 for an empty list).
+menu_clamp(int menu_value, int menu_count) {
+  int menu_limit = menu_count - 1;
+  int menu_inside = menu_value;
+  if (menu_inside > menu_limit) {
+    menu_inside = menu_limit;
+  }
+} chain (int menu_value, int menu_count) {
+  if (menu_inside < 0) {
+    menu_inside = 0;
+  }
+} return int menu_inside;
+(3, 5):(3)
+(9, 5):(4)
+(-2, 5):(0)
+(0, 0):(0)
+(4, 0):(0)
+
+// The row index a typed number names (1 is the first row), kept inside the list; the current
+// selection when nothing was typed.
+menu_jump(string menu_typed, int menu_count, int menu_selected) {
+  int menu_goal = menu_selected;
+  if (len(menu_typed) > 0) {
+    menu_goal = to_int(menu_typed) - 1;
+  }
+  int menu_landed = menu_clamp(menu_goal, menu_count);
+} return int menu_landed;
+("3", 5, 0):(2)
+("", 5, 4):(4)
+("99", 5, 0):(4)
+("0", 5, 3):(0)

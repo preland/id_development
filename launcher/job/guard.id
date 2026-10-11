@@ -1,0 +1,26 @@
+// The launcher ignores the terminal's signals for its whole life. The terminal sends
+// Ctrl-C, Ctrl-\ and Ctrl-Z to its foreground group; the program runs as that group, so
+// they must reach only it, and the launcher must not be stopped or killed by a
+// terminal read or write while the program holds the terminal.
+
+// Ignores each signal of job_signals in this process; how many were accepted (0 is not a signal and is refused).
+job_guard(int[] job_signals) {
+  int job_index = 0;
+  int job_done = 0;
+  while (job_index < len(job_signals)) {
+    job_done = job_done + (sig_ignore(job_signals[job_index]) == 0);
+    job_index = job_index + 1;
+  }
+} return int job_done;
+([28]):(1)
+([]):(0)
+([28, 0, 28]):(2)[time:O(n), mem:O(1)]
+([28, 28, 28, 28, 28, 28]):(6)[time:O(n), mem:O(1)]
+
+// Ignores SIGINT, SIGQUIT, SIGTSTP, SIGTTIN and SIGTTOU; 5 when all were accepted.
+job_guard_all() {
+  int[] job_terminal = [(import sig_n_int), (import sig_n_quit), (import sig_n_tstp), (import sig_n_ttin), (import sig_n_ttou)];
+  int job_count = job_guard(job_terminal);
+} return int job_count;
+():(5) then job_guard([2]):(1)
+():(5) then job_guard([0]):(0)

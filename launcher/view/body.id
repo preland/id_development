@@ -1,0 +1,31 @@
+// The part of the screen between the title and the footer: the visible rows, or a note
+// that there are none, and blank lines to fill the space so that the footer stays at the bottom.
+
+// The row at view_index of view_shown as one screen line without its line end, or a blank line
+// past the last row; the first line says so when there are no rows at all.
+view_body_line(string[] view_shown, int view_index, int view_selected, int view_now, string view_base, int view_width) {
+  string view_text = "";
+  if (view_index < len(view_shown)) {
+    view_text = view_line(view_shown[view_index], view_index + 1, view_now, view_base, view_width, view_index == view_selected);
+  }
+  if (len(view_shown) == 0 && view_index == 0) {
+    view_text = view_name((import view_empty), view_width);
+  }
+} return string view_text;
+(["/o/a\t/s\tc\t1000\tfresh"], 0, 0, 1000, "", 80):("\x1b[7m  1 a                  fresh now  /s\x1b[0m")
+(["/o/a\t/s\tc\t1000\tfresh"], 0, 5, 1000, "", 80):("  1 a                  fresh now  /s")
+(["/o/a\t/s\tc\t1000\tfresh"], 1, 0, 1000, "", 80):("")
+([], 0, 0, 1000, "", 80):("  nothing to show: build a program with idc, press s to scan a directory, or r t")
+([], 1, 0, 1000, "", 80):("")
+
+// view_capacity screen lines of rows starting at row view_first, each ending in a clear-to-end-of-line and a newline.
+view_body(string[] view_shown, int view_selected, int view_first, int view_capacity, int view_now, string view_base, int view_width) {
+  string view_all = "";
+  int view_slot = 0;
+  while (view_slot < view_capacity) {
+    view_all = view_all + view_body_line(view_shown, view_first + view_slot, view_selected, view_now, view_base, view_width) + "\x1b[K\n";
+    view_slot = view_slot + 1;
+  }
+} return string view_all;
+(["/o/a\t/s\tc\t1000\tfresh", "/o/b\t-\tc\t1000\t?"], 1, 0, 3, 1000, "", 60):("  1 a                  fresh now  /s\x1b[K\n\x1b[7m  2 b                  ?     now  -\x1b[0m\x1b[K\n\x1b[K\n")
+(["/o/a\t/s\tc\t1000\tfresh", "/o/b\t-\tc\t1000\t?"], 0, 1, 2, 1000, "", 60):("  2 b                  ?     now  -\x1b[K\n\x1b[K\n")

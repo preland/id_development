@@ -1,0 +1,26 @@
+// The line that says how a program ended. job_ended is 1 when idlaunch itself stopped the
+// program (the user chose to kill it at the paused prompt), which is not the program's own doing.
+
+job_message(string job_name, int job_kind, int job_code, int job_tenths, int job_ended) {
+  string job_time = " after " + job_seconds_text(job_tenths) + " s";
+  string job_how = job_name + " ended in a way idlaunch could not tell (" + job_kind + ")";
+  string job_label = job_signal_label(job_code);
+} chain (string job_name, int job_kind, int job_code, int job_tenths, int job_ended) {
+  if (job_kind == (import proc_k_exited)) {
+    job_how = job_name + " exited with status " + job_code;
+  }
+  if (job_kind == (import proc_k_signalled)) {
+    job_how = job_name + " was killed by signal " + job_code + job_label;
+  }
+  if (job_ended == 1) {
+    job_how = job_name + " stopped by idlaunch";
+  }
+} chain (string job_name, int job_kind, int job_code, int job_tenths, int job_ended) {
+  string job_line = job_how + job_time;
+} return string job_line;
+("hello", 0, 0, 12, 0):("hello exited with status 0 after 1.2 s")
+("hello", 0, 3, 0, 0):("hello exited with status 3 after 0.0 s")
+("sleep", 1, 15, 25, 0):("sleep was killed by signal 15 (TERM) after 2.5 s")
+("x", 1, 77, 1, 0):("x was killed by signal 77 after 0.1 s")
+("sleep", 1, 15, 25, 1):("sleep stopped by idlaunch after 2.5 s")
+("odd", 5, 0, 0, 0):("odd ended in a way idlaunch could not tell (5) after 0.0 s")

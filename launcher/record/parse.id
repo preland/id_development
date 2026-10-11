@@ -1,0 +1,56 @@
+// The record file as rows. A row keeps the four fields tab-joined, with the
+// build time already reduced to whole seconds, because everything after this
+// compares and prints seconds. Where the record lives follows the XDG state
+// directory rule that idc writes it by.
+
+// The row for one record line, `OUTPUT \t SOURCE \t TARGET \t SECONDS`, or "" for a
+// line that is not a record line.
+record_row(string record_line) {
+  string[] record_parts = str_split(record_line, "\t");
+  int record_good = record_fields_ok(record_parts);
+  string record_row_text = "";
+} chain (string record_line) {
+  if (record_good == 1) {
+    int record_when = record_seconds(record_parts[3]);
+    record_row_text = record_parts[0] + "\t" + record_parts[1] + "\t" + record_parts[2] + "\t" + record_when;
+  }
+} return string record_row_text;
+("/o/p\t/s/q\tc\t1789012345678"):("/o/p\t/s/q\tc\t1789012345")
+("/o/p\t/s/q\tc"):("")
+("\t\t\t"):("")
+("/o/p\t-\tc\t2000"):("/o/p\t-\tc\t2")
+
+// Every usable line of the record text as a row, in file order.
+record_parse(string record_body) {
+  string[] record_lines = str_lines(record_body);
+  string[] record_rows = [];
+  int record_index = 0;
+} chain (string record_body) {
+  while (record_index < len(record_lines)) {
+    string record_one = record_row(record_lines[record_index]);
+    if (len(record_one) > 0) {
+      push(record_rows, record_one);
+    }
+    record_index = record_index + 1;
+  }
+} return string[] record_rows;
+("/a\t/s\tc\t1000\njunk\n/b\t-\tc\t3000\n"):(["/a\t/s\tc\t1", "/b\t-\tc\t3"])
+(""):([])
+("junk\n\n"):([])
+("/a\t/s\tc\t1000\n/b\t-\tc\t3000\n"):(["/a\t/s\tc\t1", "/b\t-\tc\t3"])[time:O(n), mem:O(n)]
+("/a\t/s\tc\t1000\n/b\t-\tc\t3000\n/a\t/s\tc\t1000\n/b\t-\tc\t3000\n"):(["/a\t/s\tc\t1", "/b\t-\tc\t3", "/a\t/s\tc\t1", "/b\t-\tc\t3"])[time:O(n), mem:O(n)]
+
+// Where the record is: under the XDG state directory when it is set and not
+// empty, else under `.local/state` in the home directory; "" when neither is known.
+record_location(string record_state, string record_home) {
+  string record_place = "";
+  if (len(record_state) > 0) {
+    record_place = record_state + "/id/built.tsv";
+  }
+  if (len(record_state) == 0 && len(record_home) > 0) {
+    record_place = record_home + "/.local/state/id/built.tsv";
+  }
+} return string record_place;
+("/s", "/h"):("/s/id/built.tsv")
+("", "/h"):("/h/.local/state/id/built.tsv")
+("", ""):("")

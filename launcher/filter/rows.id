@@ -1,0 +1,32 @@
+// The `/` filter: a row is kept when the needle occurs, ignoring case, in its output
+// path (which ends with the program's name) or its source path. An empty needle keeps everything.
+
+// 1 when filter_needle occurs in the output path or the source path of filter_entry.
+filter_match(string filter_entry, string filter_needle) {
+  string filter_paths = str_before(filter_entry, "\t") + "\n" + str_field(filter_entry, "\t", 1);
+  int filter_at = str_find(str_lower(filter_paths), str_lower(filter_needle));
+  int filter_hit = filter_at >= 0;
+} return int filter_hit;
+("/bin/Hello\t/src/h\tc\t5\tfresh", "hell"):(1)
+("/bin/hello\t/src/Game\tc\t5\tfresh", "game"):(1)
+("/bin/hello\t/src/game\tc\t5\tfresh", "xyz"):(0)
+("/bin/hello\t/src/game\tc\t5\tfresh", ""):(1)
+("/bin/hello\t/src/game\tc\t5\tfresh", "fresh"):(0)
+
+// The rows of filter_rows_all that filter_match accepts, in order.
+filter_rows(string[] filter_all, string filter_needle) {
+  string[] filter_kept = [];
+  int filter_index = 0;
+  while (filter_index < len(filter_all)) {
+    int filter_ok = filter_match(filter_all[filter_index], filter_needle);
+    if (filter_ok == 1) {
+      push(filter_kept, filter_all[filter_index]);
+    }
+    filter_index = filter_index + 1;
+  }
+} return string[] filter_kept;
+(["/b/one\t/s/a\tc\t1\tfresh", "/b/two\t/s/b\tc\t2\tstale"], "two"):(["/b/two\t/s/b\tc\t2\tstale"])
+(["/b/one\t/s/a\tc\t1\tfresh", "/b/two\t/s/b\tc\t2\tstale"], ""):(["/b/one\t/s/a\tc\t1\tfresh", "/b/two\t/s/b\tc\t2\tstale"])
+(["/b/one\t/s/a\tc\t1\tfresh"], "zzz"):([])
+(["/b/one\t/s/a\tc\t1\tfresh", "/b/two\t/s/b\tc\t2\tstale"], "s/"):(["/b/one\t/s/a\tc\t1\tfresh", "/b/two\t/s/b\tc\t2\tstale"])[time:O(n), mem:O(n)]
+(["/b/one\t/s/a\tc\t1\tfresh", "/b/two\t/s/b\tc\t2\tstale", "/b/one\t/s/a\tc\t1\tfresh", "/b/two\t/s/b\tc\t2\tstale"], "s/"):(["/b/one\t/s/a\tc\t1\tfresh", "/b/two\t/s/b\tc\t2\tstale", "/b/one\t/s/a\tc\t1\tfresh", "/b/two\t/s/b\tc\t2\tstale"])[time:O(n), mem:O(n)]

@@ -1,0 +1,46 @@
+// Rows that survive the check that their binary is still there, and rows turned
+// back into record text. The text is written with a temporary name and renamed
+// over the record so that a build appending at the same moment never sees half a file.
+
+// The rows whose output path is a program that can still be run, in order.
+record_keep(string[] record_rows) {
+  string[] record_alive = [];
+  int record_index = 0;
+  while (record_index < len(record_rows)) {
+    int record_here = record_present(str_before(record_rows[record_index], "\t"));
+    if (record_here == 1) {
+      push(record_alive, record_rows[record_index]);
+    }
+    record_index = record_index + 1;
+  }
+} return string[] record_alive;
+(["/bin/sh\t-\tc\t5", "/no/such/program\t-\tc\t6"]):(["/bin/sh\t-\tc\t5"])
+([]):([])
+(["/tmp\t-\tc\t5"]):([])
+(["/bin/sh\t-\tc\t5", "/bin/sh\t-\tc\t6"]):(["/bin/sh\t-\tc\t5", "/bin/sh\t-\tc\t6"])[time:O(n), mem:O(n)]
+(["/bin/sh\t-\tc\t5", "/bin/sh\t-\tc\t6", "/bin/sh\t-\tc\t7", "/bin/sh\t-\tc\t8"]):(["/bin/sh\t-\tc\t5", "/bin/sh\t-\tc\t6", "/bin/sh\t-\tc\t7", "/bin/sh\t-\tc\t8"])[time:O(n), mem:O(n)]
+
+// The record text for rows: one line each, the seconds back as milliseconds.
+record_text(string[] record_rows) {
+  string record_body = str_join(record_rows, "000\n");
+  string record_joined = "";
+  if (len(record_rows) > 0) {
+    record_joined = record_body + "000\n";
+  }
+} return string record_joined;
+(["/a\t/s\tc\t1", "/b\t-\tc\t3"]):("/a\t/s\tc\t1000\n/b\t-\tc\t3000\n")
+([]):("")
+(["/a\t-\tc\t0"]):("/a\t-\tc\t0000\n")
+
+// Replaces the record file at record_path with the rows (the record's directory is made
+// when it is missing): 0 when it was written and renamed into place, else -1.
+record_save(string record_path, string[] record_rows) {
+  string record_staged = record_path + ".new";
+  int record_dir_made = fs_mkdir_p(fs_dir_of(record_path));
+  int record_wrote = fs_write_text(record_staged, record_text(record_rows));
+} chain (string record_path, string[] record_rows) {
+  int record_moved = fs_rename(record_staged, record_path);
+} return int record_moved;
+given idstd_fs_t_file ([120]) ((import idstd_fs_t_path), ["/a\t-\tc\t1"]):(0) then idstd_fs_t_back:("/a\t-\tc\t1000\n")
+given idstd_fs_t_file ([120, 121]) ((import idstd_fs_t_path), []):(0) then idstd_fs_t_back:("")
+("/proc/no_such_dir/record", ["/a\t-\tc\t1"]):(-1)

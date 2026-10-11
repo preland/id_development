@@ -1,0 +1,20 @@
+// What the launcher knows when it starts: where the record is, and its rows
+// loaded, ordered newest first and stamped with their freshness.
+
+// The record's path from the environment (XDG_STATE_HOME, else HOME).
+session_record_path() {
+  string session_state = env_text("XDG_STATE_HOME");
+  string session_home = env_text("HOME");
+  string session_path = record_location(session_state, session_home);
+} return string session_path;
+given env_put("XDG_STATE_HOME", "/zz/state") ():("/zz/state/id/built.tsv")
+given env_put("XDG_STATE_HOME", "") given env_put("HOME", "/zz/home") ():("/zz/home/.local/state/id/built.tsv")
+
+// The rows of the record at session_path, newest first, each with its state word.
+session_rows(string session_path) {
+  string[] session_loaded = record_load(session_path);
+  entry_order(session_loaded);
+  string[] session_stamped = state_stamp(session_loaded);
+} return string[] session_stamped;
+given record_t_file("/bin/sh\t-\tc\t5000\n/usr/bin/env\t-\tc\t9000\n/no/x\t-\tc\t7000\n/bin/sh\t/bin/sh\tc\t4000\n") ((import record_t_path)):(["/usr/bin/env\t-\tc\t9\t?", "/bin/sh\t/bin/sh\tc\t4\tfresh"])
+given record_t_file("") ((import record_t_path)):([])

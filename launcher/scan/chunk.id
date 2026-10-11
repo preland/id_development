@@ -1,0 +1,51 @@
+// Looking through a file without holding it: a file is read in chunks of
+// scan_chunk_size bytes, and the last bytes of each chunk are kept in front of the
+// next so a marker that straddles two chunks is still found. A built program is megabytes;
+// as a byte list it would be eight times that.
+
+// The next chunk of an open file as a byte list: up to scan_chunk_size bytes, and
+// [] at the end of the file or for a handle that is not open.
+scan_chunk(int scan_handle) {
+  int[] scan_cells = lst_filled((import scan_chunk_size), 0);
+  int scan_got = fs_read(scan_handle, scan_cells, (import scan_chunk_size));
+  int scan_kept = scan_got * (scan_got > 0);
+} chain (int scan_handle) {
+  while (len(scan_cells) > scan_kept) {
+    pop(scan_cells);
+  }
+} return int[] scan_cells;
+given idstd_fs_t_file ([1, 2, 3]) given scan_t_open ((import scan_t_handle)):([1, 2, 3])
+given idstd_fs_t_file ([]) given scan_t_open ((import scan_t_handle)):([])
+(-1):([])
+
+// The last scan_marker_text-length-minus-one bytes of scan_window followed by scan_next:
+// what the next search looks at.
+scan_merge(int[] scan_window, int[] scan_next) {
+  int scan_carry = len((import scan_marker_text)) - 1;
+  int scan_from = len(scan_window) - scan_carry;
+  if (scan_from < 0) {
+    scan_from = 0;
+  }
+} chain (int[] scan_window, int[] scan_next) {
+  int[] scan_joined = lst_slice(scan_window, scan_from, len(scan_window) - scan_from);
+  lst_extend(scan_joined, scan_next);
+} return int[] scan_joined;
+([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], [100, 101]):([9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 100, 101])
+([5, 6], [7]):([5, 6, 7])
+([], [7]):([7])
+
+// 1 when the marker is in scan_window (the first chunk of the file, already read) or
+// anywhere in the rest of the file behind the open handle scan_handle.
+scan_sweep(int scan_handle, int[] scan_window) {
+  int scan_found = scan_find(scan_window, (import scan_marker_text));
+  int[] scan_next = scan_chunk(scan_handle);
+  int[] scan_current = scan_window;
+} chain (int scan_handle, int[] scan_window) {
+  while (scan_found == 0 && len(scan_next) > 0) {
+    scan_current = scan_merge(scan_current, scan_next);
+    scan_found = scan_find(scan_current, (import scan_marker_text));
+    scan_next = scan_chunk(scan_handle);
+  }
+} return int scan_found;
+given idstd_fs_t_file ([]) given scan_t_open ((import scan_t_handle), [105, 100, 95, 97, 114, 101, 110, 97, 95, 104, 101, 97, 100]):(1)
+given idstd_fs_t_file ([]) given scan_t_open ((import scan_t_handle), [105, 100]):(0)

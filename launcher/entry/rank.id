@@ -1,0 +1,34 @@
+// What the menu orders rows by: the build time, in whole seconds, which is the
+// fourth tab-separated field of a row. Newest first; rows built in the same
+// second keep the order they had.
+
+// The build time of a row, in seconds.
+entry_seconds(string entry_row) {
+  string entry_field = str_field(entry_row, "\t", 3);
+  int entry_when = to_int(entry_field);
+} return int entry_when;
+("/a\t/s\tc\t1789012345"):(1789012345)
+("/a\t-\tc\t7\tfresh"):(7)
+("/a\t-\tc"):(0)
+
+// 1 when the row at entry_at was built after the row before it, so that the two
+// are in the wrong order for a newest-first list; 0 at the front.
+entry_newer(string[] entry_rows, int entry_at) {
+  int entry_swap = 0;
+  if (entry_at > 0) {
+    entry_swap = entry_seconds(entry_rows[entry_at - 1]) < entry_seconds(entry_rows[entry_at]);
+  }
+} return int entry_swap;
+(["/a\t-\tc\t1", "/b\t-\tc\t2"], 1):(1)
+(["/a\t-\tc\t2", "/b\t-\tc\t1"], 1):(0)
+(["/a\t-\tc\t5", "/b\t-\tc\t5"], 1):(0)
+(["/a\t-\tc\t1"], 0):(0)
+
+// Swaps the row at entry_at with the one before it.
+entry_exchange(string[] entry_rows, int entry_at) {
+  string entry_held = entry_rows[entry_at];
+  entry_rows[entry_at] = entry_rows[entry_at - 1];
+  entry_rows[entry_at - 1] = entry_held;
+} return void;
+(["a", "b", "c"], 2):(["a", "c", "b"])
+(["a", "b"], 1):(["b", "a"])

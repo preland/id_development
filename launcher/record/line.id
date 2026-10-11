@@ -1,0 +1,48 @@
+// One line of the build record, `OUTPUT \t SOURCE \t TARGET \t BUILT_MS`, taken
+// apart. The record is appended to by every idc build and never validated, so a
+// line that does not have exactly these four fields (a torn write, an old
+// format) is a line to skip, not a reason to refuse the whole file.
+
+// 1 when record_candidate is one or more decimal digits and nothing else, else 0.
+record_digits(string record_candidate) {
+  int record_at = 0;
+  int record_all = len(record_candidate) > 0;
+  while (record_at < len(record_candidate)) {
+    record_all = record_all * chr_is_digit(charat(record_candidate, record_at));
+    record_at = record_at + 1;
+  }
+} return int record_all;
+("1789012345678"):(1)
+(""):(0)
+("12a4"):(0)
+("-5"):(0)
+("1234"):(1)[time:O(n), mem:O(1)]
+("12345678"):(1)[time:O(n), mem:O(1)]
+
+// Whole seconds of a millisecond count written as digits: the last three digits
+// are dropped (the count is kept as text because it does not fit an int).
+record_seconds(string record_milliseconds) {
+  int record_cut = len(record_milliseconds) - 3;
+  int record_seconds_value = 0;
+  if (record_cut > 0) {
+    record_seconds_value = to_int(str_sub(record_milliseconds, 0, record_cut));
+  }
+} return int record_seconds_value;
+("1789012345678"):(1789012345)
+("999"):(0)
+("1000"):(1)
+("5"):(0)
+
+// 1 when the cells are a usable record line: four of them, an absolute output
+// path first and a millisecond count last.
+record_fields_ok(string[] record_cells) {
+  int record_count = len(record_cells);
+  int record_ok = 0;
+  if (record_count == 4) {
+    record_ok = (charat(record_cells[0], 0) == 47) * record_digits(record_cells[3]);
+  }
+} return int record_ok;
+(["/a/b", "/src", "c", "1789012345678"]):(1)
+(["/a/b", "/src", "c"]):(0)
+(["a/b", "/src", "c", "1789012345678"]):(0)
+(["/a/b", "/src", "c", "soon"]):(0)

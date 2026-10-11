@@ -1,0 +1,29 @@
+// A row as the record keeps it: the four stored fields, without the state word the menu
+// appends. Saving the record writes these, never the state, which is recomputed at every start.
+
+// The first four tab-separated fields of a row, or the row itself when it has fewer.
+entry_bare(string entry_row) {
+  string[] entry_cells = str_split(entry_row, "\t");
+  string entry_four = entry_row;
+  if (len(entry_cells) > 4) {
+    entry_four = entry_cells[0] + "\t" + entry_cells[1] + "\t" + entry_cells[2] + "\t" + entry_cells[3];
+  }
+} return string entry_four;
+("/o\t/s\tc\t5\tfresh"):("/o\t/s\tc\t5")
+("/o\t/s\tc\t5"):("/o\t/s\tc\t5")
+("/o\t/s"):("/o\t/s")
+("/o\t/s\tc\t5\tstale\textra"):("/o\t/s\tc\t5")
+
+// Every row of entry_rows without its state word, in order.
+entry_bares(string[] entry_rows) {
+  string[] entry_plain = [];
+  int entry_index = 0;
+  while (entry_index < len(entry_rows)) {
+    push(entry_plain, entry_bare(entry_rows[entry_index]));
+    entry_index = entry_index + 1;
+  }
+} return string[] entry_plain;
+(["/o\t/s\tc\t5\tfresh", "/p\t-\tc\t6\t?"]):(["/o\t/s\tc\t5", "/p\t-\tc\t6"])
+([]):([])
+(["/o\t/s\tc\t5"]):(["/o\t/s\tc\t5"])[time:O(n), mem:O(n)]
+(["/o\t/s\tc\t5", "/o\t/s\tc\t5"]):(["/o\t/s\tc\t5", "/o\t/s\tc\t5"])[time:O(n), mem:O(n)]

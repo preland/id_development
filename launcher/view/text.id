@@ -1,0 +1,62 @@
+// The small text pieces of a menu row: how old a build is, a path with the home
+// directory abbreviated, and a path cut to fit. All pure; the clock arrives as an argument.
+
+// How long ago, from view_now to view_then (both whole seconds): "now" under a
+// minute, then "3m", "5h" and "2d". A time in the future reads "now".
+view_age(int view_now, int view_then) {
+  int view_gap = view_now - view_then;
+  string view_text = "now";
+  if (view_gap >= 60) {
+    view_text = (view_gap / 60) + "m";
+  }
+} chain (int view_now, int view_then) {
+  if (view_gap >= 3600) {
+    view_text = (view_gap / 3600) + "h";
+  }
+  if (view_gap >= 86400) {
+    view_text = (view_gap / 86400) + "d";
+  }
+} return string view_text;
+(1000, 1000):("now")
+(1059, 1000):("now")
+(1060, 1000):("1m")
+(4599, 1000):("59m")
+(4600, 1000):("1h")
+(87399, 1000):("23h")
+(87400, 1000):("1d")
+(1000, 2000):("now")
+(1000000, 1000):("11d")
+
+// The path with the home directory at its front written as ~. A home that is
+// empty or "/" abbreviates nothing, and a directory that merely starts with the
+// same letters (/home/ann2 for /home/ann) is left alone.
+view_home_path(string view_path, string view_base) {
+  string view_short = view_path;
+  if (len(view_base) > 1 && str_starts(view_path, view_base + "/") == 1) {
+    view_short = "~" + str_sub(view_path, len(view_base), len(view_path) - len(view_base));
+  }
+  if (len(view_base) > 1 && view_path == view_base) {
+    view_short = "~";
+  }
+} return string view_short;
+("/home/ann/x/y", "/home/ann"):("~/x/y")
+("/home/ann", "/home/ann"):("~")
+("/home/ann2/x", "/home/ann"):("/home/ann2/x")
+("/opt/x", "/home/ann"):("/opt/x")
+("/opt/x", ""):("/opt/x")
+("/opt/x", "/"):("/opt/x")
+
+// The text cut from the left to fit view_width bytes, with ... in front of what
+// is kept. Text that fits is unchanged, and so is any text when the width is under 4.
+view_cut(string view_text, int view_width) {
+  int view_extra = len(view_text) - view_width;
+  string view_fit = view_text;
+  if (view_extra > 0 && view_width > 3) {
+    view_fit = "..." + str_sub(view_text, view_extra + 3, view_width - 3);
+  }
+} return string view_fit;
+("/home/ann/src/project", 12):("...c/project")
+("/short", 12):("/short")
+("/exactly12ch", 12):("/exactly12ch")
+("/one/two/three", 3):("/one/two/three")
+("/one/two/three", 4):("...e")

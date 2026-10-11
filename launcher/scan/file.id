@@ -1,0 +1,46 @@
+// Whether one file on disk is a built `id` program, and the row it becomes.
+
+// 1 when the file at scan_path starts with the ELF magic and holds the runtime marker.
+scan_read(string scan_path) {
+  int scan_handle = fs_open(scan_path, "r");
+  int[] scan_head_cells = scan_chunk(scan_handle);
+  int scan_found = 0;
+} chain (string scan_path) {
+  if (scan_elf(scan_head_cells) == 1) {
+    scan_found = scan_sweep(scan_handle, scan_head_cells);
+  }
+  int scan_closed = fs_close(scan_handle);
+} return int scan_found;
+given scan_t_image(100, 20, "\x7fELF") ((import scan_t_path)):(1)
+given scan_t_image(100, 20, "NOPE") ((import scan_t_path)):(0)
+given scan_t_image(100, -1, "\x7fELF") ((import scan_t_path)):(0)
+given scan_t_image(70000, 65524, "\x7fELF") ((import scan_t_path)):(1)
+given scan_t_image(80000, 70000, "\x7fELF") ((import scan_t_path)):(1)
+given scan_t_image(80000, -1, "\x7fELF") ((import scan_t_path)):(0)
+("/no/such/file"):(0)
+
+// 1 when scan_path is an executable regular file of a plausible size (4 bytes to
+// scan_size_limit) that scan_read accepts.
+scan_file(string scan_path) {
+  int scan_size = fs_size(scan_path);
+  int scan_fits = (scan_size > 3) * (scan_size <= (import scan_size_limit));
+  int scan_runs = fs_can(scan_path, 1) * (1 - fs_is_dir(scan_path));
+} chain (string scan_path) {
+  int scan_ok = 0;
+  if (scan_fits * scan_runs == 1) {
+    scan_ok = scan_read(scan_path);
+  }
+} return int scan_ok;
+given scan_t_image(100, 20, "\x7fELF") ((import scan_t_path)):(1)
+given scan_t_image(100, 20, "NOPE") ((import scan_t_path)):(0)
+given scan_t_image(3, -1, "\x7fEL") ((import scan_t_path)):(0)
+given idstd_fs_t_file ([127, 69, 76, 70, 105, 100, 95, 97, 114, 101, 110, 97, 95, 104, 101, 97, 100]) ((import idstd_fs_t_path)):(0)
+("/tmp"):(0)
+("/no/such/file"):(0)
+
+// The row for a program found by scanning: no source, a target of "scanned", and the file's own time.
+scan_row(string scan_path, int scan_when) {
+  string scan_text = str_join([scan_path, "-", "scanned", "" + scan_when], "\t");
+} return string scan_text;
+("/o/x", 77):("/o/x\t-\tscanned\t77")
+("/p/q r", 0):("/p/q r\t-\tscanned\t0")

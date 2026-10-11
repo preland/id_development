@@ -1,0 +1,15 @@
+// Directories no walk goes into. Version control, the build cache, vendored
+// packages and the Nix store hold no source a person edits for a program, and
+// one of them would make a walk of a home directory take minutes.
+
+// 1 when a walk must not enter the directory called walk_name at walk_path.
+walk_skipped(string walk_name, string walk_path) {
+  int walk_listed = lst_str_index((import walk_skips), walk_name) >= 0;
+  int walk_store_hit = walk_path == (import walk_store);
+  int walk_skip = walk_listed + walk_store_hit;
+} return int walk_skip;
+(".git", "/home/u/p/.git"):(1)
+("src", "/home/u/p/src"):(0)
+("store", "/nix/store"):(1)
+("node_modules", "/x/node_modules"):(1)
+(".idc-cache", "/x/.idc-cache"):(1)

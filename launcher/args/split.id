@@ -1,0 +1,48 @@
+// Turning the line typed at the `a` prompt into program arguments: split on
+// spaces, with "..." keeping spaces inside one argument. No other quoting and no
+// shell: the line is not interpreted, so a program receives exactly these words.
+
+// Takes one byte (arg_code) of the line: a quote flips arg_flags[0] and is dropped, a space outside
+// quotes starts the next argument (once the current one has something in it), anything else is
+// appended to the last argument in arg_parts.
+arg_take(string[] arg_parts, int[] arg_flags, int arg_code) {
+  int arg_spacing = (arg_code == 32) * (1 - arg_flags[0]);
+  if (arg_code == 34) {
+    arg_flags[0] = 1 - arg_flags[0];
+  }
+  if (arg_spacing == 1 && len(arg_parts[len(arg_parts) - 1]) > 0) {
+    push(arg_parts, "");
+  }
+} chain (string[] arg_parts, int[] arg_flags, int arg_code) {
+  if (arg_code != 34 && arg_spacing == 0) {
+    arg_parts[len(arg_parts) - 1] = arg_parts[len(arg_parts) - 1] + chr(arg_code);
+  }
+} return void;
+([""], [0], 97):(["a"], [0], 97)
+(["ab"], [0], 32):(["ab", ""], [0], 32)
+([""], [0], 32):([""], [0], 32)
+(["ab"], [0], 34):(["ab"], [1], 34)
+(["ab"], [1], 34):(["ab"], [0], 34)
+(["ab"], [1], 32):(["ab "], [1], 32)
+
+// The arguments in a line: "a b" gives two, "a \"b c\"" gives two with a space in the second.
+arg_split(string arg_line) {
+  string[] arg_parts = [""];
+  int[] arg_flags = [0];
+  int arg_at = 0;
+} chain (string arg_line) {
+  while (arg_at < len(arg_line)) {
+    arg_take(arg_parts, arg_flags, charat(arg_line, arg_at));
+    arg_at = arg_at + 1;
+  }
+  if (len(arg_parts[len(arg_parts) - 1]) == 0) {
+    pop(arg_parts);
+  }
+} return string[] arg_parts;
+("one two"):(["one", "two"])
+("  one   two  "):(["one", "two"])
+("one \"two three\" four"):(["one", "two three", "four"])
+(""):([])
+("\"open quote"):(["open quote"])
+("a b c d"):(["a", "b", "c", "d"])[time:O(n), mem:O(n)]
+("a b c d a b c d"):(["a", "b", "c", "d", "a", "b", "c", "d"])[time:O(n), mem:O(n)]

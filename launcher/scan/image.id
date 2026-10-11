@@ -1,0 +1,24 @@
+// A scratch executable for the scan's cases: scan_t_total bytes of 'A', the text
+// scan_t_magic at the front and the marker at scan_t_where (-1 for none), mode 0755.
+
+scan_t_image(int scan_t_total, int scan_t_where, string scan_t_magic) {
+  int[] scan_t_bytes = lst_filled(scan_t_total, 65);
+  string scan_t_place = fs_mktemp("scan_t_", 0);
+  export string scan_t_path = scan_t_place;
+} chain (int scan_t_total, int scan_t_where, string scan_t_magic) {
+  scan_t_plant(scan_t_bytes, scan_t_where, (import scan_marker_text));
+  scan_t_plant(scan_t_bytes, 0, scan_t_magic);
+  int scan_t_h = fs_open(scan_t_place, "w");
+} chain (int scan_t_total, int scan_t_where, string scan_t_magic) {
+  int scan_t_put = fs_write(scan_t_h, scan_t_bytes, len(scan_t_bytes));
+  int scan_t_shut = fs_close(scan_t_h);
+  int scan_t_mode = fs_chmod(scan_t_place, 493);
+} return void export scan_t_path;
+(100, 20, "\x7fELF"):() then scan_t_found:(1)
+(100, -1, "\x7fELF"):() then scan_t_found:(0)
+
+scan_t_found() {
+  int scan_t_is = scan_file((import scan_t_path));
+} return int scan_t_is;
+given scan_t_image(100, 20, "\x7fELF") ():(1)
+given scan_t_image(100, 20, "NOPE") ():(0)

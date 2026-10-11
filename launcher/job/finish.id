@@ -1,0 +1,45 @@
+// After the program has exited: take the terminal back, make sure nothing it started is
+// left running in its group, and leave the terminal in a usable state whatever the program did to it.
+
+// Ends whatever still runs in process group job_group: nothing alive answers 0; processes that
+// went away after SIGTERM within 2 s answer 1; ones that needed SIGKILL answer 2.
+job_sweep(int job_group) {
+  int job_first = proc_signal_group(job_group, 0) == 0;
+  int job_tick = 0;
+  int job_alive = job_first;
+} chain (int job_group) {
+  if (job_first == 1) {
+    int job_termed = proc_signal_group(job_group, (import sig_n_term));
+  }
+  while (job_alive == 1 && job_tick < 40) {
+    clk_sleep_ns(50000000);
+    job_alive = proc_signal_group(job_group, 0) == 0;
+    job_tick = job_tick + 1;
+  }
+  if (job_alive == 1) {
+    int job_killed = proc_signal_group(job_group, (import sig_n_kill));
+  }
+} chain (int job_group) {
+  int job_level = job_first + job_alive;
+} return int job_level;
+given job_t_start("exit 0") given job_t_wait(0) ((import job_t_pid)):(0)
+given job_t_start("sleep 4 & exit 0") given job_t_wait(0) ((import job_t_pid)):(1)
+given job_t_start("(trap '' TERM; exec sleep 4) & exit 0") given job_t_wait(0) given job_t_settle ((import job_t_pid)):(2)
+(0):(0)
+
+// What happens when the program is over: the launcher's group takes the terminal back, the
+// program's group is swept, the line settings kept at start come back and, when job_screen is
+// 1, the screen is repaired (job_repair_text: attributes, cursor, main screen, mouse reporting).
+// Answers job_sweep's level.
+job_finish(int job_group, int job_screen) {
+  int job_taken = term_foreground(0, proc_getpgid(0));
+  int job_swept = job_sweep(job_group);
+  int job_mode = term_mode_back(0);
+} chain (int job_group, int job_screen) {
+  if (job_screen == 1) {
+    put((import job_repair_text));
+    flush();
+  }
+} return int job_swept;
+(0, 0):(0) then prints:("")
+(0, 1):(0) then prints:("\x1b[0m\x1b[?25h\x1b[?1049l\x1b[?1000l\x1b[?1002l\x1b[?1006l")

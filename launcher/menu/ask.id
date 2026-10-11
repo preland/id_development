@@ -1,0 +1,37 @@
+// The keys that ask a question first: `a` for arguments, `/` for a filter, `x` to forget.
+
+// `a`: asks for a line of arguments and runs the selected program with them; Escape runs nothing.
+menu_ask_args(string[] menu_rows, string[] menu_words, int[] menu_place) {
+  string menu_line = menu_prompt("args: ", "");
+  if (menu_line != chr(27)) {
+    menu_run(menu_rows, menu_words, menu_place, menu_line);
+  }
+} return void;
+stdin "\x1b" ([], ["", "", "", "", ""], [0, 0, 0, 0, 0, 0]):([], ["", "", "", "", ""], [0, 0, 0, 0, 0, 0]) then prints:("\r\n\r\x1b[Kargs: \r\x1b[Kargs: ")
+stdin "x\n" ([], ["", "", "", "", ""], [0, 0, 0, 0, 0, 0]):([], ["", "", "", "", ""], [0, 0, 0, 0, 0, 0]) then prints:("\r\n\r\x1b[Kargs: \r\x1b[Kargs: x\r\x1b[Kargs: x")
+
+// `/`: asks for a filter, starting from the current one; Escape clears it. Selection goes back to the first row.
+menu_ask_filter(string[] menu_words, int[] menu_place) {
+  string menu_text = menu_prompt("filter: ", menu_words[(import menu_at_filter)]);
+  if (menu_text == chr(27)) {
+    menu_text = "";
+  }
+  menu_words[(import menu_at_filter)] = menu_text;
+} chain (string[] menu_words, int[] menu_place) {
+  menu_place[(import menu_at_selected)] = 0;
+} return void;
+stdin "ne\n" (["o", "", "", "", ""], [4, 0, 0, 0, 0, 0]):(["one", "", "", "", ""], [0, 0, 0, 0, 0, 0])
+stdin "\x1b" (["old", "", "", "", ""], [4, 0, 0, 0, 0, 0]):(["", "", "", "", ""], [0, 0, 0, 0, 0, 0])
+
+// `x`: forgets the selected program: its rows leave the list and the record, and the program itself is untouched.
+menu_forget(string[] menu_rows, string[] menu_words, int[] menu_place) {
+  string menu_chosen = menu_row(menu_rows, menu_words, menu_place);
+  string menu_gone = str_before(menu_chosen, "\t");
+  string[] menu_left = menu_without(menu_rows, menu_gone);
+} chain (string[] menu_rows, string[] menu_words, int[] menu_place) {
+  menu_replace(menu_rows, menu_left);
+  int menu_saved = record_save(menu_words[(import menu_at_record)], entry_bares(menu_rows));
+  menu_place[(import menu_at_selected)] = menu_clamp(menu_place[(import menu_at_selected)], len(menu_rows));
+} return void;
+given record_t_file("") (["/bin/sh\t-\tc\t5\t?", "/usr/bin/env\t-\tc\t6\t?"], ["", "", "", (import record_t_path), ""], [0, 0, 0, 0, 0, 0]):(["/usr/bin/env\t-\tc\t6\t?"]) then fs_read_text((import record_t_path)):("/usr/bin/env\t-\tc\t6000\n")
+([], ["", "", "", "/proc/no_such_dir/record", ""], [3, 0, 0, 0, 0, 0]):([], ["", "", "", "/proc/no_such_dir/record", ""], [0, 0, 0, 0, 0, 0])

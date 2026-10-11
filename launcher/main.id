@@ -1,0 +1,16 @@
+// `idlaunch`: a terminal menu of every built id program, to see which are fresh and to run one
+// in place without a shell. idc records each program it builds (see launch/mode.id for the three
+// ways to run this). The clock is read once, here, and handed down; the terminal's signals are
+// ignored for the program's whole life so that Ctrl-C, Ctrl-\ and Ctrl-Z reach only the program
+// being run. Usage: idlaunch with no arguments, --list, or --run N [ARGUMENT...].
+
+main(int main_count, string[] main_arguments) {
+  int main_now = clk_ns((import clk_real)) / 1000000000;
+  int main_kind = launch_mode(main_count, main_arguments);
+  int main_guarded = job_guard_all();
+} chain (int main_count, string[] main_arguments) {
+  int main_code = launch_dispatch(main_kind, main_arguments, main_now);
+} return int main_code;
+given env_put("XDG_STATE_HOME", "/proc/no_such_state") (2, ["idlaunch", "--bogus"]):(2) then eprints:("usage: idlaunch              open the menu (needs a terminal)\n       idlaunch --list       print the programs, one per line\n       idlaunch --run N ...  run program N of --list with the arguments after N\n")
+given env_put("XDG_STATE_HOME", "/proc/no_such_state") (2, ["idlaunch", "--list"]):(0) then prints:("")
+given launch_t_state("/bin/sh\t-\tc\t5000\n") (4, ["idlaunch", "--run", "1", "-c", "exit 5"]):(5) then prints:("sh exited with status 5 after 0.0 s\n")

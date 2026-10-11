@@ -1,0 +1,36 @@
+// The two halves of running a program, joined: start it, follow it to the end, say how it ended.
+
+// Runs the program at job_path with job_words as arguments as the terminal's foreground job and
+// answers its exit status, 128 plus the signal for a killed one, -1 when it could not be started.
+job_run(string job_path, string[] job_words, int job_screen) {
+  string job_name = path_base(job_path);
+  word job_began = clk_ns((import clk_mono));
+  int job_pid = job_launch(job_path, job_words, job_name, job_screen);
+} chain (string job_path, string[] job_words, int job_screen) {
+  int job_status = -1;
+  int[] job_flags = [0];
+  if (job_pid > 0) {
+    int job_packed = job_follow(job_pid, job_screen, job_flags);
+    int job_tenths = (clk_ns((import clk_mono)) - job_began) / 100000000;
+    job_status = job_say(job_name, job_packed, job_tenths, job_flags[0]);
+  }
+} return int job_status;
+("/bin/sh", ["-c", "exit 0"], 0):(0) then prints:("sh exited with status 0 after 0.0 s\n")
+("/bin/sh", ["-c", "exit 3"], 0):(3) then prints:("sh exited with status 3 after 0.0 s\n")
+("/bin/sh", ["-c", "kill -9 $$"], 0):(137) then prints:("sh was killed by signal 9 (KILL) after 0.0 s\n")
+("/bin/sh", ["-c", "kill -STOP $$; exit 6"], 0):(143) then prints:("\r\npaused: [c]ontinue  [k]ill\r\nsh stopped by idlaunch after 0.0 s\n")
+("/no/such/program", [], 0):(-1) then eprints:("idlaunch: cannot start program (error 2)\n")
+
+// Prints how the program ended (job_message) from the packed kind times 256 plus code job_follow
+// answered, and answers its exit status: the code, or 128 plus the signal when it was killed.
+job_say(string job_name, int job_packed, int job_tenths, int job_ended) {
+  int job_kind = job_packed / 256;
+  int job_code = job_packed % 256;
+  put(job_message(job_name, job_kind, job_code, job_tenths, job_ended) + "\n");
+} chain (string job_name, int job_packed, int job_tenths, int job_ended) {
+  flush();
+  int job_status = job_code + 128 * (job_kind == 1);
+} return int job_status;
+("hello", 3, 12, 0):(3) then prints:("hello exited with status 3 after 1.2 s\n")
+("hello", 265, 0, 0):(137) then prints:("hello was killed by signal 9 (KILL) after 0.0 s\n")
+("hello", 271, 25, 1):(143) then prints:("hello stopped by idlaunch after 2.5 s\n")
