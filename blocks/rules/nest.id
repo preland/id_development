@@ -1,0 +1,50 @@
+// id allows a call one level of call inside its argument and no more
+// (docs/SPEC.md 7.1): f(g(x)) is fine, f(g(h(x))) is not, so a block that
+// says say(f(g(x))) is a program id would reject. idc gives that mistake no
+// code, only its message, and so does the report. checker_depth counts the
+// deepest run of calls open at once; a bracket that follows a word is a call,
+// any other bracket only groups and adds no depth.
+
+checker_is_call(string[] block_texts, int block_position) {
+  int block_is_call = 0;
+  string block_before = lst_str_get_or(block_texts, block_position - 1, "");
+  if (block_position > 0 && model_is_name(block_before) == 1 && lst_str_index((import constant_control), block_before) < 0 && lst_str_index((import constant_free), block_before) < 0) {
+    block_is_call = 1;
+  }
+} return int block_is_call;
+(["say", "(", "x", ")"], 1):(1)
+(["if", "(", "x", ")"], 1):(0)
+(["a", "+", "(", "x", ")"], 2):(0)
+(["(", "x", ")"], 0):(0)
+(["return", "(", "x", ")"], 1):(0)
+
+checker_depth_token(int[] block_open, string[] block_texts, int block_position, int block_deepest) {
+  string block_token = block_texts[block_position];
+  int block_current = lst_get_or(block_open, len(block_open) - 1, 0);
+  int block_is_call = checker_is_call(block_texts, block_position);
+} chain (int[] block_open, string[] block_texts, int block_position, int block_deepest) {
+  if (block_token == "(") {
+    push(block_open, block_current + block_is_call);
+    block_deepest = fx_max(block_deepest, block_current + block_is_call);
+  } else if (block_token == ")" && len(block_open) > 0) {
+    pop(block_open);
+  }
+} return int block_deepest;
+([], ["f", "(", "x", ")"], 1, 0):(1)
+([1], ["f", "(", "g", "(", "x", ")", ")"], 3, 1):(2)
+([1, 2], ["f", "(", "g", "(", "x", ")", ")"], 5, 2):(2)
+([], ["x", ")"], 1, 0):(0)
+
+checker_depth(string[] block_texts) {
+  int[] block_open = [];
+  int block_deepest = 0;
+  int block_position = 0;
+} chain (string[] block_texts) {
+  while (block_position < len(block_texts)) {
+    block_deepest = checker_depth_token(block_open, block_texts, block_position, block_deepest);
+    block_position = block_position + 1;
+  }
+} return int block_deepest;
+(["say", "(", "f", "(", "g", "(", "x", ")", ")", ")"]):(3)
+(["f", "(", "g", "(", "x", ")", ")", "+", "h", "(", "y", ")"]):(2)
+([]):(0)

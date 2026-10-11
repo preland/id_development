@@ -1,0 +1,70 @@
+// An empty list literal as an argument of a user function. id gives it a
+// type only from a declaration, an assignment or a push, so an argument
+// position refuses it; the callee's parameter type says which list it is, and
+// the empty_* functions of the runtime make one. exporter_empty_piece
+// rewrites the two tokens of '[]' into the call 'empty_integers(0' and ')'.
+
+exporter_empty_type(string exporter_text_line, int exporter_number_at) {
+  int exporter_number_open = exporter_open_paren(exporter_text_line, exporter_number_at);
+  int exporter_number_type = 0 - 1;
+  int exporter_number_callee = 0 - 1;
+} chain (string exporter_text_line, int exporter_number_at) {
+  if (exporter_number_open >= 0) {
+    exporter_number_callee = lst_str_index((import model_function_names), exporter_before(exporter_text_line, exporter_number_open));
+  }
+  int exporter_number_argument = 0;
+  if (exporter_number_callee >= 0) {
+    exporter_number_argument = exporter_argument_index(exporter_text_line, exporter_number_open, exporter_number_at);
+    if (exporter_number_argument < (import model_function_parameter_count)[exporter_number_callee]) {
+      exporter_number_type = (import model_pat)[(import model_function_parameter_start)[exporter_number_callee] + exporter_number_argument];
+    }
+  }
+} chain (string exporter_text_line, int exporter_number_at) {
+  if (exporter_number_type <= (import constant_type_list)) {
+    exporter_number_type = 0 - 1;
+  }
+} return int exporter_number_type;
+given model_load("t.blk", "sprite S\nfn f(int a, float[] b) return void\nfn g(string[] c) return void") ("f(1, [])", 5):(5)
+given model_load("t.blk", "sprite S\nfn f(int a, float[] b) return void\nfn g(string[] c) return void") ("g([])", 2):(6)
+given model_load("t.blk", "sprite S\nfn f(int a, float[] b) return void\nfn g(string[] c) return void") ("f([], 1)", 2):(-1)
+given model_load("t.blk", "sprite S\nfn f(int a, float[] b) return void\nfn g(string[] c) return void") ("len([])", 4):(-1)
+given model_load("t.blk", "sprite S\nfn f(int a, float[] b) return void\nfn g(string[] c) return void") ("x = []", 4):(-1)
+given model_load("t.blk", "sprite S\nfn f(int a, float[] b) return void\nfn g(string[] c) return void") ("g(1, [])", 5):(-1)
+
+exporter_empty_start(string exporter_text_line, int exporter_number_scan) {
+  int exporter_number_start = 0 - 1;
+  int exporter_number_next = str_skip_space(exporter_text_line, exporter_number_scan + 1);
+  int exporter_number_previous = exporter_skip_back(exporter_text_line, exporter_number_scan - 1);
+} chain (string exporter_text_line, int exporter_number_scan) {
+  if (charat(exporter_text_line, exporter_number_scan) == 91 && exporter_number_next < len(exporter_text_line) && charat(exporter_text_line, exporter_number_next) == 93) {
+    exporter_number_start = exporter_number_scan;
+  }
+  if (charat(exporter_text_line, exporter_number_scan) == 93 && exporter_number_previous >= 0 && charat(exporter_text_line, exporter_number_previous) == 91) {
+    exporter_number_start = exporter_number_previous;
+  }
+} return int exporter_number_start;
+("g([])", 2):(2)
+("g([])", 3):(2)
+("g([ ])", 4):(2)
+("g([1])", 2):(-1)
+("g([1])", 4):(-1)
+
+exporter_empty_piece(string exporter_text_piece, string exporter_text_line, int exporter_number_scan) {
+  string exporter_text_result = exporter_text_piece;
+  int exporter_number_start = exporter_empty_start(exporter_text_line, exporter_number_scan);
+  int exporter_number_type = 0 - 1;
+} chain (string exporter_text_piece, string exporter_text_line, int exporter_number_scan) {
+  if (exporter_number_start >= 0) {
+    exporter_number_type = exporter_empty_type(exporter_text_line, exporter_number_start);
+  }
+  if (exporter_number_type >= 0 && exporter_text_piece == "[") {
+    exporter_text_result = (import constant_export_empty)[exporter_number_type] + "(" + (import constant_export_first)[exporter_number_type - (import constant_type_list)]
+  }
+  if (exporter_number_type >= 0 && exporter_text_piece == "]") {
+    exporter_text_result = ")";
+  }
+} return string exporter_text_result;
+given model_load("t.blk", "sprite S\nfn g(string[] c) return void") ("[", "g([])", 2):("empty_strings(\"a\"")
+given model_load("t.blk", "sprite S\nfn g(string[] c) return void") ("]", "g([])", 3):(")")
+given model_load("t.blk", "sprite S\nfn g(string[] c) return void") ("[", "g([1])", 2):("[")
+given model_load("t.blk", "sprite S\nfn g(string[] c) return void") ("[", "x = []", 4):("[")

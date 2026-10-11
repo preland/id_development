@@ -1,0 +1,24 @@
+// The walk of nest.id over one function's body: the first line whose calls
+// are nested more than two deep (a call, a call in its argument, a call in
+// that one's argument) is reported at its line, once for each such line.
+
+checker_nesting_line(string block_function_name, int block_line_index) {
+  string[] block_texts = lexer_tokens((import model_line_texts)[block_line_index]);
+  int block_deepest = checker_depth(block_texts);
+  if (block_deepest > 2) {
+    model_error((import model_line_numbers)[block_line_index], "", "a call in '" + block_function_name + "' has a call nested inside a call's argument; an argument may hold one level of call, not two -- name the inner call's result and pass the name");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn f() return void\n  say(f(g(x)))") ("f", 2):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn f() return void\n  say(f(x))") ("f", 2):() then len((import model_diagnostics)):(0)
+
+checker_nesting(int block_function_row) {
+  string block_function_name = (import model_function_names)[block_function_row];
+  int block_line_index = (import model_function_body_start)[block_function_row];
+  while (block_line_index < (import model_function_body_end)[block_function_row]) {
+    checker_nesting_line(block_function_name, block_line_index);
+    block_line_index = block_line_index + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn f() return void\n  say(f(g(x)))\n  say(f(g(h(y))))") (0):() then len((import model_diagnostics)):(2)
+given model_load("t.blk", "sprite S\nfn f() return void\n  x = f(g(1)) + h(2)") (0):() then len((import model_diagnostics)):(0)

@@ -1,0 +1,40 @@
+// Where an argument sits in a call, read off the text before it: the
+// parenthesis that opened the call and how many commas of that call precede
+// the argument. Brackets nest like parentheses, so a list literal's commas
+// are not the call's.
+
+exporter_depth_step(int exporter_number_character) {
+  int exporter_number_step = (exporter_number_character == 41 || exporter_number_character == 93) - (exporter_number_character == 40 || exporter_number_character == 91);
+} return int exporter_number_step;
+(41):(1)
+(40):(-1)
+(97):(0)
+
+exporter_open_paren(string exporter_text_line, int exporter_number_at) {
+  int exporter_number_depth = 0;
+  int exporter_number_position = exporter_number_at - 1;
+  while (exporter_number_position >= 0 && (exporter_number_depth > 0 || charat(exporter_text_line, exporter_number_position) != 40)) {
+    exporter_number_depth = exporter_number_depth + exporter_depth_step(charat(exporter_text_line, exporter_number_position));
+    exporter_number_position = exporter_number_position - 1;
+  }
+} return int exporter_number_position;
+("f(a, [])", 5):(1)
+("f(g(a), [])", 8):(1)
+("a + []", 4):(-1)
+("f(g(a), h(b, []))", 13):(9)
+
+exporter_argument_index(string exporter_text_line, int exporter_number_open, int exporter_number_at) {
+  int exporter_number_count = 0;
+  int exporter_number_depth = 0;
+  int exporter_number_position = exporter_number_open + 1;
+} chain (string exporter_text_line, int exporter_number_open, int exporter_number_at) {
+  while (exporter_number_position < exporter_number_at) {
+    exporter_number_depth = exporter_number_depth - exporter_depth_step(charat(exporter_text_line, exporter_number_position));
+    exporter_number_count = exporter_number_count + (charat(exporter_text_line, exporter_number_position) == 44 && exporter_number_depth == 0);
+    exporter_number_position = exporter_number_position + 1;
+  }
+} return int exporter_number_count;
+("f(a, [])", 1, 5):(1)
+("f([1, 2], [])", 1, 9):(1)
+("f(g(a, b), x, [])", 1, 14):(2)
+("f([])", 1, 2):(0)

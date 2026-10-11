@@ -1,0 +1,15 @@
+// A scratch directory for the cases of command_export that hold a file of
+// the given name, as an earlier export (conf.id) would leave one.
+
+command_taken_setup(string block_name) {
+  export string command_taken_path = fs_mktemp("blocks_taken_", 1);
+  exporter_put(command_taken_path + "/" + block_name, "");
+} return void export command_taken_path;
+("conf.id"):() then command_taken_read:(1)
+("other.id"):() then command_taken_read:(0)
+
+command_taken_read() {
+  int block_found = command_taken((import command_taken_path));
+} return int block_found;
+given command_taken_setup ("conf.id") ():(1)
+given command_taken_setup ("sub/x.id") ():(0)

@@ -62,7 +62,13 @@ model_initial() {
 
 model_error(int block_no, string block_code, string block_message) {
   string block_where = (import model_file)[0] + ":" + block_no;
-  push((import model_diagnostics), block_where + ": error: " + block_message + " [" + block_code + "]");
+  string block_suffix = "";
+  if (block_code != "") {
+    block_suffix = " [" + block_code + "]";
+  }
+} chain (int block_no, string block_code, string block_message) {
+  push((import model_diagnostics), block_where + ": error: " + block_message + block_suffix);
 } return void;
+given model_initial (3, "", "no code here"):() then (import model_diagnostics):(["input.blk:3: error: no code here"])
 given model_initial (3, "E0201", "too many"):() then (import model_diagnostics):(["input.blk:3: error: too many [E0201]"])
 given model_initial given model_error(1, "E0101", "a") (2, "E0102", "b"):() then len((import model_diagnostics)):(2)

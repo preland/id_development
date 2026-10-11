@@ -1,0 +1,15 @@
+// An empty list literal needs a typed place in id (a declaration), and the
+// argument of NAME_set is not one. A script that empties a list variable
+// (NAME = []) therefore calls NAME_clear, which declares the empty list with
+// its type and passes the name; the file exists only when some script does.
+
+exporter_assigns_clear(int exporter_number_variable) {
+  int exporter_number_found = 0;
+  int exporter_number_index = 0;
+  while (exporter_number_index < len((import model_line_texts))) {
+    exporter_number_found = exporter_number_found + ((import model_line_texts)[exporter_number_index] == (import model_variable_names)[exporter_number_variable] + " = []");
+    exporter_number_index = exporter_number_index + 1;
+  }
+} return int exporter_number_found;
+given model_load("t.blk", "sprite S\nvar float[] fs\nvar int[] xs\nfn f() return void\n  fs = []\n(): ()\n(1): ()") (0):(1)
+given model_load("t.blk", "sprite S\nvar float[] fs\nvar int[] xs\nfn f() return void\n  fs = []\n(): ()\n(1): ()") (1):(0)

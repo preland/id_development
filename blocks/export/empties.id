@@ -1,0 +1,37 @@
+// Whether the program has an empty list literal that exporter_empty_piece
+// rewrites, so the empty_* functions are written into the project only when a
+// script calls them.
+
+exporter_skip_back(string exporter_text_line, int exporter_number_position) {
+  int exporter_number_found = exporter_number_position;
+  while (exporter_number_found >= 0 && charat(exporter_text_line, exporter_number_found) == 32) {
+    exporter_number_found = exporter_number_found - 1;
+  }
+} return int exporter_number_found;
+("a  ", 2):(0)
+("ab", 1):(1)
+("  ", 1):(-1)
+
+exporter_line_empties(string exporter_text_line) {
+  int exporter_number_found = 0;
+  int exporter_number_position = str_find(exporter_text_line, "[");
+  while (exporter_number_position >= 0 && exporter_number_found == 0) {
+    int exporter_number_start = exporter_empty_start(exporter_text_line, exporter_number_position);
+    exporter_number_found = exporter_number_start >= 0 && exporter_empty_type(exporter_text_line, exporter_number_start) >= 0;
+    exporter_number_position = str_findat(exporter_text_line, "[", exporter_number_position + 1);
+  }
+} return int exporter_number_found;
+given model_load("t.blk", "sprite S\nfn g(string[] c) return void") ("g([])"):(1)
+given model_load("t.blk", "sprite S\nfn g(string[] c) return void") ("g([\"a\"])"):(0)
+given model_load("t.blk", "sprite S\nfn g(string[] c) return void") ("x = []"):(0)
+
+exporter_empties() {
+  int exporter_number_found = 0;
+  int exporter_number_index = 0;
+  while (exporter_number_index < len((import model_line_texts))) {
+    exporter_number_found = exporter_number_found + (exporter_line_empties((import model_line_texts)[exporter_number_index]) == 1 && str_starts((import model_line_texts)[exporter_number_index], "fn ") == 0);
+    exporter_number_index = exporter_number_index + 1;
+  }
+} return int exporter_number_found;
+given model_load("t.blk", "sprite S\nfn g(string[] c) return void\nfn h() return void\n  g([])\n(): ()\n(1): ()") ():(1)
+given model_load("t.blk", "sprite S\nfn g(string[] c) return void\nfn h() return void\n  g([\"a\"])\n(): ()\n(1): ()") ():(0)

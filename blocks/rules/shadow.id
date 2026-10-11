@@ -1,0 +1,23 @@
+// E0309: a variable is an export of the program that id reads with
+// (import NAME), so a parameter or a local of the same name would hide it
+// from the reader. The block tool refuses it where id does; checker_shadow
+// names the line and what kind of name it is, and the two walks below hand it
+// every parameter and every local declaration.
+
+checker_shadow(int block_no, string block_name_text, string block_what) {
+  if (lst_str_index((import model_variable_names), block_name_text) >= 0) {
+    model_error(block_no, "E0309", block_what + " '" + block_name_text + "' is named like a variable, which every function sees; read the variable by its name or give the " + block_what + " another name");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nvar int n") (2, "n", "parameter"):() then (import model_diagnostics):(["t.blk:2: error: parameter 'n' is named like a variable, which every function sees; read the variable by its name or give the parameter another name [E0309]"])
+given model_load("t.blk", "sprite S\nvar int n") (2, "m", "local"):() then len((import model_diagnostics)):(0)
+
+checker_shadow_parameters(int block_function_row) {
+  int block_position = (import model_function_parameter_start)[block_function_row];
+  while (block_position < (import model_function_parameter_start)[block_function_row] + (import model_function_parameter_count)[block_function_row]) {
+    checker_shadow((import model_function_line)[block_function_row], (import model_pan)[block_position], "parameter");
+    block_position = block_position + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nvar int n\nfn f(int n) return void") (0):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nvar int n\nfn f(int m, int k) return void") (0):() then len((import model_diagnostics)):(0)

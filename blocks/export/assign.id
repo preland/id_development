@@ -19,7 +19,12 @@ exporter_assignment(string exporter_text_line, int exporter_number_function) {
     string exporter_text_index = str_sub(exporter_text_left, len(exporter_text_head) + 1, len(exporter_text_left) - len(exporter_text_head) - 2);
     exporter_text_result = exporter_text_head + "_at(" + exporter_expression(exporter_text_index, exporter_number_function) + ", " + exporter_text_right + ");";
   }
+  if (exporter_number_global == 1 && exporter_text_left == exporter_text_head && exporter_text_right == "[]") {
+    exporter_text_result = exporter_text_head + "_clear();";
+  }
 } return string exporter_text_result;
+given model_load("t.blk", "sprite S\nvar int count\nvar float[] fs\nfn f() return void") ("fs = []", 0):("fs_clear();")
+given model_load("t.blk", "sprite S\nvar int count\nvar float[] fs\nfn f() return void") ("xs = []", 0):("xs = [];")
 given model_load("t.blk", "sprite S\nvar int count\nvar float[] fs\nfn f() return void") ("count = count + 1", 0):("count_set((import count) + 1);")
 given model_load("t.blk", "sprite S\nvar int count\nvar float[] fs\nfn f() return void") ("fs[1] = fs[0] + 1.0", 0):("fs_at(1, (import fs)[0] + 1.0);")
 given model_load("t.blk", "sprite S\nvar int count\nvar float[] fs\nfn f() return void") ("int r = 1", 0):("int r = 1;")

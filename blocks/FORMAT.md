@@ -125,6 +125,8 @@ with the code `idc` uses for the same mistake (`idc --explain CODE`).
 | E0301 / E0302 | undefined variable / a local declared twice in a function |
 | E0303 | one name, two types, across the whole program: variables, parameters and locals together |
 | E0304 | no such function |
+| E0309 | a parameter or a local named like a variable of the program (`examples/broken/e0309_shadow.blk`) |
+| (none) | a call nested more than one level inside a call's argument, `say(f(g(x)))` (SPEC 7.1): `idc` gives it no code, so the line has none (`examples/broken/nesting_call.blk`) |
 | E0401 | two functions with one name; or a function named like a builtin block |
 | E0402 | two functions with the same signature and logic, up to the names of parameters and locals |
 | E0407 | the same, up to the values of literals: the value should be a parameter |
@@ -273,7 +275,7 @@ idc/bin/idc OUT -o tour.bin                    # builds, and runs every case in 
 blocks.bin run examples/tour.blk | sed '/^-- state/,$d' | diff - golden/export_tour.out
 ```
 
-(`hello`, `counter`, `broadcast` and `tour` each have a `.tree` and `.out`
+(`hello`, `counter`, `broadcast`, `tour` and `empties` each have a `.tree` and `.out`
 golden.) What the program said is compared, not the final state `run` prints
 after it: the exported program does not print its sprites.
 
@@ -302,17 +304,19 @@ happens, never silently different, except where it says "differs"):
   or when the broadcaster says something after the broadcast: the machine
   interleaves the threads by frame, the exported program runs each to its end.
 * `wait(s)` is a real `sleep_ms`; the machine's 33 ms frame clock is not modelled.
-* `insert` and `delete` on a `float[]`: idstd has the helpers for int and string
-  lists only.
-* `NAME = []` and `f([])` for a list: id wants a typed context for an empty list
-  literal (a declaration), so the setter call is refused.
-* a block that holds three actions in `if`/`else` position where the added line
-  would cut between an `if` and its `else`, or a nested block that is full and
-  gains a line (a return of an expression inside an `if`): chain segments only
-  exist at the top of a function.
-* three levels of call in one argument (`say(f(g(x)))`) and a parameter or local
-  named like a variable: `blocks check` accepts both, id rejects both, so the
-  export fails to build. `check` should refuse them (its own rules, stage 2).
+* an empty list literal anywhere but a declaration, an assignment to a name, an
+  argument of a function of the program (`f([])`, written `f(empty_integers(1))`
+  from the parameter's type) or `NAME = []` on a variable of the program
+  (`NAME_clear()`): as an argument of a builtin (`push(xs, [])`) it stays `[]`
+  and `idc --check` refuses it (not tested here).
+* a nested block (an `if`, `else` or `while` body) that holds three actions and
+  gains a line in the export, which is a `return` of an expression
+  (`int result_integer = EXPR;` before the return): id's E0201 refuses it.
+  `idc --fix` has no repair for E0201 (it rewrites call nesting, return clauses,
+  narrowing and bitwise parentheses only), so there is no convention to mirror;
+  the same goes for an `if`/`else` pair of three actions that would need a chain
+  segment, which exist only at the top of a function. Pull the block into a
+  function in the `.blk`.
 * integers: the machine keeps an int in a float (exact to 2^53), the exported
   program in a 64-bit word; they differ only past that.
 * `main`'s `argc` and `argv` are the program's own when it runs; the cases pass the

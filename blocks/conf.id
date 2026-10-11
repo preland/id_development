@@ -424,8 +424,9 @@ string[] constant_export_result = ["", "result_integer", "result_float", "result
 string[] constant_export_first = ["", "1", "1.5", "\"a\""];
 string[] constant_export_second = ["", "2", "2.5", "\"b\""];
 string[] constant_export_third = ["", "3", "3.5", "\"c\""];
-string[] constant_export_insert = ["", "", "", "", "lst_insert", "insert", "lst_str_insert"];
-string[] constant_export_delete = ["", "", "", "", "lst_delete", "delete", "lst_str_delete"];
+string[] constant_export_insert = ["", "", "", "", "lst_insert", "lst_float_insert", "lst_str_insert"];
+string[] constant_export_delete = ["", "", "", "", "lst_delete", "lst_float_delete", "lst_str_delete"];
+string[] constant_export_empty = ["", "", "", "", "empty_integers", "empty_floats", "empty_strings"];
 string constant_export_states = "sprite_states";
 string constant_export_state_initial = "0.0, 0.0, 90.0, 100.0, 1.0, -1.0";
 string constant_export_motion_conf = "float motion_radians = 0.017453292519943295;\nfloat motion_snap = 1000000.0;\nfloat motion_turn = 360.0;\n";
@@ -433,6 +434,8 @@ string constant_template_set = "NAME_set(TYPE new_NAME) {\n  export TYPE NAME = 
 string constant_template_get = "NAME_get() {\n  TYPE old_NAME = (import NAME);\n  NAME_set(old_NAME);\n} return TYPE old_NAME;\ngiven NAME_set(FIRST) ():(FIRST)\ngiven NAME_set(SECOND) ():(SECOND)\n";
 string constant_template_initial = "TYPE initial_NAME = INITIAL;\nNAME_set(initial_NAME);";
 string constant_template_at = "NAME_at(int index_NAME, ELEMENT_TYPE value_NAME) {\n  TYPE alias_NAME = (import NAME);\n  alias_NAME[index_NAME] = value_NAME;\n} return void;\ngiven NAME_set([ELEMENT_ONE, ELEMENT_TWO]) (0, ELEMENT_THREE):() then NAME_get:([ELEMENT_THREE, ELEMENT_TWO])\ngiven NAME_set([ELEMENT_ONE, ELEMENT_TWO]) (1, ELEMENT_THREE):() then NAME_get:([ELEMENT_ONE, ELEMENT_THREE])\n";
+string constant_template_clear = "NAME_clear() {\n  TYPE empty_NAME = [];\n  NAME_set(empty_NAME);\n} return void;\ngiven NAME_set(FIRST) ():() then NAME_get:([])\ngiven NAME_set(SECOND) ():() then NAME_get:([])\n";
+string constant_runtime_empty = "empty_integers(int dropped_integer) {\n  int[] emptied_integers = [dropped_integer];\n  lst_delete(emptied_integers, 0);\n} return int[] emptied_integers;\n(0):([])\n(7):([])\n\nempty_floats(float dropped_float) {\n  float[] emptied_floats = [dropped_float];\n  lst_float_delete(emptied_floats, 0);\n} return float[] emptied_floats;\n(0.0):([])\n(7.5):([])\n\nempty_strings(string dropped_string) {\n  string[] emptied_strings = [dropped_string];\n  lst_str_delete(emptied_strings, 0);\n} return string[] emptied_strings;\n(\"\"):([])\n(\"a\"):([])\n";
 string constant_runtime_say = "say(string say_sprite, string say_text) {\n  print(say_sprite + \": \" + say_text);\n} return void;\n(\"Cat\", \"hi\"):() then prints:(\"Cat: hi\\n\")\n(\"Dog\", \"\"):() then prints:(\"Dog: \\n\")\n\nwait(float wait_seconds) {\n  int wait_milliseconds = wait_seconds * 1000.0;\n  sleep_ms(wait_milliseconds);\n} return void;\n(0.0):()\n(0.001):()\n";
 string constant_runtime_integer = "int_to_str(int convert_integer) {\n  string convert_text = \"\";\n  convert_text = convert_text + convert_integer;\n} return string convert_text;\n(5):(\"5\")\n(-12):(\"-12\")\n\nfloat_to_str(float convert_float) {\n  string convert_float_text = \"\" + convert_float;\n} return string convert_float_text;\n(2.5):(\"2.5\")\n(3.0):(\"3\")\n";
 string constant_runtime_float = "int_to_float(int convert_whole) {\n  float convert_widened = convert_whole;\n} return float convert_widened;\n(2):(2.0)\n(-1):(-1.0)\n\nfloat_to_int(float convert_fraction) {\n  int convert_truncated = convert_fraction;\n} return int convert_truncated;\n(2.9):(2)\n(-2.9):(-2)\n";

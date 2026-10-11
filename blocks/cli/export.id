@@ -14,10 +14,22 @@ command_export(string block_path, string[] block_argument_values) {
   if (block_state == 0) {
     block_state = command_report();
   }
+  if (block_state == 0 && command_taken(block_argument_values[3]) == 1) {
+    eprint("blocks: " + block_argument_values[3] + " already holds conf.id, so it is an earlier export or another project; export into a new directory\n");
+    block_state = 2;
+  }
   if (block_state == 0) {
     block_state = exporter_run(block_argument_values[3]);
   }
 } return int block_state;
+given fs_temp_text ("sprite S\nvar int x\nfn f() return void\n  x = 1\n(): ()\n(1): ()") given command_taken_setup ("conf.id") ((import fs_temp_path), ["blocks", "export", "p", (import command_taken_path)]):(2) then command_taken_drop:(1)
 ("/nonexistent/none.blk", ["blocks", "export", "/nonexistent/none.blk"]):(2) then eprints:("usage: blocks run FILE.blk [--frames N] | blocks check FILE.blk | blocks test FILE.blk | blocks edit FILE.blk [--script S.txt [--dump] [--boxes] [--render-after OUT.ppm]] | blocks render FILE.blk OUT.ppm [--size W H] | blocks export FILE.blk OUTDIR\n")
 ("/nonexistent/none.blk", ["blocks", "export", "/nonexistent/none.blk", "/proc/blocks_export_none"]):(2) then eprints:("blocks: cannot read /nonexistent/none.blk, or it is empty\n")
-given fs_temp_text ("sprite S\nfn f() return void\n  x = 1\n(): ()\n(1): ()") ((import fs_temp_path), ["blocks", "export", "p", "/proc/blocks_export_none"]):(1)
+given fs_temp_text ("sprite S\nvar int x\nfn f() return void\n  x = 1\n(): ()\n(1): ()") ((import fs_temp_path), ["blocks", "export", "p", "/proc/blocks_export_none"]):(1)
+
+command_taken(string block_directory) {
+  int block_taken = fs_exists(block_directory + "/conf.id");
+} return int block_taken;
+given command_taken_setup ("conf.id") ((import command_taken_path)):(1) then command_taken_drop:(1)
+given command_taken_setup ("other.id") ((import command_taken_path)):(0) then command_taken_drop:(1)
+("/proc/blocks_export_none"):(0)
