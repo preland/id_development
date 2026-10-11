@@ -7,15 +7,15 @@ ed_erase_txn(Doc d, Ctl ctl) {
 given fx_setup("abc|def") given fx_at(0, 1, 1, 2) ((import fxd), (import fxc)):((import fxd), (import fxc)) then fx_show:("af") then fx_sel:("0:1-0:1") then fx_hist:("u1 r0 o-1 n3")
 given fx_setup("abc") given fx_at(0, 1, 0, 1) ((import fxd), (import fxc)):((import fxd), (import fxc)) then fx_show:("abc") then fx_hist:("u0 r0 o-1 n0")
 
-// How many code points a Backspace (dir -1) or Delete (dir 1) takes at off in paragraph para: one, or with word 1 (Ctrl) up to the word boundary the word rule gives; none at the edge of the paragraph and none in a block the model does not edit.
-ed_key_n(Doc d, int para, int off, int word, int dir) {
+// How many code points a Backspace (dir -1) or Delete (dir 1) takes at off in paragraph para: one, or with by_word 1 (Ctrl) up to the word boundary the word rule gives; none at the edge of the paragraph and none in a block the model does not edit.
+ed_key_n(Doc d, int para, int off, int by_word, int dir) {
   Para p = d.body.paras[para];
   int to = fx_clamp(off + dir, 0, para_len(p));
-  if(word == 1 && dir < 0) {
+  if(by_word == 1 && dir < 0) {
     to = utf8_cps_word_prev(p.txt.cps, off);
   }
-} chain (Doc d, int para, int off, int word, int dir) {
-  if(word == 1 && dir > 0) {
+} chain (Doc d, int para, int off, int by_word, int dir) {
+  if(by_word == 1 && dir > 0) {
     to = utf8_cps_word_next(p.txt.cps, off);
   }
   int n = fx_max(to - off, off - to);
