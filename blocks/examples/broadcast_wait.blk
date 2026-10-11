@@ -1,0 +1,20 @@
+// main broadcasts "go" and then says "after"; the receiver counts the message,
+// waits a second and then says "done". The machine gives main the first turn,
+// so "after" comes before "done", and the exported program has to say them in
+// that order too.
+sprite Talk
+var int heard
+
+fn main(int argc, string[] argv) return int
+  broadcast("go")
+  say("after")
+  return 0
+(1, ["blocks"]): (0)
+(2, ["blocks", "x"]): (0)
+
+fn receiver() return void on "go"
+  heard = heard + 1
+  wait(1.0)
+  say("done")
+(): () then heard: (1)
+given heard = 4 (): () then heard: (5)

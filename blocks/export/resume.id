@@ -1,0 +1,65 @@
+// A later stage of a script as a function of its own, with the two cases id
+// requires. When every line of the stage is a say of two literals (or the
+// wait that ends it) the cases also check what the stage printed, which
+// exporter_spoken and exporter_printed work out from the lines; any other
+// line leaves the cases to run the stage only.
+
+exporter_spoken(string exporter_text_line) {
+  string exporter_text_spoken = "\n";
+  string exporter_text_inner = "";
+  if (str_starts(exporter_text_line, "  wait(") || exporter_set_name(exporter_text_line) != "") {
+    exporter_text_spoken = "";
+  }
+} chain (string exporter_text_line) {
+  if (str_starts(exporter_text_line, "  say(\"") && str_ends(exporter_text_line, "\");")) {
+    exporter_text_inner = str_sub(exporter_text_line, 7, len(exporter_text_line) - 10);
+    exporter_text_spoken = str_replace(exporter_text_inner, "\", \"", ": ") + "\\n";
+  }
+  if (str_find(exporter_text_spoken, "\"") >= 0) {
+    exporter_text_spoken = "\n";
+  }
+} return string exporter_text_spoken;
+given model_load("t.blk", "sprite S\nvar int n") ("  say(\"S\", \"hi\");"):("S: hi\\n")
+given model_load("t.blk", "sprite S\nvar int n") ("  say(\"S\", \"a\" + \"b\");"):("\n")
+given model_load("t.blk", "sprite S\nvar int n") ("  wait(1.0);"):("")
+given model_load("t.blk", "sprite S\nvar int n") ("  n_set(1);"):("")
+given model_load("t.blk", "sprite S\nvar int n") ("  x = 1;"):("\n")
+
+exporter_printed(string[] exporter_texts_lines) {
+  string exporter_text_printed = "";
+  int exporter_number_row = 0;
+  while (exporter_number_row < len(exporter_texts_lines)) {
+    exporter_text_printed = exporter_text_printed + exporter_spoken(exporter_texts_lines[exporter_number_row]);
+    exporter_number_row = exporter_number_row + 1;
+  }
+} chain (string[] exporter_texts_lines) {
+  if (str_find(exporter_text_printed, "\n") >= 0) {
+    exporter_text_printed = "";
+  }
+} return string exporter_text_printed;
+given model_load("t.blk", "sprite S\nvar int n") (["  say(\"S\", \"a\");", "  say(\"S\", \"b\");", "  wait(1.0);"]):("S: a\\nS: b\\n")
+given model_load("t.blk", "sprite S\nvar int n") (["  say(\"S\", \"a\");", "  n_set(1);"]):("S: a\\n")
+given model_load("t.blk", "sprite S\nvar int n") (["  say(\"S\", \"a\");", "  x = 1;"]):("")
+given model_load("t.blk", "sprite S\nvar int n") ([]):("")
+
+exporter_resume(int exporter_number_function, int exporter_number_stage) {
+  string[] exporter_texts_lines = exporter_script_lines(exporter_number_function, exporter_number_stage);
+  string exporter_text_printed = exporter_printed(exporter_texts_lines);
+  string[] exporter_texts_pins = exporter_pins(exporter_texts_lines);
+} chain (int exporter_number_function, int exporter_number_stage) {
+  string exporter_text_prefix = exporter_prefix(exporter_number_function, exporter_number_stage);
+  string exporter_text_one = exporter_text_prefix + "():()" + exporter_thens(exporter_texts_pins);
+  string exporter_text_two = exporter_text_prefix + exporter_others(exporter_texts_pins) + "given say(\"Case\", \"one\") ():()" + exporter_thens(exporter_texts_pins);
+} chain (int exporter_number_function, int exporter_number_stage) {
+  if (exporter_text_printed != "") {
+    exporter_text_one = exporter_text_one + " then prints:(\"" + exporter_text_printed + "\")";
+    exporter_text_two = exporter_text_two + " then prints:(\"" + exporter_text_printed + "\")";
+  }
+  string exporter_text_head = exporter_after(exporter_number_function, exporter_number_stage) + "() {\n" + exporter_chain(exporter_texts_lines, "");
+  string exporter_text_first = exporter_text_one + "\n";
+} chain (int exporter_number_function, int exporter_number_stage) {
+  string exporter_text_resume = exporter_text_head + "} return void;\n" + exporter_text_first + exporter_text_two + "\n";
+} return string exporter_text_resume;
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)\nfn a() return void on \"go\"\n  say(\"x\")\n  wait(1.0)\n  say(\"y\")\n(): ()\n(1): ()") (1, 1):("a_after_one() {\n  say(\"S\", \"y\");\n} return void;\ngiven schedule_initial ():() then prints:(\"S: y\\n\")\ngiven schedule_initial given say(\"Case\", \"one\") ():() then prints:(\"S: y\\n\")\n")
+given model_load("t.blk", "sprite S\nvar int n\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)\nfn a() return void on \"go\"\n  wait(1.0)\n  n = 2\n(): ()\n(1): ()") (1, 1):("a_after_one() {\n  n_set(2);\n} return void;\ngiven variables_start given schedule_initial ():() then n_get:(2)\ngiven variables_start given schedule_initial given n_set(21) given say(\"Case\", \"one\") ():() then n_get:(2)\n")
+given model_load("t.blk", "sprite S\nvar int n\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  wait(1.0)\n  n = 2\n  say(\"y\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)\nfn a() return void on \"go\"\n  say(\"x\")\n(): ()\n(1): ()") (0, 1):("main_after_one() {\n  n_set(2);\n  say(\"S\", \"y\");\n} return void;\ngiven variables_start given schedule_initial ():() then n_get:(2) then prints:(\"S: y\\n\")\ngiven variables_start given schedule_initial given n_set(21) given say(\"Case\", \"one\") ():() then n_get:(2) then prints:(\"S: y\\n\")\n")

@@ -1,0 +1,55 @@
+// Where a script yields. In a program that broadcasts, the exported scripts
+// run under a scheduler (runtime/schedule_*.id) that gives each live script one
+// turn per frame, as the machine does; a script that waits is cut into stages
+// at each wait of its top level, a stage being the lines up to and including
+// the next wait. exporter_waits finds the cuts in a script's lines and
+// exporter_stage returns the lines of one stage (none past the last).
+
+exporter_waits(string[] exporter_texts_lines) {
+  int[] exporter_numbers_rows = [];
+  int exporter_number_row = 0;
+  while (exporter_number_row < len(exporter_texts_lines)) {
+    if (str_starts(exporter_texts_lines[exporter_number_row], "  wait(")) {
+      push(exporter_numbers_rows, exporter_number_row);
+    }
+    exporter_number_row = exporter_number_row + 1;
+  }
+} return int[] exporter_numbers_rows;
+(["  a();", "  wait(1.0);", "  b();", "  wait(2.0);"]):([1, 3])
+(["  a();", "    wait(1.0);"]):([])
+
+exporter_stage(string[] exporter_texts_lines, int exporter_number_stage) {
+  int[] exporter_numbers_rows = exporter_waits(exporter_texts_lines);
+  int exporter_number_from = len(exporter_texts_lines);
+  int exporter_number_to = len(exporter_texts_lines);
+} chain (string[] exporter_texts_lines, int exporter_number_stage) {
+  if (exporter_number_stage == 0) {
+    exporter_number_from = 0;
+  }
+  if (exporter_number_stage > 0 && exporter_number_stage <= len(exporter_numbers_rows)) {
+    exporter_number_from = exporter_numbers_rows[exporter_number_stage - 1] + 1;
+  }
+  if (exporter_number_stage < len(exporter_numbers_rows)) {
+    exporter_number_to = exporter_numbers_rows[exporter_number_stage] + 1;
+  }
+} chain (string[] exporter_texts_lines, int exporter_number_stage) {
+  string[] exporter_texts_part = [];
+  int exporter_number_row = exporter_number_from;
+  while (exporter_number_row < exporter_number_to) {
+    push(exporter_texts_part, exporter_texts_lines[exporter_number_row]);
+    exporter_number_row = exporter_number_row + 1;
+  }
+} return string[] exporter_texts_part;
+(["  a();", "  wait(1.0);", "  b();"], 0):(["  a();", "  wait(1.0);"])
+(["  a();", "  wait(1.0);", "  b();"], 1):(["  b();"])
+(["  a();", "  wait(1.0);", "  b();"], 2):([])
+(["  a();"], 0):(["  a();"])
+
+exporter_after(int exporter_number_function, int exporter_number_stage) {
+  string exporter_text_name = (import model_function_names)[exporter_number_function];
+  if (exporter_number_stage > 0) {
+    exporter_text_name = exporter_text_name + "_after_" + (import constant_export_ordinals)[exporter_number_stage];
+  }
+} return string exporter_text_name;
+given model_load("t.blk", "sprite S\nfn later() return void") (0, 0):("later")
+given model_load("t.blk", "sprite S\nfn later() return void") (0, 2):("later_after_two")

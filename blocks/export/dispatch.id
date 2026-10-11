@@ -1,0 +1,53 @@
+// The one place that knows which function is which script. schedule_dispatch
+// (runtime/schedule_dispatch.id) is given a script (the row of its function in
+// the program) and a stage and calls the function of that stage; the
+// scheduler (conf.id, constant_runtime_schedule_texts) knows nothing else
+// about the program, so how scripts are run can change without touching this.
+// exporter_schedule adds all of it when the program broadcasts.
+
+exporter_entry(string[] exporter_texts_lines, int exporter_number_function, int exporter_number_stage) {
+  string[] exporter_texts_part = exporter_script_lines(exporter_number_function, exporter_number_stage);
+  string exporter_text_target = exporter_after(exporter_number_function, exporter_number_stage);
+  if (len(exporter_texts_part) > 0 && ((import model_function_message)[exporter_number_function] != "" || ((import model_function_names)[exporter_number_function] == "main" && exporter_number_stage > 0))) {
+    push(exporter_texts_lines, "  if (schedule_script == " + exporter_number_function + " && schedule_stage == " + exporter_number_stage +") {");
+    push(exporter_texts_lines, "    " + exporter_text_target + "();");
+    push(exporter_texts_lines, "  }");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)\nfn a() return void on \"go\"\n  say(\"x\")\n  wait(1.0)\n  say(\"y\")\n(): ()\n(1): ()") ([], 1, 1):(["  if (schedule_script == 1 && schedule_stage == 1) {", "    a_after_one();", "  }"])
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)\nfn a() return void on \"go\"\n  say(\"x\")\n  wait(1.0)\n  say(\"y\")\n(): ()\n(1): ()") ([], 1, 2):([])
+given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\n  say(\"x\")\n(): ()\n(1): ()\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  wait(1.0)\n  say(\"y\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)") ([], 1, 1):(["  if (schedule_script == 1 && schedule_stage == 1) {", "    main_after_one();", "  }"])
+given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\n  say(\"x\")\n(): ()\n(1): ()\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  wait(1.0)\n  say(\"y\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)") ([], 1, 0):([])
+
+exporter_dispatch() {
+  string[] exporter_texts_lines = [];
+  int exporter_number_function = 0;
+  while (exporter_number_function < len((import model_function_names))) {
+    int exporter_number_stage = 0;
+    while (exporter_number_stage < len((import constant_export_ordinals))) {
+      exporter_entry(exporter_texts_lines, exporter_number_function, exporter_number_stage);
+      exporter_number_stage = exporter_number_stage + 1;
+    }
+    exporter_number_function = exporter_number_function + 1;
+  }
+} chain () {
+  string exporter_text_head = "schedule_dispatch(int schedule_script, int schedule_stage) {\n" + exporter_chain(exporter_texts_lines, "int schedule_script, int schedule_stage") + "} return void;\n";
+  string exporter_text_file = exporter_text_head + "given schedule_initial (-1, 0):() then (import schedule_table):([0, -1, 0, 0, 1, 0])\ngiven schedule_initial (-2, 1):() then (import schedule_table):([0, -1, 0, 0, 1, 0])\n";
+  exporter_add("runtime/schedule_dispatch.id", exporter_text_file);
+} return void;
+given exporter_initial given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)\nfn a() return void on \"go\"\n  say(\"x\")\n(): ()\n(1): ()") ():() then (import exporter_paths):(["runtime/schedule_dispatch.id"])
+given exporter_initial given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)\nfn a() return void on \"go\"\n  say(\"x\")\n(): ()\n(1): ()") ():() then (import exporter_contents):(["schedule_dispatch(int schedule_script, int schedule_stage) {\n  if (schedule_script == 1 && schedule_stage == 0) {\n    a();\n  }\n} return void;\ngiven schedule_initial (-1, 0):() then (import schedule_table):([0, -1, 0, 0, 1, 0])\ngiven schedule_initial (-2, 1):() then (import schedule_table):([0, -1, 0, 0, 1, 0])\n"])
+
+exporter_schedule() {
+  int exporter_number_index = 0;
+  if (exporter_uses("broadcast") == 1) {
+    exporter_dispatch();
+    exporter_resumes();
+  }
+  while (exporter_number_index < len((import constant_runtime_schedule_paths)) && exporter_uses("broadcast") == 1) {
+    exporter_add((import constant_runtime_schedule_paths)[exporter_number_index], (import constant_runtime_schedule_texts)[exporter_number_index]);
+    exporter_number_index = exporter_number_index + 1;
+  }
+} return void;
+given exporter_initial given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)\nfn a() return void on \"go\"\n  say(\"x\")\n(): ()\n(1): ()") ():() then (import exporter_paths):(["runtime/schedule_dispatch.id", "runtime/schedule_initial.id", "runtime/schedule_tick.id", "runtime/schedule_frame.id", "runtime/schedule_main.id"])
+given exporter_initial given model_load("t.blk", "sprite S\nfn a() return void\n  say(\"x\")\n(): ()\n(1): ()") ():() then (import exporter_paths):([])

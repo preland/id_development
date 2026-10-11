@@ -16,7 +16,7 @@ is in it).
 | `bkv_` | the virtual machine, scheduler, `show` and `dump` | `vm/` |
 | `bkr_` | running a program and its test cases (generated `.blk` text) | `run/` |
 | `bkx_` | the command line | `cli/` |
-| `exporter_` | the export to id (`blocks export`): the tree of files, each function's id text, the variables' setters and getters, the runtime texts. Its constants are `constant_export_*`, `constant_template_*` and `constant_runtime_*`; its parameters and locals are `exporter_text_*` (string), `exporter_number_*` (int), `exporter_texts_*` (string[]) | `export/` |
+| `exporter_` | the export to id (`blocks export`): the tree of files, each function's id text, the variables' setters and getters, the runtime texts, the refusals (`exporter_refuse*`, in `refuse_*.id`) and the pins (`exporter_pin*`). Its constants are `constant_export_*`, `constant_template_*` and `constant_runtime_*`; its parameters and locals are `exporter_text_*` (string), `exporter_number_*` (int), `exporter_texts_*` (string[]) | `export/` |
 | `bke_` | the block editor: the document as lines, its layout, the palette, the session and its reducer, the painting, the window loop, the script replay | `edit/doc`, `edit/lay`, `edit/pal`, `edit/ses`, `edit/paint`, `edit/win`, `edit/script` |
 
 Exported tables (declared by an init function, read as `(import NAME)`):

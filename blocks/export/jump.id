@@ -24,12 +24,12 @@ exporter_handlers(string exporter_text_message) {
   int exporter_number_row = 0;
   while (exporter_number_row < len((import model_function_names))) {
     if ((import model_function_message)[exporter_number_row] == exporter_text_message) {
-      exporter_text_calls = exporter_text_calls + (import model_function_names)[exporter_number_row] + "();\n";
+      exporter_text_calls = exporter_text_calls + "schedule_spawn(" + exporter_number_row + ");\n";
     }
     exporter_number_row = exporter_number_row + 1;
   }
 } return string exporter_text_calls;
-given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\nfn b() return void\nfn c() return void on \"go\"") ("go"):("a();\nc();\n")
+given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\nfn b() return void\nfn c() return void on \"go\"") ("go"):("schedule_spawn(0);\nschedule_spawn(2);\n")
 given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\nfn b() return void") ("stop"):("")
 
 exporter_broadcast(string exporter_text_line, int exporter_number_function) {
@@ -39,6 +39,6 @@ exporter_broadcast(string exporter_text_line, int exporter_number_function) {
     exporter_text_result = exporter_handlers(exporter_text_message);
   }
 } return string exporter_text_result;
-given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\nfn b() return void") ("broadcast(\"go\")", 1):("a();\n")
+given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\nfn b() return void") ("broadcast(\"go\")", 1):("schedule_spawn(0);\n")
 given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\nfn b() return void") ("broadcast(\"stop\")", 1):("")
 given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\nfn b() return void") ("broadcast(m)", 1):("broadcast(m);")

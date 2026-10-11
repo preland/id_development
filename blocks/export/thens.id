@@ -1,0 +1,32 @@
+// All the pins of a stage as case clauses: exporter_thens reads each back,
+// exporter_others (the givens of the second case) first sets each to another
+// value.
+
+exporter_pin_other(string exporter_text_pin) {
+  string[] exporter_texts_parts = str_split(exporter_text_pin, "\n");
+  string exporter_text_given = "given " + exporter_texts_parts[0] + "_set(" + exporter_other(exporter_texts_parts[1]) + ") ";
+} return string exporter_text_given;
+("n\n2"):("given n_set(21) ")
+("words\n\"a\""):("given words_set(\"a1\") ")
+
+exporter_thens(string[] exporter_texts_pins) {
+  string exporter_text_thens = "";
+  int exporter_number_row = 0;
+  while (exporter_number_row < len(exporter_texts_pins)) {
+    exporter_text_thens = exporter_text_thens + exporter_pin_then(exporter_texts_pins[exporter_number_row]);
+    exporter_number_row = exporter_number_row + 1;
+  }
+} return string exporter_text_thens;
+(["n\n2", "m\n3"]):(" then n_get:(2) then m_get:(3)")
+([]):("")
+
+exporter_others(string[] exporter_texts_pins) {
+  string exporter_text_others = "";
+  int exporter_number_row = 0;
+  while (exporter_number_row < len(exporter_texts_pins)) {
+    exporter_text_others = exporter_text_others + exporter_pin_other(exporter_texts_pins[exporter_number_row]);
+    exporter_number_row = exporter_number_row + 1;
+  }
+} return string exporter_text_others;
+(["n\n2", "m\n3"]):("given n_set(21) given m_set(31) ")
+([]):("")

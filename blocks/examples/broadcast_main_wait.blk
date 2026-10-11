@@ -1,0 +1,28 @@
+// main waits as well as the receiver: its late line comes between the
+// receiver's lines in the order the machine's clock gives them (before at
+// once, main late at half a second, done at a second).
+sprite Talk
+var int heard
+
+fn main(int argc, string[] argv) return int
+  start()
+  wait(0.5)
+  say("main " + "late")
+  return 0
+(1, ["blocks"]): (0)
+(2, ["blocks", "x"]): (0)
+
+fn start() return void
+  broadcast("go")
+  say("before")
+(): ()
+given heard = 4 (): ()
+
+sprite Listener
+
+fn receiver() return void on "go"
+  heard = heard + 1
+  wait(1.0)
+  say("done")
+(): () then heard: (1)
+given heard = 4 (): () then heard: (5)

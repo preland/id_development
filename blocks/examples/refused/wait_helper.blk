@@ -1,0 +1,22 @@
+// Export refuses: a function that is neither main nor a receiver waits.
+sprite S
+var int heard
+var string msg
+
+fn main(int argc, string[] argv) return int
+  broadcast("go")
+  pause()
+  return 0
+(1, ["blocks"]): (0)
+(2, ["blocks", "x"]): (0)
+
+fn pause() return void
+  heard = heard + 1
+  wait(1.0)
+(): () then heard: (1)
+given heard = 4 (): () then heard: (5)
+
+fn a() return void on "go"
+  heard = heard + 2
+(): () then heard: (2)
+given heard = 4 (): () then heard: (6)

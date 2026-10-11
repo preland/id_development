@@ -1,0 +1,46 @@
+// The shape of an exported function, the text idc compares: its parameter
+// types, its return type and its lines with every literal made the same. Two
+// stages or functions with one shape are one function written twice.
+
+exporter_shape_line(string exporter_text_line) {
+  string[] exporter_texts_tokens = lexer_tokens(exporter_text_line);
+  string exporter_text_shape = "";
+  int exporter_number_token = 0;
+} chain (string exporter_text_line) {
+  while (exporter_number_token < len(exporter_texts_tokens)) {
+    exporter_text_shape = exporter_text_shape + exporter_shape_token(exporter_texts_tokens[exporter_number_token]) + " ";
+    exporter_number_token = exporter_number_token + 1;
+  }
+} return string exporter_text_shape;
+("  say(\"S\", \"hi\");"):("say ( 0 , 0 ) ; ")
+("  n_set(3);"):("n_set ( 0 ) ; ")
+(""):("")
+
+exporter_shape(string[] exporter_texts_lines) {
+  string exporter_text_shape = "";
+  int exporter_number_row = 0;
+  while (exporter_number_row < len(exporter_texts_lines)) {
+    exporter_text_shape = exporter_text_shape + exporter_shape_line(exporter_texts_lines[exporter_number_row]) + "|";
+    exporter_number_row = exporter_number_row + 1;
+  }
+} return string exporter_text_shape;
+(["  n_set(1);", "  wait(2.0);"]):("n_set ( 0 ) ; |wait ( 0 ) ; |")
+([]):("")
+
+exporter_key(int exporter_number_function, int exporter_number_stage) {
+  string exporter_text_key = exporter_types(exporter_number_function, exporter_number_stage);
+  string exporter_text_tail = "void";
+  int exporter_number_space = 0;
+} chain (int exporter_number_function, int exporter_number_stage) {
+  if (exporter_number_stage == 0) {
+    exporter_text_tail = exporter_tail(exporter_number_function);
+  }
+  exporter_number_space = str_find(exporter_text_tail, " ");
+  if (exporter_number_space > 0) {
+    exporter_text_tail = str_sub(exporter_text_tail, 0, exporter_number_space);
+  }
+} chain (int exporter_number_function, int exporter_number_stage) {
+  exporter_text_key = exporter_text_key + exporter_text_tail + ">" + exporter_shape(exporter_script_lines(exporter_number_function, exporter_number_stage));
+} return string exporter_text_key;
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)\nfn a() return void on \"go\"\n  say(\"x\")\n  wait(1.0)\n  say(\"y\")\n(): ()\n(1): ()") (1, 0):("void>say ( 0 , 0 ) ; |wait ( 0 ) ; |")
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)\nfn a() return void on \"go\"\n  say(\"x\")\n  wait(1.0)\n  say(\"y\")\n(): ()\n(1): ()") (1, 1):("void>say ( 0 , 0 ) ; |")

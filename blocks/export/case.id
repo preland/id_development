@@ -22,12 +22,9 @@ exporter_clauses(string[] exporter_texts_entries, string exporter_text_tag) {
 
 exporter_case(string exporter_text_line, int exporter_number_function) {
   string[] exporter_texts_entries = runner_parse(lexer_tokens(exporter_text_line));
-  string exporter_text_start = "";
-  if ((import model_function_names)[exporter_number_function] != "main" && len((import model_variable_names)) > 0) {
-    exporter_text_start = "given variables_start ";
-  }
-} chain (string exporter_text_line, int exporter_number_function) {
+  string exporter_text_start = exporter_prefix(exporter_number_function, 0);
   string exporter_text_arguments = exporter_tidy(runner_pick(exporter_texts_entries, "A|", ""));
+} chain (string exporter_text_line, int exporter_number_function) {
   string exporter_text_expected = exporter_tidy(runner_pick(exporter_texts_entries, "E|", ""));
   string exporter_text_case = exporter_text_start + exporter_clauses(exporter_texts_entries, "G|") + "(" + exporter_text_arguments + "):(" + exporter_text_expected + ")" + exporter_clauses(exporter_texts_entries, "T|");
 } return string exporter_text_case;

@@ -1,0 +1,32 @@
+// A parameter is a local that the caller declares: one the script uses after a
+// wait lives across it, and the stage after the wait, a function of its own
+// with no parameters, would not know the name (idc: undefined name). So the
+// refusal about locals (refuse_local.id) has a twin for the parameters, and
+// exporter_refuse_across applies both to a function.
+
+exporter_refuse_parameter(int exporter_number_function, int exporter_number_index) {
+  string exporter_text_name = (import model_pan)[(import model_function_parameter_start)[exporter_number_function] + exporter_number_index];
+  int exporter_number_wait = exporter_wait_after(exporter_number_function, (import model_function_body_start)[exporter_number_function] - 1);
+  if (exporter_number_wait >= 0 && exporter_used_after(exporter_number_function, exporter_text_name, exporter_number_wait + 1) > 0) {
+    model_error((import model_line_numbers)[exporter_number_wait], "", "parameter '" + exporter_text_name + "' of '" + (import model_function_names)[exporter_number_function] + "' lives across a 'wait' and cannot be exported: each stage after a wait is a function of its own and does not see it -- keep the value in a variable of the sprite, set before the wait");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  wait(1.0)\n  say(int_to_str(argc))\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)") (0, 0):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  say(int_to_str(argc))\n  wait(1.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)") (0, 0):() then len((import model_diagnostics)):(0)
+
+exporter_refuse_parameters(int exporter_number_function) {
+  int exporter_number_index = 0;
+  while (exporter_number_index < (import model_function_parameter_count)[exporter_number_function]) {
+    exporter_refuse_parameter(exporter_number_function, exporter_number_index);
+    exporter_number_index = exporter_number_index + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  wait(1.0)\n  say(int_to_str(argc))\n  say(argv[0])\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)") (0):() then len((import model_diagnostics)):(2)
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  wait(1.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)") (0):() then len((import model_diagnostics)):(0)
+
+exporter_refuse_across(int exporter_number_function) {
+  exporter_refuse_locals(exporter_number_function);
+  exporter_refuse_parameters(exporter_number_function);
+} return void;
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  int n = 0\n  broadcast(\"go\")\n  wait(1.0)\n  say(int_to_str(n + argc))\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)") (0):() then len((import model_diagnostics)):(2)
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  wait(1.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)") (0):() then len((import model_diagnostics)):(0)

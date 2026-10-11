@@ -1,0 +1,21 @@
+// Export refuses: the part of a after its wait only calls b, which idc rejects as a pure forwarder.
+sprite S
+var int heard
+
+fn main(int argc, string[] argv) return int
+  broadcast("go")
+  return 0
+(1, ["blocks"]): (0)
+(2, ["blocks", "x"]): (0)
+
+fn a() return void on "go"
+  heard = heard + 1
+  wait(1.0)
+  b()
+(): () then heard: (1)
+given heard = 4 (): () then heard: (5)
+
+fn b() return void
+  say("late")
+(): ()
+given heard = 4 (): ()

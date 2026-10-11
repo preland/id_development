@@ -1,0 +1,30 @@
+// The other lines the scheduler cannot reproduce. A broadcast whose message
+// is not written out cannot be turned into the calls of its receivers when
+// the program is exported. The machine ends a thread's turn at the end of
+// every iteration of a while, so the scripts that run on messages interleave
+// with it, and the exported program, which runs a script's stage to its end,
+// would not: while is refused in a program that has such scripts.
+
+exporter_threaded() {
+  int exporter_number_threaded = str_join((import model_function_message), "") != "";
+} return int exporter_number_threaded;
+given model_load("t.blk", "sprite S\nfn a() return void on \"go\"") ():(1)
+given model_load("t.blk", "sprite S\nfn a() return void") ():(0)
+
+exporter_refuse_broadcast(int exporter_number_function, int exporter_number_line) {
+  string exporter_text_line = str_trim((import model_line_texts)[exporter_number_line]);
+  if (str_starts(exporter_text_line, "broadcast(") && str_starts(exporter_text_line, "broadcast(\"") == 0) {
+    model_error((import model_line_numbers)[exporter_number_line], "", "'broadcast' in '" + (import model_function_names)[exporter_number_function] + "' does not name its message in quotes, so it cannot be exported: the exported program starts the receivers the program names -- write the message as a literal");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nvar string m\nfn f() return void\n  broadcast(m)") (0, 3):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn f() return void\n  broadcast(\"go\")") (0, 2):() then len((import model_diagnostics)):(0)
+
+exporter_refuse_while(int exporter_number_function, int exporter_number_line) {
+  string exporter_text_line = str_trim((import model_line_texts)[exporter_number_line]);
+  if (str_starts(exporter_text_line, "while ") && exporter_threaded() == 1) {
+    model_error((import model_line_numbers)[exporter_number_line], "", "'while' in '" + (import model_function_names)[exporter_number_function] + "' cannot be exported from a program whose scripts run on messages: the machine gives the other scripts a turn at the end of each iteration and the exported program does not -- remove the loop, or run the program with blocks run");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\nfn f() return void\n  while x < 3\n    x = x + 1") (1, 3):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn f() return void\n  while x < 3\n    x = x + 1") (0, 2):() then len((import model_diagnostics)):(0)

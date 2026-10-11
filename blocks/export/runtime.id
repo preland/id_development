@@ -4,7 +4,7 @@
 // floats and text, and the motion blocks with the constants they read.
 
 exporter_runtime() {
-  if (exporter_uses("say") == 1 || exporter_uses("wait") == 1) {
+  if ((exporter_uses("say") == 1 || exporter_uses("wait") == 1) && exporter_uses("broadcast") == 0) {
     exporter_add("runtime/say.id", (import constant_runtime_say));
   }
   if (exporter_uses("int_to_str") == 1 || exporter_uses("float_to_str") == 1) {
@@ -14,6 +14,9 @@ exporter_runtime() {
     exporter_add("runtime/int_to_float.id", (import constant_runtime_float));
   }
 } chain () {
+  if ((exporter_uses("say") == 1 || exporter_uses("wait") == 1) && exporter_uses("broadcast") == 1) {
+    exporter_add("runtime/say.id", (import constant_runtime_say_scheduled));
+  }
   if (exporter_empties() > 0) {
     exporter_add("runtime/empty.id", (import constant_runtime_empty));
   }

@@ -1,0 +1,23 @@
+// Export refuses: the parts of a and c after their waits differ only in a text, which idc rejects (E0407).
+sprite S
+var int heard
+
+fn main(int argc, string[] argv) return int
+  broadcast("go")
+  return 0
+(1, ["blocks"]): (0)
+(2, ["blocks", "x"]): (0)
+
+fn a() return void on "go"
+  heard = heard + 1
+  wait(1.0)
+  say("one")
+(): () then heard: (1)
+given heard = 4 (): () then heard: (5)
+
+fn c() return void on "go"
+  heard = 0
+  wait(1.0)
+  say("two")
+(): () then heard: (0)
+given heard = 4 (): () then heard: (0)

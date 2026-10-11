@@ -1,0 +1,55 @@
+// The lines and names of a script under the scheduler. A program that
+// broadcasts runs main's first stage and then the scheduler (schedule_run,
+// given main's row so that a main that waits can be resumed), so main gains
+// that call; main and every script that runs on a message are exported one
+// stage at a time (waits.id), the first stage under the script's own name and
+// a later one as NAME_after_ORDINAL. The value main returns is worked out in
+// its first stage (the export refuses a main that waits and returns anything
+// but a literal). Every case of such a program starts the scheduler's table
+// (schedule_initial), as it starts the variables.
+
+exporter_main_lines(string[] exporter_texts_lines, int exporter_number_function, int exporter_number_stage) {
+  string exporter_text_declaration = exporter_declaration(exporter_returned(exporter_number_function), exporter_number_function);
+  if (exporter_text_declaration != "") {
+    pop(exporter_texts_lines);
+  }
+  exporter_texts_lines = exporter_stage(exporter_texts_lines, exporter_number_stage);
+} chain (string[] exporter_texts_lines, int exporter_number_function, int exporter_number_stage) {
+  if (exporter_number_stage == 0) {
+    exporter_push(exporter_texts_lines, 1, exporter_text_declaration);
+    push(exporter_texts_lines, "  schedule_run(" + exporter_number_function + ");");
+  }
+} return string[] exporter_texts_lines;
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  wait(1.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)") (["  schedule_initial();", "  wait(1.0);", "  say(\"S\", \"y\");"], 0, 0):(["  schedule_initial();", "  wait(1.0);", "  schedule_run(0);"])
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  wait(1.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)") (["  schedule_initial();", "  wait(1.0);", "  say(\"S\", \"y\");"], 0, 1):(["  say(\"S\", \"y\");"])
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  wait(1.0)\n  return argc + 1\n(1, [\"x\"]): (2)\n(2, [\"x\"]): (3)") (["  wait(1.0);", "  int result_integer = argc + 1;"], 0, 0):(["  wait(1.0);", "  int result_integer = argc + 1;", "  schedule_run(0);"])
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  wait(1.0)\n  return argc + 1\n(1, [\"x\"]): (2)\n(2, [\"x\"]): (3)") (["  wait(1.0);", "  int result_integer = argc + 1;"], 0, 1):([])
+
+exporter_script_lines(int exporter_number_function, int exporter_number_stage) {
+  string[] exporter_texts_lines = exporter_lines(exporter_number_function);
+  if ((import model_function_names)[exporter_number_function] == "main" && exporter_uses("broadcast") == 1) {
+    exporter_texts_lines = exporter_main_lines(exporter_texts_lines, exporter_number_function, exporter_number_stage);
+  }
+  if ((import model_function_message)[exporter_number_function] != "" && exporter_uses("broadcast") == 1) {
+    exporter_texts_lines = exporter_stage(exporter_texts_lines, exporter_number_stage);
+  }
+} return string[] exporter_texts_lines;
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)\nfn a() return void on \"go\"\n  say(\"x\")\n  wait(1.0)\n  say(\"y\")\n(): ()\n(1): ()") (0, 0):(["  schedule_initial();", "  schedule_spawn(1);", "  schedule_run(0);"])
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)\nfn a() return void on \"go\"\n  say(\"x\")\n  wait(1.0)\n  say(\"y\")\n(): ()\n(1): ()") (1, 0):(["  say(\"S\", \"x\");", "  wait(1.0);"])
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)\nfn a() return void on \"go\"\n  say(\"x\")\n  wait(1.0)\n  say(\"y\")\n(): ()\n(1): ()") (1, 1):(["  say(\"S\", \"y\");"])
+
+exporter_prefix(int exporter_number_function, int exporter_number_stage) {
+  string exporter_text_prefix = "";
+  int exporter_number_applies = (import model_function_names)[exporter_number_function] != "main" || exporter_number_stage > 0;
+  if (exporter_number_applies == 1 && len((import model_variable_names)) > 0) {
+    exporter_text_prefix = "given variables_start ";
+  }
+} chain (int exporter_number_function, int exporter_number_stage) {
+  if (exporter_number_applies == 1 && exporter_uses("broadcast") == 1) {
+    exporter_text_prefix = exporter_text_prefix + "given schedule_initial ";
+  }
+} return string exporter_text_prefix;
+given model_load("t.blk", "sprite S\nvar int n\nfn f() return void\n  broadcast(\"go\")\n(): ()\n(1): ()") (0, 0):("given variables_start given schedule_initial ")
+given model_load("t.blk", "sprite S\nfn g() return void\n  say(\"x\")\n(): ()\n(1): ()") (0, 0):("")
+given model_load("t.blk", "sprite S\nvar int n\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)") (0, 0):("")
+given model_load("t.blk", "sprite S\nvar int n\nfn main(int argc, string[] argv) return int\n  broadcast(\"go\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)") (0, 1):("given variables_start given schedule_initial ")

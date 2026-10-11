@@ -1,0 +1,42 @@
+// Which sets of a stage can be pinned: the last set of a variable, when it
+// is a literal (a number, or a string with no quote inside). A pin is the
+// variable's name and the literal, a line apart in one text.
+
+exporter_literal(string exporter_text_value) {
+  int exporter_number_literal = exporter_digits(exporter_text_value);
+  string exporter_text_inner = "\"";
+  if (len(exporter_text_value) >= 2 && str_starts(exporter_text_value, "\"") && str_ends(exporter_text_value, "\"")) {
+    exporter_text_inner = str_sub(exporter_text_value, 1, len(exporter_text_value) - 2);
+  }
+} chain (string exporter_text_value) {
+  if (str_find(exporter_text_inner, "\"") < 0) {
+    exporter_number_literal = 1;
+  }
+} return int exporter_number_literal;
+("2.5"):(1)
+("\"a b\""):(1)
+("\"a\" + \"b\""):(0)
+("r"):(0)
+
+exporter_set_later(string[] exporter_texts_lines, int exporter_number_row, string exporter_text_name) {
+  int exporter_number_found = 0;
+  int exporter_number_next = exporter_number_row + 1;
+  while (exporter_number_next < len(exporter_texts_lines)) {
+    exporter_number_found = exporter_number_found + (exporter_set_name(exporter_texts_lines[exporter_number_next]) == exporter_text_name);
+    exporter_number_next = exporter_number_next + 1;
+  }
+} return int exporter_number_found;
+given model_load("t.blk", "sprite S\nvar int n") (["  n_set(1);", "  n_set(2);", "  n_set(3);", "  n_set(4);"], 0, "n"):(3)[time:O(n), mem:O(n)]
+given model_load("t.blk", "sprite S\nvar int n") (["  n_set(1);", "  n_set(2);", "  n_set(3);", "  n_set(4);", "  n_set(5);", "  n_set(6);", "  n_set(7);", "  n_set(8);"], 0, "n"):(7)[time:O(n), mem:O(n)]
+given model_load("t.blk", "sprite S\nvar int n") (["  n_set(1);", "  n_set(2);"], 1, "n"):(0)
+given model_load("t.blk", "sprite S\nvar int n") (["  n_set(1);", "  n_set(2);"], 0, "m"):(0)
+
+exporter_pin(string[] exporter_texts_pins, string[] exporter_texts_lines, int exporter_number_row) {
+  string exporter_text_name = exporter_set_name(exporter_texts_lines[exporter_number_row]);
+  string exporter_text_value = exporter_set_value(exporter_texts_lines[exporter_number_row]);
+  if (exporter_text_name != "" && exporter_literal(exporter_text_value) == 1 && exporter_set_later(exporter_texts_lines, exporter_number_row, exporter_text_name) == 0) {
+    push(exporter_texts_pins, exporter_text_name + "\n" + exporter_text_value);
+  }
+} return void;
+given model_load("t.blk", "sprite S\nvar int n") ([], ["  n_set(2);"], 0):(["n\n2"])
+given model_load("t.blk", "sprite S\nvar int n") ([], ["  n_set(2);", "  n_set(r);"], 0):([])

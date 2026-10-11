@@ -1,0 +1,28 @@
+// The refusals of refuse.id and refuse_calls.id applied line by line:
+// exporter_refuse_waits to a line that waits, exporter_refuse_line to every
+// kind, exporter_refuse_function to all the lines of a function's body.
+
+exporter_refuse_waits(int exporter_number_function, int exporter_number_line) {
+  exporter_refuse_nested(exporter_number_function, exporter_number_line);
+  exporter_refuse_helper(exporter_number_function, exporter_number_line);
+} return void;
+given model_load("t.blk", "sprite S\nfn h() return void\n  if x\n    wait(1.0)") (0, 3):() then len((import model_diagnostics)):(2)
+given model_load("t.blk", "sprite S\nfn h() return void\n  say(\"x\")") (0, 2):() then len((import model_diagnostics)):(0)
+
+exporter_refuse_line(int exporter_number_function, int exporter_number_line) {
+  exporter_refuse_waits(exporter_number_function, exporter_number_line);
+  exporter_refuse_broadcast(exporter_number_function, exporter_number_line);
+  exporter_refuse_while(exporter_number_function, exporter_number_line);
+} return void;
+given model_load("t.blk", "sprite S\nvar string m\nfn f() return void\n  broadcast(m)") (0, 3):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn f() return void\n  say(\"x\")") (0, 2):() then len((import model_diagnostics)):(0)
+
+exporter_refuse_function(int exporter_number_function) {
+  int exporter_number_line = (import model_function_body_start)[exporter_number_function];
+  while (exporter_number_line < (import model_function_body_end)[exporter_number_function]) {
+    exporter_refuse_line(exporter_number_function, exporter_number_line);
+    exporter_number_line = exporter_number_line + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nvar string m\nfn f() return void\n  broadcast(m)\n  broadcast(m)") (0):() then len((import model_diagnostics)):(2)
+given model_load("t.blk", "sprite S\nfn f() return void\n  say(\"x\")") (0):() then len((import model_diagnostics)):(0)

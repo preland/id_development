@@ -1,0 +1,32 @@
+// What the exported scheduler cannot yet reproduce is refused, not exported
+// differently: a program the machine runs one way and the export another
+// would be a wrong answer with no message. blocks export applies these passes
+// (exporter_refuse) to a program that broadcasts, after the rule checker, and
+// each violation is reported at its line like a rule of the checker's, with
+// no code since id has none for it. This file refuses a 'wait' that is not on
+// the top level of a script: the scheduler cuts a script into stages only
+// there, and a function a script calls cannot sleep for it.
+
+exporter_top(int exporter_number_line) {
+  int exporter_number_top = (import model_line_indents)[exporter_number_line] == 1;
+} return int exporter_number_top;
+given model_load("t.blk", "sprite S\nfn a() return void\n  if x\n    wait(1.0)") (2):(1)
+given model_load("t.blk", "sprite S\nfn a() return void\n  if x\n    wait(1.0)") (3):(0)
+
+exporter_refuse_nested(int exporter_number_function, int exporter_number_line) {
+  string exporter_text_line = (import model_line_texts)[exporter_number_line];
+  if (str_starts(str_trim(exporter_text_line), "wait(") && exporter_top(exporter_number_line) == 0) {
+    model_error((import model_line_numbers)[exporter_number_line], "", "'wait' inside an if or a while in '" + (import model_function_names)[exporter_number_function] + "' cannot be exported: the exported scheduler cuts a script into stages only at a wait on the script's top level -- move the wait out of the block (blocks run still runs it)");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\n  if x\n    wait(1.0)") (0, 3):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\n  wait(1.0)") (0, 2):() then len((import model_diagnostics)):(0)
+
+exporter_refuse_helper(int exporter_number_function, int exporter_number_line) {
+  string exporter_text_line = (import model_line_texts)[exporter_number_line];
+  if (str_starts(str_trim(exporter_text_line), "wait(") && (import model_function_message)[exporter_number_function] == "" && (import model_function_names)[exporter_number_function] != "main") {
+    model_error((import model_line_numbers)[exporter_number_line], "", "'wait' in '" + (import model_function_names)[exporter_number_function] + "', which is not main and runs on no message, cannot be exported: a function that a script calls cannot sleep under the exported scheduler -- put the wait in the script that calls it");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn helper() return void\n  wait(1.0)") (0, 2):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\n  wait(1.0)") (0, 2):() then len((import model_diagnostics)):(0)

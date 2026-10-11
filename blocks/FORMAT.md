@@ -298,12 +298,17 @@ segments of exactly three.
 happens, never silently different, except where it says "differs"):
 
 * `broadcast` of anything but a string literal: it is written
-  `broadcast(EXPR);`, which id has no function for. A literal message is the
-  calls of the scripts that run on it, one after another, at the statement, so
-  the output **differs** when a script waits and another could have run meanwhile,
-  or when the broadcaster says something after the broadcast: the machine
-  interleaves the threads by frame, the exported program runs each to its end.
-* `wait(s)` is a real `sleep_ms`; the machine's 33 ms frame clock is not modelled.
+  `broadcast(EXPR);`, which id has no function for. A literal message is
+  `schedule_spawn(SCRIPT);` for each script that runs on it, and a program that
+  broadcasts runs under a scheduler (`runtime/schedule_*.id`, the generated
+  `runtime/schedule_dispatch.id`): main runs to its end, then each frame gives every
+  live script one turn in table order and the clock moves 33 ms, as the machine does.
+  A script that runs on a message is cut at each `wait` of its top level into
+  stages (`NAME`, `NAME_after_one`, ...; its cases run the first stage only). Not yet
+  modelled, and then the output **differs**: a `wait` anywhere but the top level of
+  such a script (in main, in a function a script calls, inside an `if` or `while`),
+  the yield at the end of each `while` iteration, and a local that must live across a `wait`.
+* `wait(s)` outside a broadcasting program is a real `sleep_ms`.
 * an empty list literal anywhere but a declaration, an assignment to a name, an
   argument of a function of the program (`f([])`, written `f(empty_integers(1))`
   from the parameter's type) or `NAME = []` on a variable of the program
@@ -321,6 +326,31 @@ happens, never silently different, except where it says "differs"):
   program in a 64-bit word; they differ only past that.
 * `main`'s `argc` and `argv` are the program's own when it runs; the cases pass the
   machine's (`1`, `["blocks"]`).
+
+### Export refusals
+
+`blocks export` stops, writes nothing and answers 1, with a message at the line
+that names the fix, for what would otherwise export wrongly or as a project idc
+rejects (an example of each is in `examples/refused/`). In a program that
+broadcasts:
+
+* a `wait` inside an `if` or `while` (`wait_nested.blk`);
+* a `wait` in a function that is not main and runs on no message (`wait_helper.blk`);
+* a `broadcast` whose message is not a string literal (`broadcast_variable.blk`);
+* a `while` when some script runs on a message (`while_loop.blk`);
+* a local declared before a `wait` and used after it (`local_across_wait.blk`);
+* a parameter used after a `wait` (`parameter_across_wait.blk`);
+* a main that waits but returns anything but a literal (`main_wait_return.blk`).
+
+In every program:
+
+* a function, or the part of a script after a `wait`, whose only statement is a
+  call that passes the function's parameters on: idc E0406, a pure forwarder
+  (`forwarder_stage.blk`);
+* two functions or parts of scripts equal but for their literals: idc E0407
+  (`equal_stages.blk`). Names of locals and of the returned variable are
+  compared as written, so two that differ only in those are not found here and
+  idc reports them.
 
 ## What a later milestone needs
 

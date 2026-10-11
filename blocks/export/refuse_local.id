@@ -1,0 +1,34 @@
+// The refusals that need a script's whole body. A local declared before a wait
+// and named after it lives across the wait (refuse_locals.id finds the three
+// facts), which the stages, functions of their own, cannot carry. And main,
+// when it waits, is over before its later stages run, so the value it returns
+// must be written out in its return line.
+
+exporter_refuse_local(int exporter_number_function, int exporter_number_line) {
+  string exporter_text_name = exporter_local_name((import model_line_texts)[exporter_number_line]);
+  int exporter_number_wait = exporter_wait_after(exporter_number_function, exporter_number_line);
+  if (exporter_text_name != "" && exporter_number_wait >= 0 && exporter_used_after(exporter_number_function, exporter_text_name, exporter_number_wait + 1) > 0) {
+    model_error((import model_line_numbers)[exporter_number_line], "", "local '" + exporter_text_name + "' in '" + (import model_function_names)[exporter_number_function] + "' lives across a 'wait' and cannot be exported: each stage after a wait is a function of its own and does not see it -- keep the value in a variable of the sprite");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn f() return void\n  int n = 0\n  wait(1.0)\n  say(int_to_str(n))") (0, 2):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn f() return void\n  int n = 0\n  say(int_to_str(n))\n  wait(1.0)") (0, 2):() then len((import model_diagnostics)):(0)
+
+exporter_refuse_locals(int exporter_number_function) {
+  int exporter_number_line = (import model_function_body_start)[exporter_number_function];
+  while (exporter_number_line < (import model_function_body_end)[exporter_number_function]) {
+    exporter_refuse_local(exporter_number_function, exporter_number_line);
+    exporter_number_line = exporter_number_line + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn f() return void\n  int n = 0\n  wait(1.0)\n  say(int_to_str(n))") (0):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn f() return void\n  int n = 0\n  say(int_to_str(n))") (0):() then len((import model_diagnostics)):(0)
+
+exporter_refuse_main(int exporter_number_function) {
+  int exporter_number_wait = exporter_wait_after(exporter_number_function, (import model_function_body_start)[exporter_number_function] - 1);
+  if ((import model_function_names)[exporter_number_function] == "main" && exporter_number_wait >= 0 && exporter_digits(exporter_returned(exporter_number_function)) == 0) {
+    model_error((import model_line_numbers)[(import model_function_body_end)[exporter_number_function] - 1], "", "'main' waits but does not return a number written out, so it cannot be exported: the exported main has returned before its later stages run -- return a literal such as 0");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  wait(1.0)\n  return argc\n(1, [\"x\"]): (1)\n(2, [\"x\"]): (2)") (0):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  wait(1.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)") (0):() then len((import model_diagnostics)):(0)

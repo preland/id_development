@@ -1,0 +1,48 @@
+// What the refusals about the shape of an exported function read of it: the
+// names of its parameters and their types (a stage after a wait has none,
+// being a function of its own), and a token with every literal made the same,
+// since idc rejects two functions that differ in nothing else (E0407).
+
+exporter_names(int exporter_number_function, int exporter_number_stage) {
+  string exporter_text_names = "";
+  int exporter_number_index = 0;
+  int exporter_number_count = (import model_function_parameter_count)[exporter_number_function] * (exporter_number_stage == 0);
+} chain (int exporter_number_function, int exporter_number_stage) {
+  while (exporter_number_index < exporter_number_count) {
+    if (exporter_number_index > 0) {
+      exporter_text_names = exporter_text_names + ", ";
+    }
+    exporter_text_names = exporter_text_names + (import model_pan)[(import model_function_parameter_start)[exporter_number_function] + exporter_number_index];
+    exporter_number_index = exporter_number_index + 1;
+  }
+} return string exporter_text_names;
+given model_load("t.blk", "sprite S\nfn f(int a, string[] b) return void\nfn g() return void") (0, 0):("a, b")
+given model_load("t.blk", "sprite S\nfn f(int a, string[] b) return void\nfn g() return void") (0, 1):("")
+given model_load("t.blk", "sprite S\nfn f(int a, string[] b) return void\nfn g() return void") (1, 0):("")
+
+exporter_types(int exporter_number_function, int exporter_number_stage) {
+  string exporter_text_types = "";
+  int exporter_number_index = 0;
+  int exporter_number_count = (import model_function_parameter_count)[exporter_number_function] * (exporter_number_stage == 0);
+} chain (int exporter_number_function, int exporter_number_stage) {
+  while (exporter_number_index < exporter_number_count) {
+    int exporter_number_row = (import model_function_parameter_start)[exporter_number_function] + exporter_number_index;
+    exporter_text_types = exporter_text_types + (import constant_type_full)[(import model_pat)[exporter_number_row]] + ",";
+    exporter_number_index = exporter_number_index + 1;
+  }
+} return string exporter_text_types;
+given model_load("t.blk", "sprite S\nfn f(int a, string[] b) return void\nfn g() return void") (0, 0):("int,string[],")
+given model_load("t.blk", "sprite S\nfn f(int a, string[] b) return void\nfn g() return void") (0, 1):("")
+given model_load("t.blk", "sprite S\nfn f(int a, string[] b) return void\nfn g() return void") (1, 0):("")
+
+exporter_shape_token(string exporter_text_token) {
+  string exporter_text_shape = exporter_text_token;
+  int exporter_number_first = charat(exporter_text_token, 0);
+  if (exporter_number_first == 34 || chr_is_digit(exporter_number_first) == 1) {
+    exporter_text_shape = "0";
+  }
+} return string exporter_text_shape;
+("\"hi there\""):("0")
+("2.5"):("0")
+("say"):("say")
+("("):("(")

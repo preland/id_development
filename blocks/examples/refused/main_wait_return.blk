@@ -1,0 +1,16 @@
+// Export refuses: main waits and returns a value it only knows at the end.
+sprite S
+var int heard
+var string msg
+
+fn main(int argc, string[] argv) return int
+  broadcast("go")
+  wait(1.0)
+  return argc
+(1, ["blocks"]): (1)
+(2, ["blocks", "x"]): (2)
+
+fn a() return void on "go"
+  heard = heard + 1
+(): () then heard: (1)
+given heard = 4 (): () then heard: (5)

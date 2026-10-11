@@ -1,0 +1,32 @@
+// The pins of a stage (pins.id) as the clauses of its cases: a case reads each
+// pinned variable back through its getter (exporter_pin_then), and the second
+// case first sets the variable to a different value (exporter_pin_other), so
+// that a stage that left the variable alone, or set it to the value it
+// already had, still fails the case.
+
+exporter_pins(string[] exporter_texts_lines) {
+  string[] exporter_texts_pins = [];
+  int exporter_number_row = 0;
+  while (exporter_number_row < len(exporter_texts_lines)) {
+    exporter_pin(exporter_texts_pins, exporter_texts_lines, exporter_number_row);
+    exporter_number_row = exporter_number_row + 1;
+  }
+} return string[] exporter_texts_pins;
+given model_load("t.blk", "sprite S\nvar int n\nvar int m") (["  n_set(1);", "  m_set(2);", "  n_set(3);"]):(["m\n2", "n\n3"])
+given model_load("t.blk", "sprite S\nvar int n") (["  say(\"S\", \"y\");"]):([])
+
+exporter_pin_then(string exporter_text_pin) {
+  string[] exporter_texts_parts = str_split(exporter_text_pin, "\n");
+  string exporter_text_then = " then " + exporter_texts_parts[0] + "_get:(" + exporter_texts_parts[1] + ")";
+} return string exporter_text_then;
+("n\n2"):(" then n_get:(2)")
+("words\n\"a\""):(" then words_get:(\"a\")")
+
+exporter_other(string exporter_text_value) {
+  string exporter_text_other = exporter_text_value + "1";
+  if (str_starts(exporter_text_value, "\"")) {
+    exporter_text_other = str_sub(exporter_text_value, 0, len(exporter_text_value) - 1) + "1\"";
+  }
+} return string exporter_text_other;
+("2"):("21")
+("\"a\""):("\"a1\"")
