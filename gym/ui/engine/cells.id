@@ -6,7 +6,7 @@ gym_adopt_cells(Session gym_state, string[] gym_view, Log_events gym_entries, in
   string gym_mode = gym_view[(import session_slot_state)];
   int gym_open = gym_mode == "waiting" || gym_mode == "committed";
 } chain (Session gym_state, string[] gym_view, Log_events gym_entries, int gym_plan_at) {
-  int gym_position = fx_max(to_int(gym_view[(import session_slot_number)]) - 1, 0);
+  int gym_position = fixed_point_maximum(to_int(gym_view[(import session_slot_number)]) - 1, 0);
   gym_cells[(import gym_cell_closed)] = 1 - gym_open;
   gym_cells[(import gym_cell_total)] = to_int(gym_view[(import session_slot_total)]);
 } chain (Session gym_state, string[] gym_view, Log_events gym_entries, int gym_plan_at) {
@@ -49,10 +49,10 @@ gym_adopt_phase(Session gym_state, string[] gym_view) {
   int gym_now_phase = gym_was;
 } chain (Session gym_state, string[] gym_view) {
   if(gym_cells[(import gym_cell_closed)] == 0) {
-    gym_now_phase = fx_max(lst_str_index((import gym_plan_phases), gym_view[(import session_slot_phase)]), 0);
+    gym_now_phase = fixed_point_maximum(lst_str_index((import gym_plan_phases), gym_view[(import session_slot_phase)]), 0);
   }
   if(gym_cells[(import gym_cell_closed)] == 1 && gym_view[(import session_slot_state)] != "none") {
-    gym_now_phase = fx_max(gym_was, (import gym_phase_cool_down));
+    gym_now_phase = fixed_point_maximum(gym_was, (import gym_phase_cool_down));
   }
   if(gym_now_phase != gym_was) {
     gym_cells[(import gym_cell_phase)] = gym_now_phase;

@@ -9,7 +9,7 @@ editor_stage_point(int[] bel_state, int[] bel_geometry, int editor_integer_index
   int editor_integer_cell_x = editor_integer_origin + (import constant_metric_stage_width) / 2 + bel_geometry[5 * editor_integer_index] * 3 / 5;
   int editor_integer_cell_y = (import constant_metric_bar) + (import constant_metric_stage_margin) + (import constant_metric_stage_height) / 2 - bel_geometry[5 * editor_integer_index + 1] * 3 / 5;
 } chain (int[] bel_state, int[] bel_geometry, int editor_integer_index) {
-  int editor_integer_row_number = fx_max(bel_geometry[5 * editor_integer_index + 3] * (import constant_metric_sprite_row) / 100, 3);
+  int editor_integer_row_number = fixed_point_maximum(bel_geometry[5 * editor_integer_index + 3] * (import constant_metric_sprite_row) / 100, 3);
   int[] bel_position = [editor_integer_cell_x, editor_integer_cell_y, editor_integer_row_number];
 } return int[] bel_position;
 given editor_test_blank(960, 600) ((import editor_test_state), [0, 0, 90, 100, 1], 0):([810, 150, 8])
@@ -17,12 +17,12 @@ given editor_test_blank(960, 600) ((import editor_test_state), [0, 0, 90, 100, 1
 given editor_test_blank(960, 600) ((import editor_test_state), [-240, 180, 0, 10, 1], 0):([666, 42, 3])
 
 editor_draw_bubble(string editor_string_say, int[] bel_position, int editor_integer_origin) {
-  int editor_integer_count = fx_min(len(editor_string_say), (import constant_metric_bub));
+  int editor_integer_count = fixed_point_minimum(len(editor_string_say), (import constant_metric_bub));
   string editor_string_text_list = str_sub(editor_string_say, 0, editor_integer_count);
   int editor_integer_width = len(editor_string_text_list) * 8 + 12;
 } chain (string editor_string_say, int[] bel_position, int editor_integer_origin) {
-  int editor_integer_x = fx_clamp(bel_position[0] - editor_integer_width / 2, editor_integer_origin, editor_integer_origin + (import constant_metric_stage_width) - editor_integer_width);
-  int editor_integer_y = fx_max(bel_position[1] - bel_position[2] - 22, (import constant_metric_bar) + (import constant_metric_stage_margin));
+  int editor_integer_x = fixed_point_clamp(bel_position[0] - editor_integer_width / 2, editor_integer_origin, editor_integer_origin + (import constant_metric_stage_width) - editor_integer_width);
+  int editor_integer_y = fixed_point_maximum(bel_position[1] - bel_position[2] - 22, (import constant_metric_bar) + (import constant_metric_stage_margin));
   draw_rounded_rectangle(editor_integer_x, editor_integer_y, editor_integer_width, 18, 5, (import constant_x_ink));
 } chain (string editor_string_say, int[] bel_position, int editor_integer_origin) {
   draw_rounded_rectangle(editor_integer_x + 1, editor_integer_y + 1, editor_integer_width - 2, 16, 4, (import constant_x_white));

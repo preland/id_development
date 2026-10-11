@@ -250,6 +250,32 @@ main(int argc, string[] argv) {
 } return int 0;
 ```
 
+## E0109 a break outside a loop
+
+`break` leaves the innermost enclosing `while`. With no `while` around it there
+is nothing to leave, so the parser refuses it at the keyword. Delete the `break`,
+or move it into the body of the loop it should leave.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  break;
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  int i = 0;
+  while(i < 3) {
+    i = i + 1;
+    break;
+  }
+} return int i;
+```
+
 ## E0201 a block performs more than three actions
 
 A block holds at most three actions: each statement, `if`, `else` and `while`
@@ -393,6 +419,63 @@ main(int argc, string[] argv) {
   int b = 2;
   int c = a + b;
 } return int c;
+```
+
+## E0205 a call nested two levels deep in an argument
+
+An argument may hold one level of call: `f(g(x))` is fine, `f(g(h(x)))` is not
+(docs/SPEC.md, section 7.1). Each line then shows one step of what is computed,
+and a reader never has to unpick a chain of calls to see what runs first. Name
+the inner call's result on its own line and pass the name.
+
+Incorrect:
+
+```id
+inc(int n) {
+  int m = n + 1;
+} return int m;
+
+main(int argc, string[] argv) {
+  int r = inc(inc(inc(1)));
+} return int r;
+```
+
+Correct:
+
+```id
+inc(int n) {
+  int m = n + 1;
+} return int m;
+
+main(int argc, string[] argv) {
+  int a = inc(1);
+  int b = inc(a);
+  int r = inc(b);
+} return int r;
+```
+
+## E0206 a return clause that is not a name or a literal
+
+A return clause is a name or a literal: `} return int total;` or `} return int 0;`.
+An expression or a call there hides the last thing the function computes after the
+closing brace, where nobody looks for work. The message says what the clause is,
+an expression, a call or a list literal. Compute the value in the body, give it a
+name, and return the name.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  int a = argc;
+} return int a + 1;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  int a = argc + 1;
+} return int a;
 ```
 
 ## E0301 undefined variable
@@ -1600,6 +1683,87 @@ main(int argc, string[] argv) {
   word big = 3000000000;
   print(big);
 } return int 0;
+```
+
+## E0609 a value stored in a variable of another type
+
+A variable holds exactly the type it was declared with, and `id` converts nothing
+silently, so a declaration or an assignment whose value has another type is
+refused. Give the variable the type of the value, or convert the value first.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  int x = "nope";
+} return int x;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  int x = to_int("1");
+} return int x;
+```
+
+## E0610 a value returned from a void function
+
+A function declared `return void` hands nothing back, so an early `return` in its
+body takes no value. Write `return;`, or give the function a return type.
+
+Incorrect:
+
+```id
+say(int x) {
+  return x;
+} return void;
+
+main(int argc, string[] argv) {
+  say(1);
+} return int 0;
+```
+
+Correct:
+
+```id
+say(int x) {
+  return;
+} return void;
+
+main(int argc, string[] argv) {
+  say(1);
+} return int 0;
+```
+
+## E0611 a bare return in a function that returns a value
+
+A function with a return type owes its caller a value on every path, so an early
+`return;` with nothing after it is refused. Write `return NAME;` or
+`return LITERAL;`, or declare the function void.
+
+Incorrect:
+
+```id
+pick(int x) {
+  return;
+} return int x;
+
+main(int argc, string[] argv) {
+  int r = pick(1);
+} return int r;
+```
+
+Correct:
+
+```id
+pick(int x) {
+  return x;
+} return int x;
+
+main(int argc, string[] argv) {
+  int r = pick(1);
+} return int r;
 ```
 
 ## E0702 a file with a generic name

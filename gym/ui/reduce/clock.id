@@ -3,7 +3,7 @@
 // Let gym_seconds pass (a negative number is no time) and work out the seconds left in the phase.
 gym_tick(Session gym_state, int gym_seconds) {
   int[] gym_cells = gym_state.cells;
-  gym_cells[(import gym_cell_elapsed)] = gym_cells[(import gym_cell_elapsed)] + fx_max(gym_seconds, 0);
+  gym_cells[(import gym_cell_elapsed)] = gym_cells[(import gym_cell_elapsed)] + fixed_point_maximum(gym_seconds, 0);
   gym_clock(gym_state);
 } return void;
 given gym_fixture_make(0) ((import gym_fixture_state), 301):() then gym_fixture_cell(6):(301) then gym_fixture_cell(7):(0) then gym_fixture_cell(8):(0)
@@ -17,7 +17,7 @@ gym_clock(Session gym_state) {
   int gym_phase = gym_cells[(import gym_cell_phase)];
   int gym_spent = gym_cells[(import gym_cell_elapsed)] - gym_cells[(import gym_cell_phase_started)];
 } chain (Session gym_state) {
-  gym_cells[(import gym_cell_remaining)] = fx_max(gym_phase_length(gym_phase) - gym_spent, 0);
+  gym_cells[(import gym_cell_remaining)] = fixed_point_maximum(gym_phase_length(gym_phase) - gym_spent, 0);
   if(gym_phase == (import gym_phase_cool_down) && gym_cells[(import gym_cell_remaining)] == 0) {
     gym_cells[(import gym_cell_phase)] = (import gym_phase_over);
   }

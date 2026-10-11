@@ -5,13 +5,13 @@
 tool_file_slice(string file_path, int file_first, int file_count) {
   string[] file_lines = str_split(fs_read_text(file_path), "\n");
   int file_total = len(file_lines);
-  int file_from = fx_max(file_first, 1) - 1;
+  int file_from = fixed_point_maximum(file_first, 1) - 1;
 } chain (string file_path, int file_first, int file_count) {
   if (file_lines[file_total - 1] == "") {
     file_total = file_total - 1;
   }
-  int file_size = fx_min(fx_max(file_count, 1), (import tool_slice_limit));
-  int file_stop = fx_min(file_from + file_size, file_total);
+  int file_size = fixed_point_minimum(fixed_point_maximum(file_count, 1), (import tool_slice_limit));
+  int file_stop = fixed_point_minimum(file_from + file_size, file_total);
 } chain (string file_path, int file_first, int file_count) {
   string file_text = tool_slice(file_lines, file_from, file_stop);
   string[] file_fields = [tool_number("first_line", file_from + 1), tool_number("last_line", file_stop), tool_number("total_lines", file_total), tool_label("text", file_text)];

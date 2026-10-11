@@ -772,7 +772,7 @@ builds a new string.
 - `==` and `!=` compare contents, not identity.
 - `len(s)` is the length in **bytes**. `id` has no notion of a character; a
   multi-byte UTF-8 sequence is that many bytes.
-- `charat(s, i)` is the byte at `i`, or `-1` if `i` is outside the string.
+- `charat(s, i)` is the byte at `i`, or `-1` if `i` is outside the string. `character_code_at(s, i)` is the same builtin under a name that says what it returns (an int code, not a string); `charat` is being retired in its favour.
   Reading past the end is a value, not a trap — it is how a scanner detects
   end-of-input.
 - `chr(n)` builds a one-byte string; `chr(0)` traps (below).
@@ -1134,7 +1134,7 @@ catchable; `id` has no exceptions.
 | allocation refused by the host | `id: out of memory (N bytes)` |
 | a NUL byte reaching a string through `read_all`, `input`, `str_of_mem` | `id: a NUL byte reached a string (WHICH): use idstd stdio_slurp or stdio_read_mem, or the store (fs_read_mem), for binary data` |
 | `chr` of a code whose low byte is 0 | `id: a NUL byte reached a string (chr(0)): a string cannot hold NUL; use the store (poke8) for binary data` |
-| `str_sub(s, i, n)` with a span outside `s` | `id: str span out of bounds: i=I n=N in a string of length M; clamp i and n first (fx_min, fx_max)` |
+| `str_sub(s, i, n)` with a span outside `s` | `id: str span out of bounds: i=I n=N in a string of length M; clamp i and n first (fixed_point_minimum, fixed_point_maximum)` |
 | a `native` returning a list or struct whose `IdList` has a negative length (every other such result is copied into a list the runtime owns, so `push` works on it) | `id: a native returned a malformed list (len N): fill len cells at data, or size the list from id and return a count` |
 | reading an export whose declaring function has not run: a list anywhere; any type in a test case | `id: read of an uninitialised export (its declaring function has not run)` |
 

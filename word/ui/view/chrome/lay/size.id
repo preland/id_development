@@ -1,11 +1,11 @@
 // The chrome's @references for a window w by h pixels, in basis points (hundredths of a percent) in the order of vw_names: the ribbon band and the status bar by their fixed pixels, the page row what they leave, the scrollbar by its fixed width, the page area what it leaves. Rounded up, so that a fixed size never comes out a pixel short.
 // By hand at 800 by 600: the ribbon band is 156 / 600 = 2600; the status bar 22 / 600 = 366.7, so 367; the row takes the rest, 10000 - 2600 - 367 = 7033; the bar is 16 / 800 = 200 and the page area 9800.
 vw_dims(int vwi_w, int vwi_h) {
-  int vwi_hh = fx_max(vwi_h, 1);
+  int vwi_hh = fixed_point_maximum(vwi_h, 1);
   int vwi_r = ((import rbd_band_px) * 10000 + vwi_hh - 1) / vwi_hh;
   int vwi_s = ((import vw_st_px) * 10000 + vwi_hh - 1) / vwi_hh;
 } chain (int vwi_w, int vwi_h) {
-  int vwi_ww = fx_max(vwi_w, 1);
+  int vwi_ww = fixed_point_maximum(vwi_w, 1);
   int vwi_b = ((import vw_bar_px) * 10000 + vwi_ww - 1) / vwi_ww;
   int[] vwl_d = [vwi_r, 10000 - vwi_r - vwi_s, 10000 - vwi_b, vwi_b, vwi_s];
 } return int[] vwl_d;

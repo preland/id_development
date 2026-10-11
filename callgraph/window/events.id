@@ -3,7 +3,7 @@
 // One event as gfx_event wrote it (kind in ev[0], fields in ev[1] to ev[4]) given to the session (call_graph_step). A pointer move always asks for a paint, since the tooltip follows it. Answers 1 when the picture is to be painted again.
 call_graph_take(string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle, int[] list_event) {
   int number_paint = call_graph_step(strings_graph, table_graph, strings_session, bundle, list_event[0], list_event[1], list_event[2], list_event[3], list_event[4]);
-  int number_dirty = fx_max(number_paint, list_event[0] == (import graph_view_event_move));
+  int number_dirty = fixed_point_maximum(number_paint, list_event[0] == (import graph_view_event_move));
 } return int number_dirty;
 given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), [5, 3, 4, 0, 0]):(1)
 given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), [9, 3, 4, 0, 0]):(0)
@@ -20,7 +20,7 @@ call_graph_events(string[][] strings_graph, int[][] table_graph, string[][] stri
   int number_quit = 0;
   while (number_kind != 0 && number_quit == 0) {
     number_quit = number_quit || number_kind == 7;
-    number_dirty = fx_max(number_dirty, call_graph_take(strings_graph, table_graph, strings_session, bundle, list_event));
+    number_dirty = fixed_point_maximum(number_dirty, call_graph_take(strings_graph, table_graph, strings_session, bundle, list_event));
     number_kind = gfx_event(list_event);
   }
 } chain (string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle, int number_changed) {

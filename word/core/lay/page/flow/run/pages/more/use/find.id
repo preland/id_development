@@ -17,7 +17,7 @@ given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 1, 0, 700, [0,
 // The position under a point of page lhk, lhx and lhy in lu from the corner of the page: the nearest line by height (the first or the last of the page for a point above or below the text), then the nearest offset on it by the pen. A page that does not exist is the nearest one that does. Writes the answer into lho. Uses only the pagination and the pens, no font, and lay_caret of the result is on the same line.
 // By hand in "BBB EEE BBB" (left margin 2560, lines 1152 from 640): 3260 across and 1892 down is on line 1 (1792 to 2944), 700 right of its start, nearest the offset 5; far right on line 0 is offset 3, below everything at the left is the start of line 2, offset 8.
 lay_hit(View lhv, int lhk, int lhx, int lhy, Pos lho) {
-  int lhg = fx_max(fx_min(lhk, lhv.pages.count - 1), 0);
+  int lhg = fixed_point_maximum(fixed_point_minimum(lhk, lhv.pages.count - 1), 0);
   int[] lhr = [0, 0, 0];
   lay_pick(lhv, lhg, lhy, lhr);
 } chain (View lhv, int lhk, int lhx, int lhy, Pos lho) {

@@ -10,7 +10,7 @@ given fx_setup("abc") given fx_at(0, 1, 0, 1) ((import fxd), (import fxc)):((imp
 // How many code points a Backspace (dir -1) or Delete (dir 1) takes at off in paragraph para: one, or with by_word 1 (Ctrl) up to the word boundary the word rule gives; none at the edge of the paragraph and none in a block the model does not edit.
 ed_key_n(Doc d, int para, int off, int by_word, int dir) {
   Para p = d.body.paras[para];
-  int to = fx_clamp(off + dir, 0, para_len(p));
+  int to = fixed_point_clamp(off + dir, 0, para_len(p));
   if(by_word == 1 && dir < 0) {
     to = utf8_cps_word_prev(p.txt.cps, off);
   }
@@ -18,7 +18,7 @@ ed_key_n(Doc d, int para, int off, int by_word, int dir) {
   if(by_word == 1 && dir > 0) {
     to = utf8_cps_word_next(p.txt.cps, off);
   }
-  int n = fx_max(to - off, off - to);
+  int n = fixed_point_maximum(to - off, off - to);
   if(ed_solid(d, para) == 1) {
     n = 0;
   }

@@ -9,7 +9,7 @@
 editor_lay_arm(int[][] editor_matrix_layout, string[] bet_texts, int[] bel_cursor, int editor_integer_level, int editor_integer_y) {
   int editor_integer_top = bel_cursor[(import constant_unit_scan) + editor_integer_level];
   if (editor_integer_y > editor_integer_top) {
-    editor_box(editor_matrix_layout, bet_texts, [(import constant_kind_arm), fx_max(editor_integer_level - 1, 0) * (import constant_metric_arm), editor_integer_top, (import constant_metric_arm), editor_integer_y - editor_integer_top, bel_cursor[(import constant_unit_line_number) + editor_integer_level], (import constant_cat_control), editor_integer_level, -1, 0], "");
+    editor_box(editor_matrix_layout, bet_texts, [(import constant_kind_arm), fixed_point_maximum(editor_integer_level - 1, 0) * (import constant_metric_arm), editor_integer_top, (import constant_metric_arm), editor_integer_y - editor_integer_top, bel_cursor[(import constant_unit_line_number) + editor_integer_level], (import constant_cat_control), editor_integer_level, -1, 0], "");
   }
 } return void;
 given editor_test_open(["fn f() return void", "  if a", "    x = 1"]) given editor_test_run(2) ((import editor_test_layout), (import editor_test_texts), (import editor_test_cursor), 1, 78):() then editor_test_dump:("0 0 0 192 30 L0 c5 i0 s-1 b0 define f() return void|1 0 30 56 24 L1 c2 i1 s-1 b1 |8 8 38 16 8 L1 c-1 i1 s-1 b0 if|9 30 34 18 16 L1 c-1 i1 s0 b0 a|10 0 54 14 24 L1 c2 i1 s-1 b0  y=54 pe=2")
@@ -18,7 +18,7 @@ given editor_test_open(["fn f() return void", "  if a", "    x = 1"]) given edit
 editor_lay_cap(int[][] editor_matrix_layout, string[] bet_texts, int[] bel_cursor, int editor_integer_level) {
   int editor_integer_y = bel_cursor[(import constant_unit_y)];
   editor_lay_arm(editor_matrix_layout, bet_texts, bel_cursor, editor_integer_level, editor_integer_y);
-  editor_box(editor_matrix_layout, bet_texts, [(import constant_kind_cap), fx_max(editor_integer_level - 1, 0) * (import constant_metric_arm), editor_integer_y, bel_cursor[(import constant_unit_width) + editor_integer_level], (import constant_metric_cap), bel_cursor[(import constant_unit_line_number) + editor_integer_level], (import constant_cat_control), editor_integer_level, -1, 0], "");
+  editor_box(editor_matrix_layout, bet_texts, [(import constant_kind_cap), fixed_point_maximum(editor_integer_level - 1, 0) * (import constant_metric_arm), editor_integer_y, bel_cursor[(import constant_unit_width) + editor_integer_level], (import constant_metric_cap), bel_cursor[(import constant_unit_line_number) + editor_integer_level], (import constant_cat_control), editor_integer_level, -1, 0], "");
 } chain (int[][] editor_matrix_layout, string[] bet_texts, int[] bel_cursor, int editor_integer_level) {
   bel_cursor[(import constant_unit_y)] = editor_integer_y + (import constant_metric_cap);
 } return void;
@@ -27,11 +27,11 @@ given editor_test_open(["fn f() return void", "  if a"]) given editor_test_run(2
 
 editor_lay_caps(int[][] editor_matrix_layout, string[] bet_texts, int[] bel_cursor, int editor_integer_end_index, int editor_integer_else) {
   int editor_integer_pending = bel_cursor[(import constant_unit_pending)];
-  int editor_integer_count = fx_max(editor_integer_pending - editor_integer_end_index - editor_integer_else, 0) - (editor_integer_end_index == 0 && editor_integer_pending > 0);
+  int editor_integer_count = fixed_point_maximum(editor_integer_pending - editor_integer_end_index - editor_integer_else, 0) - (editor_integer_end_index == 0 && editor_integer_pending > 0);
   int editor_integer_key_code = 0;
 } chain (int[][] editor_matrix_layout, string[] bet_texts, int[] bel_cursor, int editor_integer_end_index, int editor_integer_else) {
   while (editor_integer_key_code < editor_integer_count) {
-    editor_lay_cap(editor_matrix_layout, bet_texts, bel_cursor, fx_min(editor_integer_pending - 1 - editor_integer_key_code, (import constant_unit_top)));
+    editor_lay_cap(editor_matrix_layout, bet_texts, bel_cursor, fixed_point_minimum(editor_integer_pending - 1 - editor_integer_key_code, (import constant_unit_top)));
     editor_integer_key_code = editor_integer_key_code + 1;
   }
 } return void;

@@ -1,7 +1,7 @@
 // Puts the caret at ps (cut to the document), and the anchor too unless extend is 1; this is what a mouse click does, and like any caret move it closes the open undo step and drops the pending typing row.
 ed_place(Doc d, Ctl ctl, Pos ps, int extend) {
-  int para = fx_clamp(ps.para, 0, len(d.body.paras) - 1);
-  int off = fx_clamp(ps.off, 0, para_len(d.body.paras[para]));
+  int para = fixed_point_clamp(ps.para, 0, len(d.body.paras) - 1);
+  int off = fixed_point_clamp(ps.off, 0, para_len(d.body.paras[para]));
   txn_end(ctl);
 } chain (Doc d, Ctl ctl, Pos ps, int extend) {
   typing_set(-1);
