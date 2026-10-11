@@ -40,6 +40,8 @@ checker_check() {
   checker_each(len((import model_function_names)), checker_shadow_parameters);
   checker_shadow_locals();
   checker_each(len((import model_function_names)), checker_nesting);
+} chain () {
+  checker_each(len((import model_function_names)), checker_returning);
 } return void;
 given model_load("t.blk", "sprite S\nfn f() return void\n  a = 1\n  b = 2\n  c = 3\n  d = 4\n(): ()") ():() then len((import model_diagnostics)):(2)
 given model_load("t.blk", "sprite S\nfn f() return void\n  a = 1\n(): ()\n(1): ()") ():() then len((import model_diagnostics)):(0)

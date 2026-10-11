@@ -1,7 +1,7 @@
 // What a return can name. id's return clause (and an early return) takes a
-// name or a literal, so a value that is anything else is first put in a local
-// of its own, named for the type; a variable of the program is an
-// (import NAME) there, so it is not a name either.
+// name or a literal; a variable of the program is an (import NAME) there, so
+// it is not a name either. The checker (rules/returned.id) refuses every
+// return that is not simple, so the export writes a return as it stands.
 
 exporter_is_simple(string exporter_text_value, int exporter_number_function) {
   string[] exporter_texts_tokens = lexer_tokens(exporter_text_value);
@@ -17,24 +17,3 @@ given model_load("t.blk", "sprite S\nvar int n\nfn f(int p) return void") ("x", 
 given model_load("t.blk", "sprite S\nvar int n\nfn f(int p) return void") ("n", 0):(0)
 given model_load("t.blk", "sprite S\nvar int n\nfn f(int p) return void") ("x + 1", 0):(0)
 given model_load("t.blk", "sprite S\nvar int n\nfn f(int p) return void") ("-1", 0):(0)
-
-exporter_clause(string exporter_text_value, int exporter_number_function) {
-  string exporter_text_name = exporter_text_value;
-  if (exporter_is_simple(exporter_text_value, exporter_number_function) == 0) {
-    exporter_text_name = (import constant_export_result)[(import model_function_return_types)[exporter_number_function]];
-  }
-} return string exporter_text_name;
-given model_load("t.blk", "sprite S\nfn f() return int") ("r", 0):("r")
-given model_load("t.blk", "sprite S\nfn f() return int") ("r + 1", 0):("result_integer")
-given model_load("t.blk", "sprite S\nfn f() return string[]") ("a + b", 0):("result_string_list")
-
-exporter_declaration(string exporter_text_value, int exporter_number_function) {
-  string exporter_text_line = "";
-  int exporter_number_type = (import model_function_return_types)[exporter_number_function];
-  if (exporter_text_value != "" && exporter_is_simple(exporter_text_value, exporter_number_function) == 0) {
-    exporter_text_line = (import constant_type_full)[exporter_number_type] + " " + (import constant_export_result)[exporter_number_type] + " = " + exporter_expression(exporter_text_value, exporter_number_function) + ";";
-  }
-} return string exporter_text_line;
-given model_load("t.blk", "sprite S\nfn f() return int") ("r", 0):("")
-given model_load("t.blk", "sprite S\nvar int n\nfn f() return int") ("n + 1", 0):("int result_integer = (import n) + 1;")
-given model_load("t.blk", "sprite S\nfn f() return float") ("2.0 * x", 0):("float result_float = 2.0 * x;")

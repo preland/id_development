@@ -62,7 +62,7 @@ One per line; the first word says which.
 | `if EXPR` / `else` | the block below (one level deeper) runs if EXPR is not 0; `else` is at the `if`'s indent |
 | `while EXPR` | repeat the block below while EXPR is not 0 (`forever` is `while 1`) |
 | `break` | leave the innermost `while` |
-| `return` / `return EXPR` | leave the function; the last body line of a function that returns a value is its `return` |
+| `return` / `return VALUE` | leave the function; the last body line of a function that returns a value is its `return`. VALUE is a local, a parameter or a literal, never an expression and never a variable of the program: set a local on the line before and return it |
 
 There is no `repeat N`, `else if`, or `chain`: a loop that counts is a `while`
 with a counter, and a body that needs a fourth action becomes two functions.
@@ -127,6 +127,7 @@ with the code `idc` uses for the same mistake (`idc --explain CODE`).
 | E0304 | no such function |
 | E0309 | a parameter or a local named like a variable of the program (`examples/broken/e0309_shadow.blk`) |
 | (none) | a call nested more than one level inside a call's argument, `say(f(g(x)))` (SPEC 7.1): `idc` gives it no code, so the line has none (`examples/broken/nesting_call.blk`) |
+| (none) | a `return` whose value is not a single local, parameter or literal, at any nesting level: `return total + 100`, and `return count` when `count` is a variable of the program (idc: "the return clause of 'f' is an expression; it must be a name or a literal"), so the line has no code (`examples/broken/return_expression.blk`) |
 | E0401 | two functions with one name; or a function named like a builtin block |
 | E0402 | two functions with the same signature and logic, up to the names of parameters and locals |
 | E0407 | the same, up to the values of literals: the value should be a parameter |
@@ -191,7 +192,9 @@ can show but not hide.
   takes its `else` with it) to move it, or onto the palette to delete it; click a
   slot to type into it (text, Backspace, Enter to put it in the line, Esc to drop it;
   a click elsewhere puts it in too). Nothing is restructured silently: a block
-  lands where it was dropped, with the indent of its place.
+  lands where it was dropped, with the indent of its place. A slot is free
+  text that the checker judges afterwards, a `return`'s value included: an
+  expression typed there is accepted and flagged, as a fourth action is.
 * **Rules, live.** After every edit the whole document goes through the checker
   of `blocks check`. A block whose line breaks a rule gets a red outline and,
   while the pointer is on it, a tooltip with what `check` prints for it (message and
@@ -288,11 +291,10 @@ is `then NAME_get:(V)`; every case of a function but `main` first runs
 `xpos`, `ypos`, `direction` take `(import sprite_states), BASE` first (six cells a
 sprite); `int_to_str` and the other conversions are functions of `runtime/`;
 `str_to_int` is `to_int`; `insert` and `delete` are `lst_insert`/`lst_delete`
-(int lists) or `lst_str_insert`/`lst_str_delete` (string lists); a `return` of
-anything but a name or a literal becomes a local of the type
-(`result_integer`, ...) and a return of it; a body longer than three actions
-once `variables_start()` or such a local is added is split into `chain`
-segments of exactly three.
+(int lists) or `lst_str_insert`/`lst_str_delete` (string lists); a `return` is
+written as it stands, the checker having refused any that is not a name or a
+literal; a body longer than three actions once `variables_start()` is added is
+split into `chain` segments of exactly three.
 
 **What the export cannot say yet** (each is refused by `idc --check` when it
 happens, never silently different, except where it says "differs"):
@@ -315,15 +317,8 @@ happens, never silently different, except where it says "differs"):
   from the parameter's type) or `NAME = []` on a variable of the program
   (`NAME_clear()`): as an argument of a builtin (`push(xs, [])`) it stays `[]`
   and `idc --check` refuses it (not tested here).
-* a nested block (an `if`, `else` or `while` body) that holds three actions and
-  gains a line in the export, which is a `return` of an expression
-  (`int result_integer = EXPR;` before the return): the export is refused
-  (`examples/refused/block_return.blk`); pull the block into a function in the
-  `.blk`, or return a variable that is already set. `idc --fix` repairs that
-  shape in hand-written id by pulling the block into `FUNCTION_part`, but the
-  helper needs test cases, which the exporter cannot derive yet. An `if`/`else`
-  pair of three actions that would need a chain segment, which exist only at
-  the top of a function, is not detected and E0201 refuses it.
+* an `if`/`else` pair of three actions that would need a chain segment, which
+  exist only at the top of a function, is not detected and E0201 refuses it.
 * integers: the machine keeps an int in a float (exact to 2^53), the exported
   program in a 64-bit word; they differ only past that.
 * `main`'s `argc` and `argv` are the program's own when it runs; the cases pass the
@@ -353,8 +348,6 @@ In every program:
   (`equal_stages.blk`). Names of locals and of the returned variable are
   compared as written, so two that differ only in those are not found here and
   idc reports them.
-* a `return` of an expression in a nested block that already holds three actions:
-  idc E0201 (`block_return.blk`).
 
 ## What a later milestone needs
 

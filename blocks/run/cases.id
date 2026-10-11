@@ -26,9 +26,9 @@ runner_case(int block_character) {
     runner_no_compile(block_character, block_diagnostic_first);
   }
 } return void;
-given runner_load("t.blk", "sprite S\nvar int n\nfn inc(int by) return int\n  n = n + by\n  return n\n(1): (1)\n(2): (2)") (0):() then model_diagnostic_list:("")
-given runner_load("t.blk", "sprite S\nvar int n\nfn inc(int by) return int\n  n = n + by\n  return n\n(1): (1)\n(2): (3)") (1):() then model_diagnostic_list:("t.blk:7: test failed: inc(2) = 2, expected 3")
-given runner_load("t.blk", "sprite S\nvar int n\nfn inc(int by) return int\n  n = n + by\n  return n\ngiven n = 5 (1): (6) then n: (6)\n(2): (3)") (0):() then model_diagnostic_list:("")
+given runner_load("t.blk", "sprite S\nvar int n\nfn inc(int by) return int\n  n = n + by\n  int kept = n\n  return kept\n(1): (1)\n(2): (2)") (0):() then model_diagnostic_list:("")
+given runner_load("t.blk", "sprite S\nvar int n\nfn inc(int by) return int\n  n = n + by\n  int kept = n\n  return kept\n(1): (1)\n(2): (3)") (1):() then model_diagnostic_list:("t.blk:8: test failed: inc(2) = 2, expected 3")
+given runner_load("t.blk", "sprite S\nvar int n\nfn inc(int by) return int\n  n = n + by\n  int kept = n\n  return kept\ngiven n = 5 (1): (6) then n: (6)\n(2): (3)") (0):() then model_diagnostic_list:("")
 given runner_load("t.blk", "sprite S\nvar int n\nfn bump() return void\n  n = n + 1\n(): () then n: (1)\n(): () then n: (2)") (1):() then model_diagnostic_list:("t.blk:6: test failed: bump() then n = 1, expected 2")
 given runner_load("t.blk", "sprite S\nfn f(int a) return int\n  return a\n(1, 2): (1)\n(2): (2)") (0):() then model_diagnostic_list:("t.blk:4: error: this case passes 2 argument(s) but 'f' takes 1 [E0503]")
 given runner_load("t.blk", "sprite S\nfn f(int a) return int\n  return a\n(q): (1)\n(2): (2)") (0):() then model_diagnostic_list:("t.blk:4: error: the test case does not compile: t.blk:2: error: undefined variable 'q' [E0301]")

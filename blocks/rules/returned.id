@@ -1,0 +1,29 @@
+// id's return names a value or a literal, never an expression (idc: "the
+// return clause of 'f' is an expression; it must be a name or a literal"), and
+// a variable of the program is an (import NAME) there, which is an expression
+// too. idc gives that mistake no code, only its message, and so does the
+// report. The rule is checked on every return line, nested or last, so that
+// the export never has to add a line of its own to name the value.
+
+checker_returning_line(int block_function_row, int block_line_index) {
+  string[] block_tokens = lexer_tokens((import model_line_texts)[block_line_index]);
+  string block_returned = str_trim(str_after((import model_line_texts)[block_line_index], "return"));
+  if (lst_str_get_or(block_tokens, 0, "") == "return" && block_returned != "" && exporter_is_simple(block_returned, block_function_row) == 0) {
+    model_error((import model_line_numbers)[block_line_index], "", "'return " + block_returned + "' in '" + (import model_function_names)[block_function_row] + "' is an expression (a variable of the program is one in id); a return names a local, a parameter or a literal -- set a variable on the line before and return it");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn f(int a) return int\n  return a + 1") (0, 2):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn f(int a) return int\n  return a") (0, 2):() then len((import model_diagnostics)):(0)
+given model_load("t.blk", "sprite S\nvar int n\nfn f(int a) return int\n  return n") (0, 3):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn f(int a) return int\n  int returned = a + 1") (0, 2):() then len((import model_diagnostics)):(0)
+given model_load("t.blk", "sprite S\nfn f(int a) return void\n  return") (0, 2):() then len((import model_diagnostics)):(0)
+
+checker_returning(int block_function_row) {
+  int block_line_index = (import model_function_body_start)[block_function_row];
+  while (block_line_index < (import model_function_body_end)[block_function_row]) {
+    checker_returning_line(block_function_row, block_line_index);
+    block_line_index = block_line_index + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn f(int a) return int\n  if a > 0\n    return a * 2\n  return a - 1") (0):() then len((import model_diagnostics)):(2)
+given model_load("t.blk", "sprite S\nfn f(int a) return int\n  int r = a * 2\n  return r") (0):() then len((import model_diagnostics)):(0)

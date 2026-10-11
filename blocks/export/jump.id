@@ -4,20 +4,15 @@
 // they are written, so the exported program starts them one after another
 // where the machine interleaves them (docs: what the export cannot say).
 
-exporter_return(string exporter_text_value, int exporter_number_function) {
+exporter_return(string exporter_text_value) {
   string exporter_text_result = "return;";
-  string exporter_text_declaration = exporter_declaration(exporter_text_value, exporter_number_function);
   if (exporter_text_value != "") {
-    exporter_text_result = "return " + exporter_clause(exporter_text_value, exporter_number_function) + ";";
-  }
-} chain (string exporter_text_value, int exporter_number_function) {
-  if (exporter_text_declaration != "") {
-    exporter_text_result = exporter_text_declaration + "\n" + exporter_text_result;
+    exporter_text_result = "return " + exporter_text_value + ";";
   }
 } return string exporter_text_result;
-given model_load("t.blk", "sprite S\nfn f() return int") ("", 0):("return;")
-given model_load("t.blk", "sprite S\nfn f() return int") ("r", 0):("return r;")
-given model_load("t.blk", "sprite S\nfn f() return int") ("r + 1", 0):("int result_integer = r + 1;\nreturn result_integer;")
+(""):("return;")
+("r"):("return r;")
+("5"):("return 5;")
 
 exporter_handlers(string exporter_text_message) {
   string exporter_text_calls = "";

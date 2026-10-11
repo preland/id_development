@@ -1,8 +1,7 @@
 // The body of a function as id lines, each indented to its depth. A body may
 // not be longer than three actions to a block; the lines that main gains
-// (variables_start) or that a return gains (its value in a local) can make it
-// longer than the .blk's was, so exporter_chain below splits what is left into
-// segments of exactly three actions.
+// (variables_start) can make it longer than the .blk's was, so exporter_chain
+// below splits what is left into segments of exactly three actions.
 
 exporter_lines(int exporter_number_function) {
   string[] exporter_texts_lines = [];
@@ -17,11 +16,9 @@ exporter_lines(int exporter_number_function) {
   }
 } chain (int exporter_number_function) {
   exporter_close(exporter_texts_lines, exporter_numbers_depth, 1, "end");
-  string exporter_text_value = exporter_returned(exporter_number_function);
-  exporter_push(exporter_texts_lines, 1, exporter_declaration(exporter_text_value, exporter_number_function));
 } return string[] exporter_texts_lines;
 given model_load("t.blk", "sprite S\nvar int n\nfn f(int a) return int\n  int r = a\n  if r > 1\n    n = r\n  else\n    n = 0\n  return r\n(1):(1)\n(2):(2)") (0):(["  int r = a;", "  if (r > 1) {", "    n_set(r);", "  } else {", "    n_set(0);", "  }"])
-given model_load("t.blk", "sprite S\nvar int n\nfn main(int argc, string[] argv) return int\n  return argc + 1\n(1, [\"x\"]):(2)\n(2, [\"x\"]):(3)") (0):(["  variables_start();", "  int result_integer = argc + 1;"])
+given model_load("t.blk", "sprite S\nvar int n\nfn main(int argc, string[] argv) return int\n  say(\"x\")\n  return argc\n(1, [\"x\"]):(1)\n(2, [\"x\"]):(2)") (0):(["  variables_start();", "  say(\"S\", \"x\");"])
 
 exporter_cost(string exporter_text_line) {
   int exporter_number_cost = 0;
