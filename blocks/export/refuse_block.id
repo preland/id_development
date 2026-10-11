@@ -1,0 +1,46 @@
+// A return of an expression from inside an if, else or while body that holds
+// three actions already. The export names the value on a line of its own
+// before the return (exporter_declaration), which is a fourth action, so the
+// exported block would be one idc refuses (E0201). exporter_actions counts the
+// actions that come before a line in its block, exporter_overflowing says
+// whether a line is such a return, and exporter_refuse_blocks reports each one
+// at its line, with the change that avoids it.
+
+exporter_actions(int exporter_number_line, int exporter_number_first) {
+  int exporter_number_count = 0;
+  int exporter_number_up = exporter_number_line - 1;
+  while (exporter_number_up >= exporter_number_first && (import model_line_indents)[exporter_number_up] >= (import model_line_indents)[exporter_number_line]) {
+    exporter_number_count = exporter_number_count + ((import model_line_indents)[exporter_number_up] == (import model_line_indents)[exporter_number_line] && str_starts(str_trim((import model_line_texts)[exporter_number_up]), "return") == 0);
+    exporter_number_up = exporter_number_up - 1;
+  }
+} return int exporter_number_count;
+given model_load("t.blk", "sprite S\nfn f(int n) return int\n  int t = 0\n  if n > 0\n    t = t + n\n    t = t * 2\n    t = t + 1\n    return t + 100\n  return t\n(3): (107)\n(0): (0)") (7, 2):(3)[time:O(n), mem:O(1)]
+given model_load("t.blk", "sprite S\nfn f(int n) return int\n  int t = 0\n  if n > 0\n    t = t + n\n    t = t * 2\n    t = t + 1\n    t = t + 1\n    t = t + 1\n    t = t + 1\n    return t + 100\n  return t\n(3): (107)\n(0): (0)") (10, 2):(6)[time:O(n), mem:O(1)]
+given model_load("t.blk", "sprite S\nfn f(int n) return int\n  int t = 0\n  if n > 0\n    t = t + n\n    t = t * 2\n    t = t + 1\n    return t + 100\n  return t\n(3): (107)\n(0): (0)") (5, 2):(1)
+given model_load("t.blk", "sprite S\nfn f(int n) return int\n  int t = 0\n  if n > 0\n    t = t + n\n    t = t * 2\n    t = t + 1\n    return t + 100\n  return t\n(3): (107)\n(0): (0)") (4, 2):(0)
+
+exporter_overflowing(int exporter_number_line, int exporter_number_function) {
+  string exporter_text_line = str_trim((import model_line_texts)[exporter_number_line]);
+  int exporter_number_over = 0;
+  string exporter_text_value = str_trim(str_after(exporter_text_line, "return"));
+} chain (int exporter_number_line, int exporter_number_function) {
+  if (str_starts(exporter_text_line, "return ") && (import model_line_indents)[exporter_number_line] >= 2 && exporter_declaration(exporter_text_value, exporter_number_function) != "") {
+    exporter_number_over = exporter_actions(exporter_number_line, (import model_function_body_start)[exporter_number_function]) >= 3;
+  }
+} return int exporter_number_over;
+given model_load("t.blk", "sprite S\nfn f(int n) return int\n  int t = 0\n  if n > 0\n    t = t + n\n    t = t * 2\n    t = t + 1\n    return t + 100\n  return t\n(3): (107)\n(0): (0)") (7, 0):(1)
+given model_load("t.blk", "sprite S\nfn f(int n) return int\n  int t = 0\n  if n > 0\n    t = t + n\n    t = t * 2\n    return t + 100\n  return t\n(3): (106)\n(0): (0)") (6, 0):(0)
+given model_load("t.blk", "sprite S\nfn f(int n) return int\n  int t = 0\n  if n > 0\n    t = t + n\n    t = t * 2\n    t = t + 1\n    return t\n  return t\n(3): (7)\n(0): (0)") (7, 0):(0)
+given model_load("t.blk", "sprite S\nfn f(int n) return int\n  int t = 0\n  if n > 0\n    t = t + n\n    t = t * 2\n    t = t + 1\n    return t + 100\n  return t + 1\n(3): (107)\n(0): (1)") (8, 0):(0)
+
+exporter_refuse_blocks(int exporter_number_function) {
+  int exporter_number_line = (import model_function_body_start)[exporter_number_function];
+  while (exporter_number_line < (import model_function_body_end)[exporter_number_function]) {
+    if (exporter_overflowing(exporter_number_line, exporter_number_function) == 1) {
+      model_error((import model_line_numbers)[exporter_number_line], "", "'return' of an expression in a block of '" + (import model_function_names)[exporter_number_function] + "' that already holds three actions cannot be exported: the export names the value on a line of its own before the return, a fourth action that idc refuses (E0201) -- put the block into a function of its own, or return a variable that is already set");
+    }
+    exporter_number_line = exporter_number_line + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn f(int n) return int\n  int t = 0\n  if n > 0\n    t = t + n\n    t = t * 2\n    t = t + 1\n    return t + 100\n  return t\n(3): (107)\n(0): (0)") (0):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn f(int n) return int\n  int t = 0\n  if n > 0\n    t = t + n\n    t = t * 2\n    return t + 100\n  return t\n(3): (106)\n(0): (0)") (0):() then len((import model_diagnostics)):(0)

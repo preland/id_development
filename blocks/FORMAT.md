@@ -306,7 +306,8 @@ happens, never silently different, except where it says "differs"):
   A script that runs on a message is cut at each `wait` of its top level into
   stages (`NAME`, `NAME_after_one`, ...; its cases run the first stage only). Not yet
   modelled, and then the output **differs**: a `wait` anywhere but the top level of
-  such a script (in main, in a function a script calls, inside an `if` or `while`),
+  such a script (in a function a script calls, inside an `if` or `while`; main's
+  top-level waits are staged, see "Export refusals" for what is still refused),
   the yield at the end of each `while` iteration, and a local that must live across a `wait`.
 * `wait(s)` outside a broadcasting program is a real `sleep_ms`.
 * an empty list literal anywhere but a declaration, an assignment to a name, an
@@ -316,12 +317,13 @@ happens, never silently different, except where it says "differs"):
   and `idc --check` refuses it (not tested here).
 * a nested block (an `if`, `else` or `while` body) that holds three actions and
   gains a line in the export, which is a `return` of an expression
-  (`int result_integer = EXPR;` before the return): id's E0201 refuses it.
-  `idc --fix` has no repair for E0201 (it rewrites call nesting, return clauses,
-  narrowing and bitwise parentheses only), so there is no convention to mirror;
-  the same goes for an `if`/`else` pair of three actions that would need a chain
-  segment, which exist only at the top of a function. Pull the block into a
-  function in the `.blk`.
+  (`int result_integer = EXPR;` before the return): the export is refused
+  (`examples/refused/block_return.blk`); pull the block into a function in the
+  `.blk`, or return a variable that is already set. `idc --fix` repairs that
+  shape in hand-written id by pulling the block into `FUNCTION_part`, but the
+  helper needs test cases, which the exporter cannot derive yet. An `if`/`else`
+  pair of three actions that would need a chain segment, which exist only at
+  the top of a function, is not detected and E0201 refuses it.
 * integers: the machine keeps an int in a float (exact to 2^53), the exported
   program in a 64-bit word; they differ only past that.
 * `main`'s `argc` and `argv` are the program's own when it runs; the cases pass the
@@ -351,6 +353,8 @@ In every program:
   (`equal_stages.blk`). Names of locals and of the returned variable are
   compared as written, so two that differ only in those are not found here and
   idc reports them.
+* a `return` of an expression in a nested block that already holds three actions:
+  idc E0201 (`block_return.blk`).
 
 ## What a later milestone needs
 
