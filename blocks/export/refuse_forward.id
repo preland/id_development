@@ -6,7 +6,8 @@
 // every program, since a script that does not wait can be a forwarder too.
 // exporter_checked tells which functions are exported at all: every function
 // at its first stage, a later stage only where the scheduler cuts the script,
-// and never main's first stage, which idc leaves alone.
+// and never the first stage of main, which idc leaves alone, or of a function
+// that runs on no message, which the rule checker (E0406, E0407) has judged.
 
 exporter_checked(int exporter_number_function, int exporter_number_stage) {
   int exporter_number_checked = len(exporter_script_lines(exporter_number_function, exporter_number_stage)) > 0 && str_starts((import model_function_names)[exporter_number_function], "__") == 0;
@@ -16,7 +17,7 @@ exporter_checked(int exporter_number_function, int exporter_number_stage) {
   if (exporter_number_stage > 0 && exporter_number_cut == 0) {
     exporter_number_checked = 0;
   }
-  if (exporter_number_stage == 0 && exporter_number_main == 1) {
+  if (exporter_number_stage == 0 && (exporter_number_main == 1 || (import model_function_message)[exporter_number_function] == "")) {
     exporter_number_checked = 0;
   }
 } return int exporter_number_checked;

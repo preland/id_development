@@ -131,6 +131,8 @@ with the code `idc` uses for the same mistake (`idc --explain CODE`).
 | E0401 | two functions with one name; or a function named like a builtin block |
 | E0402 | two functions with the same signature and logic, up to the names of parameters and locals |
 | E0407 | the same, up to the values of literals: the value should be a parameter |
+| E0406 | a function (not `main`, not a script that runs on a message) whose only statement is a call of another function with its own parameters in the same order and the same return type: a pure forwarder (`examples/broken/e0406_forwarder.blk`) |
+| E0201 (chain) | the `else` that is the third top-level action of `main`: the export puts `variables_start()` first, so a chain segment would begin at the `else`, apart from its `if` (`examples/broken/e0201_chain_else.blk`) |
 | E0501 | fewer than 2 cases |
 | E0502 | a case repeats an earlier one |
 | E0503 / E0505 | a case with the wrong number of arguments / the wrong expected value for the return type |
@@ -317,8 +319,9 @@ happens, never silently different, except where it says "differs"):
   from the parameter's type) or `NAME = []` on a variable of the program
   (`NAME_clear()`): as an argument of a builtin (`push(xs, [])`) it stays `[]`
   and `idc --check` refuses it (not tested here).
-* an `if`/`else` pair of three actions that would need a chain segment, which
-  exist only at the top of a function, is not detected and E0201 refuses it.
+* an `if`/`else` pair that a chain segment would cut apart exists only at the
+  top of `main` (the one function that gains an action, `variables_start()`);
+  `blocks check` reports it (E0201, `examples/broken/e0201_chain_else.blk`).
 * integers: the machine keeps an int in a float (exact to 2^53), the exported
   program in a 64-bit word; they differ only past that.
 * `main`'s `argc` and `argv` are the program's own when it runs; the cases pass the
@@ -339,12 +342,15 @@ broadcasts:
 * a parameter used after a `wait` (`parameter_across_wait.blk`);
 * a main that waits but returns anything but a literal (`main_wait_return.blk`).
 
-In every program:
+In every program (a whole function that is a forwarder, or two whole functions
+equal but for their literals, are no longer export refusals: `blocks check`
+reports them as E0406 and E0407, and a function that runs on no message is not
+looked at again here):
 
-* a function, or the part of a script after a `wait`, whose only statement is a
-  call that passes the function's parameters on: idc E0406, a pure forwarder
-  (`forwarder_stage.blk`);
-* two functions or parts of scripts equal but for their literals: idc E0407
+* the part of a script after a `wait`, or a script that runs on a message,
+  whose only statement is a call that passes the function's parameters on: idc
+  E0406, a pure forwarder (`forwarder_stage.blk`);
+* two parts of scripts, or scripts, equal but for their literals: idc E0407
   (`equal_stages.blk`). Names of locals and of the returned variable are
   compared as written, so two that differ only in those are not found here and
   idc reports them.

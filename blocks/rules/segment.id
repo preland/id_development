@@ -1,0 +1,13 @@
+// The walk of cut.id over one function's body: every line is judged by
+// checker_cut_line, so an else that would open a chain segment is reported at
+// its own line.
+
+checker_cut(int block_function_row) {
+  int block_line_index = (import model_function_body_start)[block_function_row];
+  while (block_line_index < (import model_function_body_end)[block_function_row]) {
+    checker_cut_line(block_function_row, block_line_index);
+    block_line_index = block_line_index + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  n = 1\n  if n > 0\n    say(\"a\")\n  else\n    say(\"b\")") (0):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  if n > 0\n    say(\"a\")\n  else\n    say(\"b\")") (0):() then len((import model_diagnostics)):(0)

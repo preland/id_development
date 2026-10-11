@@ -1,0 +1,37 @@
+// E0201 for the one place the export adds an action of its own: main starts
+// with variables_start(), so its top-level actions are numbered from one more
+// than the block shows, and a chain segment holds exactly three. An else that
+// is the third top-level action of main therefore opens a second segment, cut
+// from its if, which id has no way to write. checker_top tells whether a line
+// is a top-level action, checker_before counts the ones above a line.
+
+checker_top(int block_line_index) {
+  string[] block_texts = lexer_tokens((import model_line_texts)[block_line_index]);
+  string block_keyword = lst_str_get_or(block_texts, 0, "");
+  int block_top = (import model_line_indents)[block_line_index] == 1 && lst_str_index((import constant_free), block_keyword) < 0;
+} return int block_top;
+given model_initial given model_lines("a\n  x = 1\n    y = 2\n  return x") (1):(1)
+given model_initial given model_lines("a\n  x = 1\n    y = 2\n  return x") (2):(0)
+given model_initial given model_lines("a\n  x = 1\n    y = 2\n  return x") (3):(0)
+
+checker_before(int block_function_row, int block_line_index) {
+  int block_count = 0;
+  int block_scan = (import model_function_body_start)[block_function_row];
+  while (block_scan < block_line_index) {
+    block_count = block_count + checker_top(block_scan);
+    block_scan = block_scan + 1;
+  }
+} return int block_count;
+given model_load("t.blk", "sprite S\nfn f() return void\n  a = 1\n  b = 2\n  c = 3") (0, 4):(2)
+given model_load("t.blk", "sprite S\nfn f() return void\n  a = 1\n    b = 2\n  c = 3") (0, 4):(1)
+given model_load("t.blk", "sprite S\nfn f() return void\n  a = 1\n  b = 2\n  c = 3") (0, 2):(0)
+
+checker_cut_line(int block_function_row, int block_line_index) {
+  string[] block_texts = lexer_tokens((import model_line_texts)[block_line_index]);
+  if (lst_str_get_or(block_texts, 0, "") == "else" && (import model_line_indents)[block_line_index] == 1 && (import model_function_names)[block_function_row] == "main" && checker_before(block_function_row, block_line_index) == 2) {
+    model_error((import model_line_numbers)[block_line_index], "E0201", "the 'else' of 'main' is its third action, and the exported main starts with variables_start(), so a chain segment would begin at the else and cut it from its if; make the if and else the first two actions of 'main', or move them into a function of their own");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  n = 1\n  if n > 0\n    say(\"a\")\n  else\n    say(\"b\")") (0, 5):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int\n  if n > 0\n    say(\"a\")\n  else\n    say(\"b\")\n  n = 1") (0, 4):() then len((import model_diagnostics)):(0)
+given model_load("t.blk", "sprite S\nfn f() return void\n  n = 1\n  if n > 0\n    say(\"a\")\n  else\n    say(\"b\")") (0, 5):() then len((import model_diagnostics)):(0)
