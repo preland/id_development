@@ -1,0 +1,40 @@
+// The layout of a document: its lines in order, each as the kind of row it is,
+// the caps owed to the lines above laid before it and the caps still owed at the
+// end laid after the last. A blank line makes no box. The answer is the columns
+// of conf.id's bkk_l_ and bet_tx is filled with the texts of the boxes.
+
+editor_lay_line(int[][] editor_matrix_layout, string[] bet_texts, int[] bel_cursor, string[] bet_doc, int editor_integer_index) {
+  int editor_integer_key_code = editor_kind(bet_doc[editor_integer_index]);
+  int editor_integer_body = editor_integer_key_code == (import constant_kind_statement) || editor_integer_key_code == (import constant_kind_else);
+  int editor_integer_end_index = editor_integer_body * editor_indent(bet_doc[editor_integer_index]);
+} chain (int[][] editor_matrix_layout, string[] bet_texts, int[] bel_cursor, string[] bet_doc, int editor_integer_index) {
+  if (editor_integer_key_code != (import constant_kind_blank)) {
+    editor_lay_caps(editor_matrix_layout, bet_texts, bel_cursor, editor_integer_end_index, editor_integer_key_code == (import constant_kind_else));
+  }
+  if (editor_integer_body == 1) {
+    editor_lay_statement(editor_matrix_layout, bet_texts, bel_cursor, bet_doc, editor_integer_index);
+  }
+  if (editor_integer_key_code == (import constant_kind_hat)) {
+    editor_lay_hat(editor_matrix_layout, bet_texts, bel_cursor, bet_doc, editor_integer_index);
+  }
+} chain (int[][] editor_matrix_layout, string[] bet_texts, int[] bel_cursor, string[] bet_doc, int editor_integer_index) {
+  if (editor_integer_key_code >= (import constant_kind_case) && editor_integer_key_code != (import constant_kind_cap)) {
+    editor_lay_strip(editor_matrix_layout, bet_texts, bel_cursor, bet_doc, editor_integer_index);
+  }
+} return void;
+given editor_test_open(["  x = 1", "", "// n"]) given editor_test_run(1) ((import editor_test_layout), (import editor_test_texts), (import editor_test_cursor), (import editor_test_doc), 1):() then editor_test_dump:("1 0 0 64 24 L0 c4 i1 s-1 b0 |8 8 8 24 8 L0 c-1 i1 s-1 b0 x =|9 38 4 18 16 L0 c-1 i1 s0 b0 1 y=24 pe=1")
+given editor_test_open(["  x = 1", "", "// n"]) given editor_test_run(1) ((import editor_test_layout), (import editor_test_texts), (import editor_test_cursor), (import editor_test_doc), 2):() then editor_test_dump:("1 0 0 64 24 L0 c4 i1 s-1 b0 |8 8 8 24 8 L0 c-1 i1 s-1 b0 x =|9 38 4 18 16 L0 c-1 i1 s0 b0 1|7 0 24 48 16 L2 c-1 i0 s-1 b0 // n y=40 pe=0")
+
+editor_layout(string[] bet_doc, string[] bet_texts) {
+  int[][] editor_matrix_layout = editor_lists((import constant_layout_count));
+  int[] bel_cursor = lst_filled((import constant_unit_count), 0);
+  int editor_integer_index = 0;
+} chain (string[] bet_doc, string[] bet_texts) {
+  while (editor_integer_index < len(bet_doc)) {
+    editor_lay_line(editor_matrix_layout, bet_texts, bel_cursor, bet_doc, editor_integer_index);
+    editor_integer_index = editor_integer_index + 1;
+  }
+  editor_lay_caps(editor_matrix_layout, bet_texts, bel_cursor, 0, 0);
+} return int[][] editor_matrix_layout;
+(["  x = 1"], []):([[1, 8, 9], [0, 8, 38], [0, 8, 4], [64, 24, 18], [24, 8, 16], [0, 0, 0], [4, -1, -1], [1, 1, 1], [-1, -1, 0], [0, 0, 0]])
+([], []):([[], [], [], [], [], [], [], [], [], []])

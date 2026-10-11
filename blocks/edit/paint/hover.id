@@ -1,0 +1,36 @@
+// The tooltip under the pointer. The box under it is found (bke_hitbox) and the
+// violations of its line are wrapped (bke_tiplines); when there are any they are
+// drawn in the graph kit's tooltip box at the pointer. No tooltip while a block is
+// being dragged, when the pointer is off the script area, or when the line is
+// fine.
+
+editor_tip_lines(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_key_code) {
+  string[] bet_tip = [];
+  int editor_integer_line_text = lst_get_or(editor_matrix_layout[(import constant_layout_line)], editor_integer_key_code, 0 - 2) + 1;
+  int editor_integer_index = 0;
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_key_code) {
+  while (editor_integer_index < len(editor_matrix_session[(import constant_y_diagnostic_lines)])) {
+    if (editor_matrix_session[(import constant_y_diagnostic_lines)][editor_integer_index] == editor_integer_line_text) {
+      lst_str_extend(bet_tip, editor_wrap(editor_string_session[(import constant_z_diag)][editor_integer_index], 56));
+    }
+    editor_integer_index = editor_integer_index + 1;
+  }
+} return string[] bet_tip;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 1):(["function 'f' has 0 test case(s); at least 2 are required", "[E0501]"])
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 2):([])
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), -1):([])
+
+editor_draw_tip(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  int editor_integer_x = bel_state[(import graph_view_state_mouse_x)] + (import constant_metric_pal);
+  int editor_integer_y = bel_state[(import graph_view_state_mouse_y)] + (import constant_metric_bar);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout) {
+  int editor_integer_key_code = editor_hit_box(editor_matrix_layout, bel_state, editor_integer_x, editor_integer_y) * (bel_state[(import constant_session_drag)] == 0) - (bel_state[(import constant_session_drag)] == 1);
+  string[] bet_tip = editor_tip_lines(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_integer_key_code);
+  if (len(bet_tip) > 0 && editor_in(editor_integer_x, editor_integer_y, (import constant_metric_pal), (import constant_metric_bar), bel_state[(import graph_view_state_width)] - (import constant_metric_pal) - (import constant_metric_stage), 4000) == 1) {
+    graph_view_tip(bet_tip, editor_integer_x, editor_integer_y);
+  }
+} return void;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given editor_test_at(300, 100) given idstd_graph_view_test_look(314, 114) given idstd_graph_view_test_look(330, 150) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):() then idstd_graph_view_test_seen:("16777215,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given editor_test_at(300, 150) given idstd_graph_view_test_look(320, 170) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):() then idstd_graph_view_test_seen:("0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given editor_test_at(100, 100) given idstd_graph_view_test_look(120, 120) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):() then idstd_graph_view_test_seen:("0")

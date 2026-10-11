@@ -1,0 +1,24 @@
+// The handlers the stepper (step.id) sends an instruction to, one per class
+// of instruction in conf.id's bkk_opcls. Each is given the thread and the pc
+// of the instruction, reads its operands from the program's code, and answers
+// the pc to run next, -1 to yield or a trap (bkk_r_trap less the error
+// number). bkv_after turns the trap list the leaf routines leave their error
+// in into that answer.
+
+machine_after(int[] block_thread_pointer, int block_next_index) {
+  int block_record = block_next_index;
+  if (block_thread_pointer[0] > 0) {
+    block_record = (import constant_result_trap) - block_thread_pointer[0];
+  }
+} return int block_record;
+([0], 15):(15)
+([3], 15):(-13)
+([1], 40):(-11)
+
+machine_handle_move(int block_thread_slot, int block_program_counter, int block_operation) {
+  int block_frame_pointer = (import machine_thread)[block_thread_slot * (import constant_thread_count) + (import constant_thread_frame_pointer)];
+  int block_next_index = block_program_counter + (import constant_integer_cell);
+  machine_move((import machine_value_list), (import machine_gl), (import generator_float_constants), block_operation, block_frame_pointer, (import generator_code)[block_program_counter + 1], (import generator_code)[block_program_counter + 2], (import generator_code)[block_program_counter + 4]);
+} return int block_next_index;
+given model_initial given generator_initial given lst_extend((import generator_code), [1, 1, 0, 0, 7]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 4) (0, 0, 1):(5) then (import machine_value_list)[1]:(7.0)
+given model_initial given generator_initial given lst_extend((import generator_code), [3, 2, 0, 0, 1]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 4) given machine_grow((import machine_gl), 2) (0, 0, 3):(5) then (import machine_value_list)[2]:(0.0)

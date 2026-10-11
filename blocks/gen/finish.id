@@ -1,0 +1,34 @@
+// bkg_fn compiles a whole function; bkg_finish ends it. A function that
+// returns a value must have a return as the last line of its body at indent
+// level one, the way id's return clause ends a function; a function that does
+// not is E0602. Every function ends with a ret of nothing, which a function
+// that returns a value never reaches.
+
+generator_function(int block_function_row) {
+  generator_registers(block_function_row);
+  int block_end = generator_block(block_function_row, (import model_function_body_start)[block_function_row], 1);
+  generator_finish(block_function_row);
+} return void;
+given model_load("t.blk", "sprite A\nfn f() return void\n  int a = 1") given generator_initial given lst_fill((import generator_function_table), 4, 0) (0):() then generator_codes:("10:1,0,0,0,1,12,0,-1,0,0")
+given model_load("t.blk", "sprite A\nfn f(int a) return int\n  int b = a\n  return b") given generator_initial given lst_fill((import generator_function_table), 4, 0) (0):() then generator_codes:("20:0,1,0,0,0,0,2,1,0,0,12,0,2,0,0,12,0,-1,0,0")
+
+generator_last_keyword(int block_function_row) {
+  string block_keyword = "";
+  int block_line_index = (import model_function_body_end)[block_function_row] - 1;
+  if (block_line_index >= (import model_function_body_start)[block_function_row] && (import model_line_indents)[block_line_index] == 1) {
+    block_keyword = lst_str_get_or(lexer_tokens((import model_line_texts)[block_line_index]), 0, "");
+  }
+} return string block_keyword;
+given model_load("t.blk", "sprite A\nfn f() return int\n  x = 1\n  return x") (0):("return")
+given model_load("t.blk", "sprite A\nfn f() return int\n  return x\n  x = 1") (0):("x")
+given model_load("t.blk", "sprite A\nfn f() return int") (0):("")
+
+generator_finish(int block_function_row) {
+  lset((import generator_state), (import constant_statement_line), (import model_function_line)[block_function_row]);
+  if ((import model_function_return_types)[block_function_row] != (import constant_type_void) && generator_last_keyword(block_function_row) != "return") {
+    generator_error("E0602", "function '" + (import model_function_names)[block_function_row] + "' returns " + (import constant_type_full)[(import model_function_return_types)[block_function_row]] + " and must end with a return");
+  }
+  generator_emit((import constant_opcode_return_type), 0, 0 - 1, 0, 0);
+} return void;
+given model_load("t.blk", "sprite A\nfn f() return int\n  x = 1") given generator_initial (0):() then generator_codes:("5:12,0,-1,0,0") then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite A\nfn f() return int\n  return x") given generator_initial (0):() then len((import model_diagnostics)):(0)

@@ -1,0 +1,43 @@
+// The picture of a session written to a PPM file: a new surface the size of the
+// window (the state's graph_view_state_width by graph_view_state_height), the face loaded, bke_paint, then idstd's
+// ppm_l_write. Answers 0, or 1 after naming on stderr what could not be written.
+// bke_report is what is left to do after a script: the state as text on stdout (without
+// the last newline, print adding its own) when asked and the picture when a file
+// is named.
+
+editor_render(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string editor_string_out) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  fx_trig_init();
+  sf_l_init(bel_state[(import graph_view_state_width)], bel_state[(import graph_view_state_height)]);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string editor_string_out) {
+  txt_g8_init();
+  editor_paint(editor_string_session, editor_matrix_session, editor_matrix_layout);
+  int editor_integer_record_count = picture_write(editor_string_out);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string editor_string_out) {
+  if (editor_integer_record_count != 0) {
+    eprint("blocks: the picture could not be written; check that the folder exists and that you may write to it [" + editor_string_out + "]");
+  }
+} return int editor_integer_record_count;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_cell(4, 100) given editor_test_cell(5, 50) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), (import fs_temp_path)):(0) then editor_test_size:("size=15014")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), "/nonexistent/dir/o.ppm"):(1) then eprints:("blocks: the picture could not be written; check that the folder exists and that you may write to it [/nonexistent/dir/o.ppm]\n")
+
+editor_report(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_dump, int editor_integer_boxes, string editor_string_out) {
+  string editor_string_text = editor_state_text(editor_string_session, editor_matrix_session);
+  int editor_integer_cut = len(editor_string_text) - 1;
+  int editor_integer_record_count = 0;
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_dump, int editor_integer_boxes, string editor_string_out) {
+  if (editor_integer_dump == 1) {
+    print(str_sub(editor_string_text, 0, editor_integer_cut));
+  }
+  if (editor_integer_boxes == 1) {
+    string editor_string_second = "boxes " + len(editor_string_session[(import constant_z_text)]) + "\n" + str_join(editor_boxes(editor_matrix_layout, editor_string_session[(import constant_z_text)]), "\n");
+    print(editor_string_second);
+  }
+  if (editor_string_out != "") {
+    editor_integer_record_count = editor_render(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_string_out);
+  }
+} return int editor_integer_record_count;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 1, 0, ""):(0) then prints:("camera 16 16 100\ntab Motion\ntyping none\nviolations 1\n  line 2: function 'f' has 0 test case(s); at least 2 are required [E0501]\nrunning 0 frames 0\nS: x=0 y=0 dir=90 size=100 visible=1 says \"\"\ndoc 4 lines dirty 0\n| sprite S\n| fn f() return void\n|   move(10.0)\n| \n")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 0, 0, ""):(0) then prints:("")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 0, 1, ""):(0) then prints:("boxes 5\n5 0 0 80 22 L0 c-1 i0 s-1 b0 sprite S\n0 0 42 192 30 L1 c5 i0 s-1 b0 define f() return void\n1 0 72 96 24 L2 c0 i1 s-1 b0 \n8 8 80 32 8 L2 c-1 i1 s-1 b0 move\n9 46 76 42 16 L2 c-1 i1 s0 b0 10.0\n")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 0, 0, "/nonexistent/dir/o.ppm"):(1) then eprints:("blocks: the picture could not be written; check that the folder exists and that you may write to it [/nonexistent/dir/o.ppm]\n")

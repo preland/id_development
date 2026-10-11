@@ -1,0 +1,63 @@
+// The button coming up, which is where a gesture ends. A button pressed and
+// released on itself is clicked (the answer carries which: run, stop or save, for
+// the caller to do); a tab released on itself becomes the palette's category; a
+// block held and dragged is dropped (bke_drop); a block held and not dragged is a
+// click, which on a pill starts typing into it; a pan ends. The gesture is over
+// after any release of the left button.
+
+editor_tab_to(string[][] editor_string_session, int[][] editor_matrix_session, int editor_integer_key_code) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  bel_state[(import constant_session_tab)] = editor_integer_key_code;
+  bel_state[(import constant_session_palette_scroll)] = 0;
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int editor_integer_key_code) {
+  editor_refill_palette(editor_string_session, editor_matrix_session);
+} return void;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), 4):() then editor_test_cells:("scroll=0 cells=16,16,100,-1,960,600,0,0,0,0,0,0,0,0,0,4,0,0,0,-1,0,0,0,0,0,0,0,1,0,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), 1):() then editor_test_cells:("scroll=0 cells=16,16,100,-1,960,600,0,0,0,0,0,0,0,0,0,1,0,0,0,-1,0,0,0,0,0,0,0,1,0,0")
+
+editor_let(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_x, int editor_integer_y) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  int[] bel_width = editor_where(bel_state, editor_integer_x, editor_integer_y, len(editor_string_session[(import constant_z_pal)]));
+  int editor_integer_global_kinds = bel_state[(import constant_session_grab_kind)];
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_x, int editor_integer_y) {
+  int editor_integer_bits = 0;
+  if (editor_integer_global_kinds == (import constant_grab_pan)) {
+    editor_integer_bits = editor_pan(bel_state, (import graph_view_event_up), editor_integer_x, editor_integer_y, 1, 0);
+  }
+  if (editor_integer_global_kinds == (import constant_grab_button) && bel_width[0] == bel_state[(import constant_session_anchor)]) {
+    editor_integer_bits = (bel_width[0] == (import constant_where_flag)) * (import constant_event_flag) + (bel_width[0] == (import constant_where_stop)) * (import constant_event_stop) + (bel_width[0] == (import constant_where_save)) * (import constant_event_save);
+  }
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_x, int editor_integer_y) {
+  if (editor_integer_global_kinds == (import constant_grab_tab) && bel_width[0] == (import constant_where_tab) && bel_width[1] == bel_state[(import constant_session_anchor)]) {
+    editor_tab_to(editor_string_session, editor_matrix_session, bel_width[1]);
+    editor_integer_bits = (import constant_event_paint);
+  }
+  if ((editor_integer_global_kinds == (import constant_grab_pal) || editor_integer_global_kinds == (import constant_grab_block)) && bel_state[(import constant_session_drag)] == 1) {
+    editor_integer_bits = editor_drop(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_integer_x, editor_integer_y);
+  }
+  if (editor_integer_global_kinds == (import constant_grab_block) && bel_state[(import constant_session_drag)] == 0 && bel_state[(import constant_session_grab_position)] >= 0) {
+    editor_begin(editor_string_session, editor_matrix_session, editor_matrix_layout, bel_state[(import constant_session_grab_position)]);
+    editor_integer_bits = (import constant_event_paint);
+  }
+} return int editor_integer_bits;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_press((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 200, 10, 1, 1) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 200, 10):(4)
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_press((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 232, 10, 1, 1) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 232, 10):(8)
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_press((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 270, 10, 1, 1) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 270, 10):(16)
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_press((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 200, 10, 1, 1) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 500, 300):(0)
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_press((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 10, 100, 1, 1) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 10, 100):(1) then editor_test_cells:("scroll=0 cells=16,16,100,-1,960,600,0,0,0,0,0,0,0,0,0,4,0,5,4,-1,10,100,0,0,0,0,0,1,0,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_press((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 264, 136, 1, 1) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 264, 136):(1) then editor_test_peek:("ed=1 buf=10.0 dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_press((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 264, 136, 1, 1) given editor_test_at(300, 300) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 50, 300):(3) then editor_test_peek:("ed=0 buf= dirty=1 run=0 tab=0 sprite S|fn f() return void|")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_press((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 20, 158, 1, 1) given editor_test_at(300, 300) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 250, 142):(3) then editor_test_peek:("ed=0 buf= dirty=1 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|  turn(15.0)|")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_press((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 600, 500, 1, 1) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 640, 520):(1) then editor_test_cells:("scroll=0 cells=16,16,100,-1,960,600,412,464,0,412,464,16,16,0,0,0,0,1,0,-1,600,500,0,0,0,0,0,1,0,0")
+
+editor_release(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_x, int editor_integer_y, int editor_integer_button) {
+  int editor_integer_bits = 0;
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  if (editor_integer_button == 1) {
+    editor_integer_bits = editor_let(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_integer_x, editor_integer_y);
+    bel_state[(import constant_session_grab_kind)] = 0;
+    bel_state[(import constant_session_drag)] = 0;
+  }
+} return int editor_integer_bits;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_press((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 200, 10, 1, 1) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 200, 10, 1):(4) then editor_test_grip:("gk=0 ga=1 gp=-1 gd=0 at=200,10 pan=0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_press((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 200, 10, 1, 1) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 200, 10, 3):(0) then editor_test_grip:("gk=4 ga=1 gp=-1 gd=0 at=200,10 pan=0")

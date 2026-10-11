@@ -1,0 +1,17 @@
+// A condition, as an if or a while takes one: an expression whose value is an
+// int, 0 meaning false. It is compiled into a fresh temporary whose slot is
+// the answer, and must be the whole rest of the line.
+
+generator_condition(string[] block_texts) {
+  generator_take(block_texts);
+  int block_call_stack = generator_alloc(1);
+  int block_type = generator_bin(block_texts, block_call_stack, 0, (import constant_prefix_minimum));
+} chain (string[] block_texts) {
+  if (block_type != (import constant_type_integer) && block_type >= 0) {
+    generator_error("E0604", "a condition is an int, 0 being false; found " + (import constant_type_full)[block_type]);
+  }
+  generator_done(block_texts);
+} return int block_call_stack;
+given model_initial given generator_initial given lset((import generator_state), 2, 6) (["if", "1"]):(6) then len((import model_diagnostics)):(0)
+given model_initial given generator_initial (["if", "1.5"]):(0) then len((import model_diagnostics)):(1)
+given model_initial given generator_initial (["if", "1", "2"]):(0) then len((import model_diagnostics)):(1)

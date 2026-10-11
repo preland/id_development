@@ -1,0 +1,19 @@
+// The pointer moving. Every move goes to the camera (a pan in progress follows
+// it, and the wheel zooms about where the pointer last was) and always asks for a
+// new picture, since a tooltip follows the pointer. A held block becomes a drag
+// when the pointer has gone more than conf.id's bkk_c_slop from where it was
+// pressed, and not before, so a click on a literal is not a drag.
+
+editor_motion(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_x, int editor_integer_y, int editor_integer_mask) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  int editor_integer_code = editor_pan(bel_state, (import graph_view_event_move), editor_integer_x, editor_integer_y, editor_integer_mask, 0);
+  int editor_integer_far = fx_abs(editor_integer_x - bel_state[(import constant_session_grab_x)]) + fx_abs(editor_integer_y - bel_state[(import constant_session_grab_y)]) > (import constant_metric_slop);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_x, int editor_integer_y, int editor_integer_mask) {
+  if (editor_integer_far == 1 && (bel_state[(import constant_session_grab_kind)] == (import constant_grab_pal) || bel_state[(import constant_session_grab_kind)] == (import constant_grab_block))) {
+    bel_state[(import constant_session_drag)] = 1;
+  }
+  int editor_integer_bits = (import constant_event_paint);
+} return int editor_integer_bits;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_press((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 264, 136, 1, 1) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 266, 138, 1):(1) then editor_test_grip:("gk=3 ga=2 gp=4 gd=0 at=264,136 pan=0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_press((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 264, 136, 1, 1) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 300, 200, 1):(1) then editor_test_grip:("gk=3 ga=2 gp=4 gd=1 at=264,136 pan=0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_press((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 600, 500, 1, 1) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 650, 540, 1):(1) then editor_test_grip:("gk=1 ga=0 gp=-1 gd=0 at=600,500 pan=2")

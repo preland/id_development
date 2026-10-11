@@ -1,0 +1,46 @@
+// The Variables entries for the document's own variables. A scalar offers a
+// block that sets it and the variable itself as a reporter; a list offers a
+// block that pushes an element and the list as a reporter.
+
+editor_variable(string editor_string_line) {
+  string[] bet_titles = [];
+  int[][] editor_matrix_text_list = editor_scan(str_trim(editor_string_line), bet_titles);
+  int editor_integer_lists = len(bet_titles) > 3 && bet_titles[2] == "[";
+} chain (string editor_string_line) {
+  string editor_string_name = lst_str_get_or(bet_titles, 2 + 2 * editor_integer_lists, "");
+  string editor_string_type = lst_str_get_or(bet_titles, 1, "");
+  int editor_integer_tip_index = lst_str_index((import constant_type_names), editor_string_type);
+} chain (string editor_string_line) {
+  string editor_string_definition = lst_str_get_or((import constant_defaults), editor_integer_tip_index, "0");
+  string editor_string_set = editor_string_name + " = " + editor_string_definition;
+  if (editor_integer_lists == 1) {
+    editor_string_set = "push(" + editor_string_name + ", " + editor_string_definition + ")";
+  }
+} chain (string editor_string_line) {
+  string[] bet_row_number = [editor_string_name, editor_string_set];
+} return string[] bet_row_number;
+("var int n"):(["n", "n = 0"])
+("var string[] words = [\"a\"]"):(["words", "push(words, \"\")"])
+("var float f = 1.5"):(["f", "f = 0.0"])
+("var"):(["", " = 0"])
+
+editor_pal_variable_first(string[] bet_texts, int[] bel_repeat_position, string[] bet_pair) {
+  if (bet_pair[0] != "") {
+    lst_str_extend(bet_texts, [bet_pair[1], bet_pair[0]]);
+    lst_extend(bel_repeat_position, [0, 1]);
+  }
+} return void;
+([], [], ["n", "n = 0"]):(["n = 0", "n"], [0, 1], ["n", "n = 0"])
+(["x"], [0], ["f", "push(f, 0)"]):(["x", "push(f, 0)", "f"], [0, 0, 1], ["f", "push(f, 0)"])
+
+editor_pal_variables(string[] bet_doc, string[] bet_texts, int[] bel_repeat_position) {
+  int editor_integer_key_code = 0;
+  while (editor_integer_key_code < len(bet_doc)) {
+    if (editor_kind(bet_doc[editor_integer_key_code]) == (import constant_kind_variable)) {
+      editor_pal_variable_first(bet_texts, bel_repeat_position, editor_variable(bet_doc[editor_integer_key_code]));
+    }
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+} return void;
+(["var int n", "  x = 1", "var float f"], [], []):(["var int n", "  x = 1", "var float f"], ["n = 0", "n", "f = 0.0", "f"], [0, 1, 0, 1])
+(["var string[] w"], [], []):(["var string[] w"], ["push(w, \"\")", "w"], [0, 1])

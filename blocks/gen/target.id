@@ -1,0 +1,58 @@
+// The three kinds of line that start with a name, once the name and the
+// token after it are read. bkg_assign dispatches (conf.id's bkk_assign:
+// '=', '[', '('); bkg_set assigns a variable; bkg_setelem assigns an element
+// of a list variable; bkg_discard is a call used as a statement.
+
+generator_assign(string[] block_texts) {
+  string block_name_text = generator_take(block_texts);
+  int block_mode = lst_str_index((import constant_assign), generator_take(block_texts));
+  if (block_mode == 0) {
+    generator_set(block_texts, block_name_text);
+  }
+} chain (string[] block_texts) {
+  if (block_mode == 1) {
+    generator_set_element(block_texts, block_name_text);
+  }
+  if (block_mode == 2) {
+    generator_discard(block_texts, block_name_text);
+  }
+  if (block_mode < 0) {
+    generator_error("E0102", "expected '=', '[' or '(' after '" + block_name_text + "'");
+  }
+} chain (string[] block_texts) {
+  generator_done(block_texts);
+} return void;
+given model_load("t.blk", "sprite S\nvar int n") given generator_initial (["n", "=", "4"]):() then generator_codes:("10:1,0,0,0,4,4,0,0,0,0")
+given model_load("t.blk", "sprite S\nvar int n") given generator_initial (["say", "(", "\"hi\"", ")"]):() then len((import generator_string_constants)):(1) then generator_codes:("10:1,1,0,0,0,14,0,1,0,0")
+given model_load("t.blk", "sprite S\nvar int n") given generator_initial (["n", "n"]):() then len((import model_diagnostics)):(1)
+
+generator_set(string[] block_texts, string block_name_text) {
+  int block_variable_table = generator_variable_type(block_name_text);
+  int block_call_stack = generator_alloc(1);
+  int block_type = generator_bin(block_texts, block_call_stack, block_variable_table, (import constant_prefix_minimum));
+} chain (string[] block_texts, string block_name_text) {
+  generator_check_set(block_name_text, block_variable_table, block_type);
+  if (block_variable_table == block_type) {
+    generator_store(block_name_text, block_call_stack);
+  }
+} return void;
+given model_load("t.blk", "sprite S\nvar float g") given generator_initial (["2.5"], "g"):() then generator_codes:("10:2,0,0,0,0,4,0,0,0,0")
+given model_load("t.blk", "sprite S\nvar float g") given generator_initial (["2"], "g"):() then len((import model_diagnostics)):(1)
+
+generator_set_element(string[] block_texts, string block_name_text) {
+  int block_thread_slot = generator_alloc(3);
+  int block_list_type = generator_load(block_thread_slot, block_name_text);
+  int block_integer_type = generator_bin(block_texts, block_thread_slot + 1, 0, (import constant_prefix_minimum));
+} chain (string[] block_texts, string block_name_text) {
+  generator_need(block_texts, "]");
+  generator_need(block_texts, "=");
+  int block_variable_kind = generator_bin(block_texts, block_thread_slot + 2, block_list_type - (import constant_type_list), (import constant_prefix_minimum));
+} chain (string[] block_texts, string block_name_text) {
+  int block_element_type_code = generator_element_type_type(block_list_type, block_integer_type);
+  generator_check_set(block_name_text, block_element_type_code, block_variable_kind);
+  if (block_element_type_code >= 0 && block_element_type_code == block_variable_kind) {
+    generator_emit((import constant_opcode_list_set), block_thread_slot, block_thread_slot + 1, block_thread_slot + 2, 0);
+  }
+} return void;
+given model_load("t.blk", "sprite S\nvar int[] xs") given generator_initial (["0", "]", "=", "5"], "xs"):() then generator_codes:("20:3,0,0,0,0,1,1,0,0,0,1,2,0,0,5,16,0,1,2,0")
+given model_load("t.blk", "sprite S\nvar int[] xs") given generator_initial (["0", "]", "=", "5.5"], "xs"):() then len((import model_diagnostics)):(1)

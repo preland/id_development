@@ -1,0 +1,43 @@
+// The program running in the window. Launching (the green flag) checks the document
+// as it stands, and when the rules hold starts the machine afresh with main; a
+// frame (bke_advance) gives every thread one turn, takes the stage from the machine
+// and notes whether anything is still running. bke_tick is a frame when the program
+// is running and nothing when it is not. The machine is the tool's own (vm/); the
+// state only keeps whether it runs and how many frames it has.
+
+editor_advance(string[][] editor_string_session, int[][] editor_matrix_session) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  machine_frame();
+  bel_state[(import constant_session_frame)] = bel_state[(import constant_session_frame)] + 1;
+} chain (string[][] editor_string_session, int[][] editor_matrix_session) {
+  editor_snap(editor_string_session, editor_matrix_session);
+  bel_state[(import constant_session_run)] = machine_live() > 0;
+} return void;
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  say(\"hi\")\n  move(10.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") given runner_start(0) ((import editor_test_strings), (import editor_test_integers)):() then editor_test_stage:("names=S says=hi geo=10,0,90,100,1 run=0 fr=1")
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  wait(1.0)\n  say(\"late\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") given runner_start(0) ((import editor_test_strings), (import editor_test_integers)):() then editor_test_stage:("names=S says= geo=0,0,90,100,1 run=1 fr=1")
+
+editor_launch(string[][] editor_string_session, int[][] editor_matrix_session) {
+  editor_check(editor_string_session, editor_matrix_session);
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  bel_state[(import constant_session_frame)] = 0;
+} chain (string[][] editor_string_session, int[][] editor_matrix_session) {
+  bel_state[(import constant_session_run)] = 0;
+  if (bel_state[(import constant_session_nodes)] == 0) {
+    runner_start(0);
+    editor_snap(editor_string_session, editor_matrix_session);
+    bel_state[(import constant_session_run)] = machine_live() > 0;
+  }
+} return void;
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  say(\"hi\")\n  move(10.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") ((import editor_test_strings), (import editor_test_integers)):() then editor_test_stage:("names=S says= geo=0,0,90,100,1 run=1 fr=0")
+given editor_test_session("sprite S\nfn f() return void\n") ((import editor_test_strings), (import editor_test_integers)):() then editor_test_stage:("names=S says= geo=0,0,90,100,1 run=0 fr=0")
+given editor_test_session("sprite S\n") ((import editor_test_strings), (import editor_test_integers)):() then editor_test_stage:("names=S says= geo=0,0,90,100,1 run=0 fr=0")
+
+editor_tick(string[][] editor_string_session, int[][] editor_matrix_session) {
+  int editor_integer_bits = 0;
+  if (editor_matrix_session[(import constant_y_state)][(import constant_session_run)] == 1) {
+    editor_advance(editor_string_session, editor_matrix_session);
+    editor_integer_bits = (import constant_event_paint);
+  }
+} return int editor_integer_bits;
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  wait(1.0)\n  say(\"late\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") given editor_launch((import editor_test_strings), (import editor_test_integers)) ((import editor_test_strings), (import editor_test_integers)):(1) then editor_test_stage:("names=S says= geo=0,0,90,100,1 run=1 fr=1")
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  say(\"hi\")\n  move(10.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") ((import editor_test_strings), (import editor_test_integers)):(0) then editor_test_stage:("names=S says= geo=0,0,90,100,1 run=0 fr=0")

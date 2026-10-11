@@ -1,0 +1,47 @@
+// The editor as one pure step over a session: an event in the form gfx_event
+// gives it (kind, then fields a to d; graph_view_event_ in conf.id: key, text, mouse down,
+// up, move, resize, wheel) changes the lists of the session and answers bits. The
+// document, the layout and the palette are changed here and so is the camera; the
+// answer tells the caller what is left for it to do, which is everything that
+// is not a list: bkk_e_paint (the picture is different), bkk_e_doc (the document
+// changed, so the rules are to be checked again), bkk_e_flag and bkk_e_stop (run or
+// stop the program), bkk_e_save (write the file). Nothing here draws, reads the
+// clock or touches the machine, so a window loop and a script can drive it alike.
+
+editor_event(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_kind, int editor_integer_first_value, int editor_integer_second, int editor_integer_column_number, int editor_integer_delta) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  int editor_integer_bits = 0;
+  if (editor_integer_kind == (import graph_view_event_size)) {
+    bel_state[(import graph_view_state_width)] = editor_integer_first_value;
+    bel_state[(import graph_view_state_height)] = editor_integer_second;
+    editor_integer_bits = (import constant_event_paint);
+  }
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_kind, int editor_integer_first_value, int editor_integer_second, int editor_integer_column_number, int editor_integer_delta) {
+  if (editor_integer_kind == (import graph_view_event_move)) {
+    editor_integer_bits = editor_motion(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_integer_first_value, editor_integer_second, editor_integer_column_number);
+  }
+  if (editor_integer_kind == (import graph_view_event_down)) {
+    editor_integer_bits = editor_down(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_integer_first_value, editor_integer_second, editor_integer_column_number, editor_integer_delta);
+  }
+  if (editor_integer_kind == (import graph_view_event_up)) {
+    editor_integer_bits = editor_release(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_integer_first_value, editor_integer_second, editor_integer_column_number);
+  }
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_kind, int editor_integer_first_value, int editor_integer_second, int editor_integer_column_number, int editor_integer_delta) {
+  if (editor_integer_kind == (import graph_view_event_wheel)) {
+    editor_integer_bits = editor_wheel(editor_string_session, editor_matrix_session, editor_integer_second);
+  }
+  if (editor_integer_kind == (import graph_view_event_key)) {
+    editor_integer_bits = editor_key(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_integer_first_value);
+  }
+  if (editor_integer_kind == (import graph_view_event_text)) {
+    editor_integer_bits = editor_text(editor_string_session, editor_matrix_session, editor_integer_first_value);
+  }
+} return int editor_integer_bits;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 6, 500, 400, 0, 0):(1) then editor_test_cells:("scroll=0 cells=16,16,100,-1,500,400,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,1,0,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 7, 1, 2, 3, 4):(0) then editor_test_cells:("scroll=0 cells=16,16,100,-1,960,600,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,1,0,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 5, 300, 200, 0, 0):(1) then editor_test_cells:("scroll=0 cells=16,16,100,-1,960,600,112,164,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,1,0,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 3, 200, 10, 1, 1):(0) then editor_test_grip:("gk=4 ga=1 gp=-1 gd=0 at=200,10 pan=0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_pressed(200, 10) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 4, 200, 10, 1, 0):(4) then editor_test_grip:("gk=0 ga=1 gp=-1 gd=0 at=200,10 pan=0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 8, 0, -1, 0, 0):(1) then editor_test_cells:("scroll=0 cells=20,20,125,-1,960,600,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,1,0,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 2, 55, 0, 0, 0):(1) then editor_test_peek:("ed=1 buf=10.07 dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 1, 1009, 0, 0, 0):(1) then editor_test_peek:("ed=0 buf=10.0 dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")

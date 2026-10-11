@@ -1,0 +1,44 @@
+// The scans for strings and operators. A string runs to its closing quote
+// (a backslash hides the next character) or, unterminated, to the end of the
+// line, so that the parser can report it. An operator is two characters when
+// the pair is one of conf.id's bkk_pairs and one otherwise.
+
+lexer_string(string block_line, int block_index) {
+  int block_inner = block_index + 1;
+  int block_character = charat(block_line, block_inner);
+  while (block_character != 34 && block_character >= 0) {
+    block_inner = block_inner + 1;
+    if (block_character == 92) {
+      block_inner = block_inner + 1;
+    }
+    block_character = charat(block_line, block_inner);
+  }
+} chain (string block_line, int block_index) {
+  int block_end_index = block_inner;
+  if (block_character == 34) {
+    block_end_index = block_inner + 1;
+  }
+  if (block_end_index > len(block_line)) {
+    block_end_index = len(block_line);
+  }
+} return int block_end_index;
+("\"ab\" c", 0):(4)
+("\"a\\\"b\"", 0):(6)
+("\"open", 0):(5)
+("\"x\\", 0):(3)
+
+lexer_pair(string block_line, int block_index) {
+  int block_end_index = block_index + 1;
+  string block_two = "";
+  if (block_end_index < len(block_line)) {
+    block_two = str_sub(block_line, block_index, 2);
+  }
+} chain (string block_line, int block_index) {
+  if (str_find((import constant_pairs), " " + block_two + " ") >= 0) {
+    block_end_index = block_index + 2;
+  }
+} return int block_end_index;
+("a<=b", 1):(3)
+("a<b", 1):(2)
+("a=", 1):(2)
+("&&", 0):(2)

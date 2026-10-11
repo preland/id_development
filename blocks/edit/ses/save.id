@@ -1,0 +1,18 @@
+// Saving. The document is its lines joined with a newline, which is the text of the
+// file it was read from byte for byte until it is edited, so saving an unedited
+// document rewrites the file with the same bytes. Answers 0, or 1 after saying on
+// stderr that the file could not be written; the dirty flag is cleared on 0.
+
+editor_save(string[][] editor_string_session, int[][] editor_matrix_session, string editor_string_path) {
+  string editor_string_text = str_join(editor_string_session[(import constant_z_doc)], "\n");
+  int editor_integer_count = exec_file_put(editor_string_path, editor_string_text, 420);
+  int editor_integer_record_count = editor_integer_count != len(editor_string_text);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, string editor_string_path) {
+  if (editor_integer_record_count == 0) {
+    editor_matrix_session[(import constant_y_state)][(import constant_session_dirty)] = 0;
+  } else {
+    eprint("blocks: cannot write " + editor_string_path + "; check that the folder exists and that you may write to it");
+  }
+} return int editor_integer_record_count;
+given editor_test_session("sprite S\nvar int n\n") given editor_test_line(1, "var int m") given editor_test_cell(28, 1) ((import editor_test_strings), (import editor_test_integers), (import fs_temp_path)):(0) then editor_test_disk:("disk=sprite S\nvar int m\nvar int n\n") then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=0 sprite S|var int m|var int n|")
+given editor_test_session("sprite S\n") ((import editor_test_strings), (import editor_test_integers), "/nonexistent/dir/x.blk"):(1) then eprints:("blocks: cannot write /nonexistent/dir/x.blk; check that the folder exists and that you may write to it\n")

@@ -1,0 +1,39 @@
+// The compiler's state and the two things every part of it does: append an
+// instruction and patch a jump. bkg_init makes the program's tables empty:
+// the code, the function table (bkk_ft_n cells per function row), the float
+// and string constant pools, the local symbol table of the function being
+// compiled (names, slots, types) and the stack of break jumps waiting for
+// their loop's end.
+generator_initial() {
+  export int[] generator_code = [];
+  export int[] generator_function_table = [];
+  export float[] generator_float_constants = [];
+} chain () {
+  export string[] generator_string_constants = [];
+  export string[] generator_symbol_names = [];
+  export int[] generator_symbol_slots = [];
+} chain () {
+  export int[] generator_symbol_types = [];
+  export int[] generator_break_stack = [];
+  export int[] generator_state = [0, 0, 0, 0, 0, 0, 0];
+} return void export generator_code;
+():() then (import generator_code):([])
+():() then len((import generator_code)):(0)
+
+generator_emit(int block_operation, int block_delta, int block_first_value, int block_second, int block_x) {
+  int block_program_counter = len((import generator_code));
+  push((import generator_code), block_operation);
+  push((import generator_code), block_delta);
+} chain (int block_operation, int block_delta, int block_first_value, int block_second, int block_x) {
+  push((import generator_code), block_first_value);
+  push((import generator_code), block_second);
+  push((import generator_code), block_x);
+} return int block_program_counter;
+given generator_initial (1, 2, 3, 4, 5):(0) then (import generator_code):([1, 2, 3, 4, 5])
+given generator_initial given lst_extend((import generator_code), [0, 0, 0, 0, 0]) (14, 1, 2, 3, 4):(5) then len((import generator_code)):(10)
+
+generator_patch(int block_program_counter, int block_target) {
+  lset((import generator_code), block_program_counter + 4, block_target);
+} return void;
+given generator_initial given lst_extend((import generator_code), [8, 0, 0, 0, 0]) (0, 15):() then (import generator_code):([8, 0, 0, 0, 15])
+given generator_initial given lst_extend((import generator_code), [9, 0, 0, 0, 0, 9, 0, 0, 0, 0]) (5, 40):() then (import generator_code):([9, 0, 0, 0, 0, 9, 0, 0, 0, 40])

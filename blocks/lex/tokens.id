@@ -1,0 +1,35 @@
+// The tokenizer of the .blk format. A line becomes the list of its tokens:
+// words (letters, digits, underscore, never starting with a digit), numbers
+// (digits, optionally one point and more digits), double-quoted strings kept
+// with their quotes and escapes, the six two-character operators of
+// conf.id's bkk_pairs, and any other single character. Spaces separate and
+// are dropped. Nothing is ever an error here: a stray character is a token
+// of its own and the parser that meets it names the fix.
+
+lexer_tokens(string block_line) {
+  string[] block_texts = [];
+  lexer_scan(block_texts, block_line, 0);
+} return string[] block_texts;
+("x = 1"):(["x", "=", "1"])
+("  if a<=b && c"):(["if", "a", "<=", "b", "&&", "c"])
+(""):([])
+("say(\"a b\", 2.5)"):(["say", "(", "\"a b\"", ",", "2.5", ")"])
+
+lexer_scan(string[] block_texts, string block_line, int block_index) {
+  while (block_index < len(block_line)) {
+    block_index = lexer_next(block_texts, block_line, block_index);
+  }
+} return void;
+([], "a b", 0):(["a", "b"])
+([], "   ", 0):([])
+
+lexer_next(string[] block_texts, string block_line, int block_index) {
+  int block_scan = str_skip_space(block_line, block_index);
+  int block_end_index = lexer_end(block_line, block_scan);
+  if (block_end_index > block_scan) {
+    push(block_texts, str_sub(block_line, block_scan, block_end_index - block_scan));
+  }
+} return int block_end_index;
+([], "ab cd", 0):(2)
+([], "ab cd", 2):(5)
+([], "  ", 0):(2)

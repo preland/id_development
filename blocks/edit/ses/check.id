@@ -1,0 +1,34 @@
+// Live rule feedback. The whole document goes to the checker the command line
+// uses (bkr_load: the rules, then the compile when the rules hold), so what a
+// block shows is what `blocks check` prints. Each violation is kept as the line it
+// is on (1 based, as `check` prints it) and its message with the code, and
+// the state counts them.
+
+editor_diagnostic_line(string editor_string_diagnostics) {
+  int editor_integer_position = len((import model_file)[0]) + 1;
+  string editor_string_count = str_sub(editor_string_diagnostics, editor_integer_position, len(editor_string_diagnostics) - editor_integer_position);
+  int editor_integer_line_text = to_int(editor_string_count);
+} return int editor_integer_line_text;
+given model_initial ("input.blk:12: error: x [E0101]"):(12)
+given model_initial ("input.blk:3: error: a [E0201]"):(3)
+
+editor_diagnostic_message(string editor_string_diagnostics) {
+  string editor_string_message = str_after(editor_string_diagnostics, ": error: ");
+} return string editor_string_message;
+("f.blk:3: error: too long [E0201]"):("too long [E0201]")
+("f.blk:9: error: a: error: b"):("a: error: b")
+
+editor_check(string[][] editor_string_session, int[][] editor_matrix_session) {
+  string editor_string_text = str_join(editor_string_session[(import constant_z_doc)], "\n");
+  runner_load(editor_string_session[(import constant_z_path)][0], editor_string_text);
+  string[] bet_message = [];
+} chain (string[][] editor_string_session, int[][] editor_matrix_session) {
+  int[] bel_line_text = [];
+  editor_diagnostics_list(bet_message, bel_line_text);
+  editor_string_session[(import constant_z_diag)] = bet_message;
+} chain (string[][] editor_string_session, int[][] editor_matrix_session) {
+  editor_matrix_session[(import constant_y_diagnostic_lines)] = bel_line_text;
+  editor_matrix_session[(import constant_y_state)][(import constant_session_nodes)] = len(bel_line_text);
+} return void;
+given editor_test_session("sprite S\nvar int n\n") ((import editor_test_strings), (import editor_test_integers)):() then editor_test_look:("doc 3 diag 0 pal 7 boxes 2 sprites S pan 16,16")
+given editor_test_session("sprite S\nvar int n\n") given editor_test_line(2, "fn f() return void") ((import editor_test_strings), (import editor_test_integers)):() then editor_test_look:("doc 4 diag 1 pal 7 boxes 2 sprites S pan 16,16")

@@ -1,0 +1,61 @@
+// Checking the shape of a case before it is run, with the codes id uses:
+// E0503 for a wrong number of arguments, E0505 for an expected value on a
+// function that returns nothing or none on one that returns a value, and
+// E0102 for a case that is not (ARGS):(EXPECTED) with its clauses. bkr_argc
+// counts the top-level arguments of an argument text; bkr_commas counts the
+// commas outside brackets.
+
+runner_commas(string[] block_texts) {
+  int block_count = 0;
+  int block_delta = 0;
+  int block_index = 0;
+} chain (string[] block_texts) {
+  while (block_index < len(block_texts)) {
+    block_count = block_count + (block_texts[block_index] == "," && block_delta == 0);
+    block_delta = block_delta + (block_texts[block_index] == "[") - (block_texts[block_index] == "]");
+    block_index = block_index + 1;
+  }
+} return int block_count;
+(["1", ",", "2"]):(1)
+(["[", "1", ",", "2", "]", ",", "3"]):(1)
+([]):(0)
+
+runner_argument_count(string block_arguments) {
+  string[] block_texts = lexer_tokens(block_arguments);
+  int block_count = runner_commas(block_texts);
+  int block_argument_total = (len(block_texts) > 0) * (block_count + 1);
+} return int block_argument_total;
+(""):(0)
+("5"):(1)
+("1 , [ 2 , 3 ] , \"a,b\""):(3)
+
+runner_shape(int block_character, int block_function_row, string[] block_as) {
+  int block_ok = 1;
+  string block_arguments = runner_pick(block_as, "A|", "\n");
+  string block_expression_text = runner_pick(block_as, "E|", "\n");
+} chain (int block_character, int block_function_row, string[] block_as) {
+  if (runner_pick(block_as, "X|", "\n") != "\n") {
+    model_error((import model_case_lines)[block_character], "E0102", runner_pick(block_as, "X|", "\n"));
+    block_ok = 0;
+  } else if (block_arguments == "\n" || block_expression_text == "\n") {
+    model_error((import model_case_lines)[block_character], "E0102", "a test case is (ARGS):(EXPECTED), written under the function it tests");
+    block_ok = 0;
+  }
+  int block_argument_number = runner_argument_count(block_arguments);
+} chain (int block_character, int block_function_row, string[] block_as) {
+  if (block_ok == 1 && block_argument_number != (import model_function_parameter_count)[block_function_row]) {
+    model_error((import model_case_lines)[block_character], "E0503", "this case passes " + block_argument_number + " argument(s) but '" + (import model_function_names)[block_function_row] + "' takes " + (import model_function_parameter_count)[block_function_row]);
+    block_ok = 0;
+  }
+  if (block_ok == 1 && ((import model_function_return_types)[block_function_row] == (import constant_type_void)) != (block_expression_text == "")) {
+    model_error((import model_case_lines)[block_character], "E0505", "'" + (import model_function_names)[block_function_row] + "' and this case disagree about a return value: a function that returns nothing expects (), one that returns a value expects one");
+    block_ok = 0;
+  }
+} return int block_ok;
+given model_load("t.blk", "sprite S\nfn f(int a) return int\n(1):(2)\n(2):(3)") (0, 0, ["A|1", "E|2"]):(1)
+given model_load("t.blk", "sprite S\nfn f(int a) return int\n(1):(2)\n(2):(3)") (0, 0, ["A|1 , 2", "E|2"]):(0) then model_diagnostic_list:("t.blk:3: error: this case passes 2 argument(s) but 'f' takes 1 [E0503]")
+given model_load("t.blk", "sprite S\nfn f(int a) return int\n(1):(2)\n(2):(3)") (0, 0, ["A|1", "E|"]):(0) then model_diagnostic_list:("t.blk:3: error: 'f' and this case disagree about a return value: a function that returns nothing expects (), one that returns a value expects one [E0505]")
+given model_load("t.blk", "sprite S\nfn g() return void\n(1):(2)\n(2):(3)") (0, 0, ["A|", "E|"]):(1)
+given model_load("t.blk", "sprite S\nfn g() return void\n(1):(2)\n(2):(3)") (0, 0, ["A|", "E|1"]):(0) then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn g() return void\n(1):(2)\n(2):(3)") (0, 0, ["A|"]):(0) then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn g() return void\n(1):(2)\n(2):(3)") (0, 0, ["X|bad"]):(0) then model_diagnostic_list:("t.blk:3: error: bad [E0102]")

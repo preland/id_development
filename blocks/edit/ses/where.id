@@ -1,0 +1,67 @@
+// The tab under a point, the palette block under a point, and the region the
+// point is in. The palette's blocks are one pitch apart from conf.id's bkk_c_p0
+// on, moved up by the scroll; a point between two blocks is on none.
+
+editor_tab(int editor_integer_x, int editor_integer_y) {
+  int editor_integer_relative_x = editor_integer_x - (import constant_metric_tab_x);
+  int editor_integer_relative_y = editor_integer_y - (import constant_metric_bar) - (import constant_metric_tab_y);
+  int editor_integer_ok = editor_integer_relative_x >= 0 && editor_integer_relative_y >= 0 && editor_integer_relative_x % (import constant_metric_tab_delta_x) < (import constant_metric_tab_width) && editor_integer_relative_y % (import constant_metric_tab_delta_y) < (import constant_metric_tab_height);
+} chain (int editor_integer_x, int editor_integer_y) {
+  int editor_integer_key_code = editor_integer_relative_y / (import constant_metric_tab_delta_y) * 2 + editor_integer_relative_x / (import constant_metric_tab_delta_x);
+  int editor_integer_at = (editor_integer_key_code + 1) * editor_integer_ok - 1;
+  if (editor_integer_relative_x / (import constant_metric_tab_delta_x) > 1 || editor_integer_at >= (import constant_metric_tabs)) {
+    editor_integer_at = 0 - 1;
+  }
+} return int editor_integer_at;
+(10, 50):(0)
+(100, 50):(1)
+(10, 76):(2)
+(100, 102):(5)
+(92, 50):(-1)
+(10, 112):(4)
+(10, 66):(-1)
+(300, 50):(-1)
+
+editor_entry(int editor_integer_x, int editor_integer_y, int editor_integer_scroll, int editor_integer_count) {
+  int editor_integer_relative_y = editor_integer_y - (import constant_metric_position_origin) + editor_integer_scroll;
+  int editor_integer_key_code = editor_integer_relative_y / (import constant_metric_pill_delta_y);
+  int editor_integer_ok = editor_integer_relative_y >= 0 && editor_integer_relative_y % (import constant_metric_pill_delta_y) < (import constant_metric_prow) && editor_integer_key_code < editor_integer_count && editor_in(editor_integer_x, editor_integer_y, 8, 0, (import constant_metric_pal) - 16, 4000) == 1;
+} chain (int editor_integer_x, int editor_integer_y, int editor_integer_scroll, int editor_integer_count) {
+  int editor_integer_at = (editor_integer_key_code + 1) * editor_integer_ok - 1;
+} return int editor_integer_at;
+(20, 130, 0, 3):(0)
+(20, 160, 0, 3):(1)
+(20, 152, 0, 3):(-1)
+(20, 130, 28, 3):(1)
+(20, 130, 0, 0):(-1)
+(4, 130, 0, 3):(-1)
+(20, 100, 0, 3):(-1)
+
+editor_where(int[] bel_state, int editor_integer_x, int editor_integer_y, int editor_integer_count) {
+  int editor_integer_tab = editor_tab(editor_integer_x, editor_integer_y);
+  int editor_integer_entry = editor_entry(editor_integer_x, editor_integer_y, bel_state[(import constant_session_palette_scroll)], editor_integer_count);
+  int editor_integer_row_number = (import constant_where_script);
+} chain (int[] bel_state, int editor_integer_x, int editor_integer_y, int editor_integer_count) {
+  if (editor_integer_x >= bel_state[(import graph_view_state_width)] - (import constant_metric_stage)) {
+    editor_integer_row_number = (import constant_where_stage);
+  }
+  if (editor_integer_x < (import constant_metric_pal)) {
+    editor_integer_row_number = (import constant_where_none);
+  }
+  if (editor_integer_y < (import constant_metric_bar)) {
+    editor_integer_row_number = editor_bar(editor_integer_x, editor_integer_y);
+  }
+} chain (int[] bel_state, int editor_integer_x, int editor_integer_y, int editor_integer_count) {
+  int editor_integer_argument = fx_max(editor_integer_tab, editor_integer_entry);
+  if (editor_integer_row_number == (import constant_where_none) && editor_integer_y >= (import constant_metric_bar)) {
+    editor_integer_row_number = (editor_integer_tab >= 0) * (import constant_where_tab) + (editor_integer_entry >= 0) * (import constant_where_pal);
+  }
+  int[] bel_width = [editor_integer_row_number, editor_integer_argument];
+} return int[] bel_width;
+given editor_test_blank(960, 600) ((import editor_test_state), 10, 10, 3):([0, -1])
+given editor_test_blank(960, 600) ((import editor_test_state), 200, 10, 3):([1, -1])
+given editor_test_blank(960, 600) ((import editor_test_state), 10, 50, 3):([4, 0])
+given editor_test_blank(960, 600) ((import editor_test_state), 20, 130, 3):([5, 0])
+given editor_test_blank(960, 600) ((import editor_test_state), 400, 300, 3):([6, -1])
+given editor_test_blank(960, 600) ((import editor_test_state), 800, 300, 3):([7, -1])
+given editor_test_blank(960, 600) ((import editor_test_state), 20, 500, 3):([0, -1])

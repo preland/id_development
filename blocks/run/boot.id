@@ -1,0 +1,41 @@
+// The two scripts the tool writes itself and adds to the program after the
+// rules are checked: __init, which sets every variable to its declared initial
+// value (or its type's default, conf.id's bkk_defaults), and __flag, the green
+// flag, which calls main with an argument count of 1 and an argument list of
+// the program's name. They are ordinary .blk text on a sprite of their own, so
+// the compiler and the machine need no special case for them.
+
+runner_initial_line(int block_variable_row) {
+  string block_initial = (import model_variable_initials)[block_variable_row];
+  if (block_initial == "") {
+    block_initial = (import constant_defaults)[(import model_variable_types)[block_variable_row]];
+  }
+  string block_line = "  " + (import model_variable_names)[block_variable_row] + " = " + block_initial + "\n";
+} return string block_line;
+given model_load("t.blk", "sprite S\nvar int n\nvar string s = \"hi\"\nvar float[] fs") (0):("  n = 0\n")
+given model_load("t.blk", "sprite S\nvar int n\nvar string s = \"hi\"\nvar float[] fs") (1):("  s = \"hi\"\n")
+given model_load("t.blk", "sprite S\nvar int n\nvar string s = \"hi\"\nvar float[] fs") (2):("  fs = []\n")
+
+runner_boot_text() {
+  string block_text = "sprite " + (import constant_system) + "\nfn " + (import constant_initial_function) + "() return void\n";
+  int block_variable_row = 0;
+  while (block_variable_row < len((import model_variable_names))) {
+    block_text = block_text + runner_initial_line(block_variable_row);
+    block_variable_row = block_variable_row + 1;
+  }
+} chain () {
+  if (lst_str_index((import model_function_names), "main") >= 0) {
+    block_text = block_text + "fn " + (import constant_flag_function) + "() return void\n  int bk_flag = main(1, [\"blocks\"])\n";
+  }
+} return string block_text;
+given model_load("t.blk", "sprite S\nvar int n") ():("sprite __sys\nfn __init() return void\n  n = 0\n")
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int") ():("sprite __sys\nfn __init() return void\nfn __flag() return void\n  int bk_flag = main(1, [\"blocks\"])\n")
+
+runner_adopt(int block_from, int block_source) {
+  while (block_from < len((import model_function_names))) {
+    lset((import model_function_sprites), block_from, (import model_function_sprites)[block_source]);
+    block_from = block_from + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite A\nfn a() return void\nsprite B\nfn b() return void\nfn c() return void") (1, 0):() then (import model_function_sprites):([0, 0, 0])
+given model_load("t.blk", "sprite A\nfn a() return void\nsprite B\nfn b() return void\nfn c() return void") (2, 1):() then (import model_function_sprites):([0, 1, 1])

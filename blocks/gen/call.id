@@ -1,0 +1,45 @@
+// A call, after its opening parenthesis has been taken. The callee is a
+// function of the program or a builtin (conf.id's bkk_bi_name); either way it
+// has a signature string 'letters>letter', written by bkg_usig for a function
+// of the program, and the arguments are compiled against it by bkg_args.
+// A name that is neither is E0304.
+
+generator_user_signature(int block_function_row) {
+  string block_signature = "";
+  int block_position = (import model_function_parameter_start)[block_function_row];
+  while (block_position < (import model_function_parameter_start)[block_function_row] + (import model_function_parameter_count)[block_function_row]) {
+    block_signature = block_signature + str_sub((import constant_type_letter), (import model_pat)[block_position], 1);
+    block_position = block_position + 1;
+  }
+} chain (int block_function_row) {
+  block_signature = block_signature + ">" + str_sub((import constant_type_letter), (import model_function_return_types)[block_function_row], 1);
+} return string block_signature;
+given model_load("t.blk", "sprite S\nfn f(int a, string[] b) return float") (0):("iS>f")
+given model_load("t.blk", "sprite S\nfn f() return void") (0):(">v")
+
+generator_signature(int block_function_row, int block_second) {
+  string block_signature = "?";
+  if (block_function_row >= 0) {
+    block_signature = generator_user_signature(block_function_row);
+  } else if (block_second >= 0) {
+    block_signature = (import constant_builtin_signature)[block_second];
+  }
+} return string block_signature;
+given model_load("t.blk", "sprite S\nfn f(int a) return int") (0, -1):("i>i")
+given model_load("t.blk", "sprite S\nfn f(int a) return int") (-1, 12):("a>i")
+given model_load("t.blk", "sprite S\nfn f(int a) return int") (-1, -1):("?")
+
+generator_call(string[] block_texts, int block_destination, string block_name_text) {
+  int block_function_row = lst_str_index((import model_function_names), block_name_text);
+  int block_second = lst_str_index((import constant_builtin_name), block_name_text);
+  string block_signature = generator_signature(block_function_row, block_second);
+} chain (string[] block_texts, int block_destination, string block_name_text) {
+  int block_type = 0 - 1;
+  if (block_signature == "?") {
+    generator_error("E0304", "no such function '" + block_name_text + "'; a call names a function of the program or a builtin");
+  } else {
+    block_type = generator_arguments(block_texts, block_destination, block_signature, block_function_row, block_second);
+  }
+} return int block_type;
+given model_load("t.blk", "sprite S\nfn f(int a) return int") given generator_initial (["3", ")"], 9, "f"):(1) then (import generator_code):([1, 0, 0, 0, 3, 11, 9, 0, 0, 0])
+given model_load("t.blk", "sprite S\nfn f(int a) return int") given generator_initial (["3", ")"], 9, "nope"):(-1) then len((import model_diagnostics)):(1)

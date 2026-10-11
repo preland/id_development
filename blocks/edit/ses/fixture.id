@@ -1,0 +1,27 @@
+// Test setup and check for the session functions that take the state: bke_t_blank
+// makes the state at the start (a copy of conf.id's bkk_st0) with the window's
+// size, as the export bke_t_st; bke_t_set puts a value in one of its cells;
+// bke_t_stdump shows all the cells, comma separated.
+
+editor_test_blank(int editor_integer_width, int editor_integer_height) {
+  int[] bel_state = lst_copy((import constant_state_initial));
+  bel_state[(import graph_view_state_width)] = editor_integer_width;
+  bel_state[(import graph_view_state_height)] = editor_integer_height;
+} chain (int editor_integer_width, int editor_integer_height) {
+  export int[] editor_test_state = bel_state;
+} return void;
+(960, 600):() then editor_test_state_dump:("st=0,0,100,-1,960,600,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0")
+(100, 50):() then editor_test_state_dump:("st=0,0,100,-1,100,50,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0")
+
+editor_test_set(int editor_integer_at, int editor_integer_value) {
+  int[] bel_state = (import editor_test_state);
+  bel_state[editor_integer_at] = editor_integer_value;
+} return void;
+given editor_test_blank(960, 600) (16, 56):() then editor_test_state_dump:("st=0,0,100,-1,960,600,0,0,0,0,0,0,0,0,0,0,56,0,0,-1,0,0,0,0,0,0,0,0,0,0")
+given editor_test_blank(960, 600) (4, 100):() then editor_test_state_dump:("st=0,0,100,-1,100,600,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0")
+
+editor_test_state_dump() {
+  string editor_string_all = "st=" + lst_text((import editor_test_state), ",");
+} return string editor_string_all;
+given editor_test_blank(960, 600) ():("st=0,0,100,-1,960,600,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0")
+given editor_test_blank(960, 600) given editor_test_set(5, 7) ():("st=0,0,100,-1,960,7,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0")

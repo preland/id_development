@@ -1,0 +1,32 @@
+// The stage panel on the right. The machine's sprites are drawn as they are in the
+// session: a disc in the colour of its place in the order, with a line out of it
+// in the direction it faces (90 is right, 0 is up), a speech bubble with what it
+// last said, and under the stage a list of them with their numbers. The stage
+// runs 480 units across, drawn 3 in 5 of that.
+
+editor_stage_point(int[] bel_state, int[] bel_geometry, int editor_integer_index) {
+  int editor_integer_origin = bel_state[(import graph_view_state_width)] - (import constant_metric_stage) + (import constant_metric_stage_margin);
+  int editor_integer_cell_x = editor_integer_origin + (import constant_metric_stage_width) / 2 + bel_geometry[5 * editor_integer_index] * 3 / 5;
+  int editor_integer_cell_y = (import constant_metric_bar) + (import constant_metric_stage_margin) + (import constant_metric_stage_height) / 2 - bel_geometry[5 * editor_integer_index + 1] * 3 / 5;
+} chain (int[] bel_state, int[] bel_geometry, int editor_integer_index) {
+  int editor_integer_row_number = fx_max(bel_geometry[5 * editor_integer_index + 3] * (import constant_metric_sprite_row) / 100, 3);
+  int[] bel_position = [editor_integer_cell_x, editor_integer_cell_y, editor_integer_row_number];
+} return int[] bel_position;
+given editor_test_blank(960, 600) ((import editor_test_state), [0, 0, 90, 100, 1], 0):([810, 150, 8])
+given editor_test_blank(960, 600) ((import editor_test_state), [0, 0, 90, 100, 1, 100, -50, 90, 50, 1], 1):([870, 180, 4])
+given editor_test_blank(960, 600) ((import editor_test_state), [-240, 180, 0, 10, 1], 0):([666, 42, 3])
+
+editor_draw_bubble(string editor_string_say, int[] bel_position, int editor_integer_origin) {
+  int editor_integer_count = fx_min(len(editor_string_say), (import constant_metric_bub));
+  string editor_string_text_list = str_sub(editor_string_say, 0, editor_integer_count);
+  int editor_integer_width = len(editor_string_text_list) * 8 + 12;
+} chain (string editor_string_say, int[] bel_position, int editor_integer_origin) {
+  int editor_integer_x = fx_clamp(bel_position[0] - editor_integer_width / 2, editor_integer_origin, editor_integer_origin + (import constant_metric_stage_width) - editor_integer_width);
+  int editor_integer_y = fx_max(bel_position[1] - bel_position[2] - 22, (import constant_metric_bar) + (import constant_metric_stage_margin));
+  draw_rounded_rectangle(editor_integer_x, editor_integer_y, editor_integer_width, 18, 5, (import constant_x_ink));
+} chain (string editor_string_say, int[] bel_position, int editor_integer_origin) {
+  draw_rounded_rectangle(editor_integer_x + 1, editor_integer_y + 1, editor_integer_width - 2, 16, 4, (import constant_x_white));
+  txt_g8_draw(editor_integer_x + 6, editor_integer_y + 5, editor_string_text_list, (import constant_x_ink), 1);
+} return void;
+given idstd_graph_view_test_canvas(300, 200) given idstd_graph_view_test_look(12, 92) given idstd_graph_view_test_look(5, 92) ("hi", [20, 120, 8], 10):() then idstd_graph_view_test_seen:("16777215,0")
+given idstd_graph_view_test_canvas(300, 200) given idstd_graph_view_test_look(16, 98) given idstd_graph_view_test_look(14, 98) ("", [20, 120, 8], 10):() then idstd_graph_view_test_seen:("16777215,5725813")

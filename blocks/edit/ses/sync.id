@@ -1,0 +1,35 @@
+// Keeping what is derived from the document in step with it. The layout (a pure
+// function of the document, edit/lay/) and the palette of the current category
+// (its Variables and My Blocks follow the document's own) are rebuilt after
+// every edit, into the lists the session already holds, so the bundles keep
+// their identity.
+
+editor_swap(string[][] editor_string_session, int[][] editor_matrix_layout, string[] bet_texts, int[][] editor_matrix_new) {
+  editor_string_session[(import constant_z_text)] = bet_texts;
+  int editor_integer_key_code = 0;
+  while (editor_integer_key_code < len(editor_matrix_new)) {
+    editor_matrix_layout[editor_integer_key_code] = editor_matrix_new[editor_integer_key_code];
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+} return void;
+([[], [], [], [], ["old"]], [[1], [2]], ["n"], [[3], [4]]):([[], [], [], [], ["n"]], [[3], [4]], ["n"], [[3], [4]])
+([["a"], [], [], [], []], [[0], [5]], [], [[9], [8]]):([["a"], [], [], [], []], [[9], [8]], [], [[9], [8]])
+
+editor_layout_again(string[][] editor_string_session, int[][] editor_matrix_layout) {
+  string[] bet_texts = [];
+  int[][] editor_matrix_new = editor_layout(editor_string_session[(import constant_z_doc)], bet_texts);
+  editor_swap(editor_string_session, editor_matrix_layout, bet_texts, editor_matrix_new);
+} return void;
+given editor_test_session("sprite S\n") given editor_test_line(1, "sprite T") ((import editor_test_strings), (import editor_test_boxes)):() then editor_test_look:("doc 3 diag 0 pal 7 boxes 2 sprites S pan 16,16")
+given editor_test_session("sprite S\n") ((import editor_test_strings), (import editor_test_boxes)):() then editor_test_look:("doc 2 diag 0 pal 7 boxes 1 sprites S pan 16,16")
+
+editor_refill_palette(string[][] editor_string_session, int[][] editor_matrix_session) {
+  string[] bet_texts = [];
+  int[] bel_repeat_position = [];
+  editor_pal(editor_string_session[(import constant_z_doc)], editor_matrix_session[(import constant_y_state)][(import constant_session_tab)], bet_texts, bel_repeat_position);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session) {
+  editor_string_session[(import constant_z_pal)] = bet_texts;
+  editor_matrix_session[(import constant_y_report)] = bel_repeat_position;
+} return void;
+given editor_test_session("sprite S\nvar int n\n") given editor_test_cell(15, 4) ((import editor_test_strings), (import editor_test_integers)):() then editor_test_look:("doc 3 diag 0 pal 5 boxes 2 sprites S pan 16,16")
+given editor_test_session("sprite S\nvar int n\n") given editor_test_cell(15, 1) ((import editor_test_strings), (import editor_test_integers)):() then editor_test_look:("doc 3 diag 0 pal 3 boxes 2 sprites S pan 16,16")

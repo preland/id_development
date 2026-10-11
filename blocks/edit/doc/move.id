@@ -1,0 +1,36 @@
+// The edits that change the shape of the document, all on its list of lines:
+// insert a block (given as lines whose first is at indent zero) at a line and an
+// indent, cut a block out and answer it so, and move one. A move that lands
+// after the block's own place counts the lines it took out.
+
+editor_shift(string editor_string_line, int editor_integer_by) {
+  int editor_integer_has = str_skip_space(editor_string_line, 0) / 2;
+  int editor_integer_less = fx_min(0 - editor_integer_by, editor_integer_has);
+  int editor_integer_cut = fx_max(editor_integer_less, 0) * 2;
+} chain (string editor_string_line, int editor_integer_by) {
+  string editor_string_rest = str_sub(editor_string_line, editor_integer_cut, len(editor_string_line) - editor_integer_cut);
+  string editor_string_out = str_repeat("  ", fx_max(editor_integer_by, 0)) + editor_string_rest;
+} return string editor_string_out;
+("x", 2):("    x")
+("    x", -1):("  x")
+("  x", -3):("x")
+("  x", 0):("  x")
+
+editor_shifted(string[] bet_block, int editor_integer_by) {
+  string[] bet_out = [];
+  int editor_integer_key_code = 0;
+  while (editor_integer_key_code < len(bet_block)) {
+    push(bet_out, editor_shift(bet_block[editor_integer_key_code], editor_integer_by));
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+} return string[] bet_out;
+(["a", "  b"], 1):(["  a", "    b"])
+(["    a", "      b"], -2):(["a", "  b"])
+([], 3):([])
+
+editor_ins(string[] bet_doc, int editor_integer_at, int editor_integer_indent, string[] bet_block) {
+  string[] bet_new = editor_shifted(bet_block, editor_integer_indent);
+  lst_str_splice(bet_doc, editor_integer_at, editor_integer_at, bet_new);
+} return void;
+(["a", "b"], 1, 2, ["x", "  y"]):(["a", "    x", "      y", "b"], 1, 2, ["x", "  y"])
+(["a"], 1, 0, ["z"]):(["a", "z"], 1, 0, ["z"])

@@ -1,0 +1,20 @@
+// bkv_boot: the machine's state, empty, for the program in the model and the
+// code tables. See boot.id for what each list is.
+machine_boot() {
+  export float[] machine_value_list = [];
+  export float[] machine_gl = machine_zeros(len((import model_variable_names)));
+  export float[][] machine_lists = [];
+} chain () {
+  export string[] machine_sprite_list = [];
+  export int[] machine_thread = [];
+  export int[] machine_call_stack = [];
+} chain () {
+  export float[] machine_sprite_state = machine_sprites(len((import model_sprite_names)));
+  export string[] machine_out = [];
+  export int[] machine_registers_group = [0, 0, 0];
+} chain () {
+  export float[] machine_return_values = [0.0];
+  lst_str_extend((import machine_sprite_list), (import generator_string_constants));
+} return void export machine_registers_group;
+given model_load("t.blk", "sprite A\nsprite B\nvar int x") given generator_initial given lst_str_extend((import generator_string_constants), ["k"]) ():() then (import machine_registers_group):([0, 0, 0])
+given model_load("t.blk", "sprite A") given generator_initial ():() then len((import machine_registers_group)):(3)

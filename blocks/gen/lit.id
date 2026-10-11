@@ -1,0 +1,56 @@
+// Literals. A number with a point is a float, kept in the float pool and
+// loaded by ldk; any other is an int loaded by ldi, and more than nine digits
+// does not fit an int. A string is unquoted, pooled, and its pool index
+// loaded by ldi; one that never closes is E0105. Each answers its type code
+// and writes the value to the slot dest.
+
+generator_number(int block_destination, string block_token) {
+  int block_type = (import constant_type_integer);
+  int block_key_code = str_find(block_token, ".");
+  int block_variant = to_int(block_token);
+} chain (int block_destination, string block_token) {
+  if (len(block_token) > 9 && block_key_code < 0) {
+    generator_error("E0104", "the integer " + block_token + " is too large for an int; the largest has nine digits here");
+  }
+  if (block_key_code >= 0) {
+    block_type = (import constant_type_float);
+    block_variant = generator_kind_float(flt_parse(block_token));
+  }
+  generator_emit((import constant_opcode_load_integer) + block_type - 1, block_destination, 0, 0, block_variant);
+} return int block_type;
+given generator_initial (3, "42"):(1) then (import generator_code):([1, 3, 0, 0, 42])
+given generator_initial (4, "2.5"):(2) then (import generator_code):([2, 4, 0, 0, 0]) then (import generator_float_constants)[0]:(2.5)
+given model_initial given generator_initial (4, "12345678901"):(1) then len((import model_diagnostics)):(1)
+
+generator_string(int block_destination, string block_token) {
+  string block_text = lexer_unquote(block_token);
+  int block_height = generator_kind_string(block_text);
+  generator_emit((import constant_opcode_load_integer), block_destination, 0, 0, block_height);
+} chain (int block_destination, string block_token) {
+  int block_type = (import constant_type_string);
+  if (len(block_token) < 2 || charat(block_token, len(block_token) - 1) != 34) {
+    generator_error("E0105", "this string never closes; end it with a double quote");
+  }
+} return int block_type;
+given generator_initial (2, "\"hi\""):(3) then (import generator_code):([1, 2, 0, 0, 0]) then (import generator_string_constants):(["hi"])
+given model_initial given generator_initial given lst_str_extend((import generator_string_constants), ["a", "b"]) (1, "\"b\""):(3) then (import generator_code):([1, 1, 0, 0, 1])
+given model_initial given generator_initial (1, "\"oops"):(3) then len((import model_diagnostics)):(1)
+
+generator_load(int block_destination, string block_name_text) {
+  int block_key_code = lst_str_index((import generator_symbol_names), block_name_text);
+  int block_group = lst_str_index((import model_variable_names), block_name_text);
+  int block_type = 0 - 1;
+} chain (int block_destination, string block_name_text) {
+  if (block_key_code >= 0) {
+    generator_emit((import constant_opcode_move), block_destination, (import generator_symbol_slots)[block_key_code], 0, 0);
+    block_type = (import generator_symbol_types)[block_key_code];
+  } else if (block_group >= 0) {
+    generator_emit((import constant_opcode_global_load), block_destination, 0, 0, block_group);
+    block_type = (import model_variable_types)[block_group];
+  } else {
+    generator_error("E0301", "undefined variable '" + block_name_text + "'");
+  }
+} return int block_type;
+given model_initial given generator_initial given lst_str_extend((import generator_symbol_names), ["n"]) given lst_extend((import generator_symbol_slots), [6]) given lst_extend((import generator_symbol_types), [2]) (9, "n"):(2) then (import generator_code):([0, 9, 6, 0, 0])
+given model_load("t.blk", "sprite S\nvar string a\nvar float[] b") given generator_initial (3, "b"):(5) then (import generator_code):([3, 3, 0, 0, 1])
+given model_load("t.blk", "sprite S\nvar string a") given generator_initial (3, "zz"):(-1) then (import model_diagnostics):(["t.blk:0: error: undefined variable 'zz' [E0301]"])

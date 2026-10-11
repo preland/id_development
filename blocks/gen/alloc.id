@@ -1,0 +1,21 @@
+// Reporting an error from the compiler, and handing out frame slots. Every
+// value a function computes lives in a slot of its frame, numbered from 0:
+// parameters first, then locals and temporaries in the order they are asked
+// for, none reused. A frame has bkk_frame slots.
+
+generator_error(string block_code, string block_message) {
+  model_error((import generator_state)[(import constant_statement_line)], block_code, block_message);
+  lset((import generator_state), (import constant_statement_error), (import generator_state)[(import constant_statement_error)] + 1);
+} return void;
+given model_initial given generator_initial given lset((import generator_state), 5, 7) ("E0301", "undefined"):() then (import model_diagnostics):(["input.blk:7: error: undefined [E0301]"]) then (import generator_state)[4]:(1)
+given model_initial given generator_initial ("E0101", "x"):() then (import generator_state)[4]:(1) then len((import model_diagnostics)):(1)
+
+generator_alloc(int block_count) {
+  int block_slot = (import generator_state)[(import constant_statement_slot)];
+  lset((import generator_state), (import constant_statement_slot), block_slot + block_count);
+  if (block_slot + block_count > (import constant_frame)) {
+    generator_error("E0201", "this function needs more than " + (import constant_frame) + " slots for its variables and temporaries; split it into smaller functions");
+  }
+} return int block_slot;
+given model_initial given generator_initial given lset((import generator_state), 2, 4) (3):(4) then (import generator_state)[2]:(7)
+given model_initial given generator_initial given lset((import generator_state), 2, 127) (3):(127) then len((import model_diagnostics)):(1)

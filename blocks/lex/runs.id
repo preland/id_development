@@ -1,0 +1,33 @@
+// The scans bkl_end hands off to for words and numbers: whether a character
+// belongs to a run of a kind, the run itself, and the optional fraction of a
+// number.
+
+lexer_ok(int block_character, int block_key_code) {
+  int block_ok = chr_is_digit(block_character);
+  if (block_key_code == (import constant_class_word)) {
+    block_ok = chr_is_alnum(block_character) || block_character == 95;
+  }
+} return int block_ok;
+(55, 1):(1)
+(95, 1):(1)
+(95, 2):(0)
+(97, 2):(0)
+
+lexer_span(string block_line, int block_index, int block_key_code) {
+  while (lexer_ok(charat(block_line, block_index), block_key_code) == 1) {
+    block_index = block_index + 1;
+  }
+} return int block_index;
+("ab_1 x", 0, 1):(4)
+("123x", 0, 2):(3)
+("", 0, 1):(0)
+
+lexer_fraction(string block_line, int block_end_index) {
+  int block_next = charat(block_line, block_end_index + 1);
+  if (charat(block_line, block_end_index) == 46 && chr_is_digit(block_next) == 1) {
+    block_end_index = lexer_span(block_line, block_end_index + 1, (import constant_class_number));
+  }
+} return int block_end_index;
+("12.50", 2):(5)
+("12.x", 2):(2)
+("12", 2):(2)

@@ -1,0 +1,16 @@
+// Test setups that change the session bke_t_session made, without going through
+// the reducer: bke_t_line puts a line into the document at a place, bke_t_cell puts
+// a value in a cell of the state (15 is the palette's category, 28 the dirty flag).
+
+editor_test_line(int editor_integer_at, string editor_string_text) {
+  lst_str_insert((import editor_test_strings)[(import constant_z_doc)], editor_integer_at, editor_string_text);
+} return void;
+given editor_test_session("a\n") (0, "b"):() then editor_test_look:("doc 3 diag 1 pal 7 boxes 2 sprites  pan 16,16")
+given editor_test_session("a\n") (2, "sprite Z"):() then editor_test_look:("doc 3 diag 1 pal 7 boxes 2 sprites  pan 16,16")
+
+editor_test_cell(int editor_integer_at, int editor_integer_value) {
+  int[] bel_state = (import editor_test_integers)[(import constant_y_state)];
+  bel_state[editor_integer_at] = editor_integer_value;
+} return void;
+given editor_test_session("sprite S\n") (15, 4):() then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=4 sprite S|")
+given editor_test_session("sprite S\n") (28, 1):() then editor_test_peek:("ed=0 buf= dirty=1 run=0 tab=0 sprite S|")

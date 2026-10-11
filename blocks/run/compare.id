@@ -1,0 +1,41 @@
+// Judging a case. bkr_compare runs the function that produces the actual
+// value (arow) and the one that produces the expected value (wrow) and
+// records a failure, naming the label, when they show differently as the
+// type says. bkr_then1 does that for one then clause and bkr_thens for all of
+// a case's, the generated functions of clause m being rows k + 2m and
+// k + 2m + 1 of the model.
+
+runner_compare(int block_character, string block_label, int block_argument_row, int block_world_row, int block_type) {
+  string block_got = runner_value(block_argument_row, block_type);
+  string block_wanted = runner_value(block_world_row, block_type);
+  if (block_got != block_wanted) {
+    runner_fail(block_character, block_label, block_got, block_wanted);
+  }
+} return void;
+given runner_load("t.blk", "sprite S\nfn f() return int\n  return 3\n(): (3)\n(): (4)") given model_add("fn __a() return int\n  return 3\nfn __b() return int\n  return 3\nfn __d() return int\n  return 4\n") given generator_program(2) given runner_fresh (0, "f()", 2, 3, 1):() then model_diagnostic_list:("")
+given runner_load("t.blk", "sprite S\nfn f() return int\n  return 3\n(): (3)\n(): (4)") given model_add("fn __a() return int\n  return 3\nfn __b() return int\n  return 3\nfn __d() return int\n  return 4\n") given generator_program(2) given runner_fresh (0, "f()", 2, 4, 1):() then model_diagnostic_list:("t.blk:4: test failed: f() = 3, expected 4")
+
+runner_then_first(int block_character, string block_label, string block_entry, int block_key_code) {
+  int block_position = str_findat(block_entry, "|", 2);
+  string block_name = str_sub(block_entry, 2, block_position - 2);
+  int block_variable_row = lst_str_index((import model_variable_names), block_name);
+} chain (int block_character, string block_label, string block_entry, int block_key_code) {
+  if (block_variable_row >= 0) {
+    runner_compare(block_character, block_label + " then " + block_name, block_key_code, block_key_code + 1, (import model_variable_types)[block_variable_row]);
+  }
+} return void;
+given runner_load("t.blk", "sprite S\nvar int n = 4\nfn f() return void\n(): ()\n(1): ()") given model_add("fn __t() return int\n  return n\nfn __w() return int\n  return 4\n") given generator_program(2) given runner_fresh (0, "f()", "T|n|4", 2):() then model_diagnostic_list:("")
+given runner_load("t.blk", "sprite S\nvar int n = 4\nfn f() return void\n(): ()\n(1): ()") given model_add("fn __t() return int\n  return n\nfn __w() return int\n  return 5\n") given generator_program(2) given runner_fresh (0, "f()", "T|n|5", 2):() then model_diagnostic_list:("t.blk:4: test failed: f() then n = 4, expected 5")
+
+runner_then_list(int block_character, string block_label, string[] block_as, int block_key_code) {
+  int block_index = 0;
+  while (block_index < len(block_as)) {
+    if (str_starts(block_as[block_index], "T|") == 1) {
+      runner_then_first(block_character, block_label, block_as[block_index], block_key_code);
+      block_key_code = block_key_code + 2;
+    }
+    block_index = block_index + 1;
+  }
+} return void;
+given runner_load("t.blk", "sprite S\nvar int n = 4\nfn f() return void\n(): ()\n(1): ()") given model_add("fn __t() return int\n  return n\nfn __w() return int\n  return 4\nfn __t() return int\n  return n\nfn __w() return int\n  return 9\n") given generator_program(2) given runner_fresh (0, "f()", ["A|", "T|n|4", "T|n|9"], 2):() then model_diagnostic_list:("t.blk:4: test failed: f() then n = 4, expected 9")
+given runner_load("t.blk", "sprite S\nvar int n = 4\nfn f() return void\n(): ()\n(1): ()") given runner_fresh (0, "f()", ["A|1"], 2):() then model_diagnostic_list:("")

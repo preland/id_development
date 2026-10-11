@@ -1,0 +1,46 @@
+// A block line cut into what is drawn: text, pill, text, pill, ..., text (one
+// more text than pills). The text between pills loses the brackets and commas
+// that only join the arguments of a call, so move(10.0) shows as the word move
+// and a slot, and a goto as the word and two slots.
+
+editor_clean(string editor_string_raw) {
+  string editor_string_first_value = str_replace(editor_string_raw, "(", "");
+  string editor_string_second = str_replace(editor_string_first_value, ")", "");
+  string editor_string_column_number = str_replace(editor_string_second, ",", "");
+} chain (string editor_string_raw) {
+  string editor_string_delta = str_trim(editor_string_column_number);
+} return string editor_string_delta;
+("move("):("move")
+(", "):("")
+("f(a, b)"):("fa b")
+("  (x), "):("x")
+
+editor_piece(string[] bet_out, string editor_string_unit, int editor_integer_at, int editor_integer_session, int editor_integer_end_index) {
+  string editor_string_lab = str_sub(editor_string_unit, editor_integer_at, editor_integer_session - editor_integer_at);
+  push(bet_out, editor_clean(editor_string_lab));
+  push(bet_out, str_sub(editor_string_unit, editor_integer_session, editor_integer_end_index - editor_integer_session));
+} return void;
+([], "say(\"a\")", 0, 4, 7):(["say", "\"a\""], "say(\"a\")", 0, 4, 7)
+(["x"], "n = 1", 0, 4, 5):(["x", "n =", "1"], "n = 1", 0, 4, 5)
+
+editor_pieces(string editor_string_unit) {
+  int[] bel_sprites = editor_spans(editor_string_unit);
+  string[] bet_out = [];
+  int editor_integer_at = 0;
+} chain (string editor_string_unit) {
+  int editor_integer_key_code = 0;
+  while (editor_integer_key_code < len(bel_sprites)) {
+    editor_piece(bet_out, editor_string_unit, editor_integer_at, bel_sprites[editor_integer_key_code], bel_sprites[editor_integer_key_code + 1]);
+    editor_integer_at = bel_sprites[editor_integer_key_code + 1];
+    editor_integer_key_code = editor_integer_key_code + 2;
+  }
+  string editor_string_tail = str_sub(editor_string_unit, editor_integer_at, len(editor_string_unit) - editor_integer_at);
+} chain (string editor_string_unit) {
+  push(bet_out, editor_clean(editor_string_tail));
+} return string[] bet_out;
+("move(10.0)"):(["move", "10.0", ""])
+("goto(0.0, 0.0)"):(["goto", "0.0", "", "0.0", ""])
+("x = n * 2"):(["x =", "n * 2", ""])
+("xs[i] = 5"):(["xs[", "i", "] =", "5", ""])
+("else"):(["else"])
+("show()"):(["show"])

@@ -1,0 +1,17 @@
+// The text of a box, in the 8x8 face at a whole multiple of its size (the zoom in
+// hundreds), centred up and down in the box and inset by the kind's conf.id
+// bkk_inset. Below zoom 100 the face would be smaller than 8 pixels, which it cannot
+// be, so no text is drawn; a box with no inset has no text.
+
+editor_words(string editor_string_text_list, int editor_integer_kind, int editor_integer_cat, int[] bel_row_number, int editor_integer_zoom) {
+  int editor_integer_in = (import constant_inset)[editor_integer_kind];
+  int editor_integer_mag = editor_integer_zoom / 100;
+  if (editor_integer_in >= 0 && editor_integer_mag >= 1) {
+    txt_g8_draw(bel_row_number[0] + graph_view_screen(editor_integer_in, 0, editor_integer_zoom), bel_row_number[1] + (bel_row_number[3] - 8 * editor_integer_mag) / 2, editor_string_text_list, editor_ink_color(editor_integer_kind, editor_integer_cat), editor_integer_mag);
+  }
+} return void;
+given idstd_graph_view_test_canvas(40, 40) given idstd_graph_view_test_ink(0xFFFFFF) ("H", 8, 2, [2, 2, 20, 20], 100):() then idstd_graph_view_test_seen:("30")
+given idstd_graph_view_test_canvas(40, 40) given idstd_graph_view_test_ink(0xFFFFFF) ("H", 8, 2, [2, 2, 20, 20], 200):() then idstd_graph_view_test_seen:("120")
+given idstd_graph_view_test_canvas(40, 40) given idstd_graph_view_test_ink(0xFFFFFF) ("H", 8, 2, [2, 2, 20, 20], 50):() then idstd_graph_view_test_seen:("0")
+given idstd_graph_view_test_canvas(40, 40) given idstd_graph_view_test_ink(0xFFFFFF) ("H", 1, 2, [2, 2, 20, 20], 100):() then idstd_graph_view_test_seen:("0")
+given idstd_graph_view_test_canvas(40, 40) given idstd_graph_view_test_ink(0x575E75) ("H", 9, -1, [2, 2, 20, 20], 100):() then idstd_graph_view_test_seen:("30")

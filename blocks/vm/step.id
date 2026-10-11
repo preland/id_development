@@ -1,0 +1,38 @@
+// The stepper: run the one instruction at pc of thread t. The opcode's class
+// (conf.id's bkk_opcls) picks the handler (hbasic.id, halu.id, hcall.id,
+// hbi.id); the answer is the handler's, the pc to run next or a negative
+// status. A yield is the class that needs no handler.
+
+machine_step(int block_thread_slot, int block_program_counter) {
+  int block_operation = (import generator_code)[block_program_counter];
+  int block_kind = (import constant_operator_class)[block_operation];
+  int block_record = (import constant_result_yield);
+} chain (int block_thread_slot, int block_program_counter) {
+  if (block_kind == 0) {
+    block_record = machine_handle_move(block_thread_slot, block_program_counter, block_operation);
+  }
+  if (block_kind == 1) {
+    block_record = machine_handle_operation(block_thread_slot, block_program_counter, block_operation);
+  }
+  if (block_kind == 2) {
+    block_record = machine_handle_jump(block_thread_slot, block_program_counter, block_operation);
+  }
+} chain (int block_thread_slot, int block_program_counter) {
+  if (block_kind == 3) {
+    block_record = machine_handle_call(block_thread_slot, block_program_counter, block_operation);
+  }
+  if (block_kind == 4) {
+    block_record = machine_handle_return(block_thread_slot, block_program_counter, block_operation);
+  }
+  if (block_kind == 6) {
+    block_record = machine_handle_builtin(block_thread_slot, block_program_counter, block_operation);
+  }
+} chain (int block_thread_slot, int block_program_counter) {
+  if (block_kind >= 7) {
+    block_record = machine_handle_list(block_thread_slot, block_program_counter, block_operation);
+  }
+} return int block_record;
+given model_initial given generator_initial given lst_extend((import generator_code), [1, 0, 0, 0, 9, 13, 0, 0, 0, 0]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 2) (0, 0):(5) then (import machine_value_list)[0]:(9.0)
+given model_initial given generator_initial given lst_extend((import generator_code), [1, 0, 0, 0, 9, 13, 0, 0, 0, 0]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 2) (0, 5):(-1)
+given model_initial given generator_initial given lst_extend((import generator_code), [8, 0, 0, 0, 25]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 2) (0, 0):(25)
+given model_initial given generator_initial given lst_extend((import generator_code), [12, 0, -1, 0, 0]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 2) (0, 0):(-2)

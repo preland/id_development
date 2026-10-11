@@ -1,0 +1,51 @@
+// A function header line becomes a function row and its parameter rows. The
+// body lines that follow are attached one by one by bkm_body, and the cases
+// under the body by bkm_case; both belong to the last function declared.
+
+model_function(string[] block_texts, int block_line_index) {
+  int block_position_origin = len((import model_pan));
+  int block_ok = model_want(block_texts, 2, "(", block_line_index);
+  int block_position_index = 3;
+} chain (string[] block_texts, int block_line_index) {
+  if (block_ok == 1) {
+    block_position_index = model_parameters(block_texts, 3, block_line_index);
+  }
+  int block_return_type = 0 - 2;
+  if (block_ok == 1) {
+    block_return_type = model_return_type_name(block_texts, block_position_index, block_line_index);
+  }
+} chain (string[] block_texts, int block_line_index) {
+  if (block_return_type >= 0 && model_is_name(lst_str_get_or(block_texts, 1, "")) == 1 && len((import model_sprite_names)) > 0) {
+    model_add_function(block_texts, block_line_index, block_return_type, block_position_origin);
+  } else if (block_return_type >= 0) {
+    model_error((import model_line_numbers)[block_line_index], "E0102", "expected 'fn NAME(...) return TYPE' inside a sprite");
+  }
+} return void;
+given model_initial given model_lines("x") given model_sprite(["sprite", "S"], 0) (["fn", "inc", "(", "int", "by", ")", "return", "int"], 0):() then (import model_function_names):(["inc"]) then (import model_function_parameter_count):([1]) then (import model_function_return_types):([1])
+given model_initial given model_lines("x") (["fn", "inc", "(", ")", "return", "int"], 0):() then len((import model_function_names)):(0) then len((import model_diagnostics)):(1)
+given model_initial given model_lines("x") given model_sprite(["sprite", "S"], 0) (["fn", "9", "(", ")", "return", "int"], 0):() then len((import model_function_names)):(0) then len((import model_diagnostics)):(1)
+given model_initial given model_lines("x") given model_sprite(["sprite", "S"], 0) (["fn", "f", "(", ")", "return", "wat"], 0):() then len((import model_function_names)):(0) then len((import model_function_parameter_count)):(0)
+
+model_body(int block_line_index) {
+  int block_function_number = len((import model_function_names));
+  if (block_function_number == 0) {
+    model_error((import model_line_numbers)[block_line_index], "E0102", "an indented line belongs to a function; declare one with 'fn NAME(...) return TYPE' first");
+  } else {
+    lset((import model_function_body_end), block_function_number - 1, block_line_index + 1);
+  }
+} return void;
+given model_initial given model_lines("x\ny\nz") given model_sprite(["sprite", "S"], 0) given model_function(["fn", "f", "(", ")", "return", "void"], 0) (1):() then (import model_function_body_end):([2])
+given model_initial given model_lines("x\ny") (1):() then len((import model_diagnostics)):(1)
+
+model_case(int block_line_index) {
+  int block_function_number = len((import model_function_names));
+  if (block_function_number == 0) {
+    model_error((import model_line_numbers)[block_line_index], "E0102", "a test case belongs to a function; write it under the function it tests");
+  } else {
+    push((import model_can), block_function_number - 1);
+    push((import model_case_lines), (import model_line_numbers)[block_line_index]);
+    push((import model_cat), (import model_line_texts)[block_line_index]);
+  }
+} return void;
+given model_initial given model_lines("a\n(1):(2)") given model_sprite(["sprite", "S"], 0) given model_function(["fn", "f", "(", ")", "return", "void"], 0) (1):() then (import model_can):([0]) then (import model_case_lines):([2]) then (import model_cat):(["(1):(2)"])
+given model_initial given model_lines("(1):(2)") (0):() then len((import model_can)):(0) then len((import model_diagnostics)):(1)

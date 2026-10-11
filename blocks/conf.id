@@ -1,0 +1,414 @@
+// Constants of the block tool. Every one is named bkk_ so that no local
+// (bk_) or function (bkl_, bkm_, bkc_, bkg_, bkv_, bkr_, bkx_) can collide
+// with it. The lexer's character classes first, then the rest as the modules
+// that read them need them.
+int constant_class_end = 0;
+int constant_class_word = 1;
+int constant_class_number = 2;
+int constant_class_string = 3;
+int constant_class_operation = 4;
+string constant_pairs = " == != <= >= && || ";
+// Type codes. A list type is its element type plus three, so the element of
+// a list is found by subtracting bkk_ty_lst; void exists only as a return type.
+int constant_type_void = 0;
+int constant_type_integer = 1;
+int constant_type_float = 2;
+int constant_type_string = 3;
+int constant_type_integer_list = 4;
+int constant_type_float_list = 5;
+int constant_type_string_list = 6;
+int constant_type_list = 3;
+string[] constant_type_names = ["void", "int", "float", "string"];
+// The words a column-0 line may start with in a .blk file.
+string constant_heads = " sprite var fn ( given ";
+// Words the rule checker treats specially: statements that cost no action,
+// and the statements that open a nested block.
+string[] constant_free = ["return", "break"];
+string[] constant_control = ["if", "while"];
+int constant_maximum_actions = 3;
+int constant_maximum_depth = 2;
+int constant_maximum_functions = 3;
+int constant_minimum_cases = 2;
+int constant_levels = 16;
+string[] constant_type_full = ["void", "int", "float", "string", "int[]", "float[]", "string[]"];
+// The instruction set. An instruction is bkk_icell cells in bkg_cd: op, d, a,
+// b, x. A pc is the index of its op cell. d is a slot written (or the list
+// slot of an lset), a and b are slots read, x is the odd one out: a constant,
+// a branch target, a global's number, a function number, a builtin number or
+// the sub-operation of an arithmetic op.
+int constant_opcode_move = 0;
+int constant_opcode_load_integer = 1;
+int constant_opcode_load_constant = 2;
+int constant_opcode_global_load = 3;
+int constant_opcode_global_store = 4;
+int constant_opcode_integer_operation = 5;
+int constant_opcode_float_operation = 6;
+int constant_opcode_string_operation = 7;
+int constant_opcode_jump = 8;
+int constant_opcode_jump_zero = 9;
+int constant_opcode_jump_nonzero = 10;
+int constant_opcode_call = 11;
+int constant_opcode_return_type = 12;
+int constant_opcode_yield = 13;
+int constant_opcode_builtin = 14;
+int constant_opcode_list_get = 15;
+int constant_opcode_list_set = 16;
+int constant_integer_cell = 5;
+int constant_frame = 128;
+int constant_function_table_count = 4;
+int constant_function_table_entry_counter = 0;
+int constant_function_table_parameter_count = 1;
+int constant_function_table_return_type = 2;
+int constant_function_table_stack_pointer = 3;
+// The ALU opcode for operands of a type (indexed by type code), the binary
+// operators with their precedence and sub-operation, and which sub-operations
+// each operand type allows. The sub-operations of the ALU ops: 0 add, 1 sub,
+// 2 mul, 3 div, 4 mod, 5 lt, 6 gt, 7 le, 8 ge, 9 eq, 10 ne, 11 neg, 12 not.
+// && and || are not ALU ops: they are jumps, and carry 100 and 101.
+int[] constant_arithmetic_operation = [0, 5, 6, 7, 0, 0, 0];
+string[] constant_binary_operator = ["||", "&&", "==", "!=", "<", ">", "<=", ">=", "+", "-", "*", "/", "%"];
+int[] constant_binary_precedence = [1, 2, 3, 3, 4, 4, 4, 4, 5, 5, 6, 6, 6];
+int[] constant_binary_substitute = [101, 100, 9, 10, 5, 6, 7, 8, 0, 1, 2, 3, 4];
+string[] constant_allow = ["", " 0 1 2 3 4 5 6 7 8 9 10 100 101 ", " 0 1 2 3 5 6 7 8 9 10 ", " 0 9 10 ", "", "", ""];
+int constant_sub_negate = 11;
+int constant_sub_not = 12;
+int constant_sub_compare = 5;
+int constant_sub_and = 100;
+int constant_sub_or = 101;
+int constant_prefix_minimum = 1;
+int constant_prefix_unary = 7;
+// The compiler's registers (bkg_st): the cursor in the token list, the type
+// of the last expression, the next free slot, the function being compiled,
+// how many errors it has had, the source line errors are reported at, and the
+// height of the stack of pending break jumps when the innermost loop began.
+int constant_statement_position_index = 0;
+int constant_statement_type = 1;
+int constant_statement_slot = 2;
+int constant_statement_function = 3;
+int constant_statement_error = 4;
+int constant_statement_line = 5;
+int constant_statement_breaks = 6;
+int constant_statement_count = 7;
+// Builtin calls: name, argument letters '>' result letter. i f s are int,
+// float, string; I F S the three list types; l any list, e the element type
+// of the first argument, a a string or a list, v nothing. The position in
+// these lists is the builtin's number in a bi instruction (the bkk_bi_
+// constants below name the ones the compiler itself emits).
+string[] constant_builtin_name = ["say", "move", "turn", "goto", "point", "show", "hide", "wait", "broadcast", "xpos", "ypos", "direction", "len", "push", "pop", "insert", "delete", "str_sub", "int_to_float", "float_to_int", "int_to_str", "float_to_str", "str_to_int", "str_to_float", "charat", "str_find", "#newlist", "#slen"];
+string[] constant_builtin_signature = ["s>v", "f>v", "f>v", "ff>v", "f>v", ">v", ">v", "f>v", "s>v", ">f", ">f", ">f", "a>i", "le>v", "l>e", "lie>v", "li>v", "sii>s", "i>f", "f>i", "i>s", "f>s", "s>i", "s>f", "si>i", "ss>i", ">l", "s>i"];
+int constant_builtin_say = 0;
+int constant_builtin_move = 1;
+int constant_builtin_turn = 2;
+int constant_builtin_go_to = 3;
+int constant_builtin_point = 4;
+int constant_builtin_show = 5;
+int constant_builtin_hide = 6;
+int constant_builtin_wait = 7;
+int constant_builtin_broadcast = 8;
+int constant_builtin_x_position = 9;
+int constant_builtin_y_position = 10;
+int constant_builtin_direction = 11;
+int constant_builtin_length = 12;
+int constant_builtin_push = 13;
+int constant_builtin_pop = 14;
+int constant_builtin_insert = 15;
+int constant_builtin_delete = 16;
+int constant_builtin_string_sub = 17;
+int constant_builtin_integer_to_float = 18;
+int constant_builtin_float_to_integer = 19;
+int constant_builtin_integer_to_string = 20;
+int constant_builtin_float_to_string = 21;
+int constant_builtin_string_to_integer = 22;
+int constant_builtin_string_to_float = 23;
+int constant_builtin_charat = 24;
+int constant_builtin_string_find = 25;
+int constant_builtin_new_list = 26;
+string constant_type_letter = "vifsIFS";
+string[] constant_postfix = ["(", "["];
+string[] constant_unary_operator = ["-", "!"];
+int constant_sub_not_equal = 10;
+// The statements a line may start with, by position: if, while and else open
+// or continue a block, break and return leave one, the three types begin a
+// declaration. Anything else is an assignment or a call.
+string[] constant_statement = ["if", "while", "else", "break", "return", "int", "float", "string"];
+int constant_statement_no_breaks = 0 - 1;
+string[] constant_assign = ["=", "[", "("];
+// The value a variable starts with when its declaration gives none, by type
+// code (source text, compiled like any initializer).
+string[] constant_defaults = ["", "0", "0.0", "\"\"", "[]", "[]", "[]"];
+string constant_system = "__sys";
+string constant_initial_function = "__init";
+string constant_flag_function = "__flag";
+// The virtual machine. Every value is a float in a slot of the value stack
+// (an int is a whole float, a string an index into the string pool, a list an
+// index into the list pool); the compiler knows which, the machine does not.
+// Each thread owns bkk_stack_n slots of bkv_vl and bkk_depth_n frames of
+// bkk_frame slots in them, and bkk_cs_cell cells of the call stack bkv_cs per
+// frame (the return pc, the caller's frame pointer, the slot the result goes
+// to). A thread's row of bkv_th has bkk_th_n cells: the next pc, the frame
+// pointer, the call depth, its state, the millisecond it wakes, its sprite.
+int constant_depth_count = 32;
+int constant_stack_count = 4096;
+int constant_call_stack_cell = 3;
+int constant_call_stack_count = 96;
+int constant_maximum_thread = 16;
+int constant_thread_count = 6;
+int constant_thread_entry_counter = 0;
+int constant_thread_frame_pointer = 1;
+int constant_thread_data_pointer = 2;
+int constant_thread_state = 3;
+int constant_thread_wake = 4;
+int constant_thread_stack_pointer = 5;
+int constant_statement_free = 0;
+int constant_statement_ready = 1;
+int constant_statement_sleep = 2;
+int constant_frame_milliseconds = 33;
+// bkv_rg: the clock in milliseconds, the number of runtime errors, the number
+// of frames run.
+int constant_registers_now = 0;
+int constant_registers_error = 1;
+int constant_registers_frames = 2;
+// A sprite's row of bkv_sx: position, direction in degrees (90 is right, 0
+// is up), size in percent, visible (1 or 0), the string-pool index of what it
+// last said (-1 for nothing).
+int constant_sprite_count = 6;
+int constant_sprite_x = 0;
+int constant_sprite_y = 1;
+int constant_sprite_direction = 2;
+int constant_sprite_size = 3;
+int constant_sprite_visible = 4;
+int constant_sprite_say = 5;
+float[] constant_sprite_initial = [0.0, 0.0, 90.0, 100.0, 1.0, -1.0];
+// What a handler answers besides the next pc: -1 to yield, -2 when the thread
+// has finished, and, from bkk_r_trap down, a runtime error whose number is
+// the distance below it.
+int constant_result_yield = 0 - 1;
+int constant_result_done = 0 - 2;
+int constant_result_trap = 0 - 10;
+string[] constant_trap_message = ["", "division by zero", "remainder by zero", "list index out of bounds", "pop from an empty list", "text span out of bounds", "calls nested too deep", "no such list"];
+// The classes of instruction the machine dispatches on, by opcode: moves,
+// the ALU, jumps, call, return, yield, builtin calls, list get, list set.
+int[] constant_operator_class = [0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 4, 5, 6, 7, 8];
+int constant_builtin_string_length = 27;
+// Which handler a builtin goes to: 0 the sprites and the clock, 1 lists, 2
+// text, 3 conversions and new lists; the position is the builtin's number.
+int[] constant_builtin_group = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3, 3, 2, 2, 3, 2];
+float constant_rad = 0.017453292519943295;
+float constant_snap = 1000000.0;
+float constant_turn = 360.0;
+int constant_frames_default = 600;
+int constant_case_frames = 2000;
+string constant_usage = "usage: blocks run FILE.blk [--frames N] | blocks check FILE.blk | blocks test FILE.blk | blocks edit FILE.blk [--script S.txt [--dump] [--boxes] [--render-after OUT.ppm]] | blocks render FILE.blk OUT.ppm [--size W H]";
+string constant_prefix_system = "__";
+// The block editor (edit/). Kinds of line of a .blk file as the editor shows
+// it, then of box in a layout: a function's hat, a statement, an else bar, the
+// cap that closes a C-shaped block, a test case, a sprite's banner, a var
+// strip, a comment note, a text label and a pill (an argument slot) inside a
+// row, and the arm along the side of a C-shaped block. A line that is blank is -1.
+int constant_kind_blank = 0 - 1;
+int constant_kind_hat = 0;
+int constant_kind_statement = 1;
+int constant_kind_else = 2;
+int constant_kind_cap = 3;
+int constant_kind_case = 4;
+int constant_kind_banner = 5;
+int constant_kind_variable = 6;
+int constant_kind_note = 7;
+int constant_kind_label = 8;
+int constant_kind_pill = 9;
+int constant_kind_arm = 10;
+string[] constant_head_width = ["//", "sprite ", "var ", "fn ", "(", "given "];
+int[] constant_head_key_code = [7, 5, 6, 0, 4, 4];
+string[] constant_types = ["int", "float", "string"];
+// The columns of a layout (a list of lists, one entry per box): kind, left and
+// top and size in the picture's own units, the document line the box belongs
+// to (a cap: the line of the block it closes), the category colour, the
+// indent of that line, which pill of its line a pill is, and bits.
+int constant_layout_kind = 0;
+int constant_layout_x = 1;
+int constant_layout_y = 2;
+int constant_layout_width = 3;
+int constant_layout_height = 4;
+int constant_layout_line = 5;
+int constant_layout_cat = 6;
+int constant_layout_indent = 7;
+int constant_layout_segment = 8;
+int constant_layout_bits = 9;
+int constant_layout_count = 10;
+// The cursor of a layout while it is built: the next free top, the effective
+// indent of the line before (its indent, plus one while it opens a body), and
+// then, for each level of indent 0 to 7, the width of the header that opened
+// it, its line, and the top of the arm that is being drawn along it.
+int constant_unit_y = 0;
+int constant_unit_pending = 1;
+int constant_unit_width = 2;
+int constant_unit_line_number = 10;
+int constant_unit_scan = 18;
+int constant_unit_count = 26;
+int constant_unit_top = 7;
+int constant_metric_row_height = 24;
+int constant_metric_hath = 30;
+int constant_metric_cap = 12;
+int constant_metric_arm = 14;
+int constant_metric_pad = 8;
+int constant_metric_pill_height = 16;
+int constant_metric_gap = 6;
+int constant_metric_function_gap = 20;
+int constant_metric_banner_height = 22;
+int constant_metric_strip = 16;
+int constant_metric_character_width = 8;
+int constant_metric_pill_add = 10;
+// The first words of the statements whose argument is the rest of the line,
+// and of those that have none.
+string[] constant_rest_width = ["if", "while", "return"];
+string[] constant_none_width = ["else", "break"];
+// The categories of the palette, in the order it shows them, their colours,
+// and the colour of a literal's slot. The first word of a block line says its
+// category: this list gives the words (a call of a function of the program is
+// My Blocks, any other assignment Variables).
+string[] constant_cat_name = ["Motion", "Looks", "Control", "Operators", "Variables", "My Blocks"];
+int[] constant_cat_column = [0x4C97FF, 0x9966FF, 0xFFAB19, 0x59C059, 0xFF8C1A, 0xFF6680];
+string[] constant_where_name = ["move", "turn", "point", "goto", "xpos", "ypos", "direction", "say", "show", "hide", "if", "else", "while", "wait", "broadcast", "break", "return", "len", "charat", "str_find", "str_sub", "int_to_float", "float_to_int", "int_to_str", "float_to_str", "str_to_int", "str_to_float", "push", "pop", "insert", "delete", "int", "float", "string"];
+int[] constant_where_cat = [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4];
+int constant_cat_variables = 4;
+int constant_cat_mine = 5;
+int constant_cat_control = 2;
+int constant_cat_operators = 3;
+int constant_cat_lit = 0 - 1;
+// The palette: the text of each block it offers (a statement, or a reporter that
+// goes into a slot), its category and whether it is a reporter. Variables and
+// My Blocks also get one entry for each variable and function of the document.
+string[] constant_pill_text = ["move(10.0)", "turn(15.0)", "point(90.0)", "goto(0.0, 0.0)", "xpos()", "ypos()", "direction()", "say(\"Hello\")", "show()", "hide()", "if 1", "else", "while 1", "wait(1.0)", "broadcast(\"go\")", "break", "return", "1 + 1", "1 - 1", "1 * 1", "1 / 1", "1 % 2", "1 < 2", "1 > 2", "1 == 1", "1 && 1", "1 || 0", "!1", "\"a\" + \"b\"", "len(\"\")", "charat(\"a\", 0)", "str_find(\"a\", \"b\")", "str_sub(\"abc\", 0, 1)", "int_to_float(0)", "float_to_int(0.0)", "int_to_str(0)", "float_to_str(0.0)", "str_to_int(\"0\")", "str_to_float(\"0\")", "int v = 0", "float v = 0.0", "string v = \"\""];
+int[] constant_pill_cat = [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4];
+int[] constant_pill_report = [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0];
+// A session of the editor (edit/ses/). bes, the text lists: the document's lines,
+// the rule violations as `check` prints them (after the file and line), the one
+// cell of the literal being typed, the palette's blocks, the texts of the layout's
+// boxes, the sprites' names and what each last said, and the one cell of the file's
+// path. bei, the int lists: the state, the line of each violation, whether each
+// palette block is a reporter, and the stage (five numbers for each sprite: x, y,
+// direction, size, visible). The layout is a third bundle of its own.
+int constant_z_doc = 0;
+int constant_z_diag = 1;
+int constant_z_buffer = 2;
+int constant_z_pal = 3;
+int constant_z_text = 4;
+int constant_z_names = 5;
+int constant_z_says = 6;
+int constant_z_path = 7;
+int constant_y_state = 0;
+int constant_y_diagnostic_lines = 1;
+int constant_y_report = 2;
+int constant_y_sprite_state = 3;
+// The cells of the state after the 15 of the graph kit's graph_view_state_ (camera, size, pointer, press
+// of a pan): the palette's category and its scroll, the gesture (what was pressed,
+// which one, which pill, where, and whether it has become a drag), the literal being
+// typed (on, line, pill), whether the program is running, the number of violations,
+// whether the document differs from the file, the frames run.
+int constant_session_tab = 15;
+int constant_session_palette_scroll = 16;
+int constant_session_grab_kind = 17;
+int constant_session_anchor = 18;
+int constant_session_grab_position = 19;
+int constant_session_grab_x = 20;
+int constant_session_grab_y = 21;
+int constant_session_drag = 22;
+int constant_session_editing = 23;
+int constant_session_element = 24;
+int constant_session_edit_start = 25;
+int constant_session_run = 26;
+int constant_session_nodes = 27;
+int constant_session_dirty = 28;
+int constant_session_frame = 29;
+int constant_grab_none = 0;
+int constant_grab_pan = 1;
+int constant_grab_pal = 2;
+int constant_grab_block = 3;
+int constant_grab_button = 4;
+int constant_grab_tab = 5;
+int constant_where_none = 0;
+int constant_where_flag = 1;
+int constant_where_stop = 2;
+int constant_where_save = 3;
+int constant_where_tab = 4;
+int constant_where_pal = 5;
+int constant_where_script = 6;
+int constant_where_stage = 7;
+int constant_event_paint = 1;
+int constant_event_doc = 2;
+int constant_event_flag = 4;
+int constant_event_stop = 8;
+int constant_event_save = 16;
+int constant_drop_none = 0;
+int constant_drop_ins = 1;
+int constant_drop_set = 2;
+int constant_metric_bar = 36;
+int constant_metric_pal = 188;
+int constant_metric_stage = 300;
+int constant_metric_tab_x = 6;
+int constant_metric_tab_y = 6;
+int constant_metric_tab_width = 84;
+int constant_metric_tab_height = 22;
+int constant_metric_tab_delta_x = 88;
+int constant_metric_tab_delta_y = 26;
+int constant_metric_tabs = 6;
+int constant_metric_position_origin = 126;
+int constant_metric_pill_delta_y = 28;
+int constant_metric_prow = 24;
+int constant_metric_button = 28;
+int constant_metric_button_y = 6;
+int constant_metric_button_height = 24;
+int constant_metric_flag_x = 8;
+int constant_metric_stop_x = 40;
+int constant_metric_save_x = 76;
+int constant_metric_save_width = 48;
+int constant_metric_slop = 4;
+int[] constant_state_initial = [0, 0, 100, -1, 960, 600, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+int[] constant_sprite_origin = [0, 0, 90, 100, 1];
+int constant_metric_home = 16;
+// Colours of the editor, 0xRRGGBB: the script area, the palette, the bar, the ink of
+// text on a plain surface, the edge of a literal's slot and the fill of one being
+// typed into, the outline of a block that breaks a rule, the stage and its edge,
+// the strips (test cases, variables, notes), a sprite's banner, the run and stop
+// buttons.
+int constant_x_background = 0xF9F9F9;
+int constant_x_palette_background = 0xFFFFFF;
+int constant_x_bar = 0x855CD6;
+int constant_x_ink = 0x575E75;
+int constant_x_edge = 0xCFCFCF;
+int constant_x_typing = 0xFFF4C2;
+int constant_x_bad = 0xE0202A;
+int constant_x_stage = 0xFFFFFF;
+int constant_x_stage_edge = 0xD0D0D0;
+int constant_x_strip = 0xE9EEF2;
+int constant_x_banner = 0x575E75;
+int constant_x_go = 0x4CBF56;
+int constant_x_halt = 0xEC5959;
+int constant_x_white = 0xFFFFFF;
+// How far in from the left of its box the text of a box starts, by kind of box
+// (hat, statement, else, cap, case, banner, var, note, label, pill, arm); -1 for
+// a box that has no text of its own.
+int[] constant_inset = [8, 0 - 1, 0 - 1, 0 - 1, 8, 8, 8, 8, 0, 5, 0 - 1];
+// By kind of box (hat, statement, else, cap, case, banner, var, note, label, pill,
+// arm): 1 when a rule that a line breaks outlines the box.
+int[] constant_hot = [1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0];
+// The stage: its margin inside the panel, its size, how many pixels a stage unit
+// (the machine's own, 480 across) is worth (3 in 5), where the list of sprites
+// under it starts, a sprite's radius at size 100 and the longest text a bubble
+// shows.
+int constant_metric_stage_margin = 6;
+int constant_metric_stage_width = 288;
+int constant_metric_stage_height = 216;
+int constant_metric_list = 270;
+int constant_metric_sprite_row = 8;
+int constant_metric_bub = 30;
+// What a script of the editor says (edit/script/): the keys it can name and their
+// ids in gfx.h (any other one-letter name is that letter), and its words with how
+// many fields each needs, the word included.
+string[] constant_key_names = ["enter", "esc", "backspace", "tab", "delete", "left", "right", "up", "down", "home", "end", "pageup", "pagedown"];
+int[] constant_key_identifiers = [1009, 1011, 1007, 1010, 1008, 1001, 1002, 1003, 1004, 1005, 1006, 1012, 1013];
+string[] constant_verbs = ["wheel", "down", "up", "move", "key", "text", "size", "drag", "flag", "stop", "frames", "save"];
+int[] constant_verb_need = [4, 3, 3, 3, 2, 2, 3, 5, 1, 1, 2, 2];
+string[] constant_mouse_verbs = ["down", "up", "move"];
+string constant_script_help = "wheel X Y DY, down X Y [BUTTON [CLICKS]], up X Y, move X Y, drag X1 Y1 X2 Y2, key NAME, text STR, size W H, flag, stop, frames N, save PATH";
+string[] constant_commands = ["run", "check", "test", "edit", "render"];

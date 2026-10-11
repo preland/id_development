@@ -1,0 +1,37 @@
+// The machine's state, made fresh by bkv_boot for a run and for every test
+// case: the value stack (bkv_vl) and globals (bkv_gl), the pool of lists
+// (bkv_ls, a list value being an index into it) and of strings (bkv_sp,
+// which starts as a copy of the program's string constants), the thread
+// table and the call stacks, one row per sprite of sprite state, the lines
+// said so far, the registers and the value the last finished thread returned.
+// The value stack is grown as threads need it (bkv_grow).
+
+machine_zeros(int block_count) {
+  float[] block_float_stack = [];
+  int block_index = 0;
+  while (block_index < block_count) {
+    push(block_float_stack, 0.0);
+    block_index = block_index + 1;
+  }
+} return float[] block_float_stack;
+(2):([0.0, 0.0])
+(0):([])
+
+machine_sprites(int block_count) {
+  float[] block_float_stack = [];
+  int block_index = 0;
+  while (block_index < block_count * (import constant_sprite_count)) {
+    push(block_float_stack, (import constant_sprite_initial)[block_index % (import constant_sprite_count)]);
+    block_index = block_index + 1;
+  }
+} return float[] block_float_stack;
+(0):([])
+(2):([0.0, 0.0, 90.0, 100.0, 1.0, -1.0, 0.0, 0.0, 90.0, 100.0, 1.0, -1.0])
+
+machine_grow(float[] block_float_stack, int block_count) {
+  while (len(block_float_stack) < block_count) {
+    push(block_float_stack, 0.0);
+  }
+} return void;
+([1.0], 3):([1.0, 0.0, 0.0], 3)
+([], 2):([0.0, 0.0], 2)

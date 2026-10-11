@@ -1,0 +1,28 @@
+// The block that follows the pointer in a drag: the palette's block that was taken
+// (its text and whether it is a reporter) or the line of the document that was picked
+// up, drawn on its own (bke_draw_entry) so that its top left is a little up and
+// left of the pointer. bke_draw_drag does this and the drop mark when the press
+// has become a drag, and nothing before.
+
+editor_ghost(string[][] editor_string_session, int[][] editor_matrix_session) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  string editor_string_text_list = lst_str_get_or(editor_string_session[(import constant_z_pal)], bel_state[(import constant_session_anchor)], "");
+  int editor_integer_repeat = lst_get_or(editor_matrix_session[(import constant_y_report)], bel_state[(import constant_session_anchor)], 0);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session) {
+  if (bel_state[(import constant_session_grab_kind)] == (import constant_grab_block)) {
+    editor_string_text_list = str_trim(editor_string_session[(import constant_z_doc)][bel_state[(import constant_session_anchor)]]);
+    editor_integer_repeat = 0;
+  }
+  editor_draw_entry(editor_string_text_list, editor_integer_repeat, bel_state[(import constant_session_tab)], bel_state[(import graph_view_state_mouse_x)] + (import constant_metric_pal) - 8, bel_state[(import graph_view_state_mouse_y)] + (import constant_metric_bar) - 12);
+} return void;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given editor_test_hold(2) given editor_test_at(300, 300) given idstd_graph_view_test_look(294, 292) given idstd_graph_view_test_look(294, 280) ((import editor_test_strings), (import editor_test_integers)):() then idstd_graph_view_test_seen:("5019647,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given editor_test_pick(3, 0) given editor_test_at(300, 300) given idstd_graph_view_test_look(296, 300) given idstd_graph_view_test_look(294, 280) ((import editor_test_strings), (import editor_test_integers)):() then idstd_graph_view_test_seen:("5881945,0")
+
+editor_draw_drag(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout) {
+  if (editor_matrix_session[(import constant_y_state)][(import constant_session_drag)] == 1) {
+    editor_indicate(editor_string_session, editor_matrix_session, editor_matrix_layout);
+    editor_ghost(editor_string_session, editor_matrix_session);
+  }
+} return void;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given editor_test_hold(2) given idstd_graph_view_test_look(210, 147) given idstd_graph_view_test_look(294, 124) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):() then idstd_graph_view_test_seen:("0,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given editor_test_hold(2) given editor_test_cell(22, 1) given editor_test_at(300, 136) given idstd_graph_view_test_look(210, 147) given idstd_graph_view_test_look(294, 124) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):() then idstd_graph_view_test_seen:("5725813,3764671")

@@ -1,0 +1,30 @@
+// bkv_lbi: len, push, pop, insert and delete on the list in slot a (see
+// listops.id). len writes the length to slot d, push appends the value in the
+// slot after the list, pop writes the last element to slot d and removes it
+// (the runtime error 4, left in the trap list tp, when there is none).
+
+machine_load_builtin(float[] block_value_list, float[][] block_pool_list, int block_identifier, int block_frame_pointer, int block_delta, int block_first_value, int[] block_thread_pointer) {
+  int block_height = block_value_list[block_frame_pointer + block_first_value];
+  if (block_identifier == (import constant_builtin_length)) {
+    block_value_list[block_frame_pointer + block_delta] = len(block_pool_list[block_height]);
+  }
+  if (block_identifier == (import constant_builtin_push)) {
+    push(block_pool_list[block_height], block_value_list[block_frame_pointer + block_first_value + 1]);
+  }
+} chain (float[] block_value_list, float[][] block_pool_list, int block_identifier, int block_frame_pointer, int block_delta, int block_first_value, int[] block_thread_pointer) {
+  if (block_identifier == (import constant_builtin_pop) && len(block_pool_list[block_height]) > 0) {
+    block_value_list[block_frame_pointer + block_delta] = pop(block_pool_list[block_height]);
+  }
+  if (block_identifier == (import constant_builtin_pop) && len(block_pool_list[block_height]) == 0) {
+    block_thread_pointer[0] = 4;
+  }
+  if (block_identifier == (import constant_builtin_insert) || block_identifier == (import constant_builtin_delete)) {
+    machine_edit(block_value_list, block_pool_list[block_height], block_identifier, block_frame_pointer, block_first_value, block_thread_pointer);
+  }
+} return void;
+([0.0, 0.0], [[5.0, 6.0]], 12, 0, 1, 0, [0]):([0.0, 2.0], [[5.0, 6.0]], 12, 0, 1, 0, [0])
+([0.0, 7.0], [[5.0]], 13, 0, 0, 0, [0]):([0.0, 7.0], [[5.0, 7.0]], 13, 0, 0, 0, [0])
+([0.0, 0.0], [[]], 14, 0, 1, 0, [0]):([0.0, 0.0], [[]], 14, 0, 1, 0, [4])
+([0.0, 0.0], [[5.0, 6.0]], 14, 0, 1, 0, [0]):([0.0, 6.0], [[5.0]], 14, 0, 1, 0, [0])
+([0.0, 9.0, 1.0], [[5.0]], 15, 0, 0, 0, [0]):([0.0, 9.0, 1.0], [[5.0]], 15, 0, 0, 0, [3])
+([0.0, 0.0, 1.0], [[5.0]], 15, 0, 0, 0, [0]):([0.0, 0.0, 1.0], [[1.0, 5.0]], 15, 0, 0, 0, [0])

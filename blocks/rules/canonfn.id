@@ -1,0 +1,44 @@
+// The canonical text of a whole function: its signature (return type, then
+// the parameter types) and its body lines in order. bkc_env starts the
+// renaming list with the parameters' names, bkc_sig writes the signature, and
+// bkc_canon puts them together with the canonical body.
+
+checker_environment(string[] block_environment, int block_function_row) {
+  int block_position = (import model_function_parameter_start)[block_function_row];
+  while (block_position < (import model_function_parameter_start)[block_function_row] + (import model_function_parameter_count)[block_function_row]) {
+    push(block_environment, (import model_pan)[block_position]);
+    block_position = block_position + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn f(int a, string b) return void") ([], 0):(["a", "b"], 0)
+given model_load("t.blk", "sprite S\nfn f(int a) return void") (["x"], 0):(["x", "a"], 0)
+
+checker_signature(int block_function_row) {
+  string[] block_parts = [];
+  int block_position = (import model_function_parameter_start)[block_function_row];
+  while (block_position < (import model_function_parameter_start)[block_function_row] + (import model_function_parameter_count)[block_function_row]) {
+    push(block_parts, "" + (import model_pat)[block_position]);
+    block_position = block_position + 1;
+  }
+} chain (int block_function_row) {
+  string block_signature = (import model_function_return_types)[block_function_row] + "(" + str_join(block_parts, ",") + ")";
+} return string block_signature;
+given model_load("t.blk", "sprite S\nfn f(int a, string[] b) return float") (0):("2(1,6)")
+given model_load("t.blk", "sprite S\nfn f() return void") (0):("0()")
+
+checker_canon(int block_function_row, int block_lit) {
+  string[] block_environment = [];
+  checker_environment(block_environment, block_function_row);
+  string[] block_class_code = [];
+} chain (int block_function_row, int block_lit) {
+  int block_line_index = (import model_function_body_start)[block_function_row];
+  while (block_line_index < (import model_function_body_end)[block_function_row]) {
+    push(block_class_code, checker_cline(block_environment, block_line_index, block_lit));
+    block_line_index = block_line_index + 1;
+  }
+  string block_body = str_join(block_class_code, "|");
+} chain (int block_function_row, int block_lit) {
+  string block_canon = checker_signature(block_function_row) + "{" + block_body + "}";
+} return string block_canon;
+given model_load("t.blk", "sprite S\nfn f(int a) return int\n  int b = a + 1\n  return b") (0, 0):("1(1){1:int $1 = $0 + 1|1:return $1}")
+given model_load("t.blk", "sprite S\nfn f(int a) return int\n  int b = a + 1\n  return b") (0, 1):("1(1){1:int $1 = $0 + #i|1:return $1}")

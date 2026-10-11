@@ -1,0 +1,28 @@
+// The instructions that only move a value: copy a slot, load an int constant
+// (x itself), load a float constant (row x of the program's float pool), load
+// a global (number x) into a slot, store a slot into a global.
+
+machine_move(float[] block_value_list, float[] block_gl, float[] block_float_constants, int block_operation, int block_frame_pointer, int block_delta, int block_first_value, int block_x) {
+  if (block_operation == (import constant_opcode_move)) {
+    block_value_list[block_frame_pointer + block_delta] = block_value_list[block_frame_pointer + block_first_value];
+  }
+  if (block_operation == (import constant_opcode_load_integer)) {
+    block_value_list[block_frame_pointer + block_delta] = block_x;
+  }
+  if (block_operation == (import constant_opcode_load_constant)) {
+    block_value_list[block_frame_pointer + block_delta] = block_float_constants[block_x];
+  }
+} chain (float[] block_value_list, float[] block_gl, float[] block_float_constants, int block_operation, int block_frame_pointer, int block_delta, int block_first_value, int block_x) {
+  if (block_operation == (import constant_opcode_global_load)) {
+    block_value_list[block_frame_pointer + block_delta] = block_gl[block_x];
+  }
+  if (block_operation == (import constant_opcode_global_store)) {
+    block_gl[block_x] = block_value_list[block_frame_pointer + block_first_value];
+  }
+} return void;
+([1.5, 0.0], [0.0], [0.0], 0, 0, 1, 0, 0):([1.5, 1.5], [0.0], [0.0])
+([0.0, 0.0], [0.0], [0.0], 1, 0, 1, 0, 7):([0.0, 7.0], [0.0], [0.0])
+([0.0, 0.0], [0.0], [2.5, 3.5], 2, 0, 1, 0, 1):([0.0, 3.5], [0.0], [2.5, 3.5])
+([0.0, 0.0], [4.0, 6.0], [0.0], 3, 0, 1, 0, 1):([0.0, 6.0], [4.0, 6.0], [0.0])
+([8.0, 0.0], [4.0, 6.0], [0.0], 4, 0, 1, 0, 1):([8.0, 0.0], [4.0, 8.0], [0.0])
+([0.0, 0.0, 0.0, 9.0], [0.0], [0.0], 0, 2, 0, 1, 0):([0.0, 0.0, 9.0, 9.0], [0.0], [0.0])

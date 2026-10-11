@@ -1,0 +1,33 @@
+// Colours of a box by its kind and category. A box with a category is that
+// category's colour; a literal's slot is white, a test case, variable or comment
+// strip pale, and a sprite's banner slate. Text on a coloured box is white and on
+// the pale ones the slate ink.
+
+editor_face_color(int editor_integer_kind, int editor_integer_cat) {
+  int editor_integer_column = (import constant_x_white);
+  if (editor_integer_cat >= 0) {
+    editor_integer_column = (import constant_cat_column)[editor_integer_cat];
+  }
+  if (editor_integer_kind == (import constant_kind_banner)) {
+    editor_integer_column = (import constant_x_banner);
+  }
+} chain (int editor_integer_kind, int editor_integer_cat) {
+  if (editor_integer_kind == (import constant_kind_case) || editor_integer_kind == (import constant_kind_variable) || editor_integer_kind == (import constant_kind_note)) {
+    editor_integer_column = (import constant_x_strip);
+  }
+} return int editor_integer_column;
+(1, 0):(0x4C97FF)
+(9, -1):(0xFFFFFF)
+(5, -1):(0x575E75)
+(4, -1):(0xE9EEF2)
+(0, 5):(0xFF6680)
+
+editor_ink_color(int editor_integer_kind, int editor_integer_cat) {
+  int editor_integer_pale = editor_integer_cat < 0 && editor_integer_kind != (import constant_kind_banner) && editor_integer_kind != (import constant_kind_label);
+  int editor_integer_column = (import constant_x_white) + editor_integer_pale * ((import constant_x_ink) - (import constant_x_white));
+} return int editor_integer_column;
+(9, -1):(0x575E75)
+(8, 2):(0xFFFFFF)
+(5, -1):(0xFFFFFF)
+(4, -1):(0x575E75)
+(9, 3):(0xFFFFFF)

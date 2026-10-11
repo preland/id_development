@@ -1,0 +1,68 @@
+// The model of a loaded .blk file, as parallel lists (the record-as-list
+// convention of idstd's README): one list per field, one row per thing, and a
+// row's number is its identity. bkm_init makes them all, empty, and is what
+// every load and every test case starts with.
+//
+//   bkm_lno bkm_lind bkm_ltxt   the line table: source line number, indent in
+//                               levels, and the trimmed text, for every line
+//                               that is not blank or a // comment
+//   bkm_spn bkm_spl             sprites: name, source line
+//   bkm_vrn bkm_vrt bkm_vrs bkm_vri bkm_vrl
+//                               variables: name, type code, sprite row,
+//                               initial value as source text, source line
+//   bkm_fnn bkm_fns bkm_fnr bkm_fne bkm_fnl
+//                               functions: name, sprite row, return type code,
+//                               broadcast message it runs on ("" for none),
+//                               source line
+//   bkm_fnb bkm_fnc bkm_fnp bkm_fnq
+//                               the function's body as line-table rows
+//                               [fnb, fnc) and its parameters as rows
+//                               [fnp, fnp + fnq) of the parameter table
+//   bkm_pan bkm_pat             parameters: name, type code
+//   bkm_can bkm_cal bkm_cat     cases: function row, source line, text
+//   bkm_dg bkm_file             diagnostics, printed in order; the file name
+model_initial() {
+  export int[] model_line_numbers = [];
+  export int[] model_line_indents = [];
+  export string[] model_line_texts = [];
+} chain () {
+  export string[] model_sprite_names = [];
+  export int[] model_sprite_lines = [];
+  export string[] model_variable_names = [];
+} chain () {
+  export int[] model_variable_types = [];
+  export int[] model_variable_sprites = [];
+  export string[] model_variable_initials = [];
+} chain () {
+  export int[] model_variable_lines = [];
+  export string[] model_function_names = [];
+  export int[] model_function_sprites = [];
+} chain () {
+  export int[] model_function_return_types = [];
+  export string[] model_function_message = [];
+  export int[] model_function_line = [];
+} chain () {
+  export int[] model_function_body_start = [];
+  export int[] model_function_body_end = [];
+  export int[] model_function_parameter_start = [];
+} chain () {
+  export int[] model_function_parameter_count = [];
+  export string[] model_pan = [];
+  export int[] model_pat = [];
+} chain () {
+  export int[] model_can = [];
+  export int[] model_case_lines = [];
+  export string[] model_cat = [];
+} chain () {
+  export string[] model_diagnostics = [];
+  export string[] model_file = ["input.blk"];
+} return void export model_diagnostics;
+():() then (import model_diagnostics):([])
+():() then len((import model_diagnostics)):(0)
+
+model_error(int block_no, string block_code, string block_message) {
+  string block_where = (import model_file)[0] + ":" + block_no;
+  push((import model_diagnostics), block_where + ": error: " + block_message + " [" + block_code + "]");
+} return void;
+given model_initial (3, "E0201", "too many"):() then (import model_diagnostics):(["input.blk:3: error: too many [E0201]"])
+given model_initial given model_error(1, "E0101", "a") (2, "E0102", "b"):() then len((import model_diagnostics)):(2)

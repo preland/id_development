@@ -1,0 +1,42 @@
+// An atom: a number, a string, a name (variable, call or element, see
+// ident.id), a parenthesised expression, or a list literal. The token is
+// taken first and its class decides; anything else is E0102, naming the token.
+// want is the type the context asks for, which only a list literal uses.
+
+generator_atom(string[] block_texts, int block_destination, int block_want) {
+  string block_token = generator_take(block_texts);
+  int block_class = lexer_class(charat(block_token, 0));
+  int block_type = 0 - 1;
+} chain (string[] block_texts, int block_destination, int block_want) {
+  if (block_class == (import constant_class_number)) {
+    block_type = generator_number(block_destination, block_token);
+  }
+  if (block_class == (import constant_class_string)) {
+    block_type = generator_string(block_destination, block_token);
+  }
+  if (block_class == (import constant_class_word)) {
+    block_type = generator_name(block_texts, block_destination, block_token);
+  }
+} chain (string[] block_texts, int block_destination, int block_want) {
+  if (block_token == "(") {
+    block_type = generator_group(block_texts, block_destination, block_want);
+  }
+  if (block_token == "[") {
+    block_type = generator_list_literal(block_texts, block_destination, block_want);
+  }
+  if ((block_class == (import constant_class_operation) || block_class == (import constant_class_end)) && block_token != "(" && block_token != "[") {
+    generator_error("E0102", "expected a value, found '" + block_token + "'");
+  }
+} return int block_type;
+given model_initial given generator_initial (["5"], 2, 0):(1) then (import generator_code):([1, 2, 0, 0, 5])
+given model_initial given generator_initial (["\"a\""], 2, 0):(3) then (import generator_string_constants):(["a"])
+given model_initial given generator_initial (["(", "5", ")"], 2, 0):(1) then (import generator_code):([1, 2, 0, 0, 5])
+given model_initial given generator_initial ([")"], 2, 0):(-1) then (import model_diagnostics):(["input.blk:0: error: expected a value, found ')' [E0102]"])
+given model_initial given generator_initial ([], 2, 0):(-1) then len((import model_diagnostics)):(1)
+
+generator_group(string[] block_texts, int block_destination, int block_want) {
+  int block_type = generator_bin(block_texts, block_destination, block_want, (import constant_prefix_minimum));
+  generator_need(block_texts, ")");
+} return int block_type;
+given model_initial given generator_initial (["1", "+", "2", ")"], 2, 0):(1) then len((import generator_code)):(15)
+given model_initial given generator_initial (["1"], 2, 0):(1) then len((import model_diagnostics)):(1)

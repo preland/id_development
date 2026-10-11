@@ -1,0 +1,14 @@
+// The --size W H option of `blocks render`: the window's size in the state of the
+// session, when the option is there with both numbers.
+
+command_resize(int[][] editor_matrix_session, string[] block_argument_values) {
+  int block_index = lst_str_index(block_argument_values, "--size");
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  if (block_index >= 0 && block_index + 2 < len(block_argument_values)) {
+    bel_state[(import graph_view_state_width)] = to_int(block_argument_values[block_index + 1]);
+    bel_state[(import graph_view_state_height)] = to_int(block_argument_values[block_index + 2]);
+  }
+} return void;
+given editor_test_session("") given editor_test_cell(4, 0) ((import editor_test_integers), ["b", "render", "f", "o", "--size", "300", "200"]):() then editor_test_cells:("scroll=0 cells=16,16,100,-1,300,200,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0")
+given editor_test_session("") ((import editor_test_integers), ["b", "render", "f", "o", "--size", "300"]):() then editor_test_cells:("scroll=0 cells=16,16,100,-1,960,600,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0")
+given editor_test_session("") ((import editor_test_integers), ["b", "render", "f", "o"]):() then editor_test_cells:("scroll=0 cells=16,16,100,-1,960,600,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0")

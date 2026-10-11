@@ -1,0 +1,29 @@
+// Test setup and check for the functions that take a whole session: bke_t_session
+// starts one over the text, as the exports bke_t_bes (the text lists), bke_t_bem
+// (the int lists) and bke_t_blo (the layout), on a scratch file (fs_temp_text) as
+// its path so that a save never lands anywhere else; bke_t_look is a line about it.
+
+editor_test_session(string editor_string_text) {
+  fs_temp_text("");
+  string[][] editor_string_session = [];
+  int[][] editor_matrix_session = [];
+} chain (string editor_string_text) {
+  int[][] editor_matrix_layout = editor_lists((import constant_layout_count));
+  editor_start(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_string_text, (import fs_temp_path));
+  export string[][] editor_test_strings = editor_string_session;
+} chain (string editor_string_text) {
+  export int[][] editor_test_integers = editor_matrix_session;
+  export int[][] editor_test_boxes = editor_matrix_layout;
+} return void;
+("sprite S\n"):() then editor_test_look:("doc 2 diag 0 pal 7 boxes 1 sprites S pan 16,16")
+(""):() then editor_test_look:("doc 1 diag 0 pal 7 boxes 0 sprites  pan 16,16")
+
+editor_test_look() {
+  string editor_string_first_value = "doc " + len((import editor_test_strings)[(import constant_z_doc)]) + " diag " + len((import editor_test_strings)[(import constant_z_diag)]);
+  string editor_string_second = " pal " + len((import editor_test_strings)[(import constant_z_pal)]) + " boxes " + len((import editor_test_boxes)[0]) + " sprites " + str_join((import editor_test_strings)[(import constant_z_names)], ",");
+  string editor_string_column_number = " pan " + (import editor_test_integers)[(import constant_y_state)][(import graph_view_state_pan_x)] + "," + (import editor_test_integers)[(import constant_y_state)][(import graph_view_state_pan_y)];
+} chain () {
+  string editor_string_all = editor_string_first_value + editor_string_second + editor_string_column_number;
+} return string editor_string_all;
+given editor_test_session("sprite S\nvar int n\nfn f() return void\n") ():("doc 4 diag 1 pal 7 boxes 3 sprites S pan 16,16")
+given editor_test_session("sprite A\nsprite B\n") ():("doc 3 diag 0 pal 7 boxes 2 sprites A,B pan 16,16")

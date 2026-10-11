@@ -1,0 +1,52 @@
+// The editor's commands. `blocks edit FILE.blk` opens the window on the file;
+// `blocks edit FILE.blk --script S.txt [--dump] [--render-after OUT.ppm]` replays
+// the script on the same session without one (the words are in conf.id's
+// bkk_script_help) and then prints the state (--dump) and writes the picture
+// (--render-after). `blocks render FILE.blk OUT.ppm [--size W H]` writes the
+// picture of the file at the start. The files are read here, the session started
+// by bke_start and everything else is the editor's (edit/).
+
+command_option_value(string[] block_argument_values, string block_name, string block_definition) {
+  int block_index = 0;
+  string block_overflow = block_definition;
+  while (block_index + 1 < len(block_argument_values)) {
+    if (block_argument_values[block_index] == block_name) {
+      block_overflow = block_argument_values[block_index + 1];
+    }
+    block_index = block_index + 1;
+  }
+} return string block_overflow;
+(["blocks", "edit", "f", "--script", "s"], "--script", ""):("s")
+(["blocks", "edit", "f", "--script"], "--script", "none"):("none")
+(["blocks", "edit", "f"], "--dump", "x"):("x")
+
+command_edit(string block_path, string block_sprite_list, string[] block_argument_values) {
+  string block_text = fs_read_text(block_path);
+  string[][] editor_string_session = [];
+  int[][] editor_matrix_session = [];
+} chain (string block_path, string block_sprite_list, string[] block_argument_values) {
+  int[][] editor_matrix_layout = editor_lists((import constant_layout_count));
+  int block_state = 2;
+  if (block_text == "") {
+    eprint("blocks: cannot read " + block_path + ", or it is empty");
+  }
+} chain (string block_path, string block_sprite_list, string[] block_argument_values) {
+  if (block_text != "") {
+    editor_start(editor_string_session, editor_matrix_session, editor_matrix_layout, block_text, block_path);
+    block_state = command_edit_mode(editor_string_session, editor_matrix_session, editor_matrix_layout, block_sprite_list, block_argument_values);
+  }
+} return int block_state;
+("/nonexistent/none.blk", "", ["blocks", "edit", "/nonexistent/none.blk"]):(2) then eprints:("blocks: cannot read /nonexistent/none.blk, or it is empty\n")
+given fs_temp_text("# hello\n") ((import fs_temp_path), (import fs_temp_path), ["blocks", "edit", "x", "--dump"]):(0) then prints:("camera 16 16 100\ntab Motion\ntyping none\nviolations 1\n  line 1: expected sprite, var, fn or a test case, found '#' [E0102]\nrunning 0 frames 0\ndoc 2 lines dirty 0\n| # hello\n| \n")
+
+command_edit_mode(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string block_sprite_list, string[] block_argument_values) {
+  int block_state = 0;
+  if (block_sprite_list == "") {
+    block_state = editor_win(editor_string_session, editor_matrix_session, editor_matrix_layout, 1);
+  }
+  if (block_sprite_list != "") {
+    block_state = command_script(editor_string_session, editor_matrix_session, editor_matrix_layout, block_argument_values, block_sprite_list);
+  }
+} return int block_state;
+given editor_test_session("sprite S\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), "/nonexistent/s.txt", ["blocks", "edit", "f"]):(2) then eprints:("blocks: cannot read the script /nonexistent/s.txt, or it is empty\n")
+given editor_test_session("sprite S\n") given fs_temp_text("size 9 9\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), (import fs_temp_path), ["blocks", "edit", "f"]):(0) then editor_test_cells:("scroll=0 cells=16,16,100,-1,9,9,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0")

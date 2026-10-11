@@ -1,0 +1,44 @@
+// The 'run' and 'test' commands. bkx_run loads the program, and if the rules
+// hold runs it for at most `frames` frames and prints what the sprites said
+// and the final state; its status is 1 for rule violations or a runtime
+// error, 2 for an unreadable file. bkx_test loads it, runs every function's
+// cases in the machine, prints the failures and a count, and answers 1 if
+// any case failed or the rules were broken.
+
+command_run(string block_path, int block_frames) {
+  int block_state = command_load(block_path);
+  if (block_state == 0) {
+    block_state = command_report();
+  }
+  if (block_state == 0) {
+    runner_start(block_frames);
+    command_emit(runner_lines());
+  }
+} chain (string block_path, int block_frames) {
+  if (block_state == 0 && (import machine_registers_group)[(import constant_registers_error)] > 0) {
+    block_state = 1;
+  }
+} return int block_state;
+("/nonexistent/none.blk", 5):(2) then eprints:("blocks: cannot read /nonexistent/none.blk, or it is empty\n")
+given fs_temp_text ("sprite S\nvar int n\nfn main(int argc, string[] argv) return int\n  say(\"hi\")\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)") ((import fs_temp_path), 5):(0) then prints:("S: hi\n-- state after 1 frame(s) --\nS: x=0 y=0 dir=90 size=100 visible=1\nn = 0\n")
+given fs_temp_text ("sprite S\nfn main(int argc, string[] argv) return int\n  int z = argc / 0\n  return z\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)") ((import fs_temp_path), 5):(1)
+
+command_test(string block_path) {
+  int block_state = command_load(block_path);
+  if (block_state == 0) {
+    block_state = command_report();
+  }
+  if (block_state == 0) {
+    block_state = command_cases();
+  }
+} return int block_state;
+("/nonexistent/none.blk"):(2) then eprints:("blocks: cannot read /nonexistent/none.blk, or it is empty\n")
+given fs_temp_text ("sprite S\nfn f() return void\n  x = 1\n(): ()\n(1): ()") ((import fs_temp_path)):(1)
+
+command_cases() {
+  int block_bad = runner_cases();
+  command_emit((import model_diagnostics));
+  print(len((import model_can)) + " case(s) run, " + block_bad + " failed");
+} return int block_bad;
+given runner_load("t.blk", "sprite S\nfn f(int a) return int\n  return a\n(1): (1)\n(2): (3)") ():(1) then prints:("t.blk:5: test failed: f(2) = 2, expected 3\n2 case(s) run, 1 failed\n")
+given runner_load("t.blk", "sprite S\nfn f(int a) return int\n  return a\n(1): (1)\n(2): (2)") ():(0) then prints:("2 case(s) run, 0 failed\n")

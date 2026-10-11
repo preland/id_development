@@ -1,0 +1,26 @@
+// From the window to the picture and back to a box. The script area shows the
+// layout through the camera (pan in pixels, zoom in percent, as the graph kit's
+// graph_view_screen applies it); bke_world is its inverse, bke_hitbox the topmost box
+// under a point of the window.
+
+editor_world(int editor_integer_session, int editor_integer_pan, int editor_integer_zoom) {
+  int editor_integer_relative = editor_integer_session - editor_integer_pan;
+  int editor_integer_width = fx_fdiv(editor_integer_relative * 100, editor_integer_zoom);
+} return int editor_integer_width;
+(100, 0, 100):(100)
+(60, 20, 200):(20)
+(-5, 0, 50):(-10)
+
+editor_hit_box(int[][] editor_matrix_layout, int[] bel_state, int editor_integer_x, int editor_integer_y) {
+  int editor_integer_world_x = editor_world(editor_integer_x - (import constant_metric_pal), bel_state[(import graph_view_state_pan_x)], bel_state[(import graph_view_state_zoom)]);
+  int editor_integer_world_y = editor_world(editor_integer_y - (import constant_metric_bar), bel_state[(import graph_view_state_pan_y)], bel_state[(import graph_view_state_zoom)]);
+  int editor_integer_key_code = len(editor_matrix_layout[(import constant_layout_kind)]) - 1;
+} chain (int[][] editor_matrix_layout, int[] bel_state, int editor_integer_x, int editor_integer_y) {
+  while (editor_integer_key_code >= 0 && editor_in(editor_integer_world_x, editor_integer_world_y, editor_matrix_layout[(import constant_layout_x)][editor_integer_key_code], editor_matrix_layout[(import constant_layout_y)][editor_integer_key_code], editor_matrix_layout[(import constant_layout_width)][editor_integer_key_code], editor_matrix_layout[(import constant_layout_height)][editor_integer_key_code]) == 0) {
+    editor_integer_key_code = editor_integer_key_code - 1;
+  }
+} return int editor_integer_key_code;
+given editor_test_laid(["fn f() return void", "  x = 1"]) given editor_test_blank(960, 600) given editor_test_set(0, 10) given editor_test_set(1, 5) ((import editor_test_stage_layout), (import editor_test_state), 200, 76):(1)
+given editor_test_laid(["fn f() return void", "  x = 1"]) given editor_test_blank(960, 600) given editor_test_set(0, 10) given editor_test_set(1, 5) ((import editor_test_stage_layout), (import editor_test_state), 243, 81):(3)
+given editor_test_laid(["fn f() return void", "  x = 1"]) given editor_test_blank(960, 600) ((import editor_test_stage_layout), (import editor_test_state), 700, 500):(-1)
+given editor_test_laid(["fn f() return void", "  x = 1"]) given editor_test_blank(960, 600) given editor_test_set(0, 10) given editor_test_set(1, 5) ((import editor_test_stage_layout), (import editor_test_state), 200, 45):(0)

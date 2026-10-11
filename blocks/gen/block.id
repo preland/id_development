@@ -1,0 +1,34 @@
+// Blocks. A block is the run of body lines at one indent level; a line one
+// level deeper belongs to the statement above it. bkg_block compiles lines
+// from li while they are at least level lv deep and answers the first line
+// that is not, forgetting the locals the block declared when it ends.
+// bkg_done reports what is left on a line after its statement (E0102).
+
+generator_trim(int block_count) {
+  while (len((import generator_symbol_names)) > block_count) {
+    pop((import generator_symbol_names));
+    pop((import generator_symbol_slots));
+    pop((import generator_symbol_types));
+  }
+} return void;
+given generator_initial given lst_str_extend((import generator_symbol_names), ["a", "b"]) given lst_extend((import generator_symbol_slots), [1, 2]) given lst_extend((import generator_symbol_types), [1, 1]) (1):() then (import generator_symbol_names):(["a"]) then (import generator_symbol_slots):([1]) then (import generator_symbol_types):([1])
+given generator_initial given lst_str_extend((import generator_symbol_names), ["a"]) given lst_extend((import generator_symbol_slots), [1]) given lst_extend((import generator_symbol_types), [1]) (0):() then len((import generator_symbol_names)):(0) then len((import generator_symbol_types)):(0)
+
+generator_block(int block_function_row, int block_line_index, int block_level) {
+  int block_mark = len((import generator_symbol_names));
+  while (block_line_index < (import model_function_body_end)[block_function_row] && (import model_line_indents)[block_line_index] >= block_level) {
+    block_line_index = generator_line(block_function_row, block_line_index, block_level);
+  }
+  generator_trim(block_mark);
+} return int block_line_index;
+given model_load("t.blk", "sprite S\nfn f() return void\n  int a = 1\n  int b = 2\nfn g() return void\n  int c = 3") given generator_initial given lset((import generator_state), 3, 0) (0, 2, 1):(4) then generator_symbols:("")
+given model_load("t.blk", "sprite S\nfn f() return void\n  int a = 1\n  int b = 2\nfn g() return void\n  int c = 3") given generator_initial (1, 5, 1):(6)
+
+generator_done(string[] block_texts) {
+  int block_position_index = (import generator_state)[(import constant_statement_position_index)];
+  if (block_position_index < len(block_texts)) {
+    generator_error("E0102", "unexpected '" + block_texts[block_position_index] + "' at the end of the statement");
+  }
+} return void;
+given model_initial given generator_initial given lset((import generator_state), 0, 1) (["a", "b"]):() then (import model_diagnostics):(["input.blk:0: error: unexpected 'b' at the end of the statement [E0102]"])
+given model_initial given generator_initial given lset((import generator_state), 0, 2) (["a", "b"]):() then len((import model_diagnostics)):(0)

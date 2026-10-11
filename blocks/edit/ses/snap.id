@@ -1,0 +1,49 @@
+// The stage as the machine has it. After a run the sprites' positions, directions,
+// sizes and what they said are read from the machine's tables (bkv_sx, bkm_spn, the
+// string pool bkv_sp) into the session as whole numbers, so the painter needs nothing
+// but the session. The sprite __sys, which holds the generated scripts, is left out.
+
+editor_snap_geometry(int[] bel_geometry, int editor_integer_row) {
+  int editor_integer_key_code = 0;
+  while (editor_integer_key_code < 5) {
+    int editor_integer_variant = (import machine_sprite_state)[editor_integer_row * (import constant_sprite_count) + editor_integer_key_code];
+    push(bel_geometry, editor_integer_variant);
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+} return void;
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  say(\"hi\")\n  move(10.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") given runner_start(5) ([], 0):([10, 0, 90, 100, 1], 0)
+given editor_test_session("sprite A\nsprite B\n") given runner_start(2) ([7], 1):([7, 0, 0, 90, 100, 1], 1)
+
+editor_snapshot_first(string[] bet_name_text, string[] bet_symbols, int[] bel_geometry, int editor_integer_row) {
+  int editor_integer_say = (import machine_sprite_state)[editor_integer_row * (import constant_sprite_count) + (import constant_sprite_say)];
+  string editor_string_said = "";
+  if (editor_integer_say >= 0) {
+    editor_string_said = (import machine_sprite_list)[editor_integer_say];
+  }
+} chain (string[] bet_name_text, string[] bet_symbols, int[] bel_geometry, int editor_integer_row) {
+  push(bet_name_text, (import model_sprite_names)[editor_integer_row]);
+  push(bet_symbols, editor_string_said);
+  editor_snap_geometry(bel_geometry, editor_integer_row);
+} return void;
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  say(\"hi\")\n  move(10.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") given runner_start(5) ([], [], [], 0):(["S"], ["hi"], [10, 0, 90, 100, 1], 0)
+given editor_test_session("sprite A\nsprite B\n") given runner_start(2) ([], [], [], 1):(["B"], [""], [0, 0, 90, 100, 1], 1)
+
+editor_snap(string[][] editor_string_session, int[][] editor_matrix_session) {
+  string[] bet_name_text = [];
+  string[] bet_symbols = [];
+  int[] bel_geometry = [];
+} chain (string[][] editor_string_session, int[][] editor_matrix_session) {
+  int editor_integer_row = 0;
+  while (editor_integer_row < len((import model_sprite_names))) {
+    if ((import model_sprite_names)[editor_integer_row] != (import constant_system)) {
+      editor_snapshot_first(bet_name_text, bet_symbols, bel_geometry, editor_integer_row);
+    }
+    editor_integer_row = editor_integer_row + 1;
+  }
+  editor_string_session[(import constant_z_names)] = bet_name_text;
+} chain (string[][] editor_string_session, int[][] editor_matrix_session) {
+  editor_string_session[(import constant_z_says)] = bet_symbols;
+  editor_matrix_session[(import constant_y_sprite_state)] = bel_geometry;
+} return void;
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  say(\"hi\")\n  move(10.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") given runner_start(5) ((import editor_test_strings), (import editor_test_integers)):() then editor_test_stage:("names=S says=hi geo=10,0,90,100,1 run=0 fr=0")
+given editor_test_session("sprite A\nsprite B\n") given runner_start(2) ((import editor_test_strings), (import editor_test_integers)):() then editor_test_stage:("names=A,B says=, geo=0,0,90,100,1,0,0,90,100,1 run=0 fr=0")

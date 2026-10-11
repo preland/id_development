@@ -1,0 +1,27 @@
+// One whole picture of a session: the script area, the palette, the stage, the
+// bar over their top edge, then what is on top of them (the block being dragged and
+// its drop mark, the tooltip). The surface and the face are the caller's (sf_l_init,
+// txt_g8_init), and so is the table of fx_trig_init the sprites' directions need.
+
+editor_draw_bar(string[][] editor_string_session, int[][] editor_matrix_session) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  d2_l_rect(0, 0, bel_state[(import graph_view_state_width)], (import constant_metric_bar), (import constant_x_bar));
+  txt_g8_draw(10, 14, "blocks", (import constant_x_white), 1);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session) {
+  editor_draw_buttons(editor_string_session, editor_matrix_session);
+  editor_draw_status(editor_string_session, editor_matrix_session);
+} return void;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given fx_trig_init given idstd_graph_view_test_look(300, 3) given idstd_graph_view_test_look(200, 20) given idstd_graph_view_test_look(900, 30) ((import editor_test_strings), (import editor_test_integers)):() then idstd_graph_view_test_seen:("8740054,5029718,8740054")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given fx_trig_init given editor_test_string(7, "t.blk") given idstd_graph_view_test_look(300, 40) given idstd_graph_view_test_ink(0xFFFFFF) ((import editor_test_strings), (import editor_test_integers)):() then idstd_graph_view_test_seen:("0,1619")
+
+editor_paint(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout) {
+  editor_draw_script(editor_string_session, editor_matrix_session, editor_matrix_layout);
+  editor_draw_palette(editor_string_session, editor_matrix_session);
+  editor_draw_stage(editor_string_session, editor_matrix_session);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout) {
+  editor_draw_bar(editor_string_session, editor_matrix_session);
+  editor_draw_drag(editor_string_session, editor_matrix_session, editor_matrix_layout);
+  editor_draw_tip(editor_string_session, editor_matrix_session, editor_matrix_layout);
+} return void;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given fx_trig_init given idstd_graph_view_test_look(5, 400) given idstd_graph_view_test_look(300, 400) given idstd_graph_view_test_look(900, 400) given idstd_graph_view_test_look(300, 3) given idstd_graph_view_test_look(210, 127) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):() then idstd_graph_view_test_seen:("16777215,16382457,16777215,8740054,5019647")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given fx_trig_init given editor_test_at(300, 100) given idstd_graph_view_test_look(314, 114) given idstd_graph_view_test_look(300, 3) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):() then idstd_graph_view_test_seen:("16777215,8740054")

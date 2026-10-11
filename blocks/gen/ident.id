@@ -1,0 +1,53 @@
+// A name in an expression: followed by ( it is a call, followed by [ it is
+// an element of a list variable, otherwise it is a variable, local or global.
+// bkg_index loads the list and the index into two temporaries and reads the
+// element with lget; its type is the list type minus the list offset.
+
+generator_name(string[] block_texts, int block_destination, string block_token) {
+  string block_peek = lst_str_get_or(block_texts, (import generator_state)[(import constant_statement_position_index)], "");
+  int block_mode = lst_str_index((import constant_postfix), block_peek);
+  int block_type = 0 - 1;
+} chain (string[] block_texts, int block_destination, string block_token) {
+  if (block_mode == 0) {
+    generator_take(block_texts);
+    block_type = generator_call(block_texts, block_destination, block_token);
+  }
+  if (block_mode == 1) {
+    generator_take(block_texts);
+    block_type = generator_index(block_texts, block_destination, block_token);
+  }
+  if (block_mode < 0) {
+    block_type = generator_load(block_destination, block_token);
+  }
+} return int block_type;
+given model_load("t.blk", "sprite S\nvar int n") given generator_initial (["+"], 4, "n"):(1) then (import generator_code):([3, 4, 0, 0, 0])
+given model_load("t.blk", "sprite S\nvar int[] xs") given generator_initial (["[", "0", "]"], 4, "xs"):(1) then (import generator_code)[0]:(3)
+given model_load("t.blk", "sprite S\nvar int n") given generator_initial (["(", ")"], 4, "n"):(-1) then len((import model_diagnostics)):(1)
+
+generator_index(string[] block_texts, int block_destination, string block_name_text) {
+  int block_thread_slot = generator_alloc(2);
+  int block_list_type = generator_load(block_thread_slot, block_name_text);
+  int block_integer_type = generator_bin(block_texts, block_thread_slot + 1, 0, (import constant_prefix_minimum));
+} chain (string[] block_texts, int block_destination, string block_name_text) {
+  generator_need(block_texts, "]");
+  int block_type = generator_element_type_type(block_list_type, block_integer_type);
+  if (block_type >= 0) {
+    generator_emit((import constant_opcode_list_get), block_destination, block_thread_slot, block_thread_slot + 1, 0);
+  }
+} return int block_type;
+given model_load("t.blk", "sprite S\nvar float[] xs") given generator_initial (["1", "]"], 7, "xs"):(2) then (import generator_code)[10]:(15) then (import generator_code)[11]:(7)
+given model_load("t.blk", "sprite S\nvar float[] xs") given generator_initial (["1.5", "]"], 7, "xs"):(-1) then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nvar float xs") given generator_initial (["1", "]"], 7, "xs"):(-1) then len((import model_diagnostics)):(1)
+
+generator_element_type_type(int block_list_type, int block_integer_type) {
+  int block_type = 0 - 1;
+  if (block_list_type >= (import constant_type_integer_list) && block_integer_type == (import constant_type_integer)) {
+    block_type = block_list_type - (import constant_type_list);
+  } else if (block_list_type >= 0 && block_integer_type >= 0) {
+    generator_error("E0606", "an element needs a list and an int index, found " + (import constant_type_full)[block_list_type] + " and " + (import constant_type_full)[block_integer_type]);
+  }
+} return int block_type;
+given model_initial given generator_initial (6, 1):(3)
+given model_initial given generator_initial (4, 2):(-1) then model_diagnostic_list:("input.blk:0: error: an element needs a list and an int index, found int[] and float [E0606]")
+given model_initial given generator_initial (1, 1):(-1) then len((import model_diagnostics)):(1)
+given model_initial given generator_initial (-1, 1):(-1) then len((import model_diagnostics)):(0)

@@ -1,0 +1,22 @@
+// A read-back for the cases of the compile functions: the code emitted so
+// far, as 'N:' and the cells joined by commas, N being how many cells there
+// are. A case of a function that only calls bkg_emit cannot read the code
+// list itself (docs/TESTS.md); it names this as its 'then' check.
+
+generator_codes() {
+  string block_text = len((import generator_code)) + ":" + lst_text((import generator_code), ",");
+} return string block_text;
+given generator_initial ():("0:")
+given generator_initial given lst_extend((import generator_code), [1, 2]) ():("2:1,2")
+
+generator_symbols() {
+  string block_text = str_join((import generator_symbol_names), ",");
+} return string block_text;
+given generator_initial ():("")
+given generator_initial given lst_str_extend((import generator_symbol_names), ["a", "b"]) ():("a,b")
+
+generator_breaks() {
+  string block_text = len((import generator_break_stack)) + "=" + lst_text((import generator_break_stack), ",");
+} return string block_text;
+given generator_initial ():("0=")
+given generator_initial given lst_extend((import generator_break_stack), [4, 9]) ():("2=4,9")

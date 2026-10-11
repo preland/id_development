@@ -1,0 +1,35 @@
+// A list literal '[a, b, c]', compiled where the context asks for a list
+// type: it takes that type, as in id. It makes an empty list and pushes each
+// element, which must have the list's element type.
+
+generator_list_literal(string[] block_texts, int block_destination, int block_want) {
+  int block_type = block_want;
+  if (block_want < (import constant_type_integer_list)) {
+    generator_error("E0102", "a list literal takes the type it is stored in; write it where a list is declared or passed");
+    block_type = 0 - 1;
+  }
+  generator_emit((import constant_opcode_builtin), block_destination, 0, 0, (import constant_builtin_new_list));
+} chain (string[] block_texts, int block_destination, int block_want) {
+  while (lst_str_get_or(block_texts, (import generator_state)[(import constant_statement_position_index)], "]") != "]") {
+    generator_element_type(block_texts, block_destination, block_type);
+  }
+  generator_need(block_texts, "]");
+} return int block_type;
+given model_initial given generator_initial (["]"], 2, 4):(4) then (import generator_code):([14, 2, 0, 0, 26])
+given model_initial given generator_initial (["1", ",", "2", "]"], 2, 4):(4) then len((import generator_code)):(35)
+given model_initial given generator_initial (["]"], 2, 0):(-1) then len((import model_diagnostics)):(1)
+
+generator_element_type(string[] block_texts, int block_destination, int block_list_type) {
+  int block_thread_slot = generator_alloc(2);
+  generator_emit((import constant_opcode_move), block_thread_slot, block_destination, 0, 0);
+  int block_element_type_code = generator_bin(block_texts, block_thread_slot + 1, block_list_type - (import constant_type_list), (import constant_prefix_minimum));
+} chain (string[] block_texts, int block_destination, int block_list_type) {
+  if (block_element_type_code != block_list_type - (import constant_type_list) && block_element_type_code >= 0) {
+    generator_error("E0606", "this list holds " + (import constant_type_full)[block_list_type - (import constant_type_list)] + " values, found " + (import constant_type_full)[block_element_type_code]);
+  }
+  generator_emit((import constant_opcode_builtin), 0, block_thread_slot, 0, (import constant_builtin_push));
+  generator_eat(block_texts, ",");
+} return void;
+given model_initial given generator_initial (["7"], 2, 4):() then (import generator_code):([0, 0, 2, 0, 0, 1, 1, 0, 0, 7, 14, 0, 0, 0, 13])
+given model_initial given generator_initial (["7", ","], 2, 4):() then (import generator_state)[0]:(2)
+given model_initial given generator_initial (["7.5"], 2, 4):() then len((import model_diagnostics)):(1)

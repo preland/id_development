@@ -1,0 +1,33 @@
+// A declaration 'TYPE NAME = EXPRESSION'. The value is compiled into the
+// new local's slot before the name is entered in the symbol table, so the
+// expression cannot see the variable it initializes, and it must have the
+// declared type (E0606). The name must be a plain identifier.
+
+generator_decl(string[] block_texts) {
+  int block_type = model_type(block_texts, 0);
+  int block_at = 1 + (block_type > 3) * 2;
+  string block_name_text = lst_str_get_or(block_texts, block_at, "");
+} chain (string[] block_texts) {
+  lset((import generator_state), (import constant_statement_position_index), block_at + 1);
+  int block_slot = generator_alloc(1);
+  generator_need(block_texts, "=");
+} chain (string[] block_texts) {
+  int block_element_type_code = generator_bin(block_texts, block_slot, block_type, (import constant_prefix_minimum));
+  generator_declare(block_name_text, block_type, block_slot);
+  generator_check_set(block_name_text, block_type, block_element_type_code);
+} chain (string[] block_texts) {
+  generator_done(block_texts);
+} return void;
+given model_initial given generator_initial (["int", "n", "=", "5"]):() then generator_codes:("5:1,0,0,0,5") then generator_symbols:("n")
+given model_initial given generator_initial (["string", "[", "]", "xs", "=", "[", "]"]):() then generator_codes:("5:14,0,0,0,26") then generator_symbols:("xs")
+given model_initial given generator_initial (["int", "n", "=", "\"s\""]):() then len((import model_diagnostics)):(1)
+given model_initial given generator_initial (["int", "n", "=", "n"]):() then len((import model_diagnostics)):(1)
+
+generator_check_set(string block_name_text, int block_variable_table, int block_type) {
+  if (block_variable_table >= 0 && block_type >= 0 && block_type != block_variable_table) {
+    generator_error("E0606", "cannot give " + (import constant_type_full)[block_type] + " to '" + block_name_text + "', which is " + (import constant_type_full)[block_variable_table]);
+  }
+} return void;
+given model_initial given generator_initial ("n", 1, 1):() then len((import model_diagnostics)):(0)
+given model_initial given generator_initial ("n", 1, 3):() then (import model_diagnostics):(["input.blk:0: error: cannot give string to 'n', which is int [E0606]"])
+given model_initial given generator_initial ("n", -1, 3):() then len((import model_diagnostics)):(0)

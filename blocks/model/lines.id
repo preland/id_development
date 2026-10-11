@@ -1,0 +1,37 @@
+// From text to the line table. Blank lines and // comment lines vanish; every
+// other line keeps its source number, its indent in levels of two spaces and
+// its text without the indent. An indent that is not a multiple of two is the
+// one error found here (E0102), since nothing later could place the line.
+
+model_lines(string block_text) {
+  string[] block_lists = str_lines(block_text);
+  int block_index = 0;
+  while (block_index < len(block_lists)) {
+    model_add_line(block_index + 1, block_lists[block_index]);
+    block_index = block_index + 1;
+  }
+} return void;
+given model_initial ("a\n\n// c\n  b\n"):() then (import model_line_texts):(["a", "b"]) then (import model_line_numbers):([1, 4]) then (import model_line_indents):([0, 1])
+given model_initial ("x"):() then (import model_line_indents):([0]) then len((import model_line_texts)):(1)
+
+model_add_line(int block_no, string block_raw) {
+  string block_trim = str_trim(block_raw);
+  int block_sprite_row = str_skip_space(block_raw, 0);
+  if (block_trim != "" && str_starts(block_trim, "//") == 0) {
+    model_push_line(block_no, block_sprite_row, block_trim);
+  }
+} return void;
+given model_initial (1, "  // note"):() then len((import model_line_numbers)):(0)
+given model_initial (7, "    x = 1  "):() then (import model_line_texts):(["x = 1"]) then (import model_line_indents):([2]) then (import model_line_numbers):([7])
+
+model_push_line(int block_no, int block_sprite_row, string block_trim) {
+  push((import model_line_numbers), block_no);
+  push((import model_line_indents), block_sprite_row / 2);
+  push((import model_line_texts), block_trim);
+} chain (int block_no, int block_sprite_row, string block_trim) {
+  if (block_sprite_row % 2 == 1) {
+    model_error(block_no, "E0102", "an indent is a multiple of two spaces, found " + block_sprite_row);
+  }
+} return void;
+given model_initial (3, 3, "x"):() then (import model_diagnostics):(["input.blk:3: error: an indent is a multiple of two spaces, found 3 [E0102]"])
+given model_initial (3, 4, "x"):() then len((import model_diagnostics)):(0) then (import model_line_indents):([2])

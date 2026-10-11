@@ -1,0 +1,17 @@
+// broadcast: every function whose broadcast message (the model's bkm_fne)
+// is the broadcast text becomes a new thread. The text is found in the
+// string pool by its index; an empty message starts nothing, since an empty
+// bkm_fne means a function runs on no message.
+
+machine_broadcast(int block_height) {
+  int block_function_row = 0;
+  while (block_function_row < len((import model_function_message))) {
+    if ((import model_function_message)[block_function_row] == (import machine_sprite_list)[block_height] && (import machine_sprite_list)[block_height] != "") {
+      machine_spawn(block_function_row);
+    }
+    block_function_row = block_function_row + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\nfn b() return void\nfn c() return void on \"go\"") given generator_initial given lst_fill((import generator_function_table), 12, 0) given machine_boot given lst_str_extend((import machine_sprite_list), ["go"]) (0):() then len((import machine_thread)):(12)
+given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\nfn b() return void") given generator_initial given lst_fill((import generator_function_table), 8, 0) given machine_boot given lst_str_extend((import machine_sprite_list), ["", "stop"]) (0):() then len((import machine_thread)):(0)
+given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\nfn b() return void") given generator_initial given lst_fill((import generator_function_table), 8, 0) given machine_boot given lst_str_extend((import machine_sprite_list), ["", "stop"]) (1):() then len((import machine_thread)):(0)

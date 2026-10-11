@@ -1,0 +1,23 @@
+// The program's side of a session as text: whether it runs and the frames it has,
+// then a line for each sprite with what it last said.
+
+editor_state_sprite(string[][] editor_string_session, int[][] editor_matrix_session, int editor_integer_index) {
+  int[] bel_geometry = editor_matrix_session[(import constant_y_sprite_state)];
+  string editor_string_first_value = editor_string_session[(import constant_z_names)][editor_integer_index] + ": x=" + bel_geometry[5 * editor_integer_index] + " y=" + bel_geometry[5 * editor_integer_index + 1] + " dir=" + bel_geometry[5 * editor_integer_index + 2];
+  string editor_string_second = " size=" + bel_geometry[5 * editor_integer_index + 3] + " visible=" + bel_geometry[5 * editor_integer_index + 4] + " says " + str_quote(editor_string_session[(import constant_z_says)][editor_integer_index]) + "\n";
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int editor_integer_index) {
+  string editor_string_line = editor_string_first_value + editor_string_second;
+} return string editor_string_line;
+given editor_test_session("sprite A\n") ((import editor_test_strings), (import editor_test_integers), 0):("A: x=0 y=0 dir=90 size=100 visible=1 says \"\"\n")
+given editor_test_session("sprite A\nsprite B\n") given editor_test_geometry(3, -4, 45, 50, 0) given editor_test_say(0, "yo") ((import editor_test_strings), (import editor_test_integers), 0):("A: x=3 y=-4 dir=45 size=50 visible=0 says \"yo\"\n")
+
+editor_state_run(string[][] editor_string_session, int[][] editor_matrix_session) {
+  string editor_string_all = "running " + editor_matrix_session[(import constant_y_state)][(import constant_session_run)] + " frames " + editor_matrix_session[(import constant_y_state)][(import constant_session_frame)] + "\n";
+  int editor_integer_index = 0;
+  while (editor_integer_index < len(editor_string_session[(import constant_z_names)])) {
+    editor_string_all = editor_string_all + editor_state_sprite(editor_string_session, editor_matrix_session, editor_integer_index);
+    editor_integer_index = editor_integer_index + 1;
+  }
+} return string editor_string_all;
+given editor_test_session("sprite A\nsprite B\n") ((import editor_test_strings), (import editor_test_integers)):("running 0 frames 0\nA: x=0 y=0 dir=90 size=100 visible=1 says \"\"\nB: x=0 y=0 dir=90 size=100 visible=1 says \"\"\n")
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  say(\"hi\")\n  move(10.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") given runner_start(5) given editor_snap((import editor_test_strings), (import editor_test_integers)) ((import editor_test_strings), (import editor_test_integers)):("running 0 frames 0\nS: x=10 y=0 dir=90 size=100 visible=1 says \"hi\"\n")

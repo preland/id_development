@@ -1,0 +1,40 @@
+// Taking a block out of the document and putting it somewhere else. bke_cut
+// removes the block that starts at a line (bke_end says how far it goes) and
+// answers its lines with the first at indent zero; bke_move cuts and inserts in
+// one go, at a line number of the document as it was before the cut and at the
+// indent the block is to have.
+
+editor_cut(string[] bet_doc, int editor_integer_index) {
+  int editor_integer_end_index = editor_end(bet_doc, editor_integer_index);
+  int editor_integer_indent = editor_indent(bet_doc[editor_integer_index]);
+  string[] bet_block = editor_lines(bet_doc, editor_integer_index, editor_integer_end_index);
+} chain (string[] bet_doc, int editor_integer_index) {
+  string[] bet_none = [];
+  lst_str_splice(bet_doc, editor_integer_index, editor_integer_end_index, bet_none);
+  string[] bet_flat = editor_shifted(bet_block, 0 - editor_integer_indent);
+} return string[] bet_flat;
+(["a", "  b", "  c"], 1):(["b"])
+(["  if x", "    y", "  else", "    z", "  w"], 0):(["if x", "  y", "else", "  z"])
+(["a", "b"], 5):() then traps:("out of bounds")
+
+editor_lines(string[] bet_doc, int editor_integer_first_value, int editor_integer_second) {
+  string[] bet_out = [];
+  int editor_integer_key_code = editor_integer_first_value;
+  while (editor_integer_key_code < editor_integer_second) {
+    push(bet_out, bet_doc[editor_integer_key_code]);
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+} return string[] bet_out;
+(["a", "b", "c"], 1, 3):(["b", "c"])
+(["a", "b", "c"], 2, 2):([])
+
+editor_move(string[] bet_doc, int editor_integer_index, int editor_integer_at, int editor_integer_indent) {
+  int editor_integer_count = editor_end(bet_doc, editor_integer_index) - editor_integer_index;
+  string[] bet_block = editor_cut(bet_doc, editor_integer_index);
+  int editor_integer_to = editor_integer_at - (editor_integer_at > editor_integer_index) * editor_integer_count;
+} chain (string[] bet_doc, int editor_integer_index, int editor_integer_at, int editor_integer_indent) {
+  editor_ins(bet_doc, editor_integer_to, editor_integer_indent, bet_block);
+} return void;
+(["  a", "  b", "  c"], 0, 3, 1):(["  b", "  c", "  a"], 0, 3, 1)
+(["  a", "  b", "  c"], 2, 0, 1):(["  c", "  a", "  b"], 2, 0, 1)
+(["  if x", "    y", "  z"], 0, 3, 2):(["  z", "    if x", "      y"], 0, 3, 2)

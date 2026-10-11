@@ -1,0 +1,26 @@
+// Moving the cells of a float list over by one, for insert and delete.
+// bkv_shift_up opens a gap at i in a list whose last cell is spare (the
+// cells from i move one place towards the end); bkv_shift_down closes the gap
+// at i and drops the last cell.
+
+machine_shift_up(float[] block_float_list, int block_index) {
+  int block_inner = len(block_float_list) - 1;
+  while (block_inner > block_index) {
+    block_float_list[block_inner] = block_float_list[block_inner - 1];
+    block_inner = block_inner - 1;
+  }
+} return void;
+([1.0, 2.0, 0.0], 1):([1.0, 2.0, 2.0], 1)
+([1.0, 2.0, 0.0], 0):([1.0, 1.0, 2.0], 0)
+([1.0, 2.0, 0.0, 0.0], 1):([1.0, 2.0, 2.0, 0.0], 1)
+
+machine_shift_down(float[] block_float_list, int block_index) {
+  int block_inner = block_index;
+  while (block_inner < len(block_float_list) - 1) {
+    block_float_list[block_inner] = block_float_list[block_inner + 1];
+    block_inner = block_inner + 1;
+  }
+  pop(block_float_list);
+} return void;
+([1.0, 2.0, 3.0], 0):([2.0, 3.0], 0)
+([1.0, 2.0, 3.0], 2):([1.0, 2.0], 2)

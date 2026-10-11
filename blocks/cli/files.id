@@ -1,0 +1,32 @@
+// Reading the program named on the command line. bkx_load reads the file and
+// loads it for running (rules applied, generated scripts added, everything
+// compiled; see run/load.id) and answers 0, or 2 after saying so when the
+// file cannot be read or is empty. bkx_check is the 'check' command: print
+// the rule violations and answer 1 if there were any, or one summary line.
+
+command_load(string block_path) {
+  string block_text = fs_read_text(block_path);
+  int block_state = 0;
+  if (block_text == "") {
+    eprint("blocks: cannot read " + block_path + ", or it is empty");
+    block_state = 2;
+  }
+} chain (string block_path) {
+  if (block_text != "") {
+    runner_load(block_path, block_text);
+  }
+} return int block_state;
+("/nonexistent/none.blk"):(2) then eprints:("blocks: cannot read /nonexistent/none.blk, or it is empty\n")
+given fs_temp_text ("sprite S\nfn f() return void\n(): ()\n(1): ()") ((import fs_temp_path)):(0)
+
+command_check(string block_path) {
+  int block_state = command_load(block_path);
+  if (block_state == 0) {
+    block_state = command_report();
+  }
+  if (block_state == 0) {
+    print(block_path + ": " + command_user_functions() + " function(s), " + (len((import model_sprite_names)) - 1) + " sprite(s), " + len((import model_can)) + " case(s); no rule violations");
+  }
+} return int block_state;
+("/nonexistent/none.blk"):(2) then eprints:("blocks: cannot read /nonexistent/none.blk, or it is empty\n")
+given fs_temp_text ("sprite S\nfn f() return void\n  x = 1\n(): ()\n(1): ()") ((import fs_temp_path)):(1)

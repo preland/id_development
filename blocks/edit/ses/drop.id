@@ -1,0 +1,52 @@
+// The two halves of finding a drop: bke_slot says where a statement would be put
+// when the point is on row r (the line to insert at and its indent), and
+// bke_target chooses between that and a pill for a reporter.
+
+editor_slot(int[][] editor_matrix_layout, string[] bet_doc, int editor_integer_row_number, int editor_integer_world_y) {
+  int editor_integer_kind = editor_matrix_layout[(import constant_layout_kind)][editor_integer_row_number];
+  int editor_integer_line_text = editor_matrix_layout[(import constant_layout_line)][editor_integer_row_number];
+  int editor_integer_indent = editor_indent(bet_doc[editor_integer_line_text]);
+} chain (int[][] editor_matrix_layout, string[] bet_doc, int editor_integer_row_number, int editor_integer_world_y) {
+  int editor_integer_up = editor_integer_world_y < editor_matrix_layout[(import constant_layout_y)][editor_integer_row_number] + editor_matrix_layout[(import constant_layout_height)][editor_integer_row_number] / 2;
+  int editor_integer_els = editor_integer_kind == (import constant_kind_else);
+  int editor_integer_header = editor_matrix_layout[(import constant_layout_bits)][editor_integer_row_number] % 2 * (editor_integer_kind == (import constant_kind_statement));
+} chain (int[][] editor_matrix_layout, string[] bet_doc, int editor_integer_row_number, int editor_integer_world_y) {
+  int editor_integer_at = editor_integer_line_text + 1 - editor_integer_up;
+  int editor_integer_in = editor_integer_indent + editor_integer_els + (1 - editor_integer_up) * editor_integer_header;
+  int[] bel_session = [editor_integer_at, editor_integer_in];
+} chain (int[][] editor_matrix_layout, string[] bet_doc, int editor_integer_row_number, int editor_integer_world_y) {
+  if (editor_integer_kind == (import constant_kind_hat)) {
+    bel_session = [editor_integer_line_text + 1, 1];
+  }
+  if (editor_integer_kind == (import constant_kind_cap)) {
+    bel_session = [editor_end(bet_doc, editor_integer_line_text), editor_integer_indent];
+  }
+} return int[] bel_session;
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), (import editor_test_stage_document), 3, 95):([3, 1])
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), (import editor_test_stage_document), 3, 105):([4, 2])
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), (import editor_test_stage_document), 6, 120):([4, 2])
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), (import editor_test_stage_document), 6, 130):([5, 2])
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), (import editor_test_stage_document), 10, 140):([5, 2])
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), (import editor_test_stage_document), 10, 155):([6, 2])
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), (import editor_test_stage_document), 2, 70):([3, 1])
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), (import editor_test_stage_document), 16, 190):([7, 1])
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), (import editor_test_stage_document), 17, 200):([7, 1])
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), (import editor_test_stage_document), 17, 215):([8, 1])
+
+editor_target(int[][] editor_matrix_layout, string[] bet_doc, int editor_integer_world_x, int editor_integer_world_y, int editor_integer_repeat) {
+  int editor_integer_row_number = editor_row_at(editor_matrix_layout, editor_integer_world_y);
+  int editor_integer_position = editor_pill_at(editor_matrix_layout, editor_integer_world_x, editor_integer_world_y);
+  int[] bel_text_list = [(import constant_drop_none), 0, 0];
+} chain (int[][] editor_matrix_layout, string[] bet_doc, int editor_integer_world_x, int editor_integer_world_y, int editor_integer_repeat) {
+  if (editor_integer_repeat == 1 && editor_integer_position >= 0) {
+    bel_text_list = [(import constant_drop_set), editor_integer_position, 0];
+  }
+  if (editor_integer_repeat == 0 && editor_integer_row_number >= 0) {
+    int[] bel_slots = editor_slot(editor_matrix_layout, bet_doc, editor_integer_row_number, editor_integer_world_y);
+    bel_text_list = [(import constant_drop_ins), bel_slots[0], bel_slots[1]];
+  }
+} return int[] bel_text_list;
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), (import editor_test_stage_document), 40, 100, 1):([2, 5, 0])
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), (import editor_test_stage_document), 40, 100, 0):([1, 4, 2])
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), (import editor_test_stage_document), 10, 100, 1):([0, 0, 0])
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), (import editor_test_stage_document), 40, 500, 0):([0, 0, 0])

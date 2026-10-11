@@ -1,0 +1,27 @@
+// Loading a program for running: read the text, apply the rules, and, only
+// if it passes them, add the generated __init and __flag scripts and compile
+// everything. The diagnostics, if any, are in bkm_dg when it returns; with
+// none, the program is ready for bkr_fresh and bkv_spawn.
+
+runner_load(string block_name, string block_text) {
+  model_load(block_name, block_text);
+  checker_check();
+  if (len((import model_diagnostics)) == 0) {
+    runner_adopt_flag();
+    generator_initial();
+    generator_program(0);
+  }
+} return void;
+("t.blk", "sprite S\nfn f() return void\n(): ()\n(1): ()"):() then model_diagnostic_list:("")
+("t.blk", "sprite S\nfn f() return void\n  x = 1\n(): ()\n(1): ()"):() then model_diagnostic_list:("t.blk:3: error: undefined variable 'x' [E0301]")
+("t.blk", "sprite S\nfn f() return void"):() then model_diagnostic_list:("t.blk:2: error: function 'f' has 0 test case(s); at least 2 are required [E0501]")
+
+runner_adopt_flag() {
+  model_add(runner_boot_text());
+  int block_flag = lst_str_index((import model_function_names), (import constant_flag_function));
+  if (block_flag >= 0) {
+    runner_adopt(block_flag, lst_str_index((import model_function_names), "main"));
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int") ():() then (import model_function_sprites):([0, 1, 0])
+given model_load("t.blk", "sprite S\nfn f() return void") ():() then (import model_function_sprites):([0, 1])

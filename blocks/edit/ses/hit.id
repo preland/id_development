@@ -1,0 +1,32 @@
+// Where the pointer is in the window. The window is a bar across the top, the
+// palette below it on the left (six tabs, then the blocks of one category, scrolled), the stage on
+// the right and the script area between. bke_in is a rectangle test; bke_where answers
+// the region (conf.id's bkk_w_) and which one of it: the tab, or the palette block.
+
+editor_in(int editor_integer_x, int editor_integer_y, int editor_integer_relative_x, int editor_integer_relative_y, int editor_integer_row_width, int editor_integer_row_height) {
+  int editor_integer_yes = editor_integer_x >= editor_integer_relative_x && editor_integer_x < editor_integer_relative_x + editor_integer_row_width && editor_integer_y >= editor_integer_relative_y && editor_integer_y < editor_integer_relative_y + editor_integer_row_height;
+} return int editor_integer_yes;
+(5, 5, 0, 0, 10, 10):(1)
+(10, 5, 0, 0, 10, 10):(0)
+(0, 9, 0, 0, 10, 10):(1)
+(0, 10, 0, 0, 10, 10):(0)
+(-1, 0, 0, 0, 10, 10):(0)
+
+editor_bar(int editor_integer_x, int editor_integer_y) {
+  int editor_integer_row_number = (import constant_where_none);
+  if (editor_in(editor_integer_x, editor_integer_y, (import constant_metric_pal) + (import constant_metric_flag_x), (import constant_metric_button_y), (import constant_metric_button), (import constant_metric_button_height)) == 1) {
+    editor_integer_row_number = (import constant_where_flag);
+  }
+  if (editor_in(editor_integer_x, editor_integer_y, (import constant_metric_pal) + (import constant_metric_stop_x), (import constant_metric_button_y), (import constant_metric_button), (import constant_metric_button_height)) == 1) {
+    editor_integer_row_number = (import constant_where_stop);
+  }
+} chain (int editor_integer_x, int editor_integer_y) {
+  if (editor_in(editor_integer_x, editor_integer_y, (import constant_metric_pal) + (import constant_metric_save_x), (import constant_metric_button_y), (import constant_metric_save_width), (import constant_metric_button_height)) == 1) {
+    editor_integer_row_number = (import constant_where_save);
+  }
+} return int editor_integer_row_number;
+(200, 10):(1)
+(232, 10):(2)
+(270, 10):(3)
+(10, 10):(0)
+(200, 40):(0)

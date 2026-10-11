@@ -1,0 +1,13 @@
+// The row a variable declaration adds: name, type, the sprite it sits in
+// (the last one declared), the initial value's text and its source line.
+
+model_add_variable(string[] block_texts, int block_line_index, int block_type, string block_name_text) {
+  push((import model_variable_names), block_name_text);
+  push((import model_variable_types), block_type);
+  push((import model_variable_sprites), len((import model_sprite_names)) - 1);
+} chain (string[] block_texts, int block_line_index, int block_type, string block_name_text) {
+  push((import model_variable_initials), model_after_equal((import model_line_texts)[block_line_index]));
+  push((import model_variable_lines), (import model_line_numbers)[block_line_index]);
+} return void;
+given model_initial given model_lines("var int n = 4") given model_sprite(["sprite", "A"], 0) given model_sprite(["sprite", "B"], 0) ([], 0, 1, "n"):() then (import model_variable_initials):(["4"]) then (import model_variable_sprites):([1]) then (import model_variable_types):([1])
+given model_initial given model_lines("x\nvar string s") given model_sprite(["sprite", "A"], 0) ([], 1, 3, "s"):() then (import model_variable_names):(["s"]) then (import model_variable_lines):([2]) then (import model_variable_initials):([""])

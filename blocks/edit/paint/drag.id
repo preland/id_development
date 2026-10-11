@@ -1,0 +1,38 @@
+// What shows while a block is held and dragged: a bar in the slate ink where it would
+// go (before or after the row under the pointer, by which half the pointer is
+// in) or a veil over the pill a reporter would replace, and the block itself at
+// the pointer. Nothing shows until the press has become a drag.
+
+editor_indicate(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  int editor_integer_repeat = (bel_state[(import constant_session_grab_kind)] == (import constant_grab_pal)) * lst_get_or(editor_matrix_session[(import constant_y_report)], bel_state[(import constant_session_anchor)], 0);
+  int editor_integer_world_y = editor_world(bel_state[(import graph_view_state_mouse_y)], bel_state[(import graph_view_state_pan_y)], bel_state[(import graph_view_state_zoom)]);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout) {
+  int editor_integer_world_x = editor_world(bel_state[(import graph_view_state_mouse_x)], bel_state[(import graph_view_state_pan_x)], bel_state[(import graph_view_state_zoom)]);
+  int[] bel_text_list = editor_target(editor_matrix_layout, editor_string_session[(import constant_z_doc)], editor_integer_world_x, editor_integer_world_y, editor_integer_repeat);
+  int editor_integer_row = editor_row_at(editor_matrix_layout, editor_integer_world_y);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout) {
+  if (bel_text_list[0] == (import constant_drop_ins)) {
+    editor_drop_bar(editor_rect(editor_matrix_layout, bel_state, editor_integer_row), editor_matrix_layout[(import constant_layout_kind)][editor_integer_row], editor_integer_world_y < editor_matrix_layout[(import constant_layout_y)][editor_integer_row] + editor_matrix_layout[(import constant_layout_height)][editor_integer_row] / 2);
+  }
+  if (bel_text_list[0] == (import constant_drop_set)) {
+    editor_veil(editor_rect(editor_matrix_layout, bel_state, bel_text_list[1]));
+  }
+} return void;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given editor_test_hold(2) given editor_test_at(300, 136) given idstd_graph_view_test_look(210, 147) given idstd_graph_view_test_look(210, 160) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):() then idstd_graph_view_test_seen:("5725813,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given editor_test_pick(3, 0) given editor_test_at(264, 136) given idstd_graph_view_test_look(249, 127) given idstd_graph_view_test_look(270, 135) given idstd_graph_view_test_look(240, 127) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):() then idstd_graph_view_test_seen:("2500914,2500914,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given editor_test_hold(2) given editor_test_at(300, 400) given idstd_graph_view_test_look(210, 147) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):() then idstd_graph_view_test_seen:("0")
+
+editor_drop_bar(int[] bel_row_number, int editor_integer_kind, int editor_integer_up) {
+  int editor_integer_top = editor_integer_up == 1 && editor_integer_kind != (import constant_kind_hat);
+  d2_l_rect(bel_row_number[0], bel_row_number[1] + (1 - editor_integer_top) * bel_row_number[3] - 2, bel_row_number[2], 4, (import constant_x_ink));
+} return void;
+given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(10, 8) given idstd_graph_view_test_look(10, 28) given idstd_graph_view_test_look(10, 18) ([10, 10, 40, 20], 1, 1):() then idstd_graph_view_test_seen:("5725813,0,0")
+given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(10, 8) given idstd_graph_view_test_look(10, 28) given idstd_graph_view_test_look(10, 18) ([10, 10, 40, 20], 0, 1):() then idstd_graph_view_test_seen:("0,5725813,0")
+given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(10, 8) given idstd_graph_view_test_look(10, 28) given idstd_graph_view_test_look(10, 18) ([10, 10, 40, 20], 1, 0):() then idstd_graph_view_test_seen:("0,5725813,0")
+
+editor_veil(int[] bel_row_number) {
+  d2_l_arect(bel_row_number[0] - 2, bel_row_number[1] - 2, bel_row_number[2] + 4, bel_row_number[3] + 4, (import constant_x_ink), 110);
+} return void;
+given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(9, 9) given idstd_graph_view_test_look(2, 2) ([10, 10, 40, 20]):() then idstd_graph_view_test_seen:("2500914,0")
+given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(49, 29) given idstd_graph_view_test_look(52, 32) ([10, 10, 40, 20]):() then idstd_graph_view_test_seen:("2500914,0")

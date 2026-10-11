@@ -1,0 +1,46 @@
+// The text builtins: str_sub, charat, str_find and the length of a string.
+// A string value is an index into the pool, and a result string is appended
+// to it. Their arguments sit in consecutive slots from a. str_sub outside
+// the string is the runtime error 5, as it is in id, left in the trap list
+// tp; charat answers -1 past the end, as id's does.
+
+machine_test_builtin(float[] block_value_list, string[] block_pool, int block_identifier, int block_frame_pointer, int block_delta, int block_first_value, int[] block_thread_pointer) {
+  int block_height = block_value_list[block_frame_pointer + block_first_value];
+  int block_index = block_value_list[block_frame_pointer + block_first_value + 1];
+  if (block_identifier == (import constant_builtin_string_length)) {
+    block_value_list[block_frame_pointer + block_delta] = len(block_pool[block_height]);
+  }
+} chain (float[] block_value_list, string[] block_pool, int block_identifier, int block_frame_pointer, int block_delta, int block_first_value, int[] block_thread_pointer) {
+  if (block_identifier == (import constant_builtin_charat)) {
+    block_value_list[block_frame_pointer + block_delta] = charat(block_pool[block_height], block_index);
+  }
+  if (block_identifier == (import constant_builtin_string_find)) {
+    block_value_list[block_frame_pointer + block_delta] = str_find(block_pool[block_height], block_pool[block_index]);
+  }
+  if (block_identifier == (import constant_builtin_string_sub)) {
+    machine_sub(block_value_list, block_pool, block_frame_pointer, block_delta, block_first_value, block_thread_pointer);
+  }
+} return void;
+([0.0, 0.0, 0.0], ["hello"], 27, 0, 1, 0, [0]):([0.0, 5.0, 0.0], ["hello"], 27, 0, 1, 0, [0])
+([0.0, 1.0, 0.0], ["hello"], 24, 0, 2, 0, [0]):([0.0, 1.0, 101.0], ["hello"], 24, 0, 2, 0, [0])
+([0.0, 9.0, 0.0], ["hello"], 24, 0, 2, 0, [0]):([0.0, 9.0, -1.0], ["hello"], 24, 0, 2, 0, [0])
+([0.0, 1.0, 0.0], ["hello", "ell"], 25, 0, 2, 0, [0]):([0.0, 1.0, 1.0], ["hello", "ell"], 25, 0, 2, 0, [0])
+([0.0, 2.0, 9.0], ["hello"], 17, 0, 1, 0, [0]):([0.0, 2.0, 9.0], ["hello"], 17, 0, 1, 0, [5])
+
+machine_sub(float[] block_value_list, string[] block_pool, int block_frame_pointer, int block_delta, int block_first_value, int[] block_thread_pointer) {
+  int block_height = block_value_list[block_frame_pointer + block_first_value];
+  int block_index = block_value_list[block_frame_pointer + block_first_value + 1];
+  int block_count = block_value_list[block_frame_pointer + block_first_value + 2];
+} chain (float[] block_value_list, string[] block_pool, int block_frame_pointer, int block_delta, int block_first_value, int[] block_thread_pointer) {
+  int block_ok = block_index >= 0 && block_count >= 0 && block_index + block_count <= len(block_pool[block_height]);
+  if (block_ok == 1) {
+    push(block_pool, str_sub(block_pool[block_height], block_index, block_count));
+    block_value_list[block_frame_pointer + block_delta] = len(block_pool) - 1;
+  } else {
+    block_thread_pointer[0] = 5;
+  }
+} return void;
+([0.0, 1.0, 3.0, 0.0], ["hello"], 0, 3, 0, [0]):([0.0, 1.0, 3.0, 1.0], ["hello", "ell"], 0, 3, 0, [0])
+([0.0, 4.0, 3.0, 0.0], ["hello"], 0, 3, 0, [0]):([0.0, 4.0, 3.0, 0.0], ["hello"], 0, 3, 0, [5])
+([0.0, -1.0, 1.0, 0.0], ["hello"], 0, 3, 0, [0]):([0.0, -1.0, 1.0, 0.0], ["hello"], 0, 3, 0, [5])
+([0.0, 5.0, 0.0, 0.0], ["hello"], 0, 3, 0, [0]):([0.0, 5.0, 0.0, 1.0], ["hello", ""], 0, 3, 0, [0])

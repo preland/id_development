@@ -1,0 +1,45 @@
+// The conversion builtins, which are how id's rules make the programmer say
+// what a conversion is: int_to_float, float_to_int (towards zero),
+// int_to_str, float_to_str (id's own formatting, six significant digits),
+// str_to_int and str_to_float, plus the builtin the compiler uses to make an
+// empty list. A text result is appended to the string pool and a new list to
+// the list pool; the value is the index.
+
+machine_call_builtin(float[] block_value_list, string[] block_pool, float[][] block_pool_list, int block_identifier, int block_frame_pointer, int block_delta, int block_first_value) {
+  float block_value = block_value_list[block_frame_pointer + block_first_value];
+  int block_height = block_value;
+  if (block_identifier == (import constant_builtin_integer_to_float)) {
+    block_value_list[block_frame_pointer + block_delta] = block_value;
+  }
+} chain (float[] block_value_list, string[] block_pool, float[][] block_pool_list, int block_identifier, int block_frame_pointer, int block_delta, int block_first_value) {
+  if (block_identifier == (import constant_builtin_float_to_integer)) {
+    block_value_list[block_frame_pointer + block_delta] = block_height;
+  }
+  if (block_identifier == (import constant_builtin_integer_to_string)) {
+    push(block_pool, "" + block_height);
+    block_value_list[block_frame_pointer + block_delta] = len(block_pool) - 1;
+  }
+  if (block_identifier == (import constant_builtin_float_to_string)) {
+    push(block_pool, "" + block_value);
+    block_value_list[block_frame_pointer + block_delta] = len(block_pool) - 1;
+  }
+} chain (float[] block_value_list, string[] block_pool, float[][] block_pool_list, int block_identifier, int block_frame_pointer, int block_delta, int block_first_value) {
+  if (block_identifier == (import constant_builtin_string_to_integer)) {
+    block_value_list[block_frame_pointer + block_delta] = to_int(block_pool[block_height]);
+  }
+  if (block_identifier == (import constant_builtin_string_to_float)) {
+    block_value_list[block_frame_pointer + block_delta] = flt_parse(block_pool[block_height]);
+  }
+  if (block_identifier == (import constant_builtin_new_list)) {
+    push(block_pool_list, []);
+    block_value_list[block_frame_pointer + block_delta] = len(block_pool_list) - 1;
+  }
+} return void;
+([3.0, 0.0], [], [], 18, 0, 1, 0):([3.0, 3.0], [], [])
+([3.75, 0.0], [], [], 19, 0, 1, 0):([3.75, 3.0], [], [])
+([-3.75, 0.0], [], [], 19, 0, 1, 0):([-3.75, -3.0], [], [])
+([42.0, 0.0], [], [], 20, 0, 1, 0):([42.0, 0.0], ["42"], [])
+([0.5, 0.0], ["x"], [], 21, 0, 1, 0):([0.5, 1.0], ["x", "0.5"], [])
+([0.0, 0.0], ["12"], [], 22, 0, 1, 0):([0.0, 12.0], ["12"], [])
+([0.0, 0.0], ["2.5"], [], 23, 0, 1, 0):([0.0, 2.5], ["2.5"], [])
+([0.0, 0.0], [], [[1.0]], 26, 0, 1, 0):([0.0, 1.0], [], [[1.0], []])

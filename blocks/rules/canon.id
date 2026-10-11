@@ -1,0 +1,61 @@
+// The canonical form of a function, for E0402 and E0407. Two functions with
+// the same canonical text are one function written twice. A parameter or a
+// local is written $k, k being the order it was first declared in, so its
+// spelling does not matter; with lit set (E0407) a number becomes #i or #f
+// and a string #s, so the value of a literal does not matter either. Every
+// other token, callees and globals included, stays as it is.
+
+checker_token(string[] block_environment, string block_token, int block_lit) {
+  string block_out = block_token;
+  int block_key_code = lst_str_index(block_environment, block_token);
+  int block_class = lexer_class(charat(block_token, 0));
+} chain (string[] block_environment, string block_token, int block_lit) {
+  if (block_class == (import constant_class_word) && block_key_code >= 0) {
+    block_out = "$" + block_key_code;
+  }
+  if (block_lit == 1 && block_class == (import constant_class_number)) {
+    block_out = "#i";
+  }
+  if (block_lit == 1 && block_class == (import constant_class_number) && str_find(block_token, ".") >= 0) {
+    block_out = "#f";
+  }
+} chain (string[] block_environment, string block_token, int block_lit) {
+  if (block_lit == 1 && block_class == (import constant_class_string)) {
+    block_out = "#s";
+  }
+} return string block_out;
+(["n"], "n", 0):("$0")
+(["a", "n"], "n", 1):("$1")
+(["n"], "total", 0):("total")
+(["n"], "12", 0):("12")
+(["n"], "12", 1):("#i")
+(["n"], "1.5", 1):("#f")
+(["n"], "\"hi\"", 1):("#s")
+(["n"], "\"hi\"", 0):("\"hi\"")
+
+checker_map(string[] block_environment, string[] block_texts, int block_lit) {
+  string[] block_milliseconds = [];
+  int block_index = 0;
+  while (block_index < len(block_texts)) {
+    push(block_milliseconds, checker_token(block_environment, block_texts[block_index], block_lit));
+    block_index = block_index + 1;
+  }
+} return string[] block_milliseconds;
+(["n"], ["n", "=", "n", "+", "1"], 0):(["$0", "=", "$0", "+", "1"])
+(["n"], ["n", "=", "n", "+", "1"], 1):(["$0", "=", "$0", "+", "#i"])
+([], [], 0):([])
+
+checker_cline(string[] block_environment, int block_line_index, int block_lit) {
+  string[] block_texts = lexer_tokens((import model_line_texts)[block_line_index]);
+  int block_type = model_type(block_texts, 0);
+  string block_name_text = lst_str_get_or(block_texts, 1 + (block_type > 3) * 2, "");
+} chain (string[] block_environment, int block_line_index, int block_lit) {
+  if (block_type > 0 && model_is_name(block_name_text) == 1 && lst_str_index(block_environment, block_name_text) < 0) {
+    push(block_environment, block_name_text);
+  }
+  string[] block_milliseconds = checker_map(block_environment, block_texts, block_lit);
+  string block_line = (import model_line_indents)[block_line_index] + ":" + str_join(block_milliseconds, " ");
+} return string block_line;
+given model_load("t.blk", "sprite S\nfn f() return void\n  int n = 5") ([], 2, 0):("1:int $0 = 5")
+given model_load("t.blk", "sprite S\nfn f() return void\n  int n = 5") ([], 2, 1):("1:int $0 = #i")
+given model_load("t.blk", "sprite S\nfn f() return void\n  n = n + k") (["n"], 2, 0):("1:$0 = $0 + k")

@@ -1,0 +1,38 @@
+// Running a test case. bkr_exec runs the generated functions of case c
+// (first __c, which sets the givens and calls the function, then each
+// comparison) on a fresh machine, and says so if the machine reported a
+// runtime error doing it. bkr_nocompile replaces the diagnostics the
+// generated text drew with one at the case's own line, naming the first.
+// bkr_case parses the case, checks its shape, adds its functions to the
+// program, compiles them and runs them.
+
+runner_exec(int block_character, int block_function_row, string[] block_as, int block_count_initial) {
+  string block_label = (import model_function_names)[block_function_row] + "(" + runner_pick(block_as, "A|", "") + ")";
+  int block_key_code = block_count_initial + 1;
+  runner_fresh();
+} chain (int block_character, int block_function_row, string[] block_as, int block_count_initial) {
+  if ((import model_function_return_types)[block_function_row] == (import constant_type_void)) {
+    runner_value(block_count_initial, (import constant_type_void));
+  } else {
+    runner_compare(block_character, block_label, block_count_initial, block_count_initial + 1, (import model_function_return_types)[block_function_row]);
+    block_key_code = block_count_initial + 2;
+  }
+  runner_then_list(block_character, block_label, block_as, block_key_code);
+} chain (int block_character, int block_function_row, string[] block_as, int block_count_initial) {
+  if ((import machine_registers_group)[(import constant_registers_error)] > 0) {
+    runner_fail(block_character, block_label, str_join((import machine_out), "; "), "no runtime error");
+  }
+} return void;
+given runner_load("t.blk", "sprite S\nfn f(int a) return int\n  return a\n(1): (1)\n(2): (2)") given model_add("fn __c() return int\n  int __r = f(2)\n  return __r\nfn __e() return int\n  return 2\n") given generator_program(2) (0, 0, ["A|2", "E|2"], 2):() then model_diagnostic_list:("")
+given runner_load("t.blk", "sprite S\nfn f(int a) return int\n  return a\n(1): (1)\n(2): (2)") given model_add("fn __c() return int\n  int __r = f(2)\n  return __r\nfn __e() return int\n  return 3\n") given generator_program(2) (0, 0, ["A|2", "E|3"], 2):() then model_diagnostic_list:("t.blk:4: test failed: f(2) = 2, expected 3")
+given runner_load("t.blk", "sprite S\nfn f(int a) return int\n  int z = a / 0\n  return z\n(1): (1)\n(2): (2)") given model_add("fn __c() return int\n  int __r = f(2)\n  return __r\nfn __e() return int\n  return 3\n") given generator_program(2) (0, 0, ["A|2", "E|3"], 2):() then len((import model_diagnostics)):(2)
+
+runner_no_compile(int block_character, int block_diagnostic_first) {
+  string block_first = (import model_diagnostics)[block_diagnostic_first];
+  while (len((import model_diagnostics)) > block_diagnostic_first) {
+    pop((import model_diagnostics));
+  }
+  push((import model_diagnostics), (import model_file)[0] + ":" + (import model_case_lines)[block_character] + ": error: the test case does not compile: " + block_first);
+} return void;
+given model_load("t.blk", "sprite S\nfn f() return void\n(1):()\n(2):()") given model_error(9, "E0301", "undefined variable 'q'") (0, 0):() then model_diagnostic_list:("t.blk:3: error: the test case does not compile: t.blk:9: error: undefined variable 'q' [E0301]")
+given model_load("t.blk", "sprite S\nfn f() return void\n(1):()\n(2):()") given model_error(9, "E0301", "a") given model_error(8, "E0301", "b") (0, 1):() then model_diagnostic_list:("t.blk:9: error: a [E0301]\nt.blk:3: error: the test case does not compile: t.blk:8: error: b [E0301]")

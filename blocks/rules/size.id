@@ -1,0 +1,42 @@
+// E0201 and E0202 over one function. A line costs one action unless it is a
+// return or a break, and counts against the block it sits in: bkc_count keeps
+// one counter per indent level and clears the deeper ones whenever a line
+// closes their blocks. The error is reported once, at the line that makes the
+// block's fourth action. A while or if at indent three or deeper is nested
+// more than two levels (the function body itself is level one).
+
+checker_line(int[] block_counter, string block_function_name, int block_line_index) {
+  string[] block_texts = lexer_tokens((import model_line_texts)[block_line_index]);
+  string block_keyword = lst_str_get_or(block_texts, 0, "");
+  int block_level = fx_min((import model_line_indents)[block_line_index], (import constant_levels) - 1);
+} chain (int[] block_counter, string block_function_name, int block_line_index) {
+  int block_cost = lst_str_index((import constant_free), block_keyword) < 0;
+  int block_count = checker_count(block_counter, block_level, block_cost);
+  if (block_count == (import constant_maximum_actions) + 1 && block_cost == 1) {
+    model_error((import model_line_numbers)[block_line_index], "E0201", "a block in '" + block_function_name + "' performs more than " + (import constant_maximum_actions) + " actions; the limit is " + (import constant_maximum_actions) + " (each statement, if, else, and while is one action; return is free)");
+  }
+} chain (int[] block_counter, string block_function_name, int block_line_index) {
+  if (lst_str_index((import constant_control), block_keyword) >= 0 && block_level > (import constant_maximum_depth)) {
+    model_error((import model_line_numbers)[block_line_index], "E0202", "code in '" + block_function_name + "' is nested more than " + (import constant_maximum_depth) + " levels deep; move the inner block into its own function");
+  }
+} return void;
+given model_initial given model_lines("a\n  x = 1") ([0, 0, 0, 0], "f", 1):() then len((import model_diagnostics)):(0)
+given model_initial given model_lines("a\n  x = 1") ([0, 3, 0, 0], "f", 1):() then (import model_diagnostics):(["input.blk:2: error: a block in 'f' performs more than 3 actions; the limit is 3 (each statement, if, else, and while is one action; return is free) [E0201]"])
+given model_initial given model_lines("a\n  return x") ([0, 3, 0, 0], "f", 1):() then len((import model_diagnostics)):(0)
+given model_initial given model_lines("a\n      while x") ([0, 0, 0, 0], "f", 1):() then (import model_diagnostics):(["input.blk:2: error: code in 'f' is nested more than 2 levels deep; move the inner block into its own function [E0202]"])
+given model_initial given model_lines("a\n    if x") ([0, 0, 0, 0], "f", 1):() then len((import model_diagnostics)):(0)
+
+checker_function(int block_function_row) {
+  int[] block_counter = lst_filled((import constant_levels), 0);
+  int block_line_index = (import model_function_body_start)[block_function_row];
+  string block_function_name = (import model_function_names)[block_function_row];
+} chain (int block_function_row) {
+  while (block_line_index < (import model_function_body_end)[block_function_row]) {
+    checker_line(block_counter, block_function_name, block_line_index);
+    block_line_index = block_line_index + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn f() return void\n  a = 1\n  b = 2\n  c = 3\n  d = 4") (0):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn f() return void\n  a = 1\n  b = 2\n  c = 3\n  return void") (0):() then len((import model_diagnostics)):(0)
+given model_load("t.blk", "sprite S\nfn f() return void\n  a = 1\n  b = 2\n  c = 3\n  d = 4\n  return void") (0):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn f() return void\n  if a\n    b = 1\n    c = 2\n    d = 3\n  else\n    e = 1\n  g = 1\n  h = 1") (0):() then (import model_diagnostics):(["t.blk:10: error: a block in 'f' performs more than 3 actions; the limit is 3 (each statement, if, else, and while is one action; return is free) [E0201]"])

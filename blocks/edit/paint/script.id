@@ -1,0 +1,25 @@
+// The script area in the middle: its background, then every box of the layout
+// through the camera, clipped to the area so a block panned off one edge never
+// shows on the palette or the stage.
+
+editor_draw_boxes(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  int editor_integer_key_code = 0;
+  sf_l_clip((import constant_metric_pal), (import constant_metric_bar), bel_state[(import graph_view_state_width)] - (import constant_metric_pal) - (import constant_metric_stage), bel_state[(import graph_view_state_height)] - (import constant_metric_bar));
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout) {
+  while (editor_integer_key_code < len(editor_matrix_layout[(import constant_layout_kind)])) {
+    editor_draw_box(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_integer_key_code);
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+  sf_l_unclip();
+} return void;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(210, 70) given idstd_graph_view_test_look(206, 127) given idstd_graph_view_test_look(100, 70) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):() then idstd_graph_view_test_seen:("5725813,5019647,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given editor_test_cell(0, -54) given idstd_graph_view_test_look(190, 70) given idstd_graph_view_test_look(170, 70) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):() then idstd_graph_view_test_seen:("5725813,0")
+
+editor_draw_script(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  d2_l_rect((import constant_metric_pal), (import constant_metric_bar), bel_state[(import graph_view_state_width)] - (import constant_metric_pal) - (import constant_metric_stage), bel_state[(import graph_view_state_height)] - (import constant_metric_bar), (import constant_x_background));
+  editor_draw_boxes(editor_string_session, editor_matrix_session, editor_matrix_layout);
+} return void;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(190, 300) given idstd_graph_view_test_look(210, 70) given idstd_graph_view_test_look(660, 300) given idstd_graph_view_test_look(100, 300) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):() then idstd_graph_view_test_seen:("16382457,5725813,0,0")
+given editor_test_session("") given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(190, 300) given idstd_graph_view_test_look(400, 40) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):() then idstd_graph_view_test_seen:("16382457,16382457")

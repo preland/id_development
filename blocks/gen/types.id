@@ -1,0 +1,55 @@
+// What an argument letter of a builtin's signature (conf.id's bkk_bi_sig,
+// or the letters bkg_usig writes for a function of the program) means. i f
+// s I F S are exact types; l is any list, a a string or any list, and e the
+// element type of the first argument. bkg_fits says whether a type
+// satisfies a letter, bkg_wantof the exact type a letter asks for (a hint
+// for list literals, 0 when it asks for none), bkg_retty the type of a result
+// letter, and bkg_letname how an error message names what a letter wanted.
+
+generator_fits(string block_character_code, int block_type, int block_function_type) {
+  int block_expression = str_find((import constant_type_letter), block_character_code);
+  int block_ok = block_expression > 0 && block_type == block_expression;
+  if (block_character_code == "l" && block_type >= (import constant_type_integer_list)) {
+    block_ok = 1;
+  }
+} chain (string block_character_code, int block_type, int block_function_type) {
+  if (block_character_code == "e" && block_function_type >= (import constant_type_integer_list) && block_type == block_function_type - (import constant_type_list)) {
+    block_ok = 1;
+  }
+  if (block_character_code == "a" && (block_type == (import constant_type_string) || block_type >= (import constant_type_integer_list))) {
+    block_ok = 1;
+  }
+} return int block_ok;
+("i", 1, 0):(1)
+("i", 2, 0):(0)
+("S", 6, 0):(1)
+("l", 5, 0):(1)
+("l", 3, 0):(0)
+("e", 2, 5):(1)
+("e", 1, 5):(0)
+("a", 3, 0):(1)
+("a", 1, 0):(0)
+
+generator_wanted_of(string block_character_code, int block_function_type) {
+  int block_width = str_find((import constant_type_letter), block_character_code);
+  if (block_character_code == "e" && block_function_type >= (import constant_type_integer_list)) {
+    block_width = block_function_type - (import constant_type_list);
+  } else if (block_width < 0) {
+    block_width = 0;
+  }
+} return int block_width;
+("I", 0):(4)
+("f", 0):(2)
+("e", 6):(3)
+("l", 0):(0)
+
+generator_return_type_kind(string block_character_code, int block_function_type) {
+  int block_record = str_find((import constant_type_letter), block_character_code);
+  if (block_character_code == "e" && block_function_type >= (import constant_type_integer_list)) {
+    block_record = block_function_type - (import constant_type_list);
+  }
+} return int block_record;
+("i", 0):(1)
+("v", 0):(0)
+("e", 5):(2)
+("l", 0):(-1)

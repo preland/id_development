@@ -1,0 +1,33 @@
+// Test setup and check for the functions that fill a layout in place: bke_t_open
+// makes an empty layout, text list and cursor over a document, as exports; the
+// case then calls the function under test on them; bke_t_dump shows what they
+// hold, a box to a line, the lines joined with | and the cursor's top and
+// effective indent at the end.
+
+editor_test_open(string[] bet_doc) {
+  export string[] editor_test_doc = bet_doc;
+  export int[][] editor_test_layout = editor_lists((import constant_layout_count));
+  export string[] editor_test_texts = [];
+} chain (string[] bet_doc) {
+  export int[] editor_test_cursor = lst_filled((import constant_unit_count), 0);
+} return void;
+(["a"]):() then editor_test_dump:(" y=0 pe=0")
+([]):() then editor_test_dump:(" y=0 pe=0")
+
+editor_test_dump() {
+  string[] bet_lists = editor_boxes((import editor_test_layout), (import editor_test_texts));
+  string editor_string_cursor = " y=" + (import editor_test_cursor)[(import constant_unit_y)] + " pe=" + (import editor_test_cursor)[(import constant_unit_pending)];
+  string editor_string_all = str_join(bet_lists, "|") + editor_string_cursor;
+} return string editor_string_all;
+given editor_test_open(["a"]) ():(" y=0 pe=0")
+given editor_test_open(["a"]) given editor_test_put([1, 2, 3, 4, 5, 6, 7, 8, 9, 0], "t") ():("1 2 3 4 5 L6 c7 i8 s9 b0 t y=0 pe=0")
+
+editor_test_run(int editor_integer_count) {
+  int editor_integer_index = 0;
+  while (editor_integer_index < editor_integer_count) {
+    editor_lay_line((import editor_test_layout), (import editor_test_texts), (import editor_test_cursor), (import editor_test_doc), editor_integer_index);
+    editor_integer_index = editor_integer_index + 1;
+  }
+} return void;
+given editor_test_open(["  x = 1"]) (1):() then editor_test_dump:("1 0 0 64 24 L0 c4 i1 s-1 b0 |8 8 8 24 8 L0 c-1 i1 s-1 b0 x =|9 38 4 18 16 L0 c-1 i1 s0 b0 1 y=24 pe=1")
+given editor_test_open(["  x = 1"]) (0):() then editor_test_dump:(" y=0 pe=0")

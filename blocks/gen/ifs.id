@@ -1,0 +1,39 @@
+// if and else. The condition's jz skips the block when the condition is 0;
+// when an else follows at the same indent, a jmp at the end of the if block
+// skips the else block and the jz is pointed just after it.
+
+generator_if(string[] block_texts, int block_function_row, int block_line_index, int block_level) {
+  int block_call_stack = generator_condition(block_texts);
+  int block_inner = generator_emit((import constant_opcode_jump_zero), 0, block_call_stack, 0, 0);
+  int block_next_index = generator_block(block_function_row, block_line_index + 1, block_level + 1);
+} chain (string[] block_texts, int block_function_row, int block_line_index, int block_level) {
+  block_next_index = generator_else(block_function_row, block_next_index, block_level, block_inner);
+} return int block_next_index;
+given model_load("t.blk", "sprite S\nfn f() return void\n  if 1\n    int a = 1") given generator_initial (["if", "1"], 0, 2, 1):(4) then generator_codes:("15:1,0,0,0,1,9,0,0,0,15,1,1,0,0,1")
+given model_load("t.blk", "sprite S\nfn f() return void\n  if 1\n    int a = 1\n  else\n    int b = 2") given generator_initial (["if", "1"], 0, 2, 1):(6) then generator_codes:("25:1,0,0,0,1,9,0,0,0,20,1,1,0,0,1,8,0,0,0,25,1,2,0,0,2")
+
+generator_else(int block_function_row, int block_next_index, int block_level, int block_inner) {
+  string block_cursor = "";
+  if (block_next_index < (import model_function_body_end)[block_function_row] && (import model_line_indents)[block_next_index] == block_level) {
+    block_cursor = (import model_line_texts)[block_next_index];
+  }
+  if (block_cursor == "else") {
+    block_next_index = generator_else_block(block_function_row, block_next_index, block_level, block_inner);
+  }
+} chain (int block_function_row, int block_next_index, int block_level, int block_inner) {
+  if (block_cursor != "else") {
+    generator_patch(block_inner, len((import generator_code)));
+  }
+} return int block_next_index;
+given model_load("t.blk", "sprite S\nfn f() return void\n  if 1\n    int a = 1\n  int b = 2") given generator_initial given lst_extend((import generator_code), [9, 0, 0, 0, 0]) (0, 5, 1, 0):(5) then generator_codes:("5:9,0,0,0,5")
+given model_load("t.blk", "sprite S\nfn f() return void\n  if 1\n    int a = 1\n  else\n    int b = 2") given generator_initial given lst_extend((import generator_code), [9, 0, 0, 0, 0]) (0, 4, 1, 0):(6) then generator_codes:("15:9,0,0,0,10,8,0,0,0,15,1,0,0,0,2")
+
+generator_else_block(int block_function_row, int block_next_index, int block_level, int block_inner) {
+  int block_end_index = generator_emit((import constant_opcode_jump), 0, 0, 0, 0);
+  generator_patch(block_inner, len((import generator_code)));
+  block_next_index = generator_block(block_function_row, block_next_index + 1, block_level + 1);
+} chain (int block_function_row, int block_next_index, int block_level, int block_inner) {
+  generator_patch(block_end_index, len((import generator_code)));
+} return int block_next_index;
+given model_load("t.blk", "sprite S\nfn f() return void\n  if 1\n    int a = 1\n  else\n    int b = 2") given generator_initial given lst_extend((import generator_code), [9, 0, 0, 0, 0]) (0, 4, 1, 0):(6) then generator_codes:("15:9,0,0,0,10,8,0,0,0,15,1,0,0,0,2")
+given model_load("t.blk", "sprite S\nfn f() return void\n  else\n    int b = 2\n  int c = 3") given generator_initial given lst_extend((import generator_code), [9, 0, 0, 0, 0]) (0, 2, 1, 0):(4) then generator_codes:("15:9,0,0,0,10,8,0,0,0,15,1,0,0,0,2")

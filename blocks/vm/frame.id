@@ -1,0 +1,43 @@
+// The scheduler. A frame gives every thread, in table order, one turn:
+// bkv_tick wakes a sleeping thread whose time has come and runs a ready one
+// until it yields (the end of a loop's iteration, or a wait). Threads started
+// during the frame, by a broadcast, get their first turn in the same frame.
+// Then the clock moves on bkk_frame_ms. bkv_live counts the threads not free
+// and bkv_run runs frames until none is left or the limit is reached.
+
+machine_tick(int block_thread_slot) {
+  int block_row = block_thread_slot * (import constant_thread_count);
+  if ((import machine_thread)[block_row + (import constant_thread_state)] == (import constant_statement_sleep) && (import machine_registers_group)[(import constant_registers_now)] >= (import machine_thread)[block_row + (import constant_thread_wake)]) {
+    lset((import machine_thread), block_row + (import constant_thread_state), (import constant_statement_ready));
+  }
+  if ((import machine_thread)[block_row + (import constant_thread_state)] == (import constant_statement_ready)) {
+    machine_exec(block_thread_slot);
+  }
+} return void;
+given model_load("t.blk", "sprite S") given generator_initial given lst_extend((import generator_code), [1, 0, 0, 0, 9, 12, 0, -1, 0, 0]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 2) (0):() then machine_threads:("6#0;0;0;0;0;0") then (import machine_value_list)[0]:(9.0)
+given model_load("t.blk", "sprite S") given generator_initial given lst_extend((import generator_code), [1, 0, 0, 0, 9, 12, 0, -1, 0, 0]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 2, 100, 0]) given machine_grow((import machine_value_list), 2) (0):() then machine_threads:("6#0;0;0;2;100;0") then (import machine_value_list)[0]:(0.0)
+given model_load("t.blk", "sprite S") given generator_initial given lst_extend((import generator_code), [1, 0, 0, 0, 9, 12, 0, -1, 0, 0]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 2, 100, 0]) given lset((import machine_registers_group), 0, 100) given machine_grow((import machine_value_list), 2) (0):() then machine_threads:("6#0;0;0;0;100;0") then (import machine_value_list)[0]:(9.0)
+
+machine_live() {
+  int block_count = 0;
+  int block_thread_slot = 0;
+  while (block_thread_slot * (import constant_thread_count) < len((import machine_thread))) {
+    block_count = block_count + ((import machine_thread)[block_thread_slot * (import constant_thread_count) + (import constant_thread_state)] != (import constant_statement_free));
+    block_thread_slot = block_thread_slot + 1;
+  }
+} return int block_count;
+given model_initial given generator_initial given machine_boot ():(0)
+given model_initial given generator_initial given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0]) ():(2)
+
+machine_frame() {
+  int block_thread_slot = 0;
+  while (block_thread_slot * (import constant_thread_count) < len((import machine_thread))) {
+    machine_tick(block_thread_slot);
+    block_thread_slot = block_thread_slot + 1;
+  }
+  lset((import machine_registers_group), (import constant_registers_now), (import machine_registers_group)[(import constant_registers_now)] + (import constant_frame_milliseconds));
+} chain () {
+  lset((import machine_registers_group), (import constant_registers_frames), (import machine_registers_group)[(import constant_registers_frames)] + 1);
+} return void;
+given model_initial given generator_initial given machine_boot () :() then (import machine_registers_group):([33, 0, 1])
+given model_load("t.blk", "sprite S") given generator_initial given lst_extend((import generator_code), [1, 0, 0, 0, 9, 12, 0, -1, 0, 0]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 2) ():() then (import machine_value_list)[0]:(9.0) then (import machine_registers_group):([33, 0, 1])

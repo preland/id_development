@@ -1,0 +1,29 @@
+// Loading: bkm_add reads text onto the end of the tables (the test runner
+// uses it to add generated functions to a loaded program), bkm_build turns
+// the line-table rows from one row on into sprites, variables, functions and
+// cases, and bkm_load starts from empty tables under a file name.
+
+model_build(int block_from) {
+  while (block_from < len((import model_line_numbers))) {
+    model_item(block_from);
+    block_from = block_from + 1;
+  }
+} return void;
+given model_initial given model_lines("sprite A\nsprite B") (0):() then (import model_sprite_names):(["A", "B"])
+given model_initial given model_lines("sprite A\nsprite B") (1):() then (import model_sprite_names):(["B"])
+
+model_add(string block_text) {
+  int block_from = len((import model_line_numbers));
+  model_lines(block_text);
+  model_build(block_from);
+} return void;
+given model_initial given model_add("sprite A") ("sprite B"):() then (import model_sprite_names):(["A", "B"]) then (import model_sprite_lines):([1, 1])
+given model_initial ("sprite A\nvar int n = 3"):() then (import model_variable_initials):(["3"])
+
+model_load(string block_name, string block_text) {
+  model_initial();
+  sset((import model_file), 0, block_name);
+  model_add(block_text);
+} return void;
+("t.blk", "sprite A\nsprite"):() then (import model_diagnostics):(["t.blk:2: error: expected 'sprite NAME' [E0102]"]) then (import model_sprite_names):(["A"])
+("u.blk", "sprite A"):() then (import model_file):(["u.blk"]) then (import model_diagnostics):([])

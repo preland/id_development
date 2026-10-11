@@ -1,0 +1,17 @@
+// Test setups that put a sprite on the stage of the session bke_t_session made
+// without running anything: bke_t_geo sets the first sprite's five numbers (x, y,
+// direction, size, visible), bke_t_say sets what a sprite says.
+
+editor_test_geometry(int editor_integer_x, int editor_integer_y, int editor_integer_direction, int editor_integer_size, int editor_integer_visible) {
+  int[] bel_geometry = (import editor_test_integers)[(import constant_y_sprite_state)];
+  lst_splice(bel_geometry, 0, 5, [editor_integer_x, editor_integer_y, editor_integer_direction, editor_integer_size, editor_integer_visible]);
+} return void;
+given editor_test_session("sprite A\n") (7, 8, 9, 10, 0):() then editor_test_stage:("names=A says= geo=7,8,9,10,0 run=0 fr=0")
+given editor_test_session("sprite A\nsprite B\n") (-1, 1, 0, 50, 1):() then editor_test_stage:("names=A,B says=, geo=-1,1,0,50,1,0,0,90,100,1 run=0 fr=0")
+
+editor_test_say(int editor_integer_index, string editor_string_text) {
+  string[] bet_says = (import editor_test_strings)[(import constant_z_says)];
+  bet_says[editor_integer_index] = editor_string_text;
+} return void;
+given editor_test_session("sprite A\nsprite B\n") (1, "yo"):() then editor_test_stage:("names=A,B says=,yo geo=0,0,90,100,1,0,0,90,100,1 run=0 fr=0")
+given editor_test_session("sprite A\n") (0, ""):() then editor_test_stage:("names=A says= geo=0,0,90,100,1 run=0 fr=0")

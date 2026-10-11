@@ -1,0 +1,30 @@
+// A statement of a body as a row: the row itself (its width known from its
+// pieces before it is pushed), then its pieces, then the cursor moves down. An
+// if, a while and an else open a body: they note their width, line and the
+// top of their arm at their level of indent, and the next line is effectively
+// one level in. An else first ends the arm of the if above it.
+
+editor_lay_statement(int[][] editor_matrix_layout, string[] bet_texts, int[] bel_cursor, string[] bet_doc, int editor_integer_index) {
+  string editor_string_unit = str_trim(bet_doc[editor_integer_index]);
+  int editor_integer_indent = editor_indent(bet_doc[editor_integer_index]);
+  string[] bet_pieces = editor_pieces(editor_string_unit);
+} chain (int[][] editor_matrix_layout, string[] bet_texts, int[] bel_cursor, string[] bet_doc, int editor_integer_index) {
+  int editor_integer_level = fx_min(editor_integer_indent, (import constant_unit_top));
+  int editor_integer_x = fx_max(editor_integer_indent - 1, 0) * (import constant_metric_arm);
+  int editor_integer_y = bel_cursor[(import constant_unit_y)];
+} chain (int[][] editor_matrix_layout, string[] bet_texts, int[] bel_cursor, string[] bet_doc, int editor_integer_index) {
+  int editor_integer_els = editor_string_unit == "else";
+  int editor_integer_header = str_starts(editor_string_unit, "if ") + str_starts(editor_string_unit, "while ") + editor_integer_els;
+  int editor_integer_width = fx_max(editor_wide(bet_pieces), editor_integer_els * bel_cursor[(import constant_unit_width) + editor_integer_level]);
+} chain (int[][] editor_matrix_layout, string[] bet_texts, int[] bel_cursor, string[] bet_doc, int editor_integer_index) {
+  if (editor_integer_els == 1) {
+    editor_lay_arm(editor_matrix_layout, bet_texts, bel_cursor, editor_integer_level, editor_integer_y);
+  }
+  editor_box(editor_matrix_layout, bet_texts, [(import constant_kind_statement) + editor_integer_els, editor_integer_x, editor_integer_y, editor_integer_width, (import constant_metric_row_height), editor_integer_index, editor_cat(editor_string_unit), editor_integer_indent, -1, editor_integer_header], "");
+  int editor_integer_end = editor_lay_pieces(editor_matrix_layout, bet_texts, bet_pieces, editor_integer_index, editor_integer_x, editor_integer_y, editor_integer_indent);
+} chain (int[][] editor_matrix_layout, string[] bet_texts, int[] bel_cursor, string[] bet_doc, int editor_integer_index) {
+  editor_lay_after(bel_cursor, editor_integer_level, [editor_integer_indent + editor_integer_header, editor_integer_width, editor_integer_index, editor_integer_y + (import constant_metric_row_height), editor_integer_header]);
+} return void;
+given editor_test_open(["fn f() return void", "  say(\"hi\")"]) ((import editor_test_layout), (import editor_test_texts), (import editor_test_cursor), (import editor_test_doc), 1):() then editor_test_dump:("1 0 0 88 24 L1 c1 i1 s-1 b0 |8 8 8 24 8 L1 c-1 i1 s-1 b0 say|9 38 4 42 16 L1 c-1 i1 s0 b0 \"hi\" y=24 pe=1")
+given editor_test_open(["fn f() return void", "  while a < 3"]) ((import editor_test_layout), (import editor_test_texts), (import editor_test_cursor), (import editor_test_doc), 1):() then editor_test_dump:("1 0 0 112 24 L1 c2 i1 s-1 b1 |8 8 8 40 8 L1 c-1 i1 s-1 b0 while|9 54 4 50 16 L1 c3 i1 s0 b0 a < 3 y=24 pe=2")
+given editor_test_open(["fn f() return void", "  if a", "    x = 1", "  else"]) given editor_test_run(3) ((import editor_test_layout), (import editor_test_texts), (import editor_test_cursor), (import editor_test_doc), 3):() then editor_test_dump:("0 0 0 192 30 L0 c5 i0 s-1 b0 define f() return void|1 0 30 56 24 L1 c2 i1 s-1 b1 |8 8 38 16 8 L1 c-1 i1 s-1 b0 if|9 30 34 18 16 L1 c-1 i1 s0 b0 a|1 14 54 64 24 L2 c4 i2 s-1 b0 |8 22 62 24 8 L2 c-1 i2 s-1 b0 x =|9 52 58 18 16 L2 c-1 i2 s0 b0 1|10 0 54 14 24 L1 c2 i1 s-1 b0 |2 0 78 56 24 L3 c2 i1 s-1 b1 |8 8 86 32 8 L3 c-1 i1 s-1 b0 else y=102 pe=2")

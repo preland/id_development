@@ -1,0 +1,40 @@
+// Expressions, by precedence climbing. bkg_bin compiles an expression whose
+// operators bind at least as tight as minp (conf.id's bkk_binpre) into the
+// slot dest: the left operand first, then, while the next token is a binary
+// operator that binds that tight, bkg_step for it. Every compile function of
+// this kind answers the type code of what it compiled, or -1 after an error,
+// and leaves its token cursor after the last token it used.
+
+generator_precedence(string[] block_texts) {
+  int block_key_code = lst_str_index((import constant_binary_operator), lst_str_get_or(block_texts, (import generator_state)[(import constant_statement_position_index)], ""));
+  int block_position = 0;
+  if (block_key_code >= 0) {
+    block_position = (import constant_binary_precedence)[block_key_code];
+  }
+} return int block_position;
+given generator_initial given lset((import generator_state), 0, 1) (["a", "+"]):(5)
+given generator_initial given lset((import generator_state), 0, 1) (["a", "&&"]):(2)
+given generator_initial (["a", "+"]):(0)
+
+generator_bin(string[] block_texts, int block_destination, int block_want, int block_minimum_position) {
+  int block_type = generator_unary(block_texts, block_destination, block_want);
+  while (generator_precedence(block_texts) >= block_minimum_position) {
+    block_type = generator_step(block_texts, block_destination, block_type);
+  }
+} return int block_type;
+given model_initial given generator_initial (["2", "+", "3", "*", "4"], 5, 0, 1):(1) then len((import generator_code)):(25)
+given model_initial given generator_initial (["2", "*", "3", "+", "4"], 5, 0, 1):(1) then len((import generator_code)):(25)
+
+generator_step(string[] block_texts, int block_destination, int block_list_type) {
+  int block_key_code = lst_str_index((import constant_binary_operator), generator_take(block_texts));
+  int block_sub = (import constant_binary_substitute)[block_key_code];
+  int block_type = 0 - 1;
+} chain (string[] block_texts, int block_destination, int block_list_type) {
+  if (block_sub >= (import constant_sub_and)) {
+    block_type = generator_logic(block_texts, block_destination, block_list_type, block_key_code);
+  } else {
+    block_type = generator_arithmetic(block_texts, block_destination, block_list_type, block_key_code);
+  }
+} return int block_type;
+given model_initial given generator_initial given lset((import generator_state), 0, 1) (["2", "-", "3"], 5, 1):(1) then (import generator_code):([1, 0, 0, 0, 3, 5, 5, 5, 0, 1])
+given model_initial given generator_initial given lset((import generator_state), 0, 1) (["2", "<", "3"], 5, 1):(1) then (import generator_code):([1, 0, 0, 0, 3, 5, 5, 5, 0, 5])

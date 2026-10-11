@@ -1,0 +1,52 @@
+// Sprites and the variables declared in them. A variable belongs to the
+// sprite whose page it sits on; its initial value stays as source text, to be
+// compiled like any other expression when the program is generated.
+
+model_sprite(string[] block_texts, int block_line_index) {
+  if (len(block_texts) == 2 && model_is_name(lst_str_get_or(block_texts, 1, "")) == 1) {
+    push((import model_sprite_names), block_texts[1]);
+    push((import model_sprite_lines), (import model_line_numbers)[block_line_index]);
+  } else {
+    model_error((import model_line_numbers)[block_line_index], "E0102", "expected 'sprite NAME'");
+  }
+} return void;
+given model_initial given model_lines("sprite Cat") (["sprite", "Cat"], 0):() then (import model_sprite_names):(["Cat"]) then (import model_sprite_lines):([1])
+given model_initial given model_lines("sprite") (["sprite"], 0):() then len((import model_sprite_names)):(0) then (import model_diagnostics):(["input.blk:1: error: expected 'sprite NAME' [E0102]"])
+
+model_after_equal(string block_text_value) {
+  int block_position = str_find(block_text_value, "=");
+  string block_rest = "";
+  int block_count = len(block_text_value) - block_position - 1;
+} chain (string block_text_value) {
+  if (block_position >= 0) {
+    block_rest = str_trim(str_sub(block_text_value, block_position + 1, block_count));
+  }
+} return string block_rest;
+("var int x = 5"):("5")
+("var int x"):("")
+("var int[] xs = [1, 2]"):("[1, 2]")
+("x ="):("")
+
+model_variable(string[] block_texts, int block_line_index) {
+  int block_type = model_type(block_texts, 1);
+  int block_at = 2 + (block_type > 3) * 2;
+  string block_name_text = lst_str_get_or(block_texts, block_at, "");
+} chain (string[] block_texts, int block_line_index) {
+  int block_ok = model_is_name(block_name_text);
+  if (block_type < 1 || len((import model_sprite_names)) == 0) {
+    block_ok = 0;
+  }
+  if (lst_str_get_or(block_texts, block_at + 1, "=") != "=") {
+    block_ok = 0;
+  }
+} chain (string[] block_texts, int block_line_index) {
+  if (block_ok == 1) {
+    model_add_variable(block_texts, block_line_index, block_type, block_name_text);
+  } else {
+    model_error((import model_line_numbers)[block_line_index], "E0102", "expected 'var TYPE NAME' or 'var TYPE NAME = VALUE' inside a sprite");
+  }
+} return void;
+given model_initial given model_lines("sprite S\nvar float[] ys = []") given model_sprite(["sprite", "S"], 0) (["var", "float", "[", "]", "ys", "=", "[", "]"], 1):() then (import model_variable_names):(["ys"]) then (import model_variable_types):([5]) then (import model_variable_initials):(["[]"])
+given model_initial given model_lines("var int x") (["var", "int", "x"], 0):() then len((import model_variable_names)):(0) then len((import model_diagnostics)):(1)
+given model_initial given model_lines("sprite S\nvar void x") given model_sprite(["sprite", "S"], 0) (["var", "void", "x"], 1):() then len((import model_variable_names)):(0)
+given model_initial given model_lines("sprite S\nvar int x") given model_sprite(["sprite", "S"], 0) (["var", "int", "x"], 1):() then (import model_variable_initials):([""]) then (import model_variable_sprites):([0])

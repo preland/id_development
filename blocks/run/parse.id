@@ -1,0 +1,45 @@
+// Reading a test case line, which is id's case syntax with 'given NAME = VALUE'
+// and 'then NAME:(VALUE)' for the state of a variable before and after:
+//   given count = 5 (2):(7) then count:(7)
+// bkr_close finds the parenthesis that closes the one at i (the end of the
+// tokens if none does), bkr_join writes tokens [from, to) back as text with
+// single spaces, and bkr_gend finds where a 'given' value ends: at the next
+// 'given' or at the '(' that opens the arguments.
+
+runner_close(string[] block_texts, int block_index) {
+  int block_delta = 0;
+  int block_inner = block_index;
+  while (block_inner < len(block_texts) && (block_inner == block_index || block_delta > 0)) {
+    block_delta = block_delta + (block_texts[block_inner] == "(") - (block_texts[block_inner] == ")");
+    block_inner = block_inner + 1;
+  }
+} return int block_inner;
+(["(", "a", ")", "x"], 0):(3)
+(["(", "(", "a", ")", ")", "x"], 0):(5)
+(["x", "(", ")"], 1):(3)
+(["(", "a"], 0):(2)
+
+runner_join(string[] block_texts, int block_from, int block_to) {
+  string[] block_parts = [];
+  int block_index = block_from;
+  while (block_index < block_to && block_index < len(block_texts)) {
+    push(block_parts, block_texts[block_index]);
+    block_index = block_index + 1;
+  }
+} chain (string[] block_texts, int block_from, int block_to) {
+  string block_text = str_join(block_parts, " ");
+} return string block_text;
+(["a", "b", "c"], 0, 2):("a b")
+(["a", "b", "c"], 1, 3):("b c")
+(["a"], 0, 5):("a")
+(["a"], 1, 1):("")
+
+runner_group_end(string[] block_texts, int block_from) {
+  int block_inner = block_from;
+  while (block_inner < len(block_texts) && block_texts[block_inner] != "given" && block_texts[block_inner] != "(") {
+    block_inner = block_inner + 1;
+  }
+} return int block_inner;
+(["n", "=", "5", "(", ")"], 0):(3)
+(["n", "=", "5", "given", "m"], 0):(3)
+(["n", "=", "5"], 0):(3)

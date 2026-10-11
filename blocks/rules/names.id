@@ -1,0 +1,38 @@
+// E0303: a name keeps one type across the whole program, the way a name does
+// in id. Every variable, parameter and local declaration is noted in a pair
+// of lists (names, types); the first use of a name sets its type and a later
+// use with another type is reported at that use's line.
+
+checker_note(string[] block_name_number, int[] block_note_text, string block_name_text, int block_type, int block_no) {
+  int block_key_code = lst_str_index(block_name_number, block_name_text);
+  if (block_key_code < 0) {
+    push(block_name_number, block_name_text);
+    push(block_note_text, block_type);
+  } else if (block_note_text[block_key_code] != block_type) {
+    model_error(block_no, "E0303", "variable '" + block_name_text + "' is declared " + (import constant_type_full)[block_type] + " here but " + (import constant_type_full)[block_note_text[block_key_code]] + " elsewhere; a name keeps one type across the whole program");
+  }
+} return void;
+given model_initial (["a"], [1], "b", 2, 4):() then len((import model_diagnostics)):(0)
+given model_initial (["a"], [1], "a", 2, 4):() then (import model_diagnostics):(["input.blk:4: error: variable 'a' is declared float here but int elsewhere; a name keeps one type across the whole program [E0303]"])
+given model_initial (["a"], [1], "a", 1, 4):() then len((import model_diagnostics)):(0)
+(["a"], [1], "z", 3, 1):(["a", "z"], [1, 3], "z", 3, 1)
+
+checker_variables(string[] block_name_number, int[] block_note_text) {
+  int block_variant = 0;
+  while (block_variant < len((import model_variable_names))) {
+    checker_note(block_name_number, block_note_text, (import model_variable_names)[block_variant], (import model_variable_types)[block_variant], (import model_variable_lines)[block_variant]);
+    block_variant = block_variant + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nvar int a\nvar float a") ([], []):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nvar int a\nvar float b") ([], []):(["a", "b"], [1, 2]) then len((import model_diagnostics)):(0)
+
+checker_function_parameters(string[] block_name_number, int[] block_note_text, int block_function_row) {
+  int block_position = (import model_function_parameter_start)[block_function_row];
+  while (block_position < (import model_function_parameter_start)[block_function_row] + (import model_function_parameter_count)[block_function_row]) {
+    checker_note(block_name_number, block_note_text, (import model_pan)[block_position], (import model_pat)[block_position], (import model_function_line)[block_function_row]);
+    block_position = block_position + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn f(int a, float a) return void") ([], [], 0):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn f(int a, int b) return void") ([], [], 0):(["a", "b"], [1, 1], 0) then len((import model_diagnostics)):(0)

@@ -1,0 +1,23 @@
+// The script words that are the pointer. down X Y [BUTTON [CLICKS]], up X Y and move X Y
+// give the reducer the event the window would have given; a move reports the
+// left button held while a press is going on. wheel X Y DY moves the pointer to
+// (X, Y) first and then turns the wheel, DY notches (down positive).
+
+editor_do_mouse(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string[] bet_field) {
+  int editor_integer_kind = lst_str_index((import constant_mouse_verbs), bet_field[0]) + 3;
+  int editor_integer_held = editor_matrix_session[(import constant_y_state)][(import constant_session_grab_kind)] != 0;
+  int editor_integer_column_number = (editor_integer_kind == (import graph_view_event_down)) * editor_option_integer(bet_field, 3, 1) + (editor_integer_kind == (import graph_view_event_up)) + (editor_integer_kind == (import graph_view_event_move)) * editor_integer_held;
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string[] bet_field) {
+  int editor_integer_paint = editor_step(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_integer_kind, to_int(bet_field[1]), to_int(bet_field[2]), editor_integer_column_number, (editor_integer_kind == (import graph_view_event_down)) * editor_option_integer(bet_field, 4, 1));
+} return void;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), ["down", "200", "10"]):() then editor_test_grip:("gk=4 ga=1 gp=-1 gd=0 at=200,10 pan=0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), ["move", "300", "200"]):() then editor_test_cells:("scroll=0 cells=16,16,100,-1,960,600,112,164,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,1,0,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_pressed(600, 500) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), ["move", "650", "540"]):() then editor_test_cells:("scroll=0 cells=66,56,100,-1,960,600,462,504,2,412,464,16,16,0,0,0,0,1,0,-1,600,500,0,0,0,0,0,1,0,0")
+
+editor_do_wheel(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string[] bet_field) {
+  int editor_integer_held = editor_matrix_session[(import constant_y_state)][(import constant_session_grab_kind)] != 0;
+  int editor_integer_first_value = editor_step(editor_string_session, editor_matrix_session, editor_matrix_layout, (import graph_view_event_move), to_int(bet_field[1]), to_int(bet_field[2]), editor_integer_held, 0);
+  int editor_integer_second = editor_step(editor_string_session, editor_matrix_session, editor_matrix_layout, (import graph_view_event_wheel), 0, to_int(bet_field[3]), 0, 0);
+} return void;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), ["wheel", "400", "300", "-1"]):() then editor_test_cells:("scroll=0 cells=-33,-46,125,-1,960,600,212,264,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,1,0,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), ["wheel", "400", "300", "1"]):() then editor_test_cells:("scroll=0 cells=56,66,80,-1,960,600,212,264,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,1,0,0")

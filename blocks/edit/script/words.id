@@ -1,0 +1,34 @@
+// The script words that are the keyboard and the window. key NAME: the key goes down
+// and, for a printable one, its text arrives, as the window gives both. text STR:
+// each character of what follows the word (the rest of the line, spaces included)
+// as a text event. size W H: the window becomes W by H.
+
+editor_do_key(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string[] bet_field) {
+  int editor_integer_code = editor_key_code(bet_field[1]);
+  int editor_integer_first_value = editor_step(editor_string_session, editor_matrix_session, editor_matrix_layout, (import graph_view_event_key), editor_integer_code, 0, 0, 0);
+  if (editor_integer_code >= 32 && editor_integer_code < 127) {
+    int editor_integer_second = editor_step(editor_string_session, editor_matrix_session, editor_matrix_layout, (import graph_view_event_text), editor_integer_code, 0, 0, 0);
+  }
+} return void;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) given editor_test_string(2, "") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), ["key", "7"]):() then editor_test_peek:("ed=1 buf=7 dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), ["key", "enter"]):() then editor_test_peek:("ed=0 buf=10.0 dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), ["key", "esc"]):() then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
+
+editor_do_text(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string editor_string_line) {
+  int editor_integer_from = fx_min(5, len(editor_string_line));
+  string editor_string_chars = str_sub(editor_string_line, editor_integer_from, len(editor_string_line) - editor_integer_from);
+  int editor_integer_key_code = 0;
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string editor_string_line) {
+  while (editor_integer_key_code < len(editor_string_chars)) {
+    int editor_integer_position = editor_step(editor_string_session, editor_matrix_session, editor_matrix_layout, (import graph_view_event_text), charat(editor_string_chars, editor_integer_key_code), 0, 0, 0);
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+} return void;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) given editor_test_string(2, "") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), "text 1 2"):() then editor_test_peek:("ed=1 buf=1 2 dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), "text"):() then editor_test_peek:("ed=1 buf=10.0 dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
+
+editor_do_size(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string[] bet_field) {
+  int editor_integer_paint = editor_step(editor_string_session, editor_matrix_session, editor_matrix_layout, (import graph_view_event_size), to_int(bet_field[1]), to_int(bet_field[2]), 0, 0);
+} return void;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), ["size", "300", "200"]):() then editor_test_cells:("scroll=0 cells=16,16,100,-1,300,200,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,1,0,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), ["size", "5", "6"]):() then editor_test_cells:("scroll=0 cells=16,16,100,-1,5,6,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,1,0,0")

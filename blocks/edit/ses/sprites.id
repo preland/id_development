@@ -1,0 +1,32 @@
+// The sprites on the stage before anything has run: one for each sprite page of
+// the document, in the order of the pages, at the start position of a new sprite
+// (conf.id's bkk_sx0: x, y, direction, size, visible) with nothing said. Once the
+// green flag has run, bke_snap (snap.id) reads them from the machine instead.
+
+editor_sprites(string[][] editor_string_session, int[][] editor_matrix_session) {
+  string[] bet_name_text = [];
+  string[] bet_symbols = [];
+  int[] bel_geometry = [];
+} chain (string[][] editor_string_session, int[][] editor_matrix_session) {
+  int editor_integer_key_code = 0;
+  while (editor_integer_key_code < len(editor_string_session[(import constant_z_doc)])) {
+    if (editor_kind(editor_string_session[(import constant_z_doc)][editor_integer_key_code]) == (import constant_kind_banner)) {
+      editor_sprite_first(bet_name_text, bet_symbols, bel_geometry, editor_string_session[(import constant_z_doc)][editor_integer_key_code]);
+    }
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+  editor_string_session[(import constant_z_names)] = bet_name_text;
+} chain (string[][] editor_string_session, int[][] editor_matrix_session) {
+  editor_string_session[(import constant_z_says)] = bet_symbols;
+  editor_matrix_session[(import constant_y_sprite_state)] = bel_geometry;
+} return void;
+([["sprite A", "var int n", "sprite B"], [], [""], [], [], [], [], ["t"]], [[], [], [], []]):([["sprite A", "var int n", "sprite B"], [], [""], [], [], ["A", "B"], ["", ""], ["t"]], [[], [], [], [0, 0, 90, 100, 1, 0, 0, 90, 100, 1]])
+([["sprite A", "sprite B", "sprite C"], [], [""], [], [], [], [], ["t"]], [[], [], [], []]):([["sprite A", "sprite B", "sprite C"], [], [""], [], [], ["A", "B", "C"], ["", "", ""], ["t"]], [[], [], [], [0, 0, 90, 100, 1, 0, 0, 90, 100, 1, 0, 0, 90, 100, 1]])
+
+editor_sprite_first(string[] bet_name_text, string[] bet_symbols, int[] bel_geometry, string editor_string_line) {
+  push(bet_name_text, str_after(editor_string_line, "sprite "));
+  push(bet_symbols, "");
+  lst_extend(bel_geometry, (import constant_sprite_origin));
+} return void;
+([], [], [], "sprite Cat"):(["Cat"], [""], [0, 0, 90, 100, 1], "sprite Cat")
+(["A"], ["x"], [1], "sprite B"):(["A", "B"], ["x", ""], [1, 0, 0, 90, 100, 1], "sprite B")

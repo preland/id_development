@@ -1,0 +1,34 @@
+// What one line of the line table is. A line indented at all is a statement
+// of the function above it; at column 0 the first word decides: sprite, var,
+// fn, or a test case (which starts with '(' or 'given'). Anything else at
+// column 0 is reported with the words that were expected.
+
+model_item(int block_line_index) {
+  string[] block_texts = lexer_tokens((import model_line_texts)[block_line_index]);
+  string block_keyword = lst_str_get_or(block_texts, 0, "");
+  int block_indent = (import model_line_indents)[block_line_index];
+} chain (int block_line_index) {
+  if (block_indent > 0) {
+    model_body(block_line_index);
+  }
+  if (block_indent == 0 && block_keyword == "sprite") {
+    model_sprite(block_texts, block_line_index);
+  }
+  if (block_indent == 0 && block_keyword == "var") {
+    model_variable(block_texts, block_line_index);
+  }
+} chain (int block_line_index) {
+  if (block_indent == 0 && block_keyword == "fn") {
+    model_function(block_texts, block_line_index);
+  }
+  if (block_indent == 0 && (block_keyword == "(" || block_keyword == "given")) {
+    model_case(block_line_index);
+  }
+  if (block_indent == 0 && str_find((import constant_heads), " " + block_keyword + " ") < 0) {
+    model_error((import model_line_numbers)[block_line_index], "E0102", "expected sprite, var, fn or a test case, found '" + block_keyword + "'");
+  }
+} return void;
+given model_initial given model_lines("sprite Cat") (0):() then (import model_sprite_names):(["Cat"])
+given model_initial given model_lines("wat is this") (0):() then (import model_diagnostics):(["input.blk:1: error: expected sprite, var, fn or a test case, found 'wat' [E0102]"])
+given model_initial given model_lines("sprite S\nfn f() return void\n  x = 1\n(): ()") given model_item(0) given model_item(1) (2):() then (import model_function_body_end):([3])
+given model_initial given model_lines("given a = 1 ():()") (0):() then len((import model_diagnostics)):(1)

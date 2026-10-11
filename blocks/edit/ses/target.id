@@ -1,0 +1,35 @@
+// Where a dropped block would land, in the picture's own coordinates. A reporter
+// goes into the pill under the point; a statement goes into a stack, before or
+// after the row under the point by which half of it the point is in: the upper
+// half puts it before the row, the lower half after it (inside the body when the row
+// opens one, as the last line of the if when the row is its else, and after a
+// whole C-block when the point is on its cap). A hat is not a place to put a
+// block before; the first line of its body is. The answer is the kind of drop
+// (conf.id's bkk_d_), then the line to insert at and its indent, or the box.
+
+editor_pill_at(int[][] editor_matrix_layout, int editor_integer_world_x, int editor_integer_world_y) {
+  int editor_integer_key_code = len(editor_matrix_layout[(import constant_layout_kind)]) - 1;
+  while (editor_integer_key_code >= 0 && (editor_matrix_layout[(import constant_layout_kind)][editor_integer_key_code] != (import constant_kind_pill) || editor_in(editor_integer_world_x, editor_integer_world_y, editor_matrix_layout[(import constant_layout_x)][editor_integer_key_code], editor_matrix_layout[(import constant_layout_y)][editor_integer_key_code], editor_matrix_layout[(import constant_layout_width)][editor_integer_key_code], editor_matrix_layout[(import constant_layout_height)][editor_integer_key_code]) == 0)) {
+    editor_integer_key_code = editor_integer_key_code - 1;
+  }
+} return int editor_integer_key_code;
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), 40, 100):(5)
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), 60, 124):(8)
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), 10, 100):(-1)
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), 1000, 1000):(-1)
+
+editor_row_at(int[][] editor_matrix_layout, int editor_integer_world_y) {
+  int editor_integer_key_code = 0;
+  int editor_integer_at = 0 - 1;
+  while (editor_integer_key_code < len(editor_matrix_layout[(import constant_layout_kind)])) {
+    if (editor_matrix_layout[(import constant_layout_kind)][editor_integer_key_code] >= 0 && editor_matrix_layout[(import constant_layout_kind)][editor_integer_key_code] <= (import constant_kind_cap) && editor_integer_world_y >= editor_matrix_layout[(import constant_layout_y)][editor_integer_key_code] && editor_integer_world_y < editor_matrix_layout[(import constant_layout_y)][editor_integer_key_code] + editor_matrix_layout[(import constant_layout_height)][editor_integer_key_code]) {
+      editor_integer_at = editor_integer_key_code;
+    }
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+} return int editor_integer_at;
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), 100):(3)
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), 75):(2)
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), 190):(16)
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), 10):(-1)
+given editor_test_laid(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a"]) ((import editor_test_stage_layout), 300):(-1)

@@ -1,0 +1,26 @@
+// The wheel. Over the script area it zooms about the pointer (the graph kit's
+// camera); over the palette it scrolls the blocks, a block's pitch a notch, and
+// never past the first block or the last. The pointer is where the last move
+// left it (the state keeps it relative to the script area's corner).
+
+editor_wheel(string[][] editor_string_session, int[][] editor_matrix_session, int editor_integer_notch) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  int editor_integer_pixel_x = bel_state[(import graph_view_state_mouse_x)] + (import constant_metric_pal);
+  int editor_integer_pixel_y = bel_state[(import graph_view_state_mouse_y)] + (import constant_metric_bar);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int editor_integer_notch) {
+  int editor_integer_room = len(editor_string_session[(import constant_z_pal)]) * (import constant_metric_pill_delta_y) - (bel_state[(import graph_view_state_height)] - (import constant_metric_position_origin));
+  int editor_integer_to = fx_clamp(bel_state[(import constant_session_palette_scroll)] + editor_integer_notch * (import constant_metric_pill_delta_y), 0, fx_max(editor_integer_room, 0));
+  int editor_integer_bits = 0;
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int editor_integer_notch) {
+  if (editor_in(editor_integer_pixel_x, editor_integer_pixel_y, (import constant_metric_pal), (import constant_metric_bar), bel_state[(import graph_view_state_width)] - (import constant_metric_pal) - (import constant_metric_stage), 4000) == 1) {
+    editor_integer_bits = editor_pan(bel_state, (import graph_view_event_wheel), 0, editor_integer_notch, 0, 0);
+  }
+  if (editor_integer_pixel_x < (import constant_metric_pal) && editor_integer_pixel_y >= (import constant_metric_bar) && editor_integer_to != bel_state[(import constant_session_palette_scroll)]) {
+    bel_state[(import constant_session_palette_scroll)] = editor_integer_to;
+    editor_integer_bits = (import constant_event_paint);
+  }
+} return int editor_integer_bits;
+given editor_test_session("sprite S\n") given editor_test_at(400, 300) ((import editor_test_strings), (import editor_test_integers), -1):(1) then editor_test_cells:("scroll=0 cells=-33,-46,125,-1,960,600,212,264,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0")
+given editor_test_session("sprite S\n") given editor_test_at(800, 300) ((import editor_test_strings), (import editor_test_integers), -1):(0) then editor_test_cells:("scroll=0 cells=16,16,100,-1,960,600,612,264,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0")
+given editor_test_session("sprite S\n") given editor_test_pick(3, 0) given editor_test_at(50, 200) ((import editor_test_strings), (import editor_test_integers), 1):(1) then editor_test_cells:("scroll=28 cells=16,16,100,-1,960,600,-138,164,0,0,0,0,0,0,0,3,28,2,0,-1,0,0,1,0,0,0,0,0,0,0")
+given editor_test_session("sprite S\n") given editor_test_pick(3, 0) given editor_test_at(50, 200) ((import editor_test_strings), (import editor_test_integers), -1):(0) then editor_test_cells:("scroll=0 cells=16,16,100,-1,960,600,-138,164,0,0,0,0,0,0,0,3,0,2,0,-1,0,0,1,0,0,0,0,0,0,0")

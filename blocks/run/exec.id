@@ -1,0 +1,34 @@
+// Running one generated function for a test case. bkr_fresh makes a new
+// machine and runs __init in it, so a case never sees another's state;
+// bkr_val runs the function in row `row` of the model alone to the end (at
+// most bkk_case_frames frames) and shows the value it returned as the type
+// says; bkr_fail records a failed case in the diagnostics, in the form idc
+// reports one: the call, what it gave and what was expected.
+
+runner_fresh() {
+  machine_boot();
+  machine_spawn(lst_str_index((import model_function_names), (import constant_initial_function)));
+  machine_run((import constant_frames_default));
+} chain () {
+  lset((import machine_registers_group), (import constant_registers_frames), 0);
+  lset((import machine_registers_group), (import constant_registers_now), 0);
+} return void;
+given runner_load("t.blk", "sprite S\nvar int n = 4\nfn f() return void\n(): ()\n(1): ()") () :() then machine_registers:("r=0_0_0") then (import machine_gl)[0]:(4.0)
+given runner_load("t.blk", "sprite S\nvar int n = 4\nfn f() return void\n(): ()\n(1): ()") () :() then machine_threads:("6#5;0;0;0;0;1")
+
+runner_value(int block_row, int block_type) {
+  int block_limit = (import machine_registers_group)[(import constant_registers_frames)] + (import constant_case_frames);
+  machine_spawn(block_row);
+  machine_run(block_limit);
+} chain (int block_row, int block_type) {
+  string block_shown = machine_show((import machine_lists), (import machine_sprite_list), block_type, (import machine_return_values)[0]);
+} return string block_shown;
+given runner_load("t.blk", "sprite S\nfn f() return int\n  return 3\n(): (3)\n(): (4)") given runner_fresh (0, 1):("3")
+given runner_load("t.blk", "sprite S\nfn f() return string\n  return \"a b\"\n(): (\"a b\")\n(): (\"\")") given runner_fresh (0, 3):("\"a b\"")
+given runner_load("t.blk", "sprite S\nfn f() return void\n  int x = 1\n(): ()\n(1): ()") given runner_fresh (0, 0):("")
+
+runner_fail(int block_character, string block_label, string block_got, string block_wanted) {
+  push((import model_diagnostics), (import model_file)[0] + ":" + (import model_case_lines)[block_character] + ": test failed: " + block_label + " = " + block_got + ", expected " + block_wanted);
+} return void;
+given model_load("t.blk", "sprite S\nfn f() return void\n(1):()") (0, "f(1)", "2", "3"):() then model_diagnostic_list:("t.blk:3: test failed: f(1) = 2, expected 3")
+given model_load("t.blk", "sprite S\nfn f() return void\n(1):()") (0, "f(1) then n", "[1]", "[]"):() then model_diagnostic_list:("t.blk:3: test failed: f(1) then n = [1], expected []")

@@ -1,0 +1,67 @@
+// What a line of the document is, for the editor. A line is blank, a comment, a
+// sprite's banner, a var, a function's hat, a test case, or a statement of a
+// body (told by its indent) which may be an else. bke_head is the table of the
+// words a line at column 0 may start with (conf.id's bkk_head_w); bke_cat is
+// the category of a statement, from its first word.
+
+editor_head(string editor_string_second) {
+  int editor_integer_key_code = 0;
+  int editor_integer_row_number = (import constant_kind_statement);
+  while (editor_integer_key_code < len((import constant_head_width)) && str_starts(editor_string_second, (import constant_head_width)[editor_integer_key_code]) == 0) {
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+} chain (string editor_string_second) {
+  if (editor_integer_key_code < len((import constant_head_width))) {
+    editor_integer_row_number = (import constant_head_key_code)[editor_integer_key_code];
+  }
+} return int editor_integer_row_number;
+("fn f()"):(0)
+("sprite A"):(5)
+("(1): (2)"):(4)
+("x = 1"):(1)
+("// note"):(7)
+
+editor_kind(string editor_string_line) {
+  string editor_string_second = str_trim(editor_string_line);
+  int editor_integer_indent = str_skip_space(editor_string_line, 0);
+  int editor_integer_key_code = editor_head(editor_string_second);
+} chain (string editor_string_line) {
+  if (editor_integer_indent > 0 && editor_integer_key_code != (import constant_kind_note)) {
+    editor_integer_key_code = (import constant_kind_statement);
+  }
+  if (editor_string_second == "else") {
+    editor_integer_key_code = (import constant_kind_else);
+  }
+  if (editor_string_second == "") {
+    editor_integer_key_code = (import constant_kind_blank);
+  }
+} return int editor_integer_key_code;
+(""):(-1)
+("    "):(-1)
+("  x = 1"):(1)
+("  else"):(2)
+("fn f() return void"):(0)
+("var int n"):(6)
+("given n = 1 (): ()"):(4)
+("// hi"):(7)
+("  // hi"):(7)
+
+editor_cat(string editor_string_unit) {
+  int editor_integer_end_index = lexer_end(editor_string_unit, 0);
+  int editor_integer_width = lst_str_index((import constant_where_name), str_sub(editor_string_unit, 0, editor_integer_end_index));
+  int editor_integer_column_number = (import constant_cat_variables);
+} chain (string editor_string_unit) {
+  if (editor_integer_width >= 0) {
+    editor_integer_column_number = (import constant_where_cat)[editor_integer_width];
+  }
+  if (editor_integer_width < 0 && charat(editor_string_unit, editor_integer_end_index) == 40) {
+    editor_integer_column_number = (import constant_cat_mine);
+  }
+} return int editor_integer_column_number;
+("move(10.0)"):(0)
+("say(\"hi\")"):(1)
+("if a"):(2)
+("x = 1"):(4)
+("int n = 0"):(4)
+("walk()"):(5)
+("push(xs, 1)"):(4)

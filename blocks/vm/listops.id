@@ -1,0 +1,44 @@
+// The list builtins insert and delete (conf.id's bkk_bi_ numbers). Their
+// arguments sit in consecutive slots from a: the list, the index and, for
+// insert, the value. bkv_idx_ok judges the index, which may be one past the
+// end for insert; outside it the runtime error 3 is left in the trap list tp
+// and the list is not touched.
+
+machine_index_position_ok(float[] block_value_list, int block_frame_pointer, int block_first_value, int block_count) {
+  int block_index = block_value_list[block_frame_pointer + block_first_value + 1];
+  int block_ok = block_index >= 0 && block_index < block_count;
+} return int block_ok;
+([0.0, 2.0], 0, 0, 3):(1)
+([0.0, 3.0], 0, 0, 3):(0)
+([0.0, -1.0], 0, 0, 3):(0)
+([0.0, 0.0], 0, 0, 0):(0)
+
+machine_ins(float[] block_value_list, float[] block_float_list, int block_frame_pointer, int block_first_value) {
+  int block_index = block_value_list[block_frame_pointer + block_first_value + 1];
+  push(block_float_list, 0.0);
+  machine_shift_up(block_float_list, block_index);
+} chain (float[] block_value_list, float[] block_float_list, int block_frame_pointer, int block_first_value) {
+  block_float_list[block_index] = block_value_list[block_frame_pointer + block_first_value + 2];
+} return void;
+([0.0, 1.0, 9.0], [5.0, 6.0], 0, 0):([0.0, 1.0, 9.0], [5.0, 9.0, 6.0], 0, 0)
+([0.0, 2.0, 9.0], [5.0, 6.0], 0, 0):([0.0, 2.0, 9.0], [5.0, 6.0, 9.0], 0, 0)
+([0.0, 0.0, 9.0], [], 0, 0):([0.0, 0.0, 9.0], [9.0], 0, 0)
+
+machine_edit(float[] block_value_list, float[] block_float_list, int block_identifier, int block_frame_pointer, int block_first_value, int[] block_thread_pointer) {
+  int block_ok = machine_index_position_ok(block_value_list, block_frame_pointer, block_first_value, len(block_float_list) + (block_identifier == (import constant_builtin_insert)));
+  int block_index = block_value_list[block_frame_pointer + block_first_value + 1];
+  if (block_ok == 1 && block_identifier == (import constant_builtin_insert)) {
+    machine_ins(block_value_list, block_float_list, block_frame_pointer, block_first_value);
+  }
+} chain (float[] block_value_list, float[] block_float_list, int block_identifier, int block_frame_pointer, int block_first_value, int[] block_thread_pointer) {
+  if (block_ok == 1 && block_identifier == (import constant_builtin_delete)) {
+    machine_shift_down(block_float_list, block_index);
+  }
+  if (block_ok == 0) {
+    block_thread_pointer[0] = 3;
+  }
+} return void;
+([0.0, 1.0, 9.0], [5.0, 6.0], 15, 0, 0, [0]):([0.0, 1.0, 9.0], [5.0, 9.0, 6.0], 15, 0, 0, [0])
+([0.0, 3.0, 9.0], [5.0, 6.0], 15, 0, 0, [0]):([0.0, 3.0, 9.0], [5.0, 6.0], 15, 0, 0, [3])
+([0.0, 1.0], [5.0, 6.0], 16, 0, 0, [0]):([0.0, 1.0], [5.0], 16, 0, 0, [0])
+([0.0, 2.0], [5.0, 6.0], 16, 0, 0, [0]):([0.0, 2.0], [5.0, 6.0], 16, 0, 0, [3])

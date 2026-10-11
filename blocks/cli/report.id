@@ -1,0 +1,31 @@
+// The command line's output. bkx_emit prints lines, one per line, and
+// nothing for none; bkx_report prints the diagnostics collected so far and
+// answers 1 if there were any (the exit status of a command that found
+// violations); bkx_userfns counts the program's own functions, leaving out
+// the __init, __flag and generated test functions.
+
+command_emit(string[] block_lists) {
+  if (len(block_lists) > 0) {
+    print(str_join(block_lists, "\n"));
+  }
+} return void;
+(["a", "b"]):() then prints:("a\nb\n")
+(["x"]):() then prints:("x\n")
+
+command_report() {
+  int block_bad = len((import model_diagnostics)) > 0;
+  command_emit((import model_diagnostics));
+} return int block_bad;
+given model_initial given model_error(2, "E0101", "x") ():(1) then prints:("input.blk:2: error: x [E0101]\n")
+given model_initial ():(0) then prints:("")
+
+command_user_functions() {
+  int block_count = 0;
+  int block_function_row = 0;
+  while (block_function_row < len((import model_function_names))) {
+    block_count = block_count + (str_starts((import model_function_names)[block_function_row], (import constant_prefix_system)) == 0);
+    block_function_row = block_function_row + 1;
+  }
+} return int block_count;
+given model_load("t.blk", "sprite S\nfn a() return void\nfn __b() return void") ():(1)
+given model_load("t.blk", "sprite S\nfn a() return void\nfn c() return void") ():(2)

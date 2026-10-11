@@ -1,0 +1,29 @@
+// The single-line statements, sent by bkg_line: break, return, a declaration
+// (a line that starts with a type) and an assignment or call. bkg_start
+// points the compiler at a line: the cursor to its first token and errors to
+// its source line number.
+
+generator_start(int block_line_index) {
+  lset((import generator_state), (import constant_statement_position_index), 0);
+  lset((import generator_state), (import constant_statement_line), (import model_line_numbers)[block_line_index]);
+} return void;
+given model_load("t.blk", "a\nb\nc") given generator_initial given lset((import generator_state), 0, 4) (2):() then (import generator_state)[0]:(0) then (import generator_state)[5]:(3)
+given model_load("t.blk", "a") given generator_initial (0):() then (import generator_state)[5]:(1)
+
+generator_simple(int block_mode, string[] block_texts, int block_function_row) {
+  if (block_mode == 3) {
+    generator_break(block_texts);
+  }
+  if (block_mode == 4) {
+    generator_return(block_texts, block_function_row);
+  }
+  if (block_mode >= 5) {
+    generator_decl(block_texts);
+  }
+} chain (int block_mode, string[] block_texts, int block_function_row) {
+  if (block_mode < 0) {
+    generator_assign(block_texts);
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn f() return int") given generator_initial (4, ["return", "3"], 0):() then generator_codes:("10:1,0,0,0,3,12,0,0,0,0")
+given model_load("t.blk", "sprite S\nfn f() return void") given generator_initial given lset((import generator_state), 6, -1) (3, ["break"], 0):() then len((import model_diagnostics)):(1)

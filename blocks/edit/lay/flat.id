@@ -1,0 +1,16 @@
+// Test checks over a whole document: bke_t_flat lays it out and shows every box (bke_boxes), a box to a line joined with |; bke_t_put adds one box to the layout bke_t_open made.
+
+editor_test_flat(string[] bet_doc) {
+  string[] bet_texts = [];
+  int[][] editor_matrix_layout = editor_layout(bet_doc, bet_texts);
+  string editor_string_all = str_join(editor_boxes(editor_matrix_layout, bet_texts), "|");
+} return string editor_string_all;
+(["  x = 1"]):("1 0 0 64 24 L0 c4 i1 s-1 b0 |8 8 8 24 8 L0 c-1 i1 s-1 b0 x =|9 38 4 18 16 L0 c-1 i1 s0 b0 1")
+([]):("")
+(["sprite S", "var int n", "fn f(int a) return int", "  if a > 0", "    n = 1", "  else", "    n = 2", "  return a", "(1): (1)", "(0): (2)"]):("5 0 0 80 22 L0 c-1 i0 s-1 b0 sprite S|6 0 22 88 16 L1 c-1 i0 s-1 b0 var int n|0 0 58 224 30 L2 c5 i0 s-1 b0 define f(int a) return int|1 0 88 88 24 L3 c2 i1 s-1 b1 |8 8 96 16 8 L3 c-1 i1 s-1 b0 if|9 30 92 50 16 L3 c3 i1 s0 b0 a > 0|1 14 112 64 24 L4 c4 i2 s-1 b0 |8 22 120 24 8 L4 c-1 i2 s-1 b0 n =|9 52 116 18 16 L4 c-1 i2 s0 b0 1|10 0 112 14 24 L3 c2 i1 s-1 b0 |2 0 136 88 24 L5 c2 i1 s-1 b1 |8 8 144 32 8 L5 c-1 i1 s-1 b0 else|1 14 160 64 24 L6 c4 i2 s-1 b0 |8 22 168 24 8 L6 c-1 i2 s-1 b0 n =|9 52 164 18 16 L6 c-1 i2 s0 b0 2|10 0 160 14 24 L5 c2 i1 s-1 b0 |3 0 184 88 12 L5 c2 i1 s-1 b0 |1 0 196 88 24 L7 c2 i1 s-1 b0 |8 8 204 48 8 L7 c-1 i1 s-1 b0 return|9 62 200 18 16 L7 c-1 i1 s0 b0 a|4 0 220 80 16 L8 c-1 i0 s-1 b0 (1): (1)|4 0 236 80 16 L9 c-1 i0 s-1 b0 (0): (2)")
+
+editor_test_put(int[] bel_second, string editor_string_text) {
+  int editor_integer_at = editor_box((import editor_test_layout), (import editor_test_texts), bel_second, editor_string_text);
+} return void;
+given editor_test_open(["a"]) ([1, 2, 3, 4, 5, 6, 7, 8, 9, 0], "t"):() then editor_test_dump:("1 2 3 4 5 L6 c7 i8 s9 b0 t y=0 pe=0")
+given editor_test_open(["a"]) given editor_test_put([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "") ([1, 1, 1, 1, 1, 1, 1, 1, 1, 1], "u"):() then editor_test_dump:("0 0 0 0 0 L0 c0 i0 s0 b0 |1 1 1 1 1 L1 c1 i1 s1 b1 u y=0 pe=0")

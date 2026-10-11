@@ -1,0 +1,30 @@
+// The fields of a line of a script. A key is named by one of conf.id's bkk_key_names
+// (its id in gfx.h) or, for a one-letter name, is that letter; any other name is 0. A
+// field that is not there is a default, so a script may leave off the button and
+// the click count of a press.
+
+editor_key_code(string editor_string_name) {
+  int editor_integer_at = lst_str_index((import constant_key_names), editor_string_name);
+  int editor_integer_code = 0;
+  if (editor_integer_at >= 0) {
+    editor_integer_code = (import constant_key_identifiers)[editor_integer_at];
+  }
+} chain (string editor_string_name) {
+  if (editor_integer_at < 0 && len(editor_string_name) == 1) {
+    editor_integer_code = charat(editor_string_name, 0);
+  }
+} return int editor_integer_code;
+("enter"):(1009)
+("esc"):(1011)
+("/"):(47)
+("c"):(99)
+("zz"):(0)
+
+editor_option_integer(string[] bet_field, int editor_integer_index, int editor_integer_definition) {
+  int editor_integer_count = editor_integer_definition;
+  if (editor_integer_index < len(bet_field)) {
+    editor_integer_count = to_int(bet_field[editor_integer_index]);
+  }
+} return int editor_integer_count;
+(["down", "5", "6", "3"], 3, 1):(3)
+(["down", "5", "6"], 3, 1):(1)

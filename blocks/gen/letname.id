@@ -1,0 +1,33 @@
+// The words an error message uses for what an argument letter wanted: the
+// type's name for an exact letter, 'a list', 'a string or a list', or the
+// element type of the first argument.
+
+generator_let_name(string block_character_code, int block_function_type) {
+  string block_name = "a list";
+  int block_expression = str_find((import constant_type_letter), block_character_code);
+  if (block_expression >= 0) {
+    block_name = (import constant_type_full)[block_expression];
+  }
+} chain (string block_character_code, int block_function_type) {
+  if (block_character_code == "a") {
+    block_name = "a string or a list";
+  }
+  if (block_character_code == "e" && block_function_type >= (import constant_type_integer_list)) {
+    block_name = (import constant_type_full)[block_function_type - (import constant_type_list)];
+  }
+} return string block_name;
+("i", 0):("int")
+("S", 0):("string[]")
+("l", 0):("a list")
+("a", 0):("a string or a list")
+("e", 4):("int")
+
+generator_builtin_pick(int block_second, int block_function_type) {
+  int block_pick = block_second;
+  if (block_second == (import constant_builtin_length) && block_function_type == (import constant_type_string)) {
+    block_pick = (import constant_builtin_string_length);
+  }
+} return int block_pick;
+(12, 3):(27)
+(12, 4):(12)
+(13, 3):(13)

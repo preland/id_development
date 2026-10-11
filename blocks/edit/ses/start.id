@@ -1,0 +1,40 @@
+// A session starts. The text of the .blk file is the document (cut at every
+// newline, so joining it again gives the file back byte for byte), and
+// everything else is derived from it: the layout, the palette of the first
+// category, the rule violations, the sprites on the stage at their start. The
+// bundles are the ones the caller made empty (bes_s, bem_s) and the layout
+// bke_lists made (bem_lo); the camera starts a margin in from the corner.
+
+editor_blank(string[][] editor_string_session, int[][] editor_matrix_session, string editor_string_text, string editor_string_path) {
+  push(editor_string_session, str_split(editor_string_text, "\n"));
+  push(editor_string_session, []);
+  push(editor_string_session, [""]);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, string editor_string_text, string editor_string_path) {
+  push(editor_string_session, []);
+  push(editor_string_session, []);
+  push(editor_string_session, []);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, string editor_string_text, string editor_string_path) {
+  push(editor_string_session, []);
+  push(editor_string_session, [editor_string_path]);
+  push(editor_matrix_session, lst_copy((import constant_state_initial)));
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, string editor_string_text, string editor_string_path) {
+  push(editor_matrix_session, []);
+  push(editor_matrix_session, []);
+  push(editor_matrix_session, []);
+} return void;
+([], [], "a\nb", "t.blk"):([["a", "b"], [], [""], [], [], [], [], ["t.blk"]], [[0, 0, 100, -1, 960, 600, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [], [], []])
+([], [], "", "x.blk"):([[""], [], [""], [], [], [], [], ["x.blk"]], [[0, 0, 100, -1, 960, 600, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [], [], []])
+
+editor_start(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string editor_string_text, string editor_string_path) {
+  editor_blank(editor_string_session, editor_matrix_session, editor_string_text, editor_string_path);
+  editor_matrix_session[(import constant_y_state)][(import graph_view_state_pan_x)] = (import constant_metric_home);
+  editor_matrix_session[(import constant_y_state)][(import graph_view_state_pan_y)] = (import constant_metric_home);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string editor_string_text, string editor_string_path) {
+  editor_layout_again(editor_string_session, editor_matrix_layout);
+  editor_refill_palette(editor_string_session, editor_matrix_session);
+  editor_check(editor_string_session, editor_matrix_session);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string editor_string_text, string editor_string_path) {
+  editor_sprites(editor_string_session, editor_matrix_session);
+} return void;
+([], [], [[], [], [], [], [], [], [], [], [], []], "sprite S\nvar int n\n", "t.blk"):([["sprite S", "var int n", ""], [], [""], ["move(10.0)", "turn(15.0)", "point(90.0)", "goto(0.0, 0.0)", "xpos()", "ypos()", "direction()"], ["sprite S", "var int n"], ["S"], [""], ["t.blk"]])
+([], [], [[], [], [], [], [], [], [], [], [], []], "", "t.blk"):([[""], [], [""], ["move(10.0)", "turn(15.0)", "point(90.0)", "goto(0.0, 0.0)", "xpos()", "ypos()", "direction()"], [], [], [], ["t.blk"]])

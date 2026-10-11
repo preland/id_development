@@ -1,0 +1,34 @@
+// Lists. A list value is an index into the pool bkv_ls; the element at i is
+// cell i of that list, read by lget and written by lset. An index outside the
+// list is the runtime error 3, left in cell 0 of the trap list tp (the rest
+// of the machine tests that cell after every instruction); nothing is read or
+// written then.
+
+machine_list_get(float[] block_value_list, float[][] block_pool_list, int block_frame_pointer, int block_delta, int block_first_value, int block_second, int[] block_thread_pointer) {
+  int block_height = block_value_list[block_frame_pointer + block_first_value];
+  int block_index = block_value_list[block_frame_pointer + block_second];
+  int block_ok = block_index >= 0 && block_index < len(block_pool_list[block_height]);
+} chain (float[] block_value_list, float[][] block_pool_list, int block_frame_pointer, int block_delta, int block_first_value, int block_second, int[] block_thread_pointer) {
+  if (block_ok == 1) {
+    block_value_list[block_frame_pointer + block_delta] = block_pool_list[block_height][block_index];
+  } else {
+    block_thread_pointer[0] = 3;
+  }
+} return void;
+([0.0, 1.0, 0.0], [[5.0, 6.0]], 0, 2, 0, 1, [0]):([0.0, 1.0, 6.0], [[5.0, 6.0]], 0, 2, 0, 1, [0])
+([0.0, 2.0, 0.0], [[5.0, 6.0]], 0, 2, 0, 1, [0]):([0.0, 2.0, 0.0], [[5.0, 6.0]], 0, 2, 0, 1, [3])
+([0.0, -1.0, 4.0], [[5.0, 6.0]], 0, 2, 0, 1, [0]):([0.0, -1.0, 4.0], [[5.0, 6.0]], 0, 2, 0, 1, [3])
+
+machine_list_set(float[] block_value_list, float[][] block_pool_list, int block_frame_pointer, int block_delta, int block_first_value, int block_second, int[] block_thread_pointer) {
+  int block_height = block_value_list[block_frame_pointer + block_delta];
+  int block_index = block_value_list[block_frame_pointer + block_first_value];
+  int block_ok = block_index >= 0 && block_index < len(block_pool_list[block_height]);
+} chain (float[] block_value_list, float[][] block_pool_list, int block_frame_pointer, int block_delta, int block_first_value, int block_second, int[] block_thread_pointer) {
+  if (block_ok == 1) {
+    block_pool_list[block_height][block_index] = block_value_list[block_frame_pointer + block_second];
+  } else {
+    block_thread_pointer[0] = 3;
+  }
+} return void;
+([0.0, 1.0, 9.0], [[5.0, 6.0]], 0, 0, 1, 2, [0]):([0.0, 1.0, 9.0], [[5.0, 9.0]], 0, 0, 1, 2, [0])
+([0.0, 2.0, 9.0], [[5.0, 6.0]], 0, 0, 1, 2, [0]):([0.0, 2.0, 9.0], [[5.0, 6.0]], 0, 0, 1, 2, [3])

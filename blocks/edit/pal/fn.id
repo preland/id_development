@@ -1,0 +1,55 @@
+// The My Blocks entries for the document's own functions: a call with a default
+// for each parameter (0, 0.0, "" or an empty list), a statement for a function
+// that returns nothing and a reporter for one that returns a value. main is the
+// green flag and is not offered.
+
+editor_default(string[] bet_titles, int editor_integer_first_value) {
+  string editor_string_type = lst_str_get_or(bet_titles, editor_integer_first_value, "");
+  int editor_integer_tip_index = lst_str_index((import constant_type_names), editor_string_type);
+  string editor_string_delta = lst_str_get_or((import constant_defaults), editor_integer_tip_index, "0");
+} chain (string[] bet_titles, int editor_integer_first_value) {
+  if (lst_str_get_or(bet_titles, editor_integer_first_value + 1, "") == "[") {
+    editor_string_delta = "[]";
+  }
+} return string editor_string_delta;
+(["int", "n"], 0):("0")
+(["string", "s"], 0):("\"\"")
+(["float", "[", "]", "xs"], 0):("[]")
+(["float", "f"], 0):("0.0")
+
+editor_starts(string[] bet_titles, int[][] editor_matrix_text_list, int editor_integer_close) {
+  int[] bel_state = [];
+  int editor_integer_key_code = 3;
+  if (editor_integer_close > 3) {
+    push(bel_state, 3);
+  }
+} chain (string[] bet_titles, int[][] editor_matrix_text_list, int editor_integer_close) {
+  while (editor_integer_key_code < editor_integer_close) {
+    if (bet_titles[editor_integer_key_code] == "," && editor_matrix_text_list[2][editor_integer_key_code] == 1) {
+      push(bel_state, editor_integer_key_code + 1);
+    }
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+} return int[] bel_state;
+(["fn", "f", "(", "int", "a", ",", "int", "b", ")"], [[], [], [0, 0, 0, 1, 1, 1, 1, 1, 0]], 8):([3, 6])
+(["fn", "f", "(", ")"], [[], [], [0, 0, 0, 0]], 3):([])
+
+editor_call_of(string editor_string_header) {
+  string[] bet_titles = [];
+  int[][] editor_matrix_text_list = editor_scan(str_trim(editor_string_header), bet_titles);
+  int editor_integer_close = editor_close(bet_titles, editor_matrix_text_list[2], 3);
+} chain (string editor_string_header) {
+  int[] bel_state = editor_starts(bet_titles, editor_matrix_text_list, editor_integer_close);
+  string[] bet_delta = [];
+  int editor_integer_key_code = 0;
+} chain (string editor_string_header) {
+  while (editor_integer_key_code < len(bel_state)) {
+    push(bet_delta, editor_default(bet_titles, bel_state[editor_integer_key_code]));
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+  string editor_string_call = bet_titles[1] + "(" + str_join(bet_delta, ", ") + ")";
+} return string editor_string_call;
+("fn walk() return void"):("walk()")
+("fn f(int a, string[] xs, float g) return int"):("f(0, [], 0.0)")
+("fn on_go() return void on \"go\""):("on_go()")
+

@@ -1,0 +1,50 @@
+// The handlers for call, return and the two list instructions. A call is
+// refused when the thread is bkk_depth_n frames deep (the runtime error 6);
+// otherwise bkv_enter makes the callee's frame bkk_frame slots above the
+// caller's and the answer is the callee's entry pc, from the function table.
+// A return of the thread's first frame ends it; any other goes back to the
+// pc the call saved.
+
+machine_handle_call(int block_thread_slot, int block_program_counter, int block_operation) {
+  int block_row = block_thread_slot * (import constant_thread_count);
+  int block_frame_pointer = (import machine_thread)[block_row + (import constant_thread_frame_pointer)];
+  int block_record = (import constant_result_trap) - 6;
+} chain (int block_thread_slot, int block_program_counter, int block_operation) {
+  int block_function = (import generator_code)[block_program_counter + 2];
+  if ((import machine_thread)[block_row + (import constant_thread_data_pointer)] + 1 < (import constant_depth_count)) {
+    machine_enter((import machine_thread), (import machine_call_stack), (import generator_function_table), (import machine_value_list), block_thread_slot, (import generator_code)[block_program_counter + 1], block_function, (import generator_code)[block_program_counter + 3], block_program_counter + (import constant_integer_cell), block_frame_pointer + (import constant_frame));
+    block_record = (import generator_function_table)[block_function * (import constant_function_table_count) + (import constant_function_table_entry_counter)];
+  }
+} return int block_record;
+given model_initial given generator_initial given lst_extend((import generator_code), [11, 3, 0, 0, 0]) given lst_extend((import generator_function_table), [40, 0, 0, 0]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given lst_extend((import machine_call_stack), [0, 0, 0]) given machine_grow((import machine_value_list), 4) (0, 0, 11):(40) then (import machine_thread)[1]:(128) then (import machine_thread)[2]:(1) then (import machine_call_stack):([5, 0, 3])
+given model_initial given generator_initial given lst_extend((import generator_code), [11, 3, 0, 0, 0]) given lst_extend((import generator_function_table), [40, 0, 0, 0]) given machine_boot given lst_extend((import machine_thread), [0, 0, 31, 1, 0, 0]) (0, 0, 11):(-16)
+
+machine_handle_return(int block_thread_slot, int block_program_counter, int block_operation) {
+  int block_row = block_thread_slot * (import constant_thread_count);
+  int block_depth = (import machine_thread)[block_row + (import constant_thread_data_pointer)];
+  int block_record = (import constant_result_done);
+} chain (int block_thread_slot, int block_program_counter, int block_operation) {
+  if (block_depth > 0) {
+    block_record = (import machine_call_stack)[block_thread_slot * (import constant_call_stack_count) + (block_depth - 1) * (import constant_call_stack_cell)];
+    machine_leave((import machine_thread), (import machine_call_stack), (import machine_value_list), block_thread_slot, (import generator_code)[block_program_counter + 2]);
+  } else {
+    machine_finish((import machine_thread), (import machine_return_values), (import machine_value_list), block_thread_slot, (import generator_code)[block_program_counter + 2]);
+  }
+} return int block_record;
+given model_initial given generator_initial given lst_extend((import generator_code), [12, 0, 0, 0, 0]) given machine_boot given lst_extend((import machine_thread), [0, 128, 1, 1, 0, 0]) given lst_extend((import machine_call_stack), [77, 0, 1]) given machine_grow((import machine_value_list), 130) (0, 0, 12):(77) then (import machine_thread)[2]:(0) then (import machine_thread)[1]:(0)
+given model_initial given generator_initial given lst_extend((import generator_code), [12, 0, -1, 0, 0]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 2) (0, 0, 12):(-2) then (import machine_thread)[3]:(0)
+
+machine_handle_list(int block_thread_slot, int block_program_counter, int block_operation) {
+  int block_frame_pointer = (import machine_thread)[block_thread_slot * (import constant_thread_count) + (import constant_thread_frame_pointer)];
+  int[] block_thread_pointer = [0];
+  int block_next_index = block_program_counter + (import constant_integer_cell);
+} chain (int block_thread_slot, int block_program_counter, int block_operation) {
+  if (block_operation == (import constant_opcode_list_get)) {
+    machine_list_get((import machine_value_list), (import machine_lists), block_frame_pointer, (import generator_code)[block_program_counter + 1], (import generator_code)[block_program_counter + 2], (import generator_code)[block_program_counter + 3], block_thread_pointer);
+  } else {
+    machine_list_set((import machine_value_list), (import machine_lists), block_frame_pointer, (import generator_code)[block_program_counter + 1], (import generator_code)[block_program_counter + 2], (import generator_code)[block_program_counter + 3], block_thread_pointer);
+  }
+  int block_record = machine_after(block_thread_pointer, block_next_index);
+} return int block_record;
+given model_initial given generator_initial given lst_extend((import generator_code), [15, 2, 0, 1, 0]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 3) given machine_call_builtin((import machine_value_list), (import machine_sprite_list), (import machine_lists), 26, 0, 0, 0) (0, 0, 15):(-13) then len((import machine_lists)):(1)
+given model_initial given generator_initial given lst_extend((import generator_code), [16, 0, 1, 2, 0]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 3) given machine_call_builtin((import machine_value_list), (import machine_sprite_list), (import machine_lists), 26, 0, 0, 0) (0, 0, 16):(-13) then len((import machine_lists)):(1)

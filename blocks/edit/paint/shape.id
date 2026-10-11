@@ -1,0 +1,28 @@
+// The body of a box: an arm is a plain rectangle, anything else a rounded one with
+// an edge a shade darker than its face; a box that breaks a rule (bad is 1) gets the
+// red of conf.id's bkk_x_bad round it first, so it shows as an outline. The
+// rectangle is [left, top, width, height] on the surface, rad the corner radius.
+
+editor_shape(int editor_integer_kind, int[] bel_row_number, int editor_integer_face, int editor_integer_rad, int editor_integer_bad) {
+  if (editor_integer_bad == 1) {
+    draw_rounded_rectangle(bel_row_number[0] - 2, bel_row_number[1] - 2, bel_row_number[2] + 4, bel_row_number[3] + 4, editor_integer_rad + 2, (import constant_x_bad));
+  }
+  if (editor_integer_kind == (import constant_kind_arm)) {
+    d2_l_rect(bel_row_number[0], bel_row_number[1], bel_row_number[2], bel_row_number[3], editor_integer_face);
+  }
+  if (editor_integer_kind != (import constant_kind_arm) && editor_integer_kind != (import constant_kind_note) && editor_integer_kind != (import constant_kind_label)) {
+    editor_round(bel_row_number, editor_integer_face, editor_integer_rad);
+  }
+} return void;
+given idstd_graph_view_test_canvas(60, 50) given idstd_graph_view_test_look(30, 20) given idstd_graph_view_test_look(10, 25) given idstd_graph_view_test_look(8, 20) (1, [10, 10, 40, 24], 5019647, 4, 0):() then idstd_graph_view_test_seen:("5019647,3764671,0")
+given idstd_graph_view_test_canvas(60, 50) given idstd_graph_view_test_look(30, 20) given idstd_graph_view_test_look(8, 20) given idstd_graph_view_test_look(9, 20) (1, [10, 10, 40, 24], 5019647, 4, 1):() then idstd_graph_view_test_seen:("5019647,14688298,14688298")
+given idstd_graph_view_test_canvas(60, 50) given idstd_graph_view_test_look(10, 10) given idstd_graph_view_test_look(15, 20) (10, [10, 10, 14, 24], 5019647, 4, 0):() then idstd_graph_view_test_seen:("5019647,5019647")
+given idstd_graph_view_test_canvas(60, 50) given idstd_graph_view_test_look(30, 20) (7, [10, 10, 40, 24], 5019647, 4, 0):() then idstd_graph_view_test_seen:("0")
+given idstd_graph_view_test_canvas(60, 50) given idstd_graph_view_test_look(30, 20) (8, [10, 10, 40, 24], 5019647, 4, 0):() then idstd_graph_view_test_seen:("0")
+
+editor_round(int[] bel_row_number, int editor_integer_face, int editor_integer_rad) {
+  draw_rounded_rectangle(bel_row_number[0], bel_row_number[1], bel_row_number[2], bel_row_number[3], editor_integer_rad, editor_dark(editor_integer_face));
+  draw_rounded_rectangle(bel_row_number[0] + 1, bel_row_number[1] + 1, bel_row_number[2] - 2, bel_row_number[3] - 2, fx_max(editor_integer_rad - 1, 0), editor_integer_face);
+} return void;
+given idstd_graph_view_test_canvas(60, 50) given idstd_graph_view_test_look(30, 20) given idstd_graph_view_test_look(10, 25) ([10, 10, 40, 24], 5019647, 4):() then idstd_graph_view_test_seen:("5019647,3764671")
+given idstd_graph_view_test_canvas(60, 50) given idstd_graph_view_test_look(11, 11) given idstd_graph_view_test_look(30, 11) ([10, 10, 40, 24], 255, 0):() then idstd_graph_view_test_seen:("255,255")

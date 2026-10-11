@@ -1,0 +1,40 @@
+// One body line. bkg_line tokenizes it and sends it by its first word
+// (conf.id's bkk_stmt): if, while and else are control statements, which
+// compile their blocks and answer the line after them (bkg_ctl); the rest are
+// single lines (bkg_simple). A line indented deeper than its block is
+// reported and skipped.
+
+generator_line(int block_function_row, int block_line_index, int block_level) {
+  string[] block_texts = lexer_tokens((import model_line_texts)[block_line_index]);
+  int block_mode = lst_str_index((import constant_statement), lst_str_get_or(block_texts, 0, ""));
+  int block_next_index = block_line_index + 1;
+} chain (int block_function_row, int block_line_index, int block_level) {
+  generator_start(block_line_index);
+  if ((import model_line_indents)[block_line_index] > block_level) {
+    generator_error("E0102", "unexpected indent; a block is indented once more than the line that opens it");
+  } else if (block_mode >= 0 && block_mode <= 2) {
+    block_next_index = generator_control(block_mode, block_texts, block_function_row, block_line_index, block_level);
+  }
+} chain (int block_function_row, int block_line_index, int block_level) {
+  if ((import model_line_indents)[block_line_index] <= block_level && (block_mode < 0 || block_mode > 2)) {
+    generator_simple(block_mode, block_texts, block_function_row);
+  }
+} return int block_next_index;
+given model_load("t.blk", "sprite S\nfn f() return void\n  int a = 1") given generator_initial (0, 2, 1):(3) then len((import generator_code)):(5)
+given model_load("t.blk", "sprite S\nfn f() return void\n    int a = 1") given generator_initial (0, 2, 1):(3) then len((import model_diagnostics)):(1) then len((import generator_code)):(0)
+
+generator_control(int block_mode, string[] block_texts, int block_function_row, int block_line_index, int block_level) {
+  int block_next_index = block_line_index + 1;
+  if (block_mode == 0) {
+    block_next_index = generator_if(block_texts, block_function_row, block_line_index, block_level);
+  }
+  if (block_mode == 1) {
+    block_next_index = generator_while(block_texts, block_function_row, block_line_index, block_level);
+  }
+} chain (int block_mode, string[] block_texts, int block_function_row, int block_line_index, int block_level) {
+  if (block_mode == 2) {
+    generator_error("E0102", "'else' must follow the block of an 'if' at the same indent");
+  }
+} return int block_next_index;
+given model_load("t.blk", "sprite S\nfn f() return void\n  if 1\n    int a = 1") given generator_initial (0, ["if", "1"], 0, 2, 1):(4)
+given model_load("t.blk", "sprite S\nfn f() return void\n  else") given generator_initial (2, ["else"], 0, 2, 1):(3)

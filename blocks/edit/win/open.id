@@ -1,0 +1,35 @@
+// The window mode: opens a 960 by 600 window (when open is 1, so that a case can
+// run the rest without one), draws the session in it frame after frame until it is
+// closed, and closes it. Answers 0, or 1 after naming on stderr that no window
+// could be opened.
+
+editor_win(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_open) {
+  fx_trig_init();
+  sf_l_init(960, 600);
+  txt_g8_init();
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_open) {
+  int editor_integer_ok = editor_integer_open;
+  if (editor_integer_open == 1) {
+    editor_integer_ok = gfx_open(960, 600, "blocks");
+  }
+  int editor_integer_count = editor_loop(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_integer_ok, 0 - 1);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_open) {
+  int editor_integer_record_count = editor_closed(editor_integer_open, editor_integer_ok);
+} return int editor_integer_record_count;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 0):(0)
+given editor_test_session("sprite S\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 0):(0) then editor_test_look:("doc 2 diag 0 pal 7 boxes 1 sprites S pan 16,16")
+
+editor_closed(int editor_integer_open, int editor_integer_ok) {
+  int editor_integer_gone = 0;
+  if (editor_integer_open == 1) {
+    editor_integer_gone = gfx_close();
+  }
+  if (editor_integer_open == 1 && editor_integer_ok == 0) {
+    eprint("blocks: no window could be opened; run it where a display is (DISPLAY or WAYLAND_DISPLAY), or use edit --script with --render-after");
+  }
+} chain (int editor_integer_open, int editor_integer_ok) {
+  int editor_integer_record_count = editor_integer_open * (1 - editor_integer_ok);
+} return int editor_integer_record_count;
+(0, 0):(0)
+(1, 1):(0)
+(1, 0):(1) then eprints:("blocks: no window could be opened; run it where a display is (DISPLAY or WAYLAND_DISPLAY), or use edit --script with --render-after\n")

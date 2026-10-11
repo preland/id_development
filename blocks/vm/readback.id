@@ -1,0 +1,22 @@
+// Read-backs for the cases of the machine's functions: the thread table as
+// 'N:' and its cells joined by commas, and the lines said so far joined by a
+// bar. A case of a function that reaches the table only through a callee
+// names one of these as its 'then' check.
+
+machine_threads() {
+  string block_text = len((import machine_thread)) + "#" + lst_text((import machine_thread), ";");
+} return string block_text;
+given model_initial given generator_initial given machine_boot ():("0#")
+given model_initial given generator_initial given machine_boot given lst_extend((import machine_thread), [1, 2]) ():("2#1;2")
+
+machine_outs() {
+  string block_text = str_join((import machine_out), "/");
+} return string block_text;
+given model_initial given generator_initial given machine_boot ():("")
+given model_initial given generator_initial given machine_boot given lst_str_extend((import machine_out), ["a", "b"]) ():("a/b")
+
+machine_registers() {
+  string block_text = "r=" + lst_text((import machine_registers_group), "_");
+} return string block_text;
+given model_initial given generator_initial given machine_boot ():("r=0_0_0")
+given model_initial given generator_initial given machine_boot given lset((import machine_registers_group), 2, 5) ():("r=0_0_5")

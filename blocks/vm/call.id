@@ -1,0 +1,55 @@
+// Calling and returning. A call pushes a frame record on the thread's part of
+// the call stack (the return pc, the caller's frame pointer and the slot the
+// result goes to), copies the argument slots into the first slots of the new
+// frame (bkv_args), and makes the new frame the thread's. A return takes the
+// record off, puts the result in the slot the call named and goes back; the
+// return of a thread's first frame ends the thread (bkv_finish). Whether the
+// call is too deep, and where the new frame goes, is the caller's to decide.
+
+machine_arguments(float[] block_value_list, int block_frame_pointer, int block_new_frame_pointer, int block_second, int block_parameter_count) {
+  int block_index = 0;
+  while (block_index < block_parameter_count) {
+    block_value_list[block_new_frame_pointer + block_index] = block_value_list[block_frame_pointer + block_second + block_index];
+    block_index = block_index + 1;
+  }
+} return void;
+([5.0, 6.0, 0.0, 0.0, 0.0, 0.0], 0, 4, 0, 2):([5.0, 6.0, 0.0, 0.0, 5.0, 6.0])
+([5.0, 6.0, 7.0, 0.0, 0.0, 0.0], 0, 4, 2, 1):([5.0, 6.0, 7.0, 0.0, 7.0, 0.0])
+([1.0, 2.0, 3.0], 0, 2, 0, 0):([1.0, 2.0, 3.0])
+
+machine_enter(int[] block_thread, int[] block_call_stack_cells, int[] block_function_table, float[] block_value_list, int block_thread_slot, int block_delta, int block_function, int block_second, int block_next_index, int block_new_frame_pointer) {
+  int block_row = block_thread_slot * (import constant_thread_count);
+  int block_frame_pointer = block_thread[block_row + (import constant_thread_frame_pointer)];
+  int block_depth = block_thread[block_row + (import constant_thread_data_pointer)];
+} chain (int[] block_thread, int[] block_call_stack_cells, int[] block_function_table, float[] block_value_list, int block_thread_slot, int block_delta, int block_function, int block_second, int block_next_index, int block_new_frame_pointer) {
+  int block_base = block_thread_slot * (import constant_call_stack_count) + block_depth * (import constant_call_stack_cell);
+  lset(block_call_stack_cells, block_base, block_next_index);
+  lset(block_call_stack_cells, block_base + 1, block_frame_pointer);
+} chain (int[] block_thread, int[] block_call_stack_cells, int[] block_function_table, float[] block_value_list, int block_thread_slot, int block_delta, int block_function, int block_second, int block_next_index, int block_new_frame_pointer) {
+  lset(block_call_stack_cells, block_base + 2, block_delta);
+  int block_parameter_count = block_function_table[block_function * (import constant_function_table_count) + (import constant_function_table_parameter_count)];
+  machine_arguments(block_value_list, block_frame_pointer, block_new_frame_pointer, block_second, block_parameter_count);
+} chain (int[] block_thread, int[] block_call_stack_cells, int[] block_function_table, float[] block_value_list, int block_thread_slot, int block_delta, int block_function, int block_second, int block_next_index, int block_new_frame_pointer) {
+  lset(block_thread, block_row + (import constant_thread_data_pointer), block_depth + 1);
+  lset(block_thread, block_row + (import constant_thread_frame_pointer), block_new_frame_pointer);
+} return void;
+([0, 0, 0, 1, 0, 0], [0, 0, 0], [20, 1, 1, 0], [4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 0, 7, 0, 0, 55, 11):([0, 11, 1, 1, 0, 0], [55, 0, 7], [20, 1, 1, 0], [4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0])
+([0, 3, 1, 1, 0, 0], [55, 0, 7, 0, 0, 0], [20, 0, 0, 0], [0.0, 0.0, 0.0], 0, 2, 0, 0, 9, 6):([0, 6, 2, 1, 0, 0], [55, 0, 7, 9, 3, 2], [20, 0, 0, 0], [0.0, 0.0, 0.0])
+
+machine_leave(int[] block_thread, int[] block_call_stack_cells, float[] block_value_list, int block_thread_slot, int block_first_value) {
+  int block_row = block_thread_slot * (import constant_thread_count);
+  int block_frame_pointer = block_thread[block_row + (import constant_thread_frame_pointer)];
+  int block_depth = block_thread[block_row + (import constant_thread_data_pointer)];
+} chain (int[] block_thread, int[] block_call_stack_cells, float[] block_value_list, int block_thread_slot, int block_first_value) {
+  int block_base = block_thread_slot * (import constant_call_stack_count) + (block_depth - 1) * (import constant_call_stack_cell);
+  int block_caller_frame_pointer = block_call_stack_cells[block_base + 1];
+  int block_destination_slot = block_call_stack_cells[block_base + 2];
+} chain (int[] block_thread, int[] block_call_stack_cells, float[] block_value_list, int block_thread_slot, int block_first_value) {
+  if (block_first_value >= 0) {
+    block_value_list[block_caller_frame_pointer + block_destination_slot] = block_value_list[block_frame_pointer + block_first_value];
+  }
+  lset(block_thread, block_row + (import constant_thread_data_pointer), block_depth - 1);
+  lset(block_thread, block_row + (import constant_thread_frame_pointer), block_caller_frame_pointer);
+} return void;
+([0, 4, 1, 1, 0, 0], [55, 0, 2], [0.0, 0.0, 0.0, 0.0, 9.0], 0, -1):([0, 0, 0, 1, 0, 0], [55, 0, 2], [0.0, 0.0, 0.0, 0.0, 9.0])
+([0, 4, 1, 1, 0, 0], [55, 0, 2], [0.0, 0.0, 0.0, 0.0, 9.0], 0, 0):([0, 0, 0, 1, 0, 0], [55, 0, 2], [0.0, 0.0, 9.0, 0.0, 9.0])

@@ -1,0 +1,28 @@
+// Test setups for the drops: bke_t_pick makes a category the palette's (rebuilding
+// it) and takes hold of one of its blocks, bke_t_hold takes hold of the block of a
+// line of the document, as a press and a drag would have.
+
+editor_test_pick(int editor_integer_tab, int editor_integer_key_code) {
+  int[] bel_state = (import editor_test_integers)[(import constant_y_state)];
+  bel_state[(import constant_session_tab)] = editor_integer_tab;
+  editor_refill_palette((import editor_test_strings), (import editor_test_integers));
+} chain (int editor_integer_tab, int editor_integer_key_code) {
+  bel_state[(import constant_session_grab_kind)] = (import constant_grab_pal);
+  bel_state[(import constant_session_anchor)] = editor_integer_key_code;
+} return void;
+given editor_test_session("sprite S\n") (1, 2):() then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=1 sprite S|")
+given editor_test_session("sprite S\n") (3, 0):() then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=3 sprite S|")
+
+editor_test_hold(int editor_integer_line) {
+  int[] bel_state = (import editor_test_integers)[(import constant_y_state)];
+  bel_state[(import constant_session_grab_kind)] = (import constant_grab_block);
+  bel_state[(import constant_session_anchor)] = editor_integer_line;
+} return void;
+given editor_test_session("sprite S\n") (3):() then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=0 sprite S|")
+given editor_test_session("sprite S\n") (0):() then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=0 sprite S|")
+
+editor_test_at(int editor_integer_x, int editor_integer_y) {
+  int editor_integer_bits = editor_motion((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), editor_integer_x, editor_integer_y, 0);
+} return void;
+given editor_test_session("sprite S\n") (300, 200):() then editor_test_grip:("gk=0 ga=0 gp=-1 gd=0 at=0,0 pan=0")
+given editor_test_session("sprite S\n") (50, 50):() then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=0 sprite S|")

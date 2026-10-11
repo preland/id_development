@@ -1,0 +1,44 @@
+// Values as text, the way id would print them: an int in decimal, a float
+// with id's six significant digits (so 2.0 shows as 2), a string in double
+// quotes with its escapes, a list in brackets with its elements shown by the
+// element type. The type code says which; the machine's values do not.
+// The dump and the test runner both compare and print through this.
+
+machine_show_list(float[][] block_pool_list, string[] block_pool, int block_element_type_code, int block_height) {
+  string[] block_items = [];
+  int block_index = 0;
+  while (block_index < len(block_pool_list[block_height])) {
+    push(block_items, machine_show(block_pool_list, block_pool, block_element_type_code, block_pool_list[block_height][block_index]));
+    block_index = block_index + 1;
+  }
+} chain (float[][] block_pool_list, string[] block_pool, int block_element_type_code, int block_height) {
+  string block_text = "[" + str_join(block_items, ", ") + "]";
+} return string block_text;
+([[1.0, 2.0]], [], 1, 0):("[1, 2]")
+([[]], [], 2, 0):("[]")
+([[0.0, 1.0]], ["a", "b"], 3, 0):("[\"a\", \"b\"]")
+([[0.5]], [], 2, 0):("[0.5]")
+
+machine_show(float[][] block_pool_list, string[] block_pool, int block_type, float block_value) {
+  int block_height = block_value;
+  string block_text = "";
+  if (block_type == (import constant_type_integer)) {
+    block_text = "" + block_height;
+  }
+} chain (float[][] block_pool_list, string[] block_pool, int block_type, float block_value) {
+  if (block_type == (import constant_type_float)) {
+    block_text = "" + block_value;
+  }
+  if (block_type == (import constant_type_string)) {
+    block_text = str_quote(block_pool[block_height]);
+  }
+  if (block_type >= (import constant_type_integer_list)) {
+    block_text = machine_show_list(block_pool_list, block_pool, block_type - (import constant_type_list), block_height);
+  }
+} return string block_text;
+([], [], 1, 42.0):("42")
+([], [], 2, 2.0):("2")
+([], [], 2, 0.25):("0.25")
+([], ["x\"y"], 3, 0.0):("\"x\\\"y\"")
+([[3.0]], [], 4, 0.0):("[3]")
+([], [], 0, 5.0):("")

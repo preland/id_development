@@ -1,0 +1,41 @@
+// The .blk text that runs a test case, so the compiler and the machine need
+// no special support for it. bkr_casetext writes __c, which sets the givens
+// and calls the function under test (returning its value, if it has one);
+// bkr_wanttext writes __e, which returns the expected value; bkr_thentext
+// writes, for each then clause, __t that returns the variable and __w that
+// returns the value it should have. The functions come in that order, one row
+// of the model each.
+
+runner_case_text(int block_function_row, string[] block_as) {
+  string block_type_names = (import constant_type_full)[(import model_function_return_types)[block_function_row]];
+  string block_call = (import model_function_names)[block_function_row] + "(" + runner_pick(block_as, "A|", "") + ")";
+  string block_text = "fn __c() return " + block_type_names + "\n" + runner_givens(block_as);
+} chain (int block_function_row, string[] block_as) {
+  if ((import model_function_return_types)[block_function_row] == (import constant_type_void)) {
+    block_text = block_text + "  " + block_call + "\n";
+  } else {
+    block_text = block_text + "  " + block_type_names + " __r = " + block_call + "\n  return __r\n";
+  }
+} return string block_text;
+given model_load("t.blk", "sprite S\nfn f(int a) return int\nfn g() return void") (0, ["G|n = 5", "A|2", "E|7"]):("fn __c() return int\n  n = 5\n  int __r = f(2)\n  return __r\n")
+given model_load("t.blk", "sprite S\nfn f(int a) return int\nfn g() return void") (1, ["A|", "E|"]):("fn __c() return void\n  g()\n")
+
+runner_wanted_text(int block_function_row, string[] block_as) {
+  string block_text = "";
+  if ((import model_function_return_types)[block_function_row] != (import constant_type_void)) {
+    block_text = "fn __e() return " + (import constant_type_full)[(import model_function_return_types)[block_function_row]] + "\n  return " + runner_pick(block_as, "E|", "0") + "\n";
+  }
+} return string block_text;
+given model_load("t.blk", "sprite S\nfn f(int a) return int\nfn g() return void") (0, ["E|7"]):("fn __e() return int\n  return 7\n")
+given model_load("t.blk", "sprite S\nfn f(int a) return int\nfn g() return void") (1, ["E|"]):("")
+
+runner_then_text(string[] block_as) {
+  string block_text = "";
+  int block_index = 0;
+  while (block_index < len(block_as)) {
+    block_text = block_text + runner_then_one(block_as[block_index]);
+    block_index = block_index + 1;
+  }
+} return string block_text;
+given model_initial (["T|n|6", "A|1"]):("fn __t() return int\n  return n\nfn __w() return int\n  return 6\n")
+given model_initial (["A|1", "G|x = 1"]):("")

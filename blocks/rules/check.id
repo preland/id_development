@@ -1,0 +1,41 @@
+// The structural rule checker: id's limits applied to a loaded program, each
+// violation reported with the error code id gives the same mistake. bkc_each
+// runs one pass over every row below n; bkc_pages counts functions per
+// sprite; bkc_check runs every pass, in the order the codes are numbered.
+
+checker_each(int block_count, func(int) return void block_pass) {
+  int block_index = 0;
+  while (block_index < block_count) {
+    block_pass(block_index);
+    block_index = block_index + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn a() return void\nfn a() return void\nfn a() return void") (3, checker_twice):() then len((import model_diagnostics)):(2)
+given model_load("t.blk", "sprite S\nfn a() return void\nfn a() return void") (1, checker_twice):() then len((import model_diagnostics)):(0)
+
+checker_pages() {
+  int[] block_counter = lst_filled(len((import model_sprite_names)), 0);
+  int block_function_row = 0;
+  while (block_function_row < len((import model_function_names))) {
+    checker_page(block_counter, block_function_row);
+    block_function_row = block_function_row + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn a() return void\nfn b() return void\nfn c() return void\nfn d() return void\nfn e() return void") ():() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn a() return void\nsprite T\nfn b() return void") ():() then len((import model_diagnostics)):(0)
+
+checker_check() {
+  checker_each(len((import model_function_names)), checker_function);
+  checker_pages();
+  checker_names();
+} chain () {
+  checker_each(len((import model_function_names)), checker_twice);
+  checker_each(len((import model_function_names)), checker_function_cases);
+  checker_each(len((import model_cat)), checker_same_case);
+} chain () {
+  checker_each(len((import model_function_names)), checker_reserved);
+  checker_duplicates();
+  checker_main();
+} return void;
+given model_load("t.blk", "sprite S\nfn f() return void\n  a = 1\n  b = 2\n  c = 3\n  d = 4\n(): ()") ():() then len((import model_diagnostics)):(2)
+given model_load("t.blk", "sprite S\nfn f() return void\n  a = 1\n(): ()\n(1): ()") ():() then len((import model_diagnostics)):(0)

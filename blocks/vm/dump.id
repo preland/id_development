@@ -1,0 +1,37 @@
+// The final state of a run as lines of text: each sprite's position,
+// direction, size and visibility, and each variable's value (shown by its
+// type). The sprite __sys, which holds the generated scripts, is left out.
+
+machine_dump_sprite(string[] block_lists, int block_row) {
+  int block_second = block_row * (import constant_sprite_count);
+  float[] block_sprite_state_list = (import machine_sprite_state);
+  push(block_lists, (import model_sprite_names)[block_row] + ": x=" + block_sprite_state_list[block_second] + " y=" + block_sprite_state_list[block_second + 1] + " dir=" + block_sprite_state_list[block_second + 2] + " size=" + block_sprite_state_list[block_second + 3] + " visible=" + block_sprite_state_list[block_second + 4]);
+} return void;
+given model_load("t.blk", "sprite Cat") given generator_initial given machine_boot ([], 0):(["Cat: x=0 y=0 dir=90 size=100 visible=1"], 0)
+given model_load("t.blk", "sprite A\nsprite B") given generator_initial given machine_boot given machine_motion((import machine_sprite_state), 6, 3, 2.5, 4.0) ([], 1):(["B: x=2.5 y=4 dir=90 size=100 visible=1"], 1)
+
+machine_dump_variable(string[] block_lists, int block_variable_row) {
+  string block_shown = machine_show((import machine_lists), (import machine_sprite_list), (import model_variable_types)[block_variable_row], (import machine_gl)[block_variable_row]);
+  push(block_lists, (import model_variable_names)[block_variable_row] + " = " + block_shown);
+} return void;
+given model_load("t.blk", "sprite A\nvar int n\nvar string s") given generator_initial given machine_boot ([], 0):(["n = 0"], 0)
+given model_load("t.blk", "sprite A\nvar int n\nvar float f") given generator_initial given machine_boot ([], 1):(["f = 0"], 1)
+
+machine_dump() {
+  string[] block_lists = [];
+  int block_index = 0;
+  while (block_index < len((import model_sprite_names))) {
+    if ((import model_sprite_names)[block_index] != (import constant_system)) {
+      machine_dump_sprite(block_lists, block_index);
+    }
+    block_index = block_index + 1;
+  }
+} chain () {
+  block_index = 0;
+  while (block_index < len((import model_variable_names))) {
+    machine_dump_variable(block_lists, block_index);
+    block_index = block_index + 1;
+  }
+} return string[] block_lists;
+given model_load("t.blk", "sprite A\nvar int n") given generator_initial given machine_boot ():(["A: x=0 y=0 dir=90 size=100 visible=1", "n = 0"])
+given model_load("t.blk", "sprite __sys\nvar float f") given generator_initial given machine_boot ():(["f = 0"])

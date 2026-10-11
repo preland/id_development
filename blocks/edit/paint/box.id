@@ -1,0 +1,49 @@
+// One box of the layout on the surface. bke_flags says what is special about it: bit
+// 0 when a rule that its line breaks outlines it (the violations are kept as
+// the 1-based line they are on), bit 1 when it is the pill being typed into.
+// bke_shown is the text it shows (what has been typed, and a caret, for that pill).
+// bke_draw_box draws its body and then its text.
+
+editor_flags(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_key_code) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  int editor_integer_line_text = editor_matrix_layout[(import constant_layout_line)][editor_integer_key_code];
+  int editor_integer_kind = editor_matrix_layout[(import constant_layout_kind)][editor_integer_key_code];
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_key_code) {
+  int editor_integer_bad = (import constant_hot)[editor_integer_kind] == 1 && lst_index_of(editor_matrix_session[(import constant_y_diagnostic_lines)], editor_integer_line_text + 1) >= 0;
+  int editor_integer_typing = editor_integer_kind == (import constant_kind_pill) && bel_state[(import constant_session_editing)] == 1 && editor_integer_line_text == bel_state[(import constant_session_element)] && editor_matrix_layout[(import constant_layout_segment)][editor_integer_key_code] == bel_state[(import constant_session_edit_start)];
+  int editor_integer_bits = editor_integer_bad + 2 * editor_integer_typing;
+} return int editor_integer_bits;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 1):(1)
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 2):(0)
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 3):(0)
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 4):(2)
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 1):(1)
+
+editor_shown(string[][] editor_string_session, int editor_integer_key_code, int editor_integer_flags) {
+  string editor_string_text_list = editor_string_session[(import constant_z_text)][editor_integer_key_code];
+  if (editor_integer_flags / 2 % 2 == 1) {
+    editor_string_text_list = editor_string_session[(import constant_z_buffer)][0] + "_";
+  }
+} return string editor_string_text_list;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) given editor_test_string(2, "9") ((import editor_test_strings), 4, 2):("9_")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), 4, 0):("10.0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), 1, 1):("define f() return void")
+
+editor_draw_box(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_key_code) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  int[] bel_row_number = editor_rect(editor_matrix_layout, bel_state, editor_integer_key_code);
+  int editor_integer_field = editor_flags(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_integer_key_code);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_key_code) {
+  int editor_integer_kind = editor_matrix_layout[(import constant_layout_kind)][editor_integer_key_code];
+  int editor_integer_cat = editor_matrix_layout[(import constant_layout_cat)][editor_integer_key_code];
+  int editor_integer_face = editor_face_color(editor_integer_kind, editor_integer_cat) + editor_integer_field / 2 % 2 * ((import constant_x_typing) - editor_face_color(editor_integer_kind, editor_integer_cat));
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_key_code) {
+  int editor_integer_rad = fx_max(graph_view_screen(4, 0, bel_state[(import graph_view_state_zoom)]), 1);
+  editor_shape(editor_integer_kind, bel_row_number, editor_integer_face, editor_integer_rad, editor_integer_field % 2);
+  editor_words(editor_shown(editor_string_session, editor_integer_key_code, editor_integer_field), editor_integer_kind, editor_integer_cat, bel_row_number, bel_state[(import graph_view_state_zoom)]);
+} return void;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(210, 70) given idstd_graph_view_test_look(206, 127) given idstd_graph_view_test_look(252, 130) given idstd_graph_view_test_look(203, 100) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 0):() then idstd_graph_view_test_seen:("5725813,0,0,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(210, 70) given idstd_graph_view_test_look(206, 127) given idstd_graph_view_test_look(252, 130) given idstd_graph_view_test_look(203, 100) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 2):() then idstd_graph_view_test_seen:("0,5019647,5019647,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(210, 70) given idstd_graph_view_test_look(206, 127) given idstd_graph_view_test_look(252, 130) given idstd_graph_view_test_look(203, 100) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 4):() then idstd_graph_view_test_seen:("0,0,16777215,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(210, 70) given idstd_graph_view_test_look(206, 127) given idstd_graph_view_test_look(252, 130) given idstd_graph_view_test_look(203, 100) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 1):() then idstd_graph_view_test_seen:("0,0,0,14688298")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given editor_test_begin(4) given idstd_graph_view_test_look(252, 130) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 4):() then idstd_graph_view_test_seen:("16774338")

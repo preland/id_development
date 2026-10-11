@@ -1,0 +1,43 @@
+// The pieces of a row, left to right. Piece k of a block line is text for even
+// k and a pill (a slot) for odd k; text that is empty is not drawn, a pill
+// always is. bke_pw is the width of one, bke_wide the width of a whole row of
+// them, and bke_lay_piece puts one box where the row's cursor is.
+
+editor_pixel_width(string editor_string_text_list, int editor_integer_key_code) {
+  int editor_integer_width = len(editor_string_text_list) * (import constant_metric_character_width) + editor_integer_key_code % 2 * (import constant_metric_pill_add);
+} return int editor_integer_width;
+("move", 0):(32)
+("10", 1):(26)
+("", 1):(10)
+
+editor_wide(string[] bet_pieces) {
+  int editor_integer_width = 2 * (import constant_metric_pad) - (import constant_metric_gap);
+  int editor_integer_key_code = 0;
+  while (editor_integer_key_code < len(bet_pieces)) {
+    editor_integer_width = editor_integer_width + (bet_pieces[editor_integer_key_code] != "" || editor_integer_key_code % 2 == 1) * (editor_pixel_width(bet_pieces[editor_integer_key_code], editor_integer_key_code) + (import constant_metric_gap));
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+} return int editor_integer_width;
+(["move", "10.0", ""]):(96)
+(["", "1", ""]):(34)
+(["else"]):(48)
+
+editor_lay_piece(int[][] editor_matrix_layout, string[] bet_texts, string editor_string_text_list, int editor_integer_key_code, int editor_integer_line, int editor_integer_pixel_x, int editor_integer_y, int editor_integer_indent) {
+  int editor_integer_pill = editor_integer_key_code % 2;
+  int editor_integer_height = (import constant_metric_character_width) + editor_integer_pill * ((import constant_metric_pill_height) - (import constant_metric_character_width));
+  int editor_integer_width = editor_pixel_width(editor_string_text_list, editor_integer_key_code);
+} chain (int[][] editor_matrix_layout, string[] bet_texts, string editor_string_text_list, int editor_integer_key_code, int editor_integer_line, int editor_integer_pixel_x, int editor_integer_y, int editor_integer_indent) {
+  int editor_integer_cat = (import constant_cat_lit);
+  int editor_integer_segment = editor_integer_pill * ((editor_integer_key_code - 1) / 2) - (1 - editor_integer_pill);
+  if (editor_integer_pill == 1) {
+    editor_integer_cat = editor_pill_category(editor_string_text_list);
+  }
+} chain (int[][] editor_matrix_layout, string[] bet_texts, string editor_string_text_list, int editor_integer_key_code, int editor_integer_line, int editor_integer_pixel_x, int editor_integer_y, int editor_integer_indent) {
+  if (editor_string_text_list != "" || editor_integer_pill == 1) {
+    editor_box(editor_matrix_layout, bet_texts, [(import constant_kind_label) + editor_integer_pill, editor_integer_pixel_x, editor_integer_y + ((import constant_metric_row_height) - editor_integer_height) / 2, editor_integer_width, editor_integer_height, editor_integer_line, editor_integer_cat, editor_integer_indent, editor_integer_segment, 0], editor_string_text_list);
+    editor_integer_pixel_x = editor_integer_pixel_x + editor_integer_width + (import constant_metric_gap);
+  }
+} return int editor_integer_pixel_x;
+([[], [], [], [], [], [], [], [], [], []], [], "move", 0, 3, 8, 0, 1):(46)
+([[], [], [], [], [], [], [], [], [], []], [], "", 2, 3, 8, 0, 1):(8)
+([[], [], [], [], [], [], [], [], [], []], [], "10", 3, 3, 40, 24, 2):(72)

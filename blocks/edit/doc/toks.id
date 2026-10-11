@@ -1,0 +1,38 @@
+// The editor reads the text of a block line with the tokenizer the checker uses
+// (lex/), so a pill ends exactly where the language says an expression part
+// ends, and never at a comma or a bracket inside a string.
+
+editor_token_first(string editor_string_unit, int editor_integer_index) {
+  int editor_integer_session = str_skip_space(editor_string_unit, editor_integer_index);
+  int editor_integer_end_index = lexer_end(editor_string_unit, editor_integer_session);
+  int[] bel_position = [editor_integer_session, editor_integer_end_index];
+} return int[] bel_position;
+("ab cd", 0):([0, 2])
+("ab cd", 2):([3, 5])
+("  ", 0):([2, 2])
+
+editor_nests(string[] bet_titles) {
+  int[] bel_count = [];
+  int editor_integer_key_code = 0;
+  while (editor_integer_key_code < len(bet_titles)) {
+    push(bel_count, (bet_titles[editor_integer_key_code] == "(") + (bet_titles[editor_integer_key_code] == "[") - (bet_titles[editor_integer_key_code] == ")") - (bet_titles[editor_integer_key_code] == "]"));
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+} return int[] bel_count;
+(["f", "(", "a", "[", "0", "]", ")"]):([0, 1, 0, 1, 0, -1, -1])
+(["[", "]"]):([1, -1])
+
+editor_depths(string[] bet_titles) {
+  int[] bel_count = editor_nests(bet_titles);
+  int[] bel_delta = [];
+  int editor_integer_delta = 0;
+} chain (string[] bet_titles) {
+  int editor_integer_key_code = 0;
+  while (editor_integer_key_code < len(bel_count)) {
+    editor_integer_delta = editor_integer_delta + bel_count[editor_integer_key_code];
+    push(bel_delta, editor_integer_delta - fx_max(bel_count[editor_integer_key_code], 0));
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+} return int[] bel_delta;
+(["f", "(", "a", "[", "0", "]", ")"]):([0, 0, 1, 1, 2, 1, 0])
+(["a", "=", "b"]):([0, 0, 0])

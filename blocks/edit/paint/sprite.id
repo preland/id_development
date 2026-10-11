@@ -1,0 +1,26 @@
+// One sprite on the stage: a disc of the colour of its place in the order and, when
+// it is visible, a line from its middle out in the direction it faces, and its
+// bubble when it has said something. The list under the stage names each sprite
+// with the colour it is drawn in and where it is.
+
+editor_draw_sprite(string[][] editor_string_session, int[][] editor_matrix_session, int editor_integer_index) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  int[] bel_geometry = editor_matrix_session[(import constant_y_sprite_state)];
+  int[] bel_position = editor_stage_point(bel_state, bel_geometry, editor_integer_index);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int editor_integer_index) {
+  int editor_integer_direction = bel_geometry[5 * editor_integer_index + 2];
+  int editor_integer_texts = bel_position[0] + bel_position[2] * 2 * fx_sin_deg(editor_integer_direction) / 1000;
+  int editor_integer_type = bel_position[1] - bel_position[2] * 2 * fx_cos_deg(editor_integer_direction) / 1000;
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int editor_integer_index) {
+  if (bel_geometry[5 * editor_integer_index + 4] == 1) {
+    draw_filled_circle(bel_position[0], bel_position[1], bel_position[2], (import constant_cat_column)[editor_integer_index % (import constant_metric_tabs)]);
+    draw_line(bel_position[0], bel_position[1], editor_integer_texts, editor_integer_type, (import constant_x_ink));
+  }
+  if (bel_geometry[5 * editor_integer_index + 4] == 1 && editor_string_session[(import constant_z_says)][editor_integer_index] != "") {
+    editor_draw_bubble(editor_string_session[(import constant_z_says)][editor_integer_index], bel_position, bel_state[(import graph_view_state_width)] - (import constant_metric_stage) + (import constant_metric_stage_margin));
+  }
+} return void;
+given editor_test_session("sprite A\nsprite B\n") given idstd_graph_view_test_canvas(960, 600) given fx_trig_init given idstd_graph_view_test_look(810, 150) given idstd_graph_view_test_look(818, 150) given idstd_graph_view_test_look(826, 150) ((import editor_test_strings), (import editor_test_integers), 0):() then idstd_graph_view_test_seen:("5725813,5725813,5725813")
+given editor_test_session("sprite A\nsprite B\n") given idstd_graph_view_test_canvas(960, 600) given fx_trig_init given editor_test_geometry(0, 0, 0, 100, 1) given idstd_graph_view_test_look(810, 140) given idstd_graph_view_test_look(818, 150) ((import editor_test_strings), (import editor_test_integers), 0):() then idstd_graph_view_test_seen:("5725813,5019647")
+given editor_test_session("sprite A\nsprite B\n") given idstd_graph_view_test_canvas(960, 600) given fx_trig_init given editor_test_geometry(0, 0, 90, 100, 0) given idstd_graph_view_test_look(810, 150) ((import editor_test_strings), (import editor_test_integers), 0):() then idstd_graph_view_test_seen:("0")
+given editor_test_session("sprite A\nsprite B\n") given idstd_graph_view_test_canvas(960, 600) given fx_trig_init given editor_test_say(1, "yo") given idstd_graph_view_test_look(810, 150) given idstd_graph_view_test_look(800, 125) ((import editor_test_strings), (import editor_test_integers), 1):() then idstd_graph_view_test_seen:("5725813,16777215")

@@ -1,0 +1,31 @@
+// E0203: a sprite's page holds at most three functions, the way a file does.
+// bkc_page counts function f against its sprite in bkc_cnt and reports the
+// fourth, at that function's header line. A function name used twice is
+// E0401, found by looking back from f for an earlier row with the same name.
+
+checker_page(int[] block_counter, int block_function_row) {
+  int block_sprite_row = (import model_function_sprites)[block_function_row];
+  block_counter[block_sprite_row] = block_counter[block_sprite_row] + 1;
+  if (block_counter[block_sprite_row] == (import constant_maximum_functions) + 1) {
+    model_error((import model_function_line)[block_function_row], "E0203", "sprite '" + (import model_sprite_names)[block_sprite_row] + "' has more than " + (import constant_maximum_functions) + " functions; move the extra ones to another sprite");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn a() return void\nfn b() return void\nfn c() return void\nfn d() return void") ([3, 0], 3):() then (import model_diagnostics):(["t.blk:5: error: sprite 'S' has more than 3 functions; move the extra ones to another sprite [E0203]"])
+given model_load("t.blk", "sprite S\nfn a() return void\nfn b() return void") ([0, 2], 1):() then len((import model_diagnostics)):(0)
+
+checker_twice(int block_function_row) {
+  int block_group = lst_str_index((import model_function_names), (import model_function_names)[block_function_row]);
+  if (block_group < block_function_row) {
+    model_error((import model_function_line)[block_function_row], "E0401", "function '" + (import model_function_names)[block_function_row] + "' is already defined at line " + (import model_function_line)[block_group] + "; a name means one function");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn a() return void\nfn a() return int") (1):() then (import model_diagnostics):(["t.blk:3: error: function 'a' is already defined at line 2; a name means one function [E0401]"])
+given model_load("t.blk", "sprite S\nfn a() return void\nfn b() return int") (1):() then len((import model_diagnostics)):(0)
+
+checker_reserved(int block_function_row) {
+  if (lst_str_index((import constant_builtin_name), (import model_function_names)[block_function_row]) >= 0) {
+    model_error((import model_function_line)[block_function_row], "E0401", "'" + (import model_function_names)[block_function_row] + "' is the name of a builtin block; a function needs a name of its own");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn say() return void") (0):() then model_diagnostic_list:("t.blk:2: error: 'say' is the name of a builtin block; a function needs a name of its own [E0401]")
+given model_load("t.blk", "sprite S\nfn speak() return void") (0):() then model_diagnostic_list:("")

@@ -1,0 +1,23 @@
+// The rule checker walks the model row by row. bkc_zero clears the part of
+// a per-level counter list from one level down, which is what ends the
+// blocks a new line closes; bkc_each (below) runs a pass over every row
+// number below n.
+
+checker_zero(int[] block_counter, int block_from) {
+  while (block_from < len(block_counter)) {
+    block_counter[block_from] = 0;
+    block_from = block_from + 1;
+  }
+} return void;
+([5, 5, 5], 1):([5, 0, 0])
+([5, 5], 2):([5, 5])
+([5, 5], 0):([0, 0])
+
+checker_count(int[] block_counter, int block_level, int block_cost) {
+  block_counter[block_level] = block_counter[block_level] + block_cost;
+  int block_count = block_counter[block_level];
+  checker_zero(block_counter, block_level + 1);
+} return int block_count;
+([0, 2, 7], 1, 1):(3)
+([0, 2, 7], 1, 0):(2)
+([0, 2, 7], 2, 1):(8)

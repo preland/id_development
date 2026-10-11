@@ -1,0 +1,38 @@
+// What is left to do after the reducer: bke_effects does the part of its answer that
+// is not a list. A changed document stops the program (the machine's tables are the
+// checker's too, so they are rebuilt) and is checked again; the flag starts the
+// program, stop stops it, save writes the file the session was opened from.
+// bke_step is the reducer and then this; it answers 1 when the picture is to be painted
+// again. It is what a window loop and a script both call.
+
+editor_effects(string[][] editor_string_session, int[][] editor_matrix_session, int editor_integer_bits) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  if (editor_integer_bits / 2 % 2 == 1) {
+    bel_state[(import constant_session_run)] = 0;
+    editor_check(editor_string_session, editor_matrix_session);
+  }
+  if (editor_integer_bits / 4 % 2 == 1) {
+    editor_launch(editor_string_session, editor_matrix_session);
+  }
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int editor_integer_bits) {
+  if (editor_integer_bits / 8 % 2 == 1) {
+    bel_state[(import constant_session_run)] = 0;
+  }
+  if (editor_integer_bits / 16 % 2 == 1) {
+    int editor_integer_record_count = editor_save(editor_string_session, editor_matrix_session, editor_string_session[(import constant_z_path)][0]);
+  }
+} return void;
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  say(\"hi\")\n  move(10.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") ((import editor_test_strings), (import editor_test_integers), 4):() then editor_test_stage:("names=S says= geo=0,0,90,100,1 run=1 fr=0")
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  say(\"hi\")\n  move(10.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") given editor_launch((import editor_test_strings), (import editor_test_integers)) ((import editor_test_strings), (import editor_test_integers), 8):() then editor_test_stage:("names=S says= geo=0,0,90,100,1 run=0 fr=0")
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  say(\"hi\")\n  move(10.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") given editor_launch((import editor_test_strings), (import editor_test_integers)) given editor_test_line(0, "sprite Z") ((import editor_test_strings), (import editor_test_integers), 3):() then editor_test_stage:("names=S says= geo=0,0,90,100,1 run=0 fr=0")
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  say(\"hi\")\n  move(10.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") given editor_test_cell(28, 1) ((import editor_test_strings), (import editor_test_integers), 16):() then editor_test_disk:("disk=sprite S\nfn main(int argc, string[] argv) return int\n  say(\"hi\")\n  move(10.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=0 sprite S|fn main(int argc, string[] argv) return int|  say(\"hi\")|  move(10.0)|  return 0|(1, [\"x\"]): (0)|(2, [\"x\", \"y\"]): (0)|")
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  say(\"hi\")\n  move(10.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") ((import editor_test_strings), (import editor_test_integers), 1):() then editor_test_stage:("names=S says= geo=0,0,90,100,1 run=0 fr=0")
+
+editor_step(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_kind, int editor_integer_first_value, int editor_integer_second, int editor_integer_column_number, int editor_integer_delta) {
+  int editor_integer_bits = editor_event(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_integer_kind, editor_integer_first_value, editor_integer_second, editor_integer_column_number, editor_integer_delta);
+  editor_effects(editor_string_session, editor_matrix_session, editor_integer_bits);
+  int editor_integer_paint = editor_integer_bits > 0;
+} return int editor_integer_paint;
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  say(\"hi\")\n  move(10.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") given editor_test_event(3, 200, 10, 1, 1) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 4, 200, 10, 1, 0):(1) then editor_test_stage:("names=S says= geo=0,0,90,100,1 run=1 fr=0")
+given editor_test_session("sprite S\nfn f() return void\n") given editor_test_event(3, 200, 10, 1, 1) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 4, 200, 10, 1, 0):(1) then editor_test_stage:("names=S says= geo=0,0,90,100,1 run=0 fr=0")
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  say(\"hi\")\n  move(10.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 3, 20, 130, 1, 1):(0) then editor_test_grip:("gk=2 ga=0 gp=-1 gd=0 at=20,130 pan=0")

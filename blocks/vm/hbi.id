@@ -1,0 +1,33 @@
+// The handler for builtin calls and the one for sprites and the clock. A
+// builtin's arguments sit in consecutive slots from a. bkv_hbi sends it by
+// conf.id's bkk_bi_grp to the sprite and clock builtins (world.id), the list
+// builtins, the text builtins or the conversions, each of which leaves a
+// runtime error in a trap list; bkv_world's answer is the pc to continue at
+// (-1 after a wait, which puts the thread to sleep).
+
+machine_handle_builtin(int block_thread_slot, int block_program_counter, int block_operation) {
+  int block_frame_pointer = (import machine_thread)[block_thread_slot * (import constant_thread_count) + (import constant_thread_frame_pointer)];
+  int block_identifier = (import generator_code)[block_program_counter + 4];
+  int block_group = (import constant_builtin_group)[block_identifier];
+} chain (int block_thread_slot, int block_program_counter, int block_operation) {
+  int[] block_thread_pointer = [0];
+  int block_next_index = block_program_counter + (import constant_integer_cell);
+  if (block_group == 0) {
+    block_next_index = machine_world(block_thread_slot, block_identifier, block_frame_pointer, (import generator_code)[block_program_counter + 1], (import generator_code)[block_program_counter + 2], block_next_index);
+  }
+} chain (int block_thread_slot, int block_program_counter, int block_operation) {
+  if (block_group == 1) {
+    machine_load_builtin((import machine_value_list), (import machine_lists), block_identifier, block_frame_pointer, (import generator_code)[block_program_counter + 1], (import generator_code)[block_program_counter + 2], block_thread_pointer);
+  }
+  if (block_group == 2) {
+    machine_test_builtin((import machine_value_list), (import machine_sprite_list), block_identifier, block_frame_pointer, (import generator_code)[block_program_counter + 1], (import generator_code)[block_program_counter + 2], block_thread_pointer);
+  }
+  if (block_group == 3) {
+    machine_call_builtin((import machine_value_list), (import machine_sprite_list), (import machine_lists), block_identifier, block_frame_pointer, (import generator_code)[block_program_counter + 1], (import generator_code)[block_program_counter + 2]);
+  }
+} chain (int block_thread_slot, int block_program_counter, int block_operation) {
+  int block_record = machine_after(block_thread_pointer, block_next_index);
+} return int block_record;
+given model_initial given generator_initial given lst_extend((import generator_code), [14, 1, 0, 0, 12]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 2) given machine_call_builtin((import machine_value_list), (import machine_sprite_list), (import machine_lists), 26, 0, 0, 0) (0, 0, 14):(5) then (import machine_value_list)[1]:(0.0)
+given model_initial given generator_initial given lst_extend((import generator_code), [14, 1, 0, 0, 14]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 2) given machine_call_builtin((import machine_value_list), (import machine_sprite_list), (import machine_lists), 26, 0, 0, 0) (0, 0, 14):(-14)
+given model_initial given generator_initial given lst_extend((import generator_code), [14, 1, 0, 0, 26]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 2) (0, 0, 14):(5) then len((import machine_lists)):(1)

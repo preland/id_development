@@ -1,0 +1,33 @@
+// The handlers for arithmetic and jumps. The ALU ops (int, float, string)
+// are told apart by the opcode; a jump reads its slot and target and
+// answers the pc to continue at.
+
+machine_handle_operation(int block_thread_slot, int block_program_counter, int block_operation) {
+  int block_frame_pointer = (import machine_thread)[block_thread_slot * (import constant_thread_count) + (import constant_thread_frame_pointer)];
+  int[] block_thread_pointer = [0];
+  int block_next_index = block_program_counter + (import constant_integer_cell);
+} chain (int block_thread_slot, int block_program_counter, int block_operation) {
+  if (block_operation == (import constant_opcode_integer_operation)) {
+    machine_integer_operation((import machine_value_list), block_frame_pointer, (import generator_code)[block_program_counter + 1], (import generator_code)[block_program_counter + 2], (import generator_code)[block_program_counter + 3], (import generator_code)[block_program_counter + 4], block_thread_pointer);
+  }
+  if (block_operation == (import constant_opcode_float_operation)) {
+    machine_float_operation((import machine_value_list), block_frame_pointer, (import generator_code)[block_program_counter + 1], (import generator_code)[block_program_counter + 2], (import generator_code)[block_program_counter + 3], (import generator_code)[block_program_counter + 4]);
+  }
+  if (block_operation == (import constant_opcode_string_operation)) {
+    machine_string_operation((import machine_value_list), (import machine_sprite_list), block_frame_pointer, (import generator_code)[block_program_counter + 1], (import generator_code)[block_program_counter + 2], (import generator_code)[block_program_counter + 3], (import generator_code)[block_program_counter + 4]);
+  }
+} chain (int block_thread_slot, int block_program_counter, int block_operation) {
+  int block_record = machine_after(block_thread_pointer, block_next_index);
+} return int block_record;
+given model_initial given generator_initial given lst_extend((import generator_code), [5, 2, 0, 1, 0]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 3) (0, 0, 5):(5) then (import machine_value_list)[2]:(0.0)
+given model_initial given generator_initial given lst_extend((import generator_code), [5, 2, 0, 1, 3]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 3) (0, 0, 5):(-11)
+given model_initial given generator_initial given lst_extend((import generator_code), [7, 3, 0, 1, 0]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given lst_str_extend((import machine_sprite_list), ["ab", "cd"]) given machine_grow((import machine_value_list), 4) given machine_call_builtin((import machine_value_list), (import machine_sprite_list), (import machine_lists), 18, 0, 0, 0) (0, 0, 7):(5) then (import machine_value_list)[3]:(2.0) then (import machine_sprite_list)[2]:("abab")
+given model_initial given generator_initial given lst_extend((import generator_code), [6, 2, 0, 1, 2]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 3) given machine_move((import machine_value_list), (import machine_gl), (import generator_float_constants), 1, 0, 0, 0, 3) given machine_move((import machine_value_list), (import machine_gl), (import generator_float_constants), 1, 0, 1, 0, 4) (0, 0, 6):(5) then (import machine_value_list)[2]:(12.0)
+
+machine_handle_jump(int block_thread_slot, int block_program_counter, int block_operation) {
+  int block_frame_pointer = (import machine_thread)[block_thread_slot * (import constant_thread_count) + (import constant_thread_frame_pointer)];
+  int block_next_index = block_program_counter + (import constant_integer_cell);
+  int block_record = machine_jump((import machine_value_list), block_frame_pointer, block_operation, (import generator_code)[block_program_counter + 2], (import generator_code)[block_program_counter + 4], block_next_index);
+} return int block_record;
+given model_initial given generator_initial given lst_extend((import generator_code), [8, 0, 0, 0, 30]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 3) (0, 0, 8):(30)
+given model_initial given generator_initial given lst_extend((import generator_code), [9, 0, 1, 0, 30]) given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 3) (0, 0, 10):(5)

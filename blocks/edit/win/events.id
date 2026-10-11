@@ -1,0 +1,28 @@
+// The part of a frame that takes in what happened: every waiting event, given to the
+// session in turn (bke_step).
+
+editor_take(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int[] bel_event) {
+  int editor_integer_paint = editor_step(editor_string_session, editor_matrix_session, editor_matrix_layout, bel_event[0], bel_event[1], bel_event[2], bel_event[3], bel_event[4]);
+} return int editor_integer_paint;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), [5, 300, 200, 0, 0]):(1)
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), [9, 3, 4, 0, 0]):(0)
+
+editor_events(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_character_code) {
+  int[] bel_event = [0, 0, 0, 0, 0];
+  int editor_integer_dirty = 0;
+  if (editor_integer_character_code == 1) {
+    editor_integer_dirty = editor_step(editor_string_session, editor_matrix_session, editor_matrix_layout, (import graph_view_event_size), (import sf_l_w), (import sf_l_h), 0, 0);
+  }
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_character_code) {
+  int editor_integer_kind = gfx_event(bel_event);
+  int editor_integer_quit = 0;
+  while (editor_integer_kind != 0 && editor_integer_quit == 0) {
+    editor_integer_quit = editor_integer_quit || editor_integer_kind == 7;
+    editor_integer_dirty = fx_max(editor_integer_dirty, editor_take(editor_string_session, editor_matrix_session, editor_matrix_layout, bel_event));
+    editor_integer_kind = gfx_event(bel_event);
+  }
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_character_code) {
+  int editor_integer_bits = editor_integer_dirty + 2 * editor_integer_quit;
+} return int editor_integer_bits;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(300, 200) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 1):(1) then editor_test_cells:("scroll=0 cells=16,16,100,-1,300,200,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,1,0,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 0):(0)

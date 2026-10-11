@@ -1,0 +1,59 @@
+// The builtins that touch the sprites and the clock. say adds a line
+// 'Sprite: text' to the output and remembers it as the sprite's speech; wait
+// puts the thread to sleep for that many seconds of the machine's clock (it
+// answers -1, a yield, instead of the next pc); broadcast starts every script
+// that runs on that message; xpos, ypos and direction read the sprite;
+// the rest are motion and looks (motion.id). The sprite is the one the
+// thread's first function belongs to.
+
+machine_say(int block_thread_slot, int block_height) {
+  int block_row = (import machine_thread)[block_thread_slot * (import constant_thread_count) + (import constant_thread_stack_pointer)];
+  push((import machine_out), (import model_sprite_names)[block_row] + ": " + (import machine_sprite_list)[block_height]);
+  float[] block_float_sprite = (import machine_sprite_state);
+} chain (int block_thread_slot, int block_height) {
+  block_float_sprite[block_row * (import constant_sprite_count) + (import constant_sprite_say)] = block_height;
+} return void;
+given model_load("t.blk", "sprite Cat") given generator_initial given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given lst_str_extend((import machine_sprite_list), ["hi"]) (0, 0):() then (import machine_out):(["Cat: hi"])
+given model_load("t.blk", "sprite A\nsprite B") given generator_initial given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 1]) given lst_str_extend((import machine_sprite_list), ["x", "yo"]) (0, 1):() then (import machine_out):(["B: yo"]) then (import machine_sprite_state)[11]:(1.0)
+
+machine_wait(int block_thread_slot, float block_secs) {
+  int block_row = block_thread_slot * (import constant_thread_count);
+  int block_wait_milliseconds = block_secs * 1000.0;
+  lset((import machine_thread), block_row + (import constant_thread_state), (import constant_statement_sleep));
+} chain (int block_thread_slot, float block_secs) {
+  lset((import machine_thread), block_row + (import constant_thread_wake), (import machine_registers_group)[(import constant_registers_now)] + block_wait_milliseconds);
+} return void;
+given model_initial given generator_initial given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given lset((import machine_registers_group), 0, 100) (0, 0.5):() then (import machine_thread)[3]:(2) then (import machine_thread)[4]:(600)
+given model_initial given generator_initial given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) (0, 0.0):() then (import machine_thread)[4]:(0)
+
+machine_world(int block_thread_slot, int block_identifier, int block_frame_pointer, int block_delta, int block_first_value, int block_next_index) {
+  int block_row = (import machine_thread)[block_thread_slot * (import constant_thread_count) + (import constant_thread_stack_pointer)];
+  int block_base = block_row * (import constant_sprite_count);
+  float block_float_first = (import machine_value_list)[block_frame_pointer + block_first_value];
+} chain (int block_thread_slot, int block_identifier, int block_frame_pointer, int block_delta, int block_first_value, int block_next_index) {
+  int block_height = block_float_first;
+  if (block_identifier >= (import constant_builtin_move) && block_identifier <= (import constant_builtin_hide)) {
+    machine_motion((import machine_sprite_state), block_base, block_identifier, block_float_first, (import machine_value_list)[block_frame_pointer + block_first_value + 1]);
+  }
+  if (block_identifier == (import constant_builtin_say)) {
+    machine_say(block_thread_slot, block_height);
+  }
+} chain (int block_thread_slot, int block_identifier, int block_frame_pointer, int block_delta, int block_first_value, int block_next_index) {
+  float[] block_wl = (import machine_value_list);
+  if (block_identifier == (import constant_builtin_broadcast)) {
+    machine_broadcast(block_height);
+  }
+  if (block_identifier >= (import constant_builtin_x_position)) {
+    block_wl[block_frame_pointer + block_delta] = (import machine_sprite_state)[block_base + block_identifier - (import constant_builtin_x_position)];
+  }
+} chain (int block_thread_slot, int block_identifier, int block_frame_pointer, int block_delta, int block_first_value, int block_next_index) {
+  if (block_identifier == (import constant_builtin_wait)) {
+    machine_wait(block_thread_slot, block_float_first);
+    block_next_index = (import constant_result_yield);
+  }
+} return int block_next_index;
+given model_load("t.blk", "sprite S") given generator_initial given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 3) given machine_motion((import machine_sprite_state), 0, 3, 5.0, 6.0) (0, 9, 0, 1, 0, 40):(40) then (import machine_value_list)[1]:(5.0)
+given model_load("t.blk", "sprite S") given generator_initial given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 3) given machine_motion((import machine_sprite_state), 0, 3, 5.0, 6.0) (0, 10, 0, 1, 0, 40):(40) then (import machine_value_list)[1]:(6.0)
+given model_load("t.blk", "sprite S") given generator_initial given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 3) (0, 7, 0, 1, 0, 40):(-1) then machine_threads:("6#0;0;0;2;0;0")
+given model_load("t.blk", "sprite S") given generator_initial given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 3) given lst_str_extend((import machine_sprite_list), ["yo"]) (0, 0, 0, 1, 0, 40):(40) then (import machine_out):(["S: yo"])
+given model_load("t.blk", "sprite S") given generator_initial given machine_boot given lst_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given machine_grow((import machine_value_list), 3) (0, 6, 0, 1, 0, 40):(40) then (import machine_sprite_state)[4]:(0.0)

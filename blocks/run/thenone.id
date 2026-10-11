@@ -1,0 +1,24 @@
+// One then clause as .blk text: the entry "T|name|value" becomes the function
+// __t that returns the variable and __w that returns the value it should
+// have, both of the variable's type (int if there is no such variable, which
+// the compiler then reports). Any other entry gives no text.
+
+runner_then_one(string block_entry) {
+  if (str_starts(block_entry, "T|") == 0) {
+    return "";
+  }
+  int block_position = str_findat(block_entry, "|", 2);
+  string block_name = str_sub(block_entry, 2, block_position - 2);
+} chain (string block_entry) {
+  string block_expect = str_sub(block_entry, block_position + 1, len(block_entry) - block_position - 1);
+  int block_variable_row = lst_str_index((import model_variable_names), block_name);
+  string block_type_names = "int";
+} chain (string block_entry) {
+  if (block_variable_row >= 0) {
+    block_type_names = (import constant_type_full)[(import model_variable_types)[block_variable_row]];
+  }
+  string block_text = "fn __t() return " + block_type_names + "\n  return " + block_name + "\nfn __w() return " + block_type_names + "\n  return " + block_expect + "\n";
+} return string block_text;
+given model_load("t.blk", "sprite S\nvar float[] xs") ("T|xs|[ 1.5 ]"):("fn __t() return float[]\n  return xs\nfn __w() return float[]\n  return [ 1.5 ]\n")
+given model_load("t.blk", "sprite S\nvar float[] xs") ("T|zz|1"):("fn __t() return int\n  return zz\nfn __w() return int\n  return 1\n")
+given model_load("t.blk", "sprite S\nvar float[] xs") ("A|1"):("")

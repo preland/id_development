@@ -1,0 +1,36 @@
+// The type rule of a binary operator: both operands have one type, and the
+// operator is allowed on it (conf.id's bkk_allow lists the sub-operations by
+// type: ints take everything, floats everything but %, strings + == and !=,
+// lists nothing). A comparison or logical operator answers an int, any
+// other the operand type. A mismatch is E0604, said once: an operand that
+// was already wrong (-1) says nothing more.
+
+generator_binary_type(int block_list_type, int block_return_type_code, int block_key_code) {
+  int block_sub = (import constant_binary_substitute)[block_key_code];
+  int block_ok = 0;
+  int block_type = 0 - 1;
+} chain (int block_list_type, int block_return_type_code, int block_key_code) {
+  if (block_list_type == block_return_type_code && block_list_type > 0 && block_list_type < (import constant_type_integer_list)) {
+    block_ok = str_find((import constant_allow)[block_list_type], " " + block_sub + " ") >= 0;
+  }
+  if (block_ok == 1) {
+    block_type = block_list_type;
+  }
+  if (block_ok == 1 && block_sub >= (import constant_sub_compare)) {
+    block_type = (import constant_type_integer);
+  }
+} chain (int block_list_type, int block_return_type_code, int block_key_code) {
+  if (block_ok == 0 && block_list_type >= 0 && block_return_type_code >= 0) {
+    generator_error("E0604", "cannot apply '" + (import constant_binary_operator)[block_key_code] + "' to " + (import constant_type_full)[block_list_type] + " and " + (import constant_type_full)[block_return_type_code]);
+  }
+} return int block_type;
+given model_initial given generator_initial (1, 1, 8):(1)
+given model_initial given generator_initial (2, 2, 8):(2)
+given model_initial given generator_initial (1, 1, 12):(1)
+given model_initial given generator_initial (3, 3, 8):(3)
+given model_initial given generator_initial (2, 2, 4):(1)
+given model_initial given generator_initial (3, 3, 2):(1)
+given model_initial given generator_initial (3, 3, 10):(-1) then len((import model_diagnostics)):(1)
+given model_initial given generator_initial (2, 2, 12):(-1) then (import model_diagnostics):(["input.blk:0: error: cannot apply '%' to float and float [E0604]"])
+given model_initial given generator_initial (1, 2, 8):(-1) then (import model_diagnostics):(["input.blk:0: error: cannot apply '+' to int and float [E0604]"])
+given model_initial given generator_initial (1, -1, 8):(-1) then len((import model_diagnostics)):(0)

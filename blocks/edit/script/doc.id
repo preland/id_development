@@ -1,0 +1,22 @@
+// The document of a session as text: how many lines, whether it differs from the
+// file, and each line after a bar and a space (so a blank line, a trailing space
+// and an indent can be told in a golden file).
+
+editor_state_doc(string[][] editor_string_session, int[][] editor_matrix_session) {
+  string editor_string_all = "doc " + len(editor_string_session[(import constant_z_doc)]) + " lines dirty " + editor_matrix_session[(import constant_y_state)][(import constant_session_dirty)] + "\n";
+  int editor_integer_key_code = 0;
+  while (editor_integer_key_code < len(editor_string_session[(import constant_z_doc)])) {
+    editor_string_all = editor_string_all + "| " + editor_string_session[(import constant_z_doc)][editor_integer_key_code] + "\n";
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+} return string editor_string_all;
+given editor_test_session("a\n  b \n") ((import editor_test_strings), (import editor_test_integers)):("doc 3 lines dirty 0\n| a\n|   b \n| \n")
+given editor_test_session("") given editor_test_cell(28, 1) ((import editor_test_strings), (import editor_test_integers)):("doc 1 lines dirty 1\n| \n")
+
+editor_state_text(string[][] editor_string_session, int[][] editor_matrix_session) {
+  string editor_string_first_value = editor_state_head(editor_string_session, editor_matrix_session) + editor_state_rules(editor_string_session, editor_matrix_session);
+  string editor_string_second = editor_state_run(editor_string_session, editor_matrix_session) + editor_state_doc(editor_string_session, editor_matrix_session);
+  string editor_string_all = editor_string_first_value + editor_string_second;
+} return string editor_string_all;
+given editor_test_session("sprite A\n") ((import editor_test_strings), (import editor_test_integers)):("camera 16 16 100\ntab Motion\ntyping none\nviolations 0\nrunning 0 frames 0\nA: x=0 y=0 dir=90 size=100 visible=1 says \"\"\ndoc 2 lines dirty 0\n| sprite A\n| \n")
+given editor_test_session("x") ((import editor_test_strings), (import editor_test_integers)):("camera 16 16 100\ntab Motion\ntyping none\nviolations 1\n  line 1: expected sprite, var, fn or a test case, found 'x' [E0102]\nrunning 0 frames 0\ndoc 1 lines dirty 0\n| x\n")

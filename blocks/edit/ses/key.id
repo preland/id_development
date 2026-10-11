@@ -1,0 +1,39 @@
+// Keys and text while a literal is being typed. Enter puts what was typed in the
+// line, Esc drops it, Backspace takes the last character; printable text is added.
+// With nothing being typed they do nothing and answer 0.
+
+editor_key(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_code) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  string[] bet_buffer = editor_string_session[(import constant_z_buffer)];
+  int editor_integer_bits = 0;
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_code) {
+  if (bel_state[(import constant_session_editing)] == 1 && editor_integer_code == (import graph_view_key_enter)) {
+    editor_integer_bits = editor_commit(editor_string_session, editor_matrix_session, editor_matrix_layout);
+  }
+  if (bel_state[(import constant_session_editing)] == 1 && editor_integer_code == (import graph_view_key_escape)) {
+    bel_state[(import constant_session_editing)] = 0;
+    editor_integer_bits = (import constant_event_paint);
+  }
+  if (bel_state[(import constant_session_editing)] == 1 && editor_integer_code == (import graph_view_key_back)) {
+    int editor_integer_keep = fx_max(len(bet_buffer[0]) - 1, 0);
+    bet_buffer[0] = str_sub(bet_buffer[0], 0, editor_integer_keep);
+    editor_integer_bits = (import constant_event_paint);
+  }
+} return int editor_integer_bits;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) given editor_test_string(2, "90") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 1009):(3) then editor_test_peek:("ed=0 buf=90 dirty=1 run=0 tab=0 sprite S|fn f() return void|  move(90)|")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) given editor_test_string(2, "90") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 1011):(1) then editor_test_peek:("ed=0 buf=90 dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) given editor_test_string(2, "90") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 1007):(1) then editor_test_peek:("ed=1 buf=9 dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
+given editor_test_session("sprite S\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 1009):(0) then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=0 sprite S|")
+given editor_test_session("sprite S\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 1007):(0) then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=0 sprite S|")
+
+editor_text(string[][] editor_string_session, int[][] editor_matrix_session, int editor_integer_code) {
+  string[] bet_buffer = editor_string_session[(import constant_z_buffer)];
+  int editor_integer_bits = 0;
+  if (editor_matrix_session[(import constant_y_state)][(import constant_session_editing)] == 1 && editor_integer_code >= 32 && editor_integer_code < 127) {
+    bet_buffer[0] = bet_buffer[0] + chr(editor_integer_code);
+    editor_integer_bits = (import constant_event_paint);
+  }
+} return int editor_integer_bits;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) given editor_test_string(2, "90") ((import editor_test_strings), (import editor_test_integers), 49):(1) then editor_test_peek:("ed=1 buf=901 dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) given editor_test_string(2, "90") ((import editor_test_strings), (import editor_test_integers), 10):(0) then editor_test_peek:("ed=1 buf=90 dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
+given editor_test_session("sprite S\n") ((import editor_test_strings), (import editor_test_integers), 65):(0) then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=0 sprite S|")

@@ -1,0 +1,42 @@
+// A whole test case line as its list of entries (see item.id).
+
+runner_parse(string[] block_texts) {
+  string[] block_as = [];
+  int block_index = 0;
+  while (block_index < len(block_texts)) {
+    block_index = runner_item(block_as, block_texts, block_index);
+  }
+} return string[] block_as;
+(["(", "2", ")", ":", "(", "7", ")"]):(["A|2", "E|7"])
+(["given", "n", "=", "5", "(", ")", ":", "(", ")", "then", "n", ":", "(", "6", ")"]):(["G|n = 5", "A|", "E|", "T|n|6"])
+(["(", "1", ",", "2", ")", ":", "(", "[", "3", "]", ")"]):(["A|1 , 2", "E|[ 3 ]"])
+(["bad"]):(["X|unexpected 'bad' in a test case; a case is (ARGS):(EXPECTED), with given and then clauses if it needs them"])
+
+runner_pick(string[] block_as, string block_tag, string block_none) {
+  string block_out = block_none;
+  int block_index = 0;
+  while (block_index < len(block_as)) {
+    if (str_starts(block_as[block_index], block_tag) == 1) {
+      block_out = str_sub(block_as[block_index], len(block_tag), len(block_as[block_index]) - len(block_tag));
+      break;
+    }
+    block_index = block_index + 1;
+  }
+} return string block_out;
+(["G|n = 1", "A|2 , 3", "E|5"], "A|", "?"):("2 , 3")
+(["G|n = 1", "A|2 , 3", "E|5"], "E|", "?"):("5")
+(["G|n = 1"], "E|", "?"):("?")
+(["A|1", "A|2"], "A|", "?"):("1")
+
+runner_givens(string[] block_as) {
+  string block_text = "";
+  int block_index = 0;
+  while (block_index < len(block_as)) {
+    if (str_starts(block_as[block_index], "G|") == 1) {
+      block_text = block_text + "  " + str_sub(block_as[block_index], 2, len(block_as[block_index]) - 2) + "\n";
+    }
+    block_index = block_index + 1;
+  }
+} return string block_text;
+(["G|n = 1", "A|2", "G|m = [ 1 ]"]):("  n = 1\n  m = [ 1 ]\n")
+(["A|2"]):("")

@@ -1,0 +1,38 @@
+// Small answers the painter and the layout need about a line or a colour: the
+// indent of a line in levels, the category colour a pill takes from its text (a
+// lone name or number is a plain slot, anything longer an operator), and the
+// darker edge of a colour.
+
+editor_indent(string editor_string_line) {
+  int editor_integer_count = str_skip_space(editor_string_line, 0) / 2;
+} return int editor_integer_count;
+("    x"):(2)
+(""):(0)
+("  x"):(1)
+
+editor_pill_category(string editor_string_position) {
+  int editor_integer_negate = charat(editor_string_position, 0) == 45;
+  string editor_string_question = str_sub(editor_string_position, editor_integer_negate, len(editor_string_position) - editor_integer_negate);
+  int editor_integer_column_number = (import constant_cat_operators);
+} chain (string editor_string_position) {
+  if (lexer_end(editor_string_question, 0) == len(editor_string_question)) {
+    editor_integer_column_number = (import constant_cat_lit);
+  }
+} return int editor_integer_column_number;
+("10.0"):(-1)
+("-3"):(-1)
+("\"hi there\""):(-1)
+("n * 2"):(3)
+("len(xs)"):(3)
+(""):(-1)
+
+editor_dark(int editor_integer_column) {
+  int editor_integer_row_number = editor_integer_column / 65536 * 3 / 4;
+  int editor_integer_group = editor_integer_column / 256 % 256 * 3 / 4;
+  int editor_integer_second = editor_integer_column % 256 * 3 / 4;
+} chain (int editor_integer_column) {
+  int editor_integer_delta = editor_integer_row_number * 65536 + editor_integer_group * 256 + editor_integer_second;
+} return int editor_integer_delta;
+(0xFFFFFF):(0xBFBFBF)
+(0x808080):(0x606060)
+(0x4C97FF):(0x3971BF)

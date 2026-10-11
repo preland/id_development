@@ -1,0 +1,33 @@
+// The words in the bar: the title (the file's name, with a star after it while the
+// document differs from the file), how many rules the document breaks, and the
+// drawing of both. A document that breaks rules has its count on red.
+
+editor_title(string[][] editor_string_session, int[][] editor_matrix_session) {
+  string editor_string_name = path_base(editor_string_session[(import constant_z_path)][0]);
+  if (editor_matrix_session[(import constant_y_state)][(import constant_session_dirty)] == 1) {
+    editor_string_name = editor_string_name + " *";
+  }
+} return string editor_string_name;
+given editor_test_session("sprite A\nfn f() return void\n") given editor_test_string(7, "/a/b/t.blk") ((import editor_test_strings), (import editor_test_integers)):("t.blk")
+given editor_test_session("sprite A\nfn f() return void\n") given editor_test_string(7, "/a/b/t.blk") given editor_test_cell(28, 1) ((import editor_test_strings), (import editor_test_integers)):("t.blk *")
+
+editor_rules(int[] bel_state) {
+  string editor_string_row_number = "rules ok";
+  if (bel_state[(import constant_session_nodes)] > 0) {
+    editor_string_row_number = bel_state[(import constant_session_nodes)] + " rule violation(s)";
+  }
+} return string editor_string_row_number;
+([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]):("rules ok")
+([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0]):("3 rule violation(s)")
+
+editor_draw_status(string[][] editor_string_session, int[][] editor_matrix_session) {
+  string editor_string_title = editor_title(editor_string_session, editor_matrix_session);
+  string editor_string_row_number = editor_rules(editor_matrix_session[(import constant_y_state)]);
+  int editor_integer_x = (import constant_metric_pal) + 132;
+} chain (string[][] editor_string_session, int[][] editor_matrix_session) {
+  txt_g8_draw(editor_integer_x, 14, editor_string_title, (import constant_x_white), 1);
+  draw_rounded_rectangle(editor_integer_x + len(editor_string_title) * 8 + 14, 8, len(editor_string_row_number) * 8 + 12, 20, 6, (import constant_x_bad) * (editor_matrix_session[(import constant_y_state)][(import constant_session_nodes)] > 0) + (import constant_x_go) * (editor_matrix_session[(import constant_y_state)][(import constant_session_nodes)] == 0));
+  txt_g8_draw(editor_integer_x + len(editor_string_title) * 8 + 20, 14, editor_string_row_number, (import constant_x_white), 1);
+} return void;
+given editor_test_session("sprite A\nfn f() return void\n") given idstd_graph_view_test_canvas(960, 600) given editor_test_string(7, "t.blk") given idstd_graph_view_test_look(378, 26) given idstd_graph_view_test_ink(0xFFFFFF) ((import editor_test_strings), (import editor_test_integers)):() then idstd_graph_view_test_seen:("14688298,395")
+given editor_test_session("sprite A\n") given idstd_graph_view_test_canvas(960, 600) given editor_test_string(7, "t.blk") given idstd_graph_view_test_look(378, 26) given idstd_graph_view_test_ink(0xFFFFFF) ((import editor_test_strings), (import editor_test_integers)):() then idstd_graph_view_test_seen:("5029718,231")

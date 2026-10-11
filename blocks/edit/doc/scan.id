@@ -1,0 +1,30 @@
+// A block line as tokens: their texts (filled into bet_tt), and for each its
+// start, its end and how deep in brackets it stands (the brackets themselves
+// stand at the outer level), as three lists in one.
+
+editor_scan(string editor_string_unit, string[] bet_titles) {
+  int[] bel_session = [];
+  int[] bel_end_index = [];
+  int editor_integer_index = 0;
+} chain (string editor_string_unit, string[] bet_titles) {
+  while (editor_integer_index < len(editor_string_unit)) {
+    int[] bel_position = editor_token_first(editor_string_unit, editor_integer_index);
+    if (bel_position[1] > bel_position[0]) {
+      editor_put(bel_session, bel_end_index, bet_titles, editor_string_unit, bel_position);
+    }
+    editor_integer_index = bel_position[1];
+  }
+  int[] bel_delta = editor_depths(bet_titles);
+  int[][] editor_matrix_text_list = [bel_session, bel_end_index, bel_delta];
+} return int[][] editor_matrix_text_list;
+("x = 1", []):([[0, 2, 4], [1, 3, 5], [0, 0, 0]])
+("f(a)", []):([[0, 1, 2, 3], [1, 2, 3, 4], [0, 0, 1, 0]])
+("  ", []):([[], [], []])
+
+editor_put(int[] bel_session, int[] bel_end_index, string[] bet_titles, string editor_string_unit, int[] bel_position) {
+  push(bel_session, bel_position[0]);
+  push(bel_end_index, bel_position[1]);
+  push(bet_titles, str_sub(editor_string_unit, bel_position[0], bel_position[1] - bel_position[0]));
+} return void;
+([], [], [], "ab cd", [3, 5]):([3], [5], ["cd"], "ab cd", [3, 5])
+([1], [2], ["a"], "a b", [2, 3]):([1, 2], [2, 3], ["a", "b"], "a b", [2, 3])

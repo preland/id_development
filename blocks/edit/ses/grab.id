@@ -1,0 +1,42 @@
+// What a press at a point takes hold of, answered as the gesture (conf.id's
+// bkk_g_), which one of its kind (the button's region, the tab, the palette's
+// block, the line of the block) and the pill, or -1, when it was a pill that
+// was pressed. In the script area only a statement, an else or a piece of one is a
+// block to pick up; anything else (a hat, a cap, a test case, empty space) takes the
+// press as the start of a pan.
+
+editor_grab(int[][] editor_matrix_layout, int[] bel_state, int editor_integer_x, int editor_integer_y, int[] bel_width) {
+  int editor_integer_box = 0 - 1;
+  int[] bel_group = [(import constant_grab_none), 0, 0 - 1];
+  if (bel_width[0] == (import constant_where_script)) {
+    editor_integer_box = editor_hit_box(editor_matrix_layout, bel_state, editor_integer_x, editor_integer_y);
+  }
+} chain (int[][] editor_matrix_layout, int[] bel_state, int editor_integer_x, int editor_integer_y, int[] bel_width) {
+  int editor_integer_kind = lst_get_or(editor_matrix_layout[(import constant_layout_kind)], editor_integer_box, 0 - 1);
+  int editor_integer_block = editor_integer_kind == (import constant_kind_statement) || editor_integer_kind == (import constant_kind_else) || editor_integer_kind == (import constant_kind_label) || editor_integer_kind == (import constant_kind_pill);
+  if (bel_width[0] >= (import constant_where_flag) && bel_width[0] <= (import constant_where_save)) {
+    bel_group = [(import constant_grab_button), bel_width[0], 0 - 1];
+  }
+} chain (int[][] editor_matrix_layout, int[] bel_state, int editor_integer_x, int editor_integer_y, int[] bel_width) {
+  if (bel_width[0] == (import constant_where_tab)) {
+    bel_group = [(import constant_grab_tab), bel_width[1], 0 - 1];
+  }
+  if (bel_width[0] == (import constant_where_pal)) {
+    bel_group = [(import constant_grab_pal), bel_width[1], 0 - 1];
+  }
+  if (bel_width[0] == (import constant_where_script)) {
+    bel_group = [(import constant_grab_pan), 0, 0 - 1];
+  }
+} chain (int[][] editor_matrix_layout, int[] bel_state, int editor_integer_x, int editor_integer_y, int[] bel_width) {
+  if (bel_width[0] == (import constant_where_script) && editor_integer_block == 1) {
+    bel_group = [(import constant_grab_block), editor_matrix_layout[(import constant_layout_line)][editor_integer_box], editor_integer_box * (editor_integer_kind == (import constant_kind_pill)) - (editor_integer_kind != (import constant_kind_pill))];
+  }
+} return int[] bel_group;
+given editor_test_laid(["fn f() return void", "  say(\"hi\")"]) given editor_test_blank(960, 600) given editor_test_set(0, 10) given editor_test_set(1, 5) ((import editor_test_stage_layout), (import editor_test_state), 248, 81, [6, -1]):([3, 1, 3])
+given editor_test_laid(["fn f() return void", "  say(\"hi\")"]) given editor_test_blank(960, 600) given editor_test_set(0, 10) given editor_test_set(1, 5) ((import editor_test_stage_layout), (import editor_test_state), 283, 91, [6, -1]):([3, 1, -1])
+given editor_test_laid(["fn f() return void", "  say(\"hi\")"]) given editor_test_blank(960, 600) given editor_test_set(0, 10) given editor_test_set(1, 5) ((import editor_test_stage_layout), (import editor_test_state), 203, 51, [6, -1]):([1, 0, -1])
+given editor_test_laid(["fn f() return void", "  say(\"hi\")"]) given editor_test_blank(960, 600) given editor_test_set(0, 10) given editor_test_set(1, 5) ((import editor_test_stage_layout), (import editor_test_state), 598, 441, [6, -1]):([1, 0, -1])
+given editor_test_laid(["fn f() return void", "  say(\"hi\")"]) given editor_test_blank(960, 600) given editor_test_set(0, 10) given editor_test_set(1, 5) ((import editor_test_stage_layout), (import editor_test_state), 20, 130, [5, 2]):([2, 2, -1])
+given editor_test_laid(["fn f() return void", "  say(\"hi\")"]) given editor_test_blank(960, 600) given editor_test_set(0, 10) given editor_test_set(1, 5) ((import editor_test_stage_layout), (import editor_test_state), 10, 50, [4, 1]):([5, 1, -1])
+given editor_test_laid(["fn f() return void", "  say(\"hi\")"]) given editor_test_blank(960, 600) given editor_test_set(0, 10) given editor_test_set(1, 5) ((import editor_test_stage_layout), (import editor_test_state), 200, 10, [1, -1]):([4, 1, -1])
+given editor_test_laid(["fn f() return void", "  say(\"hi\")"]) given editor_test_blank(960, 600) given editor_test_set(0, 10) given editor_test_set(1, 5) ((import editor_test_stage_layout), (import editor_test_state), 700, 300, [7, -1]):([0, 0, -1])

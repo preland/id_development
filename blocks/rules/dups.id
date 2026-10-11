@@ -1,0 +1,41 @@
+// E0402 and E0407. Every function's canonical text is computed twice, once
+// keeping literals and once abstracting them; a function whose first form
+// matches an earlier function's is the same logic written again (E0402), and
+// one whose second form matches is the same logic with other values (E0407),
+// which wants the value as a parameter. The earlier function is the one the
+// report names.
+
+checker_duplicate_function(string[] block_character_first, string[] block_character_second, int block_function_row) {
+  int block_group = lst_str_index(block_character_first, block_character_first[block_function_row]);
+  int block_height = lst_str_index(block_character_second, block_character_second[block_function_row]);
+  if (block_group < block_function_row) {
+    model_error((import model_function_line)[block_function_row], "E0402", "function '" + (import model_function_names)[block_function_row] + "' has the same signature and logic as '" + (import model_function_names)[block_group] + "' (defined at line " + (import model_function_line)[block_group] + ")");
+  }
+} chain (string[] block_character_first, string[] block_character_second, int block_function_row) {
+  if (block_group >= block_function_row && block_height < block_function_row) {
+    model_error((import model_function_line)[block_function_row], "E0407", "function '" + (import model_function_names)[block_function_row] + "' differs from '" + (import model_function_names)[block_height] + "' (defined at line " + (import model_function_line)[block_height] + ") only in the values of its literals");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn a() return void\nfn b() return void") (["x", "x"], ["y", "y"], 1):() then (import model_diagnostics):(["t.blk:3: error: function 'b' has the same signature and logic as 'a' (defined at line 2) [E0402]"])
+given model_load("t.blk", "sprite S\nfn a() return void\nfn b() return void") (["x", "z"], ["y", "y"], 1):() then (import model_diagnostics):(["t.blk:3: error: function 'b' differs from 'a' (defined at line 2) only in the values of its literals [E0407]"])
+given model_load("t.blk", "sprite S\nfn a() return void\nfn b() return void") (["x", "z"], ["y", "w"], 1):() then len((import model_diagnostics)):(0)
+
+checker_duplicates() {
+  string[] block_character_first = [];
+  string[] block_character_second = [];
+  int block_function_row = 0;
+} chain () {
+  while (block_function_row < len((import model_function_names))) {
+    push(block_character_first, checker_canon(block_function_row, 0));
+    push(block_character_second, checker_canon(block_function_row, 1));
+    block_function_row = block_function_row + 1;
+  }
+  block_function_row = 0;
+  while (block_function_row < len(block_character_first)) {
+    checker_duplicate_function(block_character_first, block_character_second, block_function_row);
+    block_function_row = block_function_row + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn a(int p) return int\n  int q = p + 1\n  return q\nfn b(int z) return int\n  int w = z + 1\n  return w") ():() then (import model_diagnostics):(["t.blk:5: error: function 'b' has the same signature and logic as 'a' (defined at line 2) [E0402]"])
+given model_load("t.blk", "sprite S\nfn a(int p) return int\n  int q = p + 1\n  return q\nfn b(int z) return int\n  int w = z + 2\n  return w") ():() then (import model_diagnostics):(["t.blk:5: error: function 'b' differs from 'a' (defined at line 2) only in the values of its literals [E0407]"])
+given model_load("t.blk", "sprite S\nfn a(int p) return int\n  int q = p + 1\n  return q\nfn b(int z) return int\n  int w = z - 1\n  return w") ():() then len((import model_diagnostics)):(0)

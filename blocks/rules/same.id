@@ -1,0 +1,22 @@
+// E0502: a case repeated under the same function. bkc_samecase compares case
+// c with every earlier case; bkc_pair judges one pair, by function and by the
+// text with its spaces removed.
+
+checker_same_case(int block_character) {
+  string block_key = str_replace((import model_cat)[block_character], " ", "");
+  int block_delta = 0;
+  while (block_delta < block_character) {
+    checker_pair(block_character, block_delta, block_key);
+    block_delta = block_delta + 1;
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn a() return void\n(1):()\n(2):()\n(1) : ()") (2):() then (import model_diagnostics):(["t.blk:5: error: this test case repeats the one at line 3; two cases must describe two behaviours [E0502]"])
+given model_load("t.blk", "sprite S\nfn a() return void\n(1):()\n(2):()") (1):() then len((import model_diagnostics)):(0)
+
+checker_pair(int block_character, int block_delta, string block_key) {
+  if ((import model_can)[block_character] == (import model_can)[block_delta] && str_replace((import model_cat)[block_delta], " ", "") == block_key) {
+    model_error((import model_case_lines)[block_character], "E0502", "this test case repeats the one at line " + (import model_case_lines)[block_delta] + "; two cases must describe two behaviours");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn a() return void\n(1):()\n(1):()") (1, 0, "(1):()"):() then len((import model_diagnostics)):(1)
+given model_load("t.blk", "sprite S\nfn a() return void\n(1):()\n(1):()") (1, 0, "(2):()"):() then len((import model_diagnostics)):(0)

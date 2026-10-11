@@ -1,0 +1,15 @@
+// Jumps. jmp goes to x; jz goes to x when slot a is 0 and jnz when it is
+// not; otherwise execution continues at nx, the next instruction.
+
+machine_jump(float[] block_value_list, int block_frame_pointer, int block_operation, int block_first_value, int block_x, int block_next_index) {
+  int block_target = block_next_index;
+  int block_zero = block_value_list[block_frame_pointer + block_first_value] == 0;
+  if (block_operation == (import constant_opcode_jump) || (block_operation == (import constant_opcode_jump_zero) && block_zero == 1) || (block_operation == (import constant_opcode_jump_nonzero) && block_zero == 0)) {
+    block_target = block_x;
+  }
+} return int block_target;
+([0.0], 0, 8, 0, 40, 5):(40)
+([0.0], 0, 9, 0, 40, 5):(40)
+([1.0], 0, 9, 0, 40, 5):(5)
+([1.0], 0, 10, 0, 40, 5):(40)
+([0.0], 0, 10, 0, 40, 5):(5)

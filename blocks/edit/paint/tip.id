@@ -1,0 +1,35 @@
+// The tooltip of a block that breaks a rule: what `blocks check` prints for it (the
+// message and the code), wrapped to lines of at most 56 characters, so the rule and
+// the fix to it are read at the block. bke_wrap cuts at spaces; bke_tiplines
+// gathers the violations of the line of a box.
+
+editor_wrap_first(string[] bet_out, string editor_string_line, string editor_string_word, int editor_integer_count) {
+  string editor_string_next = editor_string_word;
+  if (editor_string_line != "") {
+    editor_string_next = editor_string_line + " " + editor_string_word;
+  }
+  if (len(editor_string_next) > editor_integer_count && editor_string_line != "") {
+    push(bet_out, editor_string_line);
+    editor_string_next = editor_string_word;
+  }
+} return string editor_string_next;
+([], "", "ab", 5):("ab")
+([], "ab", "cd", 5):("ab cd")
+([], "abcd", "ef", 5):("ef")
+(["x"], "abcd", "ef", 5):("ef")
+
+editor_wrap(string editor_string_text, int editor_integer_count) {
+  string[] bet_width = str_split(editor_string_text, " ");
+  string[] bet_out = [];
+  string editor_string_line = "";
+} chain (string editor_string_text, int editor_integer_count) {
+  int editor_integer_key_code = 0;
+  while (editor_integer_key_code < len(bet_width)) {
+    editor_string_line = editor_wrap_first(bet_out, editor_string_line, bet_width[editor_integer_key_code], editor_integer_count);
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+  push(bet_out, editor_string_line);
+} return string[] bet_out;
+("a block in 'f' has too many actions", 16):(["a block in 'f'", "has too many", "actions"])
+("short", 16):(["short"])
+("abcdefghijklmnopqrstu v", 10):(["abcdefghijklmnopqrstu", "v"])

@@ -1,0 +1,41 @@
+// Starting scripts. A thread is a row of the thread table; bkv_free finds a
+// free row (adding one if all are busy), bkv_put writes values into a row,
+// bkv_spawn makes function fn a ready thread at its entry pc with its own
+// part of the value stack (grown as needed) and call stack, in the sprite the
+// function belongs to, and bkv_bcast starts every function that runs on the
+// message the string with that pool index spells.
+
+machine_free(int[] block_thread) {
+  int block_thread_slot = 0;
+  while (block_thread_slot * (import constant_thread_count) < len(block_thread) && block_thread[block_thread_slot * (import constant_thread_count) + (import constant_thread_state)] != (import constant_statement_free)) {
+    block_thread_slot = block_thread_slot + 1;
+  }
+  if (block_thread_slot * (import constant_thread_count) >= len(block_thread)) {
+    lst_fill(block_thread, (import constant_thread_count), 0);
+  }
+} return int block_thread_slot;
+([0, 0, 0, 0, 0, 0]):(0)
+([0, 0, 0, 1, 0, 0]):(1)
+([0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0]):(2)
+([]):(0)
+
+machine_put(int[] block_thread, int block_thread_slot, int[] block_values) {
+  int block_index = 0;
+  while (block_index < len(block_values)) {
+    block_thread[block_thread_slot * (import constant_thread_count) + block_index] = block_values[block_index];
+    block_index = block_index + 1;
+  }
+} return void;
+([0, 0, 0, 0, 0, 0], 0, [1, 2, 3, 4, 5, 6]):([1, 2, 3, 4, 5, 6], 0, [1, 2, 3, 4, 5, 6])
+([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 1, [9, 8]):([0, 0, 0, 0, 0, 0, 9, 8, 0, 0, 0, 0], 1, [9, 8])
+
+machine_spawn(int block_function) {
+  int block_thread_slot = machine_free((import machine_thread));
+  machine_grow((import machine_value_list), (block_thread_slot + 1) * (import constant_stack_count));
+  lst_fill((import machine_call_stack), (block_thread_slot + 1) * (import constant_call_stack_count) - len((import machine_call_stack)), 0);
+} chain (int block_function) {
+  int block_row = block_function * (import constant_function_table_count);
+  machine_put((import machine_thread), block_thread_slot, [(import generator_function_table)[block_row + (import constant_function_table_entry_counter)], block_thread_slot * (import constant_stack_count), 0, (import constant_statement_ready), 0, (import generator_function_table)[block_row + (import constant_function_table_stack_pointer)]]);
+} return void;
+given model_initial given generator_initial given lst_fill((import generator_function_table), 8, 0) given lset((import generator_function_table), 4, 25) given lset((import generator_function_table), 7, 1) given machine_boot (1):() then (import machine_thread):([25, 0, 0, 1, 0, 1]) then len((import machine_call_stack)):(96) then len((import machine_value_list)):(4096)
+given model_initial given generator_initial given lst_fill((import generator_function_table), 4, 0) given machine_boot given machine_spawn(0) (0):() then len((import machine_thread)):(12) then (import machine_thread)[7]:(4096) then len((import machine_value_list)):(8192)

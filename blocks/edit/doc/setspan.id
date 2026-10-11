@@ -1,0 +1,27 @@
+// Editing a literal: pill k of a line's text replaced by new text. The line
+// keeps its indent and everything outside the pill, byte for byte, so editing
+// one slot never reformats the line.
+
+editor_set_span(string editor_string_unit, int[] bel_sprites, int editor_integer_key_code, string editor_string_new) {
+  string editor_string_head = str_sub(editor_string_unit, 0, bel_sprites[2 * editor_integer_key_code]);
+  string editor_string_tail = str_sub(editor_string_unit, bel_sprites[2 * editor_integer_key_code + 1], len(editor_string_unit) - bel_sprites[2 * editor_integer_key_code + 1]);
+  string editor_string_out = editor_string_head + editor_string_new + editor_string_tail;
+} return string editor_string_out;
+("move(10.0)", [5, 9], 0, "90"):("move(90)")
+("goto(0.0, 0.0)", [5, 8, 10, 13], 1, "7.5"):("goto(0.0, 7.5)")
+("x = 1", [4, 5], 0, ""):("x = ")
+
+editor_set_line(string[] bet_doc, int editor_integer_index, int editor_integer_key_code, string editor_string_new) {
+  string editor_string_line = bet_doc[editor_integer_index];
+  int editor_integer_position = str_skip_space(editor_string_line, 0);
+  string editor_string_unit = str_sub(editor_string_line, editor_integer_position, len(editor_string_line) - editor_integer_position);
+} chain (string[] bet_doc, int editor_integer_index, int editor_integer_key_code, string editor_string_new) {
+  int[] bel_sprites = editor_spans(editor_string_unit);
+  if (editor_integer_key_code >= 0 && 2 * editor_integer_key_code + 1 < len(bel_sprites)) {
+    bet_doc[editor_integer_index] = str_sub(editor_string_line, 0, editor_integer_position) + editor_set_span(editor_string_unit, bel_sprites, editor_integer_key_code, editor_string_new);
+  }
+} return void;
+(["fn f() return void", "  move(10.0)"], 1, 0, "5"):(["fn f() return void", "  move(5)"], 1, 0, "5")
+(["  goto(1, 2)"], 0, 1, "9"):(["  goto(1, 9)"], 0, 1, "9")
+given editor_test_open(["  goto(1, 2)"]) ((import editor_test_doc), 0, 2, "9"):() then editor_test_docs:("doc=  goto(1, 2)")
+given editor_test_open(["  else"]) ((import editor_test_doc), 0, 0, "9"):() then editor_test_docs:("doc=  else")

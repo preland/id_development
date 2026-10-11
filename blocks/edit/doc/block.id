@@ -1,0 +1,30 @@
+// Where a block ends in the document. A statement is one line; a line that
+// opens a body (if, else, while, a function's hat) owns the lines indented more
+// deeply below it; an if owns the else that follows it at its own indent too,
+// so picking up an if takes the whole if-else.
+
+editor_body_end(string[] bet_doc, int editor_integer_index) {
+  int editor_integer_indent = editor_indent(bet_doc[editor_integer_index]);
+  int editor_integer_inner = editor_integer_index + 1;
+  while (editor_integer_inner < len(bet_doc) && editor_indent(bet_doc[editor_integer_inner]) > editor_integer_indent) {
+    editor_integer_inner = editor_integer_inner + 1;
+  }
+} return int editor_integer_inner;
+(["  if a", "    x = 1", "  y = 2"], 0):(2)
+(["fn f()", "  x = 1", "  y = 2", "(1): ()"], 0):(3)
+(["  x = 1"], 0):(1)
+(["  x = 1", "", "  y"], 0):(1)
+
+editor_end(string[] bet_doc, int editor_integer_index) {
+  int editor_integer_inner = editor_body_end(bet_doc, editor_integer_index);
+  string editor_string_next = lst_str_get_or(bet_doc, editor_integer_inner, "");
+  int editor_integer_if = str_starts(str_trim(bet_doc[editor_integer_index]), "if ") == 1;
+} chain (string[] bet_doc, int editor_integer_index) {
+  if (editor_integer_if == 1 && editor_kind(editor_string_next) == (import constant_kind_else) && editor_indent(editor_string_next) == editor_indent(bet_doc[editor_integer_index])) {
+    editor_integer_inner = editor_body_end(bet_doc, editor_integer_inner);
+  }
+} return int editor_integer_inner;
+(["  if a", "    x = 1", "  else", "    y = 2", "  z = 3"], 0):(4)
+(["  if a", "    x = 1", "  z = 3"], 0):(2)
+(["  while a", "    x = 1", "  else", "    y = 2"], 0):(2)
+(["  else", "    x = 1"], 0):(2)

@@ -1,0 +1,40 @@
+// The arguments of a call: the tokens between its brackets (from the first to
+// before the closing one) cut at the commas that stand at depth one, one span
+// each, so a comma inside a nested call or a string splits nothing.
+
+editor_arguments(int[] bel_sprites, string[] bet_titles, int[][] editor_matrix_text_list, int editor_integer_from, int editor_integer_close) {
+  int editor_integer_first_value = editor_integer_from;
+  int editor_integer_key_code = editor_integer_from;
+  while (editor_integer_key_code < editor_integer_close) {
+    if (bet_titles[editor_integer_key_code] == "," && editor_matrix_text_list[2][editor_integer_key_code] == 1) {
+      editor_range(bel_sprites, editor_matrix_text_list, editor_integer_first_value, editor_integer_key_code - 1);
+      editor_integer_first_value = editor_integer_key_code + 1;
+    }
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+} chain (int[] bel_sprites, string[] bet_titles, int[][] editor_matrix_text_list, int editor_integer_from, int editor_integer_close) {
+  editor_range(bel_sprites, editor_matrix_text_list, editor_integer_first_value, editor_integer_close - 1);
+} return void;
+([], ["f", "(", "a", ",", "b", ")"], [[0, 1, 2, 3, 5, 6], [1, 2, 3, 4, 6, 7], [0, 0, 1, 1, 1, 0]], 2, 5):([2, 3, 5, 6])
+([], ["f", "(", ")"], [[0, 1, 2], [1, 2, 3], [0, 0, 0]], 2, 2):([])
+([], ["f", "(", "a", ")"], [[0, 1, 2, 3], [1, 2, 3, 4], [0, 0, 1, 0]], 2, 3):([2, 3])
+
+editor_call(int[] bel_sprites, string[] bet_titles, int[][] editor_matrix_text_list) {
+  int editor_integer_close = editor_close(bet_titles, editor_matrix_text_list[2], 2);
+  editor_arguments(bel_sprites, bet_titles, editor_matrix_text_list, 2, editor_integer_close);
+} return void;
+([], ["f", "(", "a", ",", "b", ")"], [[0, 1, 2, 3, 5, 6], [1, 2, 3, 4, 6, 7], [0, 0, 1, 1, 1, 0]]):([2, 3, 5, 6])
+([], ["f", "(", ")"], [[0, 1, 2], [1, 2, 3], [0, 0, 0]]):([])
+
+editor_assign(int[] bel_sprites, string[] bet_titles, int[][] editor_matrix_text_list, int editor_integer_equal) {
+  int editor_integer_index_position = editor_integer_equal > 2 && bet_titles[1] == "[" && lst_str_index((import constant_types), bet_titles[0]) < 0;
+  int editor_integer_close = editor_close(bet_titles, editor_matrix_text_list[2], 2);
+  if (editor_integer_index_position == 1) {
+    editor_range(bel_sprites, editor_matrix_text_list, 2, editor_integer_close - 1);
+  }
+} chain (int[] bel_sprites, string[] bet_titles, int[][] editor_matrix_text_list, int editor_integer_equal) {
+  editor_range(bel_sprites, editor_matrix_text_list, editor_integer_equal + 1, len(bet_titles) - 1);
+} return void;
+([], ["x", "=", "1"], [[0, 2, 4], [1, 3, 5], [0, 0, 0]], 1):([4, 5])
+([], ["xs", "[", "i", "]", "=", "5"], [[0, 2, 3, 4, 6, 8], [2, 3, 4, 5, 7, 9], [0, 0, 1, 0, 0, 0]], 4):([3, 4, 8, 9])
+([], ["int", "[", "]", "xs", "=", "[", "]"], [[0, 3, 4, 6, 9, 11, 12], [3, 4, 5, 8, 10, 12, 13], [0, 0, 0, 0, 0, 0, 0]], 4):([11, 13])

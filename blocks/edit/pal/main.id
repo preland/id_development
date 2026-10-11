@@ -1,0 +1,44 @@
+// The palette of one category: the text of each block it offers and, in a
+// second list, 1 for a reporter (it goes into a slot) and 0 for a statement
+// (it goes into a stack). The static blocks come from conf.id's bkk_p_ lists;
+// Variables and My Blocks add one entry for each variable and function the
+// document declares, so a block can only be dragged out under a name that exists.
+
+editor_pal_static(string[] bet_texts, int[] bel_repeat_position, int editor_integer_cat) {
+  int editor_integer_key_code = 0;
+  while (editor_integer_key_code < len((import constant_pill_text))) {
+    if ((import constant_pill_cat)[editor_integer_key_code] == editor_integer_cat) {
+      push(bet_texts, (import constant_pill_text)[editor_integer_key_code]);
+      push(bel_repeat_position, (import constant_pill_report)[editor_integer_key_code]);
+    }
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+} return void;
+([], [], 1):(["say(\"Hello\")", "show()", "hide()"], [0, 0, 0], 1)
+([], [], 0):(["move(10.0)", "turn(15.0)", "point(90.0)", "goto(0.0, 0.0)", "xpos()", "ypos()", "direction()"], [0, 0, 0, 0, 1, 1, 1], 0)
+([], [], 2):(["if 1", "else", "while 1", "wait(1.0)", "broadcast(\"go\")", "break", "return"], [0, 0, 0, 0, 0, 0, 0], 2)
+
+editor_pal(string[] bet_doc, int editor_integer_cat, string[] bet_texts, int[] bel_repeat_position) {
+  editor_pal_static(bet_texts, bel_repeat_position, editor_integer_cat);
+  if (editor_integer_cat == (import constant_cat_variables)) {
+    editor_pal_variables(bet_doc, bet_texts, bel_repeat_position);
+  }
+  if (editor_integer_cat == (import constant_cat_mine)) {
+    editor_pal_function_sprites(bet_doc, bet_texts, bel_repeat_position);
+  }
+} return void;
+(["sprite S", "var int n"], 4, [], []):(["sprite S", "var int n"], 4, ["int v = 0", "float v = 0.0", "string v = \"\"", "n = 0", "n"], [0, 0, 0, 0, 1])
+(["fn f(int a) return int"], 5, [], []):(["fn f(int a) return int"], 5, ["f(0)"], [1])
+(["fn f(int a) return int"], 1, [], []):(["fn f(int a) return int"], 1, ["say(\"Hello\")", "show()", "hide()"], [0, 0, 0])
+
+editor_pal_function_sprites(string[] bet_doc, string[] bet_texts, int[] bel_repeat_position) {
+  int editor_integer_key_code = 0;
+  while (editor_integer_key_code < len(bet_doc)) {
+    if (editor_kind(bet_doc[editor_integer_key_code]) == (import constant_kind_hat) && str_starts(bet_doc[editor_integer_key_code], "fn main(") == 0) {
+      editor_pal_function_first(bet_texts, bel_repeat_position, bet_doc[editor_integer_key_code]);
+    }
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+} return void;
+(["fn main(int argc, string[] argv) return int", "fn f() return void"], [], []):(["fn main(int argc, string[] argv) return int", "fn f() return void"], ["f()"], [0])
+(["fn g(int a) return int"], [], []):(["fn g(int a) return int"], ["g(0)"], [1])

@@ -1,0 +1,52 @@
+// A held block let go at a point of the window. In the script area a statement
+// (from the palette, or a block moved from the stack) goes where bke_target says,
+// and a reporter from the palette replaces the pill under the point; over the
+// palette a block taken from the stack is dropped from the document. A move
+// into the block's own body is refused. Answers the bits for a changed document, or 0.
+
+editor_land(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_x, int editor_integer_y) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  int editor_integer_repeat = lst_get_or(editor_matrix_session[(import constant_y_report)], bel_state[(import constant_session_anchor)], 0) * (bel_state[(import constant_session_grab_kind)] == (import constant_grab_pal));
+  int editor_integer_bits = 0;
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_x, int editor_integer_y) {
+  int editor_integer_world_x = editor_world(editor_integer_x - (import constant_metric_pal), bel_state[(import graph_view_state_pan_x)], bel_state[(import graph_view_state_zoom)]);
+  int editor_integer_world_y = editor_world(editor_integer_y - (import constant_metric_bar), bel_state[(import graph_view_state_pan_y)], bel_state[(import graph_view_state_zoom)]);
+  int[] bel_text_list = editor_target(editor_matrix_layout, editor_string_session[(import constant_z_doc)], editor_integer_world_x, editor_integer_world_y, editor_integer_repeat);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_x, int editor_integer_y) {
+  string editor_string_text = lst_str_get_or(editor_string_session[(import constant_z_pal)], bel_state[(import constant_session_anchor)], "");
+  if (bel_text_list[0] == (import constant_drop_ins) && bel_state[(import constant_session_grab_kind)] == (import constant_grab_pal)) {
+    editor_ins(editor_string_session[(import constant_z_doc)], bel_text_list[1], bel_text_list[2], [editor_string_text]);
+    editor_integer_bits = editor_changed(editor_string_session, editor_matrix_session, editor_matrix_layout);
+  }
+  if (bel_text_list[0] == (import constant_drop_set) && bel_state[(import constant_session_grab_kind)] == (import constant_grab_pal)) {
+    editor_set_line(editor_string_session[(import constant_z_doc)], editor_matrix_layout[(import constant_layout_line)][bel_text_list[1]], editor_matrix_layout[(import constant_layout_segment)][bel_text_list[1]], editor_string_text);
+    editor_integer_bits = editor_changed(editor_string_session, editor_matrix_session, editor_matrix_layout);
+  }
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_x, int editor_integer_y) {
+  if (bel_text_list[0] == (import constant_drop_ins) && bel_state[(import constant_session_grab_kind)] == (import constant_grab_block) && (bel_text_list[1] <= bel_state[(import constant_session_anchor)] || bel_text_list[1] >= editor_end(editor_string_session[(import constant_z_doc)], bel_state[(import constant_session_anchor)]))) {
+    editor_move(editor_string_session[(import constant_z_doc)], bel_state[(import constant_session_anchor)], bel_text_list[1], bel_text_list[2]);
+    editor_integer_bits = editor_changed(editor_string_session, editor_matrix_session, editor_matrix_layout);
+  }
+} return int editor_integer_bits;
+given editor_test_session("sprite S\nvar int n\nfn f(int a) return int\n  if a > 0\n    n = 1\n  else\n    n = 2\n  return a\n(1): (1)\n(0): (2)\n") given editor_test_pick(1, 1) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 250, 267):(3) then editor_test_peek:("ed=0 buf= dirty=1 run=0 tab=1 sprite S|var int n|fn f(int a) return int|  if a > 0|    n = 1|  else|    n = 2|  return a|  show()|(1): (1)|(0): (2)|")
+given editor_test_session("sprite S\nvar int n\nfn f(int a) return int\n  if a > 0\n    n = 1\n  else\n    n = 2\n  return a\n(1): (1)\n(0): (2)\n") given editor_test_hold(7) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 250, 142):(3) then editor_test_peek:("ed=0 buf= dirty=1 run=0 tab=0 sprite S|var int n|fn f(int a) return int|  return a|  if a > 0|    n = 1|  else|    n = 2|(1): (1)|(0): (2)|")
+given editor_test_session("sprite S\nvar int n\nfn f(int a) return int\n  if a > 0\n    n = 1\n  else\n    n = 2\n  return a\n(1): (1)\n(0): (2)\n") given editor_test_hold(3) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 250, 182):(0) then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=0 sprite S|var int n|fn f(int a) return int|  if a > 0|    n = 1|  else|    n = 2|  return a|(1): (1)|(0): (2)|")
+given editor_test_session("sprite S\nvar int n\nfn f(int a) return int\n  if a > 0\n    n = 1\n  else\n    n = 2\n  return a\n(1): (1)\n(0): (2)\n") given editor_test_pick(3, 0) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 244, 152):(3) then editor_test_peek:("ed=0 buf= dirty=1 run=0 tab=3 sprite S|var int n|fn f(int a) return int|  if 1 + 1|    n = 1|  else|    n = 2|  return a|(1): (1)|(0): (2)|")
+given editor_test_session("sprite S\nvar int n\nfn f(int a) return int\n  if a > 0\n    n = 1\n  else\n    n = 2\n  return a\n(1): (1)\n(0): (2)\n") given editor_test_pick(1, 1) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 250, 352):(0) then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=1 sprite S|var int n|fn f(int a) return int|  if a > 0|    n = 1|  else|    n = 2|  return a|(1): (1)|(0): (2)|")
+
+editor_drop(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_x, int editor_integer_y) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  int editor_integer_bits = 0;
+  if (editor_in(editor_integer_x, editor_integer_y, (import constant_metric_pal), (import constant_metric_bar), bel_state[(import graph_view_state_width)] - (import constant_metric_pal) - (import constant_metric_stage), 4000) == 1) {
+    editor_integer_bits = editor_land(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_integer_x, editor_integer_y);
+  }
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_x, int editor_integer_y) {
+  if (editor_integer_x < (import constant_metric_pal) && bel_state[(import constant_session_grab_kind)] == (import constant_grab_block)) {
+    editor_cut(editor_string_session[(import constant_z_doc)], bel_state[(import constant_session_anchor)]);
+    editor_integer_bits = editor_changed(editor_string_session, editor_matrix_session, editor_matrix_layout);
+  }
+} return int editor_integer_bits;
+given editor_test_session("sprite S\nvar int n\nfn f(int a) return int\n  if a > 0\n    n = 1\n  else\n    n = 2\n  return a\n(1): (1)\n(0): (2)\n") given editor_test_hold(4) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 50, 300):(3) then editor_test_peek:("ed=0 buf= dirty=1 run=0 tab=0 sprite S|var int n|fn f(int a) return int|  if a > 0|  else|    n = 2|  return a|(1): (1)|(0): (2)|")
+given editor_test_session("sprite S\nvar int n\nfn f(int a) return int\n  if a > 0\n    n = 1\n  else\n    n = 2\n  return a\n(1): (1)\n(0): (2)\n") given editor_test_pick(1, 0) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 250, 267):(3) then editor_test_peek:("ed=0 buf= dirty=1 run=0 tab=1 sprite S|var int n|fn f(int a) return int|  if a > 0|    n = 1|  else|    n = 2|  return a|  say(\"Hello\")|(1): (1)|(0): (2)|")
+given editor_test_session("sprite S\nvar int n\nfn f(int a) return int\n  if a > 0\n    n = 1\n  else\n    n = 2\n  return a\n(1): (1)\n(0): (2)\n") given editor_test_hold(4) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 800, 300):(0) then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=0 sprite S|var int n|fn f(int a) return int|  if a > 0|    n = 1|  else|    n = 2|  return a|(1): (1)|(0): (2)|")
+given editor_test_session("sprite S\nvar int n\nfn f(int a) return int\n  if a > 0\n    n = 1\n  else\n    n = 2\n  return a\n(1): (1)\n(0): (2)\n") given editor_test_pick(1, 0) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 50, 300):(0) then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=1 sprite S|var int n|fn f(int a) return int|  if a > 0|    n = 1|  else|    n = 2|  return a|(1): (1)|(0): (2)|")

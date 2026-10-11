@@ -1,0 +1,26 @@
+// Two scripts that talk by broadcast. main (the green flag) says "ping" and
+// broadcasts "go"; answer and later run on that message in their own threads.
+// answer replies at once; later waits a tenth of a second first, so its line
+// comes some frames after the others.
+sprite Ping
+fn main(int argc, string[] argv) return int
+  say("ping")
+  broadcast("go")
+  return 0
+(1, ["blocks"]): (0)
+(2, ["blocks", "x"]): (0)
+
+sprite Pong
+var int hits
+
+fn answer() return void on "go"
+  hits = hits + 1
+  say("pong")
+(): () then hits: (1)
+given hits = 5 (): () then hits: (6)
+
+fn later() return void on "go"
+  wait(0.1)
+  say("pong, a little later")
+(): () then hits: (0)
+given hits = 3 (): () then hits: (3)

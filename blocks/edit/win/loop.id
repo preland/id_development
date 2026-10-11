@@ -1,0 +1,33 @@
+// One frame, as callgraph's and word's do it: the surface is fitted to the window,
+// the waiting events are taken (bke_events), the program takes its turn (bke_tick)
+// when it is running, the picture is painted when the first frame, a resize, an
+// event or the program asks for it, and it is shown. Every frame is shown, painted
+// or not: GFX_MAX_FRAMES counts shown frames. A frame waits 33 ms while the program runs, the machine's own frame time, so a wait block takes the time it says. Answers 1 when the window was closed.
+
+editor_frame(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_first) {
+  int editor_integer_character_code = gfx_sync();
+  int editor_integer_bits = editor_events(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_integer_character_code);
+  int editor_integer_ran = editor_tick(editor_string_session, editor_matrix_session);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_first) {
+  if (editor_integer_first + editor_integer_character_code + editor_integer_bits % 2 + editor_integer_ran > 0) {
+    editor_paint(editor_string_session, editor_matrix_session, editor_matrix_layout);
+  }
+  int editor_integer_shown = gfx_present((import sf_l_px));
+  sleep_ms(1 + 32 * editor_matrix_session[(import constant_y_state)][(import constant_session_run)]);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_first) {
+  int editor_integer_quit = editor_integer_bits / 2;
+} return int editor_integer_quit;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given fx_trig_init given idstd_graph_view_test_look(5, 400) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 1):(0) then idstd_graph_view_test_seen:("16777215")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given fx_trig_init given idstd_graph_view_test_look(5, 400) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 0):(0) then idstd_graph_view_test_seen:("0")
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  wait(1.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") given idstd_graph_view_test_canvas(960, 600) given fx_trig_init given editor_launch((import editor_test_strings), (import editor_test_integers)) given idstd_graph_view_test_look(5, 400) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 0):(0) then idstd_graph_view_test_seen:("16777215")
+
+editor_loop(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_ok, int editor_integer_maximum) {
+  int editor_integer_count = 0;
+  int editor_integer_quit = editor_integer_ok == 0;
+  while (editor_integer_quit == 0 && editor_integer_count != editor_integer_maximum) {
+    editor_integer_quit = editor_frame(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_integer_count == 0);
+    editor_integer_count = editor_integer_count + 1;
+  }
+} return int editor_integer_count;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given fx_trig_init ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 1, 3):(3)
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given idstd_graph_view_test_canvas(960, 600) given fx_trig_init ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 0, 5):(0)

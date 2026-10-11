@@ -1,0 +1,61 @@
+// One line of a script: its word (conf.id's bkk_verbs) and fields, run as the
+// events they stand for. A blank line and a line that starts with # do nothing and
+// are fine. Answers 1 when the line is fine, 0 when its word is not one of
+// bkk_verbs, it has fewer fields than the word needs (bkk_verb_need) or a save
+// could not be written.
+
+editor_command_word(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string editor_string_line) {
+  string[] bet_field = str_split(editor_string_line, " ");
+  int editor_integer_verb = lst_str_index((import constant_verbs), bet_field[0]);
+  int editor_integer_act = (editor_integer_verb >= 0) * (len(bet_field) >= (import constant_verb_need)[fx_max(editor_integer_verb, 0)]) * (editor_integer_verb + 1);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string editor_string_line) {
+  if (editor_integer_act == 1) {
+    editor_do_wheel(editor_string_session, editor_matrix_session, editor_matrix_layout, bet_field);
+  }
+  if (editor_integer_act >= 2 && editor_integer_act <= 4) {
+    editor_do_mouse(editor_string_session, editor_matrix_session, editor_matrix_layout, bet_field);
+  }
+  if (editor_integer_act == 5) {
+    editor_do_key(editor_string_session, editor_matrix_session, editor_matrix_layout, bet_field);
+  }
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string editor_string_line) {
+  if (editor_integer_act == 6) {
+    editor_do_text(editor_string_session, editor_matrix_session, editor_matrix_layout, editor_string_line);
+  }
+  if (editor_integer_act == 7) {
+    editor_do_size(editor_string_session, editor_matrix_session, editor_matrix_layout, bet_field);
+  }
+  if (editor_integer_act == 8) {
+    editor_do_drag(editor_string_session, editor_matrix_session, editor_matrix_layout, bet_field);
+  }
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string editor_string_line) {
+  if (editor_integer_act == 9) {
+    editor_do_click(editor_string_session, editor_matrix_session, editor_matrix_layout, (import constant_metric_pal) + (import constant_metric_flag_x) + 14, 18);
+  }
+  if (editor_integer_act == 10) {
+    editor_do_click(editor_string_session, editor_matrix_session, editor_matrix_layout, (import constant_metric_pal) + (import constant_metric_stop_x) + 14, 18);
+  }
+  if (editor_integer_act == 11) {
+    editor_do_frames(editor_string_session, editor_matrix_session, to_int(bet_field[1]));
+  }
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string editor_string_line) {
+  int editor_integer_record_count = 0;
+  if (editor_integer_act == 12) {
+    editor_integer_record_count = editor_do_save(editor_string_session, editor_matrix_session, bet_field[1]);
+  }
+  int editor_integer_ok = (editor_integer_act > 0) * (1 - editor_integer_record_count) + (bet_field[0] == "") + (str_starts(bet_field[0], "#") == 1);
+} return int editor_integer_ok;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), "size 300 200"):(1) then editor_test_cells:("scroll=0 cells=16,16,100,-1,300,200,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,1,0,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), "size 7"):(0) then editor_test_cells:("scroll=0 cells=16,16,100,-1,960,600,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,1,0,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), "# size 7 8"):(1) then editor_test_cells:("scroll=0 cells=16,16,100,-1,960,600,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,1,0,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), "jump 1 2"):(0)
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), ""):(1)
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  wait(1.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), "flag"):(1) then editor_test_stage:("names=S says= geo=0,0,90,100,1 run=1 fr=0")
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  wait(1.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") given editor_launch((import editor_test_strings), (import editor_test_integers)) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), "stop"):(1) then editor_test_stage:("names=S says= geo=0,0,90,100,1 run=0 fr=0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), "drag 20 130 300 136"):(1) then editor_test_peek:("ed=0 buf= dirty=1 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|  move(10.0)|")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), "wheel 400 300 -1"):(1) then editor_test_cells:("scroll=0 cells=-33,-46,125,-1,960,600,212,264,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,1,0,0")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), "key 9"):(1) then editor_test_peek:("ed=1 buf=10.09 dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) given editor_test_string(2, "") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), "text 12"):(1) then editor_test_peek:("ed=1 buf=12 dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
+given editor_test_session("sprite S\nfn main(int argc, string[] argv) return int\n  wait(1.0)\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\", \"y\"]): (0)\n") given editor_launch((import editor_test_strings), (import editor_test_integers)) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), "frames 2"):(1) then editor_test_stage:("names=S says= geo=0,0,90,100,1 run=1 fr=2")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), "save /nonexistent/dir/x.blk"):(0) then eprints:("blocks: cannot write /nonexistent/dir/x.blk; check that the folder exists and that you may write to it\n")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), "down 200 10 1 1"):(1) then editor_test_grip:("gk=4 ga=1 gp=-1 gd=0 at=200,10 pan=0")

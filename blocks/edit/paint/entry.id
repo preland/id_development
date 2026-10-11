@@ -1,0 +1,41 @@
+// A block drawn on its own, at zoom 100, with its top left at a point: a palette
+// entry, and the block that follows the pointer in a drag. A statement is laid out as
+// the one line of a document, so it looks exactly as it will in the script; a
+// reporter is a single pill in the colour of its category.
+
+editor_draw_layout(int[][] editor_matrix_layout, string[] bet_texts, int editor_integer_ox, int editor_integer_offset_vertical) {
+  int editor_integer_key_code = 0;
+  while (editor_integer_key_code < len(bet_texts)) {
+    editor_draw_one(editor_matrix_layout, bet_texts[editor_integer_key_code], editor_integer_key_code, editor_integer_ox, editor_integer_offset_vertical);
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+} return void;
+given editor_test_laid(["  x = 1"]) given idstd_graph_view_test_canvas(100, 60) given idstd_graph_view_test_look(12, 32) given idstd_graph_view_test_look(50, 26) given idstd_graph_view_test_look(5, 5) ((import editor_test_stage_layout), (import editor_test_stage_texts), 10, 20):() then idstd_graph_view_test_seen:("16747546,16777215,0")
+given editor_test_laid([]) given idstd_graph_view_test_canvas(100, 60) given idstd_graph_view_test_look(12, 32) ((import editor_test_stage_layout), (import editor_test_stage_texts), 10, 20):() then idstd_graph_view_test_seen:("0")
+
+editor_draw_one(int[][] editor_matrix_layout, string editor_string_text_list, int editor_integer_key_code, int editor_integer_ox, int editor_integer_offset_vertical) {
+  int[] bel_row_number = [editor_integer_ox + editor_matrix_layout[(import constant_layout_x)][editor_integer_key_code], editor_integer_offset_vertical + editor_matrix_layout[(import constant_layout_y)][editor_integer_key_code], editor_matrix_layout[(import constant_layout_width)][editor_integer_key_code], editor_matrix_layout[(import constant_layout_height)][editor_integer_key_code]];
+  int editor_integer_kind = editor_matrix_layout[(import constant_layout_kind)][editor_integer_key_code];
+  int editor_integer_cat = editor_matrix_layout[(import constant_layout_cat)][editor_integer_key_code];
+} chain (int[][] editor_matrix_layout, string editor_string_text_list, int editor_integer_key_code, int editor_integer_ox, int editor_integer_offset_vertical) {
+  editor_shape(editor_integer_kind, bel_row_number, editor_face_color(editor_integer_kind, editor_integer_cat), 4, 0);
+  editor_words(editor_string_text_list, editor_integer_kind, editor_integer_cat, bel_row_number, 100);
+} return void;
+given editor_test_laid(["  x = 1"]) given idstd_graph_view_test_canvas(100, 60) given idstd_graph_view_test_look(12, 32) given idstd_graph_view_test_look(50, 26) ((import editor_test_stage_layout), "", 0, 10, 20):() then idstd_graph_view_test_seen:("16747546,16747546")
+given editor_test_laid(["  x = 1"]) given idstd_graph_view_test_canvas(100, 60) given idstd_graph_view_test_look(50, 26) given idstd_graph_view_test_look(12, 32) ((import editor_test_stage_layout), "", 2, 10, 20):() then idstd_graph_view_test_seen:("16777215,0")
+
+editor_draw_entry(string editor_string_text_list, int editor_integer_repeat, int editor_integer_cat, int editor_integer_x, int editor_integer_y) {
+  string[] bet_texts = [];
+  int[][] editor_matrix_layout = editor_layout(["  " + editor_string_text_list], bet_texts);
+  int[] bel_row_number = [editor_integer_x, editor_integer_y + (import constant_metric_row_height) / 2 - (import constant_metric_pill_height) / 2, len(editor_string_text_list) * (import constant_metric_character_width) + (import constant_metric_pill_add), (import constant_metric_pill_height)];
+} chain (string editor_string_text_list, int editor_integer_repeat, int editor_integer_cat, int editor_integer_x, int editor_integer_y) {
+  if (editor_integer_repeat == 1) {
+    editor_shape((import constant_kind_pill), bel_row_number, editor_face_color((import constant_kind_pill), editor_integer_cat), 4, 0);
+    editor_words(editor_string_text_list, (import constant_kind_pill), editor_integer_cat, bel_row_number, 100);
+  }
+  if (editor_integer_repeat == 0) {
+    editor_draw_layout(editor_matrix_layout, bet_texts, editor_integer_x, editor_integer_y);
+  }
+} return void;
+given idstd_graph_view_test_canvas(130, 40) given idstd_graph_view_test_look(2, 12) given idstd_graph_view_test_look(40, 6) ("say(\"Hello\")", 0, 1, 0, 0):() then idstd_graph_view_test_seen:("10053375,16777215")
+given idstd_graph_view_test_canvas(130, 40) given idstd_graph_view_test_look(2, 12) given idstd_graph_view_test_look(60, 12) ("xpos()", 1, 0, 0, 0):() then idstd_graph_view_test_seen:("5019647,0")

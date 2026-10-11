@@ -1,0 +1,15 @@
+// main is the green flag, and the tool calls it with an argument count and
+// the program's name as the argument list, so its signature is fixed: a
+// function main must be 'fn main(int argc, string[] argv) return int'. E0606
+// otherwise, at its header. A program with no main is allowed (a library of
+// scripts that only broadcasts start).
+
+checker_main() {
+  int block_function_row = lst_str_index((import model_function_names), "main");
+  if (block_function_row >= 0 && generator_user_signature(block_function_row) != "iS>i") {
+    model_error((import model_function_line)[block_function_row], "E0606", "'main' must be 'fn main(int argc, string[] argv) return int', the green flag's one signature");
+  }
+} return void;
+given model_load("t.blk", "sprite S\nfn main(int argc, string[] argv) return int") ():() then len((import model_diagnostics)):(0)
+given model_load("t.blk", "sprite S\nfn main() return void") ():() then model_diagnostic_list:("t.blk:2: error: 'main' must be 'fn main(int argc, string[] argv) return int', the green flag's one signature [E0606]")
+given model_load("t.blk", "sprite S\nfn other() return void") ():() then len((import model_diagnostics)):(0)

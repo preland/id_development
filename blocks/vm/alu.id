@@ -1,0 +1,65 @@
+// Arithmetic. Each ALU instruction reads the slots a and b of the frame at fp,
+// writes the slot d, and its sub-operation x picks one entry of the row of
+// results computed for that pair (conf.id lists the sub-operations: 0 add,
+// 1 sub, 2 mul, 3 div, 4 mod, 5 lt, 6 gt, 7 le, 8 ge, 9 eq, 10 ne, 11 neg,
+// 12 not), so one table serves every operator. The answer is 0, or the number
+// of the runtime error in conf.id's bkk_trapmsg: dividing an int by zero is
+// one, as it is in id, and nothing is written then. An int is computed as an
+// int, so it wraps at 32 bits as id's does; a float comparison answers 1 or 0.
+
+machine_integer_operation(float[] block_value_list, int block_frame_pointer, int block_delta, int block_first_value, int block_second, int block_x, int[] block_thread_pointer) {
+  int block_position = block_value_list[block_frame_pointer + block_first_value];
+  int block_query = block_value_list[block_frame_pointer + block_second];
+  int block_divisor = block_query + (block_query == 0);
+} chain (float[] block_value_list, int block_frame_pointer, int block_delta, int block_first_value, int block_second, int block_x, int[] block_thread_pointer) {
+  int[] block_record_start = [block_position + block_query, block_position - block_query, block_position * block_query, block_position / block_divisor, block_position % block_divisor, block_position < block_query, block_position > block_query, block_position <= block_query, block_position >= block_query, block_position == block_query, block_position != block_query, 0 - block_position, block_position == 0];
+  if (block_query == 0 && block_x == 3) {
+    block_thread_pointer[0] = 1;
+  }
+  if (block_query == 0 && block_x == 4) {
+    block_thread_pointer[0] = 2;
+  }
+} chain (float[] block_value_list, int block_frame_pointer, int block_delta, int block_first_value, int block_second, int block_x, int[] block_thread_pointer) {
+  if (block_thread_pointer[0] == 0) {
+    block_value_list[block_frame_pointer + block_delta] = block_record_start[block_x];
+  }
+} return void;
+([5.0, 3.0, 0.0], 0, 2, 0, 1, 0, [0]):([5.0, 3.0, 8.0], 0, 2, 0, 1, 0, [0])
+([5.0, 3.0, 0.0], 0, 2, 0, 1, 1, [0]):([5.0, 3.0, 2.0], 0, 2, 0, 1, 1, [0])
+([5.0, 3.0, 0.0], 0, 2, 0, 1, 3, [0]):([5.0, 3.0, 1.0], 0, 2, 0, 1, 3, [0])
+([5.0, 3.0, 0.0], 0, 2, 0, 1, 4, [0]):([5.0, 3.0, 2.0], 0, 2, 0, 1, 4, [0])
+([5.0, 0.0, 9.0], 0, 2, 0, 1, 3, [0]):([5.0, 0.0, 9.0], 0, 2, 0, 1, 3, [1])
+([5.0, 0.0, 9.0], 0, 2, 0, 1, 4, [0]):([5.0, 0.0, 9.0], 0, 2, 0, 1, 4, [2])
+([5.0, 3.0, 9.0], 0, 2, 0, 1, 9, [0]):([5.0, 3.0, 0.0], 0, 2, 0, 1, 9, [0])
+([7.0, 3.0, 9.0], 0, 2, 0, 1, 5, [0]):([7.0, 3.0, 0.0], 0, 2, 0, 1, 5, [0])
+([7.0, 3.0, 9.0], 0, 2, 0, 1, 12, [0]):([7.0, 3.0, 0.0], 0, 2, 0, 1, 12, [0])
+([7.0, 3.0, 9.0], 0, 2, 0, 1, 11, [0]):([7.0, 3.0, -7.0], 0, 2, 0, 1, 11, [0])
+
+machine_float_operation(float[] block_value_list, int block_frame_pointer, int block_delta, int block_first_value, int block_second, int block_x) {
+  float block_float_first = block_value_list[block_frame_pointer + block_first_value];
+  float block_float_second = block_value_list[block_frame_pointer + block_second];
+  float[] block_frames_record = [block_float_first + block_float_second, block_float_first - block_float_second, block_float_first * block_float_second, block_float_first / block_float_second, 0.0, (block_float_first < block_float_second) * 1.0, (block_float_first > block_float_second) * 1.0, (block_float_first <= block_float_second) * 1.0, (block_float_first >= block_float_second) * 1.0, (block_float_first == block_float_second) * 1.0, (block_float_first != block_float_second) * 1.0, 0.0 - block_float_first, 0.0];
+} chain (float[] block_value_list, int block_frame_pointer, int block_delta, int block_first_value, int block_second, int block_x) {
+  block_value_list[block_frame_pointer + block_delta] = block_frames_record[block_x];
+} return void;
+([1.5, 2.0, 0.0], 0, 2, 0, 1, 0):([1.5, 2.0, 3.5])
+([1.5, 2.0, 0.0], 0, 2, 0, 1, 3):([1.5, 2.0, 0.75])
+([1.5, 2.0, 0.0], 0, 2, 0, 1, 5):([1.5, 2.0, 1.0])
+([2.0, 2.0, 7.0], 0, 2, 0, 1, 5):([2.0, 2.0, 0.0])
+([2.5, 2.0, 7.0], 0, 2, 0, 1, 11):([2.5, 2.0, -2.5])
+
+machine_string_operation(float[] block_value_list, string[] block_pool, int block_frame_pointer, int block_delta, int block_first_value, int block_second, int block_x) {
+  int block_handle_first = block_value_list[block_frame_pointer + block_first_value];
+  int block_handle_second = block_value_list[block_frame_pointer + block_second];
+  float[] block_source_rows = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, (block_pool[block_handle_first] == block_pool[block_handle_second]) * 1.0, (block_pool[block_handle_first] != block_pool[block_handle_second]) * 1.0];
+} chain (float[] block_value_list, string[] block_pool, int block_frame_pointer, int block_delta, int block_first_value, int block_second, int block_x) {
+  if (block_x == 0) {
+    push(block_pool, block_pool[block_handle_first] + block_pool[block_handle_second]);
+    block_source_rows[0] = len(block_pool) - 1;
+  }
+  block_value_list[block_frame_pointer + block_delta] = block_source_rows[block_x];
+} return void;
+([0.0, 1.0, 0.0], ["ab", "cd"], 0, 2, 0, 1, 0):([0.0, 1.0, 2.0], ["ab", "cd", "abcd"])
+([0.0, 1.0, 0.0], ["ab", "cd"], 0, 2, 0, 1, 9):([0.0, 1.0, 0.0], ["ab", "cd"])
+([0.0, 0.0, 9.0], ["ab"], 0, 2, 0, 1, 9):([0.0, 0.0, 1.0], ["ab"])
+([0.0, 1.0, 9.0], ["ab", "cd"], 0, 2, 0, 1, 10):([0.0, 1.0, 1.0], ["ab", "cd"])

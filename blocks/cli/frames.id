@@ -1,0 +1,21 @@
+// The --frames N option: the number of frames a run is limited to. Anything
+// else, or a count that is not positive, is conf.id's bkk_frames_default.
+
+command_frames(string[] block_argument_values) {
+  int block_count = (import constant_frames_default);
+  int block_index = 0;
+  while (block_index + 1 < len(block_argument_values)) {
+    if (block_argument_values[block_index] == "--frames") {
+      block_count = to_int(block_argument_values[block_index + 1]);
+    }
+    block_index = block_index + 1;
+  }
+} chain (string[] block_argument_values) {
+  if (block_count <= 0) {
+    block_count = (import constant_frames_default);
+  }
+} return int block_count;
+(["blocks", "run", "f.blk", "--frames", "30"]):(30)
+(["blocks", "run", "f.blk"]):(600)
+(["blocks", "run", "f.blk", "--frames", "0"]):(600)
+(["blocks", "run", "--frames"]):(600)

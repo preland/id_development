@@ -1,0 +1,39 @@
+// while and break. A loop is: the condition, a jz past the loop, the body, a
+// yield (the scheduler's chance to run another script, once per iteration)
+// and a jmp back to the condition. A break is a jmp whose target is not yet
+// known: it goes on the stack bkg_brk, and the loop's end points every break
+// above the height the loop started at (kept in the compiler's bkk_st_brk
+// register, bkk_st_nobrk when no loop is open) to the instruction after it.
+
+generator_while(string[] block_texts, int block_function_row, int block_line_index, int block_level) {
+  int block_top = len((import generator_code));
+  int block_call_stack = generator_condition(block_texts);
+  int block_inner = generator_emit((import constant_opcode_jump_zero), 0, block_call_stack, 0, 0);
+} chain (string[] block_texts, int block_function_row, int block_line_index, int block_level) {
+  int block_old = (import generator_state)[(import constant_statement_breaks)];
+  lset((import generator_state), (import constant_statement_breaks), len((import generator_break_stack)));
+  int block_next_index = generator_block(block_function_row, block_line_index + 1, block_level + 1);
+} chain (string[] block_texts, int block_function_row, int block_line_index, int block_level) {
+  generator_wend(block_top, block_inner, block_old);
+} return int block_next_index;
+given model_load("t.blk", "sprite S\nfn f() return void\n  while 1\n    int a = 1") given generator_initial (["while", "1"], 0, 2, 1):(4) then generator_codes:("25:1,0,0,0,1,9,0,0,0,25,1,1,0,0,1,13,0,0,0,0,8,0,0,0,0")
+given model_load("t.blk", "sprite S\nfn f() return void\n  while 1\n    break") given generator_initial (["while", "1"], 0, 2, 1):(4) then generator_breaks:("0=")
+
+generator_wend(int block_top, int block_inner, int block_old) {
+  generator_emit((import constant_opcode_yield), 0, 0, 0, 0);
+  generator_emit((import constant_opcode_jump), 0, 0, 0, block_top);
+  generator_patch(block_inner, len((import generator_code)));
+} chain (int block_top, int block_inner, int block_old) {
+  generator_fix_breaks();
+  lset((import generator_state), (import constant_statement_breaks), block_old);
+} return void;
+given generator_initial given lst_extend((import generator_code), [9, 0, 0, 0, 0]) (0, 0, -1):() then generator_codes:("15:9,0,0,0,15,13,0,0,0,0,8,0,0,0,0")
+given generator_initial given lst_extend((import generator_code), [9, 0, 0, 0, 0, 8, 0, 0, 0, 0]) given lst_extend((import generator_break_stack), [5]) given lset((import generator_state), 6, 0) (0, 0, -1):() then generator_codes:("20:9,0,0,0,20,8,0,0,0,20,13,0,0,0,0,8,0,0,0,0")
+
+generator_fix_breaks() {
+  while (len((import generator_break_stack)) > (import generator_state)[(import constant_statement_breaks)]) {
+    generator_patch(pop((import generator_break_stack)), len((import generator_code)));
+  }
+} return void;
+given generator_initial given lst_extend((import generator_code), [8, 0, 0, 0, 0, 1, 0, 0, 0, 0]) given lst_extend((import generator_break_stack), [0]) (): () then generator_codes:("10:8,0,0,0,10,1,0,0,0,0")
+given generator_initial given lst_extend((import generator_code), [8, 0, 0, 0, 0]) given lst_extend((import generator_break_stack), [0]) given lset((import generator_state), 6, 1) ():() then generator_codes:("5:8,0,0,0,0")

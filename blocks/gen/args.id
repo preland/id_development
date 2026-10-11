@@ -1,0 +1,57 @@
+// A call's arguments. They are compiled into consecutive slots starting at a,
+// one per letter of the signature before the '>', so that the callee (or the
+// builtin) finds them side by side from a. bkg_arg compiles one, after the
+// comma that separates it from the one before, and holds it to its letter
+// (E0606); bkg_arglist runs them all and answers the type of the first, which
+// the letters l and e are judged against.
+
+generator_argument(string[] block_texts, string block_signature, int block_first_value, int block_key_code, int block_function_type) {
+  string block_character_code = str_sub(block_signature, block_key_code, 1);
+  int block_want = generator_wanted_of(block_character_code, block_function_type);
+  int block_separator = 1;
+} chain (string[] block_texts, string block_signature, int block_first_value, int block_key_code, int block_function_type) {
+  if (block_key_code > 0) {
+    block_separator = generator_need(block_texts, ",");
+  }
+  int block_type = generator_bin(block_texts, block_first_value + block_key_code, block_want, (import constant_prefix_minimum));
+  int block_ok = generator_fits(block_character_code, block_type, block_function_type);
+} chain (string[] block_texts, string block_signature, int block_first_value, int block_key_code, int block_function_type) {
+  if (block_ok == 0 && block_type >= 0) {
+    generator_error("E0606", "argument " + block_key_code + " expects " + generator_let_name(block_character_code, block_function_type) + ", got " + (import constant_type_full)[block_type]);
+  }
+  if (block_key_code == 0) {
+    block_function_type = block_type;
+  }
+} return int block_function_type;
+given model_initial given generator_initial (["5"], "i>v", 3, 0, -1):(1) then (import generator_code):([1, 3, 0, 0, 5])
+given model_initial given generator_initial given lset((import generator_state), 0, 1) (["x", ",", "5"], "ii>v", 3, 1, 1):(1) then (import generator_code):([1, 4, 0, 0, 5])
+given model_initial given generator_initial (["5.5"], "i>v", 3, 0, -1):(2) then len((import model_diagnostics)):(1)
+
+generator_argument_list(string[] block_texts, string block_signature, int block_first_value, int block_count) {
+  int block_key_code = 0;
+  int block_function_type = 0 - 1;
+  while (block_key_code < block_count) {
+    block_function_type = generator_argument(block_texts, block_signature, block_first_value, block_key_code, block_function_type);
+    block_key_code = block_key_code + 1;
+  }
+} return int block_function_type;
+given model_initial given generator_initial (["1", ",", "2"], "ii>v", 4, 2):(1) then (import generator_code):([1, 4, 0, 0, 1, 1, 5, 0, 0, 2])
+given model_initial given generator_initial ([], ">v", 4, 0):(-1) then (import generator_code):([])
+
+generator_arguments(string[] block_texts, int block_destination, string block_signature, int block_function_row, int block_second) {
+  int block_count = str_find(block_signature, ">");
+  int block_first_value = generator_alloc(block_count);
+  int block_function_type = generator_argument_list(block_texts, block_signature, block_first_value, block_count);
+} chain (string[] block_texts, int block_destination, string block_signature, int block_function_row, int block_second) {
+  generator_need(block_texts, ")");
+  if (block_function_row >= 0) {
+    generator_emit((import constant_opcode_call), block_destination, block_function_row, block_first_value, 0);
+  } else {
+    generator_emit((import constant_opcode_builtin), block_destination, block_first_value, 0, generator_builtin_pick(block_second, block_function_type));
+  }
+} chain (string[] block_texts, int block_destination, string block_signature, int block_function_row, int block_second) {
+  int block_type = generator_return_type_kind(str_sub(block_signature, block_count + 1, 1), block_function_type);
+} return int block_type;
+given model_initial given generator_initial (["3", ")"], 9, "i>i", 0, -1):(1) then (import generator_code):([1, 0, 0, 0, 3, 11, 9, 0, 0, 0])
+given model_load("t.blk", "sprite S\nvar int[] xs") given generator_initial (["xs", ")"], 9, "a>i", -1, 12):(1) then (import generator_code)[5]:(14)
+given model_initial given generator_initial ([")"], 9, ">v", -1, 5):(0) then (import generator_code):([14, 9, 0, 0, 5])

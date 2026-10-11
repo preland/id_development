@@ -1,0 +1,16 @@
+// The end of a thread: the return of its first frame. The value returned (slot
+// a of the frame, or nothing when a is -1) is kept in the one-cell list rv for
+// whoever started the thread, and the thread is marked free.
+
+machine_finish(int[] block_thread, float[] block_return_values, float[] block_value_list, int block_thread_slot, int block_first_value) {
+  int block_row = block_thread_slot * (import constant_thread_count);
+  int block_frame_pointer = block_thread[block_row + (import constant_thread_frame_pointer)];
+  block_return_values[0] = 0.0;
+} chain (int[] block_thread, float[] block_return_values, float[] block_value_list, int block_thread_slot, int block_first_value) {
+  if (block_first_value >= 0) {
+    block_return_values[0] = block_value_list[block_frame_pointer + block_first_value];
+  }
+  lset(block_thread, block_row + (import constant_thread_state), (import constant_statement_free));
+} return void;
+([0, 0, 0, 1, 0, 0], [7.0], [3.0, 4.0], 0, 1):([0, 0, 0, 0, 0, 0], [4.0], [3.0, 4.0])
+([0, 0, 0, 1, 0, 0], [7.0], [3.0, 4.0], 0, -1):([0, 0, 0, 0, 0, 0], [0.0], [3.0, 4.0])

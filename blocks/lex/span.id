@@ -1,0 +1,54 @@
+// Where a token ends. bkl_end looks at the character a token starts with,
+// asks bkl_class what kind of token that is, and hands the scan to the
+// routine for the kind; the classes are conf.id's bkk_cl_ numbers. Skipping
+// the spaces before a token is bkl_space_width (space.id).
+
+lexer_class(int block_character) {
+  int block_key_code = (import constant_class_operation);
+  if (chr_is_alpha(block_character) || block_character == 95) {
+    block_key_code = (import constant_class_word);
+  }
+  if (chr_is_digit(block_character)) {
+    block_key_code = (import constant_class_number);
+  }
+} chain (int block_character) {
+  if (block_character == 34) {
+    block_key_code = (import constant_class_string);
+  }
+  if (block_character < 0) {
+    block_key_code = (import constant_class_end);
+  }
+} return int block_key_code;
+(97):(1)
+(95):(1)
+(55):(2)
+(34):(3)
+(43):(4)
+(-1):(0)
+
+lexer_end(string block_line, int block_index) {
+  int block_key_code = lexer_class(charat(block_line, block_index));
+  int block_end_index = block_index + 1;
+  if (block_key_code == (import constant_class_end)) {
+    block_end_index = block_index;
+  }
+} chain (string block_line, int block_index) {
+  if (block_key_code == (import constant_class_word) || block_key_code == (import constant_class_number)) {
+    block_end_index = lexer_span(block_line, block_index, block_key_code);
+  }
+  if (block_key_code == (import constant_class_number)) {
+    block_end_index = lexer_fraction(block_line, block_end_index);
+  }
+  if (block_key_code == (import constant_class_string)) {
+    block_end_index = lexer_string(block_line, block_index);
+  }
+} chain (string block_line, int block_index) {
+  if (block_key_code == (import constant_class_operation)) {
+    block_end_index = lexer_pair(block_line, block_index);
+  }
+} return int block_end_index;
+("abc d", 0):(3)
+("12.5+x", 0):(4)
+("\"a b\" c", 0):(5)
+("<= 3", 0):(2)
+("a", 1):(1)

@@ -1,0 +1,46 @@
+// Typing into a literal. A click on a pill starts it (bke_begin: the pill's
+// line and number are kept in the state, its text goes in the buffer); text events
+// add to the buffer and Backspace takes from it; Enter (or a click anywhere else)
+// puts the buffer in the line in place of the pill, Esc drops it. Changing the document
+// changes everything derived from it (bke_changed), which is what the bits
+// answer: 3 is a different picture and a different document.
+
+editor_changed(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout) {
+  editor_layout_again(editor_string_session, editor_matrix_layout);
+  editor_refill_palette(editor_string_session, editor_matrix_session);
+  editor_matrix_session[(import constant_y_state)][(import constant_session_dirty)] = 1;
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout) {
+  int editor_integer_bits = (import constant_event_paint) + (import constant_event_doc);
+} return int editor_integer_bits;
+given editor_test_session("sprite S\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):(3) then editor_test_peek:("ed=0 buf= dirty=1 run=0 tab=0 sprite S|")
+given editor_test_session("sprite S\nvar int n\n") given editor_test_cell(15, 4) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):(3) then editor_test_peek:("ed=0 buf= dirty=1 run=0 tab=4 sprite S|var int n|")
+
+editor_begin(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_box) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  string[] bet_buffer = editor_string_session[(import constant_z_buffer)];
+  bel_state[(import constant_session_editing)] = editor_integer_box >= 0;
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_box) {
+  bel_state[(import constant_session_element)] = lst_get_or(editor_matrix_layout[(import constant_layout_line)], editor_integer_box, 0);
+  bel_state[(import constant_session_edit_start)] = lst_get_or(editor_matrix_layout[(import constant_layout_segment)], editor_integer_box, 0);
+  bet_buffer[0] = lst_str_get_or(editor_string_session[(import constant_z_text)], editor_integer_box, "");
+} return void;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 4):() then editor_test_peek:("ed=1 buf=10.0 dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), -1):() then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
+
+editor_commit(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  string editor_string_old = lst_str_get_or(editor_string_session[(import constant_z_doc)], bel_state[(import constant_session_element)], "");
+  int editor_integer_bits = bel_state[(import constant_session_editing)];
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout) {
+  if (bel_state[(import constant_session_editing)] == 1) {
+    editor_set_line(editor_string_session[(import constant_z_doc)], bel_state[(import constant_session_element)], bel_state[(import constant_session_edit_start)], editor_string_session[(import constant_z_buffer)][0]);
+    bel_state[(import constant_session_editing)] = 0;
+    if (lst_str_get_or(editor_string_session[(import constant_z_doc)], bel_state[(import constant_session_element)], "") != editor_string_old) {
+      editor_integer_bits = editor_changed(editor_string_session, editor_matrix_session, editor_matrix_layout);
+    }
+  }
+} return int editor_integer_bits;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) given editor_test_string(2, "90") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):(3) then editor_test_peek:("ed=0 buf=90 dirty=1 run=0 tab=0 sprite S|fn f() return void|  move(90)|")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):(0) then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) given editor_test_string(2, "") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):(3) then editor_test_peek:("ed=0 buf= dirty=1 run=0 tab=0 sprite S|fn f() return void|  move()|")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given editor_test_begin(4) ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes)):(1) then editor_test_peek:("ed=0 buf=10.0 dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")

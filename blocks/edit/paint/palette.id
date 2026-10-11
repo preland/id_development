@@ -1,0 +1,47 @@
+// The palette on the left: six tabs, one for each category, the chosen one marked
+// with a slate frame, and under them the blocks of that category, scrolled, each
+// drawn as it will look in the script (bke_draw_entry). The blocks are clipped to
+// the part under the tabs so a scrolled block never covers them.
+
+editor_draw_tab(int editor_integer_key_code, int editor_integer_selection) {
+  int[] bel_row_number = [(import constant_metric_tab_x) + editor_integer_key_code % 2 * (import constant_metric_tab_delta_x), (import constant_metric_bar) + (import constant_metric_tab_y) + editor_integer_key_code / 2 * (import constant_metric_tab_delta_y), (import constant_metric_tab_width), (import constant_metric_tab_height)];
+  string editor_string_name = (import constant_cat_name)[editor_integer_key_code];
+  if (editor_integer_selection == 1) {
+    draw_rounded_rectangle(bel_row_number[0] - 2, bel_row_number[1] - 2, bel_row_number[2] + 4, bel_row_number[3] + 4, 6, (import constant_x_ink));
+  }
+} chain (int editor_integer_key_code, int editor_integer_selection) {
+  editor_shape((import constant_kind_statement), bel_row_number, (import constant_cat_column)[editor_integer_key_code], 4, 0);
+  txt_g8_draw(bel_row_number[0] + (bel_row_number[2] - len(editor_string_name) * 8) / 2, bel_row_number[1] + (bel_row_number[3] - 8) / 2, editor_string_name, (import constant_x_white), 1);
+} return void;
+given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(10, 50) given idstd_graph_view_test_look(5, 50) given idstd_graph_view_test_look(4, 50) (0, 0):() then idstd_graph_view_test_seen:("5019647,0,0")
+given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(10, 50) given idstd_graph_view_test_look(5, 50) given idstd_graph_view_test_look(4, 50) (0, 1):() then idstd_graph_view_test_seen:("5019647,5725813,5725813")
+given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(110, 100) given idstd_graph_view_test_look(96, 100) (5, 0):() then idstd_graph_view_test_seen:("16737920,16737920")
+
+editor_draw_entries(string[][] editor_string_session, int[][] editor_matrix_session) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  int editor_integer_key_code = 0;
+  sf_l_clip(0, (import constant_metric_position_origin) - 2, (import constant_metric_pal), bel_state[(import graph_view_state_height)]);
+} chain (string[][] editor_string_session, int[][] editor_matrix_session) {
+  while (editor_integer_key_code < len(editor_string_session[(import constant_z_pal)])) {
+    editor_draw_entry(editor_string_session[(import constant_z_pal)][editor_integer_key_code], editor_matrix_session[(import constant_y_report)][editor_integer_key_code], bel_state[(import constant_session_tab)], 8, (import constant_metric_position_origin) + editor_integer_key_code * (import constant_metric_pill_delta_y) - bel_state[(import constant_session_palette_scroll)]);
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+  sf_l_unclip();
+} return void;
+given editor_test_session("sprite S\nvar int n\n") given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(10, 130) given idstd_graph_view_test_look(10, 160) given idstd_graph_view_test_look(10, 190) ((import editor_test_strings), (import editor_test_integers)):() then idstd_graph_view_test_seen:("5019647,5019647,5019647")
+given editor_test_session("sprite S\nvar int n\n") given idstd_graph_view_test_canvas(960, 600) given editor_test_cell(16, 28) given idstd_graph_view_test_look(10, 130) given idstd_graph_view_test_look(10, 100) ((import editor_test_strings), (import editor_test_integers)):() then idstd_graph_view_test_seen:("5019647,0")
+
+editor_draw_palette(string[][] editor_string_session, int[][] editor_matrix_session) {
+  int[] bel_state = editor_matrix_session[(import constant_y_state)];
+  d2_l_rect(0, (import constant_metric_bar), (import constant_metric_pal), bel_state[(import graph_view_state_height)] - (import constant_metric_bar), (import constant_x_palette_background));
+  d2_l_rect((import constant_metric_pal) - 1, (import constant_metric_bar), 1, bel_state[(import graph_view_state_height)] - (import constant_metric_bar), (import constant_x_edge));
+} chain (string[][] editor_string_session, int[][] editor_matrix_session) {
+  int editor_integer_key_code = 0;
+  while (editor_integer_key_code < (import constant_metric_tabs)) {
+    editor_draw_tab(editor_integer_key_code, editor_integer_key_code == bel_state[(import constant_session_tab)]);
+    editor_integer_key_code = editor_integer_key_code + 1;
+  }
+  editor_draw_entries(editor_string_session, editor_matrix_session);
+} return void;
+given editor_test_session("sprite S\nvar int n\n") given idstd_graph_view_test_canvas(960, 600) given idstd_graph_view_test_look(5, 400) given idstd_graph_view_test_look(187, 400) given idstd_graph_view_test_look(10, 130) given idstd_graph_view_test_look(10, 50) ((import editor_test_strings), (import editor_test_integers)):() then idstd_graph_view_test_seen:("16777215,13619151,5019647,5019647")
+given editor_test_session("sprite S\nvar int n\n") given idstd_graph_view_test_canvas(960, 600) given editor_test_pick(1, 0) given idstd_graph_view_test_look(100, 50) given idstd_graph_view_test_look(98, 50) given idstd_graph_view_test_look(10, 130) ((import editor_test_strings), (import editor_test_integers)):() then idstd_graph_view_test_seen:("10053375,10053375,10053375")

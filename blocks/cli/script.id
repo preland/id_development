@@ -1,0 +1,54 @@
+// The headless commands of the editor. bkx_script replays the script file on the
+// session, then prints the state when --dump is given and writes the picture when
+// --render-after names a file; its status is 1 when a line could not be read or
+// the picture could not be written, 2 when the script file could not be read.
+// bkx_render is `blocks render`: the file at its start, at the size the window
+// opens with or the one --size gives.
+
+command_has(string[] block_argument_values, string block_name) {
+  int block_index = 0;
+  int block_has = 0;
+  while (block_index < len(block_argument_values)) {
+    block_has = block_has || block_argument_values[block_index] == block_name;
+    block_index = block_index + 1;
+  }
+} return int block_has;
+(["blocks", "edit", "f", "--dump"], "--dump"):(1)
+(["blocks", "edit", "f"], "--dump"):(0)
+
+command_script(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string[] block_argument_values, string block_sprite_list) {
+  string block_script = fs_read_text(block_sprite_list);
+  int block_state = 2;
+  if (block_script == "") {
+    eprint("blocks: cannot read the script " + block_sprite_list + ", or it is empty");
+  }
+} chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, string[] block_argument_values, string block_sprite_list) {
+  if (block_script != "") {
+    int block_bad = editor_replay(editor_string_session, editor_matrix_session, editor_matrix_layout, block_script);
+    int block_record_count = editor_report(editor_string_session, editor_matrix_session, editor_matrix_layout, command_has(block_argument_values, "--dump"), command_has(block_argument_values, "--boxes"), command_option_value(block_argument_values, "--render-after", ""));
+    block_state = block_bad + block_record_count > 0;
+  }
+} return int block_state;
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), ["blocks", "edit", "f"], "/nonexistent/s.txt"):(2) then eprints:("blocks: cannot read the script /nonexistent/s.txt, or it is empty\n")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given fs_temp_text("size 7 8\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), ["blocks", "edit", "f", "--dump"], (import fs_temp_path)):(0) then prints:("camera 16 16 100\ntab Motion\ntyping none\nviolations 1\n  line 2: function 'f' has 0 test case(s); at least 2 are required [E0501]\nrunning 0 frames 0\nS: x=0 y=0 dir=90 size=100 visible=1 says \"\"\ndoc 4 lines dirty 0\n| sprite S\n| fn f() return void\n|   move(10.0)\n| \n")
+given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") given fs_temp_text("bogus\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), ["blocks", "edit", "f"], (import fs_temp_path)):(1) then eprints:("blocks: script line 1: 'bogus' cannot be run (not a word a script has, too few fields, or a file that could not be written); the words are wheel X Y DY, down X Y [BUTTON [CLICKS]], up X Y, move X Y, drag X1 Y1 X2 Y2, key NAME, text STR, size W H, flag, stop, frames N, save PATH\n")
+
+command_render(string block_path, string[] block_argument_values) {
+  string block_text = fs_read_text(block_path);
+  string[][] editor_string_session = [];
+  int[][] editor_matrix_session = [];
+} chain (string block_path, string[] block_argument_values) {
+  int[][] editor_matrix_layout = editor_lists((import constant_layout_count));
+  int block_state = 2;
+  if (block_text == "" || len(block_argument_values) < 4) {
+    eprint("blocks: render needs a .blk file that can be read and the picture to write: blocks render FILE.blk OUT.ppm [--size W H] [" + block_path + "]");
+  }
+} chain (string block_path, string[] block_argument_values) {
+  if (block_text != "" && len(block_argument_values) >= 4) {
+    editor_start(editor_string_session, editor_matrix_session, editor_matrix_layout, block_text, block_path);
+    command_resize(editor_matrix_session, block_argument_values);
+    block_state = editor_render(editor_string_session, editor_matrix_session, editor_matrix_layout, block_argument_values[3]);
+  }
+} return int block_state;
+("/nonexistent/none.blk", ["blocks", "render", "/nonexistent/none.blk", "/nonexistent/o.ppm"]):(2) then eprints:("blocks: render needs a .blk file that can be read and the picture to write: blocks render FILE.blk OUT.ppm [--size W H] [/nonexistent/none.blk]\n")
+given fs_temp_text("sprite S\n") ((import fs_temp_path), ["blocks", "render", "x", "/nonexistent/dir/o.ppm", "--size", "100", "50"]):(1) then eprints:("blocks: the picture could not be written; check that the folder exists and that you may write to it [/nonexistent/dir/o.ppm]\n")

@@ -1,0 +1,85 @@
+sprite Math
+fn fact(int n) return int
+  int r = 1
+  if n > 1
+    r = n * fact(n - 1)
+  return r
+(1): (1)
+(5): (120)
+
+fn firstbig(int[] xs, int limit) return int
+  int i = 0
+  int found = -1
+  while i < len(xs)
+    if xs[i] > limit
+      found = xs[i]
+      break
+    i = i + 1
+  return found
+([1, 5, 9], 4): (5)
+([1, 2], 4): (-1)
+
+fn logic(int a, int b) return int
+  int r = 0
+  if a > 0 && b > 0 || a < -5
+    r = 1
+  return r
+(1, 1): (1)
+(-9, 0): (1)
+(1, 0): (0)
+
+sprite Words
+var string name = "cat"
+var string[] words = ["a", "b"]
+
+fn text(string s) return string
+  int h = len(s)
+  string t = str_sub(s, 1, h - 1)
+  return t + "!" + int_to_str(str_find(s, "b"))
+("abc"): ("bc!1")
+("xyz"): ("yz!-1")
+
+fn joined() return string
+  string both = name + "-" + words[1]
+  return both
+(): ("cat-b")
+given name = "dog" (): ("dog-b")
+
+sprite Lists
+var int total
+var float[] fs
+
+fn edit(int[] xs) return void
+  insert(xs, 1, 7)
+  delete(xs, 0)
+([3, 1]): ()
+([5, 6]): ()
+
+fn listops() return void
+  int[] xs = [3, 1]
+  edit(xs)
+  total = len(xs) * 100 + pop(xs)
+(): () then total: (201)
+given total = 5 (): () then total: (201)
+
+fn floats() return void
+  fs = [1.5, 2.5]
+  fs[1] = fs[0] + 1.0
+(): () then fs: ([1.5, 2.5])
+(): () then total: (0)
+
+sprite Mover
+fn walk() return void
+  move(10.0)
+  turn(90.0)
+  move(5.0)
+(): ()
+(): () then total: (0)
+
+fn main(int argc, string[] argv) return int
+  walk()
+  say(text("abc"))
+  say(joined())
+  return 0
+(1, ["x"]): (0)
+(2, ["x", "y"]): (0)
