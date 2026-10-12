@@ -719,7 +719,7 @@ the keyboard up" (UI.md 7b) is how the find bar loses focus.
 | XML reader (struct-based pull parser) and writer | `idstd/core/fmt/xml/` | the editor's `xml_` is a global-state parser and idstd's font-config reader (`xt_`) is a second, purpose-built one; one shared library is what "duplicates go to idstd" asks for |
 | ODT model mapping (elements to rows, styles, lists, page layout) | `word/io/odt/` | ODT-specific, one project |
 
-New prefixes (`zr_`, `zw_`, `xr_`, `xw_`, `crc_`, `df_`) are chosen so that nothing
+New prefixes (`zr_`, `zw_`, `xr_`, `xw_`, `cyclic_redundancy_check_`, `df_`) are chosen so that nothing
 collides with the legacy editor's `zip_`/`xml_`/`odt_` while both are alive
 (function names are program-wide; idstd is merged into every build,
 `editor/NAMES.md`).
@@ -1036,8 +1036,8 @@ What `ost_load` decides, so the content reader need not:
 ### 4.7 idstd archive and XML seams (A1, A2, A2r)
 
 ```
-crc_32(int[] xs, int lo, int hi) -> int
-crc_update(int crc, int[] xs, int lo, int hi) -> int
+cyclic_redundancy_check_32(int[] xs, int lo, int hi) -> int
+cyclic_redundancy_check_update(int previous, int[] xs, int lo, int hi) -> int
 
 struct Zip { int[] bytes; int[] dir; string[] names; }
 zr_open(int[] bytes) -> Zip
@@ -1244,7 +1244,7 @@ the seam in section 4 with a stub, as noted.
 
 | id | package | directories | depends | acceptance |
 | --- | --- | --- | --- | --- |
-| A1 | CRC-32; ZIP reader (struct-based, CRC checked) and stored-entry ZIP writer; `mimetype`-first ordering helper | `idstd/core/data/hash/crc32`, `idstd/core/fmt/zip` | W0 | `crc_32("123456789") = 0xCBF43926`; round trip of 0, 1, 300 and 70 000 byte entries and of an empty archive; reader accepts `editor/test_assets/empty.zip` and a LibreOffice-written `.odt` (committed under `wordcorpus`) with every CRC verified; one flipped bit in an entry is reported as a named CRC error; `soffice --headless --convert-to txt` opens an `.odt` whose parts were written by `zw_*` (manual first, then B9) |
+| A1 | CRC-32; ZIP reader (struct-based, CRC checked) and stored-entry ZIP writer; `mimetype`-first ordering helper | `idstd/core/data/hash/crc32`, `idstd/core/fmt/zip` | W0 | `cyclic_redundancy_check_32("123456789") = 0xCBF43926`; round trip of 0, 1, 300 and 70 000 byte entries and of an empty archive; reader accepts `editor/test_assets/empty.zip` and a LibreOffice-written `.odt` (committed under `wordcorpus`) with every CRC verified; one flipped bit in an entry is reported as a named CRC error; `soffice --headless --convert-to txt` opens an `.odt` whose parts were written by `zw_*` (manual first, then B9) |
 | A2 | XML writer (struct, escaping, declaration, attribute order = call order, nesting check) | `idstd/core/fmt/xml/write` | W0 | output of a hand-built tree equals expected bytes; `& < > "` escaping cases; unbalanced `xw_end` is a named error; output is accepted by the reader of A2r and by `soffice --convert-to txt` when it is `content.xml` of a fixture |
 | A2r | XML reader: the editor's pull parser re-founded on a struct, byte offsets in every error, entities, CDATA, comments, DOCTYPE skipped | `idstd/core/fmt/xml/read` | W0 | the editor's own `lib/doc/xml` cases ported and green (they are the spec); reads `content.xml`, `styles.xml` of the corpus; fuzz: 1000 truncations of a real `content.xml` give an error or end, never a trap (index-addressable sweep); event stream of the writer's output equals the writer's input |
 | A3a | Font discovery by style (parse subfamily from the `name` table the scan already reads; add weight/slant to the cache record; `gui_fonts_find_style`, `gui_font_families`) | `idstd/kit/media/font/find/**` | W0 | on this machine DejaVu Sans resolves Bold to `DejaVuSans-Bold.ttf`, Oblique to `DejaVuSans-Oblique.ttf`; an unknown style falls back to Regular and says so; cache file version bumps and an old cache is ignored, not trusted; `gui_font_families` is sorted and unique; all existing font cases still pass |
