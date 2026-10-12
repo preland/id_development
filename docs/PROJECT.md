@@ -31,7 +31,7 @@ main(int argc, string[] argv) {
   int i = 0;
   string out = "";
   while(i < len(text)) {
-    out = out + shift_one(charat(text, i));
+    out = out + shift_one(character_code_at(text, i));
     i = i + 1;
   }
   print(out);
@@ -58,7 +58,7 @@ caesar.id:1: error: a block in 'main' performs 5 actions; the limit is 3 (each s
   = help: continue the function into a chain: end this segment with `} chain (same parameters) {` and write the remaining statements after it ...
 caesar.id:6: error: no such function 'shift_one' [E0304]
   |
-6 |   string s = shift_one(charat(text, i));
+6 |   string s = shift_one(character_code_at(text, i));
   |              ^^^^^^^^^
   = why: a call names a function this program defines, a builtin, or a function of the standard library, and nothing by this name is any of them
   = help: check the spelling of 'shift_one', or define it as a function; the builtins are: print, input, read_all, len, ...
@@ -72,16 +72,16 @@ gives one JSON object per diagnostic (`docs/DIAGNOSTICS.md`).
 The first is the rule everyone meets first. The second is the last one to fix —
 `shift_one` genuinely does not exist yet.
 
-**The second rule is about nesting.** `shift_one(charat(text, i))` above is
+**The second rule is about nesting.** `shift_one(character_code_at(text, i))` above is
 accepted: **a call's argument may hold one level of call.** A call inside a call
 is fine; a call inside a call inside a call is an error (SPEC §7.1), and the
 inner result gets a name:
 
 ```
-shift_one(charat(text, i))         fine -- one level down
-shift_one(prev(charat(text, i)))   rejected -- two levels
+shift_one(character_code_at(text, i))         fine -- one level down
+shift_one(prev(character_code_at(text, i)))   rejected -- two levels
 
-int c = charat(text, i);
+int c = character_code_at(text, i);
 string s = shift_one(prev(c));     the same thing, said in two steps
 ```
 
@@ -132,7 +132,7 @@ rotate_loop(string text, int i, string s) {
 ```
 // caesar/shift.id
 rotate_step(string text, int i, string r) {
-  int c = charat(text, i);
+  int c = character_code_at(text, i);
   string out = shift_one(c);
   r = r + out;
 } return string r;

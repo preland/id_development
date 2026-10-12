@@ -772,7 +772,7 @@ builds a new string.
 - `==` and `!=` compare contents, not identity.
 - `len(s)` is the length in **bytes**. `id` has no notion of a character; a
   multi-byte UTF-8 sequence is that many bytes.
-- `charat(s, i)` is the byte at `i`, or `-1` if `i` is outside the string. `character_code_at(s, i)` is the same builtin under a name that says what it returns (an int code, not a string); `charat` is being retired in its favour.
+- `character_code_at(s, i)` is the byte at `i`, or `-1` if `i` is outside the string. `character_code_at(s, i)` is the same builtin under a name that says what it returns (an int code, not a string); `charat` is being retired in its favour.
   Reading past the end is a value, not a trap — it is how a scanner detects
   end-of-input.
 - `chr(n)` builds a one-byte string; `chr(0)` traps (below).
@@ -1010,8 +1010,8 @@ becomes a function instead:
   the operator skips it.
 
 ```
-while(is_alnum(charat(src, i))) {          fine -- one level
-while(ok(is_alnum(charat(src, i)))) {      rejected -- two levels
+while(is_alnum(character_code_at(src, i))) {          fine -- one level
+while(ok(is_alnum(character_code_at(src, i)))) {      rejected -- two levels
 
 while(ok(is_alnum_at(src, i))) {           the composition, as a function
 ```
