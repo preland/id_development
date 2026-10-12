@@ -5,8 +5,8 @@ cli_arg(int argc, string[] argv, int wai_i) {
     was_a = argv[wai_i];
   }
 } return string was_a;
-(3, ["word", "a", "b"], 2):("b")
-(3, ["word", "a", "b"], 3):("")
+(3, ["quill", "a", "b"], 2):("b")
+(3, ["quill", "a", "b"], 3):("")
 
 // The number that follows the option was_name among the arguments from the fifth on (the first is the program, then the mode, the input and the output), as in `--page 2`; wai_def when it is not given.
 cli_opt(int argc, string[] argv, string was_name, int wai_def) {
@@ -19,11 +19,11 @@ cli_opt(int argc, string[] argv, string was_name, int wai_def) {
     wai_k = wai_k + 2;
   }
 } return int wai_v;
-(6, ["word", "--render", "a", "b", "--zoom", "50"], "--zoom", 100):(50)
-(4, ["word", "--render", "a", "b"], "--zoom", 100):(100)
-(8, ["word", "--render", "a", "b", "--page", "3", "--zoom", "50"], "--page", 1):(3)
+(6, ["quill", "--render", "a", "b", "--zoom", "50"], "--zoom", 100):(50)
+(4, ["quill", "--render", "a", "b"], "--zoom", 100):(100)
+(8, ["quill", "--render", "a", "b", "--page", "3", "--zoom", "50"], "--page", 1):(3)
 
-// What the program does for its command line, whose modes are the test surface of the oracle driver (docs/WORD.md 4.9): --text, --dump, --roundtrip, --pages and --render read a file and print or write what it comes to, --script replays a script on a document without a window, and a file name (or nothing) opens the window. Answers 0, or the status of the mode; a line that is none of them says how to write one, on stderr, and answers 2.
+// What the program does for its command line, whose modes are the test surface of the oracle driver (docs/QUILL.md 4.9): --text, --dump, --roundtrip, --pages and --render read a file and print or write what it comes to, --script replays a script on a document without a window, and a file name (or nothing) opens the window. Answers 0, or the status of the mode; a line that is none of them says how to write one, on stderr, and answers 2.
 cli_main(int argc, string[] argv) {
   string was_m = cli_arg(argc, argv, 1);
   int wai_rc = 2;
@@ -52,9 +52,9 @@ cli_main(int argc, string[] argv) {
   }
 } chain (int argc, string[] argv) {
   if(wai_rc == 2) {
-    eprint("usage: word [FILE.odt] | --text IN.odt | --dump IN.odt | --roundtrip IN.odt OUT.odt | --pages IN.odt | --render IN.odt OUT.ppm [--page N] [--zoom Z] | --script FILE [IN.odt [OUT.odt]]");
+    eprint("usage: quill [FILE.odt] | --text IN.odt | --dump IN.odt | --roundtrip IN.odt OUT.odt | --pages IN.odt | --render IN.odt OUT.ppm [--page N] [--zoom Z] | --script FILE [IN.odt [OUT.odt]]");
   }
 } return int wai_rc;
-(2, ["word", "--bogus"]):(2) then eprints:("usage: word [FILE.odt] | --text IN.odt | --dump IN.odt | --roundtrip IN.odt OUT.odt | --pages IN.odt | --render IN.odt OUT.ppm [--page N] [--zoom Z] | --script FILE [IN.odt [OUT.odt]]\n")
-(3, ["word", "--text", "/nonexistent/none.odt"]):(1) then eprints:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/none.odt]\n")
-(4, ["word", "--render", "/nonexistent/none.odt", "/nonexistent/o.ppm"]):(1) then eprints:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/none.odt]\n")
+(2, ["quill", "--bogus"]):(2) then eprints:("usage: quill [FILE.odt] | --text IN.odt | --dump IN.odt | --roundtrip IN.odt OUT.odt | --pages IN.odt | --render IN.odt OUT.ppm [--page N] [--zoom Z] | --script FILE [IN.odt [OUT.odt]]\n")
+(3, ["quill", "--text", "/nonexistent/none.odt"]):(1) then eprints:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/none.odt]\n")
+(4, ["quill", "--render", "/nonexistent/none.odt", "/nonexistent/o.ppm"]):(1) then eprints:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/none.odt]\n")

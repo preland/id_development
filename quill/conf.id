@@ -1,4 +1,4 @@
-// Constants of the word processor's document model (docs/WORD.md 4.1).
+// Constants of the word processor's document model (docs/QUILL.md 4.1).
 
 // Character row: where each field sits in a row of word_c_width ints. Unset is -1; "on" and "set" are flag bits, so "off" differs from "unset".
 int word_c_style = 0;
@@ -86,7 +86,7 @@ int[] word_row_pdef = [0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0];
 int word_m_field = 0;
 int word_m_bits = 1;
 
-// The 16 slots the invariant script draws an operation from (docs/WORD.md 5.3 B1): 0 insert, 1 delete, 2 runs_set, 3 patch, 4 patch_bits, 5 split, 6 join, 7 insert paragraph, 8 remove paragraph, 9 merge. Inserts come up most, so paragraphs grow before they shrink.
+// The 16 slots the invariant script draws an operation from (docs/QUILL.md 5.3 B1): 0 insert, 1 delete, 2 runs_set, 3 patch, 4 patch_bits, 5 split, 6 join, 7 insert paragraph, 8 remove paragraph, 9 merge. Inserts come up most, so paragraphs grow before they shrink.
 int[] word_script_roll = [0, 0, 0, 0, 1, 1, 2, 3, 4, 5, 5, 6, 7, 8, 9, 0];
 
 // What a patch step sets, as [field, value] pairs: font size in half-points, font colour, highlight colour, and -1 for unset.
@@ -257,7 +257,7 @@ string[] ic_path = ["M 3 1 H 10 L 13 4 V 15 H 3 Z M 4.5 2.5 V 13.5 H 11.5 V 5.5 
 // ===== A6: vector icons (end) =====
 
 // ===== B2: edit core (begin) =====
-// Primitive operation kinds (docs/WORD.md 3.2.2): 0 does nothing, then insert text, delete text, split, join, set runs, set paragraph row, insert paragraph, delete paragraph, set a page field.
+// Primitive operation kinds (docs/QUILL.md 3.2.2): 0 does nothing, then insert text, delete text, split, join, set runs, set paragraph row, insert paragraph, delete paragraph, set a page field.
 int ed_k_nop = 0;
 int ed_k_ins = 1;
 int ed_k_del = 2;
@@ -300,7 +300,7 @@ string ed_t_cycle = "Thello world\nE\nTabcx\nB\nW\nTzz\nE\n";
 int ed_t_rounds = 96;
 // ===== B2: edit core (end) =====
 // ===== B3a: one-paragraph layout (begin) =====
-// Layout always runs at 100 percent; a face resolved for zoom z has pixel size px * z / 100 (docs/WORD.md 3.3.5).
+// Layout always runs at 100 percent; a face resolved for zoom z has pixel size px * z / 100 (docs/QUILL.md 3.3.5).
 int word_lay_zoom = 100;
 // Font size in half-points when nothing in the row, its character style or its paragraph style sets one.
 int word_lay_size = 24;
@@ -462,7 +462,7 @@ string[] odw_errors = ["ODT: this document cannot be written as it is; make the 
 int word_lay_obj = 4608;
 int word_lay_gap = 1536;
 
-// The window chrome as idml (docs/WORD.md 3.5.1, decision 7.2): the ribbon band on top, the page area beside the scrollbar, the status bar under them. Sizes that are fixed in pixels are @references that vw_dim answers in basis points of the window.
+// The window chrome as idml (docs/QUILL.md 3.5.1, decision 7.2): the ribbon band on top, the page area beside the scrollbar, the status bar under them. Sizes that are fixed in pixels are @references that vw_dim answers in basis points of the window.
 string[] vw_idml = ["Ribbon:Col `ribbon` {}", "Canvas:Col `canvas` {}", "Bar:Col `vbar` {}", "Status:Col `status` {}", "", "./", "Col()[100,100,top-left] {", "  Ribbon()[@rib_h,100,top-left]{}", "  Row()[@mid_h,100,top-left] {", "    Canvas()[100,@cv_w,top-left]{}", "    Bar()[100,@bar_w,top-left]{}", "  }", "  Status()[@st_h,100,top-left]{}", "}"];
 // The names that idml asks vw_dim for, in the order vw_dims answers them.
 string[] vw_names = ["rib_h", "mid_h", "cv_w", "bar_w", "st_h"];

@@ -51,7 +51,7 @@ come from the command a document names.
 | [`PROJECT.md`](PROJECT.md) | starting an `id` project: the layout rules, the project model, the standard library, the things that go wrong |
 | [`UI.md`](UI.md) | the GUI toolkit, laid out by idml |
 | [`EDITOR.md`](EDITOR.md) | the OpenDocument editor |
-| [`WORD.md`](WORD.md) | the word processor grown from the editor: plan, seams and work packages |
+| [`QUILL.md`](QUILL.md) | the word processor grown from the editor: plan, seams and work packages |
 | [`KERNEL.md`](KERNEL.md) | the kernel and the runtime under it |
 | [`RUNNING.md`](RUNNING.md) | running the kernel and the editor |
 | [`HYPRLAND.md`](HYPRLAND.md) | running the graphics demos without losing your place, for one compositor |
