@@ -1461,6 +1461,233 @@ main(int argc, string[] argv) {
 (2, ["x", "y"]):(0)
 ```
 
+## E0506 a case value that is not a literal
+
+A case is checked before any variable or call exists, so each value in it, argument
+or expected, is a number, a string, a list of those, or a struct written as `P(1, 2)`.
+An expression such as `1 + 1` is not one. Write the value out, or build it in a
+function that a `given` clause names.
+
+Incorrect:
+
+```id
+twice(int x) {
+  int y = x * 2;
+} return int y;
+(1 + 1):(4)
+(2):(4)
+```
+
+Correct:
+
+```id
+twice(int x) {
+  int y = x * 2;
+} return int y;
+(2):(4)
+(3):(6)
+```
+
+## E0507 a bound a case may not claim
+
+A counted constraint such as `[time:O(n)]` is checked by counting steps at two input
+sizes, and only five growth rates have a counted check: `O(1)`, `O(log n)`, `O(n)`,
+`O(n log n)` and `O(n^2)`. Claim the nearest one from the list.
+
+Incorrect:
+
+```id
+twice(int x) {
+  int y = x * 2;
+} return int y;
+(1):(2)[time:O(n^3)]
+(2):(4)[time:O(n^3)]
+```
+
+Correct:
+
+```id
+twice(int x) {
+  int y = x * 2;
+} return int y;
+(1):(2)[time:O(1)]
+(2):(4)[time:O(1)]
+```
+
+## E0508 a constraint that is not time or mem
+
+A counted constraint limits either the steps a case takes, `time`, or the memory it
+holds, `mem`. Anything else, a name such as `cpu` or a token that is not a name at
+all, is refused. Separate two claims with a comma: `[time:O(n), mem:O(1)]`.
+
+Incorrect:
+
+```id
+twice(int x) {
+  int y = x * 2;
+} return int y;
+(1):(2)[cpu:O(1)]
+(2):(4)[cpu:O(1)]
+```
+
+Correct:
+
+```id
+twice(int x) {
+  int y = x * 2;
+} return int y;
+(1):(2)[time:O(1)]
+(2):(4)[time:O(1)]
+```
+
+## E0509 a stdin value that is not a string
+
+A case's `stdin` clause is handed to the program as bytes before the call, so its
+value is a string literal written in the case.
+
+Incorrect:
+
+```id
+grab() {
+  string s = read_all();
+  int n = len(s);
+} return int n;
+stdin 5 ():(0)
+():(0)
+```
+
+Correct:
+
+```id
+grab() {
+  string s = read_all();
+  int n = len(s);
+} return int n;
+stdin "5" ():(1)
+():(0)
+```
+
+## E0510 a clause given twice in one case
+
+A case has one `stdin` and one `timeout`. A second clause would have to replace the
+first or be ignored, so it is refused. Join two inputs into one string, or keep the
+one number of seconds the case needs, or split the case in two.
+
+Incorrect:
+
+```id
+grab() {
+  string s = read_all();
+  int n = len(s);
+} return int n;
+stdin "a" stdin "b" ():(1)
+():(0)
+```
+
+Correct:
+
+```id
+grab() {
+  string s = read_all();
+  int n = len(s);
+} return int n;
+stdin "ab" ():(2)
+():(0)
+```
+
+## E0511 a timeout that is not a positive number of seconds
+
+`timeout N` gives a case a limit in whole seconds, as in `timeout 90`. Zero, a
+negative number or anything that is not an integer literal would leave the case no
+time to run.
+
+Incorrect:
+
+```id
+grab() {
+  string s = read_all();
+  int n = len(s);
+} return int n;
+timeout 0 ():(0)
+stdin "ab" ():(2)
+```
+
+Correct:
+
+```id
+grab() {
+  string s = read_all();
+  int n = len(s);
+} return int n;
+timeout 5 ():(0)
+stdin "ab" ():(2)
+```
+
+## E0512 a timeout before the clauses it must follow
+
+A case reads its clauses in a fixed order: every `given` and `stdin` first, then
+`timeout N`, then the argument tuple. Move the limit to sit directly before the `(`
+of the arguments.
+
+Incorrect:
+
+```id
+setup() {
+  int a = 1;
+  print(a);
+} return void;
+grab() {
+  string s = read_all();
+  int n = len(s);
+} return int n;
+timeout 5 given setup ():(0)
+stdin "ab" ():(2)
+```
+
+Correct:
+
+```id
+setup() {
+  int a = 1;
+  print(a);
+} return void;
+grab() {
+  string s = read_all();
+  int n = len(s);
+} return int n;
+given setup timeout 5 ():(0)
+stdin "ab" ():(2)
+```
+
+## E0513 a timeout with no argument tuple after it
+
+`timeout N` belongs to the case it precedes, and a case begins at its argument tuple,
+so a limit with nothing after it limits nothing. Write it before the `(` that opens
+the arguments, as in `timeout 90 (1):(2)`.
+
+Incorrect:
+
+```id
+grab() {
+  string s = read_all();
+  int n = len(s);
+} return int n;
+stdin "ab" ():(2)
+():(0)
+timeout 5
+```
+
+Correct:
+
+```id
+grab() {
+  string s = read_all();
+  int n = len(s);
+} return int n;
+stdin "ab" timeout 5 ():(2)
+():(0)
+```
+
 ## E0601 a comparison and a bitwise operator without parentheses
 
 The bitwise operators bind tighter than the comparisons in `id` and looser in C,
