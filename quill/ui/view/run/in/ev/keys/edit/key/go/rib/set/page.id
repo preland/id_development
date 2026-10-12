@@ -5,8 +5,9 @@ cv_style(View cvv, Ctl cvc, int cvi_cmd, string cvs_name) {
     ed_set_style(cvv.doc, cvc, cvi_s);
   }
 } return void;
-given cv_t_ed("AB") given cv_t_ask(200) ((import lp_t_v), (import vw_ctl), 414, "Normal"):() then calls ed_set_style:[1]
-given cv_t_ed("AB") given cv_t_ask(200) ((import lp_t_v), (import vw_ctl), 414, "No Such Style"):() then calls ed_set_style:[0]
+given cv_t_ed("AB") given cv_t_ask(200) ((import lp_t_v), (import vw_ctl), 414, "Heading 1"):() then lp_t_pr0:([3, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]) then calls ed_set_style:((import lp_t_d), (import vw_ctl), 3)
+given cv_t_ed("AB") given cv_t_ask(200) ((import lp_t_v), (import vw_ctl), 414, "Normal"):() then calls ed_set_style:((import lp_t_d), (import vw_ctl), 0)
+given cv_t_ed("AB") given cv_t_ask(200) ((import lp_t_v), (import vw_ctl), 414, "No Such Style"):() then lp_t_pr0:([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]) then calls ed_set_style:[0]
 
 // The page the command cmd_page_size, cmd_page_orient or cmd_page_margins asks for, as the seven numbers of ed_set_page's fields (the width, the height and the orientation, then the top, right, bottom and left margin), -1 for each that stays as it is: the paper at position cvi_arg of rbd_paper (kept in the orientation the page has), the orientation cvi_arg (turning the page puts its width and height the other way round), or the margins at position cvi_arg of rbd_margins.
 cv_sheet(View cvv, int cvi_cmd, int cvi_arg) {
@@ -41,6 +42,6 @@ cv_page(View cvv, Ctl cvc, int cvi_cmd, int cvi_arg) {
     cvi_k = cvi_k + 1;
   }
 } return void;
-given cv_t_ed("AB") ((import lp_t_v), (import vw_ctl), 502, 1):() then calls ed_set_page:[2]
-given cv_t_ed("AB") ((import lp_t_v), (import vw_ctl), 504, 1):() then calls ed_set_page:[4]
+given cv_t_ed("AB") ((import lp_t_v), (import vw_ctl), 502, 1):() then (import lp_t_d).body.page.size[0]:(11906) then (import lp_t_d).body.page.size[1]:(16838) then calls ed_set_page:[2]
+given cv_t_ed("AB") ((import lp_t_v), (import vw_ctl), 504, 1):() then (import lp_t_d).body.page.margin[0]:(720) then (import lp_t_d).body.page.margin[3]:(720) then calls ed_set_page:[4]
 given cv_t_ed("AB") ((import lp_t_v), (import vw_ctl), 301, 1):() then calls ed_set_page:[0]
