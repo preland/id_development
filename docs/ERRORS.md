@@ -1766,6 +1766,135 @@ main(int argc, string[] argv) {
 } return int r;
 ```
 
+## E0612 a type that names nothing
+
+A declaration, a parameter or a return type must be `int`, `word`, `float`,
+`string`, a struct declared in a file of its own, or a list of one of those. A
+name that is none of them is reported where it is written, with the structs there
+are. Write one of those types, or declare the struct.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  Pnt p = 1;
+} return int argc;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  int p = 1;
+} return int p;
+```
+
+## E0614 a list index that is not an int
+
+An index counts elements, so only an `int` can say which one, in a read or in a
+store. A string, a float or a word index is refused rather than converted.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  int[] xs = [1, 2];
+  int a = xs["0"];
+} return int a;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  int[] xs = [1, 2];
+  int a = xs[0];
+} return int a;
+```
+
+## E0615 a field of something that is not a struct
+
+Only a struct has fields. Reading or assigning `.name` on an `int`, a string or a
+list is refused. Use the struct's own field, or `len(list)` for a list's length.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  int n = 3;
+  int m = n.x;
+} return int m;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  int[] xs = [1, 2];
+  int m = len(xs);
+} return int m;
+```
+
+## E0616 a condition that is not a truth
+
+An `if` or `while` condition must be a number or a comparison. A function value
+is an address that is never zero, so testing it always holds; a struct is a bundle
+of fields. Call the function and test what it returns, or test one field.
+
+Incorrect:
+
+```id
+check(func(int) return int fv) {
+  int x = 0;
+  if(fv) {
+    x = 1;
+  }
+} return int x;
+
+main(int argc, string[] argv) {
+  int r = 0;
+} return int r;
+```
+
+Correct:
+
+```id
+check(func(int) return int fv) {
+  int x = 0;
+  if(fv(1) > 0) {
+    x = 1;
+  }
+} return int x;
+
+main(int argc, string[] argv) {
+  int r = 0;
+} return int r;
+```
+
+## E0617 a push of the wrong element type
+
+A list holds one element type and `id` converts nothing silently, so pushing a
+value of another type is refused. Push a value of the list's element type, or
+declare the list with the type you mean to push.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  int[] xs = [];
+  push(xs, "a");
+} return int argc;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  int[] xs = [];
+  push(xs, 1);
+} return int argc;
+```
+
 ## E0702 a file with a generic name
 
 A name like `util.id`, `helper.id`, `misc.id` or `common.id` says nothing about
