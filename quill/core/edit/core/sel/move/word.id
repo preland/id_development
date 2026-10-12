@@ -1,7 +1,7 @@
 // Ctrl+Right: to the start of the next word, or from the end of a paragraph to the start of the next one.
 pos_word_next(Doc d, Pos ps) {
   Para p = d.body.paras[ps.para];
-  int off = utf8_cps_word_next(p.txt.cps, ps.off);
+  int off = utf8_code_points_word_next(p.txt.cps, ps.off);
   int n = len(d.body.paras);
 } chain (Doc d, Pos ps) {
   int para = ps.para;
@@ -18,7 +18,7 @@ given fx_setup("foo bar|baz") ((import fxd), Pos(1, 3)):(Pos(1, 3))
 // Ctrl+Left: to the start of the word before, or from the start of a paragraph to the end of the previous one.
 pos_word_prev(Doc d, Pos ps) {
   Para p = d.body.paras[ps.para];
-  int off = utf8_cps_word_prev(p.txt.cps, ps.off);
+  int off = utf8_code_points_word_previous(p.txt.cps, ps.off);
   int para = ps.para;
 } chain (Doc d, Pos ps) {
   if(off == ps.off && para > 0) {

@@ -12,11 +12,11 @@ ed_key_n(Doc d, int para, int off, int by_word, int dir) {
   Para p = d.body.paras[para];
   int to = fixed_point_clamp(off + dir, 0, para_len(p));
   if(by_word == 1 && dir < 0) {
-    to = utf8_cps_word_prev(p.txt.cps, off);
+    to = utf8_code_points_word_previous(p.txt.cps, off);
   }
 } chain (Doc d, int para, int off, int by_word, int dir) {
   if(by_word == 1 && dir > 0) {
-    to = utf8_cps_word_next(p.txt.cps, off);
+    to = utf8_code_points_word_next(p.txt.cps, off);
   }
   int n = fixed_point_maximum(to - off, off - to);
   if(ed_solid(d, para) == 1) {
