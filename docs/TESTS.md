@@ -389,14 +389,43 @@ count() {
   (`dg_case_ref`, `compiler/parse/mid/form/unique/dump/digest/keys/case/tok.id`;
   `idc/tests/tests_feature.sh` tests both).
 
-  **A conf.id constant may name the index, and only the index.**
+  **A conf.id constant may name the index or an argument, never a compared value.**
   `then (import tbl)[(import slot)]:(5)` reads the element of `tbl` that the
   constant `slot` says. A constant says where to look; the value compared with
-  stays a literal, so the case cannot agree with itself. A constant is never
-  an expected value, an argument or a check's value (each is an error, and the
-  case's own cache key covers the constant, so changing it re-runs the case),
-  and an exported variable is never an index: its value is what the check is
-  testing.
+  stays a literal, so the case cannot agree with itself. A constant is also
+  accepted as an argument of a `given` setup and of a `then CHECK(...)` call,
+  where it says what to call with; it is never a case's own argument, a case's
+  expected value or a check's compared value (each is an error), and an
+  exported variable is never an index: its value is what the check is testing.
+  The case's own cache key covers the constant, so changing it re-runs the
+  case.
+
+  **A check may be called with one element of an exported list.**
+  `then pick((import cnt)[1]):(6)` calls `pick` with element 1 of `cnt`, read
+  after the call under test exactly as a whole `(import NAME)` is. The index
+  is a literal or a conf.id constant; an indexed export as a case's own
+  argument or a setup's argument, arithmetic on it and a call in its place are
+  errors.
+
+  ```
+  mk(int s) {
+    export int[] cnt = [0, 0];
+    int[] c = (import cnt);
+    c[s] = 5;
+  } return void;
+
+  wrap(int k) {
+    int[] c = (import cnt);
+    c[k] = c[k] + 1;
+  } return void;
+  given mk((import slot)) (0):() then pick((import cnt)[1]):(6)
+  given mk((import slot)) (1):() then pick((import cnt)[(import slot)]):(7)
+  given mk(0) (1):() then pick((import slot)):(2)
+  ```
+
+  With `int slot = 1;` in conf.id these pass; with `int slot = 0;` the first
+  fails with `wrap(0) then pick((import cnt)[1]) = 1, expected 6`.
+  `idc/tests/tests_feature.sh` runs this example and the change.
 
 - **`(import NAME)`** may be an element of `ARGS` or `EXPECTED` — at the top of
   the tuple or inside a list literal, nested lists included, and never a
@@ -457,9 +486,9 @@ the case's line:
 | `then (import NAME)` under a function that reads `(import NAME)` and never writes it | `then (import cnt): the function under test, 'wrap', reads (import cnt) but never writes it, so this check would only repeat its own read; check an export the function changes, or write one check function that states the whole expected state and name it in 'then CHECK:(value)'` |
 | `then len((import NAME))` of an export that is not a list or a string | `len((import total)) measures a list or a string, but 'total' is a int; name a list or string export, or compare the value itself with then (import total):(value)` |
 | `then (import NAME)[(import VAR)]` with an exported variable in the index | `(import slot) is an exported variable, and only a conf.id constant may stand in a then check's index: a variable's value is what the check is testing; name a constant, or write the index as a number` |
-| `(import CONST)` of a conf.id constant as an argument or an expected value | `(import slot) is a conf.id constant, and a case names one only as a then check's index, as in then (import tbl)[(import slot)]:(value); write its value here as a literal` |
-| `(import CONST)` of a conf.id constant as a `then CHECK(...)` argument | `(import slot) is a conf.id constant, and a check's argument cannot name one: a conf.id constant is accepted only as a then check's index, as in then (import tbl)[(import slot)]:(value); write its value as a literal, as in then f(5):(value)` |
-| `then CHECK((import NAME)[i])` an indexed export as a check's argument | `an indexed export, (import cnt)[...], is not accepted as an argument of a case or of a check; an argument is a literal or (import cnt) whole, and to check one element write 'then (import cnt)[i]:(value)'` |
+| `(import CONST)` of a conf.id constant as a case's own argument or expected value | `(import slot) is a conf.id constant, and a case's own argument or expected value cannot name one: a conf.id constant is accepted as an argument of a given setup, as in given f((import slot)), as an argument of a then check, as in then g((import slot)):(value), and as a then check's index; write its value here as a literal` |
+| `then CHECK((import NAME)[i])` where `i` is neither a literal nor a conf.id constant | `the index of an indexed export in a check is a literal or a conf.id constant, and (import cnt)[0] is neither; write the index as a literal, as in then f((import NAME)[1]):(value), or name a conf.id constant` |
+| an indexed export as a case's own argument or a setup's argument | `an indexed export, (import cnt)[...], is accepted only as an argument of a then check, as in 'then f((import cnt)[1]):(value)'; a case or a given setup takes (import cnt) whole, and to check one element write 'then (import cnt)[i]:(value)'` |
 
 The setup-argument and list-element rows are tested in
 `idc/tests/invalid/given_args_*.id` and `idc/tests/invalid/list_import_*.id`,
