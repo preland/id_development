@@ -17,15 +17,15 @@ given lp_t_font given rbd_t_up(1024) given rib_show((import rbd_t_r), 3) ((impor
 // Looks up the installed font families once, as the choices of the font family combo box: the scan costs a moment, so it is done when the box is first used and not when the ribbon starts. Nothing is looked up again once there are families.
 rbe_fonts() {
   if(len((import rbd_fm)) == 0) {
-    lst_str_splice((import rbd_fm), 0, 0, gui_font_families());
+    list_string_splice((import rbd_fm), 0, 0, gui_font_families());
   }
 } return void;
 given lp_t_font given rbe_pops ():() then calls gui_font_families:[1]
-given rbe_pops given lst_str_splice((import rbd_fm), 0, 0, ["A"]) ():() then calls gui_font_families:[0] then rbd_t_fm:("A")
+given rbe_pops given list_string_splice((import rbd_fm), 0, 0, ["A"]) ():() then calls gui_font_families:[0] then rbd_t_fm:("A")
 
 // Shows text rbs_t in the combo box of command rbi_cmd, which is the font family or the font size, as what the selection has now: it becomes the committed text. A combo box that has the keyboard is being typed in and is left alone, and so is any command that has none.
 rib_text(Ribbon rib, int rbi_cmd, string rbs_t) {
-  int rbi_k = lst_index_of((import rbd_cb_cmd), rbi_cmd);
+  int rbi_k = list_index_of((import rbd_cb_cmd), rbi_cmd);
   int rbi_f = (import rbd_fo)[0];
   if(rbi_k >= 0 && rbi_k < len((import rbd_cb)) && rbi_k != rbi_f) {
     gui_combo_set((import rbd_cb)[rbi_k], rbs_t);

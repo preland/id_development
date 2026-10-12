@@ -13,7 +13,7 @@ cj_state() {
   export int[] cj_sum = [0];
 } chain () {
   export int[] cj_num = [0];
-  hmap_init((import cj_keys), (import cj_vals), (import cj_used), (import cj_cnt));
+  hash_map_initialize((import cj_keys), (import cj_vals), (import cj_used), (import cj_cnt));
 } return void;
 ():() then cj_t_shape:("1 1 1 0")
 given cj_state given cj_cust(["1", "Z", "east"]) ():() then cj_t_shape:("1 1 1 0")
@@ -29,9 +29,9 @@ given cj_state ([["id", "name", "region"], ["7", "A", "north"], ["8", "B", "sout
 given cj_state ([["id", "name", "region"]]):([["id", "name", "region"]]) then (import cj_cnt)[0]:(0)
 
 cj_cust(string[] row) {
-  string id = lst_str_get_or(row, (import cj_c_id), "");
-  int r = cj_region(lst_str_get_or(row, (import cj_c_region), ""));
-  hmap_put((import cj_keys), (import cj_vals), (import cj_used), (import cj_cnt), id, r);
+  string id = list_string_get_or(row, (import cj_c_id), "");
+  int r = cj_region(list_string_get_or(row, (import cj_c_region), ""));
+  hash_map_put((import cj_keys), (import cj_vals), (import cj_used), (import cj_cnt), id, r);
 } return void;
 given cj_state (["7", "A", "north"]):(["7", "A", "north"]) then (import cj_cnt)[0]:(1) then (import cj_reg):(["(unmatched)", "north"])
 given cj_state given cj_cust(["1", "Z", "east"]) (["7", "A", "north"]):(["7", "A", "north"]) then (import cj_cnt)[0]:(2) then (import cj_reg):(["(unmatched)", "east", "north"])

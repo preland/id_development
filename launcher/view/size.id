@@ -25,11 +25,11 @@ screen_parse(string screen_reply) {
 screen_measure() {
   put("\x1b[999;999H\x1b[6n");
   flush();
-  int[] screen_bytes = lst_filled(32, 0);
+  int[] screen_bytes = list_filled(32, 0);
 } chain () {
   int screen_got = proc_fd_read(0, screen_bytes, 32, 200);
   int screen_used = screen_got * (screen_got > 0);
-  string screen_reply = exec_text(lst_slice(screen_bytes, 0, screen_used));
+  string screen_reply = exec_text(list_slice(screen_bytes, 0, screen_used));
 } chain () {
   int screen_found = screen_parse(screen_reply);
   int screen_size = screen_found + 24080 * (screen_found == 0);

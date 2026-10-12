@@ -4,7 +4,7 @@
 
 plan_replay_event(Plan_book plan_book, Plan_learner plan_learner, Log_events plan_events, int plan_index) {
   if (plan_events.kinds[plan_index] == "attempt" && log_text_at(plan_events, plan_index, (import log_slot_verdict)) != "pending") {
-    int plan_item_number = lst_str_index(plan_book.catalog.items, log_text_at(plan_events, plan_index, (import log_slot_item)));
+    int plan_item_number = list_string_index(plan_book.catalog.items, log_text_at(plan_events, plan_index, (import log_slot_item)));
     if (plan_item_number >= 0) {
       int plan_grade_given = plan_grade(log_text_at(plan_events, plan_index, (import log_slot_verdict)), log_number_at(plan_events, plan_index, (import log_slot_confidence)), log_number_at(plan_events, plan_index, (import log_slot_hints)), log_tapped_at(plan_events, plan_index));
       plan_apply(plan_book, plan_learner, plan_item_number, plan_events.times[plan_index], plan_grade_given);

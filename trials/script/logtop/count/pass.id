@@ -8,10 +8,10 @@ lt_pass(string[] lines, func(string) return string key, string[] ks, int[] vs) {
   int[] used = [];
 } chain (string[] lines, func(string) return string key, string[] ks, int[] vs) {
   int[] cnt = [];
-  hmap_init(keys, vals, used, cnt);
+  hash_map_initialize(keys, vals, used, cnt);
   lt_feed(lines, key, keys, vals, used, cnt);
 } chain (string[] lines, func(string) return string key, string[] ks, int[] vs) {
-  hmap_items(keys, vals, used, ks, vs);
+  hash_map_items(keys, vals, used, ks, vs);
 } return void;
 (["a \"GET /x HTTP/1.1\" 200", "a \"GET /y HTTP/1.1\" 200", "a \"GET /x HTTP/1.1\" 404"], lt_path, [], []):(["a \"GET /x HTTP/1.1\" 200", "a \"GET /y HTTP/1.1\" 200", "a \"GET /x HTTP/1.1\" 404"], lt_path, ["/x", "/y"], [2, 1])
 (["a \"GET /x HTTP/1.1\" 200", "a \"GET /y HTTP/1.1\" 200", "a \"GET /x HTTP/1.1\" 404"], lt_status, [], []):(["a \"GET /x HTTP/1.1\" 200", "a \"GET /y HTTP/1.1\" 200", "a \"GET /x HTTP/1.1\" 404"], lt_status, ["200", "404"], [2, 1])
@@ -21,7 +21,7 @@ lt_feed(string[] lines, func(string) return string key, string[] keys, int[] val
   while (i < len(lines)) {
     string k = key(lines[i]);
     if (k != "") {
-      hmap_bump(keys, vals, used, cnt, k);
+      hash_map_bump(keys, vals, used, cnt, k);
     }
     i = i + 1;
   }

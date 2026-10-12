@@ -18,8 +18,8 @@ log_digits_ok(string log_field_text, int log_most) {
 ("1.5", 3):(0)
 
 log_attempt_ok(string[] log_fields) {
-  int log_confidence_ok = log_digits_ok(log_fields[(import log_slot_confidence)], 2) == 1 && lst_find((import log_confidences), to_int(log_fields[(import log_slot_confidence)])) == 1;
-  int log_verdict_ok = lst_str_index((import log_verdicts), log_fields[(import log_slot_verdict)]) >= 0;
+  int log_confidence_ok = log_digits_ok(log_fields[(import log_slot_confidence)], 2) == 1 && list_find((import log_confidences), to_int(log_fields[(import log_slot_confidence)])) == 1;
+  int log_verdict_ok = list_string_index((import log_verdicts), log_fields[(import log_slot_verdict)]) >= 0;
   int log_hints_ok = log_digits_ok(log_fields[(import log_slot_hints)], 1) == 1 && to_int(log_fields[(import log_slot_hints)]) <= (import log_hint_top);
 } chain (string[] log_fields) {
   int log_item_ok = log_fields[(import log_slot_item)] != "";
@@ -34,8 +34,8 @@ log_attempt_ok(string[] log_fields) {
 
 log_effort_ok(string[] log_fields) {
   int log_seconds_ok = log_digits_ok(log_fields[(import log_slot_seconds)], (import log_seconds_digits));
-  int log_tapped_ok = lst_str_index((import log_flags), log_fields[(import log_slot_tapped)]) >= 0;
-  int log_grade_ok = lst_str_index((import log_grades), log_fields[(import log_slot_grade)]) >= 0;
+  int log_tapped_ok = list_string_index((import log_flags), log_fields[(import log_slot_tapped)]) >= 0;
+  int log_grade_ok = list_string_index((import log_grades), log_fields[(import log_slot_grade)]) >= 0;
 } chain (string[] log_fields) {
   int log_effort_all = log_seconds_ok + log_tapped_ok + log_grade_ok == 3;
 } return int log_effort_all;

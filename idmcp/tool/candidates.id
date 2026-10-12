@@ -15,14 +15,14 @@ tool_candidates(string cand_query, string cand_where, string cand_root) {
     push(cand_names, cand_query);
   }
   if (cand_where != "std") {
-    lst_str_extend(cand_names, tool_project_names(cand_rows, cand_query, (import tool_match_limit)));
+    list_string_extend(cand_names, tool_project_names(cand_rows, cand_query, (import tool_match_limit)));
   }
 } chain (string cand_query, string cand_where, string cand_root) {
   string cand_catalog = "";
   if (cand_where != "project") {
     cand_catalog = fs_read_text(tool_names_path());
   }
-  lst_str_extend(cand_names, tool_catalog_names(cand_catalog, cand_query, (import tool_match_limit)));
+  list_string_extend(cand_names, tool_catalog_names(cand_catalog, cand_query, (import tool_match_limit)));
 } chain (string cand_query, string cand_where, string cand_root) {
   string[] cand_unique = tool_unique(cand_names, (import tool_match_limit));
 } return string[] cand_unique;

@@ -292,8 +292,8 @@ is `then NAME_get:(V)`; every case of a function but `main` first runs
 `given variables_start`; `say(s)` is `say("SPRITE", s)`, the motion blocks and
 `xpos`, `ypos`, `direction` take `(import sprite_states), BASE` first (six cells a
 sprite); `int_to_str` and the other conversions are functions of `runtime/`;
-`str_to_int` is `to_int`; `insert` and `delete` are `lst_insert`/`lst_delete`
-(int lists) or `lst_str_insert`/`lst_str_delete` (string lists); a `return` is
+`str_to_int` is `to_int`; `insert` and `delete` are `list_insert`/`list_delete`
+(int lists) or `list_string_insert`/`list_string_delete` (string lists); a `return` is
 written as it stands, the checker having refused any that is not a name or a
 literal; a body longer than three actions once `variables_start()` is added is
 split into `chain` segments of exactly three.

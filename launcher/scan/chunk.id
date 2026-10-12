@@ -6,7 +6,7 @@
 // The next chunk of an open file as a byte list: up to scan_chunk_size bytes, and
 // [] at the end of the file or for a handle that is not open.
 scan_chunk(int scan_handle) {
-  int[] scan_cells = lst_filled((import scan_chunk_size), 0);
+  int[] scan_cells = list_filled((import scan_chunk_size), 0);
   int scan_got = fs_read(scan_handle, scan_cells, (import scan_chunk_size));
   int scan_kept = scan_got * (scan_got > 0);
 } chain (int scan_handle) {
@@ -27,8 +27,8 @@ scan_merge(int[] scan_window, int[] scan_next) {
     scan_from = 0;
   }
 } chain (int[] scan_window, int[] scan_next) {
-  int[] scan_joined = lst_slice(scan_window, scan_from, len(scan_window) - scan_from);
-  lst_extend(scan_joined, scan_next);
+  int[] scan_joined = list_slice(scan_window, scan_from, len(scan_window) - scan_from);
+  list_extend(scan_joined, scan_next);
 } return int[] scan_joined;
 ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], [100, 101]):([9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 100, 101])
 ([5, 6], [7]):([5, 6, 7])

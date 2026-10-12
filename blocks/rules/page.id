@@ -14,7 +14,7 @@ given model_load("t.blk", "sprite S\nfn a() return void\nfn b() return void\nfn 
 given model_load("t.blk", "sprite S\nfn a() return void\nfn b() return void") ([0, 2], 1):() then len((import model_diagnostics)):(0)
 
 checker_twice(int block_function_row) {
-  int block_group = lst_str_index((import model_function_names), (import model_function_names)[block_function_row]);
+  int block_group = list_string_index((import model_function_names), (import model_function_names)[block_function_row]);
   if (block_group < block_function_row) {
     model_error((import model_function_line)[block_function_row], "E0401", "function '" + (import model_function_names)[block_function_row] + "' is already defined at line " + (import model_function_line)[block_group] + "; a name means one function");
   }
@@ -23,7 +23,7 @@ given model_load("t.blk", "sprite S\nfn a() return void\nfn a() return int") (1)
 given model_load("t.blk", "sprite S\nfn a() return void\nfn b() return int") (1):() then len((import model_diagnostics)):(0)
 
 checker_reserved(int block_function_row) {
-  if (lst_str_index((import constant_builtin_name), (import model_function_names)[block_function_row]) >= 0) {
+  if (list_string_index((import constant_builtin_name), (import model_function_names)[block_function_row]) >= 0) {
     model_error((import model_function_line)[block_function_row], "E0401", "'" + (import model_function_names)[block_function_row] + "' is the name of a builtin block; a function needs a name of its own");
   }
 } return void;

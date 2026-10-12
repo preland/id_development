@@ -7,7 +7,7 @@
 exporter_local_name(string exporter_text_line) {
   string[] exporter_texts_tokens = lexer_tokens(exporter_text_line);
   int exporter_number_type = model_type(exporter_texts_tokens, 0);
-  string exporter_text_name = lst_str_get_or(exporter_texts_tokens, 1 + (exporter_number_type > 3) * 2, "");
+  string exporter_text_name = list_string_get_or(exporter_texts_tokens, 1 + (exporter_number_type > 3) * 2, "");
 } chain (string exporter_text_line) {
   if (exporter_number_type == 0 || model_is_name(exporter_text_name) == 0) {
     exporter_text_name = "";
@@ -35,7 +35,7 @@ exporter_used_after(int exporter_number_function, string exporter_text_name, int
   int exporter_number_found = 0;
   int exporter_number_next = exporter_number_from;
   while (exporter_number_next < (import model_function_body_end)[exporter_number_function]) {
-    exporter_number_found = exporter_number_found + (lst_str_index(lexer_tokens((import model_line_texts)[exporter_number_next]), exporter_text_name) >= 0);
+    exporter_number_found = exporter_number_found + (list_string_index(lexer_tokens((import model_line_texts)[exporter_number_next]), exporter_text_name) >= 0);
     exporter_number_next = exporter_number_next + 1;
   }
 } return int exporter_number_found;

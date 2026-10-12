@@ -16,7 +16,7 @@
 is". Four separate pieces of work were blocked on it, and all four had
 independently invented the same workaround:
 
-- **`idstd`** could not write a sort that takes a comparator, so `lst_sort` is
+- **`idstd`** could not write a sort that takes a comparator, so `list_sort` is
   int-only and there is no `string[]` sort at all (a `func(string, string)
   return int` parameter could now carry the comparator; no one has written it).
 - **`c2id`** (`../c2id`) needs C function pointers, and its plan is a

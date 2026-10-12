@@ -477,7 +477,7 @@ idc/bin/idc caesar --allow-untested --std ../idstd
 ```
 
 The habit to build is: **before writing a small helper, assume `idstd` has
-it.** It has the likes of `fx_min`, `fx_max`, `str_split`, `lst_sort`,
+it.** It has the likes of `fx_min`, `fx_max`, `str_split`, `list_sort`,
 `chr_is_digit`, `fmt_int`, `lset`. If you write your own anyway:
 
 ```

@@ -35,12 +35,12 @@ plan_order_concept(Pack plan_pack, Plan_book plan_book, Log_events plan_events, 
   string plan_level_here = plan_level_of(plan_counts_here);
 } chain (Pack plan_pack, Plan_book plan_book, Log_events plan_events, Plan_session plan_session, int plan_concept_number) {
   int[] plan_order_keys = plan_row_keys(plan_pack, plan_book, plan_session, plan_rows_here, plan_level_here);
-  int[] plan_permutation = ord_ints(plan_order_keys);
-  string[] plan_old_ids_here = ord_by_strs(plan_session.ids, plan_rows_here);
+  int[] plan_permutation = order_integers(plan_order_keys);
+  string[] plan_old_ids_here = order_by_strings(plan_session.ids, plan_rows_here);
 } chain (Pack plan_pack, Plan_book plan_book, Log_events plan_events, Plan_session plan_session, int plan_concept_number) {
-  string[] plan_old_reasons_here = ord_by_strs(plan_session.reasons, plan_rows_here);
-  string[] plan_new_ids_here = ord_by_strs(plan_old_ids_here, plan_permutation);
-  string[] plan_new_reasons_here = ord_by_strs(plan_old_reasons_here, plan_permutation);
+  string[] plan_old_reasons_here = order_by_strings(plan_session.reasons, plan_rows_here);
+  string[] plan_new_ids_here = order_by_strings(plan_old_ids_here, plan_permutation);
+  string[] plan_new_reasons_here = order_by_strings(plan_old_reasons_here, plan_permutation);
 } chain (Pack plan_pack, Plan_book plan_book, Log_events plan_events, Plan_session plan_session, int plan_concept_number) {
   if (len(plan_rows_here) > 1) {
     plan_rows_write(plan_pack, plan_session, plan_rows_here, plan_old_ids_here, plan_new_ids_here, plan_new_reasons_here, plan_level_here, plan_book.catalog.concepts[plan_concept_number]);

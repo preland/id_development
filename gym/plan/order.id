@@ -12,7 +12,7 @@ plan_concept_rows(Plan_book plan_book, Plan_session plan_session, int plan_conce
   int[] plan_rows_found = [];
   int plan_at = 0;
   while (plan_at < len(plan_session.ids)) {
-    if (plan_session.phases[plan_at] == "main" && plan_first_concept(plan_book, lst_str_index(plan_book.catalog.items, plan_session.ids[plan_at])) == plan_concept_number) {
+    if (plan_session.phases[plan_at] == "main" && plan_first_concept(plan_book, list_string_index(plan_book.catalog.items, plan_session.ids[plan_at])) == plan_concept_number) {
       push(plan_rows_found, plan_at);
     }
     plan_at = plan_at + 1;
@@ -25,7 +25,7 @@ plan_concept_rows(Plan_book plan_book, Plan_session plan_session, int plan_conce
 
 plan_kind_key(Pack plan_pack, Plan_book plan_book, string plan_item_id, string plan_level) {
   string plan_key_kind = pack_field(plan_pack, pack_find(plan_pack, "item", plan_item_id), "kind");
-  int plan_item_place = lst_str_index(plan_book.catalog.items, plan_item_id);
+  int plan_item_place = list_string_index(plan_book.catalog.items, plan_item_id);
   int plan_sort_key = plan_kind_rank(plan_level, plan_key_kind) * 10000 + plan_book.catalog.bases[plan_item_place];
 } return int plan_sort_key;
 given pack_fixture_parse("concept: c\nitem: p\nconcepts: c\nkind: proof\nitem: e\nconcepts: c\nkind: error_hunt\n") ((import pack_fixture_book), Plan_book(Plan_catalog(["c"], ["p", "e"], [1200, 900]), Plan_links([0, 1], [0, 0], [0, 0]), Plan_needs([], [])), "p", "novice"):(81200)

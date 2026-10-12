@@ -7,7 +7,7 @@
 
 runner_tag(string[] block_texts, int block_index) {
   string block_tag = "A|";
-  if (lst_str_get_or(block_texts, block_index - 1, "") == ":") {
+  if (list_string_get_or(block_texts, block_index - 1, "") == ":") {
     block_tag = "E|";
   }
 } return string block_tag;
@@ -17,10 +17,10 @@ runner_tag(string[] block_texts, int block_index) {
 runner_then(string[] block_as, string[] block_texts, int block_index) {
   int block_character = runner_close(block_texts, block_index + 3);
   int block_next_index = len(block_texts);
-  int block_ok = lst_str_get_or(block_texts, block_index + 2, "") == ":" && lst_str_get_or(block_texts, block_index + 3, "") == "(";
+  int block_ok = list_string_get_or(block_texts, block_index + 2, "") == ":" && list_string_get_or(block_texts, block_index + 3, "") == "(";
 } chain (string[] block_as, string[] block_texts, int block_index) {
   if (block_ok == 1) {
-    push(block_as, "T|" + lst_str_get_or(block_texts, block_index + 1, "") + "|" + runner_join(block_texts, block_index + 4, block_character - 1));
+    push(block_as, "T|" + list_string_get_or(block_texts, block_index + 1, "") + "|" + runner_join(block_texts, block_index + 4, block_character - 1));
     block_next_index = block_character;
   } else {
     push(block_as, "X|a then clause is 'then NAME:(VALUE)'");

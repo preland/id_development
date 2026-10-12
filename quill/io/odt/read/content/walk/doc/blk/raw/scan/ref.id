@@ -1,6 +1,6 @@
 // A style name an element gave: when it is an automatic style noted in the head and not yet kept, it is kept (a name no automatic style has, such as a style of styles.xml, or an empty name, is none of this reader's business).
 orc_ref(Cx cx, string sname) {
-  int k = lst_str_index(cx.cs.lstyles.keys, (import orc_k_auto) + sname);
+  int k = list_string_index(cx.cs.lstyles.keys, (import orc_k_auto) + sname);
   int fresh = sname != "" && k >= 0 && cx.cs.lstyles.vals[k] >= 0;
   if(fresh == 1) {
     orc_take(cx, sname, k);
@@ -14,7 +14,7 @@ given orc_t_open("<style:style style:name='S1'/>") given orc_a_push((import orc_
 // Keeps the automatic style that entry k of the table names as the part "auto:NAME", marks the entry as kept, and then keeps the automatic styles that style leans on in turn (its list style, its parent).
 orc_take(Cx cx, string sname, int k) {
   int[] vs = cx.cs.lstyles.vals;
-  int[] bytes = lst_slice(cx.rd.src, vs[k], vs[k + 1] - vs[k]);
+  int[] bytes = list_slice(cx.rd.src, vs[k], vs[k + 1] - vs[k]);
   Part pt = Part((import orc_k_auto) + sname, bytes, (import orc_part_raw));
 } chain (Cx cx, string sname, int k) {
   lset(vs, k, 0 - 1);

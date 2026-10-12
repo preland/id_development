@@ -3,7 +3,7 @@
 // compiled like any other expression when the program is generated.
 
 model_sprite(string[] block_texts, int block_line_index) {
-  if (len(block_texts) == 2 && model_is_name(lst_str_get_or(block_texts, 1, "")) == 1) {
+  if (len(block_texts) == 2 && model_is_name(list_string_get_or(block_texts, 1, "")) == 1) {
     push((import model_sprite_names), block_texts[1]);
     push((import model_sprite_lines), (import model_line_numbers)[block_line_index]);
   } else {
@@ -30,13 +30,13 @@ model_after_equal(string block_text_value) {
 model_variable(string[] block_texts, int block_line_index) {
   int block_type = model_type(block_texts, 1);
   int block_at = 2 + (block_type > 3) * 2;
-  string block_name_text = lst_str_get_or(block_texts, block_at, "");
+  string block_name_text = list_string_get_or(block_texts, block_at, "");
 } chain (string[] block_texts, int block_line_index) {
   int block_ok = model_is_name(block_name_text);
   if (block_type < 1 || len((import model_sprite_names)) == 0) {
     block_ok = 0;
   }
-  if (lst_str_get_or(block_texts, block_at + 1, "=") != "=") {
+  if (list_string_get_or(block_texts, block_at + 1, "=") != "=") {
     block_ok = 0;
   }
 } chain (string[] block_texts, int block_line_index) {

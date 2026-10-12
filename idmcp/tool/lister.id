@@ -5,15 +5,15 @@
 tool_listing(string list_path, int list_depth) {
   string list_root = environment_text((import tool_root_key));
   int list_scope = tool_scope(list_root, list_path);
-  string list_text = tool_failure("outside_project", "the path leaves the project root; use a path inside it");
+  string listing_text = tool_failure("outside_project", "the path leaves the project root; use a path inside it");
 } chain (string list_path, int list_depth) {
   if (list_scope == 0) {
-    list_text = tool_listed(list_path, list_depth);
+    listing_text = tool_listed(list_path, list_depth);
   }
   if (list_scope == 2) {
-    list_text = tool_failure("not_found", "no such path in the project: " + list_path);
+    listing_text = tool_failure("not_found", "no such path in the project: " + list_path);
   }
-} return string list_text;
+} return string listing_text;
 given tool_t_session ("math", 1):("{\"ok\":true,\"error\":null,\"path\":\"math\",\"entries\":[{\"path\":\"math/count.id\",\"kind\":\"file\",\"functions\":[{\"name\":\"sample_clamp\",\"line\":15,\"cases\":2},{\"name\":\"sample_count\",\"line\":3,\"cases\":2}]}]}")
 given tool_t_session ("../sample", 1):("{\"ok\":false,\"error\":\"outside_project\",\"message\":\"the path leaves the project root; use a path inside it\"}")
 given tool_t_session ("nothing.id", 1):("{\"ok\":false,\"error\":\"not_found\",\"message\":\"no such path in the project: nothing.id\"}")

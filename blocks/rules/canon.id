@@ -7,7 +7,7 @@
 
 checker_token(string[] block_environment, string block_token, int block_lit) {
   string block_out = block_token;
-  int block_key_code = lst_str_index(block_environment, block_token);
+  int block_key_code = list_string_index(block_environment, block_token);
   int block_class = lexer_class(charat(block_token, 0));
 } chain (string[] block_environment, string block_token, int block_lit) {
   if (block_class == (import constant_class_word) && block_key_code >= 0) {
@@ -48,9 +48,9 @@ checker_map(string[] block_environment, string[] block_texts, int block_lit) {
 checker_cline(string[] block_environment, int block_line_index, int block_lit) {
   string[] block_texts = lexer_tokens((import model_line_texts)[block_line_index]);
   int block_type = model_type(block_texts, 0);
-  string block_name_text = lst_str_get_or(block_texts, 1 + (block_type > 3) * 2, "");
+  string block_name_text = list_string_get_or(block_texts, 1 + (block_type > 3) * 2, "");
 } chain (string[] block_environment, int block_line_index, int block_lit) {
-  if (block_type > 0 && model_is_name(block_name_text) == 1 && lst_str_index(block_environment, block_name_text) < 0) {
+  if (block_type > 0 && model_is_name(block_name_text) == 1 && list_string_index(block_environment, block_name_text) < 0) {
     push(block_environment, block_name_text);
   }
   string[] block_milliseconds = checker_map(block_environment, block_texts, block_lit);

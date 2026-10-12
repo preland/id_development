@@ -7,8 +7,8 @@
 
 checker_top(int block_line_index) {
   string[] block_texts = lexer_tokens((import model_line_texts)[block_line_index]);
-  string block_keyword = lst_str_get_or(block_texts, 0, "");
-  int block_top = (import model_line_indents)[block_line_index] == 1 && lst_str_index((import constant_free), block_keyword) < 0;
+  string block_keyword = list_string_get_or(block_texts, 0, "");
+  int block_top = (import model_line_indents)[block_line_index] == 1 && list_string_index((import constant_free), block_keyword) < 0;
 } return int block_top;
 given model_initial given model_lines("a\n  x = 1\n    y = 2\n  return x") (1):(1)
 given model_initial given model_lines("a\n  x = 1\n    y = 2\n  return x") (2):(0)
@@ -28,7 +28,7 @@ given model_load("t.blk", "sprite S\nfn f() return void\n  a = 1\n  b = 2\n  c =
 
 checker_cut_line(int block_function_row, int block_line_index) {
   string[] block_texts = lexer_tokens((import model_line_texts)[block_line_index]);
-  if (lst_str_get_or(block_texts, 0, "") == "else" && (import model_line_indents)[block_line_index] == 1 && (import model_function_names)[block_function_row] == "main" && checker_before(block_function_row, block_line_index) == 2) {
+  if (list_string_get_or(block_texts, 0, "") == "else" && (import model_line_indents)[block_line_index] == 1 && (import model_function_names)[block_function_row] == "main" && checker_before(block_function_row, block_line_index) == 2) {
     model_error((import model_line_numbers)[block_line_index], "E0201", "the 'else' of 'main' is its third action, and the exported main starts with variables_start(), so a chain segment would begin at the else and cut it from its if; make the if and else the first two actions of 'main', or move them into a function of their own");
   }
 } return void;

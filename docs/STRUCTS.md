@@ -337,7 +337,7 @@ Signatures shortened; the structs are those in Q3.
 
    7 parameters to 2. Its `chain` restates 7 and its four cases each write
    six `(import db_t_...)` arguments; they become one `(import db_t_store)`.
-   `hmap_get(keys, vals, used, key, ...)` becomes `hmap_get(s.t, key, ...)`.
+   `hash_map_get(keys, vals, used, key, ...)` becomes `hash_map_get(s.t, key, ...)`.
 
 2. `trials/httpd/core/web/res/route/file/ser/serve.id:1`, `hd_reply`.
 

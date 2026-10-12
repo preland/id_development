@@ -11,7 +11,7 @@ pack_unknown_keys(Pack pack_book, int pack_block) {
   int pack_at = pack_book.blocks.firsts[pack_block];
   int pack_end = pack_at + pack_book.blocks.counts[pack_block];
   while (pack_at < pack_end) {
-    if (lst_str_index(pack_allowed, pack_book.rows.keys[pack_at]) < 0) {
+    if (list_string_index(pack_allowed, pack_book.rows.keys[pack_at]) < 0) {
       push(pack_found_problems, pack_row_say(pack_book, pack_block, pack_at, "unknown key '" + pack_book.rows.keys[pack_at] + "' in a " + pack_kind + "; see gym/pack/FORMAT.md"));
     }
     pack_at = pack_at + 1;
@@ -27,7 +27,7 @@ pack_repeated_keys(Pack pack_book, int pack_block) {
   int pack_end = pack_at + pack_book.blocks.counts[pack_block];
 } chain (Pack pack_book, int pack_block) {
   while (pack_at < pack_end) {
-    if (lst_str_index((import pack_repeatable_keys), pack_book.rows.keys[pack_at]) < 0 && pack_row_index(pack_book, pack_block, pack_book.rows.keys[pack_at]) != pack_at) {
+    if (list_string_index((import pack_repeatable_keys), pack_book.rows.keys[pack_at]) < 0 && pack_row_index(pack_book, pack_block, pack_book.rows.keys[pack_at]) != pack_at) {
       push(pack_found_problems, pack_row_say(pack_book, pack_block, pack_at, "'" + pack_book.rows.keys[pack_at] + "' is written twice; only the first counts, so delete one"));
     }
     pack_at = pack_at + 1;

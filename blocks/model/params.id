@@ -6,7 +6,7 @@
 
 model_want(string[] block_texts, int block_position_index, string block_token, int block_line_index) {
   int block_ok = 1;
-  string block_got = lst_str_get_or(block_texts, block_position_index, "end of line");
+  string block_got = list_string_get_or(block_texts, block_position_index, "end of line");
   if (block_got != block_token) {
     block_ok = 0;
     model_error((import model_line_numbers)[block_line_index], "E0101", "expected '" + block_token + "', found '" + block_got + "'");
@@ -19,7 +19,7 @@ given model_initial given model_lines("fn") (["fn", "f", "x"], 2, "(", 0):(0) th
 model_parameter(string[] block_texts, int block_position_index, int block_line_index) {
   int block_type = model_type(block_texts, block_position_index);
   int block_at = block_position_index + 1 + (block_type > 3) * 2;
-  string block_name_text = lst_str_get_or(block_texts, block_at, "");
+  string block_name_text = list_string_get_or(block_texts, block_at, "");
 } chain (string[] block_texts, int block_position_index, int block_line_index) {
   int block_next_index = len(block_texts);
   if (block_type > 0 && model_is_name(block_name_text) == 1) {
@@ -27,10 +27,10 @@ model_parameter(string[] block_texts, int block_position_index, int block_line_i
     push((import model_pat), block_type);
     block_next_index = block_at + 1;
   } else {
-    model_error((import model_line_numbers)[block_line_index], "E0102", "expected 'TYPE NAME' for a parameter, found '" + lst_str_get_or(block_texts, block_position_index, "end of line") + "'");
+    model_error((import model_line_numbers)[block_line_index], "E0102", "expected 'TYPE NAME' for a parameter, found '" + list_string_get_or(block_texts, block_position_index, "end of line") + "'");
   }
 } chain (string[] block_texts, int block_position_index, int block_line_index) {
-  if (lst_str_get_or(block_texts, block_next_index, "") == ",") {
+  if (list_string_get_or(block_texts, block_next_index, "") == ",") {
     block_next_index = block_next_index + 1;
   }
 } return int block_next_index;
@@ -40,7 +40,7 @@ given model_initial given model_lines("x") (["string", "[", "]", "xs", ")"], 0, 
 given model_initial given model_lines("x") (["wat", "n"], 0, 0):(2) then len((import model_pan)):(0) then (import model_diagnostics):(["input.blk:1: error: expected 'TYPE NAME' for a parameter, found 'wat' [E0102]"])
 
 model_parameters(string[] block_texts, int block_position_index, int block_line_index) {
-  while (lst_str_get_or(block_texts, block_position_index, ")") != ")") {
+  while (list_string_get_or(block_texts, block_position_index, ")") != ")") {
     block_position_index = model_parameter(block_texts, block_position_index, block_line_index);
   }
 } return int block_position_index;

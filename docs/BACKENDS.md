@@ -343,7 +343,7 @@ calls one links: a copy of each is made in a scratch directory
 its `id` functions.
 
 * The backend's functions and its cases may call any `core/` function
-  (`lst_fill`, `path_join`, `str_ends`, `ord_strs`, and so on). Only the
+  (`list_fill`, `path_join`, `str_ends`, `order_strings`, and so on). Only the
   `core/` functions reached are parsed, as in any build.
 * Any backend's natives may be called, in the backend's code and in its cases.
 * Calling something in `host/` or `kit/`, or another backend's `id` function, is

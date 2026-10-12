@@ -5,8 +5,8 @@
 // writes a slot to it.
 
 generator_variable_type(string block_name_text) {
-  int block_key_code = lst_str_index((import generator_symbol_names), block_name_text);
-  int block_group = lst_str_index((import model_variable_names), block_name_text);
+  int block_key_code = list_string_index((import generator_symbol_names), block_name_text);
+  int block_group = list_string_index((import model_variable_names), block_name_text);
   int block_type = 0 - 1;
 } chain (string block_name_text) {
   if (block_key_code >= 0) {
@@ -18,19 +18,19 @@ generator_variable_type(string block_name_text) {
   }
 } return int block_type;
 given model_load("t.blk", "sprite S\nvar float g") given generator_initial ("g"):(2)
-given model_load("t.blk", "sprite S\nvar float g") given generator_initial given lst_str_extend((import generator_symbol_names), ["g"]) given lst_extend((import generator_symbol_slots), [0]) given lst_extend((import generator_symbol_types), [3]) ("g"):(3)
+given model_load("t.blk", "sprite S\nvar float g") given generator_initial given list_string_extend((import generator_symbol_names), ["g"]) given list_extend((import generator_symbol_slots), [0]) given list_extend((import generator_symbol_types), [3]) ("g"):(3)
 given model_load("t.blk", "sprite S\nvar float g") given generator_initial ("zz"):(-1) then len((import model_diagnostics)):(1)
 
 generator_store(string block_name_text, int block_call_stack) {
-  int block_key_code = lst_str_index((import generator_symbol_names), block_name_text);
+  int block_key_code = list_string_index((import generator_symbol_names), block_name_text);
   if (block_key_code >= 0) {
     generator_emit((import constant_opcode_move), (import generator_symbol_slots)[block_key_code], block_call_stack, 0, 0);
   } else {
-    generator_emit((import constant_opcode_global_store), 0, block_call_stack, 0, lst_str_index((import model_variable_names), block_name_text));
+    generator_emit((import constant_opcode_global_store), 0, block_call_stack, 0, list_string_index((import model_variable_names), block_name_text));
   }
 } return void;
 given model_load("t.blk", "sprite S\nvar float g") given generator_initial ("g", 7):() then generator_codes:("5:4,0,7,0,0")
-given model_load("t.blk", "sprite S\nvar float g") given generator_initial given lst_str_extend((import generator_symbol_names), ["g"]) given lst_extend((import generator_symbol_slots), [3]) ("g", 7):() then generator_codes:("5:0,3,7,0,0")
+given model_load("t.blk", "sprite S\nvar float g") given generator_initial given list_string_extend((import generator_symbol_names), ["g"]) given list_extend((import generator_symbol_slots), [3]) ("g", 7):() then generator_codes:("5:0,3,7,0,0")
 
 generator_discard(string[] block_texts, string block_name_text) {
   int block_call_stack = generator_alloc(1);

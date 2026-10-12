@@ -7,16 +7,16 @@
 
 checker_line(int[] block_counter, string block_function_name, int block_line_index) {
   string[] block_texts = lexer_tokens((import model_line_texts)[block_line_index]);
-  string block_keyword = lst_str_get_or(block_texts, 0, "");
+  string block_keyword = list_string_get_or(block_texts, 0, "");
   int block_level = fixed_point_minimum((import model_line_indents)[block_line_index], (import constant_levels) - 1);
 } chain (int[] block_counter, string block_function_name, int block_line_index) {
-  int block_cost = lst_str_index((import constant_free), block_keyword) < 0;
+  int block_cost = list_string_index((import constant_free), block_keyword) < 0;
   int block_count = checker_count(block_counter, block_level, block_cost);
   if (block_count == (import constant_maximum_actions) + 1 && block_cost == 1) {
     model_error((import model_line_numbers)[block_line_index], "E0201", "a block in '" + block_function_name + "' performs more than " + (import constant_maximum_actions) + " actions; the limit is " + (import constant_maximum_actions) + " (each statement, if, else, and while is one action; return is free)");
   }
 } chain (int[] block_counter, string block_function_name, int block_line_index) {
-  if (lst_str_index((import constant_control), block_keyword) >= 0 && block_level > (import constant_maximum_depth)) {
+  if (list_string_index((import constant_control), block_keyword) >= 0 && block_level > (import constant_maximum_depth)) {
     model_error((import model_line_numbers)[block_line_index], "E0202", "code in '" + block_function_name + "' is nested more than " + (import constant_maximum_depth) + " levels deep; move the inner block into its own function");
   }
 } return void;
@@ -27,7 +27,7 @@ given model_initial given model_lines("a\n      while x") ([0, 0, 0, 0], "f", 1)
 given model_initial given model_lines("a\n    if x") ([0, 0, 0, 0], "f", 1):() then len((import model_diagnostics)):(0)
 
 checker_function(int block_function_row) {
-  int[] block_counter = lst_filled((import constant_levels), 0);
+  int[] block_counter = list_filled((import constant_levels), 0);
   int block_line_index = (import model_function_body_start)[block_function_row];
   string block_function_name = (import model_function_names)[block_function_row];
 } chain (int block_function_row) {

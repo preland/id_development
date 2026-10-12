@@ -1063,7 +1063,7 @@ program. Each of these was written once in `idstd` so the six scripts share it.
   needs a random scratch path exports it and checks through a function.
 - **A function value carried no state** (resolved: `bind`, SPEC.md 1.1.1), so the
   generic sort took its keys from an export and its comparator read that export
-  (`idstd_ord_ik`). A comparator is now `bind(idstd_ord_gt_int, keys)`, and no
+  (`idstd_ord_ik`). A comparator is now `bind(idstd_order_greater_integers, keys)`, and no
   export or fixture exists for it.
 - **`len(s)` is a `strlen`** and `charat` memoises one string, which the code has
   to be written around: a loop `while (i < len(s))` is quadratic and nothing
@@ -1083,11 +1083,11 @@ can break programs that never mention it.* Adding `path_last` to `idstd` made
 adding `env_text` and `fs_read_bytes` did the same to `idc/tools/idrun`
 (`dr_envget`, `dr_bytes`/`dr_fill`), and the identity-permutation helper of the
 sort (first spelled `idstd_ord_ident`) did it to `trials/csvq` (`srt_iota`) and
-to `word` (`rbe_iota`), `ord_by_strs` did it to `trials/csvq` (`sel_row`),
+to `word` (`rbe_iota`), `order_by_strings` did it to `trials/csvq` (`sel_row`),
 `str_replace` to `wordcheck` (`ofodt_swap`), and an internal `chr` loop in
 `env_text` to `idc/tools/qmon` (`bytes_str`; the helper was inlined so the
 library no longer has a second copy). Each was fixed by deleting the program's
-copy and calling the library's (the helper became the public `ord_iota` for
+copy and calling the library's (the helper became the public `order_iota` for
 that), which is the rule working as designed. Note that `word/` and
 `wordcheck/` belong to another wave's work: the two edits there are one
 deleted function and one renamed call each, and will conflict with any
@@ -1127,12 +1127,12 @@ change:
 | `json_` | `core/fmt/json/` |
 | `http_` | `host/io/net/http/` |
 | `fs_temp_text` | `host/io/fsutil/` |
-| `hmap_bump`, `hmap_items` | `core/data/hmap/` |
+| `hash_map_bump`, `hash_map_items` | `core/data/hmap/` |
 
 | area | functions | replaces |
 | --- | --- | --- |
-| sort by a key | `ord_ints`, `ord_strs` (stable permutation, merge sort), `ord_desc`, `ord_by_ints`, `ord_by_strs`, `ord_iota` | `lst_sort` (insertion sort, ints, no key); `trials/csvq`'s `srt_iota` |
-| counting | `hmap_bump`, `hmap_items` (entries sorted by key) | two lines and a loop in every program |
+| sort by a key | `order_integers`, `order_strings` (stable permutation, merge sort), `order_descending`, `order_by_integers`, `order_by_strings`, `order_iota` | `list_sort` (insertion sort, ints, no key); `trials/csvq`'s `srt_iota` |
+| counting | `hash_map_bump`, `hash_map_items` (entries sorted by key) | two lines and a loop in every program |
 | paths | `path_join`, `path_base`, `path_ext`, `path_last`, `path_glob` (`*` `?`), `path_files` (recursive, sorted, relative) | `trials/httpd`'s `hd_last` |
 | text | `str_replace`, `str_lines`, `str_words` | |
 | files and processes | `fs_read_bytes`, `fs_temp_text`, `exec_out`, `env_text` | `idrun`'s `dr_bytes`, `dr_envget` |
@@ -1211,7 +1211,7 @@ Run, each with its result in this section's tables:
   example `idstd_err_tj`, `idstd_gui_tgl_apply`); none of them is in the new
   modules, and the check reports nothing for these.
 - eight mutations of new `idstd` code (merge-sort tie rule, glob backtrack,
-  option integer check, JSON unescape, HTTP status offset, `hmap_items` order,
+  option integer check, JSON unescape, HTTP status offset, `hash_map_items` order,
   `path_files` sort, `str_words` filter), each restored by copying the saved file
   back. Seven turned a case red the first time. **`path_files` did not**: its test
   tree was already in sorted order, so removing the sort changed nothing. A
@@ -1311,7 +1311,7 @@ the order they appeared:
    `return void export NAME`, and cases that read a never-written export are
    rejected. Added the clause to the `init_*` family, replaced vacuous checks.
 3. A string cannot hold NUL, so `str_of_mem` over padded buffers trapped.
-   `slice` now measures with `buf_zlen`.
+   `slice` now measures with `buffer_length_before_zero`.
 4. The generated project broke the layout rules: same-name directories,
    numbered siblings, more than 3 actions
    per block, duplicate block bodies (and, then, more than 3 entries per

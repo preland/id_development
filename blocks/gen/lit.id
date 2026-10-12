@@ -33,12 +33,12 @@ generator_string(int block_destination, string block_token) {
   }
 } return int block_type;
 given generator_initial (2, "\"hi\""):(3) then (import generator_code):([1, 2, 0, 0, 0]) then (import generator_string_constants):(["hi"])
-given model_initial given generator_initial given lst_str_extend((import generator_string_constants), ["a", "b"]) (1, "\"b\""):(3) then (import generator_code):([1, 1, 0, 0, 1])
+given model_initial given generator_initial given list_string_extend((import generator_string_constants), ["a", "b"]) (1, "\"b\""):(3) then (import generator_code):([1, 1, 0, 0, 1])
 given model_initial given generator_initial (1, "\"oops"):(3) then len((import model_diagnostics)):(1)
 
 generator_load(int block_destination, string block_name_text) {
-  int block_key_code = lst_str_index((import generator_symbol_names), block_name_text);
-  int block_group = lst_str_index((import model_variable_names), block_name_text);
+  int block_key_code = list_string_index((import generator_symbol_names), block_name_text);
+  int block_group = list_string_index((import model_variable_names), block_name_text);
   int block_type = 0 - 1;
 } chain (int block_destination, string block_name_text) {
   if (block_key_code >= 0) {
@@ -51,6 +51,6 @@ generator_load(int block_destination, string block_name_text) {
     generator_error("E0301", "undefined variable '" + block_name_text + "'");
   }
 } return int block_type;
-given model_initial given generator_initial given lst_str_extend((import generator_symbol_names), ["n"]) given lst_extend((import generator_symbol_slots), [6]) given lst_extend((import generator_symbol_types), [2]) (9, "n"):(2) then (import generator_code):([0, 9, 6, 0, 0])
+given model_initial given generator_initial given list_string_extend((import generator_symbol_names), ["n"]) given list_extend((import generator_symbol_slots), [6]) given list_extend((import generator_symbol_types), [2]) (9, "n"):(2) then (import generator_code):([0, 9, 6, 0, 0])
 given model_load("t.blk", "sprite S\nvar string a\nvar float[] b") given generator_initial (3, "b"):(5) then (import generator_code):([3, 3, 0, 0, 1])
 given model_load("t.blk", "sprite S\nvar string a") given generator_initial (3, "zz"):(-1) then (import model_diagnostics):(["t.blk:0: error: undefined variable 'zz' [E0301]"])

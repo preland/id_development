@@ -4,7 +4,7 @@
 // The argument lines proc_start wants: the program, then each argument, one per line, newline last.
 job_argv(string job_path, string[] job_words) {
   string[] job_all = [job_path];
-  lst_str_extend(job_all, job_words);
+  list_string_extend(job_all, job_words);
   string job_lines = str_join(job_all, "\n") + "\n";
 } return string job_lines;
 ("/bin/ls", ["-l", "/tmp"]):("/bin/ls\n-l\n/tmp\n")
@@ -13,7 +13,7 @@ job_argv(string job_path, string[] job_words) {
 // The signal's name in parentheses with a space in front, " (INT)", or "" for a
 // number with no name here.
 job_signal_label(int job_number) {
-  string job_name = lst_str_get_or((import job_signal_names), job_number, "");
+  string job_name = list_string_get_or((import job_signal_names), job_number, "");
   string job_label = "";
   if (len(job_name) > 0) {
     job_label = " (" + job_name + ")";

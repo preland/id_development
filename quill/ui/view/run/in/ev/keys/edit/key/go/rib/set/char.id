@@ -1,6 +1,6 @@
 // The character field that the command cvi_cmd sets to the argument cvi_arg, by the table cv_cc_cmd: the font size in half-points, the font colour, the highlight; on the selected text, or on what is typed next when nothing is selected. Any other command is left alone.
 cv_char(View cvv, Ctl cvc, int cvi_cmd, int cvi_arg) {
-  int cvi_k = lst_index_of((import cv_cc_cmd), cvi_cmd);
+  int cvi_k = list_index_of((import cv_cc_cmd), cvi_cmd);
   if(cvi_k >= 0) {
     ed_set_char(cvv.doc, cvc, (import cv_cc_fld)[cvi_k], cvi_arg);
   }
@@ -11,7 +11,7 @@ given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) given 
 
 // The font family of the selection set to the family named cvs_name when the command is cmd_font_family: its number in the document's list of fonts, which gets the family at the end when it has not got it yet. An empty name sets nothing.
 cv_family(View cvv, Ctl cvc, int cvi_cmd, string cvs_name) {
-  int cvi_f = lst_str_index(cvv.doc.ext.fonts, cvs_name);
+  int cvi_f = list_string_index(cvv.doc.ext.fonts, cvs_name);
   int cvi_on = cvi_cmd == (import cmd_font_family) && len(cvs_name) > 0;
   if(cvi_on == 1 && cvi_f < 0) {
     push(cvv.doc.ext.fonts, cvs_name);

@@ -10,13 +10,13 @@ pack_check(string pack_directory) {
     return pack_all_problems;
   }
 } chain (string pack_directory) {
-  lst_str_extend(pack_all_problems, pack_book.notes.problems);
-  lst_str_extend(pack_all_problems, pack_empty_problems(pack_book));
-  lst_str_extend(pack_all_problems, pack_duplicates(pack_book, "concept"));
+  list_string_extend(pack_all_problems, pack_book.notes.problems);
+  list_string_extend(pack_all_problems, pack_empty_problems(pack_book));
+  list_string_extend(pack_all_problems, pack_duplicates(pack_book, "concept"));
 } chain (string pack_directory) {
-  lst_str_extend(pack_all_problems, pack_duplicates(pack_book, "item"));
-  lst_str_extend(pack_all_problems, pack_concept_problems(pack_book));
-  lst_str_extend(pack_all_problems, pack_item_problems(pack_book));
+  list_string_extend(pack_all_problems, pack_duplicates(pack_book, "item"));
+  list_string_extend(pack_all_problems, pack_concept_problems(pack_book));
+  list_string_extend(pack_all_problems, pack_item_problems(pack_book));
 } return string[] pack_all_problems;
 ("/nonexistent/gym/pack/dir"):(["/nonexistent/gym/pack/dir: not a directory"])
 given pack_fixture_directory("concept: a\nname: A\nsummary: S\nsource: P\n", "item: i\nconcepts: a\n") ("."):(["./sub/b.txt:1: item 'i' has no 'kind' (missing or blank)", "./sub/b.txt:1: item 'i' has no 'answer_kind' (missing or blank)", "./sub/b.txt:1: item 'i' has no 'difficulty' (missing or blank)", "./sub/b.txt:1: item 'i' has no 'verified' (missing or blank)", "./sub/b.txt:1: item 'i' has no 'prompt' (missing or blank)", "./sub/b.txt:1: item 'i' has no 'answer' (missing or blank)", "./sub/b.txt:1: item 'i' has no 'rubric' (missing or blank)", "./sub/b.txt:1: item 'i' has no rung 1, 'hint_nudge' (the nudge); a ladder has exactly 4 rungs", "./sub/b.txt:1: item 'i' has no rung 2, 'hint_question' (the guiding question); a ladder has exactly 4 rungs", "./sub/b.txt:1: item 'i' has no rung 3, 'hint_step' (the partial step); a ladder has exactly 4 rungs", "./sub/b.txt:1: item 'i' has no rung 4, 'hint_example' (the worked example); a ladder has exactly 4 rungs"])

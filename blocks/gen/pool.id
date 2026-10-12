@@ -6,14 +6,14 @@
 // (E0302 when the name is already a local of the function).
 
 generator_kind_string(string block_text) {
-  int block_height = lst_str_index((import generator_string_constants), block_text);
+  int block_height = list_string_index((import generator_string_constants), block_text);
   if (block_height < 0) {
     push((import generator_string_constants), block_text);
     block_height = len((import generator_string_constants)) - 1;
   }
 } return int block_height;
-given generator_initial given lst_str_extend((import generator_string_constants), ["a", "b"]) ("b"):(1) then len((import generator_string_constants)):(2)
-given generator_initial given lst_str_extend((import generator_string_constants), ["a"]) ("z"):(1) then (import generator_string_constants):(["a", "z"])
+given generator_initial given list_string_extend((import generator_string_constants), ["a", "b"]) ("b"):(1) then len((import generator_string_constants)):(2)
+given generator_initial given list_string_extend((import generator_string_constants), ["a"]) ("z"):(1) then (import generator_string_constants):(["a", "z"])
 
 generator_kind_float(float block_float_value) {
   push((import generator_float_constants), block_float_value);
@@ -23,7 +23,7 @@ given generator_initial (2.5):(0) then (import generator_float_constants)[0]:(2.
 given generator_initial (4.25):(0) then len((import generator_float_constants)):(1)
 
 generator_declare(string block_name_text, int block_type, int block_slot) {
-  if (lst_str_index((import generator_symbol_names), block_name_text) >= 0) {
+  if (list_string_index((import generator_symbol_names), block_name_text) >= 0) {
     generator_error("E0302", "variable '" + block_name_text + "' is declared twice in this function");
   }
   push((import generator_symbol_names), block_name_text);
@@ -32,4 +32,4 @@ generator_declare(string block_name_text, int block_type, int block_slot) {
   push((import generator_symbol_types), block_type);
 } return void;
 given model_initial given generator_initial ("n", 2, 5):() then (import generator_symbol_names):(["n"]) then (import generator_symbol_types):([2]) then (import generator_symbol_slots):([5])
-given model_initial given generator_initial given lst_str_extend((import generator_symbol_names), ["n"]) ("n", 1, 0):() then (import model_diagnostics):(["input.blk:0: error: variable 'n' is declared twice in this function [E0302]"])
+given model_initial given generator_initial given list_string_extend((import generator_symbol_names), ["n"]) ("n", 1, 0):() then (import model_diagnostics):(["input.blk:0: error: variable 'n' is declared twice in this function [E0302]"])

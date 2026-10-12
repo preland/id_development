@@ -403,7 +403,7 @@ the empty-separator branch pushes a slice of its argument, not the argument --
 so its result is fresh with elements of its own, and `lines =
 str_split(text, "\n")` frees every line at the function's exit. A caller that
 reads one piece into a position that keeps it (csv's `parts[1]`, stored as a
-key by `hmap_put`) is not deep-owned, and stays shallow: whether one piece is
+key by `hash_map_put`) is not deep-owned, and stays shallow: whether one piece is
 kept is a fact about that piece, and the free is of the whole list.
 
 **Moves into a struct** (landed, narrow). The constructor of a struct that
@@ -956,7 +956,7 @@ control that differs from the treatment in one property (the compiler):
   benchmarks that gain are those that build a list in a function and use it in
   another. btrees frees every node of a tree through `idfr_Tree` and csv
   frees the lines `str_split` made when `cv_run` returns (not each row's
-  pieces, one of which `hmap_put` keeps); strbuild frees nothing it did not
+  pieces, one of which `hash_map_put` keeps); strbuild frees nothing it did not
   before. Peak resident set is the column to read for btrees; for csv the
   garbage is freed at the exit of the function that made it, after the peak.
   Generate the data with `bench/ref/c/gen.c` (`gen csv N`, `gen expr N`).

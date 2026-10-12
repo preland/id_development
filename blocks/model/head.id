@@ -21,11 +21,11 @@ model_return_type_name(string[] block_texts, int block_position_index, int block
     block_return_type = model_type(block_texts, block_position_index + 2);
   }
   if (block_return_type == 0 - 1) {
-    model_error((import model_line_numbers)[block_line_index], "E0102", "expected a return type (void, int, float, string or a list of one), found '" + lst_str_get_or(block_texts, block_position_index + 2, "end of line") + "'");
+    model_error((import model_line_numbers)[block_line_index], "E0102", "expected a return type (void, int, float, string or a list of one), found '" + list_string_get_or(block_texts, block_position_index + 2, "end of line") + "'");
   }
 } chain (string[] block_texts, int block_position_index, int block_line_index) {
   int block_end = block_position_index + 3 + (block_return_type > 3) * 2;
-  string block_tail = lst_str_get_or(block_texts, block_end, "");
+  string block_tail = list_string_get_or(block_texts, block_end, "");
   if (block_return_type >= 0 && block_tail != "" && (block_tail != "on" || len(block_texts) != block_end + 2)) {
     model_error((import model_line_numbers)[block_line_index], "E0102", "expected the end of the line or 'on \"message\"' after the return type, found '" + block_tail + "'");
   }
@@ -51,5 +51,5 @@ model_add_function(string[] block_texts, int block_line_index, int block_return_
   push((import model_function_parameter_start), block_position_origin);
   push((import model_function_parameter_count), len((import model_pan)) - block_position_origin);
 } return void;
-given model_initial given model_lines("a\nb") given model_sprite(["sprite", "S"], 0) given lst_str_extend((import model_pan), ["k"]) (["fn", "f", "(", "int", "k", ")", "return", "int"], 1, 1, 0):() then (import model_function_names):(["f"]) then (import model_function_body_start):([2]) then (import model_function_parameter_count):([1]) then (import model_function_line):([2])
+given model_initial given model_lines("a\nb") given model_sprite(["sprite", "S"], 0) given list_string_extend((import model_pan), ["k"]) (["fn", "f", "(", "int", "k", ")", "return", "int"], 1, 1, 0):() then (import model_function_names):(["f"]) then (import model_function_body_start):([2]) then (import model_function_parameter_count):([1]) then (import model_function_line):([2])
 given model_initial given model_lines("a") given model_sprite(["sprite", "S"], 0) (["fn", "g", "(", ")", "return", "void", "on", "\"go\""], 0, 0, 0):() then (import model_function_message):(["go"]) then (import model_function_return_types):([0]) then (import model_function_sprites):([0]) then (import model_function_parameter_count):([0])

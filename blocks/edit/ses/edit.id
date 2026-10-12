@@ -20,22 +20,22 @@ editor_begin(string[][] editor_string_session, int[][] editor_matrix_session, in
   string[] bet_buffer = editor_string_session[(import constant_z_buffer)];
   bel_state[(import constant_session_editing)] = editor_integer_box >= 0;
 } chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout, int editor_integer_box) {
-  bel_state[(import constant_session_element)] = lst_get_or(editor_matrix_layout[(import constant_layout_line)], editor_integer_box, 0);
-  bel_state[(import constant_session_edit_start)] = lst_get_or(editor_matrix_layout[(import constant_layout_segment)], editor_integer_box, 0);
-  bet_buffer[0] = lst_str_get_or(editor_string_session[(import constant_z_text)], editor_integer_box, "");
+  bel_state[(import constant_session_element)] = list_get_or(editor_matrix_layout[(import constant_layout_line)], editor_integer_box, 0);
+  bel_state[(import constant_session_edit_start)] = list_get_or(editor_matrix_layout[(import constant_layout_segment)], editor_integer_box, 0);
+  bet_buffer[0] = list_string_get_or(editor_string_session[(import constant_z_text)], editor_integer_box, "");
 } return void;
 given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), 4):() then editor_test_peek:("ed=1 buf=10.0 dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
 given editor_test_session("sprite S\nfn f() return void\n  move(10.0)\n") ((import editor_test_strings), (import editor_test_integers), (import editor_test_boxes), -1):() then editor_test_peek:("ed=0 buf= dirty=0 run=0 tab=0 sprite S|fn f() return void|  move(10.0)|")
 
 editor_commit(string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout) {
   int[] bel_state = editor_matrix_session[(import constant_y_state)];
-  string editor_string_old = lst_str_get_or(editor_string_session[(import constant_z_doc)], bel_state[(import constant_session_element)], "");
+  string editor_string_old = list_string_get_or(editor_string_session[(import constant_z_doc)], bel_state[(import constant_session_element)], "");
   int editor_integer_bits = bel_state[(import constant_session_editing)];
 } chain (string[][] editor_string_session, int[][] editor_matrix_session, int[][] editor_matrix_layout) {
   if (bel_state[(import constant_session_editing)] == 1) {
     editor_set_line(editor_string_session[(import constant_z_doc)], bel_state[(import constant_session_element)], bel_state[(import constant_session_edit_start)], editor_string_session[(import constant_z_buffer)][0]);
     bel_state[(import constant_session_editing)] = 0;
-    if (lst_str_get_or(editor_string_session[(import constant_z_doc)], bel_state[(import constant_session_element)], "") != editor_string_old) {
+    if (list_string_get_or(editor_string_session[(import constant_z_doc)], bel_state[(import constant_session_element)], "") != editor_string_old) {
       editor_integer_bits = editor_changed(editor_string_session, editor_matrix_session, editor_matrix_layout);
     }
   }
