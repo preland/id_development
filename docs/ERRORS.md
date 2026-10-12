@@ -2122,6 +2122,266 @@ main(int argc, string[] argv) {
 } return int argc;
 ```
 
+## E0618 a struct declared twice
+
+A struct name means one record layout in the whole program. Two declarations of
+`Aa`, even with different fields, would give every `Aa(...)` and every `Aa p;` two
+meanings. Declare each struct once, in a file of its own, and use that one; if the
+second is a different record, give it a name of its own.
+
+Incorrect:
+
+```text
+// aa.id
+struct Aa {
+  int a;
+}
+
+// ab.id
+struct Aa {
+  string b;
+}
+
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+```
+
+Correct:
+
+```text
+// aa.id
+struct Aa {
+  int a;
+}
+
+// ab.id
+struct Ab {
+  string b;
+}
+
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+```
+
+## E0619 a struct named like a function or a builtin
+
+`Point(1, 2)` builds a struct and `point(1, 2)` calls a function. The compiler
+tells them apart only by looking the name up, so a struct whose name is also a
+function's, or a builtin's such as `len`, would have two meanings at every call.
+Rename the struct (or the function).
+
+Incorrect:
+
+```text
+// add.id
+struct add {
+  int a;
+}
+
+// fn.id
+add(int a, int b) {
+  int s = a + b;
+} return int s;
+
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+```
+
+Correct:
+
+```text
+// sum.id
+struct Sum {
+  int a;
+}
+
+// fn.id
+add(int a, int b) {
+  int s = a + b;
+} return int s;
+
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+```
+
+## E0620 a struct with no fields or more than three
+
+A struct is a record of one to three named fields, the same limit of three every
+other part of `id` has. A struct with none holds nothing, so use the value on its
+own. A record of seven metrics is two records: group related fields into a second
+struct and nest it.
+
+Incorrect:
+
+```text
+// nil.id
+struct Nil {
+}
+
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+```
+
+Correct:
+
+```text
+// nil.id
+struct Nil {
+  int a;
+}
+
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+```
+
+## E0621 a struct field declared twice
+
+A field is read and written by its name, `p.x`, so two fields of one name in one
+struct could not be told apart. Give each field its own name.
+
+Incorrect:
+
+```text
+// pair.id
+struct Pair {
+  int x;
+  int x;
+}
+
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+```
+
+Correct:
+
+```text
+// pair.id
+struct Pair {
+  int x;
+  int y;
+}
+
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+```
+
+## E0622 a constructor with the wrong number of arguments
+
+`Point(1, 2)` sets every field of the struct it builds, one value for each, in the
+order the struct declares them, so the count of values must be the count of fields.
+
+Incorrect:
+
+```text
+// main.id
+main(int argc, string[] argv) {
+  Point p = Point(1);
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
+```
+
+Correct:
+
+```text
+// main.id
+main(int argc, string[] argv) {
+  Point p = Point(1, 2);
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
+```
+
+## E0623 a constructor argument of the wrong type
+
+A constructor stores each argument in the field of its position, and a field holds
+only values of its own type. A `word` is not squeezed into an `int` field without a
+line that does it: declare a local of the field's type and pass that.
+
+Incorrect:
+
+```text
+// main.id
+main(int argc, string[] argv) {
+  Point p = Point(1, "two");
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
+```
+
+Correct:
+
+```text
+// main.id
+main(int argc, string[] argv) {
+  Point p = Point(1, 2);
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
+```
+
+## E0624 a value stored in a field of another type
+
+`p.x = v;` stores `v` in the field `x`, which holds only values of the type it was
+declared with. Store a value of the field's type, or change the field's type in the
+struct.
+
+Incorrect:
+
+```text
+// main.id
+main(int argc, string[] argv) {
+  Point p = Point(1, 2);
+  p.x = "s";
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
+```
+
+Correct:
+
+```text
+// main.id
+main(int argc, string[] argv) {
+  Point p = Point(1, 2);
+  p.x = 3;
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
+```
+
 ## E0702 a file with a generic name
 
 A name like `util.id`, `helper.id`, `misc.id` or `common.id` says nothing about
