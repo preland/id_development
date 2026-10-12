@@ -16,36 +16,42 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | tree | files | functions | cases | short of two | exempt |
 |---|---:|---:|---:|---:|---:|
 | `bench` | 98 | 216 | 448 | 0 | 0 |
+| `blocks` | 269 | 622 | 1836 | 0 | 0 |
 | `c2id` | 1068 | 2618 | 5211 | 306 | 0 |
+| `callgraph` | 50 | 105 | 239 | 0 | 0 |
 | `demos` | 336 | 718 | 1539 | 0 | 0 |
 | `editor` | 152 | 383 | 815 | 0 | 0 |
+| `gym` | 299 | 616 | 2385 | 0 | 0 |
 | `iconcheck` | 5 | 10 | 25 | 0 | 0 |
 | `idem` | 1473 | 3600 | 7374 | 0 | 0 |
+| `idmcp` | 62 | 140 | 550 | 0 | 0 |
 | `idtheme` | 18 | 45 | 109 | 0 | 0 |
 | `kernel` | 103 | 238 | 392 | 0 | 51 |
+| `launcher` | 83 | 187 | 626 | 0 | 0 |
+| `quill` | 613 | 1455 | 3972 | 0 | 0 |
+| `quillcheck` | 74 | 186 | 538 | 0 | 0 |
 | `themecheck` | 22 | 60 | 151 | 0 | 0 |
 | `trials` | 383 | 901 | 2754 | 0 | 0 |
 | `uicheck` | 7 | 19 | 40 | 0 | 0 |
-| `videos` | 272 | 575 | 1485 | 0 | 0 |
-| `word` | 613 | 1457 | 3976 | 0 | 0 |
-| `wordcheck` | 74 | 186 | 538 | 0 | 0 |
-| `idc/compiler` | 1410 | 3635 | 8159 | 0 | 0 |
+| `videos` | 272 | 571 | 1475 | 0 | 0 |
+| `idc/compiler` | 1463 | 3767 | 8523 | 1 | 0 |
 | `idc/driver` | 7 | 18 | 36 | 0 | 0 |
 | `idc/runtime` | 49 | 91 | 3 | 1 | 89 |
-| `idc/tools` | 623 | 1526 | 3944 | 3 | 0 |
-| `idstd/core/data` | 49 | 118 | 296 | 0 | 0 |
-| `idstd/core/fmt` | 148 | 358 | 1336 | 0 | 0 |
+| `idc/tools` | 630 | 1544 | 4023 | 3 | 0 |
+| `idstd/core/data` | 64 | 155 | 423 | 0 | 0 |
+| `idstd/core/fmt` | 149 | 360 | 1350 | 0 | 0 |
+| `idstd/core/learn` | 12 | 27 | 175 | 0 | 0 |
 | `idstd/core/math` | 20 | 52 | 135 | 0 | 0 |
-| `idstd/core/text` | 88 | 215 | 734 | 0 | 0 |
+| `idstd/core/text` | 90 | 217 | 749 | 0 | 0 |
 | `idstd/host/dev` | 134 | 267 | 573 | 0 | 0 |
-| `idstd/host/io` | 202 | 348 | 1018 | 0 | 0 |
+| `idstd/host/io` | 207 | 354 | 1031 | 0 | 0 |
 | `idstd/host/num` | 21 | 19 | 99 | 0 | 0 |
-| `idstd/host/os` | 113 | 163 | 412 | 0 | 0 |
+| `idstd/host/os` | 113 | 164 | 417 | 0 | 0 |
 | `idstd/kit/app` | 11 | 30 | 76 | 0 | 0 |
-| `idstd/kit/media` | 208 | 527 | 1735 | 0 | 0 |
-| `idstd/kit/ui` | 336 | 829 | 2612 | 0 | 0 |
-| **all** | 8043 | 19222 | 46025 | 310 | 140 |
-| of which idstd | 1330 | 2926 | 9026 | 0 | 0 |
+| `idstd/kit/media` | 221 | 559 | 1874 | 0 | 0 |
+| `idstd/kit/ui` | 383 | 938 | 2895 | 0 | 0 |
+| **all** | 8961 | 21252 | 52861 | 311 | 140 |
+| of which idstd | 1425 | 3142 | 9797 | 0 | 0 |
 
 *short of two* counts the functions with fewer than two test cases that the compiler does not exempt: a freestanding function that reaches an `asm` body is exempt, and `kernel` and `idc/runtime` are asked of the compiler with the flags `idc/tools/kbuild` builds them with. Functions are found by their headers (`idc/tools/lib/fnhead`) and their cases by `mutscore lint`, not by the compiler's own parse. `idc/tests` is not counted: it holds the inputs of the compiler's own tests, some of which break the rules on purpose. `statusgen --untested [TREE]` lists the functions that are short.
 
@@ -54,36 +60,42 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | tree | 0 cases | 1 | 2 | 3-4 | 5+ |
 |---|---:|---:|---:|---:|---:|
 | `bench` | 0 | 0 | 203 | 13 | 0 |
+| `blocks` | 0 | 0 | 336 | 219 | 67 |
 | `c2id` | 306 | 0 | 1963 | 312 | 37 |
+| `callgraph` | 0 | 0 | 90 | 11 | 4 |
 | `demos` | 0 | 0 | 657 | 53 | 8 |
 | `editor` | 0 | 0 | 358 | 21 | 4 |
+| `gym` | 0 | 0 | 203 | 254 | 159 |
 | `iconcheck` | 0 | 0 | 6 | 4 | 0 |
 | `idem` | 0 | 0 | 3483 | 104 | 13 |
+| `idmcp` | 0 | 0 | 43 | 60 | 37 |
 | `idtheme` | 0 | 0 | 36 | 6 | 3 |
 | `kernel` | 51 | 0 | 180 | 4 | 3 |
+| `launcher` | 0 | 0 | 85 | 62 | 40 |
+| `quill` | 0 | 0 | 918 | 426 | 111 |
+| `quillcheck` | 0 | 0 | 90 | 80 | 16 |
 | `themecheck` | 0 | 0 | 44 | 12 | 4 |
 | `trials` | 0 | 0 | 465 | 320 | 116 |
 | `uicheck` | 0 | 0 | 17 | 2 | 0 |
-| `videos` | 0 | 0 | 379 | 167 | 29 |
-| `word` | 0 | 0 | 920 | 426 | 111 |
-| `wordcheck` | 0 | 0 | 90 | 80 | 16 |
-| `idc/compiler` | 0 | 0 | 3112 | 448 | 75 |
+| `videos` | 0 | 0 | 377 | 165 | 29 |
+| `idc/compiler` | 0 | 1 | 3191 | 488 | 87 |
 | `idc/driver` | 0 | 0 | 18 | 0 | 0 |
 | `idc/runtime` | 90 | 0 | 0 | 1 | 0 |
-| `idc/tools` | 3 | 0 | 1059 | 369 | 95 |
-| `idstd/core/data` | 0 | 0 | 88 | 24 | 6 |
-| `idstd/core/fmt` | 0 | 0 | 139 | 141 | 78 |
+| `idc/tools` | 3 | 0 | 1064 | 373 | 104 |
+| `idstd/core/data` | 0 | 0 | 105 | 37 | 13 |
+| `idstd/core/fmt` | 0 | 0 | 139 | 142 | 79 |
+| `idstd/core/learn` | 0 | 0 | 1 | 8 | 18 |
 | `idstd/core/math` | 0 | 0 | 32 | 17 | 3 |
-| `idstd/core/text` | 0 | 0 | 122 | 32 | 61 |
+| `idstd/core/text` | 0 | 0 | 122 | 32 | 63 |
 | `idstd/host/dev` | 0 | 0 | 243 | 21 | 3 |
-| `idstd/host/io` | 0 | 0 | 217 | 86 | 45 |
+| `idstd/host/io` | 0 | 0 | 222 | 87 | 45 |
 | `idstd/host/num` | 0 | 0 | 1 | 8 | 10 |
-| `idstd/host/os` | 0 | 0 | 107 | 48 | 8 |
+| `idstd/host/os` | 0 | 0 | 106 | 50 | 8 |
 | `idstd/kit/app` | 0 | 0 | 23 | 5 | 2 |
-| `idstd/kit/media` | 0 | 0 | 269 | 166 | 92 |
-| `idstd/kit/ui` | 0 | 0 | 467 | 241 | 121 |
-| **all** | 450 | 0 | 14698 | 3131 | 943 |
-| of which idstd | 0 | 0 | 1708 | 789 | 429 |
+| `idstd/kit/media` | 0 | 0 | 282 | 174 | 103 |
+| `idstd/kit/ui` | 0 | 0 | 540 | 271 | 127 |
+| **all** | 450 | 1 | 15643 | 3842 | 1316 |
+| of which idstd | 0 | 0 | 1816 | 852 | 474 |
 
 A distribution, not a mean: a mean of two is met by one function with many cases beside others with none.
 
@@ -92,25 +104,31 @@ A distribution, not a mean: a mean of two is met by one function with many cases
 | tree | filler dirs | max depth | median depth | silent | echo | bare |
 |---|---:|---:|---:|---:|---:|---:|
 | `bench` | 0 | 5 | 3 | 4 | 15 | 0 |
+| `blocks` | 0 | 2 | 1 | 0 | 6 | 0 |
 | `c2id` | 15 | 11 | 5 | 99 | 97 | 3 |
+| `callgraph` | 0 | 1 | 1 | 0 | 0 | 0 |
 | `demos` | 2 | 9 | 4 | 47 | 31 | 47 |
 | `editor` | 5 | 8 | 5 | 2 | 16 | 41 |
+| `gym` | 0 | 2 | 1 | 0 | 44 | 0 |
 | `iconcheck` | 0 | 1 | 1 | 0 | 0 | 0 |
 | `idem` | 26 | 15 | 7 | 11 | 119 | 217 |
+| `idmcp` | 0 | 2 | 1 | 2 | 15 | 0 |
 | `idtheme` | 0 | 4 | 2 | 0 | 1 | 0 |
 | `kernel` | 5 | 8 | 5 | 36 | 3 | 0 |
+| `launcher` | 0 | 1 | 1 | 0 | 39 | 0 |
+| `quill` | 16 | 11 | 6 | 1 | 79 | 0 |
+| `quillcheck` | 4 | 9 | 5 | 1 | 27 | 0 |
 | `themecheck` | 1 | 4 | 3 | 0 | 6 | 0 |
 | `trials` | 4 | 8 | 5 | 3 | 90 | 0 |
 | `uicheck` | 0 | 2 | 1 | 3 | 1 | 0 |
 | `videos` | 0 | 2 | 1 | 0 | 75 | 0 |
-| `word` | 16 | 11 | 6 | 1 | 79 | 0 |
-| `wordcheck` | 4 | 9 | 5 | 1 | 27 | 0 |
-| `idc/compiler` | 67 | 14 | 8 | 126 | 98 | 48 |
+| `idc/compiler` | 67 | 14 | 8 | 131 | 103 | 48 |
 | `idc/driver` | 1 | 2 | 1 | 11 | 0 | 0 |
 | `idc/runtime` | 5 | 5 | 3 | 0 | 0 | 0 |
-| `idc/tools` | 22 | 7 | 4 | 20 | 144 | 3 |
+| `idc/tools` | 22 | 7 | 4 | 20 | 148 | 3 |
 | `idstd/core/data` | 0 | 2 | 1 | 0 | 4 | 0 |
-| `idstd/core/fmt` | 0 | 3 | 1 | 0 | 2 | 0 |
+| `idstd/core/fmt` | 0 | 3 | 1 | 0 | 5 | 0 |
+| `idstd/core/learn` | 0 | 0 | 0 | 0 | 1 | 0 |
 | `idstd/core/math` | 0 | 1 | 1 | 0 | 3 | 0 |
 | `idstd/core/text` | 0 | 2 | 1 | 0 | 1 | 0 |
 | `idstd/host/dev` | 0 | 3 | 3 | 0 | 4 | 0 |
@@ -120,8 +138,8 @@ A distribution, not a mean: a mean of two is met by one function with many cases
 | `idstd/kit/app` | 0 | 2 | 2 | 0 | 0 | 0 |
 | `idstd/kit/media` | 0 | 3 | 3 | 0 | 2 | 0 |
 | `idstd/kit/ui` | 0 | 3 | 2 | 0 | 3 | 0 |
-| **all** | 173 | 15 | 5 | 364 | 824 | 359 |
-| of which idstd | 0 | 4 | 2 | 0 | 22 | 0 |
+| **all** | 173 | 15 | 5 | 371 | 941 | 359 |
+| of which idstd | 0 | 4 | 2 | 0 | 26 | 0 |
 
 *filler dirs* are directories named more, rest, tail, cont or partN. *depth* is the number of directories between a tree's root and a source file; *median* is the lower median. *silent*, *echo* and *bare* are the cases `mutscore lint` finds that prove nothing (docs/TESTS.md, "Mutation score").
 
