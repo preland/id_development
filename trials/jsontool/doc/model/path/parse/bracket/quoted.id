@@ -1,9 +1,9 @@
 q_char(string path, int i) {
-  int c = charat(path, i);
+  int c = character_code_at(path, i);
   int adv = 1;
   if (c = (import k_bslash)) {
     adv = 2;
-    c = charat(path, i + 1);
+    c = character_code_at(path, i + 1);
   }
 } chain (string path, int i) {
   pk_byte(c);
@@ -13,7 +13,7 @@ given t_pinit ("\\\"", 0):(2) then t_pkstr:("\"")
 given t_pinit ("\\\\", 0):(2) then t_pkstr:("\\")
 
 q_copy(string path, int i) {
-  while (i < len(path) && charat(path, i) != (import k_quote)) {
+  while (i < len(path) && character_code_at(path, i) != (import k_quote)) {
     i = i + q_char(path, i);
   }
 } return int i;
@@ -23,9 +23,9 @@ given t_pinit ("ab", 0):(2) then t_pkstr:("ab")
 
 q_finish(string path, int e, int off) {
   int q = e + 2;
-  if (charat(path, e) != (import k_quote)) {
+  if (character_code_at(path, e) != (import k_quote)) {
     q = path_fail((import pe_quote), e);
-  } else if (charat(path, e + 1) != (import k_rbrk)) {
+  } else if (character_code_at(path, e + 1) != (import k_rbrk)) {
     q = path_fail((import pe_close), e + 1);
   }
 } chain (string path, int e, int off) {

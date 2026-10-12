@@ -4,7 +4,7 @@
 
 lexer_inner(string block_token) {
   int block_count = len(block_token);
-  if (block_count >= 2 && charat(block_token, block_count - 1) == 34) {
+  if (block_count >= 2 && character_code_at(block_token, block_count - 1) == 34) {
     block_count = block_count - 1;
   }
 } return int block_count;
@@ -13,11 +13,11 @@ lexer_inner(string block_token) {
 ("\""):(1)
 
 lexer_decode_escape(string block_token, int block_index) {
-  string block_character_code = chr(charat(block_token, block_index));
-  if (charat(block_token, block_index) == 92) {
-    block_character_code = chr(charat(block_token, block_index + 1));
+  string block_character_code = chr(character_code_at(block_token, block_index));
+  if (character_code_at(block_token, block_index) == 92) {
+    block_character_code = chr(character_code_at(block_token, block_index + 1));
   }
-  if (charat(block_token, block_index) == 92 && charat(block_token, block_index + 1) == 110) {
+  if (character_code_at(block_token, block_index) == 92 && character_code_at(block_token, block_index + 1) == 110) {
     block_character_code = "\n";
   }
 } return string block_character_code;
@@ -32,7 +32,7 @@ lexer_unquote(string block_token) {
 } chain (string block_token) {
   while (block_index < block_count) {
     block_out = block_out + lexer_decode_escape(block_token, block_index);
-    block_index = block_index + 1 + (charat(block_token, block_index) == 92);
+    block_index = block_index + 1 + (character_code_at(block_token, block_index) == 92);
   }
 } return string block_out;
 ("\"hi there\""):("hi there")

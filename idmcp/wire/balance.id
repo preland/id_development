@@ -11,10 +11,10 @@ wire_balanced(string wire_doc) {
   int wire_depth_now = 0;
 } chain (string wire_doc) {
   while (wire_at >= 0 && wire_at < len(wire_text) && (wire_depth_now > 0 || wire_at == 0)) {
-    wire_depth_now = wire_depth(wire_depth_now, charat(wire_text, wire_at));
+    wire_depth_now = wire_depth(wire_depth_now, character_code_at(wire_text, wire_at));
     wire_at = wire_balance_next(wire_text, wire_at);
   }
-  int wire_good = wire_at == len(wire_text) && wire_depth_now == 0 && charat(wire_text, 0) == 123;
+  int wire_good = wire_at == len(wire_text) && wire_depth_now == 0 && character_code_at(wire_text, 0) == 123;
 } return int wire_good;
 ("{}"):(1)
 ("  {\"a\": [1, {\"b\": \"}\"}]}  "):(1)
@@ -46,7 +46,7 @@ wire_depth(int wire_depth_now, int wire_char) {
 
 wire_balance_next(string wire_text, int wire_at) {
   int wire_next = wire_at + 1;
-  if (charat(wire_text, wire_at) == 34) {
+  if (character_code_at(wire_text, wire_at) == 34) {
     wire_next = wire_string_end(wire_text, wire_at);
   }
 } return int wire_next;
