@@ -2,7 +2,7 @@
 // By hand: line 0 of the 28-letter paragraph is at the top margin, 640; line 9 is on page 1, its page's second line, 640 + 1152 = 1792.
 lay_line_y(View lhv, int lhi, int lhj) {
   int lhk = lay_page_of(lhv, lhi, lhj);
-  int lhy = lay_origin(lhv, lhi, lhk) + lhv.doc.body.paras[lhi].lay.lines[lhj * (import word_ln_stride) + (import word_ln_y)];
+  int lhy = lay_origin(lhv, lhi, lhk) + lhv.doc.body.paras[lhi].lay.lines[lhj * (import quill_line_stride) + (import quill_line_y)];
 } return int lhy;
 given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 0, 0):(640)
 given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 0, 9):(1792)
@@ -10,9 +10,9 @@ given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 0, 9):(1792)
 // The line of a paragraph that holds offset lhoff: the first line that ends after it, or the last line for the end of the text, so an offset where a line breaks belongs to the line that starts there.
 // By hand: for lines 0 to 4, 4 to 8 and 8 to 11, offset 3 is on line 0, offset 4 on line 1 and offset 11, the end, on line 2.
 lay_line_in(Para lhpa, int lhoff) {
-  int lhn = len(lhpa.lay.lines) / (import word_ln_stride);
+  int lhn = len(lhpa.lay.lines) / (import quill_line_stride);
   int lhj = 0;
-  while(lhj < lhn - 1 && lhpa.lay.lines[lhj * (import word_ln_stride) + (import word_ln_hi)] <= lhoff) {
+  while(lhj < lhn - 1 && lhpa.lay.lines[lhj * (import quill_line_stride) + (import quill_line_high)] <= lhoff) {
     lhj = lhj + 1;
   }
 } return int lhj;

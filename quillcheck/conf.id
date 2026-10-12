@@ -1,0 +1,84 @@
+// Constants of the oracle driver. The three soffice lanes and the four lanes that need the quill binary (docs/QUILL.md 4.9).
+string soffice_bin = "soffice";
+int soffice_ms = 15000;
+string assets_dir = "quillcorpus";
+string odt_sub = "odt";
+string out_sub = "out";
+string prof_sub = "prof";
+string tmp_prefix = "quillcheck_";
+
+// Lane names, and the soffice --convert-to filter that produces each one's output; the output's extension is the lane name.
+string[] lane_names = ["txt", "fodt", "pdf"];
+string[] lane_filters = ["txt:Text", "fodt", "pdf"];
+
+// What each fixture is meant to lay out as, in fixture order: the page count LibreOffice must report.
+int[] expect_pages = [1, 1, 1, 1, 1, 3, 3, 20, 1, 1, 1, 1];
+
+// The CLI modes of the quill binary the driver will call once it exists, in the order docs/QUILL.md 4.9 lists them.
+string[] quill_modes = ["--text", "--dump", "--roundtrip", "--pages"];
+string no_word = "quill binary not available";
+
+// The quill binary the --text lane runs, as `idc/bin/idc quill` leaves it when run from the repository root, which is where quillcheck runs from; how long one run may take, the mode it is asked for, and what the binary prints for a table, which it keeps as an opaque block.
+string quill_binary = "build/quill";
+int quill_timeout_milliseconds = 15000;
+string text_mode = "--text";
+string text_table = "[Table]";
+
+// Where the driver's modes sit in the answer of cli_mode.
+int mode_usage = 0;
+int mode_run = 1;
+int mode_list = 2;
+int mode_count = 3;
+int mode_oracle = 4;
+int mode_dump = 5;
+
+// A lane's verdict.
+int lane_ok = 1;
+int lane_fail = 0;
+int lane_unavailable = 2;
+
+// Exit statuses: every soffice lane passed but the quill-binary lanes did not run, a lane failed, a bad command line.
+int exit_unavailable = 3;
+int exit_failed = 1;
+int exit_usage = 2;
+
+// The slots of a fixture's result list.
+int r_txt = 0;
+int r_fodt = 1;
+int r_pdf = 2;
+int r_pages = 3;
+int r_cross = 4;
+
+string usage_text = "usage: quillcheck N [ASSETS] | quillcheck --list [ASSETS] | quillcheck --count [ASSETS] | quillcheck --oracle N [ASSETS] | quillcheck --dump N WORDBIN [ASSETS]  (N is a fixture index from --list; ASSETS defaults to quillcorpus)";
+
+// The slots of the fodt walker's state: inside the body, and how deep in lists, tables and frames the current line is.
+int s_body = 0;
+int s_list = 1;
+int s_table = 2;
+int s_frame = 3;
+int st_len = 4;
+
+// ===== B4b: the dump oracle (begin) =====
+// What a length the oracle cannot read comes back as.
+int ow_bad = 0 - 2147483647;
+// The units an ODT length is written in and the number of twips in one of each.
+string[] ow_units = ["in", "cm", "mm", "pt", "pc", "px"];
+float[] ow_twips = [1440.0, 566.9291338582677, 56.69291338582677, 20.0, 240.0, 15.0];
+// The attributes of style:text-properties and style:paragraph-properties the oracle keeps, and the fodt attributes of a page layout.
+string[] ow_tattr = ["fo:font-weight", "fo:font-style", "style:text-underline-style", "style:text-line-through-style", "style:text-position", "fo:font-size", "fo:color", "fo:background-color", "style:font-name", "fo:font-family"];
+string[] ow_pattr = ["fo:text-align", "fo:margin-left", "fo:margin-right", "fo:text-indent", "fo:margin-top", "fo:margin-bottom", "fo:line-height", "fo:break-before"];
+string[] ow_gattr = ["fo:page-width", "fo:page-height", "style:print-orientation", "fo:margin-top", "fo:margin-right", "fo:margin-bottom", "fo:margin-left"];
+// What a list style says about a level it does not describe: the bullets and indents of the three built-in levels, as the bag keeps a level (kind b or n, format or bullet character, start, left indent, hanging indent).
+string ow_lvdef = "|1.k=b|1.f=8226|1.s=1|1.l=720|1.h=360|2.k=b|2.f=9702|2.s=1|2.l=1440|2.h=360|3.k=b|3.f=9642|3.s=1|3.l=2160|3.h=360";
+// The style:num-format values and the numbers the dump gives them: decimal, lower alpha, upper alpha, lower roman, upper roman.
+string[] ow_numfmts = ["1", "a", "A", "i", "I"];
+// ===== B4b: the dump oracle (end) =====
+
+// ===== B3b: the --pages lane (begin) =====
+// The mode that prints the page count on its first line ("pages N"), how many pages it may differ from the page count of soffice's pdf by (the line height and the line breaks of the two programs differ a little, docs/QUILL.md 6.8), the fixtures whose page count the model cannot reach yet (07_pages changes the page size from one paragraph to the next, and a Doc keeps one page layout), and the verdict for those.
+string pages_mode = "--pages";
+int pages_tol = 1;
+int[] pages_gap = [7];
+int lane_skipped = 3;
+string skip_pages = "SKIP(the document model keeps one page layout; this fixture changes it per paragraph)";
+// ===== B3b: the --pages lane (end) =====

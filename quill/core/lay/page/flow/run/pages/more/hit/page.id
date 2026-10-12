@@ -28,9 +28,9 @@ lay_before(int lhp, int lhl, int lhi, int lhj) {
 // Where paragraph lhi's own top is, in lu from the top of page lhk, for the lines of it that are on that page: its top in the continuous document less the pages above, or, when the page starts in the middle of the paragraph, the top margin less the y of the line the page starts at.
 // By hand: paragraph 6 of 8 is the first of page 1, at 14976 in the document less the 14336 of the sheet and the gap, 640; the 28-letter paragraph starts page 1 at its line 8, 9216 down, so its top is 640 - 9216 = -8576 from there and 640 on page 0.
 lay_origin(View lhv, int lhi, int lhk) {
-  int lhy = lhv.pages.tops[lhi] - lhk * (lay_sheet(lhv.doc, 1) + (import word_lay_gap));
+  int lhy = lhv.pages.tops[lhi] - lhk * (lay_sheet(lhv.doc, 1) + (import quill_layout_sheet_gap));
   if(lhv.pages.starts[2 * lhk] == lhi && lhv.pages.starts[2 * lhk + 1] > 0) {
-    lhy = lay_margin(lhv.doc, 0) - lhv.doc.body.paras[lhi].lay.lines[lhv.pages.starts[2 * lhk + 1] * (import word_ln_stride) + (import word_ln_y)];
+    lhy = lay_margin(lhv.doc, 0) - lhv.doc.body.paras[lhi].lay.lines[lhv.pages.starts[2 * lhk + 1] * (import quill_line_stride) + (import quill_line_y)];
   }
 } return int lhy;
 given lg_t_paged(8) ((import lp_t_v), 6, 1):(640)

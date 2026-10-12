@@ -78,7 +78,7 @@ The seam of docs/QUILL.md 4.3 names a `Ctl` `c`, a `Sel` `s`, a `Pos` `p` and `f
 | `on`, `val`, `got`, `cont`, `nrun`, `isflag`, `back`, `step`, `hp` | `int` | `st` (a `Style`), `nr` (a `Run`) |
 ## One-paragraph layout (B3a, `core/lay/para`)
 
-Prefixes: `face_` (the face cache and its resolvers), `lay_para lay_label lay_label_x lay_number` (the public calls), `lp_` (internals of the paragraph pass), `lp_t_` (test fixtures and their exports: `lp_t_d lp_t_f lp_t_v lp_t_h9 lp_t_h16 lp_t_h32 lp_t_cb lp_t_cs lp_t_cd lp_t_cz`). Its constants in conf.id sit between the `B3a begin/end` markers: `word_lay_* word_cp_* word_al_* word_ln_*`.
+Prefixes: `face_` (the face cache and its resolvers), `lay_para lay_label lay_label_x lay_number` (the public calls), `lp_` (internals of the paragraph pass), `lp_t_` (test fixtures and their exports: `lp_t_d lp_t_f lp_t_v lp_t_h9 lp_t_h16 lp_t_h32 lp_t_cb lp_t_cs lp_t_cd lp_t_cz`). Its constants in conf.id sit between the `B3a begin/end` markers: `quill_layout_* quill_code_point_* quill_alignment_* quill_line_*`.
 
 `core/lay/type/` holds the structs `Face`, `Pages` and `View` of docs/QUILL.md 4.4; `gui_face`, `gui_face_file` and `gui_cp_adv` are idstd's (package A3b), and the ascent and descent of a face are `gui_font_ascent` and `gui_font_descent`, since a face is a font handle.
 
@@ -100,7 +100,7 @@ Prefixes: `face_` (the face cache and its resolvers), `lay_para lay_label lay_la
 
 ## What `lay_para` leaves in `Lay`, for B3b and B6
 
-* `lines`: six ints per line, `word_ln_*`: `[lo, hi, y, asc, desc, width]`. `y` is the top of the line from the top of the paragraph, so the first line's `y` is the space before. `asc` already contains the extra leading of a line spacing above 100 percent, so the baseline is `y + asc` and the line is `asc + desc` tall. `width` is the used width without the trailing spaces, and the text area's width for a justified line that is not the last.
+* `lines`: six ints per line, `quill_line_*`: `[lo, hi, y, asc, desc, width]`. `y` is the top of the line from the top of the paragraph, so the first line's `y` is the space before. `asc` already contains the extra leading of a line spacing above 100 percent, so the baseline is `y + asc` and the line is `asc + desc` tall. `width` is the used width without the trailing spaces, and the text area's width for a justified line that is not the last.
 * `pen`: `len(cps) + 1` entries, x in lu from the left edge of the text area, indents, alignment and justification included. The extra last entry is the x after the last code point, so a caret at the end of the paragraph has an x even when the paragraph ends in spaces. The entry `pen[hi]` of a line that is not the last is the start of the next line, not the end of this one; the end of the visible text of a line is `pen[lo] + width`.
 * `h`: space before, every line, space after.
 * A list item's label is not in `pen`: `lay_label` fills a list the caller owns, drawn in the face of the paragraph's first run at `lay_label_x`.
@@ -114,12 +114,12 @@ What the reader keeps in `ext.parts` (docs/QUILL.md 3.1.6), all of it as it is i
 
 | part name | kind | what it is |
 | --- | --- | --- |
-| the element name (`table:table`, `draw:frame`) | 0 | an opaque element. A block (a `kind == 1` paragraph) or an object inside a paragraph holds the code point `word_o_marker + index`; the paragraph of a block reads that marker and then a label (`[Table]`) |
+| the element name (`table:table`, `draw:frame`) | 0 | an opaque element. A block (a `kind == 1` paragraph) or an object inside a paragraph holds the code point `quill_object_marker + index`; the paragraph of a block reads that marker and then a label (`[Table]`) |
 | `text:sequence-decls`, `text:variable-decls`, `text:user-field-decls`, `text:dde-connection-decls`, `text:tracked-changes` | 0 | declarations that open `office:text`; no marker points at them, and the writer puts them back first |
 | `auto:NAME` | 0 | the automatic style (`style:style`, `text:list-style`, ...) of content.xml that an opaque element names, kept once, for `office:automatic-styles` |
 | the zip entry name (`Pictures/a.png`, `settings.xml`, `Configurations2/`) | 1 | an entry the model does not read itself |
 
-`word_o_marker` is the code point of B5a's marker too; it is declared once in conf.id, in the B4a section.
+`quill_object_marker` is the code point of B5a's marker too; it is declared once in conf.id, in the B4a section.
 
 Names this reader had to avoid because the model holds them for another type: `cs` (an `int` in the model, so the `Cs` is `cst`), `ls` (a `ListDef[]`; the link targets are `hrefs`), `lk` (an `int`; `lkeys`), `ws` (`isws`), `last` (`lastrun`), `key` (`skey`), `sty` (`sid`), `parts` and `lines` (`pieces`, `texts`), `src` (`bytes`), `out` (`ended`).
 
@@ -163,7 +163,7 @@ Error codes of `odt_error`: 1 to 6 are B4a's, 50 and 51 are B4b's (`ost_error`, 
 
 ## The viewer (V1, `ui/view`, `core/lay/page`)
 
-`core/lay/page` is the seed of B3b's pagination: `lay_view` (a View), `lay_all` (every paragraph laid out in the text area's width), `lay_paginate` (fills `Pages`: `starts` holds a page's paragraph and line, two cells a page, and one more pair that ends the last page; `tops` holds each paragraph's top in the continuous document, pages one sheet and `word_lay_gap` apart), `lay_page_count`, `lay_sheet` and `lay_area` (the sheet and the text area, axis 0 width and 1 height, in lu), `lay_margin`, `lay_is_obj` and `lay_obj_h` (an opaque block, or a picture on a line of its own, is one box of `word_lay_obj` lu), `lay_line_h`. Its variables start with `lg` (`lgd` a `Doc`, `lgv` a `View`, `lgpa` a `Para`, `lgs` the `int[]` walk of `lay_place`, `lgz` a `string`, the rest `int`); its fixtures are `lg_t_*`.
+`core/lay/page` is the seed of B3b's pagination: `lay_view` (a View), `lay_all` (every paragraph laid out in the text area's width), `lay_paginate` (fills `Pages`: `starts` holds a page's paragraph and line, two cells a page, and one more pair that ends the last page; `tops` holds each paragraph's top in the continuous document, pages one sheet and `quill_layout_sheet_gap` apart), `lay_page_count`, `lay_sheet` and `lay_area` (the sheet and the text area, axis 0 width and 1 height, in lu), `lay_margin`, `lay_is_obj` and `lay_obj_h` (an opaque block, or a picture on a line of its own, is one box of `quill_layout_object_height` lu), `lay_line_h`. Its variables start with `lg` (`lgd` a `Doc`, `lgv` a `View`, `lgpa` a `Para`, `lgs` the `int[]` walk of `lay_place`, `lgz` a `string`, the rest `int`); its fixtures are `lg_t_*`.
 
 `ui/view` is the viewer. Every variable and parameter starts with `vw` and the kind of the value: `vwi_` an `int`, `vwl_` an `int[]` (`vwl_g` the geometry of a page, `vwl_q` the look of a run, `vwl_st` the viewer's state, `vwl_r` a rectangle), `vws_` a `string`; the structs are `vwv` (`View`), `vwd` (`Doc`), `vwp` (`Para`), `vwrb` (`Ribbon`), `vwbt` (`GuiButton`), `vwb` (`GuiScroll`), `vwpt` (`Part`), `vwr` (`Run`). Functions are `vw_*`, fixtures `vw_t_*`. Its constants in conf.id sit between the `V1` markers (`vw_idml` is the chrome's idml, `vw_c_*` colours, `vw_g_*`, `vw_q_*` and `vw_s_*` the cells of the geometry, look and state lists). The exports are `vw_t` `vw_s` `vw_rc` (the chrome's tape and rectangles), `vw_dims_now`, `vw_v` (the `View`), `vw_msg` (the one-entry list that holds the message that took a document's place), `vw_st` (the state), `vw_sb` (the scrollbar), `vw_rb` (the ribbon of the Home tab, which `ui/ribbon` paints and handles; the preview and its `vw_bt` buttons are gone). The faces of the viewer's own text are the ribbon's: `rbd_ui_set` sets them once and `rbd_ui_f` reads them (the viewer had a copy, `vw_ui`, which is gone). Each frame `vw_rib_look` gives the ribbon what the canvas noted the selection looks like (`vw_lk`, below), and `vw_cmd` gives every command of the ribbon that is not the zoom to `cv_rib`.
 

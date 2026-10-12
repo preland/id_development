@@ -1,7 +1,7 @@
 // Applies a child of a level element to the level at index ilevel: its label alignment or its (older) list-level properties; any other element changes nothing.
 ost_lvl_kid(int[] os_llv, XmlR os_r, int os_ilevel) {
   string os_sname = xr_get(os_r, (import xr_k_name));
-  int os_ib = os_ilevel * (import word_l_stride);
+  int os_ib = os_ilevel * (import quill_list_level_stride);
   if(os_sname == "style:list-level-label-alignment") {
     ost_lvl_align(os_llv, os_r, os_ib);
   }
@@ -35,7 +35,7 @@ given ost_t_open("<style:list-level-label-alignment fo:margin-left=\"0.5in\"/>")
 
 // Appends a list definition called os_sname with the levels llv to the document's lists; its kind is level 1's.
 ost_list_add(Fmt os_f, string os_sname, int[] os_llv) {
-  int os_ikind = os_llv[(import word_l_kind)];
+  int os_ikind = os_llv[(import quill_list_level_kind)];
   ListDef os_ld = ListDef(os_sname, os_llv, os_ikind);
   ListDef[] os_lls = os_f.sty.lists;
 } chain (Fmt os_f, string os_sname, int[] os_llv) {

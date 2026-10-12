@@ -12,7 +12,7 @@ given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 2, 1, [9, 9]):((import lp_t_
 // Puts in lhr, [paragraph, line], line lhj + lhd of the paragraph when it has one, and the line beyond it in the next paragraph (lay_next) when it has not.
 // By hand: "BBB EEE BBB" has lines 0 to 2, so from line 1 a step down is line 2 and from line 2 it leaves the paragraph.
 lay_cross(View lhv, int lhi, int lhj, int lhd, int[] lhr) {
-  int lhn = len(lhv.doc.body.paras[lhi].lay.lines) / (import word_ln_stride);
+  int lhn = len(lhv.doc.body.paras[lhi].lay.lines) / (import quill_line_stride);
   if(lhj + lhd >= 0 && lhj + lhd < lhn) {
     lset(lhr, 1, lhj + lhd);
   } else {
@@ -29,7 +29,7 @@ lay_next(View lhv, int lhi, int lhd, int[] lhr) {
   int lht = lhi + lhd;
   if(lht >= 0 && lht < len(lhv.doc.body.paras)) {
     lset(lhr, 0, lht);
-    lset(lhr, 1, (lhd < 0) * (len(lhv.doc.body.paras[lht].lay.lines) / (import word_ln_stride) - 1));
+    lset(lhr, 1, (lhd < 0) * (len(lhv.doc.body.paras[lht].lay.lines) / (import quill_line_stride) - 1));
   }
 } return void;
 given lg_t_rows(["BBB EEE BBB", "A"]) ((import lp_t_v), 1, -1, [1, 0]):((import lp_t_v), 1, -1, [0, 2])

@@ -1,7 +1,7 @@
 // Interns the character row and the paragraph row of built-in style i and appends their ids to fm.
 fmt_rows(Fmt f, int i, int[] fm) {
-  int[] crow = list_slice((import word_style_crow), i * (import word_c_width), (import word_c_width));
-  int[] prow = list_slice((import word_style_prow), i * (import word_p_width), (import word_p_width));
+  int[] crow = list_slice((import quill_style_character_rows), i * (import quill_character_width), (import quill_character_width));
+  int[] prow = list_slice((import quill_style_paragraph_rows), i * (import quill_paragraph_width), (import quill_paragraph_width));
   int cid = tab_intern(f.chars, crow);
 } chain (Fmt f, int i, int[] fm) {
   int pid = tab_intern(f.paras, prow);
@@ -15,9 +15,9 @@ fmt_rows(Fmt f, int i, int[] fm) {
 fmt_style(Fmt f, int i) {
   int[] fm = [];
   fmt_rows(f, i, fm);
-  int[] rel = list_slice((import word_style_rel), i * 3, 3);
+  int[] rel = list_slice((import quill_style_relations), i * 3, 3);
 } chain (Fmt f, int i) {
-  Style st = Style((import word_style_names)[i], rel, fm);
+  Style st = Style((import quill_style_names)[i], rel, fm);
   Style[] ss = f.sty.styles;
   push(ss, st);
 } return void;
@@ -26,7 +26,7 @@ fmt_style(Fmt f, int i) {
 
 fmt_styles(Fmt f) {
   int i = 0;
-  while(i < len((import word_style_names))) {
+  while(i < len((import quill_style_names))) {
     fmt_style(f, i);
     i = i + 1;
   }

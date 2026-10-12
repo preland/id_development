@@ -1,7 +1,7 @@
-// Appends roman symbol j (an index into word_lay_rv and word_lay_rc) to lbl, one or two code points, upper case when up is 1.
+// Appends roman symbol j (an index into quill_layout_roman_values and quill_layout_roman_codes) to lbl, one or two code points, upper case when up is 1.
 lp_sym(int[] lbl, int j, int up) {
-  int c1 = (import word_lay_rc)[j * 2];
-  int c2 = (import word_lay_rc)[j * 2 + 1];
+  int c1 = (import quill_layout_roman_codes)[j * 2];
+  int c2 = (import quill_layout_roman_codes)[j * 2 + 1];
   push(lbl, c1 - up * 32);
 } chain (int[] lbl, int j, int up) {
   if(c2 > 0) {
@@ -16,10 +16,10 @@ lp_sym(int[] lbl, int j, int up) {
 // By hand: 4 is iv; 1994 is 1000 + 900 + 90 + 4, mcmxciv.
 lp_roman(int[] lbl, int n, int up) {
   int j = 0;
-  while(j < len((import word_lay_rv))) {
-    while(n >= (import word_lay_rv)[j]) {
+  while(j < len((import quill_layout_roman_values))) {
+    while(n >= (import quill_layout_roman_values)[j]) {
       lp_sym(lbl, j, up);
-      n = n - (import word_lay_rv)[j];
+      n = n - (import quill_layout_roman_values)[j];
     }
     j = j + 1;
   }

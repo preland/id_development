@@ -1,11 +1,11 @@
-// Pixel size of a face at a zoom: half-points are 1/144 in and a pixel is 1/96 in, so px = hp * zoom / 150 rounded to nearest; unset sizes (-1) take word_lay_size and super/sub text (bits 16 and 32) takes word_lay_script percent of its size first. Kept within the 1..512 the font layer accepts.
+// Pixel size of a face at a zoom: half-points are 1/144 in and a pixel is 1/96 in, so px = hp * zoom / 150 rounded to nearest; unset sizes (-1) take quill_layout_font_size and super/sub text (bits 16 and 32) takes quill_layout_script_percent percent of its size first. Kept within the 1..512 the font layer accepts.
 // By hand: 24 hp at 100 = 2400 / 150 = 16 px; at 150 = 24 px; 48 hp is 32 px; 24 hp as a superscript is 24 * 58 / 100 = 13 hp, (1300 + 75) / 150 = 9 px.
 face_px(int hp, int bits, int zoom) {
   if(hp < 0) {
-    hp = (import word_lay_size);
+    hp = (import quill_layout_font_size);
   }
   if((bits & 48) != 0) {
-    hp = hp * (import word_lay_script) / 100;
+    hp = hp * (import quill_layout_script_percent) / 100;
   }
   int px = fixed_point_maximum(fixed_point_minimum((hp * zoom + 75) / 150, 512), 1);
 } return int px;
@@ -29,7 +29,7 @@ lp_fi(Doc d, int fi) {
 
 // The family name of font index fi, or the default family when the document lists none.
 lp_family(Doc d, int fi) {
-  string family = (import word_font_default);
+  string family = (import quill_font_default);
   if(fi < len(d.ext.fonts)) {
     family = d.ext.fonts[fi];
   }

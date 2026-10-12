@@ -11,7 +11,7 @@ given cv_t_ed("AB") ((import lp_t_v), (import vw_ctl), []):((import lp_t_v), (im
 
 // Adds to cvl_a what the paragraphs of the selection say about each alignment command of cv_al_cmd, in its order: 1 for the alignment they all have, else 0.
 cv_aligns(View cvv, Ctl cvc, int[] cvl_a) {
-  int cvi_a = sel_state(cvv.doc, cvc, (import ed_s_para) + (import word_p_align));
+  int cvi_a = sel_state(cvv.doc, cvc, (import ed_s_para) + (import quill_paragraph_alignment));
   int cvi_k = 0;
   while(cvi_k < len((import cv_al_cmd))) {
     push(cvl_a, cvi_a == cvi_k);
@@ -28,8 +28,8 @@ cv_look(View cvv) {
   cv_flags(cvv, cvc, cvl_n);
 } chain (View cvv) {
   cv_aligns(cvv, cvc, cvl_n);
-  push(cvl_n, sel_state(cvv.doc, cvc, (import word_c_font)));
-  push(cvl_n, sel_state(cvv.doc, cvc, (import word_c_size)));
+  push(cvl_n, sel_state(cvv.doc, cvc, (import quill_character_font)));
+  push(cvl_n, sel_state(cvv.doc, cvc, (import quill_character_size)));
 } chain (View cvv) {
   push(cvl_n, (import vw_lk)[(import cv_lk_dirty)]);
   int cvi_c = list_equal(cvl_n, (import vw_lk)) == 0;

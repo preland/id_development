@@ -1,7 +1,7 @@
 // The value to write for a character-format change in paragraph para: value itself, except that -2 means "off, as plainly as possible": unset, unless the paragraph's style turns the flag on, when it must be an explicit 0.
 fmt_val(Doc d, int para, int field, int value) {
   Para p = d.body.paras[para];
-  int sid = tab_get(d.fmt.paras, p.pprop, (import word_p_style));
+  int sid = tab_get(d.fmt.paras, p.pprop, (import quill_paragraph_style));
   int val = value;
 } chain (Doc d, int para, int field, int value) {
   if(value == -2) {
@@ -36,9 +36,9 @@ given fx_setup("a*b*") ((import fxd), 0, 8, 101, -2):(0)
 fmt_text(Doc d, int para, Text t, int lo, int hi, int field, int value) {
   int val = fmt_val(d, para, field, value);
   if(field >= (import ed_s_flag)) {
-    text_apply(t, lo, hi, (d.fmt.chars), (field - (import ed_s_flag)), val, (import word_m_bits));
+    text_apply(t, lo, hi, (d.fmt.chars), (field - (import ed_s_flag)), val, (import quill_mode_bits));
   } else {
-    text_apply(t, lo, hi, d.fmt.chars, field, val, (import word_m_field));
+    text_apply(t, lo, hi, d.fmt.chars, field, val, (import quill_mode_field));
   }
 } return void;
 given fx_setup("ab") ((import fxd), 0, Text([1, 2, 3], [Run(3, 0, -1)], 0), 1, 2, 101, 1):((import fxd), 0, Text([1, 2, 3], [Run(1, 0, -1), Run(1, 8, -1), Run(1, 0, -1)], 1), 1, 2, 101, 1)

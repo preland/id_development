@@ -23,7 +23,7 @@ git submodules, each its own repository.
 | [`vscode/`](vscode) (submodule) | the VS Code extension for `id` |
 | [`c2id/`](c2id) (submodule) | a C-to-`id` compiler, written in `id` |
 | [`idem/`](idem) (submodule) | a 2D/3D game engine written in `id` and idml |
-| [`word/`](word), [`wordcheck/`](wordcheck), [`trials/`](trials), [`bench/`](bench) and the other top-level directories | programs and checks written in `id` (the word processor and its LibreOffice oracle, the production trials, the benchmarks, ...); each tree has a row in [`docs/STATUS.md`](docs/STATUS.md) |
+| [`quill/`](quill), [`quillcheck/`](quillcheck), [`trials/`](trials), [`bench/`](bench) and the other top-level directories | programs and checks written in `id` (the word processor and its LibreOffice oracle, the production trials, the benchmarks, ...); each tree has a row in [`docs/STATUS.md`](docs/STATUS.md) |
 
 `idstd`, `id`'s standard library, lives in its own repository beside this one
 (`~/git/idstd`) — it is not a submodule. See "The standard library" below.

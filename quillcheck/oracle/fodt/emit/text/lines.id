@@ -1,0 +1,35 @@
+// What `quill --text` must print for one normalised fodt record: the record's text, the label of an opaque block for a table, and no line at all for the frame record that follows the paragraph holding a picture (the picture is an object inside that paragraph, and prints nothing).
+ofodt_line_of(string rec) {
+  string kind = str_sub(rec, 0, str_find(rec, ":"));
+  string line = ofodt_text(rec);
+  if (kind == "table") {
+    line = (import text_table);
+  }
+} return string line;
+("p:hi there"):("hi there")
+("table:"):("[Table]")
+
+// The text `quill --text` must print for a whole normalised fodt: one line per record, a table as its label, a frame as nothing, and the newline `print` ends the last line with.
+ofodt_lines(string norm) {
+  string[] recs = str_split(norm, "\n");
+  string[] lines = [];
+  int i = 0;
+} chain (string norm) {
+  while (i < len(recs)) {
+    ofodt_collect(recs[i], lines);
+    i = i + 1;
+  }
+  string text = str_join(lines, "\n") + "\n";
+} return string text;
+("p:a\ntable:\nframe:\np:b\n"):("a\n[Table]\nb\n")
+(""):("\n")
+
+// Appends the line of a record to lines, unless it is an empty record (the end of the normalised text) or a frame.
+ofodt_collect(string rec, string[] lines) {
+  if (len(rec) > 0 && str_starts(rec, "frame:") == 0) {
+    push(lines, ofodt_line_of(rec));
+  }
+} return void;
+("p:x", ["a"]):("p:x", ["a", "x"])
+("frame:", ["a"]):("frame:", ["a"])
+("", ["a"]):("", ["a"])

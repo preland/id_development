@@ -16,7 +16,7 @@ given lp_t_font given lp_t_paras(2) given lay_all((import lp_t_v)) given lay_pag
 // A paragraph whose row says break before starts a new page, unless the page is empty already.
 lay_brk(View lgv, int lgi, int[] lgs) {
   Para lgpa = lgv.doc.body.paras[lgi];
-  int lgb = style_eff_p(lgv.doc.fmt, lgpa.pprop, (import word_p_brk));
+  int lgb = style_eff_p(lgv.doc.fmt, lgpa.pprop, (import quill_paragraph_break_before));
   if(lgb == 1 && lgs[1] == 1) {
     lay_page_open(lgv, lgi, 0);
     lset(lgs, 0, 0);
@@ -30,7 +30,7 @@ given lp_t_new given lp_t_paras(2) given lp_t_row(1, 8, 1) given lay_pages_reset
 
 // Places the lines of paragraph lgi one by one, from line lgf on: a page that starts in the middle of a paragraph resumes there.
 lay_lines(View lgv, int lgi, int lgf, int[] lgs) {
-  int lgn = len(lgv.doc.body.paras[lgi].lay.lines) / (import word_ln_stride);
+  int lgn = len(lgv.doc.body.paras[lgi].lay.lines) / (import quill_line_stride);
   int lgj = lgf;
   while(lgj < lgn) {
     lay_line(lgv, lgi, lgj, lgs);

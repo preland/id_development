@@ -1,6 +1,6 @@
 // Adds style:display-name when the style's name in the document is not the one it has in the file, as for "Heading 1" written "Heading_20_1"; the default style, written "Standard", gets none, because LibreOffice would then keep "Standard" and add a second style called "Normal" beside it.
 odp_dname(XmlW pkw, string pkname, string pkwn) {
-  if(pkname != pkwn && pkwn != (import word_style_wire)[0]) {
+  if(pkname != pkwn && pkwn != (import quill_style_wire)[0]) {
     xw_attr(pkw, "style:display-name", pkname);
   }
 } return void;
@@ -24,11 +24,11 @@ odp_sattrs(XmlW pkw, Doc pkd, int pki) {
   string pkwn = oc_wire(pkd, pki);
   xw_attr(pkw, "style:name", pkwn);
 } chain (XmlW pkw, Doc pkd, int pki) {
-  xw_attr(pkw, "style:family", (import odp_family)[pksy.rel[(import word_s_family)]]);
+  xw_attr(pkw, "style:family", (import odp_family)[pksy.rel[(import quill_style_family)]]);
   odp_dname(pkw, pksy.name, pkwn);
-  odp_sref(pkw, pkd, "style:parent-style-name", pksy.rel[(import word_s_parent)], -1);
+  odp_sref(pkw, pkd, "style:parent-style-name", pksy.rel[(import quill_style_parent)], -1);
 } chain (XmlW pkw, Doc pkd, int pki) {
-  odp_sref(pkw, pkd, "style:next-style-name", pksy.rel[(import word_s_next)], pki);
+  odp_sref(pkw, pkd, "style:next-style-name", pksy.rel[(import quill_style_next)], pki);
   odp_outline(pkw, pkd, pki);
 } return void;
 given odp_t_new ((import odp_t_w), (import odp_t_d), 3):() then (import odp_t_w).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 110, 97, 109, 101, 61, 34, 72, 101, 97, 100, 105, 110, 103, 95, 50, 48, 95, 49, 34, 32, 115, 116, 121, 108, 101, 58, 102, 97, 109, 105, 108, 121, 61, 34, 112, 97, 114, 97, 103, 114, 97, 112, 104, 34, 32, 115, 116, 121, 108, 101, 58, 100, 105, 115, 112, 108, 97, 121, 45, 110, 97, 109, 101, 61, 34, 72, 101, 97, 100, 105, 110, 103, 32, 49, 34, 32, 115, 116, 121, 108, 101, 58, 112, 97, 114, 101, 110, 116, 45, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 34, 83, 116, 97, 110, 100, 97, 114, 100, 34, 32, 115, 116, 121, 108, 101, 58, 110, 101, 120, 116, 45, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 34, 83, 116, 97, 110, 100, 97, 114, 100, 34, 32, 115, 116, 121, 108, 101, 58, 100, 101, 102, 97, 117, 108, 116, 45, 111, 117, 116, 108, 105, 110, 101, 45, 108, 101, 118, 101, 108, 61, 34, 49, 34])

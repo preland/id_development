@@ -15,8 +15,8 @@ oc_unset(int[] oc_rw, int oc_lo, int oc_hi) {
 // 1 when paragraph row pid sets nothing a paragraph style would have to carry (alignment, indents, spacing, line height, page break), so the paragraph needs no automatic style.
 oc_plain_p(Tab oc_tb, int oc_pid) {
   int[] oc_rw = tab_row(oc_tb, oc_pid);
-  int oc_un = oc_unset(oc_rw, (import word_p_align), (import word_p_brk));
-  int oc_pl = oc_un * (oc_rw[(import word_p_brk)] == 0);
+  int oc_un = oc_unset(oc_rw, (import quill_paragraph_alignment), (import quill_paragraph_break_before));
+  int oc_pl = oc_un * (oc_rw[(import quill_paragraph_break_before)] == 0);
 } return int oc_pl;
 (Tab([3, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), 0):(1)
 (Tab([3, 0, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), 0):(0)
@@ -26,8 +26,8 @@ oc_plain_p(Tab oc_tb, int oc_pid) {
 // 1 when character row cid sets nothing a span would have to carry, so its run is written as plain text.
 oc_plain_c(Tab oc_tb, int oc_cid) {
   int[] oc_rw = tab_row(oc_tb, oc_cid);
-  int oc_un = oc_unset(oc_rw, (import word_c_font), (import word_c_on));
-  int oc_pl = oc_un * (oc_rw[(import word_c_style)] == 0) * (oc_rw[(import word_c_set)] == 0);
+  int oc_un = oc_unset(oc_rw, (import quill_character_font), (import quill_character_on));
+  int oc_pl = oc_un * (oc_rw[(import quill_character_style)] == 0) * (oc_rw[(import quill_character_set)] == 0);
 } return int oc_pl;
 (Tab([0, -1, -1, -1, -1, 0, 0], 7, []), 0):(1)
 (Tab([0, 0, -1, -1, -1, 0, 0], 7, []), 0):(0)

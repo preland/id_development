@@ -1,0 +1,37 @@
+// The file-name prefix fixture n carries: two digits and an underscore.
+fixt_prefix(int n) {
+  string pre = "" + n + "_";
+  if (n < 10) {
+    pre = "0" + pre;
+  }
+} return string pre;
+(3):("03_")
+(12):("12_")
+
+// The fixture name inside one directory entry: the entry minus ".odt" when it starts with the prefix and ends with ".odt", otherwise the stem it was given.
+fixt_stem(string entry, string pre, string stem) {
+  string chosen = stem;
+  int fits = str_starts(entry, pre) == 1 && str_ends(entry, ".odt") == 1;
+  if (fits == 1) {
+    chosen = str_sub(entry, 0, len(entry) - 4);
+  }
+} return string chosen;
+("03_inline.odt", "03_", ""):("03_inline")
+("03_inline.fodt", "03_", "keep"):("keep")
+("04_colours.odt", "03_", "keep"):("keep")
+
+// The name of fixture n in the .odt directory, without its extension, or "" when there is none.
+fixt_name(string odt_dir, int n) {
+  string[] names = exec_ls(odt_dir);
+  string pre = fixt_prefix(n);
+  string stem = "";
+} chain (string odt_dir, int n) {
+  int i = 0;
+  while (i < len(names)) {
+    stem = fixt_stem(names[i], pre, stem);
+    i = i + 1;
+  }
+} return string stem;
+("../quillcorpus/odt", 3):("03_inline")
+("../quillcorpus/odt", 12):("12_image")
+("../quillcorpus/odt", 99):("")

@@ -16,15 +16,15 @@ style_cell(Fmt f, int sn, int which, int field) {
 (Fmt(Tab([10, 11, 20, 21], 2, []), Tab([30, 31, 40, 41], 2, []), Sty([Style("N", [0, -1, 0], [1, 0])], [], 0)), 0, 0, 1):(21)
 (Fmt(Tab([10, 11, 20, 21], 2, []), Tab([30, 31, 40, 41], 2, []), Sty([Style("N", [0, -1, 0], [1, 0])], [], 0)), 0, 1, 0):(30)
 
-// The first value that is not -1 for a field, walking from style sid up through its parents; -1 for sid -1, and a chain longer than word_style_depth (a cycle) ends the walk.
+// The first value that is not -1 for a field, walking from style sid up through its parents; -1 for sid -1, and a chain longer than quill_style_depth (a cycle) ends the walk.
 style_up(Fmt f, int sid, int which, int field) {
   int got = -1;
   int sn = sid;
   int n = 0;
 } chain (Fmt f, int sid, int which, int field) {
-  while(sn >= 0 && got == -1 && n < (import word_style_depth)) {
+  while(sn >= 0 && got == -1 && n < (import quill_style_depth)) {
     got = style_cell(f, sn, which, field);
-    sn = f.sty.styles[sn].rel[(import word_s_parent)];
+    sn = f.sty.styles[sn].rel[(import quill_style_parent)];
     n = n + 1;
   }
 } return int got;

@@ -31,8 +31,8 @@ given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 0, 8, [-9216, 
 // Where the first line of a page that starts at paragraph lwi, line lwj, sits when the paragraph's own top is the base: minus the line's y, so that the line is at the top of the page. A page that starts at a paragraph's first line is the exception when the paragraph asks for a page break or is the first of the document, where the paragraph's own top, its space before included, is the page's top.
 // By hand: line 8 of 3-letter lines of 1152 lu is at 9216, so the base is minus 9216; a paragraph with 600 twips (2560 lu) before it that starts a page by overflow has its first line at 2560 and the base is minus 2560; one that asks for a page break keeps it, base 0.
 lay_pedge(View lwv, int lwi, int lwj) {
-  int lwy = lwv.doc.body.paras[lwi].lay.lines[lwj * (import word_ln_stride) + (import word_ln_y)];
-  int lwb = style_eff_p(lwv.doc.fmt, lwv.doc.body.paras[lwi].pprop, (import word_p_brk));
+  int lwy = lwv.doc.body.paras[lwi].lay.lines[lwj * (import quill_line_stride) + (import quill_line_y)];
+  int lwb = style_eff_p(lwv.doc.fmt, lwv.doc.body.paras[lwi].pprop, (import quill_paragraph_break_before));
   int lwe = 0 - lwy;
 } chain (View lwv, int lwi, int lwj) {
   if(lwj == 0 && (lwi == 0 || lwb == 1)) {

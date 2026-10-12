@@ -1,0 +1,58 @@
+// The ASSETS argument when there is one (the last word of the command line, which sits at a different place for each mode), the default corpus directory otherwise.
+cli_assets(int argc, string[] argv, int mode) {
+  string dir = (import assets_dir);
+  if (argc == 3 && mode >= (import mode_run) && mode <= (import mode_count)) {
+    dir = argv[2];
+  }
+  if ((argc == 4 && mode == (import mode_oracle)) || (argc == 5 && mode == (import mode_dump))) {
+    dir = argv[argc - 1];
+  }
+} return string dir;
+(2, ["quillcheck", "1"], 1):("quillcorpus")
+(3, ["quillcheck", "1", "x/y"], 1):("x/y")
+(3, ["quillcheck", "--oracle", "7"], 4):("quillcorpus")
+(4, ["quillcheck", "--oracle", "7", "a/b"], 4):("a/b")
+(5, ["quillcheck", "--dump", "7", "bin", "c/d"], 5):("c/d")
+(4, ["quillcheck", "--dump", "7", "bin"], 5):("quillcorpus")
+
+// Carries out a mode: runs one fixture, lists them, counts them, prints the oracle's dump of one, compares a quill binary's dump of one, or says how to ask. The exit status.
+cli_go(int mode, string[] argv, string assets) {
+  int code = 0;
+  string odt_dir = assets + "/" + (import odt_sub);
+  if (mode == (import mode_usage)) {
+    eprint((import usage_text));
+    code = (import exit_usage);
+  }
+} chain (int mode, string[] argv, string assets) {
+  if (mode == (import mode_run)) {
+    code = check_run((import soffice_bin), to_int(argv[1]), assets);
+  }
+  if (mode == (import mode_list)) {
+    fixt_list(odt_dir);
+  }
+  if (mode == (import mode_count)) {
+    int total = fixt_count(odt_dir);
+    print(total);
+  }
+} chain (int mode, string[] argv, string assets) {
+  if (mode == (import mode_oracle)) {
+    code = dump_go((import soffice_bin), "", to_int(argv[2]), assets);
+  }
+  if (mode == (import mode_dump)) {
+    code = dump_go((import soffice_bin), argv[3], to_int(argv[2]), assets);
+  }
+} return int code;
+(0, ["quillcheck"], "../quillcorpus"):(2) then eprints:("usage: quillcheck N [ASSETS] | quillcheck --list [ASSETS] | quillcheck --count [ASSETS] | quillcheck --oracle N [ASSETS] | quillcheck --dump N WORDBIN [ASSETS]  (N is a fixture index from --list; ASSETS defaults to quillcorpus)\n")
+(2, ["quillcheck", "--list"], "../quillcorpus"):(0) then prints:("1 01_plain\n2 02_headings\n3 03_inline\n4 04_colours\n5 05_lists\n6 06_pagebreak\n7 07_pages\n8 08_long\n9 09_unicode\n10 10_empty\n11 11_table\n12 12_image\n")
+(3, ["quillcheck", "--count"], "../quillcorpus"):(0) then prints:("12\n")
+(1, ["quillcheck", "99"], "../quillcorpus"):(2) then eprints:("quillcheck: no fixture 99 in ../quillcorpus/odt; list the fixtures with: quillcheck --list\n")
+(4, ["quillcheck", "--oracle", "99"], "../quillcorpus"):(2) then eprints:("quillcheck: no fixture 99 in ../quillcorpus/odt; list the fixtures with: quillcheck --list\n")
+
+// Entry point: quillcheck N [ASSETS], quillcheck --list [ASSETS], quillcheck --count [ASSETS], quillcheck --oracle N [ASSETS], quillcheck --dump N WORDBIN [ASSETS].
+main(int argc, string[] argv) {
+  int mode = cli_mode(argc, argv);
+  string assets = cli_assets(argc, argv, mode);
+  int code = cli_go(mode, argv, assets);
+} return int code;
+(1, ["quillcheck"]):(2) then eprints:("usage: quillcheck N [ASSETS] | quillcheck --list [ASSETS] | quillcheck --count [ASSETS] | quillcheck --oracle N [ASSETS] | quillcheck --dump N WORDBIN [ASSETS]  (N is a fixture index from --list; ASSETS defaults to quillcorpus)\n")
+(2, ["quillcheck", "--bogus"]):(2) then eprints:("usage: quillcheck N [ASSETS] | quillcheck --list [ASSETS] | quillcheck --count [ASSETS] | quillcheck --oracle N [ASSETS] | quillcheck --dump N WORDBIN [ASSETS]  (N is a fixture index from --list; ASSETS defaults to quillcorpus)\n")

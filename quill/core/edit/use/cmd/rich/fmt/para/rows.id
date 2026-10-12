@@ -14,7 +14,7 @@ given fx_setup("ab") given txn_begin((import fxc)) ((import fxd), (import fxc), 
 given fx_setup("ab") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 0, 2, [1, -1]):((import fxd), (import fxc), 0, 0, 2, [1, -1]) then fx_hist:("u1 r0 o0 n0")
 given fx_setup("ab") given fx_opaque(0) given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 0, 2, [1, 2]):((import fxd), (import fxc), 0, 0, 2, [1, 2]) then fx_hist:("u1 r0 o0 n0")
 
-// Sets the paragraph field (a word_p_* offset) to value in every paragraph the selection touches, as one undo step.
+// Sets the paragraph field (a quill_paragraph_* offset) to value in every paragraph the selection touches, as one undo step.
 ed_set_para(Doc d, Ctl ctl, int field, int value) {
   int[] acc = [field, value];
   ed_change(d, ctl, par_set, acc);
@@ -24,11 +24,11 @@ given fx_setup("ab|cd") given fx_at(1, 0, 1, 0) ((import fxd), (import fxc), 1, 
 
 // Applies style (an index into the document's styles): a paragraph style goes on every paragraph the selection touches, a character style on the selected text.
 ed_set_style(Doc d, Ctl ctl, int style) {
-  int fam = d.fmt.sty.styles[style].rel[(import word_s_family)];
+  int fam = d.fmt.sty.styles[style].rel[(import quill_style_family)];
   if(fam == 1) {
-    ed_set_char(d, ctl, (import word_c_style), style);
+    ed_set_char(d, ctl, (import quill_character_style), style);
   } else {
-    ed_set_para(d, ctl, (import word_p_style), style);
+    ed_set_para(d, ctl, (import quill_paragraph_style), style);
   }
 } return void;
 given fx_setup("ab|cd") given fx_at(1, 1, 1, 1) ((import fxd), (import fxc), 3):((import fxd), (import fxc), 3) then fx_show:("ab|{9}cd")

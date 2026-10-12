@@ -1,12 +1,12 @@
 // The face of a run at the given zoom: its font, size and bold/italic bits are resolved through the run's row, its character style and the paragraph style pstyle, then looked up in the cache by (font index, pixel size, style bits). Only a miss reaches gui_face. Layout passes zoom 100; drawing passes the view's zoom, so a second handle is cached for the same run.
 // By hand: a run with no size takes 24 half-points, 24 * 100 / 150 = 16 px; at zoom 200 it is 32 px; style 1 (Title) sets 56 half-points, 37 px; style 3 (Heading 1) sets 32 half-points and bold, 21 px bold.
 face_for(Face fa, Doc d, int pstyle, int cprop, int zoom) {
-  int bits = style_eff_c(d.fmt, pstyle, cprop, (import word_c_on));
-  int hp = style_eff_c(d.fmt, pstyle, cprop, (import word_c_size));
-  int fi = lp_fi(d, style_eff_c(d.fmt, pstyle, cprop, (import word_c_font)));
+  int bits = style_eff_c(d.fmt, pstyle, cprop, (import quill_character_on));
+  int hp = style_eff_c(d.fmt, pstyle, cprop, (import quill_character_size));
+  int fi = lp_fi(d, style_eff_c(d.fmt, pstyle, cprop, (import quill_character_font)));
 } chain (Face fa, Doc d, int pstyle, int cprop, int zoom) {
   int px = face_px(hp, bits, zoom);
-  int fs = bits & ((import word_f_bold) + (import word_f_italic));
+  int fs = bits & ((import quill_flag_bold) + (import quill_flag_italic));
   int fh = face_find(fa, fi, px, fs);
 } chain (Face fa, Doc d, int pstyle, int cprop, int zoom) {
   if(fh < 0) {

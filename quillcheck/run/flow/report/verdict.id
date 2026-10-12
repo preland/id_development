@@ -1,0 +1,46 @@
+// The word a lane verdict is printed as; an unavailable lane says why, and so does one that is skipped.
+rep_verdict(int v) {
+  string says = "FAIL";
+  if (v == (import lane_ok)) {
+    says = "OK";
+  }
+  if (v == (import lane_unavailable)) {
+    says = "UNAVAILABLE(" + (import no_word) + ")";
+  }
+} chain (int v) {
+  if (v == (import lane_skipped)) {
+    says = (import skip_pages);
+  }
+} return string says;
+(1):("OK")
+(0):("FAIL")
+(2):("UNAVAILABLE(quill binary not available)")
+(3):("SKIP(the document model keeps one page layout; this fixture changes it per paragraph)")
+
+// "mode=VERDICT" for one quill-binary lane; vs holds the verdicts of the lanes that have run, [--text, --pages].
+rep_word_one(string wmode, int[] vs) {
+  int v = wlane_run(wmode, vs);
+  string says = rep_verdict(v);
+  string part = wmode + "=" + says;
+} return string part;
+("--text", [2, 1]):("--text=UNAVAILABLE(quill binary not available)")
+("--text", [1, 2]):("--text=OK")
+("--pages", [1, 0]):("--pages=FAIL")
+("--dump", [1, 1]):("--dump=UNAVAILABLE(quill binary not available)")
+("--bogus", [1, 1]):("--bogus=FAIL")
+
+// The quill-binary lanes, space separated.
+rep_word_all(string[] modes, int[] vs) {
+  string[] parts = [];
+  int i = 0;
+  while (i < len(modes)) {
+    push(parts, rep_word_one(modes[i], vs));
+    i = i + 1;
+  }
+} chain (string[] modes, int[] vs) {
+  string line = str_join(parts, " ");
+} return string line;
+(["--text", "--dump"], [2, 2]):("--text=UNAVAILABLE(quill binary not available) --dump=UNAVAILABLE(quill binary not available)")
+(["--text", "--dump"], [0, 2]):("--text=FAIL --dump=UNAVAILABLE(quill binary not available)")
+(["--text", "--pages"], [1, 1]):("--text=OK --pages=OK")
+(["--bogus"], [1, 1]):("--bogus=FAIL")

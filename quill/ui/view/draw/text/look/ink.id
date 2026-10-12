@@ -1,7 +1,7 @@
 // Fills the face and the metrics of the look list vwl_q for run vwi_ri of paragraph vwi_p at zoom vwi_z percent: the face (the face cache's, at that zoom) and its ascent and descent in pixels.
 vw_look(View vwv, int vwi_p, int vwi_ri, int vwi_z, int[] vwl_q) {
   Para vwp = vwv.doc.body.paras[vwi_p];
-  int vwi_ps = tab_get(vwv.doc.fmt.paras, vwp.pprop, (import word_p_style));
+  int vwi_ps = tab_get(vwv.doc.fmt.paras, vwp.pprop, (import quill_paragraph_style));
   int vwi_fh = face_for(vwv.faces, vwv.doc, vwi_ps, vwp.txt.runs[vwi_ri].cprop, vwi_z);
 } chain (View vwv, int vwi_p, int vwi_ri, int vwi_z, int[] vwl_q) {
   int vwi_a = gui_font_ascent(vwi_fh);
@@ -17,12 +17,12 @@ given lp_t_font given lp_t_ins(0, "AB") given vw_t_q0 ((import lp_t_v), 0, 0, 20
 // Fills the ink of the look list vwl_q for run vwi_ri of paragraph vwi_p: its colour (black when nothing sets one, the link colour inside a hyperlink), its highlight (-1 for none) and its flag bits (a hyperlink is underlined).
 vw_ink(View vwv, int vwi_p, int vwi_ri, int[] vwl_q) {
   Para vwp = vwv.doc.body.paras[vwi_p];
-  int vwi_ps = tab_get(vwv.doc.fmt.paras, vwp.pprop, (import word_p_style));
+  int vwi_ps = tab_get(vwv.doc.fmt.paras, vwp.pprop, (import quill_paragraph_style));
   int vwi_cr = vwp.txt.runs[vwi_ri].cprop;
 } chain (View vwv, int vwi_p, int vwi_ri, int[] vwl_q) {
-  int vwi_col = style_eff_c(vwv.doc.fmt, vwi_ps, vwi_cr, (import word_c_color));
-  int vwi_hl = style_eff_c(vwv.doc.fmt, vwi_ps, vwi_cr, (import word_c_hl));
-  int vwi_bits = style_eff_c(vwv.doc.fmt, vwi_ps, vwi_cr, (import word_c_on));
+  int vwi_col = style_eff_c(vwv.doc.fmt, vwi_ps, vwi_cr, (import quill_character_color));
+  int vwi_hl = style_eff_c(vwv.doc.fmt, vwi_ps, vwi_cr, (import quill_character_highlight));
+  int vwi_bits = style_eff_c(vwv.doc.fmt, vwi_ps, vwi_cr, (import quill_character_on));
 } chain (View vwv, int vwi_p, int vwi_ri, int[] vwl_q) {
   if(vwi_col < 0) {
     vwi_col = 0;

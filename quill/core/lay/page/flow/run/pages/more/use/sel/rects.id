@@ -1,4 +1,4 @@
-// The rectangles that show selection lhs on page lhk: lhc becomes four numbers [x, y, width, height] for every line of the page the selection covers, in lu from the top left corner of the page, one rectangle per line from the first covered offset to the last, plus the width of a paragraph mark (word_lay_mark) at the end of a line whose paragraph the selection goes on past. Answers how many rectangles. A collapsed selection has none. Uses only the pagination and the pens, so it needs no font.
+// The rectangles that show selection lhs on page lhk: lhc becomes four numbers [x, y, width, height] for every line of the page the selection covers, in lu from the top left corner of the page, one rectangle per line from the first covered offset to the last, plus the width of a paragraph mark (quill_layout_mark_width) at the end of a line whose paragraph the selection goes on past. Answers how many rectangles. A collapsed selection has none. Uses only the pagination and the pens, so it needs no font.
 // By hand in "BBB", "A", "BBB" (pens 683 per letter, left margin 2560, paragraphs 1664 apart from 640): the selection from 1 of the first to 1 of the last is [3243, 640, 1366 + 256, 1152] for the rest of the first, [2560, 2304, 683 + 256, 1152] for the second whole, and [2560, 3968, 683, 1152] for the start of the third, three in all.
 lay_sel_rects(View lhv, Sel lhs, int lhk, int[] lhc) {
   Pos lhsa = lhs.anchor;
@@ -46,7 +46,7 @@ lay_rect_line(View lhv, int lhi, int lhj, Pos lhsa, Pos lhsb, int[] lhc) {
   lay_range(lhpa, lhi, lhj, lhsa, lhsb, lhr);
 } chain (View lhv, int lhi, int lhj, Pos lhsa, Pos lhsb, int[] lhc) {
   if(lhr[1] > lhr[0] || lhr[2] == 1) {
-    lay_rect(lhc, lay_margin(lhv.doc, 3) + lhpa.lay.pen[lhr[0]], lay_line_y(lhv, lhi, lhj), lay_xend(lhpa, lhj, lhr[1]) - lhpa.lay.pen[lhr[0]] + lhr[2] * (import word_lay_mark), lay_line_h(lhv, lhi, lhj));
+    lay_rect(lhc, lay_margin(lhv.doc, 3) + lhpa.lay.pen[lhr[0]], lay_line_y(lhv, lhi, lhj), lay_xend(lhpa, lhj, lhr[1]) - lhpa.lay.pen[lhr[0]] + lhr[2] * (import quill_layout_mark_width), lay_line_h(lhv, lhi, lhj));
   }
 } return void;
 given lg_t_text("BBB EEE BBB") given lg_t_out ((import lp_t_v), 0, 1, Pos(0, 1), Pos(0, 6), (import lg_t_o)):() then lg_t_outs:("outs 2560,1792,1366,1152,")

@@ -14,9 +14,9 @@ ost_list_id(Fmt os_f, string os_sname) {
 
 // 1 when record os_i or a style up its parent chain has a page break before it.
 ost_fbrk(StyBag os_b, int os_i, int os_id) {
-  int os_ibrk = os_b.prows[os_i][(import word_p_brk)];
+  int os_ibrk = os_b.prows[os_i][(import quill_paragraph_break_before)];
   int os_ip = ost_par(os_b, os_i);
-  if(os_ibrk == 0 && os_ip >= 0 && os_id < (import word_style_depth)) {
+  if(os_ibrk == 0 && os_ip >= 0 && os_id < (import quill_style_depth)) {
     os_ibrk = ost_fbrk(os_b, os_ip, os_id + 1);
   }
 } return int os_ibrk;
@@ -29,7 +29,7 @@ ost_flist(Fmt os_f, StyBag os_b, int os_i, int os_id) {
   int os_il = ost_list_id(os_f, os_slist);
   int os_ip = ost_par(os_b, os_i);
 } chain (Fmt os_f, StyBag os_b, int os_i, int os_id) {
-  if(os_slist == "" && os_ip >= 0 && os_id < (import word_style_depth)) {
+  if(os_slist == "" && os_ip >= 0 && os_id < (import quill_style_depth)) {
     os_il = ost_flist(os_f, os_b, os_ip, os_id + 1);
   }
 } return int os_il;

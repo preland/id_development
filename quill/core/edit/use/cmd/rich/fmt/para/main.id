@@ -1,4 +1,4 @@
-// Sets the character field (a word_c_* offset, or ed_s_flag plus a flag bit with value 1 on, 0 off, -1 unset, -2 off plainly) on the selected text as one undo step; with nothing selected it is the pending typing row instead.
+// Sets the character field (a quill_character_* offset, or ed_s_flag plus a flag bit with value 1 on, 0 off, -1 unset, -2 off plainly) on the selected text as one undo step; with nothing selected it is the pending typing row instead.
 ed_set_char(Doc d, Ctl ctl, int field, int value) {
   int[] acc = [field, value];
   if(sel_empty(ctl.sel) == 1) {
@@ -10,7 +10,7 @@ ed_set_char(Doc d, Ctl ctl, int field, int value) {
 given fx_setup("abcd") given fx_at(0, 1, 0, 3) ((import fxd), (import fxc), 2, 24):((import fxd), (import fxc), 2, 24) then fx_show:("a[8:bc]d")
 given fx_setup("abcd") given fx_at(0, 1, 0, 1) ((import fxd), (import fxc), 2, 24):((import fxd), (import fxc), 2, 24) then fx_show:("abcd") then (import ed_typing)[0]:(8)
 
-// Bold, italic and the other flags (ed_toggle(d, ctl, word_f_bold)): when every selected character has the flag it is turned off, otherwise on for all of it, which is what Word does; with nothing selected it flips what the next typed character would get.
+// Bold, italic and the other flags (ed_toggle(d, ctl, quill_flag_bold)): when every selected character has the flag it is turned off, otherwise on for all of it, which is what Word does; with nothing selected it flips what the next typed character would get.
 ed_toggle(Doc d, Ctl ctl, int bit) {
   int on = sel_state(d, ctl, (import ed_s_flag) + bit);
   int val = 1;

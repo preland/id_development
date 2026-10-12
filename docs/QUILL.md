@@ -2,7 +2,7 @@
 
 > **Status: a plan, partly built.** The implementation is `word/` (`core/doc`,
 > `core/edit`, `core/lay`, `io/odt`, `ui/app`, `ui/ribbon`, `ui/view`), with
-> `wordcheck/` as the LibreOffice oracle and `wordcorpus/` as the test
+> `quillcheck/` as the LibreOffice oracle and `quillcorpus/` as the test
 > documents; its size and its cases are rows of `docs/STATUS.md`. Sections 1-3
 > are the plan as it was written, section 4 is the seams the packages
 > implement, and where the code and this file differ the code is right. The
@@ -345,7 +345,7 @@ Consequences, all wanted:
   returning another id.
 * A record-as-list row is the house convention (idstd README) and the way
   through the three-field limit; the field offsets are constants in
-  `word/conf.id` (`word_c_*` for character rows, `word_p_*` for paragraph rows).
+  `word/conf.id` (`quill_character_*` for character rows, `quill_paragraph_*` for paragraph rows).
 
 Character row (unset is -1; flags are two ints so "unset" is distinct from "off"):
 
@@ -636,7 +636,7 @@ recommended option B):
   group columns of up to three rows (large buttons span all rows), groups side by
   side with a separator and a caption. If the window is too narrow, v1 sets a
   minimum width (R9 is v2).
-* Colours, fonts and sizes are constants (`idstd_wid_*` for widgets, `word_ui_*`
+* Colours, fonts and sizes are constants (`idstd_wid_*` for widgets, `quill_ui_*`
   for chrome); idml carries the structure and the class names.
 
 #### 3.5.2 Ribbon model (data, not code)
@@ -785,7 +785,7 @@ spacing `fo:margin-top`/`-bottom`, `fo:line-height` as a percentage, page
 | canvas view, scroll, zoom | `word/ui/page` | B6 |
 | ribbon data, layout, paint, events | `word/ui/ribbon` | B7a, B7b |
 | app shell, file ops, dialogs, status/find bars, CLI | `word/ui/app` | B8, B10 |
-| oracle driver, corpus | `wordcheck/` | B9 |
+| oracle driver, corpus | `quillcheck/` | B9 |
 
 ---
 
@@ -822,11 +822,11 @@ struct Doc { Body body; Fmt fmt; Ext ext; }
 flags]` (reserved for v2, written and read as zero in v1). `Tab.slots` is the
 open-addressing index into `rows` (row `r` starts at `r * width`).
 
-Constants (`word/conf.id`): `word_c_style word_c_font word_c_size word_c_color
-word_c_hl word_c_on word_c_set` (character row offsets, width 7);
-`word_p_style word_p_align word_p_left word_p_right word_p_first word_p_before
-word_p_after word_p_line word_p_brk word_p_list word_p_level word_p_kind` (width 12);
-flag bits `word_f_bold` ... `word_f_sub`.
+Constants (`word/conf.id`): `quill_character_style quill_character_font quill_character_size quill_character_color
+quill_character_highlight quill_character_on quill_character_set` (character row offsets, width 7);
+`quill_paragraph_style quill_paragraph_alignment quill_paragraph_indent_left quill_paragraph_indent_right quill_paragraph_indent_first quill_paragraph_space_before
+quill_paragraph_space_after quill_paragraph_line_percent quill_paragraph_break_before quill_paragraph_list quill_paragraph_level quill_paragraph_kind` (width 12);
+flag bits `quill_flag_bold` ... `quill_flag_subscript`.
 
 ### 4.2 Model API (B1; everyone else calls it)
 
@@ -999,8 +999,8 @@ written (`Heading_20_1`, `P1`, `T3`; `""` and an unknown name give the defaults)
 
 | element | call | result |
 | --- | --- | --- |
-| `text:p`, `text:h` `text:style-name` | `ost_para(k, name)` | the paragraph row (`word_p_style` set, `brk` and `list` flattened from the style chain); store it as `Para.pprop` |
-| inside `text:list` | `tab_with(d.fmt.paras, row, word_p_list, ost_list(k, outer_list_name))`, then `word_p_level` | list and level are the content reader's; only the outermost list's name counts |
+| `text:p`, `text:h` `text:style-name` | `ost_para(k, name)` | the paragraph row (`quill_paragraph_style` set, `brk` and `list` flattened from the style chain); store it as `Para.pprop` |
+| inside `text:list` | `tab_with(d.fmt.paras, row, quill_paragraph_list, ost_list(k, outer_list_name))`, then `quill_paragraph_level` | list and level are the content reader's; only the outermost list's name counts |
 | text of that paragraph | `ost_over(k, name)` | the character row an **automatic** paragraph style's own text properties amount to (`P1` with a font size); `-1` for none and for named styles, whose properties the style chain already resolves. Start every run from `max(over, 0)` |
 | `text:span` `text:style-name` | `ost_text(k, name)` then `ost_merge(d, enclosing, that)` | the run's `cprop`: the span's fields laid over the enclosing run's (the paragraph's `over` for an outermost span); fields the span leaves unspecified keep the enclosing value, flags merge bit by bit, a character style on the span replaces the enclosing one |
 
@@ -1137,9 +1137,9 @@ UTF-8, one record per line, LF line ends, a final LF. It is the one text form of
 a `Doc` that two documents share when they look the same, whatever their row ids,
 style numbering or run boundaries: B4a and B4b compare it with LibreOffice's, B5a
 compares it before and after a round trip, B2's undo cases may use it too. Its
-other side is `wordcheck`'s oracle, which makes the same text from the `fodt`
+other side is `quillcheck`'s oracle, which makes the same text from the `fodt`
 that `soffice --convert-to fodt` writes for the same file, with its own code
-(`wordcheck --oracle N` prints it).
+(`quillcheck --oracle N` prints it).
 
 ```
 page w=11906 h=16838 orient=0 top=1134 right=1134 bottom=1134 left=1134
@@ -1174,7 +1174,7 @@ para 2 style="Normal" align=1 left=720 right=0 first=-360 before=0 after=120 lin
   family in quotes or `-`.
 * `text` is quoted: `\"`, `\\`, `\t`, `\n`, `\r`; printable ASCII as itself;
   every other code point as `\u{hex}` in lowercase with at least four digits;
-  **every code point U+E000 to U+F8FF, and every code point from `word_o_marker`
+  **every code point U+E000 to U+F8FF, and every code point from `quill_object_marker`
   (U+F0000, where the readers keep an inline object's marker plus its index) to
   U+FFFFD, prints as `\u{e000}`** (whichever index it carries). A tab is `\t`, a line break `\n`, `text:s c`
   is `c` spaces.
@@ -1183,12 +1183,12 @@ para 2 style="Normal" align=1 left=720 right=0 first=-360 before=0 after=120 lin
   1 landscape. The other master pages of a file are not part of a `Doc`, so not
   of a dump.
 
-`wordcheck --dump N WORDBIN [ASSETS]` converts fixture N with `soffice
+`quillcheck --dump N WORDBIN [ASSETS]` converts fixture N with `soffice
 --convert-to fodt`, runs `WORDBIN --dump` on the same `.odt`, and prints `N STEM
 dump=OK` (exit 0), or `N STEM dump=FAIL` and one line per differing field,
 `pN rM FIELD: ours=A theirs=B` (`page FIELD`, or `pN FIELD` for a paragraph record;
 `records differ` when the words or the number of fields do not match), exit 1;
-2 for a missing fixture. `ASSETS` defaults to `wordcorpus`; a directory of your
+2 for a missing fixture. `ASSETS` defaults to `quillcorpus`; a directory of your
 own with an `odt/` inside and files named `NN_name.odt` works.
 
 
@@ -1244,7 +1244,7 @@ the seam in section 4 with a stub, as noted.
 
 | id | package | directories | depends | acceptance |
 | --- | --- | --- | --- | --- |
-| A1 | CRC-32; ZIP reader (struct-based, CRC checked) and stored-entry ZIP writer; `mimetype`-first ordering helper | `idstd/core/data/hash/crc32`, `idstd/core/fmt/zip` | W0 | `cyclic_redundancy_check_32("123456789") = 0xCBF43926`; round trip of 0, 1, 300 and 70 000 byte entries and of an empty archive; reader accepts `editor/test_assets/empty.zip` and a LibreOffice-written `.odt` (committed under `wordcorpus`) with every CRC verified; one flipped bit in an entry is reported as a named CRC error; `soffice --headless --convert-to txt` opens an `.odt` whose parts were written by `zw_*` (manual first, then B9) |
+| A1 | CRC-32; ZIP reader (struct-based, CRC checked) and stored-entry ZIP writer; `mimetype`-first ordering helper | `idstd/core/data/hash/crc32`, `idstd/core/fmt/zip` | W0 | `cyclic_redundancy_check_32("123456789") = 0xCBF43926`; round trip of 0, 1, 300 and 70 000 byte entries and of an empty archive; reader accepts `editor/test_assets/empty.zip` and a LibreOffice-written `.odt` (committed under `quillcorpus`) with every CRC verified; one flipped bit in an entry is reported as a named CRC error; `soffice --headless --convert-to txt` opens an `.odt` whose parts were written by `zw_*` (manual first, then B9) |
 | A2 | XML writer (struct, escaping, declaration, attribute order = call order, nesting check) | `idstd/core/fmt/xml/write` | W0 | output of a hand-built tree equals expected bytes; `& < > "` escaping cases; unbalanced `xw_end` is a named error; output is accepted by the reader of A2r and by `soffice --convert-to txt` when it is `content.xml` of a fixture |
 | A2r | XML reader: the editor's pull parser re-founded on a struct, byte offsets in every error, entities, CDATA, comments, DOCTYPE skipped | `idstd/core/fmt/xml/read` | W0 | the editor's own `lib/doc/xml` cases ported and green (they are the spec); reads `content.xml`, `styles.xml` of the corpus; fuzz: 1000 truncations of a real `content.xml` give an error or end, never a trap (index-addressable sweep); event stream of the writer's output equals the writer's input |
 | A3a | Font discovery by style (parse subfamily from the `name` table the scan already reads; add weight/slant to the cache record; `gui_fonts_find_style`, `gui_font_families`) | `idstd/kit/media/font/find/**` | W0 | on this machine DejaVu Sans resolves Bold to `DejaVuSans-Bold.ttf`, Oblique to `DejaVuSans-Oblique.ttf`; an unknown style falls back to Regular and says so; cache file version bumps and an old cache is ignored, not trusted; `gui_font_families` is sorted and unique; all existing font cases still pass |
@@ -1252,7 +1252,7 @@ the seam in section 4 with a stub, as noted.
 | A7 | List helpers: `list_insert`, `list_delete`, `list_splice` for `int[]` and `string[]` | `idstd/core/data/list/**` (the slot W0 made) | W0 | cases at both ends, empty list, a splice that grows and one that shrinks; trap behaviour out of range is stated and cased |
 | B1 | Document model: structs, interning table, style set and defaults, resolvers, text and run primitives, paragraph split/join, default document | `word/core/doc/**`, `word/conf.id` (row offsets) | none (uses `utf8_*`, `lst_*`) | the 4.2 API with cases pinning run invariants after every primitive (covering, merged, empty-paragraph run); a randomised-but-seeded script of 2000 primitive calls keeps the invariants; `style_eff_c` resolves a three-level chain and a character style over a paragraph style; **publishes the struct files first** (within an hour) so B2-B7 can compile against them |
 | B7a | Ribbon data and logic without drawing: the table of tabs/groups/controls, command ids, shortcut table, group/column placement solver given control sizes, tooltip text and shortcut text, `cmd_state` plumbing signature | `word/ui/ribbon/model`, `word/conf.id` (ribbon and key tables) | none | every command id appears once in the table and in a shortcut/ribbon/menu route (a case walks the table and checks no id is orphaned, none duplicated); placement of the Home tab at widths 1280, 1024, 900 gives rectangles that do not overlap and fit the width (arithmetic cases, rect lists compared exactly); `key_cmd(ctrl, 'b')` = bold |
-| B9 | Oracle driver and corpus | `wordcheck/**`, `wordcorpus/**` | none (needs only the CLI contract of 4.9 and `soffice`) | corpus of 12 documents generated by `soffice --convert-to odt` from small `.fodt`/`.html` sources written in the repo (plain, headings, bold/italic/underline mix, colours, lists three levels, page break, A4/Letter/landscape, long text 20 pages, unicode, empty paragraphs, a table, an image); the driver prints one line per fixture and takes an index (`wordcheck N`); an isolated LibreOffice profile (`-env:UserInstallation=file://` under `fs_mktemp`) so runs do not collide; runs batch several files per `soffice` start; the first fixture completes inside 60 s on a cold start (measure; mitigation in 6.7) |
+| B9 | Oracle driver and corpus | `quillcheck/**`, `quillcorpus/**` | none (needs only the CLI contract of 4.9 and `soffice`) | corpus of 12 documents generated by `soffice --convert-to odt` from small `.fodt`/`.html` sources written in the repo (plain, headings, bold/italic/underline mix, colours, lists three levels, page break, A4/Letter/landscape, long text 20 pages, unicode, empty paragraphs, a table, an image); the driver prints one line per fixture and takes an index (`quillcheck N`); an isolated LibreOffice profile (`-env:UserInstallation=file://` under `fs_mktemp`) so runs do not collide; runs batch several files per `soffice` start; the first fixture completes inside 60 s on a cold start (measure; mitigation in 6.7) |
 
 #### Wave 2 (needs wave 1's seams; parallel within the wave)
 
@@ -1302,7 +1302,7 @@ agents can keep them full. Wave 3 has four.
 ### 5.4 Phase 1 end-to-end acceptance (B11)
 
 1. **Oracle sweep** over the whole corpus, resumable by index, the whole sweep a
-   loop around `wordcheck N` (each index under 60 s): read parity (`--text`,
+   loop around `quillcheck N` (each index under 60 s): read parity (`--text`,
    `--dump` vs `soffice` `txt` and `fodt`), write parity (LibreOffice opens our
    output, text equal, modelled properties equal), self round trip, page-count
    tolerance.

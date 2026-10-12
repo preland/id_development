@@ -1,96 +1,96 @@
 // Constants of the word processor's document model (docs/QUILL.md 4.1).
 
-// Character row: where each field sits in a row of word_c_width ints. Unset is -1; "on" and "set" are flag bits, so "off" differs from "unset".
-int word_c_style = 0;
-int word_c_font = 1;
-int word_c_size = 2;
-int word_c_color = 3;
-int word_c_hl = 4;
-int word_c_on = 5;
-int word_c_set = 6;
-int word_c_width = 7;
+// Character row: where each field sits in a row of quill_character_width ints. Unset is -1; "on" and "set" are flag bits, so "off" differs from "unset".
+int quill_character_style = 0;
+int quill_character_font = 1;
+int quill_character_size = 2;
+int quill_character_color = 3;
+int quill_character_highlight = 4;
+int quill_character_on = 5;
+int quill_character_set = 6;
+int quill_character_width = 7;
 
-// Paragraph row: where each field sits in a row of word_p_width ints.
-int word_p_style = 0;
-int word_p_align = 1;
-int word_p_left = 2;
-int word_p_right = 3;
-int word_p_first = 4;
-int word_p_before = 5;
-int word_p_after = 6;
-int word_p_line = 7;
-int word_p_brk = 8;
-int word_p_list = 9;
-int word_p_level = 10;
-int word_p_kind = 11;
-int word_p_width = 12;
+// Paragraph row: where each field sits in a row of quill_paragraph_width ints.
+int quill_paragraph_style = 0;
+int quill_paragraph_alignment = 1;
+int quill_paragraph_indent_left = 2;
+int quill_paragraph_indent_right = 3;
+int quill_paragraph_indent_first = 4;
+int quill_paragraph_space_before = 5;
+int quill_paragraph_space_after = 6;
+int quill_paragraph_line_percent = 7;
+int quill_paragraph_break_before = 8;
+int quill_paragraph_list = 9;
+int quill_paragraph_level = 10;
+int quill_paragraph_kind = 11;
+int quill_paragraph_width = 12;
 
 // Character flag bits, as kept in the "on" and "set" fields.
-int word_f_bold = 1;
-int word_f_italic = 2;
-int word_f_under = 4;
-int word_f_strike = 8;
-int word_f_super = 16;
-int word_f_sub = 32;
-int word_f_all = 63;
+int quill_flag_bold = 1;
+int quill_flag_italic = 2;
+int quill_flag_underline = 4;
+int quill_flag_strike = 8;
+int quill_flag_superscript = 16;
+int quill_flag_subscript = 32;
+int quill_flag_all = 63;
 
 // Style.rel and Style.fmt offsets; a style's family is 0 for a paragraph style and 1 for a character style.
-int word_s_family = 0;
-int word_s_parent = 1;
-int word_s_next = 2;
-int word_s_cprop = 0;
-int word_s_pprop = 1;
+int quill_style_family = 0;
+int quill_style_parent = 1;
+int quill_style_next = 2;
+int quill_style_character_property = 0;
+int quill_style_paragraph_property = 1;
 
 // ListDef.levels: five ints per level; kind 0 is a bullet whose format is its code point, kind 1 is a number whose format is 0 decimal, 1 lower alpha, 2 upper alpha, 3 lower roman, 4 upper roman.
-int word_l_stride = 5;
-int word_l_kind = 0;
-int word_l_fmt = 1;
-int word_l_start = 2;
-int word_l_left = 3;
-int word_l_hang = 4;
+int quill_list_level_stride = 5;
+int quill_list_level_kind = 0;
+int quill_list_level_format = 1;
+int quill_list_level_start = 2;
+int quill_list_level_indent = 3;
+int quill_list_level_hanging = 4;
 
 // Page.size and Page.margin offsets, and the A4 portrait page with one inch margins in twips.
-int word_g_w = 0;
-int word_g_h = 1;
-int word_g_orient = 2;
-int word_g_top = 0;
-int word_g_right = 1;
-int word_g_bottom = 2;
-int word_g_left = 3;
-int[] word_page_size = [11906, 16838, 0];
-int[] word_page_margin = [1440, 1440, 1440, 1440];
+int quill_page_width = 0;
+int quill_page_height = 1;
+int quill_page_orientation = 2;
+int quill_page_margin_top = 0;
+int quill_page_margin_right = 1;
+int quill_page_margin_bottom = 2;
+int quill_page_margin_left = 3;
+int[] quill_page_size = [11906, 16838, 0];
+int[] quill_page_margin = [1440, 1440, 1440, 1440];
 
 // The family every run uses until told otherwise; ext.fonts[0] of a new document.
-string word_font_default = "serif";
+string quill_font_default = "serif";
 
 // How many parents a style chain may walk before it is taken for a cycle.
-int word_style_depth = 16;
+int quill_style_depth = 16;
 
 // The built-in styles in index order: the name shown in the UI, the name on the wire (ODT), [family, parent, next], the character row and the paragraph row. These numbers are chosen defaults, not measured against Word.
-string[] word_style_names = ["Normal", "Title", "Subtitle", "Heading 1", "Heading 2", "Heading 3", "List Paragraph", "Quote"];
-string[] word_style_wire = ["Standard", "Title", "Subtitle", "Heading_20_1", "Heading_20_2", "Heading_20_3", "List_20_Paragraph", "Quote"];
-int[] word_style_rel = [0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0];
-int[] word_style_crow = [0, 0, 24, -1, -1, 0, 0, 0, -1, 56, -1, -1, 0, 0, 0, -1, 30, 5855577, -1, 0, 0, 0, -1, 32, -1, -1, 1, 1, 0, -1, 28, -1, -1, 1, 1, 0, -1, 26, -1, -1, 1, 1, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 2, 2];
-int[] word_style_prow = [-1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0, -1, -1, -1, -1, -1, 0, 240, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 0, 160, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 200, 0, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 160, 0, -1, 0, 0, 0, 0, -1, -1, 720, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, 720, 720, -1, 200, 200, -1, 0, 0, 0, 0];
+string[] quill_style_names = ["Normal", "Title", "Subtitle", "Heading 1", "Heading 2", "Heading 3", "List Paragraph", "Quote"];
+string[] quill_style_wire = ["Standard", "Title", "Subtitle", "Heading_20_1", "Heading_20_2", "Heading_20_3", "List_20_Paragraph", "Quote"];
+int[] quill_style_relations = [0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0];
+int[] quill_style_character_rows = [0, 0, 24, -1, -1, 0, 0, 0, -1, 56, -1, -1, 0, 0, 0, -1, 30, 5855577, -1, 0, 0, 0, -1, 32, -1, -1, 1, 1, 0, -1, 28, -1, -1, 1, 1, 0, -1, 26, -1, -1, 1, 1, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 2, 2];
+int[] quill_style_paragraph_rows = [-1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0, -1, -1, -1, -1, -1, 0, 240, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 0, 160, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 200, 0, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 160, 0, -1, 0, 0, 0, 0, -1, -1, 720, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, 720, 720, -1, 200, 200, -1, 0, 0, 0, 0];
 
 // The two built-in list definitions after the placeholder at index 0 (list id 0 means no list): three levels each.
-string[] word_list_names = ["Bullet", "Number"];
-int[] word_list_bullet = [0, 8226, 0, 720, 360, 0, 9702, 0, 1440, 360, 0, 9642, 0, 2160, 360];
-int[] word_list_number = [1, 0, 1, 720, 360, 1, 1, 1, 1440, 360, 1, 3, 1, 2160, 360];
+string[] quill_list_names = ["Bullet", "Number"];
+int[] quill_list_bullet = [0, 8226, 0, 720, 360, 0, 9702, 0, 1440, 360, 0, 9642, 0, 2160, 360];
+int[] quill_list_number = [1, 0, 1, 720, 360, 1, 1, 1, 1440, 360, 1, 3, 1, 2160, 360];
 
 // The rows every table starts with, so that row id 0 is "nothing set" in both tables.
-int[] word_row_cdef = [0, -1, -1, -1, -1, 0, 0];
-int[] word_row_pdef = [0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0];
+int[] quill_row_character_default = [0, -1, -1, -1, -1, 0, 0];
+int[] quill_row_paragraph_default = [0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0];
 
 // How text_apply changes a run's character row: set a field to a value, or turn flag bits on, off or back to unset.
-int word_m_field = 0;
-int word_m_bits = 1;
+int quill_mode_field = 0;
+int quill_mode_bits = 1;
 
 // The 16 slots the invariant script draws an operation from (docs/QUILL.md 5.3 B1): 0 insert, 1 delete, 2 runs_set, 3 patch, 4 patch_bits, 5 split, 6 join, 7 insert paragraph, 8 remove paragraph, 9 merge. Inserts come up most, so paragraphs grow before they shrink.
-int[] word_script_roll = [0, 0, 0, 0, 1, 1, 2, 3, 4, 5, 5, 6, 7, 8, 9, 0];
+int[] quill_script_roll = [0, 0, 0, 0, 1, 1, 2, 3, 4, 5, 5, 6, 7, 8, 9, 0];
 
 // What a patch step sets, as [field, value] pairs: font size in half-points, font colour, highlight colour, and -1 for unset.
-int[] word_script_patch = [2, 24, 2, 28, 2, -1, 3, 255, 3, 65280, 4, 16776960];
+int[] quill_script_patch = [2, 24, 2, 28, 2, -1, 3, 255, 3, 65280, 4, 16776960];
 
 // ===== B7a: ribbon and key tables (begin) =====
 int rib_tab_file = 0;
@@ -281,7 +281,7 @@ int ed_u_doc = 5;
 int ed_f_case = 1;
 int ed_f_back = 2;
 
-// sel_state fields: 0 to 6 are word_c_* offsets, ed_s_flag plus a word_f_* bit asks about that flag, ed_s_para plus a word_p_* offset asks about a paragraph field.
+// sel_state fields: 0 to 6 are quill_character_* offsets, ed_s_flag plus a quill_flag_* bit asks about that flag, ed_s_para plus a quill_paragraph_* offset asks about a paragraph field.
 int ed_s_flag = 100;
 int ed_s_para = 200;
 
@@ -301,42 +301,42 @@ int ed_t_rounds = 96;
 // ===== B2: edit core (end) =====
 // ===== B3a: one-paragraph layout (begin) =====
 // Layout always runs at 100 percent; a face resolved for zoom z has pixel size px * z / 100 (docs/QUILL.md 3.3.5).
-int word_lay_zoom = 100;
+int quill_layout_zoom = 100;
 // Font size in half-points when nothing in the row, its character style or its paragraph style sets one.
-int word_lay_size = 24;
+int quill_layout_font_size = 24;
 // Superscript and subscript text is drawn at this percent of its size, and lifted or dropped by the percent of the nominal size below (ODT's style:text-position defaults).
-int word_lay_script = 58;
-int word_lay_sup = 33;
-int word_lay_sub = 33;
+int quill_layout_script_percent = 58;
+int quill_layout_superscript_lift = 33;
+int quill_layout_subscript_drop = 33;
 // Default tab stops: every 36 pt, in layout units (1/64 px at 96 dpi).
-int word_lay_tab = 3072;
+int quill_layout_tab_stop = 3072;
 // Line spacing in percent when unset.
-int word_lay_pct = 100;
+int quill_layout_line_percent = 100;
 // Code points layout treats specially.
-int word_cp_tab = 9;
-int word_cp_space = 32;
-int word_cp_dash = 45;
-int word_cp_dot = 46;
-// Paragraph alignment values of the word_p_align field.
-int word_al_center = 1;
-int word_al_right = 2;
-int word_al_justify = 3;
+int quill_code_point_tab = 9;
+int quill_code_point_space = 32;
+int quill_code_point_dash = 45;
+int quill_code_point_dot = 46;
+// Paragraph alignment values of the quill_paragraph_alignment field.
+int quill_alignment_center = 1;
+int quill_alignment_right = 2;
+int quill_alignment_justify = 3;
 // Lay.lines: six ints per line, [lo, hi, y, asc, desc, width]; asc includes the extra leading, so the baseline is y + asc.
-int word_ln_lo = 0;
-int word_ln_hi = 1;
-int word_ln_y = 2;
-int word_ln_asc = 3;
-int word_ln_desc = 4;
-int word_ln_w = 5;
-int word_ln_stride = 6;
+int quill_line_low = 0;
+int quill_line_high = 1;
+int quill_line_y = 2;
+int quill_line_ascent = 3;
+int quill_line_descent = 4;
+int quill_line_width = 5;
+int quill_line_stride = 6;
 // Roman numerals: the value of each symbol, and its one or two lower-case code points (0 when there is no second).
-int[] word_lay_rv = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
-int[] word_lay_rc = [109, 0, 99, 109, 100, 0, 99, 100, 99, 0, 120, 99, 108, 0, 120, 108, 120, 0, 105, 120, 118, 0, 105, 118, 105, 0];
+int[] quill_layout_roman_values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
+int[] quill_layout_roman_codes = [109, 0, 99, 109, 100, 0, 99, 100, 99, 0, 120, 99, 108, 0, 120, 108, 120, 0, 105, 120, 118, 0, 105, 118, 105, 0];
 // ===== B3a: one-paragraph layout (end) =====
 
 // ===== B4a: ODT content reader (begin) =====
-// An opaque block or object is one private-use code point, word_o_marker plus the index of its Part in ext.parts (plane 15, U+F0000).
-int word_o_marker = 983040;
+// An opaque block or object is one private-use code point, quill_object_marker plus the index of its Part in ext.parts (plane 15, U+F0000).
+int quill_object_marker = 983040;
 
 // Part.kind: verbatim XML of an element the model does not edit, and a zip entry the model does not know.
 int orc_part_raw = 0;
@@ -428,7 +428,7 @@ int ost_e_content = 51;
 // ===== B4b: ODT styles reader (end) =====
 
 // ===== B5a: ODT content writer (begin) =====
-// Code points from word_o_marker up are not text: marker + i stands for ext.parts[i], an opaque block (as the first code point of a paragraph whose kind is 1) or an inline object (inside a text paragraph). The reader writes them, the writer reads them.
+// Code points from quill_object_marker up are not text: marker + i stands for ext.parts[i], an opaque block (as the first code point of a paragraph whose kind is 1) or an inline object (inside a text paragraph). The reader writes them, the writer reads them.
 string[] odt_ns_name = ["office", "style", "text", "table", "draw", "fo", "xlink", "dc", "meta", "number", "svg", "chart", "dr3d", "math", "form", "script", "ooo", "ooow", "oooc", "of", "xhtml", "grddl", "officeooo", "tableooo", "drawooo", "calcext", "loext", "field", "formx"];
 string[] odt_ns_uri = ["urn:oasis:names:tc:opendocument:xmlns:office:1.0", "urn:oasis:names:tc:opendocument:xmlns:style:1.0", "urn:oasis:names:tc:opendocument:xmlns:text:1.0", "urn:oasis:names:tc:opendocument:xmlns:table:1.0", "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0", "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0", "http://www.w3.org/1999/xlink", "http://purl.org/dc/elements/1.1/", "urn:oasis:names:tc:opendocument:xmlns:meta:1.0", "urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0", "urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0", "urn:oasis:names:tc:opendocument:xmlns:chart:1.0", "urn:oasis:names:tc:opendocument:xmlns:dr3d:1.0", "http://www.w3.org/1998/Math/MathML", "urn:oasis:names:tc:opendocument:xmlns:form:1.0", "urn:oasis:names:tc:opendocument:xmlns:script:1.0", "http://openoffice.org/2004/office", "http://openoffice.org/2004/writer", "http://openoffice.org/2004/calc", "urn:oasis:names:tc:opendocument:xmlns:of:1.2", "http://www.w3.org/1999/xhtml", "http://www.w3.org/2003/g/data-view#", "http://openoffice.org/2009/office", "http://openoffice.org/2009/table", "http://openoffice.org/2010/draw", "urn:org:documentfoundation:names:experimental:calc:xmlns:calcext:1.0", "urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0", "urn:openoffice:names:experimental:ooo-ms-interop:xmlns:field:1.0", "urn:openoffice:names:experimental:ooxml-odf-interop:xmlns:form:1.0"];
 string[] odt_align = ["start", "center", "end", "justify"];
@@ -443,7 +443,7 @@ string[] odt_cls_el = ["", "", "", "text:tab", "text:line-break"];
 // ===== B5b: ODT package constants (begin) =====
 string odp_mime = "application/vnd.oasis.opendocument.text";
 string odp_version = "1.3";
-string odp_generator = "word (id)";
+string odp_generator = "quill (id)";
 string odp_layout_name = "pm1";
 string odp_master_name = "Standard";
 string odp_octets = "application/octet-stream";
@@ -459,8 +459,8 @@ string[] odw_errors = ["ODT: this document cannot be written as it is; make the 
 // ===== B5b: ODT package constants (end) =====
 // ===== V1: the viewer (begin) =====
 // The height in lu (1/64 px) of the box that stands for an object, a table or a picture, in the flow, 72 px; and the gap between two sheets in the continuous document, 24 px.
-int word_lay_obj = 4608;
-int word_lay_gap = 1536;
+int quill_layout_object_height = 4608;
+int quill_layout_sheet_gap = 1536;
 
 // The window chrome as idml (docs/QUILL.md 3.5.1, decision 7.2): the ribbon band on top, the page area beside the scrollbar, the status bar under them. Sizes that are fixed in pixels are @references that vw_dim answers in basis points of the window.
 string[] vw_idml = ["Ribbon:Col `ribbon` {}", "Canvas:Col `canvas` {}", "Bar:Col `vbar` {}", "Status:Col `status` {}", "", "./", "Col()[100,100,top-left] {", "  Ribbon()[@rib_h,100,top-left]{}", "  Row()[@mid_h,100,top-left] {", "    Canvas()[100,@cv_w,top-left]{}", "    Bar()[100,@bar_w,top-left]{}", "  }", "  Status()[@st_h,100,top-left]{}", "}"];
@@ -514,7 +514,7 @@ int vw_c_red = 12582912;
 // ===== V1: the viewer (end) =====
 // ===== B3b: pagination, hit testing and selection rectangles (begin) =====
 // The width in lu of the highlight a selected paragraph mark gets at the end of its last line, 4 px, so that a selected empty paragraph still shows.
-int word_lay_mark = 256;
+int quill_layout_mark_width = 256;
 // ===== B3b: pagination, hit testing and selection rectangles (end) =====
 // ===== B6: the canvas (begin) =====
 // The selection's fill, 0xRRGGBB, and how much of it covers the text under it out of 255; the caret's colour; and how long in milliseconds each half of its blink lasts (it is dark for one half after it has been solid for one).
@@ -549,15 +549,15 @@ int[] cv_k_cdir = [-1, 1, -1, 1, -1, 1, 0, 0, 0, 0, 0, 0, 0];
 int[] cv_k_cunit = [1, 1, 3, 3, 5, 5, 0, 0, 0, 0, 0, 0, 0];
 // The formatting commands of the ribbon table that the canvas does with a flag toggle, and the flag bit each toggles.
 int[] cv_f_cmd = [cmd_bold, cmd_italic, cmd_underline, cmd_strike, cmd_sub, cmd_sup];
-int[] cv_f_bit = [word_f_bold, word_f_italic, word_f_under, word_f_strike, word_f_sub, word_f_super];
-// The alignment commands, in the order of the values of the paragraph field word_p_align (0 left, 1 centre, 2 right, 3 justify).
+int[] cv_f_bit = [quill_flag_bold, quill_flag_italic, quill_flag_underline, quill_flag_strike, quill_flag_subscript, quill_flag_superscript];
+// The alignment commands, in the order of the values of the paragraph field quill_paragraph_alignment (0 left, 1 centre, 2 right, 3 justify).
 int[] cv_al_cmd = [cmd_align_left, cmd_align_center, cmd_align_right, cmd_align_justify];
 // The commands that give a character field the argument of the ribbon as its value and the field each sets: the font size in half-points, the font colour and the highlight as 0xRRGGBB (-1 for automatic and for none).
 int[] cv_cc_cmd = [cmd_font_size, cmd_font_color, cmd_highlight];
-int[] cv_cc_fld = [word_c_size, word_c_color, word_c_hl];
+int[] cv_cc_fld = [quill_character_size, quill_character_color, quill_character_highlight];
 // The commands that give a paragraph field the argument as its value and the field each sets: the line spacing in percent, the indents and the spaces in twips.
 int[] cv_pc_cmd = [cmd_line_spacing, cmd_indent_left, cmd_indent_right, cmd_space_before, cmd_space_after];
-int[] cv_pc_fld = [word_p_line, word_p_left, word_p_right, word_p_before, word_p_after];
+int[] cv_pc_fld = [quill_paragraph_line_percent, quill_paragraph_indent_left, quill_paragraph_indent_right, quill_paragraph_space_before, quill_paragraph_space_after];
 // How much one press of the grow and shrink buttons changes the font size, in half-points, and of the indent buttons the left indent, in twips.
 int cv_grow = 2;
 int cv_indent = 720;
@@ -573,7 +573,7 @@ int cv_lk_dirty = 12;
 int wa_w = 1180;
 int wa_h = 780;
 // The title of the window: the file's name, a star right after it while the document has changes that are not saved, then the program; the name a document has before it is first saved.
-string wa_prog = " - Word";
+string wa_prog = " - Quill";
 string wa_star = "*";
 string wa_untitled = "Untitled";
 // What a save adds to the file's path for the file it writes first, which replaces the real one only when it is whole.
@@ -598,7 +598,7 @@ string[] wa_d_names = ["none", "unsaved", "open", "save", "message"];
 // What the dialogs say: the heading and the buttons of the unsaved-changes question (Save is button 0, Don't Save 1, Cancel 2), of a message that has only OK, and of the two pickers, which have only Cancel because choosing a file chooses it; the lines of the pickers dialog that are left to the file list; the narrowest a dialog is and the widest its message lines are, in pixels.
 string wa_h_ask = "Unsaved changes";
 string[] wa_k_ask = ["Save", "Don't Save", "Cancel"];
-string wa_h_msg = "Word";
+string wa_h_msg = "Quill";
 string[] wa_k_msg = ["OK"];
 string wa_h_open = "Open";
 string wa_h_save = "Save As";

@@ -1,0 +1,33 @@
+// How many consecutively numbered fixtures the .odt directory holds: the first index with no file ends the count.
+fixt_count(string odt_dir) {
+  int n = 1;
+  string stem = fixt_name(odt_dir, n);
+  while (stem != "") {
+    n = n + 1;
+    stem = fixt_name(odt_dir, n);
+  }
+} chain (string odt_dir) {
+  int total = n - 1;
+} return int total;
+("../quillcorpus/odt"):(12)
+("../quillcorpus/none"):(0)
+
+// Prints "N name" for fixture n.
+fixt_say(string odt_dir, int n) {
+  string stem = fixt_name(odt_dir, n);
+  print("" + n + " " + stem);
+} return void;
+("../quillcorpus/odt", 3):() then prints:("3 03_inline\n")
+("../quillcorpus/odt", 12):() then prints:("12 12_image\n")
+
+// Prints one "N name" line per fixture, in index order.
+fixt_list(string odt_dir) {
+  int total = fixt_count(odt_dir);
+  int n = 1;
+  while (n <= total) {
+    fixt_say(odt_dir, n);
+    n = n + 1;
+  }
+} return void;
+("../quillcorpus/none"):() then prints:("")
+("../quillcorpus/odt"):() then prints:("1 01_plain\n2 02_headings\n3 03_inline\n4 04_colours\n5 05_lists\n6 06_pagebreak\n7 07_pages\n8 08_long\n9 09_unicode\n10 10_empty\n11 11_table\n12 12_image\n")

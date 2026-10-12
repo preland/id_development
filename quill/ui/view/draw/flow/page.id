@@ -18,7 +18,7 @@ given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_paras
 // Draws the lines of paragraph vwi_p that belong on page vwi_k: from the line the page starts at when the paragraph carries on from the page before, to the line the next page starts at when the paragraph goes on after it, else all of them.
 vw_pone(View vwv, int vwi_k, int vwi_p, int[] vwl_g) {
   int vwi_jf = 0;
-  int vwi_jt = len(vwv.doc.body.paras[vwi_p].lay.lines) / (import word_ln_stride);
+  int vwi_jt = len(vwv.doc.body.paras[vwi_p].lay.lines) / (import quill_line_stride);
   if(vwi_p == vwv.pages.starts[2 * vwi_k]) {
     vwi_jf = vwv.pages.starts[2 * vwi_k + 1];
   }
@@ -44,10 +44,10 @@ given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_ins(0
 vw_base(View vwv, int vwi_k, int vwi_p) {
   int vwi_s = vwv.pages.starts[2 * vwi_k + 1];
   int vwi_st = vwv.pages.starts[2 * vwi_k];
-  int vwi_b = vwv.pages.tops[vwi_p] - vwi_k * (lay_sheet(vwv.doc, 1) + (import word_lay_gap)) - lay_margin(vwv.doc, 0);
+  int vwi_b = vwv.pages.tops[vwi_p] - vwi_k * (lay_sheet(vwv.doc, 1) + (import quill_layout_sheet_gap)) - lay_margin(vwv.doc, 0);
 } chain (View vwv, int vwi_k, int vwi_p) {
   if(vwi_p == vwi_st && vwi_s > 0) {
-    vwi_b = 0 - vwv.doc.body.paras[vwi_p].lay.lines[vwi_s * (import word_ln_stride) + (import word_ln_y)];
+    vwi_b = 0 - vwv.doc.body.paras[vwi_p].lay.lines[vwi_s * (import quill_line_stride) + (import quill_line_y)];
   }
 } return int vwi_b;
 given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_paras(8) given lay_all((import lp_t_v)) given lg_t_pag ((import lp_t_v), 0, 3):(4992)

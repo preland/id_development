@@ -5,8 +5,8 @@ lay_range(Para lhpa, int lhi, int lhj, Pos lhsa, Pos lhsb, int[] lhr) {
   int lhf = lhsa.off * (lhi == lhsa.para);
   int lht = lhn + (lhsb.off - lhn) * (lhi == lhsb.para);
 } chain (Para lhpa, int lhi, int lhj, Pos lhsa, Pos lhsb, int[] lhr) {
-  int lhlo = lhpa.lay.lines[lhj * (import word_ln_stride) + (import word_ln_lo)];
-  int lhhi = lhpa.lay.lines[lhj * (import word_ln_stride) + (import word_ln_hi)];
+  int lhlo = lhpa.lay.lines[lhj * (import quill_line_stride) + (import quill_line_low)];
+  int lhhi = lhpa.lay.lines[lhj * (import quill_line_stride) + (import quill_line_high)];
   lset(lhr, 0, fixed_point_maximum(lhlo, lhf));
 } chain (Para lhpa, int lhi, int lhj, Pos lhsa, Pos lhsb, int[] lhr) {
   int lhm = (lhi < lhsb.para) * (lhhi == lhn);
@@ -21,12 +21,12 @@ lay_range(Para lhpa, int lhi, int lhj, Pos lhsa, Pos lhsb, int[] lhr) {
 // The x, in lu from the left edge of the text area, where a selection that ends at offset lhb of line lhj stops: the pen of that offset, except at the end of a line that is followed by another, where the pen of the offset is the start of the next line and the line's own end, its start plus its used width, is meant.
 // By hand: in "BBB EEE BBB" the end of line 0 (offset 4) is 0 + 2049, the used width of the line, not 0 which is the pen of the start of line 1; offset 2 is its pen 1366; the end of the text, offset 11, is its pen 2049.
 lay_xend(Para lhpa, int lhj, int lhb) {
-  int lhlo = lhpa.lay.lines[lhj * (import word_ln_stride) + (import word_ln_lo)];
-  int lhhi = lhpa.lay.lines[lhj * (import word_ln_stride) + (import word_ln_hi)];
+  int lhlo = lhpa.lay.lines[lhj * (import quill_line_stride) + (import quill_line_low)];
+  int lhhi = lhpa.lay.lines[lhj * (import quill_line_stride) + (import quill_line_high)];
   int lhx = lhpa.lay.pen[lhb];
 } chain (Para lhpa, int lhj, int lhb) {
   if(lhb == lhhi && lhhi < len(lhpa.txt.cps)) {
-    lhx = lhpa.lay.pen[lhlo] + lhpa.lay.lines[lhj * (import word_ln_stride) + (import word_ln_w)];
+    lhx = lhpa.lay.pen[lhlo] + lhpa.lay.lines[lhj * (import quill_line_stride) + (import quill_line_width)];
   }
 } return int lhx;
 (Para(Text([66, 66, 66, 32, 69, 69, 69, 32, 66, 66, 66], [Run(11, 0, -1)], 0), Lay([0, 4, 0, 960, 192, 2049, 4, 8, 1152, 960, 192, 2049, 8, 11, 2304, 960, 192, 2049], [0, 683, 1366, 2049, 0, 683, 1366, 2049, 0, 683, 1366, 2049], 3968), 0), 0, 4):(2049)

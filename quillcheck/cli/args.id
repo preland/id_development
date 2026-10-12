@@ -1,0 +1,58 @@
+// Which of the driver's modes a command line asks for: run one fixture, list them, count them, print the oracle's dump of one, compare a quill binary's dump of one, or none of those.
+cli_mode(int argc, string[] argv) {
+  int mode = (import mode_usage);
+  if (argc >= 2 && argc <= 5) {
+    mode = cli_pick(argv[1], argc);
+  }
+} return int mode;
+(1, ["quillcheck"]):(0)
+(6, ["quillcheck", "1", "x", "y", "z", "w"]):(0)
+(2, ["quillcheck", "7"]):(1)
+(3, ["quillcheck", "--list", "assets"]):(2)
+(4, ["quillcheck", "--oracle", "7", "assets"]):(4)
+(5, ["quillcheck", "--dump", "7", "bin", "assets"]):(5)
+
+// The mode a first word names, given how many words the command line has: a fixture index (digits only), --list or --count with at most one more word, --oracle with a fixture and at most an assets directory, --dump with a fixture, a quill binary and at most an assets directory; anything else is no mode.
+cli_pick(string first_argument, int argc) {
+  int mode = (import mode_usage);
+  if (cli_digits(first_argument) == 1 && argc <= 3) {
+    mode = (import mode_run);
+  }
+  if (first_argument == "--list" && argc <= 3) {
+    mode = (import mode_list);
+  }
+} chain (string first_argument, int argc) {
+  if (first_argument == "--count" && argc <= 3) {
+    mode = (import mode_count);
+  }
+  if (first_argument == "--oracle" && argc >= 3 && argc <= 4) {
+    mode = (import mode_oracle);
+  }
+  if (first_argument == "--dump" && argc >= 4 && argc <= 5) {
+    mode = (import mode_dump);
+  }
+} return int mode;
+("12", 2):(1)
+("12", 4):(0)
+("--list", 2):(2)
+("--count", 3):(3)
+("--count", 4):(0)
+("--oracle", 3):(4)
+("--oracle", 2):(0)
+("--dump", 4):(5)
+("--dump", 3):(0)
+("12x", 2):(0)
+
+// 1 when every byte of the word is a digit and there is at least one.
+cli_digits(string candidate) {
+  int i = 0;
+  int ok = len(candidate) > 0;
+  while (charat(candidate, i) >= 0) {
+    ok = ok * chr_is_digit(charat(candidate, i));
+    i = i + 1;
+  }
+} return int ok;
+("0123"):(1)
+(""):(0)
+("1a"):(0)
+("a1"):(0)

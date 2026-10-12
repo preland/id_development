@@ -2,11 +2,11 @@
 // By hand at 16 px (B and E 683, a space 285): "BBBB EEEE" scanned in 3500 lu has the line "BBBB " with pen 0 to 3017, used width 2732. Centred it moves (3500 - 2732) / 2 = 384, right-aligned 768. "BBB EEE BBB" in 5000 lu breaks after "BBB EEE " with used width 4383; justified it widens its one inner space by 5000 - 4383 = 617, so the pen after the space is 2334 + 617 = 2951 and the end of the text 5000, and the width answered is 5000. The last line, or a paragraph that is not justified, stays put.
 lp_align(View v, int i, int lo, int hi, int avail, int w) {
   Para p = v.doc.body.paras[i];
-  int al = style_eff_p(v.doc.fmt, p.pprop, (import word_p_align));
+  int al = style_eff_p(v.doc.fmt, p.pprop, (import quill_paragraph_alignment));
   int last = hi == len(p.txt.cps);
 } chain (View v, int i, int lo, int hi, int avail, int w) {
   int wf = w;
-  if(al == (import word_al_justify) && last == 0 && avail > w) {
+  if(al == (import quill_alignment_justify) && last == 0 && avail > w) {
     lp_just(p, lo, hi, avail - w);
     wf = avail;
   }
@@ -19,11 +19,11 @@ given lp_t_font given lp_t_ins(0, "BBB EEE BBB") given lp_t_row(0, 1, 3) given l
 given lp_t_font given lp_t_ins(0, "BBB") given lp_t_row(0, 1, 3) given lp_t_scan(0, 0, 3000) ((import lp_t_v), 0, 0, 3, 3000, 2049):(2049) then lp_t_p0:([0, 683, 1366, 2049])
 given lp_t_font given lp_t_ins(0, "BBB EEE BBB") given lp_t_row(0, 1, 3) given lp_t_scan(0, 0, 4383) ((import lp_t_v), 0, 0, 8, 4383, 4383):(4383) then lp_t_p0:([0, 683, 1366, 2049, 2334, 3017, 3700, 4383, 4668, 5351])
 
-// The ascent of a line in lu with its extra leading folded in: the line is (asc + desc) * pct / 100 tall, the descent stays, and what is left above it is the ascent, never below 0. An unset pct (-1) is word_lay_pct, single spacing.
+// The ascent of a line in lu with its extra leading folded in: the line is (asc + desc) * pct / 100 tall, the descent stays, and what is left above it is the ascent, never below 0. An unset pct (-1) is quill_layout_line_percent, single spacing.
 // By hand with asc 896 and desc 192: 100 percent gives 1088 - 192 = 896; 150 percent gives 1632 - 192 = 1440; 10 percent gives 108 - 192, which is below 0, so 0.
 lp_lead(int asc, int desc, int pct) {
   if(pct < 0) {
-    pct = (import word_lay_pct);
+    pct = (import quill_layout_line_percent);
   }
   int top = fixed_point_maximum((asc + desc) * pct / 100 - desc, 0);
 } return int top;

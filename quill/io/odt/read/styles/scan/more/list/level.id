@@ -37,17 +37,17 @@ ost_bullet(string os_sv) {
 // Sets the five ints of level ilevel (0 to 2) from the level element the reader is at: bullet or number, its character or format, and where numbering starts.
 ost_lvl_head(int[] os_llv, XmlR os_r, int os_ilevel) {
   string os_sname = xr_get(os_r, (import xr_k_name));
-  int os_ib = os_ilevel * (import word_l_stride);
-  os_llv[os_ib + (import word_l_kind)] = os_sname == "text:list-level-style-number";
+  int os_ib = os_ilevel * (import quill_list_level_stride);
+  os_llv[os_ib + (import quill_list_level_kind)] = os_sname == "text:list-level-style-number";
 } chain (int[] os_llv, XmlR os_r, int os_ilevel) {
-  os_llv[os_ib + (import word_l_fmt)] = ost_bullet(xr_attr(os_r, "text:bullet-char"));
-  os_llv[os_ib + (import word_l_start)] = 1;
+  os_llv[os_ib + (import quill_list_level_format)] = ost_bullet(xr_attr(os_r, "text:bullet-char"));
+  os_llv[os_ib + (import quill_list_level_start)] = 1;
   if(os_sname == "text:list-level-style-number") {
-    os_llv[os_ib + (import word_l_fmt)] = ost_numfmt(xr_attr(os_r, "style:num-format"));
+    os_llv[os_ib + (import quill_list_level_format)] = ost_numfmt(xr_attr(os_r, "style:num-format"));
   }
 } chain (int[] os_llv, XmlR os_r, int os_ilevel) {
   if(xr_attr(os_r, "text:start-value") != "") {
-    os_llv[os_ib + (import word_l_start)] = to_int(xr_attr(os_r, "text:start-value"));
+    os_llv[os_ib + (import quill_list_level_start)] = to_int(xr_attr(os_r, "text:start-value"));
   }
 } return void;
 given ost_t_open("<text:list-level-style-number text:level=\"1\" style:num-format=\"a\" text:start-value=\"3\"/>") given xr_skip((import ost_t_r), 1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0):([1, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0)

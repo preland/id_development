@@ -1,8 +1,8 @@
 // The style a paragraph of style sid is followed by when Enter is pressed at its end (Heading 1 is followed by Normal); a style with no next, or an id that is no style, stays itself.
 style_next(Doc d, int sid) {
   int nx = sid;
-  if(sid >= 0 && sid < len(d.fmt.sty.styles) && d.fmt.sty.styles[sid].rel[(import word_s_next)] >= 0) {
-    nx = d.fmt.sty.styles[sid].rel[(import word_s_next)];
+  if(sid >= 0 && sid < len(d.fmt.sty.styles) && d.fmt.sty.styles[sid].rel[(import quill_style_next)] >= 0) {
+    nx = d.fmt.sty.styles[sid].rel[(import quill_style_next)];
   }
 } return int nx;
 given fx_setup("") ((import fxd), 3):(0)
@@ -11,10 +11,10 @@ given fx_setup("") ((import fxd), 99):(99)
 
 // The paragraph row of the paragraph that Enter or a page break creates after one with row pprop: the same row with the page break set to brk, and at the end of the paragraph (atend 1) the style that follows its style.
 pprop_after(Doc d, int pprop, int atend, int brk) {
-  int pn = tab_with(d.fmt.paras, pprop, (import word_p_brk), brk);
-  int nx = style_next(d, tab_get(d.fmt.paras, pn, (import word_p_style)));
+  int pn = tab_with(d.fmt.paras, pprop, (import quill_paragraph_break_before), brk);
+  int nx = style_next(d, tab_get(d.fmt.paras, pn, (import quill_paragraph_style)));
   if(atend == 1) {
-    pn = tab_with(d.fmt.paras, pn, (import word_p_style), nx);
+    pn = tab_with(d.fmt.paras, pn, (import quill_paragraph_style), nx);
   }
 } return int pn;
 given fx_setup("") ((import fxd), 0, 1, 0):(0)

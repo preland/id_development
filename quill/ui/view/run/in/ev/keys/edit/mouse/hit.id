@@ -1,8 +1,8 @@
 // The page, counted from 0, that the row cvi_y lu down the continuous document (as the paragraph tops count: a gap above the first sheet, then every sheet and a gap) falls on: the sheet it is on or the gap under it, never before the first page or after the last.
 // By hand: a sheet and its gap are 12800 + 1536 = 14336 lu; row 20000 less the first gap is 18464, one pitch and some, so the second page.
 cv_page_of(View cvv, int cvi_y) {
-  int cvi_pitch = lay_sheet(cvv.doc, 1) + (import word_lay_gap);
-  int cvi_k = (cvi_y - (import word_lay_gap)) / cvi_pitch;
+  int cvi_pitch = lay_sheet(cvv.doc, 1) + (import quill_layout_sheet_gap);
+  int cvi_k = (cvi_y - (import quill_layout_sheet_gap)) / cvi_pitch;
   int cvi_p = fixed_point_clamp(cvi_k, 0, lay_page_count(cvv) - 1);
 } return int cvi_p;
 given vw_t_two () ((import lp_t_v), 1000):(0)
@@ -13,8 +13,8 @@ given vw_t_two () ((import lp_t_v), 15500):(0)
 // Puts in cvp the position at the point cvi_x lu from the left of the sheet and cvi_y lu down the continuous document, by the page that row falls on and the layout's lay_hit.
 cv_doc_hit(View cvv, int cvi_x, int cvi_y, Pos cvp) {
   int cvi_k = cv_page_of(cvv, cvi_y);
-  int cvi_pitch = lay_sheet(cvv.doc, 1) + (import word_lay_gap);
-  int cvi_t = cvi_y - (import word_lay_gap) - cvi_k * cvi_pitch;
+  int cvi_pitch = lay_sheet(cvv.doc, 1) + (import quill_layout_sheet_gap);
+  int cvi_t = cvi_y - (import quill_layout_sheet_gap) - cvi_k * cvi_pitch;
 } chain (View cvv, int cvi_x, int cvi_y, Pos cvp) {
   lay_hit(cvv, cvi_k, cvi_x, cvi_t, cvp);
 } return void;

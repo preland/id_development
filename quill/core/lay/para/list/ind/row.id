@@ -1,8 +1,8 @@
-// One cell of list definition lid's level lvl (offsets word_l_kind ... word_l_hang), or 0 when there is no such list or level: list 0 means no list, and a level the definition does not have reads as 0.
+// One cell of list definition lid's level lvl (offsets quill_list_level_kind ... quill_list_level_hanging), or 0 when there is no such list or level: list 0 means no list, and a level the definition does not have reads as 0.
 lp_lrow(View v, int lid, int lvl, int off) {
   int val = 0;
   if(lid > 0 && lid < len(v.doc.fmt.sty.lists)) {
-    val = lp_cell(v.doc.fmt.sty.lists[lid].levels, fixed_point_maximum(lvl, 0) * (import word_l_stride) + off);
+    val = lp_cell(v.doc.fmt.sty.lists[lid].levels, fixed_point_maximum(lvl, 0) * (import quill_list_level_stride) + off);
   }
 } return int val;
 given lp_t_new ((import lp_t_v), 1, 0, 3):(720)
@@ -12,18 +12,18 @@ given lp_t_new ((import lp_t_v), 0, 0, 3):(0)
 given lp_t_new ((import lp_t_v), 9, 0, 3):(0)
 given lp_t_new ((import lp_t_v), 1, 7, 3):(0)
 
-// The indent (field word_p_left or word_p_first) a paragraph that is not set directly gets, in twips: a list item takes its level's left indent, and its hanging as a negative first-line indent; anything else takes what its style chain says. The right indent never comes from a list.
+// The indent (field quill_paragraph_indent_left or quill_paragraph_indent_first) a paragraph that is not set directly gets, in twips: a list item takes its level's left indent, and its hanging as a negative first-line indent; anything else takes what its style chain says. The right indent never comes from a list.
 lp_lind(View v, int i, int field) {
   Para p = v.doc.body.paras[i];
   int tw = style_eff_p(v.doc.fmt, p.pprop, field);
-  int lid = lp_prop(v, i, (import word_p_list));
+  int lid = lp_prop(v, i, (import quill_paragraph_list));
 } chain (View v, int i, int field) {
-  int lvl = lp_prop(v, i, (import word_p_level));
-  if(lid > 0 && field == (import word_p_left)) {
-    tw = lp_lrow(v, lid, lvl, (import word_l_left));
+  int lvl = lp_prop(v, i, (import quill_paragraph_level));
+  if(lid > 0 && field == (import quill_paragraph_indent_left)) {
+    tw = lp_lrow(v, lid, lvl, (import quill_list_level_indent));
   }
-  if(lid > 0 && field == (import word_p_first)) {
-    tw = 0 - lp_lrow(v, lid, lvl, (import word_l_hang));
+  if(lid > 0 && field == (import quill_paragraph_indent_first)) {
+    tw = 0 - lp_lrow(v, lid, lvl, (import quill_list_level_hanging));
   }
 } return int tw;
 given lp_t_new given lp_t_row(0, 9, 1) ((import lp_t_v), 0, 2):(720)

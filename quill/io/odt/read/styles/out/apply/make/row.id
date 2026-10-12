@@ -2,9 +2,9 @@
 ost_rowc(Doc os_d, StyBag os_b, string[] os_lface, int os_i, int os_istyle) {
   int[] os_lrow = list_copy(os_b.crows[os_i]);
   string os_sfont = os_b.strings[os_i * (import ost_s_width) + (import ost_s_font)];
-  os_lrow[(import word_c_font)] = ost_font_at(os_d, os_lface, os_sfont);
+  os_lrow[(import quill_character_font)] = ost_font_at(os_d, os_lface, os_sfont);
 } chain (Doc os_d, StyBag os_b, string[] os_lface, int os_i, int os_istyle) {
-  os_lrow[(import word_c_style)] = os_istyle;
+  os_lrow[(import quill_character_style)] = os_istyle;
 } return int[] os_lrow;
 (Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["serif"], [], [])), StyBag(["A", "", "", "", "", "Liberation Serif", "t", "n"], [[0, -1, 24, -1, -1, 1, 1]], [[]]), ["Liberation Serif", "Liberation Serif"], 0, 5):([5, 1, 24, -1, -1, 1, 1])
 (Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["serif"], [], [])), StyBag(["A", "", "", "", "", "", "t", "n"], [[0, -1, 24, -1, -1, 1, 1]], [[]]), [], 0, 0):([0, -1, 24, -1, -1, 1, 1])
@@ -12,10 +12,10 @@ ost_rowc(Doc os_d, StyBag os_b, string[] os_lface, int os_i, int os_istyle) {
 // The paragraph row of record os_i, ready to intern: the paragraph style it sits on as os_istyle, and its page break and list as the record or its parent chain gives them.
 ost_rowp(Fmt os_f, StyBag os_b, int os_i, int os_istyle) {
   int[] os_lrow = list_copy(os_b.prows[os_i]);
-  os_lrow[(import word_p_style)] = os_istyle;
-  os_lrow[(import word_p_brk)] = ost_fbrk(os_b, os_i, 0);
+  os_lrow[(import quill_paragraph_style)] = os_istyle;
+  os_lrow[(import quill_paragraph_break_before)] = ost_fbrk(os_b, os_i, 0);
 } chain (Fmt os_f, StyBag os_b, int os_i, int os_istyle) {
-  os_lrow[(import word_p_list)] = ost_flist(os_f, os_b, os_i, 0);
+  os_lrow[(import quill_paragraph_list)] = ost_flist(os_f, os_b, os_i, 0);
 } return int[] os_lrow;
 (Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("L1", [], 0)], 0)), StyBag(["A", "", "", "L1", "", "", "p", "n"], [[]], [[-1, 1, -1, -1, -1, -1, -1, -1, 1, 0, 0, 0]]), 0, 4):([4, 1, -1, -1, -1, -1, -1, -1, 1, 1, 0, 0])
 (Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), StyBag(["A", "", "", "", "", "", "p", "n"], [[]], [[-1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]]), 0, -1):([-1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])

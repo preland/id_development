@@ -1,14 +1,14 @@
 // Fills lbl, emptied first, with the label of list item lid at level lvl of paragraph i: a bullet is its one code point; a number is lay_number written in the level's format followed by a full stop. Nothing is written for an unknown list or level.
 lp_lfill(View v, int i, int[] lbl, int lid, int lvl) {
-  int kind = lp_lrow(v, lid, lvl, (import word_l_kind));
-  int lf = lp_lrow(v, lid, lvl, (import word_l_fmt));
+  int kind = lp_lrow(v, lid, lvl, (import quill_list_level_kind));
+  int lf = lp_lrow(v, lid, lvl, (import quill_list_level_format));
   if(kind == 0 && lf > 0) {
     push(lbl, lf);
   }
 } chain (View v, int i, int[] lbl, int lid, int lvl) {
   if(kind == 1) {
     lp_num(lbl, lay_number(v, i), lf);
-    push(lbl, (import word_cp_dot));
+    push(lbl, (import quill_code_point_dot));
   }
 } return void;
 given lp_t_new given lp_t_paras(5) given lp_t_item(0, 2, 0) given lp_t_item(1, 2, 0) given lp_t_item(2, 2, 0) given lp_t_item(3, 2, 1) given lp_t_item(4, 2, 0) ((import lp_t_v), 4, [], 2, 0):((import lp_t_v), 4, [52, 46], 2, 0)
@@ -20,7 +20,7 @@ given lp_t_new ((import lp_t_v), 0, [], 9, 0):((import lp_t_v), 0, [], 9, 0)
 // Fills lbl, emptied first, with the label of paragraph i, nothing for a paragraph that is not a list item. The label is drawn in the face of the paragraph's first run, starting at lay_label_x.
 lay_label(View v, int i, int[] lbl) {
   lp_clear(lbl);
-  lp_lfill(v, i, lbl, lp_prop(v, i, (import word_p_list)), lp_prop(v, i, (import word_p_level)));
+  lp_lfill(v, i, lbl, lp_prop(v, i, (import quill_paragraph_list)), lp_prop(v, i, (import quill_paragraph_level)));
 } return void;
 given lp_t_new given lp_t_paras(3) given lp_t_item(0, 2, 0) given lp_t_item(1, 2, 0) given lp_t_item(2, 1, 0) ((import lp_t_v), 1, [9, 9, 9]):((import lp_t_v), 1, [50, 46])
 given lp_t_new given lp_t_paras(3) given lp_t_item(0, 2, 0) given lp_t_item(1, 2, 0) given lp_t_item(2, 1, 0) ((import lp_t_v), 2, []):((import lp_t_v), 2, [8226])
