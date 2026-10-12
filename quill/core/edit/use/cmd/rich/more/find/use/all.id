@@ -4,6 +4,7 @@ pos_fit(Doc d, Pos ps) {
   ps.off = fixed_point_clamp(ps.off, 0, para_len(d.body.paras[ps.para]));
 } return void;
 given fx_setup("ab|c") ((import fxd), Pos(5, 9)):((import fxd), Pos(1, 1))
+given fx_setup("ab|c") ((import fxd), Pos(0, 9)):((import fxd), Pos(0, 2))
 given fx_setup("ab|c") ((import fxd), Pos(0, 1)):((import fxd), Pos(0, 1))
 
 // Cuts both ends of a selection into the document (see pos_fit), for after an edit that made text shorter.
@@ -12,6 +13,7 @@ sel_fit(Doc d, Sel sel) {
   pos_fit(d, sel.caret);
 } return void;
 given fx_setup("ab|c") ((import fxd), Sel(Pos(0, 9), Pos(7, 7), 5)):((import fxd), Sel(Pos(0, 2), Pos(1, 1), 5))
+given fx_setup("ab|c") ((import fxd), Sel(Pos(1, 5), Pos(0, 0), 3)):((import fxd), Sel(Pos(1, 1), Pos(0, 0), 3))
 given fx_setup("ab|c") ((import fxd), Sel(Pos(0, 1), Pos(1, 0), -1)):((import fxd), Sel(Pos(0, 1), Pos(1, 0), -1))
 
 // Replace All: every match of needle in the document becomes with, as one undo step (even when there are many); answers how many it replaced, and leaves no step at all when there is none. flags is as for find_next, except that the direction is ignored. The selection is cut into the shortened document.

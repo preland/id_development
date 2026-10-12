@@ -8,6 +8,7 @@ rs_copy(Run[] dst, Run[] src) {
   }
 } return void;
 ([], [Run(1, 2, 3), Run(4, 5, 6)]):([Run(1, 2, 3), Run(4, 5, 6)], [Run(1, 2, 3), Run(4, 5, 6)])
+([Run(9, 9, 9)], [Run(1, 2, 3)]):([Run(9, 9, 9), Run(1, 2, 3)], [Run(1, 2, 3)])
 ([Run(9, 9, 9)], []):([Run(9, 9, 9)], [])
 
 // Appends the text of u to t. An empty t gives up its empty run, so the result takes u's properties; an empty u adds nothing.
@@ -32,5 +33,5 @@ text_copy(Text t) {
 } chain (Text t) {
   Text nt = Text(cps, rs, t.rev);
 } return Text nt;
-(Text([1, 2], [Run(2, 3, 4)], 5)):(Text([1, 2], [Run(2, 3, 4)], 5))
-(Text([], [Run(0, 0, -1)], 0)):(Text([], [Run(0, 0, -1)], 0))
+(Text([1, 2], [Run(2, 3, 4)], 5)):(Text([1, 2], [Run(2, 3, 4)], 5)) then calls rs_copy:([Run(2, 3, 4)], [Run(2, 3, 4)])
+(Text([], [Run(0, 0, -1)], 0)):(Text([], [Run(0, 0, -1)], 0)) then calls rs_copy:([Run(0, 0, -1)], [Run(0, 0, -1)])
