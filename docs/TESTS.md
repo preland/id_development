@@ -345,33 +345,38 @@ count() {
   Reaching the export through a callee that only writes it is fine: `err_note`
   above only calls `err_bump`.
 
-  **A case never reads back what its own call only declared.** `(import NAME)`
-  in a case -- a `then` check of any of the forms above, an argument, or an
-  expected value -- is an error when both of these hold: the function that
-  declares `NAME` (`export ... NAME = ...`) is the function under test or
-  anything it calls, however deep; and no function in that call writes `NAME`
-  apart from the declaring statement itself. The call would build the value and
-  the case would then read that same value back, so it would stay green whatever
-  the body did. What counts as a write is the same as for the rule above (a
-  call handed `NAME` or a path into it, an alias bound to it, an assignment to
-  it, and so on), so a variable that a function in the call really changes can
-  be checked, whoever declared it. A `given` setup's own arguments are exempt:
-  they are read before the call, and `given f given g((import NAME)) ():()` is
-  how a case runs `f` twice to show that the second run starts from scratch:
+  **A core case never compares one import against another.** A check that reads
+  an export is fine when only one side of it is an import: `then (import
+  spr_p)[0]:(-1)` (the export against a literal or a conf.id constant), an
+  `(import NAME)` argument against a literal expected value, or a literal
+  argument against an `(import NAME)` expected value, in any case of the
+  function. A case whose arguments hold an `(import ...)` and whose expected
+  side holds one too compares the call with itself, and is an error in the
+  first two cases of a function -- its core cases, the two that pin it down --
+  when both of these hold: the function that declares the expected-side `NAME`
+  (`export ... NAME = ...`) is the function under test or anything it calls,
+  however deep; and no function in that call writes `NAME` apart from the
+  declaring statement itself. What counts as a write is the same as for the
+  rule above (a call handed `NAME` or a path into it, an alias bound to it, an
+  assignment to it, and so on), so a variable that a function in the call
+  really changes is exempt, whoever declared it. A `given` setup's own
+  arguments are exempt: they are read before the call, and `given f given
+  g((import NAME)) ():()` is how a case runs `f` twice to show that the second
+  run starts from scratch. From the third case on, the same case is accepted:
 
   ```
-  m2rphi_make() { ... export int m2rphi_id = ir_insn(...); lset((import chk_id), 0, m2rphi_id); } return void;
-  given ir_rows ():() then (import m2rphi_id):(2)       // refused: nothing writes m2rphi_id after declaring it
-  given ir_rows ():() then (import chk_id)[0]:(2)       // fine: the call changed state it did not create
+  given make ((import a)):((import b))   // refused as case 1 or 2 of outer, which calls make: both sides imported
+  given make ((import a)):(2)           // fine: one side is a literal
+  given make ((import a)):((import b))   // fine as case 3 or later
   ```
 
   Check an effect the call has on a variable it did not declare, or its return
   value, or a call that is the behaviour (`then calls NAME:(ARGS)`). A function
   that exists to initialize one exported variable says so in its return
-  clause, `} return void export NAME;` (docs/SPEC.md, section 9), and then its
-  own cases may check `NAME` in every form -- bare, `[i]`, `.field`, `len` --
-  though the cases of a function that calls it still may not, unless something
-  in their call writes it:
+  clause, `} return void export NAME;` (docs/SPEC.md, section 9), and then
+  its own cases and those of a function that calls it are exempt from the
+  core-case rule for `NAME`; its own cases may check `NAME` in every form --
+  bare, `[i]`, `.field`, `len`:
 
   ```
   init_tab() {
@@ -479,7 +484,7 @@ the case's line:
 | `then (import NAME)[i]` of an export that is not a list | `(import total)[...] reads one element, but 'total' is a int, not a list; drop the index, or name a list export` |
 | `then (import NAME).field` of an export that is not a struct | `(import cnt).len: (import cnt) is a int, not a struct, so it has no fields; drop '.len', or name an export that is a struct` |
 | `then (import NAME).field` of a field the struct does not have | `(import pt).z: struct 'Point' has no field 'z'; its fields are x, y; name one of them` |
-| `(import NAME)` of an export that the function under test declares, or that a function it calls declares, when nothing in that call writes it after declaring it, and the function under test has no `return void export NAME` (any form: a `then` check, an argument, an expected value; a setup's own arguments are exempt) | `(import made): 'made' is exported by 'make', which the function under test, 'outer', is or calls, and nothing in that call writes it after declaring it, so this case would read back a value its own call just made and stay green whatever the body did; check a variable the call changes (such as then (import other)[0]:(value)), or the return value, or, if 'make' exists to initialize 'made', say so in its return clause: '} return void export made;'` |
+| a case in a function's first two cases whose arguments hold an `(import ...)` and whose expected side holds an `(import NAME)` too, when the function under test declares `NAME` (or a function it calls does) and nothing in that call writes it after declaring it, and the function under test has no `return void export NAME` (a `then` check, an import on one side only, a later case and a setup's own arguments are all exempt) | `(import made): this case compares one import against another, and 'made' is exported by 'make', which the function under test, 'outer', is or calls with nothing in that call writing it after declaring it; the first two cases of a function are its core cases and may not compare one import against another, because both values would come from the same call and agree whatever the body did; compare 'made' against a literal, or move this case after the first two, or, if 'make' exists to initialize 'made', say so in its return clause: '} return void export made;'` |
 | `} return void export NAME;` where the function does not export `NAME` in its own body | `'NAME' is named by the return clause of 'f' (return void export NAME), but 'f' does not export it in its own body; add 'export TYPE NAME = VALUE;' to 'f', or drop 'export NAME' from its return clause` |
 | `} return void export a, b;` | `a return clause names exactly one exported variable: write '} return void export NAME;' with the one variable this function exists to initialize` |
 | `} return int x export NAME;` | `only a void function can name the export it initializes: '} return int export NAME;' gives a value and a variable at once; drop 'export NAME' from the return clause, or make the function void` |
