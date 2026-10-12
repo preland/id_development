@@ -1688,6 +1688,187 @@ stdin "ab" timeout 5 ():(2)
 ():(0)
 ```
 
+## E0514 a given that names no setup
+
+`given NAME` runs a function before the case, and the harness has nothing to compare its
+result with, so the function must exist in the build and return `void`. A name the
+program does not define, or a function that returns a value, is not a setup. Name a
+`void` function, and make the value-returning function the function under test.
+
+Incorrect:
+
+```id
+count(int[] xs) {
+  int n = len(xs) + 1;
+} return int n;
+given count ([1, 2]):(3)
+```
+
+Correct:
+
+```id
+reset() {
+  export int seen = 0;
+} return void;
+count(int[] xs) {
+  int n = len(xs) + 1;
+} return int n;
+given reset ([1, 2]):(3)
+```
+
+## E0515 a given with the wrong number of arguments
+
+A setup is called with the literals written after its name, one for each of its
+parameters, as in `given bump(1, 2)`; with no parameters it is `given bump`. The
+number written must equal the number declared.
+
+Incorrect:
+
+```id
+mk() {
+  export int[] buf = [0, 0];
+} return void;
+bump(int[] b, int k, int v) {
+  b[k] = v + 1;
+} return void;
+use(int[] xs) {
+  int a = len(xs);
+} return int[] xs;
+given mk given bump((import buf), 1) ([0]):([0])
+```
+
+Correct:
+
+```id
+mk() {
+  export int[] buf = [0, 0];
+} return void;
+bump(int[] b, int k, int v) {
+  b[k] = v + 1;
+} return void;
+use(int[] xs) {
+  int a = len(xs);
+} return int[] xs;
+given mk given bump((import buf), 1, 7) ([0]):([0])
+```
+
+## E0516 a function name among a setup's arguments
+
+A setup runs before the case and takes values: a literal, or `(import NAME)` for an
+exported variable. A function name is a value only in the arguments of the function
+under test, so a `given` cannot pass one. Write the literal the setup needs.
+
+Incorrect:
+
+```id
+mk() {
+  export int[] buf = [0, 0];
+} return void;
+bump(int[] b, int k, int v) {
+  b[k] = v + 1;
+} return void;
+use(int[] xs) {
+  int a = len(xs);
+} return int[] xs;
+given mk given bump(mk, 1, 7) ([0]):([0])
+```
+
+Correct:
+
+```id
+mk() {
+  export int[] buf = [0, 0];
+} return void;
+bump(int[] b, int k, int v) {
+  b[k] = v + 1;
+} return void;
+use(int[] xs) {
+  int a = len(xs);
+} return int[] xs;
+given mk given bump((import buf), 1, 7) ([0]):([0])
+```
+
+## E0517 a calls clause naming no function
+
+`then calls NAME:(...)` counts the calls the function under test makes to `NAME`, so
+`NAME` must be a function the build defines. Check the spelling, or define the function.
+
+Incorrect:
+
+```id
+speak(int x) {
+  print("hi");
+} return int x;
+(1):(1) then calls nope:(1)
+```
+
+Correct:
+
+```id
+shout(int x) {
+  print("hi");
+} return int x;
+speak(int x) {
+  int y = shout(x) + 1;
+} return int y;
+(1):(2) then calls shout:(1)
+(2):(3) then calls shout:(2)
+```
+
+## E0518 a calls clause naming a function with no id body
+
+`calls` records the calls into a function whose body is id code. A builtin such as
+`print`, and a `native` function, have no body for the harness to record into. Check
+what they do with `then prints:(TEXT)` or `then eprints:(TEXT)` instead.
+
+Incorrect:
+
+```id
+speak(int x) {
+  print("hi");
+} return int x;
+(1):(1) then calls print:("hi")
+```
+
+Correct:
+
+```id
+speak(int x) {
+  print("hi");
+} return int x;
+(1):(1) then prints:("hi\n")
+```
+
+## E0519 a calls clause with the wrong number of arguments
+
+`then calls NAME:(ARGS)` matches the arguments of one call to `NAME`, so it lists one
+literal for each parameter `NAME` declares.
+
+Incorrect:
+
+```id
+shout(int x) {
+  print("hi");
+} return int x;
+speak(int x) {
+  int y = shout(x) + 1;
+} return int y;
+(1):(2) then calls shout:(1, 2)
+```
+
+Correct:
+
+```id
+shout(int x) {
+  print("hi");
+} return int x;
+speak(int x) {
+  int y = shout(x) + 1;
+} return int y;
+(1):(2) then calls shout:(1)
+(2):(3) then calls shout:(2)
+```
+
 ## E0601 a comparison and a bitwise operator without parentheses
 
 The bitwise operators bind tighter than the comparisons in `id` and looser in C,
@@ -2711,6 +2892,198 @@ struct Point {
   int x;
   int y;
 }
+```
+
+## E0633 a function value passed to a builtin
+
+A builtin is not a function written in id, and what it would do with a function
+value is never what was meant: `print` would print an address. Call the function
+and pass its result, or pass the value to a function written in id.
+
+Incorrect:
+
+```id
+twice(int n) {
+  int r = n * 2;
+} return int r;
+
+main(int argc, string[] argv) {
+  print(twice);
+} return int 0;
+```
+
+Correct:
+
+```id
+twice(int n) {
+  int r = n * 2;
+} return int r;
+
+main(int argc, string[] argv) {
+  print(twice(2));
+} return int 0;
+```
+
+## E0634 a list passed to a builtin that writes text
+
+`print`, `eprint` and `put` write text, and a list has no text form. Write its
+elements one at a time inside a `while` loop, or build a string from them.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  int[] xs = [1, 2];
+  print(xs);
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  int[] xs = [1, 2];
+  print(xs[0]);
+} return int 0;
+```
+
+## E0635 put given something that is not a string
+
+`put` writes text exactly as given and does not convert. Join the value to `""` to
+make it text, or use `print`, which takes any value and ends the line.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  put(5);
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  put("" + 5);
+} return int 0;
+```
+
+## E0636 a string index that is not an int
+
+`character_code_at(s, i)` reads the character at position `i`, and a position is a
+whole number. A string, a float or a word is refused rather than converted.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  string s = "hi";
+  int c = character_code_at(s, "no");
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  string s = "hi";
+  int c = character_code_at(s, 0);
+} return int 0;
+```
+
+## E0637 str_of_mem given something that is not an address and a length
+
+`str_of_mem(address, length)` reads `length` bytes at `address`, and both are whole
+numbers. Pass the address you were given by `alloc` and the number of bytes.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  string s = str_of_mem("no", 2);
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  int address = alloc(8);
+  string s = str_of_mem(address, 0);
+} return int 0;
+```
+
+## E0638 a builtin on whole numbers given another type
+
+The flat-store and unsigned-word builtins (`poke8`, `float_of_bits` and
+their kind) work on whole numbers and unsigned words. Text and floats are
+refused rather than converted: convert first.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  float f = float_of_bits("x");
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  float f = float_of_bits(0);
+} return int 0;
+```
+
+## E0639 bind with nothing to capture
+
+`bind(NAME, value, ...)` makes a function value that already holds the values it is
+given. With no value there is nothing to hold, and `NAME` alone is already a
+function value.
+
+Incorrect:
+
+```id
+add_to(int n, int x) {
+  int r = n + x;
+} return int r;
+
+main(int argc, string[] argv) {
+  func(int, int) return int f = bind(add_to);
+} return int 0;
+```
+
+Correct:
+
+```id
+add_to(int n, int x) {
+  int r = n + x;
+} return int r;
+
+main(int argc, string[] argv) {
+  func(int) return int f = bind(add_to, 1);
+} return int 0;
+```
+
+## E0640 the wrong number of arguments to a builtin
+
+Every builtin takes a fixed number of arguments: `push` two, `input` none,
+`character_code_at` two. Write the call with exactly the arguments it takes.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  int c = character_code_at("hi");
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  int c = character_code_at("hi", 0);
+} return int 0;
 ```
 
 ## E0702 a file with a generic name
