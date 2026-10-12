@@ -1065,7 +1065,7 @@ program. Each of these was written once in `idstd` so the six scripts share it.
   generic sort took its keys from an export and its comparator read that export
   (`idstd_ord_ik`). A comparator is now `bind(idstd_order_greater_integers, keys)`, and no
   export or fixture exists for it.
-- **`len(s)` is a `strlen`** and `charat` memoises one string, which the code has
+- **`len(s)` is a `strlen`** and `character_code_at` memoises one string, which the code has
   to be written around: a loop `while (i < len(s))` is quadratic and nothing
   warns.
 - **No formatting.** Two decimals came from integer cents and a hand-written

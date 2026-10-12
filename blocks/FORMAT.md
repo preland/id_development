@@ -89,7 +89,7 @@ stop at the left operand when it decides. A condition is an int.
 | `broadcast(msg)` | string | start every script `on msg` |
 | `len(x)` | string or list | length |
 | `push(xs, v)` `pop(xs)` `insert(xs, i, v)` `delete(xs, i)` | list | list blocks; `pop` answers the last element |
-| `str_sub(s, i, n)` `charat(s, i)` `str_find(s, t)` | string | as in `id` (`charat` is -1 past the end, `str_find` -1 when absent) |
+| `str_sub(s, i, n)` `character_code_at(s, i)` `str_find(s, t)` | string | as in `id` (`character_code_at` is -1 past the end, `str_find` -1 when absent) |
 | `int_to_float` `float_to_int` `int_to_str` `float_to_str` `str_to_int` `str_to_float` | | the conversion blocks; `float_to_int` truncates toward zero |
 
 Sensing, sound, clones, pen, keys and mouse are not in this milestone.

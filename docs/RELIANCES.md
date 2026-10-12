@@ -119,14 +119,14 @@ the change that added list-constant locking to it.
   `fprintf`, `snprintf`, `fgets`, `fflush`, `read`, `write`, `exit`,
   `clock_gettime`. `strlen` is no longer how an `id` string is measured: a
   string carries its byte count in the word before its bytes (docs/MEMORY.md,
-  F2e), so `len`, `concat` and `charat` do not call it. What is left calls it
+  F2e), so `len`, `concat` and `character_code_at` do not call it. What is left calls it
   on a C string from outside -- `argv` through `id_str_of_cstr`, one line of
   `input`.
 
 **Cost to move: medium, and most of it is done.** `idc/runtime/` (its size and its
 `asm` functions are a row of `docs/STATUS.md`) already implements the same
 primitives in `id` with no libc at all. That is what the kernel runs on:
-`list_push`, `list_get`, `concat`, `charat`, `str_of_int`, `peek8`/`poke64`,
+`list_push`, `list_get`, `concat`, `character_code_at`, `str_of_int`, `peek8`/`poke64`,
 `sdiv`, `shl`, `mem_alloc`, all of it in `id`.
 
 So the question is not "can this be written in `id`" — it is written, and it

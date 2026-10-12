@@ -767,7 +767,7 @@ runtime-only.
 length-prefixed strings). The count sits in the word before the bytes, the
 bytes stay NUL-terminated, and the eight-entry memo is removed. What that
 settles and what it does not:
-- Settled: the memo, and the `strlen` cost of `len`, `concat` and `charat`.
+- Settled: the memo, and the `strlen` cost of `len`, `concat` and `character_code_at`.
   Every producer writes the count (`id_str_new`/`id_str_from`; `ID_S` and
   `ID_SK` for literals; `id_str_of_cstr` for `argv` and for a wasm host; the
   LLVM module's `{i64, [n x i8]}` literals and the freestanding runtime's own

@@ -1,8 +1,8 @@
-// The text builtins: str_sub, charat, str_find and the length of a string.
+// The text builtins: str_sub, character_code_at, str_find and the length of a string.
 // A string value is an index into the pool, and a result string is appended
 // to it. Their arguments sit in consecutive slots from a. str_sub outside
 // the string is the runtime error 5, as it is in id, left in the trap list
-// tp; charat answers -1 past the end, as id's does.
+// tp; character_code_at answers -1 past the end, as id's does.
 
 machine_test_builtin(float[] block_value_list, string[] block_pool, int block_identifier, int block_frame_pointer, int block_delta, int block_first_value, int[] block_thread_pointer) {
   int block_height = block_value_list[block_frame_pointer + block_first_value];
@@ -11,7 +11,7 @@ machine_test_builtin(float[] block_value_list, string[] block_pool, int block_id
     block_value_list[block_frame_pointer + block_delta] = len(block_pool[block_height]);
   }
 } chain (float[] block_value_list, string[] block_pool, int block_identifier, int block_frame_pointer, int block_delta, int block_first_value, int[] block_thread_pointer) {
-  if (block_identifier == (import constant_builtin_charat)) {
+  if (block_identifier == (import constant_builtin_character_code_at)) {
     block_value_list[block_frame_pointer + block_delta] = character_code_at(block_pool[block_height], block_index);
   }
   if (block_identifier == (import constant_builtin_string_find)) {

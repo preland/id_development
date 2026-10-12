@@ -521,7 +521,7 @@ the offending write or call and the fix (`docs/ERRORS.md`, `E0801`-`E0806`):
 - **`f` writes no export** (`E0801`). An `export` declaration is the only way
   a function assigns an export, so a pure function has none.
 - **`f` does no I/O** (`E0802`). It may call only the builtins `len`, `push`,
-  `pop`, `to_int`, `charat`, `chr`, `str_sub`, `udiv`, `umod`, `ult`, `ushr`, `fail`, `bind` and the four float bit-cast builtins (the list
+  `pop`, `to_int`, `character_code_at`, `chr`, `str_sub`, `udiv`, `umod`, `ult`, `ushr`, `fail`, `bind` and the four float bit-cast builtins (the list
   is the `pure_builtins` constant of `idc/compiler/parse/conf.id`). `print`,
   `put`, `flush`, `eprint`, `input`, `read_all`, `getkey`, `sleep_ms` and `ticks`
   do I/O or read the clock, and `alloc`, `store_size`, `peek*`, `poke*`,
@@ -772,7 +772,7 @@ builds a new string.
 - `==` and `!=` compare contents, not identity.
 - `len(s)` is the length in **bytes**. `id` has no notion of a character; a
   multi-byte UTF-8 sequence is that many bytes.
-- `character_code_at(s, i)` is the byte at `i`, or `-1` if `i` is outside the string. `character_code_at(s, i)` is the same builtin under a name that says what it returns (an int code, not a string); `charat` is being retired in its favour.
+- `character_code_at(s, i)` is the byte at `i`, or `-1` if `i` is outside the string. `character_code_at(s, i)` is the same builtin under a name that says what it returns (an int code, not a string); `character_code_at` is being retired in its favour.
   Reading past the end is a value, not a trap — it is how a scanner detects
   end-of-input.
 - `chr(n)` builds a one-byte string; `chr(0)` traps (below).

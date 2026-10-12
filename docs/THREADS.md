@@ -534,7 +534,7 @@ second table. A `noalloc` function:
 - calls only `noalloc` functions (and natives declared `noalloc native`);
 - does not allocate: no list literal, no `push` (growth allocates), no `+` on
   strings, no integer-to-string conversion, no `chr`, no struct constructor, no
-  `alloc`. Index reads and writes, `len`, `charat`, `peek*`, `poke*`, the
+  `alloc`. Index reads and writes, `len`, `character_code_at`, `peek*`, `poke*`, the
   arithmetic builtins and string literals do not allocate;
 - does not recurse (the stack is the thread's, and is not grown) and has no
   `while` whose bound the compiler cannot see, which is the open part: either a

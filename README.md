@@ -255,7 +255,7 @@ resolves them as follows — revisit as the language evolves:
   index the player types.
 - **`while (cond) { ... }`** loops while `cond` (an `int`) is nonzero. The loop
   is one action; its body is free, like a branch body.
-- **String/IO builtins:** `len(s)` returns a string's length; `charat(s, i)`
+- **String/IO builtins:** `len(s)` returns a string's length; `character_code_at(s, i)`
   returns the byte code at index `i` (or `-1` past the end); `chr(n)` builds a
   one-character string from a byte code; `read_all()` reads all of stdin into
   one `string`; `to_int(s)` parses a string to an `int`. Together with `while`
