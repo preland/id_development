@@ -2182,7 +2182,7 @@ struct add {
 
 // fn.id
 add(int a, int b) {
-  int s = a + b;
+  int s = a * b + a;
 } return int s;
 
 // main.id
@@ -2200,7 +2200,7 @@ struct Sum {
 
 // fn.id
 add(int a, int b) {
-  int s = a + b;
+  int s = a * b + a;
 } return int s;
 
 // main.id
@@ -2373,6 +2373,337 @@ Correct:
 main(int argc, string[] argv) {
   Point p = Point(1, 2);
   p.x = 3;
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
+```
+
+## E0625 a struct sharing its file
+
+A struct is declared in a file of its own: no function beside it and no second
+struct. The declaration is a thing and the functions are what the program does with
+it, and `id` files each in a file of its own. Move the function, or the other
+struct, to another file.
+
+Incorrect:
+
+```text
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
+
+help(int v) {
+  int w = v + 1;
+} return int w;
+(1):(2)
+(2):(3)
+```
+
+Correct:
+
+```text
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
+
+// help.id
+help(int v) {
+  int w = v + 1;
+} return int w;
+(1):(2)
+(2):(3)
+```
+
+## E0626 two structs with the same fields
+
+Two structs with the same field names and types are one struct declared twice, the
+same rule two functions with the same body obey. The field names are part of the
+identity, so `{x, y}` and `{w, h}` do not collide. Use the first struct, or give the
+second a field of another name or type.
+
+Incorrect:
+
+```text
+// aa.id
+struct Aa {
+  int a;
+  int b;
+}
+
+// bb.id
+struct Bb {
+  int a;
+  int b;
+}
+
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+```
+
+Correct:
+
+```text
+// aa.id
+struct Aa {
+  int a;
+  int b;
+}
+
+// bb.id
+struct Bb {
+  int c;
+  int d;
+}
+
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+```
+
+## E0627 a struct that contains itself
+
+A struct cannot hold itself, directly or through the structs it holds: the value
+would have to exist before it could be made, and `id` has no empty struct to end the
+chain. A list of the struct says "any number of these", because a list can be empty.
+
+Incorrect:
+
+```text
+// node.id
+struct Node {
+  Node next;
+  int v;
+}
+
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+```
+
+Correct:
+
+```text
+// node.id
+struct Node {
+  Node[] next;
+  int v;
+}
+
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+```
+
+## E0628 a field type that cannot be stored
+
+A field is an int, word, float or string, another struct, or a list of any of those.
+It is not `void`, not a type nothing declares, and not a function value: those exist
+only as a parameter, a local or an export, never inside data that is kept and passed
+around.
+
+Incorrect:
+
+```text
+// aa.id
+struct Aa {
+  void v;
+}
+
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+```
+
+Correct:
+
+```text
+// aa.id
+struct Aa {
+  int v;
+}
+
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+```
+
+## E0629 a field the struct does not have
+
+A struct is read and written only through the fields its declaration gives it. The
+message lists the fields it has; use one of them, or add the field to the struct.
+
+Incorrect:
+
+```text
+// main.id
+main(int argc, string[] argv) {
+  Point p = Point(1, 2);
+  int z = p.z;
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
+```
+
+Correct:
+
+```text
+// main.id
+main(int argc, string[] argv) {
+  Point p = Point(1, 2);
+  int z = p.x;
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
+```
+
+## E0630 a struct passed to a builtin
+
+A builtin works on text, numbers and lists, and a struct is none of them. Name the
+struct's fields to show or compare it: `print(p.x)`.
+
+Incorrect:
+
+```text
+// main.id
+main(int argc, string[] argv) {
+  Point p = Point(1, 2);
+  print(p);
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
+```
+
+Correct:
+
+```text
+// main.id
+main(int argc, string[] argv) {
+  Point p = Point(1, 2);
+  print(p.x);
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
+```
+
+## E0631 a test case value that is not the struct required
+
+A parameter of struct type takes, in a test case, the struct written the way it is
+built: its name and one value for each field. A number or a string in that place
+cannot be the struct.
+
+Incorrect:
+
+```text
+// area.id
+area(Point p) {
+  int a = p.x * p.y;
+} return int a;
+(5):(1)
+(Point(3, 4)):(12)
+
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
+```
+
+Correct:
+
+```text
+// area.id
+area(Point p) {
+  int a = p.x * p.y;
+} return int a;
+(Point(1, 1)):(1)
+(Point(3, 4)):(12)
+
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
+```
+
+## E0632 a test case struct with the wrong number of fields
+
+A struct in a test case is built like a constructor call, with one value for each
+field in order. Give every field a value.
+
+Incorrect:
+
+```text
+// area.id
+area(Point p) {
+  int a = p.x * p.y;
+} return int a;
+(Point(1)):(1)
+(Point(3, 4)):(12)
+
+// main.id
+main(int argc, string[] argv) {
+} return int 0;
+
+// point.id
+struct Point {
+  int x;
+  int y;
+}
+```
+
+Correct:
+
+```text
+// area.id
+area(Point p) {
+  int a = p.x * p.y;
+} return int a;
+(Point(1, 1)):(1)
+(Point(3, 4)):(12)
+
+// main.id
+main(int argc, string[] argv) {
 } return int 0;
 
 // point.id
