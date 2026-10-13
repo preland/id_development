@@ -17,16 +17,16 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 |---|---:|---:|---:|---:|---:|
 | `bench` | 98 | 216 | 448 | 0 | 0 |
 | `blocks` | 269 | 622 | 1836 | 0 | 0 |
-| `c2id` | 1068 | 2618 | 5211 | 306 | 0 |
+| `c2id` | 1068 | 2618 | 5385 | 306 | 0 |
 | `callgraph` | 50 | 105 | 239 | 0 | 0 |
-| `demos` | 336 | 718 | 1539 | 0 | 0 |
+| `demos` | 336 | 718 | 1642 | 0 | 0 |
 | `editor` | 152 | 383 | 875 | 0 | 0 |
 | `gym` | 299 | 616 | 2385 | 0 | 0 |
 | `iconcheck` | 5 | 10 | 25 | 0 | 0 |
 | `idem` | 1473 | 3598 | 7371 | 0 | 0 |
 | `idmcp` | 62 | 140 | 550 | 0 | 0 |
 | `idtheme` | 18 | 45 | 109 | 0 | 0 |
-| `kernel` | 103 | 238 | 392 | 0 | 51 |
+| `kernel` | 103 | 238 | 422 | 0 | 51 |
 | `launcher` | 83 | 187 | 626 | 0 | 0 |
 | `quill` | 613 | 1455 | 4015 | 0 | 0 |
 | `quillcheck` | 74 | 186 | 552 | 0 | 0 |
@@ -50,7 +50,7 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `idstd/kit/app` | 11 | 30 | 76 | 0 | 0 |
 | `idstd/kit/media` | 221 | 559 | 1884 | 0 | 0 |
 | `idstd/kit/ui` | 383 | 938 | 2906 | 0 | 0 |
-| **all** | 8973 | 21276 | 54027 | 311 | 140 |
+| **all** | 8973 | 21276 | 54334 | 311 | 140 |
 | of which idstd | 1426 | 3143 | 9838 | 0 | 0 |
 
 *short of two* counts the functions with fewer than two test cases that the compiler does not exempt: a freestanding function that reaches an `asm` body is exempt, and `kernel` and `idc/runtime` are asked of the compiler with the flags `idc/tools/kbuild` builds them with. Functions are found by their headers (`idc/tools/lib/fnhead`) and their cases by `mutscore lint`, not by the compiler's own parse. `idc/tests` is not counted: it holds the inputs of the compiler's own tests, some of which break the rules on purpose. `statusgen --untested [TREE]` lists the functions that are short.
@@ -61,16 +61,16 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 |---|---:|---:|---:|---:|---:|
 | `bench` | 0 | 0 | 203 | 13 | 0 |
 | `blocks` | 0 | 0 | 336 | 219 | 67 |
-| `c2id` | 306 | 0 | 1963 | 312 | 37 |
+| `c2id` | 306 | 0 | 1836 | 439 | 37 |
 | `callgraph` | 0 | 0 | 90 | 11 | 4 |
-| `demos` | 0 | 0 | 657 | 53 | 8 |
+| `demos` | 0 | 0 | 586 | 123 | 9 |
 | `editor` | 0 | 0 | 311 | 67 | 5 |
 | `gym` | 0 | 0 | 203 | 254 | 159 |
 | `iconcheck` | 0 | 0 | 6 | 4 | 0 |
 | `idem` | 0 | 0 | 3480 | 105 | 13 |
 | `idmcp` | 0 | 0 | 43 | 60 | 37 |
 | `idtheme` | 0 | 0 | 36 | 6 | 3 |
-| `kernel` | 51 | 0 | 180 | 4 | 3 |
+| `kernel` | 51 | 0 | 158 | 24 | 5 |
 | `launcher` | 0 | 0 | 85 | 62 | 40 |
 | `quill` | 0 | 0 | 878 | 466 | 111 |
 | `quillcheck` | 0 | 0 | 78 | 92 | 16 |
@@ -94,7 +94,7 @@ idc/bin/idc idc/tools/statusgen -o statusgen
 | `idstd/kit/app` | 0 | 0 | 23 | 5 | 2 |
 | `idstd/kit/media` | 0 | 0 | 274 | 182 | 103 |
 | `idstd/kit/ui` | 0 | 0 | 532 | 278 | 128 |
-| **all** | 450 | 1 | 14875 | 4607 | 1343 |
+| **all** | 450 | 1 | 14655 | 4824 | 1346 |
 | of which idstd | 0 | 0 | 1791 | 876 | 476 |
 
 A distribution, not a mean: a mean of two is met by one function with many cases beside others with none.
@@ -105,16 +105,16 @@ A distribution, not a mean: a mean of two is met by one function with many cases
 |---|---:|---:|---:|---:|---:|---:|---:|
 | `bench` | 0 | 5 | 3 | 4 | 15 | 0 | 0 |
 | `blocks` | 0 | 2 | 1 | 0 | 6 | 0 | 0 |
-| `c2id` | 15 | 11 | 5 | 99 | 97 | 3 | 106 |
+| `c2id` | 15 | 11 | 5 | 99 | 93 | 3 | 78 |
 | `callgraph` | 0 | 1 | 1 | 0 | 0 | 0 | 0 |
-| `demos` | 2 | 9 | 4 | 47 | 31 | 47 | 56 |
+| `demos` | 2 | 9 | 4 | 44 | 31 | 43 | 35 |
 | `editor` | 5 | 8 | 5 | 2 | 14 | 2 | 41 |
 | `gym` | 0 | 2 | 1 | 0 | 44 | 0 | 0 |
 | `iconcheck` | 0 | 1 | 1 | 0 | 0 | 0 | 0 |
 | `idem` | 26 | 15 | 7 | 11 | 119 | 217 | 1306 |
 | `idmcp` | 0 | 2 | 1 | 2 | 15 | 0 | 0 |
 | `idtheme` | 0 | 4 | 2 | 0 | 1 | 0 | 0 |
-| `kernel` | 5 | 8 | 5 | 36 | 3 | 0 | 61 |
+| `kernel` | 5 | 8 | 5 | 17 | 3 | 0 | 14 |
 | `launcher` | 0 | 1 | 1 | 0 | 39 | 0 | 0 |
 | `quill` | 16 | 11 | 6 | 1 | 76 | 0 | 3 |
 | `quillcheck` | 4 | 9 | 5 | 1 | 27 | 0 | 0 |
@@ -138,7 +138,7 @@ A distribution, not a mean: a mean of two is met by one function with many cases
 | `idstd/kit/app` | 0 | 2 | 2 | 0 | 0 | 0 | 0 |
 | `idstd/kit/media` | 0 | 3 | 3 | 0 | 2 | 0 | 29 |
 | `idstd/kit/ui` | 0 | 3 | 2 | 0 | 3 | 0 | 22 |
-| **all** | 173 | 15 | 5 | 373 | 936 | 279 | 2227 |
+| **all** | 173 | 15 | 5 | 351 | 932 | 275 | 2131 |
 | of which idstd | 0 | 4 | 2 | 0 | 26 | 0 | 64 |
 
 *filler dirs* are directories named more, rest, tail, cont or partN. *depth* is the number of directories between a tree's root and a source file; *median* is the lower median. *silent*, *echo*, *bare* and *count* (a case whose only assertions are call counts) are the cases `mutscore lint` finds that prove nothing (docs/TESTS.md, "Mutation score").
