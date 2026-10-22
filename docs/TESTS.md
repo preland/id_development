@@ -992,7 +992,7 @@ deleted statement leaves a segment short of its three actions, so it is
 wrapper is `invalid` too.
 
 **`mutscore lint`** reads the cases without building anything and flags the
-four shapes that prove nothing, one line each, with a summary of how many
+five shapes that prove nothing, one line each, with a summary of how many
 cases and functions it read:
 
 | shape | meaning |
@@ -1001,6 +1001,7 @@ cases and functions it read:
 | `echo` | the expected values are the arguments written again and no `then` clause checks anything else, so a function that does nothing passes |
 | `bare` | `():()`-style: no expected value and no `then`, on a function that returns a value or has a statement that does something; the case only shows the call does not trap |
 | `count` | every assertion is a call count, `then calls F:[n]`, which shows a callee ran but not what the function did |
+| `constant` | every assertion is `then F:(value)` for a function F whose return clause is a literal (`return int 0;`): F answers the same whatever ran, so the case cannot go red for the function it is attached to. A function that returns a name holding one literal is not recognised |
 
 `--tsv` prints every case as `shape file fn line case` (shape `case` for one
 that proves something) and a `summary` row, for a status page to count.
