@@ -378,13 +378,12 @@ is that an alias `row = xs[i]` is refused even when `row` itself never escapes.
 
 **What did not land, and why each is a separate step.**
 
-- **Moves.** `row = []; ...; push(rows, row)` stores a name, so `rows` is not
-  deep-owned. Allowing it needs a transfer rule: `row` must be a local
-  declared with one literal, moved once per execution of that declaration (not
-  from inside a loop that outlives it), and never read after the move while
-  `rows` could have been freed. That is flow facts about a different value
-  (the first bullet above). It is the idiom csvq's parser uses, and one reason
-  deep frees do not reach csvq (section 9).
+- **Moves of a string or a struct, and moves of a name that is not declared in
+  the block of the push.** Only a local list moved by `push` into a list of
+  lists is taken (below). csvq's parser declares `row` outside the loop that
+  pushes it and refills it with `row = []`, which is not a declaration per
+  push, so it is still refused, and that is one reason deep frees do not reach
+  csvq (section 9).
 - **Moves through a callee.** `csv_keep(st, rows, ..., row, ...)` stores its
   parameter into another parameter. A summary of "parameter i is stored as an
   element of parameter j" would let the caller check the actual for `i`.
@@ -438,8 +437,28 @@ no element read out and no element that something else holds (`deep/mv/`).
 Only a list of a type whose elements are not lists themselves (`esc_mvty`) is
 taken: strings, structs, scalars. A moved name is not owned by its function
 (flag bit 64 is a keep until proved), so the function never frees it;
-the struct does, section 3.5b. Moves through a callee, a moved string, a moved
-struct and a moved list of lists are not done.
+the struct does, section 3.5b. Moves through a callee, a moved string and a
+moved struct are not done.
+
+**Moves into a list of lists** (landed). `push(rows, row)` where `rows` is a
+list of lists (not `string[][]` of strings freed by type: any receiver that
+`esc_strong` accepts keeps the rule of section 3.2) takes `row` over when
+`esc_pushat` (`deep/mv/push.id`) proves it with the same test a constructor
+uses (`esc_movable`): `row` is declared at an earlier statement of the *same*
+block as the push, so the declaration runs again before every push; the push
+statement mentions it once; it is mentioned nowhere in the function outside
+the statements from its declaration to the push (so no read after the move,
+and a second push of it fails the first one's count); and the walk finds no
+keeping use of it and no store that is not a literal (bits 1, 2, 64, so a
+constructor that also took it is refused). What `row` holds does not matter:
+`rows` frees its rows shallowly. A pushed name is walk flag 512 for `row`
+(a keeper everywhere, so `row` is never freed by its own function) and flag
+256 for `rows` (the push of a list name that is not a literal, otherwise
+bit 8); a parameter's summary treats 256 as 8 and 512 as a keep. `rows` is
+deep-owned only when every 256 is proved by `esc_pushat`, and `esc_deepk`
+asks that. A row declared before the loop that pushes it, a row read after the
+push, and `xs[i] = row` stay refused. Cases: conform free/31 (freed), 32 and
+33 (refused), leak/05.
 
 ### 3.3 Strings
 
