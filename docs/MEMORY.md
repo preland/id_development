@@ -73,8 +73,11 @@ used to live in the arena is gone.
 A bump pointer cannot give a block back, so lists take their header and cells
 through size-class free lists (`mem/store/arena/more/pool.id`), whose heads sit
 at the front of the arena, after the bump pointer; `list_free`
-(`lang/list/more/drop.id`) is the runtime's `id_list_free`. Strings and the
-flat store still only bump.
+(`lang/list/more/drop.id`) is the runtime's `id_list_free`. The flat store
+still only bumps. Strings are pooled too: a string block is a
+size class of 36 and up, `str_free`, `str_dup`, `concat_f` and
+`list_free_strs` give them back, and `free_walk` frees a struct by type
+through the same free lists. Closures and bytes stay hosted-only.
 
 **WASM.** `idc/bin/idc --target wasm` compiles the C target's own C for
 wasm32-wasi (wasi-libc has `malloc` and `free`), so it allocates and frees
@@ -255,14 +258,16 @@ which lists are freed:
   (`fail` writes the serial port, then powers off), so a use after a wrong free is not a trap there. It marks
   a freed header (cap -1) so a second free of the same list is ignored until the
   block is reused; that is all.
-- **The freestanding runtime owns no string.** Its strings are bump-allocated
-  and there is nothing to give back to, so `esc_hosted` is false and no string
-  is owned or consumed there, which also means no list of strings and no
-  struct is freed by its type there (`id_list_free_strs`, `id_free_walk` and
-  the `idfr_` wrappers are hosted only; `esc_dkind` is 0 for them, so a struct
-  stays shallow-freed as before). That is an exemption with a reason, the
-  same one the strings have, and it would go if the freestanding runtime grew
-  a work-list walker in `id`. It also gives the old cell array back when a list
+- **The freestanding runtime owns and frees strings and structs.** Its string
+  blocks come from the pool free lists (size classes 36 and up), so a string
+  is owned and consumed there as on the hosted targets: `str_free`, `str_dup`,
+  `concat_f` (`id_concat_f` in LLVM freestanding, so concat temporaries are
+  freed too), `list_free_strs` and `free_walk` on the pool free lists. Closures
+  and bytes stay hosted-only. Two limits: a double free of a string is not
+  detected (the cap -1 mark is a list's), and `mem_of_str` aliases the string's
+  block, so a word made from it must not outlive the string. Evidence: the
+  `kernel_kfree` arena growth is 560 bytes with the frees and 142864 bytes
+  with `str_free` disabled. It also gives the old cell array back when a list
   grows, as the hosted `id_realloc` does; that is the runtime's own bookkeeping
   and no analysis is involved.
 
@@ -517,8 +522,8 @@ string, and now a call of a function that returns fresh, section 3.1b), and no
 use of it keeps it. The old value is freed when a store replaces it, and the
 last one at the exit unless the return clause returns it. `s = s + x` with `s`
 read once builds in `s`'s own block (`id_concat_f`). The temporaries of a `+`
-chain are consumed by the next `+`. A freestanding build owns no string, its
-strings being bump-allocated. `tests/conform/free/07` to `12` and `13` to `17`
+chain are consumed by the next `+`. A freestanding build owns and frees strings
+through the pool free lists (section 2a). `tests/conform/free/07` to `12` and `13` to `17`
 pin these on C, LLVM and wasm.
 
 ### 3.4 Exports and imports
@@ -710,9 +715,9 @@ leaks that copy for good, where before the literal was only static data.
 `tests/conform/free/50` pins the freed case (one list, three strings),
 `free/51` the refused one (unchanged) and `leak/08` fifty passes with every
 pass freed.
-A function value in a field is not freed. The freestanding build owns no
-string (section 2a) and frees no struct by type either; there `esc_dkind` is 0
-for kinds 2 and 3 and the shallow rule stands. `tests/conform/free/18` to `23`
+A function value in a field is not freed. The freestanding build owns
+strings and frees a struct by type through `free_walk` (section 2a); closures
+stay hosted-only there. `tests/conform/free/18` to `23`
 pin the rows above on C, LLVM and wasm, the refusals (`22`, `23`) included.
 
 ### 3.6 Words and the flat store
