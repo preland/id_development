@@ -446,7 +446,7 @@ no element read out and no element that something else holds (`deep/mv/`).
 Only a list of a type whose elements are not lists themselves (`esc_mvty`) is
 taken: strings, structs, scalars. A moved name is not owned by its function
 (flag bit 64 is a keep until proved), so the function never frees it;
-the struct does, section 3.5b. Moves through a callee are not done. A list
+the struct does, section 3.5b. Moves through a callee are narrow (below). A list
 of lists the constructor takes must have had every row pushed onto it proved
 (`esc_mvrow`, `deep/mv/sd.id`: walk flag 256 needs `esc_mvok`).
 
@@ -486,6 +486,8 @@ type-directed free (`idfr_Bag`) walks it. Cases: conform free/34 (freed), 35 to
 caller's string, loop: refused), leak/07. Without the proof the three refused
 struct cases free what is still reachable (free/41 aborts under
 `ID_FREE_GUARD`); without any struct move leak/07 frees 1 of 53 lists.
+
+**Moves of a list through a callee** (landed, narrow). A call `shelve(rows, row, n)` is judged like `push(rows, row)` when the callee takes one parameter into another syntactically (`esc_cmvto`, `deep/mv/cmv.id`): its top-level body has a `push(pj, pk)` of two of its own parameters, each is mentioned nowhere else in the function (summaries carry no consumed bit, so this is a proof over the body and not a new mask), and the callee is not void. The walk gives the argument for `pk` flag 512 and the argument for `pj` flag 256 (`esc_cmctx`, `deep/mv/cmx.id`, hooked in `esc_args`); the push proof falls back to `esc_cmarg` (`deep/mv/cma.id`) and `esc_mvmask` takes 67 for a non-constructor declaration. A callee that also reads the list (`len(rows)`), returns it or stores it twice is not recognised and stays refused. Cases: conform free/54 (freed; 4 of 5 lists, the same count as writing `push(rows, row)` in the caller) and free/55 (alias, refused; unchanged at 2 of 6). Cost: `esc_cmvto` scans the callee body once per argument per walk.
 
 ### 3.3 Strings
 
