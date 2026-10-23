@@ -316,7 +316,9 @@ What the caller does with it, which is the whole of the win:
   time, so a local struct from a constructor or a fresh call is owned and
   freed the same way: shallowly, unless it also owns its fields, in which
   case by its type, all the way down (section 3.5b).
-- `g(f(x))` with `f` fresh and `g` a function of the program whose bit for
+- `g(f(x))` with `f` fresh (a function of the program, a constructor, or a
+  string- or bytes-making builtin listed in `freshfns`, such as `str_sub`) and
+  `g` a function of the program whose bit for
   that parameter is clear frees the temporary after the call: the C target
   holds it in a variable of a GNU statement expression
   (`back/tgt/c/emit/prog/code/expr/call/temp_*.id`), the LLVM lowering calls
