@@ -104,6 +104,7 @@ A function is bound when each parameter and its return are one of
 | `float` | `number` | |
 | `word` | `bigint` | 64-bit; a safe integer `number` is also accepted |
 | `string` | `string` | UTF-8; a NUL in it is a `TypeError`, because an id string cannot hold one |
+| `bytes` | `Uint8Array` | copied both ways; a 0 byte is an ordinary member (unlike a `string`); anything else is a `TypeError`. `bytes[]` and a `bytes` field are not bound: the `.d.ts` lists the function as not bound and a strict build refuses it, naming `bytes` as the form that crosses |
 | `int[]`, `float[]`, `string[]` | `number[]`, `number[]`, `string[]` | copied both ways |
 | `void` | `undefined` | return only |
 
@@ -458,6 +459,7 @@ taken).
 | `word` | `int64_t` | `int64_t* out` |
 | `float` | `double` | `double* out` |
 | `string` | `const char* p, size_t p_len` | `char** out, size_t* out_len` |
+| `bytes` | `const uint8_t* p, size_t p_len` | `uint8_t** out, size_t* out_len` |
 | `int[]` `word[]` `float[]` | `const T* p, size_t p_len` | `T** out, size_t* out_len` |
 | `string[]` | `const char* const* p, const size_t* p_lens, size_t p_count` | `NAME_strs* out` |
 | `string[][]` | not accepted | `NAME_table* out` |
@@ -468,7 +470,7 @@ compiler's signature report keeps types, not names; the header's comment above
 each function gives the id types. A function whose name starts with `NAME_` is
 exported without doubling it (`csv_rows` in library `csv` is `csv_rows`).
 Structs, `func(...)` values and lists nested more than the `string[][]` result
-have no C form and are refused with the fix named.
+have no C form and are refused with the fix named; `bytes[]` is one of them. A `bytes` result is a malloc'd `uint8_t*` of `out_len` bytes (free it with `NAME_free`); a NULL `p` with a nonzero `p_len` is status 2.
 
 Every exported function returns `int`:
 
@@ -476,7 +478,7 @@ Every exported function returns `int`:
 | --- | --- |
 | 0 | success; the `out` parameters hold the result |
 | 1 | the id code trapped (index out of bounds, division by zero, out of memory, `exit`, a freed list...). `NAME_error()` says what. Every `out` is empty |
-| 2 | an argument was invalid: a NUL byte inside a string (an id string cannot hold one; pass binary data as an `int[]`), or a NULL pointer with a nonzero length. Every `out` is empty |
+| 2 | an argument was invalid: a NUL byte inside a string (an id string cannot hold one; pass binary data as `bytes`), or a NULL pointer with a nonzero length. Every `out` is empty |
 
 `NAME_error()` returns a NUL-terminated message valid until the next call into
 the library **on the same thread**. A successful call clears it.
