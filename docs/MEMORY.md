@@ -378,9 +378,9 @@ is that an alias `row = xs[i]` is refused even when `row` itself never escapes.
 
 **What did not land, and why each is a separate step.**
 
-- **Moves of a string or a struct, and moves of a name that is not declared in
-  the block of the push.** Only a local list moved by `push` into a list of
-  lists is taken (below). csvq's parser declares `row` outside the loop that
+- **Moves of a name that is not declared in the block of the push.** A local
+  list moved by `push` into a list of lists, and a string or a struct pushed
+  onto a list of exactly its type, are taken (below). csvq's parser declares `row` outside the loop that
   pushes it and refills it with `row = []`, which is not a declaration per
   push, so it is still refused, and that is one reason deep frees do not reach
   csvq (section 9).
@@ -437,8 +437,9 @@ no element read out and no element that something else holds (`deep/mv/`).
 Only a list of a type whose elements are not lists themselves (`esc_mvty`) is
 taken: strings, structs, scalars. A moved name is not owned by its function
 (flag bit 64 is a keep until proved), so the function never frees it;
-the struct does, section 3.5b. Moves through a callee, a moved string and a
-moved struct are not done.
+the struct does, section 3.5b. Moves through a callee are not done. A list
+of lists the constructor takes must have had every row pushed onto it proved
+(`esc_mvrow`, `deep/mv/sd.id`: walk flag 256 needs `esc_mvok`).
 
 **Moves into a list of lists** (landed). `push(rows, row)` where `rows` is a
 list of lists (not `string[][]` of strings freed by type: any receiver that
@@ -459,6 +460,23 @@ deep-owned only when every 256 is proved by `esc_pushat`, and `esc_deepk`
 asks that. A row declared before the loop that pushes it, a row read after the
 push, and `xs[i] = row` stay refused. Cases: conform free/31 (freed), 32 and
 33 (refused), leak/05.
+
+**Moves of a string or a struct into a list of its type** (landed). `push(names,
+s)` onto a `string[]`, or `push(pts, p)` onto a `Pt[]`, where the receiver is
+exactly the pushed name's type plus `[]` (`esc_mvsame`, `deep/mv/pel.id`), takes
+the name over on the same test as a row (`esc_movable`) plus one on the kind.
+A string must be declared by a fresh string expression and be mentioned only
+at its declaration and the push (`esc_mvstr`, `deep/mv/str.id`): a literal or a
+caller's string is refused. A struct must have none of the walk bits that stop a
+struct from owning what it holds (4, 8, 32, 128) and every list it takes over
+must itself be a proved move (`esc_mvsd`, `deep/mv/sd.id`). A local `Pt[]` has
+no deep-owner kind (`esc_dkind("Pt[]")` is 0), so moved structs are given back
+only when the list is moved on into a struct, e.g. `Bag b = Bag(pts, n)`, whose
+type-directed free (`idfr_Bag`) walks it. Cases: conform free/34 (freed), 35 to
+37 (read, literal, loop: refused), leak/06; free/38 (freed), 39 to 41 (read,
+caller's string, loop: refused), leak/07. Without the proof the three refused
+struct cases free what is still reachable (free/41 aborts under
+`ID_FREE_GUARD`); without any struct move leak/07 frees 1 of 53 lists.
 
 ### 3.3 Strings
 
@@ -631,8 +649,8 @@ straight to a callee that neither keeps it nor may break it (`esc_tmp_fn`, so
 **What is not done.** A struct reached only through a name the function did
 not make (a parameter, an element, an export) is never freed by this function.
 A string field must be fresh at every constructor: `Pt("lit")` leaves the
-struct shallow. A struct, a string or a list of lists moved by name into a
-constructor is not taken (a field built that way needs a literal or a call).
+struct shallow. A struct or a string moved by name into a constructor is not
+taken (a field built that way needs a literal or a call).
 A function value in a field is not freed. The freestanding build owns no
 string (section 2a) and frees no struct by type either; there `esc_dkind` is 0
 for kinds 2 and 3 and the shallow rule stands. `tests/conform/free/18` to `23`
@@ -882,8 +900,7 @@ owns what it receives (`ys = f()`), frees a fresh block it passes straight to a
 function that does not keep it (`g(f(x))`) and one it discards. The pieces of
 a list of strings (section 3.2) and the fields of a struct (section 3.5b) are
 freed with it when the sign bit says they are the result's alone. *Open inside
-it:* a name moved into a list of lists, a string or a struct (moves into a
-struct take a list only).
+it:* moves through a callee (a parameter stored as an element of another).
 
 **F9. Natives.** Keep everything (today). Alternatives: a declaration form that
 says which parameters a native keeps (syntax, which SPEC section 6 rules out for the
