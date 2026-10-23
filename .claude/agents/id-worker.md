@@ -130,6 +130,11 @@ aborted the program the first time the cursor sat at the end of a line.
   hook blocks anything else, plus background commands, sleeps over 5 s and
   long timeouts inside loops. If a command hits its limit, report BLOCKED;
   never raise the limit. That is a project rule, not a preference.
+  Exempt: a command made only of `ls`, `cat`, `head`, `grep` and `sed -n`
+  (pipes and `;`/`&&` between them; no redirection, no `$(...)`). Everything
+  else needs the wrapper, trivial or not: `timeout 20 cp ...`; a loop gets one
+  `timeout 30` or less per command inside it. A missing wrapper is the most
+  common blocked call, and each one is a wasted turn.
 
 ## Keep your context small
 

@@ -342,7 +342,7 @@ code that is not `id`:
   docs/THREADS.md.
 - `--target wasm` is the C target's output compiled for wasm32-wasi, so closures
   are the same there; the JavaScript and WASM exports (`jsbind`, `wlgen`) take
-  scalars, strings, `bytes` (§4.1) and lists only, and take no function values.
+  scalars, strings, `bytes` (§4.1) and lists only and are unchanged.
 
 **On the targets.** Every function value is a pointer to an object of one
 layout, whether it is plain or a closure: a code pointer `fn` (a function that
