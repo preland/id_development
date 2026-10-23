@@ -473,7 +473,7 @@ list, a struct or `(import NAME)` is written as it would be anywhere else.
 holds: a list or string stored in a field -- by the constructor or by
 `p.f = xs;` -- is **kept**, never freed when the function that made it ends,
 because the compiler does not follow a value into a field (docs/MEMORY.md).
-A struct is not itself freed yet: only lists are.
+A struct that nothing keeps is freed with what it owns (docs/MEMORY.md 3.5b).
 
 **On the targets.** A struct is the list it is stored as: the C target spells
 it `IdList*`, one 64-bit cell per field in declaration order, with a field read
