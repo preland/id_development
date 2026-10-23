@@ -3086,6 +3086,77 @@ main(int argc, string[] argv) {
 } return int 0;
 ```
 
+## E0641 bytes joined with +
+
+A byte buffer is not joined by `+`: building one up that way would copy it on
+every step. Append in place with `bytes_append(dst, src)`, or convert it with
+`string_of_bytes` when it really is text.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  bytes a = bytes_new(2);
+  bytes b = bytes_new(1);
+  bytes c = a + b;
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  bytes a = bytes_new(2);
+  bytes b = bytes_new(1);
+  bytes_append(a, b);
+} return int 0;
+```
+
+## E0642 a byte literal outside 0 to 255
+
+A `bytes` buffer holds one byte per element, so each element of a list literal
+in a bytes slot is a number from 0 to 255.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  bytes b = [1, 300];
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  bytes b = [1, 255];
+} return int 0;
+```
+
+## E0643 bytes passed to a builtin that writes text
+
+`print`, `eprint` and `put` write text, and a byte buffer is binary. Print it as
+text with `string_of_bytes(b)` (it stops if a byte is 0), or write its elements
+one at a time.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  bytes b = bytes_new(1);
+  print(b);
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  bytes b = bytes_new(1);
+  print(b[0]);
+} return int 0;
+```
+
 ## E0702 a file with a generic name
 
 A name like `util.id`, `helper.id`, `misc.id` or `common.id` says nothing about
