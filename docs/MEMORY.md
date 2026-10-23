@@ -202,7 +202,7 @@ Two rules in the table exist for a reason that is easy to miss:
 
 ### What the slice does not do
 
-Exports (section 3.4), function values and closures (3.5), the flat store
+Exports (section 3.4), a closure that is kept (3.5), the flat store
 (3.6), and elements that reach a list by name (a name moved into a list of
 lists, a moved name that is a string or a struct, section 3.2). Strings,
 return-value ownership, temporaries, the strings of a list of strings and the
@@ -221,8 +221,9 @@ print `id: allocated N lists` and `id: allocated N strings` (stderr, before the
 freed lines; hosted C, LLVM and wasm share the one counter in the C runtime).
 `idc/tests/conform/leak/` pins allocated against freed: a loop that builds and
 drops a list or a string ends with allocated equal to freed plus the argv
-baseline, and `03-closure-leak` pins a leak that exists today (a `bind` closure
-in a loop) with a note on the P1.1b step that flips it.
+baseline, and `03-closure-leak` pins that a `bind` closure made in a loop is
+freed with the list it copied (section 3.5): what stays allocated is argv and
+the list literal main hands to the loop's function.
 
 | target | frees lists | why not, if not |
 | --- | --- | --- |
@@ -497,29 +498,43 @@ the **meet of those functions' summaries** instead of "keeps everything", which
 the slice uses today (fork F6 asks whether to do the meet).
 
 **What a closure owns, and who frees it.** A closure is one runtime block
-(`id_clo_new`: a header and the captured cells), and each list it captured is a
-copy the runtime made (`id_clo_copy`: a new list of the same cells, locked with
-`id_list_lock`, so a write to it is the trap `id: cannot mutate a constant
-list`). Strings and function values are shared, because they are immutable. All
-of these are ordinary allocator blocks, so they are released with the rest at
-exit; **none is freed earlier in this slice**. The analysis needs no new row
-for them:
+(`id_clo_new`: a header, the captured cells and one trailing cell the cells
+never name), and each list it captured is a copy the runtime made
+(`id_clo_copy`: a new list of the same cells, locked with `id_list_lock`, so a
+write to it is the trap `id: cannot mutate a constant list`). Strings and
+function values are shared, because they are immutable. `bind` stores a copied
+list with `id_clo_setl`, which sets that cell's bit in the trailing cell, so
+`id_clo_free` knows which cells are lists the closure alone owns (an `int` cell
+is never dereferenced). A closure that is not proved dead is an ordinary
+allocator block, released with the rest at exit. The analysis needs one row
+for the closure itself and one for a function value captured by `bind`:
 
 | position | keeps `xs`? |
 | --- | --- |
 | a list passed as a value of `bind` | no: `bind` copies it, and `bind` is a builtin, which the table already treats as not keeping |
-| a closure local or parameter | it is not a list, so it is neither owned nor freed |
+| a function value passed as a value of `bind` | yes: `bind` shares it, as it shares a string |
+| a closure local or parameter | a local is owned by the rule below; a parameter is somebody else's |
 | a call through a closure | the same row as a call through any function value: keeps its arguments |
 
-What it would take to free a closure's blocks early is the same thing it takes
-for a string (section 3.3): proving the value fresh and dead. A closure is the
-easier case, because it is built in one expression whose every part is a fresh
-block the closure alone holds (`id_clo_copy` is a fresh list), so a local that
-is assigned only from `bind`, and is never returned, exported or passed to a
-callee that keeps it, could free the object and each copied list at its
-function's exit. That is not built, and nothing above depends on it. A closure
-that is stored in an export, or handed to `thr_map`'s worker threads, is never
-a candidate.
+**When a closure is freed (landed).** A local whose type is a function type is
+owned by the string rule (section 3.3): every store into it is a fresh value,
+which for it means a `bind` call (`esc_fresh_obj`), and no use keeps it (bit 1,
+with a function value captured by `bind` counted as a keeper). The free call is
+`id_clo_free`, picked by the declared type like `id_str_free`
+(`esc_by_type`): it frees each marked list copy and then the object, at the
+function's exit and when a store replaces the closure. Hosted builds only, as
+for strings. Returning a closure is not a way out of this: a function cannot
+return a function value (SPEC 1.1.1), so a closure leaves its function only
+through an export, a list or struct field, a callee that keeps it, or another
+closure's `bind`, and each of these is the bit-1 refusal above. A closure
+handed to a `native` such as `thr_map` is a call that keeps everything, so it
+is never a candidate. `conform/free/24-closure-freed` and
+`25-closure-refused` pin both sides under `ID_FREE_GUARD=1`; the guard turns a
+second free into a trap and fills a freed closure's cells with 0xDD, so a
+later call reads garbage instead of a stale value. A closure
+object is not counted by `ID_FREE_STATS`, which counts lists and strings: the
+copies it frees are. A closure that binds more than 63 values leaves the lists
+past the 63rd to the exit.
 
 ### 3.5b Structs (landed: owned fields, freed by type)
 
@@ -718,7 +733,7 @@ Under ASan a freed block is poisoned, so a read after a free is reported.
 | rule | what it gives | where it stops |
 | --- | --- | --- |
 | Single-owner exports, `(import x)[i] = v` rejected | the readers of an export are a syntactic set; the writer is one function | the *values* read are ordinary lists, and a read that binds a name needs the whole section 2 check on that name |
-| Function values are named functions, or a `bind` of one that copies what it holds (SPEC 1.1.1) | a call through a value captures no variable; the candidate set is finite | the call site still has to use the set (F6), and a closure's blocks are not freed early (section 3.5) |
+| Function values are named functions, or a `bind` of one that copies what it holds (SPEC 1.1.1) | a call through a value captures no variable; the candidate set is finite | the call site still has to use the set (F6), and a closure is freed early only as section 3.5 says |
 | 3 actions per block, nesting 2, structured control | a function body is one walk; every exit is syntactic | precision is interprocedural, not local |
 | One type per name per unit | a name identifies a variable in a function; no alias by shadowing | the same name in two functions are two variables, so summaries are keyed by function |
 | Return clause is a name or a literal | the returned value is always a name; `return xs` is one syntactic form | none |
