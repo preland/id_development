@@ -882,6 +882,12 @@ address is arithmetic — none of which needs syntax.
   for an `int`, 64 for a `word`) and returns that type. The count is taken
   modulo the width, negative counts included, so `rotl(x, 0 - 1)` rotates right
   by one; no count traps or branches. There is no right rotate.
+- `add_checked(a, b)`, `sub_checked(a, b)` and `mul_checked(a, b)` are `+`, `-`
+  and `*` that trap instead of wrapping: a result outside the signed range of
+  the width traps with `id: integer overflow` (§8). The width follows the
+  operands as `+` does: two `int`s give an `int` checked at 32 bits, and a
+  `word` on either side gives a `word` checked at 64 bits. `+`, `-` and `*`
+  themselves keep wrapping.
 
 **Memory is meant to be freed before exit, and only part of it is.** `alloc` is
 a bump pointer whose flat store is dropped only at process exit, and a value the
@@ -1138,6 +1144,7 @@ catchable; `id` has no exceptions.
 | `fail(MSG)` | `id: MSG` |
 | `/` or `%` by zero | `id: division by zero` / `id: remainder by zero` |
 | `MIN / -1` | `id: division overflow` |
+| `add_checked`, `sub_checked` or `mul_checked` result outside the signed range of its width | `id: integer overflow` |
 | shift by a negative count | `id: shift by a negative amount` |
 | list index outside the list | `id: index N out of bounds (len M)` |
 | `pop` of an empty list | `id: pop from empty list` |
