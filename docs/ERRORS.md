@@ -3157,6 +3157,32 @@ main(int argc, string[] argv) {
 } return int 0;
 ```
 
+## E0644 an int passed to umul_hi
+
+`umul_hi` multiplies two unsigned 64-bit words and returns the high 64 bits of
+the 128-bit product. An `int` has 32 bits and a sign, so it is not accepted
+silently: widen it with `uword_of_int`, which zero-extends, or declare the
+operand as a `word`.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  word a = 5;
+  print("" + umul_hi(a, 3));
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  word a = 5;
+  word b = uword_of_int(3);
+  print("" + umul_hi(a, b));
+} return int 0;
+```
+
 ## E0702 a file with a generic name
 
 A name like `util.id`, `helper.id`, `misc.id` or `common.id` says nothing about

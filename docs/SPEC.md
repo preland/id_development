@@ -521,7 +521,7 @@ the offending write or call and the fix (`docs/ERRORS.md`, `E0801`-`E0806`):
 - **`f` writes no export** (`E0801`). An `export` declaration is the only way
   a function assigns an export, so a pure function has none.
 - **`f` does no I/O** (`E0802`). It may call only the builtins `len`, `push`,
-  `pop`, `to_int`, `character_code_at`, `chr`, `str_sub`, `udiv`, `umod`, `ult`, `ushr`, `fail`, `bind` and the four float bit-cast builtins (the list
+  `pop`, `to_int`, `character_code_at`, `chr`, `str_sub`, `udiv`, `umod`, `ult`, `ushr`, `rotl`, `umul_hi`, `uword_of_int`, `fail`, `bind` and the four float bit-cast builtins (the list
   is the `pure_builtins` constant of `idc/compiler/parse/conf.id`). `print`,
   `put`, `flush`, `eprint`, `input`, `read_all`, `getkey`, `sleep_ms` and `ticks`
   do I/O or read the clock, and `alloc`, `store_size`, `peek*`, `poke*`,
@@ -870,9 +870,18 @@ address is arithmetic — none of which needs syntax.
   `str_of_mem` traps if any of the `n` bytes is a NUL (§4).
 - `udiv`, `umod`, `ult`, `ushr` are the unsigned readings of `/ % < >>`. The
   plain operators keep their signed meaning. An `int` argument to `udiv`,
-  `umod` or `ushr` is read as its 32 unsigned bits (§2.3's width `W`), not
-  sign-extended: `ushr(0 - 1, 28)` is `15` and `ushr(0 - 1, 32)` is `0`. Pass
-  a `word` to read 64 bits.
+  `umod`, `ult` or `ushr` is read as its 32 unsigned bits (§2.3's width `W`),
+  not sign-extended: `ushr(0 - 1, 28)` is `15` and `ushr(0 - 1, 32)` is `0`.
+  Pass a `word` to read 64 bits.
+- `umul_hi(a, b)` takes two `word`s and returns the high 64 bits of their
+  unsigned 128-bit product (the low half is `a * b`). An `int` argument is
+  refused (`E0644`): widen it with `uword_of_int`.
+- `uword_of_int(x)` takes an `int` and returns it zero-extended as a `word`:
+  `uword_of_int(0 - 1)` is `4294967295`.
+- `rotl(x, n)` rotates `x` left by `n` within the width of `x`'s type (32 bits
+  for an `int`, 64 for a `word`) and returns that type. The count is taken
+  modulo the width, negative counts included, so `rotl(x, 0 - 1)` rotates right
+  by one; no count traps or branches. There is no right rotate.
 
 **Memory is meant to be freed before exit, and only part of it is.** `alloc` is
 a bump pointer whose flat store is dropped only at process exit, and a value the
