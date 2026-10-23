@@ -1062,7 +1062,7 @@ functions it calls, the exported variables it reads (through the function that
 declares them), and the `conf.id` constants it reads, directly or through the
 initialiser of another constant. Editing a constant nothing reads reruns no
 case; editing one reruns exactly the cases that read it. What the source cannot
-say -- the compiler, `cc` and the host -- is part of every key. Every case is cached, a scaling claim's and one that reaches a native whose result no hash can see (a call to `ticks` or `getkey`, an `asm` routine, the
+say -- the compiler, `cc` and the host -- is part of every key, and so is a hash of the C and JS sources of every backend directory the program's natives are implemented by (the list the build already links, hashed once per build): editing a native's shim reruns the cases of exactly the programs that link that backend. Every case is cached, a scaling claim's and one that reaches a native whose result no hash can see (a call to `ticks` or `getkey`, an `asm` routine, the
 window, the environment): what a hash cannot see is covered
 by expiry (next paragraph). A scaling claim's cases are skipped together or run
 together, because the claim compares their counts; a claim that does not hold is
