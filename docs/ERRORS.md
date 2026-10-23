@@ -3183,6 +3183,34 @@ main(int argc, string[] argv) {
 } return int 0;
 ```
 
+## E0645 a float stored into an int list or bytes element
+
+A float stored into an `int[]` or a `bytes` element would silently drop its
+fraction, and `id` converts nothing silently. This covers `push(xs, f)` and
+`xs[i] = f`, for an `int[]` and for `bytes`. Write the narrowing on a line of
+its own: a declaration may narrow, so declare an `int` local from the float and
+store that. A `float[]` takes a float as it is.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  int[] xs = [1];
+  push(xs, 2.5);
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  float f = 2.5;
+  int n = f;
+  int[] xs = [1];
+  push(xs, n);
+} return int 0;
+```
+
 ## E0702 a file with a generic name
 
 A name like `util.id`, `helper.id`, `misc.id` or `common.id` says nothing about
