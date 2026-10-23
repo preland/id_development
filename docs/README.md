@@ -55,3 +55,4 @@ come from the command a document names.
 | [`KERNEL.md`](KERNEL.md) | the kernel and the runtime under it |
 | [`RUNNING.md`](RUNNING.md) | running the kernel and the editor |
 | [`HYPRLAND.md`](HYPRLAND.md) | running the graphics demos without losing your place, for one compositor |
+| [`RUBRIC.md`](RUBRIC.md) | what each row of the ecosystem assessment has to show before it is graded A |
