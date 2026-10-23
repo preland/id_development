@@ -317,7 +317,8 @@ What the caller does with it, which is the whole of the win:
   freed the same way: shallowly, unless it also owns its fields, in which
   case by its type, all the way down (section 3.5b).
 - `g(f(x))` with `f` fresh (a function of the program, a constructor, or a
-  string- or bytes-making builtin listed in `freshfns`, such as `str_sub`) and
+  string- or bytes-making builtin listed in `freshfns`, such as `str_sub`, or
+  a string concatenation, `esc_tmp_bin`) and
   `g` a function of the program whose bit for
   that parameter is clear frees the temporary after the call: the C target
   holds it in a variable of a GNU statement expression
