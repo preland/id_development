@@ -117,7 +117,7 @@ bound (it is listed in the `.d.ts` as a comment and stays callable as
 
 * **Copies, not views.** Strings and lists are copied across in both
   directions; JS never holds a pointer into wasm memory, which moves when
-  memory grows.
+  memory grows. There is no heap cap (no `--max-memory` at link): the memory grows up to wasm32's 4 GiB (docs/MEMORY.md, WASM).
 * **Arguments are allocated in id's arena and stay there until `dispose()`**,
   because the compiler cannot say whether a callee kept them (stored a string
   in an export, pushed it onto a list) and freeing one that was kept is a

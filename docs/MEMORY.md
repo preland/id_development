@@ -83,6 +83,15 @@ generator with a bump allocator, `idc/idc.py`, is deleted. (docs/BACKENDS.md,
 docs/RELIANCES.md and docs/SPEC.md S12 may still say the self-hosted driver has
 no wasm target; idc/bin/idc accepts `--target wasm`.)
 
+There is no heap cap on wasm: the link passes no `--max-memory`, so wasm-ld's
+maximum is the 4 GiB wasm32 limit and wasi-libc grows the memory with
+`memory.grow`; the flat store (`alloc`/`peek`/`poke`) is ordinary `malloc`
+memory, so addresses stay valid across growth. Measured: a 600 MiB heap runs
+under wasmtime, 2 GiB from Node (`load()` then `bigsum`), and
+`tests/conform/store/13-big-heap-and-store` (a 9.6 MB list plus store
+round trips) passes on c, llvm and wasm. Hitting 4 GiB is the allocator's
+`id: out of memory`, not tested here.
+
 **Natives.** A `native` function is C the program links. It receives the same
 `char*` and `IdList*` and may keep them.
 
