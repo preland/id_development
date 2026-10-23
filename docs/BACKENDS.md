@@ -453,7 +453,7 @@ speed and size. `-O LEVEL` (or `-O0` ... `-O3`, `-Os`) chooses, on every target:
 | --- | --- | --- | --- | --- |
 | `0` | `-O0` per unit | IR passes off, `clang -O0` | `clang -O0` | quickest build; every id function is a call |
 | `1` | `-O1` per unit | IR passes on, `clang -O1` | `clang -O1` | edit-and-run: no whole-program step, so an edit rebuilds one unit |
-| `2` (default) | `-O2` plus `-flto` | IR passes on, `clang -O2 -flto` | `clang -O2 -flto`, `wasm-ld --lto-O2` | small functions inlined across the whole program |
+| `2` (default) | `-O2 -ftree-vectorize` plus `-flto` | IR passes on, `clang -O2 -flto` | `clang -O2 -flto`, `wasm-ld --lto-O2` | small functions inlined across the whole program |
 | `3` | `-O3 -flto` and a larger inline budget | `clang -O3 -flto` | `-O3 -flto`, `--lto-O3` | fastest code, larger binary |
 | `s` | `-Os -flto` | `clang -Os -flto` | `-Os -flto` | smallest binary; slower than `2` |
 
