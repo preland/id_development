@@ -47,6 +47,7 @@ nests. `func(T1, T2) return R` is a function type (§1.1).
 | `word` | 64 | two's complement; the type of an address in the flat store |
 | `float` | 64 | IEEE-754 binary64 |
 | `string` | — | an immutable sequence of bytes |
+| `bytes` | 8 per element | a growable sequence of octets, each 0 to 255, that may hold a 0 (§4.1); reference semantics, like a list |
 | `void` | 0 | no value |
 
 A list is a heap-allocated growable sequence with **reference semantics**:
@@ -341,7 +342,7 @@ code that is not `id`:
   docs/THREADS.md.
 - `--target wasm` is the C target's output compiled for wasm32-wasi, so closures
   are the same there; the JavaScript and WASM exports (`jsbind`, `wlgen`) take
-  scalars, strings and lists only and are unchanged.
+  scalars, strings, `bytes` (§4.1) and lists only, and take no function values.
 
 **On the targets.** Every function value is a pointer to an object of one
 layout, whether it is plain or a closure: a code pointer `fn` (a function that
@@ -785,7 +786,7 @@ planned function over it. It is recorded as a limitation rather than a design
 decision, and a target is not free to lift it, because a program that works on
 one target and not another is the thing this document exists to prevent.
 
-Bytes that may hold a NUL belong in the flat store (§6), not in a string: idstd's
+Bytes that may hold a NUL belong in a `bytes` (§4.1) or the flat store (§6), not in a string: idstd's
 `stdio_slurp`, `stdio_read_mem`, `stdio_read_some_mem` and `stdio_write_mem` move
 stdin and stdout/stderr bytes through it without a string in between.
 
@@ -813,6 +814,61 @@ as in C, on every target: `"\033"` is ESC (27), `"\101"` is `A`, `"\1"` is the
 byte 1, and a fourth digit is an ordinary character (`"\0121"` is a newline and
 a `1`). A value above 255 keeps its low eight bits
 (`tests/conform/str/18-octal-escape.id`).
+
+### 4.1 Bytes
+
+A `bytes` is a growable sequence of octets: the type for data that may hold a
+0, which a string cannot (§4). Its length is `len(b)`; an element is an `int`
+from 0 to 255. Like a list it has **reference semantics** (§1): two names for
+one `bytes` see each other's writes.
+
+- **A list literal in a `bytes` slot is a byte literal**, the same slot rule as
+  §5: a declaration, an assignment, an argument, a return value, a struct
+  field, an element of a `bytes[]` and a test case's argument or expected value
+  each build a `bytes`, never an `int[]`. `[]` is an empty one. A constant
+  element outside 0 to 255 is a compile error (E0642); a non-constant one
+  traps when the literal is built (below).
+- `b[i]` reads and `b[i] = v` writes, with a **trap** on an index outside
+  `0 <= i < len(b)`, worded as a list's. A `v` outside 0 to 255 **traps rather
+  than truncating**. `push(b, v)` appends under the same range rule, `pop(b)`
+  removes and returns the last byte and **traps** on an empty `bytes`.
+- `==` and `!=` compare contents: two buffers of equal length and equal bytes
+  are equal, whatever they are named. A `bytes` and a `string` are not
+  comparable (E0604), and `+` does not take a `bytes` (E0641; use
+  `bytes_append`). `print`, `eprint` and `put` refuse one (E0643): convert it
+  with `string_of_bytes`, or write its elements.
+- `bytes_new(n)` is `n` zero bytes, and **traps** when `n` is negative.
+- `bytes_sub(b, i, n)` is the `n` bytes of `b` from `i`, as a new `bytes`: one
+  allocation, one copy. A negative `i` or `n`, or an `n` above 0 with
+  `i + n` past `len(b)`, **traps**. An empty span (`n` of 0) answers an empty
+  `bytes` for any `i >= 0`, past the end included, as `str_sub` does (§4).
+- `bytes_append(dst, src)` appends a copy of `src` to `dst` in place and
+  returns nothing. `src` may be a span of `dst`.
+- `bytes_of_string(s)` is the bytes of `s`, copied. `string_of_bytes(b)` is
+  the string of `b`, copied, and **traps if any byte is 0**: a string never
+  holds a NUL (§4), so nothing is cut short. Look for the 0 first with idstd's
+  `bytes_find(b, 0)`.
+- `bytes_of_memory(addr, n)` copies `n` bytes of the flat store (§6) into a new
+  `bytes`; it **traps** when `n` is negative or the span is outside the store.
+  `memory_of_bytes(b)` is the reverse: it `alloc`s a block of `len(b)` bytes,
+  copies `b` into it and returns the `word` address. The store never frees
+  that block (§6), and the copy is not shared with `b`.
+
+`bytes[]` is a list of `bytes`, and a list literal inside a `bytes[]` literal,
+pushed onto one, or stored into one of its slots is a byte literal in turn
+(`[[1, 255], [2]]`).
+
+**Freeing.** A `bytes` is freed by the same proof as a list or a string (§6):
+a local that nothing keeps, and one a function returns fresh, by its receiver.
+A `bytes[]` frees its buffers too when it owns them -- every buffer that goes
+into it is a literal written for it, and none is read out into a name. The
+freestanding runtime frees no `bytes`. docs/MEMORY.md is the design.
+
+**Across a boundary.** A `bytes` crosses the JavaScript and WASM exports
+(`jsbind`) as a `Uint8Array` and the C library header (`libgen`) as a pointer
+and a length; a 0 byte is an ordinary member there, and a NUL in a `string` is
+refused where a `bytes` is not. `bytes[]` crosses neither: the build refuses
+it and names `bytes` as the form that does. docs/INTEROP.md has the tables.
 
 ## 5. Lists
 
@@ -1156,6 +1212,13 @@ catchable; `id` has no exceptions.
 | allocation refused by the host | `id: out of memory (N bytes)` |
 | a NUL byte reaching a string through `read_all`, `input`, `str_of_mem` | `id: a NUL byte reached a string (WHICH): use idstd stdio_slurp or stdio_read_mem, or the store (fs_read_mem), for binary data` |
 | `chr` of a code whose low byte is 0 | `id: a NUL byte reached a string (chr(0)): a string cannot hold NUL; use the store (poke8) for binary data` |
+| a NUL byte reaching a string through `string_of_bytes` | `id: a NUL byte reached a string (string_of_bytes): look for it first with idstd bytes_find(b, 0), or keep the data in bytes` |
+| a `bytes` index outside the buffer | `id: index N out of bounds (len M)` |
+| a store, `push` or literal element into a `bytes` outside 0 to 255 | `id: byte value V out of range 0..255` |
+| `pop` of an empty `bytes` | `id: pop from empty bytes` |
+| `bytes_new(n)` or `bytes_of_memory(addr, n)` with a negative `n` | `id: bytes_new: length out of range` / `id: bytes_of_memory: length out of range` |
+| `bytes_sub(b, i, n)` with a span outside `b` | `id: bytes span out of bounds: i=I n=N in a bytes of length M` |
+| a `bytes` used after the escape analysis freed it (`ID_FREE_GUARD`, hosted targets) | `id: use of a freed list (the compiler's escape analysis freed a list that was still reachable)` |
 | `str_sub(s, i, n)` with a span outside `s` | `id: str span out of bounds: i=I n=N in a string of length M; clamp i and n first (fixed_point_minimum, fixed_point_maximum)` |
 | a `native` returning a list or struct whose `IdList` has a negative length (every other such result is copied into a list the runtime owns, so `push` works on it) | `id: a native returned a malformed list (len N): fill len cells at data, or size the list from id and return a count` |
 | reading an export whose declaring function has not run: a list anywhere; any type in a test case | `id: read of an uninitialised export (its declaring function has not run)` |
