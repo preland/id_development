@@ -4,12 +4,12 @@ orc_raw(Cx cx, int ev) {
   string name = xr_get((cx.rd), (import xr_k_name));
   int hi = orc_close(cx, ev);
 } chain (Cx cx, int ev) {
-  int[] bytes = list_slice(cx.rd.src, lo, hi - lo);
-  Part pt = Part(name, bytes, (import orc_part_raw));
+  int[] data = list_slice(cx.rd.src, lo, hi - lo);
+  Part pt = Part(name, data, (import orc_part_raw));
   push(cx.d.ext.parts, pt);
 } chain (Cx cx, int ev) {
   int idx = len(cx.d.ext.parts) - 1;
-  orc_autos(cx, bytes);
+  orc_autos(cx, data);
 } return int idx;
 given orc_t_open("<r><draw:frame a='1'><x/></draw:frame></r>") given orc_t_steps(2) ((import orc_tc), 1):(0) then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | draw:frame:0:<draw:frame a='1'><x/></draw:frame>,") then orc_t_pos:(38)
 given orc_t_open("<r><!--x--><y/><z/></r>") given orc_t_steps(2) given orc_t_raw(4) given orc_t_steps(1) ((import orc_tc), 4):(1) then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | y:0:<y/>,z:0:<z/>,")
