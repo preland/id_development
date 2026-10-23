@@ -312,7 +312,7 @@ count() {
   ```
 
   Every rule below is judged on the export, `NAME`, not on the field: a
-  function that reads `(import bk)` and never writes it is refused whichever
+  function that reads `(import bk)` and never writes it, under a case none of whose `given` setups writes it itself, is refused whichever
   field the check reads. A path that is not a field is an error at the case's
   line that names the step and the fix: `(import cnt).len` of an `int` export
   is "not a struct, so it has no fields", and `(import bk).pages.zz` is "struct
@@ -324,10 +324,10 @@ count() {
   declarer, as an `(import NAME)` argument does; the value is held to the
   export's type (its element's with an index, `int` with `len`), which must be
   a list when there is an index and a list or a string with `len`;
-  **the function under test may not only read `(import NAME)`**; and
+  **the function under test may not only read `(import NAME)` unless a `given` of the case sets it**; and
   **the function under test may not be, or call, the function that declares
   `NAME` unless something in that call also writes it** (below). A check of the very read the body makes
-  would stay green whatever the body did to the value, so a function that reads
+  would stay green whatever the body did to the value, unless a `given` setup of the case writes the export itself (it is the function that exports it, or writes it through `(import NAME)`), so that the check reads what the setup wrote; a setup that only calls a function which writes it does not count. Otherwise a function that reads
   its export and never writes it is tested by an explicit check function
   instead -- one that says what the whole state is supposed to be and is named
   in `then CHECK:(VALUE)`. A function that writes it is checked after the
@@ -488,7 +488,7 @@ the case's line:
 | `} return void export NAME;` where the function does not export `NAME` in its own body | `'NAME' is named by the return clause of 'f' (return void export NAME), but 'f' does not export it in its own body; add 'export TYPE NAME = VALUE;' to 'f', or drop 'export NAME' from its return clause` |
 | `} return void export a, b;` | `a return clause names exactly one exported variable: write '} return void export NAME;' with the one variable this function exists to initialize` |
 | `} return int x export NAME;` | `only a void function can name the export it initializes: '} return int export NAME;' gives a value and a variable at once; drop 'export NAME' from the return clause, or make the function void` |
-| `then (import NAME)` under a function that reads `(import NAME)` and never writes it | `then (import cnt): the function under test, 'wrap', reads (import cnt) but never writes it, so this check would only repeat its own read; check an export the function changes, or write one check function that states the whole expected state and name it in 'then CHECK:(value)'` |
+| `then (import NAME)` under a function that reads `(import NAME)` and never writes it, when no `given` setup of the case writes it itself (a setup that only calls a writer does not count) | `then (import cnt): the function under test, 'wrap', reads (import cnt) but never writes it, so this check would only repeat its own read; check an export the function changes, give the case a setup that writes (import cnt) itself (a setup that only calls a function that writes it does not count), or write one check function that states the whole expected state and name it in 'then CHECK:(value)'` |
 | `then len((import NAME))` of an export that is not a list or a string | `len((import total)) measures a list or a string, but 'total' is a int; name a list or string export, or compare the value itself with then (import total):(value)` |
 | `then (import NAME)[(import VAR)]` with an exported variable in the index | `(import slot) is an exported variable, and only a conf.id constant may stand in a then check's index: a variable's value is what the check is testing; name a constant, or write the index as a number` |
 | `(import CONST)` of a conf.id constant as a case's own argument or expected value | `(import slot) is a conf.id constant, and a case's own argument or expected value cannot name one: a conf.id constant is accepted as an argument of a given setup, as in given f((import slot)), as an argument of a then check, as in then g((import slot)):(value), and as a then check's index; write its value here as a literal` |
