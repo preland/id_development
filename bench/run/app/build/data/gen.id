@@ -2,4 +2,12 @@ br_t_gen() {
   int have = br_gen_bin((import br_tw), "$BR_ROOT/bench/ref/c/gen.c");
 } return void;
 given br_t_work ():() then br_t_count:(0)
-given br_t_work ():() then len((import br_tw)):(15)
+given br_t_work given br_t_root ():() then br_t_has_gen:(1)
+given br_t_work ():() then br_t_has_gen:(0)
+
+// 1 when the work directory holds the generator br_t_gen builds.
+br_t_has_gen() {
+  int have = fs_exists((import br_tw) + "/gen");
+} return int have;
+given br_t_work given br_t_root given br_t_gen ():(1)
+given br_t_work ():(0)

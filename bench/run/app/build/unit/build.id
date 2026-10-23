@@ -3,22 +3,22 @@ br_do_build(string work, int tc, string name) {
   int mk = fs_mkdir_p(fs_dir_of(bin));
   string cmd = br_build_cmd(tc, name, bin);
 } chain (string work, int tc, string name) {
-  string tf = br_tfp(work);
-  string wrapped = br_wrap(cmd, tf, br_logp(work) + ".build");
+  string tf = path_join(work, "time.tmp");
+  string wrapped = br_wrap(cmd, tf, path_join(work, "results.tsv") + ".build");
   int rc = br_sh(wrapped);
 } chain (string work, int tc, string name) {
   int cs = br_cs(br_last(tf));
   int size = fs_size(bin);
   string row = br_row_b(tc, name, cs, size, rc);
 } chain (string work, int tc, string name) {
-  int ok = br_append(br_logp(work), row);
+  int ok = br_append(path_join(work, "results.tsv"), row);
 } return void;
 given br_t_work given br_t_root ((import br_tw), 0, "nonesuch"):() then br_t_status:("1")
 given br_t_work given br_t_root ((import br_tw), 0, "nbody"):() then br_t_status:("0")
 
 br_build_one(string work, int tc, string name) {
   string key = "B\t" + (import br_tc)[tc] + "\t" + name + "\t";
-  string rows = fs_read_text(br_logp(work));
+  string rows = fs_read_text(path_join(work, "results.tsv"));
   if(br_has(rows, key) == 0) {
     br_do_build(work, tc, name);
   }

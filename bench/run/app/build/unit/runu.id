@@ -13,7 +13,7 @@ br_do_run(string work, int tc, int i, int rep, int core) {
   string out = br_outp(work, tc, name);
   int mk = fs_mkdir_p(fs_dir_of(out));
 } chain (string work, int tc, int i, int rep, int core) {
-  string tf = br_tfp(work);
+  string tf = path_join(work, "time.tmp");
   string cmd = br_run_cmd(core, br_bin(work, tc, name), (import br_args)[i], br_dpath(work, (import br_data)[i]), out, tf);
   int rc = br_sh(cmd);
 } chain (string work, int tc, int i, int rep, int core) {
@@ -21,14 +21,14 @@ br_do_run(string work, int tc, int i, int rep, int core) {
   int ok = br_same(work, tc, name, rc);
   string row = br_row_r(tc, name, rep, line, ok);
 } chain (string work, int tc, int i, int rep, int core) {
-  int w = br_append(br_logp(work), row);
+  int w = br_append(path_join(work, "results.tsv"), row);
 } return void;
 given br_t_work given br_t_exe("exit 0", 0, "nbody") ((import br_tw), 0, 0, 0, 0):() then br_t_status:("1")
 given br_t_work given br_t_exe("exit 1", 0, "nbody") ((import br_tw), 0, 0, 0, 0):() then br_t_status:("0")
 
 br_run_one(string work, int tc, int i, int rep, int core) {
   string key = "R\t" + (import br_tc)[tc] + "\t" + (import br_names)[i] + "\t" + rep + "\t";
-  string rows = fs_read_text(br_logp(work));
+  string rows = fs_read_text(path_join(work, "results.tsv"));
   if(br_has(rows, key) == 0) {
     br_do_run(work, tc, i, rep, core);
   }

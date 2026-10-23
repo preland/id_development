@@ -11,7 +11,8 @@ br_setup(string work) {
   environment_put("BR_ROOT", root);
 } chain (string work) {
   int gen = br_gen_bin(work, "$BR_ROOT/bench/ref/c/gen.c");
-  int meta = br_sh(br_meta_cmd(work));
+  string meta_cmd = "(uname -sr; lscpu | grep 'Model name'; nproc; gcc --version | head -1; clang --version | head -1; $BR_RUSTC -vV | head -1; node --version; cat /proc/loadavg; ps -eo pcpu,comm --sort=-pcpu | head -6) > " + work + "/meta.txt 2>&1";
+  int meta = br_sh(meta_cmd);
 } return string rustc;
 given br_t_work given br_t_root given environment_put("BR_RUSTC", "/bin/true") ((import br_tw)):("/bin/true")
 ("/proc/nonesuch/w"):("")
@@ -30,7 +31,7 @@ given br_t_work ((import br_tw), 1, 0, 0, 0, "zzz"):(0)
 given br_t_work ((import br_tw), 1, 0, -100000, 1, "zzz"):(3)
 
 br_report(string work, int n) {
-  string rows = fs_read_text(br_logp(work));
+  string rows = fs_read_text(path_join(work, "results.tsv"));
   print("```");
   flush();
 } chain (string work, int n) {
