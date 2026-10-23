@@ -393,8 +393,21 @@ is that an alias `row = xs[i]` is refused even when `row` itself never escapes.
   `xs = f()` is owned, and deep when `f` returns its elements as its own.
   `sorted` in csvq's `srt_rows` still keeps elements of `rows` that `rows`
   still holds.
-- **The replaced element.** `xs[i] = [..]` leaves the element it replaced
-  unfreed, because nothing proves no alias took it first.
+- **The replaced element** (landed, for a deep-owned list that is a plain
+  local). `xs[i] = [..]` frees the element it replaces, shallowly, as
+  `id_list_free`, and for a `string[]` `xs[i] = <fresh string>` frees the old
+  string as `id_str_free`. The proof is the deep-owned one: no element of `xs`
+  was ever read out where something keeps it (rule 3), so the cell being
+  overwritten has no other holder, and the value is computed before the old one
+  is read, so a value that reads `xs[i]` sees it alive. The C target emits one
+  statement expression (`esc_slot_code`, `own/free/store_slot.id`) that
+  computes the index once, reads the old cell, stores, then frees; the IR
+  targets do the same with `id_list_get`, `id_list_set` and the free
+  (`lw_slot_old`, `lw_slot_free`). A list that is not deep-owned (an alias such
+  as `row = xs[i]`, a stored name, a path through a field) keeps the old
+  element unfreed, exactly as before. The loop fast path (`->data[i] = v`) is
+  not taken for a store that frees. Cases: conform free/26, 27 (refused), 28
+  (strings), leak/04.
 
 **A list of strings** (landed). `string[]` is a second kind of deep-owned list
 (`deep/ty/kind.id`, `esc_dkind` 2): owned in the shallow sense, every string
