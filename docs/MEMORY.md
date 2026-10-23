@@ -25,7 +25,7 @@ Every target allocates. Four allocators are different programs (the wasm32-wasi
 build is the C one):
 
 **C target, and the LLVM target, which links the same C.** The runtime
-prelude is one string in `idc/compiler/parse/back/tgt/c/runtime/prelude.id`
+prelude is one string, `c_prelude_text` in `idc/compiler/parse/conf.id`
 (`extern.id` is the same text with external linkage, which is what the LLVM
 target links; docs/LLVM.md, "The runtime"; keep the two in step by hand). Every
 heap block of 16 KB or less comes from a headerless size-class pool (decided
@@ -1011,7 +1011,7 @@ control that differs from the treatment in one property (the compiler):
 - `tests/fixtures/kfree` (the deep list in `probe_freed`) and the
   freestanding `list_free_deep` were run by the steps recorded in the report
   of 2026-10-02, not by a full `tests/kernel.sh`.
-- `extern.id` and `prelude.id` are two hand-kept copies of one text. They had
+- `extern.id` and `c_prelude_text` (conf.id) are two hand-kept copies of one text. They had
   drifted (extern had no `id_null_read`, no free helpers, no freed-list
   checks) and now agree on the list runtime, checked by reading a diff of the
   two outputs, not by a test. Nothing fails if they drift again.

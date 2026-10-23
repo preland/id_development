@@ -90,7 +90,7 @@ recompiled for wasm32-wasi), and `idc/tests/conform.sh`'s wasm lane and
 | closures and function values on the LLVM target: lowering a `bind`, a reference and a call, and the adapters | `back/tgt/c/runtime/closure/ll/` (`ir/` the IR, `mod/` the module's text); the call through a value is `back/ir/build/expr/call/more/arg/ty/more/fpty.id`, a function named as a value `back/ir/build/expr/atom/lit/more/fnref.id` |
 | the C type spelling of an id type | `back/tgt/c/emit/prog/code/func/ctype/type_column.id` |
 | where emitted code leaves the compiler | `back/drive/sink/emit_line.id` |
-| the C runtime prelude | `idc/compiler/parse/back/tgt/c/runtime/prelude.id` (external linkage: `extern.id`), hand-maintained |
+| the C runtime prelude | `c_prelude_text` in `idc/compiler/parse/conf.id` (external linkage: `extern.id`), hand-maintained |
 | which target a build uses | `back/drive/run/output_mode.id` |
 
 `front/` and `mid/` **must not emit C**. That is currently true — verified —

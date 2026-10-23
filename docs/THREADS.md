@@ -239,8 +239,9 @@ What was built, without a syntax change:
   thread uses: the first marks the thread's arena as hooked (so it does not
   register another `atexit`), the second frees every block the thread
   allocated, store included. Both are non-static so a native's separately
-  compiled C can call them. Files: `prelude.id` and `extern.id` under
-  `idc/compiler/parse/back/tgt/c/runtime/`, kept in step by hand as before.
+  compiled C can call them. Files: `c_prelude_text` in `idc/compiler/parse/conf.id`
+  and `extern.id` under `idc/compiler/parse/back/tgt/c/runtime/`, kept in step by
+  hand as before.
 - **idstd `host/os/thread/`** (self-contained, so a layout move carries it
   whole): `be/` is the backend (`thr.h`, `thr_linux.c`, `backend.id` linking
   `-pthread`, `map.id` declaring the natives `thr_run` and `thr_cpus`), `run/` is

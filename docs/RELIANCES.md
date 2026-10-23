@@ -105,7 +105,7 @@ possible argument the language can make for itself.
 file: the allocation arena, growable lists, the flat store with its bounds
 checks, defined division and shifts, string building, and terminal I/O. It
 lives as one string in hand-maintained `id` source,
-`idc/compiler/parse/back/tgt/c/runtime/prelude.id` (and `extern.id`, the same
+`c_prelude_text` in `idc/compiler/parse/conf.id` (and `extern.id`, the same
 prelude with external linkage for the LLVM target) -- previously generated
 from the Python compiler's `RUNTIME` string, before the freeze made it unable to take
 the change that added list-constant locking to it.
