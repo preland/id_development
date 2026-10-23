@@ -875,9 +875,10 @@ address is arithmetic — none of which needs syntax.
   a `word` to read 64 bits.
 
 **Memory is meant to be freed before exit, and only part of it is.** `alloc` is
-a bump pointer, and the arena behind strings is freed only at process exit — a
-gap in the implementation, not a property of the language: a program that
-allocates in a loop grows until it exits or runs out. The rule (decided
+a bump pointer whose flat store is dropped only at process exit, and a value the
+compiler cannot prove is unkept also lives until exit — a gap in the
+implementation, not a property of the language: a program that allocates such
+values in a loop grows until it exits or runs out. The rule (decided
 2026-09-26) is that the compiler frees a list or string it can prove never
 escapes — never returned, exported, stored in another list, or kept by a callee
 — when the scope that made it ends, and keeps anything it cannot prove, so
