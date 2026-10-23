@@ -118,15 +118,21 @@ bound (it is listed in the `.d.ts` as a comment and stays callable as
 * **Copies, not views.** Strings and lists are copied across in both
   directions; JS never holds a pointer into wasm memory, which moves when
   memory grows. There is no heap cap (no `--max-memory` at link): the memory grows up to wasm32's 4 GiB (docs/MEMORY.md, WASM).
-* **Arguments are allocated in id's arena and stay there until `dispose()`**,
-  because the compiler cannot say whether a callee kept them (stored a string
-  in an export, pushed it onto a list) and freeing one that was kept is a
-  use-after-free. So a loop of calls grows memory by the size of its arguments
-  and results. `load(url, { freeArgs: ["fn1", "fn2"] })` (or `true`) releases
-  the string and list arguments of the named functions after each call; it is
-  safe only for functions that do not keep their arguments, and a wrong list
-  corrupts the instance. **Returned** strings and lists are never released by
-  the bindings, because a function may return what it also stored.
+* **Arguments the escape summary proves unkept are released after the call,
+  and fresh results once copied out.** The build runs `idc --keeps` and appends
+  a table (`IDW_KEEPS`) to the `.mjs`: per exported function, one character per
+  parameter (`0` = the summary proves the callee neither stores that argument
+  nor hands an element of it out) and whether the result is a block the call
+  made and nothing else names. The bindings free the `0` arguments after the
+  call and release a fresh result after lifting it; anything the analysis
+  cannot prove stays in the arena until `dispose()`, which is the old behaviour
+  (an argument passed to a native counts as kept). If the `--keeps` run fails
+  there is no table and nothing is released. `load(url, { freeArgs: false })`
+  turns all of it off; `freeArgs: ["fn1", "fn2"]` (or `true`) still releases
+  every string and list argument of the named functions by the caller's promise,
+  and a wrong list corrupts the instance.
+  **Rule:** a loop of calls grows memory only by the arguments and results the
+  summary could not prove; check the table in the `.mjs`.
 * **A trap is an exception.** id's runtime checks (index out of bounds,
   division by zero, out of memory, a freed list used, a NUL in a string)
   print `id: ...` on stderr and call `exit(1)`; WASI turns that into
@@ -332,6 +338,19 @@ the default keeps every argument and result in the arena, so 200 000 calls of
 `freeArgs`; `bang` of 65 536 bytes ×4 000 reaches 750 MiB. The first version of the
 bindings measured 76 ns for `bump` and 43 900 ns for `nlen(4096)` before the
 specialised arities and the in-place encode.
+
+Default bindings after the escape table (tests/wasm_js/lib, `measure` of a 4 096-byte
+string, `node` memory after 50 000 / 100 000 / 150 000 / 200 000 calls):
+
+| bindings | start | 50 000 | 100 000 | 150 000 | 200 000 |
+|---|---|---|---|---|---|
+| before (default) | 8.3 MiB | 253.3 | 498.3 | 743.6 | 988.6 |
+| before, `freeArgs: ["measure"]` | 8.3 | 8.3 | 8.3 | 8.3 | 8.3 |
+| after (default) | 8.3 | 8.3 | 8.3 | 8.3 | 8.3 |
+
+That is ~4.9 MiB per 1 000 calls before, flat after. `shout`, whose argument
+reaches a native and so counts as kept, still grows by its argument per call
+(tests/wasm_js/check.mjs asserts both).
 
 ### Forks
 
