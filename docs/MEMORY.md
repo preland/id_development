@@ -605,8 +605,8 @@ the shallow sense, and:
    literal of fresh things, a constructor whose arguments are, a concatenation,
    a call of a function that returns fresh with fields of its own (the sign
    bit of the summary, section 3.1b), or -- for a list only -- a local the
-   constructor takes over (the move above, section 3.2). A name, a literal
-   string or a field read from another struct is not. A constructor with such
+   constructor takes over (the move above, section 3.2). A name or a field read from another
+   struct is not; a literal string in a constructor is copied (below). A constructor with such
    an argument sets flag bit 128, a `t.f = v` or `push(t.f, v)` or
    `t.f[i].g = v` of one sets bit 8.
 2. **Nothing reads a field out into a position that keeps it**, at any depth
@@ -648,9 +648,25 @@ straight to a callee that neither keeps it nor may break it (`esc_tmp_fn`, so
 
 **What is not done.** A struct reached only through a name the function did
 not make (a parameter, an element, an export) is never freed by this function.
-A string field must be fresh at every constructor: `Pt("lit")` leaves the
-struct shallow. A struct or a string moved by name into a constructor is not
-taken (a field built that way needs a literal or a call).
+A struct or a string moved by name into a constructor is not
+taken (a field built that way needs a call or a concatenation).
+**The literal-copy rule.** A string literal is a static object, which the
+struct must not free, so a constructor argument that is a literal is copied to
+the heap (`id_str_dup`) and the struct then owns the copy: `Pt("lit")` is
+deep-owned and freed by type. `esc_cdup` (`deep/mv/dup.id`) says when the
+emitters copy argument k: it is a literal, `esc_dkind` of the struct is 3,
+and every argument of the constructor is something the struct could own
+(`esc_abads`; a name, a field read or a non-fresh call makes the struct stay
+shallow and the literal is stored as it is). `esc_ctor_code` wraps the C text;
+the LLVM and wasm builds do the same in `lw_ctor_cell`
+(`back/ir/build/expr/call/list/struct/cell.id`). The cost is one extra string
+per literal field of a struct that is freed by type. **The leak:** a struct
+built with a literal in a context that never frees it by type (a global, a
+value that escapes, a struct stored into a list that is freed shallowly)
+leaks that copy for good, where before the literal was only static data.
+`tests/conform/free/50` pins the freed case (one list, three strings),
+`free/51` the refused one (unchanged) and `leak/08` fifty passes with every
+pass freed.
 A function value in a field is not freed. The freestanding build owns no
 string (section 2a) and frees no struct by type either; there `esc_dkind` is 0
 for kinds 2 and 3 and the shallow rule stands. `tests/conform/free/18` to `23`
