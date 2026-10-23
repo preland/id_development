@@ -533,6 +533,38 @@ order; "the old value" is whatever the last run stored. The free is a free of
 the previous contents of the global at the export statement, which is exactly
 the free-the-replaced-value rule the slice already emits for locals.
 
+**Landed (P1.1b step 3), in the narrow form.** `esc_xown(name)`
+(`escape/own/exports/`) lets `export int[] x = V` free the list it replaces.
+All of these must hold, and each refusal is silent (the old list is simply
+not freed):
+
+- the analysis is on and the program has a `main`, and it is not a test-harness
+  build: a library has callers the compiler never sees, and a harness reads
+  exports from its own code;
+- the export is not a `conf.id` constant and is a flat list (`esc_dkind` is 0:
+  not a list of lists, of strings, of structs or of bytes);
+- every declaration of the export stores a fresh list (no bit 2 from
+  `esc_fresh`): a list literal or a call that returns a fresh list, never a
+  parameter, an element or another name;
+- every `(import x)` node in the program has a parent that cannot keep the
+  list: an index node whose subscript contains no call, or `len(x)`. Passing it
+  to any call, returning it, storing it, or `(import x)[i] = v` refuses. The
+  subscript must be call-free because C leaves the order of operands open and
+  a call there could replace and free the list being indexed. The proof is a
+  weighted scan of the node table (+1 per read, -1 per safe parent, 1000000
+  per bad store), so it assumes a node has one parent, which the parser
+  guarantees.
+
+The answer is kept per export (`esc_xm`). The C store computes the new value
+into a temporary before loading the old one, so a value expression that reads
+the export, or runs a function that stores it, sees a live list; the LLVM store
+(`lw_old`) already loads after the value is computed.
+
+Left out on purpose: threads (a reader running while another thread stores is
+not synchronised), library and no-`main` builds, and any callee that receives
+the export as an argument, even one that only reads it, because its summary
+cannot say it will not replace the export while holding the parameter.
+
 ### 3.5 Function values
 
 A function value is a named top-level function (SPEC section 1.1) or a closure
