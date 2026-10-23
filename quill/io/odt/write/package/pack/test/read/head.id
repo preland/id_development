@@ -17,13 +17,14 @@ given odp_t_new given odp_t_img given odp_pack((import odp_t_d), [], (import odp
 
 // Test fixture (internal): 1 when our reader opens the exported archive and reads every entry with its size and CRC-32 matching, 0 otherwise.
 odp_t_crc() {
-  Zip pkzr = zr_open(zw_finish((import odp_t_z)));
+  bytes pkzb = bytes_of_int_list(zw_finish((import odp_t_z)));
+  Zip pkzr = zr_open(pkzb);
   int pki = 0;
+} chain () {
   while(pki < zr_count(pkzr)) {
     int[] pkrd = zr_read(pkzr, pki);
     pki = pki + 1;
   }
-} chain () {
   int pkq = zr_ok(pkzr);
 } return int pkq;
 given odp_t_new given odp_t_img given odp_pack((import odp_t_d), [1, 2, 3], (import odp_t_z)) ():(1)

@@ -18,7 +18,7 @@ given orc_t_file("not a zip") given orc_t_open("<a/>") ((import orc_tp), (import
 // The same from the bytes of the archive, one per cell. The zip is checked first (every entry read has its CRC verified), then the mimetype, then content.xml is read into the body, and last the entries the model does not know are kept as file parts.
 odt_load_bytes(int[] zip, Doc d) {
   orc_why("");
-  Zip z = zr_open(zip);
+  Zip z = zr_open(bytes_of_int_list(zip));
   int code = orc_zip_code(z);
 } chain (int[] zip, Doc d) {
   if(code == 0) {

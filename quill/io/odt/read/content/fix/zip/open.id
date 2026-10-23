@@ -1,6 +1,6 @@
 // Test fixture: the archive of orc_tz opened as a Zip, kept in the export orc_tzo.
 orc_t_zopen() {
-  export Zip orc_tzo = zr_open((import orc_tz));
+  export Zip orc_tzo = zr_open(bytes_of_int_list((import orc_tz)));
 } return void;
 given orc_t_zip("<a/>", "") ():() then orc_t_zn:(2)
 given orc_t_zip("<a/>", "x") ():() then orc_t_zn:(3)
@@ -19,6 +19,7 @@ given orc_t_zip("<a/>", "x") ():() then orc_t_gone:(0)
 // Test fixture: flips the low bit of byte at of the archive of orc_tz, which breaks the CRC of the entry that byte is in.
 orc_t_flip(int at) {
   lset((import orc_tz), at, (import orc_tz)[at] ^ 1);
+  orc_t_zopen();
 } return void;
 given orc_t_zip("<a/>", "") (41):() then orc_t_crc:(0)
 given orc_t_zip("<a/>", "") (89):() then orc_t_crc:(1)

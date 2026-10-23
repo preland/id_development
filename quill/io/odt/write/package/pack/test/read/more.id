@@ -20,10 +20,11 @@ odp_t_miss(Zip pkzr, int pki, string pkmf) {
 
 // Test fixture (internal): how many entries of the exported archive its own manifest leaves out.
 odp_t_listed() {
-  Zip pkzr = zr_open(zw_finish((import odp_t_z)));
+  bytes pkzb = bytes_of_int_list(zw_finish((import odp_t_z)));
+  Zip pkzr = zr_open(pkzb);
   int pkat = zr_find(pkzr, "META-INF/manifest.xml");
-  string pkmf = exec_text(zr_read(pkzr, pkat));
 } chain () {
+  string pkmf = exec_text(zr_read(pkzr, pkat));
   int pkn = odp_t_unlisted(pkzr, pkmf);
 } return int pkn;
 given odp_t_new given odp_t_img given odp_pack((import odp_t_d), [1], (import odp_t_z)) ():(0)
