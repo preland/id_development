@@ -1,6 +1,6 @@
 # The A-grade rubric
 
-> **Status: a proposal, for the user to review.** It says what a row of the ecosystem assessment has to show
+> **Status: approved by the user (D29).** It says what a row of the ecosystem assessment has to show
 > before it is graded A. Nothing here is built; the plan ids (P1.1, P2.3a, ...) are the items in
 > `.claude/plan.json`. Anything marked *(proposal)* was invented while drafting, not derived from a decision.
 > Figures that change (function counts, benchmark ratios, case counts) are never written here; they are in
