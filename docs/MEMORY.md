@@ -216,6 +216,14 @@ unless a target is systemically unable to. "The same" is checked, not assumed:
 `ID_FREE_STATS=1` (the runtime prints `id: freed N lists` at exit) and requires
 the same N from all three, with `ID_FREE_GUARD=1` so a wrong free is a trap.
 
+A leak is invisible in a freed count alone, so `ID_ALLOC_STATS=1` makes the runtime
+print `id: allocated N lists` and `id: allocated N strings` (stderr, before the
+freed lines; hosted C, LLVM and wasm share the one counter in the C runtime).
+`idc/tests/conform/leak/` pins allocated against freed: a loop that builds and
+drops a list or a string ends with allocated equal to freed plus the argv
+baseline, and `03-closure-leak` pins a leak that exists today (a `bind` closure
+in a loop) with a note on the P1.1b step that flips it.
+
 | target | frees lists | why not, if not |
 | --- | --- | --- |
 | C | yes | |

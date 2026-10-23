@@ -910,6 +910,11 @@ requires the same count. The exceptions, and why:
   frees no string: its strings are bump-allocated, so there is nothing to give
   a string back to.
 
+`ID_FREE_STATS=1` prints what was freed at exit; `ID_ALLOC_STATS=1` prints what was
+allocated (`id: allocated N lists`, `id: allocated N strings`, on stderr, before
+any freed lines), so a leak shows as allocated above freed. They are separate
+switches so the freed output stays byte-identical. Hosted targets only.
+
 No target is systemically unable to free a list. docs/MEMORY.md is the design,
 the open decisions, and what each target frees today.
 
