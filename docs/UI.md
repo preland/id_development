@@ -552,7 +552,7 @@ The render is pure `id` into a list of pixels, so a test needs no window:
 shape that works under the compiler's rules, where a case's setup and checks
 take no arguments:
 
-* A **setup** builds the scene and exports it (`idstd_gui_t_todo` loads the real
+* A **setup** builds the scene and exports it (`idstd_gui_fixture_todo` loads the real
   `todo.idml` from `idstd/.tests/assets/gui/`, because a case runs in its library's root).
 * The **function under test** takes the coordinates as arguments, so one line is
   one pixel: `given scene (45, 60):(16777215)`.

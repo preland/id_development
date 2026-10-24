@@ -356,7 +356,7 @@ thread costs the same as the plain loop (737 against 738 ms).
 `4`, 0.77 s with `-1`).
 
 **ThreadSanitizer.** `clang -fsanitize=thread -O1` over the emitted C plus
-`thr_linux.c`. A program that maps `idstd_thr_t_tri` (which builds a list per
+`thr_linux.c`. A program that maps `idstd_thr_fixture_tri` (which builds a list per
 index) over 3000 indices on 4 threads: **0 reports** with `ID_TLS` as built;
 **224 reports** from the same C compiled with `-DID_TLS=` (the arena list head,
 `id_arena_hooked` and the rest shared). The demo under TSan on 4 threads: 0

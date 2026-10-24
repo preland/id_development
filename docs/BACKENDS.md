@@ -380,13 +380,13 @@ A test fixture is exempt from the static check. A fixture is a function whose
 name follows `given` or `then` in some case line of the library (run.sh reads
 those names from the lines that start with `given ` or `(`; the call graph has no
 edge for a case line), and whose every incoming call edge in the graph comes from
-another such name, so no real code calls it. `idstd_wl_t_link`, which makes a
+another such name, so no real code calls it. `idstd_wl_fixture_link`, which makes a
 scratch directory with `fs_mktemp`, is one. A function that does the same call
 but is also called from real code, or never named in a case, is still flagged
 (`layerfalsify`). The pre-check above has no such exemption: it cannot scope a
 function to the cases that name it, so a backend with a fixture that calls
 another backend's `id` function is refused when a program names that backend on
-its own, as it would be for any other such call (`wl`'s `idstd_wl_t_link` calls `fs_mktemp`, so naming `wl` alone is refused).
+its own, as it would be for any other such call (`wl`'s `idstd_wl_fixture_link` calls `fs_mktemp`, so naming `wl` alone is refused).
 
 The pre-check runs the C target whatever `--target` the program asks for; the
 backend's `id` code is the same for the C, LLVM and wasm targets, so the
