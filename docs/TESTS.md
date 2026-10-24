@@ -893,6 +893,7 @@ mutscore list   ROOT [--area SUB]
 mutscore run    ROOT --out DIR [--idc IDC] [--shard I/N] [--area SUB] [--with A,B] [--std] [--budget SECONDS]
 mutscore report DIR [--tsv]
 mutscore lint   ROOT [--area SUB] [--tsv]
+mutscore gate   BASE ROOT --out DIR [--idc IDC] [--area SUB] [--std] [--budget SECONDS]
 ```
 
 **A mutant** is the source with one change in one function. The operators
@@ -1005,6 +1006,20 @@ cases and functions it read:
 
 `--tsv` prints every case as `shape file fn line case` (shape `case` for one
 that proves something) and a `summary` row, for a status page to count.
+
+**`mutscore gate BASE ROOT --out DIR`** is the check a change must pass before
+it merges. BASE and ROOT are two copies of the same tree, before and after the
+change. The gate compares `idc PATH --fingerprints` of both (no git), takes the
+functions whose fingerprint differs or that are new (a deleted one is ignored),
+and judges the mutants of only those, with the scratch copy, the resumable
+shards and the stop-before-a-minute of `run`. Exit status: 0 when every mutant
+was judged and none survived; 1 after printing each survivor as
+`file:line: function [operator] change`; 10 when it ran out of time, in which
+case the same command continues where it stopped; 2, 3 and 4 as for `run`. A
+survivor means a case is missing for the change, not that the change is wrong:
+add the case, then run the gate again. The results are kept under
+`DIR/g-HASH`, where the hash covers the mutants and the text of their files,
+so editing a case never leaves a stale verdict behind.
 
 ## What this does not do
 
