@@ -794,8 +794,20 @@ unless short.txt or allowed.txt names it. The lookup ignores case. A piece with 
 digit in it, a one-letter piece and an empty piece (a leading, trailing or
 doubled `_`) are never words unless allowed.txt lists them; the one exception is
 `x`, `y` and `z`, which are words as one piece of a longer name (`delta_x`,
-`point_y`) and not as a whole name. File and directory names are not checked.
-The conf.id constants are checked like every other export.
+`point_y`) and not as a whole name. The conf.id constants are checked like every
+other export.
+
+File and directory names are checked too, with the same split on `_` and the same
+word lists: every source file name (without `.id`) and every directory on the path
+from the project root to it. The standard library is not part of the project and
+is not checked. A path is also rejected for a filler piece, one listed in
+`idc/data/words/filler.txt` (`more`, `rest`, `tail`, `misc`, `extra`, `other`):
+these are words, but a directory called `more/` says only that its files were left
+over, not what they are. Filler fails for paths only; an identifier may use one.
+There is one diagnostic per offending path component, not per file, so a directory
+holding many files is reported once. It says whether the name is a file or a
+directory, which pieces failed, and the fix: rename it, or add a real term to
+allowed.txt; for filler, name what the files in it have in common instead.
 
 The check runs only under `idc PATH --word-scan` (use it with `--check`); an
 ordinary build does not read either file. It judges each distinct name once and
@@ -3204,8 +3216,7 @@ Correct:
 
 ```id
 main(int argc, string[] argv) {
-  float f = 2.5;
-  int n = f;
+  int n = 2.5;
   int[] xs = [1];
   push(xs, n);
 } return int 0;
