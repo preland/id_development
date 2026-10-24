@@ -830,7 +830,7 @@ tells the truth. Instead the runtime keeps two exact counters:
 
 | counter | incremented |
 | --- | --- |
-| `time` | once per loop iteration and once per function call, **plus the bytes each runtime helper actually touches** — `concat` charges both operands, `len` charges the string, `character_code_at` charges nothing: it is one load of the stored length |
+| `time` | once per loop iteration and once per function call, **plus the bytes each runtime helper actually touches** — `concat` charges both operands, `len` charges one step, not the string length, because it is one load of the stored length; `character_code_at` charges nothing |
 | `mem` | by the number of bytes each allocation requests |
 
 The second half of the `time` row is what makes the counter measure the right
