@@ -11,8 +11,8 @@
 plan_concept_rows(Plan_book plan_book, Plan_session plan_session, int plan_concept_number) {
   int[] plan_rows_found = [];
   int plan_at = 0;
-  while (plan_at < len(plan_session.ids)) {
-    if (plan_session.phases[plan_at] == "main" && plan_first_concept(plan_book, list_string_index(plan_book.catalog.items, plan_session.ids[plan_at])) == plan_concept_number) {
+  while (plan_at < len(plan_session.identifiers)) {
+    if (plan_session.phases[plan_at] == "main" && plan_first_concept(plan_book, list_string_index(plan_book.catalog.items, plan_session.identifiers[plan_at])) == plan_concept_number) {
       push(plan_rows_found, plan_at);
     }
     plan_at = plan_at + 1;
@@ -23,9 +23,9 @@ plan_concept_rows(Plan_book plan_book, Plan_session plan_session, int plan_conce
 (Plan_book(Plan_catalog(["c", "d"], ["i", "j", "k"], [1000, 1000, 1000]), Plan_links([0, 1, 2], [0, 1, 0], [0, 0, 0]), Plan_needs([], [])), Plan_session(["i", "j", "k"], ["warmup", "main", "transfer"], ["r", "r", "r"]), 0):([])
 (Plan_book(Plan_catalog(["c"], ["i"], [1000]), Plan_links([0], [0], [0]), Plan_needs([], [])), Plan_session([], [], []), 0):([])
 
-plan_kind_key(Pack plan_pack, Plan_book plan_book, string plan_item_id, string plan_level) {
-  string plan_key_kind = pack_field(plan_pack, pack_find(plan_pack, "item", plan_item_id), "kind");
-  int plan_item_place = list_string_index(plan_book.catalog.items, plan_item_id);
+plan_kind_key(Pack plan_pack, Plan_book plan_book, string plan_item_identifier, string plan_level) {
+  string plan_key_kind = pack_field(plan_pack, pack_find(plan_pack, "item", plan_item_identifier), "kind");
+  int plan_item_place = list_string_index(plan_book.catalog.items, plan_item_identifier);
   int plan_sort_key = plan_kind_rank(plan_level, plan_key_kind) * 10000 + plan_book.catalog.bases[plan_item_place];
 } return int plan_sort_key;
 given pack_fixture_parse("concept: c\nitem: p\nconcepts: c\nkind: proof\nitem: e\nconcepts: c\nkind: error_hunt\n") ((import pack_fixture_book), Plan_book(Plan_catalog(["c"], ["p", "e"], [1200, 900]), Plan_links([0, 1], [0, 0], [0, 0]), Plan_needs([], [])), "p", "novice"):(81200)
@@ -37,7 +37,7 @@ plan_row_keys(Pack plan_pack, Plan_book plan_book, Plan_session plan_session, in
   int[] plan_keys = [];
   int plan_at = 0;
   while (plan_at < len(plan_row_list)) {
-    push(plan_keys, plan_kind_key(plan_pack, plan_book, plan_session.ids[plan_row_list[plan_at]], plan_level));
+    push(plan_keys, plan_kind_key(plan_pack, plan_book, plan_session.identifiers[plan_row_list[plan_at]], plan_level));
     plan_at = plan_at + 1;
   }
 } return int[] plan_keys;

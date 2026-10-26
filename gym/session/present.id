@@ -38,17 +38,17 @@ given pack_fixture_parse("concept: c\nshow_definition: D\nitem: i\nconcepts: c\n
 
 session_show_attempt(Pack session_book, Log_events session_events, int session_attempt_at) {
   Plan_book session_numbers = plan_build_book(session_book);
-  string session_item_id = log_text_at(session_events, session_attempt_at, (import log_slot_item));
-  int session_item_block = pack_find(session_book, "item", session_item_id);
+  string session_item_identifier = log_text_at(session_events, session_attempt_at, (import log_slot_item));
+  int session_item_block = pack_find(session_book, "item", session_item_identifier);
 } chain (Pack session_book, Log_events session_events, int session_attempt_at) {
   string[] session_listed = plan_pieces(pack_field(session_book, session_item_block, "concepts"));
-  string session_concept_id = "";
+  string session_concept_identifier = "";
   if (len(session_listed) > 0) {
-    session_concept_id = session_listed[0];
+    session_concept_identifier = session_listed[0];
   }
 } chain (Pack session_book, Log_events session_events, int session_attempt_at) {
-  int session_concept_block = pack_find(session_book, "concept", session_concept_id);
-  int session_concept_number = list_string_index(session_numbers.catalog.concepts, session_concept_id);
+  int session_concept_block = pack_find(session_book, "concept", session_concept_identifier);
+  int session_concept_number = list_string_index(session_numbers.catalog.concepts, session_concept_identifier);
   int[] session_counts = plan_tally_until(session_numbers, session_events, session_concept_number, session_attempt_at);
 } chain (Pack session_book, Log_events session_events, int session_attempt_at) {
   string[] session_choice = plan_present_choice(log_text_at(session_events, session_attempt_at, (import log_slot_verdict)), log_number_at(session_events, session_attempt_at, (import log_slot_confidence)), log_number_at(session_events, session_attempt_at, (import log_slot_hints)), log_number_at(session_events, session_attempt_at, (import log_slot_seconds)), session_counts[(import plan_tally_misses)]);
@@ -73,13 +73,13 @@ given log_fixture_parse("1\tattempt\ti\tB\t50\tincorrect\t0\t20\tno\t\n2\tattemp
 given log_fixture_parse("1\tattempt\ti\tB\t99\tcorrect\t0\t12\tno\t\n") given model_fixture_pack("concept: c\nshow_definition: D\nitem: i\nconcepts: c\nprompt: Q\n") ((import model_fixture_book), (import log_fixture_events), 0):(["", "right, fast and confident (99%, 12 s): nothing to add; move on, and item difficulty for the concept goes up", ""])
 given log_fixture_parse("1\tattempt\ti\tB\t70\tcorrect\t2\t12\tno\t\n") given model_fixture_pack("concept: c\nshow_example: E\nitem: i\nconcepts: c\nprompt: Q\n") ((import model_fixture_book), (import log_fixture_events), 0):(["  example: E", "right, but with 2 hint(s): another example of the idea", ""])
 
-session_show_item(Pack session_book, Log_events session_events, string session_item_id) {
-  int session_attempt_at = session_last_attempt(session_events, log_escape(session_item_id));
+session_show_item(Pack session_book, Log_events session_events, string session_item_identifier) {
+  int session_attempt_at = session_last_attempt(session_events, log_escape(session_item_identifier));
   string[] session_nothing = ["", "", ""];
   if (session_attempt_at >= 0 && log_text_at(session_events, session_attempt_at, (import log_slot_verdict)) == "pending") {
     session_nothing = ["", "waiting for a grade on your free answer: mark it with gym selfgrade", ""];
   }
-} chain (Pack session_book, Log_events session_events, string session_item_id) {
+} chain (Pack session_book, Log_events session_events, string session_item_identifier) {
   if (session_attempt_at >= 0 && log_text_at(session_events, session_attempt_at, (import log_slot_verdict)) != "pending" && pack_has_parts(session_book) == 1) {
     session_nothing = session_show_attempt(session_book, session_events, session_attempt_at);
   }

@@ -15,13 +15,13 @@ gym_ui_open(int gym_width, int gym_height) {
 gym_render(Session gym_state, string gym_path) {
   gym_ui_open((import gym_window_width), (import gym_window_height));
   gym_paint(gym_state);
-  int gym_lost = gym_ppm_write(gym_path);
+  int gym_lost = gym_picture_file_write(gym_path);
 } return int gym_lost;
 given gym_fixture_make(0) given gym_fixture_path ((import gym_fixture_state), (import gym_fixture_file)):(0) then fs_size((import gym_fixture_file)):(1843215)
 given gym_fixture_make(0) ((import gym_fixture_state), "/nonexistent/dir/x.ppm"):(1) then eprints:("gym window: the picture could not be written; check that the folder exists and that you may write to it [/nonexistent/dir/x.ppm]\n")
 
 // Write the surface to the file at gym_path as a binary PPM (P6, 255). Answers 0, or 1 after naming on stderr what went wrong and how to fix it.
-gym_ppm_write(string gym_path) {
+gym_picture_file_write(string gym_path) {
   int gym_lost = picture_write(gym_path);
   if(gym_lost != 0) {
     eprint("gym window: the picture could not be written; check that the folder exists and that you may write to it [" + gym_path + "]");

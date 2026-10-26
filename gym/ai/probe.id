@@ -6,17 +6,17 @@
 // probe_lines prints the feedback list one labelled field per line. The program
 // that wires them to a command line is gymprobe/main.id.
 
-probe_attempt(string probe_url, string probe_pack_directory, string probe_item_id, string probe_answer) {
+probe_attempt(string probe_url, string probe_pack_directory, string probe_item_identifier, string probe_answer) {
   Pack probe_book = pack_load(probe_pack_directory);
-  int probe_block = pack_find(probe_book, "item", probe_item_id);
+  int probe_block = pack_find(probe_book, "item", probe_item_identifier);
   string probe_folder = fs_mktemp("gym_probe_", 1);
-} chain (string probe_url, string probe_pack_directory, string probe_item_id, string probe_answer) {
+} chain (string probe_url, string probe_pack_directory, string probe_item_identifier, string probe_answer) {
   string[] probe_result = grade_outcome("refused", "refused: the pack has no such item");
   string probe_log = probe_folder + "/learner.log";
   if (probe_block >= 0) {
     string probe_verdict = check_answer(pack_field(probe_book, probe_block, "answer_kind"), pack_field(probe_book, probe_block, "answer"), pack_field(probe_book, probe_block, "tolerance"), probe_answer);
-    int probe_wrote = log_record_attempt(probe_log, 1, probe_item_id, probe_answer, 70, probe_verdict, 0, 1, 0, "");
-    probe_result = grade_attempt(probe_url, probe_log, 0, probe_book, probe_item_id);
+    int probe_wrote = log_record_attempt(probe_log, 1, probe_item_identifier, probe_answer, 70, probe_verdict, 0, 1, 0, "");
+    probe_result = grade_attempt(probe_url, probe_log, 0, probe_book, probe_item_identifier);
   }
 } return string[] probe_result;
 given pack_fixture_directory("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "") ("http://127.0.0.1:1", ".", "x", "3/8"):(["unreachable", "the model server answered -1", "", "", "", "", "", ""])

@@ -8,18 +8,18 @@
 // state is committed.
 
 session_item_view(Log_events session_events, int session_plan_at, int session_moved, string session_state, int session_total) {
-  string[] session_ids = session_list(session_events, session_plan_at, (import log_slot_ids), ",");
+  string[] session_identifiers = session_list(session_events, session_plan_at, (import log_slot_identifiers), ",");
   string[] session_phases = session_list(session_events, session_plan_at, (import log_slot_phases), ",");
   string[] session_reasons = session_list(session_events, session_plan_at, (import log_slot_reasons), "\n");
 } chain (Log_events session_events, int session_plan_at, int session_moved, string session_state, int session_total) {
-  int session_hints = session_hint_count(session_events, session_plan_at, session_ids[session_moved]);
+  int session_hints = session_hint_count(session_events, session_plan_at, session_identifiers[session_moved]);
   int session_try = session_attempt_index(session_events, session_plan_at, session_moved);
   string session_flag = "no";
 } chain (Log_events session_events, int session_plan_at, int session_moved, string session_state, int session_total) {
   if (session_try >= 0) {
     session_flag = (import log_flags)[log_tapped_at(session_events, session_try)];
   }
-  string[] session_item_shown = [session_state, "" + (session_moved + 1), "" + session_total, session_ids[session_moved], session_phases[session_moved], session_reasons[session_moved], "" + session_hints, session_flag];
+  string[] session_item_shown = [session_state, "" + (session_moved + 1), "" + session_total, session_identifiers[session_moved], session_phases[session_moved], session_reasons[session_moved], "" + session_hints, session_flag];
 } return string[] session_item_shown;
 given log_fixture_parse("1\tsession_plan\ta,b\twarmup,main\tr1\\nr2\n2\thint_shown\ta\t1\n") ((import log_fixture_events), 0, 0, "waiting", 2):(["waiting", "1", "2", "a", "warmup", "r1", "1", "no"])
 given log_fixture_parse("1\tsession_plan\ta,b\twarmup,main\tr1\\nr2\n2\tattempt\ta\t\t50\tincorrect\t0\t0\tyes\t\n3\tsession_next\ta\n") ((import log_fixture_events), 0, 0, "committed", 2):(["committed", "1", "2", "a", "warmup", "r1", "0", "yes"])
@@ -32,7 +32,7 @@ session_view(Log_events session_events) {
     return session_shown;
   }
 } chain (Log_events session_events) {
-  string[] session_ids = session_list(session_events, session_plan_at, (import log_slot_ids), ",");
+  string[] session_identifiers = session_list(session_events, session_plan_at, (import log_slot_identifiers), ",");
   int session_moved = session_count_after(session_events, session_plan_at, "session_next");
   int session_answered = session_count_after(session_events, session_plan_at, "attempt");
 } chain (Log_events session_events) {
@@ -42,16 +42,16 @@ session_view(Log_events session_events) {
     session_state = "committed";
   }
 } chain (Log_events session_events) {
-  if (session_moved >= len(session_ids)) {
+  if (session_moved >= len(session_identifiers)) {
     session_state = "over";
   }
   if (session_closed > 0) {
     session_state = "closed";
   }
-  session_shown = [session_state, "" + (session_moved + 1), "" + len(session_ids), "", "", "", "0", "no"];
+  session_shown = [session_state, "" + (session_moved + 1), "" + len(session_identifiers), "", "", "", "0", "no"];
 } chain (Log_events session_events) {
-  if (session_moved < len(session_ids)) {
-    session_shown = session_item_view(session_events, session_plan_at, session_moved, session_state, len(session_ids));
+  if (session_moved < len(session_identifiers)) {
+    session_shown = session_item_view(session_events, session_plan_at, session_moved, session_state, len(session_identifiers));
   }
 } return string[] session_shown;
 given log_fixture_parse("") ((import log_fixture_events)):(["none", "", "", "", "", "", "0", "no"])

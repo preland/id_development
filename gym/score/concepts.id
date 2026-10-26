@@ -15,16 +15,16 @@ given score_fixture_build("86400000\tattempt\ti1\tx\t90\tcorrect\t0\t10\tno\t\n"
 
 // Retention for each concept id given (the pack's concept ids come from pack_ids(book, "concept")), in that
 // order; a concept without enough attempts holds score_unknown.
-score_retention_concepts(Score_table score_table_in, string[] score_concept_ids, int score_minimum) {
+score_retention_concepts(Score_table score_table_in, string[] score_concept_identifiers, int score_minimum) {
   string[] score_names = [];
   int[] score_tallies = [];
   float[] score_numbers = [];
-} chain (Score_table score_table_in, string[] score_concept_ids, int score_minimum) {
+} chain (Score_table score_table_in, string[] score_concept_identifiers, int score_minimum) {
   Score_figures score_list = Score_figures(score_names, score_tallies, score_numbers);
   int score_at = 0;
-  while (score_at < len(score_concept_ids)) {
-    Score_figure score_result = score_retention_concept(score_table_in, score_concept_ids[score_at], score_minimum);
-    score_note(score_list, score_concept_ids[score_at], score_result);
+  while (score_at < len(score_concept_identifiers)) {
+    Score_figure score_result = score_retention_concept(score_table_in, score_concept_identifiers[score_at], score_minimum);
+    score_note(score_list, score_concept_identifiers[score_at], score_result);
     score_at = score_at + 1;
   }
 } return Score_figures score_list;

@@ -15,19 +15,19 @@ session_start_plan(Pack session_book, string session_log_path, word session_now,
   int session_closed = 0 - 1;
   int session_opened = 0 - 1;
 } chain (Pack session_book, string session_log_path, word session_now, int session_seed) {
-  if (len(session_plan.ids) > 0 && session_open == 1) {
+  if (len(session_plan.identifiers) > 0 && session_open == 1) {
     session_closed = log_record_session(session_log_path, session_now, "end");
   }
-  if (len(session_plan.ids) > 0) {
+  if (len(session_plan.identifiers) > 0) {
     session_opened = log_record_session(session_log_path, session_now, "start");
   }
   int session_recorded = 0 - 1;
 } chain (Pack session_book, string session_log_path, word session_now, int session_seed) {
   if (session_opened >= 0) {
-    session_recorded = log_record_plan(session_log_path, session_now, session_plan.ids, session_plan.phases, session_plan.reasons);
+    session_recorded = log_record_plan(session_log_path, session_now, session_plan.identifiers, session_plan.phases, session_plan.reasons);
   }
   string[] session_result = ["refused", "nothing to practise: no concept is due or weak and none is new"];
-  if (len(session_plan.ids) > 0 && session_recorded < 0) {
+  if (len(session_plan.identifiers) > 0 && session_recorded < 0) {
     session_result = ["refused", "the log could not be written"];
   }
 } chain (Pack session_book, string session_log_path, word session_now, int session_seed) {

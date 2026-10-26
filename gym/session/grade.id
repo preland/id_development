@@ -22,16 +22,16 @@ session_ungraded(Log_events session_events, string[] session_shown) {
 session_route_free(Pack session_book, string session_log_path, word session_now, string session_url) {
   Log_replay session_replayed = log_replay(session_log_path);
   string[] session_shown = session_view(session_replayed.events);
-  string session_item_id = session_shown[(import session_slot_item)];
+  string session_item_identifier = session_shown[(import session_slot_item)];
 } chain (Pack session_book, string session_log_path, word session_now, string session_url) {
-  string session_escaped = log_escape(session_item_id);
+  string session_escaped = log_escape(session_item_identifier);
   int session_waiting_at = log_pending_index(session_replayed.events, session_escaped, len(session_replayed.events.kinds));
   string[] session_feedback = grade_outcome("refused", "no free answer is waiting");
 } chain (Pack session_book, string session_log_path, word session_now, string session_url) {
   if (session_waiting_at >= 0) {
-    session_feedback = grade_attempt(session_url, session_log_path, session_waiting_at, session_book, session_item_id);
+    session_feedback = grade_attempt(session_url, session_log_path, session_waiting_at, session_book, session_item_identifier);
   }
-  string[] session_route = session_take_feedback(session_log_path, session_now, session_item_id, session_feedback);
+  string[] session_route = session_take_feedback(session_log_path, session_now, session_item_identifier, session_feedback);
 } return string[] session_route;
 given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n2\tattempt\ta\tmy proof\t90\tpending\t0\t9\tno\t\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: free\nanswer: model\nrubric: R1\nrubric: R2\nitem: b\nprompt: Q\nanswer_kind: integer\nanswer: 7\n") ((import model_fixture_book), (import model_fixture_log), 100, "http://127.0.0.1:1"):(["self", "", "the model server answered -1"]) then model_fixture_size:(76)
 given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: free\nanswer: model\nrubric: R1\nrubric: R2\n") ((import model_fixture_book), (import model_fixture_log), 100, "http://127.0.0.1:1"):(["self", "", "no free answer is waiting"]) then model_fixture_size:(36)

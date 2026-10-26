@@ -6,7 +6,7 @@
 pack_duplicate_line(Pack pack_book, int pack_block, int pack_first_block) {
   string pack_kind = pack_kind_of(pack_book, pack_block);
   string pack_first_place = pack_where(pack_book, pack_first_block, pack_kind);
-  string pack_said_twice = pack_say(pack_book, pack_block, pack_kind, "duplicate " + pack_kind + " id '" + pack_id_of(pack_book, pack_block) + "'; first defined at " + pack_first_place);
+  string pack_said_twice = pack_say(pack_book, pack_block, pack_kind, "duplicate " + pack_kind + " id '" + pack_identifier_of(pack_book, pack_block) + "'; first defined at " + pack_first_place);
 } return string pack_said_twice;
 given pack_fixture_parse("concept: a\nconcept: a\n") ((import pack_fixture_book), 1, 0):("t.txt:2: duplicate concept id 'a'; first defined at t.txt:1")
 given pack_fixture_parse("concept: a\n\nitem: x\nconcept: b\nitem: x\n") ((import pack_fixture_book), 3, 1):("t.txt:5: duplicate item id 'x'; first defined at t.txt:3")
@@ -17,7 +17,7 @@ pack_duplicates(Pack pack_book, string pack_kind) {
   int pack_at = 0;
 } chain (Pack pack_book, string pack_kind) {
   while (pack_at < len(pack_kind_blocks)) {
-    int pack_first_block = pack_find(pack_book, pack_kind, pack_id_of(pack_book, pack_kind_blocks[pack_at]));
+    int pack_first_block = pack_find(pack_book, pack_kind, pack_identifier_of(pack_book, pack_kind_blocks[pack_at]));
     if (pack_first_block != pack_kind_blocks[pack_at]) {
       push(pack_found_problems, pack_duplicate_line(pack_book, pack_kind_blocks[pack_at], pack_first_block));
     }
@@ -34,11 +34,11 @@ pack_empty_problems(Pack pack_book) {
   if (pack_book.notes.files == 0) {
     push(pack_found_problems, pack_book.notes.root + ": no .txt files found");
   }
-  if (pack_book.notes.files > 0 && len(pack_ids(pack_book, "concept")) == 0) {
+  if (pack_book.notes.files > 0 && len(pack_identifiers(pack_book, "concept")) == 0) {
     push(pack_found_problems, pack_book.notes.root + ": the pack has no 'concept:' blocks");
   }
 } chain (Pack pack_book) {
-  if (pack_book.notes.files > 0 && len(pack_ids(pack_book, "item")) == 0) {
+  if (pack_book.notes.files > 0 && len(pack_identifiers(pack_book, "item")) == 0) {
     push(pack_found_problems, pack_book.notes.root + ": the pack has no 'item:' blocks");
   }
 } return string[] pack_found_problems;

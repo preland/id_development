@@ -22,15 +22,15 @@ log_item_summary(Log_events log_events_in) {
 (Log_events([100, 200, 300, 400], ["attempt", "hint_shown", "attempt", "session_end"], [["100", "attempt", "dice", "3/8", "90", "correct", "0", "5", "no", ""], ["200", "hint_shown", "dice", "1"], ["300", "attempt", "dice", "x", "50", "incorrect", "0", "5", "no", ""], ["400", "session_end"]])):(Log_summary(["dice"], [2], [300]))
 (Log_events([100, 200, 150], ["attempt", "attempt", "attempt"], [["100", "attempt", "a", "1", "50", "correct", "0", "5", "no", ""], ["200", "attempt", "b", "1", "50", "correct", "0", "5", "no", ""], ["150", "attempt", "a", "1", "50", "correct", "0", "5", "no", ""]])):(Log_summary(["a", "b"], [2, 1], [150, 200]))
 
-log_concept_summary(Log_summary log_items_in, string[] log_item_ids, string[] log_concept_ids) {
+log_concept_summary(Log_summary log_items_in, string[] log_item_identifiers, string[] log_concept_identifiers) {
   string[] log_summary_names = [];
   int[] log_summary_counts = [];
   word[] log_summary_lasts = [];
-} chain (Log_summary log_items_in, string[] log_item_ids, string[] log_concept_ids) {
+} chain (Log_summary log_items_in, string[] log_item_identifiers, string[] log_concept_identifiers) {
   Log_summary log_book = Log_summary(log_summary_names, log_summary_counts, log_summary_lasts);
   int log_at = 0;
-  while (log_at < len(log_item_ids) && log_at < len(log_concept_ids)) {
-    log_fold(log_items_in, log_book, log_item_ids[log_at], log_concept_ids[log_at]);
+  while (log_at < len(log_item_identifiers) && log_at < len(log_concept_identifiers)) {
+    log_fold(log_items_in, log_book, log_item_identifiers[log_at], log_concept_identifiers[log_at]);
     log_at = log_at + 1;
   }
 } return Log_summary log_book;

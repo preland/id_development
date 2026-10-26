@@ -4,14 +4,14 @@
 // prompt while an answer is awaited (never the reference), and what to do next
 // once it is answered. Both are pure, so a window can show the same words.
 
-command_plan_text(string[] command_ids, string[] command_phases, string[] command_reasons) {
+command_plan_text(string[] command_identifiers, string[] command_phases, string[] command_reasons) {
   string[] command_lines = ["plan, in the order you will meet it:"];
   int command_at = 0;
-  while (command_at < len(command_ids)) {
-    push(command_lines, "" + (command_at + 1) + ". " + command_phases[command_at] + "  " + command_ids[command_at] + "  " + command_reasons[command_at]);
+  while (command_at < len(command_identifiers)) {
+    push(command_lines, "" + (command_at + 1) + ". " + command_phases[command_at] + "  " + command_identifiers[command_at] + "  " + command_reasons[command_at]);
     command_at = command_at + 1;
   }
-} chain (string[] command_ids, string[] command_phases, string[] command_reasons) {
+} chain (string[] command_identifiers, string[] command_phases, string[] command_reasons) {
   string command_text = str_join(command_lines, "\n");
 } return string command_text;
 (["a", "b"], ["warmup", "main"], ["due: x", "new: y"]):("plan, in the order you will meet it:\n1. warmup  a  due: x\n2. main  b  new: y")
@@ -43,11 +43,11 @@ given model_fixture_pack("item: a\nprompt: What is 1/2 + 1/2?\nanswer: 1\n") ((i
 
 command_start_text(Pack command_book, Log_events command_events, string command_note) {
   int command_plan_at = session_plan_index(command_events);
-  string[] command_ids = session_list(command_events, command_plan_at, (import log_slot_ids), ",");
+  string[] command_identifiers = session_list(command_events, command_plan_at, (import log_slot_identifiers), ",");
   string[] command_phases = session_list(command_events, command_plan_at, (import log_slot_phases), ",");
 } chain (Pack command_book, Log_events command_events, string command_note) {
   string[] command_reasons = session_list(command_events, command_plan_at, (import log_slot_reasons), "\n");
-  string command_plan_words = command_plan_text(command_ids, command_phases, command_reasons);
+  string command_plan_words = command_plan_text(command_identifiers, command_phases, command_reasons);
   string[] command_shown = session_view(command_events);
 } chain (Pack command_book, Log_events command_events, string command_note) {
   string command_note_words = "";

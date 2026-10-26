@@ -21,11 +21,11 @@ given environment_put("GYM_MODEL_URL", "http://127.0.0.1:9") ():("http://127.0.0
 model_ask(string model_url, string model_system_text, string model_user_text, string model_schema_text, string[] model_cells) {
   string model_request_body = model_request(model_system_text, model_user_text, model_schema_text);
   string model_target = model_url + (import model_target_path);
-  int model_code = http_call_url("POST", model_target, (import model_json_headers), model_request_body, model_cells, (import model_timeout_ms));
+  int model_code = http_call_url("POST", model_target, (import model_json_headers), model_request_body, model_cells, (import model_timeout_milliseconds));
 } chain (string model_url, string model_system_text, string model_user_text, string model_schema_text, string[] model_cells) {
   if (model_code == 400 && model_schema_text != "") {
     model_request_body = model_request(model_system_text, model_user_text, "");
-    model_code = http_call_url("POST", model_target, (import model_json_headers), model_request_body, model_cells, (import model_timeout_ms));
+    model_code = http_call_url("POST", model_target, (import model_json_headers), model_request_body, model_cells, (import model_timeout_milliseconds));
   }
 } return int model_code;
 ("http://127.0.0.1:1", "s", "u", "{}", ["", "", ""]):(-1)

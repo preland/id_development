@@ -4,13 +4,13 @@
 // bind(pack_listed_problems, "requires") is a rule over (pack, block) like the
 // others. A blank field lists nothing and is not reported here.
 
-pack_list_problem(Pack pack_book, int pack_block, string pack_key, string pack_listed_id) {
+pack_list_problem(Pack pack_book, int pack_block, string pack_key, string pack_listed_identifier) {
   string pack_found_text = "";
-  if (pack_find(pack_book, "concept", pack_listed_id) < 0) {
-    pack_found_text = pack_say(pack_book, pack_block, pack_key, "unknown concept '" + pack_listed_id + "' in '" + pack_key + "'");
+  if (pack_find(pack_book, "concept", pack_listed_identifier) < 0) {
+    pack_found_text = pack_say(pack_book, pack_block, pack_key, "unknown concept '" + pack_listed_identifier + "' in '" + pack_key + "'");
   }
-  if (pack_listed_id == pack_id_of(pack_book, pack_block) && pack_kind_of(pack_book, pack_block) == "concept") {
-    pack_found_text = pack_say(pack_book, pack_block, pack_key, "concept '" + pack_listed_id + "' lists itself in '" + pack_key + "'");
+  if (pack_listed_identifier == pack_identifier_of(pack_book, pack_block) && pack_kind_of(pack_book, pack_block) == "concept") {
+    pack_found_text = pack_say(pack_book, pack_block, pack_key, "concept '" + pack_listed_identifier + "' lists itself in '" + pack_key + "'");
   }
 } return string pack_found_text;
 given pack_fixture_parse("concept: a\nconcept: b\n") ((import pack_fixture_book), 0, "requires", "b"):("")

@@ -6,42 +6,42 @@
 // says correct where the author did not (over-credit), and the milliseconds.
 // An incomplete row (a cut-off line) is all zeros, so it is counted nowhere.
 
-eval_marks_of(string[] eval_row_cells) {
-  int eval_valid = eval_row_cells[(import eval_slot_status)] == "graded" || eval_row_cells[(import eval_slot_status)] == "self_grade";
-  int eval_same = eval_row_cells[(import eval_slot_verdict)] == eval_row_cells[(import eval_slot_expected_verdict)];
-  int eval_over = eval_row_cells[(import eval_slot_verdict)] == "correct" && eval_row_cells[(import eval_slot_expected_verdict)] != "correct";
-} chain (string[] eval_row_cells) {
-  int eval_restates = eval_valid == 1 && eval_row_cells[(import eval_slot_verdict)] != "correct" && len(eval_row_cells[(import eval_slot_reference)]) >= (import grade_reference_least) && grade_mentions(str_lower(eval_row_cells[(import eval_slot_right)]), str_lower(eval_row_cells[(import eval_slot_reference)])) == 1;
-  int eval_long = len(eval_row_cells[(import eval_slot_flaw)]) > (import grade_flaw_limit);
-  int eval_milliseconds = 0;
-} chain (string[] eval_row_cells) {
-  if (log_digits_ok(eval_row_cells[(import eval_slot_milliseconds)], 9) == 1) {
-    eval_milliseconds = to_int(eval_row_cells[(import eval_slot_milliseconds)]);
+evaluation_marks_of(string[] evaluation_row_cells) {
+  int evaluation_valid = evaluation_row_cells[(import evaluation_slot_status)] == "graded" || evaluation_row_cells[(import evaluation_slot_status)] == "self_grade";
+  int evaluation_same = evaluation_row_cells[(import evaluation_slot_verdict)] == evaluation_row_cells[(import evaluation_slot_expected_verdict)];
+  int evaluation_over = evaluation_row_cells[(import evaluation_slot_verdict)] == "correct" && evaluation_row_cells[(import evaluation_slot_expected_verdict)] != "correct";
+} chain (string[] evaluation_row_cells) {
+  int evaluation_restates = evaluation_valid == 1 && evaluation_row_cells[(import evaluation_slot_verdict)] != "correct" && len(evaluation_row_cells[(import evaluation_slot_reference)]) >= (import grade_reference_least) && grade_mentions(str_lower(evaluation_row_cells[(import evaluation_slot_right)]), str_lower(evaluation_row_cells[(import evaluation_slot_reference)])) == 1;
+  int evaluation_long = len(evaluation_row_cells[(import evaluation_slot_flaw)]) > (import grade_flaw_limit);
+  int evaluation_milliseconds = 0;
+} chain (string[] evaluation_row_cells) {
+  if (log_digits_ok(evaluation_row_cells[(import evaluation_slot_milliseconds)], 9) == 1) {
+    evaluation_milliseconds = to_int(evaluation_row_cells[(import evaluation_slot_milliseconds)]);
   }
-  int[] eval_made = [1, eval_same, eval_valid, eval_row_cells[(import eval_slot_error_type)] == eval_row_cells[(import eval_slot_expected_error)], eval_restates, eval_long, eval_row_cells[(import eval_slot_status)] == "self_grade", eval_over, eval_milliseconds];
-} return int[] eval_made;
+  int[] evaluation_made = [1, evaluation_same, evaluation_valid, evaluation_row_cells[(import evaluation_slot_error_type)] == evaluation_row_cells[(import evaluation_slot_expected_error)], evaluation_restates, evaluation_long, evaluation_row_cells[(import evaluation_slot_status)] == "self_grade", evaluation_over, evaluation_milliseconds];
+} return int[] evaluation_made;
 (["3", "space_1", "partly", "slip", "graded", "partly", "slip", "85", "1200", "1/3", "Listed the outcomes.", "Counted 3.", ""]):([1, 1, 1, 1, 0, 0, 0, 0, 1200])
 (["3", "space_1", "partly", "slip", "self_grade", "correct", "none", "40", "90", "1/3", "Got 1/3.", "x", "low"]):([1, 0, 1, 0, 0, 0, 1, 1, 90])
 (["3", "space_1", "partly", "slip", "graded", "incorrect", "slip", "85", "x", "1/3", "The answer 1/3 was close.", "Counted 3.", ""]):([1, 0, 1, 1, 1, 0, 0, 0, 0])
 (["3", "space_1", "incorrect", "slip", "unsure", "", "", "", "70", "1/3", "", "", "empty field: right"]):([1, 0, 0, 0, 0, 0, 0, 0, 70])
 (["3", "a", "incorrect", "slip", "graded", "incorrect", "slip", "85", "5", "A", "A", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", ""]):([1, 1, 1, 1, 0, 1, 0, 0, 5])
 
-eval_marks(string eval_row) {
-  string[] eval_row_cells = str_split(eval_row, "\t");
-  int[] eval_made = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-  if (len(eval_row_cells) == (import eval_width)) {
-    eval_made = eval_marks_of(eval_row_cells);
+evaluation_marks(string evaluation_row) {
+  string[] evaluation_row_cells = str_split(evaluation_row, "\t");
+  int[] evaluation_made = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+  if (len(evaluation_row_cells) == (import evaluation_width)) {
+    evaluation_made = evaluation_marks_of(evaluation_row_cells);
   }
-} return int[] eval_made;
+} return int[] evaluation_made;
 ("3\tspace_1\tpartly\tslip\tgraded\tpartly\tslip\t85\t1200\t1/3\tListed the outcomes.\tCounted 3.\t"):([1, 1, 1, 1, 0, 0, 0, 0, 1200])
 ("3\tspace_1"):([0, 0, 0, 0, 0, 0, 0, 0, 0])
 (""):([0, 0, 0, 0, 0, 0, 0, 0, 0])
 
-eval_total(int[] eval_running, int[] eval_marks_in) {
-  int eval_slot = 0;
-  while (eval_slot < (import eval_mark_width)) {
-    eval_running[eval_slot] = eval_running[eval_slot] + eval_marks_in[eval_slot];
-    eval_slot = eval_slot + 1;
+evaluation_total(int[] evaluation_running, int[] evaluation_marks_in) {
+  int evaluation_slot = 0;
+  while (evaluation_slot < (import evaluation_mark_width)) {
+    evaluation_running[evaluation_slot] = evaluation_running[evaluation_slot] + evaluation_marks_in[evaluation_slot];
+    evaluation_slot = evaluation_slot + 1;
   }
 } return void;
 ([0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 1, 0, 0, 0, 0, 0, 0, 7]):([1, 1, 0, 0, 0, 0, 0, 0, 7])

@@ -4,11 +4,11 @@
 // fields arrive in their escaped form, as log_fields_ok holds them.
 
 log_plan_ok(string[] log_fields) {
-  int log_id_count = len(str_split(log_fields[(import log_slot_ids)], ","));
+  int log_identifier_count = len(str_split(log_fields[(import log_slot_identifiers)], ","));
   int log_phase_count = len(str_split(log_fields[(import log_slot_phases)], ","));
   string[] log_reason_lines = str_split(log_restore(log_fields[(import log_slot_reasons)]), "\n");
 } chain (string[] log_fields) {
-  int log_plan_good = log_fields[(import log_slot_ids)] != "" && log_id_count == log_phase_count && log_id_count == len(log_reason_lines);
+  int log_plan_good = log_fields[(import log_slot_identifiers)] != "" && log_identifier_count == log_phase_count && log_identifier_count == len(log_reason_lines);
 } return int log_plan_good;
 (["1", "session_plan", "a,b", "warmup,main", "x\\ny"]):(1)
 (["1", "session_plan", "a", "main", "x"]):(1)

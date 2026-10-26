@@ -16,12 +16,12 @@ given pack_fixture_parse("concept: a\nitem: i\nconcept: b\nitem: j\nitem: k") ((
 given pack_fixture_parse("concept: a\nitem: i\nconcept: b\nitem: j\nitem: k") ((import pack_fixture_book), "concept"):([0, 2])
 given pack_fixture_parse("") ((import pack_fixture_book), "item"):([])
 
-pack_ids(Pack pack_book, string pack_kind) {
+pack_identifiers(Pack pack_book, string pack_kind) {
   string[] pack_named = [];
   int pack_at = 0;
   while (pack_at < len(pack_book.blocks.files)) {
     if (pack_kind_of(pack_book, pack_at) == pack_kind) {
-      push(pack_named, pack_id_of(pack_book, pack_at));
+      push(pack_named, pack_identifier_of(pack_book, pack_at));
     }
     pack_at = pack_at + 1;
   }
@@ -30,11 +30,11 @@ given pack_fixture_parse("concept: a\nitem: i\nconcept: b\nitem: j\nitem: k") ((
 given pack_fixture_parse("concept: a\nitem: i\nconcept: b\nitem: j\nitem: k") ((import pack_fixture_book), "concept"):(["a", "b"])
 given pack_fixture_parse("") ((import pack_fixture_book), "concept"):([])
 
-pack_find(Pack pack_book, string pack_kind, string pack_id_wanted) {
+pack_find(Pack pack_book, string pack_kind, string pack_identifier_wanted) {
   int pack_at = 0;
   int pack_missing = 0 - 1;
   while (pack_at < len(pack_book.blocks.files)) {
-    if (pack_kind_of(pack_book, pack_at) == pack_kind && pack_id_of(pack_book, pack_at) == pack_id_wanted) {
+    if (pack_kind_of(pack_book, pack_at) == pack_kind && pack_identifier_of(pack_book, pack_at) == pack_identifier_wanted) {
       return pack_at;
     }
     pack_at = pack_at + 1;

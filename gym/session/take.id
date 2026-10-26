@@ -6,19 +6,19 @@
 // the learner to mark the rubric themselves. The route is ["model", verdict,
 // what the grader said] or ["self", "", why the grader could not be used].
 
-session_take_feedback(string session_log_path, word session_now, string session_item_id, string[] session_feedback) {
+session_take_feedback(string session_log_path, word session_now, string session_item_identifier, string[] session_feedback) {
   string session_status = session_feedback[(import grade_slot_status)];
   string session_verdict = "incorrect";
   if (session_feedback[(import grade_slot_verdict)] == "correct") {
     session_verdict = "correct";
   }
-} chain (string session_log_path, word session_now, string session_item_id, string[] session_feedback) {
+} chain (string session_log_path, word session_now, string session_item_identifier, string[] session_feedback) {
   string[] session_route = ["self", "", session_feedback[(import grade_slot_reason)]];
   int session_written = 0 - 1;
   if (session_status == "graded") {
-    session_written = log_record_graded(session_log_path, session_now, session_item_id, session_verdict, "model", "");
+    session_written = log_record_graded(session_log_path, session_now, session_item_identifier, session_verdict, "model", "");
   }
-} chain (string session_log_path, word session_now, string session_item_id, string[] session_feedback) {
+} chain (string session_log_path, word session_now, string session_item_identifier, string[] session_feedback) {
   if (session_status == "graded" && session_written >= 0) {
     session_route = ["model", session_verdict, "the grader says it is " + session_feedback[(import grade_slot_verdict)] + "; right: " + session_feedback[(import grade_slot_right)] + "; flaw: " + session_feedback[(import grade_slot_flaw)] + "; next step: " + session_feedback[(import grade_slot_next_step)]];
   }

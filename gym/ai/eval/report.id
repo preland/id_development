@@ -4,27 +4,27 @@
 // counts as a miss; the valid-reply line says how many were not. The phase 2
 // gate of the spec is verdict agreement of 90 of 100.
 
-eval_sums(string eval_results_text) {
-  string[] eval_lines = str_lines(eval_results_text);
-  int[] eval_sums_made = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-  int eval_at = 0;
-} chain (string eval_results_text) {
-  while (eval_at < len(eval_lines)) {
-    eval_total(eval_sums_made, eval_marks(eval_lines[eval_at]));
-    eval_at = eval_at + 1;
+evaluation_sums(string evaluation_results_text) {
+  string[] evaluation_lines = str_lines(evaluation_results_text);
+  int[] evaluation_sums_made = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+  int evaluation_at = 0;
+} chain (string evaluation_results_text) {
+  while (evaluation_at < len(evaluation_lines)) {
+    evaluation_total(evaluation_sums_made, evaluation_marks(evaluation_lines[evaluation_at]));
+    evaluation_at = evaluation_at + 1;
   }
-} return int[] eval_sums_made;
+} return int[] evaluation_sums_made;
 ("3\ta\tpartly\tslip\tgraded\tpartly\tslip\t85\t100\tref\tr\tf\t\n4\tb\tcorrect\tnone\tunsure\t\t\t\t50\tref\t\t\tempty field: right\n"):([2, 1, 1, 1, 0, 0, 0, 0, 150])
 (""):([0, 0, 0, 0, 0, 0, 0, 0, 0])
 ("junk\n\n3\ta\tcorrect\tnone\tgraded\tincorrect\tslip\t85\t10\tref\tr\tf\t\n"):([1, 0, 1, 0, 0, 0, 0, 0, 10])
 
-eval_report(string eval_results_text) {
-  int[] eval_sums_got = eval_sums(eval_results_text);
-  string eval_rows = "" + eval_sums_got[0];
-  string[] eval_lines_made = ["rows: " + eval_rows, "verdict agreement: " + eval_sums_got[1] + " of " + eval_rows, "error_type agreement: " + eval_sums_got[3] + " of " + eval_rows, "valid replies: " + eval_sums_got[2] + " of " + eval_rows + " (the rest were refused, unreachable or unsure)", "self_grade (confidence under the floor): " + eval_sums_got[6], "over-credit (said correct, the author did not): " + eval_sums_got[7]];
-} chain (string eval_results_text) {
-  string[] eval_more = ["right restates the reference although the verdict is not correct: " + eval_sums_got[4], "flaw longer than " + (import grade_flaw_limit) + " characters: " + eval_sums_got[5], "total milliseconds: " + eval_sums_got[8]];
-  string eval_text_made = str_join(eval_lines_made, "\n") + "\n" + str_join(eval_more, "\n");
-} return string eval_text_made;
+evaluation_report(string evaluation_results_text) {
+  int[] evaluation_sums_got = evaluation_sums(evaluation_results_text);
+  string evaluation_rows = "" + evaluation_sums_got[0];
+  string[] evaluation_lines_made = ["rows: " + evaluation_rows, "verdict agreement: " + evaluation_sums_got[1] + " of " + evaluation_rows, "error_type agreement: " + evaluation_sums_got[3] + " of " + evaluation_rows, "valid replies: " + evaluation_sums_got[2] + " of " + evaluation_rows + " (the rest were refused, unreachable or unsure)", "self_grade (confidence under the floor): " + evaluation_sums_got[6], "over-credit (said correct, the author did not): " + evaluation_sums_got[7]];
+} chain (string evaluation_results_text) {
+  string[] evaluation_more = ["right restates the reference although the verdict is not correct: " + evaluation_sums_got[4], "flaw longer than " + (import grade_flaw_limit) + " characters: " + evaluation_sums_got[5], "total milliseconds: " + evaluation_sums_got[8]];
+  string evaluation_text_made = str_join(evaluation_lines_made, "\n") + "\n" + str_join(evaluation_more, "\n");
+} return string evaluation_text_made;
 ("3\ta\tpartly\tslip\tgraded\tpartly\tslip\t85\t100\tref\tr\tf\t\n"):("rows: 1\nverdict agreement: 1 of 1\nerror_type agreement: 1 of 1\nvalid replies: 1 of 1 (the rest were refused, unreachable or unsure)\nself_grade (confidence under the floor): 0\nover-credit (said correct, the author did not): 0\nright restates the reference although the verdict is not correct: 0\nflaw longer than 160 characters: 0\ntotal milliseconds: 100")
 (""):("rows: 0\nverdict agreement: 0 of 0\nerror_type agreement: 0 of 0\nvalid replies: 0 of 0 (the rest were refused, unreachable or unsure)\nself_grade (confidence under the floor): 0\nover-credit (said correct, the author did not): 0\nright restates the reference although the verdict is not correct: 0\nflaw longer than 160 characters: 0\ntotal milliseconds: 0")

@@ -8,7 +8,7 @@
 pack_free_gaps(Pack pack_book, int pack_block) {
   string[] pack_found_problems = [];
   int pack_rubric_total = len(pack_fields(pack_book, pack_block, "rubric"));
-  string pack_who = "free item '" + pack_id_of(pack_book, pack_block) + "'";
+  string pack_who = "free item '" + pack_identifier_of(pack_book, pack_block) + "'";
 } chain (Pack pack_book, int pack_block) {
   if (pack_field(pack_book, pack_block, "answer_kind") == "free" && pack_rubric_total < 2) {
     push(pack_found_problems, pack_say(pack_book, pack_block, "rubric", pack_who + " has " + pack_rubric_total + " rubric line(s); a free item needs at least 2 checkable statements to mark against"));
@@ -22,7 +22,7 @@ given pack_fixture_parse("item: i\nanswer_kind: integer\nrubric: a\n") ((import 
 pack_presentation_label(Pack pack_book, int pack_block) {
   string[] pack_found_problems = [];
   string pack_presentation_value = pack_field(pack_book, pack_block, "presentation");
-  string pack_presentation_message = "item '" + pack_id_of(pack_book, pack_block) + "' has presentation '" + pack_presentation_value + "'; use intuition, definition, example, non_example or worked";
+  string pack_presentation_message = "item '" + pack_identifier_of(pack_book, pack_block) + "' has presentation '" + pack_presentation_value + "'; use intuition, definition, example, non_example or worked";
 } chain (Pack pack_book, int pack_block) {
   if (pack_presentation_value != "" && list_string_index((import pack_presentations), pack_presentation_value) < 0) {
     push(pack_found_problems, pack_say(pack_book, pack_block, "presentation", pack_presentation_message));

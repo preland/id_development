@@ -6,16 +6,16 @@
 // the item it targets and the feedback list (feedback.id). The time cell is
 // left empty here: whoever measured the exchange fills it (run.id).
 
-eval_clean(string eval_text) {
-  string eval_untabbed = str_replace(eval_text, "\t", " ");
-  string eval_flat = str_replace(eval_untabbed, "\n", " ");
-} return string eval_flat;
+evaluation_clean(string evaluation_text) {
+  string evaluation_without_tabs = str_replace(evaluation_text, "\t", " ");
+  string evaluation_flat = str_replace(evaluation_without_tabs, "\n", " ");
+} return string evaluation_flat;
 ("a\tb\nc"):("a b c")
 ("plain"):("plain")
 ("\t\n"):("  ")
 
-eval_cells(Pack eval_set, int eval_block, string eval_reference, string[] eval_feedback) {
-  string[] eval_row_made = [pack_id_of(eval_set, eval_block), pack_field(eval_set, eval_block, "target"), pack_field(eval_set, eval_block, "verdict"), pack_field(eval_set, eval_block, "error_type"), eval_feedback[(import grade_slot_status)], eval_feedback[(import grade_slot_verdict)], eval_feedback[(import grade_slot_error_type)], eval_feedback[(import grade_slot_confidence)], "", eval_clean(eval_reference), eval_clean(eval_feedback[(import grade_slot_right)]), eval_clean(eval_feedback[(import grade_slot_flaw)]), eval_clean(eval_feedback[(import grade_slot_reason)])];
-} return string[] eval_row_made;
+evaluation_cells(Pack evaluation_set, int evaluation_block, string evaluation_reference, string[] evaluation_feedback) {
+  string[] evaluation_row_made = [pack_identifier_of(evaluation_set, evaluation_block), pack_field(evaluation_set, evaluation_block, "target"), pack_field(evaluation_set, evaluation_block, "verdict"), pack_field(evaluation_set, evaluation_block, "error_type"), evaluation_feedback[(import grade_slot_status)], evaluation_feedback[(import grade_slot_verdict)], evaluation_feedback[(import grade_slot_error_type)], evaluation_feedback[(import grade_slot_confidence)], "", evaluation_clean(evaluation_reference), evaluation_clean(evaluation_feedback[(import grade_slot_right)]), evaluation_clean(evaluation_feedback[(import grade_slot_flaw)]), evaluation_clean(evaluation_feedback[(import grade_slot_reason)])];
+} return string[] evaluation_row_made;
 given pack_fixture_parse("item: 3\ntarget: space_1\nverdict: partly\nerror_type: slip\n") ((import pack_fixture_book), 0, "1/3", ["graded", "", "incorrect", "Listed the\toutcomes.", "Counted 3.", "Recount.", "slip", "85"]):(["3", "space_1", "partly", "slip", "graded", "incorrect", "slip", "85", "", "1/3", "Listed the outcomes.", "Counted 3.", ""])
 given pack_fixture_parse("item: 4\ntarget: b\nverdict: correct\nerror_type: none\n") ((import pack_fixture_book), 0, "A", ["unsure", "empty field: right", "", "", "", "", "", ""]):(["4", "b", "correct", "none", "unsure", "", "", "", "", "A", "", "", "empty field: right"])

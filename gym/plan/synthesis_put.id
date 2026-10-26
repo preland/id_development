@@ -16,17 +16,17 @@ plan_main_count(Plan_session plan_session) {
 (Plan_session([], [], [])):(0)
 (Plan_session(["a"], ["transfer"], ["r"])):(0)
 
-plan_synthesis_place(Plan_session plan_session, string plan_item_id, string plan_note_text) {
+plan_synthesis_place(Plan_session plan_session, string plan_item_identifier, string plan_note_text) {
   int plan_row = plan_synthesis_row(plan_session);
   int plan_slot = plan_synthesis_slot(plan_session);
   int plan_room = plan_main_count(plan_session) < (import plan_main_slots);
-} chain (Plan_session plan_session, string plan_item_id, string plan_note_text) {
+} chain (Plan_session plan_session, string plan_item_identifier, string plan_note_text) {
   if (plan_row >= 0) {
-    plan_session.ids[plan_row] = plan_item_id;
+    plan_session.identifiers[plan_row] = plan_item_identifier;
     plan_session.reasons[plan_row] = plan_note_text + "; it takes the place of a new concept, which a learner this solid can wait for";
   }
   if (plan_row < 0 && plan_room == 1) {
-    list_string_insert(plan_session.ids, plan_slot, plan_item_id);
+    list_string_insert(plan_session.identifiers, plan_slot, plan_item_identifier);
     list_string_insert(plan_session.phases, plan_slot, "main");
     list_string_insert(plan_session.reasons, plan_slot, plan_note_text);
   }
