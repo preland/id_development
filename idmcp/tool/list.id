@@ -2,7 +2,7 @@
 // description and JSON schema.
 
 tool_schema(string table_row) {
-  string[] table_fields = str_split(table_row, "~");
+  string[] table_fields = string_split(table_row, "~");
   string table_props = tool_properties(table_fields[2]);
   string table_need = tool_required(table_fields[3]);
 } chain (string table_row) {
@@ -20,7 +20,7 @@ tool_list(string[] table_rows) {
     table_at = table_at + 1;
   }
 } chain (string[] table_rows) {
-  string table_text = "{\"tools\":[" + str_join(table_items, ",") + "]}";
+  string table_text = "{\"tools\":[" + string_join(table_items, ",") + "]}";
 } return string table_text;
 (["a~b~~"]):("{\"tools\":[{\"name\":\"a\",\"description\":\"b\",\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"required\":[]}}]}")
 ([]):("{\"tools\":[]}")

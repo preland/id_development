@@ -12,13 +12,13 @@ fodt_each(string[] lines, int[] walk_state, string[] records) {
 
 // The paragraphs, headings, list items, tables and frames of a fodt document as one "kind:text" line each, in document order, "" for a document with none. Tags, styles and everything outside the body are dropped.
 fodt_norm(string raw) {
-  string[] lines = str_split(raw, "\n");
+  string[] lines = string_split(raw, "\n");
   int[] walk_state = [];
   string[] records = [];
 } chain (string raw) {
   list_fill(walk_state, (import st_len), 0);
   fodt_each(lines, walk_state, records);
-  string joined = str_join(records, "\n");
+  string joined = string_join(records, "\n");
 } chain (string raw) {
   string norm = joined;
   if (len(records) > 0) {

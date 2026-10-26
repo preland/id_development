@@ -1,8 +1,8 @@
 // The name a style has in the file: the ODT name of a built-in style ("Standard" for Normal), otherwise its name with each space written as _20_ as ODF does.
 odt_write_style_wire_name(Doc odt_write_style_wire_name_document, int odt_write_style_wire_name_style_number) {
   string odt_write_style_wire_name_name = odt_write_style_wire_name_document.fmt.sty.styles[odt_write_style_wire_name_style_number].name;
-  string[] odt_write_style_wire_name_pieces = str_split(odt_write_style_wire_name_name, " ");
-  string odt_write_style_wire_name_result = str_join(odt_write_style_wire_name_pieces, "_20_");
+  string[] odt_write_style_wire_name_pieces = string_split(odt_write_style_wire_name_name, " ");
+  string odt_write_style_wire_name_result = string_join(odt_write_style_wire_name_pieces, "_20_");
 } chain (Doc odt_write_style_wire_name_document, int odt_write_style_wire_name_style_number) {
   int odt_write_style_wire_name_known_index = list_string_index((import quill_style_names), odt_write_style_wire_name_name);
   if(odt_write_style_wire_name_known_index >= 0) {
@@ -17,7 +17,7 @@ odt_write_style_wire_name(Doc odt_write_style_wire_name_document, int odt_write_
 odt_write_heading_level(Doc odt_write_heading_level_document, int odt_write_heading_level_style_number) {
   string odt_write_heading_level_wire = odt_write_style_wire_name(odt_write_heading_level_document, odt_write_heading_level_style_number);
   int odt_write_heading_level_result = 0;
-  if(str_starts(odt_write_heading_level_wire, "Heading_20_") == 1) {
+  if(string_starts_with(odt_write_heading_level_wire, "Heading_20_") == 1) {
     string odt_write_heading_level_digits = str_sub(odt_write_heading_level_wire, 11, len(odt_write_heading_level_wire) - 11);
     odt_write_heading_level_result = to_int(odt_write_heading_level_digits);
   }

@@ -7,16 +7,16 @@ exporter_page(int exporter_number_sprite) {
   string exporter_text_page = "";
   int exporter_number_index = 0;
   while (exporter_number_index < len((import model_function_names))) {
-    if ((import model_function_sprites)[exporter_number_index] == exporter_number_sprite && (import model_function_names)[exporter_number_index] != "main" && str_starts((import model_function_names)[exporter_number_index], "__") == 0) {
+    if ((import model_function_sprites)[exporter_number_index] == exporter_number_sprite && (import model_function_names)[exporter_number_index] != "main" && string_starts_with((import model_function_names)[exporter_number_index], "__") == 0) {
       exporter_text_page = exporter_text_page + exporter_function(exporter_number_index) + "\n";
     }
     exporter_number_index = exporter_number_index + 1;
   }
 } chain (int exporter_number_sprite) {
   if (exporter_text_page != "") {
-    int exporter_number_parenthesis = str_find(exporter_text_page, "(");
+    int exporter_number_parenthesis = string_find(exporter_text_page, "(");
     string exporter_text_path = exporter_path(exporter_number_sprite, str_sub(exporter_text_page, 0, exporter_number_parenthesis), "_function");
-    exporter_add(exporter_text_path + ".id", str_trim(exporter_text_page) + "\n");
+    exporter_add(exporter_text_path + ".id", string_trim(exporter_text_page) + "\n");
   }
 } return void;
 given exporter_initial given model_load("t.blk", "sprite S\nfn a() return void\n  say(\"x\")\n(): ()\n(1): ()\nfn main(int argc, string[] argv) return int\n  return 0\n(1, [\"x\"]): (0)\n(2, [\"x\"]): (0)") (0):() then (import exporter_paths):(["s/a.id"])

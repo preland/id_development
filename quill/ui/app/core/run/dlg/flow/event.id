@@ -11,10 +11,10 @@ app_dialog_answer(App app_answer_application, int app_answer_button) {
     app_action_perform(app_answer_application);
   }
   if(app_answer_is_ask == 0 || app_answer_button < 0 || app_answer_button > 1) {
-    lset((import cli_state_list), (import wa_s_ask), (import wa_a_none));
+    integer_list_set((import cli_state_list), (import wa_s_ask), (import wa_a_none));
   }
 } return void;
-given cli_test_boot_app given app_dialog_show("T", ["a"], ["OK"], 4) given lset((import cli_state_list), 1, 2) ((import cli_application), 0):() then cli_test_state_text:("0,0,0,0,|0|0")
+given cli_test_boot_app given app_dialog_show("T", ["a"], ["OK"], 4) given integer_list_set((import cli_state_list), 1, 2) ((import cli_application), 0):() then cli_test_state_text:("0,0,0,0,|0|0")
 given cli_test_boot_app given cli_test_type_code_point(120) given app_action_ask((import cli_application), 3) ((import cli_application), 1):() then cli_test_state_text:("0,0,0,1,|0|1")
 given cli_test_boot_app given cli_test_type_code_point(120) given app_action_ask((import cli_application), 3) ((import cli_application), 2):() then cli_test_state_text:("0,0,0,0,|0|1")
 
@@ -31,10 +31,10 @@ app_dialog_react(App app_react_application, int app_react_files, int app_react_d
   }
 } chain (App app_react_application, int app_react_files, int app_react_dialog) {
   if(((app_react_files | app_react_dialog) & 1) != 0) {
-    lset((import view_state), (import vw_s_d), 1);
+    integer_list_set((import view_state), (import vw_s_d), 1);
   }
 } return void;
-given cli_test_boot_app given app_dialog_show("T", ["a"], ["OK"], 4) given lset((import view_state), 3, 0) ((import cli_application), 0, 1):() then view_test_state_dump:("sts 0,0,100,1,") then cli_test_state_text:("0,0,4,0,|0|0")
+given cli_test_boot_app given app_dialog_show("T", ["a"], ["OK"], 4) given integer_list_set((import view_state), 3, 0) ((import cli_application), 0, 1):() then view_test_state_dump:("sts 0,0,100,1,") then cli_test_state_text:("0,0,4,0,|0|0")
 given cli_test_boot_app given app_dialog_show("T", ["a"], ["OK"], 4) ((import cli_application), 0, 4):() then cli_test_state_text:("0,0,0,0,|0|0")
 
 // One event of the window while a dialog is open: it is the file list's first when the dialog is a picker, then the dialog's, and what they answered is acted on (wa_dlg_after).

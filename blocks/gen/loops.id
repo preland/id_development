@@ -11,7 +11,7 @@ generator_while(string[] block_texts, int block_function_row, int block_line_ind
   int block_inner = generator_emit((import constant_opcode_jump_zero), 0, block_call_stack, 0, 0);
 } chain (string[] block_texts, int block_function_row, int block_line_index, int block_level) {
   int block_old = (import generator_state)[(import constant_statement_breaks)];
-  lset((import generator_state), (import constant_statement_breaks), len((import generator_break_stack)));
+  integer_list_set((import generator_state), (import constant_statement_breaks), len((import generator_break_stack)));
   int block_next_index = generator_block(block_function_row, block_line_index + 1, block_level + 1);
 } chain (string[] block_texts, int block_function_row, int block_line_index, int block_level) {
   generator_wend(block_top, block_inner, block_old);
@@ -25,10 +25,10 @@ generator_wend(int block_top, int block_inner, int block_old) {
   generator_patch(block_inner, len((import generator_code)));
 } chain (int block_top, int block_inner, int block_old) {
   generator_fix_breaks();
-  lset((import generator_state), (import constant_statement_breaks), block_old);
+  integer_list_set((import generator_state), (import constant_statement_breaks), block_old);
 } return void;
 given generator_initial given list_extend((import generator_code), [9, 0, 0, 0, 0]) (0, 0, -1):() then generator_codes:("15:9,0,0,0,15,13,0,0,0,0,8,0,0,0,0")
-given generator_initial given list_extend((import generator_code), [9, 0, 0, 0, 0, 8, 0, 0, 0, 0]) given list_extend((import generator_break_stack), [5]) given lset((import generator_state), 6, 0) (0, 0, -1):() then generator_codes:("20:9,0,0,0,20,8,0,0,0,20,13,0,0,0,0,8,0,0,0,0")
+given generator_initial given list_extend((import generator_code), [9, 0, 0, 0, 0, 8, 0, 0, 0, 0]) given list_extend((import generator_break_stack), [5]) given integer_list_set((import generator_state), 6, 0) (0, 0, -1):() then generator_codes:("20:9,0,0,0,20,8,0,0,0,20,13,0,0,0,0,8,0,0,0,0")
 
 generator_fix_breaks() {
   while (len((import generator_break_stack)) > (import generator_state)[(import constant_statement_breaks)]) {
@@ -36,4 +36,4 @@ generator_fix_breaks() {
   }
 } return void;
 given generator_initial given list_extend((import generator_code), [8, 0, 0, 0, 0, 1, 0, 0, 0, 0]) given list_extend((import generator_break_stack), [0]) (): () then generator_codes:("10:8,0,0,0,10,1,0,0,0,0")
-given generator_initial given list_extend((import generator_code), [8, 0, 0, 0, 0]) given list_extend((import generator_break_stack), [0]) given lset((import generator_state), 6, 1) ():() then generator_codes:("5:8,0,0,0,0")
+given generator_initial given list_extend((import generator_code), [8, 0, 0, 0, 0]) given list_extend((import generator_break_stack), [0]) given integer_list_set((import generator_state), 6, 1) ():() then generator_codes:("5:8,0,0,0,0")

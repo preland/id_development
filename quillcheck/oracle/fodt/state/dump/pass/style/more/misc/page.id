@@ -1,6 +1,6 @@
 // Adds the page layout the reader is at, keyed "g:" and its name, with no properties yet.
 fodt_dump_layout(Catalog style_store, XmlR document_reader) {
-  string style_key = "g:" + xml_reader_attr(document_reader, "style:name");
+  string style_key = "g:" + xml_reader_attribute(document_reader, "style:name");
   fodt_dump_add_entry(style_store, style_key, "", "", "");
 } return void;
 given fodt_dump_test_open("<style:page-layout style:name=\"Mpm1\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Catalog([], [], []), (import fodt_dump_test_reader)):(Catalog(["g:Mpm1"], [""], ["", "", ""]), (import fodt_dump_test_reader))
@@ -18,8 +18,8 @@ given fodt_dump_test_open("<p/>") given xml_reader_skip((import fodt_dump_test_r
 
 // Adds the master page the reader is at, keyed "m:" and its name, with the name of its page layout as its third meta string.
 fodt_dump_master_page(Catalog style_store, XmlR document_reader) {
-  string style_key = "m:" + xml_reader_attr(document_reader, "style:name");
-  fodt_dump_add_entry(style_store, style_key, "", "", xml_reader_attr(document_reader, "style:page-layout-name"));
+  string style_key = "m:" + xml_reader_attribute(document_reader, "style:name");
+  fodt_dump_add_entry(style_store, style_key, "", "", xml_reader_attribute(document_reader, "style:page-layout-name"));
 } return void;
 given fodt_dump_test_open("<style:master-page style:name=\"Standard\" style:page-layout-name=\"Mpm1\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Catalog([], [], []), (import fodt_dump_test_reader)):(Catalog(["m:Standard"], [""], ["", "", "Mpm1"]), (import fodt_dump_test_reader))
 given fodt_dump_test_open("<style:master-page style:name=\"W\" style:page-layout-name=\"L\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Catalog(["x"], ["y"], ["1", "2", "3"]), (import fodt_dump_test_reader)):(Catalog(["x", "m:W"], ["y", ""], ["1", "2", "3", "", "", "L"]), (import fodt_dump_test_reader))

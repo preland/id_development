@@ -16,7 +16,7 @@ session_show_lines(Pack session_book, int session_concept_block, int session_ite
   int session_at = 0;
 } chain (Pack session_book, int session_concept_block, int session_item_block, string session_kinds_text, string session_mode, string session_basis, int session_rotate) {
   if (session_kinds_text != "" && session_concept_block >= 0) {
-    session_kinds = str_split(session_kinds_text, ",");
+    session_kinds = string_split(session_kinds_text, ",");
   }
   while (session_at < len(session_kinds)) {
     push(session_rows, session_line(session_book, session_concept_block, session_item_block, session_kinds[session_at], session_mode, session_basis, session_rotate));
@@ -27,7 +27,7 @@ session_show_lines(Pack session_book, int session_concept_block, int session_ite
   if (session_bridge_text != "") {
     push(session_rows, "  the general idea (bridge): " + session_bridge_text);
   }
-  string session_joined = str_join(session_rows, "\n");
+  string session_joined = string_join(session_rows, "\n");
 } return string session_joined;
 given pack_fixture_parse("concept: c\nshow_definition: D\nshow_non_example: N\nitem: i\nconcepts: c\n") ((import pack_fixture_book), 0, 1, "non_example,definition", "full", "", 0):("  non-example: N\n  definition: D")
 given pack_fixture_parse("concept: c\nshow_definition: D\nshow_non_example: N\nitem: i\nconcepts: c\n") ((import pack_fixture_book), 0, 1, "", "full", "", 0):("")
@@ -53,7 +53,7 @@ session_show_attempt(Pack session_book, Log_events session_events, int session_a
 } chain (Pack session_book, Log_events session_events, int session_attempt_at) {
   string[] session_choice = plan_present_choice(log_text_at(session_events, session_attempt_at, (import log_slot_verdict)), log_number_at(session_events, session_attempt_at, (import log_slot_confidence)), log_number_at(session_events, session_attempt_at, (import log_slot_hints)), log_number_at(session_events, session_attempt_at, (import log_slot_seconds)), session_counts[(import plan_tally_misses)]);
   string session_basis_text = pack_field(session_book, session_item_block, "prompt") + " " + log_text_at(session_events, session_attempt_at, (import log_slot_answer));
-  int session_aimed = str_find(session_choice[0], "non_example") >= 0;
+  int session_aimed = string_find(session_choice[0], "non_example") >= 0;
 } chain (Pack session_book, Log_events session_events, int session_attempt_at) {
   string session_belief_found = "";
   if (session_aimed == 1) {

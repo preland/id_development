@@ -1,7 +1,7 @@
 // Records, in the bag of list entry owi, what the level element the reader is at says: its kind (b bullet, n number), its bullet code point or number format, and its start value.
 fodt_dump_level_head(Catalog style_store, int entry_index, XmlR document_reader, int owl) {
   string level_kind = "b";
-  string bullet_text = xml_reader_attr(document_reader, "text:bullet-char");
+  string bullet_text = xml_reader_attribute(document_reader, "text:bullet-char");
   int format_code = 8226;
 } chain (Catalog style_store, int entry_index, XmlR document_reader, int owl) {
   if(bullet_text != "") {
@@ -9,7 +9,7 @@ fodt_dump_level_head(Catalog style_store, int entry_index, XmlR document_reader,
   }
   if(xml_reader_get(document_reader, (import xml_reader_k_name)) == "text:list-level-style-number") {
     level_kind = "n";
-    format_code = fodt_dump_number_format(xml_reader_attr(document_reader, "style:num-format"));
+    format_code = fodt_dump_number_format(xml_reader_attribute(document_reader, "style:num-format"));
   }
   fodt_dump_property(style_store, entry_index, owl + ".k", level_kind);
 } chain (Catalog style_store, int entry_index, XmlR document_reader, int owl) {
@@ -22,8 +22,8 @@ given fodt_dump_test_open("<text:list-level-style-bullet text:level=\"2\" text:b
 // Records a level's left indent and hanging indent, in twips, from the element the reader is at: a style:list-level-label-alignment (margin-left, and a negative text-indent as the hang) or the older style:list-level-properties (space-before plus min-label-width, and the width as the hang).
 fodt_dump_level_child(Catalog style_store, int entry_index, XmlR document_reader, int owl) {
   string element_name = xml_reader_get(document_reader, (import xml_reader_k_name));
-  int margin_length = fodt_dump_length(xml_reader_attr(document_reader, "fo:margin-left"));
-  int indent_length = fodt_dump_length(xml_reader_attr(document_reader, "fo:text-indent"));
+  int margin_length = fodt_dump_length(xml_reader_attribute(document_reader, "fo:margin-left"));
+  int indent_length = fodt_dump_length(xml_reader_attribute(document_reader, "fo:text-indent"));
 } chain (Catalog style_store, int entry_index, XmlR document_reader, int owl) {
   if(element_name == "style:list-level-label-alignment" && margin_length != (import ow_bad)) {
     fodt_dump_property(style_store, entry_index, owl + ".l", "" + margin_length);
@@ -31,7 +31,7 @@ fodt_dump_level_child(Catalog style_store, int entry_index, XmlR document_reader
   if(element_name == "style:list-level-label-alignment" && indent_length != (import ow_bad)) {
     fodt_dump_property(style_store, entry_index, owl + ".h", "" + fixed_point_maximum(0 - indent_length, 0));
   }
-  if(element_name == "style:list-level-properties" && xml_reader_attr(document_reader, "text:min-label-width") != "") {
+  if(element_name == "style:list-level-properties" && xml_reader_attribute(document_reader, "text:min-label-width") != "") {
     fodt_dump_legacy_indents(style_store, entry_index, document_reader, owl);
   }
 } return void;
@@ -41,8 +41,8 @@ given fodt_dump_test_open("<other fo:margin-left=\"0.5in\"/>") given xml_reader_
 
 // Records a level's indents from the older spelling: the label starts text:space-before from the margin and is text:min-label-width wide, so the text starts at their sum and the label hangs by the width.
 fodt_dump_legacy_indents(Catalog style_store, int entry_index, XmlR document_reader, int owl) {
-  int space_before = fodt_dump_length(xml_reader_attr(document_reader, "text:space-before"));
-  int label_width = fodt_dump_length(xml_reader_attr(document_reader, "text:min-label-width"));
+  int space_before = fodt_dump_length(xml_reader_attribute(document_reader, "text:space-before"));
+  int label_width = fodt_dump_length(xml_reader_attribute(document_reader, "text:min-label-width"));
   fodt_dump_property(style_store, entry_index, owl + ".h", "" + label_width);
 } chain (Catalog style_store, int entry_index, XmlR document_reader, int owl) {
   if(space_before != (import ow_bad)) {

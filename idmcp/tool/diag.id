@@ -24,18 +24,18 @@ tool_value(string value_doc, string value_path) {
 tool_diagnostic_json(string diag_line) {
   string[] diag_fields = [tool_field("code", tool_value(diag_line, "code")), tool_field("file", tool_value(diag_line, "file")), tool_field("line", tool_value(diag_line, "line")), tool_field("function", tool_value(diag_line, "function"))];
   string[] diag_more = [tool_field("message", tool_value(diag_line, "message")), tool_field("help", tool_value(diag_line, "fixes.0.description")), tool_field("edits", tool_value(diag_line, "fixes.0.edits"))];
-  string diag_text = "{" + str_join(diag_fields, ",") + "," + str_join(diag_more, ",") + "}";
+  string diag_text = "{" + string_join(diag_fields, ",") + "," + string_join(diag_more, ",") + "}";
 } return string diag_text;
 ("{\"kind\":\"diagnostic\",\"code\":\"E0304\",\"file\":\"main.id\",\"line\":2,\"function\":\"main\",\"message\":\"no such function 'q'\",\"fixes\":[{\"description\":\"check the spelling\",\"edits\":[]}]}"):("{\"code\":\"E0304\",\"file\":\"main.id\",\"line\":2,\"function\":\"main\",\"message\":\"no such function 'q'\",\"help\":\"check the spelling\",\"edits\":[]}")
 ("{\"kind\":\"diagnostic\",\"code\":null,\"file\":\"a.id\",\"line\":5,\"function\":null,\"message\":\"m\",\"fixes\":[]}"):("{\"code\":null,\"file\":\"a.id\",\"line\":5,\"function\":null,\"message\":\"m\",\"help\":null,\"edits\":null}")
 
 tool_diagnostics(string diag_text, int diag_cap) {
-  string[] diag_lines = str_lines(diag_text);
+  string[] diag_lines = string_lines(diag_text);
   string[] diag_items = [];
   int diag_at = 0;
 } chain (string diag_text, int diag_cap) {
   while (diag_at < len(diag_lines) && len(diag_items) < diag_cap) {
-    if (str_find(diag_lines[diag_at], "\"kind\":\"diagnostic\"") >= 0) {
+    if (string_find(diag_lines[diag_at], "\"kind\":\"diagnostic\"") >= 0) {
       push(diag_items, tool_diagnostic_json(diag_lines[diag_at]));
     }
     diag_at = diag_at + 1;

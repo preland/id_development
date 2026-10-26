@@ -26,7 +26,7 @@ command_show_text(string[] command_shown) {
 (["  worked: W", "wrong with low confidence (50%): the worked example in full, since this is the first miss on the concept", ""]):("presentation: wrong with low confidence (50%): the worked example in full, since this is the first miss on the concept\n  worked: W\n")
 
 command_free_text(string[] command_result) {
-  string[] command_rubric_lines = str_split(command_result[4], "\n");
+  string[] command_rubric_lines = string_split(command_result[4], "\n");
   string[] command_numbered = [];
   int command_at = 0;
 } chain (string[] command_result) {
@@ -34,7 +34,7 @@ command_free_text(string[] command_result) {
     push(command_numbered, "  " + (command_at + 1) + ". " + command_rubric_lines[command_at]);
     command_at = command_at + 1;
   }
-  string command_free = "verdict: pending (a free answer is marked against the rubric, not decided by the checker)\nreference: " + command_result[3] + "\nrubric, mark each line you met:\n" + str_join(command_numbered, "\n");
+  string command_free = "verdict: pending (a free answer is marked against the rubric, not decided by the checker)\nreference: " + command_result[3] + "\nrubric, mark each line you met:\n" + string_join(command_numbered, "\n");
 } return string command_free;
 (["ok", "", "pending", "model proof", "R1\nR2", "a", "main"]):("verdict: pending (a free answer is marked against the rubric, not decided by the checker)\nreference: model proof\nrubric, mark each line you met:\n  1. R1\n  2. R2")
 (["ok", "", "pending", "m", "only line", "a", "main"]):("verdict: pending (a free answer is marked against the rubric, not decided by the checker)\nreference: m\nrubric, mark each line you met:\n  1. only line")

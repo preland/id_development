@@ -22,10 +22,10 @@ given model_load("t.blk", "sprite S\nvar int n\nfn main(int argc, string[] argv)
 
 exporter_cost(string exporter_text_line) {
   int exporter_number_cost = 0;
-  if (str_starts(exporter_text_line, "  ") && character_code_at(exporter_text_line, 2) != 32) {
+  if (string_starts_with(exporter_text_line, "  ") && character_code_at(exporter_text_line, 2) != 32) {
     exporter_number_cost = 1;
   }
-  if (exporter_text_line == "  }" || exporter_text_line == "  break;" || str_starts(exporter_text_line, "  return ") || exporter_text_line == "  return;") {
+  if (exporter_text_line == "  }" || exporter_text_line == "  break;" || string_starts_with(exporter_text_line, "  return ") || exporter_text_line == "  return;") {
     exporter_number_cost = 0;
   }
 } return int exporter_number_cost;
@@ -39,7 +39,7 @@ exporter_cost(string exporter_text_line) {
 
 exporter_boundary(string exporter_text_line, int exporter_number_total, string exporter_text_parameters) {
   string exporter_text_cut = "";
-  if (exporter_number_total >= 3 && exporter_cost(exporter_text_line) > 0 && str_starts(exporter_text_line, "  } else") == 0) {
+  if (exporter_number_total >= 3 && exporter_cost(exporter_text_line) > 0 && string_starts_with(exporter_text_line, "  } else") == 0) {
     exporter_text_cut = "} chain (" + exporter_text_parameters + ") {\n";
   }
 } return string exporter_text_cut;

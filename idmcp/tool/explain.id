@@ -5,13 +5,13 @@
 tool_explain(string explain_code) {
   string explain_text = "";
   int explain_size = len(explain_code);
-  if (explain_size == 5 && str_starts(explain_code, "E") == 1 && tool_safe(explain_code) == 1) {
+  if (explain_size == 5 && string_starts_with(explain_code, "E") == 1 && tool_safe(explain_code) == 1) {
     explain_text = tool_idc("--explain\n" + explain_code + "\n");
   }
 } chain (string explain_code) {
   int explain_cap = fixed_point_minimum(len(explain_text), 6000);
   string explain_cut = str_sub(explain_text, 0, explain_cap);
-  int explain_ok = str_starts(explain_text, explain_code + " ");
+  int explain_ok = string_starts_with(explain_text, explain_code + " ");
 } chain (string explain_code) {
   string explain_members = tool_label("code", explain_code) + "," + tool_label("text", explain_cut);
   string explain_answer = tool_failure("not_found", "idc has no explanation for that; error codes look like E0408");

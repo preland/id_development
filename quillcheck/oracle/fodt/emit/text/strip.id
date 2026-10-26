@@ -1,7 +1,7 @@
 // A line of XML without its tags: every <...> span removed, text between them kept. A tag that never closes drops the rest of the line.
 fodt_strip(string line) {
-  int open_index = str_find(line, "<");
-  int close_index = str_findat(line, ">", open_index);
+  int open_index = string_find(line, "<");
+  int close_index = string_find_from(line, ">", open_index);
   string kept = line;
 } chain (string line) {
   if (open_index >= 0 && close_index < 0) {
@@ -20,12 +20,12 @@ fodt_strip(string line) {
 
 // The five predefined XML entities decoded; &amp; last so that "&amp;lt;" becomes "&lt;" and no further.
 fodt_decode(string escaped_text) {
-  string less_decoded = str_replace(escaped_text, "&lt;", "<");
-  string greater_decoded = str_replace(less_decoded, "&gt;", ">");
-  string quote_decoded = str_replace(greater_decoded, "&quot;", "\"");
+  string less_decoded = string_replace(escaped_text, "&lt;", "<");
+  string greater_decoded = string_replace(less_decoded, "&gt;", ">");
+  string quote_decoded = string_replace(greater_decoded, "&quot;", "\"");
 } chain (string escaped_text) {
-  string apostrophe_decoded = str_replace(quote_decoded, "&apos;", "'");
-  string ampersand_decoded = str_replace(apostrophe_decoded, "&amp;", "&");
+  string apostrophe_decoded = string_replace(quote_decoded, "&apos;", "'");
+  string ampersand_decoded = string_replace(apostrophe_decoded, "&amp;", "&");
 } return string ampersand_decoded;
 ("1 &lt; 2 &amp; 3 &gt; 2"):("1 < 2 & 3 > 2")
 ("&amp;lt;"):("&lt;")

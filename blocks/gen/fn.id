@@ -6,11 +6,11 @@
 // final ret so that control never runs off its code.
 
 generator_function_table_row(int block_function_row) {
-  lset((import generator_function_table), block_function_row * (import constant_function_table_count) + (import constant_function_table_entry_counter), len((import generator_code)));
-  lset((import generator_function_table), block_function_row * (import constant_function_table_count) + (import constant_function_table_parameter_count), (import model_function_parameter_count)[block_function_row]);
-  lset((import generator_function_table), block_function_row * (import constant_function_table_count) + (import constant_function_table_return_type), (import model_function_return_types)[block_function_row]);
+  integer_list_set((import generator_function_table), block_function_row * (import constant_function_table_count) + (import constant_function_table_entry_counter), len((import generator_code)));
+  integer_list_set((import generator_function_table), block_function_row * (import constant_function_table_count) + (import constant_function_table_parameter_count), (import model_function_parameter_count)[block_function_row]);
+  integer_list_set((import generator_function_table), block_function_row * (import constant_function_table_count) + (import constant_function_table_return_type), (import model_function_return_types)[block_function_row]);
 } chain (int block_function_row) {
-  lset((import generator_function_table), block_function_row * (import constant_function_table_count) + (import constant_function_table_stack_pointer), (import model_function_sprites)[block_function_row]);
+  integer_list_set((import generator_function_table), block_function_row * (import constant_function_table_count) + (import constant_function_table_stack_pointer), (import model_function_sprites)[block_function_row]);
 } return void;
 given model_load("t.blk", "sprite A\nsprite B\nfn f(int a) return string") given generator_initial given list_fill((import generator_function_table), 8, 0) given list_extend((import generator_code), [1, 2, 3, 4, 5]) (0):() then (import generator_function_table)[0]:(5) then (import generator_function_table)[1]:(1) then (import generator_function_table)[2]:(3) then (import generator_function_table)[3]:(1)
 given model_load("t.blk", "sprite A\nfn f() return void\nfn g(int a, int b) return void") given generator_initial given list_fill((import generator_function_table), 8, 0) (1):() then (import generator_function_table)[5]:(2) then (import generator_function_table)[4]:(0) then (import generator_function_table)[7]:(0)
@@ -28,14 +28,14 @@ given model_load("t.blk", "sprite A\nfn f() return void\nfn g(float c) return vo
 generator_registers(int block_function_row) {
   generator_trim(0);
   list_set_all((import generator_state), (import constant_statement_count), 0);
-  lset((import generator_state), (import constant_statement_slot), (import model_function_parameter_count)[block_function_row]);
+  integer_list_set((import generator_state), (import constant_statement_slot), (import model_function_parameter_count)[block_function_row]);
 } chain (int block_function_row) {
-  lset((import generator_state), (import constant_statement_function), block_function_row);
-  lset((import generator_state), (import constant_statement_line), (import model_function_line)[block_function_row]);
-  lset((import generator_state), (import constant_statement_breaks), (import constant_statement_no_breaks));
+  integer_list_set((import generator_state), (import constant_statement_function), block_function_row);
+  integer_list_set((import generator_state), (import constant_statement_line), (import model_function_line)[block_function_row]);
+  integer_list_set((import generator_state), (import constant_statement_breaks), (import constant_statement_no_breaks));
 } chain (int block_function_row) {
   generator_parameters(block_function_row);
   generator_function_table_row(block_function_row);
 } return void;
-given model_load("t.blk", "sprite A\nfn f(int a) return void") given generator_initial given list_fill((import generator_function_table), 4, 0) given lset((import generator_state), 4, 9) (0):() then (import generator_state)[2]:(1) then (import generator_state)[4]:(0) then (import generator_state)[6]:(-1) then (import generator_state)[5]:(2)
+given model_load("t.blk", "sprite A\nfn f(int a) return void") given generator_initial given list_fill((import generator_function_table), 4, 0) given integer_list_set((import generator_state), 4, 9) (0):() then (import generator_state)[2]:(1) then (import generator_state)[4]:(0) then (import generator_state)[6]:(-1) then (import generator_state)[5]:(2)
 given model_load("t.blk", "sprite A\nfn f(int a) return void\nfn g() return void") given generator_initial given list_fill((import generator_function_table), 8, 0) given list_string_extend((import generator_symbol_names), ["old"]) given list_extend((import generator_symbol_slots), [0]) given list_extend((import generator_symbol_types), [1]) (1):() then generator_symbols:("") then (import generator_state)[3]:(1)

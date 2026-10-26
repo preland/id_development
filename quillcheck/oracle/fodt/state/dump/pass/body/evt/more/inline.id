@@ -9,7 +9,7 @@ fodt_dump_add_text(Catalog style_store, Accumulator accumulator, string[] span_s
 // A text:span's effect on the stack of span styles: its style key goes on when it starts and comes off when it ends.
 fodt_dump_span(string[] span_styles, XmlR document_reader, int reader_event) {
   if(reader_event == 1) {
-    push(span_styles, "t:" + xml_reader_attr(document_reader, "text:style-name"));
+    push(span_styles, "t:" + xml_reader_attribute(document_reader, "text:style-name"));
   }
   if(reader_event == 2) {
     pop(span_styles);
@@ -23,7 +23,7 @@ given fodt_dump_test_open("<text:span text:style-name=\"T1\"/>") given xml_reade
 fodt_dump_link(Accumulator accumulator, XmlR document_reader, int reader_event) {
   string[] string_slots = accumulator.slot_strings;
   if(reader_event == 1) {
-    string_slots[2] = xml_reader_attr(document_reader, "xlink:href");
+    string_slots[2] = xml_reader_attribute(document_reader, "xlink:href");
   }
   if(reader_event == 2) {
     string_slots[2] = "";

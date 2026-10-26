@@ -1,13 +1,13 @@
 // Places paragraph lgi on the pages. lgs is the state of the walk, [y, used, base]: where the next paragraph starts on the current page, whether the page holds a line yet, and the y on the page of the current paragraph's own top. A paragraph that asks for a page break starts a new page unless the page is empty; its lines are then placed one by one, and the next paragraph starts where it ends.
 lay_place(View page_view, int paragraph_index, int[] walk_state) {
   layout_page_break(page_view, paragraph_index, walk_state);
-  lset(walk_state, 2, walk_state[0]);
+  integer_list_set(walk_state, 2, walk_state[0]);
   if(len(page_view.pages.tops) <= paragraph_index) {
     push(page_view.pages.tops, 0);
   }
 } chain (View page_view, int paragraph_index, int[] walk_state) {
   lay_lines(page_view, paragraph_index, 0, walk_state);
-  lset(walk_state, 0, walk_state[2] + page_view.doc.body.paras[paragraph_index].lay.h);
+  integer_list_set(walk_state, 0, walk_state[2] + page_view.doc.body.paras[paragraph_index].lay.h);
 } return void;
 given layout_paragraph_test_font given layout_paragraph_test_paragraphs(2) given lay_all((import layout_paragraph_test_view)) given lay_pages_reset((import layout_paragraph_test_view)) given layout_page_test_walk_set(0, 0, 0) ((import layout_paragraph_test_view), 0, (import layout_page_test_walk)):() then layout_page_test_state:("1664,1,0,") then (import layout_paragraph_test_view).pages.tops:([6144])
 given layout_paragraph_test_font given layout_paragraph_test_paragraphs(2) given lay_all((import layout_paragraph_test_view)) given lay_pages_reset((import layout_paragraph_test_view)) given layout_page_test_walk_set(1600, 1, 0) given layout_page_test_zeros(1) ((import layout_paragraph_test_view), 1, (import layout_page_test_walk)):() then layout_page_test_state:("3264,1,1600,") then (import layout_paragraph_test_view).pages.tops:([0, 7744])
@@ -19,8 +19,8 @@ layout_page_break(View page_view, int paragraph_index, int[] walk_state) {
   int break_before = document_style_effective_paragraph(page_view.doc.fmt, subject_paragraph.pprop, (import quill_paragraph_break_before));
   if(break_before == 1 && walk_state[1] == 1) {
     lay_page_open(page_view, paragraph_index, 0);
-    lset(walk_state, 0, 0);
-    lset(walk_state, 1, 0);
+    integer_list_set(walk_state, 0, 0);
+    integer_list_set(walk_state, 1, 0);
   }
 } return void;
 given layout_paragraph_test_new given layout_paragraph_test_paragraphs(2) given layout_paragraph_test_set_property(1, 8, 1) given lay_pages_reset((import layout_paragraph_test_view)) given layout_page_test_walk_set(500, 1, 500) ((import layout_paragraph_test_view), 1, (import layout_page_test_walk)):() then layout_page_test_state:("0,0,500,") then (import layout_paragraph_test_view).pages.starts:([0, 0, 1, 0])

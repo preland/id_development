@@ -1,18 +1,18 @@
 // An element with no content, such as text:tab.
 odt_write_empty_element(XmlW odt_write_empty_element_writer, string odt_write_empty_element_name) {
-  xw_start(odt_write_empty_element_writer, odt_write_empty_element_name);
-  xw_end(odt_write_empty_element_writer);
+  xml_writer_start_element(odt_write_empty_element_writer, odt_write_empty_element_name);
+  xml_writer_end_element(odt_write_empty_element_writer);
 } return void;
 given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), "text:tab"):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 116, 97, 98, 47, 62])
 given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), "text:line-break"):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 108, 105, 110, 101, 45, 98, 114, 101, 97, 107, 47, 62])
 
 // A text:s element standing for n spaces; the count is written only when it is more than one.
 odt_write_space_element(XmlW odt_write_space_element_writer, int odt_write_space_element_count) {
-  xw_start(odt_write_space_element_writer, "text:s");
+  xml_writer_start_element(odt_write_space_element_writer, "text:s");
   if(odt_write_space_element_count > 1) {
-    xw_attr(odt_write_space_element_writer, "text:c", "" + odt_write_space_element_count);
+    xml_writer_attribute(odt_write_space_element_writer, "text:c", "" + odt_write_space_element_count);
   }
-  xw_end(odt_write_space_element_writer);
+  xml_writer_end_element(odt_write_space_element_writer);
 } return void;
 given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 1):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 115, 47, 62])
 given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 3):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 115, 32, 116, 101, 120, 116, 58, 99, 61, 34, 51, 34, 47, 62])

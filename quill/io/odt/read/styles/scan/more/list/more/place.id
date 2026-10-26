@@ -1,7 +1,7 @@
 // Sets a level's left indent and hanging indent, in twips, from a style:list-level-label-alignment element: fo:margin-left is the text's left edge, and a negative fo:text-indent is how far the label hangs out to its left.
 odt_named_level_alignment(int[] odt_named_level_alignment_levels, XmlR odt_named_level_alignment_reader, int odt_named_level_alignment_base) {
-  int odt_named_level_alignment_left = odt_named_paragraph_length(xml_reader_attr(odt_named_level_alignment_reader, "fo:margin-left"));
-  int odt_named_level_alignment_indent = odt_named_paragraph_length(xml_reader_attr(odt_named_level_alignment_reader, "fo:text-indent"));
+  int odt_named_level_alignment_left = odt_named_paragraph_length(xml_reader_attribute(odt_named_level_alignment_reader, "fo:margin-left"));
+  int odt_named_level_alignment_indent = odt_named_paragraph_length(xml_reader_attribute(odt_named_level_alignment_reader, "fo:text-indent"));
   if(odt_named_level_alignment_left != (import ost_bad)) {
     odt_named_level_alignment_levels[odt_named_level_alignment_base + (import quill_list_level_indent)] = odt_named_level_alignment_left;
   }
@@ -15,8 +15,8 @@ given odt_named_reader_open("<a fo:text-indent=\"0.1in\"/>") given xml_reader_sk
 
 // Sets a level's left and hanging indent from the older style:list-level-properties spelling: the label starts text:space-before from the margin and takes text:min-label-width, so the text starts at their sum.
 odt_named_level_legacy(int[] odt_named_level_legacy_levels, XmlR odt_named_level_legacy_reader, int odt_named_level_legacy_base) {
-  int odt_named_level_legacy_space_before = odt_named_paragraph_length(xml_reader_attr(odt_named_level_legacy_reader, "text:space-before"));
-  int odt_named_level_legacy_minimum_width = odt_named_paragraph_length(xml_reader_attr(odt_named_level_legacy_reader, "text:min-label-width"));
+  int odt_named_level_legacy_space_before = odt_named_paragraph_length(xml_reader_attribute(odt_named_level_legacy_reader, "text:space-before"));
+  int odt_named_level_legacy_minimum_width = odt_named_paragraph_length(xml_reader_attribute(odt_named_level_legacy_reader, "text:min-label-width"));
   if(odt_named_level_legacy_minimum_width != (import ost_bad)) {
     odt_named_level_legacy_levels[odt_named_level_legacy_base + (import quill_list_level_hanging)] = odt_named_level_legacy_minimum_width;
   }
@@ -31,7 +31,7 @@ given odt_named_reader_open("<a text:space-before=\"0.25in\"/>") given xml_reade
 
 // The level a style:list-level-style-* element describes as 0 to 2, or -1 for a level the model does not keep (it keeps three).
 odt_named_level_index(XmlR odt_named_level_index_reader) {
-  int odt_named_level_index_result = to_int(xml_reader_attr(odt_named_level_index_reader, "text:level")) - 1;
+  int odt_named_level_index_result = to_int(xml_reader_attribute(odt_named_level_index_reader, "text:level")) - 1;
   if(odt_named_level_index_result < 0 || odt_named_level_index_result > 2) {
     odt_named_level_index_result = 0 - 1;
   }

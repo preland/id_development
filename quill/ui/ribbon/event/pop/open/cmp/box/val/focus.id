@@ -7,7 +7,7 @@ ribbon_combo_focus(Ribbon rib, int ribbon_combo_focus_number) {
   GuiCombo ribbon_combo_focus_box = (import ribbon_fit_combos)[ribbon_combo_focus_number];
   gui_textbox_focus(ribbon_combo_focus_box.box, 1);
 } chain (Ribbon rib, int ribbon_combo_focus_number) {
-  lset((import ribbon_fit_focused_combo), 0, ribbon_combo_focus_number);
+  integer_list_set((import ribbon_fit_focused_combo), 0, ribbon_combo_focus_number);
 } return void;
 given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given list_string_splice((import ribbon_fit_font_families), 0, 0, ["A"]) ((import ribbon_fit_test_ribbon), 1):() then ribbon_fit_check_combo_counts:("2|3,4,|1,")
 given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given list_string_splice((import ribbon_fit_font_families), 0, 0, ["A", "B"]) ((import ribbon_fit_test_ribbon), 0):() then ribbon_fit_check_combo_counts:("2|3,4,|0,")
@@ -21,7 +21,7 @@ ribbon_combo_release() {
     gui_combo_set(ribbon_combo_release_boxes[ribbon_combo_release_number], ribbon_combo_release_boxes[ribbon_combo_release_number].set.back);
   }
 } chain () {
-  lset((import ribbon_fit_focused_combo), 0, -1);
+  integer_list_set((import ribbon_fit_focused_combo), 0, -1);
 } return void;
 given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ():() then ribbon_fit_check_combo_counts:("2|3,4,|-1,")
 given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_send_mouse_event(3, 240, 70) ():() then ribbon_fit_check_combo_counts:("2|3,4,|-1,")
@@ -36,7 +36,7 @@ ribbon_combo_finish(int ribbon_combo_finish_number, int ribbon_combo_finish_kind
 } chain (int ribbon_combo_finish_number, int ribbon_combo_finish_kind, int ribbon_combo_finish_bits) {
   if(ribbon_combo_finish_ended == 1) {
     gui_textbox_focus((import ribbon_fit_combos)[ribbon_combo_finish_number].box, 0);
-    lset((import ribbon_fit_focused_combo), 0, -1);
+    integer_list_set((import ribbon_fit_focused_combo), 0, -1);
   }
   int ribbon_combo_finish_owed = ribbon_combo_finish_ended == 1 && ribbon_combo_finish_kind == 3;
   int ribbon_combo_finish_result = (ribbon_combo_finish_bits & 1) + 2 * ribbon_combo_finish_given + 4 * ribbon_combo_finish_owed + 8 * (1 - ribbon_combo_finish_owed);

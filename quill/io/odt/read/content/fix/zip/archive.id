@@ -1,18 +1,18 @@
 // Test fixture: an archive with the given mimetype entry first (none when mime is empty), a content.xml holding xml (none when xml is empty), and a picture entry of three bytes, all stored. The bytes are kept in the export orc_tz, and a new document is made as orc_t_open makes it, so orc_t_show shows what a load made of it.
 odt_read_fixture_make_archive(string xml, string mime) {
-  ZipW odt_read_fixture_zip_writer = zw_new();
+  ZipW odt_read_fixture_zip_writer = zip_writer_new();
   int[] odt_read_fixture_zip_content_bytes = exec_bytes(xml);
   int[] pic = [1, 2, 3];
 } chain (string xml, string mime) {
   if(len(mime) > 0) {
-    zw_add(odt_read_fixture_zip_writer, "mimetype", exec_bytes(mime), 0);
+    zip_writer_add(odt_read_fixture_zip_writer, "mimetype", exec_bytes(mime), 0);
   }
   if(len(xml) > 0) {
-    zw_add(odt_read_fixture_zip_writer, "content.xml", odt_read_fixture_zip_content_bytes, 0);
+    zip_writer_add(odt_read_fixture_zip_writer, "content.xml", odt_read_fixture_zip_content_bytes, 0);
   }
-  zw_add(odt_read_fixture_zip_writer, "Pictures/a.png", pic, 0);
+  zip_writer_add(odt_read_fixture_zip_writer, "Pictures/a.png", pic, 0);
 } chain (string xml, string mime) {
-  export int[] odt_read_fixture_archive_bytes = zw_finish(odt_read_fixture_zip_writer);
+  export int[] odt_read_fixture_archive_bytes = zip_writer_finish(odt_read_fixture_zip_writer);
   odt_read_fixture_open(xml);
   odt_read_fixture_open_archive();
 } return void;

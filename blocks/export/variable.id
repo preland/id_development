@@ -44,19 +44,19 @@ exporter_fill(string exporter_text_template, int exporter_number_variable) {
   if (exporter_text_other == exporter_initial_text(exporter_number_variable)) {
     exporter_text_other = exporter_sample(exporter_number_type, 2);
   }
-  string exporter_text_filled = str_replace(exporter_text_template, "ELEMENT_ONE", (import constant_export_first)[exporter_number_element * (exporter_number_element > 0)]);
-  exporter_text_filled = str_replace(exporter_text_filled, "ELEMENT_TWO", (import constant_export_second)[exporter_number_element * (exporter_number_element > 0)]);
+  string exporter_text_filled = string_replace(exporter_text_template, "ELEMENT_ONE", (import constant_export_first)[exporter_number_element * (exporter_number_element > 0)]);
+  exporter_text_filled = string_replace(exporter_text_filled, "ELEMENT_TWO", (import constant_export_second)[exporter_number_element * (exporter_number_element > 0)]);
 } chain (string exporter_text_template, int exporter_number_variable) {
-  exporter_text_filled = str_replace(exporter_text_filled, "ELEMENT_THREE", (import constant_export_third)[exporter_number_element * (exporter_number_element > 0)]);
-  exporter_text_filled = str_replace(exporter_text_filled, "ELEMENT_TYPE", (import constant_type_full)[exporter_number_element * (exporter_number_element > 0)]);
-  exporter_text_filled = str_replace(exporter_text_filled, "TYPE", (import constant_type_full)[exporter_number_type]);
+  exporter_text_filled = string_replace(exporter_text_filled, "ELEMENT_THREE", (import constant_export_third)[exporter_number_element * (exporter_number_element > 0)]);
+  exporter_text_filled = string_replace(exporter_text_filled, "ELEMENT_TYPE", (import constant_type_full)[exporter_number_element * (exporter_number_element > 0)]);
+  exporter_text_filled = string_replace(exporter_text_filled, "TYPE", (import constant_type_full)[exporter_number_type]);
 } chain (string exporter_text_template, int exporter_number_variable) {
-  exporter_text_filled = str_replace(exporter_text_filled, "NAME", (import model_variable_names)[exporter_number_variable]);
-  exporter_text_filled = str_replace(exporter_text_filled, "FIRST", exporter_sample(exporter_number_type, 1));
-  exporter_text_filled = str_replace(exporter_text_filled, "SECOND", exporter_sample(exporter_number_type, 2));
+  exporter_text_filled = string_replace(exporter_text_filled, "NAME", (import model_variable_names)[exporter_number_variable]);
+  exporter_text_filled = string_replace(exporter_text_filled, "FIRST", exporter_sample(exporter_number_type, 1));
+  exporter_text_filled = string_replace(exporter_text_filled, "SECOND", exporter_sample(exporter_number_type, 2));
 } chain (string exporter_text_template, int exporter_number_variable) {
-  exporter_text_filled = str_replace(exporter_text_filled, "OTHER", exporter_text_other);
-  exporter_text_filled = str_replace(exporter_text_filled, "INITIAL", exporter_initial_text(exporter_number_variable));
+  exporter_text_filled = string_replace(exporter_text_filled, "OTHER", exporter_text_other);
+  exporter_text_filled = string_replace(exporter_text_filled, "INITIAL", exporter_initial_text(exporter_number_variable));
 } return string exporter_text_filled;
 given model_load("t.blk", "sprite S\nvar int count") ("NAME_get(): TYPE FIRST SECOND INITIAL OTHER", 0):("count_get(): int 1 2 0 1")
 given model_load("t.blk", "sprite S\nvar int count = 1") ("OTHER INITIAL", 0):("2 1")

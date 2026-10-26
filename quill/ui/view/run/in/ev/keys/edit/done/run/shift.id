@@ -18,10 +18,10 @@ view_input_shift_level(View view_input_movement_view, int[] view_input_movement_
 } return int view_input_movement_level;
 given view_flow_test_open_edit("AB|CD|EF") ((import layout_paragraph_test_view), [1, 1], 1):(0)
 given view_flow_test_open_edit("AB|CD|EF") ((import layout_paragraph_test_view), [1, 1], 2):(2)
-given view_flow_test_open_edit("AB|CD|EF") given lset((import view_input_kept_tops), 2, 0) ((import layout_paragraph_test_view), [0, 1], 1):(1)
+given view_flow_test_open_edit("AB|CD|EF") given integer_list_set((import view_input_kept_tops), 2, 0) ((import layout_paragraph_test_view), [0, 1], 1):(1)
 given view_flow_test_open_edit("AB|CD|EF") given view_input_list_replace((import view_input_kept_tops), [1, 2, 3]) ((import layout_paragraph_test_view), [1, 1], 1):(1)
 given view_flow_test_open_edit("AB|CD|EF") given view_input_list_replace((import view_input_kept_tops), [1, 2, 3]) ((import layout_paragraph_test_view), [-1, -1], 1):(2)
-given view_flow_test_open_edit("AB|CD|EF") given lset((import view_input_kept_tops), 0, 7) ((import layout_paragraph_test_view), [-1, -1], 1):(0)
+given view_flow_test_open_edit("AB|CD|EF") given integer_list_set((import view_input_kept_tops), 0, 7) ((import layout_paragraph_test_view), [-1, -1], 1):(0)
 
 // Asks for what the stale paragraphs cvl_r cover to be repainted: from the top of the first, down to the bottom of the last when nothing below them moved (cvi_s 0) and as far as the end of the page area when it did (1). When the last paragraph of the document is among them it may have been taller before, which vw_tp kept as the end of the document, and what it was is repainted too.
 view_input_mark_stale_stripe(View view_input_stripe_view, int[] view_input_stripe_range, int view_input_stripe_level) {
@@ -42,13 +42,13 @@ view_input_mark_stale_stripe(View view_input_stripe_view, int[] view_input_strip
 given view_flow_test_open_edit("AB|CD|EF") ((import layout_paragraph_test_view), [1, 1], 0):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,213,245,")
 given view_flow_test_open_edit("AB|CD|EF") ((import layout_paragraph_test_view), [1, 1], 1):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,213,15844,")
 given view_flow_test_open_edit("AB|CD|EF") ((import layout_paragraph_test_view), [2, 2], 0):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,239,263,")
-given view_flow_test_open_edit("AB|CD|EF") given lset((import view_input_kept_tops), 3, 6000) ((import layout_paragraph_test_view), [2, 2], 0):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,239,276,")
+given view_flow_test_open_edit("AB|CD|EF") given integer_list_set((import view_input_kept_tops), 3, 6000) ((import layout_paragraph_test_view), [2, 2], 0):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,239,276,")
 
 // Asks for the repainting that an edit that left the stale paragraphs cvl_r (and had cvi_np pages) needs: the whole picture when cv_shift says so, else the paragraphs and what is below them if that moved.
 view_input_mark_edit_changes(View view_input_changes_view, int[] view_input_changes_range, int view_input_changes_page_count) {
   int view_input_changes_level = view_input_shift_level(view_input_changes_view, view_input_changes_range, view_input_changes_page_count);
   if(view_input_changes_level == 2) {
-    lset((import view_state), (import vw_s_d), 1);
+    integer_list_set((import view_state), (import vw_s_d), 1);
   }
   if(view_input_changes_level < 2 && view_input_changes_range[0] >= 0) {
     view_input_mark_stale_stripe(view_input_changes_view, view_input_changes_range, view_input_changes_level);

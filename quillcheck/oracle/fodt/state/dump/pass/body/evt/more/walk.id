@@ -5,7 +5,7 @@ fodt_dump_list(Accumulator accumulator, XmlR document_reader, int reader_event) 
     accumulator.walk_state[1] = accumulator.walk_state[1] + 1;
   }
   if(reader_event == 1 && accumulator.walk_state[1] == 1) {
-    string_slots[1] = xml_reader_attr(document_reader, "text:style-name");
+    string_slots[1] = xml_reader_attribute(document_reader, "text:style-name");
   }
 } chain (Accumulator accumulator, XmlR document_reader, int reader_event) {
   if(reader_event == 2) {
@@ -54,7 +54,7 @@ fodt_dump_live_event(Catalog style_store, XmlR document_reader, int reader_event
   if(element_name == "draw:frame" && reader_event != 2) {
     fodt_dump_frame(style_store, accumulator, document_reader, reader_event, span_styles);
   }
-  if(str_starts(element_name, "table:") == 1 && accumulator.walk_state[2] == 0 && reader_event != 2) {
+  if(string_starts_with(element_name, "table:") == 1 && accumulator.walk_state[2] == 0 && reader_event != 2) {
     fodt_dump_opaque_block(accumulator, document_reader, reader_event);
   }
 } return void;

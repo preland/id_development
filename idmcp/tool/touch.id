@@ -5,14 +5,14 @@
 // project's paths are relative by now (idstd's are absolute), which is the test.
 
 tool_touches(string touch_line) {
-  string[] touch_parts = str_split(touch_line, "|");
+  string[] touch_parts = string_split(touch_line, "|");
   int touch_count = len(touch_parts);
   int touch_keep = 0;
 } chain (string touch_line) {
-  if (touch_count == 3 && str_starts(touch_parts[1], "/") == 0) {
+  if (touch_count == 3 && string_starts_with(touch_parts[1], "/") == 0) {
     touch_keep = 1;
   }
-  if (touch_count == 5 && (str_starts(touch_parts[1], "/") == 0 || (touch_parts[3] != "" && str_starts(touch_parts[3], "/") == 0))) {
+  if (touch_count == 5 && (string_starts_with(touch_parts[1], "/") == 0 || (touch_parts[3] != "" && string_starts_with(touch_parts[3], "/") == 0))) {
     touch_keep = 1;
   }
 } return int touch_keep;
@@ -26,7 +26,7 @@ tool_touches(string touch_line) {
 (""):(0)
 
 tool_project_rows(string touch_text) {
-  string[] touch_lines = str_lines(touch_text);
+  string[] touch_lines = string_lines(touch_text);
   string[] touch_kept = [];
   int touch_at = 0;
 } chain (string touch_text) {
@@ -36,7 +36,7 @@ tool_project_rows(string touch_text) {
     }
     touch_at = touch_at + 1;
   }
-  string touch_out = str_join(touch_kept, "\n") + "\n";
+  string touch_out = string_join(touch_kept, "\n") + "\n";
 } return string touch_out;
 ("f|x.id:1|2\ng|/s/a.id:1|2\nf|x.id:1|g|/s/a.id:2|call\ng|/s/a.id:1|h|/s/b.id:3|call\n"):("f|x.id:1|2\nf|x.id:1|g|/s/a.id:2|call\n")
 (""):("\n")

@@ -12,7 +12,7 @@ exporter_close(string[] exporter_texts_lines, int[] exporter_numbers_depth, int 
     exporter_number_target = exporter_number_level;
   }
   while (exporter_numbers_depth[0] > exporter_number_target) {
-    push(exporter_texts_lines, str_repeat("  ", exporter_numbers_depth[0]) + "}");
+    push(exporter_texts_lines, string_repeat("  ", exporter_numbers_depth[0]) + "}");
     exporter_numbers_depth[0] = exporter_numbers_depth[0] - 1;
   }
 } return void;
@@ -21,11 +21,11 @@ exporter_close(string[] exporter_texts_lines, int[] exporter_numbers_depth, int 
 (["a"], [1], 2, "x"):(["a"], [1])
 
 exporter_push(string[] exporter_texts_lines, int exporter_number_level, string exporter_text_statement) {
-  string[] exporter_texts_parts = str_split(exporter_text_statement, "\n");
+  string[] exporter_texts_parts = string_split(exporter_text_statement, "\n");
   int exporter_number_index = 0;
   while (exporter_number_index < len(exporter_texts_parts)) {
     if (exporter_texts_parts[exporter_number_index] != "") {
-      push(exporter_texts_lines, str_repeat("  ", exporter_number_level) + exporter_texts_parts[exporter_number_index]);
+      push(exporter_texts_lines, string_repeat("  ", exporter_number_level) + exporter_texts_parts[exporter_number_index]);
     }
     exporter_number_index = exporter_number_index + 1;
   }
@@ -41,7 +41,7 @@ exporter_line(string[] exporter_texts_lines, int[] exporter_numbers_depth, int e
 } chain (string[] exporter_texts_lines, int[] exporter_numbers_depth, int exporter_number_row, int exporter_number_function) {
   string exporter_text_statement = exporter_statement(exporter_text_line, exporter_number_function);
   exporter_push(exporter_texts_lines, exporter_number_level, exporter_text_statement);
-  if (str_ends(exporter_text_statement, "{")) {
+  if (string_ends_with(exporter_text_statement, "{")) {
     exporter_numbers_depth[0] = exporter_number_level;
   }
 } return void;

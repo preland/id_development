@@ -6,7 +6,7 @@
 plan_touch_concept(Plan_learner plan_learner, int plan_concept_number, int plan_item_number, word plan_when, int plan_grade_given) {
   plan_remember(plan_learner.memory, plan_concept_number, plan_when, plan_grade_given);
   plan_rate(plan_learner.skill, plan_learner.shelf, plan_concept_number, plan_item_number, plan_score(plan_grade_given));
-  lset(plan_learner.skill.counts, plan_concept_number, plan_learner.skill.counts[plan_concept_number] + 1);
+  integer_list_set(plan_learner.skill.counts, plan_concept_number, plan_learner.skill.counts[plan_concept_number] + 1);
 } return void;
 (Plan_learner(Plan_memory([0.0], [0.0], [-1]), Plan_skill([1000.0], [0]), Plan_shelf([1000.0], [0], [0])), 0, 0, 100, 3):(Plan_learner(Plan_memory([2.118103970459015], [2.3065], [100]), Plan_skill([1016.0], [1]), Plan_shelf([984.0], [0], [0])), 0, 0, 100, 3)
 (Plan_learner(Plan_memory([0.0, 0.0], [0.0, 0.0], [-1, -1]), Plan_skill([1000.0, 1000.0], [0, 4]), Plan_shelf([1000.0], [0], [0])), 1, 0, 50, 1):(Plan_learner(Plan_memory([0.0, 6.4133], [0.0, 0.212], [-1, 50]), Plan_skill([1000.0, 984.0], [0, 5]), Plan_shelf([1016.0], [0], [0])), 1, 0, 50, 1)
@@ -19,9 +19,9 @@ plan_apply(Plan_book plan_book, Plan_learner plan_learner, int plan_item_number,
     }
     plan_at = plan_at + 1;
   }
-  lset(plan_learner.shelf.attempts, plan_item_number, plan_learner.shelf.attempts[plan_item_number] + 1);
+  integer_list_set(plan_learner.shelf.attempts, plan_item_number, plan_learner.shelf.attempts[plan_item_number] + 1);
 } chain (Plan_book plan_book, Plan_learner plan_learner, int plan_item_number, word plan_when, int plan_grade_given) {
-  lset(plan_learner.shelf.last_grades, plan_item_number, plan_grade_given);
+  integer_list_set(plan_learner.shelf.last_grades, plan_item_number, plan_grade_given);
 } return void;
 (Plan_book(Plan_catalog(["a", "b"], ["i", "j"], [1000, 1000]), Plan_links([0, 1], [0, 1], [0, 0]), Plan_needs([], [])), Plan_learner(Plan_memory([0.0, 0.0], [0.0, 0.0], [-1, -1]), Plan_skill([1000.0, 1000.0], [0, 0]), Plan_shelf([1000.0, 1000.0], [0, 0], [0, 0])), 1, 50, 1):(Plan_book(Plan_catalog(["a", "b"], ["i", "j"], [1000, 1000]), Plan_links([0, 1], [0, 1], [0, 0]), Plan_needs([], [])), Plan_learner(Plan_memory([0.0, 6.4133], [0.0, 0.212], [-1, 50]), Plan_skill([1000.0, 984.0], [0, 1]), Plan_shelf([1000.0, 1016.0], [0, 1], [0, 1])), 1, 50, 1)
 (Plan_book(Plan_catalog(["a"], ["i", "ghost"], [1000, 1000]), Plan_links([0], [0], [0]), Plan_needs([], [])), Plan_learner(Plan_memory([0.0], [0.0], [-1]), Plan_skill([1000.0], [0]), Plan_shelf([1000.0, 1000.0], [0, 2], [0, 3])), 1, 70, 4):(Plan_book(Plan_catalog(["a"], ["i", "ghost"], [1000, 1000]), Plan_links([0], [0], [0]), Plan_needs([], [])), Plan_learner(Plan_memory([0.0], [0.0], [-1]), Plan_skill([1000.0], [0]), Plan_shelf([1000.0, 1000.0], [0, 3], [0, 4])), 1, 70, 4)

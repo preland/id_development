@@ -5,7 +5,7 @@
 // gate of the spec is verdict agreement of 90 of 100.
 
 evaluation_sums(string evaluation_results_text) {
-  string[] evaluation_lines = str_lines(evaluation_results_text);
+  string[] evaluation_lines = string_lines(evaluation_results_text);
   int[] evaluation_sums_made = [0, 0, 0, 0, 0, 0, 0, 0, 0];
   int evaluation_at = 0;
 } chain (string evaluation_results_text) {
@@ -24,7 +24,7 @@ evaluation_report(string evaluation_results_text) {
   string[] evaluation_lines_made = ["rows: " + evaluation_rows, "verdict agreement: " + evaluation_sums_got[1] + " of " + evaluation_rows, "error_type agreement: " + evaluation_sums_got[3] + " of " + evaluation_rows, "valid replies: " + evaluation_sums_got[2] + " of " + evaluation_rows + " (the rest were refused, unreachable or unsure)", "self_grade (confidence under the floor): " + evaluation_sums_got[6], "over-credit (said correct, the author did not): " + evaluation_sums_got[7]];
 } chain (string evaluation_results_text) {
   string[] evaluation_more = ["right restates the reference although the verdict is not correct: " + evaluation_sums_got[4], "flaw longer than " + (import grade_flaw_limit) + " characters: " + evaluation_sums_got[5], "total milliseconds: " + evaluation_sums_got[8]];
-  string evaluation_text_made = str_join(evaluation_lines_made, "\n") + "\n" + str_join(evaluation_more, "\n");
+  string evaluation_text_made = string_join(evaluation_lines_made, "\n") + "\n" + string_join(evaluation_more, "\n");
 } return string evaluation_text_made;
 ("3\ta\tpartly\tslip\tgraded\tpartly\tslip\t85\t100\tref\tr\tf\t\n"):("rows: 1\nverdict agreement: 1 of 1\nerror_type agreement: 1 of 1\nvalid replies: 1 of 1 (the rest were refused, unreachable or unsure)\nself_grade (confidence under the floor): 0\nover-credit (said correct, the author did not): 0\nright restates the reference although the verdict is not correct: 0\nflaw longer than 160 characters: 0\ntotal milliseconds: 100")
 (""):("rows: 0\nverdict agreement: 0 of 0\nerror_type agreement: 0 of 0\nvalid replies: 0 of 0 (the rest were refused, unreachable or unsure)\nself_grade (confidence under the floor): 0\nover-credit (said correct, the author did not): 0\nright restates the reference although the verdict is not correct: 0\nflaw longer than 160 characters: 0\ntotal milliseconds: 0")

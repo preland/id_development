@@ -28,8 +28,8 @@ lane_all(string bin, string root, string source_path, string stem, int fixture_n
 // The verdict of the --pages lane from what the quill binary did: its exit status code, what it printed (said, whose first line is "pages N"), the page count want of soffice's pdf, and the fixture number n. Unavailable (2) when the binary does not exist; skipped (3) for a fixture in pages_gap; ok (1) when it exited 0 and N is within pages_tol of want; failed (0) otherwise, including a first line that is not "pages N".
 lane_pages_compare(int code, string said, int want, int fixture_number) {
   int got = 0 - 1;
-  int said_line_end = str_eol(said, 0);
-  if (str_starts(said, "pages ")) {
+  int said_line_end = string_end_of_line(said, 0);
+  if (string_starts_with(said, "pages ")) {
     string pages_text = str_sub(said, 6, said_line_end - 6);
     got = to_int(pages_text);
   }

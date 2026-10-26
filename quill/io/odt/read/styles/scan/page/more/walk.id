@@ -1,6 +1,6 @@
 // Starts a layout in the table for the style:page-layout element the reader is at: its name, and the default ints.
 odt_named_page_layout_start(odt_named_page_layouts odt_named_page_layout_start_table, XmlR odt_named_page_layout_start_reader) {
-  string odt_named_page_layout_start_layout_name = xml_reader_attr(odt_named_page_layout_start_reader, "style:name");
+  string odt_named_page_layout_start_layout_name = xml_reader_attribute(odt_named_page_layout_start_reader, "style:name");
   push(odt_named_page_layout_start_table.names, odt_named_page_layout_start_layout_name);
   push(odt_named_page_layout_start_table.odt_read_values, list_copy((import ost_pgdef)));
 } return void;
@@ -9,8 +9,8 @@ given odt_named_page_table_fixture given odt_named_reader_open("<style:page-layo
 
 // Records the master page the reader is at: its name and the name of its page layout.
 odt_named_page_master_record(odt_named_page_layouts odt_named_page_master_record_table, XmlR odt_named_page_master_record_reader) {
-  string odt_named_page_master_record_master_name = xml_reader_attr(odt_named_page_master_record_reader, "style:name");
-  string odt_named_page_master_record_layout_name = xml_reader_attr(odt_named_page_master_record_reader, "style:page-layout-name");
+  string odt_named_page_master_record_master_name = xml_reader_attribute(odt_named_page_master_record_reader, "style:name");
+  string odt_named_page_master_record_layout_name = xml_reader_attribute(odt_named_page_master_record_reader, "style:page-layout-name");
   list_string_extend(odt_named_page_master_record_table.masters, [odt_named_page_master_record_master_name, odt_named_page_master_record_layout_name]);
 } return void;
 given odt_named_page_table_fixture given odt_named_reader_open("<style:master-page style:name=\"Standard\" style:page-layout-name=\"Mpm1\"/>") given xml_reader_skip((import odt_named_reader), 1) ((import odt_named_page_table), (import odt_named_reader)):((import odt_named_page_table), (import odt_named_reader)) then (import odt_named_page_table).masters:(["Standard", "Mpm1"])

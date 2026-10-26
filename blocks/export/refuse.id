@@ -15,7 +15,7 @@ given model_load("t.blk", "sprite S\nfn a() return void\n  if x\n    wait(1.0)")
 
 exporter_refuse_nested(int exporter_number_function, int exporter_number_line) {
   string exporter_text_line = (import model_line_texts)[exporter_number_line];
-  if (str_starts(str_trim(exporter_text_line), "wait(") && exporter_top(exporter_number_line) == 0) {
+  if (string_starts_with(string_trim(exporter_text_line), "wait(") && exporter_top(exporter_number_line) == 0) {
     model_error((import model_line_numbers)[exporter_number_line], "", "'wait' inside an if or a while in '" + (import model_function_names)[exporter_number_function] + "' cannot be exported: the exported scheduler cuts a script into stages only at a wait on the script's top level -- move the wait out of the block (blocks run still runs it)");
   }
 } return void;
@@ -24,7 +24,7 @@ given model_load("t.blk", "sprite S\nfn a() return void on \"go\"\n  wait(1.0)")
 
 exporter_refuse_helper(int exporter_number_function, int exporter_number_line) {
   string exporter_text_line = (import model_line_texts)[exporter_number_line];
-  if (str_starts(str_trim(exporter_text_line), "wait(") && (import model_function_message)[exporter_number_function] == "" && (import model_function_names)[exporter_number_function] != "main") {
+  if (string_starts_with(string_trim(exporter_text_line), "wait(") && (import model_function_message)[exporter_number_function] == "" && (import model_function_names)[exporter_number_function] != "main") {
     model_error((import model_line_numbers)[exporter_number_line], "", "'wait' in '" + (import model_function_names)[exporter_number_function] + "', which is not main and runs on no message, cannot be exported: a function that a script calls cannot sleep under the exported scheduler -- put the wait in the script that calls it");
   }
 } return void;

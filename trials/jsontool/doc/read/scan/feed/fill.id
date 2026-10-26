@@ -4,8 +4,8 @@ in_grow() {
   word fresh = alloc(cap * 2);
 } chain () {
   buffer_copy(fresh, old, (import jc)[(import c_len)]);
-  wset((import jw), (import w_src), fresh);
-  lset((import jc), (import c_cap), cap * 2);
+  word_list_set((import jw), (import w_src), fresh);
+  integer_list_set((import jc), (import c_cap), cap * 2);
 } return void;
 given t_load stdin "abc" ():() then (import jc)[(import c_cap)]:(131072)
 given t_load stdin "abc" ():() then t_src:("abc")
@@ -24,7 +24,7 @@ in_pull(int h) {
   int got = fs_read_mem(h, (import jw)[(import w_src)] + n, (import jc)[(import c_cap)] - n);
 } chain (int h) {
   if (got > 0) {
-    lset((import jc), (import c_len), n + got);
+    integer_list_set((import jc), (import c_len), n + got);
   }
 } return int got;
 given t_tmp_ready stdin "hi" ((import th)):(2) then (import jc)[(import c_len)]:(2) then t_tmp_drop:(0)

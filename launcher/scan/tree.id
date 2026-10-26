@@ -4,7 +4,7 @@
 
 // Walks the subdirectories of scan_directory (level scan_depth), adding what scan_tree finds in them.
 scan_directories(string scan_directory, int scan_depth, string[] scan_hits) {
-  string[] scan_names = str_lines(fs_list_kind(scan_directory, 2));
+  string[] scan_names = string_lines(fs_list_kind(scan_directory, 2));
   int scan_index = 0;
   while (scan_index < len(scan_names)) {
     int scan_skipped = walk_skipped(scan_names[scan_index], scan_directory + "/" + scan_names[scan_index]);
@@ -19,7 +19,7 @@ scan_directories(string scan_directory, int scan_depth, string[] scan_hits) {
 
 // Adds a row to scan_hits for every built program in scan_directory and below it.
 scan_tree(string scan_directory, int scan_depth, string[] scan_hits) {
-  string[] scan_names = str_lines(fs_list_kind(scan_directory, 1));
+  string[] scan_names = string_lines(fs_list_kind(scan_directory, 1));
   scan_files(scan_directory, scan_names, scan_hits);
   if (scan_depth < (import walk_depth_limit)) {
     scan_directories(scan_directory, scan_depth, scan_hits);

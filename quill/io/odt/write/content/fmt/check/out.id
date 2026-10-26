@@ -1,8 +1,8 @@
 // Test fixture: a writer kept in oc_fw, empty when k is negative, else with the root r open and then k more: 1 opens a child p, k above 1 opens k - 1 nested text:list and text:list-item pairs.
 odt_write_test_writer_nested(int odt_write_test_writer_depth) {
-  export XmlW odt_write_test_writer_output = xw_new();
+  export XmlW odt_write_test_writer_output = xml_writer_new();
   if(odt_write_test_writer_depth >= 0) {
-    xw_start(odt_write_test_writer_output, "r");
+    xml_writer_start_element(odt_write_test_writer_output, "r");
     odt_write_test_open_nesting(odt_write_test_writer_output, odt_write_test_writer_depth);
   }
 } return void;
@@ -13,11 +13,11 @@ odt_write_test_writer_nested(int odt_write_test_writer_depth) {
 // Test fixture: opens what oc_t_w describes for k below the root.
 odt_write_test_open_nesting(XmlW odt_write_test_nest_writer, int odt_write_test_nest_depth) {
   if(odt_write_test_nest_depth == 1) {
-    xw_start(odt_write_test_nest_writer, "p");
+    xml_writer_start_element(odt_write_test_nest_writer, "p");
   }
   while(odt_write_test_nest_depth > 1) {
-    xw_start(odt_write_test_nest_writer, "text:list");
-    xw_start(odt_write_test_nest_writer, "text:list-item");
+    xml_writer_start_element(odt_write_test_nest_writer, "text:list");
+    xml_writer_start_element(odt_write_test_nest_writer, "text:list-item");
     odt_write_test_nest_depth = odt_write_test_nest_depth - 1;
   }
 } return void;

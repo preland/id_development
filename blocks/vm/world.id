@@ -19,11 +19,11 @@ given model_load("t.blk", "sprite A\nsprite B") given generator_initial given ma
 machine_wait(int block_thread_slot, float block_secs) {
   int block_row = block_thread_slot * (import constant_thread_count);
   int block_wait_milliseconds = block_secs * 1000.0;
-  lset((import machine_thread), block_row + (import constant_thread_state), (import constant_statement_sleep));
+  integer_list_set((import machine_thread), block_row + (import constant_thread_state), (import constant_statement_sleep));
 } chain (int block_thread_slot, float block_secs) {
-  lset((import machine_thread), block_row + (import constant_thread_wake), (import machine_registers_group)[(import constant_registers_now)] + block_wait_milliseconds);
+  integer_list_set((import machine_thread), block_row + (import constant_thread_wake), (import machine_registers_group)[(import constant_registers_now)] + block_wait_milliseconds);
 } return void;
-given model_initial given generator_initial given machine_boot given list_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given lset((import machine_registers_group), 0, 100) (0, 0.5):() then (import machine_thread)[3]:(2) then (import machine_thread)[4]:(600)
+given model_initial given generator_initial given machine_boot given list_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) given integer_list_set((import machine_registers_group), 0, 100) (0, 0.5):() then (import machine_thread)[3]:(2) then (import machine_thread)[4]:(600)
 given model_initial given generator_initial given machine_boot given list_extend((import machine_thread), [0, 0, 0, 1, 0, 0]) (0, 0.0):() then (import machine_thread)[4]:(0)
 
 machine_world(int block_thread_slot, int block_identifier, int block_frame_pointer, int block_delta, int block_first_value, int block_next_index) {

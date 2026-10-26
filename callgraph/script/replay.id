@@ -1,6 +1,6 @@
 // One line of a script: its word (call_graph_verbs) and fields, run as the events they stand for. A blank line and a line that starts with # do nothing and are fine. Answers 1 when the line is fine, 0 when its word is not one of call_graph_verbs or it has fewer fields than the word needs (call_graph_verb_need).
 call_graph_command(string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle, string text_line) {
-  string[] fixture_flag = str_split(text_line, " ");
+  string[] fixture_flag = string_split(text_line, " ");
   int number_verb = list_string_index((import call_graph_verbs), fixture_flag[0]);
   int number_act = (number_verb >= 0) * (len(fixture_flag) >= (import call_graph_verb_need)[fixed_point_maximum(number_verb, 0)]) * (number_verb + 1);
 } chain (string[][] strings_graph, int[][] table_graph, string[][] strings_session, int[][][] bundle, string text_line) {
@@ -20,7 +20,7 @@ call_graph_command(string[][] strings_graph, int[][] table_graph, string[][] str
   if (number_act == 7) {
     call_graph_do_size(strings_graph, table_graph, strings_session, bundle, fixture_flag);
   }
-  int number_ok = (number_act > 0) + (fixture_flag[0] == "") + (str_starts(fixture_flag[0], "#") == 1);
+  int number_ok = (number_act > 0) + (fixture_flag[0] == "") + (string_starts_with(fixture_flag[0], "#") == 1);
 } return int number_ok;
 given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), "size 7 8"):(1) then call_graph_test_size:("7x8")
 given call_graph_test_open given call_graph_load("a|a.id:1|b|b.id:2|call\n", (import call_graph_test_unit), (import call_graph_test_mark)) given call_graph_test_begin(0, 1) ((import call_graph_test_unit), (import call_graph_test_mark), (import call_graph_test_strings), (import call_graph_test_x), "size 7"):(0) then call_graph_test_size:("960x600")

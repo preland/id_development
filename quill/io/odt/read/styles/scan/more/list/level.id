@@ -40,14 +40,14 @@ odt_named_level_head(int[] odt_named_level_head_levels, XmlR odt_named_level_hea
   int odt_named_level_head_base = odt_named_level_head_level * (import quill_list_level_stride);
   odt_named_level_head_levels[odt_named_level_head_base + (import quill_list_level_kind)] = odt_named_level_head_element_name == "text:list-level-style-number";
 } chain (int[] odt_named_level_head_levels, XmlR odt_named_level_head_reader, int odt_named_level_head_level) {
-  odt_named_level_head_levels[odt_named_level_head_base + (import quill_list_level_format)] = odt_named_bullet_code(xml_reader_attr(odt_named_level_head_reader, "text:bullet-char"));
+  odt_named_level_head_levels[odt_named_level_head_base + (import quill_list_level_format)] = odt_named_bullet_code(xml_reader_attribute(odt_named_level_head_reader, "text:bullet-char"));
   odt_named_level_head_levels[odt_named_level_head_base + (import quill_list_level_start)] = 1;
   if(odt_named_level_head_element_name == "text:list-level-style-number") {
-    odt_named_level_head_levels[odt_named_level_head_base + (import quill_list_level_format)] = odt_named_number_format(xml_reader_attr(odt_named_level_head_reader, "style:num-format"));
+    odt_named_level_head_levels[odt_named_level_head_base + (import quill_list_level_format)] = odt_named_number_format(xml_reader_attribute(odt_named_level_head_reader, "style:num-format"));
   }
 } chain (int[] odt_named_level_head_levels, XmlR odt_named_level_head_reader, int odt_named_level_head_level) {
-  if(xml_reader_attr(odt_named_level_head_reader, "text:start-value") != "") {
-    odt_named_level_head_levels[odt_named_level_head_base + (import quill_list_level_start)] = to_int(xml_reader_attr(odt_named_level_head_reader, "text:start-value"));
+  if(xml_reader_attribute(odt_named_level_head_reader, "text:start-value") != "") {
+    odt_named_level_head_levels[odt_named_level_head_base + (import quill_list_level_start)] = to_int(xml_reader_attribute(odt_named_level_head_reader, "text:start-value"));
   }
 } return void;
 given odt_named_reader_open("<text:list-level-style-number text:level=\"1\" style:num-format=\"a\" text:start-value=\"3\"/>") given xml_reader_skip((import odt_named_reader), 1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import odt_named_reader), 0):([1, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import odt_named_reader), 0)

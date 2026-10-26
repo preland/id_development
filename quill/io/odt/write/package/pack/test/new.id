@@ -1,15 +1,15 @@
 // Test fixture (internal): a writer with a root element open, a default document with its formats and references, and an empty archive, all exported, so a case can hand them to a function and then read what it wrote.
 odt_package_fixture_new() {
   Doc odt_package_new_document = doc_new();
-  XmlW odt_package_new_writer = xw_new();
-  xw_start(odt_package_new_writer, "r");
+  XmlW odt_package_new_writer = xml_writer_new();
+  xml_writer_start_element(odt_package_new_writer, "r");
 } chain () {
   export XmlW odt_package_exported_writer = odt_package_new_writer;
   export Doc odt_package_exported_default_document = odt_package_new_document;
   export Fmt odt_package_exported_formats = odt_package_new_document.fmt;
 } chain () {
   export Ext odt_package_exported_references = odt_package_new_document.ext;
-  export ZipW odt_package_exported_archive = zw_new();
+  export ZipW odt_package_exported_archive = zip_writer_new();
 } return void export odt_package_exported_writer;
 ():() then (import odt_package_exported_writer).out:([60, 114])
 ():() then len((import odt_package_exported_writer).out):(2)

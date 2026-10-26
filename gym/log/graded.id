@@ -8,10 +8,10 @@
 
 log_graded_ok(string[] log_fields) {
   string log_met_text = log_fields[(import log_slot_graded_met)];
-  string log_without_zeros = str_replace(log_met_text, "0", "");
-  string log_without_ones = str_replace(log_without_zeros, "1", "");
+  string log_without_zeros = string_replace(log_met_text, "0", "");
+  string log_without_ones = string_replace(log_without_zeros, "1", "");
 } chain (string[] log_fields) {
-  string log_bare = str_replace(log_without_ones, ",", "");
+  string log_bare = string_replace(log_without_ones, ",", "");
   int log_graded_good = log_fields[(import log_slot_item)] != "" && list_string_index((import log_graded_verdicts), log_fields[(import log_slot_graded_verdict)]) >= 0 && list_string_index((import log_graded_sources), log_fields[(import log_slot_graded_source)]) >= 0;
   int log_graded_valid = log_graded_good == 1 && log_bare == "" && len(log_met_text) <= (import log_graded_met_reach);
 } return int log_graded_valid;
@@ -25,7 +25,7 @@ log_graded_ok(string[] log_fields) {
 
 log_line_graded(word log_time, string log_item, string log_verdict, string log_source, string log_met) {
   string[] log_fields = ["" + log_time, "graded", log_escape(log_item), log_verdict, log_source, log_met];
-  string log_event = str_join(log_fields, "\t");
+  string log_event = string_join(log_fields, "\t");
 } return string log_event;
 (7, "i", "correct", "self", "1,1"):("7\tgraded\ti\tcorrect\tself\t1,1")
 (8, "a\tb", "incorrect", "model", ""):("8\tgraded\ta\\tb\tincorrect\tmodel\t")

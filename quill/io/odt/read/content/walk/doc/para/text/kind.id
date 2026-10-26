@@ -39,14 +39,14 @@ given odt_read_fixture_open("<a:b></a:b>") given odt_read_fixture_step_events(2)
 // A text:a opens: the text up to its end tag is a hyperlink, whose target is the xlink:href (a target already in ext.links is reused).
 orc_link(Odt_Read_Context odt_read_link_context) {
   string[] odt_read_link_targets = odt_read_link_context.d.ext.links;
-  string odt_read_link_target = xml_reader_attr(odt_read_link_context.odt_read_xml_reader, "xlink:href");
+  string odt_read_link_target = xml_reader_attribute(odt_read_link_context.odt_read_xml_reader, "xlink:href");
   int at = list_string_index(odt_read_link_targets, odt_read_link_target);
 } chain (Odt_Read_Context odt_read_link_context) {
   if(at < 0) {
     push(odt_read_link_targets, odt_read_link_target);
     at = len(odt_read_link_targets) - 1;
   }
-  lset(odt_read_link_context.cs.slots, (import orc_s_link), at + 1);
+  integer_list_set(odt_read_link_context.cs.slots, (import orc_s_link), at + 1);
 } return void;
 given odt_read_fixture_open("<text:a xlink:href='u'/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context)):() then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0} | u | ") then (import odt_read_fixture_context).cs.slots:([0, 0, 0, 1, 0, 0, 0, 0])
 given odt_read_fixture_open("<r><text:a xlink:href='u'/><text:a xlink:href='u'/><text:a xlink:href='v'/></r>") given odt_read_fixture_step_events(2) given orc_link((import odt_read_fixture_context)) given odt_read_fixture_step_events(1) given orc_link((import odt_read_fixture_context)) given odt_read_fixture_step_events(1) ((import odt_read_fixture_context)):() then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0} | u,v | ") then (import odt_read_fixture_context).cs.slots:([0, 0, 0, 2, 51, 0, 0, 0])

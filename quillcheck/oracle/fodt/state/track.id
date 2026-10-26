@@ -3,7 +3,7 @@ fodt_flag(string line, int[] walk_state) {
   if (fodt_opens(line, "<office:text") == 1) {
     walk_state[(import s_body)] = 1;
   }
-  if (str_starts(line, "</office:text>") == 1) {
+  if (string_starts_with(line, "</office:text>") == 1) {
     walk_state[(import s_body)] = 0;
   }
 } return void;
@@ -21,7 +21,7 @@ fodt_track(string line, int[] walk_state) {
 
 // One line of the fodt: its record is emitted against the state the line found, then the state moves on.
 fodt_step(string line, int[] walk_state, string[] records) {
-  string trimmed = str_trim(line);
+  string trimmed = string_trim(line);
   fodt_emit(trimmed, walk_state, records);
   fodt_track(trimmed, walk_state);
 } return void;

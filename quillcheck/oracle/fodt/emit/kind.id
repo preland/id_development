@@ -1,6 +1,6 @@
 // 1 when the line starts with the tag and the tag ends there: the next byte is a space, ">" or "/", so "<text:p" does not match "<text:page-count".
 fodt_opens(string line, string tag) {
-  int hit = str_starts(line, tag);
+  int hit = string_starts_with(line, tag);
   int next_byte = character_code_at(line, len(tag));
   int ok = hit == 1 && (next_byte == 32 || next_byte == 62 || next_byte == 47);
 } return int ok;
@@ -21,7 +21,7 @@ fodt_para(int depth) {
 
 // The outline level a heading line declares, 1 when it declares none.
 fodt_level(string line) {
-  int at = str_find(line, "outline-level=\"");
+  int at = string_find(line, "outline-level=\"");
   int level = 1;
   if (at >= 0) {
     level = to_int(str_sub(line, at + 15, 3));

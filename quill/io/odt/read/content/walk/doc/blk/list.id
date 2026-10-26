@@ -5,7 +5,7 @@ orc_end(Odt_Read_Context odt_read_end_context) {
     orc_list_end(odt_read_end_context);
   }
   if(name == "office:text") {
-    lset(odt_read_end_context.cs.slots, (import orc_s_done), 1);
+    integer_list_set(odt_read_end_context.cs.slots, (import orc_s_done), 1);
   }
 } return void;
 given odt_read_fixture_open("<office:text></office:text>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context)):() then (import odt_read_fixture_context).cs.slots:([0, 0, 0, 0, 13, 1, 0, 0])
@@ -15,11 +15,11 @@ given odt_read_fixture_open("<text:list></text:list>") given odt_read_fixture_st
 // A text:list opens: one level deeper, and when it names a list style that one is the list its paragraphs belong to. A nested list that names none keeps the list around it.
 orc_list_open(Odt_Read_Context odt_read_list_open_context) {
   int lvl = odt_read_list_open_context.cs.slots[(import orc_s_lvl)] + 1;
-  int id = odt_style_lookup_row(odt_read_list_open_context.cs.look.odt_read_style_lookup, "l:", xml_reader_attr(odt_read_list_open_context.odt_read_xml_reader, "text:style-name"));
-  lset(odt_read_list_open_context.cs.slots, (import orc_s_lvl), lvl);
+  int id = odt_style_lookup_row(odt_read_list_open_context.cs.look.odt_read_style_lookup, "l:", xml_reader_attribute(odt_read_list_open_context.odt_read_xml_reader, "text:style-name"));
+  integer_list_set(odt_read_list_open_context.cs.slots, (import orc_s_lvl), lvl);
 } chain (Odt_Read_Context odt_read_list_open_context) {
   if(id > 0) {
-    lset(odt_read_list_open_context.cs.slots, (import orc_s_list), id);
+    integer_list_set(odt_read_list_open_context.cs.slots, (import orc_s_list), id);
   }
 } return void;
 given odt_read_fixture_open("<r><office:automatic-styles><text:list-style style:name='L1'><text:list-level-style-number text:level='1'/></text:list-style></office:automatic-styles><office:body><office:text><text:list text:style-name='L1'>") given odt_read_fixture_read_head given odt_read_fixture_step_events(1) ((import odt_read_fixture_context)):() then (import odt_read_fixture_context).cs.slots:([1, 3, 0, 0, 177, 0, 0, 0])
@@ -29,9 +29,9 @@ given odt_read_fixture_open("<text:list text:style-name='Nope'>") given odt_read
 // A text:list ends: one level up, and outside every list there is no list.
 orc_list_end(Odt_Read_Context odt_read_list_end_context) {
   int lvl = odt_read_list_end_context.cs.slots[(import orc_s_lvl)] - 1;
-  lset(odt_read_list_end_context.cs.slots, (import orc_s_lvl), lvl);
+  integer_list_set(odt_read_list_end_context.cs.slots, (import orc_s_lvl), lvl);
   if(lvl == 0) {
-    lset(odt_read_list_end_context.cs.slots, (import orc_s_list), 0);
+    integer_list_set(odt_read_list_end_context.cs.slots, (import orc_s_list), 0);
   }
 } return void;
 given odt_read_fixture_open("<a/>") given odt_read_fixture_set_slot(0, 2) given odt_read_fixture_set_slot(1, 1) ((import odt_read_fixture_context)):() then (import odt_read_fixture_context).cs.slots:([1, 1, 0, 0, 0, 0, 0, 0])

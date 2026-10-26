@@ -1,7 +1,7 @@
 // Does an action that may lose the document's changes, after asking about them: it waits as wai_act (wa_a_new, wa_a_open or wa_a_close) while the unsaved-changes dialog is open, and happens at once when nothing is unsaved.
 app_action_ask(App app_ask_application, int app_ask_action) {
   cli_update_dirty(app_ask_application);
-  lset((import cli_state_list), (import wa_s_ask), app_ask_action);
+  integer_list_set((import cli_state_list), (import wa_s_ask), app_ask_action);
   if(app_ask_application.ui.shell.dirty == 1) {
     app_confirm_dialog(app_ask_application);
   }
@@ -16,7 +16,7 @@ given cli_test_boot_app given cli_test_type_code_point(120) ((import cli_applica
 // Does the action that was waiting (the cell wa_s_ask of the app's state): a blank document, the Open picker, or the app's closing. Nothing waits afterwards.
 app_action_perform(App app_perform_application) {
   int app_perform_action = (import cli_state_list)[(import wa_s_ask)];
-  lset((import cli_state_list), (import wa_s_ask), (import wa_a_none));
+  integer_list_set((import cli_state_list), (import wa_s_ask), (import wa_a_none));
   if(app_perform_action == (import wa_a_new)) {
     app_document_blank(app_perform_application);
   }
@@ -25,12 +25,12 @@ app_action_perform(App app_perform_application) {
     app_picker_show(app_perform_application, (import wa_d_open));
   }
   if(app_perform_action == (import wa_a_close)) {
-    lset((import cli_state_list), (import wa_s_quit), 1);
+    integer_list_set((import cli_state_list), (import wa_s_quit), 1);
   }
 } return void;
-given cli_test_boot_app given cli_test_type_code_point(120) given lset((import cli_state_list), 1, 1) ((import cli_application)):() then cli_test_document_text:("") then cli_test_state_text:("0,0,0,0,|0|0")
-given cli_test_boot_app given lset((import cli_state_list), 1, 3) ((import cli_application)):() then cli_test_state_text:("0,0,0,1,|0|0")
-given cli_test_boot_app given lset((import cli_state_list), 1, 2) ((import cli_application)):() then cli_test_state_text:("0,0,2,0,|0|0")
+given cli_test_boot_app given cli_test_type_code_point(120) given integer_list_set((import cli_state_list), 1, 1) ((import cli_application)):() then cli_test_document_text:("") then cli_test_state_text:("0,0,0,0,|0|0")
+given cli_test_boot_app given integer_list_set((import cli_state_list), 1, 3) ((import cli_application)):() then cli_test_state_text:("0,0,0,1,|0|0")
+given cli_test_boot_app given integer_list_set((import cli_state_list), 1, 2) ((import cli_application)):() then cli_test_state_text:("0,0,2,0,|0|0")
 
 // Puts a new, blank document in the app's place: no file, nothing unsaved, the caret at the start.
 app_document_blank(App app_blank_application) {

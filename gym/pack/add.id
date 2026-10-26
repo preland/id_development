@@ -18,9 +18,9 @@ pack_add(Pack pack_book, string pack_file, int pack_number, string pack_key, str
 (Pack(Pack_rows(["concept"], ["a"], [1]), Pack_blocks(["a.txt"], [0], [1]), Pack_notes("r", [], 0)), "a.txt", 2, "item", "i"):(Pack(Pack_rows(["concept", "item"], ["a", "i"], [1, 2]), Pack_blocks(["a.txt", "a.txt"], [0, 1], [1, 1]), Pack_notes("r", [], 0)))
 
 pack_take(Pack pack_book, string pack_file, int pack_number, string pack_line) {
-  string pack_text = str_trim(pack_line);
+  string pack_text = string_trim(pack_line);
   string[] pack_pair = pack_split(pack_text);
-  if (pack_text == "" || str_starts(pack_text, "#")) {
+  if (pack_text == "" || string_starts_with(pack_text, "#")) {
     return;
   }
 } chain (Pack pack_book, string pack_file, int pack_number, string pack_line) {
@@ -36,7 +36,7 @@ pack_take(Pack pack_book, string pack_file, int pack_number, string pack_line) {
 (Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", [], 0)), "a.txt", 7, "oops"):(Pack(Pack_rows([], [], []), Pack_blocks([], [], []), Pack_notes("r", ["a.txt:7: expected 'key: value' but found 'oops'"], 0)))
 
 pack_read_text(Pack pack_book, string pack_file, string pack_text_in) {
-  string[] pack_pieces = str_lines(pack_text_in);
+  string[] pack_pieces = string_lines(pack_text_in);
   int pack_at = 0;
   while (pack_at < len(pack_pieces)) {
     pack_take(pack_book, pack_file, pack_at + 1, pack_pieces[pack_at]);

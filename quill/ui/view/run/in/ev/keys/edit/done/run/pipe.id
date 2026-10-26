@@ -4,7 +4,7 @@ view_input_command_begin(View view_input_begin_view) {
   view_input_mark_selection_paragraphs(view_input_begin_view);
 } return void;
 given view_flow_test_open_edit("AB|CD") ((import layout_paragraph_test_view)):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,187,219,") then view_flow_test_tops_text:("tp 640,2304,3456,")
-given view_flow_test_open_edit("AB|CD") given lset((import view_input_kept_tops), 0, 7) ((import layout_paragraph_test_view)):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,187,219,") then view_flow_test_tops_text:("tp 640,2304,3456,")
+given view_flow_test_open_edit("AB|CD") given integer_list_set((import view_input_kept_tops), 0, 7) ((import layout_paragraph_test_view)):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,187,219,") then view_flow_test_tops_text:("tp 640,2304,3456,")
 
 // Ends a command: the paragraphs it made stale are laid out again and the pages made again, the part of the picture that changed is asked for (the paragraphs it touched and what moved, and the paragraphs of the selection as it is now), the caret is brought into view, and it is solid again for a blink.
 view_input_command_end(View view_input_finish_view) {
@@ -16,8 +16,8 @@ view_input_command_end(View view_input_finish_view) {
   view_input_mark_selection_paragraphs(view_input_finish_view);
   view_input_scroll_to_caret(view_input_finish_view);
 } chain (View view_input_finish_view) {
-  lset((import view_input_edit_state), (import cv_e_t0), view_input_clock_now());
-  lset((import view_input_edit_state), (import cv_e_ph), 1);
+  integer_list_set((import view_input_edit_state), (import cv_e_t0), view_input_clock_now());
+  integer_list_set((import view_input_edit_state), (import cv_e_ph), 1);
   view_input_selection_look(view_input_finish_view);
 } return void;
 given view_flow_test_open_edit("AB|CD") given view_input_test_clock_set(0) given view_flow_test_mark_stale((import layout_paragraph_test_view), 1) ((import layout_paragraph_test_view)):() then view_flow_test_edit_states_text:("eds 0,0,0,0,1,0,187,237,")

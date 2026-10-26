@@ -11,7 +11,7 @@
 
 golden_block(string golden_log, string golden_line) {
   int golden_before = len(fs_read_text(golden_log));
-  string[] golden_arguments = str_split("gym|" + golden_line + "|--pack|packs/probability|--log|" + golden_log, "|");
+  string[] golden_arguments = string_split("gym|" + golden_line + "|--pack|packs/probability|--log|" + golden_log, "|");
   string[] golden_result = command_run(golden_arguments, 0);
 } chain (string golden_log, string golden_line) {
   int golden_after = len(fs_read_text(golden_log));
@@ -20,7 +20,7 @@ golden_block(string golden_log, string golden_line) {
     golden_bad = 1;
   }
 } chain (string golden_log, string golden_line) {
-  string golden_text = "$ gym " + str_replace(golden_line, "|", " ") + "\n" + golden_result[1] + "\n[exit " + golden_result[0] + "; log " + golden_before + " -> " + golden_after + " bytes]";
+  string golden_text = "$ gym " + string_replace(golden_line, "|", " ") + "\n" + golden_result[1] + "\n[exit " + golden_result[0] + "; log " + golden_before + " -> " + golden_after + " bytes]";
   string[] golden_made = [golden_text, "" + golden_bad];
 } return string[] golden_made;
 given fs_temp_text("") ((import fs_temp_path), "answer|--text|1/3|--now|5"):(["$ gym answer --text 1/3 --now 5\nrefused: no session is running: start one with gym session start\n[exit 1; log 0 -> 0 bytes]", "0"])

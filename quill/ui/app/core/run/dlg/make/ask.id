@@ -11,17 +11,17 @@ given cli_test_boot_app given app_test_set_path("/etc/x.odt") ((import cli_appli
 app_error_dialog(App app_error_application, int app_error_code) {
   string app_error_message = odt_error(app_error_code);
   string[] app_error_body = view_card_wrap((import ribbon_faces)[0], app_error_message, (import wa_msgw));
-  lset((import cli_state_list), (import wa_s_ask), (import wa_a_none));
+  integer_list_set((import cli_state_list), (import wa_s_ask), (import wa_a_none));
 } chain (App app_error_application, int app_error_code) {
   app_dialog_show((import wa_h_msg), app_error_body, (import wa_k_msg), (import wa_d_msg));
 } return void;
-given cli_test_boot_app given view_input_test_open("/nonexistent/x.odt") given lset((import cli_state_list), 1, 2) ((import cli_application), 1):() then cli_test_state_text:("0,0,4,0,|0|0") then app_test_dialog_body:("ODT: the file could not be read; check that the path exists and that you|may read it [/nonexistent/x.odt]")
+given cli_test_boot_app given view_input_test_open("/nonexistent/x.odt") given integer_list_set((import cli_state_list), 1, 2) ((import cli_application), 1):() then cli_test_state_text:("0,0,4,0,|0|0") then app_test_dialog_body:("ODT: the file could not be read; check that the path exists and that you|may read it [/nonexistent/x.odt]")
 given cli_test_boot_app given view_input_test_open("/nonexistent/y.odt") ((import cli_application), 1):() then app_test_dialog_body:("ODT: the file could not be read; check that the path exists and that you|may read it [/nonexistent/y.odt]")
 
 // Test check: the lines of text of the open dialog, one after another with a bar between them.
 app_test_dialog_body() {
   GuiDialog app_body_dialog = (import app_open_dialog);
-  string app_body_text = str_join(app_body_dialog.txt.body, "|");
+  string app_body_text = string_join(app_body_dialog.txt.body, "|");
 } return string app_body_text;
 given cli_test_boot_app given app_dialog_show("T", ["a", "b"], ["OK"], 4) ():("a|b")
 given cli_test_boot_app given app_dialog_show("T", [], ["OK"], 4) ():("")

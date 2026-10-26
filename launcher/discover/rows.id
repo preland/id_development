@@ -38,7 +38,7 @@ discover_rows(string discover_record) {
   string[] discover_roots_list = discover_roots_now();
   string[] discover_wanted = discover_candidates(discover_roots_list);
 } chain (string discover_record) {
-  string[] discover_before = str_lines(fs_read_text(discover_cache_file));
+  string[] discover_before = string_lines(fs_read_text(discover_cache_file));
   string[] discover_after = discover_resolve(discover_wanted, discover_before);
   int discover_written = discover_save(discover_cache_file, discover_before, discover_after);
 } chain (string discover_record) {
@@ -46,7 +46,7 @@ discover_rows(string discover_record) {
   string discover_forget_file = discover_beside(discover_record, "forgotten.tsv");
   string discover_forget_body = fs_read_text(discover_forget_file);
 } chain (string discover_record) {
-  string[] discover_hidden = str_lines(discover_forget_body);
+  string[] discover_hidden = string_lines(discover_forget_body);
   string[] discover_shown = discover_unforgotten(discover_entry_rows, discover_hidden);
 } return string[] discover_shown;
 given discover_test_configuration("/proc/no_root_a\n") ("/proc/no_dir/id/built.tsv"):([])

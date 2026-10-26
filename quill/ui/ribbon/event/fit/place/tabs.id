@@ -1,11 +1,11 @@
 // Remembers the band the ribbon is in: its left, top, width and height in the state list, so that a tab switch can place the ribbon again in the same room.
 ribbon_fit_remember_band(int ribbon_fit_band_left, int ribbon_fit_band_top, int ribbon_fit_band_width, int ribbon_fit_band_height) {
   int[] ribbon_fit_band_state = (import ribbon_fit_state);
-  lset(ribbon_fit_band_state, (import rbd_s_bx), ribbon_fit_band_left);
-  lset(ribbon_fit_band_state, (import rbd_s_by), ribbon_fit_band_top);
+  integer_list_set(ribbon_fit_band_state, (import rbd_s_bx), ribbon_fit_band_left);
+  integer_list_set(ribbon_fit_band_state, (import rbd_s_by), ribbon_fit_band_top);
 } chain (int ribbon_fit_band_left, int ribbon_fit_band_top, int ribbon_fit_band_width, int ribbon_fit_band_height) {
-  lset(ribbon_fit_band_state, (import rbd_s_bw), ribbon_fit_band_width);
-  lset(ribbon_fit_band_state, (import rbd_s_bh), ribbon_fit_band_height);
+  integer_list_set(ribbon_fit_band_state, (import rbd_s_bw), ribbon_fit_band_width);
+  integer_list_set(ribbon_fit_band_state, (import rbd_s_bh), ribbon_fit_band_height);
 } return void;
 given ribbon_fit_create_state_lists (3, 4, 5, 6):() then ribbon_fit_check_state_dump:("1,-1,0,0,0,-1,-1,0,3,4,5,6,-1,0,0,|16776960,12582912,|20")
 given ribbon_fit_create_state_lists (0, 0, 1024, 156):() then ribbon_fit_check_state_dump:("1,-1,0,0,0,-1,-1,0,0,0,1024,156,-1,0,0,|16776960,12582912,|20")
@@ -16,11 +16,11 @@ ribbon_fit_place_tab(int ribbon_fit_tab_number, int ribbon_fit_tab_left, int rib
   int ribbon_fit_tab_width = gui_text_width((import ribbon_faces)[1], (import rbd_tabs)[ribbon_fit_tab_number]) + 2 * (import rbd_tab_pad);
   int ribbon_fit_tab_cell = ribbon_fit_tab_number * 4;
 } chain (int ribbon_fit_tab_number, int ribbon_fit_tab_left, int ribbon_fit_tab_top) {
-  lset(ribbon_fit_tab_strip_list, ribbon_fit_tab_cell, ribbon_fit_tab_left);
-  lset(ribbon_fit_tab_strip_list, ribbon_fit_tab_cell + 1, ribbon_fit_tab_top);
-  lset(ribbon_fit_tab_strip_list, ribbon_fit_tab_cell + 2, ribbon_fit_tab_width);
+  integer_list_set(ribbon_fit_tab_strip_list, ribbon_fit_tab_cell, ribbon_fit_tab_left);
+  integer_list_set(ribbon_fit_tab_strip_list, ribbon_fit_tab_cell + 1, ribbon_fit_tab_top);
+  integer_list_set(ribbon_fit_tab_strip_list, ribbon_fit_tab_cell + 2, ribbon_fit_tab_width);
 } chain (int ribbon_fit_tab_number, int ribbon_fit_tab_left, int ribbon_fit_tab_top) {
-  lset(ribbon_fit_tab_strip_list, ribbon_fit_tab_cell + 3, (import rbd_tab_px));
+  integer_list_set(ribbon_fit_tab_strip_list, ribbon_fit_tab_cell + 3, (import rbd_tab_px));
 } return int ribbon_fit_tab_width;
 given layout_paragraph_test_font given ribbon_faces_set(1, 1, 1) given ribbon_fit_create_state_lists (0, 10, 30):(54) then ribbon_fit_check_tab_rectangles:("tr 10,30,54,28,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,")
 given layout_paragraph_test_font given ribbon_faces_set(1, 1, 1) given ribbon_fit_create_state_lists (1, 50, 30):(71) then ribbon_fit_check_tab_rectangles:("tr 0,0,0,0,50,30,71,28,0,0,0,0,0,0,0,0,0,0,0,0,")

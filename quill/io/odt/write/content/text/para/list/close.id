@@ -1,8 +1,8 @@
 // Ends list items and their lists, innermost first, until only to levels are open; ls[0] counts the open levels.
 odt_write_list_close_to(XmlW odt_write_list_close_to_writer, int[] odt_write_list_close_to_state, int odt_write_list_close_to_depth) {
   while(odt_write_list_close_to_state[0] > odt_write_list_close_to_depth) {
-    xw_end(odt_write_list_close_to_writer);
-    xw_end(odt_write_list_close_to_writer);
+    xml_writer_end_element(odt_write_list_close_to_writer);
+    xml_writer_end_element(odt_write_list_close_to_writer);
     odt_write_list_close_to_state[0] = odt_write_list_close_to_state[0] - 1;
   }
 } return void;
@@ -12,11 +12,11 @@ given odt_write_test_writer_nested(2) ((import odt_write_test_writer_output), [1
 
 // Opens one list level at depth: the text:list (the outermost carries the list style L<list>) and its first item.
 odt_write_list_open_one(XmlW odt_write_list_open_one_writer, int odt_write_list_open_one_list, int odt_write_list_open_one_depth) {
-  xw_start(odt_write_list_open_one_writer, "text:list");
+  xml_writer_start_element(odt_write_list_open_one_writer, "text:list");
   if(odt_write_list_open_one_depth == 0) {
-    xw_attr(odt_write_list_open_one_writer, "text:style-name", "WL" + odt_write_list_open_one_list);
+    xml_writer_attribute(odt_write_list_open_one_writer, "text:style-name", "WL" + odt_write_list_open_one_list);
   }
-  xw_start(odt_write_list_open_one_writer, "text:list-item");
+  xml_writer_start_element(odt_write_list_open_one_writer, "text:list-item");
 } return void;
 given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 2, 0):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 32, 116, 101, 120, 116, 58, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 34, 87, 76, 50, 34, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 45, 105, 116, 101, 109])
 given odt_write_test_writer_nested(2) ((import odt_write_test_writer_output), 2, 1):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 45, 105, 116, 101, 109, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 45, 105, 116, 101, 109])

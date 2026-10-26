@@ -21,7 +21,7 @@ checker_signature(int block_function_row) {
     block_position = block_position + 1;
   }
 } chain (int block_function_row) {
-  string block_signature = (import model_function_return_types)[block_function_row] + "(" + str_join(block_parts, ",") + ")";
+  string block_signature = (import model_function_return_types)[block_function_row] + "(" + string_join(block_parts, ",") + ")";
 } return string block_signature;
 given model_load("t.blk", "sprite S\nfn f(int a, string[] b) return float") (0):("2(1,6)")
 given model_load("t.blk", "sprite S\nfn f() return void") (0):("0()")
@@ -36,7 +36,7 @@ checker_canon(int block_function_row, int block_lit) {
     push(block_class_code, checker_cline(block_environment, block_line_index, block_lit));
     block_line_index = block_line_index + 1;
   }
-  string block_body = str_join(block_class_code, "|");
+  string block_body = string_join(block_class_code, "|");
 } chain (int block_function_row, int block_lit) {
   string block_canon = checker_signature(block_function_row) + "{" + block_body + "}";
 } return string block_canon;

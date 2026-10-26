@@ -70,7 +70,7 @@ session_self_grade(Pack session_book, string session_log_path, word session_now,
 } chain (Pack session_book, string session_log_path, word session_now, string session_met_text) {
   string[] session_result = ["refused", session_refusal];
   if (session_refusal == "") {
-    session_result = ["ok", "", session_verdict, session_marks, session_shown[(import session_slot_item)], str_join(session_rubric, "\n")];
+    session_result = ["ok", "", session_verdict, session_marks, session_shown[(import session_slot_item)], string_join(session_rubric, "\n")];
   }
 } return string[] session_result;
 given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n2\tattempt\ta\tmy proof\t90\tpending\t0\t9\tno\t\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: free\nanswer: model\nrubric: R1\nrubric: R2\nitem: b\nprompt: Q\nanswer_kind: integer\nanswer: 7\n") ((import model_fixture_book), (import model_fixture_log), 100, "1,1"):(["ok", "", "correct", "1,1", "a", "R1\nR2"]) then model_fixture_size:(106)

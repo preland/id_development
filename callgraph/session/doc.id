@@ -1,12 +1,12 @@
 // The first line (cut to 60 characters, a tooltip being small) of the comment block just above line `line` (counted from 1) of the source text, with its // and the space after it taken off, or "" when the line above is not a comment. A block is the run of lines that start, after any indent, with //; its first line is the one that says what the function is for.
 call_graph_doc(string text_text, int number_line) {
-  string[] fixture_rows = str_split(text_text, "\n");
+  string[] fixture_rows = string_split(text_text, "\n");
   int number_up = fixed_point_minimum(number_line - 2, len(fixture_rows) - 1);
   int number_top = call_graph_top(fixture_rows, number_up);
 } chain (string text_text, int number_line) {
   string text_doc = "";
   if (number_top <= number_up) {
-    text_doc = call_graph_cut(str_trim(fixture_rows[number_top]));
+    text_doc = call_graph_cut(string_trim(fixture_rows[number_top]));
   }
 } return string text_doc;
 ("// first\n// second\nf() {\n", 3):("first")
@@ -18,7 +18,7 @@ call_graph_doc(string text_text, int number_line) {
 
 // The line where the comment block that ends at row j of the lines begins: j + 1 when row j is not a comment, so no comment at all.
 call_graph_top(string[] fixture_rows, int number_inner) {
-  while (number_inner >= 0 && str_starts(str_trim(fixture_rows[number_inner]), "//")) {
+  while (number_inner >= 0 && string_starts_with(string_trim(fixture_rows[number_inner]), "//")) {
     number_inner = number_inner - 1;
   }
   int number_first = number_inner + 1;

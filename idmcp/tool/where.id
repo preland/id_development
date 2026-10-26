@@ -4,12 +4,12 @@
 // function is for.
 
 tool_where_parse(string where_text) {
-  string where_line = str_before(where_text, "\n");
-  string where_rest = str_after(where_line, ":");
+  string where_line = string_before(where_text, "\n");
+  string where_rest = string_after(where_line, ":");
   string where_found = "";
 } chain (string where_text) {
-  if (str_starts(where_line, "idwhere:") == 0 && str_find(where_rest, ": ") > 0) {
-    where_found = str_before(where_line, ":") + "|" + str_before(where_rest, ":") + "|" + str_after(where_rest, ": ");
+  if (string_starts_with(where_line, "idwhere:") == 0 && string_find(where_rest, ": ") > 0) {
+    where_found = string_before(where_line, ":") + "|" + string_before(where_rest, ":") + "|" + string_after(where_rest, ": ");
   }
 } return string where_found;
 ("a/b.id:14: f(int x, string y) -> int\n"):("a/b.id|14|f(int x, string y) -> int")
@@ -29,9 +29,9 @@ given tool_t_session ("no_such_function_anywhere", "sample"):("")
 given tool_t_session ("sample_clamp\n--help", "sample"):("")
 
 tool_sentence(string note_doc) {
-  string note_flat = str_replace(note_doc, "\n", " ");
-  string note_plain = str_replace(note_flat, "// ", "");
-  int note_stop = str_find(note_plain + " ", ". ");
+  string note_flat = string_replace(note_doc, "\n", " ");
+  string note_plain = string_replace(note_flat, "// ", "");
+  int note_stop = string_find(note_plain + " ", ". ");
 } chain (string note_doc) {
   int note_cap = fixed_point_minimum(len(note_plain), 240);
   string note_first = str_sub(note_plain, 0, note_cap);

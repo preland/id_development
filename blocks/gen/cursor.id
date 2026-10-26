@@ -8,20 +8,20 @@
 generator_eat(string[] block_texts, string block_token) {
   int block_ok = 0;
   if (list_string_get_or(block_texts, (import generator_state)[(import constant_statement_position_index)], "") == block_token) {
-    lset((import generator_state), (import constant_statement_position_index), (import generator_state)[(import constant_statement_position_index)] + 1);
+    integer_list_set((import generator_state), (import constant_statement_position_index), (import generator_state)[(import constant_statement_position_index)] + 1);
     block_ok = 1;
   }
 } return int block_ok;
-given generator_initial given lset((import generator_state), 0, 1) (["a", ")"], ")"):(1) then (import generator_state)[0]:(2)
+given generator_initial given integer_list_set((import generator_state), 0, 1) (["a", ")"], ")"):(1) then (import generator_state)[0]:(2)
 given generator_initial (["a", ")"], ")"):(0) then (import generator_state)[0]:(0)
-given generator_initial given lset((import generator_state), 0, 1) (["a"], ")"):(0) then (import generator_state)[0]:(1)
+given generator_initial given integer_list_set((import generator_state), 0, 1) (["a"], ")"):(0) then (import generator_state)[0]:(1)
 
 generator_take(string[] block_texts) {
   string block_token = list_string_get_or(block_texts, (import generator_state)[(import constant_statement_position_index)], "");
-  lset((import generator_state), (import constant_statement_position_index), (import generator_state)[(import constant_statement_position_index)] + 1);
+  integer_list_set((import generator_state), (import constant_statement_position_index), (import generator_state)[(import constant_statement_position_index)] + 1);
 } return string block_token;
-given generator_initial given lset((import generator_state), 0, 1) (["a", "b"]):("b") then (import generator_state)[0]:(2)
-given generator_initial given lset((import generator_state), 0, 1) (["a"]):("") then (import generator_state)[0]:(2)
+given generator_initial given integer_list_set((import generator_state), 0, 1) (["a", "b"]):("b") then (import generator_state)[0]:(2)
+given generator_initial given integer_list_set((import generator_state), 0, 1) (["a"]):("") then (import generator_state)[0]:(2)
 
 generator_need(string[] block_texts, string block_token) {
   int block_ok = generator_eat(block_texts, block_token);
@@ -30,5 +30,5 @@ generator_need(string[] block_texts, string block_token) {
   }
 } return int block_ok;
 given model_initial given generator_initial (["a"], ")"):(0) then (import model_diagnostics):(["input.blk:0: error: expected ')', found 'a' [E0101]"])
-given model_initial given generator_initial given lset((import generator_state), 0, 1) (["a", ")"], ")"):(1) then len((import model_diagnostics)):(0)
+given model_initial given generator_initial given integer_list_set((import generator_state), 0, 1) (["a", ")"], ")"):(1) then len((import model_diagnostics)):(0)
 

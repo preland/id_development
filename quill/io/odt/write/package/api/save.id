@@ -2,10 +2,10 @@
 odt_package_seal_archive(ZipW odt_package_seal_target, string odt_package_seal_reason) {
   int[] odt_package_seal_bytes = [];
   if(len(odt_package_seal_reason) == 0) {
-    odt_package_seal_bytes = zw_finish(odt_package_seal_target);
+    odt_package_seal_bytes = zip_writer_finish(odt_package_seal_target);
   }
   if(len(odt_package_seal_bytes) == 0 && len(odt_package_seal_reason) == 0) {
-    odt_package_save_note((import odw_e_zip), zw_why(odt_package_seal_target));
+    odt_package_save_note((import odw_e_zip), zip_writer_failure_reason(odt_package_seal_target));
   }
 } return int[] odt_package_seal_bytes;
 (ZipW([], [], [""]), "paragraph 1 is bad"):([])
@@ -16,7 +16,7 @@ given odt_package_save_note(0, "") (ZipW([], [], ["zip: refused"]), ""):([]) the
 odt_save_bytes(Doc odt_package_bytes_document) {
   odt_package_save_note(0, "");
   string odt_package_bytes_reason = odt_content_check(odt_package_bytes_document);
-  ZipW odt_package_bytes_archive = zw_new();
+  ZipW odt_package_bytes_archive = zip_writer_new();
 } chain (Doc odt_package_bytes_document) {
   if(len(odt_package_bytes_reason) == 0) {
     odp_pack(odt_package_bytes_document, odt_content_bytes(odt_package_bytes_document), odt_package_bytes_archive);

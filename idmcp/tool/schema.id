@@ -3,15 +3,15 @@
 // so the tool list and the tools' arguments are written down once.
 
 tool_member(string spec_pair) {
-  string spec_key = str_before(spec_pair, ":");
-  string spec_type = str_after(spec_pair, ":");
+  string spec_key = string_before(spec_pair, ":");
+  string spec_type = string_after(spec_pair, ":");
   string spec_member = json_quote(spec_key) + ":{\"type\":" + json_quote(spec_type) + "}";
 } return string spec_member;
 ("text:string"):("\"text\":{\"type\":\"string\"}")
 ("depth:integer"):("\"depth\":{\"type\":\"integer\"}")
 
 tool_properties(string spec_props) {
-  string[] spec_pairs = str_split(spec_props, ";");
+  string[] spec_pairs = string_split(spec_props, ";");
   string[] spec_members = [];
   int spec_index = 0;
 } chain (string spec_props) {
@@ -19,7 +19,7 @@ tool_properties(string spec_props) {
     push(spec_members, tool_member(spec_pairs[spec_index]));
     spec_index = spec_index + 1;
   }
-  string spec_object = "{" + str_join(spec_members, ",") + "}";
+  string spec_object = "{" + string_join(spec_members, ",") + "}";
 } return string spec_object;
 ("a:string;b:integer"):("{\"a\":{\"type\":\"string\"},\"b\":{\"type\":\"integer\"}}")
 (""):("{}")
@@ -27,7 +27,7 @@ tool_properties(string spec_props) {
 ("a:string;b:integer;c:boolean;d:string;e:string;f:integer;g:boolean;h:string"):("{\"a\":{\"type\":\"string\"},\"b\":{\"type\":\"integer\"},\"c\":{\"type\":\"boolean\"},\"d\":{\"type\":\"string\"},\"e\":{\"type\":\"string\"},\"f\":{\"type\":\"integer\"},\"g\":{\"type\":\"boolean\"},\"h\":{\"type\":\"string\"}}")[time:O(n), mem:O(n)]
 
 tool_required(string spec_names) {
-  string[] spec_parts = str_split(spec_names, ";");
+  string[] spec_parts = string_split(spec_names, ";");
   string[] spec_quoted = [];
   int spec_at = 0;
 } chain (string spec_names) {
@@ -35,7 +35,7 @@ tool_required(string spec_names) {
     push(spec_quoted, json_quote(spec_parts[spec_at]));
     spec_at = spec_at + 1;
   }
-  string spec_array = "[" + str_join(spec_quoted, ",") + "]";
+  string spec_array = "[" + string_join(spec_quoted, ",") + "]";
 } return string spec_array;
 ("text"):("[\"text\"]")
 (""):("[]")

@@ -6,7 +6,7 @@
 
 exporter_has_return(int exporter_number_function) {
   int exporter_number_end = (import model_function_body_end)[exporter_number_function];
-  int exporter_number_found = exporter_number_end > (import model_function_body_start)[exporter_number_function] && str_starts((import model_line_texts)[exporter_number_end - 1], "return");
+  int exporter_number_found = exporter_number_end > (import model_function_body_start)[exporter_number_function] && string_starts_with((import model_line_texts)[exporter_number_end - 1], "return");
 } return int exporter_number_found;
 given model_load("t.blk", "sprite S\nfn f() return int\n  return 1\n(): (1)\n(): (2)\nfn g() return void\n  say(\"x\")\n(): ()\n(1): ()") (0):(1)
 given model_load("t.blk", "sprite S\nfn f() return int\n  return 1\n(): (1)\n(): (2)\nfn g() return void\n  say(\"x\")\n(): ()\n(1): ()") (1):(0)
@@ -18,7 +18,7 @@ exporter_returned(int exporter_number_function) {
   if (exporter_has_return(exporter_number_function) == 1) {
     string exporter_text_line = (import model_line_texts)[exporter_number_last];
     string exporter_text_tail = str_sub(exporter_text_line, 6, len(exporter_text_line) - 6);
-    exporter_text_value = str_trim(exporter_text_tail);
+    exporter_text_value = string_trim(exporter_text_tail);
   }
 } return string exporter_text_value;
 given model_load("t.blk", "sprite S\nfn f() return int\n  return n + 1\n(): (1)\n(): (2)\nfn g() return void\n  say(\"x\")\n(): ()\n(1): ()") (0):("n + 1")

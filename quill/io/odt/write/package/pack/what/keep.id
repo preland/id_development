@@ -14,7 +14,7 @@ odt_package_extension_index(string odt_package_extension_lower) {
   int odt_package_extension_cursor = 0;
   int odt_package_extension_found = 0 - 1;
   while(odt_package_extension_cursor < len((import odp_ext)) && odt_package_extension_found < 0) {
-    if(str_ends(odt_package_extension_lower, (import odp_ext)[odt_package_extension_cursor]) == 1) {
+    if(string_ends_with(odt_package_extension_lower, (import odp_ext)[odt_package_extension_cursor]) == 1) {
       odt_package_extension_found = odt_package_extension_cursor;
     }
     odt_package_extension_cursor = odt_package_extension_cursor + 1;
@@ -26,14 +26,14 @@ odt_package_extension_index(string odt_package_extension_lower) {
 
 // The media type the manifest gives an entry: from its extension, "" for a directory and application/octet-stream for anything unknown.
 odp_media(string odt_package_media_name) {
-  string odt_package_media_lower = str_lower(odt_package_media_name);
+  string odt_package_media_lower = string_lower(odt_package_media_name);
   int odt_package_media_position = odt_package_extension_index(odt_package_media_lower);
   string odt_package_media_type = (import odp_octets);
 } chain (string odt_package_media_name) {
   if(odt_package_media_position >= 0) {
     odt_package_media_type = (import odp_types)[odt_package_media_position];
   }
-  if(str_ends(odt_package_media_lower, "/") == 1) {
+  if(string_ends_with(odt_package_media_lower, "/") == 1) {
     odt_package_media_type = "";
   }
 } return string odt_package_media_type;

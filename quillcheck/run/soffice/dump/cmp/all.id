@@ -1,10 +1,10 @@
 // Keeps the paragraph and run counters of a dump walk, owcnt = [paragraph index, run index within it]: a "para N" line sets the paragraph and resets the run to -1, a "run" line counts one more.
 fodt_dump_context(string dump_line, int[] dump_counters) {
-  if(str_starts(dump_line, "para ") == 1) {
+  if(string_starts_with(dump_line, "para ") == 1) {
     dump_counters[0] = fodt_dump_paragraph_number(dump_line);
     dump_counters[1] = 0 - 1;
   }
-  if(str_starts(dump_line, "run ") == 1) {
+  if(string_starts_with(dump_line, "run ") == 1) {
     dump_counters[1] = dump_counters[1] + 1;
   }
 } return void;
@@ -15,10 +15,10 @@ fodt_dump_context(string dump_line, int[] dump_counters) {
 // What a report line says a difference is in: "page" for the page record, "pN" for a paragraph record and "pN rM" for a run record.
 fodt_dump_context_name(string dump_line, int[] dump_counters) {
   string element_name = "p" + dump_counters[0];
-  if(str_starts(dump_line, "page ") == 1) {
+  if(string_starts_with(dump_line, "page ") == 1) {
     element_name = "page";
   }
-  if(str_starts(dump_line, "run ") == 1) {
+  if(string_starts_with(dump_line, "run ") == 1) {
     element_name = "p" + dump_counters[0] + " r" + dump_counters[1];
   }
 } return string element_name;

@@ -6,7 +6,7 @@
 
 check_unsigned(string check_piece) {
   string check_rest = check_piece;
-  if (str_starts(check_piece, "-") + str_starts(check_piece, "+") > 0) {
+  if (string_starts_with(check_piece, "-") + string_starts_with(check_piece, "+") > 0) {
     check_rest = str_sub(check_piece, 1, len(check_piece) - 1);
   }
 } return string check_rest;
@@ -20,7 +20,7 @@ check_build(string check_digits, int check_places, int check_negative, int check
   int check_total = check_digit_total(check_digits);
   if (check_total == len(check_digits) && check_total > 0 && check_total <= (import check_digit_limit) && check_extra < 2) {
     check_made.top = check_word_value(check_digits) * (1 - 2 * check_negative);
-    check_made.bottom = check_word_value("1" + str_repeat("0", check_places));
+    check_made.bottom = check_word_value("1" + string_repeat("0", check_places));
     check_made.valid = 1;
   }
 } return Ratio check_made;
@@ -33,11 +33,11 @@ check_build(string check_digits, int check_places, int check_negative, int check
 ("1234567890123456789", 0, 0, 0):(Ratio(0, 1, 0))
 
 check_decimal(string check_piece) {
-  int check_negative = str_starts(check_piece, "-");
+  int check_negative = string_starts_with(check_piece, "-");
   string check_body = check_unsigned(check_piece);
-  int check_dot = str_find(check_body, ".");
+  int check_dot = string_find(check_body, ".");
 } chain (string check_piece) {
-  string check_digits = str_replace(check_body, ".", "");
+  string check_digits = string_replace(check_body, ".", "");
   int check_places = 0;
   if (check_dot >= 0) {
     check_places = len(check_body) - check_dot - 1;

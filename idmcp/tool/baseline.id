@@ -5,12 +5,12 @@
 // as errors -1, so a broken tool chain is not mistaken for a clean project.
 
 tool_summary_line(string base_text) {
-  string[] base_lines = str_lines(base_text);
+  string[] base_lines = string_lines(base_text);
   int base_at = 0;
   string base_found = "";
 } chain (string base_text) {
   while (base_at < len(base_lines)) {
-    if (str_find(base_lines[base_at], "\"kind\":\"summary\"") >= 0) {
+    if (string_find(base_lines[base_at], "\"kind\":\"summary\"") >= 0) {
       base_found = base_lines[base_at];
     }
     base_at = base_at + 1;
@@ -31,7 +31,7 @@ tool_baseline(string base_text) {
     base_errors = json_text(base_line, "errors");
     base_codes = json_text(base_line, "codes");
   }
-  if (base_line == "" && str_find(base_text, "ok:") < 0) {
+  if (base_line == "" && string_find(base_text, "ok:") < 0) {
     base_errors = "-1";
   }
   string base_object = "{\"errors\":" + base_errors + ",\"codes\":" + base_codes + "}";

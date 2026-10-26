@@ -1,15 +1,15 @@
 // Adds an entry for the style:style the reader is at, with its parent, list style and master page, and its display name in the bag; answers its entry, -1 for a family the oracle does not follow.
 fodt_dump_style_open(Catalog style_store, XmlR document_reader, string font_family, int automatic_styles) {
   string open_prefix = fodt_dump_family_prefix(font_family);
-  string parent_name = xml_reader_attr(document_reader, "style:parent-style-name");
+  string parent_name = xml_reader_attribute(document_reader, "style:parent-style-name");
   int entry_index = 0 - 1;
 } chain (Catalog style_store, XmlR document_reader, string font_family, int automatic_styles) {
   if(open_prefix != "") {
-    fodt_dump_add_entry(style_store, open_prefix + xml_reader_attr(document_reader, "style:name"), fodt_dump_parent_key(open_prefix, parent_name), xml_reader_attr(document_reader, "style:list-style-name"), xml_reader_attr(document_reader, "style:master-page-name"));
+    fodt_dump_add_entry(style_store, open_prefix + xml_reader_attribute(document_reader, "style:name"), fodt_dump_parent_key(open_prefix, parent_name), xml_reader_attribute(document_reader, "style:list-style-name"), xml_reader_attribute(document_reader, "style:master-page-name"));
     entry_index = len(style_store.keys) - 1;
   }
   if(entry_index >= 0) {
-    fodt_dump_property(style_store, entry_index, "d", xml_reader_attr(document_reader, "style:display-name"));
+    fodt_dump_property(style_store, entry_index, "d", xml_reader_attribute(document_reader, "style:display-name"));
   }
   if(entry_index >= 0 && automatic_styles == 1) {
     fodt_dump_property(style_store, entry_index, "a", "1");

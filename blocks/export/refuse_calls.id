@@ -6,14 +6,14 @@
 // would not: while is refused in a program that has such scripts.
 
 exporter_threaded() {
-  int exporter_number_threaded = str_join((import model_function_message), "") != "";
+  int exporter_number_threaded = string_join((import model_function_message), "") != "";
 } return int exporter_number_threaded;
 given model_load("t.blk", "sprite S\nfn a() return void on \"go\"") ():(1)
 given model_load("t.blk", "sprite S\nfn a() return void") ():(0)
 
 exporter_refuse_broadcast(int exporter_number_function, int exporter_number_line) {
-  string exporter_text_line = str_trim((import model_line_texts)[exporter_number_line]);
-  if (str_starts(exporter_text_line, "broadcast(") && str_starts(exporter_text_line, "broadcast(\"") == 0) {
+  string exporter_text_line = string_trim((import model_line_texts)[exporter_number_line]);
+  if (string_starts_with(exporter_text_line, "broadcast(") && string_starts_with(exporter_text_line, "broadcast(\"") == 0) {
     model_error((import model_line_numbers)[exporter_number_line], "", "'broadcast' in '" + (import model_function_names)[exporter_number_function] + "' does not name its message in quotes, so it cannot be exported: the exported program starts the receivers the program names -- write the message as a literal");
   }
 } return void;
@@ -21,8 +21,8 @@ given model_load("t.blk", "sprite S\nvar string m\nfn f() return void\n  broadca
 given model_load("t.blk", "sprite S\nfn f() return void\n  broadcast(\"go\")") (0, 2):() then len((import model_diagnostics)):(0)
 
 exporter_refuse_while(int exporter_number_function, int exporter_number_line) {
-  string exporter_text_line = str_trim((import model_line_texts)[exporter_number_line]);
-  if (str_starts(exporter_text_line, "while ") && exporter_threaded() == 1) {
+  string exporter_text_line = string_trim((import model_line_texts)[exporter_number_line]);
+  if (string_starts_with(exporter_text_line, "while ") && exporter_threaded() == 1) {
     model_error((import model_line_numbers)[exporter_number_line], "", "'while' in '" + (import model_function_names)[exporter_number_function] + "' cannot be exported from a program whose scripts run on messages: the machine gives the other scripts a turn at the end of each iteration and the exported program does not -- remove the loop, or run the program with blocks run");
   }
 } return void;

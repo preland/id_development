@@ -28,7 +28,7 @@ evaluation_timed(string evaluation_url, string evaluation_pack_directory, Pack e
   word evaluation_finished = clock_nanoseconds((import clock_mono)) / 1000000;
 } chain (string evaluation_url, string evaluation_pack_directory, Pack evaluation_set, int evaluation_block, string evaluation_results_path) {
   evaluation_cells_got[(import evaluation_slot_milliseconds)] = "" + (evaluation_finished - evaluation_started);
-  int evaluation_written = fs_append_text(evaluation_results_path, str_join(evaluation_cells_got, "\t") + "\n");
+  int evaluation_written = fs_append_text(evaluation_results_path, string_join(evaluation_cells_got, "\t") + "\n");
   int evaluation_kept = evaluation_written > 0;
 } return int evaluation_kept;
 given pack_fixture_directory("item: x\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\n", "") given pack_fixture_parse("item: 0\ntarget: x\nanswer: 3/8\nverdict: incorrect\nerror_type: slip\n") ("http://127.0.0.1:1", ".", (import pack_fixture_book), 0, "results.tsv"):(1)

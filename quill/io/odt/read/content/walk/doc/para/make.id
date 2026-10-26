@@ -20,8 +20,8 @@ given odt_read_fixture_open("<text:p>x</text:p>") given odt_read_fixture_remove_
 
 // The paragraph row of the paragraph element that has just started: its style (a heading with none takes Heading 1 to 3 by its outline level), then the list and level it sits in.
 odt_read_paragraph_row(Odt_Read_Context odt_read_paragraph_row_context) {
-  string odt_read_paragraph_row_style_name = xml_reader_attr(odt_read_paragraph_row_context.odt_read_xml_reader, "text:style-name");
-  int lvl = to_int(xml_reader_attr(odt_read_paragraph_row_context.odt_read_xml_reader, "text:outline-level"));
+  string odt_read_paragraph_row_style_name = xml_reader_attribute(odt_read_paragraph_row_context.odt_read_xml_reader, "text:style-name");
+  int lvl = to_int(xml_reader_attribute(odt_read_paragraph_row_context.odt_read_xml_reader, "text:outline-level"));
   int odt_read_paragraph_row_style_row = odt_read_paragraph_style_row(odt_read_paragraph_row_context, odt_read_paragraph_row_style_name, lvl);
 } chain (Odt_Read_Context odt_read_paragraph_row_context) {
   int pp = odt_read_paragraph_list_row(odt_read_paragraph_row_context, odt_read_paragraph_row_style_row);
@@ -32,9 +32,9 @@ given odt_read_fixture_open("<r><office:styles><style:style style:name='Heading_
 
 // A paragraph starts with no hyperlink around its text, with a space as the last character, so the white space that opens it is dropped, and with the character row its style's own text properties amount to (none: row 0, Normal's).
 orc_reset(Odt_Read_Context odt_read_reset_context) {
-  lset(odt_read_reset_context.cs.slots, (import orc_s_space), 1);
-  lset(odt_read_reset_context.cs.slots, (import orc_s_link), 0);
-  string odt_read_reset_style_name = xml_reader_attr(odt_read_reset_context.odt_read_xml_reader, "text:style-name");
+  integer_list_set(odt_read_reset_context.cs.slots, (import orc_s_space), 1);
+  integer_list_set(odt_read_reset_context.cs.slots, (import orc_s_link), 0);
+  string odt_read_reset_style_name = xml_reader_attribute(odt_read_reset_context.odt_read_xml_reader, "text:style-name");
 } chain (Odt_Read_Context odt_read_reset_context) {
   int ov = odt_style_over_for_name(odt_read_reset_context.cs.look.odt_read_style_lookup, odt_read_reset_style_name);
   int[] odt_read_reset_row_stack = odt_read_reset_context.cs.look.odt_read_row_stack;

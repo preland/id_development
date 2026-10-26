@@ -11,7 +11,7 @@ given odt_package_fixture_new given odp_pack((import odt_package_exported_defaul
 odt_package_fixture_entry_unlisted(Zip odt_package_missing_reader, int odt_package_missing_index, string odt_package_missing_manifest) {
   string odt_package_missing_name = zip_reader_name(odt_package_missing_reader, odt_package_missing_index);
   int odt_package_missing_flag = 0;
-  if(odt_package_missing_name != "mimetype" && odt_package_missing_name != "META-INF/manifest.xml" && str_find(odt_package_missing_manifest, "manifest:full-path=\"" + odt_package_missing_name + "\"") < 0) {
+  if(odt_package_missing_name != "mimetype" && odt_package_missing_name != "META-INF/manifest.xml" && string_find(odt_package_missing_manifest, "manifest:full-path=\"" + odt_package_missing_name + "\"") < 0) {
     odt_package_missing_flag = 1;
   }
 } return int odt_package_missing_flag;
@@ -20,7 +20,7 @@ odt_package_fixture_entry_unlisted(Zip odt_package_missing_reader, int odt_packa
 
 // Test fixture (internal): how many entries of the exported archive its own manifest leaves out.
 odt_package_fixture_archive_omissions() {
-  bytes odt_package_omissions_bytes = bytes_of_int_list(zw_finish((import odt_package_exported_archive)));
+  bytes odt_package_omissions_bytes = bytes_of_integer_list(zip_writer_finish((import odt_package_exported_archive)));
   Zip odt_package_omissions_reader = zip_reader_open(odt_package_omissions_bytes);
   int odt_package_omissions_position = zip_reader_find(odt_package_omissions_reader, "META-INF/manifest.xml");
 } chain () {
@@ -28,4 +28,4 @@ odt_package_fixture_archive_omissions() {
   int odt_package_omissions_count = odt_package_fixture_count_unlisted(odt_package_omissions_reader, odt_package_omissions_manifest);
 } return int odt_package_omissions_count;
 given odt_package_fixture_new given odt_package_fixture_add_image given odp_pack((import odt_package_exported_default_document), [1], (import odt_package_exported_archive)) ():(0)
-given odt_package_fixture_new given odt_package_fixture_add_image given odp_pack((import odt_package_exported_default_document), [1], (import odt_package_exported_archive)) given zw_add((import odt_package_exported_archive), "extra.bin", [1], 0) ():(1)
+given odt_package_fixture_new given odt_package_fixture_add_image given odp_pack((import odt_package_exported_default_document), [1], (import odt_package_exported_archive)) given zip_writer_add((import odt_package_exported_archive), "extra.bin", [1], 0) ():(1)

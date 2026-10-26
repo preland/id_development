@@ -1,20 +1,20 @@
 // The text of meta.xml: the document-meta root and the name of the program that wrote the file.
 odp_meta(XmlW odt_package_meta_writer, string odt_package_meta_generator) {
   odp_root(odt_package_meta_writer, "office:document-meta");
-  xw_start(odt_package_meta_writer, "office:meta");
+  xml_writer_start_element(odt_package_meta_writer, "office:meta");
   odt_package_generator_element(odt_package_meta_writer, odt_package_meta_generator);
 } chain (XmlW odt_package_meta_writer, string odt_package_meta_generator) {
-  xw_end(odt_package_meta_writer);
-  xw_end(odt_package_meta_writer);
+  xml_writer_end_element(odt_package_meta_writer);
+  xml_writer_end_element(odt_package_meta_writer);
 } return void;
 given odt_package_fixture_new ((import odt_package_exported_writer), "word"):() then odt_package_fixture_trimmed_output:("<r><office:document-meta xmlns:office=\"u|\" office:version=\"1.3\"><office:meta><meta:generator>word</meta:generator></office:meta></office:document-meta>|1857")
 given odt_package_fixture_new ((import odt_package_exported_writer), "a&b"):() then odt_package_fixture_trimmed_output:("<r><office:document-meta xmlns:office=\"u|ffice:version=\"1.3\"><office:meta><meta:generator>a&amp;b</meta:generator></office:meta></office:document-meta>|1860")
 
 // The meta:generator element naming the program that wrote the file.
 odt_package_generator_element(XmlW odt_package_generator_writer, string odt_package_generator_name) {
-  xw_start(odt_package_generator_writer, "meta:generator");
-  xw_text(odt_package_generator_writer, odt_package_generator_name);
-  xw_end(odt_package_generator_writer);
+  xml_writer_start_element(odt_package_generator_writer, "meta:generator");
+  xml_writer_text(odt_package_generator_writer, odt_package_generator_name);
+  xml_writer_end_element(odt_package_generator_writer);
 } return void;
 given odt_package_fixture_new ((import odt_package_exported_writer), "word"):() then (import odt_package_exported_writer).out:([60, 114, 62, 60, 109, 101, 116, 97, 58, 103, 101, 110, 101, 114, 97, 116, 111, 114, 62, 119, 111, 114, 100, 60, 47, 109, 101, 116, 97, 58, 103, 101, 110, 101, 114, 97, 116, 111, 114, 62])
 given odt_package_fixture_new ((import odt_package_exported_writer), "a<b"):() then (import odt_package_exported_writer).out:([60, 114, 62, 60, 109, 101, 116, 97, 58, 103, 101, 110, 101, 114, 97, 116, 111, 114, 62, 97, 38, 108, 116, 59, 98, 60, 47, 109, 101, 116, 97, 58, 103, 101, 110, 101, 114, 97, 116, 111, 114, 62])
@@ -26,4 +26,4 @@ odt_package_fixture_trimmed_output() {
   string odt_package_trimmed_result = odt_package_fixture_trim_text(odt_package_trimmed_text);
 } return string odt_package_trimmed_result;
 given odt_package_fixture_new ():("<r")
-given odt_package_fixture_new given xw_attr((import odt_package_exported_writer), "a", "b") ():("<r a=\"b\"")
+given odt_package_fixture_new given xml_writer_attribute((import odt_package_exported_writer), "a", "b") ():("<r a=\"b\"")

@@ -1,9 +1,9 @@
 // The numbering attributes of a numbered level: the suffix, the format (decimal, letters or roman numerals) and, unless it is 1, the number to start from.
 odt_write_level_number(XmlW odt_write_level_number_writer, int odt_write_level_number_format, int odt_write_level_number_start_value) {
-  xw_attr(odt_write_level_number_writer, "style:num-suffix", ".");
-  xw_attr(odt_write_level_number_writer, "style:num-format", (import odt_num_format)[odt_write_level_number_format]);
+  xml_writer_attribute(odt_write_level_number_writer, "style:num-suffix", ".");
+  xml_writer_attribute(odt_write_level_number_writer, "style:num-format", (import odt_num_format)[odt_write_level_number_format]);
   if(odt_write_level_number_start_value != 1) {
-    xw_attr(odt_write_level_number_writer, "text:start-value", "" + odt_write_level_number_start_value);
+    xml_writer_attribute(odt_write_level_number_writer, "text:start-value", "" + odt_write_level_number_start_value);
   }
 } return void;
 given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 0, 1):() then (import odt_write_test_writer_output).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 110, 117, 109, 45, 115, 117, 102, 102, 105, 120, 61, 34, 46, 34, 32, 115, 116, 121, 108, 101, 58, 110, 117, 109, 45, 102, 111, 114, 109, 97, 116, 61, 34, 49, 34])
@@ -13,11 +13,11 @@ given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 3,
 odt_write_level_open(XmlW odt_write_level_open_writer, int[] odt_write_level_open_levels, int odt_write_level_open_index) {
   int odt_write_level_open_kind = odt_write_level_open_levels[odt_write_level_open_index * (import quill_list_level_stride) + (import quill_list_level_kind)];
   int odt_write_level_open_format = odt_write_level_open_levels[odt_write_level_open_index * (import quill_list_level_stride) + (import quill_list_level_format)];
-  xw_start(odt_write_level_open_writer, (import odt_lv_el)[odt_write_level_open_kind]);
+  xml_writer_start_element(odt_write_level_open_writer, (import odt_lv_el)[odt_write_level_open_kind]);
 } chain (XmlW odt_write_level_open_writer, int[] odt_write_level_open_levels, int odt_write_level_open_index) {
-  xw_attr(odt_write_level_open_writer, "text:level", "" + (odt_write_level_open_index + 1));
+  xml_writer_attribute(odt_write_level_open_writer, "text:level", "" + (odt_write_level_open_index + 1));
   if(odt_write_level_open_kind == 0) {
-    xw_attr(odt_write_level_open_writer, "text:bullet-char", utf8_string(odt_write_level_open_format));
+    xml_writer_attribute(odt_write_level_open_writer, "text:bullet-char", utf8_string(odt_write_level_open_format));
   } else {
     odt_write_level_number(odt_write_level_open_writer, odt_write_level_open_format, odt_write_level_open_levels[odt_write_level_open_index * (import quill_list_level_stride) + (import quill_list_level_start)]);
   }

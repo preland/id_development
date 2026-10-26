@@ -24,17 +24,17 @@ exporter_tidy(string exporter_text_literal) {
 
 exporter_given(string exporter_text_entry) {
   string exporter_text_rest = str_sub(exporter_text_entry, 2, len(exporter_text_entry) - 2);
-  int exporter_number_equals = str_find(exporter_text_rest, "=");
+  int exporter_number_equals = string_find(exporter_text_rest, "=");
   string exporter_text_value = str_sub(exporter_text_rest, exporter_number_equals + 1, len(exporter_text_rest) - exporter_number_equals - 1);
 } chain (string exporter_text_entry) {
-  string exporter_text_clause = "given " + str_trim(str_sub(exporter_text_rest, 0, exporter_number_equals)) + "_set(" + exporter_tidy(exporter_text_value) + ") ";
+  string exporter_text_clause = "given " + string_trim(str_sub(exporter_text_rest, 0, exporter_number_equals)) + "_set(" + exporter_tidy(exporter_text_value) + ") ";
 } return string exporter_text_clause;
 ("G|count = 10"):("given count_set(10) ")
 ("G|xs = [ 1 , 2 ]"):("given xs_set([1, 2]) ")
 
 exporter_then(string exporter_text_entry) {
   string exporter_text_rest = str_sub(exporter_text_entry, 2, len(exporter_text_entry) - 2);
-  int exporter_number_bar = str_find(exporter_text_rest, "|");
+  int exporter_number_bar = string_find(exporter_text_rest, "|");
   string exporter_text_value = str_sub(exporter_text_rest, exporter_number_bar + 1, len(exporter_text_rest) - exporter_number_bar - 1);
 } chain (string exporter_text_entry) {
   string exporter_text_clause = " then " + str_sub(exporter_text_rest, 0, exporter_number_bar) + "_get:(" + exporter_tidy(exporter_text_value) + ")";

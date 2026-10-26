@@ -29,12 +29,12 @@ coach_number_named(string coach_hint_text, string coach_kind, string coach_refer
 ("About 0.5", "decimal", "0.333", "0.01"):(0)
 
 coach_choice_named(string coach_plain_text, string coach_letter) {
-  string coach_lower = str_lower(coach_letter);
+  string coach_lower = string_lower(coach_letter);
   int coach_form = 0;
   int coach_found = 0;
 } chain (string coach_plain_text, string coach_letter) {
   while (coach_lower != "" && coach_form < len((import coach_choice_templates)) && coach_found == 0) {
-    if (str_find(coach_plain_text, str_replace((import coach_choice_templates)[coach_form], "#", coach_lower)) >= 0) {
+    if (string_find(coach_plain_text, string_replace((import coach_choice_templates)[coach_form], "#", coach_lower)) >= 0) {
       coach_found = 1;
     }
     coach_form = coach_form + 1;
@@ -52,7 +52,7 @@ coach_leaks(string coach_hint_text, string coach_kind, string coach_reference, s
   string coach_target = check_normal("text", coach_reference);
   int coach_found = 0;
 } chain (string coach_hint_text, string coach_kind, string coach_reference, string coach_tolerance) {
-  if (coach_kind == "text" && coach_target != "" && str_find(coach_plain, coach_target) >= 0) {
+  if (coach_kind == "text" && coach_target != "" && string_find(coach_plain, coach_target) >= 0) {
     coach_found = 1;
   }
   if (coach_kind == "choice") {

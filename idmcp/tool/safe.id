@@ -31,10 +31,10 @@ tool_safe(string safe_text) {
 ("a[b"):(0)
 
 tool_catalog_row(string catalog_line) {
-  string[] catalog_parts = str_split(catalog_line, "|");
+  string[] catalog_parts = string_split(catalog_line, "|");
   string catalog_row = "";
-  if (len(catalog_parts) >= 5 && str_starts(str_trim(catalog_parts[3]), "pub") == 1) {
-    catalog_row = str_replace(str_trim(catalog_parts[1]), "`", "") + str_replace(str_trim(catalog_parts[2]), "`", "");
+  if (len(catalog_parts) >= 5 && string_starts_with(string_trim(catalog_parts[3]), "pub") == 1) {
+    catalog_row = string_replace(string_trim(catalog_parts[1]), "`", "") + string_replace(string_trim(catalog_parts[2]), "`", "");
   }
 } return string catalog_row;
 ("| `str_trim` | `(string) -> string` | pub | `str/make/both.id` |"):("str_trim(string) -> string")
@@ -46,7 +46,7 @@ tool_catalog_row(string catalog_line) {
 tool_names_path() {
   string names_program = tool_program();
   string names_whole = names_program;
-  if (str_starts(names_program, "/") == 0) {
+  if (string_starts_with(names_program, "/") == 0) {
     names_whole = path_join(fs_getcwd(), names_program);
   }
 } chain () {

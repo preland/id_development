@@ -9,11 +9,11 @@ plan_step_pieces(string plan_text) {
   string plan_marked = plan_text;
   int plan_at = 0;
   while (plan_at < len((import plan_step_marks))) {
-    plan_marked = str_replace(plan_marked, (import plan_step_marks)[plan_at], "\n" + (import plan_step_marks)[plan_at]);
+    plan_marked = string_replace(plan_marked, (import plan_step_marks)[plan_at], "\n" + (import plan_step_marks)[plan_at]);
     plan_at = plan_at + 1;
   }
 } chain (string plan_text) {
-  string[] plan_split_pieces = str_split(plan_marked, "\n");
+  string[] plan_split_pieces = string_split(plan_marked, "\n");
 } return string[] plan_split_pieces;
 ("To show it, assume x; then y, so z. Done."):(["To show it, assume x", "; then y", ", so z", ". Done."])
 ("one plain sentence"):(["one plain sentence"])
@@ -26,7 +26,7 @@ plan_fade(string plan_text) {
   string plan_joiner = "";
 } chain (string plan_text) {
   if (len(plan_pieces_of) == 1) {
-    plan_units = str_words(plan_text);
+    plan_units = string_words(plan_text);
     plan_joiner = " ";
   }
   int plan_keep = fixed_point_maximum(1, len(plan_units) / 2);
@@ -37,7 +37,7 @@ plan_fade(string plan_text) {
     push(plan_head, plan_units[plan_at]);
     plan_at = plan_at + 1;
   }
-  string plan_faded = str_join(plan_head, plan_joiner) + " ... (your turn: finish the remaining steps yourself)";
+  string plan_faded = string_join(plan_head, plan_joiner) + " ... (your turn: finish the remaining steps yourself)";
 } chain (string plan_text) {
   if (len(plan_units) <= 1) {
     plan_faded = plan_text;

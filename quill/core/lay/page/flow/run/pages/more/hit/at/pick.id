@@ -10,8 +10,8 @@ lay_span(View hit_view, int target_page, int target_paragraph, int[] result_list
   if(hit_view.pages.starts[2 * target_page + 2] == target_paragraph) {
     span_end_line = hit_view.pages.starts[2 * target_page + 3];
   }
-  lset(result_list, 0, span_first_line);
-  lset(result_list, 1, span_end_line);
+  integer_list_set(result_list, 0, span_first_line);
+  integer_list_set(result_list, 1, span_end_line);
 } return void;
 given layout_page_test_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import layout_paragraph_test_view), 0, 0, [9, 9]):((import layout_paragraph_test_view), 0, 0, [0, 8])
 given layout_page_test_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import layout_paragraph_test_view), 1, 0, [9, 9]):((import layout_paragraph_test_view), 1, 0, [8, 10])
@@ -21,10 +21,10 @@ given layout_page_test_paged(8) ((import layout_paragraph_test_view), 1, 7, [9, 
 // By hand: line 1 of "BBB EEE BBB" spans 1792 to 2944 on the page, so it reaches below 1000 and does not reach below 5000.
 lay_visit(View hit_view, int target_paragraph, int target_line, int target_height, int[] result_list) {
   int reaches_below = lay_line_y(hit_view, target_paragraph, target_line) + layout_page_line_height(hit_view, target_paragraph, target_line) > target_height;
-  lset(result_list, 0, target_paragraph);
-  lset(result_list, 1, target_line);
+  integer_list_set(result_list, 0, target_paragraph);
+  integer_list_set(result_list, 1, target_line);
 } chain (View hit_view, int target_paragraph, int target_line, int target_height, int[] result_list) {
-  lset(result_list, 2, reaches_below);
+  integer_list_set(result_list, 2, reaches_below);
 } return void;
 given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 1, 1000, [9, 9, 9]):((import layout_paragraph_test_view), 0, 1, 1000, [0, 1, 1])
 given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 1, 5000, [9, 9, 9]):((import layout_paragraph_test_view), 0, 1, 5000, [0, 1, 0])

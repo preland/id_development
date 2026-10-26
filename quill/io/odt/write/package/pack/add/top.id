@@ -8,11 +8,11 @@ odt_package_add_manifest(ZipW odt_package_attach_archive, Ext odt_package_attach
   odp_put(odt_package_attach_archive, "META-INF/manifest.xml", odt_package_attach_writer);
 } return void;
 given odt_package_fixture_new ((import odt_package_exported_archive), (import odt_package_exported_references)):() then (import odt_package_exported_archive).names:(["", "META-INF/manifest.xml"])
-given odt_package_fixture_new given zw_add((import odt_package_exported_archive), "x", [1], 0) ((import odt_package_exported_archive), (import odt_package_exported_references)):() then (import odt_package_exported_archive).names:(["", "x", "META-INF/manifest.xml"])
+given odt_package_fixture_new given zip_writer_add((import odt_package_exported_archive), "x", [1], 0) ((import odt_package_exported_archive), (import odt_package_exported_references)):() then (import odt_package_exported_archive).names:(["", "x", "META-INF/manifest.xml"])
 
 // Fills an empty archive with the package of the document: mimetype first and stored, then META-INF/manifest.xml, content.xml (the caller's bytes), styles.xml, meta.xml and the preserved parts. Entries are all stored; zw_why on the archive says if one was refused.
 odp_pack(Doc odt_package_pack_document, int[] odt_package_pack_content, ZipW odt_package_pack_archive) {
-  zw_mimetype(odt_package_pack_archive, (import odp_mime));
+  zip_writer_media_type(odt_package_pack_archive, (import odp_mime));
   odt_package_add_manifest(odt_package_pack_archive, odt_package_pack_document.ext);
   odp_core(odt_package_pack_archive, odt_package_pack_document, odt_package_pack_content);
 } chain (Doc odt_package_pack_document, int[] odt_package_pack_content, ZipW odt_package_pack_archive) {

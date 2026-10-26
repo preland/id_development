@@ -15,7 +15,7 @@ editor_play_event(Doc d, Ctl ctl, string line) {
   int n = fixed_point_maximum(len(line) - 1, 0);
   string argument_text = str_sub(line, 1, n);
 } chain (Doc d, Ctl ctl, string line) {
-  string[] fields = str_split(argument_text, ":");
+  string[] fields = string_split(argument_text, ":");
   editor_play_text(d, ctl, verb, argument_text);
   editor_play_history(d, ctl, verb, argument_text);
 } chain (Doc d, Ctl ctl, string line) {
@@ -27,7 +27,7 @@ given editor_fixture_setup("ab") ((import fixture_document), (import fixture_con
 
 // Plays a script of events against the document, one event per line (the text of a "quill --script" file): T<text> types it, E presses Enter, B and W Backspace and Ctrl+Backspace, D and F Delete and Ctrl+Delete, U and R undo and redo, C X V copy, cut and paste what was copied, P<text> pastes foreign text, M<dir>:<unit>:<extend> moves, A selects all, S<para>:<off>:<para>:<off> selects, G<bit> toggles a flag, O<field>:<value> sets a character field, L<field>:<value> a paragraph field, Y<style> a style, Z clears formatting, K is a page break and H<needle>:<with> replaces all (matching case).
 editor_play(Doc d, Ctl ctl, string script) {
-  string[] pieces = str_split(script, "\n");
+  string[] pieces = string_split(script, "\n");
   int k = 0;
   while(k < len(pieces)) {
     editor_play_event(d, ctl, pieces[k]);

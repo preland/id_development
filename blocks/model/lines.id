@@ -4,7 +4,7 @@
 // one error found here (E0102), since nothing later could place the line.
 
 model_lines(string block_text) {
-  string[] block_lists = str_lines(block_text);
+  string[] block_lists = string_lines(block_text);
   int block_index = 0;
   while (block_index < len(block_lists)) {
     model_add_line(block_index + 1, block_lists[block_index]);
@@ -15,9 +15,9 @@ given model_initial ("a\n\n// c\n  b\n"):() then (import model_line_texts):(["a"
 given model_initial ("x"):() then (import model_line_indents):([0]) then len((import model_line_texts)):(1)
 
 model_add_line(int block_no, string block_raw) {
-  string block_trim = str_trim(block_raw);
-  int block_sprite_row = str_skip_space(block_raw, 0);
-  if (block_trim != "" && str_starts(block_trim, "//") == 0) {
+  string block_trim = string_trim(block_raw);
+  int block_sprite_row = string_skip_spaces(block_raw, 0);
+  if (block_trim != "" && string_starts_with(block_trim, "//") == 0) {
     model_push_line(block_no, block_sprite_row, block_trim);
   }
 } return void;

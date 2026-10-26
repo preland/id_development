@@ -5,9 +5,9 @@
 // line) and exporter_digits says whether a text is a number.
 
 exporter_set_name(string exporter_text_line) {
-  int exporter_number_at = str_find(exporter_text_line, "_set(");
+  int exporter_number_at = string_find(exporter_text_line, "_set(");
   string exporter_text_name = "";
-  if (exporter_number_at > 2 && str_starts(exporter_text_line, "  ") && str_ends(exporter_text_line, ");")) {
+  if (exporter_number_at > 2 && string_starts_with(exporter_text_line, "  ") && string_ends_with(exporter_text_line, ");")) {
     exporter_text_name = str_sub(exporter_text_line, 2, exporter_number_at - 2);
   }
 } chain (string exporter_text_line) {
@@ -21,7 +21,7 @@ given model_load("t.blk", "sprite S\nvar int n") ("    n_set(2);"):("")
 given model_load("t.blk", "sprite S\nvar int n") ("  say(\"S\", \"y\");"):("")
 
 exporter_set_value(string exporter_text_line) {
-  int exporter_number_at = str_find(exporter_text_line, "_set(");
+  int exporter_number_at = string_find(exporter_text_line, "_set(");
   string exporter_text_value = "";
   if (exporter_number_at >= 0) {
     exporter_text_value = str_sub(exporter_text_line, exporter_number_at + 5, len(exporter_text_line) - exporter_number_at - 7);

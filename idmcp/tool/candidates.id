@@ -33,10 +33,10 @@ given tool_t_session ("str_trim", "std", "sample"):(["str_trim"])
 
 tool_match_json(string match_name, string match_root) {
   string match_found = tool_locate(match_name, match_root);
-  string[] match_parts = str_split(match_found + "||", "|");
+  string[] match_parts = string_split(match_found + "||", "|");
   string match_text = "";
 } chain (string match_name, string match_root) {
-  string[] match_lines = str_split(fs_read_text(match_parts[0]), "\n");
+  string[] match_lines = string_split(fs_read_text(match_parts[0]), "\n");
   int match_sig = to_int(match_parts[1]) - 1;
   int match_first = tool_doc_start(match_lines, match_sig);
 } chain (string match_name, string match_root) {
@@ -45,7 +45,7 @@ tool_match_json(string match_name, string match_root) {
   string[] match_fields = [tool_label("name", match_name), tool_label("signature", match_parts[2]), tool_label("file", match_file), tool_number("line", match_sig + 1), tool_label("doc", match_doc)];
 } chain (string match_name, string match_root) {
   if (match_found != "") {
-    match_text = "{" + str_join(match_fields, ",") + "}";
+    match_text = "{" + string_join(match_fields, ",") + "}";
   }
 } return string match_text;
 given tool_t_session ("sample_clamp", "sample"):("{\"name\":\"sample_clamp\",\"signature\":\"sample_clamp(int sample_value, int sample_top) -> int\",\"file\":\"math/count.id\",\"line\":15,\"doc\":\"Keeps a value at or under a top.\"}")

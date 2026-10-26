@@ -14,8 +14,8 @@ view_state_scroll(View view_state_scroll_viewer, int view_state_scroll_distance,
   int view_state_scroll_new_row = fixed_point_clamp(view_state_scroll_state[(import vw_s_y)] + view_state_scroll_distance, 0, view_state_scroll_maximum);
 } chain (View view_state_scroll_viewer, int view_state_scroll_distance, int view_state_scroll_area_height) {
   if(view_state_scroll_new_row != view_state_scroll_state[(import vw_s_y)]) {
-    lset(view_state_scroll_state, (import vw_s_y), view_state_scroll_new_row);
-    lset(view_state_scroll_state, (import vw_s_d), 1);
+    integer_list_set(view_state_scroll_state, (import vw_s_y), view_state_scroll_new_row);
+    integer_list_set(view_state_scroll_state, (import vw_s_d), 1);
   }
 } return void;
 given view_test_two_pages given view_test_state_scrolled(0, 100) ((import layout_paragraph_test_view), 50, 300):() then view_test_state_dump:("sts 0,50,100,1,")
@@ -29,10 +29,10 @@ view_state_zoom(View view_state_zoom_viewer, int view_state_zoom_requested, int 
   int view_state_zoom_scaled_row = view_state_zoom_state[(import vw_s_y)] * view_state_zoom_clamped / view_state_zoom_state[(import vw_s_z)];
 } chain (View view_state_zoom_viewer, int view_state_zoom_requested, int view_state_zoom_area_height) {
   int view_state_zoom_maximum = view_scroll_maximum(view_state_zoom_viewer, view_state_zoom_clamped, view_state_zoom_area_height);
-  lset(view_state_zoom_state, (import vw_s_z), view_state_zoom_clamped);
-  lset(view_state_zoom_state, (import vw_s_y), fixed_point_minimum(view_state_zoom_scaled_row, view_state_zoom_maximum));
+  integer_list_set(view_state_zoom_state, (import vw_s_z), view_state_zoom_clamped);
+  integer_list_set(view_state_zoom_state, (import vw_s_y), fixed_point_minimum(view_state_zoom_scaled_row, view_state_zoom_maximum));
 } chain (View view_state_zoom_viewer, int view_state_zoom_requested, int view_state_zoom_area_height) {
-  lset(view_state_zoom_state, (import vw_s_d), 1);
+  integer_list_set(view_state_zoom_state, (import vw_s_d), 1);
 } return void;
 given view_test_two_pages given view_test_state_scrolled(100, 100) ((import layout_paragraph_test_view), 150, 300):() then view_test_state_dump:("sts 0,150,150,1,")
 given view_test_two_pages given view_test_state_scrolled(0, 100) ((import layout_paragraph_test_view), 1000, 300):() then view_test_state_dump:("sts 0,0,400,1,")

@@ -18,7 +18,7 @@ given state_test_tree(2000, 2000) ((import state_test_root), [], 400):(0)
 // 1 when a `.id` file anywhere below state_directory, at most walk_depth_limit
 // levels down, is newer than state_built; state_depth is the level of state_directory.
 state_tree(string state_directory, int state_built, int state_depth) {
-  string[] state_files = str_lines(fs_list_kind(state_directory, 1));
+  string[] state_files = string_lines(fs_list_kind(state_directory, 1));
   int state_found = state_files_newer(state_directory, state_files, state_built);
   if (state_found == 0 && state_depth < (import walk_depth_limit)) {
     state_found = state_subdirectories(state_directory, state_built, state_depth);
@@ -33,7 +33,7 @@ given state_test_tree(100, 2000) ((import state_test_root), 600, 0):(0)
 
 // The same over the subdirectories of state_directory that a walk enters.
 state_subdirectories(string state_directory, int state_built, int state_depth) {
-  string[] state_names = str_lines(fs_list_kind(state_directory, 2));
+  string[] state_names = string_lines(fs_list_kind(state_directory, 2));
   int state_index = 0;
   int state_found = 0;
 } chain (string state_directory, int state_built, int state_depth) {

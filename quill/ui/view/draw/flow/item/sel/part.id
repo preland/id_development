@@ -20,14 +20,14 @@ view_flow_set_area_rows(int view_flow_rows_first, int view_flow_rows_last, int[]
   int view_flow_rows_band_top = fixed_point_clamp(view_flow_rows_first, view_flow_rows_canvas_top, view_flow_rows_canvas_top + view_flow_rows_canvas_height);
 } chain (int view_flow_rows_first, int view_flow_rows_last, int[] view_flow_rows_area) {
   int view_flow_rows_band_bottom = fixed_point_clamp(view_flow_rows_last, view_flow_rows_band_top, view_flow_rows_canvas_top + view_flow_rows_canvas_height);
-  lset(view_flow_rows_area, 0, view_box_field("canvas", 0));
-  lset(view_flow_rows_area, 1, view_flow_rows_canvas_top);
+  integer_list_set(view_flow_rows_area, 0, view_box_field("canvas", 0));
+  integer_list_set(view_flow_rows_area, 1, view_flow_rows_canvas_top);
 } chain (int view_flow_rows_first, int view_flow_rows_last, int[] view_flow_rows_area) {
-  lset(view_flow_rows_area, 2, view_box_field("canvas", 2));
-  lset(view_flow_rows_area, 3, view_flow_rows_canvas_height);
-  lset(view_flow_rows_area, 4, view_flow_rows_band_top);
+  integer_list_set(view_flow_rows_area, 2, view_box_field("canvas", 2));
+  integer_list_set(view_flow_rows_area, 3, view_flow_rows_canvas_height);
+  integer_list_set(view_flow_rows_area, 4, view_flow_rows_band_top);
 } chain (int view_flow_rows_first, int view_flow_rows_last, int[] view_flow_rows_area) {
-  lset(view_flow_rows_area, 5, view_flow_rows_band_bottom);
+  integer_list_set(view_flow_rows_area, 5, view_flow_rows_band_bottom);
 } return void;
 given view_test_two_pages given view_test_fit_chrome(400, 300) (100, 140, [9, 9, 9, 9, 9, 9]):(100, 140, [0, 156, 384, 122, 156, 156])
 given view_test_two_pages given view_test_fit_chrome(400, 300) (200, 400, [9, 9, 9, 9, 9, 9]):(200, 400, [0, 156, 384, 122, 200, 278])
@@ -40,9 +40,9 @@ view_flow_paint_part(View view_flow_part_view) {
 } chain (View view_flow_part_view) {
   view_flow_paint_area(view_flow_part_view, view_flow_part_area);
   view_status_paint(view_flow_part_view);
-  lset(view_flow_part_edit_states, (import cv_e_y0), 0 - 1);
+  integer_list_set(view_flow_part_edit_states, (import cv_e_y0), 0 - 1);
 } chain (View view_flow_part_view) {
-  lset(view_flow_part_edit_states, (import cv_e_y1), 0 - 1);
+  integer_list_set(view_flow_part_edit_states, (import cv_e_y1), 0 - 1);
 } return void;
 given view_flow_test_open_edit("A|A|A|A|A|A|A|A") given ribbon_faces_set(1, 1, 1) given surface_fill_rectangle(0, 156, 384, 122, 255) given view_input_mark_rows_stale(178, 188) given view_test_remember_pixel(5, 183) ((import layout_paragraph_test_view)):() then view_test_pixel_color:(13619151) then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,-1,-1,")
 given view_flow_test_open_edit("A|A|A|A|A|A|A|A") given ribbon_faces_set(1, 1, 1) given surface_fill_rectangle(0, 156, 384, 122, 255) given view_input_mark_rows_stale(178, 188) given view_test_remember_pixel(5, 168) ((import layout_paragraph_test_view)):() then view_test_pixel_color:(255)

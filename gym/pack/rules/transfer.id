@@ -4,12 +4,12 @@
 // one item for it without "transfer: yes".
 
 pack_has_concept(Pack pack_book, int pack_block, string pack_concept_wanted) {
-  string[] pack_pieces = str_split(pack_field(pack_book, pack_block, "concepts"), ",");
+  string[] pack_pieces = string_split(pack_field(pack_book, pack_block, "concepts"), ",");
   int pack_at = 0;
   int pack_present = 0;
 } chain (Pack pack_book, int pack_block, string pack_concept_wanted) {
   while (pack_at < len(pack_pieces)) {
-    if (str_trim(pack_pieces[pack_at]) == pack_concept_wanted) {
+    if (string_trim(pack_pieces[pack_at]) == pack_concept_wanted) {
       return 1;
     }
     pack_at = pack_at + 1;
@@ -40,11 +40,11 @@ given pack_fixture_parse("") ((import pack_fixture_book), "a"):(0)
 pack_transfer_gaps(Pack pack_book, int pack_block) {
   string[] pack_found_problems = [];
   string pack_who = "transfer item '" + pack_identifier_of(pack_book, pack_block) + "'";
-  string[] pack_pieces = str_split(pack_field(pack_book, pack_block, "concepts"), ",");
+  string[] pack_pieces = string_split(pack_field(pack_book, pack_block, "concepts"), ",");
 } chain (Pack pack_book, int pack_block) {
   int pack_at = 0;
   while (pack_field(pack_book, pack_block, "transfer") == "yes" && pack_at < len(pack_pieces)) {
-    string pack_concept_name = str_trim(pack_pieces[pack_at]);
+    string pack_concept_name = string_trim(pack_pieces[pack_at]);
     if (pack_practice_count(pack_book, pack_concept_name) == 0) {
       push(pack_found_problems, pack_say(pack_book, pack_block, "transfer", pack_who + " has no practice item for concept '" + pack_concept_name + "'; add one without 'transfer: yes'"));
     }

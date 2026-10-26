@@ -1,6 +1,6 @@
 // What one event inside a list style does to the entry owi, given the level owcur that the last level element chose: a level element starts the level it names (0 when the dump follows no such level), any other element applies to the current level. Answers the new current level.
 fodt_dump_level_event(Catalog style_store, int entry_index, XmlR document_reader, int reader_event, int current_level) {
-  int is_level_head = reader_event != 2 && str_starts(xml_reader_get(document_reader, (import xml_reader_k_name)), "text:list-level-style-") == 1;
+  int is_level_head = reader_event != 2 && string_starts_with(xml_reader_get(document_reader, (import xml_reader_k_name)), "text:list-level-style-") == 1;
   int owl = current_level;
   if(is_level_head == 1) {
     owl = fodt_dump_level_number(document_reader);
@@ -20,7 +20,7 @@ given fodt_dump_test_open("<style:list-level-label-alignment fo:margin-left=\"0.
 // Adds the entry of the list style the reader is at ("l:" and its name), with the built-in levels in its bag; answers the entry.
 fodt_dump_list_style_open(Catalog style_store, XmlR document_reader) {
   string[] property_lists = style_store.props;
-  fodt_dump_add_entry(style_store, "l:" + xml_reader_attr(document_reader, "style:name"), "", "", "");
+  fodt_dump_add_entry(style_store, "l:" + xml_reader_attribute(document_reader, "style:name"), "", "", "");
   property_lists[len(property_lists) - 1] = (import ow_lvdef);
 } return void;
 given fodt_dump_test_open("<text:list-style style:name=\"L1\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Catalog([], [], []), (import fodt_dump_test_reader)):(Catalog(["l:L1"], ["|1.k=b|1.f=8226|1.s=1|1.l=720|1.h=360|2.k=b|2.f=9702|2.s=1|2.l=1440|2.h=360|3.k=b|3.f=9642|3.s=1|3.l=2160|3.h=360"], ["", "", ""]), (import fodt_dump_test_reader))

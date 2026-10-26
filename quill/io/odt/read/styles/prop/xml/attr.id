@@ -14,8 +14,8 @@ odt_named_family_unquote(string odt_named_family_unquote_text) {
 
 // The font family a text-properties element names: style:font-name (a face declared in font-face-decls, resolved later) or else fo:font-family; "" when neither.
 odt_named_font_family(XmlR odt_named_font_family_reader) {
-  string odt_named_font_family_font_name = xml_reader_attr(odt_named_font_family_reader, "style:font-name");
-  string odt_named_font_family_family_attribute = xml_reader_attr(odt_named_font_family_reader, "fo:font-family");
+  string odt_named_font_family_font_name = xml_reader_attribute(odt_named_font_family_reader, "style:font-name");
+  string odt_named_font_family_family_attribute = xml_reader_attribute(odt_named_font_family_reader, "fo:font-family");
   if(odt_named_font_family_font_name == "") {
     odt_named_font_family_font_name = odt_named_family_unquote(odt_named_font_family_family_attribute);
   }
@@ -28,7 +28,7 @@ given odt_named_reader_open("<p/>") given xml_reader_skip((import odt_named_read
 odt_named_character_attributes(int[] odt_named_character_attributes_row, XmlR odt_named_character_attributes_reader) {
   int odt_named_character_attributes_attribute = 0;
   while(odt_named_character_attributes_attribute < len((import ost_cattr))) {
-    string odt_named_character_attributes_text = xml_reader_attr(odt_named_character_attributes_reader, (import ost_cattr)[odt_named_character_attributes_attribute]);
+    string odt_named_character_attributes_text = xml_reader_attribute(odt_named_character_attributes_reader, (import ost_cattr)[odt_named_character_attributes_attribute]);
     if(odt_named_character_attributes_text != "") {
       odt_named_character_apply(odt_named_character_attributes_row, odt_named_character_attributes_attribute, odt_named_character_attributes_text);
     }

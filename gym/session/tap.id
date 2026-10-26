@@ -26,7 +26,7 @@ session_tap_out(Pack session_book, string session_log_path, word session_now, in
   string[] session_result = ["refused", session_refusal];
 } chain (Pack session_book, string session_log_path, word session_now, int session_confidence, int session_seconds) {
   if (session_refusal == "") {
-    session_result = ["ok", "", "tapped out", pack_field(session_book, session_block, "answer"), str_join(pack_fields(session_book, session_block, "rubric"), "\n"), session_shown[(import session_slot_item)], session_shown[(import session_slot_phase)], pack_field(session_book, session_block, "hint_example")];
+    session_result = ["ok", "", "tapped out", pack_field(session_book, session_block, "answer"), string_join(pack_fields(session_book, session_block, "rubric"), "\n"), session_shown[(import session_slot_item)], session_shown[(import session_slot_phase)], pack_field(session_book, session_block, "hint_example")];
   }
 } return string[] session_result;
 given model_fixture_log_file("1\tsession_plan\ta,b\tmain,main\tr1\\nr2\n") given model_fixture_pack("item: a\nprompt: P\nanswer_kind: fraction\nanswer: 1/3\nrubric: R1\nhint_example: Eg 1/3.\n") ((import model_fixture_book), (import model_fixture_log), 100, 50, 8):(["ok", "", "tapped out", "1/3", "R1", "a", "main", "Eg 1/3."]) then model_fixture_size:(73)

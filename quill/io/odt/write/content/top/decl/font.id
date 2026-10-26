@@ -1,10 +1,10 @@
 // One style:font-face declaration: the family name, and the same name quoted as the CSS family the face stands for.
 odt_write_font_face(XmlW odt_write_font_face_writer, string odt_write_font_face_name) {
-  xw_start(odt_write_font_face_writer, "style:font-face");
-  xw_attr(odt_write_font_face_writer, "style:name", odt_write_font_face_name);
-  xw_attr(odt_write_font_face_writer, "svg:font-family", "'" + odt_write_font_face_name + "'");
+  xml_writer_start_element(odt_write_font_face_writer, "style:font-face");
+  xml_writer_attribute(odt_write_font_face_writer, "style:name", odt_write_font_face_name);
+  xml_writer_attribute(odt_write_font_face_writer, "svg:font-family", "'" + odt_write_font_face_name + "'");
 } chain (XmlW odt_write_font_face_writer, string odt_write_font_face_name) {
-  xw_end(odt_write_font_face_writer);
+  xml_writer_end_element(odt_write_font_face_writer);
 } return void;
 given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), "Arial"):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 115, 116, 121, 108, 101, 58, 102, 111, 110, 116, 45, 102, 97, 99, 101, 32, 115, 116, 121, 108, 101, 58, 110, 97, 109, 101, 61, 34, 65, 114, 105, 97, 108, 34, 32, 115, 118, 103, 58, 102, 111, 110, 116, 45, 102, 97, 109, 105, 108, 121, 61, 34, 39, 65, 114, 105, 97, 108, 39, 34, 47, 62])
 given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), "Liberation Serif"):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 115, 116, 121, 108, 101, 58, 102, 111, 110, 116, 45, 102, 97, 99, 101, 32, 115, 116, 121, 108, 101, 58, 110, 97, 109, 101, 61, 34, 76, 105, 98, 101, 114, 97, 116, 105, 111, 110, 32, 83, 101, 114, 105, 102, 34, 32, 115, 118, 103, 58, 102, 111, 110, 116, 45, 102, 97, 109, 105, 108, 121, 61, 34, 39, 76, 105, 98, 101, 114, 97, 116, 105, 111, 110, 32, 83, 101, 114, 105, 102, 39, 34, 47, 62])
@@ -22,9 +22,9 @@ given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Do
 
 // The office:font-face-decls element of content.xml.
 odt_write_font_declarations(XmlW odt_write_font_declarations_writer, Doc odt_write_font_declarations_document) {
-  xw_start(odt_write_font_declarations_writer, "office:font-face-decls");
+  xml_writer_start_element(odt_write_font_declarations_writer, "office:font-face-decls");
   odt_write_font_faces_all(odt_write_font_declarations_writer, odt_write_font_declarations_document);
-  xw_end(odt_write_font_declarations_writer);
+  xml_writer_end_element(odt_write_font_declarations_writer);
 } return void;
 given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["A"], [], []))):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 111, 102, 102, 105, 99, 101, 58, 102, 111, 110, 116, 45, 102, 97, 99, 101, 45, 100, 101, 99, 108, 115, 62, 60, 115, 116, 121, 108, 101, 58, 102, 111, 110, 116, 45, 102, 97, 99, 101, 32, 115, 116, 121, 108, 101, 58, 110, 97, 109, 101, 61, 34, 65, 34, 32, 115, 118, 103, 58, 102, 111, 110, 116, 45, 102, 97, 109, 105, 108, 121, 61, 34, 39, 65, 39, 34, 47, 62, 60, 47, 111, 102, 102, 105, 99, 101, 58, 102, 111, 110, 116, 45, 102, 97, 99, 101, 45, 100, 101, 99, 108, 115, 62])
 given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], []))):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 111, 102, 102, 105, 99, 101, 58, 102, 111, 110, 116, 45, 102, 97, 99, 101, 45, 100, 101, 99, 108, 115, 47, 62])

@@ -10,7 +10,7 @@ app_events_take(App app_take_application) {
   }
 } return int app_take_quit;
 given cli_test_boot_app ((import cli_application)):(0)
-given cli_test_boot_app given lset((import cli_state_list), 3, 1) ((import cli_application)):(0)
+given cli_test_boot_app given integer_list_set((import cli_state_list), 3, 1) ((import cli_application)):(0)
 
 // The picture is made again, in a surface that the window changed the size of: everything that depends on the size is fitted, and the dialog that is open is put in the middle again.
 app_surface_resize(App app_resize_application) {
@@ -33,7 +33,7 @@ app_window_paint(App app_paint_application, int app_paint_quit) {
   if(app_paint_dialog != (import wa_d_none) && app_paint_stale != 0 && app_paint_quit == 0) {
     view_input_window_draw(app_paint_application.ui.view);
     app_dialog_paint();
-    lset((import view_state), (import vw_s_d), 1 - gfx_present((import surface_pixels)));
+    integer_list_set((import view_state), (import vw_s_d), 1 - gfx_present((import surface_pixels)));
   }
 } return void;
 given cli_test_boot_app given app_dialog_show("T", ["hi"], ["OK"], 4) given view_test_remember_pixel(200, 150) ((import cli_application), 0):() then view_test_pixel_color:(16777215)

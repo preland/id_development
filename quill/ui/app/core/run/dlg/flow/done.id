@@ -1,9 +1,9 @@
 // Takes the dialog off the screen: no dialog is open, and the picture is stale.
 app_dialog_close() {
-  lset((import cli_state_list), (import wa_s_dlg), (import wa_d_none));
-  lset((import view_state), (import vw_s_d), 1);
+  integer_list_set((import cli_state_list), (import wa_s_dlg), (import wa_d_none));
+  integer_list_set((import view_state), (import vw_s_d), 1);
 } return void;
-given cli_test_boot_app given app_dialog_show("T", ["a"], ["OK"], 4) given lset((import view_state), 3, 0) ():() then cli_test_state_text:("0,0,0,0,|0|0") then view_test_state_dump:("sts 0,0,100,1,")
+given cli_test_boot_app given app_dialog_show("T", ["a"], ["OK"], 4) given integer_list_set((import view_state), 3, 0) ():() then cli_test_state_text:("0,0,0,0,|0|0") then view_test_state_dump:("sts 0,0,100,1,")
 given cli_test_boot_app ():() then cli_test_state_text:("0,0,0,0,|0|0")
 
 // Saves the document where it is: to its file, or, when it has none, through the Save As picker. Once saved, the action that was waiting for it happens (wa_go); a save that failed says why and nothing waits.
@@ -25,7 +25,7 @@ app_document_save(App app_save_application) {
   }
 } return void;
 given cli_test_boot_app ((import cli_application)):() then cli_test_state_text:("0,0,3,0,|0|0")
-given cli_test_boot_app given cli_test_type_code_point(120) given cli_test_make_pair("zz", "old") given app_test_set_path((import cli_test_target_path)) given lset((import cli_state_list), 1, 3) ((import cli_application)):() then cli_test_state_text:("1,0,0,1,|1|0") then cli_test_remove_pair:(0)
+given cli_test_boot_app given cli_test_type_code_point(120) given cli_test_make_pair("zz", "old") given app_test_set_path((import cli_test_target_path)) given integer_list_set((import cli_state_list), 1, 3) ((import cli_application)):() then cli_test_state_text:("1,0,0,1,|1|0") then cli_test_remove_pair:(0)
 given cli_test_boot_app given cli_test_type_code_point(120) given app_test_set_path("/nonexistent/d/x.odt") ((import cli_application)):() then cli_test_state_text:("0,0,4,0,|1|0")
 
 // What the file picker chose: the dialog goes, and the file at was_path is opened (the Open picker) or written (the Save As picker), saying why when it cannot be, and after a Save As the action that was waiting for it happens.
@@ -48,5 +48,5 @@ app_picker_chosen(App app_chosen_application, string was_path) {
     app_action_perform(app_chosen_application);
   }
 } return void;
-given cli_test_boot_app given odt_read_fixture_make_archive("<r><office:text><text:p>Hi</text:p></office:text></r>", "") given odt_read_fixture_save_archive given lset((import cli_state_list), 2, 2) ((import cli_application), (import odt_read_fixture_scratch_path)):() then cli_test_document_text:("Hi") then cli_test_state_text:("0,0,0,0,|1|0") then odt_read_fixture_remove_file:(0)
-given cli_test_boot_app given cli_test_type_code_point(120) given lset((import cli_state_list), 2, 3) given lset((import cli_state_list), 1, 3) given cli_test_make_pair("zz", "old") ((import cli_application), (import cli_test_target_path)):() then cli_test_state_text:("1,0,0,1,|1|0") then cli_test_remove_pair:(0)
+given cli_test_boot_app given odt_read_fixture_make_archive("<r><office:text><text:p>Hi</text:p></office:text></r>", "") given odt_read_fixture_save_archive given integer_list_set((import cli_state_list), 2, 2) ((import cli_application), (import odt_read_fixture_scratch_path)):() then cli_test_document_text:("Hi") then cli_test_state_text:("0,0,0,0,|1|0") then odt_read_fixture_remove_file:(0)
+given cli_test_boot_app given cli_test_type_code_point(120) given integer_list_set((import cli_state_list), 2, 3) given integer_list_set((import cli_state_list), 1, 3) given cli_test_make_pair("zz", "old") ((import cli_application), (import cli_test_target_path)):() then cli_test_state_text:("1,0,0,1,|1|0") then cli_test_remove_pair:(0)

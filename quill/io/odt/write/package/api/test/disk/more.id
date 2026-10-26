@@ -7,7 +7,7 @@ given odt_package_fixture_scratch_path ():() then calls odt_package_write_file:(
 
 // Test fixture (internal): the entry names, comma separated, of the zip in the scratch file once every entry has been read with its size and CRC-32 checked; "bad: " and the reader's reason when anything is wrong.
 odt_package_fixture_entry_names() {
-  bytes odt_package_entries_bytes = bytes_of_int_list(odt_package_fixture_scratch_bytes());
+  bytes odt_package_entries_bytes = bytes_of_integer_list(odt_package_fixture_scratch_bytes());
   Zip odt_package_entries_reader = zip_reader_open(odt_package_entries_bytes);
   int odt_package_entries_index = 0;
 } chain () {
@@ -16,7 +16,7 @@ odt_package_fixture_entry_names() {
     odt_package_entries_index = odt_package_entries_index + 1;
   }
   string[] odt_package_entries_names = list_string_tail(odt_package_entries_reader.names, 1);
-  string odt_package_entries_result = str_join(odt_package_entries_names, ",");
+  string odt_package_entries_result = string_join(odt_package_entries_names, ",");
 } chain () {
   if(zip_reader_ok(odt_package_entries_reader) == 0) {
     odt_package_entries_result = "bad: " + zip_reader_why(odt_package_entries_reader);
@@ -27,9 +27,9 @@ given odt_package_fixture_scratch_path given odt_package_fixture_write_zip ():("
 
 // Test fixture (internal): writes a small valid zip with one entry, "a", to the scratch file through odw_write.
 odt_package_fixture_write_zip() {
-  ZipW odt_package_zip_archive = zw_new();
-  zw_add(odt_package_zip_archive, "a", [104, 105], 0);
-  int odt_package_zip_status = odt_package_write_file((import odt_package_scratch_file), zw_finish(odt_package_zip_archive));
+  ZipW odt_package_zip_archive = zip_writer_new();
+  zip_writer_add(odt_package_zip_archive, "a", [104, 105], 0);
+  int odt_package_zip_status = odt_package_write_file((import odt_package_scratch_file), zip_writer_finish(odt_package_zip_archive));
 } return void;
 given odt_package_fixture_scratch_path ():() then odt_package_fixture_entry_names:("a")
-given odt_package_fixture_scratch_path ():() then odt_package_fixture_scratch_bytes:([80, 75, 3, 4, 10, 0, 0, 0, 0, 0, 0, 0, 33, 0, 172, 42, 147, 216, 2, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 97, 104, 105, 80, 75, 1, 2, 20, 0, 10, 0, 0, 0, 0, 0, 0, 0, 33, 0, 172, 42, 147, 216, 2, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 97, 80, 75, 5, 6, 0, 0, 0, 0, 1, 0, 1, 0, 47, 0, 0, 0, 33, 0, 0, 0, 0, 0]) then calls zw_new:[1]
+given odt_package_fixture_scratch_path ():() then odt_package_fixture_scratch_bytes:([80, 75, 3, 4, 10, 0, 0, 0, 0, 0, 0, 0, 33, 0, 172, 42, 147, 216, 2, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 97, 104, 105, 80, 75, 1, 2, 20, 0, 10, 0, 0, 0, 0, 0, 0, 0, 33, 0, 172, 42, 147, 216, 2, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 97, 80, 75, 5, 6, 0, 0, 0, 0, 1, 0, 1, 0, 47, 0, 0, 0, 33, 0, 0, 0, 0, 0]) then calls zip_writer_new:[1]

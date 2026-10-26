@@ -6,16 +6,16 @@
 wire_unicode(string wire_text) {
   string[] wire_pieces = [];
   int wire_from = 0;
-  int wire_at = str_findat(wire_text, "\\u", 0);
+  int wire_at = string_find_from(wire_text, "\\u", 0);
 } chain (string wire_text) {
   while (wire_at >= 0) {
     wire_from = wire_unicode_step(wire_text, wire_pieces, wire_from, wire_at);
-    wire_at = str_findat(wire_text, "\\u", wire_from);
+    wire_at = string_find_from(wire_text, "\\u", wire_from);
   }
   string wire_tail = str_sub(wire_text, wire_from, len(wire_text) - wire_from);
   push(wire_pieces, wire_tail);
 } chain (string wire_text) {
-  string wire_done = str_join(wire_pieces, "");
+  string wire_done = string_join(wire_pieces, "");
 } return string wire_done;
 ("plain"):("plain")
 ("A\\u0042C"):("ABC")

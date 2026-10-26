@@ -2,12 +2,12 @@
 app_dialog_show(string was_title, string[] wat_body, string[] wat_keys, int app_show_kind) {
   GuiDialog app_show_dialog = gui_dialog_new(was_title, wat_body, wat_keys, 0, (import wa_minw), (import ribbon_faces)[0]);
   export GuiDialog app_open_dialog = app_show_dialog;
-  lset((import cli_state_list), (import wa_s_dlg), app_show_kind);
+  integer_list_set((import cli_state_list), (import wa_s_dlg), app_show_kind);
 } chain (string was_title, string[] wat_body, string[] wat_keys, int app_show_kind) {
   app_dialog_center();
-  lset((import view_state), (import vw_s_d), 1);
+  integer_list_set((import view_state), (import vw_s_d), 1);
 } return void;
-given cli_test_boot_app given lset((import view_state), 3, 0) ("T", ["hi"], ["OK"], 4):() then cli_test_state_text:("0,0,4,0,|0|0") then view_test_state_dump:("sts 0,0,100,1,") then app_test_dialog_centered:(1)
+given cli_test_boot_app given integer_list_set((import view_state), 3, 0) ("T", ["hi"], ["OK"], 4):() then cli_test_state_text:("0,0,4,0,|0|0") then view_test_state_dump:("sts 0,0,100,1,") then app_test_dialog_centered:(1)
 given cli_test_boot_app ("Q", ["a", "b"], ["Yes", "No"], 1):() then cli_test_state_text:("0,0,1,0,|0|0") then app_test_dialog_centered:(1)
 
 // Puts the open dialog in the middle of the window as it is now, and the file list of a picker in the free part of it. Call it after the window changed size.

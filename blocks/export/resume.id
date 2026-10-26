@@ -7,15 +7,15 @@
 exporter_spoken(string exporter_text_line) {
   string exporter_text_spoken = "\n";
   string exporter_text_inner = "";
-  if (str_starts(exporter_text_line, "  wait(") || exporter_set_name(exporter_text_line) != "") {
+  if (string_starts_with(exporter_text_line, "  wait(") || exporter_set_name(exporter_text_line) != "") {
     exporter_text_spoken = "";
   }
 } chain (string exporter_text_line) {
-  if (str_starts(exporter_text_line, "  say(\"") && str_ends(exporter_text_line, "\");")) {
+  if (string_starts_with(exporter_text_line, "  say(\"") && string_ends_with(exporter_text_line, "\");")) {
     exporter_text_inner = str_sub(exporter_text_line, 7, len(exporter_text_line) - 10);
-    exporter_text_spoken = str_replace(exporter_text_inner, "\", \"", ": ") + "\\n";
+    exporter_text_spoken = string_replace(exporter_text_inner, "\", \"", ": ") + "\\n";
   }
-  if (str_find(exporter_text_spoken, "\"") >= 0) {
+  if (string_find(exporter_text_spoken, "\"") >= 0) {
     exporter_text_spoken = "\n";
   }
 } return string exporter_text_spoken;
@@ -33,7 +33,7 @@ exporter_printed(string[] exporter_texts_lines) {
     exporter_number_row = exporter_number_row + 1;
   }
 } chain (string[] exporter_texts_lines) {
-  if (str_find(exporter_text_printed, "\n") >= 0) {
+  if (string_find(exporter_text_printed, "\n") >= 0) {
     exporter_text_printed = "";
   }
 } return string exporter_text_printed;

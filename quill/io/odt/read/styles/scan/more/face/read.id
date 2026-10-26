@@ -15,8 +15,8 @@ given odt_named_reader_open("<office:body/>") given xml_reader_skip((import odt_
 
 // Adds the style:font-face the reader is at to the face list: the name it is declared by and its family, without quotes.
 odt_named_face_append(string[] odt_named_face_append_faces, XmlR odt_named_face_append_reader) {
-  string odt_named_face_append_declared_name = xml_reader_attr(odt_named_face_append_reader, "style:name");
-  string odt_named_face_append_family = odt_named_family_unquote(xml_reader_attr(odt_named_face_append_reader, "svg:font-family"));
+  string odt_named_face_append_declared_name = xml_reader_attribute(odt_named_face_append_reader, "style:name");
+  string odt_named_face_append_family = odt_named_family_unquote(xml_reader_attribute(odt_named_face_append_reader, "svg:font-family"));
   list_string_extend(odt_named_face_append_faces, [odt_named_face_append_declared_name, odt_named_face_append_family]);
 } return void;
 given odt_named_reader_open("<style:font-face style:name=\"Liberation Serif1\" svg:font-family=\"&apos;Liberation Serif&apos;\"/>") given xml_reader_skip((import odt_named_reader), 1) ([], (import odt_named_reader)):(["Liberation Serif1", "Liberation Serif"], (import odt_named_reader))

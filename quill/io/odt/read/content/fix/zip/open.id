@@ -1,6 +1,6 @@
 // Test fixture: the archive of orc_tz opened as a Zip, kept in the export orc_tzo.
 odt_read_fixture_open_archive() {
-  export Zip odt_read_fixture_archive = zip_reader_open(bytes_of_int_list((import odt_read_fixture_archive_bytes)));
+  export Zip odt_read_fixture_archive = zip_reader_open(bytes_of_integer_list((import odt_read_fixture_archive_bytes)));
 } return void;
 given odt_read_fixture_make_archive("<a/>", "") ():() then odt_read_fixture_entry_count:(2)
 given odt_read_fixture_make_archive("<a/>", "x") ():() then odt_read_fixture_entry_count:(3)
@@ -18,7 +18,7 @@ given odt_read_fixture_make_archive("<a/>", "x") ():() then odt_read_fixture_rem
 
 // Test fixture: flips the low bit of byte at of the archive of orc_tz, which breaks the CRC of the entry that byte is in.
 odt_read_fixture_flip_bit(int at) {
-  lset((import odt_read_fixture_archive_bytes), at, (import odt_read_fixture_archive_bytes)[at] ^ 1);
+  integer_list_set((import odt_read_fixture_archive_bytes), at, (import odt_read_fixture_archive_bytes)[at] ^ 1);
   odt_read_fixture_open_archive();
 } return void;
 given odt_read_fixture_make_archive("<a/>", "") (41):() then odt_read_fixture_checksum_ok:(0)

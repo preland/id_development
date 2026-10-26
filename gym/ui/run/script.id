@@ -2,7 +2,7 @@
 
 // The event of script line gym_line on the state: a word of gym_script_words with its arguments, or for click the event of the button at that point. A line that is blank, a note, or not a word gives the event of kind 0, which changes nothing.
 gym_script_event(Session gym_state, string gym_line) {
-  string[] gym_fields = str_split(gym_line, " ");
+  string[] gym_fields = string_split(gym_line, " ");
   Event gym_made = gym_script_parse(gym_fields, gym_line);
   if(gym_fields[0] == "click" && len(gym_fields) >= (import gym_script_arity)[11]) {
     gym_made = gym_click(gym_state, to_int(gym_fields[1]), to_int(gym_fields[2]));
@@ -33,7 +33,7 @@ gym_script_parse(string[] gym_fields, string gym_line) {
 gym_script_make(string[] gym_fields, string gym_line, int gym_slot) {
   int gym_kind = (import gym_script_kinds)[gym_slot];
   int gym_value = gym_script_value(gym_fields, gym_slot);
-  string gym_rest = str_after(gym_line, " ");
+  string gym_rest = string_after(gym_line, " ");
 } chain (string[] gym_fields, string gym_line, int gym_slot) {
   Event gym_made = Event(gym_kind, gym_value, gym_rest);
 } return Event gym_made;

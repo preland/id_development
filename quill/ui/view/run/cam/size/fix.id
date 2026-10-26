@@ -17,15 +17,15 @@ view_test_state_dump() {
   string view_test_state_dump_text = "sts " + (document_dump_integers((import view_state)));
 } return string view_test_state_dump_text;
 given view_state_new ():("sts 0,0,100,1,")
-given view_state_new given lset((import view_state), 1, 7) ():("sts 0,7,100,1,")
+given view_state_new given integer_list_set((import view_state), 1, 7) ():("sts 0,7,100,1,")
 
 // Test setup: the state is current (nothing stale) with the page area scrolled to vwi_y pixels at the zoom vwi_z.
 view_test_state_scrolled(int view_test_state_scrolled_row, int view_test_state_scrolled_zoom) {
   view_state_new();
-  lset((import view_state), (import vw_s_y), view_test_state_scrolled_row);
-  lset((import view_state), (import vw_s_z), view_test_state_scrolled_zoom);
+  integer_list_set((import view_state), (import vw_s_y), view_test_state_scrolled_row);
+  integer_list_set((import view_state), (import vw_s_z), view_test_state_scrolled_zoom);
 } chain (int view_test_state_scrolled_row, int view_test_state_scrolled_zoom) {
-  lset((import view_state), (import vw_s_d), 0);
+  integer_list_set((import view_state), (import vw_s_d), 0);
 } return void;
 (5, 100):() then view_test_state_dump:("sts 0,5,100,0,")
 (9, 150):() then view_test_state_dump:("sts 0,9,150,0,")

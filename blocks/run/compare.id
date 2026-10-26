@@ -16,7 +16,7 @@ given runner_load("t.blk", "sprite S\nfn f() return int\n  return 3\n(): (3)\n()
 given runner_load("t.blk", "sprite S\nfn f() return int\n  return 3\n(): (3)\n(): (4)") given model_add("fn __a() return int\n  return 3\nfn __b() return int\n  return 3\nfn __d() return int\n  return 4\n") given generator_program(2) given runner_fresh (0, "f()", 2, 4, 1):() then model_diagnostic_list:("t.blk:4: test failed: f() = 3, expected 4")
 
 runner_then_first(int block_character, string block_label, string block_entry, int block_key_code) {
-  int block_position = str_findat(block_entry, "|", 2);
+  int block_position = string_find_from(block_entry, "|", 2);
   string block_name = str_sub(block_entry, 2, block_position - 2);
   int block_variable_row = list_string_index((import model_variable_names), block_name);
 } chain (int block_character, string block_label, string block_entry, int block_key_code) {
@@ -30,7 +30,7 @@ given runner_load("t.blk", "sprite S\nvar int n = 4\nfn f() return void\n(): ()\
 runner_then_list(int block_character, string block_label, string[] block_as, int block_key_code) {
   int block_index = 0;
   while (block_index < len(block_as)) {
-    if (str_starts(block_as[block_index], "T|") == 1) {
+    if (string_starts_with(block_as[block_index], "T|") == 1) {
       runner_then_first(block_character, block_label, block_as[block_index], block_key_code);
       block_key_code = block_key_code + 2;
     }

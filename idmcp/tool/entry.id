@@ -3,11 +3,11 @@
 // (a directory by its name, a file with its functions).
 
 tool_function_json(string func_row) {
-  string[] func_parts = str_split(func_row, "|");
-  string func_line = str_after(func_parts[1], ":");
+  string[] func_parts = string_split(func_row, "|");
+  string func_line = string_after(func_parts[1], ":");
   string[] func_fields = [tool_label("name", func_parts[0]), tool_field("line", func_line), tool_field("cases", func_parts[2])];
 } chain (string func_row) {
-  string func_text = "{" + str_join(func_fields, ",") + "}";
+  string func_text = "{" + string_join(func_fields, ",") + "}";
 } return string func_text;
 ("clamp|math/count.id:14|2"):("{\"name\":\"clamp\",\"line\":14,\"cases\":2}")
 ("a\"b|x.id:3|0"):("{\"name\":\"a\\\"b\",\"line\":3,\"cases\":0}")
@@ -16,8 +16,8 @@ tool_file_functions(string[] file_rows, string file_name) {
   string[] file_items = [];
   int file_at = 0;
   while (file_at < len(file_rows)) {
-    string file_place = str_field(file_rows[file_at], "|", 1);
-    if (str_before(file_place, ":") == file_name) {
+    string file_place = string_field_at(file_rows[file_at], "|", 1);
+    if (string_before(file_place, ":") == file_name) {
       push(file_items, tool_function_json(file_rows[file_at]));
     }
     file_at = file_at + 1;
@@ -34,7 +34,7 @@ tool_entry_json(string[] item_rows, string item_path) {
   string item_list = tool_file_functions(item_rows, item_path);
   string item_text = "{" + item_head + ",\"kind\":\"dir\"}";
 } chain (string[] item_rows, string item_path) {
-  if (str_ends(item_path, "/") == 0) {
+  if (string_ends_with(item_path, "/") == 0) {
     item_text = "{" + item_head + ",\"kind\":\"file\",\"functions\":" + item_list + "}";
   }
 } return string item_text;

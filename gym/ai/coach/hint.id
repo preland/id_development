@@ -19,7 +19,7 @@ coach_prompt(string coach_label, string coach_authored, string coach_question, s
 
 coach_flaw(string coach_words, string coach_kind, string coach_reference, string coach_tolerance) {
   string coach_why = "";
-  if (str_trim(coach_words) == "") {
+  if (string_trim(coach_words) == "") {
     coach_why = "the model returned no hint";
   }
   if (coach_why == "" && len(coach_words) > (import coach_hint_limit)) {
@@ -39,7 +39,7 @@ coach_flaw(string coach_words, string coach_kind, string coach_reference, string
 coach_judge(string coach_server_body, string coach_kind, string coach_reference, string coach_tolerance, string coach_authored) {
   string coach_content = json_text(coach_server_body, "choices.0.message.content");
   string coach_object = model_object_text(coach_content);
-  string coach_words = str_trim(grade_field(coach_object, "hint"));
+  string coach_words = string_trim(grade_field(coach_object, "hint"));
 } chain (string coach_server_body, string coach_kind, string coach_reference, string coach_tolerance, string coach_authored) {
   string[] coach_made = [coach_words, "model", ""];
   string coach_why = "the reply was not a JSON object";

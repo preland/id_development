@@ -1,6 +1,6 @@
 // Test setup: plays the script was_s (wa_play) on the app, a line at a time, and answers what the lines printed, the ones that printed nothing left out.
 cli_test_play_outputs(string cli_test_script) {
-  string[] cli_test_script_lines = str_split(cli_test_script, "\n");
+  string[] cli_test_script_lines = string_split(cli_test_script, "\n");
   string[] cli_test_outputs = [];
   int cli_test_line_index = 0;
 } chain (string cli_test_script) {
@@ -18,7 +18,7 @@ given cli_test_boot_app ("Tx"):([])
 // Test check: 1 when the first two things the script was_s printed are the same, 0 when they are not or it printed fewer than two. %P in the script is a scratch file's path, named by fs_mktemp, that is removed afterwards: so a script that dumps the document, saves it to %P, opens %P and dumps it again answers 1 when saving and reading lost nothing.
 cli_test_round_trip_same(string cli_test_same_script) {
   string cli_test_same_path = fs_mktemp("wa_rt_", 0);
-  string cli_test_same_text = str_join(str_split(cli_test_same_script, "%P"), cli_test_same_path);
+  string cli_test_same_text = string_join(string_split(cli_test_same_script, "%P"), cli_test_same_path);
   string[] cli_test_same_outputs = cli_test_play_outputs(cli_test_same_text);
 } chain (string cli_test_same_script) {
   int cli_test_same_result = len(cli_test_same_outputs) >= 2 && cli_test_same_outputs[0] == cli_test_same_outputs[1];

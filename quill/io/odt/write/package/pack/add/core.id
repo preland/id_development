@@ -10,20 +10,20 @@ given odt_package_fixture_new given odp_fail((import odt_package_exported_archiv
 
 // Adds a finished XML part as a stored entry; when the writer holds no document, because an element was left open, the archive records the failure instead.
 odp_put(ZipW odt_package_put_archive, string odt_package_put_name, XmlW odt_package_put_writer) {
-  int[] odt_package_put_bytes = xw_done(odt_package_put_writer);
+  int[] odt_package_put_bytes = xml_writer_finish(odt_package_put_writer);
   if(len(odt_package_put_bytes) > 0) {
-    zw_add(odt_package_put_archive, odt_package_put_name, odt_package_put_bytes, 0);
+    zip_writer_add(odt_package_put_archive, odt_package_put_name, odt_package_put_bytes, 0);
   }
   if(len(odt_package_put_bytes) == 0) {
-    odp_fail(odt_package_put_archive, odt_package_put_name, xw_error(odt_package_put_writer));
+    odp_fail(odt_package_put_archive, odt_package_put_name, xml_writer_error(odt_package_put_writer));
   }
 } return void;
-given odt_package_fixture_new given xw_end((import odt_package_exported_writer)) ((import odt_package_exported_archive), "x.xml", (import odt_package_exported_writer)):() then (import odt_package_exported_archive).names:(["", "x.xml"])
+given odt_package_fixture_new given xml_writer_end_element((import odt_package_exported_writer)) ((import odt_package_exported_archive), "x.xml", (import odt_package_exported_writer)):() then (import odt_package_exported_archive).names:(["", "x.xml"])
 given odt_package_fixture_new ((import odt_package_exported_archive), "x.xml", (import odt_package_exported_writer)):() then (import odt_package_exported_archive).names:(["odt: x.xml could not be written (xw_done before the document is complete: write a root element, then call xw_end once for every xw_start); this is a fault in the ODT writer, so report it with the document that caused it"])
 
 // Adds the three files this writer makes besides the manifest: content.xml as the caller built it, then styles.xml and meta.xml, all stored.
 odp_core(ZipW odt_package_core_archive, Doc odt_package_core_document, int[] odt_package_core_content) {
-  zw_add(odt_package_core_archive, "content.xml", odt_package_core_content, 0);
+  zip_writer_add(odt_package_core_archive, "content.xml", odt_package_core_content, 0);
   XmlW odt_package_core_writer = odp_doc();
   odp_styles(odt_package_core_writer, odt_package_core_document);
 } chain (ZipW odt_package_core_archive, Doc odt_package_core_document, int[] odt_package_core_content) {
@@ -34,4 +34,4 @@ odp_core(ZipW odt_package_core_archive, Doc odt_package_core_document, int[] odt
   odp_put(odt_package_core_archive, "meta.xml", odt_package_core_writer);
 } return void;
 given odt_package_fixture_new ((import odt_package_exported_archive), (import odt_package_exported_default_document), [1, 2]):() then (import odt_package_exported_archive).names:(["", "content.xml", "styles.xml", "meta.xml"])
-given odt_package_fixture_new given zw_mimetype((import odt_package_exported_archive), "x") ((import odt_package_exported_archive), (import odt_package_exported_default_document), []):() then (import odt_package_exported_archive).names:(["", "mimetype", "content.xml", "styles.xml", "meta.xml"])
+given odt_package_fixture_new given zip_writer_media_type((import odt_package_exported_archive), "x") ((import odt_package_exported_archive), (import odt_package_exported_default_document), []):() then (import odt_package_exported_archive).names:(["", "mimetype", "content.xml", "styles.xml", "meta.xml"])

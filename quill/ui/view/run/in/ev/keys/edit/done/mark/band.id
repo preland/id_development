@@ -11,15 +11,15 @@ view_input_mark_rows_stale(int view_input_rows_first, int view_input_rows_end) {
     view_input_rows_joined_end = fixed_point_maximum(view_input_rows_end, view_input_rows_edit_state[(import cv_e_y1)]);
   }
 } chain (int view_input_rows_first, int view_input_rows_end) {
-  lset(view_input_rows_edit_state, (import cv_e_y0), view_input_rows_joined_first);
-  lset(view_input_rows_edit_state, (import cv_e_y1), view_input_rows_joined_end);
+  integer_list_set(view_input_rows_edit_state, (import cv_e_y0), view_input_rows_joined_first);
+  integer_list_set(view_input_rows_edit_state, (import cv_e_y1), view_input_rows_joined_end);
   if(view_input_rows_viewer_state[(import vw_s_d)] == 0) {
-    lset(view_input_rows_viewer_state, (import vw_s_d), 2);
+    integer_list_set(view_input_rows_viewer_state, (import vw_s_d), 2);
   }
 } return void;
 given view_flow_test_open_edit("AB") (10, 20):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,10,20,") then view_test_state_dump:("sts 0,0,100,2,")
 given view_flow_test_open_edit("AB") given view_input_mark_rows_stale(5, 12) (10, 20):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,5,20,")
-given view_flow_test_open_edit("AB") given lset((import view_state), 3, 1) (10, 20):() then view_test_state_dump:("sts 0,0,100,1,")
+given view_flow_test_open_edit("AB") given integer_list_set((import view_state), 3, 1) (10, 20):() then view_test_state_dump:("sts 0,0,100,1,")
 
 // Asks for the part of the surface that the document's rows cvi_a to cvi_b - 1, in lu down the continuous document (where the paragraph tops are), cover to be repainted: a few pixels more on each side for the rounding of lu to pixels.
 // By hand: at 100 percent and no scroll, with the page area's top at 156, 1536 lu of gap are 24 px, so the rows 0 to 1088 are 156 + 24 = 180 to 180 + 17 = 197, and with 3 more each side 177 to 200.
@@ -35,7 +35,7 @@ view_input_mark_page_band(View view_input_band_view, int view_input_band_first, 
   view_input_mark_rows_stale(view_input_band_top, view_input_band_bottom);
 } return void;
 given view_flow_test_open_edit("AB") ((import layout_paragraph_test_view), 0, 1088):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,177,200,")
-given view_flow_test_open_edit("AB") given lset((import view_state), 1, 100) ((import layout_paragraph_test_view), 0, 1088):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,77,100,")
+given view_flow_test_open_edit("AB") given integer_list_set((import view_state), 1, 100) ((import layout_paragraph_test_view), 0, 1088):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,77,100,")
 given view_flow_test_open_edit("AB") ((import layout_paragraph_test_view), 640, 1728):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,187,210,")
 
 // The lu down the continuous document at which paragraph cvi_p ends, where the next one starts: the top of the next paragraph, or for the last paragraph the end of its last line.

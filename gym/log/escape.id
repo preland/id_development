@@ -7,11 +7,11 @@
 // t, n or r is kept as written, so a hand-edited line never loses text.
 
 log_escape(string log_raw) {
-  string log_slashed = str_replace(log_raw, "\\", "\\\\");
-  string log_tabbed = str_replace(log_slashed, "\t", "\\t");
-  string log_lined = str_replace(log_tabbed, "\n", "\\n");
+  string log_slashed = string_replace(log_raw, "\\", "\\\\");
+  string log_tabbed = string_replace(log_slashed, "\t", "\\t");
+  string log_lined = string_replace(log_tabbed, "\n", "\\n");
 } chain (string log_raw) {
-  string log_escaped = str_replace(log_lined, "\r", "\\r");
+  string log_escaped = string_replace(log_lined, "\r", "\\r");
 } return string log_escaped;
 ("a\tb"):("a\\tb")
 ("a\nb\r"):("a\\nb\\r")
@@ -25,13 +25,13 @@ log_decode(string log_piece) {
   }
   string log_rest = str_sub(log_piece, 1, len(log_piece) - 1);
 } chain (string log_piece) {
-  if (str_starts(log_piece, "n")) {
+  if (string_starts_with(log_piece, "n")) {
     log_decoded = "\n" + log_rest;
   }
-  if (str_starts(log_piece, "t")) {
+  if (string_starts_with(log_piece, "t")) {
     log_decoded = "\t" + log_rest;
   }
-  if (str_starts(log_piece, "r")) {
+  if (string_starts_with(log_piece, "r")) {
     log_decoded = "\r" + log_rest;
   }
 } return string log_decoded;
