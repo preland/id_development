@@ -4,30 +4,30 @@
 // The rows of a CSV text, with RFC 4180 quoting; `delim` is the separator's
 // character code. A malformed text still gives the rows read before the fault:
 // ask csv_errors what was wrong.
-csv_rows(string cs_text, int cs_delim) {
-  string[][] cs_rows = [];
-  int[] cs_lines = [];
-  string[] cs_diag = [];
-} chain (string cs_text, int cs_delim) {
-  csv_parse(mem_of_str(cs_text), cs_delim, cs_rows, cs_lines, cs_diag);
-} return string[][] cs_rows;
+csv_rows(string csv_text, int csv_delimiter) {
+  string[][] csv_table = [];
+  int[] csv_line_numbers = [];
+  string[] csv_problems = [];
+} chain (string csv_text, int csv_delimiter) {
+  csv_parse(mem_of_str(csv_text), csv_delimiter, csv_table, csv_line_numbers, csv_problems);
+} return string[][] csv_table;
 ("a,b\n1,\"x,y\"\n", 44):([["a", "b"], ["1", "x,y"]])
 ("p;q", 59):([["p", "q"]])
 
 // What is wrong with a CSV text, one message per fault; empty when it is sound.
-csv_errors(string cs_text, int cs_delim) {
-  string[][] cs_rows = [];
-  int[] cs_lines = [];
-  string[] cs_diag = [];
-} chain (string cs_text, int cs_delim) {
-  csv_parse(mem_of_str(cs_text), cs_delim, cs_rows, cs_lines, cs_diag);
-} return string[] cs_diag;
+csv_errors(string csv_text, int csv_delimiter) {
+  string[][] csv_table = [];
+  int[] csv_line_numbers = [];
+  string[] csv_problems = [];
+} chain (string csv_text, int csv_delimiter) {
+  csv_parse(mem_of_str(csv_text), csv_delimiter, csv_table, csv_line_numbers, csv_problems);
+} return string[] csv_problems;
 ("a,b\n", 44):([])
 ("a,b\n\"never", 44):(["line 2: quoted field is never closed (missing closing quote)"])
 
 // One CSV line from fields, newline-terminated: quoted where the text needs it, joined by `delim`.
-csv_line(string[] cs_fields, int cs_delim) {
-  string cs_text = wr_row(cs_fields, cs_delim) + "\n";
-} return string cs_text;
+csv_line(string[] csv_fields, int csv_delimiter) {
+  string csv_text = wr_row(csv_fields, csv_delimiter) + "\n";
+} return string csv_text;
 (["a", "b,c", "say \"hi\""], 44):("a,\"b,c\",\"say \"\"hi\"\"\"\n")
 (["x", "y"], 124):("x|y\n")

@@ -1,26 +1,26 @@
 // Column arithmetic over a CSV text.
 
 // Every value of column `cs_col` (0-based), skipping rows too short to have one (csv_rows stops at a ragged row, so none are left).
-csv_col(string cs_text, int cs_delim, int cs_col) {
-  string[] cs_vals = cl_pick(csv_rows(cs_text, cs_delim), cs_col);
-} return string[] cs_vals;
+csv_col(string csv_text, int csv_delimiter, int csv_column) {
+  string[] csv_values = cl_pick(csv_rows(csv_text, csv_delimiter), csv_column);
+} return string[] csv_values;
 ("a,b\n1,2\n3,4\n", 44, 1):(["b", "2", "4"])
 ("a\nb\n", 44, 0):(["a", "b"])
 
 // The sum of the numbers in a column; cells that are not numbers (a header, a
 // blank) count for nothing.
-csv_sum(string cs_text, int cs_delim, int cs_col) {
-  string[] cs_vals = csv_col(cs_text, cs_delim, cs_col);
-  float cs_tot = cl_total(cs_vals);
-} return float cs_tot;
+csv_sum(string csv_text, int csv_delimiter, int csv_column) {
+  string[] csv_values = csv_col(csv_text, csv_delimiter, csv_column);
+  float csv_total = cl_total(csv_values);
+} return float csv_total;
 ("n\n1.5\n2.25\nx\n", 44, 0):(3.75)
 ("a,b\n1,2\n3,4\n", 44, 1):(6.0)
 
 // One cell by row and column. An index outside the table is an error: the id
 // runtime's bounds check traps, and the host sees status 1 and a message.
-csv_cell(string cs_text, int cs_delim, int cs_rowno, int cs_cell_col) {
-  string[][] cs_rows = csv_rows(cs_text, cs_delim);
-  string cs_got = cs_rows[cs_rowno][cs_cell_col];
-} return string cs_got;
+csv_cell(string csv_text, int csv_delimiter, int csv_row_number, int csv_cell_column) {
+  string[][] csv_table = csv_rows(csv_text, csv_delimiter);
+  string csv_found = csv_table[csv_row_number][csv_cell_column];
+} return string csv_found;
 ("a,b\n1,2\n", 44, 1, 0):("1")
 ("a,b\n1,2\n", 44, 0, 1):("b")

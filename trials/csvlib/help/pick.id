@@ -2,38 +2,38 @@
 // library does not export them.
 
 // Column `cs_col` of every row that has one.
-cl_pick(string[][] cs_rows, int cs_col) {
-  string[] cs_out = [];
-  int cs_i = 0;
-  int cs_n = len(cs_rows);
-} chain (string[][] cs_rows, int cs_col) {
-  while (cs_i < cs_n) {
-    cl_push(cs_rows[cs_i], cs_col, cs_out);
-    cs_i = cs_i + 1;
+cl_pick(string[][] csv_table, int csv_column) {
+  string[] csv_output = [];
+  int csv_index = 0;
+  int csv_count = len(csv_table);
+} chain (string[][] csv_table, int csv_column) {
+  while (csv_index < csv_count) {
+    cl_push(csv_table[csv_index], csv_column, csv_output);
+    csv_index = csv_index + 1;
   }
-} return string[] cs_out;
+} return string[] csv_output;
 ([["a", "b"], ["c"], ["d", "e"]], 1):(["b", "e"])
 ([], 0):([])
 
 // Push cs_row[cs_col] onto cs_out when the row is long enough.
-cl_push(string[] cs_row, int cs_col, string[] cs_out) {
-  if (len(cs_row) > cs_col) {
-    push(cs_out, cs_row[cs_col]);
+cl_push(string[] csv_fields_in_row, int csv_column, string[] csv_output) {
+  if (len(csv_fields_in_row) > csv_column) {
+    push(csv_output, csv_fields_in_row[csv_column]);
   }
 } return void;
 (["a", "b"], 1, []):(["a", "b"], 1, ["b"])
 (["a"], 1, ["z"]):(["a"], 1, ["z"])
 
 // The sum of the entries that are numbers.
-cl_total(string[] cs_vals) {
-  float cs_tot = 0.0;
-  int cs_i = 0;
-  int cs_n = len(cs_vals);
-} chain (string[] cs_vals) {
-  while (cs_i < cs_n) {
-    cs_tot = cs_tot + cl_numval(cs_vals[cs_i]);
-    cs_i = cs_i + 1;
+cl_total(string[] csv_values) {
+  float csv_total = 0.0;
+  int csv_index = 0;
+  int csv_count = len(csv_values);
+} chain (string[] csv_values) {
+  while (csv_index < csv_count) {
+    csv_total = csv_total + cl_numval(csv_values[csv_index]);
+    csv_index = csv_index + 1;
   }
-} return float cs_tot;
+} return float csv_total;
 (["1", "x", "2.5"]):(3.5)
 ([]):(0.0)
