@@ -1,20 +1,20 @@
 // The paragraph field that the command cvi_cmd sets to the argument cvi_arg, by the table cv_pc_cmd: the line spacing in percent, the left and right indent and the space before and after in twips; in every paragraph the selection touches. Any other command is left alone.
-cv_para(View cvv, Ctl cvc, int cvi_cmd, int cvi_arg) {
-  int cvi_k = list_index_of((import cv_pc_cmd), cvi_cmd);
-  if(cvi_k >= 0) {
-    ed_set_para(cvv.doc, cvc, (import cv_pc_fld)[cvi_k], cvi_arg);
+view_input_paragraph_field_set(View view_input_paragraph_view, Ctl view_input_paragraph_controller, int view_input_paragraph_command_number, int view_input_paragraph_value) {
+  int view_input_paragraph_index = list_index_of((import cv_pc_cmd), view_input_paragraph_command_number);
+  if(view_input_paragraph_index >= 0) {
+    editor_set_paragraph(view_input_paragraph_view.doc, view_input_paragraph_controller, (import cv_pc_fld)[view_input_paragraph_index], view_input_paragraph_value);
   }
 } return void;
-given cv_t_ed("AB") given cv_t_ask(207) ((import lp_t_v), (import vw_ctl), 409, 150):() then cv_t_ans:(150)
-given cv_t_ed("AB") given cv_t_ask(202) ((import lp_t_v), (import vw_ctl), 410, 720):() then cv_t_ans:(720)
-given cv_t_ed("AB") given cv_t_ask(207) ((import lp_t_v), (import vw_ctl), 301, 150):() then cv_t_ans:(100)
+given view_flow_test_open_edit("AB") given view_flow_test_ask_field(207) ((import layout_paragraph_test_view), (import view_input_controller), 409, 150):() then view_flow_test_answer_state:(150)
+given view_flow_test_open_edit("AB") given view_flow_test_ask_field(202) ((import layout_paragraph_test_view), (import view_input_controller), 410, 720):() then view_flow_test_answer_state:(720)
+given view_flow_test_open_edit("AB") given view_flow_test_ask_field(207) ((import layout_paragraph_test_view), (import view_input_controller), 301, 150):() then view_flow_test_answer_state:(100)
 
 // The alignment buttons: the command that is in the table cv_al_cmd gives the paragraphs of the selection the alignment at its position (0 left, 1 centre, 2 right, 3 justify).
-cv_align(View cvv, Ctl cvc, int cvi_cmd) {
-  int cvi_k = list_index_of((import cv_al_cmd), cvi_cmd);
-  if(cvi_k >= 0) {
-    ed_set_para(cvv.doc, cvc, (import quill_paragraph_alignment), cvi_k);
+view_input_alignment_set(View view_input_alignment_view, Ctl view_input_alignment_controller, int view_input_alignment_command_number) {
+  int view_input_alignment_index = list_index_of((import cv_al_cmd), view_input_alignment_command_number);
+  if(view_input_alignment_index >= 0) {
+    editor_set_paragraph(view_input_alignment_view.doc, view_input_alignment_controller, (import quill_paragraph_alignment), view_input_alignment_index);
   }
 } return void;
-given cv_t_ed("AB") given cv_t_ask(201) ((import lp_t_v), (import vw_ctl), 402):() then cv_t_ans:(1)
-given cv_t_ed("AB") given cv_t_ask(201) ((import lp_t_v), (import vw_ctl), 404):() then cv_t_ans:(3)
+given view_flow_test_open_edit("AB") given view_flow_test_ask_field(201) ((import layout_paragraph_test_view), (import view_input_controller), 402):() then view_flow_test_answer_state:(1)
+given view_flow_test_open_edit("AB") given view_flow_test_ask_field(201) ((import layout_paragraph_test_view), (import view_input_controller), 404):() then view_flow_test_answer_state:(3)

@@ -1,18 +1,18 @@
 // Test setup: the ribbon started and kept in the export rbd_t_r, not yet placed.
-rbd_t_start() {
-  Ribbon rib = rib_init();
-  export Ribbon rbd_t_r = rib;
+ribbon_fit_start_test_ribbon() {
+  Ribbon rib = ribbon_fit_start_ribbon();
+  export Ribbon ribbon_fit_test_ribbon = rib;
 } return void;
-given rbd_ui_set(1, 1, 1) ():() then rbd_t_sd:("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
-given rbd_ui_set(2, 2, 2) ():() then rbd_t_pd:("0,0,,0,0,0,0,0,0,")
+given ribbon_faces_set(1, 1, 1) ():() then ribbon_fit_check_state_dump:("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+given ribbon_faces_set(2, 2, 2) ():() then ribbon_fit_check_popup_dump:("0,0,,0,0,0,0,0,0,")
 
 // Test setup: a surface rbi_w wide, the ribbon started and placed in a band of the full height at its top left; the ribbon is in the export rbd_t_r. The faces are the handle 1 of the test fonts, which lp_t_font makes.
-rbd_t_up(int rbi_w) {
-  sf_l_init(rbi_w, 300);
-  rbd_ui_set(1, 1, 1);
-  rbd_t_start();
-} chain (int rbi_w) {
-  rib_fit((import rbd_t_r), 0, 0, rbi_w, (import rbd_band_px));
+ribbon_fit_setup_surface(int ribbon_fit_surface_width) {
+  sf_l_init(ribbon_fit_surface_width, 300);
+  ribbon_faces_set(1, 1, 1);
+  ribbon_fit_start_test_ribbon();
+} chain (int ribbon_fit_surface_width) {
+  rib_fit((import ribbon_fit_test_ribbon), 0, 0, ribbon_fit_surface_width, (import rbd_band_px));
 } return void;
-given lp_t_font (1024):() then rbd_t_nw:("29,3")
-given lp_t_font (800):() then rbd_t_nw:("29,3")
+given layout_paragraph_test_font (1024):() then ribbon_fit_check_widget_counts:("29,3")
+given layout_paragraph_test_font (800):() then ribbon_fit_check_widget_counts:("29,3")

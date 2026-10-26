@@ -1,44 +1,44 @@
 // Paints what a control shows inside its body rbg of item row rbi_row and look rbi_shape: its icon and, for a large control, its name; or, for a field, its name at the left; or the preview of the gallery.
-rbd_inside(GuiToggle rbg, int rbi_row, int rbi_shape) {
-  int[] rbl_v = rbg.btn.v;
-  int rbi_ink = rbd_ink(rbg);
-  if(rbi_shape < 3) {
-    rbd_icon(rbi_row, rbl_v[0], rbl_v[1], rbl_v[2], rbl_v[3], rbi_ink);
+ribbon_draw_inside(GuiToggle ribbon_inside_control, int ribbon_inside_row, int ribbon_inside_look) {
+  int[] ribbon_inside_values = ribbon_inside_control.btn.v;
+  int ribbon_inside_ink = ribbon_item_ink(ribbon_inside_control);
+  if(ribbon_inside_look < 3) {
+    ribbon_draw_icon(ribbon_inside_row, ribbon_inside_values[0], ribbon_inside_values[1], ribbon_inside_values[2], ribbon_inside_values[3], ribbon_inside_ink);
   }
-} chain (GuiToggle rbg, int rbi_row, int rbi_shape) {
-  if(rbi_shape == 3) {
-    rbd_field(rbg, rbi_row, rbi_ink);
+} chain (GuiToggle ribbon_inside_control, int ribbon_inside_row, int ribbon_inside_look) {
+  if(ribbon_inside_look == 3) {
+    ribbon_draw_field(ribbon_inside_control, ribbon_inside_row, ribbon_inside_ink);
   }
-  if(rbi_shape == 4) {
-    rbd_tiles(rbg, rbi_ink);
+  if(ribbon_inside_look == 4) {
+    ribbon_draw_tiles(ribbon_inside_control, ribbon_inside_ink);
   }
 } return void;
-given lp_t_font given rbd_t_up(1024) given d2_l_rect(0, 0, 400, 156, 15987699) given vw_t_box0(14, 62, 62, 90) given vw_t_bg(15987699) (GuiToggle(GuiButton([12, 60, 38, 74, 0, 1, 0, 0, 0], "", 0), 0, 0), 7, 0):() then vw_t_inked:(1)
-given lp_t_font given rbd_t_up(1024) given d2_l_rect(0, 0, 400, 156, 15987699) given vw_t_box0(14, 62, 62, 90) given vw_t_bg(15987699) (GuiToggle(GuiButton([12, 60, 38, 74, 0, 1, 0, 0, 0], "", 0), 0, 0), 7, 3):() then vw_t_inked:(0)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given d2_l_rect(0, 0, 400, 156, 15987699) given view_test_remember_box(14, 62, 62, 90) given view_test_set_background(15987699) (GuiToggle(GuiButton([12, 60, 38, 74, 0, 1, 0, 0, 0], "", 0), 0, 0), 7, 0):() then view_test_box_inked:(1)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given d2_l_rect(0, 0, 400, 156, 15987699) given view_test_remember_box(14, 62, 62, 90) given view_test_set_background(15987699) (GuiToggle(GuiButton([12, 60, 38, 74, 0, 1, 0, 0, 0], "", 0), 0, 0), 7, 3):() then view_test_box_inked:(0)
 
 // Paints what a control shows outside its body: the sign of a menu or the arrow strip of the control at index rbi_i of the ribbon, and the bar of a colour button.
-rbd_outside(Ribbon rib, int rbi_i, int rbi_row, int rbi_shape) {
-  int[] rbl_r = rib.rects;
-  int rbi_q = rbi_i * 4;
-  int rbi_hot = rbd_hot(rbi_i);
-} chain (Ribbon rib, int rbi_i, int rbi_row, int rbi_shape) {
-  rbd_sign(rbl_r[rbi_q], rbl_r[rbi_q + 1], rbl_r[rbi_q + 2], rbl_r[rbi_q + 3], rbi_shape, rbi_hot);
-  rbd_bar(rbl_r[rbi_q], rbl_r[rbi_q + 1], rbl_r[rbi_q + 2], rbl_r[rbi_q + 3], rbi_row);
+ribbon_draw_outside(Ribbon rib, int ribbon_outside_index, int ribbon_outside_row, int ribbon_outside_look) {
+  int[] ribbon_outside_rectangles = rib.ribbon_rectangles;
+  int ribbon_outside_start = ribbon_outside_index * 4;
+  int ribbon_outside_hot = ribbon_arrow_wanted(ribbon_outside_index);
+} chain (Ribbon rib, int ribbon_outside_index, int ribbon_outside_row, int ribbon_outside_look) {
+  ribbon_draw_sign(ribbon_outside_rectangles[ribbon_outside_start], ribbon_outside_rectangles[ribbon_outside_start + 1], ribbon_outside_rectangles[ribbon_outside_start + 2], ribbon_outside_rectangles[ribbon_outside_start + 3], ribbon_outside_look, ribbon_outside_hot);
+  ribbon_draw_color_bar(ribbon_outside_rectangles[ribbon_outside_start], ribbon_outside_rectangles[ribbon_outside_start + 1], ribbon_outside_rectangles[ribbon_outside_start + 2], ribbon_outside_rectangles[ribbon_outside_start + 3], ribbon_outside_row);
 } return void;
-given lp_t_font given rbd_t_up(1024) given vw_t_at(58, 70) ((import rbd_t_r), 0, 7, 2):() then vw_t_px:(15987699)
-given lp_t_font given rbd_t_up(1024) given vw_t_at(58, 70) ((import rbd_t_r), 0, 7, 0):() then vw_t_px:(0)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given view_test_remember_pixel(58, 70) ((import ribbon_fit_test_ribbon), 0, 7, 2):() then view_test_pixel_color:(15987699)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given view_test_remember_pixel(58, 70) ((import ribbon_fit_test_ribbon), 0, 7, 0):() then view_test_pixel_color:(0)
 
 // Paints the control at index rbi_i of the ribbon rib whose widgets are rbl_ws: its body (a toggle shows its state), what is inside it, and the sign or the arrow strip outside it. A combo box paints itself (rbd_combos) and has nothing here.
-rbd_item(Ribbon rib, GuiToggle[] rbl_ws, int rbi_i) {
-  GuiToggle rbg = rbl_ws[rbi_i];
-  int rbi_row = rib.items[rbi_i];
-  int rbi_shape = rbd_shape(rbi_row);
-} chain (Ribbon rib, GuiToggle[] rbl_ws, int rbi_i) {
-  if(rbi_shape != 6) {
-    gui_tgl_draw(rbg);
-    rbd_inside(rbg, rbi_row, rbi_shape);
-    rbd_outside(rib, rbi_i, rbi_row, rbi_shape);
+ribbon_draw_item(Ribbon rib, GuiToggle[] ribbon_item_widgets, int ribbon_item_index) {
+  GuiToggle ribbon_item_control = ribbon_item_widgets[ribbon_item_index];
+  int ribbon_item_row = rib.items[ribbon_item_index];
+  int ribbon_item_look = ribbon_item_shape(ribbon_item_row);
+} chain (Ribbon rib, GuiToggle[] ribbon_item_widgets, int ribbon_item_index) {
+  if(ribbon_item_look != 6) {
+    gui_tgl_draw(ribbon_item_control);
+    ribbon_draw_inside(ribbon_item_control, ribbon_item_row, ribbon_item_look);
+    ribbon_draw_outside(rib, ribbon_item_index, ribbon_item_row, ribbon_item_look);
   }
 } return void;
-given lp_t_font given rbd_t_up(1024) given rib_put((import rbd_t_r), 301, 1) given rbe_sync((import rbd_t_r)) given vw_t_at(114, 96) ((import rbd_t_r), (import rbd_ws), 7):() then vw_t_px:(12308972)
-given lp_t_font given rbd_t_up(1024) given vw_t_at(114, 96) ((import rbd_t_r), (import rbd_ws), 7):() then vw_t_px:(15987699)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given rib_put((import ribbon_fit_test_ribbon), 301, 1) given ribbon_fit_sync_widgets((import ribbon_fit_test_ribbon)) given view_test_remember_pixel(114, 96) ((import ribbon_fit_test_ribbon), (import ribbon_fit_body_widgets), 7):() then view_test_pixel_color:(12308972)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given view_test_remember_pixel(114, 96) ((import ribbon_fit_test_ribbon), (import ribbon_fit_body_widgets), 7):() then view_test_pixel_color:(15987699)

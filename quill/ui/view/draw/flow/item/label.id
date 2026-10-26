@@ -1,43 +1,43 @@
 // Draws the label of list item vwi_p, a bullet or a number, in the face and the colour of the paragraph's first run, at the label's x and on the baseline of the paragraph's first line. A paragraph that is not an item has no label and nothing is drawn.
-vw_label(View vwv, int vwi_p, int[] vwl_g, int vwi_base) {
-  int[] vwl_lb = [];
-  int[] vwl_q = [0, 0, 0, 0, 0, 0];
-  lay_label(vwv, vwi_p, vwl_lb);
-} chain (View vwv, int vwi_p, int[] vwl_g, int vwi_base) {
-  vw_look(vwv, vwi_p, 0, vwl_g[(import vw_g_z)], vwl_q);
-  vw_ink(vwv, vwi_p, 0, vwl_q);
-  int vwi_lx = lay_label_x(vwv, vwi_p);
-} chain (View vwv, int vwi_p, int[] vwl_g, int vwi_base) {
-  int vwi_b = vw_bline(vwv, vwi_p, vwl_g, vwi_base, 0);
-  int vwi_x = vwl_g[(import vw_g_x)] * 64 + vw_x64(vwl_g[(import vw_g_l)] + vwi_lx, vwl_g[(import vw_g_z)]);
-  vw_marks(vwl_lb, vwl_q, vwi_x, vwi_b);
+view_flow_draw_label(View view_flow_label_view, int view_flow_label_paragraph, int[] view_flow_label_geometry, int view_flow_label_base) {
+  int[] view_flow_label_text = [];
+  int[] view_flow_label_look = [0, 0, 0, 0, 0, 0];
+  lay_label(view_flow_label_view, view_flow_label_paragraph, view_flow_label_text);
+} chain (View view_flow_label_view, int view_flow_label_paragraph, int[] view_flow_label_geometry, int view_flow_label_base) {
+  view_look_fill_face(view_flow_label_view, view_flow_label_paragraph, 0, view_flow_label_geometry[(import vw_g_z)], view_flow_label_look);
+  view_look_fill_ink(view_flow_label_view, view_flow_label_paragraph, 0, view_flow_label_look);
+  int view_flow_label_offset = lay_label_x(view_flow_label_view, view_flow_label_paragraph);
+} chain (View view_flow_label_view, int view_flow_label_paragraph, int[] view_flow_label_geometry, int view_flow_label_base) {
+  int view_flow_label_baseline = view_line_baseline(view_flow_label_view, view_flow_label_paragraph, view_flow_label_geometry, view_flow_label_base, 0);
+  int view_flow_label_left = view_flow_label_geometry[(import vw_g_x)] * 64 + view_units_sixty_fourths(view_flow_label_geometry[(import vw_g_l)] + view_flow_label_offset, view_flow_label_geometry[(import vw_g_z)]);
+  view_flow_draw_marks(view_flow_label_text, view_flow_label_look, view_flow_label_left, view_flow_label_baseline);
 } return void;
-given lp_t_font given lp_t_ins(0, "A") given lp_t_item(0, 1, 0) given lay_all((import lp_t_v)) given sf_l_init(80, 40) given vw_t_set(0, 0, 1, 3, 255) given vw_t_box0(34, 19, 40, 31) ((import lp_t_v), 0, [10, 16, 100, 0, 0], 0):() then vw_t_inked:(1)
-given lp_t_font given lp_t_ins(0, "A") given lp_t_item(0, 1, 0) given lay_all((import lp_t_v)) given sf_l_init(80, 40) given vw_t_set(0, 0, 1, 3, 255) given vw_t_box0(34, 19, 40, 31) ((import lp_t_v), 0, [10, 16, 100, 0, 0], 1600):() then vw_t_inked:(0)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "A") given layout_paragraph_test_item(0, 1, 0) given lay_all((import layout_paragraph_test_view)) given sf_l_init(80, 40) given view_test_set_character(0, 0, 1, 3, 255) given view_test_remember_box(34, 19, 40, 31) ((import layout_paragraph_test_view), 0, [10, 16, 100, 0, 0], 0):() then view_test_box_inked:(1)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "A") given layout_paragraph_test_item(0, 1, 0) given lay_all((import layout_paragraph_test_view)) given sf_l_init(80, 40) given view_test_set_character(0, 0, 1, 3, 255) given view_test_remember_box(34, 19, 40, 31) ((import layout_paragraph_test_view), 0, [10, 16, 100, 0, 0], 1600):() then view_test_box_inked:(0)
 
 // Draws the code points of a label one after another from x (in 64ths of a pixel) on the baseline vwi_b, in the look vwl_q.
-vw_marks(int[] vwl_lb, int[] vwl_q, int vwi_x, int vwi_b) {
-  int vwi_k = 0;
-  int vwi_nx = vwi_x;
-  while(vwi_k < len(vwl_lb)) {
-    vwi_nx = vw_mark(vwl_lb, vwl_q, vwi_k, vwi_nx, vwi_b);
-    vwi_k = vwi_k + 1;
+view_flow_draw_marks(int[] view_flow_marks_text, int[] view_flow_marks_look, int view_flow_marks_start, int view_flow_marks_baseline) {
+  int view_flow_marks_index = 0;
+  int view_flow_marks_next = view_flow_marks_start;
+  while(view_flow_marks_index < len(view_flow_marks_text)) {
+    view_flow_marks_next = view_flow_draw_mark(view_flow_marks_text, view_flow_marks_look, view_flow_marks_index, view_flow_marks_next, view_flow_marks_baseline);
+    view_flow_marks_index = view_flow_marks_index + 1;
   }
 } return void;
-given lp_t_font given sf_l_init(60, 40) given vw_t_box0(4, 19, 40, 31) ([8226, 8226], [1, 255, -1, 0, 14, 3], 256, 30):() then vw_t_inked:(1)
-given lp_t_font given sf_l_init(60, 40) given vw_t_box0(4, 19, 40, 31) ([], [1, 255, -1, 0, 14, 3], 256, 30):() then vw_t_inked:(0)
+given layout_paragraph_test_font given sf_l_init(60, 40) given view_test_remember_box(4, 19, 40, 31) ([8226, 8226], [1, 255, -1, 0, 14, 3], 256, 30):() then view_test_box_inked:(1)
+given layout_paragraph_test_font given sf_l_init(60, 40) given view_test_remember_box(4, 19, 40, 31) ([], [1, 255, -1, 0, 14, 3], 256, 30):() then view_test_box_inked:(0)
 
 // Draws code point vwi_k of a label at x (64ths of a pixel) and answers where the next one starts: its advance on, kerned against the code point after it.
-vw_mark(int[] vwl_lb, int[] vwl_q, int vwi_k, int vwi_x, int vwi_b) {
-  int vwi_cp = vwl_lb[vwi_k];
-  int vwi_after = 0;
-  if(vwi_k + 1 < len(vwl_lb)) {
-    vwi_after = vwl_lb[vwi_k + 1];
+view_flow_draw_mark(int[] view_flow_mark_text, int[] view_flow_mark_look, int view_flow_mark_index, int view_flow_mark_left, int view_flow_mark_baseline) {
+  int view_flow_mark_code_point = view_flow_mark_text[view_flow_mark_index];
+  int view_flow_mark_following = 0;
+  if(view_flow_mark_index + 1 < len(view_flow_mark_text)) {
+    view_flow_mark_following = view_flow_mark_text[view_flow_mark_index + 1];
   }
-} chain (int[] vwl_lb, int[] vwl_q, int vwi_k, int vwi_x, int vwi_b) {
-  gui_cp_draw(vwl_q[(import vw_q_fh)], vwi_x, vwi_b, vwi_cp, vwl_q[(import vw_q_col)]);
-  int vwi_adv = gui_cp_adv(vwl_q[(import vw_q_fh)], vwi_cp, vwi_after);
-  int vwi_nx = vwi_x + vwi_adv;
-} return int vwi_nx;
-given lp_t_font given sf_l_init(60, 40) ([65, 86], [1, 255, -1, 0, 14, 3], 0, 256, 30):(863)
-given lp_t_font given sf_l_init(60, 40) ([65], [1, 255, -1, 0, 14, 3], 0, 0, 30):(683)
+} chain (int[] view_flow_mark_text, int[] view_flow_mark_look, int view_flow_mark_index, int view_flow_mark_left, int view_flow_mark_baseline) {
+  gui_cp_draw(view_flow_mark_look[(import vw_q_fh)], view_flow_mark_left, view_flow_mark_baseline, view_flow_mark_code_point, view_flow_mark_look[(import vw_q_col)]);
+  int view_flow_mark_advance = gui_cp_adv(view_flow_mark_look[(import vw_q_fh)], view_flow_mark_code_point, view_flow_mark_following);
+  int view_flow_mark_next = view_flow_mark_left + view_flow_mark_advance;
+} return int view_flow_mark_next;
+given layout_paragraph_test_font given sf_l_init(60, 40) ([65, 86], [1, 255, -1, 0, 14, 3], 0, 256, 30):(863)
+given layout_paragraph_test_font given sf_l_init(60, 40) ([65], [1, 255, -1, 0, 14, 3], 0, 0, 30):(683)

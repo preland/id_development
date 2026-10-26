@@ -1,40 +1,40 @@
 // Test setup: appends text lgtx to paragraph lgi of the test document and marks the paragraph stale, as an edit does.
-lg_t_edit(int lgi, string lgtx) {
-  Doc lgd = (import lp_t_d);
-  lp_t_ins(lgi, lgtx);
-  para_stale(lgd.body.paras[lgi]);
+layout_page_test_edit(int paragraph_index, string inserted_text) {
+  Doc document = (import layout_paragraph_test_document);
+  layout_paragraph_test_insert(paragraph_index, inserted_text);
+  para_stale(document.body.paras[paragraph_index]);
 } return void;
-given lp_t_font given lp_t_ins(0, "A") given lay_all((import lp_t_v)) (0, "B"):() then lp_t_h0:(-1) then lp_t_c0:([65, 66])
-given lp_t_font given lp_t_paras(2) given lay_all((import lp_t_v)) (1, "B"):() then lp_t_h0:(1664)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "A") given lay_all((import layout_paragraph_test_view)) (0, "B"):() then layout_paragraph_test_first_height:(-1) then layout_paragraph_test_first_code_points:([65, 66])
+given layout_paragraph_test_font given layout_paragraph_test_paragraphs(2) given lay_all((import layout_paragraph_test_view)) (1, "B"):() then layout_paragraph_test_first_height:(1664)
 
 // Test check: how many offsets of paragraph lgi of the test view do not come back to themselves when the caret is put there (lay_caret) and a click is made at the middle of its line (lay_hit): 0 when the two agree on every offset.
 // By hand: "BBB EEE BBB" has 12 offsets, 0 to 11, each of which must come back; the 28 A have 29, across the two pages.
-lg_t_round(int lgi) {
-  View lgv = (import lp_t_v);
-  int lgn = len(lgv.doc.body.paras[lgi].txt.cps);
-  int lgo = 0;
-} chain (int lgi) {
-  int lgbad = 0;
-  while(lgo <= lgn) {
-    lgbad = lgbad + lg_t_one(lgv, lgi, lgo);
-    lgo = lgo + 1;
+layout_page_test_round(int paragraph_index) {
+  View page_view = (import layout_paragraph_test_view);
+  int text_length = len(page_view.doc.body.paras[paragraph_index].txt.cps);
+  int offset_index = 0;
+} chain (int paragraph_index) {
+  int mismatch_count = 0;
+  while(offset_index <= text_length) {
+    mismatch_count = mismatch_count + layout_page_test_one(page_view, paragraph_index, offset_index);
+    offset_index = offset_index + 1;
   }
-} return int lgbad;
-given lg_t_rows(["BBB EEE BBB", "A B", "EEE"]) (1):(0)
-given lg_t_rows(["A B", "EEE", "BBB EEE BBB"]) (2):(0)
-given lg_t_text("BBB EEE BBB") (0):(0)
-given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") (0):(0)
+} return int mismatch_count;
+given layout_page_test_rows(["BBB EEE BBB", "A B", "EEE"]) (1):(0)
+given layout_page_test_rows(["A B", "EEE", "BBB EEE BBB"]) (2):(0)
+given layout_page_test_text("BBB EEE BBB") (0):(0)
+given layout_page_test_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") (0):(0)
 
 // Test check: 1 when offset lgo of paragraph lgi, given a caret and then a click in the middle of the line the caret is on, is not the same position, 0 when it is.
 // By hand: offset 5 of "BBB EEE BBB" is at 3243 across, 1792 down, 1152 high; a click at 3243 across and 2368 down is on line 1 and gives offset 5.
-lg_t_one(View lgv, int lgi, int lgo) {
-  int[] lgcl = [0, 0, 0, 0];
-  Pos lgq = Pos(lgi, lgo);
-  Pos lgpo = Pos(9, 9);
-} chain (View lgv, int lgi, int lgo) {
-  lay_caret(lgv, lgq, lgcl);
-  lay_hit(lgv, lgcl[0], lgcl[1], lgcl[2] + lgcl[3] / 2, lgpo);
-  int lgb = lgpo.para != lgi || lgpo.off != lgo;
-} return int lgb;
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 5):(0)
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 11):(0)
+layout_page_test_one(View page_view, int paragraph_index, int checked_offset) {
+  int[] click_caret_list = [0, 0, 0, 0];
+  Pos caret_position = Pos(paragraph_index, checked_offset);
+  Pos click_position = Pos(9, 9);
+} chain (View page_view, int paragraph_index, int checked_offset) {
+  lay_caret(page_view, caret_position, click_caret_list);
+  lay_hit(page_view, click_caret_list[0], click_caret_list[1], click_caret_list[2] + click_caret_list[3] / 2, click_position);
+  int mismatch = click_position.para != paragraph_index || click_position.off != checked_offset;
+} return int mismatch;
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 5):(0)
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 11):(0)

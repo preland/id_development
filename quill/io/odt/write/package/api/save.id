@@ -1,41 +1,41 @@
 // The archive's bytes when the document could be written (pkwhy is ""), otherwise []; a refused entry is noted with the archive's own reason.
-odw_seal(ZipW pkz, string pkwhy) {
-  int[] pkby = [];
-  if(len(pkwhy) == 0) {
-    pkby = zw_finish(pkz);
+odt_package_seal_archive(ZipW odt_package_seal_target, string odt_package_seal_reason) {
+  int[] odt_package_seal_bytes = [];
+  if(len(odt_package_seal_reason) == 0) {
+    odt_package_seal_bytes = zw_finish(odt_package_seal_target);
   }
-  if(len(pkby) == 0 && len(pkwhy) == 0) {
-    odw_note((import odw_e_zip), zw_why(pkz));
+  if(len(odt_package_seal_bytes) == 0 && len(odt_package_seal_reason) == 0) {
+    odt_package_save_note((import odw_e_zip), zw_why(odt_package_seal_target));
   }
-} return int[] pkby;
+} return int[] odt_package_seal_bytes;
 (ZipW([], [], [""]), "paragraph 1 is bad"):([])
 (ZipW([], [], [""]), ""):([80, 75, 5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-given odw_note(0, "") (ZipW([], [], ["zip: refused"]), ""):([]) then calls odw_note:(101, "zip: refused")
+given odt_package_save_note(0, "") (ZipW([], [], ["zip: refused"]), ""):([]) then calls odt_package_save_note:(101, "zip: refused")
 
 // The bytes of the .odt file of a document: the checked content, then the package around it. [] when the document cannot be written or the archive refused an entry; odw_code and odt_error then say why.
-odt_save_bytes(Doc pkd) {
-  odw_note(0, "");
-  string pkwhy = odt_content_check(pkd);
-  ZipW pkz = zw_new();
-} chain (Doc pkd) {
-  if(len(pkwhy) == 0) {
-    odp_pack(pkd, odt_content_bytes(pkd), pkz);
+odt_save_bytes(Doc odt_package_bytes_document) {
+  odt_package_save_note(0, "");
+  string odt_package_bytes_reason = odt_content_check(odt_package_bytes_document);
+  ZipW odt_package_bytes_archive = zw_new();
+} chain (Doc odt_package_bytes_document) {
+  if(len(odt_package_bytes_reason) == 0) {
+    odp_pack(odt_package_bytes_document, odt_content_bytes(odt_package_bytes_document), odt_package_bytes_archive);
   }
-  if(len(pkwhy) > 0) {
-    odw_note((import odw_e_check), pkwhy);
+  if(len(odt_package_bytes_reason) > 0) {
+    odt_package_save_note((import odw_e_check), odt_package_bytes_reason);
   }
-  int[] pkby = odw_seal(pkz, pkwhy);
-} return int[] pkby;
-given odw_t_doc(1) ((import odw_td)):([]) then calls odw_note:(0, "")
-given odw_t_doc(2) ((import odw_td)):([]) then calls odw_note:(0, "")
+  int[] odt_package_bytes_result = odt_package_seal_archive(odt_package_bytes_archive, odt_package_bytes_reason);
+} return int[] odt_package_bytes_result;
+given odt_package_fixture_document(1) ((import odt_package_exported_save_document)):([]) then calls odt_package_save_note:(0, "")
+given odt_package_fixture_document(2) ((import odt_package_exported_save_document)):([]) then calls odt_package_save_note:(0, "")
 
 // Writes the document to the .odt file at the path. 0 on success, otherwise a code of 100 or more that odt_error turns into a message.
-odt_save(string pkpath, Doc pkd) {
-  int[] pkby = odt_save_bytes(pkd);
-  int pkcode = (import odw_code);
-  if(len(pkby) > 0) {
-    pkcode = odw_write(pkpath, pkby);
+odt_save(string odt_package_save_path, Doc odt_package_save_document) {
+  int[] odt_package_save_content = odt_save_bytes(odt_package_save_document);
+  int odt_package_save_status = (import odt_package_save_code);
+  if(len(odt_package_save_content) > 0) {
+    odt_package_save_status = odt_package_write_file(odt_package_save_path, odt_package_save_content);
   }
-} return int pkcode;
-given odw_t_path given odw_t_doc(3) ((import odw_tp), (import odw_td)):(0) then odw_t_file:("mimetype,META-INF/manifest.xml,content.xml,styles.xml,meta.xml,Pictures/a.png") then odw_t_gone:("gone 0")
-given odw_t_doc(1) ("/tmp/odw_never.odt", (import odw_td)):(100)
+} return int odt_package_save_status;
+given odt_package_fixture_scratch_path given odt_package_fixture_document(3) ((import odt_package_scratch_file), (import odt_package_exported_save_document)):(0) then odt_package_fixture_entry_names:("mimetype,META-INF/manifest.xml,content.xml,styles.xml,meta.xml,Pictures/a.png") then odt_package_fixture_remove_scratch:("gone 0")
+given odt_package_fixture_document(1) ("/tmp/odw_never.odt", (import odt_package_exported_save_document)):(100)

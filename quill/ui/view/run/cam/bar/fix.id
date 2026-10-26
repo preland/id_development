@@ -1,21 +1,21 @@
 // Test check: the offset of the viewer's scrollbar.
-vw_t_sbo() {
-  string vwi_o_t = "sbo " + (gui_scroll_offset((import vw_sb)));
-} return string vwi_o_t;
-given vw_bar_new ():("sbo 0")
-given vw_bar_new given vw_t_sbset(5) ():("sbo 0")
+view_test_scroll_bar_offset() {
+  string view_test_scroll_bar_offset_text = "sbo " + (gui_scroll_offset((import view_scroll_bar)));
+} return string view_test_scroll_bar_offset_text;
+given view_scroll_bar_new ():("sbo 0")
+given view_scroll_bar_new given view_test_scroll_bar_move(5) ():("sbo 0")
 
 // Test check: the viewer's scrollbar as offset, what shows and what there is, comma separated.
-vw_t_sbs() {
-  GuiScroll vwb = (import vw_sb);
-  string vws_z = gui_scroll_offset(vwb) + "," + vwb.thumb + "," + vwb.range;
-} return string vws_z;
-given vw_bar_new ():("0,1,1")
-given vw_bar_new given vw_t_sbset(0) ():("0,1,1")
+view_test_scroll_bar_dump() {
+  GuiScroll view_test_scroll_bar_dump_bar = (import view_scroll_bar);
+  string view_test_scroll_bar_dump_text = gui_scroll_offset(view_test_scroll_bar_dump_bar) + "," + view_test_scroll_bar_dump_bar.thumb + "," + view_test_scroll_bar_dump_bar.range;
+} return string view_test_scroll_bar_dump_text;
+given view_scroll_bar_new ():("0,1,1")
+given view_scroll_bar_new given view_test_scroll_bar_move(0) ():("0,1,1")
 
 // Test setup: the viewer's scrollbar is moved to offset vwi_o, as a drag would move it.
-vw_t_sbset(int vwi_o) {
-  int vwi_c = gui_scroll_set((import vw_sb), vwi_o);
+view_test_scroll_bar_move(int view_test_scroll_bar_move_offset) {
+  int view_test_scroll_bar_move_result = gui_scroll_set((import view_scroll_bar), view_test_scroll_bar_move_offset);
 } return void;
-given vw_t_two given vw_bar_new (60):() then vw_t_sbo:("sbo 0")
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_bar_new given vw_bar_fit((import lp_t_v)) (60):() then vw_t_sbo:("sbo 60")
+given view_test_two_pages given view_scroll_bar_new (60):() then view_test_scroll_bar_offset:("sbo 0")
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given view_scroll_bar_new given view_scroll_bar_fit((import layout_paragraph_test_view)) (60):() then view_test_scroll_bar_offset:("sbo 60")

@@ -1,26 +1,26 @@
 // Test check: the list and the level of the first paragraph of the app's document, as the styles have them, a colon between.
-wa_t_level() {
-  App waa = (import wa_app);
-  int wai_pp = waa.doc.body.paras[0].pprop;
-  string was_l = style_eff_p(waa.doc.fmt, wai_pp, (import quill_paragraph_list)) + ":" + style_eff_p(waa.doc.fmt, wai_pp, (import quill_paragraph_level));
-} return string was_l;
-given wa_t_app ():("0:0")
-given wa_t_app given wa_t_list(1, 1) ():("1:1")
+app_test_list_level() {
+  App app_level_application = (import cli_application);
+  int app_level_properties = app_level_application.doc.body.paras[0].pprop;
+  string app_level_text = document_style_effective_paragraph(app_level_application.doc.fmt, app_level_properties, (import quill_paragraph_list)) + ":" + document_style_effective_paragraph(app_level_application.doc.fmt, app_level_properties, (import quill_paragraph_level));
+} return string app_level_text;
+given cli_test_boot_app ():("0:0")
+given cli_test_boot_app given app_test_set_list(1, 1) ():("1:1")
 
 // Test check: the name of the style the first paragraph of the app's document is on.
-wa_t_head() {
-  App waa = (import wa_app);
-  int wai_s = tab_get(waa.doc.fmt.paras, waa.doc.body.paras[0].pprop, (import quill_paragraph_style));
-  string was_n = waa.doc.fmt.sty.styles[wai_s].name;
-} return string was_n;
-given wa_t_app ():("Normal")
-given wa_t_app given wa_head((import wa_app), 415) ():("Heading 1")
+app_test_style_name() {
+  App app_style_application = (import cli_application);
+  int app_style_index = tab_get(app_style_application.doc.fmt.paras, app_style_application.doc.body.paras[0].pprop, (import quill_paragraph_style));
+  string app_style_name_text = app_style_application.doc.fmt.sty.styles[app_style_index].name;
+} return string app_style_name_text;
+given cli_test_boot_app ():("Normal")
+given cli_test_boot_app given app_heading_shortcuts((import cli_application), 415) ():("Heading 1")
 
 // Test check: the states the ribbon shows for undo and redo in the quick-access strip, for cut in the Home tab and for bullets, comma separated (0 off, 1 on, 2 mixed, 3 disabled).
-wa_t_put() {
-  Ribbon wahome = (import vw_rb);
-  Ribbon waqat = (import rbd_q);
-  string was_s = waqat.state[1] + "," + waqat.state[2] + "," + wahome.state[1] + "," + wahome.state[16];
-} return string was_s;
-given wa_t_app ():("0,0,0,0")
-given wa_t_app given rib_put((import vw_rb), 405, 1) ():("0,0,0,1")
+app_test_ribbon_states() {
+  Ribbon app_states_home_ribbon = (import view_ribbon);
+  Ribbon app_states_quick_ribbon = (import ribbon_fit_quick_ribbon);
+  string app_states_text = app_states_quick_ribbon.state[1] + "," + app_states_quick_ribbon.state[2] + "," + app_states_home_ribbon.state[1] + "," + app_states_home_ribbon.state[16];
+} return string app_states_text;
+given cli_test_boot_app ():("0,0,0,0")
+given cli_test_boot_app given rib_put((import view_ribbon), 405, 1) ():("0,0,0,1")

@@ -1,40 +1,40 @@
 // "p" for a paragraph style family, "t" for a text one, "" for any other family, which the reader does not model.
-ost_fam(string os_sv) {
-  string os_sf = "";
-  if(os_sv == "paragraph") {
-    os_sf = "p";
+odt_named_family_code(string odt_named_family_code_text) {
+  string odt_named_family_code_result = "";
+  if(odt_named_family_code_text == "paragraph") {
+    odt_named_family_code_result = "p";
   }
-  if(os_sv == "text") {
-    os_sf = "t";
+  if(odt_named_family_code_text == "text") {
+    odt_named_family_code_result = "t";
   }
-} return string os_sf;
+} return string odt_named_family_code_result;
 ("paragraph"):("p")
 ("text"):("t")
 ("table"):("")
 
 // The eight strings of a record from the style element the reader is at (see ost_s_*); the font is filled in later from the properties.
-ost_rec_strs(XmlR os_r, string os_skind) {
-  string os_sname = xml_reader_attr(os_r, "style:name");
-  string os_sparent = xml_reader_attr(os_r, "style:parent-style-name");
-  string os_snext = xml_reader_attr(os_r, "style:next-style-name");
-} chain (XmlR os_r, string os_skind) {
-  string os_slist = xml_reader_attr(os_r, "style:list-style-name");
-  string os_sdisp = xml_reader_attr(os_r, "style:display-name");
-  string os_sfam = ost_fam(xml_reader_attr(os_r, "style:family"));
-} chain (XmlR os_r, string os_skind) {
-  string[] os_lrec = [os_sname, os_sparent, os_snext, os_slist, os_sdisp, "", os_sfam, os_skind];
-} return string[] os_lrec;
-given ost_t_open("<style:style style:name=\"P1\" style:family=\"paragraph\" style:parent-style-name=\"Standard\" style:list-style-name=\"L1\"/>") given xml_reader_skip((import ost_t_r), 1) ((import ost_t_r), "a"):(["P1", "Standard", "", "L1", "", "", "p", "a"])
-given ost_t_open("<style:style style:name=\"Strong_20_Emphasis\" style:display-name=\"Strong Emphasis\" style:family=\"text\"/>") given xml_reader_skip((import ost_t_r), 1) ((import ost_t_r), "n"):(["Strong_20_Emphasis", "", "", "", "Strong Emphasis", "", "t", "n"])
+odt_named_record_strings(XmlR odt_named_record_strings_reader, string odt_named_record_strings_kind) {
+  string odt_named_record_strings_name = xml_reader_attr(odt_named_record_strings_reader, "style:name");
+  string odt_named_record_strings_parent = xml_reader_attr(odt_named_record_strings_reader, "style:parent-style-name");
+  string odt_named_record_strings_next = xml_reader_attr(odt_named_record_strings_reader, "style:next-style-name");
+} chain (XmlR odt_named_record_strings_reader, string odt_named_record_strings_kind) {
+  string odt_named_record_strings_list = xml_reader_attr(odt_named_record_strings_reader, "style:list-style-name");
+  string odt_named_record_strings_display = xml_reader_attr(odt_named_record_strings_reader, "style:display-name");
+  string odt_named_record_strings_family = odt_named_family_code(xml_reader_attr(odt_named_record_strings_reader, "style:family"));
+} chain (XmlR odt_named_record_strings_reader, string odt_named_record_strings_kind) {
+  string[] odt_named_record_strings_result = [odt_named_record_strings_name, odt_named_record_strings_parent, odt_named_record_strings_next, odt_named_record_strings_list, odt_named_record_strings_display, "", odt_named_record_strings_family, odt_named_record_strings_kind];
+} return string[] odt_named_record_strings_result;
+given odt_named_reader_open("<style:style style:name=\"P1\" style:family=\"paragraph\" style:parent-style-name=\"Standard\" style:list-style-name=\"L1\"/>") given xml_reader_skip((import odt_named_reader), 1) ((import odt_named_reader), "a"):(["P1", "Standard", "", "L1", "", "", "p", "a"])
+given odt_named_reader_open("<style:style style:name=\"Strong_20_Emphasis\" style:display-name=\"Strong Emphasis\" style:family=\"text\"/>") given xml_reader_skip((import odt_named_reader), 1) ((import odt_named_reader), "n"):(["Strong_20_Emphasis", "", "", "", "Strong Emphasis", "", "t", "n"])
 
 // Adds a record for the style element the reader is at, with its attributes and empty rows, and answers its index; -1 and nothing added when its family is not one the reader models.
-ost_rec_add(StyBag os_b, XmlR os_r, string os_skind) {
-  string[] os_lrec = ost_rec_strs(os_r, os_skind);
-  int os_irec = 0 - 1;
-  if(os_lrec[(import ost_s_fam)] != "") {
-    ost_bag_push(os_b, os_lrec);
-    os_irec = ost_bag_n(os_b) - 1;
+odt_named_record_add(odt_named_style_records odt_named_record_add_bag, XmlR odt_named_record_add_reader, string odt_named_record_add_kind) {
+  string[] odt_named_record_add_record_strings = odt_named_record_strings(odt_named_record_add_reader, odt_named_record_add_kind);
+  int odt_named_record_add_index = 0 - 1;
+  if(odt_named_record_add_record_strings[(import ost_s_fam)] != "") {
+    odt_named_bag_append(odt_named_record_add_bag, odt_named_record_add_record_strings);
+    odt_named_record_add_index = odt_named_bag_count(odt_named_record_add_bag) - 1;
   }
-} return int os_irec;
-given ost_t_mkbag given ost_t_open("<style:style style:name=\"P1\" style:family=\"paragraph\"/>") given xml_reader_skip((import ost_t_r), 1) ((import ost_t_b), (import ost_t_r), "a"):(0) then (import ost_t_b).strings:(["P1", "", "", "", "", "", "p", "a"])
-given ost_t_mkbag given ost_t_open("<style:style style:name=\"G\" style:family=\"graphic\"/>") given xml_reader_skip((import ost_t_r), 1) ((import ost_t_b), (import ost_t_r), "n"):(-1) then (import ost_t_b).strings:([])
+} return int odt_named_record_add_index;
+given odt_named_bag_fixture given odt_named_reader_open("<style:style style:name=\"P1\" style:family=\"paragraph\"/>") given xml_reader_skip((import odt_named_reader), 1) ((import odt_named_bag), (import odt_named_reader), "a"):(0) then (import odt_named_bag).strings:(["P1", "", "", "", "", "", "p", "a"])
+given odt_named_bag_fixture given odt_named_reader_open("<style:style style:name=\"G\" style:family=\"graphic\"/>") given xml_reader_skip((import odt_named_reader), 1) ((import odt_named_bag), (import odt_named_reader), "n"):(-1) then (import odt_named_bag).strings:([])

@@ -1,38 +1,38 @@
 // Applies a step's operations last to first and returns what each answered, in the order they were applied: that list is the step that undoes the undo.
 hist_apply(Doc d, Op[] ops) {
-  Op[] invs = [];
+  Op[] inverses = [];
   int i = len(ops) - 1;
   while(i >= 0) {
-    Op inv = op_apply(d, ops[i]);
-    push(invs, inv);
+    Op inverse = editor_operation_apply(d, ops[i]);
+    push(inverses, inverse);
     i = i - 1;
   }
-} return Op[] invs;
-given fx_setup("ab") ((import fxd), [Op(2, [0, 0, 1, -1, -1], [])]):([Op(1, [0, 0, 0, 1], [97, 1, 0, -1])]) then fx_show:("b")
-given fx_setup("ab") ((import fxd), []):([]) then fx_show:("ab")
+} return Op[] inverses;
+given editor_fixture_setup("ab") ((import fixture_document), [Op(2, [0, 0, 1, -1, -1], [])]):([Op(1, [0, 0, 0, 1], [97, 1, 0, -1])]) then editor_fixture_show:("b")
+given editor_fixture_setup("ab") ((import fixture_document), []):([]) then editor_fixture_show:("ab")
 
 // Puts back the selection a step recorded: the one from before it, or the one from after it when redoing. The pending typing row is dropped too.
-hist_land(Ctl ctl, Txn tx, int again) {
-  Sel sel = tx.before;
+hist_land(Ctl ctl, Txn transaction, int again) {
+  Sel sel = transaction.before;
   if(again == 1) {
-    sel = tx.after;
+    sel = transaction.after;
   }
-  sel_load(ctl.sel, sel);
-} chain (Ctl ctl, Txn tx, int again) {
+  editor_selection_load(ctl.sel, sel);
+} chain (Ctl ctl, Txn transaction, int again) {
   typing_set(-1);
 } return void;
-given fx_blank ((import fxc), Txn([], Sel(Pos(0, 3), Pos(0, 3), -1), Sel(Pos(0, 1), Pos(0, 2), -1)), 1):((import fxc), Txn([], Sel(Pos(0, 3), Pos(0, 3), -1), Sel(Pos(0, 1), Pos(0, 2), -1)), 1) then fx_sel:("0:1-0:2")
-given fx_blank given fx_at(0, 5, 0, 5) ((import fxc), Txn([], Sel(Pos(0, 3), Pos(0, 3), -1), Sel(Pos(0, 1), Pos(0, 2), -1)), 0):((import fxc), Txn([], Sel(Pos(0, 3), Pos(0, 3), -1), Sel(Pos(0, 1), Pos(0, 2), -1)), 0) then fx_sel:("0:3-0:3")
-given fx_blank given typing_set(4) ((import fxc), Txn([], Sel(Pos(0, 3), Pos(0, 3), -1), Sel(Pos(0, 1), Pos(0, 2), -1)), 0):((import fxc), Txn([], Sel(Pos(0, 3), Pos(0, 3), -1), Sel(Pos(0, 1), Pos(0, 2), -1)), 0) then (import ed_typing)[0]:(-1)
+given editor_fixture_blank ((import fixture_control), Txn([], Sel(Pos(0, 3), Pos(0, 3), -1), Sel(Pos(0, 1), Pos(0, 2), -1)), 1):((import fixture_control), Txn([], Sel(Pos(0, 3), Pos(0, 3), -1), Sel(Pos(0, 1), Pos(0, 2), -1)), 1) then editor_fixture_selection:("0:1-0:2")
+given editor_fixture_blank given editor_fixture_selection_at(0, 5, 0, 5) ((import fixture_control), Txn([], Sel(Pos(0, 3), Pos(0, 3), -1), Sel(Pos(0, 1), Pos(0, 2), -1)), 0):((import fixture_control), Txn([], Sel(Pos(0, 3), Pos(0, 3), -1), Sel(Pos(0, 1), Pos(0, 2), -1)), 0) then editor_fixture_selection:("0:3-0:3")
+given editor_fixture_blank given typing_set(4) ((import fixture_control), Txn([], Sel(Pos(0, 3), Pos(0, 3), -1), Sel(Pos(0, 1), Pos(0, 2), -1)), 0):((import fixture_control), Txn([], Sel(Pos(0, 3), Pos(0, 3), -1), Sel(Pos(0, 1), Pos(0, 2), -1)), 0) then (import editor_typing_row)[0]:(-1)
 
 // Moves the top step of take to give: its operations are applied (see hist_apply) and the answers become the step that reverses it, and the selection is put back for an undo or a redo.
 hist_step(Doc d, Ctl ctl, Txn[] take, Txn[] give, int again) {
-  Txn tx = pop(take);
-  Op[] invs = hist_apply(d, tx.ops);
-  Txn rt = Txn(invs, tx.before, tx.after);
+  Txn transaction = pop(take);
+  Op[] inverses = hist_apply(d, transaction.ops);
+  Txn redo_transaction = Txn(inverses, transaction.before, transaction.after);
 } chain (Doc d, Ctl ctl, Txn[] take, Txn[] give, int again) {
-  push(give, rt);
-  hist_land(ctl, tx, again);
+  push(give, redo_transaction);
+  hist_land(ctl, transaction, again);
 } return void;
-given fx_setup("ab") ((import fxd), (import fxc), [Txn([Op(2, [0, 0, 1, -1, -1], [])], Sel(Pos(0, 1), Pos(0, 1), -1), Sel(Pos(0, 0), Pos(0, 0), -1))], [], 0):((import fxd), (import fxc), [], [Txn([Op(1, [0, 0, 0, 1], [97, 1, 0, -1])], Sel(Pos(0, 1), Pos(0, 1), -1), Sel(Pos(0, 0), Pos(0, 0), -1))], 0) then fx_show:("b") then fx_sel:("0:1-0:1")
-given fx_setup("ab") ((import fxd), (import fxc), [Txn([Op(2, [0, 0, 1, -1, -1], [])], Sel(Pos(0, 1), Pos(0, 1), -1), Sel(Pos(0, 0), Pos(0, 0), -1))], [], 1):((import fxd), (import fxc), [], [Txn([Op(1, [0, 0, 0, 1], [97, 1, 0, -1])], Sel(Pos(0, 1), Pos(0, 1), -1), Sel(Pos(0, 0), Pos(0, 0), -1))], 1) then fx_show:("b") then fx_sel:("0:0-0:0")
+given editor_fixture_setup("ab") ((import fixture_document), (import fixture_control), [Txn([Op(2, [0, 0, 1, -1, -1], [])], Sel(Pos(0, 1), Pos(0, 1), -1), Sel(Pos(0, 0), Pos(0, 0), -1))], [], 0):((import fixture_document), (import fixture_control), [], [Txn([Op(1, [0, 0, 0, 1], [97, 1, 0, -1])], Sel(Pos(0, 1), Pos(0, 1), -1), Sel(Pos(0, 0), Pos(0, 0), -1))], 0) then editor_fixture_show:("b") then editor_fixture_selection:("0:1-0:1")
+given editor_fixture_setup("ab") ((import fixture_document), (import fixture_control), [Txn([Op(2, [0, 0, 1, -1, -1], [])], Sel(Pos(0, 1), Pos(0, 1), -1), Sel(Pos(0, 0), Pos(0, 0), -1))], [], 1):((import fixture_document), (import fixture_control), [], [Txn([Op(1, [0, 0, 0, 1], [97, 1, 0, -1])], Sel(Pos(0, 1), Pos(0, 1), -1), Sel(Pos(0, 0), Pos(0, 0), -1))], 1) then editor_fixture_show:("b") then editor_fixture_selection:("0:0-0:0")

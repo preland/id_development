@@ -1,41 +1,41 @@
 // Paints the whole window: the scrollbar is first brought to where the viewer stands (a key or the wheel moved it), then the page area, the scrollbar, the status bar and the ribbon, and a card that says why there is no document when there is none to show.
-vw_draw_all(View vwv) {
-  vw_bar_fit(vwv);
-  vw_canvas(vwv);
-  gui_scroll_draw((import vw_sb));
-} chain (View vwv) {
-  vw_status(vwv);
-  rib_draw((import vw_rb));
-  vw_note();
+view_input_window_draw(View view_input_draw_view) {
+  view_scroll_bar_fit(view_input_draw_view);
+  view_canvas_paint(view_input_draw_view);
+  gui_scroll_draw((import view_scroll_bar));
+} chain (View view_input_draw_view) {
+  view_status_paint(view_input_draw_view);
+  rib_draw((import view_ribbon));
+  view_input_message_card();
 } return void;
-given vw_t_boot("/nonexistent/x.odt", 400, 300) given vw_t_at(192, 203) ((import vw_v)):() then vw_t_px:(16777215)
-given vw_t_boot("/nonexistent/x.odt", 400, 300) given vw_t_at(2, 60) ((import vw_v)):() then vw_t_px:(15987699)
-given vw_t_boot("/nonexistent/x.odt", 400, 300) given vw_t_at(3, 285) ((import vw_v)):() then vw_t_px:(2840474)
-given vw_t_boot("/nonexistent/x.odt", 400, 300) given lset((import vw_st), 1, 50) ((import vw_v)):() then vw_t_sbo:("sbo 50")
+given view_input_test_boot("/nonexistent/x.odt", 400, 300) given view_test_remember_pixel(192, 203) ((import view_input_viewer_view)):() then view_test_pixel_color:(16777215)
+given view_input_test_boot("/nonexistent/x.odt", 400, 300) given view_test_remember_pixel(2, 60) ((import view_input_viewer_view)):() then view_test_pixel_color:(15987699)
+given view_input_test_boot("/nonexistent/x.odt", 400, 300) given view_test_remember_pixel(3, 285) ((import view_input_viewer_view)):() then view_test_pixel_color:(2840474)
+given view_input_test_boot("/nonexistent/x.odt", 400, 300) given lset((import view_state), 1, 50) ((import view_input_viewer_view)):() then view_test_scroll_bar_offset:("sbo 50")
 
 
 // Fits everything that depends on the window's size to the surface as it is now: the chrome's rectangles, the ribbon's items, the scrollbar; the picture is stale.
-vw_fit_all(View vwv) {
-  vw_fit();
-  vw_rib_fit();
-  vw_bar_fit(vwv);
-} chain (View vwv) {
-  lset((import vw_st), (import vw_s_d), 1);
+view_input_window_fit(View view_input_fit_view) {
+  view_chrome_fit();
+  view_ribbon_fit();
+  view_scroll_bar_fit(view_input_fit_view);
+} chain (View view_input_fit_view) {
+  lset((import view_state), (import vw_s_d), 1);
 } return void;
-given vw_t_boot("/nonexistent/x.odt", 400, 300) given sf_l_init(800, 600) ((import vw_v)):() then vw_t_box:("0,0,800,156")
-given vw_t_boot("/nonexistent/x.odt", 400, 300) given sf_l_init(800, 600) given lset((import vw_st), 3, 0) ((import vw_v)):() then vw_t_sts:("sts 0,0,100,1,")
+given view_input_test_boot("/nonexistent/x.odt", 400, 300) given sf_l_init(800, 600) ((import view_input_viewer_view)):() then view_test_ribbon_rectangle:("0,0,800,156")
+given view_input_test_boot("/nonexistent/x.odt", 400, 300) given sf_l_init(800, 600) given lset((import view_state), 3, 0) ((import view_input_viewer_view)):() then view_test_state_dump:("sts 0,0,100,1,")
 
 
 // Paints the card with the message that took a document's place, in the middle of the page area; nothing when the viewer has a document.
-vw_note() {
-  string vws_m = (import vw_msg)[0];
-  int vwi_x = vw_box("canvas", 0);
-  int vwi_y = vw_box("canvas", 1);
+view_input_message_card() {
+  string view_input_note_text = (import view_input_message_list)[0];
+  int view_input_note_column = view_box_field("canvas", 0);
+  int view_input_note_row = view_box_field("canvas", 1);
 } chain () {
-  if(len(vws_m) > 0) {
-    vw_card(vws_m, vwi_x, vwi_y, vw_box("canvas", 2), vw_box("canvas", 3));
+  if(len(view_input_note_text) > 0) {
+    view_card_paint(view_input_note_text, view_input_note_column, view_input_note_row, view_box_field("canvas", 2), view_box_field("canvas", 3));
   }
 } return void;
-given vw_t_boot("/nonexistent/x.odt", 400, 300) given vw_t_at(192, 203) ():() then vw_t_px:(16777215)
-given vw_t_boot("/nonexistent/x.odt", 400, 300) given vw_t_at(192, 203) given vw_t_quiet ():() then vw_t_px:(0)
+given view_input_test_boot("/nonexistent/x.odt", 400, 300) given view_test_remember_pixel(192, 203) ():() then view_test_pixel_color:(16777215)
+given view_input_test_boot("/nonexistent/x.odt", 400, 300) given view_test_remember_pixel(192, 203) given view_input_test_quiet ():() then view_test_pixel_color:(0)
 

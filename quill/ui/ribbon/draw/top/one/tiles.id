@@ -1,23 +1,23 @@
 // Writes style number rbi_k of the gallery's preview in its own face (bold for a heading, italic for the subtitle) on the line rbi_k of the gallery at rbl_box, in colour rbi_col.
-rbd_tile(int[] rbl_box, int rbi_k, int rbi_col) {
-  int rbi_f = (import rbd_ui)[(import rbd_style_f)[rbi_k]];
-  string rbs_t = (import rbd_styles)[rbi_k];
-  gui_text_draw(rbi_f, rbl_box[0] + 8, rbl_box[1] + 4 + rbi_k * 20, rbs_t, rbi_col);
+ribbon_draw_tile(int[] ribbon_tile_box, int ribbon_tile_number, int ribbon_tile_color) {
+  int ribbon_tile_face = (import ribbon_faces)[(import rbd_style_f)[ribbon_tile_number]];
+  string ribbon_tile_text = (import rbd_styles)[ribbon_tile_number];
+  gui_text_draw(ribbon_tile_face, ribbon_tile_box[0] + 8, ribbon_tile_box[1] + 4 + ribbon_tile_number * 20, ribbon_tile_text, ribbon_tile_color);
 } return void;
-given lp_t_font given rbd_ui_set(1, 1, 1) given sf_l_init(60, 100) given d2_l_rect(0, 0, 60, 100, 16777215) given vw_t_box0(8, 4, 40, 22) given vw_t_bg(16777215) ([0, 0, 50, 70], 0, 0):() then vw_t_inked:(1)
-given lp_t_font given rbd_ui_set(1, 1, 1) given sf_l_init(60, 100) given d2_l_rect(0, 0, 60, 100, 16777215) given vw_t_box0(8, 4, 40, 22) given vw_t_bg(16777215) ([0, 0, 50, 70], 1, 0):() then vw_t_inked:(0)
+given layout_paragraph_test_font given ribbon_faces_set(1, 1, 1) given sf_l_init(60, 100) given d2_l_rect(0, 0, 60, 100, 16777215) given view_test_remember_box(8, 4, 40, 22) given view_test_set_background(16777215) ([0, 0, 50, 70], 0, 0):() then view_test_box_inked:(1)
+given layout_paragraph_test_font given ribbon_faces_set(1, 1, 1) given sf_l_init(60, 100) given d2_l_rect(0, 0, 60, 100, 16777215) given view_test_remember_box(8, 4, 40, 22) given view_test_set_background(16777215) ([0, 0, 50, 70], 1, 0):() then view_test_box_inked:(0)
 
 // Paints the preview of the styles gallery in the field rbg: the first three styles, each in its own face, cut to the field and leaving room at the right for the sign of a menu.
-rbd_tiles(GuiToggle rbg, int rbi_col) {
-  int[] rbl_v = rbg.btn.v;
-  int rbi_k = 0;
-  sf_l_clip(rbl_v[0] + 1, rbl_v[1] + 1, rbl_v[2] - 16, rbl_v[3] - 2);
-} chain (GuiToggle rbg, int rbi_col) {
-  while(rbi_k < 3) {
-    rbd_tile(rbl_v, rbi_k, rbi_col);
-    rbi_k = rbi_k + 1;
+ribbon_draw_tiles(GuiToggle ribbon_tiles_control, int ribbon_tiles_color) {
+  int[] ribbon_tiles_values = ribbon_tiles_control.btn.v;
+  int ribbon_tiles_number = 0;
+  sf_l_clip(ribbon_tiles_values[0] + 1, ribbon_tiles_values[1] + 1, ribbon_tiles_values[2] - 16, ribbon_tiles_values[3] - 2);
+} chain (GuiToggle ribbon_tiles_control, int ribbon_tiles_color) {
+  while(ribbon_tiles_number < 3) {
+    ribbon_draw_tile(ribbon_tiles_values, ribbon_tiles_number, ribbon_tiles_color);
+    ribbon_tiles_number = ribbon_tiles_number + 1;
   }
   sf_l_unclip();
 } return void;
-given lp_t_font given rbd_ui_set(1, 1, 1) given sf_l_init(160, 100) given d2_l_rect(0, 0, 160, 100, 16777215) given vw_t_box0(8, 44, 40, 62) given vw_t_bg(16777215) (GuiToggle(GuiButton([0, 0, 150, 74, 0, 1, 0, 0, 0], "", 0), 0, 0), 0):() then vw_t_inked:(1)
-given lp_t_font given rbd_ui_set(1, 1, 1) given sf_l_init(160, 100) given d2_l_rect(0, 0, 160, 100, 16777215) given vw_t_box0(140, 4, 158, 70) given vw_t_bg(16777215) (GuiToggle(GuiButton([0, 0, 150, 74, 0, 1, 0, 0, 0], "", 0), 0, 0), 0):() then vw_t_inked:(0)
+given layout_paragraph_test_font given ribbon_faces_set(1, 1, 1) given sf_l_init(160, 100) given d2_l_rect(0, 0, 160, 100, 16777215) given view_test_remember_box(8, 44, 40, 62) given view_test_set_background(16777215) (GuiToggle(GuiButton([0, 0, 150, 74, 0, 1, 0, 0, 0], "", 0), 0, 0), 0):() then view_test_box_inked:(1)
+given layout_paragraph_test_font given ribbon_faces_set(1, 1, 1) given sf_l_init(160, 100) given d2_l_rect(0, 0, 160, 100, 16777215) given view_test_remember_box(140, 4, 158, 70) given view_test_set_background(16777215) (GuiToggle(GuiButton([0, 0, 150, 74, 0, 1, 0, 0, 0], "", 0), 0, 0), 0):() then view_test_box_inked:(0)

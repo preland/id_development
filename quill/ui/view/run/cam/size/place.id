@@ -1,22 +1,22 @@
 // The left of the sheets in the page area, in pixels from its left edge, at zoom vwi_z: centred when the sheet and a gap on each side fit in the area vwi_cw pixels wide, else a gap from the left edge less the horizontal scroll vwi_sx.
 // By hand: a 100 px sheet in a 384 px area starts at (384 - 100) / 2 = 142; at 400 percent it is 400 px wide, which does not fit, and starts 96 px in at no scroll or 46 px with 50 scrolled.
-vw_sx(View vwv, int vwi_z, int vwi_cw, int vwi_sx) {
-  int vwi_w = vw_px(lay_sheet(vwv.doc, 0), vwi_z);
-  int vwi_gap = vw_px((import quill_layout_sheet_gap), vwi_z);
-  int vwi_x = vwi_gap - vwi_sx;
-} chain (View vwv, int vwi_z, int vwi_cw, int vwi_sx) {
-  if(vwi_w + 2 * vwi_gap <= vwi_cw) {
-    vwi_x = (vwi_cw - vwi_w) / 2;
+view_sheet_left(View view_sheet_left_viewer, int view_sheet_left_zoom, int view_sheet_left_area_width, int view_sheet_left_scroll_column) {
+  int view_sheet_left_sheet_width = view_units_pixels(lay_sheet(view_sheet_left_viewer.doc, 0), view_sheet_left_zoom);
+  int view_sheet_left_gap = view_units_pixels((import quill_layout_sheet_gap), view_sheet_left_zoom);
+  int view_sheet_left_result = view_sheet_left_gap - view_sheet_left_scroll_column;
+} chain (View view_sheet_left_viewer, int view_sheet_left_zoom, int view_sheet_left_area_width, int view_sheet_left_scroll_column) {
+  if(view_sheet_left_sheet_width + 2 * view_sheet_left_gap <= view_sheet_left_area_width) {
+    view_sheet_left_result = (view_sheet_left_area_width - view_sheet_left_sheet_width) / 2;
   }
-} return int vwi_x;
-given vw_t_two () ((import lp_t_v), 100, 384, 0):(142)
-given vw_t_two () ((import lp_t_v), 400, 384, 0):(96)
-given vw_t_two () ((import lp_t_v), 400, 384, 50):(46)
+} return int view_sheet_left_result;
+given view_test_two_pages () ((import layout_paragraph_test_view), 100, 384, 0):(142)
+given view_test_two_pages () ((import layout_paragraph_test_view), 400, 384, 0):(96)
+given view_test_two_pages () ((import layout_paragraph_test_view), 400, 384, 50):(46)
 
 // 1 when a sheet at vwi_top, vwi_ph pixels tall, shows in a page area from vwi_cy, vwi_ch pixels tall.
-vw_vis(int vwi_top, int vwi_ph, int vwi_cy, int vwi_ch) {
-  int vwi_v = vwi_top < vwi_cy + vwi_ch && vwi_top + vwi_ph > vwi_cy;
-} return int vwi_v;
+view_sheet_visible(int view_sheet_visible_top, int view_sheet_visible_sheet_height, int view_sheet_visible_area_row, int view_sheet_visible_area_height) {
+  int view_sheet_visible_result = view_sheet_visible_top < view_sheet_visible_area_row + view_sheet_visible_area_height && view_sheet_visible_top + view_sheet_visible_sheet_height > view_sheet_visible_area_row;
+} return int view_sheet_visible_result;
 (10, 200, 0, 100):(1)
 (100, 200, 0, 100):(0)
 (-250, 200, 0, 100):(0)

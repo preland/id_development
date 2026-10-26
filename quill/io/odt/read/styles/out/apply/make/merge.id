@@ -1,27 +1,27 @@
 // os_iover unless it is -1 (unset), then os_iunder.
-ost_pick(int os_iunder, int os_iover) {
-  int os_ires = os_iover;
-  if(os_iover == 0 - 1) {
-    os_ires = os_iunder;
+odt_style_pick_set(int odt_style_pick_set_under, int odt_style_pick_set_over) {
+  int odt_style_pick_set_result = odt_style_pick_set_over;
+  if(odt_style_pick_set_over == 0 - 1) {
+    odt_style_pick_set_result = odt_style_pick_set_under;
   }
-} return int os_ires;
+} return int odt_style_pick_set_result;
 (5, 7):(7)
 (5, -1):(5)
 
 // A character row that is os_lunder with every field os_lover specifies laid over it; the flags merge bit by bit, so a bit os_lover leaves unspecified keeps os_lunder's value.
-ost_cmerge(int[] os_lunder, int[] os_lover) {
-  int[] os_lres = list_copy(os_lunder);
+odt_style_character_merge(int[] odt_style_character_merge_under_row, int[] odt_style_character_merge_over_row) {
+  int[] odt_style_character_merge_merged_row = list_copy(odt_style_character_merge_under_row);
   int i = 1;
   while(i < 5) {
-    os_lres[i] = ost_pick(os_lunder[i], os_lover[i]);
+    odt_style_character_merge_merged_row[i] = odt_style_pick_set(odt_style_character_merge_under_row[i], odt_style_character_merge_over_row[i]);
     i = i + 1;
   }
-} chain (int[] os_lunder, int[] os_lover) {
-  ost_flagset(os_lres, os_lover[(import quill_character_set)], os_lover[(import quill_character_on)]);
-  if(os_lover[(import quill_character_style)] > 0) {
-    os_lres[(import quill_character_style)] = os_lover[(import quill_character_style)];
+} chain (int[] odt_style_character_merge_under_row, int[] odt_style_character_merge_over_row) {
+  odt_named_flag_apply(odt_style_character_merge_merged_row, odt_style_character_merge_over_row[(import quill_character_set)], odt_style_character_merge_over_row[(import quill_character_on)]);
+  if(odt_style_character_merge_over_row[(import quill_character_style)] > 0) {
+    odt_style_character_merge_merged_row[(import quill_character_style)] = odt_style_character_merge_over_row[(import quill_character_style)];
   }
-} return int[] os_lres;
+} return int[] odt_style_character_merge_merged_row;
 ([0, 1, 24, -1, -1, 1, 1], [0, -1, 40, 255, -1, 2, 2]):([0, 1, 40, 255, -1, 3, 3])
 ([0, -1, -1, -1, -1, 3, 3], [0, -1, -1, -1, -1, 0, 1]):([0, -1, -1, -1, -1, 2, 3])
 ([0, -1, -1, -1, -1, 0, 0], [4, -1, -1, -1, -1, 0, 0]):([4, -1, -1, -1, -1, 0, 0])
@@ -29,18 +29,18 @@ ost_cmerge(int[] os_lunder, int[] os_lover) {
 ([5, -1, -1, -1, -1, 0, 0], [3, -1, -1, -1, -1, 0, 0]):([3, -1, -1, -1, -1, 0, 0])
 
 // A paragraph row that is os_lunder with every field os_lover specifies laid over it; the page break, list, level and kind fields, which are never -1, take the larger of the two.
-ost_pmerge(int[] os_lunder, int[] os_lover) {
-  int[] os_lres = list_copy(os_lunder);
+odt_style_paragraph_merge(int[] odt_style_paragraph_merge_under_row, int[] odt_style_paragraph_merge_over_row) {
+  int[] odt_style_paragraph_merge_merged_row = list_copy(odt_style_paragraph_merge_under_row);
   int i = 0;
   while(i < (import quill_paragraph_break_before)) {
-    os_lres[i] = ost_pick(os_lunder[i], os_lover[i]);
+    odt_style_paragraph_merge_merged_row[i] = odt_style_pick_set(odt_style_paragraph_merge_under_row[i], odt_style_paragraph_merge_over_row[i]);
     i = i + 1;
   }
-} chain (int[] os_lunder, int[] os_lover) {
+} chain (int[] odt_style_paragraph_merge_under_row, int[] odt_style_paragraph_merge_over_row) {
   while(i < (import quill_paragraph_width)) {
-    os_lres[i] = fixed_point_maximum(os_lunder[i], os_lover[i]);
+    odt_style_paragraph_merge_merged_row[i] = fixed_point_maximum(odt_style_paragraph_merge_under_row[i], odt_style_paragraph_merge_over_row[i]);
     i = i + 1;
   }
-} return int[] os_lres;
+} return int[] odt_style_paragraph_merge_merged_row;
 ([-1, 0, -1, -1, -1, 240, -1, -1, 0, 0, 0, 0], [-1, -1, 720, -1, -1, 120, -1, 115, 1, 0, 0, 0]):([-1, 0, 720, -1, -1, 120, -1, 115, 1, 0, 0, 0])
 ([-1, -1, -1, -1, -1, -1, -1, -1, 0, 2, 0, 0], [-1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]):([-1, -1, -1, -1, -1, -1, -1, -1, 0, 2, 0, 0])

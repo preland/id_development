@@ -1,52 +1,52 @@
 // Takes the dialog off the screen: no dialog is open, and the picture is stale.
-wa_shut() {
-  lset((import wa_st), (import wa_s_dlg), (import wa_d_none));
-  lset((import vw_st), (import vw_s_d), 1);
+app_dialog_close() {
+  lset((import cli_state_list), (import wa_s_dlg), (import wa_d_none));
+  lset((import view_state), (import vw_s_d), 1);
 } return void;
-given wa_t_app given wa_open("T", ["a"], ["OK"], 4) given lset((import vw_st), 3, 0) ():() then wa_t_state:("0,0,0,0,|0|0") then vw_t_sts:("sts 0,0,100,1,")
-given wa_t_app ():() then wa_t_state:("0,0,0,0,|0|0")
+given cli_test_boot_app given app_dialog_show("T", ["a"], ["OK"], 4) given lset((import view_state), 3, 0) ():() then cli_test_state_text:("0,0,0,0,|0|0") then view_test_state_dump:("sts 0,0,100,1,")
+given cli_test_boot_app ():() then cli_test_state_text:("0,0,0,0,|0|0")
 
 // Saves the document where it is: to its file, or, when it has none, through the Save As picker. Once saved, the action that was waiting for it happens (wa_go); a save that failed says why and nothing waits.
-wa_keep(App waa) {
-  string was_p = waa.ui.shell.path;
-  int wai_code = 0;
-  if(len(was_p) == 0) {
-    wa_picker(waa, (import wa_d_save));
+app_document_save(App app_save_application) {
+  string app_save_path = app_save_application.ui.shell.path;
+  int app_save_code = 0;
+  if(len(app_save_path) == 0) {
+    app_picker_show(app_save_application, (import wa_d_save));
   }
-} chain (App waa) {
-  if(len(was_p) > 0) {
-    wai_code = app_save(waa, was_p);
+} chain (App app_save_application) {
+  if(len(app_save_path) > 0) {
+    app_save_code = app_save(app_save_application, app_save_path);
   }
-  if(len(was_p) > 0 && wai_code == 0) {
-    wa_go(waa);
+  if(len(app_save_path) > 0 && app_save_code == 0) {
+    app_action_perform(app_save_application);
   }
-  if(wai_code != 0) {
-    wa_oops(waa, wai_code);
+  if(app_save_code != 0) {
+    app_error_dialog(app_save_application, app_save_code);
   }
 } return void;
-given wa_t_app ((import wa_app)):() then wa_t_state:("0,0,3,0,|0|0")
-given wa_t_app given wa_t_type(120) given wa_t_pair("zz", "old") given wa_t_at((import wa_t_p)) given lset((import wa_st), 1, 3) ((import wa_app)):() then wa_t_state:("1,0,0,1,|1|0") then wa_t_gone:(0)
-given wa_t_app given wa_t_type(120) given wa_t_at("/nonexistent/d/x.odt") ((import wa_app)):() then wa_t_state:("0,0,4,0,|1|0")
+given cli_test_boot_app ((import cli_application)):() then cli_test_state_text:("0,0,3,0,|0|0")
+given cli_test_boot_app given cli_test_type_code_point(120) given cli_test_make_pair("zz", "old") given app_test_set_path((import cli_test_target_path)) given lset((import cli_state_list), 1, 3) ((import cli_application)):() then cli_test_state_text:("1,0,0,1,|1|0") then cli_test_remove_pair:(0)
+given cli_test_boot_app given cli_test_type_code_point(120) given app_test_set_path("/nonexistent/d/x.odt") ((import cli_application)):() then cli_test_state_text:("0,0,4,0,|1|0")
 
 // What the file picker chose: the dialog goes, and the file at was_path is opened (the Open picker) or written (the Save As picker), saying why when it cannot be, and after a Save As the action that was waiting for it happens.
-wa_took(App waa, string was_path) {
-  int wai_k = (import wa_st)[(import wa_s_dlg)];
-  wa_shut();
-  int wai_code = 0;
-} chain (App waa, string was_path) {
-  if(wai_k == (import wa_d_open)) {
-    wai_code = app_open(waa, was_path);
+app_picker_chosen(App app_chosen_application, string was_path) {
+  int app_chosen_dialog = (import cli_state_list)[(import wa_s_dlg)];
+  app_dialog_close();
+  int app_chosen_code = 0;
+} chain (App app_chosen_application, string was_path) {
+  if(app_chosen_dialog == (import wa_d_open)) {
+    app_chosen_code = app_open(app_chosen_application, was_path);
   }
-  if(wai_k == (import wa_d_save)) {
-    wai_code = app_save(waa, was_path);
+  if(app_chosen_dialog == (import wa_d_save)) {
+    app_chosen_code = app_save(app_chosen_application, was_path);
   }
-  if(wai_code != 0) {
-    wa_oops(waa, wai_code);
+  if(app_chosen_code != 0) {
+    app_error_dialog(app_chosen_application, app_chosen_code);
   }
-} chain (App waa, string was_path) {
-  if(wai_code == 0 && wai_k == (import wa_d_save)) {
-    wa_go(waa);
+} chain (App app_chosen_application, string was_path) {
+  if(app_chosen_code == 0 && app_chosen_dialog == (import wa_d_save)) {
+    app_action_perform(app_chosen_application);
   }
 } return void;
-given wa_t_app given orc_t_zip("<r><office:text><text:p>Hi</text:p></office:text></r>", "") given orc_t_save given lset((import wa_st), 2, 2) ((import wa_app), (import orc_tp)):() then wa_t_text:("Hi") then wa_t_state:("0,0,0,0,|1|0") then orc_t_gone:(0)
-given wa_t_app given wa_t_type(120) given lset((import wa_st), 2, 3) given lset((import wa_st), 1, 3) given wa_t_pair("zz", "old") ((import wa_app), (import wa_t_p)):() then wa_t_state:("1,0,0,1,|1|0") then wa_t_gone:(0)
+given cli_test_boot_app given odt_read_fixture_make_archive("<r><office:text><text:p>Hi</text:p></office:text></r>", "") given odt_read_fixture_save_archive given lset((import cli_state_list), 2, 2) ((import cli_application), (import odt_read_fixture_scratch_path)):() then cli_test_document_text:("Hi") then cli_test_state_text:("0,0,0,0,|1|0") then odt_read_fixture_remove_file:(0)
+given cli_test_boot_app given cli_test_type_code_point(120) given lset((import cli_state_list), 2, 3) given lset((import cli_state_list), 1, 3) given cli_test_make_pair("zz", "old") ((import cli_application), (import cli_test_target_path)):() then cli_test_state_text:("1,0,0,1,|1|0") then cli_test_remove_pair:(0)

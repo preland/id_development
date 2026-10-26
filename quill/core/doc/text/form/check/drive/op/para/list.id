@@ -1,27 +1,27 @@
 // A paragraph of the given letters, typed with character row cprop into an empty text, with a random paragraph row.
-rand_para(int[] rg, Doc d, int[] cps, int cprop) {
-  Text t = text_new(0);
-  text_insert(t, 0, cps, cprop);
-  int pp = rng_below(rg, tab_count(d.fmt.paras));
-} chain (int[] rg, Doc d, int[] cps, int cprop) {
-  Para p = para_make(t, pp);
-} return Para p;
+rand_para(int[] random_generator_seed, Doc paragraph_random_document, int[] paragraph_random_code_points, int paragraph_random_character_row) {
+  Text paragraph_random_text = text_new(0);
+  text_insert(paragraph_random_text, 0, paragraph_random_code_points, paragraph_random_character_row);
+  int paragraph_random_paragraph_row = document_random_below(random_generator_seed, tab_count(paragraph_random_document.fmt.paras));
+} chain (int[] random_generator_seed, Doc paragraph_random_document, int[] paragraph_random_code_points, int paragraph_random_character_row) {
+  Para paragraph_random_paragraph = para_make(paragraph_random_text, paragraph_random_paragraph_row);
+} return Para paragraph_random_paragraph;
 ([1], Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), [97, 98], 1):(Para(Text([97, 98], [Run(2, 1, -1)], 1), Lay([], [], -1), 0))
 ([3], Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), [97], 2):(Para(Text([97], [Run(1, 2, -1)], 1), Lay([], [], -1), 1))
 
 // Insert a new random paragraph at a random index.
-op_newpara(Doc d, Model mo, int[] rg) {
-  int index = rng_below(rg, doc_count(d) + 1);
-  int[] cps = rand_cps(rg);
-  int cprop = rng_below(rg, tab_count(d.fmt.chars));
-} chain (Doc d, Model mo, int[] rg) {
-  Para p = rand_para(rg, d, cps, cprop);
-  int k = flat_at(d, index, 0);
-  int[] ins = list_copy(cps);
-} chain (Doc d, Model mo, int[] rg) {
+document_operation_new_paragraph(Doc new_paragraph_document, Model new_paragraph_model, int[] random_generator_seed) {
+  int index = document_random_below(random_generator_seed, doc_count(new_paragraph_document) + 1);
+  int[] new_paragraph_code_points = document_random_code_points(random_generator_seed);
+  int new_paragraph_character_row = document_random_below(random_generator_seed, tab_count(new_paragraph_document.fmt.chars));
+} chain (Doc new_paragraph_document, Model new_paragraph_model, int[] random_generator_seed) {
+  Para new_paragraph_paragraph = rand_para(random_generator_seed, new_paragraph_document, new_paragraph_code_points, new_paragraph_character_row);
+  int new_paragraph_flat_index = flat_at(new_paragraph_document, index, 0);
+  int[] ins = list_copy(new_paragraph_code_points);
+} chain (Doc new_paragraph_document, Model new_paragraph_model, int[] random_generator_seed) {
   push(ins, -1);
-  model_ins(mo, k, ins, cprop, -1);
-  body_insert(d.body, index, p);
+  document_model_insert(new_paragraph_model, new_paragraph_flat_index, ins, new_paragraph_character_row, -1);
+  body_insert(new_paragraph_document.body, index, new_paragraph_paragraph);
 } return void;
 (Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), Model([4, 5, -1, -1, 7, 8, 9, -1], [0, 1, -1, -1, 1, 1, 1, -1], [-1, 3, -1, -1, -1, -1, -1, -1]), [5]):(Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0), Para(Text([105, 98], [Run(2, 2, -1)], 1), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 1), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), Model([4, 5, -1, -1, 7, 8, 9, -1, 105, 98, -1], [0, 1, -1, -1, 1, 1, 1, -1, 2, 2, -1], [-1, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1]), [1701631079])
 (Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), Model([4, 5, -1, -1, 7, 8, 9, -1], [0, 1, -1, -1, 1, 1, 1, -1], [-1, 3, -1, -1, -1, -1, -1, -1]), [7]):(Doc(Body([Para(Text([97, 99, 102], [Run(3, 2, -1)], 1), Lay([], [], -1), 0), Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 1), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), Model([97, 99, 102, -1, 4, 5, -1, -1, 7, 8, 9, -1], [2, 2, 2, -1, 0, 1, -1, -1, 1, 1, 1, -1], [-1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1]), [2099423262])

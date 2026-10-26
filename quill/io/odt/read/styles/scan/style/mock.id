@@ -1,18 +1,18 @@
 // Test fixture: a new empty bag kept in an export.
-ost_t_mkbag() {
-  export StyBag ost_t_b = ost_bag_new();
-} return void export ost_t_b;
-():() then (import ost_t_b).strings:([])
-given ost_t_mkbag ():() then (import ost_t_b).strings:([])
+odt_named_bag_fixture() {
+  export odt_named_style_records odt_named_bag = odt_named_bag_new();
+} return void export odt_named_bag;
+():() then (import odt_named_bag).strings:([])
+given odt_named_bag_fixture ():() then (import odt_named_bag).strings:([])
 
 // Test fixture: a bag read from a styles document held in a string, kept in an export along with the reader that read it.
-ost_t_scan(string os_ss) {
-  ost_t_open(os_ss);
-  ost_t_mkbag();
-  XmlR os_r = (import ost_t_r);
-} chain (string os_ss) {
-  StyBag os_b = (import ost_t_b);
-  ost_scan(os_b, os_r);
+odt_named_bag_scan_fixture(string odt_named_bag_scan_fixture_text) {
+  odt_named_reader_open(odt_named_bag_scan_fixture_text);
+  odt_named_bag_fixture();
+  XmlR odt_named_bag_scan_fixture_reader = (import odt_named_reader);
+} chain (string odt_named_bag_scan_fixture_text) {
+  odt_named_style_records odt_named_bag_scan_fixture_bag = (import odt_named_bag);
+  odt_named_scan(odt_named_bag_scan_fixture_bag, odt_named_bag_scan_fixture_reader);
 } return void;
-("<a><style:style style:name=\"P1\" style:family=\"paragraph\"/></a>"):() then (import ost_t_b).strings:(["P1", "", "", "", "", "", "p", "n"])
-("<a/>"):() then (import ost_t_b).strings:([])
+("<a><style:style style:name=\"P1\" style:family=\"paragraph\"/></a>"):() then (import odt_named_bag).strings:(["P1", "", "", "", "", "", "p", "n"])
+("<a/>"):() then (import odt_named_bag).strings:([])

@@ -1,34 +1,34 @@
 // The hyperlink the text inserted before run k should carry: the one both neighbours share, so typing inside a link stays in it and typing at either end does not.
-text_link(Text t, int k) {
-  int lk = -1;
-  if(k > 0 && k < len(t.runs) && t.runs[k - 1].link == t.runs[k].link) {
-    lk = t.runs[k].link;
+text_link(Text link_inherit_text, int link_inherit_run_index) {
+  int link_inherit_link_value = -1;
+  if(link_inherit_run_index > 0 && link_inherit_run_index < len(link_inherit_text.runs) && link_inherit_text.runs[link_inherit_run_index - 1].link == link_inherit_text.runs[link_inherit_run_index].link) {
+    link_inherit_link_value = link_inherit_text.runs[link_inherit_run_index].link;
   }
-} return int lk;
+} return int link_inherit_link_value;
 (Text([1, 2], [Run(1, 0, 3), Run(1, 1, 3)], 0), 1):(3)
 (Text([1, 2], [Run(1, 0, 3), Run(1, 1, -1)], 0), 1):(-1)
 (Text([1, 2], [Run(1, 0, 3), Run(1, 1, 3)], 0), 0):(-1)
 (Text([1, 2], [Run(1, 0, 3), Run(1, 1, 3)], 0), 2):(-1)
 
 // Adds the run for n new code points at off; the code points themselves are spliced in by text_insert.
-text_put(Text t, int off, int n, int cprop) {
-  int k = run_cut(t, off);
-  int lk = text_link(t, k);
-  Run nr = Run(n, cprop, lk);
-} chain (Text t, int off, int n, int cprop) {
-  rs_insert(t.runs, k, nr);
-  t.rev = t.rev + 1;
+text_put(Text run_put_text, int off, int run_put_count, int run_put_character_row) {
+  int run_put_run_index = run_cut(run_put_text, off);
+  int run_put_link_value = text_link(run_put_text, run_put_run_index);
+  Run run_put_new_run = Run(run_put_count, run_put_character_row, run_put_link_value);
+} chain (Text run_put_text, int off, int run_put_count, int run_put_character_row) {
+  document_runs_insert(run_put_text.runs, run_put_run_index, run_put_new_run);
+  run_put_text.rev = run_put_text.rev + 1;
 } return void;
 (Text([1, 2, 3], [Run(3, 0, -1)], 0), 1, 2, 5):(Text([1, 2, 3], [Run(1, 0, -1), Run(2, 5, -1), Run(2, 0, -1)], 1), 1, 2, 5)
 (Text([1, 2], [Run(1, 0, 3), Run(1, 0, 3)], 4), 1, 1, 0):(Text([1, 2], [Run(1, 0, 3), Run(1, 0, 3), Run(1, 0, 3)], 5), 1, 1, 0)
 
 // Inserts cps at off with the character row cprop. Text typed next to equal properties joins that run; an empty paragraph takes cprop for its one run.
-text_insert(Text t, int off, int[] cps, int cprop) {
-  int n = len(cps);
-  if(n > 0) {
-    text_put(t, off, n, cprop);
-    list_splice(t.cps, off, off, cps);
-    text_merge(t);
+text_insert(Text insert_code_points_text, int off, int[] insert_code_points_code_points, int insert_code_points_character_row) {
+  int insert_code_points_count = len(insert_code_points_code_points);
+  if(insert_code_points_count > 0) {
+    text_put(insert_code_points_text, off, insert_code_points_count, insert_code_points_character_row);
+    list_splice(insert_code_points_text.cps, off, off, insert_code_points_code_points);
+    text_merge(insert_code_points_text);
   }
 } return void;
 (Text([], [Run(0, 3, -1)], 0), 0, [104, 105], 7):(Text([104, 105], [Run(2, 7, -1)], 1), 0, [104, 105], 7)

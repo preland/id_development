@@ -1,20 +1,20 @@
 // A fo:text-align value as the model's alignment: start or left 0, center 1, end or right 2, justify 3, ost_bad for anything else.
-ost_align(string os_sv) {
-  int os_ia = (import ost_bad);
-  if(os_sv == "start" || os_sv == "left") {
-    os_ia = 0;
+odt_named_alignment_value(string odt_named_alignment_value_text) {
+  int odt_named_alignment_value_result = (import ost_bad);
+  if(odt_named_alignment_value_text == "start" || odt_named_alignment_value_text == "left") {
+    odt_named_alignment_value_result = 0;
   }
-  if(os_sv == "center") {
-    os_ia = 1;
+  if(odt_named_alignment_value_text == "center") {
+    odt_named_alignment_value_result = 1;
   }
-} chain (string os_sv) {
-  if(os_sv == "end" || os_sv == "right") {
-    os_ia = 2;
+} chain (string odt_named_alignment_value_text) {
+  if(odt_named_alignment_value_text == "end" || odt_named_alignment_value_text == "right") {
+    odt_named_alignment_value_result = 2;
   }
-  if(os_sv == "justify") {
-    os_ia = 3;
+  if(odt_named_alignment_value_text == "justify") {
+    odt_named_alignment_value_result = 3;
   }
-} return int os_ia;
+} return int odt_named_alignment_value_result;
 ("start"):(0)
 ("center"):(1)
 ("right"):(2)
@@ -22,12 +22,12 @@ ost_align(string os_sv) {
 ("both"):(-2147483647)
 
 // A length for a paragraph field in twips, ost_bad when unreadable; a length of exactly -1 twip becomes 0 because -1 means unset in a row.
-ost_plen(string os_sv) {
-  int os_itw = ost_len(os_sv);
-  if(os_itw == 0 - 1) {
-    os_itw = 0;
+odt_named_paragraph_length(string odt_named_paragraph_length_text) {
+  int odt_named_paragraph_length_twentieths = odt_named_length_parse(odt_named_paragraph_length_text);
+  if(odt_named_paragraph_length_twentieths == 0 - 1) {
+    odt_named_paragraph_length_twentieths = 0;
   }
-} return int os_itw;
+} return int odt_named_paragraph_length_twentieths;
 ("0.25in"):(360)
 ("-0.25in"):(-360)
 ("12furlong"):(-2147483647)
@@ -35,19 +35,19 @@ ost_plen(string os_sv) {
 ("-0.0007in"):(0)
 
 // The value paragraph attribute k (the order of ost_pattr) gives its field: 0 alignment, 1 to 5 lengths in twips, 6 line height in percent, 7 break before as 1 for "page" and 0 otherwise; ost_bad when it does not read.
-ost_pval(int os_ik, string os_sv) {
-  int os_ix = ost_plen(os_sv);
-  if(os_ik == 0) {
-    os_ix = ost_align(os_sv);
+odt_named_paragraph_value(int odt_named_paragraph_value_attribute, string odt_named_paragraph_value_text) {
+  int odt_named_paragraph_value_result = odt_named_paragraph_length(odt_named_paragraph_value_text);
+  if(odt_named_paragraph_value_attribute == 0) {
+    odt_named_paragraph_value_result = odt_named_alignment_value(odt_named_paragraph_value_text);
   }
-  if(os_ik == 6) {
-    os_ix = ost_pct(os_sv);
+  if(odt_named_paragraph_value_attribute == 6) {
+    odt_named_paragraph_value_result = odt_named_percent_parse(odt_named_paragraph_value_text);
   }
-} chain (int os_ik, string os_sv) {
-  if(os_ik == 7) {
-    os_ix = os_sv == "page";
+} chain (int odt_named_paragraph_value_attribute, string odt_named_paragraph_value_text) {
+  if(odt_named_paragraph_value_attribute == 7) {
+    odt_named_paragraph_value_result = odt_named_paragraph_value_text == "page";
   }
-} return int os_ix;
+} return int odt_named_paragraph_value_result;
 (0, "center"):(1)
 (1, "1in"):(1440)
 (3, "-0.25in"):(-360)

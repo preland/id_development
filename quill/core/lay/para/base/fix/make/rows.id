@@ -1,32 +1,32 @@
 // Test setup: character rows built from the test document's own table and exported by id, so a case can name them: lp_t_cb bold, lp_t_cs superscript, lp_t_cd subscript, lp_t_cz 24 pt (48 half-points).
-lp_t_rows() {
-  Doc d = (import lp_t_d);
-  int bold = tab_with_bits(d.fmt.chars, 0, 1, 1);
-  int sup = tab_with_bits(d.fmt.chars, 0, 16, 1);
+layout_paragraph_test_character_rows() {
+  Doc rows_document = (import layout_paragraph_test_document);
+  int bold = tab_with_bits(rows_document.fmt.chars, 0, 1, 1);
+  int sup = tab_with_bits(rows_document.fmt.chars, 0, 16, 1);
 } chain () {
-  int sub = tab_with_bits(d.fmt.chars, 0, 32, 1);
-  int big = tab_with(d.fmt.chars, 0, (import quill_character_size), 48);
-  export int lp_t_cb = bold;
+  int sub = tab_with_bits(rows_document.fmt.chars, 0, 32, 1);
+  int big = tab_with(rows_document.fmt.chars, 0, (import quill_character_size), 48);
+  export int layout_paragraph_test_bold_row = bold;
 } chain () {
-  export int lp_t_cs = sup;
-  export int lp_t_cd = sub;
-  export int lp_t_cz = big;
+  export int layout_paragraph_test_superscript_row = sup;
+  export int layout_paragraph_test_subscript_row = sub;
+  export int layout_paragraph_test_large_row = big;
 } return void;
-given lp_t_new ():() then lp_t_cinfo:([1, 16, 32, 48])
-given lp_t_new ():() then (import lp_t_cb):(8) then (import lp_t_cs):(9) then (import lp_t_cz):(11) then calls tab_with:[1]
+given layout_paragraph_test_new ():() then layout_paragraph_test_character_info:([1, 16, 32, 48])
+given layout_paragraph_test_new ():() then (import layout_paragraph_test_bold_row):(8) then (import layout_paragraph_test_superscript_row):(9) then (import layout_paragraph_test_large_row):(11) then calls tab_with:[1]
 
 // Test setup: starts the pen of paragraph 0 of the test view at xp, so a case can place code points from offset 0.
-lp_t_pen0(int xp) {
-  Doc d = (import lp_t_d);
-  lp_put(d.body.paras[0].lay.pen, 0, xp);
+layout_paragraph_test_start_pen(int pen_origin) {
+  Doc pen_document = (import layout_paragraph_test_document);
+  layout_paragraph_put(pen_document.body.paras[0].lay.pen, 0, pen_origin);
 } return void;
-given lp_t_new (7):(7) then lp_t_p0:([7])
-given lp_t_new (0):(0) then lp_t_p0:([0])
+given layout_paragraph_test_new (7):(7) then layout_paragraph_test_first_pen:([7])
+given layout_paragraph_test_new (0):(0) then layout_paragraph_test_first_pen:([0])
 
 // Test setup: sets the running height of paragraph 0 of the test view, which lp_close appends lines at.
-lp_t_hset(int h) {
-  Doc d = (import lp_t_d);
-  d.body.paras[0].lay.h = h;
+layout_paragraph_test_set_height(int h) {
+  Doc height_document = (import layout_paragraph_test_document);
+  height_document.body.paras[0].lay.h = h;
 } return void;
-given lp_t_new (500):(500) then lp_t_h0:(500)
-given lp_t_new (0):(0) then lp_t_h0:(0)
+given layout_paragraph_test_new (500):(500) then layout_paragraph_test_first_height:(500)
+given layout_paragraph_test_new (0):(0) then layout_paragraph_test_first_height:(0)

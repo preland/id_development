@@ -1,42 +1,42 @@
 // Remembers how the last save ended, for odt_error to read: the code and the detail that goes in brackets after its message.
 // odw_code: Test fixture (internal): the code the last save left.
 // odw_why: Test fixture (internal): the detail the last save left.
-odw_note(int pkcode, string pkwhy) {
-  export int odw_code = pkcode;
-  export string odw_why = pkwhy;
-} return void export odw_code;
-(100, "x"):() then (import odw_code):(100)
-(0, ""):() then (import odw_code):(0)
+odt_package_save_note(int odt_package_note_code, string odt_package_note_detail) {
+  export int odt_package_save_code = odt_package_note_code;
+  export string odt_package_save_detail = odt_package_note_detail;
+} return void export odt_package_save_code;
+(100, "x"):() then (import odt_package_save_code):(100)
+(0, ""):() then (import odt_package_save_code):(0)
 
 // What a save code means, with its detail in brackets: 100 the document holds something that cannot be written, 101 the package could not be assembled, 102 the file could not be written. Codes 1 to 99 belong to the reader.
-odw_error(int pkcode) {
-  string pkmsg = "ODT: unknown error code " + pkcode;
-  int pkat = pkcode - (import odw_e_check);
-  if(pkat >= 0 && pkat < len((import odw_errors))) {
-    pkmsg = (import odw_errors)[pkat] + " [" + (import odw_why) + "]";
+odt_package_save_message(int odt_package_message_code) {
+  string odt_package_message_text = "ODT: unknown error code " + odt_package_message_code;
+  int odt_package_message_index = odt_package_message_code - (import odw_e_check);
+  if(odt_package_message_index >= 0 && odt_package_message_index < len((import odw_errors))) {
+    odt_package_message_text = (import odw_errors)[odt_package_message_index] + " [" + (import odt_package_save_detail) + "]";
   }
-} return string pkmsg;
-given odw_note(100, "paragraph 2 is bad") (100):("ODT: this document cannot be written as it is; make the change the bracket asks for, then save again [paragraph 2 is bad]")
-given odw_note(102, "/x.odt") (102):("ODT: the file could not be written; check that the folder exists, that you may write to it and that the disk has room [/x.odt]")
-given odw_note(0, "") (7):("ODT: unknown error code 7")
+} return string odt_package_message_text;
+given odt_package_save_note(100, "paragraph 2 is bad") (100):("ODT: this document cannot be written as it is; make the change the bracket asks for, then save again [paragraph 2 is bad]")
+given odt_package_save_note(102, "/x.odt") (102):("ODT: the file could not be written; check that the folder exists, that you may write to it and that the disk has room [/x.odt]")
+given odt_package_save_note(0, "") (7):("ODT: unknown error code 7")
 
 // Writes the bytes to the file at the path; 0 when all of them reached it, otherwise 102 with the path as the detail.
-odw_write(string pkpath, int[] pkby) {
-  int pkfh = fs_open(pkpath, "w");
-  int pkq = (import odw_e_file);
-  int pkn = 0;
-} chain (string pkpath, int[] pkby) {
-  if(pkfh >= 0) {
-    pkn = fs_write(pkfh, pkby, len(pkby));
-    pkq = fs_close(pkfh);
+odt_package_write_file(string odt_package_write_path, int[] odt_package_write_bytes) {
+  int odt_package_write_handle = fs_open(odt_package_write_path, "w");
+  int odt_package_write_status = (import odw_e_file);
+  int odt_package_write_count = 0;
+} chain (string odt_package_write_path, int[] odt_package_write_bytes) {
+  if(odt_package_write_handle >= 0) {
+    odt_package_write_count = fs_write(odt_package_write_handle, odt_package_write_bytes, len(odt_package_write_bytes));
+    odt_package_write_status = fs_close(odt_package_write_handle);
   }
-  if(pkq == 0 && pkn == len(pkby)) {
-    odw_note(0, "");
+  if(odt_package_write_status == 0 && odt_package_write_count == len(odt_package_write_bytes)) {
+    odt_package_save_note(0, "");
   } else {
-    pkq = (import odw_e_file);
-    odw_note(pkq, pkpath);
+    odt_package_write_status = (import odw_e_file);
+    odt_package_save_note(odt_package_write_status, odt_package_write_path);
   }
-} return int pkq;
-given odw_t_path ((import odw_tp), [104, 105]):(0) then odw_t_bytes:([104, 105])
-("/nonexistent/dir/x.odt", [1]):(102) then calls odw_note:(102, "/nonexistent/dir/x.odt")
-("/dev/full", [1, 2, 3]):(102) then calls odw_note:(102, "/dev/full")
+} return int odt_package_write_status;
+given odt_package_fixture_scratch_path ((import odt_package_scratch_file), [104, 105]):(0) then odt_package_fixture_scratch_bytes:([104, 105])
+("/nonexistent/dir/x.odt", [1]):(102) then calls odt_package_save_note:(102, "/nonexistent/dir/x.odt")
+("/dev/full", [1, 2, 3]):(102) then calls odt_package_save_note:(102, "/dev/full")

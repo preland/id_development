@@ -1,32 +1,32 @@
 // 1 when the point (rbi_x, rbi_y) is inside the rectangle that starts at index rbi_q of rbl_r as x, y, width and height, its left and top edges in and its right and bottom edges out.
-rbe_in(int[] rbl_r, int rbi_q, int rbi_x, int rbi_y) {
-  int rbi_h = rbi_x >= rbl_r[rbi_q] && rbi_x < rbl_r[rbi_q] + rbl_r[rbi_q + 2];
-  int rbi_v = rbi_y >= rbl_r[rbi_q + 1] && rbi_y < rbl_r[rbi_q + 1] + rbl_r[rbi_q + 3];
-  int rbi_on = rbi_h * rbi_v;
-} return int rbi_on;
+ribbon_rectangle_contains(int[] ribbon_contains_rectangles, int ribbon_contains_start, int ribbon_contains_x, int ribbon_contains_y) {
+  int ribbon_contains_across = ribbon_contains_x >= ribbon_contains_rectangles[ribbon_contains_start] && ribbon_contains_x < ribbon_contains_rectangles[ribbon_contains_start] + ribbon_contains_rectangles[ribbon_contains_start + 2];
+  int ribbon_contains_down = ribbon_contains_y >= ribbon_contains_rectangles[ribbon_contains_start + 1] && ribbon_contains_y < ribbon_contains_rectangles[ribbon_contains_start + 1] + ribbon_contains_rectangles[ribbon_contains_start + 3];
+  int ribbon_contains_result = ribbon_contains_across * ribbon_contains_down;
+} return int ribbon_contains_result;
 ([0, 0, 10, 10], 0, 9, 9):(1)
 ([0, 0, 10, 10, 20, 20, 5, 5], 4, 25, 20):(0)
 ([0, 0, 10, 10], 0, 10, 5):(0)
 
 // The index of the first of rbi_n rectangles at the start of rbl_r (four numbers each) that holds the point (rbi_x, rbi_y); -1 when none does.
-rbe_at(int[] rbl_r, int rbi_n, int rbi_x, int rbi_y) {
-  int rbi_k = 0;
-  int rbi_at = -1;
-  while(rbi_k < rbi_n && rbi_at < 0) {
-    rbi_at = rbi_at + (rbi_k + 1) * rbe_in(rbl_r, rbi_k * 4, rbi_x, rbi_y);
-    rbi_k = rbi_k + 1;
+ribbon_rectangle_index_at(int[] ribbon_index_rectangles, int ribbon_index_count, int ribbon_index_x, int ribbon_index_y) {
+  int ribbon_index_number = 0;
+  int ribbon_index_found = -1;
+  while(ribbon_index_number < ribbon_index_count && ribbon_index_found < 0) {
+    ribbon_index_found = ribbon_index_found + (ribbon_index_number + 1) * ribbon_rectangle_contains(ribbon_index_rectangles, ribbon_index_number * 4, ribbon_index_x, ribbon_index_y);
+    ribbon_index_number = ribbon_index_number + 1;
   }
-} return int rbi_at;
+} return int ribbon_index_found;
 ([0, 0, 10, 10, 20, 0, 10, 10], 2, 25, 5):(1)
 ([0, 0, 10, 10, 20, 0, 10, 10], 2, 15, 5):(-1)
 
 // The control of the ribbon rib the point (rbi_x, rbi_y) is on the arrow strip of, when it is a split button; -1 when it is not on one.
-rbe_arrow_at(Ribbon rib, int rbi_x, int rbi_y) {
-  int rbi_i = rbe_at(rib.rects, len(rib.items), rbi_x, rbi_y);
-  int rbi_a = -1;
-  if(rbi_i >= 0) {
-    rbi_a = rbe_strip(rib, rbi_i, rbi_x);
+ribbon_arrow_index_at(Ribbon rib, int ribbon_arrow_x, int ribbon_arrow_y) {
+  int ribbon_arrow_control = ribbon_rectangle_index_at(rib.ribbon_rectangles, len(rib.items), ribbon_arrow_x, ribbon_arrow_y);
+  int ribbon_arrow_found = -1;
+  if(ribbon_arrow_control >= 0) {
+    ribbon_arrow_found = ribbon_arrow_strip_index(rib, ribbon_arrow_control, ribbon_arrow_x);
   }
-} return int rbi_a;
-given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 56, 70):(0)
-given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 20, 70):(-1)
+} return int ribbon_arrow_found;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ((import ribbon_fit_test_ribbon), 56, 70):(0)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ((import ribbon_fit_test_ribbon), 20, 70):(-1)

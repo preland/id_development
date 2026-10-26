@@ -1,39 +1,39 @@
 // Opens an undo step unless one is open already, so a command that may turn out to change nothing leaves no step (and the redo stack alone) when it does.
-ed_open(Ctl ctl) {
+editor_open_step(Ctl ctl) {
   if(ctl.hist.open < 0) {
-    txn_begin(ctl);
+    editor_transaction_begin(ctl);
   }
 } return void;
-given fx_blank ((import fxc)):((import fxc)) then fx_hist:("u1 r0 o0 n0")
-given fx_blank given txn_begin((import fxc)) given hist_note((import fxc), Op(6, [0], [1])) ((import fxc)):((import fxc)) then fx_hist:("u1 r0 o0 n1")
+given editor_fixture_blank ((import fixture_control)):((import fixture_control)) then editor_fixture_history:("u1 r0 o0 n0")
+given editor_fixture_blank given editor_transaction_begin((import fixture_control)) given hist_note((import fixture_control), Op(6, [0], [1])) ((import fixture_control)):((import fixture_control)) then editor_fixture_history:("u1 r0 o0 n1")
 
 // Replaces the n code points of needle that sit at off in paragraph para by with, in the open undo step; the new text takes the character row of the first replaced one.
-rep_one(Doc d, Ctl ctl, int para, int off, int[] needle, int[] with) {
-  int cprop = para_cprop(d.body.paras[para], off);
-  int[] loc = [para, off, cprop, 0];
-  ed_del_in(d, ctl, para, off, len(needle));
+editor_replace_one(Doc d, Ctl ctl, int para, int off, int[] needle, int[] with) {
+  int cprop = document_paragraph_character_row(d.body.paras[para], off);
+  int[] location = [para, off, cprop, 0];
+  editor_delete_in(d, ctl, para, off, len(needle));
 } chain (Doc d, Ctl ctl, int para, int off, int[] needle, int[] with) {
   if(len(with) > 0) {
-    Op insertion = Op((import ed_k_ins), loc, with);
-    ed_run(d, ctl, insertion);
+    Op insertion = Op((import ed_k_ins), location, with);
+    editor_run(d, ctl, insertion);
   }
 } return void;
-given fx_setup("a*bc*d") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 1, [98, 99], [120]):((import fxd), (import fxc), 0, 1, [98, 99], [120]) then fx_show:("a*x*d")
-given fx_setup("abcd") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 1, [98, 99], []):((import fxd), (import fxc), 0, 1, [98, 99], []) then fx_show:("ad") then fx_hist:("u1 r0 o0 n1")
+given editor_fixture_setup("a*bc*d") given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0, 1, [98, 99], [120]):((import fixture_document), (import fixture_control), 0, 1, [98, 99], [120]) then editor_fixture_show:("a*x*d")
+given editor_fixture_setup("abcd") given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0, 1, [98, 99], []):((import fixture_document), (import fixture_control), 0, 1, [98, 99], []) then editor_fixture_show:("ad") then editor_fixture_history:("u1 r0 o0 n1")
 
 // Replaces every match of needle in paragraph para by with (last one first, so the offsets stay right), in the undo step opened for it, and answers how many there were.
-rep_para(Doc d, Ctl ctl, int para, int[] needle, int[] with, int flags) {
-  int[] ofs = find_all(d.body.paras[para], needle, flags);
-  int k = len(ofs) - 1;
+editor_replace_paragraph(Doc d, Ctl ctl, int para, int[] needle, int[] with, int flags) {
+  int[] match_offsets = find_all(d.body.paras[para], needle, flags);
+  int k = len(match_offsets) - 1;
   if(k >= 0) {
-    ed_open(ctl);
+    editor_open_step(ctl);
   }
 } chain (Doc d, Ctl ctl, int para, int[] needle, int[] with, int flags) {
   while(k >= 0) {
-    rep_one(d, ctl, para, ofs[k], needle, with);
+    editor_replace_one(d, ctl, para, match_offsets[k], needle, with);
     k = k - 1;
   }
-  int n = len(ofs);
+  int n = len(match_offsets);
 } return int n;
-given fx_setup("abab") ((import fxd), (import fxc), 0, [97, 98], [120, 121, 122], 0):(2) then fx_show:("xyzxyz") then fx_hist:("u1 r0 o0 n4")
-given fx_setup("abab") ((import fxd), (import fxc), 0, [99], [120], 0):(0) then fx_show:("abab") then fx_hist:("u0 r0 o-1 n0")
+given editor_fixture_setup("abab") ((import fixture_document), (import fixture_control), 0, [97, 98], [120, 121, 122], 0):(2) then editor_fixture_show:("xyzxyz") then editor_fixture_history:("u1 r0 o0 n4")
+given editor_fixture_setup("abab") ((import fixture_document), (import fixture_control), 0, [99], [120], 0):(0) then editor_fixture_show:("abab") then editor_fixture_history:("u0 r0 o-1 n0")

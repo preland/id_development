@@ -1,44 +1,44 @@
 // Lays out again every paragraph an edit marked stale (lay.h is -1), paginates from the first of them, and answers how many paragraphs it laid out again. The pagination stops as soon as a page starts where it did before (lay_walk), so typing in the middle of a long document costs one paragraph and the rest of its page. A document no edit touched answers 0 and is left alone; one whose paragraph count changed with no paragraph stale cannot happen, because splitting and joining mark the paragraphs they touch.
 // By hand: 12 one-line paragraphs of 1664 lu fill 6 to a page; making paragraph 8 three lines (3968 lu) lets paragraph 10 end the page, so the pages start at 0, 6 and 11 and exactly one paragraph was laid out again.
-lay_relayout(View lwv) {
-  int[] lwr = [0 - 1, 0 - 1, 0];
-  lay_relay_all(lwv, lay_area(lwv.doc, 0), lwr);
-  int lwn = lwr[2];
-} chain (View lwv) {
-  if(lwn > 0) {
-    lay_walk(lwv, lwr[0], lwr[1]);
+layout_page_layout_again(View layout_walk_view) {
+  int[] relay_list = [0 - 1, 0 - 1, 0];
+  lay_relay_all(layout_walk_view, lay_area(layout_walk_view.doc, 0), relay_list);
+  int relaid_total = relay_list[2];
+} chain (View layout_walk_view) {
+  if(relaid_total > 0) {
+    lay_walk(layout_walk_view, relay_list[0], relay_list[1]);
   }
-} return int lwn;
-given lg_t_paged(8) ((import lp_t_v)):(0)
-given lg_t_paged(12) given lg_t_edit(8, "AAAAAAAA") ((import lp_t_v)):(1) then (import lp_t_v).pages.starts:([0, 0, 6, 0, 11, 0, 12, 0]) then (import lp_t_v).pages.tops:([640, 2304, 3968, 5632, 7296, 8960, 14976, 16640, 18304, 22272, 23936, 29312])
-given lg_t_paged(12) given lg_t_edit(0, "AAAAAAAA") ((import lp_t_v)):(1) then (import lp_t_v).pages.starts:([0, 0, 5, 0, 11, 0, 12, 0]) then (import lp_t_v).pages.count:(3)
-given lg_t_paged(12) given lp_t_ins(3, "A") given lp_t_split(3, 1) ((import lp_t_v)):(2) then (import lp_t_v).pages.starts:([0, 0, 6, 0, 12, 0, 13, 0]) then (import lp_t_v).pages.tops:([640, 2304, 3968, 5632, 7296, 8960, 14976, 16640, 18304, 19968, 21632, 23296, 29312])
-given lg_t_paged(12) given lg_t_edit(1, "x") given lg_t_edit(9, "AAAAAAAA") ((import lp_t_v)):(2) then (import lp_t_v).pages.starts:([0, 0, 6, 0, 11, 0, 12, 0])
-given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_paras(8) ((import lp_t_v)):(8) then (import lp_t_v).pages.starts:([0, 0, 6, 0, 8, 0]) then (import lp_t_v).pages.tops:([640, 2304, 3968, 5632, 7296, 8960, 14976, 16640])
+} return int relaid_total;
+given layout_page_test_paged(8) ((import layout_paragraph_test_view)):(0)
+given layout_page_test_paged(12) given layout_page_test_edit(8, "AAAAAAAA") ((import layout_paragraph_test_view)):(1) then (import layout_paragraph_test_view).pages.starts:([0, 0, 6, 0, 11, 0, 12, 0]) then (import layout_paragraph_test_view).pages.tops:([640, 2304, 3968, 5632, 7296, 8960, 14976, 16640, 18304, 22272, 23936, 29312])
+given layout_page_test_paged(12) given layout_page_test_edit(0, "AAAAAAAA") ((import layout_paragraph_test_view)):(1) then (import layout_paragraph_test_view).pages.starts:([0, 0, 5, 0, 11, 0, 12, 0]) then (import layout_paragraph_test_view).pages.count:(3)
+given layout_page_test_paged(12) given layout_paragraph_test_insert(3, "A") given layout_paragraph_test_split(3, 1) ((import layout_paragraph_test_view)):(2) then (import layout_paragraph_test_view).pages.starts:([0, 0, 6, 0, 12, 0, 13, 0]) then (import layout_paragraph_test_view).pages.tops:([640, 2304, 3968, 5632, 7296, 8960, 14976, 16640, 18304, 19968, 21632, 23296, 29312])
+given layout_page_test_paged(12) given layout_page_test_edit(1, "x") given layout_page_test_edit(9, "AAAAAAAA") ((import layout_paragraph_test_view)):(2) then (import layout_paragraph_test_view).pages.starts:([0, 0, 6, 0, 11, 0, 12, 0])
+given layout_paragraph_test_font given layout_page_test_page(1500, 3000, 150, 300, 450, 600) given layout_paragraph_test_paragraphs(8) ((import layout_paragraph_test_view)):(8) then (import layout_paragraph_test_view).pages.starts:([0, 0, 6, 0, 8, 0]) then (import layout_paragraph_test_view).pages.tops:([640, 2304, 3968, 5632, 7296, 8960, 14976, 16640])
 
 // Lays out again every stale paragraph of the view in a text area lww lu wide and notes which ones in lwr, [first, last, count].
 // By hand: three fresh paragraphs are all stale, so the note is [0, 2, 3]; after lay_all only the one that was edited is.
-lay_relay_all(View lwv, int lww, int[] lwr) {
-  int lwi = 0;
-  while(lwi < len(lwv.doc.body.paras)) {
-    if(lwv.doc.body.paras[lwi].lay.h < 0) {
-      lay_one(lwv, lwi, lww);
-      lay_note(lwr, lwi);
+lay_relay_all(View layout_walk_view, int relay_width, int[] relay_list) {
+  int layout_walk_paragraph = 0;
+  while(layout_walk_paragraph < len(layout_walk_view.doc.body.paras)) {
+    if(layout_walk_view.doc.body.paras[layout_walk_paragraph].lay.h < 0) {
+      lay_one(layout_walk_view, layout_walk_paragraph, relay_width);
+      lay_note(relay_list, layout_walk_paragraph);
     }
-    lwi = lwi + 1;
+    layout_walk_paragraph = layout_walk_paragraph + 1;
   }
 } return void;
-given lp_t_font given lp_t_paras(3) ((import lp_t_v), 6000, [-1, -1, 0]):((import lp_t_v), 6000, [0, 2, 3])
-given lp_t_font given lp_t_paras(3) given lay_all((import lp_t_v)) given lg_t_edit(1, "A") ((import lp_t_v), 6000, [-1, -1, 0]):((import lp_t_v), 6000, [1, 1, 1])
+given layout_paragraph_test_font given layout_paragraph_test_paragraphs(3) ((import layout_paragraph_test_view), 6000, [-1, -1, 0]):((import layout_paragraph_test_view), 6000, [0, 2, 3])
+given layout_paragraph_test_font given layout_paragraph_test_paragraphs(3) given lay_all((import layout_paragraph_test_view)) given layout_page_test_edit(1, "A") ((import layout_paragraph_test_view), 6000, [-1, -1, 0]):((import layout_paragraph_test_view), 6000, [1, 1, 1])
 
 // Notes that paragraph lwi was laid out again: the first one seen sets the first of lwr, [first, last, count], the last one seen the last, and the count goes up.
 // By hand: noting 4 and then 7 on a fresh note gives [4, 7, 2].
-lay_note(int[] lwr, int lwi) {
-  if(lwr[0] < 0) {
-    lset(lwr, 0, lwi);
+lay_note(int[] relay_list, int layout_walk_paragraph) {
+  if(relay_list[0] < 0) {
+    lset(relay_list, 0, layout_walk_paragraph);
   }
-  lset(lwr, 1, lwi);
-  lset(lwr, 2, lwr[2] + 1);
+  lset(relay_list, 1, layout_walk_paragraph);
+  lset(relay_list, 2, relay_list[2] + 1);
 } return void;
 ([-1, -1, 0], 4):([4, 4, 1], 4)
 ([4, 4, 1], 7):([4, 7, 2], 7)

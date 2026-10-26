@@ -1,40 +1,40 @@
 // What an object is called in its box, from the element that holds it (vw_obj_names): "Image" for a picture frame, "Object" for any element it does not know.
-vw_part_label(string vws_n) {
-  int vwi_k = list_string_index((import vw_obj_names), vws_n);
-  string vws_l = "Object";
-  if(vwi_k >= 0) {
-    vws_l = (import vw_obj_labels)[vwi_k];
+view_flow_part_label(string view_flow_part_label_name) {
+  int view_flow_part_label_index = list_string_index((import vw_obj_names), view_flow_part_label_name);
+  string view_flow_part_label_result = "Object";
+  if(view_flow_part_label_index >= 0) {
+    view_flow_part_label_result = (import vw_obj_labels)[view_flow_part_label_index];
   }
-} return string vws_l;
+} return string view_flow_part_label_result;
 ("draw:frame"):("Image")
 ("text:note"):("Note")
 ("table:table"):("Object")
 
 // The label of an object paragraph: for a block it is the label the reader wrote after the marker without its brackets ("[Table]" is "Table"), for a picture on a line of its own the label of the part its marker stands for.
-vw_obj_label(Doc vwd, int vwi_p) {
-  int[] vwl_c = vwd.body.paras[vwi_p].txt.cps;
-  int vwi_i = vwl_c[0] - (import quill_object_marker);
-  string vws_l = vw_cps_text(vwl_c, 1);
-} chain (Doc vwd, int vwi_p) {
-  if(len(vwl_c) == 1 && vwi_i < len(vwd.ext.parts)) {
-    vws_l = vw_part_label(vwd.ext.parts[vwi_i].name);
+view_flow_object_label(Doc view_flow_object_label_document, int view_flow_object_label_paragraph) {
+  int[] view_flow_object_label_code_points = view_flow_object_label_document.body.paras[view_flow_object_label_paragraph].txt.cps;
+  int view_flow_object_label_part_index = view_flow_object_label_code_points[0] - (import quill_object_marker);
+  string view_flow_object_label_result = view_flow_code_points_text(view_flow_object_label_code_points, 1);
+} chain (Doc view_flow_object_label_document, int view_flow_object_label_paragraph) {
+  if(len(view_flow_object_label_code_points) == 1 && view_flow_object_label_part_index < len(view_flow_object_label_document.ext.parts)) {
+    view_flow_object_label_result = view_flow_part_label(view_flow_object_label_document.ext.parts[view_flow_object_label_part_index].name);
   }
-  if(len(vws_l) > 2 && character_code_at(vws_l, 0) == 91) {
-    vws_l = str_sub(vws_l, 1, len(vws_l) - 2);
+  if(len(view_flow_object_label_result) > 2 && character_code_at(view_flow_object_label_result, 0) == 91) {
+    view_flow_object_label_result = str_sub(view_flow_object_label_result, 1, len(view_flow_object_label_result) - 2);
   }
-} return string vws_l;
-given lp_t_new given lg_t_mark(0) given lp_t_ins(0, "[Table]") ((import lp_t_d), 0):("Table")
-given lp_t_new given lg_t_mark(0) given vw_t_part("draw:frame") ((import lp_t_d), 0):("Image")
-given lp_t_new given lg_t_mark(0) given vw_t_part("x") ((import lp_t_d), 0):("Object")
+} return string view_flow_object_label_result;
+given layout_paragraph_test_new given layout_page_test_mark(0) given layout_paragraph_test_insert(0, "[Table]") ((import layout_paragraph_test_document), 0):("Table")
+given layout_paragraph_test_new given layout_page_test_mark(0) given view_flow_test_add_part("draw:frame") ((import layout_paragraph_test_document), 0):("Image")
+given layout_paragraph_test_new given layout_page_test_mark(0) given view_flow_test_add_part("x") ((import layout_paragraph_test_document), 0):("Object")
 
 // The code points of a list from index vwi_from on, as a string: the text of an object paragraph after its marker.
-vw_cps_text(int[] vwl_c, int vwi_from) {
-  string vws_t = "";
-  int vwi_k = vwi_from;
-  while(vwi_k < len(vwl_c)) {
-    vws_t = vws_t + utf8_string(vwl_c[vwi_k]);
-    vwi_k = vwi_k + 1;
+view_flow_code_points_text(int[] view_flow_code_points_list, int view_flow_code_points_start) {
+  string view_flow_code_points_result = "";
+  int view_flow_code_points_index = view_flow_code_points_start;
+  while(view_flow_code_points_index < len(view_flow_code_points_list)) {
+    view_flow_code_points_result = view_flow_code_points_result + utf8_string(view_flow_code_points_list[view_flow_code_points_index]);
+    view_flow_code_points_index = view_flow_code_points_index + 1;
   }
-} return string vws_t;
+} return string view_flow_code_points_result;
 ([983040, 65, 66], 1):("AB")
 ([65, 233], 0):("Aé")

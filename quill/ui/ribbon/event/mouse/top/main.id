@@ -1,49 +1,49 @@
 // Starts an event with no answer: the command and the argument, the activated control and the name of the last choice are cleared.
-rbe_clear() {
-  int[] rbl_s = (import rbd_s);
-  string[] rbt_n = (import rbd_nm);
-  lset(rbl_s, (import rbd_s_cmd), 0);
+ribbon_event_clear() {
+  int[] ribbon_clear_state = (import ribbon_fit_state);
+  string[] ribbon_clear_names = (import ribbon_fit_choice_name);
+  lset(ribbon_clear_state, (import rbd_s_cmd), 0);
 } chain () {
-  lset(rbl_s, (import rbd_s_arg), 0);
-  lset(rbl_s, (import rbd_s_act), -1);
-  rbt_n[0] = "";
+  lset(ribbon_clear_state, (import rbd_s_arg), 0);
+  lset(ribbon_clear_state, (import rbd_s_act), -1);
+  ribbon_clear_names[0] = "";
 } return void;
-given rbe_state given rbe_pops given rbe_emit(301, 5, "x") ():() then rbd_t_sd:("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
-given rbe_state given rbe_pops given rbe_emit(301, 5, "x") ():() then rbd_t_pd:("0,0,,0,0,0,0,0,0,")
+given ribbon_fit_create_state_lists given ribbon_fit_create_popup_lists given ribbon_answer_write(301, 5, "x") ():() then ribbon_fit_check_state_dump:("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+given ribbon_fit_create_state_lists given ribbon_fit_create_popup_lists given ribbon_answer_write(301, 5, "x") ():() then ribbon_fit_check_popup_dump:("0,0,,0,0,0,0,0,0,")
 
 // One window event of kind rbi_kind with the fields rbl_ev, as gfx_event filled it in, for the ribbon rib. A combo box that has the keyboard (or is pressed on) takes the event first (rbe_cb_event), and then rbe_rest does what is left. Answers bits: 1 paint the ribbon again, 2 a command was given (rib_cmd, rib_arg and rib_name), 4 the press closed a menu or ended a combo box and is not used up, so it is owed to what is under, 8 the ribbon took the event (it is in the band, or a menu is open, or a combo box has the keyboard).
-rib_event(Ribbon rib, int rbi_kind, int[] rbl_ev) {
-  rbe_clear();
-  int rbi_c = rbe_cb_event(rib, rbi_kind, rbl_ev);
-  int rbi_b = rbi_c;
-} chain (Ribbon rib, int rbi_kind, int[] rbl_ev) {
-  if(rbi_c == 0) {
-    rbi_b = rbe_rest(rib, rbi_kind, rbl_ev);
+rib_event(Ribbon rib, int ribbon_event_kind, int[] ribbon_event_fields) {
+  ribbon_event_clear();
+  int ribbon_event_combo_bits = ribbon_combo_event(rib, ribbon_event_kind, ribbon_event_fields);
+  int ribbon_event_bits = ribbon_event_combo_bits;
+} chain (Ribbon rib, int ribbon_event_kind, int[] ribbon_event_fields) {
+  if(ribbon_event_combo_bits == 0) {
+    ribbon_event_bits = ribbon_event_remaining(rib, ribbon_event_kind, ribbon_event_fields);
   }
-} return int rbi_b;
-given lp_t_font given rbd_t_up(1024) given rbd_t_ev(3, 114, 96) ((import rbd_t_r), 4, [4, 114, 96, 1, 0]):(11) then rbd_t_cmd:("301,0,")
-given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 5, [5, 20, 300, 0, 0]):(0)
-given lp_t_font given rbd_t_up(1024) given rbd_t_ev(3, 240, 70) ((import rbd_t_r), 5, [5, 20, 300, 0, 0]):(8)
+} return int ribbon_event_bits;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_send_mouse_event(3, 114, 96) ((import ribbon_fit_test_ribbon), 4, [4, 114, 96, 1, 0]):(11) then ribbon_fit_check_command:("301,0,")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ((import ribbon_fit_test_ribbon), 5, [5, 20, 300, 0, 0]):(0)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_send_mouse_event(3, 240, 70) ((import ribbon_fit_test_ribbon), 5, [5, 20, 300, 0, 0]):(8)
 
 // What the ribbon does with the event of kind rbi_kind, fields rbl_ev, that no combo box took: a menu that is open takes it first; otherwise a mouse event goes to the tabs and the controls, and a key or a press takes the tooltip away. Answers the bits rib_event does.
-rbe_rest(Ribbon rib, int rbi_kind, int[] rbl_ev) {
-  int rbi_pk = (import rbd_s)[(import rbd_s_pk)];
-  int rbi_b = 0;
-  if(rbi_pk != 0) {
-    rbi_b = rbe_pop_event(rbi_kind, rbl_ev);
+ribbon_event_remaining(Ribbon rib, int ribbon_remaining_kind, int[] ribbon_remaining_fields) {
+  int ribbon_remaining_popup = (import ribbon_fit_state)[(import rbd_s_pk)];
+  int ribbon_remaining_bits = 0;
+  if(ribbon_remaining_popup != 0) {
+    ribbon_remaining_bits = ribbon_popup_event(ribbon_remaining_kind, ribbon_remaining_fields);
   }
-} chain (Ribbon rib, int rbi_kind, int[] rbl_ev) {
-  int rbi_t = gui_tip_event((import rbd_tip)[0], rbi_kind, rbl_ev);
-  int rbi_ms = rbi_kind >= 3 && rbi_kind <= 5;
-  if((rbi_b & 8) == 0 && rbi_ms == 1) {
-    rbi_b = rbi_b | rbe_mouse(rib, rbi_kind, rbl_ev);
+} chain (Ribbon rib, int ribbon_remaining_kind, int[] ribbon_remaining_fields) {
+  int ribbon_remaining_tip = gui_tip_event((import ribbon_fit_tips)[0], ribbon_remaining_kind, ribbon_remaining_fields);
+  int ribbon_remaining_mouse = ribbon_remaining_kind >= 3 && ribbon_remaining_kind <= 5;
+  if((ribbon_remaining_bits & 8) == 0 && ribbon_remaining_mouse == 1) {
+    ribbon_remaining_bits = ribbon_remaining_bits | ribbon_mouse_event(rib, ribbon_remaining_kind, ribbon_remaining_fields);
   }
-} chain (Ribbon rib, int rbi_kind, int[] rbl_ev) {
-  rbi_b = rbi_b | rbi_t;
-} return int rbi_b;
-given lp_t_font given rbd_t_up(1024) given rbd_t_ev(3, 114, 96) ((import rbd_t_r), 4, [4, 114, 96, 1, 0]):(11) then rbd_t_cmd:("301,0,")
-given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 4, [4, 114, 96, 1, 0]):(8) then rbd_t_cmd:("0,0,")
-given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 5, [5, 20, 300, 0, 0]):(0)
-given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) given rbd_t_ev(5, 114, 96) given rbd_t_clock(1499) ((import rbd_t_r), 5, [5, 114, 96, 0, 0]):(8) then rbd_t_tv:("0,Bold (Ctrl+B) - Make the selected text bold.")
-given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) given rbd_t_ev(5, 114, 96) given rbd_t_clock(1500) ((import rbd_t_r), 5, [5, 114, 96, 0, 0]):(8) then rbd_t_tv:("1,Bold (Ctrl+B) - Make the selected text bold.")
-given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) given rbd_t_ev(5, 114, 96) given rbd_t_clock(1500) ((import rbd_t_r), 5, [5, 140, 96, 0, 0]):(9) then rbd_t_tv:("0,Italic (Ctrl+I) - Make the selected text italic.")
+} chain (Ribbon rib, int ribbon_remaining_kind, int[] ribbon_remaining_fields) {
+  ribbon_remaining_bits = ribbon_remaining_bits | ribbon_remaining_tip;
+} return int ribbon_remaining_bits;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_send_mouse_event(3, 114, 96) ((import ribbon_fit_test_ribbon), 4, [4, 114, 96, 1, 0]):(11) then ribbon_fit_check_command:("301,0,")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ((import ribbon_fit_test_ribbon), 4, [4, 114, 96, 1, 0]):(8) then ribbon_fit_check_command:("0,0,")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ((import ribbon_fit_test_ribbon), 5, [5, 20, 300, 0, 0]):(0)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_freeze_tip_clock(1000) given ribbon_fit_send_mouse_event(5, 114, 96) given ribbon_fit_freeze_tip_clock(1499) ((import ribbon_fit_test_ribbon), 5, [5, 114, 96, 0, 0]):(8) then ribbon_fit_check_tip_view:("0,Bold (Ctrl+B) - Make the selected text bold.")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_freeze_tip_clock(1000) given ribbon_fit_send_mouse_event(5, 114, 96) given ribbon_fit_freeze_tip_clock(1500) ((import ribbon_fit_test_ribbon), 5, [5, 114, 96, 0, 0]):(8) then ribbon_fit_check_tip_view:("1,Bold (Ctrl+B) - Make the selected text bold.")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_freeze_tip_clock(1000) given ribbon_fit_send_mouse_event(5, 114, 96) given ribbon_fit_freeze_tip_clock(1500) ((import ribbon_fit_test_ribbon), 5, [5, 140, 96, 0, 0]):(9) then ribbon_fit_check_tip_view:("0,Italic (Ctrl+I) - Make the selected text italic.")

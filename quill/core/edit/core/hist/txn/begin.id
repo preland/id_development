@@ -9,30 +9,30 @@ hist_drop(Txn[] stack) {
 ([]):([])
 
 // Adds the inverse operation inv to the open step, so that undoing the step applies it; the operation that does nothing is not kept. There must be an open step.
-hist_note(Ctl ctl, Op inv) {
-  Txn tx = ctl.hist.undo[ctl.hist.open];
-  if(inv.kind != (import ed_k_nop)) {
-    push(tx.ops, inv);
+hist_note(Ctl ctl, Op inverse) {
+  Txn transaction = ctl.hist.undo[ctl.hist.open];
+  if(inverse.kind != (import ed_k_nop)) {
+    push(transaction.ops, inverse);
   }
 } return void;
-given fx_blank given txn_begin((import fxc)) ((import fxc), Op(0, [], [])):((import fxc), Op(0, [], [])) then fx_hist:("u1 r0 o0 n0")
-given fx_blank given txn_begin((import fxc)) ((import fxc), Op(6, [0], [1])):((import fxc), Op(6, [0], [1])) then fx_hist:("u1 r0 o0 n1")
-given fx_blank given txn_begin((import fxc)) given hist_note((import fxc), Op(1, [0], [2])) ((import fxc), Op(6, [0], [1])):((import fxc), Op(6, [0], [1])) then fx_hist:("u1 r0 o0 n2")
+given editor_fixture_blank given editor_transaction_begin((import fixture_control)) ((import fixture_control), Op(0, [], [])):((import fixture_control), Op(0, [], [])) then editor_fixture_history:("u1 r0 o0 n0")
+given editor_fixture_blank given editor_transaction_begin((import fixture_control)) ((import fixture_control), Op(6, [0], [1])):((import fixture_control), Op(6, [0], [1])) then editor_fixture_history:("u1 r0 o0 n1")
+given editor_fixture_blank given editor_transaction_begin((import fixture_control)) given hist_note((import fixture_control), Op(1, [0], [2])) ((import fixture_control), Op(6, [0], [1])):((import fixture_control), Op(6, [0], [1])) then editor_fixture_history:("u1 r0 o0 n2")
 
 // Opens a new undo step that records the selection to come back to, closing the open one first and emptying the redo stack: a new edit makes redo meaningless.
-txn_begin(Ctl ctl) {
-  txn_end(ctl);
+editor_transaction_begin(Ctl ctl) {
+  editor_transaction_end(ctl);
   Op[] ops = [];
-  Sel before = sel_copy(ctl.sel);
+  Sel before = editor_selection_copy(ctl.sel);
 } chain (Ctl ctl) {
-  Sel after = sel_copy(ctl.sel);
-  Txn tx = Txn(ops, before, after);
-  push(ctl.hist.undo, tx);
+  Sel after = editor_selection_copy(ctl.sel);
+  Txn transaction = Txn(ops, before, after);
+  push(ctl.hist.undo, transaction);
 } chain (Ctl ctl) {
   ctl.hist.open = len(ctl.hist.undo) - 1;
   hist_drop(ctl.hist.redo);
 } return void;
-given fx_blank ((import fxc)):((import fxc)) then fx_hist:("u1 r0 o0 n0")
-given fx_blank given txn_begin((import fxc)) ((import fxc)):((import fxc)) then fx_hist:("u1 r0 o0 n0")
-given fx_blank given fx_redo((import fxc), Txn([], Sel(Pos(0, 0), Pos(0, 0), -1), Sel(Pos(0, 0), Pos(0, 0), -1))) ((import fxc)):((import fxc)) then fx_hist:("u1 r0 o0 n0")
-given fx_blank given fx_at(0, 1, 0, 2) ((import fxc)):((import fxc)) then fx_txsel:("0:1-0:2 0:1-0:2")
+given editor_fixture_blank ((import fixture_control)):((import fixture_control)) then editor_fixture_history:("u1 r0 o0 n0")
+given editor_fixture_blank given editor_transaction_begin((import fixture_control)) ((import fixture_control)):((import fixture_control)) then editor_fixture_history:("u1 r0 o0 n0")
+given editor_fixture_blank given editor_fixture_push_redo((import fixture_control), Txn([], Sel(Pos(0, 0), Pos(0, 0), -1), Sel(Pos(0, 0), Pos(0, 0), -1))) ((import fixture_control)):((import fixture_control)) then editor_fixture_history:("u1 r0 o0 n0")
+given editor_fixture_blank given editor_fixture_selection_at(0, 1, 0, 2) ((import fixture_control)):((import fixture_control)) then editor_fixture_transaction_selections:("0:1-0:2 0:1-0:2")

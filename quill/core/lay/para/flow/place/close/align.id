@@ -1,31 +1,31 @@
 // Aligns the line lo..hi-1 of paragraph i inside avail and returns its width: a justified line that is not the last widens its spaces to fill avail and so returns avail; a centred or right line moves by lp_dx; the last line of a justified paragraph stays left. w is the used width, which excludes the trailing spaces.
 // By hand at 16 px (B and E 683, a space 285): "BBBB EEEE" scanned in 3500 lu has the line "BBBB " with pen 0 to 3017, used width 2732. Centred it moves (3500 - 2732) / 2 = 384, right-aligned 768. "BBB EEE BBB" in 5000 lu breaks after "BBB EEE " with used width 4383; justified it widens its one inner space by 5000 - 4383 = 617, so the pen after the space is 2334 + 617 = 2951 and the end of the text 5000, and the width answered is 5000. The last line, or a paragraph that is not justified, stays put.
-lp_align(View v, int i, int lo, int hi, int avail, int w) {
-  Para p = v.doc.body.paras[i];
-  int al = style_eff_p(v.doc.fmt, p.pprop, (import quill_paragraph_alignment));
-  int last = hi == len(p.txt.cps);
-} chain (View v, int i, int lo, int hi, int avail, int w) {
-  int wf = w;
-  if(al == (import quill_alignment_justify) && last == 0 && avail > w) {
-    lp_just(p, lo, hi, avail - w);
-    wf = avail;
+layout_paragraph_align(View align_view, int align_paragraph_index, int align_start, int hi, int avail, int align_used_width) {
+  Para align_paragraph = align_view.doc.body.paras[align_paragraph_index];
+  int align_mode = document_style_effective_paragraph(align_view.doc.fmt, align_paragraph.pprop, (import quill_paragraph_alignment));
+  int last = hi == len(align_paragraph.txt.cps);
+} chain (View align_view, int align_paragraph_index, int align_start, int hi, int avail, int align_used_width) {
+  int align_final_width = align_used_width;
+  if(align_mode == (import quill_alignment_justify) && last == 0 && avail > align_used_width) {
+    layout_paragraph_justify(align_paragraph, align_start, hi, avail - align_used_width);
+    align_final_width = avail;
   }
-  lp_shift(p, lo, hi, lp_dx(al, avail, w));
-} return int wf;
-given lp_t_font given lp_t_ins(0, "BBBB EEEE") given lp_t_scan(0, 0, 3500) ((import lp_t_v), 0, 0, 5, 3500, 2732):(2732) then lp_t_p0:([0, 683, 1366, 2049, 2732, 3017, 3700])
-given lp_t_font given lp_t_ins(0, "BBBB EEEE") given lp_t_row(0, 1, 1) given lp_t_scan(0, 0, 3500) ((import lp_t_v), 0, 0, 5, 3500, 2732):(2732) then lp_t_p0:([384, 1067, 1750, 2433, 3116, 3401, 3700])
-given lp_t_font given lp_t_ins(0, "BBBB EEEE") given lp_t_row(0, 1, 2) given lp_t_scan(0, 0, 3500) ((import lp_t_v), 0, 0, 5, 3500, 2732):(2732) then lp_t_p0:([768, 1451, 2134, 2817, 3500, 3785, 3700])
-given lp_t_font given lp_t_ins(0, "BBB EEE BBB") given lp_t_row(0, 1, 3) given lp_t_scan(0, 0, 5000) ((import lp_t_v), 0, 0, 8, 5000, 4383):(5000) then lp_t_p0:([0, 683, 1366, 2049, 2951, 3634, 4317, 5000, 5285, 5351])
-given lp_t_font given lp_t_ins(0, "BBB") given lp_t_row(0, 1, 3) given lp_t_scan(0, 0, 3000) ((import lp_t_v), 0, 0, 3, 3000, 2049):(2049) then lp_t_p0:([0, 683, 1366, 2049])
-given lp_t_font given lp_t_ins(0, "BBB EEE BBB") given lp_t_row(0, 1, 3) given lp_t_scan(0, 0, 4383) ((import lp_t_v), 0, 0, 8, 4383, 4383):(4383) then lp_t_p0:([0, 683, 1366, 2049, 2334, 3017, 3700, 4383, 4668, 5351])
+  layout_paragraph_shift(align_paragraph, align_start, hi, layout_paragraph_alignment_offset(align_mode, avail, align_used_width));
+} return int align_final_width;
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BBBB EEEE") given layout_paragraph_test_scan(0, 0, 3500) ((import layout_paragraph_test_view), 0, 0, 5, 3500, 2732):(2732) then layout_paragraph_test_first_pen:([0, 683, 1366, 2049, 2732, 3017, 3700])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BBBB EEEE") given layout_paragraph_test_set_property(0, 1, 1) given layout_paragraph_test_scan(0, 0, 3500) ((import layout_paragraph_test_view), 0, 0, 5, 3500, 2732):(2732) then layout_paragraph_test_first_pen:([384, 1067, 1750, 2433, 3116, 3401, 3700])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BBBB EEEE") given layout_paragraph_test_set_property(0, 1, 2) given layout_paragraph_test_scan(0, 0, 3500) ((import layout_paragraph_test_view), 0, 0, 5, 3500, 2732):(2732) then layout_paragraph_test_first_pen:([768, 1451, 2134, 2817, 3500, 3785, 3700])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BBB EEE BBB") given layout_paragraph_test_set_property(0, 1, 3) given layout_paragraph_test_scan(0, 0, 5000) ((import layout_paragraph_test_view), 0, 0, 8, 5000, 4383):(5000) then layout_paragraph_test_first_pen:([0, 683, 1366, 2049, 2951, 3634, 4317, 5000, 5285, 5351])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BBB") given layout_paragraph_test_set_property(0, 1, 3) given layout_paragraph_test_scan(0, 0, 3000) ((import layout_paragraph_test_view), 0, 0, 3, 3000, 2049):(2049) then layout_paragraph_test_first_pen:([0, 683, 1366, 2049])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BBB EEE BBB") given layout_paragraph_test_set_property(0, 1, 3) given layout_paragraph_test_scan(0, 0, 4383) ((import layout_paragraph_test_view), 0, 0, 8, 4383, 4383):(4383) then layout_paragraph_test_first_pen:([0, 683, 1366, 2049, 2334, 3017, 3700, 4383, 4668, 5351])
 
 // The ascent of a line in lu with its extra leading folded in: the line is (asc + desc) * pct / 100 tall, the descent stays, and what is left above it is the ascent, never below 0. An unset pct (-1) is quill_layout_line_percent, single spacing.
 // By hand with asc 896 and desc 192: 100 percent gives 1088 - 192 = 896; 150 percent gives 1632 - 192 = 1440; 10 percent gives 108 - 192, which is below 0, so 0.
-lp_lead(int asc, int desc, int pct) {
-  if(pct < 0) {
-    pct = (import quill_layout_line_percent);
+layout_paragraph_leading(int leading_ascent, int leading_descent, int leading_percent) {
+  if(leading_percent < 0) {
+    leading_percent = (import quill_layout_line_percent);
   }
-  int top = fixed_point_maximum((asc + desc) * pct / 100 - desc, 0);
+  int top = fixed_point_maximum((leading_ascent + leading_descent) * leading_percent / 100 - leading_descent, 0);
 } return int top;
 (896, 192, 100):(896)
 (896, 192, 150):(1440)

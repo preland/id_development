@@ -1,27 +1,27 @@
 // The box fields of a paragraph record, resolved through its style: "left= right= first= before= after=" in twips, "-" for unset.
-ndump_pbox(Doc os_d, Para os_p) {
-  string os_sa = "left=" + ndump_num(style_eff_p(os_d.fmt, os_p.pprop, (import quill_paragraph_indent_left))) + " right=" + ndump_num(style_eff_p(os_d.fmt, os_p.pprop, (import quill_paragraph_indent_right)));
-  string os_sb = "first=" + ndump_num(style_eff_p(os_d.fmt, os_p.pprop, (import quill_paragraph_indent_first))) + " before=" + ndump_num(style_eff_p(os_d.fmt, os_p.pprop, (import quill_paragraph_space_before)));
-  string os_sout = os_sa + " " + os_sb + " after=" + ndump_num(style_eff_p(os_d.fmt, os_p.pprop, (import quill_paragraph_space_after)));
-} return string os_sout;
-given ost_t_doc ((import ost_t_d), Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 0)):("left=0 right=0 first=0 before=0 after=120")
-given ost_t_doc ((import ost_t_d), Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 2)):("left=- right=- first=- before=0 after=240")
+odt_style_dump_paragraph_box(Doc odt_style_dump_paragraph_box_document, Para odt_style_dump_paragraph_box_paragraph) {
+  string odt_style_dump_paragraph_box_horizontal_fields = "left=" + odt_style_dump_number(document_style_effective_paragraph(odt_style_dump_paragraph_box_document.fmt, odt_style_dump_paragraph_box_paragraph.pprop, (import quill_paragraph_indent_left))) + " right=" + odt_style_dump_number(document_style_effective_paragraph(odt_style_dump_paragraph_box_document.fmt, odt_style_dump_paragraph_box_paragraph.pprop, (import quill_paragraph_indent_right)));
+  string odt_style_dump_paragraph_box_vertical_fields = "first=" + odt_style_dump_number(document_style_effective_paragraph(odt_style_dump_paragraph_box_document.fmt, odt_style_dump_paragraph_box_paragraph.pprop, (import quill_paragraph_indent_first))) + " before=" + odt_style_dump_number(document_style_effective_paragraph(odt_style_dump_paragraph_box_document.fmt, odt_style_dump_paragraph_box_paragraph.pprop, (import quill_paragraph_space_before)));
+  string odt_style_dump_paragraph_box_text = odt_style_dump_paragraph_box_horizontal_fields + " " + odt_style_dump_paragraph_box_vertical_fields + " after=" + odt_style_dump_number(document_style_effective_paragraph(odt_style_dump_paragraph_box_document.fmt, odt_style_dump_paragraph_box_paragraph.pprop, (import quill_paragraph_space_after)));
+} return string odt_style_dump_paragraph_box_text;
+given odt_style_test_document ((import odt_style_test_default_document), Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 0)):("left=0 right=0 first=0 before=0 after=120")
+given odt_style_test_document ((import odt_style_test_default_document), Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 2)):("left=- right=- first=- before=0 after=240")
 
 // The paragraph record of a dump, without its runs: "para N style=NAME align= left= right= first= before= after= line= brk= level= list=", or "para N opaque" for an opaque block.
-ndump_phead(Doc os_d, Para os_p, int os_i) {
-  int os_ipstyle = fixed_point_maximum(tab_get(os_d.fmt.paras, os_p.pprop, (import quill_paragraph_style)), 0);
-  string os_sstyle = string_quote(os_d.fmt.sty.styles[os_ipstyle].name);
-  string os_sout = "para " + os_i + " opaque";
-} chain (Doc os_d, Para os_p, int os_i) {
-  string os_sa = "para " + os_i + " style=" + os_sstyle + " align=" + ndump_num(style_eff_p(os_d.fmt, os_p.pprop, (import quill_paragraph_alignment)));
-  string os_sb = ndump_pbox(os_d, os_p) + " line=" + ndump_num(style_eff_p(os_d.fmt, os_p.pprop, (import quill_paragraph_line_percent)));
-  int os_ilevel = tab_get(os_d.fmt.paras, os_p.pprop, (import quill_paragraph_level));
-} chain (Doc os_d, Para os_p, int os_i) {
-  string os_sc = " brk=" + tab_get(os_d.fmt.paras, os_p.pprop, (import quill_paragraph_break_before)) + " level=" + os_ilevel;
-  string os_sl = " list=" + ndump_list(os_d.fmt, tab_get(os_d.fmt.paras, os_p.pprop, (import quill_paragraph_list)), os_ilevel);
-  if(tab_get(os_d.fmt.paras, os_p.pprop, (import quill_paragraph_kind)) == 0) {
-    os_sout = os_sa + " " + os_sb + os_sc + os_sl;
+odt_style_dump_paragraph_head(Doc odt_style_dump_paragraph_head_document, Para odt_style_dump_paragraph_head_paragraph, int odt_style_dump_paragraph_head_position) {
+  int odt_style_dump_paragraph_head_paragraph_style = fixed_point_maximum(tab_get(odt_style_dump_paragraph_head_document.fmt.paras, odt_style_dump_paragraph_head_paragraph.pprop, (import quill_paragraph_style)), 0);
+  string odt_style_dump_paragraph_head_style_name = string_quote(odt_style_dump_paragraph_head_document.fmt.sty.styles[odt_style_dump_paragraph_head_paragraph_style].name);
+  string odt_style_dump_paragraph_head_text = "para " + odt_style_dump_paragraph_head_position + " opaque";
+} chain (Doc odt_style_dump_paragraph_head_document, Para odt_style_dump_paragraph_head_paragraph, int odt_style_dump_paragraph_head_position) {
+  string odt_style_dump_paragraph_head_alignment_fields = "para " + odt_style_dump_paragraph_head_position + " style=" + odt_style_dump_paragraph_head_style_name + " align=" + odt_style_dump_number(document_style_effective_paragraph(odt_style_dump_paragraph_head_document.fmt, odt_style_dump_paragraph_head_paragraph.pprop, (import quill_paragraph_alignment)));
+  string odt_style_dump_paragraph_head_box_fields = odt_style_dump_paragraph_box(odt_style_dump_paragraph_head_document, odt_style_dump_paragraph_head_paragraph) + " line=" + odt_style_dump_number(document_style_effective_paragraph(odt_style_dump_paragraph_head_document.fmt, odt_style_dump_paragraph_head_paragraph.pprop, (import quill_paragraph_line_percent)));
+  int odt_style_dump_paragraph_head_level = tab_get(odt_style_dump_paragraph_head_document.fmt.paras, odt_style_dump_paragraph_head_paragraph.pprop, (import quill_paragraph_level));
+} chain (Doc odt_style_dump_paragraph_head_document, Para odt_style_dump_paragraph_head_paragraph, int odt_style_dump_paragraph_head_position) {
+  string odt_style_dump_paragraph_head_break_fields = " brk=" + tab_get(odt_style_dump_paragraph_head_document.fmt.paras, odt_style_dump_paragraph_head_paragraph.pprop, (import quill_paragraph_break_before)) + " level=" + odt_style_dump_paragraph_head_level;
+  string odt_style_dump_paragraph_head_list_field = " list=" + odt_style_dump_list(odt_style_dump_paragraph_head_document.fmt, tab_get(odt_style_dump_paragraph_head_document.fmt.paras, odt_style_dump_paragraph_head_paragraph.pprop, (import quill_paragraph_list)), odt_style_dump_paragraph_head_level);
+  if(tab_get(odt_style_dump_paragraph_head_document.fmt.paras, odt_style_dump_paragraph_head_paragraph.pprop, (import quill_paragraph_kind)) == 0) {
+    odt_style_dump_paragraph_head_text = odt_style_dump_paragraph_head_alignment_fields + " " + odt_style_dump_paragraph_head_box_fields + odt_style_dump_paragraph_head_break_fields + odt_style_dump_paragraph_head_list_field;
   }
-} return string os_sout;
-given ost_t_doc ((import ost_t_d), Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 1), 4):("para 4 style=\"Normal\" align=0 left=0 right=0 first=0 before=0 after=120 line=100 brk=0 level=0 list=-")
+} return string odt_style_dump_paragraph_head_text;
+given odt_style_test_document ((import odt_style_test_default_document), Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 1), 4):("para 4 style=\"Normal\" align=0 left=0 right=0 first=0 before=0 after=120 line=100 brk=0 level=0 list=-")
 (Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 1], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext([], [], [])), Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 1), 2):("para 2 opaque")

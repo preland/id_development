@@ -1,35 +1,35 @@
 // The text of the tooltip of the control at index rbi_i of the ribbon rbr: its name with its shortcut, a dash, and the line that says what it does.
-rbe_tip_text(Ribbon rbr, int rbi_i) {
-  int rbi_row = rbr.items[rbi_i];
-  string rbs_h = tip_head((import rb_label)[rbi_row], (import rb_key)[rbi_row]);
-  string rbs_t = rbs_h + " - " + (import rb_tip)[rbi_row];
-} return string rbs_t;
+ribbon_tip_text(Ribbon ribbon_tip_ribbon, int ribbon_tip_control) {
+  int ribbon_tip_text_row = ribbon_tip_ribbon.items[ribbon_tip_control];
+  string ribbon_tip_heading = tip_head((import rb_label)[ribbon_tip_text_row], (import rb_key)[ribbon_tip_text_row]);
+  string ribbon_tip_result = ribbon_tip_heading + " - " + (import rb_tip)[ribbon_tip_text_row];
+} return string ribbon_tip_result;
 (Ribbon([14], [], [0]), 0):("Bold (Ctrl+B) - Make the selected text bold.")
 (Ribbon([4, 17], [], [0, 0]), 1):("Strikethrough - Draw a line through the selected text.")
 
 // Arms the tooltip of the control of the ribbon rbr that the pointer of the event rbl_ev is on, under that control. Answers 0 when the pointer is on none, else 2 and 1 more when the tooltip it replaced was on show and has to be wiped out.
-rbe_tip_at(Ribbon rbr, int[] rbl_ev) {
-  int rbi_i = rbe_at(rbr.rects, len(rbr.items), rbl_ev[1], rbl_ev[2]);
-  int rbi_r = 0;
-  if(rbi_i >= 0) {
-    rbi_r = 2 + gui_tip_show((import rbd_tip)[0], rbe_tip_text(rbr, rbi_i), rbr.rects[rbi_i * 4], rbr.rects[rbi_i * 4 + 1] + rbr.rects[rbi_i * 4 + 3] + 4);
+ribbon_tip_arm(Ribbon ribbon_arm_ribbon, int[] ribbon_arm_event_fields) {
+  int ribbon_arm_control = ribbon_rectangle_index_at(ribbon_arm_ribbon.ribbon_rectangles, len(ribbon_arm_ribbon.items), ribbon_arm_event_fields[1], ribbon_arm_event_fields[2]);
+  int ribbon_arm_result = 0;
+  if(ribbon_arm_control >= 0) {
+    ribbon_arm_result = 2 + gui_tip_show((import ribbon_fit_tips)[0], ribbon_tip_text(ribbon_arm_ribbon, ribbon_arm_control), ribbon_arm_ribbon.ribbon_rectangles[ribbon_arm_control * 4], ribbon_arm_ribbon.ribbon_rectangles[ribbon_arm_control * 4 + 1] + ribbon_arm_ribbon.ribbon_rectangles[ribbon_arm_control * 4 + 3] + 4);
   }
-} return int rbi_r;
-given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) ((import rbd_t_r), [5, 110, 90, 0, 0]):(2) then rbd_t_tv:("0,Bold (Ctrl+B) - Make the selected text bold.") then rbd_t_tp:("102,112")
-given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) ((import rbd_t_r), [5, 20, 200, 0, 0]):(0)
+} return int ribbon_arm_result;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_freeze_tip_clock(1000) ((import ribbon_fit_test_ribbon), [5, 110, 90, 0, 0]):(2) then ribbon_fit_check_tip_view:("0,Bold (Ctrl+B) - Make the selected text bold.") then ribbon_fit_check_tip_position:("102,112")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_freeze_tip_clock(1000) ((import ribbon_fit_test_ribbon), [5, 20, 200, 0, 0]):(0)
 
 // What the pointer of the event rbl_ev does to the tooltip: it is armed under the control of the ribbon rib the pointer is on, or else under the quick-access control it is on, and taken away when it is on none. Answers 1 when a tooltip that was on show has to be wiped out.
-rbe_tip_for(Ribbon rib, int[] rbl_ev) {
-  int rbi_a = rbe_tip_at(rib, rbl_ev);
-  int rbi_b = 0;
-  if(rbi_a < 2) {
-    rbi_b = rbe_tip_at((import rbd_q), rbl_ev);
+ribbon_tip_follow(Ribbon rib, int[] ribbon_follow_event_fields) {
+  int ribbon_follow_body = ribbon_tip_arm(rib, ribbon_follow_event_fields);
+  int ribbon_follow_quick = 0;
+  if(ribbon_follow_body < 2) {
+    ribbon_follow_quick = ribbon_tip_arm((import ribbon_fit_quick_ribbon), ribbon_follow_event_fields);
   }
-} chain (Ribbon rib, int[] rbl_ev) {
-  int rbi_r = (rbi_a | rbi_b) & 1;
-  if((rbi_a | rbi_b) < 2) {
-    rbi_r = gui_tip_hide((import rbd_tip)[0]);
+} chain (Ribbon rib, int[] ribbon_follow_event_fields) {
+  int ribbon_follow_result = (ribbon_follow_body | ribbon_follow_quick) & 1;
+  if((ribbon_follow_body | ribbon_follow_quick) < 2) {
+    ribbon_follow_result = gui_tip_hide((import ribbon_fit_tips)[0]);
   }
-} return int rbi_r;
-given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) ((import rbd_t_r), [5, 110, 90, 0, 0]):(0) then rbd_t_tv:("0,Bold (Ctrl+B) - Make the selected text bold.")
-given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) ((import rbd_t_r), [5, 20, 200, 0, 0]):(0) then rbd_t_tv:("0,")
+} return int ribbon_follow_result;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_freeze_tip_clock(1000) ((import ribbon_fit_test_ribbon), [5, 110, 90, 0, 0]):(0) then ribbon_fit_check_tip_view:("0,Bold (Ctrl+B) - Make the selected text bold.")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_freeze_tip_clock(1000) ((import ribbon_fit_test_ribbon), [5, 20, 200, 0, 0]):(0) then ribbon_fit_check_tip_view:("0,")

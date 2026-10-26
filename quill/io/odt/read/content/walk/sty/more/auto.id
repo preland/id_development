@@ -1,50 +1,50 @@
 // Notes where the automatic styles of content.xml are, so an opaque element that names one can keep it: office:automatic-styles opening says how deep its children are, and each child, whatever kind of style it is, is noted by its name and its start and end. The closing tag of office:automatic-styles ends the noting.
-orc_a_ev(Cx cx, int ev) {
-  string name = xml_reader_get((cx.rd), (import xml_reader_k_name));
-  int dep = xml_reader_depth(cx.rd);
-  int adep = cx.cs.slots[(import orc_s_adep)];
-} chain (Cx cx, int ev) {
-  if(ev == 1 && name == "office:automatic-styles") {
-    lset(cx.cs.slots, (import orc_s_adep), dep + 1);
+odt_read_automatic_event(Odt_Read_Context odt_read_automatic_scan_context, int odt_read_automatic_scan_event) {
+  string name = xml_reader_get((odt_read_automatic_scan_context.odt_read_xml_reader), (import xml_reader_k_name));
+  int odt_read_automatic_scan_depth = xml_reader_depth(odt_read_automatic_scan_context.odt_read_xml_reader);
+  int odt_read_automatic_scan_children_depth = odt_read_automatic_scan_context.cs.slots[(import orc_s_adep)];
+} chain (Odt_Read_Context odt_read_automatic_scan_context, int odt_read_automatic_scan_event) {
+  if(odt_read_automatic_scan_event == 1 && name == "office:automatic-styles") {
+    lset(odt_read_automatic_scan_context.cs.slots, (import orc_s_adep), odt_read_automatic_scan_depth + 1);
   }
-  if(ev == 2 && name == "office:automatic-styles") {
-    lset(cx.cs.slots, (import orc_s_adep), 0);
+  if(odt_read_automatic_scan_event == 2 && name == "office:automatic-styles") {
+    lset(odt_read_automatic_scan_context.cs.slots, (import orc_s_adep), 0);
   }
-  if(adep > 0 && ev != 3 && dep == adep) {
-    orc_a_child(cx, ev);
+  if(odt_read_automatic_scan_children_depth > 0 && odt_read_automatic_scan_event != 3 && odt_read_automatic_scan_depth == odt_read_automatic_scan_children_depth) {
+    odt_read_automatic_child(odt_read_automatic_scan_context, odt_read_automatic_scan_event);
   }
 } return void;
-given orc_t_open("<office:automatic-styles>") given orc_t_steps(1) ((import orc_tc), 1):() then (import orc_tc).cs.slots:([0, 0, 0, 0, 0, 0, 1, 0])
-given orc_t_open("<r><office:automatic-styles><a/></office:automatic-styles></r>") given orc_t_steps(3) ((import orc_tc), 4):() then orc_t_names:("")
-given orc_t_open("<r><office:automatic-styles></office:automatic-styles></r>") given orc_t_steps(3) given orc_t_set(6, 2) ((import orc_tc), 2):() then (import orc_tc).cs.slots:([0, 0, 0, 0, 28, 0, 0, 0])
-given orc_t_open("<r><office:automatic-styles><style:style style:name='P1'/></office:automatic-styles></r>") given orc_t_steps(3) given orc_t_set(6, 2) ((import orc_tc), 4):() then orc_t_names:("auto:P1:28,aend:P1:58,")
-given orc_t_open("<r><office:automatic-styles><style:style style:name='P1'><x style:name='N'/></style:style></office:automatic-styles></r>") given orc_t_steps(4) given orc_t_set(6, 2) ((import orc_tc), 4):() then orc_t_names:("")
+given odt_read_fixture_open("<office:automatic-styles>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 1):() then (import odt_read_fixture_context).cs.slots:([0, 0, 0, 0, 0, 0, 1, 0])
+given odt_read_fixture_open("<r><office:automatic-styles><a/></office:automatic-styles></r>") given odt_read_fixture_step_events(3) ((import odt_read_fixture_context), 4):() then odt_read_fixture_style_offsets:("")
+given odt_read_fixture_open("<r><office:automatic-styles></office:automatic-styles></r>") given odt_read_fixture_step_events(3) given odt_read_fixture_set_slot(6, 2) ((import odt_read_fixture_context), 2):() then (import odt_read_fixture_context).cs.slots:([0, 0, 0, 0, 28, 0, 0, 0])
+given odt_read_fixture_open("<r><office:automatic-styles><style:style style:name='P1'/></office:automatic-styles></r>") given odt_read_fixture_step_events(3) given odt_read_fixture_set_slot(6, 2) ((import odt_read_fixture_context), 4):() then odt_read_fixture_style_offsets:("auto:P1:28,aend:P1:58,")
+given odt_read_fixture_open("<r><office:automatic-styles><style:style style:name='P1'><x style:name='N'/></style:style></office:automatic-styles></r>") given odt_read_fixture_step_events(4) given odt_read_fixture_set_slot(6, 2) ((import odt_read_fixture_context), 4):() then odt_read_fixture_style_offsets:("")
 
 // An event that is a direct child of office:automatic-styles: a start or empty tag that has a style:name opens an entry for that style (an empty element ends at once), and an end tag gives the open entry its end.
-orc_a_child(Cx cx, int ev) {
-  string sname = xml_reader_attr(cx.rd, "style:name");
-  int lo = orc_tag_at(cx.rd, cx.cs.slots[(import orc_s_prev)]);
-  int hi = orc_pos(cx.rd) * (ev != 1);
-} chain (Cx cx, int ev) {
-  if(ev != 2 && sname != "") {
-    orc_a_push(cx, sname, lo, hi);
+odt_read_automatic_child(Odt_Read_Context odt_read_automatic_child_context, int odt_read_automatic_child_event) {
+  string odt_read_automatic_child_style_name = xml_reader_attr(odt_read_automatic_child_context.odt_read_xml_reader, "style:name");
+  int lo = orc_tag_at(odt_read_automatic_child_context.odt_read_xml_reader, odt_read_automatic_child_context.cs.slots[(import orc_s_prev)]);
+  int hi = odt_read_reader_offset(odt_read_automatic_child_context.odt_read_xml_reader) * (odt_read_automatic_child_event != 1);
+} chain (Odt_Read_Context odt_read_automatic_child_context, int odt_read_automatic_child_event) {
+  if(odt_read_automatic_child_event != 2 && odt_read_automatic_child_style_name != "") {
+    odt_read_automatic_push(odt_read_automatic_child_context, odt_read_automatic_child_style_name, lo, hi);
   }
-  if(ev == 2) {
-    orc_a_close(cx, hi);
+  if(odt_read_automatic_child_event == 2) {
+    odt_read_automatic_close(odt_read_automatic_child_context, hi);
   }
 } return void;
-given orc_t_open("<r><style:style style:name='P1'/></r>") given orc_t_steps(2) ((import orc_tc), 4):() then orc_t_names:("auto:P1:3,aend:P1:33,")
-given orc_t_open("<r><style:style style:name='P1'></style:style></r>") given orc_t_steps(2) ((import orc_tc), 1):() then orc_t_names:("auto:P1:3,aend:P1:0,") then (import orc_tc).cs.slots:([0, 0, 0, 0, 3, 0, 0, 2])
-given orc_t_open("<r><a/></r>") given orc_t_steps(2) ((import orc_tc), 4):() then orc_t_names:("")
+given odt_read_fixture_open("<r><style:style style:name='P1'/></r>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), 4):() then odt_read_fixture_style_offsets:("auto:P1:3,aend:P1:33,")
+given odt_read_fixture_open("<r><style:style style:name='P1'></style:style></r>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), 1):() then odt_read_fixture_style_offsets:("auto:P1:3,aend:P1:0,") then (import odt_read_fixture_context).cs.slots:([0, 0, 0, 0, 3, 0, 0, 2])
+given odt_read_fixture_open("<r><a/></r>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), 4):() then odt_read_fixture_style_offsets:("")
 
 // Adds the entries of an automatic style: where its element starts, and where it ends (hi, or 0 while its end tag is still to come, in which case the entry waits for it).
-orc_a_push(Cx cx, string sname, int lo, int hi) {
-  push(cx.cs.lstyles.keys, (import orc_k_auto) + sname);
-  push(cx.cs.lstyles.vals, lo);
-  push(cx.cs.lstyles.keys, (import orc_k_aend) + sname);
-} chain (Cx cx, string sname, int lo, int hi) {
-  push(cx.cs.lstyles.vals, hi);
-  lset(cx.cs.slots, (import orc_s_aopen), len(cx.cs.lstyles.keys) * (hi == 0));
+odt_read_automatic_push(Odt_Read_Context odt_read_automatic_push_context, string odt_read_automatic_push_style_name, int lo, int hi) {
+  push(odt_read_automatic_push_context.cs.odt_read_automatic_styles.keys, (import orc_k_auto) + odt_read_automatic_push_style_name);
+  push(odt_read_automatic_push_context.cs.odt_read_automatic_styles.odt_read_values, lo);
+  push(odt_read_automatic_push_context.cs.odt_read_automatic_styles.keys, (import orc_k_aend) + odt_read_automatic_push_style_name);
+} chain (Odt_Read_Context odt_read_automatic_push_context, string odt_read_automatic_push_style_name, int lo, int hi) {
+  push(odt_read_automatic_push_context.cs.odt_read_automatic_styles.odt_read_values, hi);
+  lset(odt_read_automatic_push_context.cs.slots, (import orc_s_aopen), len(odt_read_automatic_push_context.cs.odt_read_automatic_styles.keys) * (hi == 0));
 } return void;
-given orc_t_open("<a/>") ((import orc_tc), "P1", 5, 9):() then orc_t_names:("auto:P1:5,aend:P1:9,") then (import orc_tc).cs.slots:([0, 0, 0, 0, 0, 0, 0, 0])
-given orc_t_open("<a/>") ((import orc_tc), "T1", 5, 0):() then orc_t_names:("auto:T1:5,aend:T1:0,") then (import orc_tc).cs.slots:([0, 0, 0, 0, 0, 0, 0, 2])
+given odt_read_fixture_open("<a/>") ((import odt_read_fixture_context), "P1", 5, 9):() then odt_read_fixture_style_offsets:("auto:P1:5,aend:P1:9,") then (import odt_read_fixture_context).cs.slots:([0, 0, 0, 0, 0, 0, 0, 0])
+given odt_read_fixture_open("<a/>") ((import odt_read_fixture_context), "T1", 5, 0):() then odt_read_fixture_style_offsets:("auto:T1:5,aend:T1:0,") then (import odt_read_fixture_context).cs.slots:([0, 0, 0, 0, 0, 0, 0, 2])

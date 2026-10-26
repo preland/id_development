@@ -1,32 +1,32 @@
-tab_with(Tab tb, int id, int field, int value) {
-  int[] row = tab_row(tb, id);
+tab_with(Tab row_with_table, int row_with_row_identifier, int field, int value) {
+  int[] row = tab_row(row_with_table, row_with_row_identifier);
   row[field] = value;
-  int res = tab_intern(tb, row);
-} return int res;
+  int row_with_result = tab_intern(row_with_table, row);
+} return int row_with_result;
 (Tab([1, 2], 2, [0, 0, 1, 0, 0, 0, 0, 0]), 0, 1, 9):(1)
 (Tab([1, 2, 1, 9], 2, [0, 2, 1, 0, 0, 0, 0, 0]), 0, 1, 9):(1)
 (Tab([1, 2, 1, 9], 2, [0, 2, 1, 0, 0, 0, 0, 0]), 0, 0, 1):(0)
 
 // Character rows only: a bit of "on" is turned on (on is 1), off (0) or back to unset (-1); "set" says whether the bit is specified. Any other width is left alone.
-tab_with_bits(Tab tb, int id, int bits, int on) {
-  int[] row = tab_row(tb, id);
-  int res = id;
-  if(tb.width == (import quill_character_width)) {
+tab_with_bits(Tab row_with_flags_table, int row_with_flags_row_identifier, int bits, int on) {
+  int[] row = tab_row(row_with_flags_table, row_with_flags_row_identifier);
+  int row_with_flags_result = row_with_flags_row_identifier;
+  if(row_with_flags_table.width == (import quill_character_width)) {
     tab_bits_row(row, bits, on);
-    res = tab_intern(tb, row);
+    row_with_flags_result = tab_intern(row_with_flags_table, row);
   }
-} return int res;
+} return int row_with_flags_result;
 (Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 0, 1, 1):(1) then calls tab_bits_row:([0, -1, -1, -1, -1, 1, 1], 1, 1)
 (Tab([1, 2], 2, [0, 0, 0, 0, 0, 0, 0, 0]), 0, 1, 1):(0) then calls tab_bits_row:[0]
 
 tab_bits_row(int[] row, int bits, int on) {
-  int sf = 0;
+  int set_flag = 0;
   if(on >= 0) {
-    sf = 1;
+    set_flag = 1;
   }
   row[(import quill_character_on)] = flag_put(row[(import quill_character_on)], bits, on);
 } chain (int[] row, int bits, int on) {
-  row[(import quill_character_set)] = flag_put(row[(import quill_character_set)], bits, sf);
+  row[(import quill_character_set)] = flag_put(row[(import quill_character_set)], bits, set_flag);
 } return void;
 ([0, -1, -1, -1, -1, 0, 0], 1, 1):([0, -1, -1, -1, -1, 1, 1], 1, 1)
 ([0, -1, -1, -1, -1, 3, 3], 1, 0):([0, -1, -1, -1, -1, 2, 3], 1, 0)

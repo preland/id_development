@@ -1,29 +1,29 @@
 // Test setup: plays the script was_s (wa_play) on the app, a line at a time, and answers what the lines printed, the ones that printed nothing left out.
-cli_t_outs(string was_s) {
-  string[] wat_l = str_split(was_s, "\n");
-  string[] wat_o = [];
-  int wai_k = 0;
-} chain (string was_s) {
-  while(wai_k < len(wat_l)) {
-    string was_r = wa_play((import wa_app), wat_l[wai_k]);
-    wai_k = wai_k + 1;
-    if(len(was_r) > 0) {
-      push(wat_o, was_r);
+cli_test_play_outputs(string cli_test_script) {
+  string[] cli_test_script_lines = str_split(cli_test_script, "\n");
+  string[] cli_test_outputs = [];
+  int cli_test_line_index = 0;
+} chain (string cli_test_script) {
+  while(cli_test_line_index < len(cli_test_script_lines)) {
+    string cli_test_line_output = cli_play_line((import cli_application), cli_test_script_lines[cli_test_line_index]);
+    cli_test_line_index = cli_test_line_index + 1;
+    if(len(cli_test_line_output) > 0) {
+      push(cli_test_outputs, cli_test_line_output);
     }
   }
-} return string[] wat_o;
-given wa_t_app ("t\nTx\nt"):(["Untitled - Quill\n", "Untitled* - Quill\n"])
-given wa_t_app ("Tx"):([])
+} return string[] cli_test_outputs;
+given cli_test_boot_app ("t\nTx\nt"):(["Untitled - Quill\n", "Untitled* - Quill\n"])
+given cli_test_boot_app ("Tx"):([])
 
 // Test check: 1 when the first two things the script was_s printed are the same, 0 when they are not or it printed fewer than two. %P in the script is a scratch file's path, named by fs_mktemp, that is removed afterwards: so a script that dumps the document, saves it to %P, opens %P and dumps it again answers 1 when saving and reading lost nothing.
-cli_t_same(string was_s) {
-  string was_p = fs_mktemp("wa_rt_", 0);
-  string was_t = str_join(str_split(was_s, "%P"), was_p);
-  string[] wat_o = cli_t_outs(was_t);
-} chain (string was_s) {
-  int wai_same = len(wat_o) >= 2 && wat_o[0] == wat_o[1];
-  int wai_g = fs_remove(was_p);
-} return int wai_same;
-given wa_t_app ("Thello world\nE\nTsecond\nS0:0:0:5\nG1\nd\ns%P\no%P\nd"):(1)
-given wa_t_app ("Tabc\nd\nTzzz\nd"):(0)
-given wa_t_app ("Tabc\nd\ns%P\nTzzz\no%P\nd"):(1)
+cli_test_round_trip_same(string cli_test_same_script) {
+  string cli_test_same_path = fs_mktemp("wa_rt_", 0);
+  string cli_test_same_text = str_join(str_split(cli_test_same_script, "%P"), cli_test_same_path);
+  string[] cli_test_same_outputs = cli_test_play_outputs(cli_test_same_text);
+} chain (string cli_test_same_script) {
+  int cli_test_same_result = len(cli_test_same_outputs) >= 2 && cli_test_same_outputs[0] == cli_test_same_outputs[1];
+  int cli_test_same_removed = fs_remove(cli_test_same_path);
+} return int cli_test_same_result;
+given cli_test_boot_app ("Thello world\nE\nTsecond\nS0:0:0:5\nG1\nd\ns%P\no%P\nd"):(1)
+given cli_test_boot_app ("Tabc\nd\nTzzz\nd"):(0)
+given cli_test_boot_app ("Tabc\nd\ns%P\nTzzz\no%P\nd"):(1)

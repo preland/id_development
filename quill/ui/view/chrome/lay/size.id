@@ -1,35 +1,35 @@
 // The chrome's @references for a window w by h pixels, in basis points (hundredths of a percent) in the order of vw_names: the ribbon band and the status bar by their fixed pixels, the page row what they leave, the scrollbar by its fixed width, the page area what it leaves. Rounded up, so that a fixed size never comes out a pixel short.
 // By hand at 800 by 600: the ribbon band is 156 / 600 = 2600; the status bar 22 / 600 = 366.7, so 367; the row takes the rest, 10000 - 2600 - 367 = 7033; the bar is 16 / 800 = 200 and the page area 9800.
-vw_dims(int vwi_w, int vwi_h) {
-  int vwi_hh = fixed_point_maximum(vwi_h, 1);
-  int vwi_r = ((import rbd_band_px) * 10000 + vwi_hh - 1) / vwi_hh;
-  int vwi_s = ((import vw_st_px) * 10000 + vwi_hh - 1) / vwi_hh;
-} chain (int vwi_w, int vwi_h) {
-  int vwi_ww = fixed_point_maximum(vwi_w, 1);
-  int vwi_b = ((import vw_bar_px) * 10000 + vwi_ww - 1) / vwi_ww;
-  int[] vwl_d = [vwi_r, 10000 - vwi_r - vwi_s, 10000 - vwi_b, vwi_b, vwi_s];
-} return int[] vwl_d;
+view_chrome_dimensions(int view_chrome_dimensions_width, int view_chrome_dimensions_height) {
+  int view_chrome_dimensions_safe_height = fixed_point_maximum(view_chrome_dimensions_height, 1);
+  int view_chrome_dimensions_ribbon = ((import rbd_band_px) * 10000 + view_chrome_dimensions_safe_height - 1) / view_chrome_dimensions_safe_height;
+  int view_chrome_dimensions_status = ((import vw_st_px) * 10000 + view_chrome_dimensions_safe_height - 1) / view_chrome_dimensions_safe_height;
+} chain (int view_chrome_dimensions_width, int view_chrome_dimensions_height) {
+  int view_chrome_dimensions_safe_width = fixed_point_maximum(view_chrome_dimensions_width, 1);
+  int view_chrome_dimensions_bar = ((import vw_bar_px) * 10000 + view_chrome_dimensions_safe_width - 1) / view_chrome_dimensions_safe_width;
+  int[] view_chrome_dimensions_values = [view_chrome_dimensions_ribbon, 10000 - view_chrome_dimensions_ribbon - view_chrome_dimensions_status, 10000 - view_chrome_dimensions_bar, view_chrome_dimensions_bar, view_chrome_dimensions_status];
+} return int[] view_chrome_dimensions_values;
 (800, 600):([2600, 7033, 9800, 200, 367])
 (1000, 800):([1950, 7775, 9840, 160, 275])
 
 // What the idml asks for by name (@rib_h and the others, see vw_names) as the last fit left it, in basis points; 0 for a name nobody knows.
-vw_dim(string vws_n) {
-  int vwi_k = list_string_index((import vw_names), vws_n);
-  int[] vwl_d = (import vw_dims_now);
-  int vwi_v = 0;
-} chain (string vws_n) {
-  if(vwi_k >= 0) {
-    vwi_v = vwl_d[vwi_k];
+view_chrome_dimension(string view_chrome_dimension_name) {
+  int view_chrome_dimension_index = list_string_index((import vw_names), view_chrome_dimension_name);
+  int[] view_chrome_dimension_values = (import view_chrome_dimension_values_now);
+  int view_chrome_dimension_value = 0;
+} chain (string view_chrome_dimension_name) {
+  if(view_chrome_dimension_index >= 0) {
+    view_chrome_dimension_value = view_chrome_dimension_values[view_chrome_dimension_index];
   }
-} return int vwi_v;
-given vw_t_up(800, 600) ("cv_w"):(9800)
-given vw_t_up(800, 600) ("nothing"):(0)
+} return int view_chrome_dimension_value;
+given view_test_fit_chrome(800, 600) ("cv_w"):(9800)
+given view_test_fit_chrome(800, 600) ("nothing"):(0)
 
 // Fits the chrome to the surface: the answers for the surface's size, then the idml bound to them and laid out again. Call it after every change of the surface.
-vw_fit() {
-  export int[] vw_dims_now = vw_dims((import sf_l_w), (import sf_l_h));
-  gui_bind_fn((import vw_t), (import vw_s), vw_dim);
-  gui_layout((import vw_t), (import vw_rc), (import sf_l_w), (import sf_l_h));
+view_chrome_fit() {
+  export int[] view_chrome_dimension_values_now = view_chrome_dimensions((import sf_l_w), (import sf_l_h));
+  gui_bind_fn((import view_chrome_tape), (import view_chrome_strings), view_chrome_dimension);
+  gui_layout((import view_chrome_tape), (import view_chrome_rectangles), (import sf_l_w), (import sf_l_h));
 } return void;
-given sf_l_init(800, 600) given vw_t_make () ():() then vw_t_box:("0,0,800,156")
-given sf_l_init(1000, 800) given vw_t_make () ():() then vw_t_box:("0,0,1000,156")
+given sf_l_init(800, 600) given view_test_make_chrome () ():() then view_test_ribbon_rectangle:("0,0,800,156")
+given sf_l_init(1000, 800) given view_test_make_chrome () ():() then view_test_ribbon_rectangle:("0,0,1000,156")

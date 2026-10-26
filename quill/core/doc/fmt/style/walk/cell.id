@@ -1,31 +1,31 @@
-style_tab(Fmt f, int which) {
-  Tab tb = f.chars;
+style_tab(Fmt table_pick_format_set, int which) {
+  Tab table_pick_table = table_pick_format_set.chars;
   if(which == 1) {
-    tb = f.paras;
+    table_pick_table = table_pick_format_set.paras;
   }
-} return Tab tb;
+} return Tab table_pick_table;
 (Fmt(Tab([1], 1, []), Tab([2], 1, []), Sty([], [], 0)), 0):(Tab([1], 1, []))
 (Fmt(Tab([1], 1, []), Tab([2], 1, []), Sty([], [], 0)), 1):(Tab([2], 1, []))
 
 // The value of a field in style s's own row: its character row when which is 0, its paragraph row when which is 1. -1 means that style leaves it unset.
-style_cell(Fmt f, int sn, int which, int field) {
-  Tab tb = style_tab(f, which);
-  int[] fm = f.sty.styles[sn].fmt;
-  int got = tab_get(tb, fm[which], field);
+style_cell(Fmt cell_read_format_set, int cell_read_style_index, int which, int field) {
+  Tab cell_read_table = style_tab(cell_read_format_set, which);
+  int[] style_row_identifiers = cell_read_format_set.sty.styles[cell_read_style_index].fmt;
+  int got = tab_get(cell_read_table, style_row_identifiers[which], field);
 } return int got;
 (Fmt(Tab([10, 11, 20, 21], 2, []), Tab([30, 31, 40, 41], 2, []), Sty([Style("N", [0, -1, 0], [1, 0])], [], 0)), 0, 0, 1):(21)
 (Fmt(Tab([10, 11, 20, 21], 2, []), Tab([30, 31, 40, 41], 2, []), Sty([Style("N", [0, -1, 0], [1, 0])], [], 0)), 0, 1, 0):(30)
 
 // The first value that is not -1 for a field, walking from style sid up through its parents; -1 for sid -1, and a chain longer than quill_style_depth (a cycle) ends the walk.
-style_up(Fmt f, int sid, int which, int field) {
+style_up(Fmt walk_up_format_set, int walk_up_style_identifier, int which, int field) {
   int got = -1;
-  int sn = sid;
-  int n = 0;
-} chain (Fmt f, int sid, int which, int field) {
-  while(sn >= 0 && got == -1 && n < (import quill_style_depth)) {
-    got = style_cell(f, sn, which, field);
-    sn = f.sty.styles[sn].rel[(import quill_style_parent)];
-    n = n + 1;
+  int walk_up_style_index = walk_up_style_identifier;
+  int walk_up_step_count = 0;
+} chain (Fmt walk_up_format_set, int walk_up_style_identifier, int which, int field) {
+  while(walk_up_style_index >= 0 && got == -1 && walk_up_step_count < (import quill_style_depth)) {
+    got = style_cell(walk_up_format_set, walk_up_style_index, which, field);
+    walk_up_style_index = walk_up_format_set.sty.styles[walk_up_style_index].rel[(import quill_style_parent)];
+    walk_up_step_count = walk_up_step_count + 1;
   }
 } return int got;
 (Fmt(Tab([-1, 5, 7, -1, -1, -1], 2, []), Tab([-1, -1], 2, []), Sty([Style("A", [0, -1, 0], [0, 0]), Style("B", [0, 0, 0], [1, 0]), Style("C", [0, 1, 0], [2, 0])], [], 0)), 2, 0, 0):(7)

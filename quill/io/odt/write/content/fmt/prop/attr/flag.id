@@ -1,34 +1,34 @@
 // The attribute value for character flag number ix: its "on" word when the on bit is set, else its "off" word.
-oc_flag_val(int oc_on, int oc_ix) {
-  string oc_v = (import odt_flag_off)[oc_ix];
-  if(((oc_on >> oc_ix) & 1) == 1) {
-    oc_v = (import odt_flag_on)[oc_ix];
+odt_write_flag_value(int odt_write_flag_value_on_bits, int odt_write_flag_value_index) {
+  string odt_write_flag_value_word = (import odt_flag_off)[odt_write_flag_value_index];
+  if(((odt_write_flag_value_on_bits >> odt_write_flag_value_index) & 1) == 1) {
+    odt_write_flag_value_word = (import odt_flag_on)[odt_write_flag_value_index];
   }
-} return string oc_v;
+} return string odt_write_flag_value_word;
 (1, 0):("bold")
 (1, 1):("normal")
 (6, 2):("solid")
 (4, 3):("none")
 
 // One character flag (bold, italic, underline, strike; ix 0 to 3): written when the flag is specified, as its on or off value.
-oc_a_flag(XmlW oc_w, int oc_set, int oc_on, int oc_ix) {
-  if(((oc_set >> oc_ix) & 1) == 1) {
-    string oc_v = oc_flag_val(oc_on, oc_ix);
-    xw_attr(oc_w, (import odt_flag_attr)[oc_ix], oc_v);
+odt_write_flag_attribute(XmlW odt_write_flag_attribute_writer, int odt_write_flag_attribute_set_bits, int odt_write_flag_attribute_on_bits, int odt_write_flag_attribute_index) {
+  if(((odt_write_flag_attribute_set_bits >> odt_write_flag_attribute_index) & 1) == 1) {
+    string odt_write_flag_attribute_word = odt_write_flag_value(odt_write_flag_attribute_on_bits, odt_write_flag_attribute_index);
+    xw_attr(odt_write_flag_attribute_writer, (import odt_flag_attr)[odt_write_flag_attribute_index], odt_write_flag_attribute_word);
   }
 } return void;
-given oc_t_w(0) ((import oc_fw), 2, 2, 1):() then (import oc_fw).out:([60, 114, 32, 102, 111, 58, 102, 111, 110, 116, 45, 115, 116, 121, 108, 101, 61, 34, 105, 116, 97, 108, 105, 99, 34])
-given oc_t_w(0) ((import oc_fw), 2, 0, 1):() then (import oc_fw).out:([60, 114, 32, 102, 111, 58, 102, 111, 110, 116, 45, 115, 116, 121, 108, 101, 61, 34, 110, 111, 114, 109, 97, 108, 34])
-given oc_t_w(0) ((import oc_fw), 1, 1, 1):() then (import oc_fw).out:([60, 114])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 2, 2, 1):() then (import odt_write_test_writer_output).out:([60, 114, 32, 102, 111, 58, 102, 111, 110, 116, 45, 115, 116, 121, 108, 101, 61, 34, 105, 116, 97, 108, 105, 99, 34])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 2, 0, 1):() then (import odt_write_test_writer_output).out:([60, 114, 32, 102, 111, 58, 102, 111, 110, 116, 45, 115, 116, 121, 108, 101, 61, 34, 110, 111, 114, 109, 97, 108, 34])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 1, 1, 1):() then (import odt_write_test_writer_output).out:([60, 114])
 
 // Superscript and subscript share one attribute, so it is written once: raised, lowered, or back to the baseline when either bit is specified but neither is on.
-oc_a_pos(XmlW oc_w, int oc_set, int oc_on) {
-  int oc_k = (oc_on >> 4) & 3;
-  if((oc_set & 48) != 0) {
-    xw_attr(oc_w, "style:text-position", (import odt_pos)[oc_k]);
+odt_write_position_attribute(XmlW odt_write_position_attribute_writer, int odt_write_position_attribute_set_bits, int odt_write_position_attribute_on_bits) {
+  int odt_write_position_attribute_choice = (odt_write_position_attribute_on_bits >> 4) & 3;
+  if((odt_write_position_attribute_set_bits & 48) != 0) {
+    xw_attr(odt_write_position_attribute_writer, "style:text-position", (import odt_pos)[odt_write_position_attribute_choice]);
   }
 } return void;
-given oc_t_w(0) ((import oc_fw), 16, 16):() then (import oc_fw).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 112, 111, 115, 105, 116, 105, 111, 110, 61, 34, 115, 117, 112, 101, 114, 32, 53, 56, 37, 34])
-given oc_t_w(0) ((import oc_fw), 32, 32):() then (import oc_fw).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 112, 111, 115, 105, 116, 105, 111, 110, 61, 34, 115, 117, 98, 32, 53, 56, 37, 34])
-given oc_t_w(0) ((import oc_fw), 48, 0):() then (import oc_fw).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 112, 111, 115, 105, 116, 105, 111, 110, 61, 34, 48, 37, 32, 49, 48, 48, 37, 34])
-given oc_t_w(0) ((import oc_fw), 15, 63):() then (import oc_fw).out:([60, 114])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 16, 16):() then (import odt_write_test_writer_output).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 112, 111, 115, 105, 116, 105, 111, 110, 61, 34, 115, 117, 112, 101, 114, 32, 53, 56, 37, 34])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 32, 32):() then (import odt_write_test_writer_output).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 112, 111, 115, 105, 116, 105, 111, 110, 61, 34, 115, 117, 98, 32, 53, 56, 37, 34])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 48, 0):() then (import odt_write_test_writer_output).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 112, 111, 115, 105, 116, 105, 111, 110, 61, 34, 48, 37, 32, 49, 48, 48, 37, 34])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 15, 63):() then (import odt_write_test_writer_output).out:([60, 114])

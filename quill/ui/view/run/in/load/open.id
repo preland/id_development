@@ -1,28 +1,28 @@
 // Opens the document at the path for the viewer: it is read by odt_load, laid out and paginated, and kept as the view vw_v (exported by cv_ed_new, which also starts its editing state). A document that cannot be read leaves an empty one in its place and the message that names the fix as the one entry of vw_msg (the window shows it); a good one leaves vw_msg empty. Answers odt_load's code.
-vw_open(string vws_path) {
-  Doc vwd = doc_new();
-  int vwi_code = odt_load(vws_path, vwd);
-  string vws_msg = "";
-} chain (string vws_path) {
-  if(vwi_code != 0) {
-    vws_msg = odt_error(vwi_code);
-    vwd = doc_new();
+view_input_document_open(string view_input_open_path) {
+  Doc view_input_open_document = doc_new();
+  int view_input_open_code = odt_load(view_input_open_path, view_input_open_document);
+  string view_input_open_message = "";
+} chain (string view_input_open_path) {
+  if(view_input_open_code != 0) {
+    view_input_open_message = odt_error(view_input_open_code);
+    view_input_open_document = doc_new();
   }
-  View vwv = lay_view(vwd);
-  lay_all(vwv);
-} chain (string vws_path) {
-  lay_paginate(vwv, 0);
-  vw_msg_new(vws_msg);
-  cv_ed_new(vwv);
-} return int vwi_code;
-given lp_t_font given orc_t_zip("<r><office:text><text:p>Hi</text:p></office:text></r>", "") given orc_t_save ((import orc_tp)):(0) then vw_t_pages:(1) then orc_t_gone:(0) then cv_t_sel:("0:0-0:0") then calls doc_new:[1]
-given gui_font_init ("/nonexistent/none.odt"):(1) then vw_t_pages:(1) then cv_t_eds:("eds 0,0,0,0,0,-1,-1,-1,") then calls doc_new:[2]
+  View view_input_open_view = lay_view(view_input_open_document);
+  lay_all(view_input_open_view);
+} chain (string view_input_open_path) {
+  lay_paginate(view_input_open_view, 0);
+  view_input_message_keep(view_input_open_message);
+  view_input_editing_start(view_input_open_view);
+} return int view_input_open_code;
+given layout_paragraph_test_font given odt_read_fixture_make_archive("<r><office:text><text:p>Hi</text:p></office:text></r>", "") given odt_read_fixture_save_archive ((import odt_read_fixture_scratch_path)):(0) then view_input_test_page_count:(1) then odt_read_fixture_remove_file:(0) then view_flow_test_selection_text:("0:0-0:0") then calls doc_new:[1]
+given gui_font_init ("/nonexistent/none.odt"):(1) then view_input_test_page_count:(1) then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,-1,-1,") then calls doc_new:[2]
 
 
 // Keeps the message that takes a document's place as the one entry of the export vw_msg, replacing the one before; "" when there is a document to show.
 // vw_msg: Test check: the message the viewer shows in place of a document, "" when it has one.
-vw_msg_new(string vws_m) {
-  export string[] vw_msg = [vws_m];
-} return void export vw_msg;
-("a"):() then (import vw_msg)[0]:("a")
-(""):() then (import vw_msg)[0]:("")
+view_input_message_keep(string view_input_message_text) {
+  export string[] view_input_message_list = [view_input_message_text];
+} return void export view_input_message_list;
+("a"):() then (import view_input_message_list)[0]:("a")
+(""):() then (import view_input_message_list)[0]:("")

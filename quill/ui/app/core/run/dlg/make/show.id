@@ -1,38 +1,38 @@
 // Puts a dialog on the screen as dialog kind wai_kind (a wa_d_* code): one titled was_title with the lines wat_body and the buttons wat_keys, the first the default, kept as the export wa_dg and placed in the middle of the window. From now on it has every event, and the picture is stale.
-wa_open(string was_title, string[] wat_body, string[] wat_keys, int wai_kind) {
-  GuiDialog wadg = gui_dialog_new(was_title, wat_body, wat_keys, 0, (import wa_minw), (import rbd_ui)[0]);
-  export GuiDialog wa_dg = wadg;
-  lset((import wa_st), (import wa_s_dlg), wai_kind);
-} chain (string was_title, string[] wat_body, string[] wat_keys, int wai_kind) {
-  wa_dlg_place();
-  lset((import vw_st), (import vw_s_d), 1);
+app_dialog_show(string was_title, string[] wat_body, string[] wat_keys, int app_show_kind) {
+  GuiDialog app_show_dialog = gui_dialog_new(was_title, wat_body, wat_keys, 0, (import wa_minw), (import ribbon_faces)[0]);
+  export GuiDialog app_open_dialog = app_show_dialog;
+  lset((import cli_state_list), (import wa_s_dlg), app_show_kind);
+} chain (string was_title, string[] wat_body, string[] wat_keys, int app_show_kind) {
+  app_dialog_center();
+  lset((import view_state), (import vw_s_d), 1);
 } return void;
-given wa_t_app given lset((import vw_st), 3, 0) ("T", ["hi"], ["OK"], 4):() then wa_t_state:("0,0,4,0,|0|0") then vw_t_sts:("sts 0,0,100,1,") then wa_t_mid:(1)
-given wa_t_app ("Q", ["a", "b"], ["Yes", "No"], 1):() then wa_t_state:("0,0,1,0,|0|0") then wa_t_mid:(1)
+given cli_test_boot_app given lset((import view_state), 3, 0) ("T", ["hi"], ["OK"], 4):() then cli_test_state_text:("0,0,4,0,|0|0") then view_test_state_dump:("sts 0,0,100,1,") then app_test_dialog_centered:(1)
+given cli_test_boot_app ("Q", ["a", "b"], ["Yes", "No"], 1):() then cli_test_state_text:("0,0,1,0,|0|0") then app_test_dialog_centered:(1)
 
 // Puts the open dialog in the middle of the window as it is now, and the file list of a picker in the free part of it. Call it after the window changed size.
-wa_dlg_place() {
-  GuiDialog wadg = (import wa_dg);
-  gui_dialog_place(wadg, (import sf_l_w), (import sf_l_h));
-  int wai_k = (import wa_st)[(import wa_s_dlg)];
+app_dialog_center() {
+  GuiDialog app_center_dialog = (import app_open_dialog);
+  gui_dialog_place(app_center_dialog, (import sf_l_w), (import sf_l_h));
+  int app_center_state = (import cli_state_list)[(import wa_s_dlg)];
 } chain () {
-  int[] wal_a = gui_dialog_area(wadg);
-  if(wai_k == (import wa_d_open) || wai_k == (import wa_d_save)) {
-    gui_files_place((import wa_fl), wal_a[0], wal_a[1], wal_a[2], wal_a[3]);
+  int[] app_center_area = gui_dialog_area(app_center_dialog);
+  if(app_center_state == (import wa_d_open) || app_center_state == (import wa_d_save)) {
+    gui_files_place((import app_picker_file_list), app_center_area[0], app_center_area[1], app_center_area[2], app_center_area[3]);
   }
 } return void;
-given wa_t_app given wa_open("T", ["hi"], ["OK"], 4) given sf_l_init(800, 600) ():() then wa_t_mid:(1)
-given wa_t_app given wa_open("T", ["hi"], ["OK"], 4) given sf_l_init(1000, 700) ():() then wa_t_mid:(1)
+given cli_test_boot_app given app_dialog_show("T", ["hi"], ["OK"], 4) given sf_l_init(800, 600) ():() then app_test_dialog_centered:(1)
+given cli_test_boot_app given app_dialog_show("T", ["hi"], ["OK"], 4) given sf_l_init(1000, 700) ():() then app_test_dialog_centered:(1)
 
 // Paints the open dialog over the picture, and the file list in it when it is a picker; nothing when there is no dialog.
-wa_dlg_draw() {
-  int wai_k = (import wa_st)[(import wa_s_dlg)];
-  if(wai_k != (import wa_d_none)) {
-    gui_dialog_draw((import wa_dg));
+app_dialog_paint() {
+  int app_paint_state = (import cli_state_list)[(import wa_s_dlg)];
+  if(app_paint_state != (import wa_d_none)) {
+    gui_dialog_draw((import app_open_dialog));
   }
-  if(wai_k == (import wa_d_open) || wai_k == (import wa_d_save)) {
-    gui_files_draw((import wa_fl));
+  if(app_paint_state == (import wa_d_open) || app_paint_state == (import wa_d_save)) {
+    gui_files_draw((import app_picker_file_list));
   }
 } return void;
-given wa_t_app given wa_open("T", ["hi"], ["OK"], 4) given vw_t_at(200, 150) ():() then vw_t_px:(16777215)
-given wa_t_app given vw_t_at(200, 150) ():() then vw_t_px:(0)
+given cli_test_boot_app given app_dialog_show("T", ["hi"], ["OK"], 4) given view_test_remember_pixel(200, 150) ():() then view_test_pixel_color:(16777215)
+given cli_test_boot_app given view_test_remember_pixel(200, 150) ():() then view_test_pixel_color:(0)

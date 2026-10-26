@@ -1,29 +1,29 @@
 // Test setup: the handle of the committed Liberation Sans Regular at px pixels, remembered in the cache for font 0, regular style.
-lp_t_seed(Face fa, int px) {
-  int fh = gui_face_file("../editor/test_assets/LiberationSans-Regular.ttf", px, 0);
-  face_add(fa, fh, 0, px, 0);
+layout_paragraph_test_seed(Face seed_face_cache, int seed_pixels) {
+  int seed_handle = gui_face_file("../editor/test_assets/LiberationSans-Regular.ttf", seed_pixels, 0);
+  face_add(seed_face_cache, seed_handle, 0, seed_pixels, 0);
 } return void;
 given gui_font_init (Face([], [], 100), 16):(Face([0], [0, 16, 0], 100), 16)
 given gui_font_init (Face([], [], 100), 9):(Face([0], [0, 9, 0], 100), 9)
 
 // Test setup: the exported face cache gets six marker handles that name no real font, so a case can tell which key face_for looked up: 10 for font 0 at 16 px regular, 11 bold, 12 italic, 13 for 32 px regular, 14 for 37 px (the Title style's 28 pt) and 15 for 21 px bold (Heading 1's 16 pt).
-lp_t_marks() {
-  Face fa = (import lp_t_f);
-  face_add(fa, 10, 0, 16, 0);
-  face_add(fa, 11, 0, 16, 1);
+layout_paragraph_test_marks() {
+  Face marks_face_cache = (import layout_paragraph_test_face_cache);
+  face_add(marks_face_cache, 10, 0, 16, 0);
+  face_add(marks_face_cache, 11, 0, 16, 1);
 } chain () {
-  face_add(fa, 12, 0, 16, 2);
-  face_add(fa, 13, 0, 32, 0);
-  face_add(fa, 14, 0, 37, 0);
+  face_add(marks_face_cache, 12, 0, 16, 2);
+  face_add(marks_face_cache, 13, 0, 32, 0);
+  face_add(marks_face_cache, 14, 0, 37, 0);
 } chain () {
-  face_add(fa, 15, 0, 21, 1);
+  face_add(marks_face_cache, 15, 0, 21, 1);
 } return void;
-given lp_t_new ():() then len((import lp_t_f).hnd):(6)
-given lp_t_new ():() then (import lp_t_f).hnd[3]:(13) then (import lp_t_f).key[13]:(37) then calls face_add:[6]
+given layout_paragraph_test_new ():() then len((import layout_paragraph_test_face_cache).hnd):(6)
+given layout_paragraph_test_new ():() then (import layout_paragraph_test_face_cache).hnd[3]:(13) then (import layout_paragraph_test_face_cache).key[13]:(37) then calls face_add:[6]
 
 // Test setup: scans the line of paragraph 0 of the test view that starts at lo with its pen at x0 and room for avail lu, leaving the pen filled and the answer thrown away.
-lp_t_scan(int lo, int x0, int avail) {
-  lp_scan((import lp_t_v), 0, lo, x0, avail);
+layout_paragraph_test_scan(int fixture_scan_start, int fixture_scan_origin, int avail) {
+  layout_paragraph_scan((import layout_paragraph_test_view), 0, fixture_scan_start, fixture_scan_origin, avail);
 } return void;
-given lp_t_font given lp_t_ins(0, "AB") (0, 100, 5000):(0, 100, 5000) then lp_t_p0:([100, 783, 1466])
-given lp_t_font given lp_t_ins(0, "AB") (0, 0, 800):(0, 0, 800) then lp_t_p0:([0, 683, 1366])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "AB") (0, 100, 5000):(0, 100, 5000) then layout_paragraph_test_first_pen:([100, 783, 1466])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "AB") (0, 0, 800):(0, 0, 800) then layout_paragraph_test_first_pen:([0, 683, 1366])

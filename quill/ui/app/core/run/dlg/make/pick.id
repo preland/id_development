@@ -1,31 +1,31 @@
 // Shows the picker of a file as dialog kind wai_kind, wa_d_open or wa_d_save: a dialog with only Cancel and the file list of the folder wa_where names in the room the dialog leaves, kept as the export wa_fl. The Save As picker has the path of wa_sugg typed in its path box, which has the keyboard, so Enter chooses it.
-wa_picker(App waa, int wai_kind) {
-  GuiFiles wafl = gui_files_new(wa_where(waa), (import rbd_ui)[0]);
-  export GuiFiles wa_fl = wafl;
-  string was_h = (import wa_h_open);
-} chain (App waa, int wai_kind) {
-  if(wai_kind == (import wa_d_save)) {
-    was_h = (import wa_h_save);
-    gui_textbox_set(wafl.path, wa_sugg(waa));
-    gui_textbox_focus(wafl.path, 1);
+app_picker_show(App app_picker_application, int app_picker_kind) {
+  GuiFiles app_picker_files = gui_files_new(app_picker_folder(app_picker_application), (import ribbon_faces)[0]);
+  export GuiFiles app_picker_file_list = app_picker_files;
+  string app_picker_heading = (import wa_h_open);
+} chain (App app_picker_application, int app_picker_kind) {
+  if(app_picker_kind == (import wa_d_save)) {
+    app_picker_heading = (import wa_h_save);
+    gui_textbox_set(app_picker_files.path, app_save_suggestion(app_picker_application));
+    gui_textbox_focus(app_picker_files.path, 1);
   }
-  wa_open(was_h, (import wa_b_pick), (import wa_k_pick), wai_kind);
+  app_dialog_show(app_picker_heading, (import wa_b_pick), (import wa_k_pick), app_picker_kind);
 } return void;
-given wa_t_app given wa_t_at("/etc/a.odt") ((import wa_app), 3):() then wa_t_state:("0,0,3,0,|1|0") then wa_t_path:("/etc/a.odt")
-given wa_t_app given environment_put("HOME", "/usr") ((import wa_app), 2):() then wa_t_state:("0,0,2,0,|0|0") then wa_t_path:("/usr")
+given cli_test_boot_app given app_test_set_path("/etc/a.odt") ((import cli_application), 3):() then cli_test_state_text:("0,0,3,0,|1|0") then app_test_picker_path:("/etc/a.odt")
+given cli_test_boot_app given environment_put("HOME", "/usr") ((import cli_application), 2):() then cli_test_state_text:("0,0,2,0,|0|0") then app_test_picker_path:("/usr")
 
 // Test setup: the document of the app has the file path was_path, without having been read from it.
-wa_t_at(string was_path) {
-  App waa = (import wa_app);
-  waa.ui.shell.path = was_path;
+app_test_set_path(string was_path) {
+  App app_set_path_application = (import cli_application);
+  app_set_path_application.ui.shell.path = was_path;
 } return void;
-given wa_t_app ("/x/a.odt"):() then wa_t_state:("0,0,0,0,|1|0")
-given wa_t_app ("/x/b.odt"):() then wa_t_state:("0,0,0,0,|1|0")
+given cli_test_boot_app ("/x/a.odt"):() then cli_test_state_text:("0,0,0,0,|1|0")
+given cli_test_boot_app ("/x/b.odt"):() then cli_test_state_text:("0,0,0,0,|1|0")
 
 // Test check: the text in the path box of the file list of the open picker.
-wa_t_path() {
-  GuiFiles wafl = (import wa_fl);
-  string was_p = gui_textbox_text(wafl.path);
-} return string was_p;
-given wa_t_app given wa_t_at("/etc/a.odt") given wa_picker((import wa_app), 3) ():("/etc/a.odt")
-given wa_t_app given environment_put("HOME", "/usr") given wa_picker((import wa_app), 2) ():("/usr")
+app_test_picker_path() {
+  GuiFiles app_path_files = (import app_picker_file_list);
+  string app_path_text = gui_textbox_text(app_path_files.path);
+} return string app_path_text;
+given cli_test_boot_app given app_test_set_path("/etc/a.odt") given app_picker_show((import cli_application), 3) ():("/etc/a.odt")
+given cli_test_boot_app given environment_put("HOME", "/usr") given app_picker_show((import cli_application), 2) ():("/usr")

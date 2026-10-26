@@ -1,15 +1,15 @@
 // Test fixture (internal): a writer with a root element open, a default document with its formats and references, and an empty archive, all exported, so a case can hand them to a function and then read what it wrote.
-odp_t_new() {
-  Doc pkd = doc_new();
-  XmlW pkw = xw_new();
-  xw_start(pkw, "r");
+odt_package_fixture_new() {
+  Doc odt_package_new_document = doc_new();
+  XmlW odt_package_new_writer = xw_new();
+  xw_start(odt_package_new_writer, "r");
 } chain () {
-  export XmlW odp_t_w = pkw;
-  export Doc odp_t_d = pkd;
-  export Fmt odp_t_f = pkd.fmt;
+  export XmlW odt_package_exported_writer = odt_package_new_writer;
+  export Doc odt_package_exported_default_document = odt_package_new_document;
+  export Fmt odt_package_exported_formats = odt_package_new_document.fmt;
 } chain () {
-  export Ext odp_t_x = pkd.ext;
-  export ZipW odp_t_z = zw_new();
-} return void export odp_t_w;
-():() then (import odp_t_w).out:([60, 114])
-():() then len((import odp_t_w).out):(2)
+  export Ext odt_package_exported_references = odt_package_new_document.ext;
+  export ZipW odt_package_exported_archive = zw_new();
+} return void export odt_package_exported_writer;
+():() then (import odt_package_exported_writer).out:([60, 114])
+():() then len((import odt_package_exported_writer).out):(2)

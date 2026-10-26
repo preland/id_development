@@ -1,11 +1,11 @@
 // 1 when the value of attribute k (0 bold, 1 italic, 2 underline, 3 strike) turns the flag on: "bold" or a weight of 600 and up, "italic" or "oblique", anything but "none".
-ost_isflag(int os_ik, string os_sv) {
-  int os_ion = os_sv != "none";
-  if(os_ik == 0) {
-    os_ion = os_sv == "bold" || to_int(os_sv) >= 600;
+odt_named_flag_enabled(int odt_named_flag_enabled_attribute, string odt_named_flag_enabled_text) {
+  int os_ion = odt_named_flag_enabled_text != "none";
+  if(odt_named_flag_enabled_attribute == 0) {
+    os_ion = odt_named_flag_enabled_text == "bold" || to_int(odt_named_flag_enabled_text) >= 600;
   }
-  if(os_ik == 1) {
-    os_ion = os_sv == "italic" || os_sv == "oblique";
+  if(odt_named_flag_enabled_attribute == 1) {
+    os_ion = odt_named_flag_enabled_text == "italic" || odt_named_flag_enabled_text == "oblique";
   }
 } return int os_ion;
 (0, "bold"):(1)
@@ -17,23 +17,23 @@ ost_isflag(int os_ik, string os_sv) {
 (3, "none"):(0)
 
 // The flag a style:text-position value asks for: 16 superscript, 32 subscript, 0 neither; "super 58%", "sub 58%", "33% 58%" and "-33% 58%" are read.
-ost_pos(string os_sv) {
-  int os_in = to_int(os_sv);
-  int os_ibit = 0;
+odt_named_position_flag(string odt_named_position_flag_text) {
+  int os_in = to_int(odt_named_position_flag_text);
+  int odt_named_position_flag_bit = 0;
   if(os_in > 0) {
-    os_ibit = (import quill_flag_superscript);
+    odt_named_position_flag_bit = (import quill_flag_superscript);
   }
-} chain (string os_sv) {
+} chain (string odt_named_position_flag_text) {
   if(os_in < 0) {
-    os_ibit = (import quill_flag_subscript);
+    odt_named_position_flag_bit = (import quill_flag_subscript);
   }
-  if(str_starts(os_sv, "super") == 1) {
-    os_ibit = (import quill_flag_superscript);
+  if(str_starts(odt_named_position_flag_text, "super") == 1) {
+    odt_named_position_flag_bit = (import quill_flag_superscript);
   }
-  if(str_starts(os_sv, "sub") == 1) {
-    os_ibit = (import quill_flag_subscript);
+  if(str_starts(odt_named_position_flag_text, "sub") == 1) {
+    odt_named_position_flag_bit = (import quill_flag_subscript);
   }
-} return int os_ibit;
+} return int odt_named_position_flag_bit;
 ("super 58%"):(16)
 ("sub 58%"):(32)
 ("33% 58%"):(16)
@@ -41,10 +41,10 @@ ost_pos(string os_sv) {
 ("0% 100%"):(0)
 
 // Sets the flags in the mask to the values they have in os_ionbits, in a character row: they become specified, and on or off.
-ost_flagset(int[] os_lrow, int os_imask, int os_ionbits) {
-  os_lrow[(import quill_character_set)] = os_lrow[(import quill_character_set)] | os_imask;
-  int os_ikeep = os_lrow[(import quill_character_on)] & ~os_imask;
-  os_lrow[(import quill_character_on)] = os_ikeep | (os_ionbits & os_imask);
+odt_named_flag_apply(int[] odt_named_flag_apply_row, int odt_named_flag_apply_mask, int odt_named_flag_apply_on_bits) {
+  odt_named_flag_apply_row[(import quill_character_set)] = odt_named_flag_apply_row[(import quill_character_set)] | odt_named_flag_apply_mask;
+  int odt_named_flag_apply_kept = odt_named_flag_apply_row[(import quill_character_on)] & ~odt_named_flag_apply_mask;
+  odt_named_flag_apply_row[(import quill_character_on)] = odt_named_flag_apply_kept | (odt_named_flag_apply_on_bits & odt_named_flag_apply_mask);
 } return void;
 ([0, -1, -1, -1, -1, 0, 0], 2, 2):([0, -1, -1, -1, -1, 2, 2], 2, 2)
 ([0, -1, -1, -1, -1, 3, 3], 1, 0):([0, -1, -1, -1, -1, 2, 3], 1, 0)

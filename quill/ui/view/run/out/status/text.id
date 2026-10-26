@@ -1,45 +1,45 @@
 // The page the viewer shows, counted from 0: the one under the middle of the page area, which is vwi_ch pixels tall and scrolled to vwi_y at zoom vwi_z. It is the last page that starts at or above that line.
 // By hand: with 300 px of page area the middle is 150 px down at no scroll, above the second page's top at 248, so page 0; scrolled 172 it is 322, past it, so page 1.
-vw_cur(View vwv, int vwi_z, int vwi_y, int vwi_ch) {
-  int vwi_mid = vwi_y + vwi_ch / 2;
-  int vwi_k = 0;
-  int vwi_n = lay_page_count(vwv);
-} chain (View vwv, int vwi_z, int vwi_y, int vwi_ch) {
-  while(vwi_k + 1 < vwi_n && vw_top(vwv, vwi_k + 1, vwi_z) <= vwi_mid) {
-    vwi_k = vwi_k + 1;
+view_status_current_page(View view_status_current_page_viewer, int view_status_current_page_zoom, int view_status_current_page_scroll_row, int view_status_current_page_area_height) {
+  int view_status_current_page_middle = view_status_current_page_scroll_row + view_status_current_page_area_height / 2;
+  int view_status_current_page_result = 0;
+  int view_status_current_page_count = lay_page_count(view_status_current_page_viewer);
+} chain (View view_status_current_page_viewer, int view_status_current_page_zoom, int view_status_current_page_scroll_row, int view_status_current_page_area_height) {
+  while(view_status_current_page_result + 1 < view_status_current_page_count && view_page_top(view_status_current_page_viewer, view_status_current_page_result + 1, view_status_current_page_zoom) <= view_status_current_page_middle) {
+    view_status_current_page_result = view_status_current_page_result + 1;
   }
-} return int vwi_k;
-given vw_t_two () ((import lp_t_v), 100, 0, 300):(0)
-given vw_t_two () ((import lp_t_v), 100, 172, 300):(1)
-given vw_t_two () ((import lp_t_v), 200, 100, 300):(0)
+} return int view_status_current_page_result;
+given view_test_two_pages () ((import layout_paragraph_test_view), 100, 0, 300):(0)
+given view_test_two_pages () ((import layout_paragraph_test_view), 100, 172, 300):(1)
+given view_test_two_pages () ((import layout_paragraph_test_view), 200, 100, 300):(0)
 
 // What the status bar says: the page shown out of the pages there are, the words in the document and the zoom, for a page area vwi_ch pixels tall. The sentence is built when one of the four numbers in it differs from the numbers the kept one was built from (vw_stk), and the kept one (vw_stt) is answered otherwise, so a frame that changes none of them builds no string.
-vw_status_text(View vwv, int vwi_ch) {
-  int[] vwl_st = (import vw_st);
-  int vwi_k = vw_cur(vwv, vwl_st[(import vw_s_z)], vwl_st[(import vw_s_y)], vwi_ch);
-  int vwi_w = count_words(vwv.doc);
-} chain (View vwv, int vwi_ch) {
-  int vwi_n = lay_page_count(vwv);
-  int vwi_k1 = vwi_k * 65536 + vwi_n;
-  int vwi_k2 = vwi_w * 4096 + vwl_st[(import vw_s_z)];
-} chain (View vwv, int vwi_ch) {
-  int[] vwl_kc = (import vw_stk);
-  string[] vwl_sc = (import vw_stt);
-  if(vwl_kc[0] != vwi_k1 || vwl_kc[1] != vwi_k2) {
-    vw_stat_keep(vwl_kc, vwl_sc, vwi_k1, vwi_k2, "Page " + (vwi_k + 1) + " of " + vwi_n + "    " + vwi_w + " words    " + vwl_st[(import vw_s_z)] + "%");
+view_status_sentence(View view_status_sentence_viewer, int view_status_sentence_area_height) {
+  int[] view_status_sentence_state = (import view_state);
+  int view_status_sentence_page = view_status_current_page(view_status_sentence_viewer, view_status_sentence_state[(import vw_s_z)], view_status_sentence_state[(import vw_s_y)], view_status_sentence_area_height);
+  int view_status_sentence_word_count = count_words(view_status_sentence_viewer.doc);
+} chain (View view_status_sentence_viewer, int view_status_sentence_area_height) {
+  int view_status_sentence_page_count = lay_page_count(view_status_sentence_viewer);
+  int view_status_sentence_first_key = view_status_sentence_page * 65536 + view_status_sentence_page_count;
+  int view_status_sentence_second_key = view_status_sentence_word_count * 4096 + view_status_sentence_state[(import vw_s_z)];
+} chain (View view_status_sentence_viewer, int view_status_sentence_area_height) {
+  int[] view_status_sentence_kept_keys = (import view_state_status_keys);
+  string[] view_status_sentence_kept_text = (import view_state_status_text);
+  if(view_status_sentence_kept_keys[0] != view_status_sentence_first_key || view_status_sentence_kept_keys[1] != view_status_sentence_second_key) {
+    view_status_keep(view_status_sentence_kept_keys, view_status_sentence_kept_text, view_status_sentence_first_key, view_status_sentence_second_key, "Page " + (view_status_sentence_page + 1) + " of " + view_status_sentence_page_count + "    " + view_status_sentence_word_count + " words    " + view_status_sentence_state[(import vw_s_z)] + "%");
   }
-} chain (View vwv, int vwi_ch) {
-  string vws_t = (import vw_stt)[0];
-} return string vws_t;
-given vw_t_two given vw_state_new ((import lp_t_v), 300):("Page 1 of 2    8 words    100%")
-given vw_t_two given vw_t_at_y(300, 150) ((import lp_t_v), 300):("Page 2 of 2    8 words    150%")
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given rbd_ui_set(1, 1, 1) given vw_status((import lp_t_v)) given vw_zoom((import lp_t_v), 150, 300) ((import lp_t_v), 300):("Page 1 of 2    8 words    150%")
+} chain (View view_status_sentence_viewer, int view_status_sentence_area_height) {
+  string view_status_sentence_result = (import view_state_status_text)[0];
+} return string view_status_sentence_result;
+given view_test_two_pages given view_state_new ((import layout_paragraph_test_view), 300):("Page 1 of 2    8 words    100%")
+given view_test_two_pages given view_test_state_scrolled(300, 150) ((import layout_paragraph_test_view), 300):("Page 2 of 2    8 words    150%")
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given ribbon_faces_set(1, 1, 1) given view_status_paint((import layout_paragraph_test_view)) given view_state_zoom((import layout_paragraph_test_view), 150, 300) ((import layout_paragraph_test_view), 300):("Page 1 of 2    8 words    150%")
 
 // Keeps the sentence vws_t of the status bar and the two numbers vwi_k1 and vwi_k2 it was built from, in the lists the status text reads them from.
-vw_stat_keep(int[] vwl_kc, string[] vwl_sc, int vwi_k1, int vwi_k2, string vws_t) {
-  vwl_kc[0] = vwi_k1;
-  vwl_kc[1] = vwi_k2;
-  vwl_sc[0] = vws_t;
+view_status_keep(int[] view_status_keep_keys, string[] view_status_keep_texts, int view_status_keep_first_key, int view_status_keep_second_key, string view_status_keep_sentence) {
+  view_status_keep_keys[0] = view_status_keep_first_key;
+  view_status_keep_keys[1] = view_status_keep_second_key;
+  view_status_keep_texts[0] = view_status_keep_sentence;
 } return void;
 ([0, 0], [""], 5, 6, "x"):([5, 6], ["x"])
 ([1, 2], ["a", "b"], 7, 8, "y"):([7, 8], ["y", "b"])

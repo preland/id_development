@@ -1,26 +1,26 @@
 // The width of the label of paragraph i in lu: the advances of its code points in the face of the paragraph's first run. It borrows the paragraph's pen list as scratch and leaves it empty, so it allocates nothing.
 // By hand at 16 px: a bullet (U+2022) is 717 units, 717 * 16 / 32 = 358.5, so 359; the label "1." is a 1 of 1139 units, 569.5 so 570, and a full stop of 569 units, 284.5 so 285, 855 in all.
-lp_lw(View v, int i) {
-  Para p = v.doc.body.paras[i];
-  lay_label(v, i, p.lay.pen);
-  int w = lp_sum(lp_rface(v, i, 0), p.lay.pen);
-} chain (View v, int i) {
-  lp_clear(p.lay.pen);
-} return int w;
-given lp_t_font given lp_t_ins(0, "B") given lp_t_row(0, 9, 1) ((import lp_t_v), 0):(359) then lp_t_p0:([])
-given lp_t_font given lp_t_ins(0, "B") given lp_t_row(0, 9, 2) ((import lp_t_v), 0):(855) then lp_t_p0:([])
-given lp_t_font given lp_t_ins(0, "B") ((import lp_t_v), 0):(0)
+layout_paragraph_label_width(View label_width_view, int label_width_paragraph_index) {
+  Para label_width_paragraph = label_width_view.doc.body.paras[label_width_paragraph_index];
+  lay_label(label_width_view, label_width_paragraph_index, label_width_paragraph.lay.pen);
+  int label_width_total = layout_paragraph_advance_sum(layout_paragraph_run_face(label_width_view, label_width_paragraph_index, 0), label_width_paragraph.lay.pen);
+} chain (View label_width_view, int label_width_paragraph_index) {
+  layout_paragraph_clear(label_width_paragraph.lay.pen);
+} return int label_width_total;
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "B") given layout_paragraph_test_set_property(0, 9, 1) ((import layout_paragraph_test_view), 0):(359) then layout_paragraph_test_first_pen:([])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "B") given layout_paragraph_test_set_property(0, 9, 2) ((import layout_paragraph_test_view), 0):(855) then layout_paragraph_test_first_pen:([])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "B") ((import layout_paragraph_test_view), 0):(0)
 
 // The advance of all of cps in face fh, kerning included, in 64ths.
 // By hand at 16 px: B and E are 683 each; A before V kerns by -76, 683 + 607 = 1290.
-lp_sum(int fh, int[] cps) {
+layout_paragraph_advance_sum(int sum_face_handle, int[] sum_code_points) {
   int tot = 0;
-  int j = 0;
-  while(j < len(cps)) {
-    tot = tot + gui_cp_adv(fh, cps[j], lp_nx(cps, j));
-    j = j + 1;
+  int sum_position = 0;
+  while(sum_position < len(sum_code_points)) {
+    tot = tot + gui_cp_adv(sum_face_handle, sum_code_points[sum_position], layout_paragraph_next_code_point(sum_code_points, sum_position));
+    sum_position = sum_position + 1;
   }
 } return int tot;
-given lp_t_font ((import lp_t_h16), [66, 69]):(1366)
-given lp_t_font ((import lp_t_h16), [65, 86]):(1290)
-given lp_t_font ((import lp_t_h16), []):(0)
+given layout_paragraph_test_font ((import layout_paragraph_test_handle_normal), [66, 69]):(1366)
+given layout_paragraph_test_font ((import layout_paragraph_test_handle_normal), [65, 86]):(1290)
+given layout_paragraph_test_font ((import layout_paragraph_test_handle_normal), []):(0)

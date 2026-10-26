@@ -1,42 +1,42 @@
 // The name a style has in the file: the ODT name of a built-in style ("Standard" for Normal), otherwise its name with each space written as _20_ as ODF does.
-oc_wire(Doc oc_d, int oc_sid) {
-  string oc_nm = oc_d.fmt.sty.styles[oc_sid].name;
-  string[] oc_parts = str_split(oc_nm, " ");
-  string oc_wr = str_join(oc_parts, "_20_");
-} chain (Doc oc_d, int oc_sid) {
-  int oc_k = list_string_index((import quill_style_names), oc_nm);
-  if(oc_k >= 0) {
-    oc_wr = (import quill_style_wire)[oc_k];
+odt_write_style_wire_name(Doc odt_write_style_wire_name_document, int odt_write_style_wire_name_style_number) {
+  string odt_write_style_wire_name_name = odt_write_style_wire_name_document.fmt.sty.styles[odt_write_style_wire_name_style_number].name;
+  string[] odt_write_style_wire_name_pieces = str_split(odt_write_style_wire_name_name, " ");
+  string odt_write_style_wire_name_result = str_join(odt_write_style_wire_name_pieces, "_20_");
+} chain (Doc odt_write_style_wire_name_document, int odt_write_style_wire_name_style_number) {
+  int odt_write_style_wire_name_known_index = list_string_index((import quill_style_names), odt_write_style_wire_name_name);
+  if(odt_write_style_wire_name_known_index >= 0) {
+    odt_write_style_wire_name_result = (import quill_style_wire)[odt_write_style_wire_name_known_index];
   }
-} return string oc_wr;
+} return string odt_write_style_wire_name_result;
 (Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("My Style", [0, 0, 0], [0, 0])], [], 0)), Ext([], [], [])), 0):("Standard")
 (Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("My Style", [0, 0, 0], [0, 0])], [], 0)), Ext([], [], [])), 1):("My_20_Style")
 (Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), Ext([], [], [])), 1):("Heading_20_1")
 
 // The outline level of a heading style, 0 for any other style: the number after "Heading_20_" in its file name.
-oc_level(Doc oc_d, int oc_sid) {
-  string oc_wr = oc_wire(oc_d, oc_sid);
-  int oc_lv = 0;
-  if(str_starts(oc_wr, "Heading_20_") == 1) {
-    string oc_dg = str_sub(oc_wr, 11, len(oc_wr) - 11);
-    oc_lv = to_int(oc_dg);
+odt_write_heading_level(Doc odt_write_heading_level_document, int odt_write_heading_level_style_number) {
+  string odt_write_heading_level_wire = odt_write_style_wire_name(odt_write_heading_level_document, odt_write_heading_level_style_number);
+  int odt_write_heading_level_result = 0;
+  if(str_starts(odt_write_heading_level_wire, "Heading_20_") == 1) {
+    string odt_write_heading_level_digits = str_sub(odt_write_heading_level_wire, 11, len(odt_write_heading_level_wire) - 11);
+    odt_write_heading_level_result = to_int(odt_write_heading_level_digits);
   }
-} return int oc_lv;
+} return int odt_write_heading_level_result;
 (Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 2", [0, 0, 0], [0, 0])], [], 0)), Ext([], [], [])), 1):(2)
 (Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 2", [0, 0, 0], [0, 0])], [], 0)), Ext([], [], [])), 0):(0)
 
 // The style-name a paragraph's element carries: its automatic style P<row> when the row sets paragraph properties, else its named style, else nothing.
-oc_pname(Doc oc_d, int oc_pid) {
-  string oc_nm = "";
-  int oc_pl = oc_plain_p(oc_d.fmt.paras, oc_pid);
-  int oc_sid = tab_get(oc_d.fmt.paras, oc_pid, (import quill_paragraph_style));
-} chain (Doc oc_d, int oc_pid) {
-  if(oc_pl == 0) {
-    oc_nm = "WP" + oc_pid;
-  } else if(oc_sid > 0) {
-    oc_nm = oc_wire(oc_d, oc_sid);
+odt_write_paragraph_style_name(Doc odt_write_paragraph_style_name_document, int odt_write_paragraph_style_name_paragraph_number) {
+  string odt_write_paragraph_style_name_result = "";
+  int odt_write_paragraph_style_name_plain = odt_write_paragraph_plain(odt_write_paragraph_style_name_document.fmt.paras, odt_write_paragraph_style_name_paragraph_number);
+  int odt_write_paragraph_style_name_style_number = tab_get(odt_write_paragraph_style_name_document.fmt.paras, odt_write_paragraph_style_name_paragraph_number, (import quill_paragraph_style));
+} chain (Doc odt_write_paragraph_style_name_document, int odt_write_paragraph_style_name_paragraph_number) {
+  if(odt_write_paragraph_style_name_plain == 0) {
+    odt_write_paragraph_style_name_result = "WP" + odt_write_paragraph_style_name_paragraph_number;
+  } else if(odt_write_paragraph_style_name_style_number > 0) {
+    odt_write_paragraph_style_name_result = odt_write_style_wire_name(odt_write_paragraph_style_name_document, odt_write_paragraph_style_name_style_number);
   }
-} return string oc_nm;
+} return string odt_write_paragraph_style_name_result;
 (Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), Ext([], [], [])), 0):("")
 (Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), Ext([], [], [])), 1):("Heading_20_1")
 (Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), Ext([], [], [])), 2):("WP2")

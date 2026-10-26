@@ -1,17 +1,17 @@
 // Records in lhr, [from, to, mark], what of line lhj of paragraph lhi the selection from lhsa to lhsb covers: the offsets from and to (to not above from when none of the line is covered) and mark 1 when the selection goes on past the paragraph, so that the line holds the paragraph mark in it, which is the end of its last line. The paragraph must lie between the two ends.
 // By hand in "BBB EEE BBB" in lines of 4, 4 and 3, the selection 1 to 6 covers offsets 1 to 4 of line 0, 4 to 6 of line 1 and nothing of line 2 (8 to 6); from 1 of "BBB" to 1 of the next paragraph, the whole of the last line of the first and the mark.
-lay_range(Para lhpa, int lhi, int lhj, Pos lhsa, Pos lhsb, int[] lhr) {
-  int lhn = len(lhpa.txt.cps);
-  int lhf = lhsa.off * (lhi == lhsa.para);
-  int lht = lhn + (lhsb.off - lhn) * (lhi == lhsb.para);
-} chain (Para lhpa, int lhi, int lhj, Pos lhsa, Pos lhsb, int[] lhr) {
-  int lhlo = lhpa.lay.lines[lhj * (import quill_line_stride) + (import quill_line_low)];
-  int lhhi = lhpa.lay.lines[lhj * (import quill_line_stride) + (import quill_line_high)];
-  lset(lhr, 0, fixed_point_maximum(lhlo, lhf));
-} chain (Para lhpa, int lhi, int lhj, Pos lhsa, Pos lhsb, int[] lhr) {
-  int lhm = (lhi < lhsb.para) * (lhhi == lhn);
-  lset(lhr, 1, fixed_point_minimum(lhhi, lht));
-  lset(lhr, 2, lhm);
+lay_range(Para line_paragraph, int target_paragraph, int target_line, Pos selection_start, Pos selection_end, int[] result_list) {
+  int paragraph_length = len(line_paragraph.txt.cps);
+  int range_from = selection_start.off * (target_paragraph == selection_start.para);
+  int range_to = paragraph_length + (selection_end.off - paragraph_length) * (target_paragraph == selection_end.para);
+} chain (Para line_paragraph, int target_paragraph, int target_line, Pos selection_start, Pos selection_end, int[] result_list) {
+  int line_low_offset = line_paragraph.lay.lines[target_line * (import quill_line_stride) + (import quill_line_low)];
+  int line_high_offset = line_paragraph.lay.lines[target_line * (import quill_line_stride) + (import quill_line_high)];
+  lset(result_list, 0, fixed_point_maximum(line_low_offset, range_from));
+} chain (Para line_paragraph, int target_paragraph, int target_line, Pos selection_start, Pos selection_end, int[] result_list) {
+  int mark_included = (target_paragraph < selection_end.para) * (line_high_offset == paragraph_length);
+  lset(result_list, 1, fixed_point_minimum(line_high_offset, range_to));
+  lset(result_list, 2, mark_included);
 } return void;
 (Para(Text([66, 66, 66, 32, 69, 69, 69, 32, 66, 66, 66], [Run(11, 0, -1)], 0), Lay([0, 4, 0, 960, 192, 2049, 4, 8, 1152, 960, 192, 2049, 8, 11, 2304, 960, 192, 2049], [0, 683, 1366, 2049, 0, 683, 1366, 2049, 0, 683, 1366, 2049], 3968), 0), 0, 0, Pos(0, 1), Pos(0, 6), [9, 9, 9]):(Para(Text([66, 66, 66, 32, 69, 69, 69, 32, 66, 66, 66], [Run(11, 0, -1)], 0), Lay([0, 4, 0, 960, 192, 2049, 4, 8, 1152, 960, 192, 2049, 8, 11, 2304, 960, 192, 2049], [0, 683, 1366, 2049, 0, 683, 1366, 2049, 0, 683, 1366, 2049], 3968), 0), 0, 0, Pos(0, 1), Pos(0, 6), [1, 4, 0])
 (Para(Text([66, 66, 66, 32, 69, 69, 69, 32, 66, 66, 66], [Run(11, 0, -1)], 0), Lay([0, 4, 0, 960, 192, 2049, 4, 8, 1152, 960, 192, 2049, 8, 11, 2304, 960, 192, 2049], [0, 683, 1366, 2049, 0, 683, 1366, 2049, 0, 683, 1366, 2049], 3968), 0), 0, 1, Pos(0, 1), Pos(0, 6), [9, 9, 9]):(Para(Text([66, 66, 66, 32, 69, 69, 69, 32, 66, 66, 66], [Run(11, 0, -1)], 0), Lay([0, 4, 0, 960, 192, 2049, 4, 8, 1152, 960, 192, 2049, 8, 11, 2304, 960, 192, 2049], [0, 683, 1366, 2049, 0, 683, 1366, 2049, 0, 683, 1366, 2049], 3968), 0), 0, 1, Pos(0, 1), Pos(0, 6), [4, 6, 0])
@@ -20,15 +20,15 @@ lay_range(Para lhpa, int lhi, int lhj, Pos lhsa, Pos lhsb, int[] lhr) {
 
 // The x, in lu from the left edge of the text area, where a selection that ends at offset lhb of line lhj stops: the pen of that offset, except at the end of a line that is followed by another, where the pen of the offset is the start of the next line and the line's own end, its start plus its used width, is meant.
 // By hand: in "BBB EEE BBB" the end of line 0 (offset 4) is 0 + 2049, the used width of the line, not 0 which is the pen of the start of line 1; offset 2 is its pen 1366; the end of the text, offset 11, is its pen 2049.
-lay_xend(Para lhpa, int lhj, int lhb) {
-  int lhlo = lhpa.lay.lines[lhj * (import quill_line_stride) + (import quill_line_low)];
-  int lhhi = lhpa.lay.lines[lhj * (import quill_line_stride) + (import quill_line_high)];
-  int lhx = lhpa.lay.pen[lhb];
-} chain (Para lhpa, int lhj, int lhb) {
-  if(lhb == lhhi && lhhi < len(lhpa.txt.cps)) {
-    lhx = lhpa.lay.pen[lhlo] + lhpa.lay.lines[lhj * (import quill_line_stride) + (import quill_line_width)];
+layout_page_x_end(Para line_paragraph, int target_line, int end_offset) {
+  int line_low_offset = line_paragraph.lay.lines[target_line * (import quill_line_stride) + (import quill_line_low)];
+  int line_high_offset = line_paragraph.lay.lines[target_line * (import quill_line_stride) + (import quill_line_high)];
+  int end_x = line_paragraph.lay.pen[end_offset];
+} chain (Para line_paragraph, int target_line, int end_offset) {
+  if(end_offset == line_high_offset && line_high_offset < len(line_paragraph.txt.cps)) {
+    end_x = line_paragraph.lay.pen[line_low_offset] + line_paragraph.lay.lines[target_line * (import quill_line_stride) + (import quill_line_width)];
   }
-} return int lhx;
+} return int end_x;
 (Para(Text([66, 66, 66, 32, 69, 69, 69, 32, 66, 66, 66], [Run(11, 0, -1)], 0), Lay([0, 4, 0, 960, 192, 2049, 4, 8, 1152, 960, 192, 2049, 8, 11, 2304, 960, 192, 2049], [0, 683, 1366, 2049, 0, 683, 1366, 2049, 0, 683, 1366, 2049], 3968), 0), 0, 4):(2049)
 (Para(Text([66, 66, 66, 32, 69, 69, 69, 32, 66, 66, 66], [Run(11, 0, -1)], 0), Lay([0, 4, 0, 960, 192, 2049, 4, 8, 1152, 960, 192, 2049, 8, 11, 2304, 960, 192, 2049], [0, 683, 1366, 2049, 0, 683, 1366, 2049, 0, 683, 1366, 2049], 3968), 0), 0, 2):(1366)
 (Para(Text([66, 66, 66, 32, 69, 69, 69, 32, 66, 66, 66], [Run(11, 0, -1)], 0), Lay([0, 4, 0, 960, 192, 2049, 4, 8, 1152, 960, 192, 2049, 8, 11, 2304, 960, 192, 2049], [0, 683, 1366, 2049, 0, 683, 1366, 2049, 0, 683, 1366, 2049], 3968), 0), 2, 11):(2049)

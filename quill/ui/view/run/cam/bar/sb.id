@@ -1,31 +1,31 @@
 // A vertical scrollbar for the page area, kept in the export vw_sb: nothing to scroll yet, a notch of the wheel moves it by vw_wheel_px.
-vw_bar_new() {
-  export GuiScroll vw_sb = gui_scroll_new(1, 1, (import vw_wheel_px));
+view_scroll_bar_new() {
+  export GuiScroll view_scroll_bar = gui_scroll_new(1, 1, (import vw_wheel_px));
 } return void;
-():() then vw_t_sbo:("sbo 0")
-():() then vw_t_sbs:("0,1,1")
+():() then view_test_scroll_bar_offset:("sbo 0")
+():() then view_test_scroll_bar_dump:("0,1,1")
 
 // Puts the bar in the rectangle the chrome gave it, and tells it how much it scrolls: the page area's height is what shows, the height of the document what there is, and the scroll of the viewer is where it stands.
-vw_bar_fit(View vwv) {
-  int[] vwl_st = (import vw_st);
-  int vwi_ch = vw_box("canvas", 3);
-  int vwi_dh = vw_dh(vwv, vwl_st[(import vw_s_z)]);
-} chain (View vwv) {
-  gui_scroll_place((import vw_sb), vw_box("vbar", 0), vw_box("vbar", 1), vw_box("vbar", 2), vw_box("vbar", 3));
-  int vwi_m = gui_scroll_content((import vw_sb), vwi_ch, vwi_dh);
-  int vwi_s = gui_scroll_set((import vw_sb), vwl_st[(import vw_s_y)]);
+view_scroll_bar_fit(View view_scroll_bar_fit_viewer) {
+  int[] view_scroll_bar_fit_state = (import view_state);
+  int view_scroll_bar_fit_area_height = view_box_field("canvas", 3);
+  int view_scroll_bar_fit_document_height = view_document_height(view_scroll_bar_fit_viewer, view_scroll_bar_fit_state[(import vw_s_z)]);
+} chain (View view_scroll_bar_fit_viewer) {
+  gui_scroll_place((import view_scroll_bar), view_box_field("vbar", 0), view_box_field("vbar", 1), view_box_field("vbar", 2), view_box_field("vbar", 3));
+  int view_scroll_bar_fit_content_result = gui_scroll_content((import view_scroll_bar), view_scroll_bar_fit_area_height, view_scroll_bar_fit_document_height);
+  int view_scroll_bar_fit_scroll_result = gui_scroll_set((import view_scroll_bar), view_scroll_bar_fit_state[(import vw_s_y)]);
 } return void;
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_bar_new given vw_t_at_y(100, 100) ((import lp_t_v)):() then vw_t_sbo:("sbo 100")
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_bar_new given vw_t_at_y(100, 100) ((import lp_t_v)):() then vw_t_sbs:("100,122,472")
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given view_scroll_bar_new given view_test_state_scrolled(100, 100) ((import layout_paragraph_test_view)):() then view_test_scroll_bar_offset:("sbo 100")
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given view_scroll_bar_new given view_test_state_scrolled(100, 100) ((import layout_paragraph_test_view)):() then view_test_scroll_bar_dump:("100,122,472")
 
 // The scroll of the viewer becomes the bar's offset after the bar has moved (a drag, an arrow, a press in the track), and the picture is stale when that changed it.
-vw_bar_take() {
-  int[] vwl_st = (import vw_st);
-  int vwi_o = gui_scroll_offset((import vw_sb));
-  if(vwi_o != vwl_st[(import vw_s_y)]) {
-    lset(vwl_st, (import vw_s_y), vwi_o);
-    lset(vwl_st, (import vw_s_d), 1);
+view_scroll_bar_take() {
+  int[] view_scroll_bar_take_state = (import view_state);
+  int view_scroll_bar_take_offset = gui_scroll_offset((import view_scroll_bar));
+  if(view_scroll_bar_take_offset != view_scroll_bar_take_state[(import vw_s_y)]) {
+    lset(view_scroll_bar_take_state, (import vw_s_y), view_scroll_bar_take_offset);
+    lset(view_scroll_bar_take_state, (import vw_s_d), 1);
   }
 } return void;
-given vw_t_two given vw_t_up(400, 300) given vw_t_at_y(0, 100) given vw_bar_new given vw_bar_fit((import lp_t_v)) ():() then vw_t_sts:("sts 0,0,100,0,")
-given vw_t_two given vw_t_up(400, 300) given vw_t_at_y(0, 100) given vw_bar_new given vw_bar_fit((import lp_t_v)) given vw_t_sbset(60) ():() then vw_t_sts:("sts 0,60,100,1,")
+given view_test_two_pages given view_test_fit_chrome(400, 300) given view_test_state_scrolled(0, 100) given view_scroll_bar_new given view_scroll_bar_fit((import layout_paragraph_test_view)) ():() then view_test_state_dump:("sts 0,0,100,0,")
+given view_test_two_pages given view_test_fit_chrome(400, 300) given view_test_state_scrolled(0, 100) given view_scroll_bar_new given view_scroll_bar_fit((import layout_paragraph_test_view)) given view_test_scroll_bar_move(60) ():() then view_test_state_dump:("sts 0,60,100,1,")

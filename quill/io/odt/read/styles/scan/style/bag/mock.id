@@ -1,22 +1,22 @@
 // Test fixture: which record of the fixture bag ost_t_c and ost_t_p show.
-ost_t_pick(int os_in) {
-  export int ost_t_i = os_in;
+odt_named_bag_pick(int os_in) {
+  export int odt_named_bag_picked = os_in;
 } return void;
-given ost_t_scan("<a><style:style style:name=\"A\" style:family=\"text\"><style:text-properties fo:color=\"#ff0000\"/></style:style><style:style style:name=\"B\" style:family=\"text\"/></a>") (0):() then ost_t_c:([0, -1, -1, 16711680, -1, 0, 0])
-given ost_t_scan("<a><style:style style:name=\"A\" style:family=\"text\"><style:text-properties fo:color=\"#ff0000\"/></style:style><style:style style:name=\"B\" style:family=\"text\"/></a>") (1):() then ost_t_c:([0, -1, -1, -1, -1, 0, 0])
+given odt_named_bag_scan_fixture("<a><style:style style:name=\"A\" style:family=\"text\"><style:text-properties fo:color=\"#ff0000\"/></style:style><style:style style:name=\"B\" style:family=\"text\"/></a>") (0):() then odt_named_bag_character_row:([0, -1, -1, 16711680, -1, 0, 0])
+given odt_named_bag_scan_fixture("<a><style:style style:name=\"A\" style:family=\"text\"><style:text-properties fo:color=\"#ff0000\"/></style:style><style:style style:name=\"B\" style:family=\"text\"/></a>") (1):() then odt_named_bag_character_row:([0, -1, -1, -1, -1, 0, 0])
 
 // Test fixture: the character row of the picked record.
-ost_t_c() {
-  StyBag os_b = (import ost_t_b);
-  int[] os_lcrow = os_b.crows[(import ost_t_i)];
-} return int[] os_lcrow;
-given ost_t_scan("<office:styles><style:style style:name=\"A\" style:family=\"text\"><style:text-properties fo:color=\"#ff0000\"/></style:style></office:styles>") given ost_t_pick(0) ():([0, -1, -1, 16711680, -1, 0, 0])
-given ost_t_scan("<a><style:style style:name=\"A\" style:family=\"text\"/><style:style style:name=\"B\" style:family=\"text\"><style:text-properties fo:font-weight=\"bold\" fo:font-size=\"20pt\"/></style:style></a>") given ost_t_pick(1) ():([0, -1, 40, -1, -1, 1, 1])
+odt_named_bag_character_row() {
+  odt_named_style_records odt_named_bag_character_row_bag = (import odt_named_bag);
+  int[] odt_named_bag_character_row_result = odt_named_bag_character_row_bag.crows[(import odt_named_bag_picked)];
+} return int[] odt_named_bag_character_row_result;
+given odt_named_bag_scan_fixture("<office:styles><style:style style:name=\"A\" style:family=\"text\"><style:text-properties fo:color=\"#ff0000\"/></style:style></office:styles>") given odt_named_bag_pick(0) ():([0, -1, -1, 16711680, -1, 0, 0])
+given odt_named_bag_scan_fixture("<a><style:style style:name=\"A\" style:family=\"text\"/><style:style style:name=\"B\" style:family=\"text\"><style:text-properties fo:font-weight=\"bold\" fo:font-size=\"20pt\"/></style:style></a>") given odt_named_bag_pick(1) ():([0, -1, 40, -1, -1, 1, 1])
 
 // Test fixture: the paragraph row of the picked record.
-ost_t_p() {
-  StyBag os_b = (import ost_t_b);
-  int[] os_lprow = os_b.prows[(import ost_t_i)];
-} return int[] os_lprow;
-given ost_t_scan("<a><style:style style:name=\"A\" style:family=\"paragraph\"><style:paragraph-properties fo:text-align=\"center\" fo:margin-left=\"0.5in\"/></style:style></a>") given ost_t_pick(0) ():([-1, 1, 720, -1, -1, -1, -1, -1, 0, 0, 0, 0])
-given ost_t_scan("<a><style:style style:name=\"A\" style:family=\"paragraph\"/><style:style style:name=\"B\" style:family=\"paragraph\"><style:paragraph-properties fo:break-before=\"page\" fo:line-height=\"115%\"/></style:style></a>") given ost_t_pick(1) ():([-1, -1, -1, -1, -1, -1, -1, 115, 1, 0, 0, 0])
+odt_named_bag_paragraph_row() {
+  odt_named_style_records odt_named_bag_paragraph_row_bag = (import odt_named_bag);
+  int[] odt_named_bag_paragraph_row_result = odt_named_bag_paragraph_row_bag.prows[(import odt_named_bag_picked)];
+} return int[] odt_named_bag_paragraph_row_result;
+given odt_named_bag_scan_fixture("<a><style:style style:name=\"A\" style:family=\"paragraph\"><style:paragraph-properties fo:text-align=\"center\" fo:margin-left=\"0.5in\"/></style:style></a>") given odt_named_bag_pick(0) ():([-1, 1, 720, -1, -1, -1, -1, -1, 0, 0, 0, 0])
+given odt_named_bag_scan_fixture("<a><style:style style:name=\"A\" style:family=\"paragraph\"/><style:style style:name=\"B\" style:family=\"paragraph\"><style:paragraph-properties fo:break-before=\"page\" fo:line-height=\"115%\"/></style:style></a>") given odt_named_bag_pick(1) ():([-1, -1, -1, -1, -1, -1, -1, 115, 1, 0, 0, 0])

@@ -1,41 +1,41 @@
 // Adds the text of a text event. ODT reads any run of white space (space, tab, newline, carriage return) as one space and drops it at the start of a paragraph; spaces and tabs that count are text:s and text:tab.
-orc_text(Cx cx, Text t, string s) {
+orc_text(Odt_Read_Context odt_read_text_context, Text t, string odt_read_text_content) {
   int i = 0;
-  while(i < len(s)) {
-    i = orc_char(cx, t, s, i);
+  while(i < len(odt_read_text_content)) {
+    i = orc_char(odt_read_text_context, t, odt_read_text_content, i);
   }
 } return void;
-given orc_t_open("<a/>") given orc_reset((import orc_tc)) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), "  a \n b "):((import orc_tc), Text([97, 32, 98, 32], [Run(4, 0, -1)], 0), "  a \n b ")
-given orc_t_open("<a/>") given orc_reset((import orc_tc)) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), "é€ 😀"):((import orc_tc), Text([233, 8364, 32, 128512], [Run(4, 0, -1)], 0), "é€ 😀")
-given orc_t_open("<a/>") ((import orc_tc), Text([], [Run(0, 0, -1)], 0), " x"):((import orc_tc), Text([32, 120], [Run(2, 0, -1)], 0), " x")
+given odt_read_fixture_open("<a/>") given orc_reset((import odt_read_fixture_context)) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), "  a \n b "):((import odt_read_fixture_context), Text([97, 32, 98, 32], [Run(4, 0, -1)], 0), "  a \n b ")
+given odt_read_fixture_open("<a/>") given orc_reset((import odt_read_fixture_context)) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), "é€ 😀"):((import odt_read_fixture_context), Text([233, 8364, 32, 128512], [Run(4, 0, -1)], 0), "é€ 😀")
+given odt_read_fixture_open("<a/>") ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), " x"):((import odt_read_fixture_context), Text([32, 120], [Run(2, 0, -1)], 0), " x")
 
 // Adds the character of s at byte i, or nothing for white space after white space; the byte offset of the next character.
-orc_char(Cx cx, Text t, string s, int i) {
-  int cp = utf8_code_point(s, i);
-  int nx = i + utf8_sequence(s, i);
-  int isws = cp == 32 || cp == 9 || cp == 10 || cp == 13;
-} chain (Cx cx, Text t, string s, int i) {
-  if(isws == 0) {
-    orc_run(cx, t, cp, 1);
+orc_char(Odt_Read_Context odt_read_char_context, Text t, string odt_read_char_text, int i) {
+  int cp = utf8_code_point(odt_read_char_text, i);
+  int nx = i + utf8_sequence(odt_read_char_text, i);
+  int odt_read_char_is_white_space = cp == 32 || cp == 9 || cp == 10 || cp == 13;
+} chain (Odt_Read_Context odt_read_char_context, Text t, string odt_read_char_text, int i) {
+  if(odt_read_char_is_white_space == 0) {
+    orc_run(odt_read_char_context, t, cp, 1);
   }
-  if(isws == 1 && cx.cs.slots[(import orc_s_space)] == 0) {
-    orc_add(cx, t, 32);
-    lset(cx.cs.slots, (import orc_s_space), 1);
+  if(odt_read_char_is_white_space == 1 && odt_read_char_context.cs.slots[(import orc_s_space)] == 0) {
+    orc_add(odt_read_char_context, t, 32);
+    lset(odt_read_char_context.cs.slots, (import orc_s_space), 1);
   }
 } return int nx;
-given orc_t_open("<a/>") ((import orc_tc), Text([], [Run(0, 0, -1)], 0), "é€", 0):(2)
-given orc_t_open("<a/>") ((import orc_tc), Text([], [Run(0, 0, -1)], 0), "a\tb", 1):(2) then (import orc_tc).cs.slots:([0, 0, 1, 0, 0, 0, 0, 0])
-given orc_t_open("<a/>") given orc_t_set(2, 1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), "\t", 0):(1) then (import orc_tc).cs.slots:([0, 0, 1, 0, 0, 0, 0, 0])
+given odt_read_fixture_open("<a/>") ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), "é€", 0):(2)
+given odt_read_fixture_open("<a/>") ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), "a\tb", 1):(2) then (import odt_read_fixture_context).cs.slots:([0, 0, 1, 0, 0, 0, 0, 0])
+given odt_read_fixture_open("<a/>") given odt_read_fixture_set_slot(2, 1) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), "\t", 0):(1) then (import odt_read_fixture_context).cs.slots:([0, 0, 1, 0, 0, 0, 0, 0])
 
 // Adds n copies of the code point cp as characters that count: the last character is no longer a space.
-orc_run(Cx cx, Text t, int cp, int n) {
+orc_run(Odt_Read_Context odt_read_run_context, Text t, int cp, int n) {
   int i = 0;
   while(i < n) {
-    orc_add(cx, t, cp);
+    orc_add(odt_read_run_context, t, cp);
     i = i + 1;
   }
-  lset(cx.cs.slots, (import orc_s_space), 0);
+  lset(odt_read_run_context.cs.slots, (import orc_s_space), 0);
 } return void;
-given orc_t_open("<a/>") given orc_t_set(2, 1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 120, 3):((import orc_tc), Text([120, 120, 120], [Run(3, 0, -1)], 0), 120, 3) then (import orc_tc).cs.slots:([0, 0, 0, 0, 0, 0, 0, 0])
-given orc_t_open("<a/>") ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 65, 2):((import orc_tc), Text([65, 65], [Run(2, 0, -1)], 0), 65, 2)
-given orc_t_open("<a/>") ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 120, 0):((import orc_tc), Text([], [Run(0, 0, -1)], 0), 120, 0)
+given odt_read_fixture_open("<a/>") given odt_read_fixture_set_slot(2, 1) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 120, 3):((import odt_read_fixture_context), Text([120, 120, 120], [Run(3, 0, -1)], 0), 120, 3) then (import odt_read_fixture_context).cs.slots:([0, 0, 0, 0, 0, 0, 0, 0])
+given odt_read_fixture_open("<a/>") ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 65, 2):((import odt_read_fixture_context), Text([65, 65], [Run(2, 0, -1)], 0), 65, 2)
+given odt_read_fixture_open("<a/>") ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 120, 0):((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 120, 0)

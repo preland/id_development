@@ -1,42 +1,42 @@
 // The page, counted from 0, that the row cvi_y lu down the continuous document (as the paragraph tops count: a gap above the first sheet, then every sheet and a gap) falls on: the sheet it is on or the gap under it, never before the first page or after the last.
 // By hand: a sheet and its gap are 12800 + 1536 = 14336 lu; row 20000 less the first gap is 18464, one pitch and some, so the second page.
-cv_page_of(View cvv, int cvi_y) {
-  int cvi_pitch = lay_sheet(cvv.doc, 1) + (import quill_layout_sheet_gap);
-  int cvi_k = (cvi_y - (import quill_layout_sheet_gap)) / cvi_pitch;
-  int cvi_p = fixed_point_clamp(cvi_k, 0, lay_page_count(cvv) - 1);
-} return int cvi_p;
-given vw_t_two () ((import lp_t_v), 1000):(0)
-given vw_t_two () ((import lp_t_v), 20000):(1)
-given vw_t_two () ((import lp_t_v), 999999):(1)
-given vw_t_two () ((import lp_t_v), 15500):(0)
+view_input_page_at_row(View view_input_page_at_view, int view_input_page_at_document_row) {
+  int view_input_page_at_pitch = lay_sheet(view_input_page_at_view.doc, 1) + (import quill_layout_sheet_gap);
+  int view_input_page_at_raw_page = (view_input_page_at_document_row - (import quill_layout_sheet_gap)) / view_input_page_at_pitch;
+  int view_input_page_at_page = fixed_point_clamp(view_input_page_at_raw_page, 0, lay_page_count(view_input_page_at_view) - 1);
+} return int view_input_page_at_page;
+given view_test_two_pages () ((import layout_paragraph_test_view), 1000):(0)
+given view_test_two_pages () ((import layout_paragraph_test_view), 20000):(1)
+given view_test_two_pages () ((import layout_paragraph_test_view), 999999):(1)
+given view_test_two_pages () ((import layout_paragraph_test_view), 15500):(0)
 
 // Puts in cvp the position at the point cvi_x lu from the left of the sheet and cvi_y lu down the continuous document, by the page that row falls on and the layout's lay_hit.
-cv_doc_hit(View cvv, int cvi_x, int cvi_y, Pos cvp) {
-  int cvi_k = cv_page_of(cvv, cvi_y);
-  int cvi_pitch = lay_sheet(cvv.doc, 1) + (import quill_layout_sheet_gap);
-  int cvi_t = cvi_y - (import quill_layout_sheet_gap) - cvi_k * cvi_pitch;
-} chain (View cvv, int cvi_x, int cvi_y, Pos cvp) {
-  lay_hit(cvv, cvi_k, cvi_x, cvi_t, cvp);
+view_input_document_hit(View view_input_document_hit_view, int view_input_document_hit_column, int view_input_document_hit_row, Pos view_input_document_hit_position) {
+  int view_input_document_hit_page = view_input_page_at_row(view_input_document_hit_view, view_input_document_hit_row);
+  int view_input_document_hit_pitch = lay_sheet(view_input_document_hit_view.doc, 1) + (import quill_layout_sheet_gap);
+  int view_input_document_hit_sheet_row = view_input_document_hit_row - (import quill_layout_sheet_gap) - view_input_document_hit_page * view_input_document_hit_pitch;
+} chain (View view_input_document_hit_view, int view_input_document_hit_column, int view_input_document_hit_row, Pos view_input_document_hit_position) {
+  lay_hit(view_input_document_hit_view, view_input_document_hit_page, view_input_document_hit_column, view_input_document_hit_sheet_row, view_input_document_hit_position);
 } return void;
-given vw_t_two () ((import lp_t_v), 2600, 5536, Pos(0, 0)):((import lp_t_v), 2600, 5536, Pos(2, 0))
-given vw_t_two () ((import lp_t_v), 3200, 18172, Pos(0, 0)):((import lp_t_v), 3200, 18172, Pos(7, 1))
-given vw_t_two () ((import lp_t_v), 3200, 16572, Pos(0, 0)):((import lp_t_v), 3200, 16572, Pos(6, 1))
+given view_test_two_pages () ((import layout_paragraph_test_view), 2600, 5536, Pos(0, 0)):((import layout_paragraph_test_view), 2600, 5536, Pos(2, 0))
+given view_test_two_pages () ((import layout_paragraph_test_view), 3200, 18172, Pos(0, 0)):((import layout_paragraph_test_view), 3200, 18172, Pos(7, 1))
+given view_test_two_pages () ((import layout_paragraph_test_view), 3200, 16572, Pos(0, 0)):((import layout_paragraph_test_view), 3200, 16572, Pos(6, 1))
 
 // Puts in cvp the position under the pixel (cvi_mx, cvi_my) of the surface, with the page area as it is scrolled and zoomed now: the pixel's middle in lu from the left of its sheet and down the continuous document, and cv_doc_hit from there. A point outside the sheets or the text gets the nearest position.
-cv_hit(View cvv, int cvi_mx, int cvi_my, Pos cvp) {
-  int[] cvl_st = (import vw_st);
-  int cvi_z = cvl_st[(import vw_s_z)];
-  int cvi_cw = vw_box("canvas", 2);
-} chain (View cvv, int cvi_mx, int cvi_my, Pos cvp) {
-  int cvi_sx = vw_box("canvas", 0) + vw_sx(cvv, cvi_z, cvi_cw, cvl_st[(import vw_s_x)]);
-  int cvi_dy = cvi_my - vw_box("canvas", 1) + cvl_st[(import vw_s_y)];
-  int cvi_xl = (2 * (cvi_mx - cvi_sx) + 1) * 3200 / cvi_z;
-} chain (View cvv, int cvi_mx, int cvi_my, Pos cvp) {
-  int cvi_yl = (2 * cvi_dy + 1) * 3200 / cvi_z;
-  cv_doc_hit(cvv, cvi_xl, cvi_yl, cvp);
+view_input_pixel_hit(View view_input_pixel_hit_view, int view_input_pixel_hit_pointer_column, int view_input_pixel_hit_pointer_row, Pos view_input_pixel_hit_position) {
+  int[] view_input_pixel_hit_viewer_state = (import view_state);
+  int view_input_pixel_hit_zoom = view_input_pixel_hit_viewer_state[(import vw_s_z)];
+  int view_input_pixel_hit_area_width = view_box_field("canvas", 2);
+} chain (View view_input_pixel_hit_view, int view_input_pixel_hit_pointer_column, int view_input_pixel_hit_pointer_row, Pos view_input_pixel_hit_position) {
+  int view_input_pixel_hit_sheet_left = view_box_field("canvas", 0) + view_sheet_left(view_input_pixel_hit_view, view_input_pixel_hit_zoom, view_input_pixel_hit_area_width, view_input_pixel_hit_viewer_state[(import vw_s_x)]);
+  int view_input_pixel_hit_down = view_input_pixel_hit_pointer_row - view_box_field("canvas", 1) + view_input_pixel_hit_viewer_state[(import vw_s_y)];
+  int view_input_pixel_hit_column_units = (2 * (view_input_pixel_hit_pointer_column - view_input_pixel_hit_sheet_left) + 1) * 3200 / view_input_pixel_hit_zoom;
+} chain (View view_input_pixel_hit_view, int view_input_pixel_hit_pointer_column, int view_input_pixel_hit_pointer_row, Pos view_input_pixel_hit_position) {
+  int view_input_pixel_hit_row_units = (2 * view_input_pixel_hit_down + 1) * 3200 / view_input_pixel_hit_zoom;
+  view_input_document_hit(view_input_pixel_hit_view, view_input_pixel_hit_column_units, view_input_pixel_hit_row_units, view_input_pixel_hit_position);
 } return void;
-given cv_t_ed("A|A|A|A|A|A|A|A") ((import lp_t_v), 183, 245, Pos(0, 0)):((import lp_t_v), 183, 245, Pos(2, 0))
-given cv_t_ed("A|A|A|A|A|A|A|A") ((import lp_t_v), 190, 245, Pos(0, 0)):((import lp_t_v), 190, 245, Pos(2, 1))
-given cv_t_ed("A|A|A|A|A|A|A|A") given vw_zoom((import lp_t_v), 200, 150) ((import lp_t_v), 175, 332, Pos(0, 0)):((import lp_t_v), 175, 332, Pos(2, 0))
-given cv_t_ed("A|A|A|A|A|A|A|A") given vw_zoom((import lp_t_v), 200, 150) ((import lp_t_v), 190, 332, Pos(0, 0)):((import lp_t_v), 190, 332, Pos(2, 1))
-given cv_t_ed("A|A|A|A|A|A|A|A") given lset((import vw_st), 1, 50) ((import lp_t_v), 183, 200, Pos(0, 0)):((import lp_t_v), 183, 200, Pos(2, 0))
+given view_flow_test_open_edit("A|A|A|A|A|A|A|A") ((import layout_paragraph_test_view), 183, 245, Pos(0, 0)):((import layout_paragraph_test_view), 183, 245, Pos(2, 0))
+given view_flow_test_open_edit("A|A|A|A|A|A|A|A") ((import layout_paragraph_test_view), 190, 245, Pos(0, 0)):((import layout_paragraph_test_view), 190, 245, Pos(2, 1))
+given view_flow_test_open_edit("A|A|A|A|A|A|A|A") given view_state_zoom((import layout_paragraph_test_view), 200, 150) ((import layout_paragraph_test_view), 175, 332, Pos(0, 0)):((import layout_paragraph_test_view), 175, 332, Pos(2, 0))
+given view_flow_test_open_edit("A|A|A|A|A|A|A|A") given view_state_zoom((import layout_paragraph_test_view), 200, 150) ((import layout_paragraph_test_view), 190, 332, Pos(0, 0)):((import layout_paragraph_test_view), 190, 332, Pos(2, 1))
+given view_flow_test_open_edit("A|A|A|A|A|A|A|A") given lset((import view_state), 1, 50) ((import layout_paragraph_test_view), 183, 200, Pos(0, 0)):((import layout_paragraph_test_view), 183, 200, Pos(2, 0))

@@ -1,31 +1,31 @@
 // Notes in the state list that the control at index rbi_i of the ribbon rbi_src (0 the body, 1 the quick-access strip) was activated, when the widget's bits rbi_b say it was.
-rbe_note(int rbi_src, int rbi_i, int rbi_b) {
-  int[] rbl_s = (import rbd_s);
-  if((rbi_b & 2) != 0) {
-    lset(rbl_s, (import rbd_s_src), rbi_src);
-    lset(rbl_s, (import rbd_s_act), rbi_i);
+ribbon_note_activation(int ribbon_note_source, int ribbon_note_control, int ribbon_note_bits) {
+  int[] ribbon_note_state = (import ribbon_fit_state);
+  if((ribbon_note_bits & 2) != 0) {
+    lset(ribbon_note_state, (import rbd_s_src), ribbon_note_source);
+    lset(ribbon_note_state, (import rbd_s_act), ribbon_note_control);
   }
 } return void;
-given rbe_state (1, 4, 2):() then rbd_t_sd:("1,-1,0,0,1,4,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
-given rbe_state (1, 4, 1):() then rbd_t_sd:("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+given ribbon_fit_create_state_lists (1, 4, 2):() then ribbon_fit_check_state_dump:("1,-1,0,0,1,4,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+given ribbon_fit_create_state_lists (1, 4, 1):() then ribbon_fit_check_state_dump:("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
 
 // Gives the window event of kind rbi_kind to the widget at index rbi_i of rbl_ws, which stands for a control of the ribbon rbi_src, and answers the widget's bits (1 draw it again, 2 it was activated, which is noted).
-rbe_hit_one(GuiToggle[] rbl_ws, int rbi_src, int rbi_i, int rbi_kind, int[] rbl_ev) {
-  GuiToggle rbg = rbl_ws[rbi_i];
-  int rbi_b = gui_btn_event(rbg.btn, rbi_kind, rbl_ev);
-  rbe_note(rbi_src, rbi_i, rbi_b);
-} return int rbi_b;
-given lp_t_font given rbd_t_up(1024) given rbd_t_ev(3, 20, 70) ((import rbd_ws), 0, 0, 4, [4, 20, 70, 1, 0]):(3) then rbd_t_sd:("1,-1,0,0,0,0,-1,0,0,0,1024,156,-1,0,0,|16776960,12582912,|20")
-given lp_t_font given rbd_t_up(1024) ((import rbd_ws), 0, 0, 4, [4, 20, 70, 1, 0]):(0)
+ribbon_widget_event(GuiToggle[] ribbon_widget_widgets, int ribbon_widget_source, int ribbon_widget_index, int ribbon_widget_kind, int[] ribbon_widget_event_fields) {
+  GuiToggle ribbon_widget_control = ribbon_widget_widgets[ribbon_widget_index];
+  int ribbon_widget_bits = gui_btn_event(ribbon_widget_control.btn, ribbon_widget_kind, ribbon_widget_event_fields);
+  ribbon_note_activation(ribbon_widget_source, ribbon_widget_index, ribbon_widget_bits);
+} return int ribbon_widget_bits;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_send_mouse_event(3, 20, 70) ((import ribbon_fit_body_widgets), 0, 0, 4, [4, 20, 70, 1, 0]):(3) then ribbon_fit_check_state_dump:("1,-1,0,0,0,0,-1,0,0,0,1024,156,-1,0,0,|16776960,12582912,|20")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ((import ribbon_fit_body_widgets), 0, 0, 4, [4, 20, 70, 1, 0]):(0)
 
 // Gives the event to every widget in rbl_ws, the ribbon rbi_src's, and answers the bits of all of them together.
-rbe_pump(GuiToggle[] rbl_ws, int rbi_src, int rbi_kind, int[] rbl_ev) {
-  int rbi_k = 0;
-  int rbi_b = 0;
-  while(rbi_k < len(rbl_ws)) {
-    rbi_b = rbi_b | rbe_hit_one(rbl_ws, rbi_src, rbi_k, rbi_kind, rbl_ev);
-    rbi_k = rbi_k + 1;
+ribbon_widgets_event(GuiToggle[] ribbon_widgets_all, int ribbon_widgets_source, int ribbon_widgets_kind, int[] ribbon_widgets_event_fields) {
+  int ribbon_widgets_number = 0;
+  int ribbon_widgets_bits = 0;
+  while(ribbon_widgets_number < len(ribbon_widgets_all)) {
+    ribbon_widgets_bits = ribbon_widgets_bits | ribbon_widget_event(ribbon_widgets_all, ribbon_widgets_source, ribbon_widgets_number, ribbon_widgets_kind, ribbon_widgets_event_fields);
+    ribbon_widgets_number = ribbon_widgets_number + 1;
   }
-} return int rbi_b;
-given lp_t_font given rbd_t_up(1024) ((import rbd_ws), 0, 5, [5, 20, 70, 0, 0]):(1)
-given lp_t_font given rbd_t_up(1024) ((import rbd_ws), 0, 5, [5, 20, 200, 0, 0]):(0)
+} return int ribbon_widgets_bits;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ((import ribbon_fit_body_widgets), 0, 5, [5, 20, 70, 0, 0]):(1)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ((import ribbon_fit_body_widgets), 0, 5, [5, 20, 200, 0, 0]):(0)

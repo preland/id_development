@@ -1,37 +1,37 @@
 // Paints every control of the ribbon rib, one after the other; rbl_ws are its widgets.
-rbd_items(Ribbon rib, GuiToggle[] rbl_ws) {
-  int rbi_i = 0;
-  while(rbi_i < len(rib.items)) {
-    rbd_item(rib, rbl_ws, rbi_i);
-    rbi_i = rbi_i + 1;
+ribbon_draw_items(Ribbon rib, GuiToggle[] ribbon_items_widgets) {
+  int ribbon_items_index = 0;
+  while(ribbon_items_index < len(rib.items)) {
+    ribbon_draw_item(rib, ribbon_items_widgets, ribbon_items_index);
+    ribbon_items_index = ribbon_items_index + 1;
   }
 } return void;
-given lp_t_font given rbd_t_up(1024) given vw_t_box0(12, 62, 64, 130) given vw_t_bg(0) ((import rbd_t_r), (import rbd_ws)):() then vw_t_inked:(1)
-given lp_t_font given rbd_t_up(1024) given vw_t_box0(12, 138, 1000, 150) given vw_t_bg(0) ((import rbd_t_r), (import rbd_ws)):() then vw_t_inked:(0)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given view_test_remember_box(12, 62, 64, 130) given view_test_set_background(0) ((import ribbon_fit_test_ribbon), (import ribbon_fit_body_widgets)):() then view_test_box_inked:(1)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given view_test_remember_box(12, 138, 1000, 150) given view_test_set_background(0) ((import ribbon_fit_test_ribbon), (import ribbon_fit_body_widgets)):() then view_test_box_inked:(0)
 
 // Paints the menu, the gallery or the colour grid that is open, over everything; nothing when none is.
-rbd_pop_draw() {
-  int rbi_k = (import rbd_s)[(import rbd_s_pk)];
-  if(rbi_k == 1) {
-    gui_menu_draw((import rbd_menu)[0]);
+ribbon_draw_open_popup() {
+  int ribbon_popup_kind = (import ribbon_fit_state)[(import rbd_s_pk)];
+  if(ribbon_popup_kind == 1) {
+    gui_menu_draw((import ribbon_fit_menus)[0]);
   }
-  if(rbi_k == 2) {
-    gui_gallery_draw((import rbd_gal)[0]);
+  if(ribbon_popup_kind == 2) {
+    gui_gallery_draw((import ribbon_fit_galleries)[0]);
   }
 } chain () {
-  if(rbi_k == 3) {
-    gui_colors_draw((import rbd_cg)[0]);
+  if(ribbon_popup_kind == 3) {
+    gui_colors_draw((import ribbon_fit_color_grids)[0]);
   }
 } return void;
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) given vw_t_at(14, 40) ():() then vw_t_px:(16777215)
-given lp_t_font given rbd_t_up(1024) given vw_t_at(14, 40) ():() then vw_t_px:(0)
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(311) given vw_t_at(14, 40) ():() then vw_t_px:(16777215)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(409) given view_test_remember_pixel(14, 40) ():() then view_test_pixel_color:(16777215)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given view_test_remember_pixel(14, 40) ():() then view_test_pixel_color:(0)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(311) given view_test_remember_pixel(14, 40) ():() then view_test_pixel_color:(16777215)
 
 // Paints what lies over the band: the combo boxes (their lists are over the rest), the open menu, gallery or colour grid, then the tooltip when it is on show.
-rbd_over() {
-  rbd_combos();
-  rbd_pop_draw();
-  gui_tip_draw((import rbd_tip)[0]);
+ribbon_draw_overlay() {
+  ribbon_draw_combo_boxes();
+  ribbon_draw_open_popup();
+  gui_tip_draw((import ribbon_fit_tips)[0]);
 } return void;
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) given vw_t_at(14, 40) ():() then vw_t_px:(16777215)
-given lp_t_font given rbd_t_up(1024) given rbd_t_clock(1000) given rbd_t_show("tip") given rbd_t_clock(1600) given vw_t_at(3, 3) ():() then vw_t_px:(16777185)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(409) given view_test_remember_pixel(14, 40) ():() then view_test_pixel_color:(16777215)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_freeze_tip_clock(1000) given ribbon_fit_show_tip("tip") given ribbon_fit_freeze_tip_clock(1600) given view_test_remember_pixel(3, 3) ():() then view_test_pixel_color:(16777185)

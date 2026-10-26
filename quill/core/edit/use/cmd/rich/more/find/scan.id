@@ -1,10 +1,10 @@
 // The offset of the nearest match of needle in paragraph p that starts at or after lim, or with ed_f_back the nearest one that ends at or before lim; -1 when there is none.
-find_in(Para p, int[] needle, int lim, int flags) {
+find_in(Para p, int[] needle, int limit_offset, int flags) {
   int back = (flags & (import ed_f_back)) != 0;
   int at = -1;
-  int i = fixed_point_minimum(lim, para_len(p)) - back * len(needle);
-} chain (Para p, int[] needle, int lim, int flags) {
-  while(i >= 0 && i + len(needle) <= para_len(p) && at < 0) {
+  int i = fixed_point_minimum(limit_offset, document_paragraph_length(p)) - back * len(needle);
+} chain (Para p, int[] needle, int limit_offset, int flags) {
+  while(i >= 0 && i + len(needle) <= document_paragraph_length(p) && at < 0) {
     if(find_at(p, needle, i, flags) == 1) {
       at = i;
     }
@@ -22,17 +22,17 @@ find_in(Para p, int[] needle, int lim, int flags) {
 find_row(Doc d, Pos from, int para, int[] needle, int flags) {
   Para p = d.body.paras[para];
   int back = (flags & (import ed_f_back)) != 0;
-  int lim = from.off;
+  int limit_offset = from.off;
 } chain (Doc d, Pos from, int para, int[] needle, int flags) {
   if(para != from.para) {
-    lim = back * para_len(p);
+    limit_offset = back * document_paragraph_length(p);
   }
-  int at = find_in(p, needle, lim, flags);
+  int at = find_in(p, needle, limit_offset, flags);
 } return int at;
-given fx_setup("ab|cab") ((import fxd), Pos(0, 1), 0, [97, 98], 0):(-1)
-given fx_setup("ab|cab") ((import fxd), Pos(0, 1), 1, [97, 98], 0):(1)
-given fx_setup("ab|cab") ((import fxd), Pos(1, 3), 0, [97, 98], 2):(0)
-given fx_setup("ab|cab") ((import fxd), Pos(1, 3), 1, [97, 98], 2):(1)
+given editor_fixture_setup("ab|cab") ((import fixture_document), Pos(0, 1), 0, [97, 98], 0):(-1)
+given editor_fixture_setup("ab|cab") ((import fixture_document), Pos(0, 1), 1, [97, 98], 0):(1)
+given editor_fixture_setup("ab|cab") ((import fixture_document), Pos(1, 3), 0, [97, 98], 2):(0)
+given editor_fixture_setup("ab|cab") ((import fixture_document), Pos(1, 3), 1, [97, 98], 2):(1)
 
 // Looks for needle from from in the document, forward or (ed_f_back) backward, paragraph by paragraph, and on a match writes its start into spot and answers 1; 0 when there is none. A match never spans paragraphs.
 find_scan(Doc d, Pos from, int[] needle, int flags, Pos spot) {
@@ -40,19 +40,19 @@ find_scan(Doc d, Pos from, int[] needle, int flags, Pos spot) {
   int para = from.para;
   int at = -1;
 } chain (Doc d, Pos from, int[] needle, int flags, Pos spot) {
-  int hp = para;
+  int hit_paragraph = para;
   while(para >= 0 && para < len(d.body.paras) && at < 0) {
     at = find_row(d, from, para, needle, flags);
-    hp = para;
+    hit_paragraph = para;
     para = para + 1 - 2 * back;
   }
   int res = at >= 0;
 } chain (Doc d, Pos from, int[] needle, int flags, Pos spot) {
   if(res == 1) {
-    spot.para = hp;
+    spot.para = hit_paragraph;
     spot.off = at;
   }
 } return int res;
-given fx_setup("ab|xab") given fx_hit(9, 9) ((import fxd), Pos(0, 1), [97, 98], 0, (import fxh)):(1) then fx_hit_str:("1:1")
-given fx_setup("ab|xab") given fx_hit(9, 9) ((import fxd), Pos(1, 1), [97, 98], 2, (import fxh)):(1) then fx_hit_str:("0:0")
-given fx_setup("ab|xab") given fx_hit(9, 9) ((import fxd), Pos(0, 0), [122], 0, (import fxh)):(0) then fx_hit_str:("9:9")
+given editor_fixture_setup("ab|xab") given editor_fixture_hit(9, 9) ((import fixture_document), Pos(0, 1), [97, 98], 0, (import fixture_hit)):(1) then editor_fixture_hit_string:("1:1")
+given editor_fixture_setup("ab|xab") given editor_fixture_hit(9, 9) ((import fixture_document), Pos(1, 1), [97, 98], 2, (import fixture_hit)):(1) then editor_fixture_hit_string:("0:0")
+given editor_fixture_setup("ab|xab") given editor_fixture_hit(9, 9) ((import fixture_document), Pos(0, 0), [122], 0, (import fixture_hit)):(0) then editor_fixture_hit_string:("9:9")

@@ -1,19 +1,19 @@
 // Marks paragraph para of d stale (height -1) when there is such a paragraph, and does nothing for an index outside the document.
-ed_stale(Doc d, int para) {
+editor_stale(Doc d, int para) {
   if(para >= 0 && para < len(d.body.paras)) {
     d.body.paras[para].lay.h = 0 - 1;
   }
 } return void;
-given fx_setup("ab|cd") given fx_fresh ((import fxd), 1):((import fxd), 1) then fx_stale:("0,-1")
-given fx_setup("ab|cd") given fx_fresh ((import fxd), 2):((import fxd), 2) then fx_stale:("0,0")
+given editor_fixture_setup("ab|cd") given editor_fixture_fresh ((import fixture_document), 1):((import fixture_document), 1) then editor_fixture_stale:("0,-1")
+given editor_fixture_setup("ab|cd") given editor_fixture_fresh ((import fixture_document), 2):((import fixture_document), 2) then editor_fixture_stale:("0,0")
 
 // Marks every paragraph of d stale: what setting a page field does, since the text area every paragraph is laid out in changes with it (a primitive that touches one paragraph marks that one, para_stale).
-ed_stale_all(Doc d) {
+editor_stale_all(Doc d) {
   int i = 0;
   while(i < len(d.body.paras)) {
-    ed_stale(d, i);
+    editor_stale(d, i);
     i = i + 1;
   }
 } return void;
-given fx_setup("ab|cd|ef") given fx_fresh ((import fxd)):((import fxd)) then fx_stale:("-1,-1,-1")
-given fx_setup("x") given fx_fresh ((import fxd)):((import fxd)) then fx_stale:("-1")
+given editor_fixture_setup("ab|cd|ef") given editor_fixture_fresh ((import fixture_document)):((import fixture_document)) then editor_fixture_stale:("-1,-1,-1")
+given editor_fixture_setup("x") given editor_fixture_fresh ((import fixture_document)):((import fixture_document)) then editor_fixture_stale:("-1")

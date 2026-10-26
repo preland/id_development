@@ -1,26 +1,26 @@
 // The size, in half-points, text of record os_i has: its own when absolute, a percentage of what its parent chain gives when relative (24 when nothing does), what the chain gives when it sets none; the default paragraph style's size ends a chain, -1 when nothing sets one. os_id is the depth walked, bounded so a cycle ends.
-ost_abs(StyBag os_b, int os_i, int os_id) {
-  int os_isz = os_b.crows[os_i][(import quill_character_size)];
-  int os_ip = ost_par(os_b, os_i);
-  int os_ibase = ost_dsize(os_b);
-} chain (StyBag os_b, int os_i, int os_id) {
-  if(os_ip >= 0 && os_id < (import quill_style_depth)) {
-    os_ibase = ost_abs(os_b, os_ip, os_id + 1);
+odt_style_size_absolute(odt_named_style_records odt_style_size_absolute_bag, int odt_style_size_absolute_record, int odt_style_size_absolute_depth) {
+  int odt_style_size_absolute_size = odt_style_size_absolute_bag.crows[odt_style_size_absolute_record][(import quill_character_size)];
+  int odt_style_size_absolute_parent = odt_style_record_parent(odt_style_size_absolute_bag, odt_style_size_absolute_record);
+  int odt_style_size_absolute_base = odt_style_size_default(odt_style_size_absolute_bag);
+} chain (odt_named_style_records odt_style_size_absolute_bag, int odt_style_size_absolute_record, int odt_style_size_absolute_depth) {
+  if(odt_style_size_absolute_parent >= 0 && odt_style_size_absolute_depth < (import quill_style_depth)) {
+    odt_style_size_absolute_base = odt_style_size_absolute(odt_style_size_absolute_bag, odt_style_size_absolute_parent, odt_style_size_absolute_depth + 1);
   }
-  int os_iref = os_ibase;
-  if(os_ibase < 0) {
-    os_iref = 24;
+  int odt_style_size_absolute_reference = odt_style_size_absolute_base;
+  if(odt_style_size_absolute_base < 0) {
+    odt_style_size_absolute_reference = 24;
   }
-} chain (StyBag os_b, int os_i, int os_id) {
-  if(os_isz <= (import ost_pct_base)) {
-    os_ibase = (os_iref * ((import ost_pct_base) - os_isz) + 50) / 100;
+} chain (odt_named_style_records odt_style_size_absolute_bag, int odt_style_size_absolute_record, int odt_style_size_absolute_depth) {
+  if(odt_style_size_absolute_size <= (import ost_pct_base)) {
+    odt_style_size_absolute_base = (odt_style_size_absolute_reference * ((import ost_pct_base) - odt_style_size_absolute_size) + 50) / 100;
   }
-  if(os_isz >= 0) {
-    os_ibase = os_isz;
+  if(odt_style_size_absolute_size >= 0) {
+    odt_style_size_absolute_base = odt_style_size_absolute_size;
   }
-} return int os_ibase;
-(StyBag(["H", "", "", "", "", "", "p", "n", "H1", "H", "", "", "", "", "p", "n"], [[0, -1, 28, -1, -1, 0, 0], [0, -1, -1130, -1, -1, 0, 0]], [[], []]), 1, 0):(36)
-(StyBag(["H", "", "", "", "", "", "p", "n", "H1", "H", "", "", "", "", "p", "n"], [[0, -1, 28, -1, -1, 0, 0], [0, -1, -1, -1, -1, 0, 0]], [[], []]), 1, 0):(28)
-(StyBag(["H", "", "", "", "", "", "p", "n"], [[0, -1, -1050, -1, -1, 0, 0]], [[]]), 0, 0):(12)
-(StyBag(["", "", "", "", "", "", "p", "d", "H", "", "", "", "", "", "p", "n"], [[0, -1, 50, -1, -1, 0, 0], [0, -1, -1050, -1, -1, 0, 0]], [[], []]), 1, 0):(25)
-(StyBag(["H", "", "", "", "", "", "p", "n"], [[0, -1, 40, -1, -1, 0, 0]], [[]]), 0, 0):(40)
+} return int odt_style_size_absolute_base;
+(odt_named_style_records(["H", "", "", "", "", "", "p", "n", "H1", "H", "", "", "", "", "p", "n"], [[0, -1, 28, -1, -1, 0, 0], [0, -1, -1130, -1, -1, 0, 0]], [[], []]), 1, 0):(36)
+(odt_named_style_records(["H", "", "", "", "", "", "p", "n", "H1", "H", "", "", "", "", "p", "n"], [[0, -1, 28, -1, -1, 0, 0], [0, -1, -1, -1, -1, 0, 0]], [[], []]), 1, 0):(28)
+(odt_named_style_records(["H", "", "", "", "", "", "p", "n"], [[0, -1, -1050, -1, -1, 0, 0]], [[]]), 0, 0):(12)
+(odt_named_style_records(["", "", "", "", "", "", "p", "d", "H", "", "", "", "", "", "p", "n"], [[0, -1, 50, -1, -1, 0, 0], [0, -1, -1050, -1, -1, 0, 0]], [[], []]), 1, 0):(25)
+(odt_named_style_records(["H", "", "", "", "", "", "p", "n"], [[0, -1, 40, -1, -1, 0, 0]], [[]]), 0, 0):(40)

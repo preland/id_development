@@ -1,15 +1,15 @@
 // Where the number in os_ss ends and its unit begins: past an optional sign, then digits and points.
-ost_split(string os_ss) {
+odt_named_number_end(string odt_named_number_end_text) {
   int i = 0;
-  int os_ic = character_code_at(os_ss, 0);
-  if(os_ic == 45 || os_ic == 43) {
+  int odt_named_number_end_code = character_code_at(odt_named_number_end_text, 0);
+  if(odt_named_number_end_code == 45 || odt_named_number_end_code == 43) {
     i = 1;
   }
-} chain (string os_ss) {
-  os_ic = character_code_at(os_ss, i);
-  while(os_ic == 46 || character_is_digit(os_ic) == 1) {
+} chain (string odt_named_number_end_text) {
+  odt_named_number_end_code = character_code_at(odt_named_number_end_text, i);
+  while(odt_named_number_end_code == 46 || character_is_digit(odt_named_number_end_code) == 1) {
     i = i + 1;
-    os_ic = character_code_at(os_ss, i);
+    odt_named_number_end_code = character_code_at(odt_named_number_end_text, i);
   }
 } return int i;
 ("12pt"):(2)
@@ -18,14 +18,14 @@ ost_split(string os_ss) {
 ("+3"):(2)
 
 // Folds one character into os_wacc = [mantissa, fraction digits, digits taken, seen a point]; a thirteenth digit is dropped so that a mantissa times a unit never overflows a word.
-ost_step(word[] os_wacc, int os_ic) {
-  if(character_is_digit(os_ic) == 1 && os_wacc[2] < 12) {
-    os_wacc[0] = os_wacc[0] * 10 + (os_ic - 48);
-    os_wacc[2] = os_wacc[2] + 1;
-    os_wacc[1] = os_wacc[1] + os_wacc[3];
+odt_named_digit_fold(word[] odt_named_digit_fold_accumulator, int odt_named_digit_fold_code) {
+  if(character_is_digit(odt_named_digit_fold_code) == 1 && odt_named_digit_fold_accumulator[2] < 12) {
+    odt_named_digit_fold_accumulator[0] = odt_named_digit_fold_accumulator[0] * 10 + (odt_named_digit_fold_code - 48);
+    odt_named_digit_fold_accumulator[2] = odt_named_digit_fold_accumulator[2] + 1;
+    odt_named_digit_fold_accumulator[1] = odt_named_digit_fold_accumulator[1] + odt_named_digit_fold_accumulator[3];
   }
-  if(os_ic == 46) {
-    os_wacc[3] = 1;
+  if(odt_named_digit_fold_code == 46) {
+    odt_named_digit_fold_accumulator[3] = 1;
   }
 } return void;
 ([0, 0, 0, 0], 53):([5, 0, 1, 0], 53)
@@ -34,17 +34,17 @@ ost_step(word[] os_wacc, int os_ic) {
 ([999999999999, 0, 12, 0], 49):([999999999999, 0, 12, 0], 49)
 
 // The digits of the number in os_ss[0..os_ie) as [mantissa, fraction digits]: "0.25" is [25, 2].
-ost_digits(string os_ss, int os_ie) {
-  word[] os_wacc = [0, 0, 0, 0];
+odt_named_number_digits(string odt_named_number_digits_text, int odt_named_number_digits_end) {
+  word[] odt_named_number_digits_accumulator = [0, 0, 0, 0];
   int i = 0;
-  while(i < os_ie) {
-    int os_ic = character_code_at(os_ss, i);
-    ost_step(os_wacc, os_ic);
+  while(i < odt_named_number_digits_end) {
+    int odt_named_number_digits_code = character_code_at(odt_named_number_digits_text, i);
+    odt_named_digit_fold(odt_named_number_digits_accumulator, odt_named_number_digits_code);
     i = i + 1;
   }
-} chain (string os_ss, int os_ie) {
-  word[] os_wres = [os_wacc[0], os_wacc[1]];
-} return word[] os_wres;
+} chain (string odt_named_number_digits_text, int odt_named_number_digits_end) {
+  word[] odt_named_number_digits_result = [odt_named_number_digits_accumulator[0], odt_named_number_digits_accumulator[1]];
+} return word[] odt_named_number_digits_result;
 ("0.25in", 4):([25, 2])
 ("-12pt", 3):([12, 0])
 ("1.5", 3):([15, 1])

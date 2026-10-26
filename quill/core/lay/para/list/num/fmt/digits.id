@@ -1,12 +1,12 @@
 // Appends the decimal digits of n to lbl as code points; a negative n is written as 0. It is a loop, not a recursion, because the analysis that frees lists keeps whatever a recursive function is given.
-lp_dec(int[] lbl, int n) {
-  int lpi_p = 1;
-  while(n / lpi_p > 9) {
-    lpi_p = lpi_p * 10;
+layout_paragraph_decimal(int[] decimal_label, int decimal_number) {
+  int decimal_place = 1;
+  while(decimal_number / decimal_place > 9) {
+    decimal_place = decimal_place * 10;
   }
-  while(lpi_p > 0) {
-    push(lbl, 48 + fixed_point_maximum(n, 0) / lpi_p % 10);
-    lpi_p = lpi_p / 10;
+  while(decimal_place > 0) {
+    push(decimal_label, 48 + fixed_point_maximum(decimal_number, 0) / decimal_place % 10);
+    decimal_place = decimal_place / 10;
   }
 } return void;
 ([], 7):([55])
@@ -14,19 +14,19 @@ lp_dec(int[] lbl, int n) {
 ([], -3):([48])
 
 // Appends n in bijective base 26 (1 is a, 26 is z, 27 is aa, 28 is ab) to lbl, with base 97 for lower case and 65 for upper case. The digits are pushed last first and the pushed part is turned round, so that it is a loop and not a recursion.
-lp_alpha(int[] lbl, int n, int base) {
-  int lpi_a = len(lbl);
-  int lpi_m = n;
-  while(lpi_m > 0) {
-    push(lbl, base + (lpi_m - 1) % 26);
-    lpi_m = (lpi_m - 1) / 26;
+layout_paragraph_alphabetic(int[] alphabetic_label, int alphabetic_number, int base) {
+  int alphabetic_front = len(alphabetic_label);
+  int alphabetic_remaining = alphabetic_number;
+  while(alphabetic_remaining > 0) {
+    push(alphabetic_label, base + (alphabetic_remaining - 1) % 26);
+    alphabetic_remaining = (alphabetic_remaining - 1) / 26;
   }
-} chain (int[] lbl, int n, int base) {
-  int lpi_b = len(lbl) - 1;
-  while(lpi_a < lpi_b) {
-    list_swap(lbl, lpi_a, lpi_b);
-    lpi_a = lpi_a + 1;
-    lpi_b = lpi_b - 1;
+} chain (int[] alphabetic_label, int alphabetic_number, int base) {
+  int alphabetic_back = len(alphabetic_label) - 1;
+  while(alphabetic_front < alphabetic_back) {
+    list_swap(alphabetic_label, alphabetic_front, alphabetic_back);
+    alphabetic_front = alphabetic_front + 1;
+    alphabetic_back = alphabetic_back - 1;
   }
 } return void;
 ([], 1, 97):([97])

@@ -1,27 +1,27 @@
 // Test fixture: a new default document kept in an export.
-ost_t_doc() {
-  export Doc ost_t_d = doc_new();
+odt_style_test_document() {
+  export Doc odt_style_test_default_document = doc_new();
 } return void;
-given ost_t_pick(0) ():() then ost_t_sty:([0, -1, 0, 0, 0, 24, -1, -1, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0])
-given ost_t_pick(1) ():() then ost_t_sty:([0, 0, 0, 0, -1, 56, -1, -1, 0, 0, -1, -1, -1, -1, -1, 0, 240, -1, 0, 0, 0, 0])
+given odt_named_bag_pick(0) ():() then odt_style_test_picked_style:([0, -1, 0, 0, 0, 24, -1, -1, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0])
+given odt_named_bag_pick(1) ():() then odt_style_test_picked_style:([0, 0, 0, 0, -1, 56, -1, -1, 0, 0, -1, -1, -1, -1, -1, 0, 240, -1, 0, 0, 0, 0])
 
 // Test fixture: the model style indexes of the fixture bag's records, kept in an export, with the fixture document as the model.
-ost_t_reg() {
-  Doc os_d = (import ost_t_d);
-  StyBag os_b = (import ost_t_b);
-  export int[] ost_t_x = ost_reg(os_d.fmt, os_b);
+odt_style_test_register() {
+  Doc odt_style_test_register_document = (import odt_style_test_default_document);
+  odt_named_style_records odt_style_test_register_bag = (import odt_named_bag);
+  export int[] odt_style_test_index_list = odt_style_register_all(odt_style_test_register_document.fmt, odt_style_test_register_bag);
 } return void;
-given ost_t_doc given ost_t_scan("<a><style:style style:name=\"Standard\" style:family=\"paragraph\"/><style:style style:name=\"Foo\" style:family=\"paragraph\"/></a>") given ost_t_pick(8) ():() then ost_t_sty:([0, -1, -1, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])
-given ost_t_doc given ost_t_scan("<a/>") given ost_t_pick(0) ():() then ost_t_sty:([0, -1, 0, 0, 0, 24, -1, -1, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0])
+given odt_style_test_document given odt_named_bag_scan_fixture("<a><style:style style:name=\"Standard\" style:family=\"paragraph\"/><style:style style:name=\"Foo\" style:family=\"paragraph\"/></a>") given odt_named_bag_pick(8) ():() then odt_style_test_picked_style:([0, -1, -1, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])
+given odt_style_test_document given odt_named_bag_scan_fixture("<a/>") given odt_named_bag_pick(0) ():() then odt_style_test_picked_style:([0, -1, 0, 0, 0, 24, -1, -1, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0])
 
 // Test fixture: the picked style of the fixture document as ints: its rel (family, parent, next), then its character row (7 ints) and its paragraph row (12 ints).
-ost_t_sty() {
-  Doc os_d = (import ost_t_d);
-  Style os_st = os_d.fmt.sty.styles[(import ost_t_i)];
-  int[] os_lall = list_copy(os_st.rel);
+odt_style_test_picked_style() {
+  Doc odt_style_test_picked_style_document = (import odt_style_test_default_document);
+  Style odt_style_test_picked_style_style = odt_style_test_picked_style_document.fmt.sty.styles[(import odt_named_bag_picked)];
+  int[] odt_style_test_picked_style_cells = list_copy(odt_style_test_picked_style_style.rel);
 } chain () {
-  list_extend(os_lall, list_slice(os_d.fmt.chars.rows, os_st.fmt[0] * (import quill_character_width), (import quill_character_width)));
-  list_extend(os_lall, list_slice(os_d.fmt.paras.rows, os_st.fmt[1] * (import quill_paragraph_width), (import quill_paragraph_width)));
-} return int[] os_lall;
-given ost_t_doc given ost_t_pick(0) ():([0, -1, 0, 0, 0, 24, -1, -1, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0])
-given ost_t_doc given ost_t_pick(1) ():([0, 0, 0, 0, -1, 56, -1, -1, 0, 0, -1, -1, -1, -1, -1, 0, 240, -1, 0, 0, 0, 0])
+  list_extend(odt_style_test_picked_style_cells, list_slice(odt_style_test_picked_style_document.fmt.chars.rows, odt_style_test_picked_style_style.fmt[0] * (import quill_character_width), (import quill_character_width)));
+  list_extend(odt_style_test_picked_style_cells, list_slice(odt_style_test_picked_style_document.fmt.paras.rows, odt_style_test_picked_style_style.fmt[1] * (import quill_paragraph_width), (import quill_paragraph_width)));
+} return int[] odt_style_test_picked_style_cells;
+given odt_style_test_document given odt_named_bag_pick(0) ():([0, -1, 0, 0, 0, 24, -1, -1, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0])
+given odt_style_test_document given odt_named_bag_pick(1) ():([0, 0, 0, 0, -1, 56, -1, -1, 0, 0, -1, -1, -1, -1, -1, 0, 240, -1, 0, 0, 0, 0])

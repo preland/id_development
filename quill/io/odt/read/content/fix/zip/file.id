@@ -1,24 +1,24 @@
 // Test fixture: a scratch file holding text, named by fs_mktemp so two builds never share it, for the cases of the functions that read a file by path. The case removes it with `then orc_t_gone`.
-orc_t_file(string text) {
-  export string orc_tp = fs_mktemp("orc_odt_", 0);
-  fs_drop_exit(orc_tp);
-  int n = exec_file_put(orc_tp, text, 420);
+odt_read_fixture_make_file(string text) {
+  export string odt_read_fixture_scratch_path = fs_mktemp("orc_odt_", 0);
+  fs_drop_exit(odt_read_fixture_scratch_path);
+  int n = exec_file_put(odt_read_fixture_scratch_path, text, 420);
 } return void;
-("abc"):() then orc_t_gone:(0)
-(""):() then orc_t_gone:(0)
+("abc"):() then odt_read_fixture_remove_file:(0)
+(""):() then odt_read_fixture_remove_file:(0)
 
 // Test fixture: removes the scratch file; fs_remove's answer, 0 when it was there.
-orc_t_gone() {
-  int gone = fs_remove((import orc_tp));
+odt_read_fixture_remove_file() {
+  int gone = fs_remove((import odt_read_fixture_scratch_path));
 } return int gone;
-given orc_t_file("x") ():(0)
-given orc_t_file("yz") ():(0)
+given odt_read_fixture_make_file("x") ():(0)
+given odt_read_fixture_make_file("yz") ():(0)
 
 // Test fixture: 1 when entry content.xml of the archive of orc_tz reads with its CRC verified, 0 when it does not.
-orc_t_crc() {
-  Zip z = zip_reader_open(bytes_of_int_list((import orc_tz)));
-  int[] xs = zip_reader_read(z, zip_reader_find(z, "content.xml"));
-  int ok = zip_reader_ok(z);
+odt_read_fixture_checksum_ok() {
+  Zip odt_read_fixture_checksum_archive = zip_reader_open(bytes_of_int_list((import odt_read_fixture_archive_bytes)));
+  int[] xs = zip_reader_read(odt_read_fixture_checksum_archive, zip_reader_find(odt_read_fixture_checksum_archive, "content.xml"));
+  int ok = zip_reader_ok(odt_read_fixture_checksum_archive);
 } return int ok;
-given orc_t_zip("<a/>", "") ():(1)
-given orc_t_zip("<a/>", "") given orc_t_flip(41) ():(0)
+given odt_read_fixture_make_archive("<a/>", "") ():(1)
+given odt_read_fixture_make_archive("<a/>", "") given odt_read_fixture_flip_bit(41) ():(0)

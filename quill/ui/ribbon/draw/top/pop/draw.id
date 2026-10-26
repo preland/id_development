@@ -1,28 +1,28 @@
 // Paints the whole ribbon rib over what is on the surface, last of all so that its menus lie over the page: the band with its tab strip and tabs, the quick-access controls, the controls of the open tab, the lines and names of the groups, then the open menu and the tooltip. The widgets follow the ribbon's state first, so a toggle shows what the last rib_put said.
 rib_draw(Ribbon rib) {
-  int[] rbl_s = (import rbd_s);
-  rbe_sync(rib);
-  rbd_back(rbl_s[(import rbd_s_bx)], rbl_s[(import rbd_s_by)], rbl_s[(import rbd_s_bw)], rbl_s[(import rbd_s_bh)]);
+  int[] ribbon_draw_state = (import ribbon_fit_state);
+  ribbon_fit_sync_widgets(rib);
+  ribbon_draw_band(ribbon_draw_state[(import rbd_s_bx)], ribbon_draw_state[(import rbd_s_by)], ribbon_draw_state[(import rbd_s_bw)], ribbon_draw_state[(import rbd_s_bh)]);
 } chain (Ribbon rib) {
-  rbd_tabs_draw();
-  rbd_items((import rbd_q), (import rbd_qs));
-  rbd_items(rib, (import rbd_ws));
+  ribbon_draw_tabs();
+  ribbon_draw_items((import ribbon_fit_quick_ribbon), (import ribbon_fit_quick_widgets));
+  ribbon_draw_items(rib, (import ribbon_fit_body_widgets));
 } chain (Ribbon rib) {
-  rbd_caps(rib);
-  rbd_over();
+  ribbon_draw_group_captions(rib);
+  ribbon_draw_overlay();
 } return void;
-given lp_t_font given rbd_t_up(1024) given vw_t_at(2, 2) ((import rbd_t_r)):() then vw_t_px:(15592941)
-given lp_t_font given rbd_t_up(1024) given vw_t_at(300, 100) ((import rbd_t_r)):() then vw_t_px:(15987699)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given view_test_remember_pixel(2, 2) ((import ribbon_fit_test_ribbon)):() then view_test_pixel_color:(15592941)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given view_test_remember_pixel(300, 100) ((import ribbon_fit_test_ribbon)):() then view_test_pixel_color:(15987699)
 
 // Paints the combo boxes whose controls are in the open tab: each its text box and arrow, and its list when the list is open.
-rbd_combos() {
-  int rbi_k = 0;
-  while(rbi_k < len((import rbd_cb))) {
-    if((import rbd_cx)[rbi_k] >= 0) {
-      gui_combo_draw((import rbd_cb)[rbi_k]);
+ribbon_draw_combo_boxes() {
+  int ribbon_combos_number = 0;
+  while(ribbon_combos_number < len((import ribbon_fit_combos))) {
+    if((import ribbon_fit_combo_controls)[ribbon_combos_number] >= 0) {
+      gui_combo_draw((import ribbon_fit_combos)[ribbon_combos_number]);
     }
-    rbi_k = rbi_k + 1;
+    ribbon_combos_number = ribbon_combos_number + 1;
   }
 } return void;
-given lp_t_font given rbd_t_up(1024) given vw_t_at(110, 70) ():() then vw_t_px:(16777215)
-given lp_t_font given rbd_t_up(1024) given rib_show((import rbd_t_r), 3) given vw_t_at(110, 70) ():() then vw_t_px:(0)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given view_test_remember_pixel(110, 70) ():() then view_test_pixel_color:(16777215)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given rib_show((import ribbon_fit_test_ribbon), 3) given view_test_remember_pixel(110, 70) ():() then view_test_pixel_color:(0)

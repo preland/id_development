@@ -1,41 +1,41 @@
 // Where the pair declaring face os_sname starts in the face list (pairs of declared name and family), -1 when it is not declared; a later declaration of the same name wins.
-ost_face_at(string[] os_lface, string os_sname) {
-  int os_ik = 0 - 1;
-  int i = len(os_lface) - 2;
-  while(i >= 0 && os_ik < 0) {
-    if(os_lface[i] == os_sname) {
-      os_ik = i;
+odt_style_face_position(string[] odt_style_face_position_faces, string odt_style_face_position_name) {
+  int odt_style_face_position_position = 0 - 1;
+  int i = len(odt_style_face_position_faces) - 2;
+  while(i >= 0 && odt_style_face_position_position < 0) {
+    if(odt_style_face_position_faces[i] == odt_style_face_position_name) {
+      odt_style_face_position_position = i;
     }
     i = i - 2;
   }
-} return int os_ik;
+} return int odt_style_face_position_position;
 (["A", "a", "B", "b", "A", "c"], "A"):(4)
 (["A", "a"], "Z"):(-1)
 
 // The index of font family os_sfam in the document's fonts, added at the end when it is not there yet.
-ost_font_idx(Doc os_d, string os_sfam) {
-  int os_ifont = list_string_index(os_d.ext.fonts, os_sfam);
-  if(os_ifont < 0) {
-    push(os_d.ext.fonts, os_sfam);
-    os_ifont = len(os_d.ext.fonts) - 1;
+odt_style_font_index_ensure(Doc odt_style_font_index_ensure_document, string odt_style_font_index_ensure_family) {
+  int odt_style_font_index_ensure_font = list_string_index(odt_style_font_index_ensure_document.ext.fonts, odt_style_font_index_ensure_family);
+  if(odt_style_font_index_ensure_font < 0) {
+    push(odt_style_font_index_ensure_document.ext.fonts, odt_style_font_index_ensure_family);
+    odt_style_font_index_ensure_font = len(odt_style_font_index_ensure_document.ext.fonts) - 1;
   }
-} return int os_ifont;
+} return int odt_style_font_index_ensure_font;
 (Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["serif", "Liberation Serif"], [], [])), "Liberation Serif"):(1)
 (Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["serif"], [], [])), "FreeSans"):(1)
 
 // The index in the document's fonts of the family a declared face name stands for (the name itself when it is not declared), -1 for the empty name, which names no font.
-ost_font_at(Doc os_d, string[] os_lface, string os_sname) {
-  int os_ifont = 0 - 1;
-  int os_ik = ost_face_at(os_lface, os_sname);
-  string os_sfam = os_sname;
-} chain (Doc os_d, string[] os_lface, string os_sname) {
-  if(os_ik >= 0) {
-    os_sfam = os_lface[os_ik + 1];
+odt_style_font_index_resolve(Doc odt_style_font_index_resolve_document, string[] odt_style_font_index_resolve_faces, string odt_style_font_index_resolve_name) {
+  int odt_style_font_index_resolve_font = 0 - 1;
+  int odt_style_font_index_resolve_position = odt_style_face_position(odt_style_font_index_resolve_faces, odt_style_font_index_resolve_name);
+  string odt_style_font_index_resolve_family = odt_style_font_index_resolve_name;
+} chain (Doc odt_style_font_index_resolve_document, string[] odt_style_font_index_resolve_faces, string odt_style_font_index_resolve_name) {
+  if(odt_style_font_index_resolve_position >= 0) {
+    odt_style_font_index_resolve_family = odt_style_font_index_resolve_faces[odt_style_font_index_resolve_position + 1];
   }
-  if(os_sname != "") {
-    os_ifont = ost_font_idx(os_d, os_sfam);
+  if(odt_style_font_index_resolve_name != "") {
+    odt_style_font_index_resolve_font = odt_style_font_index_ensure(odt_style_font_index_resolve_document, odt_style_font_index_resolve_family);
   }
-} return int os_ifont;
+} return int odt_style_font_index_resolve_font;
 (Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["serif"], [], [])), ["Liberation Serif1", "Liberation Serif"], "Liberation Serif1"):(1)
 (Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["serif"], [], [])), [], "serif"):(0)
 (Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["serif"], [], [])), [], ""):(-1)

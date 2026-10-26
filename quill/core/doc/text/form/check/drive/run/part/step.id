@@ -1,25 +1,25 @@
 // The most runs any paragraph has.
-max_runs(Doc d) {
-  int res = 0;
-  int i = 0;
-  while(i < len(d.body.paras)) {
-    res = fixed_point_maximum(res, len(d.body.paras[i].txt.runs));
-    i = i + 1;
+document_maximum_runs(Doc runs_maximum_document) {
+  int runs_maximum_result = 0;
+  int runs_maximum_index = 0;
+  while(runs_maximum_index < len(runs_maximum_document.body.paras)) {
+    runs_maximum_result = fixed_point_maximum(runs_maximum_result, len(runs_maximum_document.body.paras[runs_maximum_index].txt.runs));
+    runs_maximum_index = runs_maximum_index + 1;
   }
-} return int res;
+} return int runs_maximum_result;
 (Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], ["a", "b", "c", "d"], []))):(2)
 (Doc(Body([Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], []))):(1)
 
 // Which operation to run next, drawn from quill_script_roll, except that a document of more than 12 paragraphs only joins or removes and one of more than 400 code points only deletes or joins, so it stays small.
-script_kind(Doc d, Model mo, int[] rg) {
-  int res = rng_below(rg, len((import quill_script_roll)));
-  int kind = (import quill_script_roll)[res];
-  if(doc_count(d) > 12) {
-    kind = 6 + 2 * rng_below(rg, 2);
+script_kind(Doc kind_pick_document, Model kind_pick_model, int[] random_generator_seed) {
+  int kind_pick_roll = document_random_below(random_generator_seed, len((import quill_script_roll)));
+  int kind = (import quill_script_roll)[kind_pick_roll];
+  if(doc_count(kind_pick_document) > 12) {
+    kind = 6 + 2 * document_random_below(random_generator_seed, 2);
   }
-} chain (Doc d, Model mo, int[] rg) {
-  if(len(mo.cps) > 400) {
-    kind = 1 + 5 * rng_below(rg, 2);
+} chain (Doc kind_pick_document, Model kind_pick_model, int[] random_generator_seed) {
+  if(len(kind_pick_model.cps) > 400) {
+    kind = 1 + 5 * document_random_below(random_generator_seed, 2);
   }
 } return int kind;
 (Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], ["a", "b", "c", "d"], [])), Model([4, 5, -1, -1, 7, 8, 9, -1], [0, 1, -1, -1, 1, 1, 1, -1], [-1, 3, -1, -1, -1, -1, -1, -1]), [1]):(2)

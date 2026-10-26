@@ -1,30 +1,30 @@
 // Test check: the app's state list, then whether the document has a path (a path is a random scratch name in a case, so only its being there is shown) and whether it is dirty, bar separated.
-wa_t_state() {
-  App waa = (import wa_app);
-  string was_i = dump_ints((import wa_st));
-  int wai_p = len(waa.ui.shell.path) > 0;
+cli_test_state_text() {
+  App cli_state_app = (import cli_application);
+  string cli_state_integers = document_dump_integers((import cli_state_list));
+  int cli_state_has_path = len(cli_state_app.ui.shell.path) > 0;
 } chain () {
-  string was_s = was_i + "|" + wai_p + "|" + waa.ui.shell.dirty;
-} return string was_s;
-given wa_t_app ():("0,0,0,0,|0|0")
-given wa_t_app given lset((import wa_st), 1, 2) ():("0,2,0,0,|0|0")
+  string cli_state_text = cli_state_integers + "|" + cli_state_has_path + "|" + cli_state_app.ui.shell.dirty;
+} return string cli_state_text;
+given cli_test_boot_app ():("0,0,0,0,|0|0")
+given cli_test_boot_app given lset((import cli_state_list), 1, 2) ():("0,2,0,0,|0|0")
 
 // Test setup: types the code point wai_cp into the app's document at its caret, as a key does: as one command of the canvas, which lays out what changed.
-wa_t_type(int wai_cp) {
-  App waa = (import wa_app);
-  cv_begin(waa.ui.view);
-  ed_type(waa.doc, waa.ctl, wai_cp);
-} chain (int wai_cp) {
-  cv_end(waa.ui.view);
+cli_test_type_code_point(int cli_typed_code_point) {
+  App cli_typed_app = (import cli_application);
+  view_input_command_begin(cli_typed_app.ui.view);
+  editor_type(cli_typed_app.doc, cli_typed_app.ctl, cli_typed_code_point);
+} chain (int cli_typed_code_point) {
+  view_input_command_end(cli_typed_app.ui.view);
 } return void;
-given wa_t_app (120):() then wa_t_text:("x")
-given wa_t_app given wa_t_type(65) (66):() then wa_t_text:("AB")
+given cli_test_boot_app (120):() then cli_test_document_text:("x")
+given cli_test_boot_app given cli_test_type_code_point(65) (66):() then cli_test_document_text:("AB")
 
 // Test check: the text of the app's document, one paragraph after another with a bar between them.
-wa_t_text() {
-  App waa = (import wa_app);
-  string[] wat_l = cli_lines(waa.doc);
-  string was_t = str_join(wat_l, "|");
-} return string was_t;
-given wa_t_app ():("")
-given wa_t_app given wa_t_type(120) ():("x")
+cli_test_document_text() {
+  App cli_document_app = (import cli_application);
+  string[] cli_document_lines = cli_lines(cli_document_app.doc);
+  string cli_document_joined = str_join(cli_document_lines, "|");
+} return string cli_document_joined;
+given cli_test_boot_app ():("")
+given cli_test_boot_app given cli_test_type_code_point(120) ():("x")

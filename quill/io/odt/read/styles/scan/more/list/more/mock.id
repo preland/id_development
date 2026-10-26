@@ -1,15 +1,15 @@
 // Test fixture: a new document format kept in an export.
-ost_t_fmt() {
-  export Fmt ost_t_f = fmt_new();
-} return void export ost_t_f;
-():() then len((import ost_t_f).sty.lists):(0)
-given ost_t_fmt ():() then len((import ost_t_f).sty.lists):(0)
+odt_named_format_fixture() {
+  export Fmt odt_named_format = document_format_new();
+} return void export odt_named_format;
+():() then len((import odt_named_format).sty.lists):(0)
+given odt_named_format_fixture ():() then len((import odt_named_format).sty.lists):(0)
 
 // Test fixture: the three levels of the fixture format's last list definition.
-ost_t_lists() {
-  Fmt os_f = (import ost_t_f);
-  ListDef os_ld = os_f.sty.lists[len(os_f.sty.lists) - 1];
-  int[] os_llv = os_ld.levels;
-} return int[] os_llv;
-given ost_t_fmt given ost_t_open("<text:list-style style:name=\"L\"/>") given xml_reader_skip((import ost_t_r), 1) given ost_list_read((import ost_t_f), (import ost_t_r), 4) ():([0, 8226, 0, 720, 360, 0, 9702, 0, 1440, 360, 0, 9642, 0, 2160, 360])
-given ost_t_fmt given ost_t_open("<text:list-style style:name=\"L\"><text:list-level-style-bullet text:level=\"1\" text:bullet-char=\"-\"/></text:list-style>") given xml_reader_skip((import ost_t_r), 1) given ost_list_read((import ost_t_f), (import ost_t_r), 1) ():([0, 45, 1, 720, 360, 0, 9702, 0, 1440, 360, 0, 9642, 0, 2160, 360])
+odt_named_level_values() {
+  Fmt odt_named_level_values_format = (import odt_named_format);
+  ListDef odt_named_level_values_definition = odt_named_level_values_format.sty.lists[len(odt_named_level_values_format.sty.lists) - 1];
+  int[] odt_named_level_values_levels = odt_named_level_values_definition.levels;
+} return int[] odt_named_level_values_levels;
+given odt_named_format_fixture given odt_named_reader_open("<text:list-style style:name=\"L\"/>") given xml_reader_skip((import odt_named_reader), 1) given odt_named_list_read((import odt_named_format), (import odt_named_reader), 4) ():([0, 8226, 0, 720, 360, 0, 9702, 0, 1440, 360, 0, 9642, 0, 2160, 360])
+given odt_named_format_fixture given odt_named_reader_open("<text:list-style style:name=\"L\"><text:list-level-style-bullet text:level=\"1\" text:bullet-char=\"-\"/></text:list-style>") given xml_reader_skip((import odt_named_reader), 1) given odt_named_list_read((import odt_named_format), (import odt_named_reader), 1) ():([0, 45, 1, 720, 360, 0, 9702, 0, 1440, 360, 0, 9642, 0, 2160, 360])

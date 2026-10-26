@@ -1,26 +1,26 @@
 // SET_RUNS, at = [para, lo, hi], data = run triples that cover lo..hi-1. The inverse sets the runs that were there.
-ap_runs(Doc d, Op eo) {
-  Para p = d.body.paras[eo.at[0]];
-  int[] old = runs_span(p.txt, eo.at[1], eo.at[2]);
-  text_runs_set(p.txt, eo.at[1], eo.at[2], eo.data);
-} chain (Doc d, Op eo) {
+editor_apply_runs(Doc d, Op edit_operation) {
+  Para p = d.body.paras[edit_operation.at[0]];
+  int[] old = runs_span(p.txt, edit_operation.at[1], edit_operation.at[2]);
+  text_runs_set(p.txt, edit_operation.at[1], edit_operation.at[2], edit_operation.data);
+} chain (Doc d, Op edit_operation) {
   para_stale(p);
-  int[] loc = list_copy(eo.at);
-  Op inv = Op((import ed_k_runs), loc, old);
-} return Op inv;
-given fx_setup("abcd") ((import fxd), Op(5, [0, 1, 3], [2, 8, -1])):(Op(5, [0, 1, 3], [2, 0, -1])) then fx_show:("a*bc*d")
-given fx_setup("") ((import fxd), Op(5, [0, 0, 0], [0, 8, -1])):(Op(5, [0, 0, 0], [0, 0, -1])) then fx_show:("**")
-given fx_setup("a*bc*d") ((import fxd), Op(5, [0, 0, 4], [4, 0, -1])):(Op(5, [0, 0, 4], [1, 0, -1, 2, 8, -1, 1, 0, -1])) then fx_show:("abcd")
+  int[] location = list_copy(edit_operation.at);
+  Op inverse = Op((import ed_k_runs), location, old);
+} return Op inverse;
+given editor_fixture_setup("abcd") ((import fixture_document), Op(5, [0, 1, 3], [2, 8, -1])):(Op(5, [0, 1, 3], [2, 0, -1])) then editor_fixture_show:("a*bc*d")
+given editor_fixture_setup("") ((import fixture_document), Op(5, [0, 0, 0], [0, 8, -1])):(Op(5, [0, 0, 0], [0, 0, -1])) then editor_fixture_show:("**")
+given editor_fixture_setup("a*bc*d") ((import fixture_document), Op(5, [0, 0, 4], [4, 0, -1])):(Op(5, [0, 0, 4], [1, 0, -1, 2, 8, -1, 1, 0, -1])) then editor_fixture_show:("abcd")
 
 // SET_PPROP, at = [para], data = [the new paragraph row]. The inverse sets the old one.
-ap_pprop(Doc d, Op eo) {
-  Para p = d.body.paras[eo.at[0]];
+editor_apply_paragraph_property(Doc d, Op edit_operation) {
+  Para p = d.body.paras[edit_operation.at[0]];
   int[] old = [p.pprop];
-  p.pprop = eo.data[0];
-} chain (Doc d, Op eo) {
+  p.pprop = edit_operation.data[0];
+} chain (Doc d, Op edit_operation) {
   para_stale(p);
-  int[] loc = list_copy(eo.at);
-  Op inv = Op((import ed_k_pprop), loc, old);
-} return Op inv;
-given fx_setup("ab|cd") ((import fxd), Op(6, [1], [3])):(Op(6, [1], [0])) then fx_show:("ab|{3}cd")
-given fx_setup("ab") given fx_opaque(0) ((import fxd), Op(6, [0], [0])):(Op(6, [0], [9])) then fx_show:("ab")
+  int[] location = list_copy(edit_operation.at);
+  Op inverse = Op((import ed_k_pprop), location, old);
+} return Op inverse;
+given editor_fixture_setup("ab|cd") ((import fixture_document), Op(6, [1], [3])):(Op(6, [1], [0])) then editor_fixture_show:("ab|{3}cd")
+given editor_fixture_setup("ab") given editor_fixture_opaque(0) ((import fixture_document), Op(6, [0], [0])):(Op(6, [0], [9])) then editor_fixture_show:("ab")

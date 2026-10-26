@@ -1,24 +1,24 @@
 // What a patch makes of one character row, written out again here instead of calling run_mut.
-patch_one(Tab chars, int cprop, int key, int val, int mode) {
-  int nc = cprop;
+patch_one(Tab chars, int cprop, int key, int patch_single_value, int mode) {
+  int patch_single_new_character_row = cprop;
   if(mode == (import quill_mode_field)) {
-    nc = tab_with(chars, cprop, key, val);
+    patch_single_new_character_row = tab_with(chars, cprop, key, patch_single_value);
   }
   if(mode == (import quill_mode_bits)) {
-    nc = tab_with_bits(chars, cprop, key, val);
+    patch_single_new_character_row = tab_with_bits(chars, cprop, key, patch_single_value);
   }
-} return int nc;
+} return int patch_single_new_character_row;
 (Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 0, 2, 24, 0):(1)
 (Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 0, 1, 1, 1):(1)
 (Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 0, 1, 1, 9):(0)
 
 // Applies a patch to n entries from flat index k.
-model_patch(Model mo, Tab chars, int k, int n, int key, int val, int mode) {
-  int[] crs = mo.cprops;
-  int i = 0;
-  while(i < n) {
-    crs[k + i] = patch_one(chars, crs[k + i], key, val, mode);
-    i = i + 1;
+model_patch(Model model_patch_range_model, Tab chars, int model_patch_range_flat_index, int model_patch_range_count, int key, int model_patch_range_value, int mode) {
+  int[] character_row_list = model_patch_range_model.cprops;
+  int model_patch_range_index = 0;
+  while(model_patch_range_index < model_patch_range_count) {
+    character_row_list[model_patch_range_flat_index + model_patch_range_index] = patch_one(chars, character_row_list[model_patch_range_flat_index + model_patch_range_index], key, model_patch_range_value, mode);
+    model_patch_range_index = model_patch_range_index + 1;
   }
 } return void;
 (Model([1, 2, -1], [0, 0, -1], [-1, -1, -1]), Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 1, 1, 2, 24, 0):(Model([1, 2, -1], [0, 1, -1], [-1, -1, -1]), Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, [2, 0, 0, 0, 0, 0, 0, 0]), 1, 1, 2, 24, 0)
@@ -27,12 +27,12 @@ model_patch(Model mo, Tab chars, int k, int n, int key, int val, int mode) {
 
 // The character rows (which 1) or links (which 2) a list of run triples gives to each code point it covers.
 expand_runs(int[] runs, int which) {
-  int[] acc = [];
-  int i = 0;
-  while(i + 2 < len(runs)) {
-    list_extend(acc, rep_list(runs[i + which], runs[i]));
-    i = i + 3;
+  int[] runs_expand_collected = [];
+  int runs_expand_index = 0;
+  while(runs_expand_index + 2 < len(runs)) {
+    list_extend(runs_expand_collected, document_repeat_list(runs[runs_expand_index + which], runs[runs_expand_index]));
+    runs_expand_index = runs_expand_index + 3;
   }
-} return int[] acc;
+} return int[] runs_expand_collected;
 ([2, 5, -1, 1, 6, 3], 1):([5, 5, 6])
 ([2, 5, -1, 1, 6, 3], 2):([-1, -1, 3])

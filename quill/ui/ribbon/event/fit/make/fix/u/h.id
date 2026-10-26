@@ -1,31 +1,31 @@
 // Test check: the box of the open gallery as x, y, width and height, comma separated.
-rbd_t_gr() {
-  GuiGallery rby = (import rbd_gal)[0];
-  string rbs_z = rby.rects[0] + "," + rby.rects[1] + "," + rby.rects[2] + "," + rby.rects[3];
-} return string rbs_z;
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(414) ():("10,30,222,146")
-given lp_t_font given rbd_t_up(1024) given rbe_gallery(414, ["A", "B"], [10, 10, 40, 20]) ():("10,30,222,50")
+ribbon_fit_check_gallery_box() {
+  GuiGallery ribbon_fit_gallery_open = (import ribbon_fit_galleries)[0];
+  string ribbon_fit_gallery_text = ribbon_fit_gallery_open.rects[0] + "," + ribbon_fit_gallery_open.rects[1] + "," + ribbon_fit_gallery_open.rects[2] + "," + ribbon_fit_gallery_open.rects[3];
+} return string ribbon_fit_gallery_text;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(414) ():("10,30,222,146")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_open_gallery(414, ["A", "B"], [10, 10, 40, 20]) ():("10,30,222,50")
 
 // Test check: the box of the open menu as x, y, width and height, comma separated.
-rbd_t_mr() {
-  GuiMenu rbm = (import rbd_menu)[0];
-  string rbs_z = rbm.rects[0] + "," + rbm.rects[1] + "," + rbm.rects[2] + "," + rbm.rects[3];
-} return string rbs_z;
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) ():("10,30,53,158")
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(308) ():("10,0,40,418")
+ribbon_fit_check_menu_box() {
+  GuiMenu ribbon_fit_menu_open = (import ribbon_fit_menus)[0];
+  string ribbon_fit_menu_text = ribbon_fit_menu_open.rects[0] + "," + ribbon_fit_menu_open.rects[1] + "," + ribbon_fit_menu_open.rects[2] + "," + ribbon_fit_menu_open.rects[3];
+} return string ribbon_fit_menu_text;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(409) ():("10,30,53,158")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(308) ():("10,0,40,418")
 
 
 // Test setup: a tap on the control at index rbi_i of the open tab, rbi_dx pixels right of the middle of its rectangle: a press and a release there, the ribbon in rbd_t_r getting both.
-rbd_t_tap(int rbi_i, int rbi_dx) {
-  Ribbon rbr = (import rbd_t_r);
-  int rbi_q = rbi_i * 4;
-  int rbi_x = rbr.rects[rbi_q] + rbr.rects[rbi_q + 2] / 2 + rbi_dx;
-} chain (int rbi_i, int rbi_dx) {
-  int rbi_y = rbr.rects[rbi_q + 1] + rbr.rects[rbi_q + 3] / 2;
-  rbd_t_ev(3, rbi_x, rbi_y);
-  rbd_t_ev(4, rbi_x, rbi_y);
+ribbon_fit_tap_control(int ribbon_fit_tap_index, int ribbon_fit_tap_offset) {
+  Ribbon ribbon_fit_tap_ribbon = (import ribbon_fit_test_ribbon);
+  int ribbon_fit_tap_cell = ribbon_fit_tap_index * 4;
+  int ribbon_fit_tap_column = ribbon_fit_tap_ribbon.ribbon_rectangles[ribbon_fit_tap_cell] + ribbon_fit_tap_ribbon.ribbon_rectangles[ribbon_fit_tap_cell + 2] / 2 + ribbon_fit_tap_offset;
+} chain (int ribbon_fit_tap_index, int ribbon_fit_tap_offset) {
+  int ribbon_fit_tap_row = ribbon_fit_tap_ribbon.ribbon_rectangles[ribbon_fit_tap_cell + 1] + ribbon_fit_tap_ribbon.ribbon_rectangles[ribbon_fit_tap_cell + 3] / 2;
+  ribbon_fit_send_mouse_event(3, ribbon_fit_tap_column, ribbon_fit_tap_row);
+  ribbon_fit_send_mouse_event(4, ribbon_fit_tap_column, ribbon_fit_tap_row);
 } return void;
-given lp_t_font given rbd_t_up(1024) (7, 0):() then rbd_t_cmd:("301,0,")
-given lp_t_font given rbd_t_up(1024) (24, 0):() then (import rbd_s)[(import rbd_s_pk)]:(1)
-given lp_t_font given rbd_t_up(1024) (14, 0):() then rbd_t_cmd:("311,12582912,")
-given lp_t_font given rbd_t_up(1024) (14, 12):() then (import rbd_s)[(import rbd_s_pk)]:(3)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) (7, 0):() then ribbon_fit_check_command:("301,0,")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) (24, 0):() then (import ribbon_fit_state)[(import rbd_s_pk)]:(1)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) (14, 0):() then ribbon_fit_check_command:("311,12582912,")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) (14, 12):() then (import ribbon_fit_state)[(import rbd_s_pk)]:(3)

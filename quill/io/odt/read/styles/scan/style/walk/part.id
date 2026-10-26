@@ -1,25 +1,25 @@
 // The character row and the font name of record irec from the text-properties element the reader is at.
-ost_rec_chars(StyBag os_b, XmlR os_r, int os_irec) {
-  string os_sfont = ost_cfont(os_r);
-  string[] os_lss = os_b.strings;
-  ost_ctext(os_b.crows[os_irec], os_r);
-} chain (StyBag os_b, XmlR os_r, int os_irec) {
-  if(os_sfont != "") {
-    os_lss[os_irec * (import ost_s_width) + (import ost_s_font)] = os_sfont;
+odt_named_record_characters(odt_named_style_records odt_named_record_characters_bag, XmlR odt_named_record_characters_reader, int odt_named_record_characters_record) {
+  string odt_named_record_characters_font = odt_named_font_family(odt_named_record_characters_reader);
+  string[] odt_named_record_characters_strings = odt_named_record_characters_bag.strings;
+  odt_named_character_attributes(odt_named_record_characters_bag.crows[odt_named_record_characters_record], odt_named_record_characters_reader);
+} chain (odt_named_style_records odt_named_record_characters_bag, XmlR odt_named_record_characters_reader, int odt_named_record_characters_record) {
+  if(odt_named_record_characters_font != "") {
+    odt_named_record_characters_strings[odt_named_record_characters_record * (import ost_s_width) + (import ost_s_font)] = odt_named_record_characters_font;
   }
 } return void;
-given ost_t_scan("<a><style:style style:name=\"A\" style:family=\"text\"/></a>") given ost_t_open("<style:text-properties style:font-name=\"Liberation Serif\" fo:font-weight=\"bold\"/>") given xml_reader_skip((import ost_t_r), 1) given ost_t_pick(0) ((import ost_t_b), (import ost_t_r), 0):((import ost_t_b), (import ost_t_r), 0) then (import ost_t_b).strings:(["A", "", "", "", "", "Liberation Serif", "t", "n"])
-given ost_t_scan("<a><style:style style:name=\"A\" style:family=\"text\"/></a>") given ost_t_open("<style:text-properties fo:color=\"#0000ff\"/>") given xml_reader_skip((import ost_t_r), 1) given ost_t_pick(0) ((import ost_t_b), (import ost_t_r), 0):((import ost_t_b), (import ost_t_r), 0) then ost_t_c:([0, -1, -1, 255, -1, 0, 0])
+given odt_named_bag_scan_fixture("<a><style:style style:name=\"A\" style:family=\"text\"/></a>") given odt_named_reader_open("<style:text-properties style:font-name=\"Liberation Serif\" fo:font-weight=\"bold\"/>") given xml_reader_skip((import odt_named_reader), 1) given odt_named_bag_pick(0) ((import odt_named_bag), (import odt_named_reader), 0):((import odt_named_bag), (import odt_named_reader), 0) then (import odt_named_bag).strings:(["A", "", "", "", "", "Liberation Serif", "t", "n"])
+given odt_named_bag_scan_fixture("<a><style:style style:name=\"A\" style:family=\"text\"/></a>") given odt_named_reader_open("<style:text-properties fo:color=\"#0000ff\"/>") given xml_reader_skip((import odt_named_reader), 1) given odt_named_bag_pick(0) ((import odt_named_bag), (import odt_named_reader), 0):((import odt_named_bag), (import odt_named_reader), 0) then odt_named_bag_character_row:([0, -1, -1, 255, -1, 0, 0])
 
 // Reads the properties element the reader is at into record irec of the bag: style:text-properties into its character row and font name, style:paragraph-properties into its paragraph row; any other element changes nothing.
-ost_rec_part(StyBag os_b, XmlR os_r, int os_irec) {
-  string os_sname = xml_reader_get(os_r, (import xml_reader_k_name));
-  if(os_sname == "style:text-properties") {
-    ost_rec_chars(os_b, os_r, os_irec);
+odt_named_record_part(odt_named_style_records odt_named_record_part_bag, XmlR odt_named_record_part_reader, int odt_named_record_part_record) {
+  string odt_named_record_part_element_name = xml_reader_get(odt_named_record_part_reader, (import xml_reader_k_name));
+  if(odt_named_record_part_element_name == "style:text-properties") {
+    odt_named_record_characters(odt_named_record_part_bag, odt_named_record_part_reader, odt_named_record_part_record);
   }
-  if(os_sname == "style:paragraph-properties") {
-    ost_ptext(os_b.prows[os_irec], os_r);
+  if(odt_named_record_part_element_name == "style:paragraph-properties") {
+    odt_named_paragraph_attributes(odt_named_record_part_bag.prows[odt_named_record_part_record], odt_named_record_part_reader);
   }
 } return void;
-given ost_t_scan("<a><style:style style:name=\"A\" style:family=\"paragraph\"/></a>") given ost_t_open("<style:paragraph-properties fo:text-align=\"end\"/>") given xml_reader_skip((import ost_t_r), 1) given ost_t_pick(0) ((import ost_t_b), (import ost_t_r), 0):((import ost_t_b), (import ost_t_r), 0) then ost_t_p:([-1, 2, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])
-given ost_t_scan("<a><style:style style:name=\"A\" style:family=\"paragraph\"/></a>") given ost_t_open("<style:tab-stops fo:text-align=\"end\"/>") given xml_reader_skip((import ost_t_r), 1) given ost_t_pick(0) ((import ost_t_b), (import ost_t_r), 0):((import ost_t_b), (import ost_t_r), 0) then ost_t_p:([-1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])
+given odt_named_bag_scan_fixture("<a><style:style style:name=\"A\" style:family=\"paragraph\"/></a>") given odt_named_reader_open("<style:paragraph-properties fo:text-align=\"end\"/>") given xml_reader_skip((import odt_named_reader), 1) given odt_named_bag_pick(0) ((import odt_named_bag), (import odt_named_reader), 0):((import odt_named_bag), (import odt_named_reader), 0) then odt_named_bag_paragraph_row:([-1, 2, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])
+given odt_named_bag_scan_fixture("<a><style:style style:name=\"A\" style:family=\"paragraph\"/></a>") given odt_named_reader_open("<style:tab-stops fo:text-align=\"end\"/>") given xml_reader_skip((import odt_named_reader), 1) given odt_named_bag_pick(0) ((import odt_named_bag), (import odt_named_reader), 0):((import odt_named_bag), (import odt_named_reader), 0) then odt_named_bag_paragraph_row:([-1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0])

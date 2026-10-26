@@ -1,23 +1,23 @@
 // Test fixture: the fixture selection as "para:off-para:off", anchor first.
-fx_sel() {
-  Ctl ctl = (import fxc);
-  string text = fx_sel_of(ctl.sel);
+editor_fixture_selection() {
+  Ctl ctl = (import fixture_control);
+  string text = editor_fixture_selection_of(ctl.sel);
 } return string text;
-given fx_blank ():("0:0-0:0")
-given fx_blank given fx_at(1, 2, 3, 4) ():("1:2-3:4")
+given editor_fixture_blank ():("0:0-0:0")
+given editor_fixture_blank given editor_fixture_selection_at(1, 2, 3, 4) ():("1:2-3:4")
 
 // Test fixture: puts the fixture selection at para, off (anchor) to para2, off2 (caret).
-fx_at(int para, int off, int para2, int off2) {
-  Ctl ctl = (import fxc);
-  Sel sel = sel_make(para, off, para2, off2);
-  sel_load(ctl.sel, sel);
+editor_fixture_selection_at(int para, int off, int caret_paragraph, int caret_offset) {
+  Ctl ctl = (import fixture_control);
+  Sel sel = editor_selection_make(para, off, caret_paragraph, caret_offset);
+  editor_selection_load(ctl.sel, sel);
 } return void;
-given fx_blank (0, 1, 2, 3):() then fx_sel:("0:1-2:3")
-given fx_blank (4, 4, 4, 4):() then fx_sel:("4:4-4:4")
+given editor_fixture_blank (0, 1, 2, 3):() then editor_fixture_selection:("0:1-2:3")
+given editor_fixture_blank (4, 4, 4, 4):() then editor_fixture_selection:("4:4-4:4")
 
 // Test fixture: the canonical dump of the fixture document, which an edit and its undo must leave unchanged.
-fx_dump() {
-  string text = doc_dump((import fxd));
+editor_fixture_dump() {
+  string text = doc_dump((import fixture_document));
 } return string text;
-given fx_setup("a") ():("G 11906,16838,0, 1440,1440,1440,1440, 0,0,0,\nP0 97, 1:0:-1,")
-given fx_setup("") ():("G 11906,16838,0, 1440,1440,1440,1440, 0,0,0,\nP0  0:0:-1,")
+given editor_fixture_setup("a") ():("G 11906,16838,0, 1440,1440,1440,1440, 0,0,0,\nP0 97, 1:0:-1,")
+given editor_fixture_setup("") ():("G 11906,16838,0, 1440,1440,1440,1440, 0,0,0,\nP0  0:0:-1,")

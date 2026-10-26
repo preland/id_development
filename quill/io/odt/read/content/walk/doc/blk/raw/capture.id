@@ -1,36 +1,36 @@
 // The element that has just started, taken out of the document byte for byte and kept as a part; the part's index. Everything inside it is read past, so none of it reaches a paragraph. The automatic styles it names are kept as parts after it.
-orc_raw(Cx cx, int ev) {
-  int lo = orc_tag_at(cx.rd, cx.cs.slots[(import orc_s_prev)]);
-  string name = xml_reader_get((cx.rd), (import xml_reader_k_name));
-  int hi = orc_close(cx, ev);
-} chain (Cx cx, int ev) {
-  int[] data = list_slice(cx.rd.src, lo, hi - lo);
-  Part pt = Part(name, data, (import orc_part_raw));
-  push(cx.d.ext.parts, pt);
-} chain (Cx cx, int ev) {
-  int idx = len(cx.d.ext.parts) - 1;
-  orc_autos(cx, data);
-} return int idx;
-given orc_t_open("<r><draw:frame a='1'><x/></draw:frame></r>") given orc_t_steps(2) ((import orc_tc), 1):(0) then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | draw:frame:0:<draw:frame a='1'><x/></draw:frame>,") then orc_t_pos:(38)
-given orc_t_open("<r><!--x--><y/><z/></r>") given orc_t_steps(2) given orc_t_raw(4) given orc_t_steps(1) ((import orc_tc), 4):(1) then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | y:0:<y/>,z:0:<z/>,")
+orc_raw(Odt_Read_Context odt_read_raw_context, int odt_read_raw_event) {
+  int lo = orc_tag_at(odt_read_raw_context.odt_read_xml_reader, odt_read_raw_context.cs.slots[(import orc_s_prev)]);
+  string name = xml_reader_get((odt_read_raw_context.odt_read_xml_reader), (import xml_reader_k_name));
+  int hi = orc_close(odt_read_raw_context, odt_read_raw_event);
+} chain (Odt_Read_Context odt_read_raw_context, int odt_read_raw_event) {
+  int[] data = list_slice(odt_read_raw_context.odt_read_xml_reader.src, lo, hi - lo);
+  Part odt_read_raw_part = Part(name, data, (import orc_part_raw));
+  push(odt_read_raw_context.d.ext.parts, odt_read_raw_part);
+} chain (Odt_Read_Context odt_read_raw_context, int odt_read_raw_event) {
+  int odt_read_raw_part_index = len(odt_read_raw_context.d.ext.parts) - 1;
+  orc_autos(odt_read_raw_context, data);
+} return int odt_read_raw_part_index;
+given odt_read_fixture_open("<r><draw:frame a='1'><x/></draw:frame></r>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), 1):(0) then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0} |  | draw:frame:0:<draw:frame a='1'><x/></draw:frame>,") then odt_read_fixture_reader_position:(38)
+given odt_read_fixture_open("<r><!--x--><y/><z/></r>") given odt_read_fixture_step_events(2) given odt_read_fixture_keep_element(4) given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 4):(1) then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0} |  | y:0:<y/>,z:0:<z/>,")
 
 // Reads on to the end tag of the element that has just started and answers the offset just past it; an empty element is already closed.
-orc_close(Cx cx, int ev) {
-  int shut = ev == 4;
-  orc_skip(cx, xml_reader_depth(cx.rd), shut);
-  int at = orc_pos(cx.rd);
+orc_close(Odt_Read_Context odt_read_close_context, int odt_read_close_event) {
+  int shut = odt_read_close_event == 4;
+  orc_skip(odt_read_close_context, xml_reader_depth(odt_read_close_context.odt_read_xml_reader), shut);
+  int at = odt_read_reader_offset(odt_read_close_context.odt_read_xml_reader);
 } return int at;
-given orc_t_open("<a><b>x</b></a>") given orc_t_steps(1) ((import orc_tc), 1):(15)
-given orc_t_open("<a/><b/>") given orc_t_steps(1) ((import orc_tc), 4):(4)
-given orc_t_open("<a><b>x</b></a>") given orc_t_steps(2) ((import orc_tc), 1):(11)
+given odt_read_fixture_open("<a><b>x</b></a>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 1):(15)
+given odt_read_fixture_open("<a/><b/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 4):(4)
+given odt_read_fixture_open("<a><b>x</b></a>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), 1):(11)
 
 // Reads events until one ends the element at depth base, or the document ends or breaks first; shut says the element is closed already.
-orc_skip(Cx cx, int base, int shut) {
+orc_skip(Odt_Read_Context odt_read_skip_context, int base, int shut) {
   while(shut == 0) {
-    int ev = xml_reader_next(cx.rd);
-    shut = ev <= 0 || (ev == 2 && xml_reader_depth(cx.rd) == base);
+    int odt_read_skip_event = xml_reader_next(odt_read_skip_context.odt_read_xml_reader);
+    shut = odt_read_skip_event <= 0 || (odt_read_skip_event == 2 && xml_reader_depth(odt_read_skip_context.odt_read_xml_reader) == base);
   }
 } return void;
-given orc_t_open("<a><b>x</b></a>") given orc_t_steps(1) ((import orc_tc), 0, 0):() then orc_t_pos:(15)
-given orc_t_open("<a><b>x</b></a>") given orc_t_steps(1) ((import orc_tc), 0, 1):() then orc_t_pos:(3)
-given orc_t_open("<a><b>x</b></a>") given orc_t_steps(2) ((import orc_tc), 1, 0):() then orc_t_pos:(11)
+given odt_read_fixture_open("<a><b>x</b></a>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 0, 0):() then odt_read_fixture_reader_position:(15)
+given odt_read_fixture_open("<a><b>x</b></a>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 0, 1):() then odt_read_fixture_reader_position:(3)
+given odt_read_fixture_open("<a><b>x</b></a>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), 1, 0):() then odt_read_fixture_reader_position:(11)

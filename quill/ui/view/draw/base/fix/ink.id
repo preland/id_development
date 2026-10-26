@@ -1,28 +1,28 @@
 // Test setup: remembers the box from (vwi_x0, vwi_y0) to (vwi_x1, vwi_y1), the end excluded, that vw_t_inked looks at.
-vw_t_box0(int vwi_x0, int vwi_y0, int vwi_x1, int vwi_y1) {
-  export int[] vw_t_bx = [vwi_x0, vwi_y0, vwi_x1, vwi_y1, 0];
+view_test_remember_box(int view_test_remember_box_left, int view_test_remember_box_top, int view_test_remember_box_right, int view_test_remember_box_bottom) {
+  export int[] view_test_box_numbers = [view_test_remember_box_left, view_test_remember_box_top, view_test_remember_box_right, view_test_remember_box_bottom, 0];
 } return void;
-(1, 2, 3, 4):() then vw_t_bxs:("bxs 1,2,3,4,0,")
-(0, 0, 0, 0):() then vw_t_bxs:("bxs 0,0,0,0,0,")
+(1, 2, 3, 4):() then view_test_box_dump:("bxs 1,2,3,4,0,")
+(0, 0, 0, 0):() then view_test_box_dump:("bxs 0,0,0,0,0,")
 
 // Test check: the remembered box as its four numbers, comma separated.
-vw_t_bxs() {
-  string vws_z_t = "bxs " + (dump_ints((import vw_t_bx)));
-} return string vws_z_t;
-given vw_t_box0(5, 6, 7, 8) ():("bxs 5,6,7,8,0,")
-given vw_t_box0(0, 1, 2, 3) ():("bxs 0,1,2,3,0,")
+view_test_box_dump() {
+  string view_test_box_dump_text = "bxs " + (document_dump_integers((import view_test_box_numbers)));
+} return string view_test_box_dump_text;
+given view_test_remember_box(5, 6, 7, 8) ():("bxs 5,6,7,8,0,")
+given view_test_remember_box(0, 1, 2, 3) ():("bxs 0,1,2,3,0,")
 
 // Test check: 1 when any pixel of the remembered box is not the remembered background (black unless vw_t_bg says otherwise) on the list surface, 0 when the whole box is background.
-vw_t_inked() {
-  int[] vwl_b = (import vw_t_bx);
-  int vwi_n = 0;
-  int vwi_y = vwl_b[1];
+view_test_box_inked() {
+  int[] view_test_box_inked_box = (import view_test_box_numbers);
+  int view_test_box_inked_count = 0;
+  int view_test_box_inked_row = view_test_box_inked_box[1];
 } chain () {
-  while(vwi_y < vwl_b[3]) {
-    vwi_n = vwi_n + vw_t_row(vwl_b[0], vwl_b[2], vwi_y, vwl_b[4]);
-    vwi_y = vwi_y + 1;
+  while(view_test_box_inked_row < view_test_box_inked_box[3]) {
+    view_test_box_inked_count = view_test_box_inked_count + view_test_row_count(view_test_box_inked_box[0], view_test_box_inked_box[2], view_test_box_inked_row, view_test_box_inked_box[4]);
+    view_test_box_inked_row = view_test_box_inked_row + 1;
   }
-  int vwi_r = vwi_n > 0;
-} return int vwi_r;
-given sf_l_init(8, 8) given d2_l_rect(2, 2, 2, 2, 5) given vw_t_box0(0, 0, 8, 8) ():(1)
-given sf_l_init(8, 8) given d2_l_rect(2, 2, 2, 2, 5) given vw_t_box0(4, 4, 8, 8) ():(0)
+  int view_test_box_inked_result = view_test_box_inked_count > 0;
+} return int view_test_box_inked_result;
+given sf_l_init(8, 8) given d2_l_rect(2, 2, 2, 2, 5) given view_test_remember_box(0, 0, 8, 8) ():(1)
+given sf_l_init(8, 8) given d2_l_rect(2, 2, 2, 2, 5) given view_test_remember_box(4, 4, 8, 8) ():(0)

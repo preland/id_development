@@ -1,15 +1,15 @@
 // A mouse event of kind vwi_kind (3 press, 4 release, 5 move) goes to the page area when it is a press in it or part of a drag that began there (cv_mouse), and otherwise to the scrollbar, which follows a drag or an arrow or a press in its track; what the scrollbar moved becomes the viewer's scroll.
-vw_mouse(View vwv, int vwi_kind, int[] vwl_ev) {
-  int vwi_c = cv_mouse(vwv, vwi_kind, vwl_ev);
-  int vwi_bits = 0;
-  if(vwi_c == 0) {
-    vwi_bits = gui_scroll_event((import vw_sb), vwi_kind, vwl_ev);
+view_input_mouse_handle(View view_input_route_view, int view_input_route_kind, int[] view_input_route_event) {
+  int view_input_route_canvas_took = view_input_mouse_canvas(view_input_route_view, view_input_route_kind, view_input_route_event);
+  int view_input_route_scroll_bar_bits = 0;
+  if(view_input_route_canvas_took == 0) {
+    view_input_route_scroll_bar_bits = gui_scroll_event((import view_scroll_bar), view_input_route_kind, view_input_route_event);
   }
-} chain (View vwv, int vwi_kind, int[] vwl_ev) {
-  if((vwi_bits & 2) != 0) {
-    vw_bar_take();
+} chain (View view_input_route_view, int view_input_route_kind, int[] view_input_route_event) {
+  if((view_input_route_scroll_bar_bits & 2) != 0) {
+    view_scroll_bar_take();
   }
 } return void;
-given vw_t_two given vw_t_up(400, 300) given vw_t_at_y(0, 100) given vw_bar_new given vw_bar_fit((import lp_t_v)) ((import lp_t_v), 3, [3, 392, 140, 1, 1]):() then vw_t_sts:("sts 0,0,100,0,")
-given vw_t_two given vw_t_up(400, 300) given vw_t_at_y(0, 100) given vw_bar_new given vw_bar_fit((import lp_t_v)) ((import lp_t_v), 3, [3, 392, 270, 1, 1]):() then vw_t_sts:("sts 0,48,100,1,")
-given vw_t_two given vw_t_up(400, 300) given vw_t_at_y(0, 100) given vw_bar_new given vw_bar_fit((import lp_t_v)) ((import lp_t_v), 3, [3, 190, 245, 1, 1]):() then cv_t_sel:("2:1-2:1")
+given view_test_two_pages given view_test_fit_chrome(400, 300) given view_test_state_scrolled(0, 100) given view_scroll_bar_new given view_scroll_bar_fit((import layout_paragraph_test_view)) ((import layout_paragraph_test_view), 3, [3, 392, 140, 1, 1]):() then view_test_state_dump:("sts 0,0,100,0,")
+given view_test_two_pages given view_test_fit_chrome(400, 300) given view_test_state_scrolled(0, 100) given view_scroll_bar_new given view_scroll_bar_fit((import layout_paragraph_test_view)) ((import layout_paragraph_test_view), 3, [3, 392, 270, 1, 1]):() then view_test_state_dump:("sts 0,48,100,1,")
+given view_test_two_pages given view_test_fit_chrome(400, 300) given view_test_state_scrolled(0, 100) given view_scroll_bar_new given view_scroll_bar_fit((import layout_paragraph_test_view)) ((import layout_paragraph_test_view), 3, [3, 190, 245, 1, 1]):() then view_flow_test_selection_text:("2:1-2:1")

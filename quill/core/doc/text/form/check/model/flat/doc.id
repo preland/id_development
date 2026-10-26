@@ -1,25 +1,25 @@
 // A paragraph's entries for flat_of, then its -1 mark.
-flat_para(Para p, int which, int[] acc) {
+flat_para(Para flat_paragraph_paragraph, int which, int[] flat_paragraph_collected) {
   if(which == 0) {
-    list_extend(acc, p.txt.cps);
+    list_extend(flat_paragraph_collected, flat_paragraph_paragraph.txt.cps);
   } else {
-    flat_runs(p.txt.runs, which, acc);
+    flat_runs(flat_paragraph_paragraph.txt.runs, which, flat_paragraph_collected);
   }
-  push(acc, -1);
+  push(flat_paragraph_collected, -1);
 } return void;
 (Para(Text([4, 5], [Run(2, 7, -1)], 0), Lay([], [], -1), 0), 0, []):(Para(Text([4, 5], [Run(2, 7, -1)], 0), Lay([], [], -1), 0), 0, [4, 5, -1])
 (Para(Text([4, 5], [Run(2, 7, -1)], 0), Lay([], [], -1), 0), 1, [1]):(Para(Text([4, 5], [Run(2, 7, -1)], 0), Lay([], [], -1), 0), 1, [1, 7, 7, -1])
 (Para(Text([], [Run(0, 7, -1)], 0), Lay([], [], -1), 0), 1, []):(Para(Text([], [Run(0, 7, -1)], 0), Lay([], [], -1), 0), 1, [-1])
 
 // The document as one list: which 0 gives the code points, 1 the character row of each, 2 the link of each; every paragraph ends with a -1.
-flat_of(Doc d, int which) {
-  int[] acc = [];
-  int i = 0;
-  while(i < len(d.body.paras)) {
-    flat_para(d.body.paras[i], which, acc);
-    i = i + 1;
+flat_of(Doc flat_collect_document, int which) {
+  int[] flat_collect_collected = [];
+  int flat_collect_index = 0;
+  while(flat_collect_index < len(flat_collect_document.body.paras)) {
+    flat_para(flat_collect_document.body.paras[flat_collect_index], which, flat_collect_collected);
+    flat_collect_index = flat_collect_index + 1;
   }
-} return int[] acc;
+} return int[] flat_collect_collected;
 (Doc(Body([Para(Text([4, 5], [Run(2, 7, -1)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 7, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], [])), 0):([4, 5, -1, -1])
 (Doc(Body([Para(Text([4, 5], [Run(2, 7, -1)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 7, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], [])), 1):([7, 7, -1, -1])
 (Doc(Body([Para(Text([4, 5], [Run(2, 7, -1)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 7, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], [])), 2):([-1, -1, -1, -1])

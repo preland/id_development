@@ -1,13 +1,13 @@
 // What rib_event answers while a menu is open, from the widget's bits rbi_b for an event of kind rbi_kind, rbi_on being 1 when a press was on the control that opened the menu: 8 says the menu took the event, 1 is kept, a choice is 11, and a press outside is 9 when it was on the opener (the press closes the menu and no more) or 5 elsewhere (the menu is closed and the press is not used up).
-rbe_ret(int rbi_b, int rbi_kind, int rbi_on) {
-  int rbi_r = (rbi_b & 1) + 8;
-  if((rbi_b & 2) != 0) {
-    rbi_r = 11;
+ribbon_popup_answer(int ribbon_popup_answer_bits, int ribbon_popup_answer_kind, int ribbon_popup_answer_on_opener) {
+  int ribbon_popup_answer_result = (ribbon_popup_answer_bits & 1) + 8;
+  if((ribbon_popup_answer_bits & 2) != 0) {
+    ribbon_popup_answer_result = 11;
   }
-  if((rbi_b & 4) != 0) {
-    rbi_r = 9 - 4 * (rbi_kind == 3) * (rbi_on == 0);
+  if((ribbon_popup_answer_bits & 4) != 0) {
+    ribbon_popup_answer_result = 9 - 4 * (ribbon_popup_answer_kind == 3) * (ribbon_popup_answer_on_opener == 0);
   }
-} return int rbi_r;
+} return int ribbon_popup_answer_result;
 (2, 4, 0):(11)
 (4, 3, 0):(5)
 (4, 3, 1):(9)

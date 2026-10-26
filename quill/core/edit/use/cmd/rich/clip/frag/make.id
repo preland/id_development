@@ -12,7 +12,7 @@ clip_text(Text t, int lo, int hi) {
 // Adds paragraph i's share of the selection pa to pb (see clip_frag) to the lists txts and pprops.
 clip_para(Doc d, int i, Pos pa, Pos pb, Text[] txts, int[] pprops) {
   int lo = 0;
-  int hi = para_len(d.body.paras[i]);
+  int hi = document_paragraph_length(d.body.paras[i]);
   if(i == pa.para) {
     lo = pa.off;
   }
@@ -23,8 +23,8 @@ clip_para(Doc d, int i, Pos pa, Pos pb, Text[] txts, int[] pprops) {
   push(txts, clip_text(d.body.paras[i].txt, lo, hi));
   push(pprops, d.body.paras[i].pprop);
 } return void;
-given fx_setup("abc|def") ((import fxd), 1, Pos(0, 1), Pos(1, 2), [], []):((import fxd), 1, Pos(0, 1), Pos(1, 2), [Text([100, 101], [Run(2, 0, -1)], 0)], [0])
-given fx_setup("abc|def") ((import fxd), 0, Pos(0, 1), Pos(1, 2), [], []):((import fxd), 0, Pos(0, 1), Pos(1, 2), [Text([98, 99], [Run(2, 0, -1)], 0)], [0])
+given editor_fixture_setup("abc|def") ((import fixture_document), 1, Pos(0, 1), Pos(1, 2), [], []):((import fixture_document), 1, Pos(0, 1), Pos(1, 2), [Text([100, 101], [Run(2, 0, -1)], 0)], [0])
+given editor_fixture_setup("abc|def") ((import fixture_document), 0, Pos(0, 1), Pos(1, 2), [], []):((import fixture_document), 0, Pos(0, 1), Pos(1, 2), [Text([98, 99], [Run(2, 0, -1)], 0)], [0])
 
 // The fragment of the selection from pa to pb: one copy of text per paragraph (the first from pa.off, the last up to pb.off) and each paragraph's row. partial is 1 when the copy lies inside one paragraph and so carries no paragraph break.
 clip_frag(Doc d, Pos pa, Pos pb) {
@@ -39,5 +39,5 @@ clip_frag(Doc d, Pos pa, Pos pb) {
   int one = pa.para == pb.para;
   Frag frag = Frag(txts, pprops, one);
 } return Frag frag;
-given fx_setup("abc|def") ((import fxd), Pos(0, 1), Pos(0, 2)):(Frag([Text([98], [Run(1, 0, -1)], 0)], [0], 1))
-given fx_setup("abc|def") ((import fxd), Pos(0, 1), Pos(1, 2)):(Frag([Text([98, 99], [Run(2, 0, -1)], 0), Text([100, 101], [Run(2, 0, -1)], 0)], [0, 0], 0))
+given editor_fixture_setup("abc|def") ((import fixture_document), Pos(0, 1), Pos(0, 2)):(Frag([Text([98], [Run(1, 0, -1)], 0)], [0], 1))
+given editor_fixture_setup("abc|def") ((import fixture_document), Pos(0, 1), Pos(1, 2)):(Frag([Text([98, 99], [Run(2, 0, -1)], 0), Text([100, 101], [Run(2, 0, -1)], 0)], [0, 0], 0))

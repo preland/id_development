@@ -1,31 +1,31 @@
 // Test check: the text of the paragraphs of the test document, one after another with a bar between them.
-cv_t_dump() {
-  Doc cvd = (import lp_t_d);
-  string cvs_z = "";
-  int cvi_k = 0;
+view_flow_test_dump_text() {
+  Doc view_flow_dump_document = (import layout_paragraph_test_document);
+  string view_flow_dump_text = "";
+  int view_flow_dump_index = 0;
 } chain () {
-  while(cvi_k < len(cvd.body.paras)) {
-    cvs_z = cv_t_join(cvs_z, cvd, cvi_k);
-    cvi_k = cvi_k + 1;
+  while(view_flow_dump_index < len(view_flow_dump_document.body.paras)) {
+    view_flow_dump_text = view_flow_test_join_text(view_flow_dump_text, view_flow_dump_document, view_flow_dump_index);
+    view_flow_dump_index = view_flow_dump_index + 1;
   }
-} return string cvs_z;
-given lp_t_new ():("")
-given lp_t_new given lp_t_ins(0, "AB") given lp_t_split(0, 1) ():("A|B")
+} return string view_flow_dump_text;
+given layout_paragraph_test_new ():("")
+given layout_paragraph_test_new given layout_paragraph_test_insert(0, "AB") given layout_paragraph_test_split(0, 1) ():("A|B")
 
 // Test check helper: cvs_z with the text of paragraph cvi_k of cvd added, after a bar unless it is the first.
-cv_t_join(string cvs_z, Doc cvd, int cvi_k) {
-  string cvs_t = vw_cps_text(cvd.body.paras[cvi_k].txt.cps, 0);
-  string cvs_r = cvs_z + cvs_t;
-  if(cvi_k > 0) {
-    cvs_r = cvs_z + "|" + cvs_t;
+view_flow_test_join_text(string view_flow_join_text, Doc view_flow_join_document, int view_flow_join_index) {
+  string view_flow_join_added = view_flow_code_points_text(view_flow_join_document.body.paras[view_flow_join_index].txt.cps, 0);
+  string view_flow_join_result = view_flow_join_text + view_flow_join_added;
+  if(view_flow_join_index > 0) {
+    view_flow_join_result = view_flow_join_text + "|" + view_flow_join_added;
   }
-} return string cvs_r;
-given cv_t_view("AB|CD") ("", (import lp_t_d), 0):("AB")
-given cv_t_view("AB|CD") ("A", (import lp_t_d), 1):("A|CD")
+} return string view_flow_join_result;
+given view_flow_test_make_view("AB|CD") ("", (import layout_paragraph_test_document), 0):("AB")
+given view_flow_test_make_view("AB|CD") ("A", (import layout_paragraph_test_document), 1):("A|CD")
 
 // Test setup: paragraph cvi_p of the view is marked stale, as an edit marks the paragraphs it touches (its height is -1 until it is laid out again).
-cv_t_mark(View cvv, int cvi_p) {
-  cvv.doc.body.paras[cvi_p].lay.h = 0 - 1;
+view_flow_test_mark_stale(View view_flow_stale_view, int view_flow_stale_paragraph) {
+  view_flow_stale_view.doc.body.paras[view_flow_stale_paragraph].lay.h = 0 - 1;
 } return void;
-given cv_t_view("AB|CD") ((import lp_t_v), 0):((import lp_t_v), 0) then lp_t_h0:(-1)
-given cv_t_view("AB|CD") ((import lp_t_v), 1):((import lp_t_v), 1) then lp_t_h0:(1664)
+given view_flow_test_make_view("AB|CD") ((import layout_paragraph_test_view), 0):((import layout_paragraph_test_view), 0) then layout_paragraph_test_first_height:(-1)
+given view_flow_test_make_view("AB|CD") ((import layout_paragraph_test_view), 1):((import layout_paragraph_test_view), 1) then layout_paragraph_test_first_height:(1664)

@@ -1,35 +1,35 @@
 // Interns the character row and the paragraph row of built-in style i and appends their ids to fm.
-fmt_rows(Fmt f, int i, int[] fm) {
-  int[] crow = list_slice((import quill_style_character_rows), i * (import quill_character_width), (import quill_character_width));
-  int[] prow = list_slice((import quill_style_paragraph_rows), i * (import quill_paragraph_width), (import quill_paragraph_width));
-  int cid = tab_intern(f.chars, crow);
-} chain (Fmt f, int i, int[] fm) {
-  int pid = tab_intern(f.paras, prow);
-  push(fm, cid);
-  push(fm, pid);
+document_format_rows(Fmt rows_intern_format_set, int rows_intern_style_index, int[] style_row_identifiers) {
+  int[] crow = list_slice((import quill_style_character_rows), rows_intern_style_index * (import quill_character_width), (import quill_character_width));
+  int[] prow = list_slice((import quill_style_paragraph_rows), rows_intern_style_index * (import quill_paragraph_width), (import quill_paragraph_width));
+  int rows_intern_character_row_identifier = tab_intern(rows_intern_format_set.chars, crow);
+} chain (Fmt rows_intern_format_set, int rows_intern_style_index, int[] style_row_identifiers) {
+  int pid = tab_intern(rows_intern_format_set.paras, prow);
+  push(style_row_identifiers, rows_intern_character_row_identifier);
+  push(style_row_identifiers, pid);
 } return void;
 (Fmt(Tab([], 7, [0, 0, 0, 0, 0, 0, 0, 0]), Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), 0, []):(Fmt(Tab([0, 0, 24, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([-1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [0, 0, 0, 0, 0, 0, 1, 0]), Sty([], [], 0)), 0, [0, 0])
 (Fmt(Tab([], 7, [0, 0, 0, 0, 0, 0, 0, 0]), Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), 3, []):(Fmt(Tab([0, -1, 32, -1, -1, 1, 1], 7, [1, 0, 0, 0, 0, 0, 0, 0]), Tab([-1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0], 12, [0, 1, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), 3, [0, 0])
 
 // Appends built-in style i, with its rows interned, to the document's styles.
-fmt_style(Fmt f, int i) {
-  int[] fm = [];
-  fmt_rows(f, i, fm);
-  int[] rel = list_slice((import quill_style_relations), i * 3, 3);
-} chain (Fmt f, int i) {
-  Style st = Style((import quill_style_names)[i], rel, fm);
-  Style[] ss = f.sty.styles;
-  push(ss, st);
+document_format_style(Fmt style_append_format_set, int style_append_style_index) {
+  int[] style_row_identifiers = [];
+  document_format_rows(style_append_format_set, style_append_style_index, style_row_identifiers);
+  int[] style_append_relations = list_slice((import quill_style_relations), style_append_style_index * 3, 3);
+} chain (Fmt style_append_format_set, int style_append_style_index) {
+  Style style_append_style_record = Style((import quill_style_names)[style_append_style_index], style_append_relations, style_row_identifiers);
+  Style[] style_array = style_append_format_set.sty.styles;
+  push(style_array, style_append_style_record);
 } return void;
 (Fmt(Tab([], 7, [0, 0, 0, 0, 0, 0, 0, 0]), Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), 0):(Fmt(Tab([0, 0, 24, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([-1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [0, 0, 0, 0, 0, 0, 1, 0]), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), 0)
 (Fmt(Tab([], 7, [0, 0, 0, 0, 0, 0, 0, 0]), Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), 3):(Fmt(Tab([0, -1, 32, -1, -1, 1, 1], 7, [1, 0, 0, 0, 0, 0, 0, 0]), Tab([-1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0], 12, [0, 1, 0, 0, 0, 0, 0, 0]), Sty([Style("Heading 1", [0, 0, 0], [0, 0])], [], 0)), 3)
 
-fmt_styles(Fmt f) {
-  int i = 0;
-  while(i < len((import quill_style_names))) {
-    fmt_style(f, i);
-    i = i + 1;
+document_format_styles(Fmt f) {
+  int styles_append_style_index = 0;
+  while(styles_append_style_index < len((import quill_style_names))) {
+    document_format_style(f, styles_append_style_index);
+    styles_append_style_index = styles_append_style_index + 1;
   }
 } return void;
-(Fmt(Tab([], 7, [0, 0, 0, 0, 0, 0, 0, 0]), Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0))):(Fmt(Tab([0, 0, 24, -1, -1, 0, 0, 0, -1, 56, -1, -1, 0, 0, 0, -1, 30, 5855577, -1, 0, 0, 0, -1, 32, -1, -1, 1, 1, 0, -1, 28, -1, -1, 1, 1, 0, -1, 26, -1, -1, 1, 1, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 2, 2], 7, [4, 8, 0, 0, 3, 0, 0, 1, 2, 0, 6, 0, 5, 0, 0, 7]), Tab([-1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0, -1, -1, -1, -1, -1, 0, 240, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 0, 160, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 200, 0, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 160, 0, -1, 0, 0, 0, 0, -1, -1, 720, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, 720, 720, -1, 200, 200, -1, 0, 0, 0, 0], 12, [7, 2, 3, 4, 6, 8, 0, 0, 0, 5, 0, 0, 0, 0, 1, 0]), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Title", [0, 0, 0], [1, 1]), Style("Subtitle", [0, 0, 0], [2, 2]), Style("Heading 1", [0, 0, 0], [3, 3]), Style("Heading 2", [0, 0, 0], [4, 4]), Style("Heading 3", [0, 0, 0], [5, 5]), Style("List Paragraph", [0, 0, 6], [6, 6]), Style("Quote", [0, 0, 0], [7, 7])], [], 0))) then calls fmt_style:[8]
-(Fmt(Tab([0, 0, 24, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([-1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [0, 0, 0, 0, 0, 0, 1, 0]), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0))):(Fmt(Tab([0, 0, 24, -1, -1, 0, 0, 0, -1, 56, -1, -1, 0, 0, 0, -1, 30, 5855577, -1, 0, 0, 0, -1, 32, -1, -1, 1, 1, 0, -1, 28, -1, -1, 1, 1, 0, -1, 26, -1, -1, 1, 1, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 2, 2], 7, [4, 8, 0, 0, 3, 0, 0, 1, 2, 0, 6, 0, 5, 0, 0, 7]), Tab([-1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0, -1, -1, -1, -1, -1, 0, 240, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 0, 160, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 200, 0, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 160, 0, -1, 0, 0, 0, 0, -1, -1, 720, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, 720, 720, -1, 200, 200, -1, 0, 0, 0, 0], 12, [7, 2, 3, 4, 6, 8, 0, 0, 0, 5, 0, 0, 0, 0, 1, 0]), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Normal", [0, -1, 0], [0, 0]), Style("Title", [0, 0, 0], [1, 1]), Style("Subtitle", [0, 0, 0], [2, 2]), Style("Heading 1", [0, 0, 0], [3, 3]), Style("Heading 2", [0, 0, 0], [4, 4]), Style("Heading 3", [0, 0, 0], [5, 5]), Style("List Paragraph", [0, 0, 6], [6, 6]), Style("Quote", [0, 0, 0], [7, 7])], [], 0))) then calls fmt_style:[8]
+(Fmt(Tab([], 7, [0, 0, 0, 0, 0, 0, 0, 0]), Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0))):(Fmt(Tab([0, 0, 24, -1, -1, 0, 0, 0, -1, 56, -1, -1, 0, 0, 0, -1, 30, 5855577, -1, 0, 0, 0, -1, 32, -1, -1, 1, 1, 0, -1, 28, -1, -1, 1, 1, 0, -1, 26, -1, -1, 1, 1, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 2, 2], 7, [4, 8, 0, 0, 3, 0, 0, 1, 2, 0, 6, 0, 5, 0, 0, 7]), Tab([-1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0, -1, -1, -1, -1, -1, 0, 240, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 0, 160, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 200, 0, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 160, 0, -1, 0, 0, 0, 0, -1, -1, 720, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, 720, 720, -1, 200, 200, -1, 0, 0, 0, 0], 12, [7, 2, 3, 4, 6, 8, 0, 0, 0, 5, 0, 0, 0, 0, 1, 0]), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Title", [0, 0, 0], [1, 1]), Style("Subtitle", [0, 0, 0], [2, 2]), Style("Heading 1", [0, 0, 0], [3, 3]), Style("Heading 2", [0, 0, 0], [4, 4]), Style("Heading 3", [0, 0, 0], [5, 5]), Style("List Paragraph", [0, 0, 6], [6, 6]), Style("Quote", [0, 0, 0], [7, 7])], [], 0))) then calls document_format_style:[8]
+(Fmt(Tab([0, 0, 24, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([-1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [0, 0, 0, 0, 0, 0, 1, 0]), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0))):(Fmt(Tab([0, 0, 24, -1, -1, 0, 0, 0, -1, 56, -1, -1, 0, 0, 0, -1, 30, 5855577, -1, 0, 0, 0, -1, 32, -1, -1, 1, 1, 0, -1, 28, -1, -1, 1, 1, 0, -1, 26, -1, -1, 1, 1, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 2, 2], 7, [4, 8, 0, 0, 3, 0, 0, 1, 2, 0, 6, 0, 5, 0, 0, 7]), Tab([-1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0, -1, -1, -1, -1, -1, 0, 240, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 0, 160, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 200, 0, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1, 160, 0, -1, 0, 0, 0, 0, -1, -1, 720, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, 720, 720, -1, 200, 200, -1, 0, 0, 0, 0], 12, [7, 2, 3, 4, 6, 8, 0, 0, 0, 5, 0, 0, 0, 0, 1, 0]), Sty([Style("Normal", [0, -1, 0], [0, 0]), Style("Normal", [0, -1, 0], [0, 0]), Style("Title", [0, 0, 0], [1, 1]), Style("Subtitle", [0, 0, 0], [2, 2]), Style("Heading 1", [0, 0, 0], [3, 3]), Style("Heading 2", [0, 0, 0], [4, 4]), Style("Heading 3", [0, 0, 0], [5, 5]), Style("List Paragraph", [0, 0, 6], [6, 6]), Style("Quote", [0, 0, 0], [7, 7])], [], 0))) then calls document_format_style:[8]

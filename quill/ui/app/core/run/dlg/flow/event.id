@@ -1,55 +1,55 @@
 // What the dialog's button wai_r (-1 for Esc) does: the dialog goes. For the unsaved-changes question Save (0) saves and carries on with the action that waited, Don't Save (1) carries on without saving, and anything else gives the action up; every other dialog gives the action up whatever its button.
-wa_choose(App waa, int wai_r) {
-  int wai_k = (import wa_st)[(import wa_s_dlg)];
-  int wai_a = wai_k == (import wa_d_ask);
-  wa_shut();
-} chain (App waa, int wai_r) {
-  if(wai_a == 1 && wai_r == 0) {
-    wa_keep(waa);
+app_dialog_answer(App app_answer_application, int app_answer_button) {
+  int app_answer_dialog = (import cli_state_list)[(import wa_s_dlg)];
+  int app_answer_is_ask = app_answer_dialog == (import wa_d_ask);
+  app_dialog_close();
+} chain (App app_answer_application, int app_answer_button) {
+  if(app_answer_is_ask == 1 && app_answer_button == 0) {
+    app_document_save(app_answer_application);
   }
-  if(wai_a == 1 && wai_r == 1) {
-    wa_go(waa);
+  if(app_answer_is_ask == 1 && app_answer_button == 1) {
+    app_action_perform(app_answer_application);
   }
-  if(wai_a == 0 || wai_r < 0 || wai_r > 1) {
-    lset((import wa_st), (import wa_s_ask), (import wa_a_none));
+  if(app_answer_is_ask == 0 || app_answer_button < 0 || app_answer_button > 1) {
+    lset((import cli_state_list), (import wa_s_ask), (import wa_a_none));
   }
 } return void;
-given wa_t_app given wa_open("T", ["a"], ["OK"], 4) given lset((import wa_st), 1, 2) ((import wa_app), 0):() then wa_t_state:("0,0,0,0,|0|0")
-given wa_t_app given wa_t_type(120) given wa_ask((import wa_app), 3) ((import wa_app), 1):() then wa_t_state:("0,0,0,1,|0|1")
-given wa_t_app given wa_t_type(120) given wa_ask((import wa_app), 3) ((import wa_app), 2):() then wa_t_state:("0,0,0,0,|0|1")
+given cli_test_boot_app given app_dialog_show("T", ["a"], ["OK"], 4) given lset((import cli_state_list), 1, 2) ((import cli_application), 0):() then cli_test_state_text:("0,0,0,0,|0|0")
+given cli_test_boot_app given cli_test_type_code_point(120) given app_action_ask((import cli_application), 3) ((import cli_application), 1):() then cli_test_state_text:("0,0,0,1,|0|1")
+given cli_test_boot_app given cli_test_type_code_point(120) given app_action_ask((import cli_application), 3) ((import cli_application), 2):() then cli_test_state_text:("0,0,0,0,|0|1")
 
 // Acts on what a dialog answered to an event: wai_f is what the file list said (bit 2: it chose the file gui_files_picked names), wai_b what the dialog said (2: a button was pressed, 4: Esc); the picture is stale when either asks for a repaint.
-wa_dlg_after(App waa, int wai_f, int wai_b) {
-  if((wai_f & 2) != 0) {
-    wa_took(waa, gui_files_picked((import wa_fl)));
+app_dialog_react(App app_react_application, int app_react_files, int app_react_dialog) {
+  if((app_react_files & 2) != 0) {
+    app_picker_chosen(app_react_application, gui_files_picked((import app_picker_file_list)));
   }
-  if((wai_b & 2) != 0) {
-    wa_choose(waa, gui_dialog_result((import wa_dg)));
+  if((app_react_dialog & 2) != 0) {
+    app_dialog_answer(app_react_application, gui_dialog_result((import app_open_dialog)));
   }
-  if((wai_b & 4) != 0) {
-    wa_choose(waa, 0 - 1);
+  if((app_react_dialog & 4) != 0) {
+    app_dialog_answer(app_react_application, 0 - 1);
   }
-} chain (App waa, int wai_f, int wai_b) {
-  if(((wai_f | wai_b) & 1) != 0) {
-    lset((import vw_st), (import vw_s_d), 1);
+} chain (App app_react_application, int app_react_files, int app_react_dialog) {
+  if(((app_react_files | app_react_dialog) & 1) != 0) {
+    lset((import view_state), (import vw_s_d), 1);
   }
 } return void;
-given wa_t_app given wa_open("T", ["a"], ["OK"], 4) given lset((import vw_st), 3, 0) ((import wa_app), 0, 1):() then vw_t_sts:("sts 0,0,100,1,") then wa_t_state:("0,0,4,0,|0|0")
-given wa_t_app given wa_open("T", ["a"], ["OK"], 4) ((import wa_app), 0, 4):() then wa_t_state:("0,0,0,0,|0|0")
+given cli_test_boot_app given app_dialog_show("T", ["a"], ["OK"], 4) given lset((import view_state), 3, 0) ((import cli_application), 0, 1):() then view_test_state_dump:("sts 0,0,100,1,") then cli_test_state_text:("0,0,4,0,|0|0")
+given cli_test_boot_app given app_dialog_show("T", ["a"], ["OK"], 4) ((import cli_application), 0, 4):() then cli_test_state_text:("0,0,0,0,|0|0")
 
 // One event of the window while a dialog is open: it is the file list's first when the dialog is a picker, then the dialog's, and what they answered is acted on (wa_dlg_after).
-wa_dlg_event(App waa, int wai_kind, int[] wal_ev) {
-  int wai_d = (import wa_st)[(import wa_s_dlg)];
-  int wai_f = 0;
-  if(wai_d == (import wa_d_open) || wai_d == (import wa_d_save)) {
-    wai_f = gui_files_event((import wa_fl), wai_kind, wal_ev);
+app_dialog_event(App app_dialog_event_application, int app_dialog_event_kind, int[] app_dialog_event_fields) {
+  int app_dialog_event_state = (import cli_state_list)[(import wa_s_dlg)];
+  int app_dialog_event_files = 0;
+  if(app_dialog_event_state == (import wa_d_open) || app_dialog_event_state == (import wa_d_save)) {
+    app_dialog_event_files = gui_files_event((import app_picker_file_list), app_dialog_event_kind, app_dialog_event_fields);
   }
-} chain (App waa, int wai_kind, int[] wal_ev) {
-  int wai_b = 0;
-  if(wai_f == 0) {
-    wai_b = gui_dialog_event((import wa_dg), wai_kind, wal_ev);
+} chain (App app_dialog_event_application, int app_dialog_event_kind, int[] app_dialog_event_fields) {
+  int app_dialog_event_buttons = 0;
+  if(app_dialog_event_files == 0) {
+    app_dialog_event_buttons = gui_dialog_event((import app_open_dialog), app_dialog_event_kind, app_dialog_event_fields);
   }
-  wa_dlg_after(waa, wai_f, wai_b);
+  app_dialog_react(app_dialog_event_application, app_dialog_event_files, app_dialog_event_buttons);
 } return void;
-given wa_t_app given wa_t_type(120) given wa_ask((import wa_app), 3) ((import wa_app), 1, [1, 1011, 0, 0, 0]):() then wa_t_state:("0,0,0,0,|0|1")
-given wa_t_app given wa_t_type(120) given wa_ask((import wa_app), 3) given wa_dlg_event((import wa_app), 1, [1, 1002, 0, 0, 0]) ((import wa_app), 1, [1, 1009, 0, 0, 0]):() then wa_t_state:("0,0,0,1,|0|1")
+given cli_test_boot_app given cli_test_type_code_point(120) given app_action_ask((import cli_application), 3) ((import cli_application), 1, [1, 1011, 0, 0, 0]):() then cli_test_state_text:("0,0,0,0,|0|1")
+given cli_test_boot_app given cli_test_type_code_point(120) given app_action_ask((import cli_application), 3) given app_dialog_event((import cli_application), 1, [1, 1002, 0, 0, 0]) ((import cli_application), 1, [1, 1009, 0, 0, 0]):() then cli_test_state_text:("0,0,0,1,|0|1")

@@ -1,13 +1,13 @@
 // Test fixture (internal): adds to pkns the name of the element that a piece of text opens, which is what comes before its first space, ">" or "/"; an end tag or plain text opens none.
-odp_t_cut2(string[] pkns, string pkpc) {
-  int pki = 0;
-  while(pki < len(pkpc) && character_code_at(pkpc, pki) != 32 && character_code_at(pkpc, pki) != 62 && character_code_at(pkpc, pki) != 47) {
-    pki = pki + 1;
+odt_package_fixture_append_element_name(string[] odt_package_append_names, string odt_package_append_piece) {
+  int odt_package_append_index = 0;
+  while(odt_package_append_index < len(odt_package_append_piece) && character_code_at(odt_package_append_piece, odt_package_append_index) != 32 && character_code_at(odt_package_append_piece, odt_package_append_index) != 62 && character_code_at(odt_package_append_piece, odt_package_append_index) != 47) {
+    odt_package_append_index = odt_package_append_index + 1;
   }
-  string pkr = str_sub(pkpc, 0, pki);
-} chain (string[] pkns, string pkpc) {
-  if(len(pkr) > 0) {
-    push(pkns, pkr);
+  string odt_package_append_element = str_sub(odt_package_append_piece, 0, odt_package_append_index);
+} chain (string[] odt_package_append_names, string odt_package_append_piece) {
+  if(len(odt_package_append_element) > 0) {
+    push(odt_package_append_names, odt_package_append_element);
   }
 } return void;
 (["x"], "office:text a=\"b\">x"):(["x", "office:text"], "office:text a=\"b\">x")
@@ -15,24 +15,24 @@ odp_t_cut2(string[] pkns, string pkpc) {
 (["x"], "/office:text>"):(["x"], "/office:text>")
 
 // Test fixture (internal): the element names of a list of pieces of text, in order.
-odp_t_elems(string[] pkpcs) {
-  string[] pkns = [];
-  int pki = 0;
-  while(pki < len(pkpcs)) {
-    odp_t_cut2(pkns, pkpcs[pki]);
-    pki = pki + 1;
+odt_package_fixture_element_names(string[] odt_package_elements_pieces) {
+  string[] odt_package_elements_names = [];
+  int odt_package_elements_index = 0;
+  while(odt_package_elements_index < len(odt_package_elements_pieces)) {
+    odt_package_fixture_append_element_name(odt_package_elements_names, odt_package_elements_pieces[odt_package_elements_index]);
+    odt_package_elements_index = odt_package_elements_index + 1;
   }
-} chain (string[] pkpcs) {
-  string pkr = str_join(pkns, " ");
-} return string pkr;
+} chain (string[] odt_package_elements_pieces) {
+  string odt_package_elements_result = str_join(odt_package_elements_names, " ");
+} return string odt_package_elements_result;
 (["", "a b", "/a>", "c>"]):("a c")
 ([]):("")
 
 // Test fixture (internal): the names of the elements opened in what has been written to the exported writer so far, in order and separated by spaces.
-odp_t_tags() {
-  XmlW pkw = (import odp_t_w);
-  string[] pkpcs = str_split(exec_text(pkw.out), "<");
-  string pkr = odp_t_elems(pkpcs);
-} return string pkr;
-given odp_t_new ():("r")
-given odp_t_new given xw_start((import odp_t_w), "a") given xw_end((import odp_t_w)) ():("r a")
+odt_package_fixture_written_tags() {
+  XmlW odt_package_tags_writer = (import odt_package_exported_writer);
+  string[] odt_package_tags_pieces = str_split(exec_text(odt_package_tags_writer.out), "<");
+  string odt_package_tags_result = odt_package_fixture_element_names(odt_package_tags_pieces);
+} return string odt_package_tags_result;
+given odt_package_fixture_new ():("r")
+given odt_package_fixture_new given xw_start((import odt_package_exported_writer), "a") given xw_end((import odt_package_exported_writer)) ():("r a")

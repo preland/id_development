@@ -1,35 +1,35 @@
 // Adds style:display-name when the style's name in the document is not the one it has in the file, as for "Heading 1" written "Heading_20_1"; the default style, written "Standard", gets none, because LibreOffice would then keep "Standard" and add a second style called "Normal" beside it.
-odp_dname(XmlW pkw, string pkname, string pkwn) {
-  if(pkname != pkwn && pkwn != (import quill_style_wire)[0]) {
-    xw_attr(pkw, "style:display-name", pkname);
+odt_package_display_name(XmlW odt_package_display_writer, string odt_package_display_document_name, string odt_package_display_file_name) {
+  if(odt_package_display_document_name != odt_package_display_file_name && odt_package_display_file_name != (import quill_style_wire)[0]) {
+    xw_attr(odt_package_display_writer, "style:display-name", odt_package_display_document_name);
   }
 } return void;
-given odp_t_new ((import odp_t_w), "Heading 1", "Heading_20_1"):() then (import odp_t_w).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 100, 105, 115, 112, 108, 97, 121, 45, 110, 97, 109, 101, 61, 34, 72, 101, 97, 100, 105, 110, 103, 32, 49, 34])
-given odp_t_new ((import odp_t_w), "Normal", "Standard"):() then (import odp_t_w).out:([60, 114])
-given odp_t_new ((import odp_t_w), "Title", "Title"):() then (import odp_t_w).out:([60, 114])
+given odt_package_fixture_new ((import odt_package_exported_writer), "Heading 1", "Heading_20_1"):() then (import odt_package_exported_writer).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 100, 105, 115, 112, 108, 97, 121, 45, 110, 97, 109, 101, 61, 34, 72, 101, 97, 100, 105, 110, 103, 32, 49, 34])
+given odt_package_fixture_new ((import odt_package_exported_writer), "Normal", "Standard"):() then (import odt_package_exported_writer).out:([60, 114])
+given odt_package_fixture_new ((import odt_package_exported_writer), "Title", "Title"):() then (import odt_package_exported_writer).out:([60, 114])
 
 // Adds a reference to another style, by its name in the file, when pkat is the index of a style of the document and not pkself, the style being written, which LibreOffice never names as its own next style.
-odp_sref(XmlW pkw, Doc pkd, string pkkey, int pkat, int pkself) {
-  if(pkat >= 0 && pkat < len(pkd.fmt.sty.styles) && pkat != pkself) {
-    xw_attr(pkw, pkkey, oc_wire(pkd, pkat));
+odt_package_style_reference(XmlW odt_package_reference_writer, Doc odt_package_reference_document, string odt_package_reference_key, int odt_package_reference_index, int odt_package_reference_own) {
+  if(odt_package_reference_index >= 0 && odt_package_reference_index < len(odt_package_reference_document.fmt.sty.styles) && odt_package_reference_index != odt_package_reference_own) {
+    xw_attr(odt_package_reference_writer, odt_package_reference_key, odt_write_style_wire_name(odt_package_reference_document, odt_package_reference_index));
   }
 } return void;
-given odp_t_new ((import odp_t_w), (import odp_t_d), "style:parent-style-name", 3, -1):() then (import odp_t_w).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 112, 97, 114, 101, 110, 116, 45, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 34, 72, 101, 97, 100, 105, 110, 103, 95, 50, 48, 95, 49, 34])
-given odp_t_new ((import odp_t_w), (import odp_t_d), "style:next-style-name", 3, 3):() then (import odp_t_w).out:([60, 114])
-given odp_t_new ((import odp_t_w), (import odp_t_d), "style:next-style-name", -1, 0):() then (import odp_t_w).out:([60, 114])
+given odt_package_fixture_new ((import odt_package_exported_writer), (import odt_package_exported_default_document), "style:parent-style-name", 3, -1):() then (import odt_package_exported_writer).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 112, 97, 114, 101, 110, 116, 45, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 34, 72, 101, 97, 100, 105, 110, 103, 95, 50, 48, 95, 49, 34])
+given odt_package_fixture_new ((import odt_package_exported_writer), (import odt_package_exported_default_document), "style:next-style-name", 3, 3):() then (import odt_package_exported_writer).out:([60, 114])
+given odt_package_fixture_new ((import odt_package_exported_writer), (import odt_package_exported_default_document), "style:next-style-name", -1, 0):() then (import odt_package_exported_writer).out:([60, 114])
 
 // The attributes of style:style for style pki: name, family, display name, parent, next style and outline level.
-odp_sattrs(XmlW pkw, Doc pkd, int pki) {
-  Style pksy = pkd.fmt.sty.styles[pki];
-  string pkwn = oc_wire(pkd, pki);
-  xw_attr(pkw, "style:name", pkwn);
-} chain (XmlW pkw, Doc pkd, int pki) {
-  xw_attr(pkw, "style:family", (import odp_family)[pksy.rel[(import quill_style_family)]]);
-  odp_dname(pkw, pksy.name, pkwn);
-  odp_sref(pkw, pkd, "style:parent-style-name", pksy.rel[(import quill_style_parent)], -1);
-} chain (XmlW pkw, Doc pkd, int pki) {
-  odp_sref(pkw, pkd, "style:next-style-name", pksy.rel[(import quill_style_next)], pki);
-  odp_outline(pkw, pkd, pki);
+odt_package_style_attributes(XmlW odt_package_attributes_writer, Doc odt_package_attributes_document, int odt_package_attributes_index) {
+  Style odt_package_attributes_style = odt_package_attributes_document.fmt.sty.styles[odt_package_attributes_index];
+  string odt_package_attributes_file_name = odt_write_style_wire_name(odt_package_attributes_document, odt_package_attributes_index);
+  xw_attr(odt_package_attributes_writer, "style:name", odt_package_attributes_file_name);
+} chain (XmlW odt_package_attributes_writer, Doc odt_package_attributes_document, int odt_package_attributes_index) {
+  xw_attr(odt_package_attributes_writer, "style:family", (import odp_family)[odt_package_attributes_style.rel[(import quill_style_family)]]);
+  odt_package_display_name(odt_package_attributes_writer, odt_package_attributes_style.name, odt_package_attributes_file_name);
+  odt_package_style_reference(odt_package_attributes_writer, odt_package_attributes_document, "style:parent-style-name", odt_package_attributes_style.rel[(import quill_style_parent)], -1);
+} chain (XmlW odt_package_attributes_writer, Doc odt_package_attributes_document, int odt_package_attributes_index) {
+  odt_package_style_reference(odt_package_attributes_writer, odt_package_attributes_document, "style:next-style-name", odt_package_attributes_style.rel[(import quill_style_next)], odt_package_attributes_index);
+  odp_outline(odt_package_attributes_writer, odt_package_attributes_document, odt_package_attributes_index);
 } return void;
-given odp_t_new ((import odp_t_w), (import odp_t_d), 3):() then (import odp_t_w).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 110, 97, 109, 101, 61, 34, 72, 101, 97, 100, 105, 110, 103, 95, 50, 48, 95, 49, 34, 32, 115, 116, 121, 108, 101, 58, 102, 97, 109, 105, 108, 121, 61, 34, 112, 97, 114, 97, 103, 114, 97, 112, 104, 34, 32, 115, 116, 121, 108, 101, 58, 100, 105, 115, 112, 108, 97, 121, 45, 110, 97, 109, 101, 61, 34, 72, 101, 97, 100, 105, 110, 103, 32, 49, 34, 32, 115, 116, 121, 108, 101, 58, 112, 97, 114, 101, 110, 116, 45, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 34, 83, 116, 97, 110, 100, 97, 114, 100, 34, 32, 115, 116, 121, 108, 101, 58, 110, 101, 120, 116, 45, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 34, 83, 116, 97, 110, 100, 97, 114, 100, 34, 32, 115, 116, 121, 108, 101, 58, 100, 101, 102, 97, 117, 108, 116, 45, 111, 117, 116, 108, 105, 110, 101, 45, 108, 101, 118, 101, 108, 61, 34, 49, 34])
-given odp_t_new ((import odp_t_w), (import odp_t_d), 0):() then (import odp_t_w).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 110, 97, 109, 101, 61, 34, 83, 116, 97, 110, 100, 97, 114, 100, 34, 32, 115, 116, 121, 108, 101, 58, 102, 97, 109, 105, 108, 121, 61, 34, 112, 97, 114, 97, 103, 114, 97, 112, 104, 34])
+given odt_package_fixture_new ((import odt_package_exported_writer), (import odt_package_exported_default_document), 3):() then (import odt_package_exported_writer).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 110, 97, 109, 101, 61, 34, 72, 101, 97, 100, 105, 110, 103, 95, 50, 48, 95, 49, 34, 32, 115, 116, 121, 108, 101, 58, 102, 97, 109, 105, 108, 121, 61, 34, 112, 97, 114, 97, 103, 114, 97, 112, 104, 34, 32, 115, 116, 121, 108, 101, 58, 100, 105, 115, 112, 108, 97, 121, 45, 110, 97, 109, 101, 61, 34, 72, 101, 97, 100, 105, 110, 103, 32, 49, 34, 32, 115, 116, 121, 108, 101, 58, 112, 97, 114, 101, 110, 116, 45, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 34, 83, 116, 97, 110, 100, 97, 114, 100, 34, 32, 115, 116, 121, 108, 101, 58, 110, 101, 120, 116, 45, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 34, 83, 116, 97, 110, 100, 97, 114, 100, 34, 32, 115, 116, 121, 108, 101, 58, 100, 101, 102, 97, 117, 108, 116, 45, 111, 117, 116, 108, 105, 110, 101, 45, 108, 101, 118, 101, 108, 61, 34, 49, 34])
+given odt_package_fixture_new ((import odt_package_exported_writer), (import odt_package_exported_default_document), 0):() then (import odt_package_exported_writer).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 110, 97, 109, 101, 61, 34, 83, 116, 97, 110, 100, 97, 114, 100, 34, 32, 115, 116, 121, 108, 101, 58, 102, 97, 109, 105, 108, 121, 61, 34, 112, 97, 114, 97, 103, 114, 97, 112, 104, 34])

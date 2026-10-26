@@ -1,11 +1,11 @@
 // Appends roman symbol j (an index into quill_layout_roman_values and quill_layout_roman_codes) to lbl, one or two code points, upper case when up is 1.
-lp_sym(int[] lbl, int j, int up) {
-  int c1 = (import quill_layout_roman_codes)[j * 2];
-  int c2 = (import quill_layout_roman_codes)[j * 2 + 1];
-  push(lbl, c1 - up * 32);
-} chain (int[] lbl, int j, int up) {
-  if(c2 > 0) {
-    push(lbl, c2 - up * 32);
+layout_paragraph_roman_symbol(int[] symbol_label, int symbol_index, int up) {
+  int symbol_first = (import quill_layout_roman_codes)[symbol_index * 2];
+  int symbol_second = (import quill_layout_roman_codes)[symbol_index * 2 + 1];
+  push(symbol_label, symbol_first - up * 32);
+} chain (int[] symbol_label, int symbol_index, int up) {
+  if(symbol_second > 0) {
+    push(symbol_label, symbol_second - up * 32);
   }
 } return void;
 ([], 0, 0):([109])
@@ -14,14 +14,14 @@ lp_sym(int[] lbl, int j, int up) {
 
 // Appends n (1 to 3999) as a roman numeral to lbl by taking the largest symbol that still fits, as many times as it fits.
 // By hand: 4 is iv; 1994 is 1000 + 900 + 90 + 4, mcmxciv.
-lp_roman(int[] lbl, int n, int up) {
-  int j = 0;
-  while(j < len((import quill_layout_roman_values))) {
-    while(n >= (import quill_layout_roman_values)[j]) {
-      lp_sym(lbl, j, up);
-      n = n - (import quill_layout_roman_values)[j];
+layout_paragraph_roman(int[] roman_label, int roman_number, int up) {
+  int roman_position = 0;
+  while(roman_position < len((import quill_layout_roman_values))) {
+    while(roman_number >= (import quill_layout_roman_values)[roman_position]) {
+      layout_paragraph_roman_symbol(roman_label, roman_position, up);
+      roman_number = roman_number - (import quill_layout_roman_values)[roman_position];
     }
-    j = j + 1;
+    roman_position = roman_position + 1;
   }
 } return void;
 ([], 4, 0):([105, 118])

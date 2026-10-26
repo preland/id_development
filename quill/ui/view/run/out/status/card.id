@@ -1,52 +1,52 @@
 // Breaks the text vws_s into lines no wider than vwi_w pixels in font vwi_f, at its spaces; a word wider than a line has a line of its own.
-vw_wrap(int vwi_f, string vws_s, int vwi_w) {
-  string[] vwl_words = str_split(vws_s, " ");
-  string[] vwl_lines = [];
-  string vws_cur = "";
-} chain (int vwi_f, string vws_s, int vwi_w) {
-  int vwi_k = 0;
-  while(vwi_k < len(vwl_words)) {
-    vws_cur = vw_fill(vwl_lines, vwi_f, vws_cur, vwl_words[vwi_k], vwi_w);
-    vwi_k = vwi_k + 1;
+view_card_wrap(int view_card_wrap_face, string view_card_wrap_text, int view_card_wrap_width) {
+  string[] view_card_wrap_words = str_split(view_card_wrap_text, " ");
+  string[] view_card_wrap_texts = [];
+  string view_card_wrap_current = "";
+} chain (int view_card_wrap_face, string view_card_wrap_text, int view_card_wrap_width) {
+  int view_card_wrap_index = 0;
+  while(view_card_wrap_index < len(view_card_wrap_words)) {
+    view_card_wrap_current = view_card_fill(view_card_wrap_texts, view_card_wrap_face, view_card_wrap_current, view_card_wrap_words[view_card_wrap_index], view_card_wrap_width);
+    view_card_wrap_index = view_card_wrap_index + 1;
   }
-  push(vwl_lines, vws_cur);
-} return string[] vwl_lines;
-given lp_t_font (1, "AAA BBB", 1000):(["AAA BBB"])
-given lp_t_font (1, "AAA BBB", 1):(["AAA", "BBB"])
-given lp_t_font (1, "AAA", 1):(["AAA"])
+  push(view_card_wrap_texts, view_card_wrap_current);
+} return string[] view_card_wrap_texts;
+given layout_paragraph_test_font (1, "AAA BBB", 1000):(["AAA BBB"])
+given layout_paragraph_test_font (1, "AAA BBB", 1):(["AAA", "BBB"])
+given layout_paragraph_test_font (1, "AAA", 1):(["AAA"])
 
 // Adds the word vws_w to the line vws_cur: when the line then still fits vwi_w pixels it is the line, else the line is finished (kept in vwl_lines) and the word starts the next. Answers the line to go on with.
-vw_fill(string[] vwl_lines, int vwi_f, string vws_cur, string vws_w, int vwi_w) {
-  string vws_try = vws_cur + " " + vws_w;
-  int vwi_fit = len(vws_cur) == 0 || gui_text_width(vwi_f, vws_try) <= vwi_w;
-  string vws_next = vws_w;
-} chain (string[] vwl_lines, int vwi_f, string vws_cur, string vws_w, int vwi_w) {
-  if(vwi_fit == 1 && len(vws_cur) > 0) {
-    vws_next = vws_try;
+view_card_fill(string[] view_card_fill_texts, int view_card_fill_face, string view_card_fill_current, string view_card_fill_word, int view_card_fill_width) {
+  string view_card_fill_attempt = view_card_fill_current + " " + view_card_fill_word;
+  int view_card_fill_fits = len(view_card_fill_current) == 0 || gui_text_width(view_card_fill_face, view_card_fill_attempt) <= view_card_fill_width;
+  string view_card_fill_next = view_card_fill_word;
+} chain (string[] view_card_fill_texts, int view_card_fill_face, string view_card_fill_current, string view_card_fill_word, int view_card_fill_width) {
+  if(view_card_fill_fits == 1 && len(view_card_fill_current) > 0) {
+    view_card_fill_next = view_card_fill_attempt;
   }
-  if(vwi_fit == 0) {
-    push(vwl_lines, vws_cur);
+  if(view_card_fill_fits == 0) {
+    push(view_card_fill_texts, view_card_fill_current);
   }
-} return string vws_next;
-given lp_t_font ([], 1, "", "AAA", 100):("AAA")
-given lp_t_font ([], 1, "AAA", "BBB", 1):("BBB")
-given lp_t_font ([], 1, "AAA", "BBB", 1000):("AAA BBB")
+} return string view_card_fill_next;
+given layout_paragraph_test_font ([], 1, "", "AAA", 100):("AAA")
+given layout_paragraph_test_font ([], 1, "AAA", "BBB", 1):("BBB")
+given layout_paragraph_test_font ([], 1, "AAA", "BBB", 1000):("AAA BBB")
 
 // Paints a card in the page area (x, y, width, height) that says why there is no document: a white card with a border, centred, a title in bold in dark red and the message wrapped below it.
-vw_card(string vws_m, int vwi_x, int vwi_y, int vwi_w, int vwi_h) {
-  int vwi_cw = fixed_point_minimum(vwi_w - 40, 520);
-  int vwi_f = (import rbd_ui)[0];
-  string[] vwl_lines = vw_wrap(vwi_f, vws_m, vwi_cw - 32);
-} chain (string vws_m, int vwi_x, int vwi_y, int vwi_w, int vwi_h) {
-  int vwi_ch = len(vwl_lines) * gui_font_line(vwi_f) + 64;
-  int vwi_cx = vwi_x + (vwi_w - vwi_cw) / 2;
-  int vwi_cy = vwi_y + (vwi_h - vwi_ch) / 2;
-} chain (string vws_m, int vwi_x, int vwi_y, int vwi_w, int vwi_h) {
-  d2_l_rect(vwi_cx, vwi_cy, vwi_cw, vwi_ch, (import vw_c_edge));
-  d2_l_rect(vwi_cx + 1, vwi_cy + 1, vwi_cw - 2, vwi_ch - 2, (import vw_c_sheet));
-  gui_text_draw((import rbd_ui)[1], vwi_cx + 16, vwi_cy + 14, "This document cannot be opened", (import vw_c_red));
-} chain (string vws_m, int vwi_x, int vwi_y, int vwi_w, int vwi_h) {
-  vw_card_lines(vwl_lines, vwi_cx + 16, vwi_cy + 44);
+view_card_paint(string view_card_paint_message, int view_card_paint_area_left, int view_card_paint_area_top, int view_card_paint_area_width, int view_card_paint_area_height) {
+  int view_card_paint_card_width = fixed_point_minimum(view_card_paint_area_width - 40, 520);
+  int view_card_paint_face = (import ribbon_faces)[0];
+  string[] view_card_paint_wrapped = view_card_wrap(view_card_paint_face, view_card_paint_message, view_card_paint_card_width - 32);
+} chain (string view_card_paint_message, int view_card_paint_area_left, int view_card_paint_area_top, int view_card_paint_area_width, int view_card_paint_area_height) {
+  int view_card_paint_card_height = len(view_card_paint_wrapped) * gui_font_line(view_card_paint_face) + 64;
+  int view_card_paint_card_left = view_card_paint_area_left + (view_card_paint_area_width - view_card_paint_card_width) / 2;
+  int view_card_paint_card_top = view_card_paint_area_top + (view_card_paint_area_height - view_card_paint_card_height) / 2;
+} chain (string view_card_paint_message, int view_card_paint_area_left, int view_card_paint_area_top, int view_card_paint_area_width, int view_card_paint_area_height) {
+  d2_l_rect(view_card_paint_card_left, view_card_paint_card_top, view_card_paint_card_width, view_card_paint_card_height, (import vw_c_edge));
+  d2_l_rect(view_card_paint_card_left + 1, view_card_paint_card_top + 1, view_card_paint_card_width - 2, view_card_paint_card_height - 2, (import vw_c_sheet));
+  gui_text_draw((import ribbon_faces)[1], view_card_paint_card_left + 16, view_card_paint_card_top + 14, "This document cannot be opened", (import vw_c_red));
+} chain (string view_card_paint_message, int view_card_paint_area_left, int view_card_paint_area_top, int view_card_paint_area_width, int view_card_paint_area_height) {
+  view_card_paint_lines(view_card_paint_wrapped, view_card_paint_card_left + 16, view_card_paint_card_top + 44);
 } return void;
-given lp_t_font given sf_l_init(300, 200) given d2_l_rect(0, 0, 300, 200, 13619151) given rbd_ui_set(1, 1, 1) given vw_t_at(150, 100) ("Short message here", 0, 0, 300, 200):() then vw_t_px:(16777215)
-given lp_t_font given sf_l_init(300, 200) given d2_l_rect(0, 0, 300, 200, 13619151) given rbd_ui_set(1, 1, 1) given vw_t_at(2, 2) ("Short message here", 0, 0, 300, 200):() then vw_t_px:(13619151)
+given layout_paragraph_test_font given sf_l_init(300, 200) given d2_l_rect(0, 0, 300, 200, 13619151) given ribbon_faces_set(1, 1, 1) given view_test_remember_pixel(150, 100) ("Short message here", 0, 0, 300, 200):() then view_test_pixel_color:(16777215)
+given layout_paragraph_test_font given sf_l_init(300, 200) given d2_l_rect(0, 0, 300, 200, 13619151) given ribbon_faces_set(1, 1, 1) given view_test_remember_pixel(2, 2) ("Short message here", 0, 0, 300, 200):() then view_test_pixel_color:(13619151)

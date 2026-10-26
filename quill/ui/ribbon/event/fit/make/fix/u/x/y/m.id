@@ -1,28 +1,28 @@
 // Test check: how many combo boxes the ribbon has, the control each stands at in the open tab and the one that has the keyboard, with a bar between.
-rbd_t_cn() {
-  string rbs_z = len((import rbd_cb)) + "|" + dump_ints((import rbd_cx)) + "|" + dump_ints((import rbd_fo));
-} return string rbs_z;
-given lp_t_font given rbd_t_up(1024) ():("2|3,4,|-1,")
-given lp_t_font given rbd_t_up(1024) given rib_show((import rbd_t_r), 3) ():("2|-1,-1,|-1,")
+ribbon_fit_check_combo_counts() {
+  string ribbon_fit_combo_counts_text = len((import ribbon_fit_combos)) + "|" + document_dump_integers((import ribbon_fit_combo_controls)) + "|" + document_dump_integers((import ribbon_fit_focused_combo));
+} return string ribbon_fit_combo_counts_text;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ():("2|3,4,|-1,")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given rib_show((import ribbon_fit_test_ribbon), 3) ():("2|-1,-1,|-1,")
 
 // Test check: each combo box of the ribbon as its text, the control it stands at and its text box's rectangle, the boxes divided by a semicolon.
-rbd_t_cd() {
-  GuiCombo[] rbl_b = (import rbd_cb);
-  int[] rbl_f = rbl_b[0].box.v;
-  int[] rbl_h = rbl_b[1].box.v;
+ribbon_fit_check_combo_dump() {
+  GuiCombo[] ribbon_fit_dump_combos = (import ribbon_fit_combos);
+  int[] ribbon_fit_dump_first_box = ribbon_fit_dump_combos[0].box.v;
+  int[] ribbon_fit_dump_second_box = ribbon_fit_dump_combos[1].box.v;
 } chain () {
-  int[] rbl_x = (import rbd_cx);
-  string rbs_a = "0:" + gui_combo_text(rbl_b[0]) + "|" + rbl_x[0] + "|" + rbl_f[0] + "," + rbl_f[1] + "," + rbl_f[2] + "," + rbl_f[3];
-  string rbs_b = "1:" + gui_combo_text(rbl_b[1]) + "|" + rbl_x[1] + "|" + rbl_h[0] + "," + rbl_h[1] + "," + rbl_h[2] + "," + rbl_h[3];
+  int[] ribbon_fit_dump_controls = (import ribbon_fit_combo_controls);
+  string ribbon_fit_dump_first_text = "0:" + gui_combo_text(ribbon_fit_dump_combos[0]) + "|" + ribbon_fit_dump_controls[0] + "|" + ribbon_fit_dump_first_box[0] + "," + ribbon_fit_dump_first_box[1] + "," + ribbon_fit_dump_first_box[2] + "," + ribbon_fit_dump_first_box[3];
+  string ribbon_fit_dump_second_text = "1:" + gui_combo_text(ribbon_fit_dump_combos[1]) + "|" + ribbon_fit_dump_controls[1] + "|" + ribbon_fit_dump_second_box[0] + "," + ribbon_fit_dump_second_box[1] + "," + ribbon_fit_dump_second_box[2] + "," + ribbon_fit_dump_second_box[3];
 } chain () {
-  string rbs_z = rbs_a + ";" + rbs_b;
-} return string rbs_z;
-given lp_t_font given rbd_t_up(1024) ():("0:|3|102,60,104,24;1:|4|224,60,28,24")
-given lp_t_font given rbd_t_up(1024) given rib_text((import rbd_t_r), 307, "Arial") ():("0:Arial|3|102,60,104,24;1:|4|224,60,28,24")
+  string ribbon_fit_dump_text = ribbon_fit_dump_first_text + ";" + ribbon_fit_dump_second_text;
+} return string ribbon_fit_dump_text;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ():("0:|3|102,60,104,24;1:|4|224,60,28,24")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given rib_text((import ribbon_fit_test_ribbon), 307, "Arial") ():("0:Arial|3|102,60,104,24;1:|4|224,60,28,24")
 
 // Test check: the families the ribbon has looked up, comma separated.
-rbd_t_fm() {
-  string rbs_z = str_join((import rbd_fm), ",");
-} return string rbs_z;
-given rbe_pops ():("")
-given rbe_pops given list_string_splice((import rbd_fm), 0, 0, ["A", "B"]) ():("A,B")
+ribbon_fit_check_font_families() {
+  string ribbon_fit_families_text = str_join((import ribbon_fit_font_families), ",");
+} return string ribbon_fit_families_text;
+given ribbon_fit_create_popup_lists ():("")
+given ribbon_fit_create_popup_lists given list_string_splice((import ribbon_fit_font_families), 0, 0, ["A", "B"]) ():("A,B")

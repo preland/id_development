@@ -1,12 +1,12 @@
 // The handle cached for (font index, pixel size, style bits), or -1 when there is none. fa.key holds three ints per face, in the order of fa.hnd.
-face_find(Face fa, int fi, int px, int fs) {
-  int j = 0;
+face_find(Face find_face_cache, int find_font_index, int find_pixels, int fs) {
+  int find_position = 0;
   int got = -1;
-  while(j < len(fa.hnd) && got < 0) {
-    if(fa.key[j * 3] == fi && fa.key[j * 3 + 1] == px && fa.key[j * 3 + 2] == fs) {
-      got = fa.hnd[j];
+  while(find_position < len(find_face_cache.hnd) && got < 0) {
+    if(find_face_cache.key[find_position * 3] == find_font_index && find_face_cache.key[find_position * 3 + 1] == find_pixels && find_face_cache.key[find_position * 3 + 2] == fs) {
+      got = find_face_cache.hnd[find_position];
     }
-    j = j + 1;
+    find_position = find_position + 1;
   }
 } return int got;
 (Face([7, 9], [0, 16, 0, 1, 16, 2], 100), 1, 16, 2):(9)
@@ -15,12 +15,12 @@ face_find(Face fa, int fi, int px, int fs) {
 (Face([], [], 100), 0, 16, 0):(-1)
 
 // Remembers handle fh for (font index, pixel size, style bits), so the next face_find answers with it.
-face_add(Face fa, int fh, int fi, int px, int fs) {
-  push(fa.hnd, fh);
-  push(fa.key, fi);
-  push(fa.key, px);
-} chain (Face fa, int fh, int fi, int px, int fs) {
-  push(fa.key, fs);
+face_add(Face add_face_cache, int add_handle, int add_font_index, int add_pixels, int fs) {
+  push(add_face_cache.hnd, add_handle);
+  push(add_face_cache.key, add_font_index);
+  push(add_face_cache.key, add_pixels);
+} chain (Face add_face_cache, int add_handle, int add_font_index, int add_pixels, int fs) {
+  push(add_face_cache.key, fs);
 } return void;
 (Face([], [], 100), 5, 0, 16, 1):(Face([5], [0, 16, 1], 100), 5, 0, 16, 1)
 (Face([5], [0, 16, 1], 100), 6, 2, 9, 3):(Face([5, 6], [0, 16, 1, 2, 9, 3], 100), 6, 2, 9, 3)

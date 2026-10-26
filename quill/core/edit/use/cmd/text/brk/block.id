@@ -1,5 +1,5 @@
 // 1 when paragraph para is a block the model does not edit (a table, a text box: paragraph row kind 1), 0 for text and for an index that is no paragraph.
-ed_solid(Doc d, int para) {
+editor_is_solid_block(Doc d, int para) {
   int res = 0;
   if(para >= 0 && para < len(d.body.paras)) {
     Para p = d.body.paras[para];
@@ -7,19 +7,19 @@ ed_solid(Doc d, int para) {
     res = kind == 1;
   }
 } return int res;
-given fx_setup("ab") ((import fxd), 0):(0)
-given fx_setup("ab") given fx_opaque(0) ((import fxd), 0):(1)
-given fx_setup("ab") given fx_opaque(0) ((import fxd), 1):(0)
-given fx_setup("ab") given fx_opaque(0) ((import fxd), -1):(0)
+given editor_fixture_setup("ab") ((import fixture_document), 0):(0)
+given editor_fixture_setup("ab") given editor_fixture_opaque(0) ((import fixture_document), 0):(1)
+given editor_fixture_setup("ab") given editor_fixture_opaque(0) ((import fixture_document), 1):(0)
+given editor_fixture_setup("ab") given editor_fixture_opaque(0) ((import fixture_document), -1):(0)
 
 // Splits the paragraph at the caret in the open undo step with row pn for the new paragraph, and puts the caret at its start.
-ed_split_row(Doc d, Ctl ctl, int pn) {
-  int[] loc = [ctl.sel.caret.para, ctl.sel.caret.off];
-  int[] dat = [pn, -1, -1, -1, -1];
-  Op paragraph_split = Op((import ed_k_split), loc, dat);
-} chain (Doc d, Ctl ctl, int pn) {
-  ed_run(d, ctl, paragraph_split);
-  sel_put(ctl.sel, ctl.sel.caret.para + 1, 0, 0);
+editor_split_row(Doc d, Ctl ctl, int paragraph_row_index) {
+  int[] location = [ctl.sel.caret.para, ctl.sel.caret.off];
+  int[] dat = [paragraph_row_index, -1, -1, -1, -1];
+  Op paragraph_split = Op((import ed_k_split), location, dat);
+} chain (Doc d, Ctl ctl, int paragraph_row_index) {
+  editor_run(d, ctl, paragraph_split);
+  editor_selection_put(ctl.sel, ctl.sel.caret.para + 1, 0, 0);
 } return void;
-given fx_setup("abcd") given fx_at(0, 2, 0, 2) given txn_begin((import fxc)) ((import fxd), (import fxc), 5):((import fxd), (import fxc), 5) then fx_show:("ab|{5}cd") then fx_sel:("1:0-1:0") then fx_hist:("u1 r0 o0 n1")
-given fx_setup("abcd") given fx_at(0, 4, 0, 4) given txn_begin((import fxc)) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("abcd|")
+given editor_fixture_setup("abcd") given editor_fixture_selection_at(0, 2, 0, 2) given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 5):((import fixture_document), (import fixture_control), 5) then editor_fixture_show:("ab|{5}cd") then editor_fixture_selection:("1:0-1:0") then editor_fixture_history:("u1 r0 o0 n1")
+given editor_fixture_setup("abcd") given editor_fixture_selection_at(0, 4, 0, 4) given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0):((import fixture_document), (import fixture_control), 0) then editor_fixture_show:("abcd|")

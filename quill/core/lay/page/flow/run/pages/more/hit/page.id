@@ -1,25 +1,25 @@
 // The page that line lhj of paragraph lhi is on: the last page that starts at or before that line.
 // By hand: 28 letters in lines of 3 fill 10 lines, 8 to a page, so lines 0 to 7 are on page 0 and 8 and 9 on page 1; of 8 one-line paragraphs 6 fit a page, so paragraph 5 is on page 0 and 6 on page 1.
-lay_page_of(View lhv, int lhi, int lhj) {
-  int lhk = 0;
-  int lhp = 0;
-  while(lhp < lhv.pages.count) {
-    if(lay_before(lhv.pages.starts[2 * lhp], lhv.pages.starts[2 * lhp + 1], lhi, lhj) == 1) {
-      lhk = lhp;
+lay_page_of(View hit_view, int target_paragraph, int target_line) {
+  int target_page = 0;
+  int scanned_page = 0;
+  while(scanned_page < hit_view.pages.count) {
+    if(lay_before(hit_view.pages.starts[2 * scanned_page], hit_view.pages.starts[2 * scanned_page + 1], target_paragraph, target_line) == 1) {
+      target_page = scanned_page;
     }
-    lhp = lhp + 1;
+    scanned_page = scanned_page + 1;
   }
-} return int lhk;
-given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 0, 7):(0)
-given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 0, 8):(1)
-given lg_t_paged(8) ((import lp_t_v), 5, 0):(0)
-given lg_t_paged(8) ((import lp_t_v), 6, 0):(1)
+} return int target_page;
+given layout_page_test_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import layout_paragraph_test_view), 0, 7):(0)
+given layout_page_test_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import layout_paragraph_test_view), 0, 8):(1)
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), 5, 0):(0)
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), 6, 0):(1)
 
 // 1 when a page that starts at paragraph lhp, line lhl, is not after line lhj of paragraph lhi.
 // By hand: a page starting at 6, 0 is not after the line 6, 0; one starting at 6, 1 is after it; one at 5, 9 is not; one at 7, 0 is after the line 6, 5.
-lay_before(int lhp, int lhl, int lhi, int lhj) {
-  int lhb = lhp < lhi || (lhp == lhi && lhl <= lhj);
-} return int lhb;
+lay_before(int start_paragraph, int start_line, int target_paragraph, int target_line) {
+  int starts_before = start_paragraph < target_paragraph || (start_paragraph == target_paragraph && start_line <= target_line);
+} return int starts_before;
 (6, 0, 6, 0):(1)
 (6, 1, 6, 0):(0)
 (5, 9, 6, 0):(1)
@@ -27,12 +27,12 @@ lay_before(int lhp, int lhl, int lhi, int lhj) {
 
 // Where paragraph lhi's own top is, in lu from the top of page lhk, for the lines of it that are on that page: its top in the continuous document less the pages above, or, when the page starts in the middle of the paragraph, the top margin less the y of the line the page starts at.
 // By hand: paragraph 6 of 8 is the first of page 1, at 14976 in the document less the 14336 of the sheet and the gap, 640; the 28-letter paragraph starts page 1 at its line 8, 9216 down, so its top is 640 - 9216 = -8576 from there and 640 on page 0.
-lay_origin(View lhv, int lhi, int lhk) {
-  int lhy = lhv.pages.tops[lhi] - lhk * (lay_sheet(lhv.doc, 1) + (import quill_layout_sheet_gap));
-  if(lhv.pages.starts[2 * lhk] == lhi && lhv.pages.starts[2 * lhk + 1] > 0) {
-    lhy = lay_margin(lhv.doc, 0) - lhv.doc.body.paras[lhi].lay.lines[lhv.pages.starts[2 * lhk + 1] * (import quill_line_stride) + (import quill_line_y)];
+lay_origin(View hit_view, int target_paragraph, int target_page) {
+  int page_origin = hit_view.pages.tops[target_paragraph] - target_page * (lay_sheet(hit_view.doc, 1) + (import quill_layout_sheet_gap));
+  if(hit_view.pages.starts[2 * target_page] == target_paragraph && hit_view.pages.starts[2 * target_page + 1] > 0) {
+    page_origin = lay_margin(hit_view.doc, 0) - hit_view.doc.body.paras[target_paragraph].lay.lines[hit_view.pages.starts[2 * target_page + 1] * (import quill_line_stride) + (import quill_line_y)];
   }
-} return int lhy;
-given lg_t_paged(8) ((import lp_t_v), 6, 1):(640)
-given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 0, 1):(-8576)
-given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 0, 0):(640)
+} return int page_origin;
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), 6, 1):(640)
+given layout_page_test_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import layout_paragraph_test_view), 0, 1):(-8576)
+given layout_page_test_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import layout_paragraph_test_view), 0, 0):(640)

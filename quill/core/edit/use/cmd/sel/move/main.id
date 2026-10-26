@@ -1,32 +1,32 @@
 // Moves the caret of ctl by the layout hook (see ed_layout_hooks), on a copy of the selection so the hook may set the goal column, and then puts the result in ctl.sel.
-ed_move_hook(Doc d, Ctl ctl, int dir, int unit, int extend) {
-  Sel tmp = sel_copy(ctl.sel);
-  func(Doc, Sel, int, int) return void mv = (import ed_mv);
-  mv(d, tmp, dir, unit);
-} chain (Doc d, Ctl ctl, int dir, int unit, int extend) {
-  sel_put(ctl.sel, tmp.caret.para, tmp.caret.off, extend);
-  ctl.sel.goal = tmp.goal;
+editor_move_hook(Doc d, Ctl ctl, int editor_move_hook_direction, int unit, int extend) {
+  Sel selection_trial = editor_selection_copy(ctl.sel);
+  func(Doc, Sel, int, int) return void layout_move = (import editor_move_slot);
+  layout_move(d, selection_trial, editor_move_hook_direction, unit);
+} chain (Doc d, Ctl ctl, int editor_move_hook_direction, int unit, int extend) {
+  editor_selection_put(ctl.sel, selection_trial.caret.para, selection_trial.caret.off, extend);
+  ctl.sel.goal = selection_trial.goal;
 } return void;
-given fx_setup("ab|cde|f") given fx_at(1, 2, 1, 2) ((import fxd), (import fxc), 1, 2, 0):((import fxd), (import fxc), 1, 2, 0) then fx_sel:("2:1-2:1")
-given fx_setup("ab|cde|f") given fx_at(1, 2, 1, 2) ((import fxd), (import fxc), -1, 2, 1):((import fxd), (import fxc), -1, 2, 1) then fx_sel:("1:2-0:2")
+given editor_fixture_setup("ab|cde|f") given editor_fixture_selection_at(1, 2, 1, 2) ((import fixture_document), (import fixture_control), 1, 2, 0):((import fixture_document), (import fixture_control), 1, 2, 0) then editor_fixture_selection:("2:1-2:1")
+given editor_fixture_setup("ab|cde|f") given editor_fixture_selection_at(1, 2, 1, 2) ((import fixture_document), (import fixture_control), -1, 2, 1):((import fixture_document), (import fixture_control), -1, 2, 1) then editor_fixture_selection:("1:2-0:2")
 
 // Moves the caret dir units (docs/QUILL.md 4.3: dir -1 left or up, 1 right or down; unit 0 character, 1 word, 2 line, 3 paragraph, 4 page, 5 document). With extend 1 the anchor stays and the selection grows. The open undo step is closed and the pending typing row dropped, as any caret move does.
-ed_move(Doc d, Ctl ctl, int dir, int unit, int extend) {
-  txn_end(ctl);
+editor_move(Doc d, Ctl ctl, int editor_move_direction, int unit, int extend) {
+  editor_transaction_end(ctl);
   typing_set(-1);
-  ed_move_to(d, ctl, dir, unit, extend);
+  editor_move_to(d, ctl, editor_move_direction, unit, extend);
 } return void;
-given fx_setup("abc") ((import fxd), (import fxc), 1, 0, 0):((import fxd), (import fxc), 1, 0, 0) then fx_sel:("0:1-0:1")
-given fx_setup("abc") given typing_set(5) ((import fxd), (import fxc), 1, 5, 1):((import fxd), (import fxc), 1, 5, 1) then fx_sel:("0:0-0:3") then (import ed_typing)[0]:(-1)
-given fx_setup("abc") given ed_type((import fxd), (import fxc), 100) ((import fxd), (import fxc), -1, 0, 0):((import fxd), (import fxc), -1, 0, 0) then fx_hist:("u1 r0 o-1 n1")
+given editor_fixture_setup("abc") ((import fixture_document), (import fixture_control), 1, 0, 0):((import fixture_document), (import fixture_control), 1, 0, 0) then editor_fixture_selection:("0:1-0:1")
+given editor_fixture_setup("abc") given typing_set(5) ((import fixture_document), (import fixture_control), 1, 5, 1):((import fixture_document), (import fixture_control), 1, 5, 1) then editor_fixture_selection:("0:0-0:3") then (import editor_typing_row)[0]:(-1)
+given editor_fixture_setup("abc") given editor_type((import fixture_document), (import fixture_control), 100) ((import fixture_document), (import fixture_control), -1, 0, 0):((import fixture_document), (import fixture_control), -1, 0, 0) then editor_fixture_history:("u1 r0 o-1 n1")
 
 // Picks the hook for the line and page units and the plain move for the others.
-ed_move_to(Doc d, Ctl ctl, int dir, int unit, int extend) {
+editor_move_to(Doc d, Ctl ctl, int editor_move_to_direction, int unit, int extend) {
   if(unit == (import ed_u_line) || unit == (import ed_u_page)) {
-    ed_move_hook(d, ctl, dir, unit, extend);
+    editor_move_hook(d, ctl, editor_move_to_direction, unit, extend);
   } else {
-    ed_move_pos(d, ctl, dir, unit, extend);
+    editor_move_position(d, ctl, editor_move_to_direction, unit, extend);
   }
 } return void;
-given fx_setup("ab|cde|f") given fx_at(1, 1, 1, 1) ((import fxd), (import fxc), 1, 2, 0):((import fxd), (import fxc), 1, 2, 0) then fx_sel:("2:1-2:1")
-given fx_setup("ab|cde|f") given fx_at(1, 1, 1, 1) ((import fxd), (import fxc), 1, 0, 0):((import fxd), (import fxc), 1, 0, 0) then fx_sel:("1:2-1:2")
+given editor_fixture_setup("ab|cde|f") given editor_fixture_selection_at(1, 1, 1, 1) ((import fixture_document), (import fixture_control), 1, 2, 0):((import fixture_document), (import fixture_control), 1, 2, 0) then editor_fixture_selection:("2:1-2:1")
+given editor_fixture_setup("ab|cde|f") given editor_fixture_selection_at(1, 1, 1, 1) ((import fixture_document), (import fixture_control), 1, 0, 0):((import fixture_document), (import fixture_control), 1, 0, 0) then editor_fixture_selection:("1:2-1:2")

@@ -1,60 +1,60 @@
 // Argument wai_i of the command line as a string, or "" when the line has fewer.
-cli_arg(int argc, string[] argv, int wai_i) {
-  string was_a = "";
-  if(wai_i < argc) {
-    was_a = argv[wai_i];
+cli_argument_at(int argc, string[] argv, int cli_argument_index) {
+  string cli_argument_value = "";
+  if(cli_argument_index < argc) {
+    cli_argument_value = argv[cli_argument_index];
   }
-} return string was_a;
+} return string cli_argument_value;
 (3, ["quill", "a", "b"], 2):("b")
 (3, ["quill", "a", "b"], 3):("")
 
 // The number that follows the option was_name among the arguments from the fifth on (the first is the program, then the mode, the input and the output), as in `--page 2`; wai_def when it is not given.
-cli_opt(int argc, string[] argv, string was_name, int wai_def) {
-  int wai_k = 4;
-  int wai_v = wai_def;
-  while(wai_k + 1 < argc) {
-    if(argv[wai_k] == was_name) {
-      wai_v = to_int(argv[wai_k + 1]);
+cli_option_number(int argc, string[] argv, string was_name, int cli_option_default) {
+  int cli_option_position = 4;
+  int cli_option_value = cli_option_default;
+  while(cli_option_position + 1 < argc) {
+    if(argv[cli_option_position] == was_name) {
+      cli_option_value = to_int(argv[cli_option_position + 1]);
     }
-    wai_k = wai_k + 2;
+    cli_option_position = cli_option_position + 2;
   }
-} return int wai_v;
+} return int cli_option_value;
 (6, ["quill", "--render", "a", "b", "--zoom", "50"], "--zoom", 100):(50)
 (4, ["quill", "--render", "a", "b"], "--zoom", 100):(100)
 (8, ["quill", "--render", "a", "b", "--page", "3", "--zoom", "50"], "--page", 1):(3)
 
 // What the program does for its command line, whose modes are the test surface of the oracle driver (docs/QUILL.md 4.9): --text, --dump, --roundtrip, --pages and --render read a file and print or write what it comes to, --script replays a script on a document without a window, and a file name (or nothing) opens the window. Answers 0, or the status of the mode; a line that is none of them says how to write one, on stderr, and answers 2.
 cli_main(int argc, string[] argv) {
-  string was_m = cli_arg(argc, argv, 1);
-  int wai_rc = 2;
-  if(was_m == "--text" && argc == 3) {
-    wai_rc = cli_doc(argv[2], 0);
+  string cli_main_mode = cli_argument_at(argc, argv, 1);
+  int cli_main_status = 2;
+  if(cli_main_mode == "--text" && argc == 3) {
+    cli_main_status = cli_doc(argv[2], 0);
   }
 } chain (int argc, string[] argv) {
-  if(was_m == "--dump" && argc == 3) {
-    wai_rc = cli_doc(argv[2], 1);
+  if(cli_main_mode == "--dump" && argc == 3) {
+    cli_main_status = cli_doc(argv[2], 1);
   }
-  if(was_m == "--roundtrip" && argc == 4) {
-    wai_rc = cli_round(argv[2], argv[3]);
+  if(cli_main_mode == "--roundtrip" && argc == 4) {
+    cli_main_status = cli_round(argv[2], argv[3]);
   }
-  if(was_m == "--pages" && argc == 3) {
-    wai_rc = cli_pages(argv[2]);
-  }
-} chain (int argc, string[] argv) {
-  if(was_m == "--script" && argc >= 3 && argc <= 5) {
-    wai_rc = cli_script(argv[2], cli_arg(argc, argv, 3), cli_arg(argc, argv, 4));
-  }
-  if(was_m == "--render" && argc >= 4) {
-    wai_rc = cli_render(argc, argv);
-  }
-  if(argc == 1 || (argc == 2 && str_starts(was_m, "--") == 0)) {
-    wai_rc = app_main(was_m, 1);
+  if(cli_main_mode == "--pages" && argc == 3) {
+    cli_main_status = cli_pages(argv[2]);
   }
 } chain (int argc, string[] argv) {
-  if(wai_rc == 2) {
+  if(cli_main_mode == "--script" && argc >= 3 && argc <= 5) {
+    cli_main_status = cli_script(argv[2], cli_argument_at(argc, argv, 3), cli_argument_at(argc, argv, 4));
+  }
+  if(cli_main_mode == "--render" && argc >= 4) {
+    cli_main_status = cli_render(argc, argv);
+  }
+  if(argc == 1 || (argc == 2 && str_starts(cli_main_mode, "--") == 0)) {
+    cli_main_status = app_main(cli_main_mode, 1);
+  }
+} chain (int argc, string[] argv) {
+  if(cli_main_status == 2) {
     eprint("usage: quill [FILE.odt] | --text IN.odt | --dump IN.odt | --roundtrip IN.odt OUT.odt | --pages IN.odt | --render IN.odt OUT.ppm [--page N] [--zoom Z] | --script FILE [IN.odt [OUT.odt]]");
   }
-} return int wai_rc;
+} return int cli_main_status;
 (2, ["quill", "--bogus"]):(2) then eprints:("usage: quill [FILE.odt] | --text IN.odt | --dump IN.odt | --roundtrip IN.odt OUT.odt | --pages IN.odt | --render IN.odt OUT.ppm [--page N] [--zoom Z] | --script FILE [IN.odt [OUT.odt]]\n")
 (3, ["quill", "--text", "/nonexistent/none.odt"]):(1) then eprints:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/none.odt]\n")
 (4, ["quill", "--render", "/nonexistent/none.odt", "/nonexistent/o.ppm"]):(1) then eprints:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/none.odt]\n")

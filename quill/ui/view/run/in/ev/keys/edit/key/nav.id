@@ -1,47 +1,47 @@
 // What the key cvi_key (1001 to 1013) with the modifiers cvi_mods does to the caret when it is a movement key: the caret moves by the direction and unit the key tables give (with Ctrl, the Ctrl ones), and with Shift the selection grows instead of collapsing. Any other key leaves everything as it is.
-cv_nav(View cvv, int cvi_key, int cvi_mods) {
-  int cvi_i = cvi_key - 1001;
-  int cvi_c = (cvi_mods & 2) != 0;
-  int cvi_e = (cvi_mods & 1) != 0;
-} chain (View cvv, int cvi_key, int cvi_mods) {
-  if(cvi_i >= 0 && cvi_i < 13) {
-    cv_step(cvv, cvi_i, cvi_c, cvi_e);
+view_input_caret_key(View view_input_navigate_view, int view_input_navigate_key, int view_input_navigate_modifiers) {
+  int view_input_navigate_index = view_input_navigate_key - 1001;
+  int view_input_navigate_control = (view_input_navigate_modifiers & 2) != 0;
+  int view_input_navigate_extend = (view_input_navigate_modifiers & 1) != 0;
+} chain (View view_input_navigate_view, int view_input_navigate_key, int view_input_navigate_modifiers) {
+  if(view_input_navigate_index >= 0 && view_input_navigate_index < 13) {
+    view_input_caret_step(view_input_navigate_view, view_input_navigate_index, view_input_navigate_control, view_input_navigate_extend);
   }
 } return void;
-given cv_t_ed("AB AB AB") given ed_move((import lp_t_d), (import vw_ctl), 1, 5, 0) ((import lp_t_v), 1001, 0):() then cv_t_sel:("0:7-0:7")
-given cv_t_ed("AB AB AB") ((import lp_t_v), 1002, 1):() then cv_t_sel:("0:0-0:1")
-given cv_t_ed("AB AB AB") ((import lp_t_v), 97, 0):() then cv_t_sel:("0:0-0:0")
+given view_flow_test_open_edit("AB AB AB") given editor_move((import layout_paragraph_test_document), (import view_input_controller), 1, 5, 0) ((import layout_paragraph_test_view), 1001, 0):() then view_flow_test_selection_text:("0:7-0:7")
+given view_flow_test_open_edit("AB AB AB") ((import layout_paragraph_test_view), 1002, 1):() then view_flow_test_selection_text:("0:0-0:1")
+given view_flow_test_open_edit("AB AB AB") ((import layout_paragraph_test_view), 97, 0):() then view_flow_test_selection_text:("0:0-0:0")
 
 // Moves the caret as movement key number cvi_i (the key less 1001) says, with Ctrl when cvi_c is 1 and extending the selection when cvi_e is 1. A key that is no movement (dir 0 in the tables) does nothing.
-cv_step(View cvv, int cvi_i, int cvi_c, int cvi_e) {
-  Ctl cvc = (import vw_ctl);
-  int[] cvl_d = (import cv_k_dir);
-  int[] cvl_u = (import cv_k_unit);
-} chain (View cvv, int cvi_i, int cvi_c, int cvi_e) {
-  if(cvi_c == 1) {
-    cvl_d = (import cv_k_cdir);
-    cvl_u = (import cv_k_cunit);
+view_input_caret_step(View view_input_step_view, int view_input_step_index, int view_input_step_control, int view_input_step_extend) {
+  Ctl view_input_step_controller = (import view_input_controller);
+  int[] view_input_step_directions = (import cv_k_dir);
+  int[] view_input_step_units = (import cv_k_unit);
+} chain (View view_input_step_view, int view_input_step_index, int view_input_step_control, int view_input_step_extend) {
+  if(view_input_step_control == 1) {
+    view_input_step_directions = (import cv_k_cdir);
+    view_input_step_units = (import cv_k_cunit);
   }
-  if(cvl_d[cvi_i] != 0) {
-    ed_move(cvv.doc, cvc, cvl_d[cvi_i], cvl_u[cvi_i], cvi_e);
+  if(view_input_step_directions[view_input_step_index] != 0) {
+    editor_move(view_input_step_view.doc, view_input_step_controller, view_input_step_directions[view_input_step_index], view_input_step_units[view_input_step_index], view_input_step_extend);
   }
 } return void;
-given cv_t_ed("AB AB AB") ((import lp_t_v), 1, 0, 0):() then cv_t_sel:("0:1-0:1")
-given cv_t_ed("AB AB AB") ((import lp_t_v), 3, 0, 0):() then cv_t_sel:("0:3-0:3")
-given cv_t_ed("AB AB AB") ((import lp_t_v), 1, 1, 0):() then cv_t_sel:("0:3-0:3")
-given cv_t_ed("AB AB AB") ((import lp_t_v), 3, 1, 1):() then cv_t_sel:("0:0-0:8")
-given cv_t_ed("AB AB AB") ((import lp_t_v), 7, 0, 0):() then cv_t_sel:("0:0-0:0")
+given view_flow_test_open_edit("AB AB AB") ((import layout_paragraph_test_view), 1, 0, 0):() then view_flow_test_selection_text:("0:1-0:1")
+given view_flow_test_open_edit("AB AB AB") ((import layout_paragraph_test_view), 3, 0, 0):() then view_flow_test_selection_text:("0:3-0:3")
+given view_flow_test_open_edit("AB AB AB") ((import layout_paragraph_test_view), 1, 1, 0):() then view_flow_test_selection_text:("0:3-0:3")
+given view_flow_test_open_edit("AB AB AB") ((import layout_paragraph_test_view), 3, 1, 1):() then view_flow_test_selection_text:("0:0-0:8")
+given view_flow_test_open_edit("AB AB AB") ((import layout_paragraph_test_view), 7, 0, 0):() then view_flow_test_selection_text:("0:0-0:0")
 
 // What a key cvi_key with the modifiers cvi_mods does when the table has no command for it (cvi_cmd is 0) and no Alt or Super is held: it moves the caret, or it is Backspace, Delete, Enter or Tab and changes the text.
-cv_edit(View cvv, int cvi_key, int cvi_mods, int cvi_cmd) {
-  int cvi_c = (cvi_mods & 2) != 0;
-  int cvi_p = cvi_cmd == 0 && (cvi_mods & 12) == 0;
-  if(cvi_p == 1) {
-    cv_nav(cvv, cvi_key, cvi_mods);
-    cv_chg(cvv, cvi_key, cvi_c);
+view_input_key_edit(View view_input_edit_view, int view_input_edit_key, int view_input_edit_modifiers, int view_input_edit_command_number) {
+  int view_input_edit_control = (view_input_edit_modifiers & 2) != 0;
+  int view_input_edit_plain = view_input_edit_command_number == 0 && (view_input_edit_modifiers & 12) == 0;
+  if(view_input_edit_plain == 1) {
+    view_input_caret_key(view_input_edit_view, view_input_edit_key, view_input_edit_modifiers);
+    view_input_text_change(view_input_edit_view, view_input_edit_key, view_input_edit_control);
   }
 } return void;
-given cv_t_ed("AB AB AB") ((import lp_t_v), 1002, 0, 0):() then cv_t_sel:("0:1-0:1")
-given cv_t_ed("AB AB AB") ((import lp_t_v), 1002, 0, 5):() then cv_t_sel:("0:0-0:0")
-given cv_t_ed("AB AB AB") ((import lp_t_v), 1002, 4, 0):() then cv_t_sel:("0:0-0:0")
-given cv_t_ed("AB AB") given ed_move((import lp_t_d), (import vw_ctl), 1, 5, 0) ((import lp_t_v), 1007, 2, 0):() then cv_t_dump:("AB ")
+given view_flow_test_open_edit("AB AB AB") ((import layout_paragraph_test_view), 1002, 0, 0):() then view_flow_test_selection_text:("0:1-0:1")
+given view_flow_test_open_edit("AB AB AB") ((import layout_paragraph_test_view), 1002, 0, 5):() then view_flow_test_selection_text:("0:0-0:0")
+given view_flow_test_open_edit("AB AB AB") ((import layout_paragraph_test_view), 1002, 4, 0):() then view_flow_test_selection_text:("0:0-0:0")
+given view_flow_test_open_edit("AB AB") given editor_move((import layout_paragraph_test_document), (import view_input_controller), 1, 5, 0) ((import layout_paragraph_test_view), 1007, 2, 0):() then view_flow_test_dump_text:("AB ")

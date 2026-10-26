@@ -1,12 +1,12 @@
 // A key the ribbon and the shortcut table did not want: Page Up and Page Down (with Shift the selection grows) move a screenful (wa_page); any other key is the canvas's (vw_key: the zoom keys, caret movement, editing).
-wa_plain(App waa, int wai_key, int wai_mods) {
-  int wai_pg = wai_key == (import wa_k_pgup) || wai_key == (import wa_k_pgdn);
-  if(wai_pg == 1) {
-    wa_page(waa, 2 * (wai_key - (import wa_k_pgup)) - 1, wai_mods & 1);
+app_key_plain(App app_plain_application, int app_plain_key, int app_plain_modifiers) {
+  int app_plain_paging = app_plain_key == (import wa_k_pgup) || app_plain_key == (import wa_k_pgdn);
+  if(app_plain_paging == 1) {
+    app_page_scroll(app_plain_application, 2 * (app_plain_key - (import wa_k_pgup)) - 1, app_plain_modifiers & 1);
   }
-  if(wai_pg == 0) {
-    vw_key(waa.ui.view, wai_key, wai_mods, vw_box("canvas", 3));
+  if(app_plain_paging == 0) {
+    view_input_key_handle(app_plain_application.ui.view, app_plain_key, app_plain_modifiers, view_box_field("canvas", 3));
   }
 } return void;
-given wa_t_app given wa_t_lines(3) given sf_l_init(500, 700) given vw_fit_all((import vw_v)) ((import wa_app), 1012, 0):() then cv_t_sel:("0:0-0:0")
-given wa_t_app ((import wa_app), 97, 0):() then wa_t_text:("")
+given cli_test_boot_app given app_test_fill_lines(3) given sf_l_init(500, 700) given view_input_window_fit((import view_input_viewer_view)) ((import cli_application), 1012, 0):() then view_flow_test_selection_text:("0:0-0:0")
+given cli_test_boot_app ((import cli_application), 97, 0):() then cli_test_document_text:("")

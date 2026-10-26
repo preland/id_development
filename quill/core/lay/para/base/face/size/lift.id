@@ -1,19 +1,19 @@
 // How far a run's baseline is raised, in lu, positive up: a superscript (bit 16) rises quill_layout_superscript_lift percent of the run's nominal pixel size, a subscript (bit 32) drops quill_layout_subscript_drop percent, anything else stays on the line. Drawing reads this too, so the glyphs sit where layout measured them.
 // By hand at 12 pt (16 px = 1024 lu): 1024 * 33 / 100 = 337 up; a 24 pt run (2048 lu) lifts 675.
-face_lift(Doc d, int pstyle, int cprop) {
-  int bits = style_eff_c(d.fmt, pstyle, cprop, (import quill_character_on));
-  int hp = style_eff_c(d.fmt, pstyle, cprop, (import quill_character_size));
-  int lu = face_px(hp, 0, (import quill_layout_zoom)) * 64;
-} chain (Doc d, int pstyle, int cprop) {
+face_lift(Doc lift_document, int lift_paragraph_style, int lift_character_row) {
+  int bits = document_style_effective_character(lift_document.fmt, lift_paragraph_style, lift_character_row, (import quill_character_on));
+  int lift_half_points = document_style_effective_character(lift_document.fmt, lift_paragraph_style, lift_character_row, (import quill_character_size));
+  int lift_units = face_pixel_size(lift_half_points, 0, (import quill_layout_zoom)) * 64;
+} chain (Doc lift_document, int lift_paragraph_style, int lift_character_row) {
   int lift = 0;
   if((bits & 16) != 0) {
-    lift = lu * (import quill_layout_superscript_lift) / 100;
+    lift = lift_units * (import quill_layout_superscript_lift) / 100;
   }
   if((bits & 32) != 0) {
-    lift = 0 - lu * (import quill_layout_subscript_drop) / 100;
+    lift = 0 - lift_units * (import quill_layout_subscript_drop) / 100;
   }
 } return int lift;
-given lp_t_new given lp_t_rows ((import lp_t_d), 0, (import lp_t_cs)):(337)
-given lp_t_new given lp_t_rows ((import lp_t_d), 0, (import lp_t_cd)):(-337)
-given lp_t_new given lp_t_rows ((import lp_t_d), 0, (import lp_t_cb)):(0)
-given lp_t_new given lp_t_rows ((import lp_t_d), 0, 0):(0)
+given layout_paragraph_test_new given layout_paragraph_test_character_rows ((import layout_paragraph_test_document), 0, (import layout_paragraph_test_superscript_row)):(337)
+given layout_paragraph_test_new given layout_paragraph_test_character_rows ((import layout_paragraph_test_document), 0, (import layout_paragraph_test_subscript_row)):(-337)
+given layout_paragraph_test_new given layout_paragraph_test_character_rows ((import layout_paragraph_test_document), 0, (import layout_paragraph_test_bold_row)):(0)
+given layout_paragraph_test_new given layout_paragraph_test_character_rows ((import layout_paragraph_test_document), 0, 0):(0)

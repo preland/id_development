@@ -3,7 +3,7 @@ cli_para(Para p) {
   string[] pieces = [];
   int i = 0;
   while(i < len(p.txt.cps)) {
-    push(pieces, cli_cp(p.txt.cps[i]));
+    push(pieces, cli_code_point_text(p.txt.cps[i]));
     i = i + 1;
   }
 } chain (Para p) {
@@ -16,15 +16,15 @@ cli_para(Para p) {
 (Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 0)):("")
 
 // One code point as plain text.
-cli_cp(int cp) {
-  string s = utf8_string(cp);
+cli_code_point_text(int cp) {
+  string cli_code_point_string = utf8_string(cp);
   if(cp >= (import quill_object_marker)) {
-    s = "";
+    cli_code_point_string = "";
   }
   if(cp == (import orc_cp_break)) {
-    s = "\n";
+    cli_code_point_string = "\n";
   }
-} return string s;
+} return string cli_code_point_string;
 (65):("A")
 (233):("é")
 (983040):("")

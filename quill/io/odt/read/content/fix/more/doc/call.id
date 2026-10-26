@@ -1,26 +1,26 @@
 // Test fixture: reads the head of orc_tc up to office:text, as a case's setup (orc_styles answers an event, and a setup answers nothing).
-orc_t_head() {
-  Cx cx = (import orc_tc);
-  int at = orc_styles(cx);
+odt_read_fixture_read_head() {
+  Odt_Read_Context odt_read_fixture_head_context = (import odt_read_fixture_context);
+  int at = orc_styles(odt_read_fixture_head_context);
 } return void;
-given orc_t_open("<r><office:text/></r>") ():() then (import orc_tc).cs.slots:([0, 0, 0, 0, 3, 0, 0, 0])
-given orc_t_open("<r><style:style style:name='P1' style:family='paragraph'/><office:text/></r>") ():() then orc_t_names:("")
+given odt_read_fixture_open("<r><office:text/></r>") ():() then (import odt_read_fixture_context).cs.slots:([0, 0, 0, 0, 3, 0, 0, 0])
+given odt_read_fixture_open("<r><style:style style:name='P1' style:family='paragraph'/><office:text/></r>") ():() then odt_read_fixture_style_offsets:("")
 
 // Test fixture: keeps the element that has just started in orc_tc as a part, as the opaque readers do.
-orc_t_raw(int ev) {
-  Cx cx = (import orc_tc);
-  int idx = orc_raw(cx, ev);
+odt_read_fixture_keep_element(int odt_read_fixture_raw_event) {
+  Odt_Read_Context odt_read_fixture_raw_context = (import odt_read_fixture_context);
+  int odt_read_fixture_raw_part_index = orc_raw(odt_read_fixture_raw_context, odt_read_fixture_raw_event);
 } return void;
-given orc_t_open("<a/>") given orc_t_steps(1) (4):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | a:0:<a/>,")
-given orc_t_open("<b><c/></b>") given orc_t_steps(1) (1):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | b:0:<b><c/></b>,")
+given odt_read_fixture_open("<a/>") given odt_read_fixture_step_events(1) (4):() then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0} |  | a:0:<a/>,")
+given odt_read_fixture_open("<b><c/></b>") given odt_read_fixture_step_events(1) (1):() then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0} |  | b:0:<b><c/></b>,")
 
 // Test fixture: adds an empty paragraph to orc_tc that has the paragraph row of the paragraph element that has just started.
-orc_t_prop() {
-  Cx cx = (import orc_tc);
-  int pp = orc_pprop(cx);
+odt_read_fixture_add_paragraph() {
+  Odt_Read_Context odt_read_fixture_prop_context = (import odt_read_fixture_context);
+  int pp = odt_read_paragraph_row(odt_read_fixture_prop_context);
   Para p = para_make(text_new(0), pp);
 } chain () {
-  push(cx.d.body.paras, p);
+  push(odt_read_fixture_prop_context.d.body.paras, p);
 } return void;
-given orc_t_open("<text:h text:outline-level='1'/>") given orc_t_steps(1) ():() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0}\nP9  0:0:-1, {3,0,0,0,0} |  | ")
-given orc_t_open("<text:p/>") given orc_t_steps(1) ():() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0}\nP0  0:0:-1, {0,0,0,0,0} |  | ")
+given odt_read_fixture_open("<text:h text:outline-level='1'/>") given odt_read_fixture_step_events(1) ():() then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0}\nP9  0:0:-1, {3,0,0,0,0} |  | ")
+given odt_read_fixture_open("<text:p/>") given odt_read_fixture_step_events(1) ():() then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0}\nP0  0:0:-1, {0,0,0,0,0} |  | ")

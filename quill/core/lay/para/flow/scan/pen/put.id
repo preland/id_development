@@ -1,29 +1,29 @@
 // Writes x as pen entry k: it overwrites a cell a previous line's scan already filled, or appends the next one, so the list is refilled in place and never rebuilt.
-lp_put(int[] pen, int k, int xp) {
-  if(k < len(pen)) {
-    pen[k] = xp;
+layout_paragraph_put(int[] pen, int put_position, int put_origin) {
+  if(put_position < len(pen)) {
+    pen[put_position] = put_origin;
   } else {
-    push(pen, xp);
+    push(pen, put_origin);
   }
 } return void;
 ([5, 6, 7], 1, 9):([5, 9, 7])
 ([5], 1, 9):([5, 9])
 
 // The code point after cps[k], or 0 at the end, which is how gui_cp_adv is told there is nothing to kern against.
-lp_nx(int[] cps, int k) {
-  int nx = 0;
-  if(k + 1 < len(cps)) {
-    nx = cps[k + 1];
+layout_paragraph_next_code_point(int[] next_code_points, int next_position) {
+  int next_value = 0;
+  if(next_position + 1 < len(next_code_points)) {
+    next_value = next_code_points[next_position + 1];
   }
-} return int nx;
+} return int next_value;
 ([65, 66], 0):(66)
 ([65, 66], 1):(0)
 
 // The distance from pen position x to the next default tab stop (a multiple of quill_layout_tab_stop measured from the text area's left edge); a pen already on a stop moves a whole stop. A negative x counts as 0.
 // By hand with stops every 3072: from 0 it is 3072; from 100, 3072 - 100 = 2972; from 3072, 3072; from 3100, 6144 - 3100 = 3044.
-lp_tab(int xp) {
-  int m = fixed_point_maximum(xp, 0);
-  int got = (import quill_layout_tab_stop) - m % (import quill_layout_tab_stop);
+layout_paragraph_tab_advance(int tab_origin) {
+  int tab_clamped = fixed_point_maximum(tab_origin, 0);
+  int got = (import quill_layout_tab_stop) - tab_clamped % (import quill_layout_tab_stop);
 } return int got;
 (0):(3072)
 (100):(2972)

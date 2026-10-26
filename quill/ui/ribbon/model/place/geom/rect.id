@@ -1,10 +1,10 @@
-rect_hit(int[] rects, int ia, int ib) {
-  int rp = ia * 4;
-  int q = ib * 4;
-  int hx = (rects[rp] < rects[q] + rects[q + 2]) && (rects[q] < rects[rp] + rects[rp + 2]);
-} chain (int[] rects, int ia, int ib) {
-  int hy = (rects[rp + 1] < rects[q + 1] + rects[q + 3]) && (rects[q + 1] < rects[rp + 1] + rects[rp + 3]);
-  int hit = hx * hy;
+rect_hit(int[] ribbon_hit_rectangles, int ribbon_hit_first, int ribbon_hit_second) {
+  int ribbon_hit_first_start = ribbon_hit_first * 4;
+  int q = ribbon_hit_second * 4;
+  int ribbon_hit_across = (ribbon_hit_rectangles[ribbon_hit_first_start] < ribbon_hit_rectangles[q] + ribbon_hit_rectangles[q + 2]) && (ribbon_hit_rectangles[q] < ribbon_hit_rectangles[ribbon_hit_first_start] + ribbon_hit_rectangles[ribbon_hit_first_start + 2]);
+} chain (int[] ribbon_hit_rectangles, int ribbon_hit_first, int ribbon_hit_second) {
+  int ribbon_hit_down = (ribbon_hit_rectangles[ribbon_hit_first_start + 1] < ribbon_hit_rectangles[q + 1] + ribbon_hit_rectangles[q + 3]) && (ribbon_hit_rectangles[q + 1] < ribbon_hit_rectangles[ribbon_hit_first_start + 1] + ribbon_hit_rectangles[ribbon_hit_first_start + 3]);
+  int hit = ribbon_hit_across * ribbon_hit_down;
 } return int hit;
 ([0, 0, 10, 10, 5, 5, 10, 10], 0, 1):(1)
 ([0, 0, 10, 10, 10, 0, 10, 10], 0, 1):(0)
@@ -12,23 +12,23 @@ rect_hit(int[] rects, int ia, int ib) {
 ([10, 0, 10, 10, 0, 0, 10, 10], 0, 1):(0)
 ([0, 10, 10, 10, 0, 0, 10, 10], 0, 1):(0)
 
-rect_row_hits(int[] rects, int ia, int n) {
+rect_row_hits(int[] ribbon_row_hits_rectangles, int ribbon_row_hits_first, int n) {
   int hits = 0;
-  int ib = ia + 1;
-  while(ib < n) {
-    hits = hits + rect_hit(rects, ia, ib);
-    ib = ib + 1;
+  int ribbon_row_hits_second = ribbon_row_hits_first + 1;
+  while(ribbon_row_hits_second < n) {
+    hits = hits + rect_hit(ribbon_row_hits_rectangles, ribbon_row_hits_first, ribbon_row_hits_second);
+    ribbon_row_hits_second = ribbon_row_hits_second + 1;
   }
 } return int hits;
 ([0, 0, 10, 10, 5, 5, 10, 10, 8, 8, 4, 4], 0, 3):(2)
 ([0, 0, 10, 10, 5, 5, 10, 10, 8, 8, 4, 4], 2, 3):(0)
 
-rects_overlap(int[] rects, int n) {
+ribbon_rectangles_overlap(int[] ribbon_overlap_rectangles, int n) {
   int total = 0;
-  int ia = 0;
-  while(ia < n) {
-    total = total + rect_row_hits(rects, ia, n);
-    ia = ia + 1;
+  int ribbon_overlap_first = 0;
+  while(ribbon_overlap_first < n) {
+    total = total + rect_row_hits(ribbon_overlap_rectangles, ribbon_overlap_first, n);
+    ribbon_overlap_first = ribbon_overlap_first + 1;
   }
 } return int total;
 ([8, 4, 52, 66, 62, 4, 24, 22, 62, 26, 24, 22, 98, 4, 120, 22, 220, 4, 44, 22, 266, 4, 24, 22, 292, 4, 24, 22, 98, 26, 24, 22, 124, 26, 24, 22, 150, 26, 24, 22, 176, 26, 24, 22, 202, 26, 24, 22, 228, 26, 24, 22, 254, 26, 36, 22, 292, 26, 36, 22, 330, 26, 24, 22, 366, 4, 36, 22, 404, 4, 36, 22, 442, 4, 24, 22, 468, 4, 24, 22, 366, 26, 24, 22, 392, 26, 24, 22, 418, 26, 24, 22, 444, 26, 24, 22, 470, 26, 40, 22, 522, 4, 440, 66, 974, 4, 64, 22, 974, 26, 64, 22, 974, 48, 64, 22, 4, 0, 86, 92, 94, 0, 264, 92, 362, 0, 152, 92, 518, 0, 448, 92, 970, 0, 72, 92], 29):(0)

@@ -1,42 +1,42 @@
 // Places paragraph lgi on the pages. lgs is the state of the walk, [y, used, base]: where the next paragraph starts on the current page, whether the page holds a line yet, and the y on the page of the current paragraph's own top. A paragraph that asks for a page break starts a new page unless the page is empty; its lines are then placed one by one, and the next paragraph starts where it ends.
-lay_place(View lgv, int lgi, int[] lgs) {
-  lay_brk(lgv, lgi, lgs);
-  lset(lgs, 2, lgs[0]);
-  if(len(lgv.pages.tops) <= lgi) {
-    push(lgv.pages.tops, 0);
+lay_place(View page_view, int paragraph_index, int[] walk_state) {
+  layout_page_break(page_view, paragraph_index, walk_state);
+  lset(walk_state, 2, walk_state[0]);
+  if(len(page_view.pages.tops) <= paragraph_index) {
+    push(page_view.pages.tops, 0);
   }
-} chain (View lgv, int lgi, int[] lgs) {
-  lay_lines(lgv, lgi, 0, lgs);
-  lset(lgs, 0, lgs[2] + lgv.doc.body.paras[lgi].lay.h);
+} chain (View page_view, int paragraph_index, int[] walk_state) {
+  lay_lines(page_view, paragraph_index, 0, walk_state);
+  lset(walk_state, 0, walk_state[2] + page_view.doc.body.paras[paragraph_index].lay.h);
 } return void;
-given lp_t_font given lp_t_paras(2) given lay_all((import lp_t_v)) given lay_pages_reset((import lp_t_v)) given lg_t_s0(0, 0, 0) ((import lp_t_v), 0, (import lg_t_s)):() then lg_t_state:("1664,1,0,") then (import lp_t_v).pages.tops:([6144])
-given lp_t_font given lp_t_paras(2) given lay_all((import lp_t_v)) given lay_pages_reset((import lp_t_v)) given lg_t_s0(1600, 1, 0) given lg_t_zeros(1) ((import lp_t_v), 1, (import lg_t_s)):() then lg_t_state:("3264,1,1600,") then (import lp_t_v).pages.tops:([0, 7744])
+given layout_paragraph_test_font given layout_paragraph_test_paragraphs(2) given lay_all((import layout_paragraph_test_view)) given lay_pages_reset((import layout_paragraph_test_view)) given layout_page_test_walk_set(0, 0, 0) ((import layout_paragraph_test_view), 0, (import layout_page_test_walk)):() then layout_page_test_state:("1664,1,0,") then (import layout_paragraph_test_view).pages.tops:([6144])
+given layout_paragraph_test_font given layout_paragraph_test_paragraphs(2) given lay_all((import layout_paragraph_test_view)) given lay_pages_reset((import layout_paragraph_test_view)) given layout_page_test_walk_set(1600, 1, 0) given layout_page_test_zeros(1) ((import layout_paragraph_test_view), 1, (import layout_page_test_walk)):() then layout_page_test_state:("3264,1,1600,") then (import layout_paragraph_test_view).pages.tops:([0, 7744])
 
 
 // A paragraph whose row says break before starts a new page, unless the page is empty already.
-lay_brk(View lgv, int lgi, int[] lgs) {
-  Para lgpa = lgv.doc.body.paras[lgi];
-  int lgb = style_eff_p(lgv.doc.fmt, lgpa.pprop, (import quill_paragraph_break_before));
-  if(lgb == 1 && lgs[1] == 1) {
-    lay_page_open(lgv, lgi, 0);
-    lset(lgs, 0, 0);
-    lset(lgs, 1, 0);
+layout_page_break(View page_view, int paragraph_index, int[] walk_state) {
+  Para subject_paragraph = page_view.doc.body.paras[paragraph_index];
+  int break_before = document_style_effective_paragraph(page_view.doc.fmt, subject_paragraph.pprop, (import quill_paragraph_break_before));
+  if(break_before == 1 && walk_state[1] == 1) {
+    lay_page_open(page_view, paragraph_index, 0);
+    lset(walk_state, 0, 0);
+    lset(walk_state, 1, 0);
   }
 } return void;
-given lp_t_new given lp_t_paras(2) given lp_t_row(1, 8, 1) given lay_pages_reset((import lp_t_v)) given lg_t_s0(500, 1, 500) ((import lp_t_v), 1, (import lg_t_s)):() then lg_t_state:("0,0,500,") then (import lp_t_v).pages.starts:([0, 0, 1, 0])
-given lp_t_new given lp_t_paras(2) given lp_t_row(1, 8, 1) given lay_pages_reset((import lp_t_v)) given lg_t_s0(500, 0, 500) ((import lp_t_v), 1, (import lg_t_s)):() then lg_t_state:("500,0,500,") then (import lp_t_v).pages.starts:([0, 0])
-given lp_t_new given lp_t_paras(2) given lp_t_row(1, 8, 1) given lay_pages_reset((import lp_t_v)) given lg_t_s0(500, 1, 500) ((import lp_t_v), 0, (import lg_t_s)):() then lg_t_state:("500,1,500,") then (import lp_t_v).pages.starts:([0, 0])
+given layout_paragraph_test_new given layout_paragraph_test_paragraphs(2) given layout_paragraph_test_set_property(1, 8, 1) given lay_pages_reset((import layout_paragraph_test_view)) given layout_page_test_walk_set(500, 1, 500) ((import layout_paragraph_test_view), 1, (import layout_page_test_walk)):() then layout_page_test_state:("0,0,500,") then (import layout_paragraph_test_view).pages.starts:([0, 0, 1, 0])
+given layout_paragraph_test_new given layout_paragraph_test_paragraphs(2) given layout_paragraph_test_set_property(1, 8, 1) given lay_pages_reset((import layout_paragraph_test_view)) given layout_page_test_walk_set(500, 0, 500) ((import layout_paragraph_test_view), 1, (import layout_page_test_walk)):() then layout_page_test_state:("500,0,500,") then (import layout_paragraph_test_view).pages.starts:([0, 0])
+given layout_paragraph_test_new given layout_paragraph_test_paragraphs(2) given layout_paragraph_test_set_property(1, 8, 1) given lay_pages_reset((import layout_paragraph_test_view)) given layout_page_test_walk_set(500, 1, 500) ((import layout_paragraph_test_view), 0, (import layout_page_test_walk)):() then layout_page_test_state:("500,1,500,") then (import layout_paragraph_test_view).pages.starts:([0, 0])
 
 
 // Places the lines of paragraph lgi one by one, from line lgf on: a page that starts in the middle of a paragraph resumes there.
-lay_lines(View lgv, int lgi, int lgf, int[] lgs) {
-  int lgn = len(lgv.doc.body.paras[lgi].lay.lines) / (import quill_line_stride);
-  int lgj = lgf;
-  while(lgj < lgn) {
-    lay_line(lgv, lgi, lgj, lgs);
-    lgj = lgj + 1;
+lay_lines(View page_view, int paragraph_index, int first_line, int[] walk_state) {
+  int line_count = len(page_view.doc.body.paras[paragraph_index].lay.lines) / (import quill_line_stride);
+  int line_index = first_line;
+  while(line_index < line_count) {
+    lay_line(page_view, paragraph_index, line_index, walk_state);
+    line_index = line_index + 1;
   }
 } return void;
-given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_ins(0, "AAAAAA") given lay_all((import lp_t_v)) given lay_pages_reset((import lp_t_v)) given lg_t_s0(0, 0, 0) given lg_t_zeros(1) ((import lp_t_v), 0, 0, (import lg_t_s)):() then (import lp_t_v).pages.starts:([0, 0]) then lg_t_state:("0,1,0,") then (import lp_t_v).pages.tops:([640])
-given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_ins(0, "AAAAAA") given lay_all((import lp_t_v)) given lay_pages_reset((import lp_t_v)) given lg_t_s0(0, 1, 9000) given lg_t_zeros(1) ((import lp_t_v), 0, 0, (import lg_t_s)):() then (import lp_t_v).pages.starts:([0, 0, 0, 1]) then lg_t_state:("0,1,-1152,") then (import lp_t_v).pages.tops:([9640])
-given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_ins(0, "AAAAAA") given lay_all((import lp_t_v)) given lay_pages_reset((import lp_t_v)) given lg_t_s0(0, 0, -1152) given lg_t_zeros(1) ((import lp_t_v), 0, 1, (import lg_t_s)):() then (import lp_t_v).pages.starts:([0, 0]) then lg_t_state:("0,1,-1152,") then (import lp_t_v).pages.tops:([0])
+given layout_paragraph_test_font given layout_page_test_page(1500, 3000, 150, 300, 450, 600) given layout_paragraph_test_insert(0, "AAAAAA") given lay_all((import layout_paragraph_test_view)) given lay_pages_reset((import layout_paragraph_test_view)) given layout_page_test_walk_set(0, 0, 0) given layout_page_test_zeros(1) ((import layout_paragraph_test_view), 0, 0, (import layout_page_test_walk)):() then (import layout_paragraph_test_view).pages.starts:([0, 0]) then layout_page_test_state:("0,1,0,") then (import layout_paragraph_test_view).pages.tops:([640])
+given layout_paragraph_test_font given layout_page_test_page(1500, 3000, 150, 300, 450, 600) given layout_paragraph_test_insert(0, "AAAAAA") given lay_all((import layout_paragraph_test_view)) given lay_pages_reset((import layout_paragraph_test_view)) given layout_page_test_walk_set(0, 1, 9000) given layout_page_test_zeros(1) ((import layout_paragraph_test_view), 0, 0, (import layout_page_test_walk)):() then (import layout_paragraph_test_view).pages.starts:([0, 0, 0, 1]) then layout_page_test_state:("0,1,-1152,") then (import layout_paragraph_test_view).pages.tops:([9640])
+given layout_paragraph_test_font given layout_page_test_page(1500, 3000, 150, 300, 450, 600) given layout_paragraph_test_insert(0, "AAAAAA") given lay_all((import layout_paragraph_test_view)) given lay_pages_reset((import layout_paragraph_test_view)) given layout_page_test_walk_set(0, 0, -1152) given layout_page_test_zeros(1) ((import layout_paragraph_test_view), 0, 1, (import layout_page_test_walk)):() then (import layout_paragraph_test_view).pages.starts:([0, 0]) then layout_page_test_state:("0,1,-1152,") then (import layout_paragraph_test_view).pages.tops:([0])

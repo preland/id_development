@@ -1,31 +1,31 @@
 // Draws lines vwi_jf to vwi_jt - 1 of paragraph vwi_p, whose own top is vwi_base lu down the page: an object as its box (when its one line is on this page), a list item's label before its first line, then the lines.
-vw_para(View vwv, int vwi_p, int[] vwl_g, int vwi_base, int vwi_jf, int vwi_jt) {
-  int vwi_o = lay_is_obj(vwv.doc, vwi_p);
-  if(vwi_o == 1 && vwi_jf == 0) {
-    vw_obj(vwv, vwi_p, vwl_g, vwi_base);
+view_flow_draw_paragraph(View view_flow_paragraph_view, int view_flow_paragraph_index, int[] view_flow_paragraph_geometry, int view_flow_paragraph_base_offset, int view_flow_paragraph_first_line, int view_flow_paragraph_end_line) {
+  int view_flow_paragraph_is_object = layout_page_is_object(view_flow_paragraph_view.doc, view_flow_paragraph_index);
+  if(view_flow_paragraph_is_object == 1 && view_flow_paragraph_first_line == 0) {
+    view_flow_draw_object(view_flow_paragraph_view, view_flow_paragraph_index, view_flow_paragraph_geometry, view_flow_paragraph_base_offset);
   }
-  if(vwi_o == 0 && vwi_jf == 0) {
-    vw_label(vwv, vwi_p, vwl_g, vwi_base);
+  if(view_flow_paragraph_is_object == 0 && view_flow_paragraph_first_line == 0) {
+    view_flow_draw_label(view_flow_paragraph_view, view_flow_paragraph_index, view_flow_paragraph_geometry, view_flow_paragraph_base_offset);
   }
-} chain (View vwv, int vwi_p, int[] vwl_g, int vwi_base, int vwi_jf, int vwi_jt) {
-  if(vwi_o == 0) {
-    vw_lines(vwv, vwi_p, vwl_g, vwi_base, vwi_jf, vwi_jt);
+} chain (View view_flow_paragraph_view, int view_flow_paragraph_index, int[] view_flow_paragraph_geometry, int view_flow_paragraph_base_offset, int view_flow_paragraph_first_line, int view_flow_paragraph_end_line) {
+  if(view_flow_paragraph_is_object == 0) {
+    view_flow_draw_lines(view_flow_paragraph_view, view_flow_paragraph_index, view_flow_paragraph_geometry, view_flow_paragraph_base_offset, view_flow_paragraph_first_line, view_flow_paragraph_end_line);
   }
 } return void;
-given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given sf_l_init(100, 60) given d2_l_rect(0, 0, 100, 60, 13619151) given vw_t_box0(10, 19, 21, 31) given vw_t_bg(13619151) ((import lp_t_v), 0, [10, 16, 100, 0, 0], 0, 0, 1):() then vw_t_inked:(1)
-given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given sf_l_init(100, 60) given d2_l_rect(0, 0, 100, 60, 13619151) given vw_t_box0(10, 19, 21, 31) given vw_t_bg(13619151) ((import lp_t_v), 0, [10, 16, 100, 0, 0], 0, 1, 1):() then vw_t_inked:(0)
-given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lg_t_obj(0) given lg_t_mark(0) given lp_t_ins(0, "[Table]") given lay_all((import lp_t_v)) given rbd_ui_set(1, 1, 1) given sf_l_init(100, 100) given d2_l_rect(0, 0, 100, 100, 13619151) given vw_t_box0(10, 10, 50, 82) given vw_t_bg(13619151) ((import lp_t_v), 0, [10, 10, 100, 0, 0], 0, 0, 1):() then vw_t_inked:(1)
-given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lg_t_obj(0) given lg_t_mark(0) given lp_t_ins(0, "[Table]") given lay_all((import lp_t_v)) given rbd_ui_set(1, 1, 1) given sf_l_init(100, 100) given d2_l_rect(0, 0, 100, 100, 13619151) given vw_t_box0(10, 10, 50, 82) given vw_t_bg(13619151) ((import lp_t_v), 0, [10, 10, 100, 0, 0], 0, 1, 1):() then vw_t_inked:(0)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BE") given lay_all((import layout_paragraph_test_view)) given sf_l_init(100, 60) given d2_l_rect(0, 0, 100, 60, 13619151) given view_test_remember_box(10, 19, 21, 31) given view_test_set_background(13619151) ((import layout_paragraph_test_view), 0, [10, 16, 100, 0, 0], 0, 0, 1):() then view_test_box_inked:(1)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BE") given lay_all((import layout_paragraph_test_view)) given sf_l_init(100, 60) given d2_l_rect(0, 0, 100, 60, 13619151) given view_test_remember_box(10, 19, 21, 31) given view_test_set_background(13619151) ((import layout_paragraph_test_view), 0, [10, 16, 100, 0, 0], 0, 1, 1):() then view_test_box_inked:(0)
+given layout_paragraph_test_font given layout_page_test_page(1500, 3000, 150, 300, 450, 600) given layout_page_test_object(0) given layout_page_test_mark(0) given layout_paragraph_test_insert(0, "[Table]") given lay_all((import layout_paragraph_test_view)) given ribbon_faces_set(1, 1, 1) given sf_l_init(100, 100) given d2_l_rect(0, 0, 100, 100, 13619151) given view_test_remember_box(10, 10, 50, 82) given view_test_set_background(13619151) ((import layout_paragraph_test_view), 0, [10, 10, 100, 0, 0], 0, 0, 1):() then view_test_box_inked:(1)
+given layout_paragraph_test_font given layout_page_test_page(1500, 3000, 150, 300, 450, 600) given layout_page_test_object(0) given layout_page_test_mark(0) given layout_paragraph_test_insert(0, "[Table]") given lay_all((import layout_paragraph_test_view)) given ribbon_faces_set(1, 1, 1) given sf_l_init(100, 100) given d2_l_rect(0, 0, 100, 100, 13619151) given view_test_remember_box(10, 10, 50, 82) given view_test_set_background(13619151) ((import layout_paragraph_test_view), 0, [10, 10, 100, 0, 0], 0, 1, 1):() then view_test_box_inked:(0)
 
 
 // Draws lines vwi_jf to vwi_jt - 1 of paragraph vwi_p, one after the other.
-vw_lines(View vwv, int vwi_p, int[] vwl_g, int vwi_base, int vwi_jf, int vwi_jt) {
-  int vwi_j = vwi_jf;
-  while(vwi_j < vwi_jt) {
-    vw_line(vwv, vwi_p, vwl_g, vwi_base, vwi_j);
-    vwi_j = vwi_j + 1;
+view_flow_draw_lines(View view_flow_lines_view, int view_flow_lines_paragraph, int[] view_flow_lines_geometry, int view_flow_lines_base, int view_flow_lines_first, int view_flow_lines_end) {
+  int view_flow_lines_current = view_flow_lines_first;
+  while(view_flow_lines_current < view_flow_lines_end) {
+    view_line_paint(view_flow_lines_view, view_flow_lines_paragraph, view_flow_lines_geometry, view_flow_lines_base, view_flow_lines_current);
+    view_flow_lines_current = view_flow_lines_current + 1;
   }
 } return void;
-given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given sf_l_init(100, 60) given d2_l_rect(0, 0, 100, 60, 13619151) given vw_t_box0(10, 19, 21, 31) given vw_t_bg(13619151) ((import lp_t_v), 0, [10, 16, 100, 0, 0], 0, 0, 1):() then vw_t_inked:(1)
-given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given sf_l_init(100, 60) given d2_l_rect(0, 0, 100, 60, 13619151) given vw_t_box0(10, 19, 21, 31) given vw_t_bg(13619151) ((import lp_t_v), 0, [10, 16, 100, 0, 0], 0, 0, 0):() then vw_t_inked:(0)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BE") given lay_all((import layout_paragraph_test_view)) given sf_l_init(100, 60) given d2_l_rect(0, 0, 100, 60, 13619151) given view_test_remember_box(10, 19, 21, 31) given view_test_set_background(13619151) ((import layout_paragraph_test_view), 0, [10, 16, 100, 0, 0], 0, 0, 1):() then view_test_box_inked:(1)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BE") given lay_all((import layout_paragraph_test_view)) given sf_l_init(100, 60) given d2_l_rect(0, 0, 100, 60, 13619151) given view_test_remember_box(10, 19, 21, 31) given view_test_set_background(13619151) ((import layout_paragraph_test_view), 0, [10, 16, 100, 0, 0], 0, 0, 0):() then view_test_box_inked:(0)
 

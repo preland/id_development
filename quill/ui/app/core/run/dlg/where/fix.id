@@ -1,10 +1,10 @@
 // Test check: 1 when the open dialog is in the middle of the window, to a pixel in each direction.
-wa_t_mid() {
-  int[] wal_r = (import wa_dg).rects;
-  int wai_x = fixed_point_absolute((import sf_l_w) - 2 * wal_r[0] - wal_r[2]) <= 1;
-  int wai_y = fixed_point_absolute((import sf_l_h) - 2 * wal_r[1] - wal_r[3]) <= 1;
+app_test_dialog_centered() {
+  int[] app_centered_rectangles = (import app_open_dialog).rects;
+  int app_centered_horizontal = fixed_point_absolute((import sf_l_w) - 2 * app_centered_rectangles[0] - app_centered_rectangles[2]) <= 1;
+  int app_centered_vertical = fixed_point_absolute((import sf_l_h) - 2 * app_centered_rectangles[1] - app_centered_rectangles[3]) <= 1;
 } chain () {
-  int wai_m = wai_x == 1 && wai_y == 1;
-} return int wai_m;
-given wa_t_app given wa_open("T", ["hi"], ["OK"], 4) ():(1)
-given wa_t_app given wa_open("T", ["hi"], ["OK"], 4) given sf_l_init(800, 600) ():(0)
+  int app_centered_result = app_centered_horizontal == 1 && app_centered_vertical == 1;
+} return int app_centered_result;
+given cli_test_boot_app given app_dialog_show("T", ["hi"], ["OK"], 4) ():(1)
+given cli_test_boot_app given app_dialog_show("T", ["hi"], ["OK"], 4) given sf_l_init(800, 600) ():(0)

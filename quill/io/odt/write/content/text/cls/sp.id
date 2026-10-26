@@ -1,16 +1,16 @@
 // How the space at i is written: 1 as a literal space, which XML keeps only between two visible characters, else 2 as text:s.
-oc_sp(int[] oc_cps, int oc_i) {
-  int oc_pv = 0;
-  int oc_nv = 0;
-  if(oc_i > 0) {
-    oc_pv = oc_ink(oc_cps[oc_i - 1]);
+odt_write_space_kind(int[] odt_write_space_kind_code_points, int odt_write_space_kind_index) {
+  int odt_write_space_kind_previous_visible = 0;
+  int odt_write_space_kind_next_visible = 0;
+  if(odt_write_space_kind_index > 0) {
+    odt_write_space_kind_previous_visible = odt_write_code_point_visible(odt_write_space_kind_code_points[odt_write_space_kind_index - 1]);
   }
-} chain (int[] oc_cps, int oc_i) {
-  if(oc_i + 1 < len(oc_cps)) {
-    oc_nv = oc_ink(oc_cps[oc_i + 1]);
+} chain (int[] odt_write_space_kind_code_points, int odt_write_space_kind_index) {
+  if(odt_write_space_kind_index + 1 < len(odt_write_space_kind_code_points)) {
+    odt_write_space_kind_next_visible = odt_write_code_point_visible(odt_write_space_kind_code_points[odt_write_space_kind_index + 1]);
   }
-  int oc_k = 2 - oc_pv * oc_nv;
-} return int oc_k;
+  int odt_write_space_kind_result = 2 - odt_write_space_kind_previous_visible * odt_write_space_kind_next_visible;
+} return int odt_write_space_kind_result;
 ([97, 32, 98], 1):(1)
 ([97, 32, 32, 98], 1):(2)
 ([97, 32, 32, 98], 2):(2)
@@ -19,13 +19,13 @@ oc_sp(int[] oc_cps, int oc_i) {
 ([97, 9, 32, 98], 2):(2)
 
 // The class of the code point at i: oc_kind, except that a space is 1 or 2 by oc_sp.
-oc_cls(int[] oc_cps, int oc_i) {
-  int oc_cp = oc_cps[oc_i];
-  int oc_cl = oc_kind(oc_cp);
-  if(oc_cp == 32) {
-    oc_cl = oc_sp(oc_cps, oc_i);
+odt_write_code_point_class(int[] odt_write_code_point_class_code_points, int odt_write_code_point_class_index) {
+  int odt_write_code_point_class_code_point = odt_write_code_point_class_code_points[odt_write_code_point_class_index];
+  int odt_write_code_point_class_result = odt_write_code_point_kind(odt_write_code_point_class_code_point);
+  if(odt_write_code_point_class_code_point == 32) {
+    odt_write_code_point_class_result = odt_write_space_kind(odt_write_code_point_class_code_points, odt_write_code_point_class_index);
   }
-} return int oc_cl;
+} return int odt_write_code_point_class_result;
 ([97, 32, 98], 1):(1)
 ([97, 32, 32], 1):(2)
 ([97, 9], 1):(3)

@@ -1,45 +1,45 @@
 // 1 when the walk may stop: the page it opened last starts where the old pagination lwo had its page of that number (lay_same), and there is such an old page, and the paragraph count is what it was (lay_moved), so that the numbers mean the same paragraphs.
 // By hand: after paginating 8 paragraphs, the page 1 starting at paragraph 6 matches an old page 1 at 6 once the changed paragraphs, up to 3, are behind it, and does not when they go up to 6, nor when the old document had 9 paragraphs, nor when the old pagination had one page only.
-lay_stable(View lwv, int[] lwo, int lwl) {
-  int lwj = lwv.pages.count - 1;
-  int lwx = 0;
-  if(lwj < len(lwo) / 2 - 1 && lay_moved(lwv, lwo) == 0) {
-    lwx = lay_same(lwv, lwo, lwj, lwl);
+lay_stable(View layout_walk_view, int[] old_starts, int last_changed_paragraph) {
+  int last_page_index = layout_walk_view.pages.count - 1;
+  int walk_may_stop = 0;
+  if(last_page_index < len(old_starts) / 2 - 1 && lay_moved(layout_walk_view, old_starts) == 0) {
+    walk_may_stop = lay_same(layout_walk_view, old_starts, last_page_index, last_changed_paragraph);
   }
-} return int lwx;
-given lg_t_paged(8) ((import lp_t_v), [0, 0, 6, 0, 8, 0], 3):(1)
-given lg_t_paged(8) ((import lp_t_v), [0, 0, 6, 0, 8, 0], 6):(0)
-given lg_t_paged(8) ((import lp_t_v), [0, 0, 6, 0, 9, 0], 3):(0)
-given lg_t_paged(8) ((import lp_t_v), [0, 0, 8, 0], 3):(0)
+} return int walk_may_stop;
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), [0, 0, 6, 0, 8, 0], 3):(1)
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), [0, 0, 6, 0, 8, 0], 6):(0)
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), [0, 0, 6, 0, 9, 0], 3):(0)
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), [0, 0, 8, 0], 3):(0)
 
 // 1 when page lwj starts where the old pagination lwo has its page lwj, and past the last changed paragraph lwl, so that nothing after it can differ.
 // By hand: page 1 starts at paragraph 6, line 0; the old one at 6, 0 matches it past paragraph 3, not past 6, and one at 6, 1 or at 7, 0 never.
-lay_same(View lwv, int[] lwo, int lwj, int lwl) {
-  int[] lwt = lwv.pages.starts;
-  int lwa = lwo[2 * lwj] == lwt[2 * lwj] && lwo[2 * lwj + 1] == lwt[2 * lwj + 1];
-  int lwb = lwt[2 * lwj] > lwl;
-} chain (View lwv, int[] lwo, int lwj, int lwl) {
-  int lwx = lwa * lwb;
-} return int lwx;
-given lg_t_paged(8) ((import lp_t_v), [0, 0, 6, 0, 8, 0], 1, 3):(1)
-given lg_t_paged(8) ((import lp_t_v), [0, 0, 6, 0, 8, 0], 1, 6):(0)
-given lg_t_paged(8) ((import lp_t_v), [0, 0, 6, 1, 8, 0], 1, 3):(0)
-given lg_t_paged(8) ((import lp_t_v), [0, 0, 7, 0, 8, 0], 1, 3):(0)
+lay_same(View layout_walk_view, int[] old_starts, int compared_page, int last_changed_paragraph) {
+  int[] new_starts = layout_walk_view.pages.starts;
+  int same_start = old_starts[2 * compared_page] == new_starts[2 * compared_page] && old_starts[2 * compared_page + 1] == new_starts[2 * compared_page + 1];
+  int past_last_changed = new_starts[2 * compared_page] > last_changed_paragraph;
+} chain (View layout_walk_view, int[] old_starts, int compared_page, int last_changed_paragraph) {
+  int walk_may_stop = same_start * past_last_changed;
+} return int walk_may_stop;
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), [0, 0, 6, 0, 8, 0], 1, 3):(1)
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), [0, 0, 6, 0, 8, 0], 1, 6):(0)
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), [0, 0, 6, 1, 8, 0], 1, 3):(0)
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), [0, 0, 7, 0, 8, 0], 1, 3):(0)
 
 // Puts the old pages that come after the ones just walked back, and the sentinel: the walk stopped because a page started as it did, so the rest is as it was.
 // By hand: with page 0 walked and the old pages 0 and 6 of 8 paragraphs, the page at 6 and the sentinel 8 come back.
-lay_tail(View lwv, int[] lwo) {
-  int lwc = len(lwo) / 2 - 1;
-  int lwj = lwv.pages.count;
-  while(lwj < lwc) {
-    push(lwv.pages.starts, lwo[2 * lwj]);
-    push(lwv.pages.starts, lwo[2 * lwj + 1]);
-    lwj = lwj + 1;
+lay_tail(View layout_walk_view, int[] old_starts) {
+  int old_page_total = len(old_starts) / 2 - 1;
+  int restored_page = layout_walk_view.pages.count;
+  while(restored_page < old_page_total) {
+    push(layout_walk_view.pages.starts, old_starts[2 * restored_page]);
+    push(layout_walk_view.pages.starts, old_starts[2 * restored_page + 1]);
+    restored_page = restored_page + 1;
   }
-} chain (View lwv, int[] lwo) {
-  lwv.pages.count = lwc;
-  push(lwv.pages.starts, len(lwv.doc.body.paras));
-  push(lwv.pages.starts, 0);
+} chain (View layout_walk_view, int[] old_starts) {
+  layout_walk_view.pages.count = old_page_total;
+  push(layout_walk_view.pages.starts, len(layout_walk_view.doc.body.paras));
+  push(layout_walk_view.pages.starts, 0);
 } return void;
-given lg_t_paged(8) given lay_keep((import lp_t_v), 1) ((import lp_t_v), [0, 0, 6, 0, 8, 0]):((import lp_t_v), [0, 0, 6, 0, 8, 0]) then (import lp_t_v).pages.starts:([0, 0, 6, 0, 8, 0]) then (import lp_t_v).pages.count:(2)
-given lg_t_paged(8) given lay_keep((import lp_t_v), 2) ((import lp_t_v), [0, 0, 6, 0, 8, 0]):((import lp_t_v), [0, 0, 6, 0, 8, 0]) then (import lp_t_v).pages.starts:([0, 0, 6, 0, 8, 0]) then (import lp_t_v).pages.count:(2)
+given layout_page_test_paged(8) given lay_keep((import layout_paragraph_test_view), 1) ((import layout_paragraph_test_view), [0, 0, 6, 0, 8, 0]):((import layout_paragraph_test_view), [0, 0, 6, 0, 8, 0]) then (import layout_paragraph_test_view).pages.starts:([0, 0, 6, 0, 8, 0]) then (import layout_paragraph_test_view).pages.count:(2)
+given layout_page_test_paged(8) given lay_keep((import layout_paragraph_test_view), 2) ((import layout_paragraph_test_view), [0, 0, 6, 0, 8, 0]):((import layout_paragraph_test_view), [0, 0, 6, 0, 8, 0]) then (import layout_paragraph_test_view).pages.starts:([0, 0, 6, 0, 8, 0]) then (import layout_paragraph_test_view).pages.count:(2)

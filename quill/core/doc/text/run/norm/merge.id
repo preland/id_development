@@ -1,18 +1,18 @@
-run_same(Run ru, Run rv) {
-  int res = ru.cprop == rv.cprop && ru.link == rv.link;
-} return int res;
+run_same(Run run_equal_run, Run other_run) {
+  int run_equal_result = run_equal_run.cprop == other_run.cprop && run_equal_run.link == other_run.link;
+} return int run_equal_result;
 (Run(1, 2, 3), Run(5, 2, 3)):(1)
 (Run(1, 2, 3), Run(1, 2, 4)):(0)
 (Run(1, 2, 3), Run(1, 9, 3)):(0)
 
 // Adds cur to the compacted prefix rs[0..wr[0]): onto the last run there when the two carry the same properties, else as a new last run, which grows the prefix.
-rs_place(Run[] rs, int[] wr, Run cur) {
-  int w = wr[0];
-  if(w > 0 && run_same(rs[w - 1], cur) == 1) {
-    rs[w - 1].len = rs[w - 1].len + cur.len;
+document_runs_place(Run[] run_place_run_list, int[] written_count, Run run_place_current_run) {
+  int run_place_prefix_length = written_count[0];
+  if(run_place_prefix_length > 0 && run_same(run_place_run_list[run_place_prefix_length - 1], run_place_current_run) == 1) {
+    run_place_run_list[run_place_prefix_length - 1].len = run_place_run_list[run_place_prefix_length - 1].len + run_place_current_run.len;
   } else {
-    rs[w] = cur;
-    wr[0] = w + 1;
+    run_place_run_list[run_place_prefix_length] = run_place_current_run;
+    written_count[0] = run_place_prefix_length + 1;
   }
 } return void;
 ([Run(1, 0, -1), Run(2, 0, -1)], [1], Run(2, 0, -1)):([Run(3, 0, -1), Run(2, 0, -1)], [1], Run(2, 0, -1))
@@ -20,10 +20,10 @@ rs_place(Run[] rs, int[] wr, Run cur) {
 ([Run(4, 7, -1), Run(2, 5, -1)], [0], Run(4, 7, -1)):([Run(4, 7, -1), Run(2, 5, -1)], [1], Run(4, 7, -1))
 
 // Empty runs are dropped.
-rs_fold(Run[] rs, int[] wr, int res) {
-  Run cur = rs[res];
-  if(cur.len > 0) {
-    rs_place(rs, wr, cur);
+document_runs_fold(Run[] run_fold_run_list, int[] written_count, int run_fold_run_index) {
+  Run run_fold_current_run = run_fold_run_list[run_fold_run_index];
+  if(run_fold_current_run.len > 0) {
+    document_runs_place(run_fold_run_list, written_count, run_fold_current_run);
   }
 } return void;
 ([Run(1, 0, -1), Run(2, 0, -1)], [1], 1):([Run(3, 0, -1), Run(2, 0, -1)], [1], 1)

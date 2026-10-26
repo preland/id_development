@@ -1,35 +1,35 @@
 // For ed_over: gives paragraph para the paragraph row it has now with the field acc[0] set to acc[1], as a SET_PPROP in the open undo step. Nothing is recorded when the row would not change, and a block the model does not edit is left alone.
 par_set(Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
   Para p = d.body.paras[para];
-  int pn = tab_with(d.fmt.paras, p.pprop, acc[0], acc[1]);
-  int[] loc = [para];
+  int paragraph_row_index = tab_with(d.fmt.paras, p.pprop, acc[0], acc[1]);
+  int[] location = [para];
 } chain (Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
-  int[] dat = [pn];
-  if(pn != p.pprop && ed_solid(d, para) == 0) {
-    Op row_change = Op((import ed_k_pprop), loc, dat);
-    ed_run(d, ctl, row_change);
+  int[] dat = [paragraph_row_index];
+  if(paragraph_row_index != p.pprop && editor_is_solid_block(d, para) == 0) {
+    Op row_change = Op((import ed_k_pprop), location, dat);
+    editor_run(d, ctl, row_change);
   }
 } return void;
-given fx_setup("ab") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 0, 2, [1, 2]):((import fxd), (import fxc), 0, 0, 2, [1, 2]) then fx_show:("{9}ab") then fx_hist:("u1 r0 o0 n1")
-given fx_setup("ab") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 0, 2, [1, -1]):((import fxd), (import fxc), 0, 0, 2, [1, -1]) then fx_hist:("u1 r0 o0 n0")
-given fx_setup("ab") given fx_opaque(0) given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 0, 2, [1, 2]):((import fxd), (import fxc), 0, 0, 2, [1, 2]) then fx_hist:("u1 r0 o0 n0")
+given editor_fixture_setup("ab") given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0, 0, 2, [1, 2]):((import fixture_document), (import fixture_control), 0, 0, 2, [1, 2]) then editor_fixture_show:("{9}ab") then editor_fixture_history:("u1 r0 o0 n1")
+given editor_fixture_setup("ab") given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0, 0, 2, [1, -1]):((import fixture_document), (import fixture_control), 0, 0, 2, [1, -1]) then editor_fixture_history:("u1 r0 o0 n0")
+given editor_fixture_setup("ab") given editor_fixture_opaque(0) given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0, 0, 2, [1, 2]):((import fixture_document), (import fixture_control), 0, 0, 2, [1, 2]) then editor_fixture_history:("u1 r0 o0 n0")
 
 // Sets the paragraph field (a quill_paragraph_* offset) to value in every paragraph the selection touches, as one undo step.
-ed_set_para(Doc d, Ctl ctl, int field, int value) {
+editor_set_paragraph(Doc d, Ctl ctl, int field, int value) {
   int[] acc = [field, value];
-  ed_change(d, ctl, par_set, acc);
+  editor_change(d, ctl, par_set, acc);
 } return void;
-given fx_setup("ab|cd|ef") given fx_at(0, 1, 1, 1) ((import fxd), (import fxc), 1, 2):((import fxd), (import fxc), 1, 2) then fx_show:("{9}ab|{9}cd|ef") then fx_hist:("u1 r0 o-1 n2")
-given fx_setup("ab|cd") given fx_at(1, 0, 1, 0) ((import fxd), (import fxc), 1, 1):((import fxd), (import fxc), 1, 1) then fx_show:("ab|{9}cd")
+given editor_fixture_setup("ab|cd|ef") given editor_fixture_selection_at(0, 1, 1, 1) ((import fixture_document), (import fixture_control), 1, 2):((import fixture_document), (import fixture_control), 1, 2) then editor_fixture_show:("{9}ab|{9}cd|ef") then editor_fixture_history:("u1 r0 o-1 n2")
+given editor_fixture_setup("ab|cd") given editor_fixture_selection_at(1, 0, 1, 0) ((import fixture_document), (import fixture_control), 1, 1):((import fixture_document), (import fixture_control), 1, 1) then editor_fixture_show:("ab|{9}cd")
 
 // Applies style (an index into the document's styles): a paragraph style goes on every paragraph the selection touches, a character style on the selected text.
-ed_set_style(Doc d, Ctl ctl, int style) {
+editor_set_style(Doc d, Ctl ctl, int style) {
   int fam = d.fmt.sty.styles[style].rel[(import quill_style_family)];
   if(fam == 1) {
-    ed_set_char(d, ctl, (import quill_character_style), style);
+    editor_set_character(d, ctl, (import quill_character_style), style);
   } else {
-    ed_set_para(d, ctl, (import quill_paragraph_style), style);
+    editor_set_paragraph(d, ctl, (import quill_paragraph_style), style);
   }
 } return void;
-given fx_setup("ab|cd") given fx_at(1, 1, 1, 1) ((import fxd), (import fxc), 3):((import fxd), (import fxc), 3) then fx_show:("ab|{9}cd")
-given fx_setup("ab|cd") given fx_at(0, 0, 1, 2) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("ab|cd") then fx_hist:("u0 r0 o-1 n0")
+given editor_fixture_setup("ab|cd") given editor_fixture_selection_at(1, 1, 1, 1) ((import fixture_document), (import fixture_control), 3):((import fixture_document), (import fixture_control), 3) then editor_fixture_show:("ab|{9}cd")
+given editor_fixture_setup("ab|cd") given editor_fixture_selection_at(0, 0, 1, 2) ((import fixture_document), (import fixture_control), 0):((import fixture_document), (import fixture_control), 0) then editor_fixture_show:("ab|cd") then editor_fixture_history:("u0 r0 o-1 n0")

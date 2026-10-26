@@ -1,32 +1,32 @@
 // Folds one layer's flags into fold, highest priority layer first: a bit takes its value from the first layer that specifies it. fold is one int, the flags decided so far in its low 8 bits and the bits that are decided from bit 8 up, so no list is made and none is passed around.
-bits_fold(int fold, int on, int sb) {
+bits_fold(int fold, int on, int specified_bits) {
   int seen = fold >> 8;
-  int add = sb & ~seen;
-  int res = (fold & 255) | (on & add);
-} chain (int fold, int on, int sb) {
-  int nxt = res | ((seen | sb) << 8);
-} return int nxt;
+  int add = specified_bits & ~seen;
+  int fold_layer_result = (fold & 255) | (on & add);
+} chain (int fold, int on, int specified_bits) {
+  int next_fold = fold_layer_result | ((seen | specified_bits) << 8);
+} return int next_fold;
 (0, 3, 1):(257)
 (514, 1, 3):(771)
 (257, 0, 1):(257)
 
-style_fold_one(Fmt f, int sn, int fold) {
-  int on = style_cell(f, sn, 0, (import quill_character_on));
-  int sb = style_cell(f, sn, 0, (import quill_character_set));
-  int nxt = bits_fold(fold, on, sb);
-} return int nxt;
+style_fold_one(Fmt fold_one_format_set, int fold_one_style_index, int fold) {
+  int on = style_cell(fold_one_format_set, fold_one_style_index, 0, (import quill_character_on));
+  int specified_bits = style_cell(fold_one_format_set, fold_one_style_index, 0, (import quill_character_set));
+  int next_fold = bits_fold(fold, on, specified_bits);
+} return int next_fold;
 (Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, 24, -1, -1, 0, 0, 0, -1, 32, -1, -1, 1, 1, 0, -1, -1, 5, -1, 0, 1, 0, -1, 40, -1, -1, 2, 2, 3, -1, -1, -1, -1, 0, 0, 0, -1, 50, -1, -1, 4, 4], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0, -1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0, 1, 2, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("A", [0, -1, 0], [1, 1]), Style("B", [0, 0, 0], [2, 2]), Style("C", [0, 1, 0], [3, 1]), Style("D", [1, -1, -1], [4, 0])], [], 0)), 1, 0):(257)
 (Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, 24, -1, -1, 0, 0, 0, -1, 32, -1, -1, 1, 1, 0, -1, -1, 5, -1, 0, 1, 0, -1, 40, -1, -1, 2, 2, 3, -1, -1, -1, -1, 0, 0, 0, -1, 50, -1, -1, 4, 4], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0, -1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0, 1, 2, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("A", [0, -1, 0], [1, 1]), Style("B", [0, 0, 0], [2, 2]), Style("C", [0, 1, 0], [3, 1]), Style("D", [1, -1, -1], [4, 0])], [], 0)), 2, 0):(256)
 
-style_fold(Fmt f, int sid, int fold) {
-  int sn = sid;
-  int n = 0;
+style_fold(Fmt fold_chain_format_set, int fold_chain_style_identifier, int fold) {
+  int fold_chain_style_index = fold_chain_style_identifier;
+  int fold_chain_step_count = 0;
   int kept = fold;
-} chain (Fmt f, int sid, int fold) {
-  while(sn >= 0 && n < (import quill_style_depth)) {
-    kept = style_fold_one(f, sn, kept);
-    sn = f.sty.styles[sn].rel[(import quill_style_parent)];
-    n = n + 1;
+} chain (Fmt fold_chain_format_set, int fold_chain_style_identifier, int fold) {
+  while(fold_chain_style_index >= 0 && fold_chain_step_count < (import quill_style_depth)) {
+    kept = style_fold_one(fold_chain_format_set, fold_chain_style_index, kept);
+    fold_chain_style_index = fold_chain_format_set.sty.styles[fold_chain_style_index].rel[(import quill_style_parent)];
+    fold_chain_step_count = fold_chain_step_count + 1;
   }
 } return int kept;
 (Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, 24, -1, -1, 0, 0, 0, -1, 32, -1, -1, 1, 1, 0, -1, -1, 5, -1, 0, 1, 0, -1, 40, -1, -1, 2, 2, 3, -1, -1, -1, -1, 0, 0, 0, -1, 50, -1, -1, 4, 4], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0, -1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0, 1, 2, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("A", [0, -1, 0], [1, 1]), Style("B", [0, 0, 0], [2, 2]), Style("C", [0, 1, 0], [3, 1]), Style("D", [1, -1, -1], [4, 0])], [], 0)), 2, 0):(256)

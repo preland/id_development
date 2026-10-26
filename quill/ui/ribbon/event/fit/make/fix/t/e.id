@@ -1,28 +1,28 @@
 // Test setup: opens the menu of command rbi_cmd under a control at (10, 10) of size 40 by 20, as the ribbon does.
-rbd_t_open(int rbi_cmd) {
-  rbe_open(rbi_cmd, 0, 1, [10, 10, 40, 20]);
+ribbon_fit_open_menu(int ribbon_fit_open_command) {
+  ribbon_open_popup(ribbon_fit_open_command, 0, 1, [10, 10, 40, 20]);
 } return void;
-given lp_t_font given rbd_t_up(1024) (409):() then (import rbd_s)[(import rbd_s_pk)]:(1)
-given lp_t_font given rbd_t_up(1024) (414):() then (import rbd_s)[(import rbd_s_pk)]:(2)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) (409):() then (import ribbon_fit_state)[(import rbd_s_pk)]:(1)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) (414):() then (import ribbon_fit_state)[(import rbd_s_pk)]:(2)
 
 // Test setup: makes choice rbi_k of the open menu or gallery the hot one.
-rbd_t_hot(int rbi_k) {
-  int rbi_pk = (import rbd_s)[(import rbd_s_pk)];
-  if(rbi_pk == 1) {
-    GuiMenu rbm = (import rbd_menu)[0];
-    rbm.hot = rbi_k;
+ribbon_fit_set_hot_choice(int ribbon_fit_hot_choice) {
+  int ribbon_fit_hot_open_kind = (import ribbon_fit_state)[(import rbd_s_pk)];
+  if(ribbon_fit_hot_open_kind == 1) {
+    GuiMenu ribbon_fit_hot_menu = (import ribbon_fit_menus)[0];
+    ribbon_fit_hot_menu.hot = ribbon_fit_hot_choice;
   }
-  if(rbi_pk == 2) {
-    GuiGallery rby = (import rbd_gal)[0];
-    rby.rects[len(rby.rects) - 1] = rbi_k;
+  if(ribbon_fit_hot_open_kind == 2) {
+    GuiGallery ribbon_fit_hot_gallery = (import ribbon_fit_galleries)[0];
+    ribbon_fit_hot_gallery.rects[len(ribbon_fit_hot_gallery.rects) - 1] = ribbon_fit_hot_choice;
   }
 } return void;
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) (2):() then rbe_hot:(2)
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(414) (3):() then rbe_hot:(3)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(409) (2):() then ribbon_choice_hot:(2)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(414) (3):() then ribbon_choice_hot:(3)
 
 // Test setup: the ribbon in the export rbd_t_r gets a mouse event of kind rbi_kind at (rbi_x, rbi_y) with the left button, and the answer is dropped.
-rbd_t_ev(int rbi_kind, int rbi_x, int rbi_y) {
-  int rbi_b = rib_event((import rbd_t_r), rbi_kind, [rbi_kind, rbi_x, rbi_y, 1, 0]);
+ribbon_fit_send_mouse_event(int ribbon_fit_event_kind, int ribbon_fit_event_column, int ribbon_fit_event_row) {
+  int ribbon_fit_event_answer = rib_event((import ribbon_fit_test_ribbon), ribbon_fit_event_kind, [ribbon_fit_event_kind, ribbon_fit_event_column, ribbon_fit_event_row, 1, 0]);
 } return void;
-given lp_t_font given rbd_t_up(1024) given rbd_t_k(0) (3, 20, 70):() then rbd_t_wd:("12,60,40,74,2,1,205,1,1,0")
-given lp_t_font given rbd_t_up(1024) given rbd_t_k(0) (5, 20, 70):() then rbd_t_wd:("12,60,40,74,1,1,205,1,0,0")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_remember_widget(0) (3, 20, 70):() then ribbon_fit_check_widget_dump:("12,60,40,74,2,1,205,1,1,0")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_remember_widget(0) (5, 20, 70):() then ribbon_fit_check_widget_dump:("12,60,40,74,1,1,205,1,0,0")

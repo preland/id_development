@@ -1,5 +1,5 @@
 // The code point folded to lower case for a match that ignores case: the ASCII capitals and the Latin-1 capitals (but not the multiplication sign). Other scripts compare exactly.
-cp_fold(int cp) {
+editor_code_point_fold(int cp) {
   int low = cp;
   if(cp >= 65 && cp <= 90) {
     low = cp + 32;
@@ -15,10 +15,10 @@ cp_fold(int cp) {
 (1040):(1040)
 
 // 1 when code points a and b match: equal, or equal after cp_fold unless flags has ed_f_case.
-cp_same(int lcp, int rcp, int flags) {
-  int res = lcp == rcp;
+editor_code_point_same(int left_code_point, int right_code_point, int flags) {
+  int res = left_code_point == right_code_point;
   if(res == 0 && (flags & (import ed_f_case)) == 0) {
-    res = cp_fold(lcp) == cp_fold(rcp);
+    res = editor_code_point_fold(left_code_point) == editor_code_point_fold(right_code_point);
   }
 } return int res;
 (97, 97, 1):(1)
@@ -31,7 +31,7 @@ find_at(Para p, int[] needle, int off, int flags) {
   int ok = 1;
   int j = 0;
   while(j < len(needle) && ok == 1) {
-    ok = cp_same(p.txt.cps[off + j], needle[j], flags);
+    ok = editor_code_point_same(p.txt.cps[off + j], needle[j], flags);
     j = j + 1;
   }
 } return int ok;

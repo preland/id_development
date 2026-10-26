@@ -1,25 +1,25 @@
 // Test check: the open colour grid as how many are open, its x, y, width and height and the label of its bar, comma separated.
-rbd_t_cp() {
-  GuiColors[] rbl_gk = (import rbd_cg);
-  string rbs_z = len(rbl_gk) + "";
-  if(len(rbl_gk) > 0) {
-    rbs_z = rbs_z + "," + rbl_gk[0].rects[0] + "," + rbl_gk[0].rects[1] + "," + rbl_gk[0].rects[2] + "," + rbl_gk[0].rects[3] + "," + rbl_gk[0].label;
+ribbon_fit_check_color_grid() {
+  GuiColors[] ribbon_fit_grid_list = (import ribbon_fit_color_grids);
+  string ribbon_fit_grid_text = len(ribbon_fit_grid_list) + "";
+  if(len(ribbon_fit_grid_list) > 0) {
+    ribbon_fit_grid_text = ribbon_fit_grid_text + "," + ribbon_fit_grid_list[0].rects[0] + "," + ribbon_fit_grid_list[0].rects[1] + "," + ribbon_fit_grid_list[0].rects[2] + "," + ribbon_fit_grid_list[0].rects[3] + "," + ribbon_fit_grid_list[0].label;
   }
-} return string rbs_z;
-given lp_t_font given rbd_t_up(1024) ():("0")
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(312) ():("1,10,30,212,184,No Color")
+} return string ribbon_fit_grid_text;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ():("0")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(312) ():("1,10,30,212,184,No Color")
 
 // Test setup: makes swatch rbi_k the hot one of the open colour grid, 70 being the bar of the automatic colour.
-rbd_t_swatch(int rbi_k) {
-  GuiColors rbk = (import rbd_cg)[0];
-  rbk.rects[5] = rbi_k;
+ribbon_fit_set_hot_swatch(int ribbon_fit_swatch_index) {
+  GuiColors ribbon_fit_swatch_grid = (import ribbon_fit_color_grids)[0];
+  ribbon_fit_swatch_grid.rects[5] = ribbon_fit_swatch_index;
 } return void;
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(311) (5):() then rbd_t_cp:("1,10,30,212,184,Automatic")
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(311) (70):() then rbd_t_cp:("1,10,30,212,184,Automatic")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(311) (5):() then ribbon_fit_check_color_grid:("1,10,30,212,184,Automatic")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(311) (70):() then ribbon_fit_check_color_grid:("1,10,30,212,184,Automatic")
 
 // Test check: the colour the open grid's choice left in the list of answers and the name it left, comma separated.
-rbd_t_pa() {
-  string rbs_z = (import rbd_pa)[0] + "," + (import rbd_pl)[0];
-} return string rbs_z;
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(311) given rbd_t_swatch(5) given rbe_note_colour ():("15564081,#ed7d31")
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(312) given rbd_t_swatch(70) given rbe_note_colour ():("-1,No Color")
+ribbon_fit_check_answers() {
+  string ribbon_fit_answers_text = (import ribbon_fit_answers)[0] + "," + (import ribbon_fit_labels)[0];
+} return string ribbon_fit_answers_text;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(311) given ribbon_fit_set_hot_swatch(5) given ribbon_color_answer ():("15564081,#ed7d31")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(312) given ribbon_fit_set_hot_swatch(70) given ribbon_color_answer ():("-1,No Color")

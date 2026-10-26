@@ -1,13 +1,13 @@
 // The directory the pickers start in when the document has no file: the home directory, or the root when HOME is not set, is empty or is longer than 1024 bytes.
-wa_home() {
-  int[] wal_b = [];
-  list_fill(wal_b, 1024, 0);
-  int wai_n = environment_get("HOME", wal_b, 1024);
+app_home_directory() {
+  int[] app_home_buffer = [];
+  list_fill(app_home_buffer, 1024, 0);
+  int app_home_length = environment_get("HOME", app_home_buffer, 1024);
 } chain () {
-  string was_h = "/";
-  if(wai_n > 0 && wai_n <= 1024) {
-    was_h = exec_text(list_slice(wal_b, 0, wai_n));
+  string app_home_path = "/";
+  if(app_home_length > 0 && app_home_length <= 1024) {
+    app_home_path = exec_text(list_slice(app_home_buffer, 0, app_home_length));
   }
-} return string was_h;
+} return string app_home_path;
 given environment_put("HOME", "/usr") ():("/usr")
 given environment_put("HOME", "") ():("/")

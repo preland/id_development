@@ -1,49 +1,49 @@
 // A text:p or text:h that has just started becomes a paragraph of the body: its paragraph row from the element's attributes, then its text up to the matching end tag (an empty element has none).
-orc_para(Cx cx, int ev) {
+orc_para(Odt_Read_Context odt_read_paragraph_context, int odt_read_paragraph_event) {
   Text t = text_new(0);
-  int pp = orc_pprop(cx);
-  orc_reset(cx);
-} chain (Cx cx, int ev) {
-  if(ev == 1) {
-    orc_inline(cx, t, xml_reader_depth(cx.rd));
+  int pp = odt_read_paragraph_row(odt_read_paragraph_context);
+  orc_reset(odt_read_paragraph_context);
+} chain (Odt_Read_Context odt_read_paragraph_context, int odt_read_paragraph_event) {
+  if(odt_read_paragraph_event == 1) {
+    orc_inline(odt_read_paragraph_context, t, xml_reader_depth(odt_read_paragraph_context.odt_read_xml_reader));
   }
   Para p = para_make(t, pp);
-  push(cx.d.body.paras, p);
+  push(odt_read_paragraph_context.d.body.paras, p);
 } return void;
-given orc_t_open("<text:p>Hello <text:span>big</text:span> world</text:p>") given orc_t_pop given orc_t_steps(1) ((import orc_tc), 1):() then orc_t_show:("P0 72,101,108,108,111,32,98,105,103,32,119,111,114,108,100, 15:0:-1, {0,0,0,0,0} |  | ")
-given orc_t_open("<text:p>a<text:a xlink:href='http://x'>b</text:a>c</text:p>") given orc_t_pop given orc_t_steps(1) ((import orc_tc), 1):() then orc_t_show:("P0 97,98,99, 1:0:-1,1:0:0,1:0:-1, {0,0,0,0,0} | http://x | ")
-given orc_t_open("<text:p>a<draw:frame/>b</text:p>") given orc_t_pop given orc_t_steps(1) ((import orc_tc), 1):() then orc_t_show:("P0 97,983040,98, 3:0:-1, {0,0,0,0,0} |  | draw:frame:0:<draw:frame/>,")
-given orc_t_open("<text:p>  a \n  b  </text:p>") given orc_t_pop given orc_t_steps(1) ((import orc_tc), 1):() then orc_t_show:("P0 97,32,98,32, 4:0:-1, {0,0,0,0,0} |  | ")
-given orc_t_open("<text:p>a<text:s text:c='3'/>b<text:tab/>c<text:line-break/>d</text:p>") given orc_t_pop given orc_t_steps(1) ((import orc_tc), 1):() then orc_t_show:("P0 97,32,32,32,98,9,99,11,100, 9:0:-1, {0,0,0,0,0} |  | ")
-given orc_t_open("<text:p/>") given orc_t_pop given orc_t_steps(1) ((import orc_tc), 4):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | ")
-given orc_t_open("<text:p>x</text:p>") given orc_t_pop given orc_t_set(0, 5) given orc_t_set(1, 1) given orc_t_steps(1) ((import orc_tc), 1):() then orc_t_show:("P10 120, 1:0:-1, {0,0,1,2,0} |  | ")
+given odt_read_fixture_open("<text:p>Hello <text:span>big</text:span> world</text:p>") given odt_read_fixture_remove_paragraph given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 1):() then odt_read_fixture_show:("P0 72,101,108,108,111,32,98,105,103,32,119,111,114,108,100, 15:0:-1, {0,0,0,0,0} |  | ")
+given odt_read_fixture_open("<text:p>a<text:a xlink:href='http://x'>b</text:a>c</text:p>") given odt_read_fixture_remove_paragraph given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 1):() then odt_read_fixture_show:("P0 97,98,99, 1:0:-1,1:0:0,1:0:-1, {0,0,0,0,0} | http://x | ")
+given odt_read_fixture_open("<text:p>a<draw:frame/>b</text:p>") given odt_read_fixture_remove_paragraph given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 1):() then odt_read_fixture_show:("P0 97,983040,98, 3:0:-1, {0,0,0,0,0} |  | draw:frame:0:<draw:frame/>,")
+given odt_read_fixture_open("<text:p>  a \n  b  </text:p>") given odt_read_fixture_remove_paragraph given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 1):() then odt_read_fixture_show:("P0 97,32,98,32, 4:0:-1, {0,0,0,0,0} |  | ")
+given odt_read_fixture_open("<text:p>a<text:s text:c='3'/>b<text:tab/>c<text:line-break/>d</text:p>") given odt_read_fixture_remove_paragraph given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 1):() then odt_read_fixture_show:("P0 97,32,32,32,98,9,99,11,100, 9:0:-1, {0,0,0,0,0} |  | ")
+given odt_read_fixture_open("<text:p/>") given odt_read_fixture_remove_paragraph given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 4):() then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0} |  | ")
+given odt_read_fixture_open("<text:p>x</text:p>") given odt_read_fixture_remove_paragraph given odt_read_fixture_set_slot(0, 5) given odt_read_fixture_set_slot(1, 1) given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 1):() then odt_read_fixture_show:("P10 120, 1:0:-1, {0,0,1,2,0} |  | ")
 
 // The paragraph row of the paragraph element that has just started: its style (a heading with none takes Heading 1 to 3 by its outline level), then the list and level it sits in.
-orc_pprop(Cx cx) {
-  string sname = xml_reader_attr(cx.rd, "text:style-name");
-  int lvl = to_int(xml_reader_attr(cx.rd, "text:outline-level"));
-  int rw = orc_pstyle(cx, sname, lvl);
-} chain (Cx cx) {
-  int pp = orc_plist(cx, rw);
+odt_read_paragraph_row(Odt_Read_Context odt_read_paragraph_row_context) {
+  string odt_read_paragraph_row_style_name = xml_reader_attr(odt_read_paragraph_row_context.odt_read_xml_reader, "text:style-name");
+  int lvl = to_int(xml_reader_attr(odt_read_paragraph_row_context.odt_read_xml_reader, "text:outline-level"));
+  int odt_read_paragraph_row_style_row = odt_read_paragraph_style_row(odt_read_paragraph_row_context, odt_read_paragraph_row_style_name, lvl);
+} chain (Odt_Read_Context odt_read_paragraph_row_context) {
+  int pp = odt_read_paragraph_list_row(odt_read_paragraph_row_context, odt_read_paragraph_row_style_row);
 } return int pp;
-given orc_t_open("<text:p>x</text:p>") given orc_t_steps(1) ((import orc_tc)):(0)
-given orc_t_open("<text:h text:outline-level='1'/>") given orc_t_steps(1) ((import orc_tc)):(9)
-given orc_t_open("<r><office:styles><style:style style:name='Heading_20_2' style:family='paragraph'/></office:styles><text:h text:outline-level='1'/><text:h text:style-name='Heading_20_2' text:outline-level='1'/></r>") given orc_t_steps(5) given orc_t_prop given orc_t_steps(1) ((import orc_tc)):(10)
+given odt_read_fixture_open("<text:p>x</text:p>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context)):(0)
+given odt_read_fixture_open("<text:h text:outline-level='1'/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context)):(9)
+given odt_read_fixture_open("<r><office:styles><style:style style:name='Heading_20_2' style:family='paragraph'/></office:styles><text:h text:outline-level='1'/><text:h text:style-name='Heading_20_2' text:outline-level='1'/></r>") given odt_read_fixture_step_events(5) given odt_read_fixture_add_paragraph given odt_read_fixture_step_events(1) ((import odt_read_fixture_context)):(10)
 
 // A paragraph starts with no hyperlink around its text, with a space as the last character, so the white space that opens it is dropped, and with the character row its style's own text properties amount to (none: row 0, Normal's).
-orc_reset(Cx cx) {
-  lset(cx.cs.slots, (import orc_s_space), 1);
-  lset(cx.cs.slots, (import orc_s_link), 0);
-  string sname = xml_reader_attr(cx.rd, "text:style-name");
-} chain (Cx cx) {
-  int ov = ost_over(cx.cs.look.osty, sname);
-  int[] rstk = cx.cs.look.rstk;
-  int top = len(rstk);
-} chain (Cx cx) {
-  int[] row0 = [fixed_point_maximum(ov, 0)];
-  list_splice(rstk, 0, top, row0);
+orc_reset(Odt_Read_Context odt_read_reset_context) {
+  lset(odt_read_reset_context.cs.slots, (import orc_s_space), 1);
+  lset(odt_read_reset_context.cs.slots, (import orc_s_link), 0);
+  string odt_read_reset_style_name = xml_reader_attr(odt_read_reset_context.odt_read_xml_reader, "text:style-name");
+} chain (Odt_Read_Context odt_read_reset_context) {
+  int ov = odt_style_over_for_name(odt_read_reset_context.cs.look.odt_read_style_lookup, odt_read_reset_style_name);
+  int[] odt_read_reset_row_stack = odt_read_reset_context.cs.look.odt_read_row_stack;
+  int top = len(odt_read_reset_row_stack);
+} chain (Odt_Read_Context odt_read_reset_context) {
+  int[] odt_read_reset_first_row = [fixed_point_maximum(ov, 0)];
+  list_splice(odt_read_reset_row_stack, 0, top, odt_read_reset_first_row);
 } return void;
-given orc_t_open("<a/>") ((import orc_tc)):() then (import orc_tc).cs.slots:([0, 0, 1, 0, 0, 0, 0, 0])
-given orc_t_open("<a/>") given orc_t_set(0, 2) given orc_t_set(3, 5) ((import orc_tc)):() then (import orc_tc).cs.slots:([2, 0, 1, 0, 0, 0, 0, 0])
-given orc_t_open("<r><office:automatic-styles><style:style style:name='P1' style:family='paragraph'><style:text-properties fo:font-weight='bold'/></style:style></office:automatic-styles><text:p text:style-name='P1'/></r>") given orc_t_steps(7) ((import orc_tc)):() then orc_t_rows:("1,")
-given orc_t_open("<a/>") given orc_span_in((import orc_tc)) ((import orc_tc)):() then orc_t_rows:("0,")
+given odt_read_fixture_open("<a/>") ((import odt_read_fixture_context)):() then (import odt_read_fixture_context).cs.slots:([0, 0, 1, 0, 0, 0, 0, 0])
+given odt_read_fixture_open("<a/>") given odt_read_fixture_set_slot(0, 2) given odt_read_fixture_set_slot(3, 5) ((import odt_read_fixture_context)):() then (import odt_read_fixture_context).cs.slots:([2, 0, 1, 0, 0, 0, 0, 0])
+given odt_read_fixture_open("<r><office:automatic-styles><style:style style:name='P1' style:family='paragraph'><style:text-properties fo:font-weight='bold'/></style:style></office:automatic-styles><text:p text:style-name='P1'/></r>") given odt_read_fixture_step_events(7) ((import odt_read_fixture_context)):() then odt_read_fixture_character_rows:("1,")
+given odt_read_fixture_open("<a/>") given orc_span_in((import odt_read_fixture_context)) ((import odt_read_fixture_context)):() then odt_read_fixture_character_rows:("0,")

@@ -1,45 +1,45 @@
 // The position dir units from ps, for the units that need no layout: character, word, paragraph and document. Any other unit stays where it is.
-pos_unit(Doc d, Pos ps, int dir, int unit) {
-  Pos pq = Pos(ps.para, ps.off);
+editor_position_unit(Doc d, Pos current_position, int position_unit_direction, int unit) {
+  Pos position_result = Pos(current_position.para, current_position.off);
   if(unit == (import ed_u_char)) {
-    pq = pos_char(d, ps, dir);
+    position_result = editor_position_character(d, current_position, position_unit_direction);
   }
   if(unit == (import ed_u_word)) {
-    pq = pos_word(d, ps, dir);
+    position_result = editor_position_word(d, current_position, position_unit_direction);
   }
-} chain (Doc d, Pos ps, int dir, int unit) {
+} chain (Doc d, Pos current_position, int position_unit_direction, int unit) {
   if(unit == (import ed_u_para)) {
-    pq = pos_para(d, ps, dir);
+    position_result = editor_position_paragraph(d, current_position, position_unit_direction);
   }
   if(unit == (import ed_u_doc)) {
-    pq = pos_edge(d, dir);
+    position_result = editor_position_edge(d, position_unit_direction);
   }
-} return Pos pq;
-given fx_setup("ab|cd") ((import fxd), Pos(0, 1), 1, 0):(Pos(0, 2))
-given fx_setup("ab|cd") ((import fxd), Pos(0, 1), 1, 3):(Pos(1, 0))
-given fx_setup("ab|cd") ((import fxd), Pos(0, 1), 1, 5):(Pos(1, 2))
-given fx_setup("ab|cd") ((import fxd), Pos(0, 1), 1, 1):(Pos(0, 2))
-given fx_setup("ab|cd") ((import fxd), Pos(0, 1), 1, 2):(Pos(0, 1))
+} return Pos position_result;
+given editor_fixture_setup("ab|cd") ((import fixture_document), Pos(0, 1), 1, 0):(Pos(0, 2))
+given editor_fixture_setup("ab|cd") ((import fixture_document), Pos(0, 1), 1, 3):(Pos(1, 0))
+given editor_fixture_setup("ab|cd") ((import fixture_document), Pos(0, 1), 1, 5):(Pos(1, 2))
+given editor_fixture_setup("ab|cd") ((import fixture_document), Pos(0, 1), 1, 1):(Pos(0, 2))
+given editor_fixture_setup("ab|cd") ((import fixture_document), Pos(0, 1), 1, 2):(Pos(0, 1))
 
 // The end of the selection a plain Left or Right arrow collapses to: the earlier end for dir -1, the later end otherwise.
-sel_edge(Sel sel, int dir) {
-  Pos pq = sel_hi(sel);
-  if(dir < 0) {
-    pq = sel_lo(sel);
+editor_selection_edge(Sel sel, int selection_edge_direction) {
+  Pos position_result = editor_selection_high(sel);
+  if(selection_edge_direction < 0) {
+    position_result = editor_selection_low(sel);
   }
-} return Pos pq;
+} return Pos position_result;
 (Sel(Pos(1, 2), Pos(0, 1), -1), -1):(Pos(0, 1))
 (Sel(Pos(1, 2), Pos(0, 1), -1), 1):(Pos(1, 2))
 
 // Moves the caret of ctl dir units without layout (see pos_unit). Unless extend is 1 the anchor follows, except that Left or Right over a selection only collapse it to its near end.
-ed_move_pos(Doc d, Ctl ctl, int dir, int unit, int extend) {
-  Pos pq = pos_unit(d, ctl.sel.caret, dir, unit);
-  if(extend == 0 && unit == (import ed_u_char) && sel_empty(ctl.sel) == 0) {
-    pq = sel_edge(ctl.sel, dir);
+editor_move_position(Doc d, Ctl ctl, int editor_move_position_direction, int unit, int extend) {
+  Pos position_result = editor_position_unit(d, ctl.sel.caret, editor_move_position_direction, unit);
+  if(extend == 0 && unit == (import ed_u_char) && editor_selection_empty(ctl.sel) == 0) {
+    position_result = editor_selection_edge(ctl.sel, editor_move_position_direction);
   }
-  sel_put(ctl.sel, pq.para, pq.off, extend);
+  editor_selection_put(ctl.sel, position_result.para, position_result.off, extend);
 } return void;
-given fx_setup("abc") given fx_at(0, 1, 0, 1) ((import fxd), (import fxc), 1, 0, 0):((import fxd), (import fxc), 1, 0, 0) then fx_sel:("0:2-0:2")
-given fx_setup("abc") given fx_at(0, 1, 0, 1) ((import fxd), (import fxc), 1, 0, 1):((import fxd), (import fxc), 1, 0, 1) then fx_sel:("0:1-0:2")
-given fx_setup("abc") given fx_at(0, 2, 0, 0) ((import fxd), (import fxc), 1, 0, 0):((import fxd), (import fxc), 1, 0, 0) then fx_sel:("0:2-0:2")
-given fx_setup("abc") given fx_at(0, 2, 0, 0) ((import fxd), (import fxc), -1, 0, 0):((import fxd), (import fxc), -1, 0, 0) then fx_sel:("0:0-0:0")
+given editor_fixture_setup("abc") given editor_fixture_selection_at(0, 1, 0, 1) ((import fixture_document), (import fixture_control), 1, 0, 0):((import fixture_document), (import fixture_control), 1, 0, 0) then editor_fixture_selection:("0:2-0:2")
+given editor_fixture_setup("abc") given editor_fixture_selection_at(0, 1, 0, 1) ((import fixture_document), (import fixture_control), 1, 0, 1):((import fixture_document), (import fixture_control), 1, 0, 1) then editor_fixture_selection:("0:1-0:2")
+given editor_fixture_setup("abc") given editor_fixture_selection_at(0, 2, 0, 0) ((import fixture_document), (import fixture_control), 1, 0, 0):((import fixture_document), (import fixture_control), 1, 0, 0) then editor_fixture_selection:("0:2-0:2")
+given editor_fixture_setup("abc") given editor_fixture_selection_at(0, 2, 0, 0) ((import fixture_document), (import fixture_control), -1, 0, 0):((import fixture_document), (import fixture_control), -1, 0, 0) then editor_fixture_selection:("0:0-0:0")

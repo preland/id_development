@@ -1,28 +1,28 @@
 // A move of the pointer to (cvl_ev[1], cvl_ev[2]), inside the page area or not (cvi_in 1 or 0): its place is kept, and while a drag lasts the selection grows to the position under it. Answers 1 when a drag took the move.
-cv_move(View cvv, int[] cvl_ev, int cvi_in) {
-  int[] cvl_e = (import vw_ed);
-  int cvi_d = cvl_e[(import cv_e_drag)];
-  int cvi_c = gfx_cursor(cvi_in);
-} chain (View cvv, int[] cvl_ev, int cvi_in) {
-  lset(cvl_e, (import cv_e_mx), cvl_ev[1]);
-  lset(cvl_e, (import cv_e_my), cvl_ev[2]);
-  if(cvi_d == 1) {
-    cv_drag(cvv, cvl_ev[1], cvl_ev[2]);
+view_input_pointer_move(View view_input_pointer_view, int[] view_input_pointer_event, int view_input_pointer_inside) {
+  int[] view_input_pointer_edit_state = (import view_input_edit_state);
+  int view_input_pointer_dragging = view_input_pointer_edit_state[(import cv_e_drag)];
+  int view_input_pointer_cursor = gfx_cursor(view_input_pointer_inside);
+} chain (View view_input_pointer_view, int[] view_input_pointer_event, int view_input_pointer_inside) {
+  lset(view_input_pointer_edit_state, (import cv_e_mx), view_input_pointer_event[1]);
+  lset(view_input_pointer_edit_state, (import cv_e_my), view_input_pointer_event[2]);
+  if(view_input_pointer_dragging == 1) {
+    view_input_drag_select(view_input_pointer_view, view_input_pointer_event[1], view_input_pointer_event[2]);
   }
-} return int cvi_d;
-given cv_t_ed("A|A|A|A|A|A|A|A") ((import lp_t_v), [5, 190, 245, 0, 0], 1):(0) then cv_t_eds:("eds 0,190,245,0,0,-1,-1,-1,")
-given cv_t_ed("A|A|A|A|A|A|A|A") given cv_press((import lp_t_v), [3, 183, 245, 1, 1]) ((import lp_t_v), [5, 190, 269, 1, 0], 1):(1) then cv_t_sel:("2:0-3:1")
+} return int view_input_pointer_dragging;
+given view_flow_test_open_edit("A|A|A|A|A|A|A|A") ((import layout_paragraph_test_view), [5, 190, 245, 0, 0], 1):(0) then view_flow_test_edit_states_text:("eds 0,190,245,0,0,-1,-1,-1,")
+given view_flow_test_open_edit("A|A|A|A|A|A|A|A") given view_input_press_start((import layout_paragraph_test_view), [3, 183, 245, 1, 1]) ((import layout_paragraph_test_view), [5, 190, 269, 1, 0], 1):(1) then view_flow_test_selection_text:("2:0-3:1")
 
 // Grows the selection of the controller to the position under the pixel (cvi_mx, cvi_my), as one command: the caret goes there and the anchor stays.
-cv_drag(View cvv, int cvi_mx, int cvi_my) {
-  Ctl cvc = (import vw_ctl);
-  Pos cvp = Pos(0, 0);
-  cv_hit(cvv, cvi_mx, cvi_my, cvp);
-} chain (View cvv, int cvi_mx, int cvi_my) {
-  cv_begin(cvv);
-  ed_place(cvv.doc, cvc, cvp, 1);
-  cv_end(cvv);
+view_input_drag_select(View view_input_drag_view, int view_input_drag_pointer_column, int view_input_drag_pointer_row) {
+  Ctl view_input_drag_controller = (import view_input_controller);
+  Pos view_input_drag_position = Pos(0, 0);
+  view_input_pixel_hit(view_input_drag_view, view_input_drag_pointer_column, view_input_drag_pointer_row, view_input_drag_position);
+} chain (View view_input_drag_view, int view_input_drag_pointer_column, int view_input_drag_pointer_row) {
+  view_input_command_begin(view_input_drag_view);
+  editor_place(view_input_drag_view.doc, view_input_drag_controller, view_input_drag_position, 1);
+  view_input_command_end(view_input_drag_view);
 } return void;
-given cv_t_ed("A|A|A|A|A|A|A|A") ((import lp_t_v), 190, 245):() then cv_t_sel:("0:0-2:1")
-given cv_t_ed("A|A|A|A|A|A|A|A") ((import lp_t_v), 183, 245):() then cv_t_sel:("0:0-2:0")
+given view_flow_test_open_edit("A|A|A|A|A|A|A|A") ((import layout_paragraph_test_view), 190, 245):() then view_flow_test_selection_text:("0:0-2:1")
+given view_flow_test_open_edit("A|A|A|A|A|A|A|A") ((import layout_paragraph_test_view), 183, 245):() then view_flow_test_selection_text:("0:0-2:0")
 

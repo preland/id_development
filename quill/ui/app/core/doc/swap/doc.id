@@ -1,34 +1,34 @@
 // Makes the document wad the one the canvas edits: it is laid out and paginated as the view vw_v, with a controller of its own, vw_ctl, and its caret at the start (cv_ed_new).
-wa_view(Doc wad) {
+cli_view_document(Doc wad) {
   View wav = lay_view(wad);
   lay_all(wav);
   lay_paginate(wav, 0);
 } chain (Doc wad) {
-  cv_ed_new(wav);
+  view_input_editing_start(wav);
 } return void;
-given cv_t_view("AB|CD") ((import lp_t_d)):() then cv_t_sel:("0:0-0:0") then vw_t_pages:(1)
-given vw_t_two given ed_select_all((import lp_t_d), (import vw_ctl)) ((import lp_t_d)):() then cv_t_sel:("0:0-0:0") then vw_t_pages:(2)
+given view_flow_test_make_view("AB|CD") ((import layout_paragraph_test_document)):() then view_flow_test_selection_text:("0:0-0:0") then view_input_test_page_count:(1)
+given view_test_two_pages given editor_select_all((import layout_paragraph_test_document), (import view_input_controller)) ((import layout_paragraph_test_document)):() then view_flow_test_selection_text:("0:0-0:0") then view_input_test_page_count:(2)
 
 // The document has no change that is not saved: the count of changes now is the one a save compares with, and the shell says so.
-wa_clean(App waa) {
-  lset((import wa_st), (import wa_s_mark), (import ed_typing)[1]);
-  waa.ui.shell.dirty = 0;
+cli_mark_clean(App cli_clean_app) {
+  lset((import cli_state_list), (import wa_s_mark), (import editor_typing_row)[1]);
+  cli_clean_app.ui.shell.dirty = 0;
 } return void;
-given wa_t_app given wa_t_type(120) given wa_t_type(121) ((import wa_app)):() then wa_t_state:("2,0,0,0,|0|0")
-given wa_t_app given wa_t_type(120) given wa_dirty((import wa_app)) ((import wa_app)):() then wa_t_state:("1,0,0,0,|0|0")
+given cli_test_boot_app given cli_test_type_code_point(120) given cli_test_type_code_point(121) ((import cli_application)):() then cli_test_state_text:("2,0,0,0,|0|0")
+given cli_test_boot_app given cli_test_type_code_point(120) given cli_update_dirty((import cli_application)) ((import cli_application)):() then cli_test_state_text:("1,0,0,0,|0|0")
 
 // Puts the document wad in the app's place, as a new document or a file just read: the canvas edits it from the start, the page area is scrolled to the top, and the app holds its document, controller and view. Nothing is unsaved afterwards.
-wa_swap(App waa, Doc wad) {
-  wa_view(wad);
-  View wav = (import vw_v);
-  list_splice((import vw_st), 0, 2, [0, 0]);
-} chain (App waa, Doc wad) {
-  vw_fit_all(wav);
-  waa.doc = wad;
-  waa.ctl = (import vw_ctl);
-} chain (App waa, Doc wad) {
-  waa.ui.view = wav;
-  wa_clean(waa);
+cli_swap_document(App cli_swap_app, Doc wad) {
+  cli_view_document(wad);
+  View wav = (import view_input_viewer_view);
+  list_splice((import view_state), 0, 2, [0, 0]);
+} chain (App cli_swap_app, Doc wad) {
+  view_input_window_fit(wav);
+  cli_swap_app.doc = wad;
+  cli_swap_app.ctl = (import view_input_controller);
+} chain (App cli_swap_app, Doc wad) {
+  cli_swap_app.ui.view = wav;
+  cli_mark_clean(cli_swap_app);
 } return void;
-given cv_t_view("AB|CD") given wa_t_app ((import wa_app), (import lp_t_d)):() then wa_t_text:("AB|CD") then wa_t_state:("0,0,0,0,|0|0")
-given cv_t_view("X") given wa_t_app given wa_t_type(121) given lset((import vw_st), 1, 50) ((import wa_app), (import lp_t_d)):() then vw_t_sts:("sts 0,0,100,1,") then wa_t_text:("X")
+given view_flow_test_make_view("AB|CD") given cli_test_boot_app ((import cli_application), (import layout_paragraph_test_document)):() then cli_test_document_text:("AB|CD") then cli_test_state_text:("0,0,0,0,|0|0")
+given view_flow_test_make_view("X") given cli_test_boot_app given cli_test_type_code_point(121) given lset((import view_state), 1, 50) ((import cli_application), (import layout_paragraph_test_document)):() then view_test_state_dump:("sts 0,0,100,1,") then cli_test_document_text:("X")

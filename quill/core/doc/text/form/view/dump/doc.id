@@ -1,17 +1,17 @@
 // One paragraph on one line: its paragraph row, its code points (as numbers, so nothing is hidden by encoding) and its runs. Layout and revision counters are left out, so two documents that read the same dump the same.
-para_dump(Para p) {
-  string text = "P" + p.pprop + " " + dump_ints(p.txt.cps) + " " + dump_runs(p.txt.runs);
+para_dump(Para dump_paragraph_paragraph) {
+  string text = "P" + dump_paragraph_paragraph.pprop + " " + document_dump_integers(dump_paragraph_paragraph.txt.cps) + " " + dump_runs(dump_paragraph_paragraph.txt.runs);
 } return string text;
 (Para(Text([104, 105], [Run(2, 0, -1)], 9), Lay([], [], 3), 7)):("P7 104,105, 2:0:-1,")
 (Para(Text([], [Run(0, 4, -1)], 0), Lay([], [], -1), 0)):("P0  0:4:-1,")
 
 // The whole document as text, the canonical form every edit and undo case compares: the page, then one line per paragraph.
-doc_dump(Doc d) {
-  string text = dump_page(d.body.page);
-  int i = 0;
-  while(i < len(d.body.paras)) {
-    text = text + "\n" + para_dump(d.body.paras[i]);
-    i = i + 1;
+doc_dump(Doc dump_document_document) {
+  string text = dump_page(dump_document_document.body.page);
+  int dump_document_index = 0;
+  while(dump_document_index < len(dump_document_document.body.paras)) {
+    text = text + "\n" + para_dump(dump_document_document.body.paras[dump_document_index]);
+    dump_document_index = dump_document_index + 1;
   }
 } return string text;
 (Doc(Body([Para(Text([104, 105], [Run(2, 0, -1)], 9), Lay([], [], 3), 7)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], [], []))):("G 1,2,0, 3,4,5,6, 0,0,0,\nP7 104,105, 2:0:-1,")

@@ -1,17 +1,17 @@
 // 8 when there is no paragraph, else (i + 1) * 16 plus para_check's code for the first paragraph i that breaks an invariant.
-body_check(Doc d) {
+body_check(Doc body_verify_document) {
   int code = 0;
-  int i = 0;
-  if(len(d.body.paras) == 0) {
+  int body_verify_index = 0;
+  if(len(body_verify_document.body.paras) == 0) {
     code = 8;
   }
-} chain (Doc d) {
-  while(i < len(d.body.paras) && code == 0) {
-    int c1 = para_check(d, i);
-    if(c1 != 0) {
-      code = (i + 1) * 16 + c1;
+} chain (Doc body_verify_document) {
+  while(body_verify_index < len(body_verify_document.body.paras) && code == 0) {
+    int body_verify_paragraph_code = para_check(body_verify_document, body_verify_index);
+    if(body_verify_paragraph_code != 0) {
+      code = (body_verify_index + 1) * 16 + body_verify_paragraph_code;
     }
-    i = i + 1;
+    body_verify_index = body_verify_index + 1;
   }
 } return int code;
 (Doc(Body([Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], -1), 0), Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), Ext([], ["a"], []))):(0)
@@ -19,15 +19,15 @@ body_check(Doc d) {
 (Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), Ext([], ["a"], []))):(8)
 
 // Every invariant of a document, 0 when they hold: the tables (tab_check, plus 100 for the paragraph table) and then the body (body_check).
-doc_check(Doc d) {
-  int code = tab_check(d.fmt.chars);
-  int cp = tab_check(d.fmt.paras);
-  if(code == 0 && cp != 0) {
-    code = 100 + cp;
+doc_check(Doc document_verify_document) {
+  int code = tab_check(document_verify_document.fmt.chars);
+  int document_verify_table_code = tab_check(document_verify_document.fmt.paras);
+  if(code == 0 && document_verify_table_code != 0) {
+    code = 100 + document_verify_table_code;
   }
-} chain (Doc d) {
+} chain (Doc document_verify_document) {
   if(code == 0) {
-    code = body_check(d);
+    code = body_check(document_verify_document);
   }
 } return int code;
 (Doc(Body([Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)), Ext([], ["a"], []))):(0)

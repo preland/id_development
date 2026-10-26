@@ -1,28 +1,28 @@
 // Opens A5c's colour grid for the colour button of command rbi_cmd under the control whose rectangle is rbl_a: Word's theme grid and the standard colours, and above them the bar that says automatic for the font colour and no colour for the highlight. It is kept in the list of open grids.
-rbe_colours(int rbi_cmd, int[] rbl_a) {
-  string rbs_l = "Automatic";
-  if(rbi_cmd == (import cmd_highlight)) {
-    rbs_l = "No Color";
+ribbon_open_colors(int ribbon_open_colors_command, int[] ribbon_open_colors_anchor) {
+  string ribbon_open_colors_bar_label = "Automatic";
+  if(ribbon_open_colors_command == (import cmd_highlight)) {
+    ribbon_open_colors_bar_label = "No Color";
   }
-  GuiColors rbk = gui_colors_new(gui_colors_word((import idstd_pc_office)), rbs_l, (import rbd_ui)[0]);
-} chain (int rbi_cmd, int[] rbl_a) {
-  gui_colors_place(rbk, rbl_a[0], rbl_a[1], rbl_a[2], rbl_a[3], (import sf_l_w), (import sf_l_h));
-  push((import rbd_cg), rbk);
+  GuiColors ribbon_open_colors_grid = gui_colors_new(gui_colors_word((import idstd_pc_office)), ribbon_open_colors_bar_label, (import ribbon_faces)[0]);
+} chain (int ribbon_open_colors_command, int[] ribbon_open_colors_anchor) {
+  gui_colors_place(ribbon_open_colors_grid, ribbon_open_colors_anchor[0], ribbon_open_colors_anchor[1], ribbon_open_colors_anchor[2], ribbon_open_colors_anchor[3], (import sf_l_w), (import sf_l_h));
+  push((import ribbon_fit_color_grids), ribbon_open_colors_grid);
 } return void;
-given lp_t_font given rbd_t_up(1024) (311, [10, 10, 40, 20]):() then rbd_t_cp:("1,10,30,212,184,Automatic")
-given lp_t_font given rbd_t_up(1024) (312, [900, 10, 40, 20]):() then rbd_t_cp:("1,728,30,212,184,No Color")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) (311, [10, 10, 40, 20]):() then ribbon_fit_check_color_grid:("1,10,30,212,184,Automatic")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) (312, [900, 10, 40, 20]):() then ribbon_fit_check_color_grid:("1,728,30,212,184,No Color")
 
 // Writes down the colour the open grid just chose where a menu keeps the answer of its choice, so that the grid is picked like any other: the colour is the one answer and its name is its #rrggbb, or the label of the bar for the automatic colour.
-rbe_note_colour() {
-  GuiColors rbk = (import rbd_cg)[0];
-  int rbi_v = gui_colors_value(rbk);
-  string rbs_n = rbk.label;
+ribbon_color_answer() {
+  GuiColors ribbon_color_answer_grid = (import ribbon_fit_color_grids)[0];
+  int ribbon_color_answer_value = gui_colors_value(ribbon_color_answer_grid);
+  string ribbon_color_answer_name = ribbon_color_answer_grid.label;
 } chain () {
-  list_splice((import rbd_pa), 0, len((import rbd_pa)), [rbi_v]);
-  if(rbi_v >= 0) {
-    rbs_n = oc_hex(rbi_v);
+  list_splice((import ribbon_fit_answers), 0, len((import ribbon_fit_answers)), [ribbon_color_answer_value]);
+  if(ribbon_color_answer_value >= 0) {
+    ribbon_color_answer_name = odt_write_hex_color(ribbon_color_answer_value);
   }
-  list_string_splice((import rbd_pl), 0, len((import rbd_pl)), [rbs_n]);
+  list_string_splice((import ribbon_fit_labels), 0, len((import ribbon_fit_labels)), [ribbon_color_answer_name]);
 } return void;
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(311) given rbd_t_swatch(5) ():() then rbd_t_pa:("15564081,#ed7d31")
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(312) given rbd_t_swatch(70) ():() then rbd_t_pa:("-1,No Color")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(311) given ribbon_fit_set_hot_swatch(5) ():() then ribbon_fit_check_answers:("15564081,#ed7d31")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(312) given ribbon_fit_set_hot_swatch(70) ():() then ribbon_fit_check_answers:("-1,No Color")

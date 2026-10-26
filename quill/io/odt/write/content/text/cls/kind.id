@@ -1,23 +1,23 @@
 // What a code point is in the file: 0 text, 3 a tab, 4 a line break (10 or 11), 5 an object marker (quill_object_marker and up), 6 not allowed in XML (controls, surrogates, U+FFFE and U+FFFF) and so dropped. A space is 0 here; oc_sp decides how it is written.
-oc_kind(int oc_cp) {
-  int oc_k = 0;
-  if(oc_cp < 32) {
-    oc_k = 6;
+odt_write_code_point_kind(int odt_write_code_point_kind_code_point) {
+  int odt_write_code_point_kind_result = 0;
+  if(odt_write_code_point_kind_code_point < 32) {
+    odt_write_code_point_kind_result = 6;
   }
-  if((oc_cp >= 55296 && oc_cp <= 57343) || oc_cp == 65534 || oc_cp == 65535) {
-    oc_k = 6;
+  if((odt_write_code_point_kind_code_point >= 55296 && odt_write_code_point_kind_code_point <= 57343) || odt_write_code_point_kind_code_point == 65534 || odt_write_code_point_kind_code_point == 65535) {
+    odt_write_code_point_kind_result = 6;
   }
-} chain (int oc_cp) {
-  if(oc_cp == 9) {
-    oc_k = 3;
+} chain (int odt_write_code_point_kind_code_point) {
+  if(odt_write_code_point_kind_code_point == 9) {
+    odt_write_code_point_kind_result = 3;
   }
-  if(oc_cp == 10 || oc_cp == 11) {
-    oc_k = 4;
+  if(odt_write_code_point_kind_code_point == 10 || odt_write_code_point_kind_code_point == 11) {
+    odt_write_code_point_kind_result = 4;
   }
-  if(oc_cp >= (import quill_object_marker)) {
-    oc_k = 5;
+  if(odt_write_code_point_kind_code_point >= (import quill_object_marker)) {
+    odt_write_code_point_kind_result = 5;
   }
-} return int oc_k;
+} return int odt_write_code_point_kind_result;
 (65):(0)
 (32):(0)
 (9):(3)
@@ -30,10 +30,10 @@ oc_kind(int oc_cp) {
 (8364):(0)
 
 // 1 for a visible character: more than a space, and plain text.
-oc_ink(int oc_cp) {
-  int oc_kd = oc_kind(oc_cp);
-  int oc_ik = (oc_kd == 0) * (oc_cp > 32);
-} return int oc_ik;
+odt_write_code_point_visible(int odt_write_code_point_visible_code_point) {
+  int odt_write_code_point_visible_kind = odt_write_code_point_kind(odt_write_code_point_visible_code_point);
+  int odt_write_code_point_visible_result = (odt_write_code_point_visible_kind == 0) * (odt_write_code_point_visible_code_point > 32);
+} return int odt_write_code_point_visible_result;
 (65):(1)
 (32):(0)
 (9):(0)

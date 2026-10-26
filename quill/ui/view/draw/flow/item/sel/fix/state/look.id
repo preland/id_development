@@ -1,22 +1,22 @@
 // Test check: whether the selection of the controller is bold, as sel_state tells it: 0 none of it, 1 all of it, 2 part of it.
-cv_t_bold() {
-  Ctl cvc = (import vw_ctl);
-  int cvi_s = sel_state((import lp_t_d), cvc, (import ed_s_flag) + (import quill_flag_bold));
-} return int cvi_s;
-given cv_t_ed("AB") ():(0)
-given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) given ed_toggle((import lp_t_d), (import vw_ctl), 1) ():(1)
+view_flow_test_bold_state() {
+  Ctl view_flow_bold_controller = (import view_input_controller);
+  int view_flow_bold_state = editor_selection_state((import layout_paragraph_test_document), view_flow_bold_controller, (import ed_s_flag) + (import quill_flag_bold));
+} return int view_flow_bold_state;
+given view_flow_test_open_edit("AB") ():(0)
+given view_flow_test_open_edit("AB") given editor_select_all((import layout_paragraph_test_document), (import view_input_controller)) given editor_toggle((import layout_paragraph_test_document), (import view_input_controller), 1) ():(1)
 
 // Test check: the paragraph tops and the end of the last paragraph that the controller's state kept (vw_tp), comma separated.
-cv_t_tp() {
-  string cvs_z_t = "tp " + (dump_ints((import vw_tp)));
-} return string cvs_z_t;
-given cv_t_view("AB") given cv_ed_new((import lp_t_v)) ():("tp 640,1792,")
-given cv_t_view("AB|CD") given cv_ed_new((import lp_t_v)) ():("tp 640,2304,3456,")
+view_flow_test_tops_text() {
+  string view_flow_tops_text = "tp " + (document_dump_integers((import view_input_kept_tops)));
+} return string view_flow_tops_text;
+given view_flow_test_make_view("AB") given view_input_editing_start((import layout_paragraph_test_view)) ():("tp 640,1792,")
+given view_flow_test_make_view("AB|CD") given view_input_editing_start((import layout_paragraph_test_view)) ():("tp 640,2304,3456,")
 
 // Test check: the plain text of the fragment the controller last copied.
-cv_t_clip() {
-  Ctl cvc = (import vw_ctl);
-  string cvs_t = frag_plain(cvc.clip);
-} return string cvs_t;
-given cv_t_ed("AB") ():("")
-given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) given cv_cmd((import lp_t_v), 204) ():("AB")
+view_flow_test_clipboard_text() {
+  Ctl view_flow_clip_controller = (import view_input_controller);
+  string view_flow_clip_text = frag_plain(view_flow_clip_controller.clip);
+} return string view_flow_clip_text;
+given view_flow_test_open_edit("AB") ():("")
+given view_flow_test_open_edit("AB") given editor_select_all((import layout_paragraph_test_document), (import view_input_controller)) given view_input_canvas_command((import layout_paragraph_test_view), 204) ():("AB")

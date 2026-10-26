@@ -1,29 +1,29 @@
 // Scans one line of paragraph i from code point lo, whose pen starts at x0, and returns where the line ends (exclusive). Every code point is placed in pen at its position on this line, and the code point that overflowed avail is placed too, so the caller can read pen[hi]; the next line overwrites what is past hi. With no overflow the line runs to the end of the paragraph.
 // By hand at 16 px (B and E 683, a space 285, an E at 24 pt 1366; no kerning among them): in 3500 lu "BBBB EEEE" overflows at the first E, whose end is 3700, and breaks after the space at 5; a restart at 5 with the pen at 100 rewrites pen 5 to 9 as 100 to 2832 and leaves 0 to 4 alone; "AAAAAAAA" (A then A has no kerning pair) in 3000 breaks at the glyph, after four; a first code point wider than the line still takes a line of its own; with the last four code points at 24 pt the first of them ends at 2732 + 1366 = 4098, past 4000, so the line is the first four; an empty paragraph is one line ending at 0 with its pen entry at x0.
-lp_scan(View v, int i, int lo, int x0, int avail) {
-  Para p = v.doc.body.paras[i];
-  int ri = para_run(p, lo);
-  int re = lp_rend(p, ri);
-} chain (View v, int i, int lo, int x0, int avail) {
-  int n = len(p.txt.cps);
-  lp_put(p.lay.pen, lo, x0);
-  int k = lp_run(v, i, ri, lo, re, lo, avail);
-} chain (View v, int i, int lo, int x0, int avail) {
-  while(k == re && k < n) {
-    ri = ri + 1;
-    re = re + p.txt.runs[ri].len;
-    k = lp_run(v, i, ri, k, re, lo, avail);
+layout_paragraph_scan(View scanned_view, int scanned_paragraph_index, int scanned_start, int scanned_origin, int avail) {
+  Para scanned_paragraph = scanned_view.doc.body.paras[scanned_paragraph_index];
+  int scanned_run_index = para_run(scanned_paragraph, scanned_start);
+  int scanned_run_end = layout_paragraph_run_end(scanned_paragraph, scanned_run_index);
+} chain (View scanned_view, int scanned_paragraph_index, int scanned_start, int scanned_origin, int avail) {
+  int scanned_text_length = len(scanned_paragraph.txt.cps);
+  layout_paragraph_put(scanned_paragraph.lay.pen, scanned_start, scanned_origin);
+  int scanned_position = layout_paragraph_walk_run(scanned_view, scanned_paragraph_index, scanned_run_index, scanned_start, scanned_run_end, scanned_start, avail);
+} chain (View scanned_view, int scanned_paragraph_index, int scanned_start, int scanned_origin, int avail) {
+  while(scanned_position == scanned_run_end && scanned_position < scanned_text_length) {
+    scanned_run_index = scanned_run_index + 1;
+    scanned_run_end = scanned_run_end + scanned_paragraph.txt.runs[scanned_run_index].len;
+    scanned_position = layout_paragraph_walk_run(scanned_view, scanned_paragraph_index, scanned_run_index, scanned_position, scanned_run_end, scanned_start, avail);
   }
-  int hi = n;
-  if(lp_fit(p, lo, k, avail) == 0) {
-    hi = lp_cut(p, lo, k - 1);
+  int hi = scanned_text_length;
+  if(layout_paragraph_fits(scanned_paragraph, scanned_start, scanned_position, avail) == 0) {
+    hi = layout_paragraph_cut(scanned_paragraph, scanned_start, scanned_position - 1);
   }
 } return int hi;
-given lp_t_font given lp_t_ins(0, "BBBB EEEE") ((import lp_t_v), 0, 0, 0, 3500):(5) then lp_t_p0:([0, 683, 1366, 2049, 2732, 3017, 3700])
-given lp_t_font given lp_t_ins(0, "BBBB EEEE") ((import lp_t_v), 0, 0, 0, 9999):(9) then lp_t_p0:([0, 683, 1366, 2049, 2732, 3017, 3700, 4383, 5066, 5749])
-given lp_t_font given lp_t_ins(0, "BBBB EEEE") given lp_t_lay(3500) ((import lp_t_v), 0, 5, 100, 3500):(9) then lp_t_p0:([0, 683, 1366, 2049, 2732, 100, 783, 1466, 2149, 2832])
-given lp_t_font given lp_t_ins(0, "AAAAAAAA") ((import lp_t_v), 0, 0, 0, 3000):(4) then lp_t_p0:([0, 683, 1366, 2049, 2732, 3415])
-given lp_t_font given lp_t_ins(0, "AAAAAAAA") ((import lp_t_v), 0, 0, 0, 100):(1) then lp_t_p0:([0, 683])
-given lp_t_font given lp_t_ins(0, "AB") given lp_t_size(0, 1, 2, 48) ((import lp_t_v), 0, 0, 0, 9999):(2) then lp_t_p0:([0, 683, 2049])
-given lp_t_font given lp_t_ins(0, "BBBBEEEE") given lp_t_size(0, 4, 8, 48) ((import lp_t_v), 0, 0, 0, 4000):(4) then lp_t_p0:([0, 683, 1366, 2049, 2732, 4098])
-given lp_t_font ((import lp_t_v), 0, 0, 500, 3000):(0) then lp_t_p0:([500])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BBBB EEEE") ((import layout_paragraph_test_view), 0, 0, 0, 3500):(5) then layout_paragraph_test_first_pen:([0, 683, 1366, 2049, 2732, 3017, 3700])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BBBB EEEE") ((import layout_paragraph_test_view), 0, 0, 0, 9999):(9) then layout_paragraph_test_first_pen:([0, 683, 1366, 2049, 2732, 3017, 3700, 4383, 5066, 5749])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BBBB EEEE") given layout_paragraph_test_layout(3500) ((import layout_paragraph_test_view), 0, 5, 100, 3500):(9) then layout_paragraph_test_first_pen:([0, 683, 1366, 2049, 2732, 100, 783, 1466, 2149, 2832])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "AAAAAAAA") ((import layout_paragraph_test_view), 0, 0, 0, 3000):(4) then layout_paragraph_test_first_pen:([0, 683, 1366, 2049, 2732, 3415])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "AAAAAAAA") ((import layout_paragraph_test_view), 0, 0, 0, 100):(1) then layout_paragraph_test_first_pen:([0, 683])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "AB") given layout_paragraph_test_font_size(0, 1, 2, 48) ((import layout_paragraph_test_view), 0, 0, 0, 9999):(2) then layout_paragraph_test_first_pen:([0, 683, 2049])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BBBBEEEE") given layout_paragraph_test_font_size(0, 4, 8, 48) ((import layout_paragraph_test_view), 0, 0, 0, 4000):(4) then layout_paragraph_test_first_pen:([0, 683, 1366, 2049, 2732, 4098])
+given layout_paragraph_test_font ((import layout_paragraph_test_view), 0, 0, 500, 3000):(0) then layout_paragraph_test_first_pen:([500])

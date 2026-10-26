@@ -16,10 +16,10 @@ This file records what `word/core/doc` (B1) already uses. Reuse the same name fo
 | `Text` | `t`, `u`, `nt` |
 | `Tab` | `tb`, `chars`, `tc`, `tp` |
 | `Pos` | `pa`, `pb` (not `p`: that is a `Para`) |
-| `Run` | `ru`, `rv`, `nr`, `cur`, `head` |
+| `Run` | `ru`, `other_run`, `nr`, `cur`, `head` |
 | `Run[]` | `rs`, `tr`, `src`, `dst` |
-| `Style`, `Sty`, `ListDef`, `Page`, `Ext`, `Lay`, `Model` | `st`, `sy`, `ld`, `pg`, `x`, `ly`, `mo` |
-| `int[]` | `cps`, `runs`, `row`, `rows`, `rg`, `sx`, `sp`, `wr`, `acc`, `ins`, `fm`, `vs`, `ws`, `none`, `sls`, `fc`, `fp`, `fl`, `lines`, `pen`, `rel`, `size`, `margin`, `hf`, `levels` |
+| `Style`, `Sty`, `ListDef`, `Page`, `Ext`, `Lay`, `Model` | `st`, `style_set`, `list_definition`, `pg`, `x`, `paragraph_layout`, `mo` |
+| `int[]` | `cps`, `runs`, `row`, `rows`, `random_generator_seed`, `sx`, `span_bounds`, `written_count`, `acc`, `ins`, `style_row_identifiers`, `vs`, `link_fill_values`, `none`, `slot_list`, `flat_characters`, `flat_character_rows`, `flat_links`, `lines`, `pen`, `rel`, `size`, `margin`, `hf`, `levels` |
 | `string` | `name`, `text`, `font` |
 | `int` | every other short name used as a loop counter, offset or result: `i j k n m w h id at off lo hi cp cprop pprop field value key val bits on mode kind which code lk res got sn ia iz begin same` |
 
@@ -59,23 +59,23 @@ The seam of docs/QUILL.md 4.3 names a `Ctl` `c`, a `Sel` `s`, a `Pos` `p` and `f
 | name | type | instead of |
 | --- | --- | --- |
 | `ctl` | `Ctl` | `c` |
-| `sel`, `nsel`, `orig`, `tmp` | `Sel` | `s`, and `from` |
-| `ps`, `pq`, `pa`, `pb` | `Pos` | `p`, and `res` for a result (the model's `res` is an `int`) |
+| `sel`, `selection_clone`, `selection_original`, `tmp` | `Sel` | `s`, and `from` |
+| `current_position`, `position_result`, `pa`, `pb` | `Pos` | `p`, and `res` for a result (the model's `res` is an `int`) |
 | `spot` | `Pos` (where find_next writes) | `hit` (an `int` in the ribbon) and `found` (an `int` in the model) |
 | `from` | `Pos` (where find_next starts) | |
-| `eo`, `inv` | `Op` | `op` (the model has functions `op_*`) |
-| `invs`, `ops` | `Op[]` | |
-| `tx`, `rt` | `Txn` | `nt` (a `Text`) |
+| `edit_operation`, `inverse` | `Op` | `op` (the model has functions `op_*`) |
+| `inverses`, `ops` | `Op[]` | |
+| `transaction`, `redo_transaction` | `Txn` | `nt` (a `Text`) |
 | `take`, `give`, `undo`, `redo`, `stack` | `Txn[]` | `from`, `to` |
-| `hs`, `frag` | `Hist`, `Frag` | `fr` (an `int[]` in the ribbon) |
+| `history_record`, `frag` | `Hist`, `Frag` | `fr` (an `int[]` in the ribbon) |
 | `again` | `int` (redo or undo) | `redo` (a `Txn[]`) |
-| `loc`, `dat`, `old`, `snap`, `kp`, `acc`, `cells`, `ofs`, `fix` | `int[]` | `at`, `data`, `out`, `ls`, `st` |
+| `location`, `dat`, `old`, `snap`, `keep_properties`, `acc`, `cells`, `match_offsets`, `fix` | `int[]` | `at`, `data`, `out`, `ls`, `st` |
 | `act` | a function value | `f` (a `Fmt`) |
-| `pieces`, `flds` | `string[]` | `lines`, `parts`, `f` |
-| `argt`, `plain` | `string` | `rest` (an `int[]`) |
+| `pieces`, `fields` | `string[]` | `lines`, `parts`, `f` |
+| `argument_text`, `plain` | `string` | `rest` (an `int[]`) |
 | `actual`, `want`, `dump0..dump3`, `fresh` | test fixtures | `got`, `have`, `before` |
-| `lcp`, `rcp` | `int` | `a`, `b` (a `Body`) |
-| `on`, `val`, `got`, `cont`, `nrun`, `isflag`, `back`, `step`, `hp` | `int` | `st` (a `Style`), `nr` (a `Run`) |
+| `left_code_point`, `right_code_point` | `int` | `a`, `b` (a `Body`) |
+| `on`, `val`, `got`, `cont`, `nrun`, `is_flag_field`, `back`, `step`, `hp` | `int` | `st` (a `Style`), `nr` (a `Run`) |
 ## One-paragraph layout (B3a, `core/lay/para`)
 
 Prefixes: `face_` (the face cache and its resolvers), `lay_para lay_label lay_label_x lay_number` (the public calls), `lp_` (internals of the paragraph pass), `lp_t_` (test fixtures and their exports: `lp_t_d lp_t_f lp_t_v lp_t_h9 lp_t_h16 lp_t_h32 lp_t_cb lp_t_cs lp_t_cd lp_t_cz`). Its constants in conf.id sit between the `B3a begin/end` markers: `quill_layout_* quill_code_point_* quill_alignment_* quill_line_*`.
@@ -95,7 +95,7 @@ Prefixes: `face_` (the face cache and its resolvers), `lay_para lay_label lay_la
 | `res` | `int` | `d`, a `Doc` |
 | `got`, `tot`, `ns`, `cnt`, `rem` | `int` | `a`, `s`, `c`, `r` |
 | `rb`, `ri`, `re` | `int` (run start, run index, run end) | `rs`, a `Run[]` |
-| `lbl` | `int[]` (a label's code points) | `cl`, an `int` (the class of a code point, B2) |
+| `lbl` | `int[]` (a label's code points) | `character_class`, an `int` (the class of a code point, B2) |
 | `pgs`, `keys`, `hnd`, `starts`, `tops` | `Pages`, `int[]` | `pg`, a `Page`; `key`, an `int` |
 
 ## What `lay_para` leaves in `Lay`, for B3b and B6
@@ -125,9 +125,9 @@ Names this reader had to avoid because the model holds them for another type: `c
 
 | name | type |
 | --- | --- |
-| `cx` | `Cx` (the read: `rd`, `d`, `cs`) |
-| `rd` | `XmlR` |
-| `cst` | `Cs` (`pstyles`, `lstyles`, `slots`) |
+| `cx` | `Odt_Read_Context` (the read: `odt_read_xml_reader`, `d`, `cs`) |
+| `odt_read_xml_reader` | `XmlR` |
+| `cst` | `Odt_Read_State` (`pstyles`, `odt_read_automatic_styles`, `slots`) |
 | `nm`, `pnm`, `lnm` | `Names` |
 | `ev`, `at`, `k`, `kind`, `lvl`, `lev`, `rw`, `pp`, `idx`, `base`, `shut` | `int` |
 | `sname`, `skey`, `href` | `string` |
@@ -144,8 +144,8 @@ Functions: `oc_*` (internal) and `odt_content_bytes`, `odt_content_check` (the s
 
 | type | names |
 | --- | --- |
-| `XmlW` | `oc_w` (export `oc_fw` in the fixtures) |
-| `Doc` | `oc_d` (export `oc_xd`) |
+| `XmlW` | `oc_w` (export `odt_write_test_writer_output` in the fixtures) |
+| `Doc` | `oc_d` (export `odt_write_test_document_made`) |
 | `Text`, `Ext`, `Para`, `Run`, `Tab` | `oc_tx`, `oc_ex`, `oc_pa`, `oc_ru`, `oc_tb` |
 | `int[]` | `oc_cps`, `oc_ls` (list state `[open levels, list definition]`), `oc_pm`, `oc_cm` (rows in use), `oc_rw`, `oc_lvl`, `oc_bs` |
 | `string` | `oc_nm`, `oc_an`, `oc_el`, `oc_s`, `oc_cv`, `oc_why` |
@@ -195,10 +195,10 @@ What the seam calls do:
 
 | call | what it does |
 | --- | --- |
-| `rbd_ui_set(r, b, i)` | the font handles of the ribbon's own text; call first |
-| `rib_init() -> Ribbon` | starts the ribbon, answers the Home tab's |
+| `ribbon_faces_set(r, b, i)` | the font handles of the ribbon's own text; call first |
+| `ribbon_fit_start_ribbon() -> Ribbon` | starts the ribbon, answers the Home tab's |
 | `rib_fit(rib, x, y, w, h)` | places quick-access strip, tabs and body in the band (`rbd_band_px` tall) and rebuilds the widgets; closes any menu |
-| `rib_event(rib, kind, ev) -> bits` | 1 paint again, 2 a command was given (`rib_cmd`, `rib_arg`, `rib_name`), 4 a press closed a menu and is owed to what is under, 8 the ribbon took the event |
+| `rib_event(rib, kind, ev) -> bits` | 1 paint again, 2 a command was given (`ribbon_command_given`, `rib_arg`, `rib_name`), 4 a press closed a menu and is owed to what is under, 8 the ribbon took the event |
 | `rib_open(rib)`, `rib_tick(rib)` | a menu, gallery or colour grid is open or a combo box has the keyboard (then every event goes to `rib_event` first, and the viewer paints the whole picture, not a band, so the page does not paint over it); once a frame, 1 when a tooltip came on show or went |
 | `rib_text(rib, cmd, text)` | the text of the font family or font size combo box, as what the selection has now (the one being typed in is left alone) |
 | `rib_put(rib, cmd, val)` | the state of a command (0 off, 1 on, 2 mixed, 3 disabled) in the open tab and the quick-access strip |

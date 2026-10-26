@@ -1,27 +1,27 @@
 // Drops the runs past the first w; when w is 0 every run was empty, so the first one is kept.
-rs_trim(Run[] rs, int w, Run head) {
-  while(len(rs) > w) {
-    pop(rs);
+document_runs_trim(Run[] runs_trim_run_list, int runs_trim_kept_count, Run head) {
+  while(len(runs_trim_run_list) > runs_trim_kept_count) {
+    pop(runs_trim_run_list);
   }
-  if(w == 0) {
-    push(rs, head);
+  if(runs_trim_kept_count == 0) {
+    push(runs_trim_run_list, head);
   }
 } return void;
 ([Run(1, 0, -1), Run(2, 5, -1)], 1, Run(1, 0, -1)):([Run(1, 0, -1)], 1, Run(1, 0, -1))
 ([Run(0, 3, -1), Run(0, 5, -1)], 0, Run(0, 3, -1)):([Run(0, 3, -1)], 0, Run(0, 3, -1))
 
 // Normalises the runs: empty runs dropped, neighbours with equal properties merged, and a paragraph with no text keeps exactly one empty run.
-text_merge(Text t) {
-  Run[] rs = t.runs;
-  Run head = rs[0];
-  int[] wr = [0];
-} chain (Text t) {
-  int res = 0;
-  while(res < len(rs)) {
-    rs_fold(rs, wr, res);
-    res = res + 1;
+text_merge(Text merge_runs_text) {
+  Run[] merge_runs_run_list = merge_runs_text.runs;
+  Run head = merge_runs_run_list[0];
+  int[] written_count = [0];
+} chain (Text merge_runs_text) {
+  int merge_runs_run_index = 0;
+  while(merge_runs_run_index < len(merge_runs_run_list)) {
+    document_runs_fold(merge_runs_run_list, written_count, merge_runs_run_index);
+    merge_runs_run_index = merge_runs_run_index + 1;
   }
-  rs_trim(rs, wr[0], head);
+  document_runs_trim(merge_runs_run_list, written_count[0], head);
 } return void;
 (Text([1, 2, 3], [Run(1, 0, -1), Run(0, 5, -1), Run(1, 0, -1), Run(1, 0, -1)], 0)):(Text([1, 2, 3], [Run(3, 0, -1)], 0))
 (Text([], [Run(0, 4, -1), Run(0, 5, -1)], 0)):(Text([], [Run(0, 4, -1)], 0))

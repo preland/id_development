@@ -1,29 +1,29 @@
 // The x, in lu from the left edge of the text area, that a move up or down aims for: lhg less the left margin when a goal of the page is kept (lhg at least 0), else the pen of position lhq itself.
 // By hand: with the left margin 2560, offset 5 of "BBB EEE BBB" is the second code point of line 1, at the pen 683; a kept goal of 4000 is 1440.
-lay_goal(View lhv, Pos lhq, int lhg) {
-  int lhx = lhg - lay_margin(lhv.doc, 3);
-  if(lhg < 0) {
-    lhx = lhv.doc.body.paras[lhq.para].lay.pen[lhq.off];
+lay_goal(View hit_view, Pos query_position, int aim_x) {
+  int goal_x = aim_x - lay_margin(hit_view.doc, 3);
+  if(aim_x < 0) {
+    goal_x = hit_view.doc.body.paras[query_position.para].lay.pen[query_position.off];
   }
-} return int lhx;
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 5), -1):(683)
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 5), 4000):(1440)
+} return int goal_x;
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), Pos(0, 5), -1):(683)
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), Pos(0, 5), 4000):(1440)
 
 // Puts in lho the position one line up (lhdir -1) or down (1) from lhq, at the offset whose pen is nearest to the goal lhg (the x of the page the caret aimed for when it started to move, -1 for the caret's own x). A caret on the first or last line stays where it is. The goal is not looked up again from the caret that results, so a short line in between does not shorten it (lay_goal is the caller's to keep).
 // By hand in "BBB", "A", "BBB" (pens 0, 683, 1366 on the long lines): down from offset 2 of paragraph 0, x 1366, the short "A" gives offset 1; from there with the kept goal 3926 (1366 and the margin) the next gives offset 2 again, not 1.
-lay_move_line(View lhv, Pos lhq, int lhdir, int lhg, Pos lho) {
-  int lhj = lay_line_of(lhv, lhq);
-  int[] lhr = [0, 0];
-  lay_step(lhv, lhq.para, lhj, lhdir, lhr);
-} chain (View lhv, Pos lhq, int lhdir, int lhg, Pos lho) {
-  lho.para = lhr[0];
-  lho.off = lay_off_at(lhv, lhr[0], lhr[1], lay_goal(lhv, lhq, lhg));
-  if(lhr[0] == lhq.para && lhr[1] == lhj) {
-    lho.off = lhq.off;
+lay_move_line(View hit_view, Pos query_position, int layout_direction, int aim_x, Pos output_position) {
+  int target_line = lay_line_of(hit_view, query_position);
+  int[] result_list = [0, 0];
+  lay_step(hit_view, query_position.para, target_line, layout_direction, result_list);
+} chain (View hit_view, Pos query_position, int layout_direction, int aim_x, Pos output_position) {
+  output_position.para = result_list[0];
+  output_position.off = lay_off_at(hit_view, result_list[0], result_list[1], lay_goal(hit_view, query_position, aim_x));
+  if(result_list[0] == query_position.para && result_list[1] == target_line) {
+    output_position.off = query_position.off;
   }
 } return void;
-given lg_t_rows(["BBB", "A", "BBB"]) ((import lp_t_v), Pos(0, 2), 1, -1, Pos(9, 9)):((import lp_t_v), Pos(0, 2), 1, -1, Pos(1, 1))
-given lg_t_rows(["BBB", "A", "BBB"]) ((import lp_t_v), Pos(1, 1), 1, 3926, Pos(9, 9)):((import lp_t_v), Pos(1, 1), 1, 3926, Pos(2, 2))
-given lg_t_rows(["BBB", "A", "BBB"]) ((import lp_t_v), Pos(2, 2), -1, 3926, Pos(9, 9)):((import lp_t_v), Pos(2, 2), -1, 3926, Pos(1, 1))
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 2), 1, -1, Pos(9, 9)):((import lp_t_v), Pos(0, 2), 1, -1, Pos(0, 6))
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 9), 1, -1, Pos(9, 9)):((import lp_t_v), Pos(0, 9), 1, -1, Pos(0, 9))
+given layout_page_test_rows(["BBB", "A", "BBB"]) ((import layout_paragraph_test_view), Pos(0, 2), 1, -1, Pos(9, 9)):((import layout_paragraph_test_view), Pos(0, 2), 1, -1, Pos(1, 1))
+given layout_page_test_rows(["BBB", "A", "BBB"]) ((import layout_paragraph_test_view), Pos(1, 1), 1, 3926, Pos(9, 9)):((import layout_paragraph_test_view), Pos(1, 1), 1, 3926, Pos(2, 2))
+given layout_page_test_rows(["BBB", "A", "BBB"]) ((import layout_paragraph_test_view), Pos(2, 2), -1, 3926, Pos(9, 9)):((import layout_paragraph_test_view), Pos(2, 2), -1, 3926, Pos(1, 1))
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), Pos(0, 2), 1, -1, Pos(9, 9)):((import layout_paragraph_test_view), Pos(0, 2), 1, -1, Pos(0, 6))
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), Pos(0, 9), 1, -1, Pos(9, 9)):((import layout_paragraph_test_view), Pos(0, 9), 1, -1, Pos(0, 9))

@@ -1,45 +1,45 @@
 // The lists the ribbon keeps its state in, as exports: the state list (rbd_s0 at the start), the colours the colour buttons apply (rbd_col0) and the rectangles of the five tabs.
 // rbd_s: Test check: what is open in the ribbon, 0 nothing, 1 a menu, 2 a gallery.
 // rbd_s: The argument that goes with the command: half-points for a font size, 0xRRGGBB for a colour (-1 for automatic), a percent for a line spacing, twips for an indent or a space, the position in the list of fonts or of styles, the index of a margin set, a paper size or an orientation; 0 for a command that takes none.
-rbe_state() {
-  export int[] rbd_s = [];
-  export int[] rbd_col = [];
-  export int[] rbd_tr = [];
+ribbon_fit_create_state_lists() {
+  export int[] ribbon_fit_state = [];
+  export int[] ribbon_fit_colors = [];
+  export int[] ribbon_fit_tab_rectangles = [];
 } chain () {
-  list_extend((import rbd_s), (import rbd_s0));
-  list_extend((import rbd_col), (import rbd_col0));
-  list_fill((import rbd_tr), 20, 0);
+  list_extend((import ribbon_fit_state), (import rbd_s0));
+  list_extend((import ribbon_fit_colors), (import rbd_col0));
+  list_fill((import ribbon_fit_tab_rectangles), 20, 0);
 } return void;
-():() then rbd_t_sd:("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
-given rbe_state given lset((import rbd_s), 0, 3) given lset((import rbd_col), 1, 5) ():() then rbd_t_sd:("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+():() then ribbon_fit_check_state_dump:("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+given ribbon_fit_create_state_lists given lset((import ribbon_fit_state), 0, 3) given lset((import ribbon_fit_colors), 1, 5) ():() then ribbon_fit_check_state_dump:("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
 
 // The lists the ribbon keeps its open menu in, as exports: the menus, galleries and colour grids that are open (none or one of them), the name the last choice had, the labels and the answers of the open menu, and the rectangle of the control that opened it; and its combo boxes: the combo boxes themselves, the control each stands in the open tab at (-1 when its tab is not open) the one that has the keyboard (-1 for none) and the installed font families, which are looked up when the first is needed.
-rbe_pops() {
-  export GuiMenu[] rbd_menu = [];
-  export GuiGallery[] rbd_gal = [];
-  export string[] rbd_nm = [""];
+ribbon_fit_create_popup_lists() {
+  export GuiMenu[] ribbon_fit_menus = [];
+  export GuiGallery[] ribbon_fit_galleries = [];
+  export string[] ribbon_fit_choice_name = [""];
 } chain () {
-  export string[] rbd_pl = [];
-  export int[] rbd_pa = [];
-  export int[] rbd_an = [0, 0, 0, 0];
+  export string[] ribbon_fit_labels = [];
+  export int[] ribbon_fit_answers = [];
+  export int[] ribbon_fit_anchor = [0, 0, 0, 0];
 } chain () {
-  export GuiColors[] rbd_cg = [];
-  export GuiCombo[] rbd_cb = [];
-  export int[] rbd_cx = [];
+  export GuiColors[] ribbon_fit_color_grids = [];
+  export GuiCombo[] ribbon_fit_combos = [];
+  export int[] ribbon_fit_combo_controls = [];
 } chain () {
-  export int[] rbd_fo = [-1];
-  export string[] rbd_fm = [];
+  export int[] ribbon_fit_focused_combo = [-1];
+  export string[] ribbon_fit_font_families = [];
 } return void;
-():() then rbd_t_pd:("0,0,,0,0,0,0,0,0,")
-given rbe_pops given lset((import rbd_an), 2, 9) ():() then rbd_t_pd:("0,0,,0,0,0,0,0,0,")
+():() then ribbon_fit_check_popup_dump:("0,0,,0,0,0,0,0,0,")
+given ribbon_fit_create_popup_lists given lset((import ribbon_fit_anchor), 2, 9) ():() then ribbon_fit_check_popup_dump:("0,0,,0,0,0,0,0,0,")
 
 // The tooltip, as an export: one for the whole ribbon, in the regular face, so that there is one at a time.
-rbe_tip_new() {
-  export GuiTip[] rbd_tip = [];
-  int rbi_f = (import rbd_ui)[0];
-  GuiTip rbp = gui_tip_new(rbi_f);
+ribbon_fit_create_tip() {
+  export GuiTip[] ribbon_fit_tips = [];
+  int ribbon_fit_tip_face = (import ribbon_faces)[0];
+  GuiTip ribbon_fit_new_tip = gui_tip_new(ribbon_fit_tip_face);
 } chain () {
-  push((import rbd_tip), rbp);
+  push((import ribbon_fit_tips), ribbon_fit_new_tip);
 } return void;
-given rbd_ui_set(3, 3, 3) ():() then rbd_t_tf:(3)
-given rbd_ui_set(4, 4, 4) ():() then rbd_t_tf:(4)
+given ribbon_faces_set(3, 3, 3) ():() then ribbon_fit_check_tip_font:(3)
+given ribbon_faces_set(4, 4, 4) ():() then ribbon_fit_check_tip_font:(4)

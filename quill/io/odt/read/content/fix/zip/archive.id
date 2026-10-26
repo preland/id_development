@@ -1,30 +1,30 @@
 // Test fixture: an archive with the given mimetype entry first (none when mime is empty), a content.xml holding xml (none when xml is empty), and a picture entry of three bytes, all stored. The bytes are kept in the export orc_tz, and a new document is made as orc_t_open makes it, so orc_t_show shows what a load made of it.
-orc_t_zip(string xml, string mime) {
-  ZipW zw = zw_new();
-  int[] cb = exec_bytes(xml);
+odt_read_fixture_make_archive(string xml, string mime) {
+  ZipW odt_read_fixture_zip_writer = zw_new();
+  int[] odt_read_fixture_zip_content_bytes = exec_bytes(xml);
   int[] pic = [1, 2, 3];
 } chain (string xml, string mime) {
   if(len(mime) > 0) {
-    zw_add(zw, "mimetype", exec_bytes(mime), 0);
+    zw_add(odt_read_fixture_zip_writer, "mimetype", exec_bytes(mime), 0);
   }
   if(len(xml) > 0) {
-    zw_add(zw, "content.xml", cb, 0);
+    zw_add(odt_read_fixture_zip_writer, "content.xml", odt_read_fixture_zip_content_bytes, 0);
   }
-  zw_add(zw, "Pictures/a.png", pic, 0);
+  zw_add(odt_read_fixture_zip_writer, "Pictures/a.png", pic, 0);
 } chain (string xml, string mime) {
-  export int[] orc_tz = zw_finish(zw);
-  orc_t_open(xml);
-  orc_t_zopen();
+  export int[] odt_read_fixture_archive_bytes = zw_finish(odt_read_fixture_zip_writer);
+  odt_read_fixture_open(xml);
+  odt_read_fixture_open_archive();
 } return void;
-("<a/>", ""):() then orc_t_zn:(2)
-("<a/>", "application/vnd.oasis.opendocument.text"):() then orc_t_zn:(3)
-("", ""):() then orc_t_zn:(1)
+("<a/>", ""):() then odt_read_fixture_entry_count:(2)
+("<a/>", "application/vnd.oasis.opendocument.text"):() then odt_read_fixture_entry_count:(3)
+("", ""):() then odt_read_fixture_entry_count:(1)
 
 // Test fixture: how many entries the archive of orc_tzo holds.
-orc_t_zn() {
-  Zip z = (import orc_tzo);
-  int n = zip_reader_count(z);
+odt_read_fixture_entry_count() {
+  Zip odt_read_fixture_count_archive = (import odt_read_fixture_archive);
+  int n = zip_reader_count(odt_read_fixture_count_archive);
 } return int n;
-given orc_t_zip("<a/>", "") ():(2)
-given orc_t_zip("<a/>", "x") ():(3)
+given odt_read_fixture_make_archive("<a/>", "") ():(2)
+given odt_read_fixture_make_archive("<a/>", "x") ():(3)
 

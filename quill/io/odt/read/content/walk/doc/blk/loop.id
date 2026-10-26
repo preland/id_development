@@ -1,52 +1,52 @@
 // Reads the body of office:text, which the head stopped at (at 1 is a start tag with a body to read; an empty element has none), one event at a time until its end tag.
-orc_body(Cx cx, int at) {
-  int ev = 0;
+orc_body(Odt_Read_Context odt_read_body_context, int at) {
+  int odt_read_body_event = 0;
   if(at == 1) {
-    ev = orc_next(cx);
+    odt_read_body_event = orc_next(odt_read_body_context);
   }
-  while(ev > 0 && cx.cs.slots[(import orc_s_done)] == 0) {
-    orc_block_ev(cx, ev);
-    ev = orc_next(cx);
+  while(odt_read_body_event > 0 && odt_read_body_context.cs.slots[(import orc_s_done)] == 0) {
+    odt_read_block_event(odt_read_body_context, odt_read_body_event);
+    odt_read_body_event = orc_next(odt_read_body_context);
   }
 } return void;
-given orc_t_open("<r><office:text><text:p>a</text:p></office:text><text:p>z</text:p></r>") given orc_t_pop given orc_t_steps(2) ((import orc_tc), 1):() then orc_t_show:("P0 97, 1:0:-1, {0,0,0,0,0} |  | ")
-given orc_t_open("<r><office:text/><text:p>z</text:p></r>") given orc_t_pop given orc_t_steps(2) ((import orc_tc), 4):() then orc_t_show:(" |  | ")
+given odt_read_fixture_open("<r><office:text><text:p>a</text:p></office:text><text:p>z</text:p></r>") given odt_read_fixture_remove_paragraph given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), 1):() then odt_read_fixture_show:("P0 97, 1:0:-1, {0,0,0,0,0} |  | ")
+given odt_read_fixture_open("<r><office:text/><text:p>z</text:p></r>") given odt_read_fixture_remove_paragraph given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), 4):() then odt_read_fixture_show:(" |  | ")
 
 // One event between blocks: an end tag may close a list or the body, a start or empty tag opens a block, and text here (white space between the tags) is nothing.
-orc_block_ev(Cx cx, int ev) {
-  if(ev == 2) {
-    orc_end(cx);
+odt_read_block_event(Odt_Read_Context odt_read_block_step_context, int odt_read_block_step_event) {
+  if(odt_read_block_step_event == 2) {
+    orc_end(odt_read_block_step_context);
   }
-  if(ev == 1 || ev == 4) {
-    orc_start(cx, ev);
+  if(odt_read_block_step_event == 1 || odt_read_block_step_event == 4) {
+    orc_start(odt_read_block_step_context, odt_read_block_step_event);
   }
 } return void;
-given orc_t_open("<text:p>a</text:p>") given orc_t_pop given orc_t_steps(1) ((import orc_tc), 1):() then orc_t_show:("P0 97, 1:0:-1, {0,0,0,0,0} |  | ")
-given orc_t_open("<r> </r>") given orc_t_pop given orc_t_steps(2) ((import orc_tc), 3):() then orc_t_show:(" |  | ")
-given orc_t_open("<text:list></text:list>") given orc_t_steps(1) given orc_list_open((import orc_tc)) given orc_t_steps(1) ((import orc_tc), 2):() then (import orc_tc).cs.slots:([0, 0, 0, 0, 11, 0, 0, 0])
-given orc_t_open("<text:p/>") given orc_t_pop given orc_t_steps(1) ((import orc_tc), 4):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | ")
+given odt_read_fixture_open("<text:p>a</text:p>") given odt_read_fixture_remove_paragraph given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 1):() then odt_read_fixture_show:("P0 97, 1:0:-1, {0,0,0,0,0} |  | ")
+given odt_read_fixture_open("<r> </r>") given odt_read_fixture_remove_paragraph given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), 3):() then odt_read_fixture_show:(" |  | ")
+given odt_read_fixture_open("<text:list></text:list>") given odt_read_fixture_step_events(1) given orc_list_open((import odt_read_fixture_context)) given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 2):() then (import odt_read_fixture_context).cs.slots:([0, 0, 0, 0, 11, 0, 0, 0])
+given odt_read_fixture_open("<text:p/>") given odt_read_fixture_remove_paragraph given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 4):() then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0} |  | ")
 
 // A block starts. Paragraphs and headings are read into the model, a list only changes the counters the paragraphs inside it read, a list item wrapper is stepped through, a declaration of the body is kept apart, and anything else is kept untouched as an opaque block.
-orc_start(Cx cx, int ev) {
-  string name = xml_reader_get((cx.rd), (import xml_reader_k_name));
+orc_start(Odt_Read_Context odt_read_start_context, int odt_read_start_event) {
+  string name = xml_reader_get((odt_read_start_context.odt_read_xml_reader), (import xml_reader_k_name));
   int kind = orc_kind(name);
   if(kind == 0) {
-    orc_para(cx, ev);
+    orc_para(odt_read_start_context, odt_read_start_event);
   }
-} chain (Cx cx, int ev) {
-  if(kind == 1 && ev == 1) {
-    orc_list_open(cx);
+} chain (Odt_Read_Context odt_read_start_context, int odt_read_start_event) {
+  if(kind == 1 && odt_read_start_event == 1) {
+    orc_list_open(odt_read_start_context);
   }
   if(kind == 3) {
-    int idx = orc_raw(cx, ev);
+    int odt_read_start_part_index = orc_raw(odt_read_start_context, odt_read_start_event);
   }
   if(kind == 4) {
-    orc_block(cx, ev, name);
+    orc_block(odt_read_start_context, odt_read_start_event, name);
   }
 } return void;
-given orc_t_open("<text:h text:outline-level='1'>A</text:h>") given orc_t_pop given orc_t_steps(1) ((import orc_tc), 1):() then orc_t_show:("P9 65, 1:0:-1, {3,0,0,0,0} |  | ")
-given orc_t_open("<table:table/>") given orc_t_pop given orc_t_steps(1) ((import orc_tc), 4):() then orc_t_show:("P9 983040,91,84,97,98,108,101,93, 8:0:-1, {0,0,0,0,1} |  | table:table:0:<table:table/>,")
-given orc_t_open("<text:sequence-decls/>") given orc_t_pop given orc_t_steps(1) ((import orc_tc), 4):() then orc_t_show:(" |  | text:sequence-decls:0:<text:sequence-decls/>,")
-given orc_t_open("<text:list-item/>") given orc_t_pop given orc_t_steps(1) ((import orc_tc), 4):() then orc_t_show:(" |  | ")
-given orc_t_open("<text:list/>") given orc_t_steps(1) ((import orc_tc), 4):() then (import orc_tc).cs.slots:([0, 0, 0, 0, 0, 0, 0, 0])
-given orc_t_open("<text:list>") given orc_t_steps(1) ((import orc_tc), 1):() then (import orc_tc).cs.slots:([1, 0, 0, 0, 0, 0, 0, 0])
+given odt_read_fixture_open("<text:h text:outline-level='1'>A</text:h>") given odt_read_fixture_remove_paragraph given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 1):() then odt_read_fixture_show:("P9 65, 1:0:-1, {3,0,0,0,0} |  | ")
+given odt_read_fixture_open("<table:table/>") given odt_read_fixture_remove_paragraph given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 4):() then odt_read_fixture_show:("P9 983040,91,84,97,98,108,101,93, 8:0:-1, {0,0,0,0,1} |  | table:table:0:<table:table/>,")
+given odt_read_fixture_open("<text:sequence-decls/>") given odt_read_fixture_remove_paragraph given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 4):() then odt_read_fixture_show:(" |  | text:sequence-decls:0:<text:sequence-decls/>,")
+given odt_read_fixture_open("<text:list-item/>") given odt_read_fixture_remove_paragraph given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 4):() then odt_read_fixture_show:(" |  | ")
+given odt_read_fixture_open("<text:list/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 4):() then (import odt_read_fixture_context).cs.slots:([0, 0, 0, 0, 0, 0, 0, 0])
+given odt_read_fixture_open("<text:list>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 1):() then (import odt_read_fixture_context).cs.slots:([1, 0, 0, 0, 0, 0, 0, 0])

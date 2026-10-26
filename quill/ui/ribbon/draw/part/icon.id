@@ -1,48 +1,48 @@
 // Paints the icon of item row rbi_row inside the button rectangle (rbi_x, rbi_y, rbi_w, rbi_h) in colour rbi_col: a vector icon where the ribbon has one for the command, 24 px high near the top of a large button and 16 px centred in a small one, else the letter the model names; a large button also carries its name at the bottom.
-rbd_icon(int rbi_row, int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_col) {
-  int rbi_ic = (import rb_icon)[rbi_row];
-  int rbi_big = rbi_h >= 48;
-  int rbi_px = 16 + 8 * rbi_big;
-} chain (int rbi_row, int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_col) {
-  int rbi_ix = rbi_x + (rbi_w - rbi_px) / 2;
-  int rbi_iy = rbi_y + 4 * rbi_big + (rbi_h - rbi_px) / 2 * (1 - rbi_big);
-  int rbi_vec = list_index_of((import ic_cmd), rbi_ic) >= 0;
-} chain (int rbi_row, int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_col) {
-  if(rbi_vec == 1) {
-    vec_icon(rbi_ic, rbi_px, rbi_col, rbi_ix, rbi_iy);
+ribbon_draw_icon(int ribbon_icon_row, int ribbon_icon_x, int ribbon_icon_y, int ribbon_icon_width, int ribbon_icon_height, int ribbon_icon_color) {
+  int ribbon_icon_code = (import rb_icon)[ribbon_icon_row];
+  int ribbon_icon_large = ribbon_icon_height >= 48;
+  int ribbon_icon_pixels = 16 + 8 * ribbon_icon_large;
+} chain (int ribbon_icon_row, int ribbon_icon_x, int ribbon_icon_y, int ribbon_icon_width, int ribbon_icon_height, int ribbon_icon_color) {
+  int ribbon_icon_left_x = ribbon_icon_x + (ribbon_icon_width - ribbon_icon_pixels) / 2;
+  int ribbon_icon_top_y = ribbon_icon_y + 4 * ribbon_icon_large + (ribbon_icon_height - ribbon_icon_pixels) / 2 * (1 - ribbon_icon_large);
+  int ribbon_icon_vector = list_index_of((import ic_cmd), ribbon_icon_code) >= 0;
+} chain (int ribbon_icon_row, int ribbon_icon_x, int ribbon_icon_y, int ribbon_icon_width, int ribbon_icon_height, int ribbon_icon_color) {
+  if(ribbon_icon_vector == 1) {
+    vec_icon(ribbon_icon_code, ribbon_icon_pixels, ribbon_icon_color, ribbon_icon_left_x, ribbon_icon_top_y);
   }
-  if(rbi_vec == 0) {
-    rbd_letter(rbi_ic, rbi_x + rbi_w / 2, rbi_y + rbi_h / 2, rbi_col);
+  if(ribbon_icon_vector == 0) {
+    ribbon_draw_letter(ribbon_icon_code, ribbon_icon_x + ribbon_icon_width / 2, ribbon_icon_y + ribbon_icon_height / 2, ribbon_icon_color);
   }
-  rbd_big(rbi_row, rbi_x, rbi_y, rbi_w, rbi_h, rbi_big, rbi_col);
+  ribbon_draw_large_name(ribbon_icon_row, ribbon_icon_x, ribbon_icon_y, ribbon_icon_width, ribbon_icon_height, ribbon_icon_large, ribbon_icon_color);
 } return void;
-given lp_t_font given rbd_t_up(1024) given vw_t_box0(14, 62, 62, 90) given d2_l_rect(0, 0, 400, 156, 15987699) given vw_t_bg(15987699) (7, 12, 60, 52, 74, 4210752):() then vw_t_inked:(1)
-given lp_t_font given rbd_t_up(1024) given vw_t_box0(66, 62, 88, 90) given d2_l_rect(0, 0, 400, 156, 15987699) given vw_t_bg(15987699) (14, 66, 60, 24, 24, 4210752):() then vw_t_inked:(1)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given view_test_remember_box(14, 62, 62, 90) given d2_l_rect(0, 0, 400, 156, 15987699) given view_test_set_background(15987699) (7, 12, 60, 52, 74, 4210752):() then view_test_box_inked:(1)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given view_test_remember_box(66, 62, 88, 90) given d2_l_rect(0, 0, 400, 156, 15987699) given view_test_set_background(15987699) (14, 66, 60, 24, 24, 4210752):() then view_test_box_inked:(1)
 
 // Writes the name of a large button (one rbi_big says is large) centred along its bottom in colour rbi_col, cut to the button when it is wider than it. A small button has no room for one.
-rbd_big(int rbi_row, int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_big, int rbi_col) {
-  string rbs_t = (import rb_label)[rbi_row];
-  int rbi_f = (import rbd_ui)[0];
-  int rbi_tw = gui_text_width(rbi_f, rbs_t);
-} chain (int rbi_row, int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_big, int rbi_col) {
-  if(rbi_big == 1) {
-    sf_l_clip(rbi_x + 1, rbi_y + 1, rbi_w - 2, rbi_h - 2);
-    gui_text_draw(rbi_f, rbi_x + (rbi_w - rbi_tw) / 2, rbi_y + rbi_h - gui_font_line(rbi_f) - 3, rbs_t, rbi_col);
+ribbon_draw_large_name(int ribbon_large_row, int ribbon_large_x, int ribbon_large_y, int ribbon_large_width, int ribbon_large_height, int ribbon_large_flag, int ribbon_large_color) {
+  string ribbon_large_text = (import rb_label)[ribbon_large_row];
+  int ribbon_large_face = (import ribbon_faces)[0];
+  int ribbon_large_text_width = gui_text_width(ribbon_large_face, ribbon_large_text);
+} chain (int ribbon_large_row, int ribbon_large_x, int ribbon_large_y, int ribbon_large_width, int ribbon_large_height, int ribbon_large_flag, int ribbon_large_color) {
+  if(ribbon_large_flag == 1) {
+    sf_l_clip(ribbon_large_x + 1, ribbon_large_y + 1, ribbon_large_width - 2, ribbon_large_height - 2);
+    gui_text_draw(ribbon_large_face, ribbon_large_x + (ribbon_large_width - ribbon_large_text_width) / 2, ribbon_large_y + ribbon_large_height - gui_font_line(ribbon_large_face) - 3, ribbon_large_text, ribbon_large_color);
     sf_l_unclip();
   }
 } return void;
-given lp_t_font given rbd_t_up(1024) given vw_t_box0(14, 112, 62, 132) given d2_l_rect(0, 0, 400, 156, 15987699) given vw_t_bg(15987699) (7, 12, 60, 52, 74, 1, 4210752):() then vw_t_inked:(1)
-given lp_t_font given rbd_t_up(1024) given vw_t_box0(14, 112, 62, 132) given d2_l_rect(0, 0, 400, 156, 15987699) given vw_t_bg(15987699) (7, 12, 60, 52, 74, 0, 4210752):() then vw_t_inked:(0)
-given lp_t_font given rbd_t_up(1024) given vw_t_box0(34, 112, 80, 132) given d2_l_rect(0, 0, 400, 156, 15987699) given vw_t_bg(15987699) (36, 12, 60, 20, 74, 1, 4210752):() then vw_t_inked:(0)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given view_test_remember_box(14, 112, 62, 132) given d2_l_rect(0, 0, 400, 156, 15987699) given view_test_set_background(15987699) (7, 12, 60, 52, 74, 1, 4210752):() then view_test_box_inked:(1)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given view_test_remember_box(14, 112, 62, 132) given d2_l_rect(0, 0, 400, 156, 15987699) given view_test_set_background(15987699) (7, 12, 60, 52, 74, 0, 4210752):() then view_test_box_inked:(0)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given view_test_remember_box(34, 112, 80, 132) given d2_l_rect(0, 0, 400, 156, 15987699) given view_test_set_background(15987699) (36, 12, 60, 20, 74, 1, 4210752):() then view_test_box_inked:(0)
 
 // The caption of the field of item row rbi_row: the short word rbd_fld_txt gives for its command where it has one ("Size" for the font size), else the name of the control.
-rbd_caption(int rbi_row) {
-  string rbs_t = (import rb_label)[rbi_row];
-  int rbi_k = list_index_of((import rbd_fld_cmd), (import rb_cmd)[rbi_row]);
-  if(rbi_k >= 0) {
-    rbs_t = (import rbd_fld_txt)[rbi_k];
+ribbon_field_caption(int ribbon_caption_row) {
+  string ribbon_caption_text = (import rb_label)[ribbon_caption_row];
+  int ribbon_caption_index = list_index_of((import rbd_fld_cmd), (import rb_cmd)[ribbon_caption_row]);
+  if(ribbon_caption_index >= 0) {
+    ribbon_caption_text = (import rbd_fld_txt)[ribbon_caption_index];
   }
-} return string rbs_t;
+} return string ribbon_caption_text;
 (11):("Size")
 (41):("Before")
 (10):("Font")

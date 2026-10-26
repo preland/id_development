@@ -1,30 +1,30 @@
 // The paragraph row for a style name: the row ost_row says it stands for (an automatic style's parent and page break, a named style's own row, Normal for a name the document does not know). A text:h with no style name is a heading of its outline level, which is capped at 3.
-orc_pstyle(Cx cx, string sname, int lvl) {
-  int rw = ost_row(cx.cs.look.osty, "p:", sname);
-  int hd = 2 + lvl - (lvl > 3) * (lvl - 3);
-  if(sname == "" && lvl > 0) {
-    rw = tab_with(cx.d.fmt.paras, 0, (import quill_paragraph_style), hd);
+odt_read_paragraph_style_row(Odt_Read_Context odt_read_style_row_context, string odt_read_style_row_style_name, int lvl) {
+  int odt_read_style_row_result = odt_style_lookup_row(odt_read_style_row_context.cs.look.odt_read_style_lookup, "p:", odt_read_style_row_style_name);
+  int odt_read_style_row_heading_style = 2 + lvl - (lvl > 3) * (lvl - 3);
+  if(odt_read_style_row_style_name == "" && lvl > 0) {
+    odt_read_style_row_result = tab_with(odt_read_style_row_context.d.fmt.paras, 0, (import quill_paragraph_style), odt_read_style_row_heading_style);
   }
-} return int rw;
-given orc_t_open("<a/>") ((import orc_tc), "", 0):(0)
-given orc_t_open("<a/>") ((import orc_tc), "", 2):(9)
-given orc_t_open("<r><text:h text:outline-level='3'/></r>") given orc_t_steps(2) given orc_t_prop ((import orc_tc), "", 7):(9)
-given orc_t_open("<r><office:styles><style:style style:name='Title2' style:family='paragraph'/></office:styles><office:automatic-styles><style:style style:name='P1' style:family='paragraph' style:parent-style-name='Title2'/></office:automatic-styles></r>") ((import orc_tc), "P1", 0):(10)
-given orc_t_open("<r><office:styles><style:style style:name='Quote2' style:family='paragraph'/></office:styles></r>") ((import orc_tc), "Quote2", 2):(10)
+} return int odt_read_style_row_result;
+given odt_read_fixture_open("<a/>") ((import odt_read_fixture_context), "", 0):(0)
+given odt_read_fixture_open("<a/>") ((import odt_read_fixture_context), "", 2):(9)
+given odt_read_fixture_open("<r><text:h text:outline-level='3'/></r>") given odt_read_fixture_step_events(2) given odt_read_fixture_add_paragraph ((import odt_read_fixture_context), "", 7):(9)
+given odt_read_fixture_open("<r><office:styles><style:style style:name='Title2' style:family='paragraph'/></office:styles><office:automatic-styles><style:style style:name='P1' style:family='paragraph' style:parent-style-name='Title2'/></office:automatic-styles></r>") ((import odt_read_fixture_context), "P1", 0):(10)
+given odt_read_fixture_open("<r><office:styles><style:style style:name='Quote2' style:family='paragraph'/></office:styles></r>") ((import odt_read_fixture_context), "Quote2", 2):(10)
 
 // The row rw with the list the paragraph sits in and its level (0 to 2, deeper lists count as 2), when it sits in one.
-orc_plist(Cx cx, int rw) {
-  int lvl = cx.cs.slots[(import orc_s_lvl)];
-  int id = cx.cs.slots[(import orc_s_list)];
+odt_read_paragraph_list_row(Odt_Read_Context odt_read_list_row_context, int odt_read_list_row_base) {
+  int lvl = odt_read_list_row_context.cs.slots[(import orc_s_lvl)];
+  int id = odt_read_list_row_context.cs.slots[(import orc_s_list)];
   int lev = lvl - 1 - (lvl > 3) * (lvl - 3);
-} chain (Cx cx, int rw) {
-  int pp = rw;
+} chain (Odt_Read_Context odt_read_list_row_context, int odt_read_list_row_base) {
+  int pp = odt_read_list_row_base;
   if(lvl > 0 && id > 0) {
-    pp = tab_with(cx.d.fmt.paras, rw, (import quill_paragraph_list), id);
-    pp = tab_with(cx.d.fmt.paras, pp, (import quill_paragraph_level), lev);
+    pp = tab_with(odt_read_list_row_context.d.fmt.paras, odt_read_list_row_base, (import quill_paragraph_list), id);
+    pp = tab_with(odt_read_list_row_context.d.fmt.paras, pp, (import quill_paragraph_level), lev);
   }
 } return int pp;
-given orc_t_open("<a/>") ((import orc_tc), 0):(0)
-given orc_t_open("<a/>") given orc_t_set(0, 1) ((import orc_tc), 0):(0)
-given orc_t_open("<a/>") given orc_t_set(0, 1) given orc_t_set(1, 2) ((import orc_tc), 0):(9)
-given orc_t_open("<a/>") given orc_t_set(0, 5) given orc_t_set(1, 1) ((import orc_tc), 0):(10)
+given odt_read_fixture_open("<a/>") ((import odt_read_fixture_context), 0):(0)
+given odt_read_fixture_open("<a/>") given odt_read_fixture_set_slot(0, 1) ((import odt_read_fixture_context), 0):(0)
+given odt_read_fixture_open("<a/>") given odt_read_fixture_set_slot(0, 1) given odt_read_fixture_set_slot(1, 2) ((import odt_read_fixture_context), 0):(9)
+given odt_read_fixture_open("<a/>") given odt_read_fixture_set_slot(0, 5) given odt_read_fixture_set_slot(1, 1) ((import odt_read_fixture_context), 0):(10)

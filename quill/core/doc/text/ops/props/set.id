@@ -1,9 +1,9 @@
 // Gives the code points lo..hi-1 the runs in runs, as [len, cprop, link] triples whose lengths add up to hi - lo; anything else changes nothing. The only way to set a link, and the way to set the properties of an empty paragraph (lo = hi = 0).
-text_runs_set(Text t, int lo, int hi, int[] runs) {
-  int n = runs_sum(runs);
-  if(len(runs) % 3 == 0 && n == hi - lo) {
-    text_swap(t, lo, hi, runs);
-    text_merge(t);
+text_runs_set(Text runs_assign_text, int runs_assign_lower_bound, int hi, int[] runs) {
+  int runs_assign_total = runs_sum(runs);
+  if(len(runs) % 3 == 0 && runs_assign_total == hi - runs_assign_lower_bound) {
+    text_swap(runs_assign_text, runs_assign_lower_bound, hi, runs);
+    text_merge(runs_assign_text);
   }
 } return void;
 (Text([1, 2, 3, 4], [Run(4, 0, -1)], 0), 1, 3, [1, 5, -1, 1, 6, 2]):(Text([1, 2, 3, 4], [Run(1, 0, -1), Run(1, 5, -1), Run(1, 6, 2), Run(1, 0, -1)], 1), 1, 3, [1, 5, -1, 1, 6, 2])
@@ -12,35 +12,35 @@ text_runs_set(Text t, int lo, int hi, int[] runs) {
 (Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 0), 0, 1, [1, 5, -1]):(Text([1, 2], [Run(2, 5, -1)], 1), 0, 1, [1, 5, -1])
 
 // Applies one change to a run's character row: mode quill_mode_field sets field key to val, quill_mode_bits turns the flag bits key on (val 1), off (0) or unset (-1); another mode changes nothing.
-run_mut(Run ru, Tab chars, int key, int val, int mode) {
-  int nc = ru.cprop;
+run_mut(Run run_modify_run, Tab chars, int key, int run_modify_value, int mode) {
+  int run_modify_new_character_row = run_modify_run.cprop;
   if(mode == (import quill_mode_field)) {
-    nc = tab_with(chars, ru.cprop, key, val);
+    run_modify_new_character_row = tab_with(chars, run_modify_run.cprop, key, run_modify_value);
   }
   if(mode == (import quill_mode_bits)) {
-    nc = tab_with_bits(chars, ru.cprop, key, val);
+    run_modify_new_character_row = tab_with_bits(chars, run_modify_run.cprop, key, run_modify_value);
   }
-} chain (Run ru, Tab chars, int key, int val, int mode) {
-  ru.cprop = nc;
+} chain (Run run_modify_run, Tab chars, int key, int run_modify_value, int mode) {
+  run_modify_run.cprop = run_modify_new_character_row;
 } return void;
 (Run(2, 0, -1), Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 2, 24, 0):(Run(2, 1, -1), Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, [2, 0, 0, 0, 0, 0, 0, 0]), 2, 24, 0)
 (Run(2, 0, -1), Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 1, 1, 1):(Run(2, 1, -1), Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [0, 0, 0, 0, 0, 0, 0, 2]), 1, 1, 1)
 (Run(2, 0, -1), Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 2, 24, 7):(Run(2, 0, -1), Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 2, 24, 7)
 
 // Changes the character row of every run covering lo..hi-1 (see run_mut), splitting runs at the ends and merging equal neighbours afterwards. An empty paragraph (no text) has its one run changed.
-text_apply(Text t, int lo, int hi, Tab chars, int key, int val, int mode) {
-  int i = run_cut(t, lo);
-  int j = run_cut(t, hi);
-  if(len(t.cps) == 0) {
-    j = 1;
+text_apply(Text apply_change_text, int apply_change_lower_bound, int hi, Tab chars, int key, int apply_change_value, int mode) {
+  int apply_change_index = run_cut(apply_change_text, apply_change_lower_bound);
+  int apply_change_end_index = run_cut(apply_change_text, hi);
+  if(len(apply_change_text.cps) == 0) {
+    apply_change_end_index = 1;
   }
-} chain (Text t, int lo, int hi, Tab chars, int key, int val, int mode) {
-  while(i < j) {
-    run_mut(t.runs[i], chars, key, val, mode);
-    i = i + 1;
+} chain (Text apply_change_text, int apply_change_lower_bound, int hi, Tab chars, int key, int apply_change_value, int mode) {
+  while(apply_change_index < apply_change_end_index) {
+    run_mut(apply_change_text.runs[apply_change_index], chars, key, apply_change_value, mode);
+    apply_change_index = apply_change_index + 1;
   }
-  text_merge(t);
-  t.rev = t.rev + 1;
+  text_merge(apply_change_text);
+  apply_change_text.rev = apply_change_text.rev + 1;
 } return void;
 (Text([1, 2, 3], [Run(3, 0, -1)], 0), 1, 2, Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 2, 24, 0):(Text([1, 2, 3], [Run(1, 0, -1), Run(1, 1, -1), Run(1, 0, -1)], 1), 1, 2, Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, [2, 0, 0, 0, 0, 0, 0, 0]), 2, 24, 0)
 (Text([], [Run(0, 0, -1)], 0), 0, 0, Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 0]), 1, 1, 1):(Text([], [Run(0, 1, -1)], 1), 0, 0, Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [0, 0, 0, 0, 0, 0, 0, 2]), 1, 1, 1)

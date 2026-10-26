@@ -1,50 +1,50 @@
 // Asks for the rows cvi_a to cvi_b - 1 of the surface to be repainted by the next frame: they join the band already waiting, and a picture that is current becomes one to repaint in part (a picture already stale in whole stays so).
-cv_mark(int cvi_a, int cvi_b) {
-  int[] cvl_e = (import vw_ed);
-  int[] cvl_st = (import vw_st);
-  int cvi_w = cvl_e[(import cv_e_y1)] >= 0;
-} chain (int cvi_a, int cvi_b) {
-  int cvi_n0 = cvi_a;
-  int cvi_n1 = cvi_b;
-  if(cvi_w == 1) {
-    cvi_n0 = fixed_point_minimum(cvi_a, cvl_e[(import cv_e_y0)]);
-    cvi_n1 = fixed_point_maximum(cvi_b, cvl_e[(import cv_e_y1)]);
+view_input_mark_rows_stale(int view_input_rows_first, int view_input_rows_end) {
+  int[] view_input_rows_edit_state = (import view_input_edit_state);
+  int[] view_input_rows_viewer_state = (import view_state);
+  int view_input_rows_waiting = view_input_rows_edit_state[(import cv_e_y1)] >= 0;
+} chain (int view_input_rows_first, int view_input_rows_end) {
+  int view_input_rows_joined_first = view_input_rows_first;
+  int view_input_rows_joined_end = view_input_rows_end;
+  if(view_input_rows_waiting == 1) {
+    view_input_rows_joined_first = fixed_point_minimum(view_input_rows_first, view_input_rows_edit_state[(import cv_e_y0)]);
+    view_input_rows_joined_end = fixed_point_maximum(view_input_rows_end, view_input_rows_edit_state[(import cv_e_y1)]);
   }
-} chain (int cvi_a, int cvi_b) {
-  lset(cvl_e, (import cv_e_y0), cvi_n0);
-  lset(cvl_e, (import cv_e_y1), cvi_n1);
-  if(cvl_st[(import vw_s_d)] == 0) {
-    lset(cvl_st, (import vw_s_d), 2);
+} chain (int view_input_rows_first, int view_input_rows_end) {
+  lset(view_input_rows_edit_state, (import cv_e_y0), view_input_rows_joined_first);
+  lset(view_input_rows_edit_state, (import cv_e_y1), view_input_rows_joined_end);
+  if(view_input_rows_viewer_state[(import vw_s_d)] == 0) {
+    lset(view_input_rows_viewer_state, (import vw_s_d), 2);
   }
 } return void;
-given cv_t_ed("AB") (10, 20):() then cv_t_eds:("eds 0,0,0,0,0,-1,10,20,") then vw_t_sts:("sts 0,0,100,2,")
-given cv_t_ed("AB") given cv_mark(5, 12) (10, 20):() then cv_t_eds:("eds 0,0,0,0,0,-1,5,20,")
-given cv_t_ed("AB") given lset((import vw_st), 3, 1) (10, 20):() then vw_t_sts:("sts 0,0,100,1,")
+given view_flow_test_open_edit("AB") (10, 20):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,10,20,") then view_test_state_dump:("sts 0,0,100,2,")
+given view_flow_test_open_edit("AB") given view_input_mark_rows_stale(5, 12) (10, 20):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,5,20,")
+given view_flow_test_open_edit("AB") given lset((import view_state), 3, 1) (10, 20):() then view_test_state_dump:("sts 0,0,100,1,")
 
 // Asks for the part of the surface that the document's rows cvi_a to cvi_b - 1, in lu down the continuous document (where the paragraph tops are), cover to be repainted: a few pixels more on each side for the rounding of lu to pixels.
 // By hand: at 100 percent and no scroll, with the page area's top at 156, 1536 lu of gap are 24 px, so the rows 0 to 1088 are 156 + 24 = 180 to 180 + 17 = 197, and with 3 more each side 177 to 200.
-cv_band(View cvv, int cvi_a, int cvi_b) {
-  int[] cvl_st = (import vw_st);
-  int cvi_z = cvl_st[(import vw_s_z)];
-  int cvi_o = vw_box("canvas", 1) - cvl_st[(import vw_s_y)];
-} chain (View cvv, int cvi_a, int cvi_b) {
-  int cvi_g = (import quill_layout_sheet_gap);
-  int cvi_t = cvi_o + vw_px(cvi_g + cvi_a, cvi_z) - (import cv_pad_px);
-  int cvi_u = cvi_o + vw_px(cvi_g + cvi_b, cvi_z) + (import cv_pad_px);
-} chain (View cvv, int cvi_a, int cvi_b) {
-  cv_mark(cvi_t, cvi_u);
+view_input_mark_page_band(View view_input_band_view, int view_input_band_first, int view_input_band_end) {
+  int[] view_input_band_viewer_state = (import view_state);
+  int view_input_band_zoom = view_input_band_viewer_state[(import vw_s_z)];
+  int view_input_band_offset = view_box_field("canvas", 1) - view_input_band_viewer_state[(import vw_s_y)];
+} chain (View view_input_band_view, int view_input_band_first, int view_input_band_end) {
+  int view_input_band_gap = (import quill_layout_sheet_gap);
+  int view_input_band_top = view_input_band_offset + view_units_pixels(view_input_band_gap + view_input_band_first, view_input_band_zoom) - (import cv_pad_px);
+  int view_input_band_bottom = view_input_band_offset + view_units_pixels(view_input_band_gap + view_input_band_end, view_input_band_zoom) + (import cv_pad_px);
+} chain (View view_input_band_view, int view_input_band_first, int view_input_band_end) {
+  view_input_mark_rows_stale(view_input_band_top, view_input_band_bottom);
 } return void;
-given cv_t_ed("AB") ((import lp_t_v), 0, 1088):() then cv_t_eds:("eds 0,0,0,0,0,-1,177,200,")
-given cv_t_ed("AB") given lset((import vw_st), 1, 100) ((import lp_t_v), 0, 1088):() then cv_t_eds:("eds 0,0,0,0,0,-1,77,100,")
-given cv_t_ed("AB") ((import lp_t_v), 640, 1728):() then cv_t_eds:("eds 0,0,0,0,0,-1,187,210,")
+given view_flow_test_open_edit("AB") ((import layout_paragraph_test_view), 0, 1088):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,177,200,")
+given view_flow_test_open_edit("AB") given lset((import view_state), 1, 100) ((import layout_paragraph_test_view), 0, 1088):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,77,100,")
+given view_flow_test_open_edit("AB") ((import layout_paragraph_test_view), 640, 1728):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,187,210,")
 
 // The lu down the continuous document at which paragraph cvi_p ends, where the next one starts: the top of the next paragraph, or for the last paragraph the end of its last line.
-cv_end_y(View cvv, int cvi_p) {
-  int cvi_n = len(cvv.pages.tops);
-  int cvi_y = cv_last_y(cvv, cvi_p);
-  if(cvi_p + 1 < cvi_n) {
-    cvi_y = cvv.pages.tops[cvi_p + 1];
+view_input_paragraph_end_row(View view_input_end_row_view, int view_input_end_row_paragraph) {
+  int view_input_end_row_count = len(view_input_end_row_view.pages.tops);
+  int view_input_end_row_value = view_input_paragraph_last_row(view_input_end_row_view, view_input_end_row_paragraph);
+  if(view_input_end_row_paragraph + 1 < view_input_end_row_count) {
+    view_input_end_row_value = view_input_end_row_view.pages.tops[view_input_end_row_paragraph + 1];
   }
-} return int cvi_y;
-given cv_t_view("AB|CD") ((import lp_t_v), 0):(2304)
-given cv_t_view("AB|CD") ((import lp_t_v), 1):(3456)
+} return int view_input_end_row_value;
+given view_flow_test_make_view("AB|CD") ((import layout_paragraph_test_view), 0):(2304)
+given view_flow_test_make_view("AB|CD") ((import layout_paragraph_test_view), 1):(3456)

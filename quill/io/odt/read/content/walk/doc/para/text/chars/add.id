@@ -1,26 +1,26 @@
 // Appends one code point to the paragraph's text, inside the hyperlink the text is in and in the character row in force (the top of Cs.rowstk).
-orc_add(Cx cx, Text t, int cp) {
+orc_add(Odt_Read_Context odt_read_add_context, Text t, int cp) {
   push(t.cps, cp);
-  int rw = list_last(cx.cs.look.rstk);
-  orc_grow(t, cx.cs.slots[(import orc_s_link)] - 1, rw);
+  int odt_read_add_character_row = list_last(odt_read_add_context.cs.look.odt_read_row_stack);
+  orc_grow(t, odt_read_add_context.cs.slots[(import orc_s_link)] - 1, odt_read_add_character_row);
 } return void;
-given orc_t_open("<a/>") ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 65):((import orc_tc), Text([65], [Run(1, 0, -1)], 0), 65)
-given orc_t_open("<a/>") given orc_t_set(3, 4) ((import orc_tc), Text([65], [Run(1, 0, -1)], 0), 66):((import orc_tc), Text([65, 66], [Run(1, 0, -1), Run(1, 0, 3)], 0), 66)
-given orc_t_open("<r><office:automatic-styles><style:style style:name='T1' style:family='text'><style:text-properties fo:font-weight='bold'/></style:style></office:automatic-styles><text:span text:style-name='T1'/></r>") given orc_t_steps(7) given orc_span_in((import orc_tc)) ((import orc_tc), Text([65], [Run(1, 0, -1)], 0), 66):((import orc_tc), Text([65, 66], [Run(1, 0, -1), Run(1, 8, -1)], 0), 66)
+given odt_read_fixture_open("<a/>") ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 65):((import odt_read_fixture_context), Text([65], [Run(1, 0, -1)], 0), 65)
+given odt_read_fixture_open("<a/>") given odt_read_fixture_set_slot(3, 4) ((import odt_read_fixture_context), Text([65], [Run(1, 0, -1)], 0), 66):((import odt_read_fixture_context), Text([65, 66], [Run(1, 0, -1), Run(1, 0, 3)], 0), 66)
+given odt_read_fixture_open("<r><office:automatic-styles><style:style style:name='T1' style:family='text'><style:text-properties fo:font-weight='bold'/></style:style></office:automatic-styles><text:span text:style-name='T1'/></r>") given odt_read_fixture_step_events(7) given orc_span_in((import odt_read_fixture_context)) ((import odt_read_fixture_context), Text([65], [Run(1, 0, -1)], 0), 66):((import odt_read_fixture_context), Text([65, 66], [Run(1, 0, -1), Run(1, 8, -1)], 0), 66)
 
 // Makes the runs cover one more code point under hyperlink lk in character row rw: the last run grows when it has that link and that row or is the empty paragraph's zero-length run, else a run of its own is added.
-orc_grow(Text t, int lk, int rw) {
-  Run lastrun = t.runs[len(t.runs) - 1];
-  int same = lastrun.len == 0 || (lastrun.link == lk && lastrun.cprop == rw);
+orc_grow(Text t, int lk, int odt_read_grow_character_row) {
+  Run odt_read_grow_last_run = t.runs[len(t.runs) - 1];
+  int same = odt_read_grow_last_run.len == 0 || (odt_read_grow_last_run.link == lk && odt_read_grow_last_run.cprop == odt_read_grow_character_row);
   int fresh = 1 - same;
-} chain (Text t, int lk, int rw) {
+} chain (Text t, int lk, int odt_read_grow_character_row) {
   if(same == 1) {
-    lastrun.len = lastrun.len + 1;
-    lastrun.link = lk;
-    lastrun.cprop = rw;
+    odt_read_grow_last_run.len = odt_read_grow_last_run.len + 1;
+    odt_read_grow_last_run.link = lk;
+    odt_read_grow_last_run.cprop = odt_read_grow_character_row;
   }
   if(fresh == 1) {
-    Run nr = Run(1, rw, lk);
+    Run nr = Run(1, odt_read_grow_character_row, lk);
     push(t.runs, nr);
   }
 } return void;
@@ -32,12 +32,12 @@ orc_grow(Text t, int lk, int rw) {
 (Text([1, 2], [Run(1, 0, 3), Run(1, 0, 4)], 0), 4, 0):(Text([1, 2], [Run(1, 0, 3), Run(2, 0, 4)], 0), 4, 0)
 
 // A text:s: as many spaces as its text:c says, one when it says nothing.
-orc_gap(Cx cx, Text t) {
-  int n = to_int(xml_reader_attr(cx.rd, "text:c"));
+orc_gap(Odt_Read_Context odt_read_gap_context, Text t) {
+  int n = to_int(xml_reader_attr(odt_read_gap_context.odt_read_xml_reader, "text:c"));
   if(n < 1) {
     n = 1;
   }
-  orc_run(cx, t, 32, n);
+  orc_run(odt_read_gap_context, t, 32, n);
 } return void;
-given orc_t_open("<text:s/>") given orc_t_steps(1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0)):((import orc_tc), Text([32], [Run(1, 0, -1)], 0))
-given orc_t_open("<text:s text:c='4'/>") given orc_t_steps(1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0)):((import orc_tc), Text([32, 32, 32, 32], [Run(4, 0, -1)], 0))
+given odt_read_fixture_open("<text:s/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0)):((import odt_read_fixture_context), Text([32], [Run(1, 0, -1)], 0))
+given odt_read_fixture_open("<text:s text:c='4'/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0)):((import odt_read_fixture_context), Text([32, 32, 32, 32], [Run(4, 0, -1)], 0))

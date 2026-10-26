@@ -1,35 +1,35 @@
 // Paints page wai_k (counted from 0) of the view wav on a surface made for it, as big as the sheet at the zoom wai_z percent: the white sheet and the text on it, as the window paints a page, without the desk, the selection or the caret.
-cli_draw(View wav, int wai_k, int wai_z) {
-  int wai_w = vw_px(lay_sheet(wav.doc, 0), wai_z);
-  int wai_h = vw_px(lay_sheet(wav.doc, 1), wai_z);
-  sf_l_init(wai_w, wai_h);
-} chain (View wav, int wai_k, int wai_z) {
-  d2_l_rect(0, 0, wai_w, wai_h, (import vw_c_sheet));
-  int[] wal_g = [0, 0, wai_z, lay_margin(wav.doc, 3), lay_margin(wav.doc, 0)];
-  cv_cull(wal_g, 0, wai_h);
-} chain (View wav, int wai_k, int wai_z) {
-  vw_page(wav, wai_k, wal_g);
+cli_draw(View wav, int cli_draw_page_index, int cli_draw_zoom) {
+  int cli_draw_width = view_units_pixels(lay_sheet(wav.doc, 0), cli_draw_zoom);
+  int cli_draw_height = view_units_pixels(lay_sheet(wav.doc, 1), cli_draw_zoom);
+  sf_l_init(cli_draw_width, cli_draw_height);
+} chain (View wav, int cli_draw_page_index, int cli_draw_zoom) {
+  d2_l_rect(0, 0, cli_draw_width, cli_draw_height, (import vw_c_sheet));
+  int[] cli_draw_geometry = [0, 0, cli_draw_zoom, lay_margin(wav.doc, 3), lay_margin(wav.doc, 0)];
+  view_flow_add_band(cli_draw_geometry, 0, cli_draw_height);
+} chain (View wav, int cli_draw_page_index, int cli_draw_zoom) {
+  view_flow_draw_page(wav, cli_draw_page_index, cli_draw_geometry);
 } return void;
-given vw_t_two given rbd_ui_set(1, 1, 1) given vw_t_at(1, 1) ((import lp_t_v), 0, 100):() then vw_t_px:(16777215) then cli_t_ink:(1)
-given vw_t_two given rbd_ui_set(1, 1, 1) given vw_t_at(1, 1) ((import lp_t_v), 1, 50):() then vw_t_px:(16777215) then cli_t_ink:(1)
+given view_test_two_pages given ribbon_faces_set(1, 1, 1) given view_test_remember_pixel(1, 1) ((import layout_paragraph_test_view), 0, 100):() then view_test_pixel_color:(16777215) then cli_test_has_ink:(1)
+given view_test_two_pages given ribbon_faces_set(1, 1, 1) given view_test_remember_pixel(1, 1) ((import layout_paragraph_test_view), 1, 50):() then view_test_pixel_color:(16777215) then cli_test_has_ink:(1)
 
 // Test check: 1 when some pixel of the surface is not the colour of the sheet, which is the text of a page painted on it.
-cli_t_ink() {
-  int wai_n = 0;
-  int wai_k = 0;
-  while(wai_k < len((import sf_l_px))) {
-    wai_n = wai_n || (import sf_l_px)[wai_k] != (import vw_c_sheet);
-    wai_k = wai_k + 1;
+cli_test_has_ink() {
+  int cli_test_ink_found = 0;
+  int cli_test_ink_index = 0;
+  while(cli_test_ink_index < len((import sf_l_px))) {
+    cli_test_ink_found = cli_test_ink_found || (import sf_l_px)[cli_test_ink_index] != (import vw_c_sheet);
+    cli_test_ink_index = cli_test_ink_index + 1;
   }
-} return int wai_n;
+} return int cli_test_ink_found;
 given sf_l_init(2, 2) given d2_l_rect(0, 0, 2, 2, 16777215) ():(0)
 given sf_l_init(2, 2) ():(1)
 
 // Test setup: a scratch file named by fs_mktemp, in the export cli_t_p, open for writing in the export cli_t_h.
-cli_t_open(string was_tag) {
-  string was_p = fs_mktemp("wa_ppm_" + was_tag, 0);
-  export string cli_t_p = was_p;
-  export int cli_t_h = fs_open(was_p, "w");
+cli_test_open_scratch(string was_tag) {
+  string cli_test_open_path = fs_mktemp("wa_ppm_" + was_tag, 0);
+  export string cli_test_scratch_path = cli_test_open_path;
+  export int cli_test_scratch_handle = fs_open(cli_test_open_path, "w");
 } return void;
-("a"):() then cli_t_got:(0)
-("b"):() then cli_t_got:(0)
+("a"):() then cli_test_close_scratch:(0)
+("b"):() then cli_test_close_scratch:(0)

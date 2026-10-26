@@ -1,44 +1,44 @@
 // Closes the menu, the gallery or the colour grid that is open, if one is: the lists that hold it are emptied and the state says nothing is open.
-rbe_close() {
-  int[] rbl_s = (import rbd_s);
-  while(len((import rbd_menu)) > 0) {
-    pop((import rbd_menu));
+ribbon_popup_close() {
+  int[] ribbon_popup_close_state = (import ribbon_fit_state);
+  while(len((import ribbon_fit_menus)) > 0) {
+    pop((import ribbon_fit_menus));
   }
-  while(len((import rbd_gal)) > 0) {
-    pop((import rbd_gal));
+  while(len((import ribbon_fit_galleries)) > 0) {
+    pop((import ribbon_fit_galleries));
   }
 } chain () {
-  while(len((import rbd_cg)) > 0) {
-    pop((import rbd_cg));
+  while(len((import ribbon_fit_color_grids)) > 0) {
+    pop((import ribbon_fit_color_grids));
   }
-  lset(rbl_s, (import rbd_s_pop), -1);
-  lset(rbl_s, (import rbd_s_pk), 0);
+  lset(ribbon_popup_close_state, (import rbd_s_pop), -1);
+  lset(ribbon_popup_close_state, (import rbd_s_pk), 0);
 } return void;
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) ():() then (import rbd_s)[(import rbd_s_pk)]:(0)
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(414) ():() then rbd_t_pd:("0,0,,6,6,10,10,40,20,")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(409) ():() then (import ribbon_fit_state)[(import rbd_s_pk)]:(0)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(414) ():() then ribbon_fit_check_popup_dump:("0,0,,6,6,10,10,40,20,")
 
 // The labels from rbi_lo on, rbi_n of them, in the table of menu labels.
-rbe_slice_s(int rbi_lo, int rbi_n) {
-  string[] rbt_l = [];
-  int rbi_k = 0;
-  while(rbi_k < rbi_n) {
-    push(rbt_l, (import rbd_plab)[rbi_lo + rbi_k]);
-    rbi_k = rbi_k + 1;
+ribbon_label_slice(int ribbon_label_slice_first, int ribbon_label_slice_count) {
+  string[] ribbon_label_slice_result = [];
+  int ribbon_label_slice_number = 0;
+  while(ribbon_label_slice_number < ribbon_label_slice_count) {
+    push(ribbon_label_slice_result, (import rbd_plab)[ribbon_label_slice_first + ribbon_label_slice_number]);
+    ribbon_label_slice_number = ribbon_label_slice_number + 1;
   }
-} return string[] rbt_l;
+} return string[] ribbon_label_slice_result;
 (0, 3):(["8", "9", "10"])
 (16, 2):(["1.0", "1.15"])
 
 // The names of the commands of tab rbi_tab as menu labels, in the order of the tab.
-rbe_tab_labels(int rbi_tab) {
-  int[] rbl_w = rib_rows(rbi_tab);
-  string[] rbt_l = [];
-  int rbi_k = 0;
-} chain (int rbi_tab) {
-  while(rbi_k < len(rbl_w)) {
-    push(rbt_l, (import rb_label)[rbl_w[rbi_k]]);
-    rbi_k = rbi_k + 1;
+ribbon_tab_labels(int ribbon_tab_labels_tab) {
+  int[] ribbon_tab_labels_rows = rib_rows(ribbon_tab_labels_tab);
+  string[] ribbon_tab_labels_result = [];
+  int ribbon_tab_labels_number = 0;
+} chain (int ribbon_tab_labels_tab) {
+  while(ribbon_tab_labels_number < len(ribbon_tab_labels_rows)) {
+    push(ribbon_tab_labels_result, (import rb_label)[ribbon_tab_labels_rows[ribbon_tab_labels_number]]);
+    ribbon_tab_labels_number = ribbon_tab_labels_number + 1;
   }
-} return string[] rbt_l;
+} return string[] ribbon_tab_labels_result;
 (0):(["New", "Open", "Save", "Save As"])
 (5):(["Save", "Undo", "Redo"])

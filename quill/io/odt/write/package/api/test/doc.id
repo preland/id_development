@@ -1,26 +1,26 @@
 // Test fixture (internal): adds a preserved part with a zero byte and a 255 in it to a document's references.
-odw_t_part(Ext pkx, string pkname) {
-  Part pkpt = Part(pkname, [137, 0, 255], 1);
-  push(pkx.parts, pkpt);
+odt_package_fixture_add_part(Ext odt_package_added_references, string odt_package_added_name) {
+  Part odt_package_added_part = Part(odt_package_added_name, [137, 0, 255], 1);
+  push(odt_package_added_references.parts, odt_package_added_part);
 } return void;
 (Ext(["f"], [], []), "a"):(Ext(["f"], [], [Part("a", [137, 0, 255], 1)]), "a")
 (Ext(["f"], [], [Part("b", [], 1)]), "a"):(Ext(["f"], [], [Part("b", [], 1), Part("a", [137, 0, 255], 1)]), "a")
 
 // Test fixture (internal): the default document, exported. Variant 1 holds a code point that stands for an object but names no part, which the content writer refuses; 2 holds two preserved parts of one name, which the archive refuses; 3 holds one preserved image; any other is the plain document.
-odw_t_doc(int pkk) {
-  export Doc odw_td = doc_new();
-  if(pkk == 1) {
-    text_insert(odw_td.body.paras[0].txt, 0, [983040], 0);
+odt_package_fixture_document(int odt_package_document_variant) {
+  export Doc odt_package_exported_save_document = doc_new();
+  if(odt_package_document_variant == 1) {
+    text_insert(odt_package_exported_save_document.body.paras[0].txt, 0, [983040], 0);
   }
-  if(pkk >= 2) {
-    odw_t_part(odw_td.ext, "Pictures/a.png");
+  if(odt_package_document_variant >= 2) {
+    odt_package_fixture_add_part(odt_package_exported_save_document.ext, "Pictures/a.png");
   }
-} chain (int pkk) {
-  if(pkk == 2) {
-    odw_t_part(odw_td.ext, "Pictures/a.png");
+} chain (int odt_package_document_variant) {
+  if(odt_package_document_variant == 2) {
+    odt_package_fixture_add_part(odt_package_exported_save_document.ext, "Pictures/a.png");
   }
 } return void;
-(0):() then odw_t_sig:(0)
-(1):() then odw_t_sig:(1)
-(2):() then odw_t_sig:(20)
-(3):() then odw_t_sig:(10)
+(0):() then odt_package_fixture_signature:(0)
+(1):() then odt_package_fixture_signature:(1)
+(2):() then odt_package_fixture_signature:(20)
+(3):() then odt_package_fixture_signature:(10)

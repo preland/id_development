@@ -1,24 +1,24 @@
 // The folder a picker shows first: the one that holds the document's file, or the home directory when the document has none or its path names no folder (a relative path, which the file list cannot climb out of).
-wa_where(App waa) {
-  string was_d = fs_dir_of(waa.ui.shell.path);
-  if(was_d == ".") {
-    was_d = wa_home();
+app_picker_folder(App app_folder_application) {
+  string app_folder_path = fs_dir_of(app_folder_application.ui.shell.path);
+  if(app_folder_path == ".") {
+    app_folder_path = app_home_directory();
   }
-  if(len(was_d) == 0) {
-    was_d = "/";
+  if(len(app_folder_path) == 0) {
+    app_folder_path = "/";
   }
-} return string was_d;
-given wa_t_app given environment_put("HOME", "/usr") ((import wa_app)):("/usr")
-given wa_t_app given wa_t_at("/etc/fonts/a.odt") ((import wa_app)):("/etc/fonts")
-given wa_t_app given wa_t_at("/a.odt") ((import wa_app)):("/")
+} return string app_folder_path;
+given cli_test_boot_app given environment_put("HOME", "/usr") ((import cli_application)):("/usr")
+given cli_test_boot_app given app_test_set_path("/etc/fonts/a.odt") ((import cli_application)):("/etc/fonts")
+given cli_test_boot_app given app_test_set_path("/a.odt") ((import cli_application)):("/")
 
 // The path the Save As picker offers: its folder and the name of the document's file, or Untitled, with the .odt it needs.
-wa_sugg(App waa) {
-  string was_n = wa_name(waa.ui.shell.path);
-  if(str_ends(was_n, ".odt") == 0) {
-    was_n = was_n + ".odt";
+app_save_suggestion(App app_suggestion_application) {
+  string app_suggestion_name = cli_file_name(app_suggestion_application.ui.shell.path);
+  if(str_ends(app_suggestion_name, ".odt") == 0) {
+    app_suggestion_name = app_suggestion_name + ".odt";
   }
-  string was_s = wa_where(waa) + "/" + was_n;
-} return string was_s;
-given wa_t_app given environment_put("HOME", "/usr") ((import wa_app)):("/usr/Untitled.odt")
-given wa_t_app given wa_t_at("/etc/a.odt") ((import wa_app)):("/etc/a.odt")
+  string app_suggestion_path = app_picker_folder(app_suggestion_application) + "/" + app_suggestion_name;
+} return string app_suggestion_path;
+given cli_test_boot_app given environment_put("HOME", "/usr") ((import cli_application)):("/usr/Untitled.odt")
+given cli_test_boot_app given app_test_set_path("/etc/a.odt") ((import cli_application)):("/etc/a.odt")

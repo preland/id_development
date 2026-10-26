@@ -1,24 +1,24 @@
 // Test setup: the walk of lay_place, [y, used, base], exported as lg_t_s.
-lg_t_s0(int lgy, int lgu, int lgb) {
-  export int[] lg_t_s = [lgy, lgu, lgb];
+layout_page_test_walk_set(int walk_next_y, int walk_used, int walk_base_y) {
+  export int[] layout_page_test_walk = [walk_next_y, walk_used, walk_base_y];
 } return void;
-(1, 2, 3):() then lg_t_state:("1,2,3,")
-(0, 0, -5):() then lg_t_state:("0,0,-5,")
+(1, 2, 3):() then layout_page_test_state:("1,2,3,")
+(0, 0, -5):() then layout_page_test_state:("0,0,-5,")
 
 // Test check: the walk lg_t_s as its numbers, comma separated.
-lg_t_state() {
-  string lgz = dump_ints((import lg_t_s));
-} return string lgz;
-given lg_t_s0(4, 5, 6) ():("4,5,6,")
-given lg_t_s0(0, 1, 0) ():("0,1,0,")
+layout_page_test_state() {
+  string result_text = document_dump_integers((import layout_page_test_walk));
+} return string result_text;
+given layout_page_test_walk_set(4, 5, 6) ():("4,5,6,")
+given layout_page_test_walk_set(0, 1, 0) ():("0,1,0,")
 
 // Test setup: n zeros in the tops of the test view, as lay_place makes room for the paragraphs it has walked.
-lg_t_zeros(int lgn) {
-  int lgi = 0;
-  while(lgi < lgn) {
-    push((import lp_t_v).pages.tops, 0);
-    lgi = lgi + 1;
+layout_page_test_zeros(int zero_count) {
+  int zeros_pushed = 0;
+  while(zeros_pushed < zero_count) {
+    push((import layout_paragraph_test_view).pages.tops, 0);
+    zeros_pushed = zeros_pushed + 1;
   }
 } return void;
-given lp_t_new (2):() then (import lp_t_v).pages.tops:([0, 0])
-given lp_t_new (0):() then (import lp_t_v).pages.tops:([])
+given layout_paragraph_test_new (2):() then (import layout_paragraph_test_view).pages.tops:([0, 0])
+given layout_paragraph_test_new (0):() then (import layout_paragraph_test_view).pages.tops:([])

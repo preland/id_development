@@ -1,7 +1,7 @@
 // The end of the visible text of the line lo..hi-1: hi with the trailing spaces taken off, because they hang past the edge and count in no width, no alignment and no justification.
-lp_wend(Para p, int lo, int hi) {
+layout_paragraph_visible_end(Para visible_paragraph, int visible_start, int hi) {
   int we = hi;
-  while(we > lo && p.txt.cps[we - 1] == (import quill_code_point_space)) {
+  while(we > visible_start && visible_paragraph.txt.cps[we - 1] == (import quill_code_point_space)) {
     we = we - 1;
   }
 } return int we;
@@ -12,17 +12,17 @@ lp_wend(Para p, int lo, int hi) {
 
 // How far alignment al moves a line of used width w inside avail: 0 for left and justified, half the slack for centred, all of it for right, never negative (a line that overflowed stays at its start).
 // By hand: slack 1000 - 400 = 600, so centre 300 and right 600; slack 1001 - 400 = 601 centres at 300 (truncated).
-lp_dx(int al, int avail, int w) {
-  int dx = 0;
-  if(al == (import quill_alignment_center)) {
-    dx = (avail - w) / 2;
+layout_paragraph_alignment_offset(int offset_alignment, int avail, int offset_used_width) {
+  int offset_distance = 0;
+  if(offset_alignment == (import quill_alignment_center)) {
+    offset_distance = (avail - offset_used_width) / 2;
   }
-  if(al == (import quill_alignment_right)) {
-    dx = avail - w;
+  if(offset_alignment == (import quill_alignment_right)) {
+    offset_distance = avail - offset_used_width;
   }
-} chain (int al, int avail, int w) {
-  dx = fixed_point_maximum(dx, 0);
-} return int dx;
+} chain (int offset_alignment, int avail, int offset_used_width) {
+  offset_distance = fixed_point_maximum(offset_distance, 0);
+} return int offset_distance;
 (0, 1000, 400):(0)
 (1, 1000, 400):(300)
 (2, 1000, 400):(600)
@@ -31,12 +31,12 @@ lp_dx(int al, int avail, int w) {
 (3, 1000, 400):(0)
 
 // Adds dx to the pen entries lo..hi of a line, which is how alignment moves it.
-lp_shift(Para p, int lo, int hi, int dx) {
-  int[] pen = p.lay.pen;
-  int k = lo;
-  while(k <= hi) {
-    pen[k] = pen[k] + dx;
-    k = k + 1;
+layout_paragraph_shift(Para shift_paragraph, int shift_start, int hi, int shift_distance) {
+  int[] pen = shift_paragraph.lay.pen;
+  int shift_position = shift_start;
+  while(shift_position <= hi) {
+    pen[shift_position] = pen[shift_position] + shift_distance;
+    shift_position = shift_position + 1;
   }
 } return void;
 (Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [0, 683, 1366], -1), 0), 0, 2, 100):(Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [100, 783, 1466], -1), 0), 0, 2, 100)

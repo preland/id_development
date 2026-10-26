@@ -1,71 +1,71 @@
 // Test fixture: the typing, deleting and clipboard commands of the table: 0 type row[5], 1 Enter, 2 Backspace (row[5] 1 for the word), 3 Delete (likewise), 4 page break, 5 cut, 6 paste ed_t_paste.
-fx_cmd_text(Doc d, Ctl ctl, int[] row) {
+editor_fixture_command_text(Doc d, Ctl ctl, int[] row) {
   if(row[0] == 0) {
-    ed_type(d, ctl, row[5]);
+    editor_type(d, ctl, row[5]);
   }
   if(row[0] == 1) {
-    ed_break(d, ctl, 0);
+    editor_break(d, ctl, 0);
   }
   if(row[0] == 2) {
-    ed_back(d, ctl, row[5]);
+    editor_back(d, ctl, row[5]);
   }
 } chain (Doc d, Ctl ctl, int[] row) {
   if(row[0] == 3) {
-    ed_delete(d, ctl, row[5]);
+    editor_delete(d, ctl, row[5]);
   }
   if(row[0] == 4) {
-    ed_break(d, ctl, 1);
+    editor_break(d, ctl, 1);
   }
   if(row[0] == 5) {
-    ed_cut(d, ctl);
+    editor_cut(d, ctl);
   }
 } chain (Doc d, Ctl ctl, int[] row) {
   if(row[0] == 6) {
-    ed_paste(d, ctl, (import ed_t_paste));
+    editor_paste(d, ctl, (import ed_t_paste));
   }
 } return void;
-given fx_rich ((import fxd), (import fxc), [0, 0, 0, 0, 0, 120, 0, 0]):((import fxd), (import fxc), [0, 0, 0, 0, 0, 120, 0, 0]) then fx_show:("xab*cd*e|fgh|ij*k*|**")
-given fx_rich ((import fxd), (import fxc), [3, 0, 0, 0, 0, 0, 0, 0]):((import fxd), (import fxc), [3, 0, 0, 0, 0, 0, 0, 0]) then fx_show:("b*cd*e|fgh|ij*k*|**")
-given fx_rich ((import fxd), (import fxc), [6, 0, 0, 0, 0, 0, 0, 0]):((import fxd), (import fxc), [6, 0, 0, 0, 0, 0, 0, 0]) then fx_show:("x|y|zab*cd*e|fgh|ij*k*|**")
+given editor_fixture_rich ((import fixture_document), (import fixture_control), [0, 0, 0, 0, 0, 120, 0, 0]):((import fixture_document), (import fixture_control), [0, 0, 0, 0, 0, 120, 0, 0]) then editor_fixture_show:("xab*cd*e|fgh|ij*k*|**")
+given editor_fixture_rich ((import fixture_document), (import fixture_control), [3, 0, 0, 0, 0, 0, 0, 0]):((import fixture_document), (import fixture_control), [3, 0, 0, 0, 0, 0, 0, 0]) then editor_fixture_show:("b*cd*e|fgh|ij*k*|**")
+given editor_fixture_rich ((import fixture_document), (import fixture_control), [6, 0, 0, 0, 0, 0, 0, 0]):((import fixture_document), (import fixture_control), [6, 0, 0, 0, 0, 0, 0, 0]) then editor_fixture_show:("x|y|zab*cd*e|fgh|ij*k*|**")
 
 // Test fixture: the formatting commands of the table: 10 set character field row[5] to row[6], 11 toggle flag row[5], 12 set paragraph field row[5] to row[6], 13 style row[5], 14 clear formatting, 15 set page field row[5] to row[6].
-fx_cmd_fmt(Doc d, Ctl ctl, int[] row) {
+editor_fixture_command_format(Doc d, Ctl ctl, int[] row) {
   if(row[0] == 10) {
-    ed_set_char(d, ctl, row[5], row[6]);
+    editor_set_character(d, ctl, row[5], row[6]);
   }
   if(row[0] == 11) {
-    ed_toggle(d, ctl, row[5]);
+    editor_toggle(d, ctl, row[5]);
   }
   if(row[0] == 12) {
-    ed_set_para(d, ctl, row[5], row[6]);
+    editor_set_paragraph(d, ctl, row[5], row[6]);
   }
 } chain (Doc d, Ctl ctl, int[] row) {
   if(row[0] == 13) {
-    ed_set_style(d, ctl, row[5]);
+    editor_set_style(d, ctl, row[5]);
   }
   if(row[0] == 14) {
-    ed_clear_format(d, ctl);
+    editor_clear_format(d, ctl);
   }
   if(row[0] == 15) {
-    ed_set_page(d, ctl, row[5], row[6]);
+    editor_set_page(d, ctl, row[5], row[6]);
   }
 } return void;
-given fx_rich ((import fxd), (import fxc), [11, 0, 0, 0, 0, 1, 0, 0]):((import fxd), (import fxc), [11, 0, 0, 0, 0, 1, 0, 0]) then fx_show:("ab*cd*e|fgh|ij*k*|**")
-given fx_rich given fx_at(0, 0, 0, 5) ((import fxd), (import fxc), [11, 0, 0, 0, 0, 1, 0, 0]):((import fxd), (import fxc), [11, 0, 0, 0, 0, 1, 0, 0]) then fx_show:("*abcde*|fgh|ij*k*|**")
-given fx_rich ((import fxd), (import fxc), [15, 0, 0, 0, 0, 3, 720, 0]):((import fxd), (import fxc), [15, 0, 0, 0, 0, 3, 720, 0]) then fx_dump:("G 11906,16838,0, 720,1440,1440,1440, 0,0,0,\nP0 97,98,99,100,101, 2:0:-1,2:8:-1,1:0:-1,\nP0 102,103,104, 3:0:-1,\nP0 105,106,107, 2:0:-1,1:8:-1,\nP0  0:8:-1,")
+given editor_fixture_rich ((import fixture_document), (import fixture_control), [11, 0, 0, 0, 0, 1, 0, 0]):((import fixture_document), (import fixture_control), [11, 0, 0, 0, 0, 1, 0, 0]) then editor_fixture_show:("ab*cd*e|fgh|ij*k*|**")
+given editor_fixture_rich given editor_fixture_selection_at(0, 0, 0, 5) ((import fixture_document), (import fixture_control), [11, 0, 0, 0, 0, 1, 0, 0]):((import fixture_document), (import fixture_control), [11, 0, 0, 0, 0, 1, 0, 0]) then editor_fixture_show:("*abcde*|fgh|ij*k*|**")
+given editor_fixture_rich ((import fixture_document), (import fixture_control), [15, 0, 0, 0, 0, 3, 720, 0]):((import fixture_document), (import fixture_control), [15, 0, 0, 0, 0, 3, 720, 0]) then editor_fixture_dump:("G 11906,16838,0, 720,1440,1440,1440, 0,0,0,\nP0 97,98,99,100,101, 2:0:-1,2:8:-1,1:0:-1,\nP0 102,103,104, 3:0:-1,\nP0 105,106,107, 2:0:-1,1:8:-1,\nP0  0:8:-1,")
 
 // Test fixture: the other commands of the table: 20 paste what fx_arm copied; 21 replace all of the code point row[5] by two of row[6]; 22 toggle flag row[5] and then type row[6].
-fx_cmd_more(Doc d, Ctl ctl, int[] row) {
+editor_fixture_command_more(Doc d, Ctl ctl, int[] row) {
   if(row[0] == 20) {
-    ed_paste(d, ctl, frag_plain(ctl.clip));
+    editor_paste(d, ctl, frag_plain(ctl.clip));
   }
   if(row[0] == 21) {
-    fx_swap_two(d, ctl, row);
+    editor_fixture_swap_two(d, ctl, row);
   }
   if(row[0] == 22) {
-    ed_toggle(d, ctl, row[5]);
-    ed_type(d, ctl, row[6]);
+    editor_toggle(d, ctl, row[5]);
+    editor_type(d, ctl, row[6]);
   }
 } return void;
-given fx_rich ((import fxd), (import fxc), [22, 0, 0, 0, 0, 1, 122, 0]):((import fxd), (import fxc), [22, 0, 0, 0, 0, 1, 122, 0]) then fx_show:("*z*ab*cd*e|fgh|ij*k*|**")
-given fx_rich ((import fxd), (import fxc), [21, 0, 0, 0, 0, 98, 90, 0]):((import fxd), (import fxc), [21, 0, 0, 0, 0, 98, 90, 0]) then fx_show:("aZZ*cd*e|fgh|ij*k*|**")
+given editor_fixture_rich ((import fixture_document), (import fixture_control), [22, 0, 0, 0, 0, 1, 122, 0]):((import fixture_document), (import fixture_control), [22, 0, 0, 0, 0, 1, 122, 0]) then editor_fixture_show:("*z*ab*cd*e|fgh|ij*k*|**")
+given editor_fixture_rich ((import fixture_document), (import fixture_control), [21, 0, 0, 0, 0, 98, 90, 0]):((import fixture_document), (import fixture_control), [21, 0, 0, 0, 0, 98, 90, 0]) then editor_fixture_show:("aZZ*cd*e|fgh|ij*k*|**")

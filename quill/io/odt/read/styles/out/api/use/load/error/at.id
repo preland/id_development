@@ -1,29 +1,29 @@
 // The byte offset in a reader's fault message ("... at byte 123"), 0 when it has none.
-ost_at(string os_serr) {
-  int os_ik = str_find(os_serr, " at byte ");
-  int os_in = len(os_serr) - os_ik - 9;
-  int os_iat = 0;
-} chain (string os_serr) {
-  if(os_ik >= 0) {
-    os_iat = to_int(str_sub(os_serr, os_ik + 9, os_in));
+odt_style_fault_offset_parse(string odt_style_fault_offset_parse_message) {
+  int odt_style_fault_offset_parse_marker = str_find(odt_style_fault_offset_parse_message, " at byte ");
+  int odt_style_fault_offset_parse_remaining = len(odt_style_fault_offset_parse_message) - odt_style_fault_offset_parse_marker - 9;
+  int odt_style_fault_offset_parse_offset = 0;
+} chain (string odt_style_fault_offset_parse_message) {
+  if(odt_style_fault_offset_parse_marker >= 0) {
+    odt_style_fault_offset_parse_offset = to_int(str_sub(odt_style_fault_offset_parse_message, odt_style_fault_offset_parse_marker + 9, odt_style_fault_offset_parse_remaining));
   }
-} return int os_iat;
+} return int odt_style_fault_offset_parse_offset;
 ("unexpected end of document at byte 123"):(123)
 ("mismatched end tag at byte 7"):(7)
 ("no offset"):(0)
 
 // The byte at which a document stops being well-formed, -1 when it is; for naming the byte in the message of an ost_load error.
-ost_fault_at(int[] os_lxml) {
-  XmlR os_r = xml_reader_open(os_lxml);
-  int os_iev = xml_reader_next(os_r);
-  int os_iat = 0 - 1;
-} chain (int[] os_lxml) {
-  while(os_iev != 0) {
-    os_iev = xml_reader_next(os_r);
+odt_style_fault_byte(int[] odt_style_fault_byte_bytes) {
+  XmlR odt_style_fault_byte_reader = xml_reader_open(odt_style_fault_byte_bytes);
+  int odt_style_fault_byte_event = xml_reader_next(odt_style_fault_byte_reader);
+  int odt_style_fault_byte_offset = 0 - 1;
+} chain (int[] odt_style_fault_byte_bytes) {
+  while(odt_style_fault_byte_event != 0) {
+    odt_style_fault_byte_event = xml_reader_next(odt_style_fault_byte_reader);
   }
-  if(xml_reader_get(os_r, (import xml_reader_k_error)) != "") {
-    os_iat = ost_at(xml_reader_get(os_r, (import xml_reader_k_error)));
+  if(xml_reader_get(odt_style_fault_byte_reader, (import xml_reader_k_error)) != "") {
+    odt_style_fault_byte_offset = odt_style_fault_offset_parse(xml_reader_get(odt_style_fault_byte_reader, (import xml_reader_k_error)));
   }
-} return int os_iat;
-given ost_t_xml("<a><b></a>", "") ((import ost_t_sx)):(8)
-given ost_t_xml("<a/>", "") ((import ost_t_sx)):(-1)
+} return int odt_style_fault_byte_offset;
+given odt_style_test_xml_bytes("<a><b></a>", "") ((import odt_style_test_styles_bytes)):(8)
+given odt_style_test_xml_bytes("<a/>", "") ((import odt_style_test_styles_bytes)):(-1)

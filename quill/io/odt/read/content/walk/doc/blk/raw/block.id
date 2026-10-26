@@ -1,18 +1,18 @@
 // An element of the body the model does not edit, kept untouched: one paragraph of its own whose text is a marker for the kept bytes and a label, and whose paragraph row says it is opaque.
-orc_block(Cx cx, int ev, string name) {
-  int idx = orc_raw(cx, ev);
+orc_block(Odt_Read_Context odt_read_block_context, int odt_read_block_event_code, string name) {
+  int odt_read_block_part_index = orc_raw(odt_read_block_context, odt_read_block_event_code);
   Text t = text_new(0);
-  lset(cx.cs.slots, (import orc_s_link), 0);
-} chain (Cx cx, int ev, string name) {
-  orc_run(cx, t, (import quill_object_marker) + idx, 1);
-  orc_text(cx, t, orc_label(name));
-  int pp = tab_with(cx.d.fmt.paras, 0, (import quill_paragraph_kind), 1);
-} chain (Cx cx, int ev, string name) {
+  lset(odt_read_block_context.cs.slots, (import orc_s_link), 0);
+} chain (Odt_Read_Context odt_read_block_context, int odt_read_block_event_code, string name) {
+  orc_run(odt_read_block_context, t, (import quill_object_marker) + odt_read_block_part_index, 1);
+  orc_text(odt_read_block_context, t, orc_label(name));
+  int pp = tab_with(odt_read_block_context.d.fmt.paras, 0, (import quill_paragraph_kind), 1);
+} chain (Odt_Read_Context odt_read_block_context, int odt_read_block_event_code, string name) {
   Para p = para_make(t, pp);
-  push(cx.d.body.paras, p);
+  push(odt_read_block_context.d.body.paras, p);
 } return void;
-given orc_t_open("<table:table><x/></table:table>") given orc_t_pop given orc_t_steps(1) ((import orc_tc), 1, "table:table"):() then orc_t_show:("P9 983040,91,84,97,98,108,101,93, 8:0:-1, {0,0,0,0,1} |  | table:table:0:<table:table><x/></table:table>,")
-given orc_t_open("<r><a/><draw:frame/></r>") given orc_t_steps(2) given orc_block((import orc_tc), 4, "a") given orc_t_steps(1) ((import orc_tc), 4, "draw:frame"):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0}\nP9 983040,91,66,108,111,99,107,93, 8:0:-1, {0,0,0,0,1}\nP9 983041,91,66,108,111,99,107,93, 8:0:-1, {0,0,0,0,1} |  | a:0:<a/>,draw:frame:0:<draw:frame/>,")
+given odt_read_fixture_open("<table:table><x/></table:table>") given odt_read_fixture_remove_paragraph given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 1, "table:table"):() then odt_read_fixture_show:("P9 983040,91,84,97,98,108,101,93, 8:0:-1, {0,0,0,0,1} |  | table:table:0:<table:table><x/></table:table>,")
+given odt_read_fixture_open("<r><a/><draw:frame/></r>") given odt_read_fixture_step_events(2) given orc_block((import odt_read_fixture_context), 4, "a") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 4, "draw:frame"):() then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0}\nP9 983040,91,66,108,111,99,107,93, 8:0:-1, {0,0,0,0,1}\nP9 983041,91,66,108,111,99,107,93, 8:0:-1, {0,0,0,0,1} |  | a:0:<a/>,draw:frame:0:<draw:frame/>,")
 
 // The label an opaque block shows in place of its content.
 orc_label(string name) {

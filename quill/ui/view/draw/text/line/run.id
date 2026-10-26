@@ -1,51 +1,51 @@
 // Paints the code points vwi_a to vwi_b - 1 of run vwi_ri of paragraph vwi_p, which end at pen position vwi_xe, on the baseline vwi_base: the highlight behind, the glyphs, the underline and the strike over them. A raised or dropped run (super and subscript) sits off the baseline by its lift.
-vw_seg(View vwv, int vwi_p, int[] vwl_g, int vwi_ri, int vwi_a, int vwi_b, int vwi_xe, int vwi_base) {
-  int[] vwl_q = [0, 0, 0, 0, 0, 0];
-  vw_look(vwv, vwi_p, vwi_ri, vwl_g[(import vw_g_z)], vwl_q);
-  vw_ink(vwv, vwi_p, vwi_ri, vwl_q);
-} chain (View vwv, int vwi_p, int[] vwl_g, int vwi_ri, int vwi_a, int vwi_b, int vwi_xe, int vwi_base) {
-  int vwi_lift = lp_rlift(vwv, vwi_p, vwi_ri);
-  int vwi_y = vwi_base - vw_px(vwi_lift, vwl_g[(import vw_g_z)]);
-  int vwi_x0 = vw_x(vwl_g, vwv.doc.body.paras[vwi_p].lay.pen[vwi_a]);
-} chain (View vwv, int vwi_p, int[] vwl_g, int vwi_ri, int vwi_a, int vwi_b, int vwi_xe, int vwi_base) {
-  int vwi_x1 = vw_x(vwl_g, vwi_xe);
-  vw_hl(vwl_q, vwi_x0, vwi_x1, vwi_y);
-  vw_glyphs(vwv, vwi_p, vwl_g, vwl_q, vwi_a, vwi_b, vwi_y);
-} chain (View vwv, int vwi_p, int[] vwl_g, int vwi_ri, int vwi_a, int vwi_b, int vwi_xe, int vwi_base) {
-  vw_decor(vwl_q, vwi_x0, vwi_x1, vwi_y);
+view_run_paint_segment(View view_run_paint_segment_viewer, int view_run_paint_segment_paragraph_index, int[] view_run_paint_segment_geometry, int view_run_paint_segment_run_index, int view_run_paint_segment_start, int view_run_paint_segment_end, int view_run_paint_segment_end_pen, int view_run_paint_segment_baseline) {
+  int[] view_run_paint_segment_look = [0, 0, 0, 0, 0, 0];
+  view_look_fill_face(view_run_paint_segment_viewer, view_run_paint_segment_paragraph_index, view_run_paint_segment_run_index, view_run_paint_segment_geometry[(import vw_g_z)], view_run_paint_segment_look);
+  view_look_fill_ink(view_run_paint_segment_viewer, view_run_paint_segment_paragraph_index, view_run_paint_segment_run_index, view_run_paint_segment_look);
+} chain (View view_run_paint_segment_viewer, int view_run_paint_segment_paragraph_index, int[] view_run_paint_segment_geometry, int view_run_paint_segment_run_index, int view_run_paint_segment_start, int view_run_paint_segment_end, int view_run_paint_segment_end_pen, int view_run_paint_segment_baseline) {
+  int view_run_paint_segment_lift = layout_paragraph_run_lift(view_run_paint_segment_viewer, view_run_paint_segment_paragraph_index, view_run_paint_segment_run_index);
+  int view_run_paint_segment_row = view_run_paint_segment_baseline - view_units_pixels(view_run_paint_segment_lift, view_run_paint_segment_geometry[(import vw_g_z)]);
+  int view_run_paint_segment_left = view_mark_screen_column(view_run_paint_segment_geometry, view_run_paint_segment_viewer.doc.body.paras[view_run_paint_segment_paragraph_index].lay.pen[view_run_paint_segment_start]);
+} chain (View view_run_paint_segment_viewer, int view_run_paint_segment_paragraph_index, int[] view_run_paint_segment_geometry, int view_run_paint_segment_run_index, int view_run_paint_segment_start, int view_run_paint_segment_end, int view_run_paint_segment_end_pen, int view_run_paint_segment_baseline) {
+  int view_run_paint_segment_right = view_mark_screen_column(view_run_paint_segment_geometry, view_run_paint_segment_end_pen);
+  view_mark_highlight(view_run_paint_segment_look, view_run_paint_segment_left, view_run_paint_segment_right, view_run_paint_segment_row);
+  view_glyph_draw_all(view_run_paint_segment_viewer, view_run_paint_segment_paragraph_index, view_run_paint_segment_geometry, view_run_paint_segment_look, view_run_paint_segment_start, view_run_paint_segment_end, view_run_paint_segment_row);
+} chain (View view_run_paint_segment_viewer, int view_run_paint_segment_paragraph_index, int[] view_run_paint_segment_geometry, int view_run_paint_segment_run_index, int view_run_paint_segment_start, int view_run_paint_segment_end, int view_run_paint_segment_end_pen, int view_run_paint_segment_baseline) {
+  view_glyph_draw_decoration(view_run_paint_segment_look, view_run_paint_segment_left, view_run_paint_segment_right, view_run_paint_segment_row);
 } return void;
-given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given sf_l_init(60, 40) given vw_t_set(0, 0, 2, 4, 65280) given vw_t_at(15, 32) ((import lp_t_v), 0, [10, 0, 100, 0, 0], 0, 0, 2, 1366, 30):() then vw_t_px:(65280)
-given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given sf_l_init(60, 40) given vw_t_set(0, 0, 2, 3, 255) given lp_t_bits(0, 0, 2, 4) given vw_t_at(15, 32) ((import lp_t_v), 0, [10, 0, 100, 0, 0], 0, 0, 2, 1366, 30):() then vw_t_px:(255)
-given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given sf_l_init(60, 40) given vw_t_at(15, 32) ((import lp_t_v), 0, [10, 0, 100, 0, 0], 0, 0, 2, 1366, 30):() then vw_t_px:(0)
-given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given sf_l_init(60, 40) given vw_t_set(0, 0, 2, 3, 255) given lp_t_bits(0, 0, 2, 16) given vw_t_box0(10, 27, 21, 32) ((import lp_t_v), 0, [10, 0, 100, 0, 0], 0, 0, 2, 1366, 30):() then vw_t_inked:(0)
-given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given sf_l_init(60, 40) given vw_t_set(0, 0, 2, 3, 255) given lp_t_bits(0, 0, 2, 16) given vw_t_box0(10, 17, 21, 26) ((import lp_t_v), 0, [10, 0, 100, 0, 0], 0, 0, 2, 1366, 30):() then vw_t_inked:(1)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BE") given lay_all((import layout_paragraph_test_view)) given sf_l_init(60, 40) given view_test_set_character(0, 0, 2, 4, 65280) given view_test_remember_pixel(15, 32) ((import layout_paragraph_test_view), 0, [10, 0, 100, 0, 0], 0, 0, 2, 1366, 30):() then view_test_pixel_color:(65280)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BE") given lay_all((import layout_paragraph_test_view)) given sf_l_init(60, 40) given view_test_set_character(0, 0, 2, 3, 255) given layout_paragraph_test_flag_bits(0, 0, 2, 4) given view_test_remember_pixel(15, 32) ((import layout_paragraph_test_view), 0, [10, 0, 100, 0, 0], 0, 0, 2, 1366, 30):() then view_test_pixel_color:(255)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BE") given lay_all((import layout_paragraph_test_view)) given sf_l_init(60, 40) given view_test_remember_pixel(15, 32) ((import layout_paragraph_test_view), 0, [10, 0, 100, 0, 0], 0, 0, 2, 1366, 30):() then view_test_pixel_color:(0)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BE") given lay_all((import layout_paragraph_test_view)) given sf_l_init(60, 40) given view_test_set_character(0, 0, 2, 3, 255) given layout_paragraph_test_flag_bits(0, 0, 2, 16) given view_test_remember_box(10, 27, 21, 32) ((import layout_paragraph_test_view), 0, [10, 0, 100, 0, 0], 0, 0, 2, 1366, 30):() then view_test_box_inked:(0)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BE") given lay_all((import layout_paragraph_test_view)) given sf_l_init(60, 40) given view_test_set_character(0, 0, 2, 3, 255) given layout_paragraph_test_flag_bits(0, 0, 2, 16) given view_test_remember_box(10, 17, 21, 26) ((import layout_paragraph_test_view), 0, [10, 0, 100, 0, 0], 0, 0, 2, 1366, 30):() then view_test_box_inked:(1)
 
 // Paints the part of run vwi_ri (which starts at code point vwi_rs) that lies on line vwi_j of paragraph vwi_p, and answers where the run ends. The end of the segment is the pen of the next code point, or the end of the line's visible text for the last one.
-vw_run(View vwv, int vwi_p, int[] vwl_g, int vwi_j, int vwi_ri, int vwi_rs, int vwi_base) {
-  Para vwp = vwv.doc.body.paras[vwi_p];
-  int vwi_o = vwi_j * (import quill_line_stride);
-  int vwi_re = vwi_rs + vwp.txt.runs[vwi_ri].len;
-} chain (View vwv, int vwi_p, int[] vwl_g, int vwi_j, int vwi_ri, int vwi_rs, int vwi_base) {
-  int vwi_lo = vwp.lay.lines[vwi_o + (import quill_line_low)];
-  int vwi_hi = vwp.lay.lines[vwi_o + (import quill_line_high)];
-  int vwi_xe = vwp.lay.pen[vwi_lo] + vwp.lay.lines[vwi_o + (import quill_line_width)];
-} chain (View vwv, int vwi_p, int[] vwl_g, int vwi_j, int vwi_ri, int vwi_rs, int vwi_base) {
-  int vwi_a = fixed_point_maximum(vwi_rs, vwi_lo);
-  int vwi_b = fixed_point_minimum(vwi_re, vwi_hi);
-  vw_cut(vwv, vwi_p, vwl_g, vwi_ri, vwi_a, vwi_b, vwi_xe, vwi_hi, vwi_base);
-} return int vwi_re;
-given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given sf_l_init(60, 40) given vw_t_set(0, 0, 2, 3, 255) given vw_t_box0(10, 19, 21, 31) ((import lp_t_v), 0, [10, 0, 100, 0, 0], 0, 0, 0, 30):(2) then vw_t_inked:(1)
-given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given sf_l_init(60, 40) given vw_t_set(0, 0, 2, 3, 255) given vw_t_box0(10, 19, 21, 31) ((import lp_t_v), 0, [10, 0, 100, 0, 0], 0, 0, 5, 30):(7) then vw_t_inked:(0)
+view_run_paint(View view_run_paint_viewer, int view_run_paint_paragraph_index, int[] view_run_paint_geometry, int view_run_paint_line_index, int view_run_paint_run_index, int view_run_paint_run_start, int view_run_paint_baseline) {
+  Para view_run_paint_paragraph = view_run_paint_viewer.doc.body.paras[view_run_paint_paragraph_index];
+  int view_run_paint_line_offset = view_run_paint_line_index * (import quill_line_stride);
+  int view_run_paint_run_end = view_run_paint_run_start + view_run_paint_paragraph.txt.runs[view_run_paint_run_index].len;
+} chain (View view_run_paint_viewer, int view_run_paint_paragraph_index, int[] view_run_paint_geometry, int view_run_paint_line_index, int view_run_paint_run_index, int view_run_paint_run_start, int view_run_paint_baseline) {
+  int view_run_paint_line_low = view_run_paint_paragraph.lay.lines[view_run_paint_line_offset + (import quill_line_low)];
+  int view_run_paint_line_high = view_run_paint_paragraph.lay.lines[view_run_paint_line_offset + (import quill_line_high)];
+  int view_run_paint_end_pen = view_run_paint_paragraph.lay.pen[view_run_paint_line_low] + view_run_paint_paragraph.lay.lines[view_run_paint_line_offset + (import quill_line_width)];
+} chain (View view_run_paint_viewer, int view_run_paint_paragraph_index, int[] view_run_paint_geometry, int view_run_paint_line_index, int view_run_paint_run_index, int view_run_paint_run_start, int view_run_paint_baseline) {
+  int view_run_paint_start = fixed_point_maximum(view_run_paint_run_start, view_run_paint_line_low);
+  int view_run_paint_end = fixed_point_minimum(view_run_paint_run_end, view_run_paint_line_high);
+  view_run_paint_cut(view_run_paint_viewer, view_run_paint_paragraph_index, view_run_paint_geometry, view_run_paint_run_index, view_run_paint_start, view_run_paint_end, view_run_paint_end_pen, view_run_paint_line_high, view_run_paint_baseline);
+} return int view_run_paint_run_end;
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BE") given lay_all((import layout_paragraph_test_view)) given sf_l_init(60, 40) given view_test_set_character(0, 0, 2, 3, 255) given view_test_remember_box(10, 19, 21, 31) ((import layout_paragraph_test_view), 0, [10, 0, 100, 0, 0], 0, 0, 0, 30):(2) then view_test_box_inked:(1)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BE") given lay_all((import layout_paragraph_test_view)) given sf_l_init(60, 40) given view_test_set_character(0, 0, 2, 3, 255) given view_test_remember_box(10, 19, 21, 31) ((import layout_paragraph_test_view), 0, [10, 0, 100, 0, 0], 0, 0, 5, 30):(7) then view_test_box_inked:(0)
 
 // Paints the segment a to b of a run when it is not empty, ending at the pen of the next code point unless it reaches vwi_hi, the end of the line, where it ends at vwi_xe.
-vw_cut(View vwv, int vwi_p, int[] vwl_g, int vwi_ri, int vwi_a, int vwi_b, int vwi_xe, int vwi_hi, int vwi_base) {
-  int vwi_e = vwi_xe;
-  if(vwi_b < vwi_hi) {
-    vwi_e = vwv.doc.body.paras[vwi_p].lay.pen[vwi_b];
+view_run_paint_cut(View view_run_paint_cut_viewer, int view_run_paint_cut_paragraph_index, int[] view_run_paint_cut_geometry, int view_run_paint_cut_run_index, int view_run_paint_cut_start, int view_run_paint_cut_end, int view_run_paint_cut_line_end_pen, int view_run_paint_cut_line_high, int view_run_paint_cut_baseline) {
+  int view_run_paint_cut_end_pen = view_run_paint_cut_line_end_pen;
+  if(view_run_paint_cut_end < view_run_paint_cut_line_high) {
+    view_run_paint_cut_end_pen = view_run_paint_cut_viewer.doc.body.paras[view_run_paint_cut_paragraph_index].lay.pen[view_run_paint_cut_end];
   }
-  if(vwi_a < vwi_b) {
-    vw_seg(vwv, vwi_p, vwl_g, vwi_ri, vwi_a, vwi_b, vwi_e, vwi_base);
+  if(view_run_paint_cut_start < view_run_paint_cut_end) {
+    view_run_paint_segment(view_run_paint_cut_viewer, view_run_paint_cut_paragraph_index, view_run_paint_cut_geometry, view_run_paint_cut_run_index, view_run_paint_cut_start, view_run_paint_cut_end, view_run_paint_cut_end_pen, view_run_paint_cut_baseline);
   }
 } return void;
-given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given sf_l_init(60, 40) given vw_t_set(0, 0, 2, 3, 255) given vw_t_box0(21, 19, 31, 31) ((import lp_t_v), 0, [10, 0, 100, 0, 0], 0, 1, 2, 1366, 2, 30):() then vw_t_inked:(1)
-given lp_t_font given lp_t_ins(0, "BE") given lay_all((import lp_t_v)) given sf_l_init(60, 40) given vw_t_set(0, 0, 2, 3, 255) given vw_t_box0(21, 19, 31, 31) ((import lp_t_v), 0, [10, 0, 100, 0, 0], 0, 1, 1, 1366, 2, 30):() then vw_t_inked:(0)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BE") given lay_all((import layout_paragraph_test_view)) given sf_l_init(60, 40) given view_test_set_character(0, 0, 2, 3, 255) given view_test_remember_box(21, 19, 31, 31) ((import layout_paragraph_test_view), 0, [10, 0, 100, 0, 0], 0, 1, 2, 1366, 2, 30):() then view_test_box_inked:(1)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BE") given lay_all((import layout_paragraph_test_view)) given sf_l_init(60, 40) given view_test_set_character(0, 0, 2, 3, 255) given view_test_remember_box(21, 19, 31, 31) ((import layout_paragraph_test_view), 0, [10, 0, 100, 0, 0], 0, 1, 1, 1366, 2, 30):() then view_test_box_inked:(0)

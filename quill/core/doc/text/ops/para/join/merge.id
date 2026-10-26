@@ -1,19 +1,19 @@
 // Appends paragraph para + 1 to paragraph para and removes it.
-body_merge(Body b, int para) {
-  Para p = b.paras[para];
-  text_append(p.txt, b.paras[para + 1].txt);
-  paras_remove(b.paras, para + 1);
-} chain (Body b, int para) {
-  para_stale(p);
+body_merge(Body paragraphs_merge_body, int para) {
+  Para paragraphs_merge_paragraph = paragraphs_merge_body.paras[para];
+  text_append(paragraphs_merge_paragraph.txt, paragraphs_merge_body.paras[para + 1].txt);
+  paras_remove(paragraphs_merge_body.paras, para + 1);
+} chain (Body paragraphs_merge_body, int para) {
+  para_stale(paragraphs_merge_paragraph);
 } return void;
 (Body([Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], 7), 3), Para(Text([2], [Run(1, 5, -1)], 0), Lay([], [], 7), 4)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), 0):(Body([Para(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 1), Lay([], [], -1), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), 0)
 (Body([Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], 7), 3), Para(Text([2], [Run(1, 5, -1)], 0), Lay([], [], 7), 4)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), 0):(Body([Para(Text([2], [Run(1, 5, -1)], 1), Lay([], [], -1), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), 0)
 
 // Backspace at the start of paragraph para + 1: it joins the end of paragraph para and the merged paragraph keeps para's paragraph row. Nothing happens past the last paragraph.
-body_join(Body b, int para) {
-  if(para + 1 < len(b.paras)) {
-    body_merge(b, para);
-    b.rev = b.rev + 1;
+body_join(Body paragraphs_join_body, int para) {
+  if(para + 1 < len(paragraphs_join_body.paras)) {
+    body_merge(paragraphs_join_body, para);
+    paragraphs_join_body.rev = paragraphs_join_body.rev + 1;
   }
 } return void;
 (Body([Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], 7), 3), Para(Text([2], [Run(1, 5, -1)], 0), Lay([], [], 7), 4)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 4), 0):(Body([Para(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 1), Lay([], [], -1), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 5), 0)
@@ -21,10 +21,10 @@ body_join(Body b, int para) {
 (Body([Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], 7), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 4), 0):(Body([Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], 7), 3)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 4), 0)
 
 // A deep copy of a paragraph, with a stale layout.
-para_copy(Para p) {
-  Text nt = text_copy(p.txt);
-  Para np = para_make(nt, p.pprop);
-} return Para np;
+para_copy(Para paragraph_clone_paragraph) {
+  Text paragraph_clone_new_text = text_copy(paragraph_clone_paragraph.txt);
+  Para paragraph_clone_new_paragraph = para_make(paragraph_clone_new_text, paragraph_clone_paragraph.pprop);
+} return Para paragraph_clone_new_paragraph;
 (Para(Text([1], [Run(1, 0, -1)], 2), Lay([], [], 7), 3)):(Para(Text([1], [Run(1, 0, -1)], 2), Lay([], [], -1), 3))
 (Para(Text([5, 6], [Run(1, 0, -1), Run(1, 3, 2)], 4), Lay([1], [2], 9), 8)):(Para(Text([5, 6], [Run(1, 0, -1), Run(1, 3, 2)], 4), Lay([], [], -1), 8))
 (Para(Text([], [Run(0, 4, -1)], 0), Lay([], [], -1), 0)):(Para(Text([], [Run(0, 4, -1)], 0), Lay([], [], -1), 0))

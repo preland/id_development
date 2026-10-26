@@ -1,41 +1,41 @@
 // Test fixture: a new document orc_td and an XML reader orc_tr over the XML in xml, and a read of them, orc_tc, so a case can `given` it, run the function under test on it and read the result back with orc_t_show or `then (import orc_tc).cs.slots`.
-orc_t_open(string xml) {
+odt_read_fixture_open(string xml) {
   int[] data = exec_bytes(xml);
-  XmlR rd = xml_reader_open(data);
+  XmlR odt_read_fixture_open_reader = xml_reader_open(data);
   Doc d = doc_new();
 } chain (string xml) {
-  OdtSty osty = ost_new();
+  Odt_style_lookup odt_read_fixture_open_styles = odt_style_lookup_new();
   int[] none = [];
-  int code = ost_load(d, none, data, osty);
+  int code = odt_style_load(d, none, data, odt_read_fixture_open_styles);
 } chain (string xml) {
-  export XmlR orc_tr = rd;
-  export Doc orc_td = d;
-  export Cx orc_tc = orc_new(d, rd, osty);
-} return void export orc_tc;
-("<a/>"):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | ")
-("<a>b</a>"):() then (import orc_tc).cs.slots:([0, 0, 0, 0, 0, 0, 0, 0])
+  export XmlR odt_read_fixture_xml_reader = odt_read_fixture_open_reader;
+  export Doc odt_read_fixture_document = d;
+  export Odt_Read_Context odt_read_fixture_context = orc_new(d, odt_read_fixture_open_reader, odt_read_fixture_open_styles);
+} return void export odt_read_fixture_context;
+("<a/>"):() then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0} |  | ")
+("<a>b</a>"):() then (import odt_read_fixture_context).cs.slots:([0, 0, 0, 0, 0, 0, 0, 0])
 
 // Test fixture: every paragraph of the document of orc_tc as a line (its paragraph row, its code points and its runs), then " | ", the hyperlink targets, " | ", and the kept parts.
-orc_t_show() {
-  Cx cx = (import orc_tc);
+odt_read_fixture_show() {
+  Odt_Read_Context odt_read_fixture_show_context = (import odt_read_fixture_context);
   string[] pieces = [];
   int i = 0;
 } chain () {
-  while(i < len(cx.d.body.paras)) {
-    push(pieces, para_dump(cx.d.body.paras[i]) + " {" + orc_t_row(cx, cx.d.body.paras[i].pprop) + "}");
+  while(i < len(odt_read_fixture_show_context.d.body.paras)) {
+    push(pieces, para_dump(odt_read_fixture_show_context.d.body.paras[i]) + " {" + odt_read_fixture_paragraph_fields(odt_read_fixture_show_context, odt_read_fixture_show_context.d.body.paras[i].pprop) + "}");
     i = i + 1;
   }
-  string text = str_join(pieces, "\n") + " | " + str_join(cx.d.ext.links, ",") + " | " + orc_t_parts(cx.d.ext.parts);
+  string text = str_join(pieces, "\n") + " | " + str_join(odt_read_fixture_show_context.d.ext.links, ",") + " | " + odt_read_fixture_parts_text(odt_read_fixture_show_context.d.ext.parts);
 } return string text;
-given orc_t_open("<a/>") ():("P0  0:0:-1, {0,0,0,0,0} |  | ")
-given orc_t_open("<a/>") given orc_t_pop ():(" |  | ")
+given odt_read_fixture_open("<a/>") ():("P0  0:0:-1, {0,0,0,0,0} |  | ")
+given odt_read_fixture_open("<a/>") given odt_read_fixture_remove_paragraph ():(" |  | ")
 
 // Test fixture: the kept parts as name:kind:content, comma separated, where the content is the XML of an element and the size of a file.
-orc_t_parts(Part[] pts) {
+odt_read_fixture_parts_text(Part[] odt_read_fixture_parts_list) {
   string text = "";
   int i = 0;
-  while(i < len(pts)) {
-    text = text + pts[i].name + ":" + pts[i].kind + ":" + orc_t_what(pts[i]) + ",";
+  while(i < len(odt_read_fixture_parts_list)) {
+    text = text + odt_read_fixture_parts_list[i].name + ":" + odt_read_fixture_parts_list[i].kind + ":" + odt_read_fixture_part_content(odt_read_fixture_parts_list[i]) + ",";
     i = i + 1;
   }
 } return string text;

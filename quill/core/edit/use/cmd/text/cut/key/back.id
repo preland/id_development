@@ -1,29 +1,29 @@
 // Backspace at a bare caret: removes the code points ed_key_n counts as one undo step, or at the start of a paragraph joins it to the one before, which keeps its own row.
-ed_back_one(Doc d, Ctl ctl, int by_word) {
+editor_back_one(Doc d, Ctl ctl, int by_word) {
   int para = ctl.sel.caret.para;
   int off = ctl.sel.caret.off;
-  int n = ed_key_n(d, para, off, by_word, -1);
+  int n = editor_key_count(d, para, off, by_word, -1);
 } chain (Doc d, Ctl ctl, int by_word) {
   if(n > 0) {
-    ed_del_txn(d, ctl, para, off - n, n);
+    editor_delete_transaction(d, ctl, para, off - n, n);
   }
   if(n == 0 && para > 0) {
-    ed_join_txn(d, ctl, para - 1);
+    editor_join_transaction(d, ctl, para - 1);
   }
 } return void;
-given fx_setup("abc|de") given fx_at(0, 2, 0, 2) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("ac|de") then fx_sel:("0:1-0:1")
-given fx_setup("abc|de") given fx_at(1, 0, 1, 0) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("abcde") then fx_sel:("0:3-0:3")
-given fx_setup("abc") ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("abc") then fx_hist:("u0 r0 o-1 n0")
-given fx_setup("ab|cd") given fx_opaque(1) given fx_at(1, 1, 1, 1) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("ab")
+given editor_fixture_setup("abc|de") given editor_fixture_selection_at(0, 2, 0, 2) ((import fixture_document), (import fixture_control), 0):((import fixture_document), (import fixture_control), 0) then editor_fixture_show:("ac|de") then editor_fixture_selection:("0:1-0:1")
+given editor_fixture_setup("abc|de") given editor_fixture_selection_at(1, 0, 1, 0) ((import fixture_document), (import fixture_control), 0):((import fixture_document), (import fixture_control), 0) then editor_fixture_show:("abcde") then editor_fixture_selection:("0:3-0:3")
+given editor_fixture_setup("abc") ((import fixture_document), (import fixture_control), 0):((import fixture_document), (import fixture_control), 0) then editor_fixture_show:("abc") then editor_fixture_history:("u0 r0 o-1 n0")
+given editor_fixture_setup("ab|cd") given editor_fixture_opaque(1) given editor_fixture_selection_at(1, 1, 1, 1) ((import fixture_document), (import fixture_control), 0):((import fixture_document), (import fixture_control), 0) then editor_fixture_show:("ab")
 
 // Backspace: removes the selection when there is one, else a code point, or with by_word 1 (Ctrl+Backspace) back to the start of the word. It is one undo step, and does nothing at the very start of the document.
-ed_back(Doc d, Ctl ctl, int by_word) {
-  if(sel_empty(ctl.sel) == 0) {
-    ed_erase_txn(d, ctl);
+editor_back(Doc d, Ctl ctl, int by_word) {
+  if(editor_selection_empty(ctl.sel) == 0) {
+    editor_erase_transaction(d, ctl);
   } else {
-    ed_back_one(d, ctl, by_word);
+    editor_back_one(d, ctl, by_word);
   }
 } return void;
-given fx_setup("abc") given fx_at(0, 1, 0, 3) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("a")
-given fx_setup("foo bar") given fx_at(0, 7, 0, 7) ((import fxd), (import fxc), 1):((import fxd), (import fxc), 1) then fx_show:("foo ")
-given fx_setup("foo bar") given fx_at(0, 7, 0, 7) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("foo ba")
+given editor_fixture_setup("abc") given editor_fixture_selection_at(0, 1, 0, 3) ((import fixture_document), (import fixture_control), 0):((import fixture_document), (import fixture_control), 0) then editor_fixture_show:("a")
+given editor_fixture_setup("foo bar") given editor_fixture_selection_at(0, 7, 0, 7) ((import fixture_document), (import fixture_control), 1):((import fixture_document), (import fixture_control), 1) then editor_fixture_show:("foo ")
+given editor_fixture_setup("foo bar") given editor_fixture_selection_at(0, 7, 0, 7) ((import fixture_document), (import fixture_control), 0):((import fixture_document), (import fixture_control), 0) then editor_fixture_show:("foo ba")

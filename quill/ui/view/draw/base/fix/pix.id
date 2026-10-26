@@ -1,21 +1,21 @@
 // Test setup: remembers the pixel (x, y) that vw_t_px reads.
-vw_t_at(int vwi_x, int vwi_y) {
-  export int[] vw_t_pt = [vwi_x, vwi_y];
+view_test_remember_pixel(int view_test_remember_pixel_column, int view_test_remember_pixel_row) {
+  export int[] view_test_pixel_numbers = [view_test_remember_pixel_column, view_test_remember_pixel_row];
 } return void;
-(3, 4):() then vw_t_pt_dump:("pt_dump 3,4,")
-(0, 0):() then vw_t_pt_dump:("pt_dump 0,0,")
+(3, 4):() then view_test_pixel_dump:("pt_dump 3,4,")
+(0, 0):() then view_test_pixel_dump:("pt_dump 0,0,")
 
 // Test check: the remembered pixel as vw_t_at stored it.
-vw_t_pt_dump() {
-  string vws_z_t = "pt_dump " + (dump_ints((import vw_t_pt)));
-} return string vws_z_t;
-given vw_t_at(1, 2) ():("pt_dump 1,2,")
-given vw_t_at(9, 0) ():("pt_dump 9,0,")
+view_test_pixel_dump() {
+  string view_test_pixel_dump_text = "pt_dump " + (document_dump_integers((import view_test_pixel_numbers)));
+} return string view_test_pixel_dump_text;
+given view_test_remember_pixel(1, 2) ():("pt_dump 1,2,")
+given view_test_remember_pixel(9, 0) ():("pt_dump 9,0,")
 
 // Test check: the colour of the remembered pixel on the list surface.
-vw_t_px() {
-  int[] vwl_p = (import vw_t_pt);
-  int vwi_c = (import sf_l_px)[sf_l_idx(vwl_p[0], vwl_p[1])];
-} return int vwi_c;
-given sf_l_init(4, 4) given d2_l_rect(0, 0, 4, 4, 7) given vw_t_at(1, 1) ():(7)
-given sf_l_init(4, 4) given vw_t_at(2, 2) ():(0)
+view_test_pixel_color() {
+  int[] view_test_pixel_color_point = (import view_test_pixel_numbers);
+  int view_test_pixel_color_value = (import sf_l_px)[sf_l_idx(view_test_pixel_color_point[0], view_test_pixel_color_point[1])];
+} return int view_test_pixel_color_value;
+given sf_l_init(4, 4) given d2_l_rect(0, 0, 4, 4, 7) given view_test_remember_pixel(1, 1) ():(7)
+given sf_l_init(4, 4) given view_test_remember_pixel(2, 2) ():(0)

@@ -1,29 +1,29 @@
 // A page starts at paragraph lgi, line lgj: its start is kept in starts (two cells, the paragraph then the line) and the page is counted.
-lay_page_open(View lgv, int lgi, int lgj) {
-  push(lgv.pages.starts, lgi);
-  push(lgv.pages.starts, lgj);
-  lgv.pages.count = lgv.pages.count + 1;
+lay_page_open(View page_view, int paragraph_index, int line_index) {
+  push(page_view.pages.starts, paragraph_index);
+  push(page_view.pages.starts, line_index);
+  page_view.pages.count = page_view.pages.count + 1;
 } return void;
-given lp_t_new ((import lp_t_v), 3, 2):() then (import lp_t_v).pages.starts:([3, 2]) then (import lp_t_v).pages.count:(1)
-given lp_t_new given lay_page_open((import lp_t_v), 0, 0) ((import lp_t_v), 5, 1):() then (import lp_t_v).pages.starts:([0, 0, 5, 1]) then (import lp_t_v).pages.count:(2)
+given layout_paragraph_test_new ((import layout_paragraph_test_view), 3, 2):() then (import layout_paragraph_test_view).pages.starts:([3, 2]) then (import layout_paragraph_test_view).pages.count:(1)
+given layout_paragraph_test_new given lay_page_open((import layout_paragraph_test_view), 0, 0) ((import layout_paragraph_test_view), 5, 1):() then (import layout_paragraph_test_view).pages.starts:([0, 0, 5, 1]) then (import layout_paragraph_test_view).pages.count:(2)
 
 
 // Forgets the pages and opens the first one, at the first line of the first paragraph.
-lay_pages_reset(View lgv) {
-  lp_clear(lgv.pages.starts);
-  lp_clear(lgv.pages.tops);
-  lgv.pages.count = 0;
-} chain (View lgv) {
-  lay_page_open(lgv, 0, 0);
+lay_pages_reset(View page_view) {
+  layout_paragraph_clear(page_view.pages.starts);
+  layout_paragraph_clear(page_view.pages.tops);
+  page_view.pages.count = 0;
+} chain (View page_view) {
+  lay_page_open(page_view, 0, 0);
 } return void;
-given lp_t_new given lay_page_open((import lp_t_v), 4, 4) ((import lp_t_v)):() then (import lp_t_v).pages.starts:([0, 0]) then (import lp_t_v).pages.count:(1)
-given lp_t_new given lg_t_zeros(2) ((import lp_t_v)):() then (import lp_t_v).pages.tops:([])
+given layout_paragraph_test_new given lay_page_open((import layout_paragraph_test_view), 4, 4) ((import layout_paragraph_test_view)):() then (import layout_paragraph_test_view).pages.starts:([0, 0]) then (import layout_paragraph_test_view).pages.count:(1)
+given layout_paragraph_test_new given layout_page_test_zeros(2) ((import layout_paragraph_test_view)):() then (import layout_paragraph_test_view).pages.tops:([])
 
 
 // How many pages the document has: at least one, even when it holds no text.
-lay_page_count(View lgv) {
-  int lgn = fixed_point_maximum(lgv.pages.count, 1);
-} return int lgn;
-given lp_t_new ((import lp_t_v)):(1)
-given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_paras(8) given lay_all((import lp_t_v)) given lg_t_pag ((import lp_t_v)):(2)
+lay_page_count(View page_view) {
+  int page_total = fixed_point_maximum(page_view.pages.count, 1);
+} return int page_total;
+given layout_paragraph_test_new ((import layout_paragraph_test_view)):(1)
+given layout_paragraph_test_font given layout_page_test_page(1500, 3000, 150, 300, 450, 600) given layout_paragraph_test_paragraphs(8) given lay_all((import layout_paragraph_test_view)) given layout_page_test_paginate ((import layout_paragraph_test_view)):(2)
 

@@ -1,25 +1,25 @@
 // Test check: the state list, the remembered colours and the number of cells of the tab rectangles, as numbers.
-rbd_t_sd() {
-  string rbs_a = dump_ints((import rbd_s));
-  string rbs_b = dump_ints((import rbd_col));
-  string rbs_z = rbs_a + "|" + rbs_b + "|" + len((import rbd_tr));
-} return string rbs_z;
-given rbe_state ():("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
-given rbe_state given lset((import rbd_col), 0, 7) ():("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|7,12582912,|20")
+ribbon_fit_check_state_dump() {
+  string ribbon_fit_state_list_text = document_dump_integers((import ribbon_fit_state));
+  string ribbon_fit_color_list_text = document_dump_integers((import ribbon_fit_colors));
+  string ribbon_fit_state_dump_text = ribbon_fit_state_list_text + "|" + ribbon_fit_color_list_text + "|" + len((import ribbon_fit_tab_rectangles));
+} return string ribbon_fit_state_dump_text;
+given ribbon_fit_create_state_lists ():("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|16776960,12582912,|20")
+given ribbon_fit_create_state_lists given lset((import ribbon_fit_colors), 0, 7) ():("1,-1,0,0,0,-1,-1,0,0,0,0,0,-1,0,0,|7,12582912,|20")
 
 // Test check: how many menus, galleries, labels and answers are open or kept, the name of the last choice and the rectangle the open menu came from, comma separated.
-rbd_t_pd() {
-  string rbs_a = len((import rbd_menu)) + "," + len((import rbd_gal)) + "," + (import rbd_nm)[0];
-  string rbs_b = len((import rbd_pl)) + "," + len((import rbd_pa)) + "," + dump_ints((import rbd_an));
-  string rbs_z = rbs_a + "," + rbs_b;
-} return string rbs_z;
-given rbe_pops ():("0,0,,0,0,0,0,0,0,")
-given rbe_pops given lset((import rbd_an), 0, 5) ():("0,0,,0,0,5,0,0,0,")
+ribbon_fit_check_popup_dump() {
+  string ribbon_fit_popup_counts_text = len((import ribbon_fit_menus)) + "," + len((import ribbon_fit_galleries)) + "," + (import ribbon_fit_choice_name)[0];
+  string ribbon_fit_popup_answers_text = len((import ribbon_fit_labels)) + "," + len((import ribbon_fit_answers)) + "," + document_dump_integers((import ribbon_fit_anchor));
+  string ribbon_fit_popup_dump_text = ribbon_fit_popup_counts_text + "," + ribbon_fit_popup_answers_text;
+} return string ribbon_fit_popup_dump_text;
+given ribbon_fit_create_popup_lists ():("0,0,,0,0,0,0,0,0,")
+given ribbon_fit_create_popup_lists given lset((import ribbon_fit_anchor), 0, 5) ():("0,0,,0,0,5,0,0,0,")
 
 // Test check: the font handle of the tooltip.
-rbd_t_tf() {
-  GuiTip rbp = (import rbd_tip)[0];
-  int rbi_f = rbp.v[4];
-} return int rbi_f;
-given rbd_ui_set(2, 2, 2) given rbe_tip_new ():(2)
-given rbd_ui_set(6, 7, 8) given rbe_tip_new ():(6)
+ribbon_fit_check_tip_font() {
+  GuiTip ribbon_fit_font_tip = (import ribbon_fit_tips)[0];
+  int ribbon_fit_font_handle = ribbon_fit_font_tip.v[4];
+} return int ribbon_fit_font_handle;
+given ribbon_faces_set(2, 2, 2) given ribbon_fit_create_tip ():(2)
+given ribbon_faces_set(6, 7, 8) given ribbon_fit_create_tip ():(6)

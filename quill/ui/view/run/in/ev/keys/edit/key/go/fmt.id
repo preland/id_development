@@ -1,46 +1,46 @@
 // The formatting commands the canvas does: bold (cmd_bold), italic, underline and strikethrough toggle their flag over the selection (or for what is typed next when nothing is selected), and cmd_page_break puts a page break before the caret.
-cv_fmt(View cvv, Ctl cvc, int cvi_cmd) {
-  int cvi_b = cv_bit(cvi_cmd);
-  if(cvi_b != 0) {
-    ed_toggle(cvv.doc, cvc, cvi_b);
+view_input_format_command(View view_input_format_view, Ctl view_input_format_controller, int view_input_format_command_number) {
+  int view_input_format_bit = view_input_format_flag_bit(view_input_format_command_number);
+  if(view_input_format_bit != 0) {
+    editor_toggle(view_input_format_view.doc, view_input_format_controller, view_input_format_bit);
   }
-  if(cvi_cmd == (import cmd_page_break)) {
-    ed_break(cvv.doc, cvc, 1);
+  if(view_input_format_command_number == (import cmd_page_break)) {
+    editor_break(view_input_format_view.doc, view_input_format_controller, 1);
   }
 } return void;
-given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) ((import lp_t_v), (import vw_ctl), 301):() then cv_t_bold:(1)
-given cv_t_ed("AB") ((import lp_t_v), (import vw_ctl), 501):() then len((import lp_t_d).body.paras):(2)
+given view_flow_test_open_edit("AB") given editor_select_all((import layout_paragraph_test_document), (import view_input_controller)) ((import layout_paragraph_test_view), (import view_input_controller), 301):() then view_flow_test_bold_state:(1)
+given view_flow_test_open_edit("AB") ((import layout_paragraph_test_view), (import view_input_controller), 501):() then len((import layout_paragraph_test_document).body.paras):(2)
 
 // The character flag bit a formatting command toggles: quill_flag_bold for cmd_bold, quill_flag_italic, quill_flag_underline and quill_flag_strike for the commands of those names, 0 for any other command.
-cv_bit(int cvi_cmd) {
-  int cvi_k = list_index_of((import cv_f_cmd), cvi_cmd);
-  int cvi_b = 0;
-  if(cvi_k >= 0) {
-    cvi_b = (import cv_f_bit)[cvi_k];
+view_input_format_flag_bit(int view_input_flag_command_number) {
+  int view_input_flag_index = list_index_of((import cv_f_cmd), view_input_flag_command_number);
+  int view_input_flag_bit = 0;
+  if(view_input_flag_index >= 0) {
+    view_input_flag_bit = (import cv_f_bit)[view_input_flag_index];
   }
-} return int cvi_b;
+} return int view_input_flag_bit;
 (301):(1)
 (303):(4)
 (206):(0)
 
 // Backspace (1007), Delete (1008), Enter (1009) and Tab (1010) change the text: the first two take a character or, with Ctrl (cvi_c 1), a word; Enter splits the paragraph and Tab types a tab. Any other key does nothing here.
-cv_chg(View cvv, int cvi_key, int cvi_c) {
-  Ctl cvc = (import vw_ctl);
-  if(cvi_key == 1007) {
-    ed_back(cvv.doc, cvc, cvi_c);
+view_input_text_change(View view_input_change_view, int view_input_change_key, int view_input_change_control_held) {
+  Ctl view_input_change_controller = (import view_input_controller);
+  if(view_input_change_key == 1007) {
+    editor_back(view_input_change_view.doc, view_input_change_controller, view_input_change_control_held);
   }
-  if(cvi_key == 1008) {
-    ed_delete(cvv.doc, cvc, cvi_c);
+  if(view_input_change_key == 1008) {
+    editor_delete(view_input_change_view.doc, view_input_change_controller, view_input_change_control_held);
   }
-} chain (View cvv, int cvi_key, int cvi_c) {
-  if(cvi_key == 1009) {
-    ed_break(cvv.doc, cvc, 0);
+} chain (View view_input_change_view, int view_input_change_key, int view_input_change_control_held) {
+  if(view_input_change_key == 1009) {
+    editor_break(view_input_change_view.doc, view_input_change_controller, 0);
   }
-  if(cvi_key == 1010) {
-    ed_type(cvv.doc, cvc, (import quill_code_point_tab));
+  if(view_input_change_key == 1010) {
+    editor_type(view_input_change_view.doc, view_input_change_controller, (import quill_code_point_tab));
   }
 } return void;
-given cv_t_ed("AB") given ed_move((import lp_t_d), (import vw_ctl), 1, 0, 0) ((import lp_t_v), 1007, 0):() then cv_t_dump:("B")
-given cv_t_ed("AB") ((import lp_t_v), 1009, 0):() then cv_t_dump:("|AB")
-given cv_t_ed("AB") ((import lp_t_v), 1008, 0):() then cv_t_dump:("B")
-given cv_t_ed("AB") ((import lp_t_v), 1010, 0):() then cv_t_dump:("\tAB")
+given view_flow_test_open_edit("AB") given editor_move((import layout_paragraph_test_document), (import view_input_controller), 1, 0, 0) ((import layout_paragraph_test_view), 1007, 0):() then view_flow_test_dump_text:("B")
+given view_flow_test_open_edit("AB") ((import layout_paragraph_test_view), 1009, 0):() then view_flow_test_dump_text:("|AB")
+given view_flow_test_open_edit("AB") ((import layout_paragraph_test_view), 1008, 0):() then view_flow_test_dump_text:("B")
+given view_flow_test_open_edit("AB") ((import layout_paragraph_test_view), 1010, 0):() then view_flow_test_dump_text:("\tAB")

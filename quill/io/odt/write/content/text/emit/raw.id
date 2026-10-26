@@ -1,43 +1,43 @@
 // 1 when part idx exists and is verbatim XML (kind 0), so it can be written inline.
-oc_part_ok(Ext oc_ex, int oc_ix) {
-  int oc_ok = 0;
-  if(oc_ix >= 0 && oc_ix < len(oc_ex.parts)) {
-    oc_ok = oc_ex.parts[oc_ix].kind == 0;
+odt_write_part_valid(Ext odt_write_part_valid_extras, int odt_write_part_valid_index) {
+  int odt_write_part_valid_result = 0;
+  if(odt_write_part_valid_index >= 0 && odt_write_part_valid_index < len(odt_write_part_valid_extras.parts)) {
+    odt_write_part_valid_result = odt_write_part_valid_extras.parts[odt_write_part_valid_index].kind == 0;
   }
-} return int oc_ok;
+} return int odt_write_part_valid_result;
 (Ext([], [], [Part("b", [60, 97, 47, 62], 0), Part("f", [1], 1)]), 0):(1)
 (Ext([], [], [Part("b", [60, 97, 47, 62], 0), Part("f", [1], 1)]), 1):(0)
 (Ext([], [], [Part("b", [60, 97, 47, 62], 0)]), 5):(0)
 (Ext([], [], [Part("b", [60, 97, 47, 62], 0)]), -1):(0)
 
 // Writes the bytes of part idx exactly as they were read, inside the open element; a part that is missing or is not XML writes nothing.
-oc_raw(XmlW oc_w, Ext oc_ex, int oc_ix) {
-  int oc_ok = oc_part_ok(oc_ex, oc_ix);
-  if(oc_ok == 1) {
-    xw_text(oc_w, "");
-    list_extend(oc_w.out, oc_ex.parts[oc_ix].data);
+odt_write_raw_part(XmlW odt_write_raw_part_writer, Ext odt_write_raw_part_extras, int odt_write_raw_part_index) {
+  int odt_write_raw_part_valid = odt_write_part_valid(odt_write_raw_part_extras, odt_write_raw_part_index);
+  if(odt_write_raw_part_valid == 1) {
+    xw_text(odt_write_raw_part_writer, "");
+    list_extend(odt_write_raw_part_writer.out, odt_write_raw_part_extras.parts[odt_write_raw_part_index].data);
   }
 } return void;
-given oc_t_w(0) ((import oc_fw), Ext([], [], [Part("b", [60, 97, 47, 62], 0)]), 0):() then (import oc_fw).out:([60, 114, 62, 60, 97, 47, 62])
-given oc_t_w(0) ((import oc_fw), Ext([], [], [Part("b", [60, 97, 47, 62], 1)]), 0):() then (import oc_fw).out:([60, 114])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Ext([], [], [Part("b", [60, 97, 47, 62], 0)]), 0):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 97, 47, 62])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Ext([], [], [Part("b", [60, 97, 47, 62], 1)]), 0):() then (import odt_write_test_writer_output).out:([60, 114])
 
 // Writes the code point at i when it is not plain text and answers where to go on: a tab, a line break, the run of spaces starting here, an inline object, or nothing for a code point XML cannot hold.
-oc_special(XmlW oc_w, int[] oc_cps, Ext oc_ex, int oc_i, int oc_hi) {
-  int oc_cl = oc_cls(oc_cps, oc_i);
-  int oc_nx = oc_i + 1;
-  if(oc_cl == 2) {
-    oc_nx = oc_i + oc_spaces(oc_w, oc_cps, oc_i, oc_hi);
+odt_write_special_code_point(XmlW odt_write_special_code_point_writer, int[] odt_write_special_code_point_code_points, Ext odt_write_special_code_point_extras, int odt_write_special_code_point_index, int odt_write_special_code_point_high) {
+  int odt_write_special_code_point_class = odt_write_code_point_class(odt_write_special_code_point_code_points, odt_write_special_code_point_index);
+  int odt_write_special_code_point_next = odt_write_special_code_point_index + 1;
+  if(odt_write_special_code_point_class == 2) {
+    odt_write_special_code_point_next = odt_write_special_code_point_index + odt_write_space_run(odt_write_special_code_point_writer, odt_write_special_code_point_code_points, odt_write_special_code_point_index, odt_write_special_code_point_high);
   }
-} chain (XmlW oc_w, int[] oc_cps, Ext oc_ex, int oc_i, int oc_hi) {
-  if(oc_cl == 3 || oc_cl == 4) {
-    oc_empty(oc_w, (import odt_cls_el)[oc_cl]);
+} chain (XmlW odt_write_special_code_point_writer, int[] odt_write_special_code_point_code_points, Ext odt_write_special_code_point_extras, int odt_write_special_code_point_index, int odt_write_special_code_point_high) {
+  if(odt_write_special_code_point_class == 3 || odt_write_special_code_point_class == 4) {
+    odt_write_empty_element(odt_write_special_code_point_writer, (import odt_cls_el)[odt_write_special_code_point_class]);
   }
-  if(oc_cl == 5) {
-    oc_raw(oc_w, oc_ex, oc_cps[oc_i] - (import quill_object_marker));
+  if(odt_write_special_code_point_class == 5) {
+    odt_write_raw_part(odt_write_special_code_point_writer, odt_write_special_code_point_extras, odt_write_special_code_point_code_points[odt_write_special_code_point_index] - (import quill_object_marker));
   }
-} return int oc_nx;
-given oc_t_w(0) ((import oc_fw), [97, 9, 98], Ext([], [], []), 1, 3):(2) then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 116, 97, 98, 47, 62])
-given oc_t_w(0) ((import oc_fw), [97, 10, 98], Ext([], [], []), 1, 3):(2) then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 108, 105, 110, 101, 45, 98, 114, 101, 97, 107, 47, 62])
-given oc_t_w(0) ((import oc_fw), [97, 32, 32, 98], Ext([], [], []), 1, 4):(3) then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 115, 32, 116, 101, 120, 116, 58, 99, 61, 34, 50, 34, 47, 62])
-given oc_t_w(0) ((import oc_fw), [97, 983040, 98], Ext([], [], [Part("b", [60, 97, 47, 62], 0)]), 1, 3):(2) then (import oc_fw).out:([60, 114, 62, 60, 97, 47, 62])
-given oc_t_w(0) ((import oc_fw), [97, 7, 98], Ext([], [], []), 1, 3):(2) then (import oc_fw).out:([60, 114])
+} return int odt_write_special_code_point_next;
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), [97, 9, 98], Ext([], [], []), 1, 3):(2) then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 116, 97, 98, 47, 62])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), [97, 10, 98], Ext([], [], []), 1, 3):(2) then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 108, 105, 110, 101, 45, 98, 114, 101, 97, 107, 47, 62])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), [97, 32, 32, 98], Ext([], [], []), 1, 4):(3) then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 115, 32, 116, 101, 120, 116, 58, 99, 61, 34, 50, 34, 47, 62])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), [97, 983040, 98], Ext([], [], [Part("b", [60, 97, 47, 62], 0)]), 1, 3):(2) then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 97, 47, 62])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), [97, 7, 98], Ext([], [], []), 1, 3):(2) then (import odt_write_test_writer_output).out:([60, 114])

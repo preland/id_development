@@ -1,5 +1,5 @@
 // 1 for a code point that may be typed: a printable one or a tab. Other controls (Enter and Escape arrive as text on some backends), the delete code, C1 controls, surrogates and values past U+10FFFF are not.
-cp_typable(int cp) {
+editor_code_point_can_be_typed(int cp) {
   int ok = cp == 9 || (cp >= 32 && cp != 127 && (cp < 128 || cp > 159) && cp <= 1114111 && (cp < 55296 || cp > 57343));
 } return int ok;
 (97):(1)
@@ -12,23 +12,23 @@ cp_typable(int cp) {
 (1114112):(0)
 
 // The class (0 space, 1 word character, 2 other) of the code point before ps, or -1 at the start of its paragraph.
-ed_prev_class(Doc d, Pos ps) {
-  Para p = d.body.paras[ps.para];
-  int cl = utf8_code_points_class_at(p.txt.cps, ps.off - 1);
-} return int cl;
-given fx_setup("a b") ((import fxd), Pos(0, 2)):(0)
-given fx_setup("a b") ((import fxd), Pos(0, 0)):(-1)
+editor_previous_class(Doc d, Pos current_position) {
+  Para p = d.body.paras[current_position.para];
+  int character_class = utf8_code_points_class_at(p.txt.cps, current_position.off - 1);
+} return int character_class;
+given editor_fixture_setup("a b") ((import fixture_document), Pos(0, 2)):(0)
+given editor_fixture_setup("a b") ((import fixture_document), Pos(0, 0)):(-1)
 
 // The character row a typed character takes: the pending one when a toggle set it, else the row of the character before the caret (of the first one at the start of a paragraph).
-ed_cprop(Doc d, Ctl ctl) {
-  int[] pend = (import ed_typing);
+editor_character_property(Doc d, Ctl ctl) {
+  int[] pend = (import editor_typing_row);
   Para p = d.body.paras[ctl.sel.caret.para];
-  int nc = para_cprop(p, ctl.sel.caret.off - 1);
+  int nc = document_paragraph_character_row(p, ctl.sel.caret.off - 1);
 } chain (Doc d, Ctl ctl) {
   if(pend[0] >= 0) {
     nc = pend[0];
   }
 } return int nc;
-given fx_setup("a*b*") given fx_at(0, 2, 0, 2) ((import fxd), (import fxc)):(8)
-given fx_setup("a*b*") given fx_at(0, 1, 0, 1) given typing_set(3) ((import fxd), (import fxc)):(3)
-given fx_setup("a*b*") ((import fxd), (import fxc)):(0)
+given editor_fixture_setup("a*b*") given editor_fixture_selection_at(0, 2, 0, 2) ((import fixture_document), (import fixture_control)):(8)
+given editor_fixture_setup("a*b*") given editor_fixture_selection_at(0, 1, 0, 1) given typing_set(3) ((import fixture_document), (import fixture_control)):(3)
+given editor_fixture_setup("a*b*") ((import fixture_document), (import fixture_control)):(0)

@@ -1,46 +1,46 @@
 // Plays the lines wat_l of a script one after another (wa_play) on the application waa and prints what each of them printed.
-cli_play(App waa, string[] wat_l) {
-  int wai_k = 0;
-  while(wai_k < len(wat_l)) {
-    put(wa_play(waa, wat_l[wai_k]));
-    wai_k = wai_k + 1;
+cli_play(App cli_play_app, string[] cli_play_lines) {
+  int cli_play_index = 0;
+  while(cli_play_index < len(cli_play_lines)) {
+    put(cli_play_line(cli_play_app, cli_play_lines[cli_play_index]));
+    cli_play_index = cli_play_index + 1;
   }
 } return void;
-given wa_t_app ((import wa_app), ["t", "Tx", "t"]):() then prints:("Untitled - Quill\nUntitled* - Quill\n")
-given wa_t_app ((import wa_app), ["t"]):() then prints:("Untitled - Quill\n")
-given wa_t_app ((import wa_app), []):() then prints:("")
+given cli_test_boot_app ((import cli_application), ["t", "Tx", "t"]):() then prints:("Untitled - Quill\nUntitled* - Quill\n")
+given cli_test_boot_app ((import cli_application), ["t"]):() then prints:("Untitled - Quill\n")
+given cli_test_boot_app ((import cli_application), []):() then prints:("")
 
 // word --script FILE [IN.odt [OUT.odt]]: replays the script FILE (cli_play) on a document, which is IN.odt when given and a new one otherwise, in an application that has no window, and saves the document to OUT.odt when given. A script is one line per event; see wa_play for the verbs. Answers 0, or 1 after naming on stderr what went wrong and how to fix it.
 cli_script(string was_file, string was_in, string was_out) {
-  int wai_have = fs_exists(was_file);
+  int cli_script_exists = fs_exists(was_file);
   string was_text = "";
-  int wai_rc = wai_have == 0;
+  int cli_script_status = cli_script_exists == 0;
 } chain (string was_file, string was_in, string was_out) {
-  if(wai_have == 1) {
+  if(cli_script_exists == 1) {
     was_text = fs_read_text(was_file);
   }
   app_new();
-  App waa = (import wa_app);
+  App cli_script_app = (import cli_application);
 } chain (string was_file, string was_in, string was_out) {
-  int wai_c = 0;
+  int cli_script_code = 0;
   if(len(was_in) > 0) {
-    wai_c = app_open(waa, was_in);
+    cli_script_code = app_open(cli_script_app, was_in);
   }
-  if(wai_have == 1 && wai_c == 0) {
-    cli_play(waa, str_split(was_text, "\n"));
+  if(cli_script_exists == 1 && cli_script_code == 0) {
+    cli_play(cli_script_app, str_split(was_text, "\n"));
   }
 } chain (string was_file, string was_in, string was_out) {
-  if(wai_have == 1 && wai_c == 0 && len(was_out) > 0) {
-    wai_c = app_save(waa, was_out);
+  if(cli_script_exists == 1 && cli_script_code == 0 && len(was_out) > 0) {
+    cli_script_code = app_save(cli_script_app, was_out);
   }
-  if(wai_have == 0) {
+  if(cli_script_exists == 0) {
     eprint("script: the file could not be read; check that the path exists and that you may read it [" + was_file + "]");
   }
-  if(wai_c != 0) {
-    eprint(odt_error(wai_c));
-    wai_rc = 1;
+  if(cli_script_code != 0) {
+    eprint(odt_error(cli_script_code));
+    cli_script_status = 1;
   }
-} return int wai_rc;
-given orc_t_file("t\n") ((import orc_tp), "", ""):(0) then prints:("Untitled - Quill\n") then orc_t_gone:(0)
+} return int cli_script_status;
+given odt_read_fixture_make_file("t\n") ((import odt_read_fixture_scratch_path), "", ""):(0) then prints:("Untitled - Quill\n") then odt_read_fixture_remove_file:(0)
 ("/nonexistent/script.txt", "", ""):(1) then eprints:("script: the file could not be read; check that the path exists and that you may read it [/nonexistent/script.txt]\n")
-given orc_t_file("t\n") ((import orc_tp), "/nonexistent/in.odt", ""):(1) then eprints:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/in.odt]\n") then orc_t_gone:(0)
+given odt_read_fixture_make_file("t\n") ((import odt_read_fixture_scratch_path), "/nonexistent/in.odt", ""):(1) then eprints:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/in.odt]\n") then odt_read_fixture_remove_file:(0)

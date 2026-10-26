@@ -1,20 +1,20 @@
 // Reads every attribute ost_pattr lists off the current element into a paragraph row; a value that does not read leaves its field as it was.
-ost_ptext(int[] os_lprow, XmlR os_r) {
-  int os_ik = 0;
-  while(os_ik < len((import ost_pattr))) {
-    string os_sv = xml_reader_attr(os_r, (import ost_pattr)[os_ik]);
-    ost_pset(os_lprow, os_ik, os_sv);
-    os_ik = os_ik + 1;
+odt_named_paragraph_attributes(int[] odt_named_paragraph_attributes_row, XmlR odt_named_paragraph_attributes_reader) {
+  int odt_named_paragraph_attributes_attribute = 0;
+  while(odt_named_paragraph_attributes_attribute < len((import ost_pattr))) {
+    string odt_named_paragraph_attributes_text = xml_reader_attr(odt_named_paragraph_attributes_reader, (import ost_pattr)[odt_named_paragraph_attributes_attribute]);
+    odt_named_paragraph_attribute(odt_named_paragraph_attributes_row, odt_named_paragraph_attributes_attribute, odt_named_paragraph_attributes_text);
+    odt_named_paragraph_attributes_attribute = odt_named_paragraph_attributes_attribute + 1;
   }
 } return void;
-given ost_t_open("<p fo:text-align=\"center\" fo:margin-top=\"0.5in\" fo:break-before=\"page\"/>") given xml_reader_skip((import ost_t_r), 1) ([-1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], (import ost_t_r)):([-1, 1, -1, -1, -1, 720, -1, -1, 1, 0, 0, 0], (import ost_t_r))
-given ost_t_open("<p fo:margin-left=\"0.25in\" fo:line-height=\"115%\"/>") given xml_reader_skip((import ost_t_r), 1) ([-1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], (import ost_t_r)):([-1, -1, 360, -1, -1, -1, -1, 115, 0, 0, 0, 0], (import ost_t_r))
+given odt_named_reader_open("<p fo:text-align=\"center\" fo:margin-top=\"0.5in\" fo:break-before=\"page\"/>") given xml_reader_skip((import odt_named_reader), 1) ([-1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], (import odt_named_reader)):([-1, 1, -1, -1, -1, 720, -1, -1, 1, 0, 0, 0], (import odt_named_reader))
+given odt_named_reader_open("<p fo:margin-left=\"0.25in\" fo:line-height=\"115%\"/>") given xml_reader_skip((import odt_named_reader), 1) ([-1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], (import odt_named_reader)):([-1, -1, 360, -1, -1, -1, -1, 115, 0, 0, 0, 0], (import odt_named_reader))
 
 // Applies the value of paragraph attribute k to its field of a paragraph row; an absent attribute ("") and one that does not read change nothing.
-ost_pset(int[] os_lprow, int os_ik, string os_sv) {
-  int os_ix = ost_pval(os_ik, os_sv);
-  if(os_sv != "" && os_ix != (import ost_bad)) {
-    os_lprow[os_ik + 1] = os_ix;
+odt_named_paragraph_attribute(int[] odt_named_paragraph_attribute_row, int odt_named_paragraph_attribute_attribute, string odt_named_paragraph_attribute_text) {
+  int odt_named_paragraph_attribute_value = odt_named_paragraph_value(odt_named_paragraph_attribute_attribute, odt_named_paragraph_attribute_text);
+  if(odt_named_paragraph_attribute_text != "" && odt_named_paragraph_attribute_value != (import ost_bad)) {
+    odt_named_paragraph_attribute_row[odt_named_paragraph_attribute_attribute + 1] = odt_named_paragraph_attribute_value;
   }
 } return void;
 ([-1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 1, "1in"):([-1, -1, 1440, -1, -1, -1, -1, -1, 0, 0, 0, 0], 1, "1in")

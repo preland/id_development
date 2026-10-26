@@ -1,22 +1,22 @@
 // One margin of the page in lu: side 0 top, 1 right, 2 bottom, 3 left.
 // By hand: the default margin is one inch, 1440 twips, 96 px, 6144 lu; 150 twips are 640.
-lay_margin(Doc lgd, int lgk) {
-  int lgm = lp_lu(lgd.body.page.margin[lgk]);
-} return int lgm;
-given lp_t_new ((import lp_t_d), 0):(6144)
-given lp_t_new given lg_t_page(1500, 3000, 150, 300, 450, 600) ((import lp_t_d), 2):(1920)
-given lp_t_new given lg_t_page(1500, 3000, 150, 300, 450, 600) ((import lp_t_d), 3):(2560)
+lay_margin(Doc document, int margin_side) {
+  int margin_size = layout_paragraph_units(document.body.page.margin[margin_side]);
+} return int margin_size;
+given layout_paragraph_test_new ((import layout_paragraph_test_document), 0):(6144)
+given layout_paragraph_test_new given layout_page_test_page(1500, 3000, 150, 300, 450, 600) ((import layout_paragraph_test_document), 2):(1920)
+given layout_paragraph_test_new given layout_page_test_page(1500, 3000, 150, 300, 450, 600) ((import layout_paragraph_test_document), 3):(2560)
 
 // The size of the text area in lu along axis lgax, 0 the width a paragraph is laid out in and 1 the height a page holds: the sheet less the margins on both sides of that axis (right and left for the width, top and bottom for the height).
 // By hand: 1500 twips less 300 on the right and 600 on the left leave 600 twips, 2560 lu; 3000 less 150 and 450 leave 2400 twips, 10240 lu.
-lay_area(Doc lgd, int lgax) {
-  int lgw = lay_sheet(lgd, lgax);
-  int lgr = lay_margin(lgd, 1 - lgax);
-  int lgl = lay_margin(lgd, 3 - lgax);
-} chain (Doc lgd, int lgax) {
-  int lga = lgw - lgr - lgl;
-} return int lga;
-given lp_t_new ((import lp_t_d), 0):(38510)
-given lp_t_new ((import lp_t_d), 1):(59554)
-given lp_t_new given lg_t_page(1500, 3000, 150, 300, 450, 600) ((import lp_t_d), 0):(2560)
-given lp_t_new given lg_t_page(1500, 3000, 150, 300, 450, 600) ((import lp_t_d), 1):(10240)
+lay_area(Doc document, int axis) {
+  int axis_sheet_size = lay_sheet(document, axis);
+  int margin_right_or_top = lay_margin(document, 1 - axis);
+  int margin_left_or_bottom = lay_margin(document, 3 - axis);
+} chain (Doc document, int axis) {
+  int area_extent = axis_sheet_size - margin_right_or_top - margin_left_or_bottom;
+} return int area_extent;
+given layout_paragraph_test_new ((import layout_paragraph_test_document), 0):(38510)
+given layout_paragraph_test_new ((import layout_paragraph_test_document), 1):(59554)
+given layout_paragraph_test_new given layout_page_test_page(1500, 3000, 150, 300, 450, 600) ((import layout_paragraph_test_document), 0):(2560)
+given layout_paragraph_test_new given layout_page_test_page(1500, 3000, 150, 300, 450, 600) ((import layout_paragraph_test_document), 1):(10240)

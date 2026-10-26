@@ -1,59 +1,59 @@
 // How much of the picture an edit that left the stale paragraphs cvl_r ([first, last]) moved, for a document that had cvi_np pages before: 0 nothing below the paragraphs moved, 1 what is below them moved, 2 the pages changed in number or paragraphs went without any being marked, so everything must be repainted. It compares the paragraph tops now with the ones vw_tp kept from before.
-cv_shift(View cvv, int[] cvl_r, int cvi_np) {
-  int[] cvl_tp = (import vw_tp);
-  int cvi_n = len(cvv.pages.tops);
-  int cvi_s = cvi_n != len(cvl_tp) - 1;
-} chain (View cvv, int[] cvl_r, int cvi_np) {
-  int cvi_k = cvl_r[1] + 1;
-  if(cvi_s == 0 && cvl_r[0] >= 0 && cvi_k < cvi_n) {
-    cvi_s = cvv.pages.tops[cvi_k] != cvl_tp[cvi_k];
+view_input_shift_level(View view_input_movement_view, int[] view_input_movement_range, int view_input_movement_page_count) {
+  int[] view_input_movement_kept_tops = (import view_input_kept_tops);
+  int view_input_movement_paragraph_count = len(view_input_movement_view.pages.tops);
+  int view_input_movement_level = view_input_movement_paragraph_count != len(view_input_movement_kept_tops) - 1;
+} chain (View view_input_movement_view, int[] view_input_movement_range, int view_input_movement_page_count) {
+  int view_input_movement_below_index = view_input_movement_range[1] + 1;
+  if(view_input_movement_level == 0 && view_input_movement_range[0] >= 0 && view_input_movement_below_index < view_input_movement_paragraph_count) {
+    view_input_movement_level = view_input_movement_view.pages.tops[view_input_movement_below_index] != view_input_movement_kept_tops[view_input_movement_below_index];
   }
-  if(cvl_r[0] < 0) {
-    cvi_s = 2 * cvi_s;
+  if(view_input_movement_range[0] < 0) {
+    view_input_movement_level = 2 * view_input_movement_level;
   }
-} chain (View cvv, int[] cvl_r, int cvi_np) {
-  if(cvi_np != lay_page_count(cvv)) {
-    cvi_s = 2;
+} chain (View view_input_movement_view, int[] view_input_movement_range, int view_input_movement_page_count) {
+  if(view_input_movement_page_count != lay_page_count(view_input_movement_view)) {
+    view_input_movement_level = 2;
   }
-} return int cvi_s;
-given cv_t_ed("AB|CD|EF") ((import lp_t_v), [1, 1], 1):(0)
-given cv_t_ed("AB|CD|EF") ((import lp_t_v), [1, 1], 2):(2)
-given cv_t_ed("AB|CD|EF") given lset((import vw_tp), 2, 0) ((import lp_t_v), [0, 1], 1):(1)
-given cv_t_ed("AB|CD|EF") given cv_snap((import vw_tp), [1, 2, 3]) ((import lp_t_v), [1, 1], 1):(1)
-given cv_t_ed("AB|CD|EF") given cv_snap((import vw_tp), [1, 2, 3]) ((import lp_t_v), [-1, -1], 1):(2)
-given cv_t_ed("AB|CD|EF") given lset((import vw_tp), 0, 7) ((import lp_t_v), [-1, -1], 1):(0)
+} return int view_input_movement_level;
+given view_flow_test_open_edit("AB|CD|EF") ((import layout_paragraph_test_view), [1, 1], 1):(0)
+given view_flow_test_open_edit("AB|CD|EF") ((import layout_paragraph_test_view), [1, 1], 2):(2)
+given view_flow_test_open_edit("AB|CD|EF") given lset((import view_input_kept_tops), 2, 0) ((import layout_paragraph_test_view), [0, 1], 1):(1)
+given view_flow_test_open_edit("AB|CD|EF") given view_input_list_replace((import view_input_kept_tops), [1, 2, 3]) ((import layout_paragraph_test_view), [1, 1], 1):(1)
+given view_flow_test_open_edit("AB|CD|EF") given view_input_list_replace((import view_input_kept_tops), [1, 2, 3]) ((import layout_paragraph_test_view), [-1, -1], 1):(2)
+given view_flow_test_open_edit("AB|CD|EF") given lset((import view_input_kept_tops), 0, 7) ((import layout_paragraph_test_view), [-1, -1], 1):(0)
 
 // Asks for what the stale paragraphs cvl_r cover to be repainted: from the top of the first, down to the bottom of the last when nothing below them moved (cvi_s 0) and as far as the end of the page area when it did (1). When the last paragraph of the document is among them it may have been taller before, which vw_tp kept as the end of the document, and what it was is repainted too.
-cv_stripe(View cvv, int[] cvl_r, int cvi_s) {
-  int cvi_y = cvv.pages.tops[cvl_r[0]];
-  int cvi_e = cv_end_y(cvv, cvl_r[1]);
-  if(cvi_s == 1) {
-    cvi_e = cvi_y + (import cv_far);
+view_input_mark_stale_stripe(View view_input_stripe_view, int[] view_input_stripe_range, int view_input_stripe_level) {
+  int view_input_stripe_top = view_input_stripe_view.pages.tops[view_input_stripe_range[0]];
+  int view_input_stripe_end = view_input_paragraph_end_row(view_input_stripe_view, view_input_stripe_range[1]);
+  if(view_input_stripe_level == 1) {
+    view_input_stripe_end = view_input_stripe_top + (import cv_far);
   }
-} chain (View cvv, int[] cvl_r, int cvi_s) {
-  int[] cvl_tp = (import vw_tp);
-  int cvi_l = cvl_r[1] + 1 == len(cvv.pages.tops);
-  if(cvi_l == 1) {
-    cvi_e = fixed_point_maximum(cvi_e, cvl_tp[len(cvl_tp) - 1]);
+} chain (View view_input_stripe_view, int[] view_input_stripe_range, int view_input_stripe_level) {
+  int[] view_input_stripe_kept_tops = (import view_input_kept_tops);
+  int view_input_stripe_is_last = view_input_stripe_range[1] + 1 == len(view_input_stripe_view.pages.tops);
+  if(view_input_stripe_is_last == 1) {
+    view_input_stripe_end = fixed_point_maximum(view_input_stripe_end, view_input_stripe_kept_tops[len(view_input_stripe_kept_tops) - 1]);
   }
-} chain (View cvv, int[] cvl_r, int cvi_s) {
-  cv_band(cvv, cvi_y, cvi_e);
+} chain (View view_input_stripe_view, int[] view_input_stripe_range, int view_input_stripe_level) {
+  view_input_mark_page_band(view_input_stripe_view, view_input_stripe_top, view_input_stripe_end);
 } return void;
-given cv_t_ed("AB|CD|EF") ((import lp_t_v), [1, 1], 0):() then cv_t_eds:("eds 0,0,0,0,0,-1,213,245,")
-given cv_t_ed("AB|CD|EF") ((import lp_t_v), [1, 1], 1):() then cv_t_eds:("eds 0,0,0,0,0,-1,213,15844,")
-given cv_t_ed("AB|CD|EF") ((import lp_t_v), [2, 2], 0):() then cv_t_eds:("eds 0,0,0,0,0,-1,239,263,")
-given cv_t_ed("AB|CD|EF") given lset((import vw_tp), 3, 6000) ((import lp_t_v), [2, 2], 0):() then cv_t_eds:("eds 0,0,0,0,0,-1,239,276,")
+given view_flow_test_open_edit("AB|CD|EF") ((import layout_paragraph_test_view), [1, 1], 0):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,213,245,")
+given view_flow_test_open_edit("AB|CD|EF") ((import layout_paragraph_test_view), [1, 1], 1):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,213,15844,")
+given view_flow_test_open_edit("AB|CD|EF") ((import layout_paragraph_test_view), [2, 2], 0):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,239,263,")
+given view_flow_test_open_edit("AB|CD|EF") given lset((import view_input_kept_tops), 3, 6000) ((import layout_paragraph_test_view), [2, 2], 0):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,239,276,")
 
 // Asks for the repainting that an edit that left the stale paragraphs cvl_r (and had cvi_np pages) needs: the whole picture when cv_shift says so, else the paragraphs and what is below them if that moved.
-cv_dirty(View cvv, int[] cvl_r, int cvi_np) {
-  int cvi_s = cv_shift(cvv, cvl_r, cvi_np);
-  if(cvi_s == 2) {
-    lset((import vw_st), (import vw_s_d), 1);
+view_input_mark_edit_changes(View view_input_changes_view, int[] view_input_changes_range, int view_input_changes_page_count) {
+  int view_input_changes_level = view_input_shift_level(view_input_changes_view, view_input_changes_range, view_input_changes_page_count);
+  if(view_input_changes_level == 2) {
+    lset((import view_state), (import vw_s_d), 1);
   }
-  if(cvi_s < 2 && cvl_r[0] >= 0) {
-    cv_stripe(cvv, cvl_r, cvi_s);
+  if(view_input_changes_level < 2 && view_input_changes_range[0] >= 0) {
+    view_input_mark_stale_stripe(view_input_changes_view, view_input_changes_range, view_input_changes_level);
   }
 } return void;
-given cv_t_ed("AB|CD|EF") ((import lp_t_v), [1, 1], 2):() then vw_t_sts:("sts 0,0,100,1,")
-given cv_t_ed("AB|CD|EF") ((import lp_t_v), [1, 1], 1):() then cv_t_eds:("eds 0,0,0,0,0,-1,213,245,")
-given cv_t_ed("AB|CD|EF") ((import lp_t_v), [-1, -1], 1):() then cv_t_eds:("eds 0,0,0,0,0,-1,-1,-1,")
+given view_flow_test_open_edit("AB|CD|EF") ((import layout_paragraph_test_view), [1, 1], 2):() then view_test_state_dump:("sts 0,0,100,1,")
+given view_flow_test_open_edit("AB|CD|EF") ((import layout_paragraph_test_view), [1, 1], 1):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,213,245,")
+given view_flow_test_open_edit("AB|CD|EF") ((import layout_paragraph_test_view), [-1, -1], 1):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,-1,-1,")

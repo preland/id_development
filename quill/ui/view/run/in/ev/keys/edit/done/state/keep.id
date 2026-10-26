@@ -1,21 +1,21 @@
 // Keeps in the list cvl_t what the layout is now, to compare with it after a command: the top of every paragraph, as pages.tops has them, and after them how far down the continuous document the last paragraph ends. (The controller's state keeps it in the export vw_tp.)
-cv_keep(View cvv, int[] cvl_t) {
-  cv_snap(cvl_t, cvv.pages.tops);
-  int cvi_e = cv_last_y(cvv, len(cvv.doc.body.paras) - 1);
-  push(cvl_t, cvi_e);
+view_input_layout_keep(View view_input_keep_view, int[] view_input_keep_list) {
+  view_input_list_replace(view_input_keep_list, view_input_keep_view.pages.tops);
+  int view_input_keep_last_row = view_input_paragraph_last_row(view_input_keep_view, len(view_input_keep_view.doc.body.paras) - 1);
+  push(view_input_keep_list, view_input_keep_last_row);
 } return void;
-given cv_t_view("AB|CD") ((import lp_t_v), [9]):((import lp_t_v), [640, 2304, 3456])
-given cv_t_view("AB") ((import lp_t_v), []):((import lp_t_v), [640, 1792])
+given view_flow_test_make_view("AB|CD") ((import layout_paragraph_test_view), [9]):((import layout_paragraph_test_view), [640, 2304, 3456])
+given view_flow_test_make_view("AB") ((import layout_paragraph_test_view), []):((import layout_paragraph_test_view), [640, 1792])
 
 // How far down the continuous document, in lu, the last line of paragraph cvi_p ends: its page's place, the top of the line and its height.
 // By hand: the second paragraph of the two-paragraph fixture has its line 2304 down the sheet, 1152 tall, and so ends 3456 down the first page.
-cv_last_y(View cvv, int cvi_p) {
-  int cvi_n = para_len(cvv.doc.body.paras[cvi_p]);
-  Pos cvq = Pos(cvi_p, cvi_n);
-  int[] cvl_o = [];
-} chain (View cvv, int cvi_p) {
-  lay_caret(cvv, cvq, cvl_o);
-  int cvi_y = cvl_o[0] * (lay_sheet(cvv.doc, 1) + (import quill_layout_sheet_gap)) + cvl_o[2] + cvl_o[3];
-} return int cvi_y;
-given cv_t_view("AB|CD") ((import lp_t_v), 1):(3456)
-given vw_t_two () ((import lp_t_v), 7):(17792)
+view_input_paragraph_last_row(View view_input_last_row_view, int view_input_last_row_paragraph) {
+  int view_input_last_row_length = document_paragraph_length(view_input_last_row_view.doc.body.paras[view_input_last_row_paragraph]);
+  Pos view_input_last_row_end_position = Pos(view_input_last_row_paragraph, view_input_last_row_length);
+  int[] view_input_last_row_place = [];
+} chain (View view_input_last_row_view, int view_input_last_row_paragraph) {
+  lay_caret(view_input_last_row_view, view_input_last_row_end_position, view_input_last_row_place);
+  int view_input_last_row_value = view_input_last_row_place[0] * (lay_sheet(view_input_last_row_view.doc, 1) + (import quill_layout_sheet_gap)) + view_input_last_row_place[2] + view_input_last_row_place[3];
+} return int view_input_last_row_value;
+given view_flow_test_make_view("AB|CD") ((import layout_paragraph_test_view), 1):(3456)
+given view_test_two_pages () ((import layout_paragraph_test_view), 7):(17792)

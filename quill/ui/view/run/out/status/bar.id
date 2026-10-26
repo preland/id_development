@@ -1,37 +1,37 @@
 // Paints the status bar: its band in the bar colour over its rectangle from the chrome, the status text in the viewer's own face at the left.
-vw_status(View vwv) {
-  int vwi_x = vw_box("status", 0);
-  int vwi_y = vw_box("status", 1);
-  int vwi_w = vw_box("status", 2);
-} chain (View vwv) {
-  int vwi_h = vw_box("status", 3);
-  d2_l_rect(vwi_x, vwi_y, vwi_w, vwi_h, (import vw_c_bar));
-  vw_say(vwv, vwi_x + 10, vwi_y, vwi_h);
+view_status_paint(View view_status_paint_viewer) {
+  int view_status_paint_left = view_box_field("status", 0);
+  int view_status_paint_top = view_box_field("status", 1);
+  int view_status_paint_width = view_box_field("status", 2);
+} chain (View view_status_paint_viewer) {
+  int view_status_paint_height = view_box_field("status", 3);
+  d2_l_rect(view_status_paint_left, view_status_paint_top, view_status_paint_width, view_status_paint_height, (import vw_c_bar));
+  view_status_say(view_status_paint_viewer, view_status_paint_left + 10, view_status_paint_top, view_status_paint_height);
 } return void;
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given rbd_ui_set(1, 1, 1) given vw_t_at(3, 280) ((import lp_t_v)):() then vw_t_px:(2840474)
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given rbd_ui_set(1, 1, 1) given vw_t_box0(10, 278, 200, 300) given vw_t_bg(2840474) ((import lp_t_v)):() then vw_t_inked:(1)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given ribbon_faces_set(1, 1, 1) given view_test_remember_pixel(3, 280) ((import layout_paragraph_test_view)):() then view_test_pixel_color:(2840474)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given ribbon_faces_set(1, 1, 1) given view_test_remember_box(10, 278, 200, 300) given view_test_set_background(2840474) ((import layout_paragraph_test_view)):() then view_test_box_inked:(1)
 
 // Writes the status text at x, vertically centred in a band vwi_h pixels tall whose top is vwi_y, in the bar's text colour.
-vw_say(View vwv, int vwi_x, int vwi_y, int vwi_h) {
-  string vws_t = vw_status_text(vwv, vw_box("canvas", 3));
-  int vwi_f = (import rbd_ui)[0];
-  int vwi_ty = vwi_y + (vwi_h - gui_font_line(vwi_f)) / 2;
-} chain (View vwv, int vwi_x, int vwi_y, int vwi_h) {
-  gui_text_draw(vwi_f, vwi_x, vwi_ty, vws_t, (import vw_c_bartext));
+view_status_say(View view_status_say_viewer, int view_status_say_left, int view_status_say_top, int view_status_say_height) {
+  string view_status_say_sentence = view_status_sentence(view_status_say_viewer, view_box_field("canvas", 3));
+  int view_status_say_face = (import ribbon_faces)[0];
+  int view_status_say_text_top = view_status_say_top + (view_status_say_height - gui_font_line(view_status_say_face)) / 2;
+} chain (View view_status_say_viewer, int view_status_say_left, int view_status_say_top, int view_status_say_height) {
+  gui_text_draw(view_status_say_face, view_status_say_left, view_status_say_text_top, view_status_say_sentence, (import vw_c_bartext));
 } return void;
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given rbd_ui_set(1, 1, 1) given sf_l_init(400, 300) given vw_t_box0(10, 278, 200, 300) ((import lp_t_v), 10, 278, 22):() then vw_t_inked:(1)
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given rbd_ui_set(1, 1, 1) given vw_t_box0(10, 278, 200, 300) ((import lp_t_v), 10, 0, 22):() then vw_t_inked:(0)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given ribbon_faces_set(1, 1, 1) given sf_l_init(400, 300) given view_test_remember_box(10, 278, 200, 300) ((import layout_paragraph_test_view), 10, 278, 22):() then view_test_box_inked:(1)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given ribbon_faces_set(1, 1, 1) given view_test_remember_box(10, 278, 200, 300) ((import layout_paragraph_test_view), 10, 0, 22):() then view_test_box_inked:(0)
 
 // Writes the lines of a card one under another from (vwi_x, vwi_y), in the viewer's own face in the dark icon colour.
-vw_card_lines(string[] vwl_lines, int vwi_x, int vwi_y) {
-  int vwi_f = (import rbd_ui)[0];
-  int vwi_lh = gui_font_line(vwi_f);
-  int vwi_k = 0;
-} chain (string[] vwl_lines, int vwi_x, int vwi_y) {
-  while(vwi_k < len(vwl_lines)) {
-    gui_text_draw(vwi_f, vwi_x, vwi_y + vwi_k * vwi_lh, vwl_lines[vwi_k], (import vw_c_icon));
-    vwi_k = vwi_k + 1;
+view_card_paint_lines(string[] view_card_paint_lines_texts, int view_card_paint_lines_left, int view_card_paint_lines_top) {
+  int view_card_paint_lines_face = (import ribbon_faces)[0];
+  int view_card_paint_lines_line_height = gui_font_line(view_card_paint_lines_face);
+  int view_card_paint_lines_index = 0;
+} chain (string[] view_card_paint_lines_texts, int view_card_paint_lines_left, int view_card_paint_lines_top) {
+  while(view_card_paint_lines_index < len(view_card_paint_lines_texts)) {
+    gui_text_draw(view_card_paint_lines_face, view_card_paint_lines_left, view_card_paint_lines_top + view_card_paint_lines_index * view_card_paint_lines_line_height, view_card_paint_lines_texts[view_card_paint_lines_index], (import vw_c_icon));
+    view_card_paint_lines_index = view_card_paint_lines_index + 1;
   }
 } return void;
-given lp_t_font given sf_l_init(300, 200) given d2_l_rect(0, 0, 300, 200, 13619151) given rbd_ui_set(1, 1, 1) given vw_t_box0(10, 10, 100, 30) given vw_t_bg(13619151) (["Hello"], 10, 10):() then vw_t_inked:(1)
-given lp_t_font given sf_l_init(300, 200) given d2_l_rect(0, 0, 300, 200, 13619151) given rbd_ui_set(1, 1, 1) given vw_t_box0(10, 40, 100, 60) given vw_t_bg(13619151) (["Hello"], 10, 10):() then vw_t_inked:(0)
+given layout_paragraph_test_font given sf_l_init(300, 200) given d2_l_rect(0, 0, 300, 200, 13619151) given ribbon_faces_set(1, 1, 1) given view_test_remember_box(10, 10, 100, 30) given view_test_set_background(13619151) (["Hello"], 10, 10):() then view_test_box_inked:(1)
+given layout_paragraph_test_font given sf_l_init(300, 200) given d2_l_rect(0, 0, 300, 200, 13619151) given ribbon_faces_set(1, 1, 1) given view_test_remember_box(10, 40, 100, 60) given view_test_set_background(13619151) (["Hello"], 10, 10):() then view_test_box_inked:(0)

@@ -1,33 +1,33 @@
 // The size the default paragraph style sets, in half-points, -1 when the document has none or it sets none.
-ost_dsize(StyBag os_b) {
-  int os_isz = 0 - 1;
-  int os_id = ost_rec_find(os_b, "", "p", "d");
-  if(os_id >= 0) {
-    os_isz = os_b.crows[os_id][(import quill_character_size)];
+odt_style_size_default(odt_named_style_records odt_style_size_default_bag) {
+  int odt_style_size_default_size = 0 - 1;
+  int odt_style_size_default_record = odt_style_record_find(odt_style_size_default_bag, "", "p", "d");
+  if(odt_style_size_default_record >= 0) {
+    odt_style_size_default_size = odt_style_size_default_bag.crows[odt_style_size_default_record][(import quill_character_size)];
   }
-} return int os_isz;
-(StyBag(["", "", "", "", "", "", "p", "d"], [[0, -1, 24, -1, -1, 0, 0]], [[]])):(24)
-(StyBag(["A", "", "", "", "", "", "p", "n"], [[0, -1, 24, -1, -1, 0, 0]], [[]])):(-1)
+} return int odt_style_size_default_size;
+(odt_named_style_records(["", "", "", "", "", "", "p", "d"], [[0, -1, 24, -1, -1, 0, 0]], [[]])):(24)
+(odt_named_style_records(["A", "", "", "", "", "", "p", "n"], [[0, -1, 24, -1, -1, 0, 0]], [[]])):(-1)
 
 // Replaces every relative font size of the bag (a percentage, held as ost_pct_base minus it) by the half-points it comes to once its parent's size is known.
-ost_sizes(StyBag os_b) {
+odt_style_size_resolve_all(odt_named_style_records odt_style_size_resolve_all_bag) {
   int i = 0;
-  while(i < ost_bag_n(os_b)) {
-    ost_size_at(os_b, i);
+  while(i < odt_named_bag_count(odt_style_size_resolve_all_bag)) {
+    odt_style_size_resolve_record(odt_style_size_resolve_all_bag, i);
     i = i + 1;
   }
 } return void;
-(StyBag(["H", "", "", "", "", "", "p", "n", "H1", "H", "", "", "", "", "p", "n"], [[0, -1, 28, -1, -1, 0, 0], [0, -1, -1130, -1, -1, 0, 0]], [[], []])):(StyBag(["H", "", "", "", "", "", "p", "n", "H1", "H", "", "", "", "", "p", "n"], [[0, -1, 28, -1, -1, 0, 0], [0, -1, 36, -1, -1, 0, 0]], [[], []]))
-(StyBag(["H", "", "", "", "", "", "p", "n", "H1", "H", "", "", "", "", "p", "n"], [[0, -1, 20, -1, -1, 0, 0], [0, -1, -1150, -1, -1, 0, 0]], [[], []])):(StyBag(["H", "", "", "", "", "", "p", "n", "H1", "H", "", "", "", "", "p", "n"], [[0, -1, 20, -1, -1, 0, 0], [0, -1, 30, -1, -1, 0, 0]], [[], []]))
-(StyBag(["H", "", "", "", "", "", "p", "n"], [[0, -1, -1, -1, -1, 0, 0]], [[]])):(StyBag(["H", "", "", "", "", "", "p", "n"], [[0, -1, -1, -1, -1, 0, 0]], [[]]))
+(odt_named_style_records(["H", "", "", "", "", "", "p", "n", "H1", "H", "", "", "", "", "p", "n"], [[0, -1, 28, -1, -1, 0, 0], [0, -1, -1130, -1, -1, 0, 0]], [[], []])):(odt_named_style_records(["H", "", "", "", "", "", "p", "n", "H1", "H", "", "", "", "", "p", "n"], [[0, -1, 28, -1, -1, 0, 0], [0, -1, 36, -1, -1, 0, 0]], [[], []]))
+(odt_named_style_records(["H", "", "", "", "", "", "p", "n", "H1", "H", "", "", "", "", "p", "n"], [[0, -1, 20, -1, -1, 0, 0], [0, -1, -1150, -1, -1, 0, 0]], [[], []])):(odt_named_style_records(["H", "", "", "", "", "", "p", "n", "H1", "H", "", "", "", "", "p", "n"], [[0, -1, 20, -1, -1, 0, 0], [0, -1, 30, -1, -1, 0, 0]], [[], []]))
+(odt_named_style_records(["H", "", "", "", "", "", "p", "n"], [[0, -1, -1, -1, -1, 0, 0]], [[]])):(odt_named_style_records(["H", "", "", "", "", "", "p", "n"], [[0, -1, -1, -1, -1, 0, 0]], [[]]))
 
 // Resolves record os_i's size if it is relative.
-ost_size_at(StyBag os_b, int os_i) {
-  int[] os_lcrow = os_b.crows[os_i];
-  if(os_lcrow[(import quill_character_size)] <= (import ost_pct_base)) {
-    os_lcrow[(import quill_character_size)] = ost_abs(os_b, os_i, 0);
+odt_style_size_resolve_record(odt_named_style_records odt_style_size_resolve_record_bag, int odt_style_size_resolve_record_record) {
+  int[] odt_style_size_resolve_record_row = odt_style_size_resolve_record_bag.crows[odt_style_size_resolve_record_record];
+  if(odt_style_size_resolve_record_row[(import quill_character_size)] <= (import ost_pct_base)) {
+    odt_style_size_resolve_record_row[(import quill_character_size)] = odt_style_size_absolute(odt_style_size_resolve_record_bag, odt_style_size_resolve_record_record, 0);
   }
 } return void;
-(StyBag(["H", "", "", "", "", "", "p", "n"], [[0, -1, -1050, -1, -1, 0, 0]], [[]]), 0):(StyBag(["H", "", "", "", "", "", "p", "n"], [[0, -1, 12, -1, -1, 0, 0]], [[]]), 0)
-(StyBag(["H", "", "", "", "", "", "p", "n"], [[0, -1, -1200, -1, -1, 0, 0]], [[]]), 0):(StyBag(["H", "", "", "", "", "", "p", "n"], [[0, -1, 48, -1, -1, 0, 0]], [[]]), 0)
-(StyBag(["H", "", "", "", "", "", "p", "n"], [[0, -1, 20, -1, -1, 0, 0]], [[]]), 0):(StyBag(["H", "", "", "", "", "", "p", "n"], [[0, -1, 20, -1, -1, 0, 0]], [[]]), 0)
+(odt_named_style_records(["H", "", "", "", "", "", "p", "n"], [[0, -1, -1050, -1, -1, 0, 0]], [[]]), 0):(odt_named_style_records(["H", "", "", "", "", "", "p", "n"], [[0, -1, 12, -1, -1, 0, 0]], [[]]), 0)
+(odt_named_style_records(["H", "", "", "", "", "", "p", "n"], [[0, -1, -1200, -1, -1, 0, 0]], [[]]), 0):(odt_named_style_records(["H", "", "", "", "", "", "p", "n"], [[0, -1, 48, -1, -1, 0, 0]], [[]]), 0)
+(odt_named_style_records(["H", "", "", "", "", "", "p", "n"], [[0, -1, 20, -1, -1, 0, 0]], [[]]), 0):(odt_named_style_records(["H", "", "", "", "", "", "p", "n"], [[0, -1, 20, -1, -1, 0, 0]], [[]]), 0)

@@ -1,39 +1,39 @@
 // Sets the character field (a quill_character_* offset, or ed_s_flag plus a flag bit with value 1 on, 0 off, -1 unset, -2 off plainly) on the selected text as one undo step; with nothing selected it is the pending typing row instead.
-ed_set_char(Doc d, Ctl ctl, int field, int value) {
+editor_set_character(Doc d, Ctl ctl, int field, int value) {
   int[] acc = [field, value];
-  if(sel_empty(ctl.sel) == 1) {
-    ed_set_pending(d, ctl, field, value);
+  if(editor_selection_empty(ctl.sel) == 1) {
+    editor_set_pending(d, ctl, field, value);
   } else {
-    ed_change(d, ctl, fmt_runs, acc);
+    editor_change(d, ctl, editor_format_runs, acc);
   }
 } return void;
-given fx_setup("abcd") given fx_at(0, 1, 0, 3) ((import fxd), (import fxc), 2, 24):((import fxd), (import fxc), 2, 24) then fx_show:("a[8:bc]d")
-given fx_setup("abcd") given fx_at(0, 1, 0, 1) ((import fxd), (import fxc), 2, 24):((import fxd), (import fxc), 2, 24) then fx_show:("abcd") then (import ed_typing)[0]:(8)
+given editor_fixture_setup("abcd") given editor_fixture_selection_at(0, 1, 0, 3) ((import fixture_document), (import fixture_control), 2, 24):((import fixture_document), (import fixture_control), 2, 24) then editor_fixture_show:("a[8:bc]d")
+given editor_fixture_setup("abcd") given editor_fixture_selection_at(0, 1, 0, 1) ((import fixture_document), (import fixture_control), 2, 24):((import fixture_document), (import fixture_control), 2, 24) then editor_fixture_show:("abcd") then (import editor_typing_row)[0]:(8)
 
 // Bold, italic and the other flags (ed_toggle(d, ctl, quill_flag_bold)): when every selected character has the flag it is turned off, otherwise on for all of it, which is what Word does; with nothing selected it flips what the next typed character would get.
-ed_toggle(Doc d, Ctl ctl, int bit) {
-  int on = sel_state(d, ctl, (import ed_s_flag) + bit);
+editor_toggle(Doc d, Ctl ctl, int bit) {
+  int on = editor_selection_state(d, ctl, (import ed_s_flag) + bit);
   int val = 1;
   if(on == 1) {
     val = -2;
   }
 } chain (Doc d, Ctl ctl, int bit) {
-  ed_set_char(d, ctl, (import ed_s_flag) + bit, val);
+  editor_set_character(d, ctl, (import ed_s_flag) + bit, val);
 } return void;
-given fx_setup("a*bc*d") given fx_at(0, 0, 0, 4) ((import fxd), (import fxc), 1):((import fxd), (import fxc), 1) then fx_show:("*abcd*")
-given fx_setup("a*bc*d") given fx_at(0, 1, 0, 3) ((import fxd), (import fxc), 1):((import fxd), (import fxc), 1) then fx_show:("abcd")
-given fx_setup("abcd") given fx_at(0, 1, 0, 3) ((import fxd), (import fxc), 1):((import fxd), (import fxc), 1) then fx_show:("a*bc*d")
-given fx_setup("ab") given fx_at(0, 1, 0, 1) ((import fxd), (import fxc), 1):((import fxd), (import fxc), 1) then (import ed_typing)[0]:(8)
+given editor_fixture_setup("a*bc*d") given editor_fixture_selection_at(0, 0, 0, 4) ((import fixture_document), (import fixture_control), 1):((import fixture_document), (import fixture_control), 1) then editor_fixture_show:("*abcd*")
+given editor_fixture_setup("a*bc*d") given editor_fixture_selection_at(0, 1, 0, 3) ((import fixture_document), (import fixture_control), 1):((import fixture_document), (import fixture_control), 1) then editor_fixture_show:("abcd")
+given editor_fixture_setup("abcd") given editor_fixture_selection_at(0, 1, 0, 3) ((import fixture_document), (import fixture_control), 1):((import fixture_document), (import fixture_control), 1) then editor_fixture_show:("a*bc*d")
+given editor_fixture_setup("ab") given editor_fixture_selection_at(0, 1, 0, 1) ((import fixture_document), (import fixture_control), 1):((import fixture_document), (import fixture_control), 1) then (import editor_typing_row)[0]:(8)
 
 // A page setup change (field 0 to 2 a Page.size entry, 3 to 6 a margin; see ed_g_margin) as one undo step.
-ed_set_page(Doc d, Ctl ctl, int field, int value) {
-  int[] loc = [field];
+editor_set_page(Doc d, Ctl ctl, int field, int value) {
+  int[] location = [field];
   int[] dat = [value];
-  txn_begin(ctl);
+  editor_transaction_begin(ctl);
 } chain (Doc d, Ctl ctl, int field, int value) {
-  Op page_change = Op((import ed_k_page), loc, dat);
-  ed_run(d, ctl, page_change);
-  ed_close(ctl);
+  Op page_change = Op((import ed_k_page), location, dat);
+  editor_run(d, ctl, page_change);
+  editor_close_step(ctl);
 } return void;
-given fx_setup("") ((import fxd), (import fxc), 0, 5000):((import fxd), (import fxc), 0, 5000) then fx_dump:("G 5000,16838,0, 1440,1440,1440,1440, 0,0,0,\nP0  0:0:-1,") then fx_hist:("u1 r0 o-1 n1")
-given fx_setup("") ((import fxd), (import fxc), 3, 720):((import fxd), (import fxc), 3, 720) then fx_dump:("G 11906,16838,0, 720,1440,1440,1440, 0,0,0,\nP0  0:0:-1,")
+given editor_fixture_setup("") ((import fixture_document), (import fixture_control), 0, 5000):((import fixture_document), (import fixture_control), 0, 5000) then editor_fixture_dump:("G 5000,16838,0, 1440,1440,1440,1440, 0,0,0,\nP0  0:0:-1,") then editor_fixture_history:("u1 r0 o-1 n1")
+given editor_fixture_setup("") ((import fixture_document), (import fixture_control), 3, 720):((import fixture_document), (import fixture_control), 3, 720) then editor_fixture_dump:("G 11906,16838,0, 720,1440,1440,1440, 0,0,0,\nP0  0:0:-1,")

@@ -1,33 +1,33 @@
 // The target of hyperlink idx, or nothing for an index that names no link.
-oc_href(Ext oc_ex, int oc_ix) {
-  string oc_hr = "";
-  if(oc_ix >= 0 && oc_ix < len(oc_ex.links)) {
-    oc_hr = oc_ex.links[oc_ix];
+odt_write_link_target(Ext odt_write_link_target_extras, int odt_write_link_target_index) {
+  string odt_write_link_target_result = "";
+  if(odt_write_link_target_index >= 0 && odt_write_link_target_index < len(odt_write_link_target_extras.links)) {
+    odt_write_link_target_result = odt_write_link_target_extras.links[odt_write_link_target_index];
   }
-} return string oc_hr;
+} return string odt_write_link_target_result;
 (Ext([], ["x", "y"], []), 1):("y")
 (Ext([], ["x", "y"], []), 2):("")
 (Ext([], ["x", "y"], []), -1):("")
 
 // Opens a text:a for hyperlink idx.
-oc_a_open(XmlW oc_w, Doc oc_d, int oc_ix) {
-  xw_start(oc_w, "text:a");
-  xw_attr(oc_w, "xlink:type", "simple");
-  xw_attr(oc_w, "xlink:href", oc_href(oc_d.ext, oc_ix));
+odt_write_link_open(XmlW odt_write_link_open_writer, Doc odt_write_link_open_document, int odt_write_link_open_index) {
+  xw_start(odt_write_link_open_writer, "text:a");
+  xw_attr(odt_write_link_open_writer, "xlink:type", "simple");
+  xw_attr(odt_write_link_open_writer, "xlink:href", odt_write_link_target(odt_write_link_open_document.ext, odt_write_link_open_index));
 } return void;
-given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["http://a.b/c?d=1&e=2", "#top"], [])), 0):() then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 97, 32, 120, 108, 105, 110, 107, 58, 116, 121, 112, 101, 61, 34, 115, 105, 109, 112, 108, 101, 34, 32, 120, 108, 105, 110, 107, 58, 104, 114, 101, 102, 61, 34, 104, 116, 116, 112, 58, 47, 47, 97, 46, 98, 47, 99, 63, 100, 61, 49, 38, 97, 109, 112, 59, 101, 61, 50, 34])
-given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["http://a.b/c?d=1&e=2", "#top"], [])), 1):() then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 97, 32, 120, 108, 105, 110, 107, 58, 116, 121, 112, 101, 61, 34, 115, 105, 109, 112, 108, 101, 34, 32, 120, 108, 105, 110, 107, 58, 104, 114, 101, 102, 61, 34, 35, 116, 111, 112, 34])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["http://a.b/c?d=1&e=2", "#top"], [])), 0):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 97, 32, 120, 108, 105, 110, 107, 58, 116, 121, 112, 101, 61, 34, 115, 105, 109, 112, 108, 101, 34, 32, 120, 108, 105, 110, 107, 58, 104, 114, 101, 102, 61, 34, 104, 116, 116, 112, 58, 47, 47, 97, 46, 98, 47, 99, 63, 100, 61, 49, 38, 97, 109, 112, 59, 101, 61, 50, 34])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["http://a.b/c?d=1&e=2", "#top"], [])), 1):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 97, 32, 120, 108, 105, 110, 107, 58, 116, 121, 112, 101, 61, 34, 115, 105, 109, 112, 108, 101, 34, 32, 120, 108, 105, 110, 107, 58, 104, 114, 101, 102, 61, 34, 35, 116, 111, 112, 34])
 
 // Moves from the hyperlink the last run was in (cur, -1 for none) to the one the next run is in: ends the old text:a and opens the new one when they differ. Answers the new one.
-oc_link(XmlW oc_w, Doc oc_d, int oc_cur, int oc_nxt) {
-  if(oc_cur != oc_nxt && oc_cur >= 0) {
-    xw_end(oc_w);
+odt_write_link_switch(XmlW odt_write_link_switch_writer, Doc odt_write_link_switch_document, int odt_write_link_switch_current, int odt_write_link_switch_next) {
+  if(odt_write_link_switch_current != odt_write_link_switch_next && odt_write_link_switch_current >= 0) {
+    xw_end(odt_write_link_switch_writer);
   }
-  if(oc_cur != oc_nxt && oc_nxt >= 0) {
-    oc_a_open(oc_w, oc_d, oc_nxt);
+  if(odt_write_link_switch_current != odt_write_link_switch_next && odt_write_link_switch_next >= 0) {
+    odt_write_link_open(odt_write_link_switch_writer, odt_write_link_switch_document, odt_write_link_switch_next);
   }
-} return int oc_nxt;
-given oc_t_w(1) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["http://a.b/c?d=1&e=2", "#top"], [])), -1, 0):(0) then (import oc_fw).out:([60, 114, 62, 60, 112, 62, 60, 116, 101, 120, 116, 58, 97, 32, 120, 108, 105, 110, 107, 58, 116, 121, 112, 101, 61, 34, 115, 105, 109, 112, 108, 101, 34, 32, 120, 108, 105, 110, 107, 58, 104, 114, 101, 102, 61, 34, 104, 116, 116, 112, 58, 47, 47, 97, 46, 98, 47, 99, 63, 100, 61, 49, 38, 97, 109, 112, 59, 101, 61, 50, 34])
-given oc_t_w(1) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["http://a.b/c?d=1&e=2", "#top"], [])), 0, -1):(-1) then (import oc_fw).out:([60, 114, 62, 60, 112, 47, 62])
-given oc_t_w(1) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["http://a.b/c?d=1&e=2", "#top"], [])), 0, 1):(1) then (import oc_fw).out:([60, 114, 62, 60, 112, 47, 62, 60, 116, 101, 120, 116, 58, 97, 32, 120, 108, 105, 110, 107, 58, 116, 121, 112, 101, 61, 34, 115, 105, 109, 112, 108, 101, 34, 32, 120, 108, 105, 110, 107, 58, 104, 114, 101, 102, 61, 34, 35, 116, 111, 112, 34])
-given oc_t_w(1) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["http://a.b/c?d=1&e=2", "#top"], [])), 1, 1):(1) then (import oc_fw).out:([60, 114, 62, 60, 112])
+} return int odt_write_link_switch_next;
+given odt_write_test_writer_nested(1) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["http://a.b/c?d=1&e=2", "#top"], [])), -1, 0):(0) then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 112, 62, 60, 116, 101, 120, 116, 58, 97, 32, 120, 108, 105, 110, 107, 58, 116, 121, 112, 101, 61, 34, 115, 105, 109, 112, 108, 101, 34, 32, 120, 108, 105, 110, 107, 58, 104, 114, 101, 102, 61, 34, 104, 116, 116, 112, 58, 47, 47, 97, 46, 98, 47, 99, 63, 100, 61, 49, 38, 97, 109, 112, 59, 101, 61, 50, 34])
+given odt_write_test_writer_nested(1) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["http://a.b/c?d=1&e=2", "#top"], [])), 0, -1):(-1) then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 112, 47, 62])
+given odt_write_test_writer_nested(1) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["http://a.b/c?d=1&e=2", "#top"], [])), 0, 1):(1) then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 112, 47, 62, 60, 116, 101, 120, 116, 58, 97, 32, 120, 108, 105, 110, 107, 58, 116, 121, 112, 101, 61, 34, 115, 105, 109, 112, 108, 101, 34, 32, 120, 108, 105, 110, 107, 58, 104, 114, 101, 102, 61, 34, 35, 116, 111, 112, 34])
+given odt_write_test_writer_nested(1) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["http://a.b/c?d=1&e=2", "#top"], [])), 1, 1):(1) then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 112])

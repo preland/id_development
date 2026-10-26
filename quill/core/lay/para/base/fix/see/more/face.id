@@ -1,15 +1,15 @@
 // Test check: 1 when the three handles lp_t_font seeded are distinct and open.
-lp_t_hd() {
-  int ok = (import lp_t_h9) >= 0 && (import lp_t_h9) != (import lp_t_h16) && (import lp_t_h16) != (import lp_t_h32) && (import lp_t_h9) != (import lp_t_h32);
+layout_paragraph_test_handles_distinct() {
+  int ok = (import layout_paragraph_test_handle_script) >= 0 && (import layout_paragraph_test_handle_script) != (import layout_paragraph_test_handle_normal) && (import layout_paragraph_test_handle_normal) != (import layout_paragraph_test_handle_large) && (import layout_paragraph_test_handle_script) != (import layout_paragraph_test_handle_large);
 } return int ok;
-given lp_t_font ():(1)
-given lp_t_font given lp_t_ins(0, "x") ():(1)
+given layout_paragraph_test_font ():(1)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "x") ():(1)
 
 // Test helper: 1 when face_for answers the handle it has just cached, which is how a case checks the miss path without knowing what handle the machine's font layer gives.
-lp_t_same(Face fa, Doc d, int cprop) {
-  int fh = face_for(fa, d, 0, cprop, 100);
-  int last = fa.hnd[len(fa.hnd) - 1];
-  int same = fh == last;
+layout_paragraph_test_same_handle(Face same_face_cache, Doc same_document, int same_character_row) {
+  int same_handle_found = face_for(same_face_cache, same_document, 0, same_character_row, 100);
+  int last = same_face_cache.hnd[len(same_face_cache.hnd) - 1];
+  int same = same_handle_found == last;
 } return int same;
-given lp_t_new given gui_font_init given lp_t_rows given lp_t_marks ((import lp_t_f), (import lp_t_d), (import lp_t_cs)):(1) then calls gui_face:("serif", 9, 0) then len((import lp_t_f).hnd):(7)
-given lp_t_new given gui_font_init given lp_t_rows given lp_t_marks ((import lp_t_f), (import lp_t_d), 0):(0) then len((import lp_t_f).hnd):(6)
+given layout_paragraph_test_new given gui_font_init given layout_paragraph_test_character_rows given layout_paragraph_test_marks ((import layout_paragraph_test_face_cache), (import layout_paragraph_test_document), (import layout_paragraph_test_superscript_row)):(1) then calls gui_face:("serif", 9, 0) then len((import layout_paragraph_test_face_cache).hnd):(7)
+given layout_paragraph_test_new given gui_font_init given layout_paragraph_test_character_rows given layout_paragraph_test_marks ((import layout_paragraph_test_face_cache), (import layout_paragraph_test_document), 0):(0) then len((import layout_paragraph_test_face_cache).hnd):(6)

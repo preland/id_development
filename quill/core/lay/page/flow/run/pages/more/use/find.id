@@ -1,51 +1,51 @@
 // Records in lhr, [paragraph, line, found], the line of paragraph lhi that holds height lhy of page lhk, or its last line on the page when lhy is below them; found stays 0 until one is found. Only the lines that are on the page are looked at.
 // By hand: in "BBB EEE BBB" height 1900 is on line 1; 9000 is below all of them, so line 2 without found; on page 1 of 28 letters in lines of 3 height 700 is above line 8, the first one there.
-lay_pick_para(View lhv, int lhk, int lhi, int lhy, int[] lhr) {
-  int[] lhw = [0, 0];
-  lay_span(lhv, lhk, lhi, lhw);
-  int lhj = lhw[0];
-} chain (View lhv, int lhk, int lhi, int lhy, int[] lhr) {
-  while(lhj < lhw[1] && lhr[2] == 0) {
-    lay_visit(lhv, lhi, lhj, lhy, lhr);
-    lhj = lhj + 1;
+lay_pick_para(View hit_view, int target_page, int target_paragraph, int target_height, int[] result_list) {
+  int[] span_list = [0, 0];
+  lay_span(hit_view, target_page, target_paragraph, span_list);
+  int target_line = span_list[0];
+} chain (View hit_view, int target_page, int target_paragraph, int target_height, int[] result_list) {
+  while(target_line < span_list[1] && result_list[2] == 0) {
+    lay_visit(hit_view, target_paragraph, target_line, target_height, result_list);
+    target_line = target_line + 1;
   }
 } return void;
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 0, 1900, [0, 0, 0]):((import lp_t_v), 0, 0, 1900, [0, 1, 1])
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 0, 9000, [0, 0, 0]):((import lp_t_v), 0, 0, 9000, [0, 2, 0])
-given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 1, 0, 700, [0, 0, 0]):((import lp_t_v), 1, 0, 700, [0, 8, 1])
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 0, 1900, [0, 0, 0]):((import layout_paragraph_test_view), 0, 0, 1900, [0, 1, 1])
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 0, 9000, [0, 0, 0]):((import layout_paragraph_test_view), 0, 0, 9000, [0, 2, 0])
+given layout_page_test_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import layout_paragraph_test_view), 1, 0, 700, [0, 0, 0]):((import layout_paragraph_test_view), 1, 0, 700, [0, 8, 1])
 
 // The position under a point of page lhk, lhx and lhy in lu from the corner of the page: the nearest line by height (the first or the last of the page for a point above or below the text), then the nearest offset on it by the pen. A page that does not exist is the nearest one that does. Writes the answer into lho. Uses only the pagination and the pens, no font, and lay_caret of the result is on the same line.
 // By hand in "BBB EEE BBB" (left margin 2560, lines 1152 from 640): 3260 across and 1892 down is on line 1 (1792 to 2944), 700 right of its start, nearest the offset 5; far right on line 0 is offset 3, below everything at the left is the start of line 2, offset 8.
-lay_hit(View lhv, int lhk, int lhx, int lhy, Pos lho) {
-  int lhg = fixed_point_maximum(fixed_point_minimum(lhk, lhv.pages.count - 1), 0);
-  int[] lhr = [0, 0, 0];
-  lay_pick(lhv, lhg, lhy, lhr);
-} chain (View lhv, int lhk, int lhx, int lhy, Pos lho) {
-  lho.para = lhr[0];
-  lho.off = lay_off_at(lhv, lhr[0], lhr[1], lhx - lay_margin(lhv.doc, 3));
+lay_hit(View hit_view, int target_page, int target_x, int target_height, Pos output_position) {
+  int clamped_page = fixed_point_maximum(fixed_point_minimum(target_page, hit_view.pages.count - 1), 0);
+  int[] result_list = [0, 0, 0];
+  lay_pick(hit_view, clamped_page, target_height, result_list);
+} chain (View hit_view, int target_page, int target_x, int target_height, Pos output_position) {
+  output_position.para = result_list[0];
+  output_position.off = lay_off_at(hit_view, result_list[0], result_list[1], target_x - lay_margin(hit_view.doc, 3));
 } return void;
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 3260, 1892, Pos(9, 9)):((import lp_t_v), 0, 3260, 1892, Pos(0, 5))
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 9000, 700, Pos(9, 9)):((import lp_t_v), 0, 9000, 700, Pos(0, 3))
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 2560, 90000, Pos(9, 9)):((import lp_t_v), 0, 2560, 90000, Pos(0, 8))
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 7, 2560, 640, Pos(9, 9)):((import lp_t_v), 7, 2560, 640, Pos(0, 0))
-given lg_t_paged(8) ((import lp_t_v), 1, 3243, 700, Pos(9, 9)):((import lp_t_v), 1, 3243, 700, Pos(6, 1))
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 3260, 1892, Pos(9, 9)):((import layout_paragraph_test_view), 0, 3260, 1892, Pos(0, 5))
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 9000, 700, Pos(9, 9)):((import layout_paragraph_test_view), 0, 9000, 700, Pos(0, 3))
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 2560, 90000, Pos(9, 9)):((import layout_paragraph_test_view), 0, 2560, 90000, Pos(0, 8))
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 7, 2560, 640, Pos(9, 9)):((import layout_paragraph_test_view), 7, 2560, 640, Pos(0, 0))
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), 1, 3243, 700, Pos(9, 9)):((import layout_paragraph_test_view), 1, 3243, 700, Pos(6, 1))
 
 // Puts in lho the position one page up (lhdir -1) or down (1) from lhq at x lhg of the page, the same height on that page; past the first or the last page it is the start or the end of the document.
 // By hand: with 6 one-line paragraphs to a page and 8 in all, a page down from paragraph 0 is paragraph 6 at the same height, a page up from paragraph 6 at x 3243 is offset 1 of paragraph 0, and a page down from page 1 is the end of the document, offset 1 of paragraph 7.
-lay_page_move(View lhv, Pos lhq, int lhdir, int lhg, Pos lho) {
-  int[] lhc = [0, 0, 0, 0];
-  lay_caret(lhv, lhq, lhc);
-  int lhk = lhc[0] + lhdir;
-} chain (View lhv, Pos lhq, int lhdir, int lhg, Pos lho) {
-  if(lhk >= 0 && lhk < lhv.pages.count) {
-    lay_hit(lhv, lhk, lhg, lhc[2], lho);
+lay_page_move(View hit_view, Pos query_position, int layout_direction, int aim_x, Pos output_position) {
+  int[] moving_caret_list = [0, 0, 0, 0];
+  lay_caret(hit_view, query_position, moving_caret_list);
+  int target_page = moving_caret_list[0] + layout_direction;
+} chain (View hit_view, Pos query_position, int layout_direction, int aim_x, Pos output_position) {
+  if(target_page >= 0 && target_page < hit_view.pages.count) {
+    lay_hit(hit_view, target_page, aim_x, moving_caret_list[2], output_position);
   } else {
-    Pos lhz = pos_edge(lhv.doc, lhdir);
-    lho.para = lhz.para;
-    lho.off = lhz.off;
+    Pos edge_position = editor_position_edge(hit_view.doc, layout_direction);
+    output_position.para = edge_position.para;
+    output_position.off = edge_position.off;
   }
 } return void;
-given lg_t_paged(8) ((import lp_t_v), Pos(0, 0), 1, 2560, Pos(9, 9)):((import lp_t_v), Pos(0, 0), 1, 2560, Pos(6, 0))
-given lg_t_paged(8) ((import lp_t_v), Pos(6, 1), -1, 3243, Pos(9, 9)):((import lp_t_v), Pos(6, 1), -1, 3243, Pos(0, 1))
-given lg_t_paged(8) ((import lp_t_v), Pos(6, 0), 1, 2560, Pos(9, 9)):((import lp_t_v), Pos(6, 0), 1, 2560, Pos(7, 1))
-given lg_t_paged(8) ((import lp_t_v), Pos(2, 0), -1, 2560, Pos(9, 9)):((import lp_t_v), Pos(2, 0), -1, 2560, Pos(0, 0))
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), Pos(0, 0), 1, 2560, Pos(9, 9)):((import layout_paragraph_test_view), Pos(0, 0), 1, 2560, Pos(6, 0))
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), Pos(6, 1), -1, 3243, Pos(9, 9)):((import layout_paragraph_test_view), Pos(6, 1), -1, 3243, Pos(0, 1))
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), Pos(6, 0), 1, 2560, Pos(9, 9)):((import layout_paragraph_test_view), Pos(6, 0), 1, 2560, Pos(7, 1))
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), Pos(2, 0), -1, 2560, Pos(9, 9)):((import layout_paragraph_test_view), Pos(2, 0), -1, 2560, Pos(0, 0))

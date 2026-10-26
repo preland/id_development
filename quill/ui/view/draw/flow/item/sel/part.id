@@ -1,49 +1,49 @@
 // Paints the page area in the band of rows its area list names: cvl_r is [x, y, width, height] of the page area and, after them, the first row of the band and the row after its last (cv_a_y0, cv_a_y1). The desk is laid over the band first and then the sheets that reach into it, all cut to the band.
-cv_area(View cvv, int[] cvl_r) {
-  int cvi_y = cvl_r[(import cv_a_y0)];
-  int cvi_h = cvl_r[(import cv_a_y1)] - cvi_y;
-  sf_l_clip(cvl_r[0], cvi_y, cvl_r[2], cvi_h);
-} chain (View cvv, int[] cvl_r) {
-  d2_l_rect(cvl_r[0], cvi_y, cvl_r[2], cvi_h, (import vw_c_desk));
-  vw_pages(cvv, cvl_r);
+view_flow_paint_area(View view_flow_area_view, int[] view_flow_area_list) {
+  int view_flow_area_top = view_flow_area_list[(import cv_a_y0)];
+  int view_flow_area_height = view_flow_area_list[(import cv_a_y1)] - view_flow_area_top;
+  sf_l_clip(view_flow_area_list[0], view_flow_area_top, view_flow_area_list[2], view_flow_area_height);
+} chain (View view_flow_area_view, int[] view_flow_area_list) {
+  d2_l_rect(view_flow_area_list[0], view_flow_area_top, view_flow_area_list[2], view_flow_area_height, (import vw_c_desk));
+  view_canvas_paint_pages(view_flow_area_view, view_flow_area_list);
   sf_l_unclip();
 } return void;
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(5, 140) ((import lp_t_v), [0, 128, 384, 150, 128, 278]):() then vw_t_px:(13619151)
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given d2_l_rect(0, 128, 384, 150, 255) given vw_t_at(5, 140) ((import lp_t_v), [0, 128, 384, 150, 160, 278]):() then vw_t_px:(255)
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given d2_l_rect(0, 128, 384, 150, 255) given vw_t_at(150, 160) ((import lp_t_v), [0, 128, 384, 150, 128, 140]):() then vw_t_px:(255)
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given d2_l_rect(0, 128, 384, 150, 255) given vw_t_at(300, 135) ((import lp_t_v), [0, 128, 384, 150, 128, 140]):() then vw_t_px:(13619151)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given view_test_remember_pixel(5, 140) ((import layout_paragraph_test_view), [0, 128, 384, 150, 128, 278]):() then view_test_pixel_color:(13619151)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given d2_l_rect(0, 128, 384, 150, 255) given view_test_remember_pixel(5, 140) ((import layout_paragraph_test_view), [0, 128, 384, 150, 160, 278]):() then view_test_pixel_color:(255)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given d2_l_rect(0, 128, 384, 150, 255) given view_test_remember_pixel(150, 160) ((import layout_paragraph_test_view), [0, 128, 384, 150, 128, 140]):() then view_test_pixel_color:(255)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given d2_l_rect(0, 128, 384, 150, 255) given view_test_remember_pixel(300, 135) ((import layout_paragraph_test_view), [0, 128, 384, 150, 128, 140]):() then view_test_pixel_color:(13619151)
 
 // Makes cvl_r the area list of the page area for a repaint of rows cvi_y0 to cvi_y1 - 1 of the surface: the page area's rectangle from the chrome, and the band cut to lie inside it (nothing, with its two rows equal, when they miss it). The caller makes the six-cell list, so that it is its own and is freed with it.
-cv_rows(int cvi_y0, int cvi_y1, int[] cvl_r) {
-  int cvi_cy = vw_box("canvas", 1);
-  int cvi_ch = vw_box("canvas", 3);
-  int cvi_a = fixed_point_clamp(cvi_y0, cvi_cy, cvi_cy + cvi_ch);
-} chain (int cvi_y0, int cvi_y1, int[] cvl_r) {
-  int cvi_b = fixed_point_clamp(cvi_y1, cvi_a, cvi_cy + cvi_ch);
-  lset(cvl_r, 0, vw_box("canvas", 0));
-  lset(cvl_r, 1, cvi_cy);
-} chain (int cvi_y0, int cvi_y1, int[] cvl_r) {
-  lset(cvl_r, 2, vw_box("canvas", 2));
-  lset(cvl_r, 3, cvi_ch);
-  lset(cvl_r, 4, cvi_a);
-} chain (int cvi_y0, int cvi_y1, int[] cvl_r) {
-  lset(cvl_r, 5, cvi_b);
+view_flow_set_area_rows(int view_flow_rows_first, int view_flow_rows_last, int[] view_flow_rows_area) {
+  int view_flow_rows_canvas_top = view_box_field("canvas", 1);
+  int view_flow_rows_canvas_height = view_box_field("canvas", 3);
+  int view_flow_rows_band_top = fixed_point_clamp(view_flow_rows_first, view_flow_rows_canvas_top, view_flow_rows_canvas_top + view_flow_rows_canvas_height);
+} chain (int view_flow_rows_first, int view_flow_rows_last, int[] view_flow_rows_area) {
+  int view_flow_rows_band_bottom = fixed_point_clamp(view_flow_rows_last, view_flow_rows_band_top, view_flow_rows_canvas_top + view_flow_rows_canvas_height);
+  lset(view_flow_rows_area, 0, view_box_field("canvas", 0));
+  lset(view_flow_rows_area, 1, view_flow_rows_canvas_top);
+} chain (int view_flow_rows_first, int view_flow_rows_last, int[] view_flow_rows_area) {
+  lset(view_flow_rows_area, 2, view_box_field("canvas", 2));
+  lset(view_flow_rows_area, 3, view_flow_rows_canvas_height);
+  lset(view_flow_rows_area, 4, view_flow_rows_band_top);
+} chain (int view_flow_rows_first, int view_flow_rows_last, int[] view_flow_rows_area) {
+  lset(view_flow_rows_area, 5, view_flow_rows_band_bottom);
 } return void;
-given vw_t_two given vw_t_up(400, 300) (100, 140, [9, 9, 9, 9, 9, 9]):(100, 140, [0, 156, 384, 122, 156, 156])
-given vw_t_two given vw_t_up(400, 300) (200, 400, [9, 9, 9, 9, 9, 9]):(200, 400, [0, 156, 384, 122, 200, 278])
+given view_test_two_pages given view_test_fit_chrome(400, 300) (100, 140, [9, 9, 9, 9, 9, 9]):(100, 140, [0, 156, 384, 122, 156, 156])
+given view_test_two_pages given view_test_fit_chrome(400, 300) (200, 400, [9, 9, 9, 9, 9, 9]):(200, 400, [0, 156, 384, 122, 200, 278])
 
 // Paints the part of the picture that the band of rows asked for (vw_ed) needs and no more: the page area in the band, and the status bar, whose page and word count an edit changes. The band is then empty again.
-cv_part(View cvv) {
-  int[] cvl_e = (import vw_ed);
-  int[] cvl_r = [0, 0, 0, 0, 0, 0];
-  cv_rows(cvl_e[(import cv_e_y0)], cvl_e[(import cv_e_y1)], cvl_r);
-} chain (View cvv) {
-  cv_area(cvv, cvl_r);
-  vw_status(cvv);
-  lset(cvl_e, (import cv_e_y0), 0 - 1);
-} chain (View cvv) {
-  lset(cvl_e, (import cv_e_y1), 0 - 1);
+view_flow_paint_part(View view_flow_part_view) {
+  int[] view_flow_part_edit_states = (import view_input_edit_state);
+  int[] view_flow_part_area = [0, 0, 0, 0, 0, 0];
+  view_flow_set_area_rows(view_flow_part_edit_states[(import cv_e_y0)], view_flow_part_edit_states[(import cv_e_y1)], view_flow_part_area);
+} chain (View view_flow_part_view) {
+  view_flow_paint_area(view_flow_part_view, view_flow_part_area);
+  view_status_paint(view_flow_part_view);
+  lset(view_flow_part_edit_states, (import cv_e_y0), 0 - 1);
+} chain (View view_flow_part_view) {
+  lset(view_flow_part_edit_states, (import cv_e_y1), 0 - 1);
 } return void;
-given cv_t_ed("A|A|A|A|A|A|A|A") given rbd_ui_set(1, 1, 1) given d2_l_rect(0, 156, 384, 122, 255) given cv_mark(178, 188) given vw_t_at(5, 183) ((import lp_t_v)):() then vw_t_px:(13619151) then cv_t_eds:("eds 0,0,0,0,0,-1,-1,-1,")
-given cv_t_ed("A|A|A|A|A|A|A|A") given rbd_ui_set(1, 1, 1) given d2_l_rect(0, 156, 384, 122, 255) given cv_mark(178, 188) given vw_t_at(5, 168) ((import lp_t_v)):() then vw_t_px:(255)
-given cv_t_ed("A|A|A|A|A|A|A|A") given rbd_ui_set(1, 1, 1) given cv_mark(150, 160) given vw_t_at(3, 285) ((import lp_t_v)):() then vw_t_px:(2840474)
+given view_flow_test_open_edit("A|A|A|A|A|A|A|A") given ribbon_faces_set(1, 1, 1) given d2_l_rect(0, 156, 384, 122, 255) given view_input_mark_rows_stale(178, 188) given view_test_remember_pixel(5, 183) ((import layout_paragraph_test_view)):() then view_test_pixel_color:(13619151) then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,-1,-1,")
+given view_flow_test_open_edit("A|A|A|A|A|A|A|A") given ribbon_faces_set(1, 1, 1) given d2_l_rect(0, 156, 384, 122, 255) given view_input_mark_rows_stale(178, 188) given view_test_remember_pixel(5, 168) ((import layout_paragraph_test_view)):() then view_test_pixel_color:(255)
+given view_flow_test_open_edit("A|A|A|A|A|A|A|A") given ribbon_faces_set(1, 1, 1) given view_input_mark_rows_stale(150, 160) given view_test_remember_pixel(3, 285) ((import layout_paragraph_test_view)):() then view_test_pixel_color:(2840474)

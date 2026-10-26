@@ -1,26 +1,26 @@
 // The offset where run ri ends, the sum of the lengths of runs 0..ri.
-lp_rend(Para p, int ri) {
-  int j = 0;
-  int e = 0;
-  while(j <= ri) {
-    e = e + p.txt.runs[j].len;
-    j = j + 1;
+layout_paragraph_run_end(Para end_paragraph, int end_run_index) {
+  int end_position = 0;
+  int end_total = 0;
+  while(end_position <= end_run_index) {
+    end_total = end_total + end_paragraph.txt.runs[end_position].len;
+    end_position = end_position + 1;
   }
-} return int e;
+} return int end_total;
 (Para(Text([1, 2, 3, 4, 5], [Run(2, 0, -1), Run(3, 1, -1)], 0), Lay([], [], -1), 0), 0):(2)
 (Para(Text([1, 2, 3, 4, 5], [Run(2, 0, -1), Run(3, 1, -1)], 0), Lay([], [], -1), 0), 1):(5)
 
 // Places the code points k..re-1 of run ri of paragraph i until the run ends or the line starting at lo no longer fits; the pen is filled up to the returned offset, which is re when the whole run was placed.
 // By hand at 16 px, B and E are 683 and a space 285 (no kerning among them): "BBBB EEEE" has pen 0, 683, 1366, 2049, 2732 after four Bs, 3017 after the space and 3700 after the first E; in 3500 lu that E does not fit and is placed all the same, so the scan stops at offset 6. In 9999 lu every code point fits and the run ends at 9 with 5749 after the last E.
-lp_run(View v, int i, int ri, int k, int re, int lo, int avail) {
-  Para p = v.doc.body.paras[i];
-  int fh = lp_rface(v, i, ri);
-  while(k < re && lp_fit(p, lo, k, avail) == 1) {
-    lp_step(p, fh, k);
-    k = k + 1;
+layout_paragraph_walk_run(View walk_view, int walk_paragraph_index, int walk_run_index, int walk_position, int walk_run_end, int walk_start, int avail) {
+  Para walk_paragraph = walk_view.doc.body.paras[walk_paragraph_index];
+  int walk_face_handle = layout_paragraph_run_face(walk_view, walk_paragraph_index, walk_run_index);
+  while(walk_position < walk_run_end && layout_paragraph_fits(walk_paragraph, walk_start, walk_position, avail) == 1) {
+    layout_paragraph_step(walk_paragraph, walk_face_handle, walk_position);
+    walk_position = walk_position + 1;
   }
-} return int k;
-given lp_t_font given lp_t_ins(0, "BBBB EEEE") given lp_t_pen0(0) ((import lp_t_v), 0, 0, 0, 9, 0, 3500):(6) then lp_t_p0:([0, 683, 1366, 2049, 2732, 3017, 3700])
-given lp_t_font given lp_t_ins(0, "BBBB EEEE") given lp_t_pen0(0) ((import lp_t_v), 0, 0, 0, 9, 0, 9999):(9) then lp_t_p0:([0, 683, 1366, 2049, 2732, 3017, 3700, 4383, 5066, 5749])
-given lp_t_font given lp_t_ins(0, "BBBB EEEE") given lp_t_pen0(0) ((import lp_t_v), 0, 0, 0, 2, 0, 9999):(2) then lp_t_p0:([0, 683, 1366])
-given lp_t_font given lp_t_ins(0, "BBBB EEEE") given lp_t_pen0(0) ((import lp_t_v), 0, 0, 0, 0, 0, 9999):(0) then lp_t_p0:([0])
+} return int walk_position;
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BBBB EEEE") given layout_paragraph_test_start_pen(0) ((import layout_paragraph_test_view), 0, 0, 0, 9, 0, 3500):(6) then layout_paragraph_test_first_pen:([0, 683, 1366, 2049, 2732, 3017, 3700])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BBBB EEEE") given layout_paragraph_test_start_pen(0) ((import layout_paragraph_test_view), 0, 0, 0, 9, 0, 9999):(9) then layout_paragraph_test_first_pen:([0, 683, 1366, 2049, 2732, 3017, 3700, 4383, 5066, 5749])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BBBB EEEE") given layout_paragraph_test_start_pen(0) ((import layout_paragraph_test_view), 0, 0, 0, 2, 0, 9999):(2) then layout_paragraph_test_first_pen:([0, 683, 1366])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BBBB EEEE") given layout_paragraph_test_start_pen(0) ((import layout_paragraph_test_view), 0, 0, 0, 0, 0, 9999):(0) then layout_paragraph_test_first_pen:([0])

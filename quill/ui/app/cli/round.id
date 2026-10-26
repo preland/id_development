@@ -1,23 +1,23 @@
 // word --roundtrip IN.odt OUT.odt: loads the document and saves it again, so that a program can compare what came out with what went in. Answers 0, or 1 after naming on stderr what went wrong and how to fix it.
-cli_round(string inpath, string outpath) {
+cli_round(string cli_input_path, string cli_output_path) {
   Doc d = doc_new();
-  int code = odt_load(inpath, d);
-  int rc = code != 0;
-} chain (string inpath, string outpath) {
+  int code = odt_load(cli_input_path, d);
+  int cli_round_status = code != 0;
+} chain (string cli_input_path, string cli_output_path) {
   if(code == 0) {
-    code = odt_save(outpath, d);
-    rc = code != 0;
+    code = odt_save(cli_output_path, d);
+    cli_round_status = code != 0;
   }
   if(code != 0) {
     eprint(odt_error(code));
   }
-} return int rc;
-given orc_t_zip("<r><office:text><text:p>Hi</text:p></office:text></r>", "") given orc_t_save given odw_t_path ((import orc_tp), (import odw_tp)):(0) then cli_t_size:("size 12637") then odw_t_gone:("gone 0") then orc_t_gone:(0)
+} return int cli_round_status;
+given odt_read_fixture_make_archive("<r><office:text><text:p>Hi</text:p></office:text></r>", "") given odt_read_fixture_save_archive given odt_package_fixture_scratch_path ((import odt_read_fixture_scratch_path), (import odt_package_scratch_file)):(0) then cli_test_scratch_size:("size 12637") then odt_package_fixture_remove_scratch:("gone 0") then odt_read_fixture_remove_file:(0)
 ("/nonexistent/none.odt", "/nonexistent/out.odt"):(1) then eprints:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/none.odt]\n")
 
 // Test fixture: how many bytes the scratch file odw_tp holds.
-cli_t_size() {
-  string n_t = "size " + (fs_size((import odw_tp)));
-} return string n_t;
-given odw_t_path ():("size 0")
-given odw_t_path given odw_t_put ():("size 1")
+cli_test_scratch_size() {
+  string cli_test_size_text = "size " + (fs_size((import odt_package_scratch_file)));
+} return string cli_test_size_text;
+given odt_package_fixture_scratch_path ():("size 0")
+given odt_package_fixture_scratch_path given odt_package_fixture_put_byte ():("size 1")

@@ -1,42 +1,42 @@
 // Whether a preserved part is written back as a file of its own: a zip entry the model did not understand (kind 1), unless its name is one of the five files this writer makes itself.
-odp_keep(Part pkpt) {
-  int pkq = 0;
-  if(pkpt.kind == 1 && list_string_index((import odp_reserved), pkpt.name) < 0) {
-    pkq = 1;
+odp_keep(Part odt_package_keep_part) {
+  int odt_package_keep_flag = 0;
+  if(odt_package_keep_part.kind == 1 && list_string_index((import odp_reserved), odt_package_keep_part.name) < 0) {
+    odt_package_keep_flag = 1;
   }
-} return int pkq;
+} return int odt_package_keep_flag;
 (Part("Pictures/a.png", [1], 1)):(1)
 (Part("styles.xml", [1], 1)):(0)
 (Part("Pictures/a.png", [1], 0)):(0)
 
 // The place in the extension table of the one the lower-case name ends with, or -1.
-odp_ext_at(string pklow) {
-  int pki = 0;
-  int pkq = 0 - 1;
-  while(pki < len((import odp_ext)) && pkq < 0) {
-    if(str_ends(pklow, (import odp_ext)[pki]) == 1) {
-      pkq = pki;
+odt_package_extension_index(string odt_package_extension_lower) {
+  int odt_package_extension_cursor = 0;
+  int odt_package_extension_found = 0 - 1;
+  while(odt_package_extension_cursor < len((import odp_ext)) && odt_package_extension_found < 0) {
+    if(str_ends(odt_package_extension_lower, (import odp_ext)[odt_package_extension_cursor]) == 1) {
+      odt_package_extension_found = odt_package_extension_cursor;
     }
-    pki = pki + 1;
+    odt_package_extension_cursor = odt_package_extension_cursor + 1;
   }
-} return int pkq;
+} return int odt_package_extension_found;
 ("a.png"):(0)
 ("x.jpeg"):(2)
 ("a.bin"):(-1)
 
 // The media type the manifest gives an entry: from its extension, "" for a directory and application/octet-stream for anything unknown.
-odp_media(string pkname) {
-  string pklow = str_lower(pkname);
-  int pkat = odp_ext_at(pklow);
-  string pkr = (import odp_octets);
-} chain (string pkname) {
-  if(pkat >= 0) {
-    pkr = (import odp_types)[pkat];
+odp_media(string odt_package_media_name) {
+  string odt_package_media_lower = str_lower(odt_package_media_name);
+  int odt_package_media_position = odt_package_extension_index(odt_package_media_lower);
+  string odt_package_media_type = (import odp_octets);
+} chain (string odt_package_media_name) {
+  if(odt_package_media_position >= 0) {
+    odt_package_media_type = (import odp_types)[odt_package_media_position];
   }
-  if(str_ends(pklow, "/") == 1) {
-    pkr = "";
+  if(str_ends(odt_package_media_lower, "/") == 1) {
+    odt_package_media_type = "";
   }
-} return string pkr;
+} return string odt_package_media_type;
 ("Pictures/A.PNG"):("image/png")
 ("Thumbnails/"):("")
 ("a.bin"):("application/octet-stream")

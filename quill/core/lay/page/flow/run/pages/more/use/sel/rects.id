@@ -1,53 +1,53 @@
 // The rectangles that show selection lhs on page lhk: lhc becomes four numbers [x, y, width, height] for every line of the page the selection covers, in lu from the top left corner of the page, one rectangle per line from the first covered offset to the last, plus the width of a paragraph mark (quill_layout_mark_width) at the end of a line whose paragraph the selection goes on past. Answers how many rectangles. A collapsed selection has none. Uses only the pagination and the pens, so it needs no font.
 // By hand in "BBB", "A", "BBB" (pens 683 per letter, left margin 2560, paragraphs 1664 apart from 640): the selection from 1 of the first to 1 of the last is [3243, 640, 1366 + 256, 1152] for the rest of the first, [2560, 2304, 683 + 256, 1152] for the second whole, and [2560, 3968, 683, 1152] for the start of the third, three in all.
-lay_sel_rects(View lhv, Sel lhs, int lhk, int[] lhc) {
-  Pos lhsa = lhs.anchor;
-  Pos lhsb = lhs.caret;
-  if(pos_lt(lhs.caret, lhs.anchor) == 1) {
-    lhsa = lhs.caret;
-    lhsb = lhs.anchor;
+layout_page_selection_rectangles(View hit_view, Sel moving_selection, int target_page, int[] rectangle_list) {
+  Pos selection_start = moving_selection.anchor;
+  Pos selection_end = moving_selection.caret;
+  if(document_position_less(moving_selection.caret, moving_selection.anchor) == 1) {
+    selection_start = moving_selection.caret;
+    selection_end = moving_selection.anchor;
   }
-} chain (View lhv, Sel lhs, int lhk, int[] lhc) {
-  lp_clear(lhc);
-  int lhi = fixed_point_maximum(lhv.pages.starts[2 * lhk], lhsa.para);
-  int lhe = fixed_point_minimum(lhv.pages.starts[2 * lhk + 2] + (lhv.pages.starts[2 * lhk + 3] > 0), lhsb.para + 1);
-} chain (View lhv, Sel lhs, int lhk, int[] lhc) {
-  while(lhi < lhe) {
-    lay_rects_para(lhv, lhk, lhi, lhsa, lhsb, lhc);
-    lhi = lhi + 1;
+} chain (View hit_view, Sel moving_selection, int target_page, int[] rectangle_list) {
+  layout_paragraph_clear(rectangle_list);
+  int target_paragraph = fixed_point_maximum(hit_view.pages.starts[2 * target_page], selection_start.para);
+  int layout_end_paragraph = fixed_point_minimum(hit_view.pages.starts[2 * target_page + 2] + (hit_view.pages.starts[2 * target_page + 3] > 0), selection_end.para + 1);
+} chain (View hit_view, Sel moving_selection, int target_page, int[] rectangle_list) {
+  while(target_paragraph < layout_end_paragraph) {
+    layout_page_rectangles_paragraph(hit_view, target_page, target_paragraph, selection_start, selection_end, rectangle_list);
+    target_paragraph = target_paragraph + 1;
   }
-  int lhn = len(lhc) / 4;
-} return int lhn;
-given lg_t_rows(["BBB", "A", "BBB"]) given lg_t_out ((import lp_t_v), Sel(Pos(0, 1), Pos(2, 1), -1), 0, (import lg_t_o)):(3) then lg_t_outs:("outs 3243,640,1622,1152,2560,2304,939,1152,2560,3968,683,1152,")
-given lg_t_rows(["BBB", "A", "BBB"]) given lg_t_out ((import lp_t_v), Sel(Pos(2, 1), Pos(0, 1), -1), 0, (import lg_t_o)):(3) then lg_t_outs:("outs 3243,640,1622,1152,2560,2304,939,1152,2560,3968,683,1152,")
-given lg_t_text("BBB EEE BBB") given lg_t_out ((import lp_t_v), Sel(Pos(0, 5), Pos(0, 5), -1), 0, (import lg_t_o)):(0) then lg_t_outs:("outs ")
-given lg_t_paged(8) given lg_t_out ((import lp_t_v), Sel(Pos(5, 0), Pos(7, 1), -1), 1, (import lg_t_o)):(2) then lg_t_outs:("outs 2560,640,939,1152,2560,2304,683,1152,")
+  int rectangle_total = len(rectangle_list) / 4;
+} return int rectangle_total;
+given layout_page_test_rows(["BBB", "A", "BBB"]) given layout_page_test_out ((import layout_paragraph_test_view), Sel(Pos(0, 1), Pos(2, 1), -1), 0, (import layout_page_test_out_list)):(3) then layout_page_test_outs:("outs 3243,640,1622,1152,2560,2304,939,1152,2560,3968,683,1152,")
+given layout_page_test_rows(["BBB", "A", "BBB"]) given layout_page_test_out ((import layout_paragraph_test_view), Sel(Pos(2, 1), Pos(0, 1), -1), 0, (import layout_page_test_out_list)):(3) then layout_page_test_outs:("outs 3243,640,1622,1152,2560,2304,939,1152,2560,3968,683,1152,")
+given layout_page_test_text("BBB EEE BBB") given layout_page_test_out ((import layout_paragraph_test_view), Sel(Pos(0, 5), Pos(0, 5), -1), 0, (import layout_page_test_out_list)):(0) then layout_page_test_outs:("outs ")
+given layout_page_test_paged(8) given layout_page_test_out ((import layout_paragraph_test_view), Sel(Pos(5, 0), Pos(7, 1), -1), 1, (import layout_page_test_out_list)):(2) then layout_page_test_outs:("outs 2560,640,939,1152,2560,2304,683,1152,")
 
 // Adds the rectangles of the lines of paragraph lhi that are on page lhk to lhc (lay_rect_line), for the selection from lhsa to lhsb.
 // By hand: "BBB EEE BBB" selected from 1 to 6 has a rectangle on line 0 and one on line 1, none on line 2.
-lay_rects_para(View lhv, int lhk, int lhi, Pos lhsa, Pos lhsb, int[] lhc) {
-  int[] lhw = [0, 0];
-  lay_span(lhv, lhk, lhi, lhw);
-  int lhj = lhw[0];
-} chain (View lhv, int lhk, int lhi, Pos lhsa, Pos lhsb, int[] lhc) {
-  while(lhj < lhw[1]) {
-    lay_rect_line(lhv, lhi, lhj, lhsa, lhsb, lhc);
-    lhj = lhj + 1;
+layout_page_rectangles_paragraph(View hit_view, int target_page, int target_paragraph, Pos selection_start, Pos selection_end, int[] rectangle_list) {
+  int[] span_list = [0, 0];
+  lay_span(hit_view, target_page, target_paragraph, span_list);
+  int target_line = span_list[0];
+} chain (View hit_view, int target_page, int target_paragraph, Pos selection_start, Pos selection_end, int[] rectangle_list) {
+  while(target_line < span_list[1]) {
+    lay_rect_line(hit_view, target_paragraph, target_line, selection_start, selection_end, rectangle_list);
+    target_line = target_line + 1;
   }
 } return void;
-given lg_t_text("BBB EEE BBB") given lg_t_out ((import lp_t_v), 0, 0, Pos(0, 1), Pos(0, 6), (import lg_t_o)):() then lg_t_outs:("outs 3243,640,1366,1152,2560,1792,1366,1152,")
-given lg_t_text("BBB EEE BBB") given lg_t_out ((import lp_t_v), 0, 0, Pos(0, 9), Pos(0, 10), (import lg_t_o)):() then lg_t_outs:("outs 3243,2944,683,1152,")
+given layout_page_test_text("BBB EEE BBB") given layout_page_test_out ((import layout_paragraph_test_view), 0, 0, Pos(0, 1), Pos(0, 6), (import layout_page_test_out_list)):() then layout_page_test_outs:("outs 3243,640,1366,1152,2560,1792,1366,1152,")
+given layout_page_test_text("BBB EEE BBB") given layout_page_test_out ((import layout_paragraph_test_view), 0, 0, Pos(0, 9), Pos(0, 10), (import layout_page_test_out_list)):() then layout_page_test_outs:("outs 3243,2944,683,1152,")
 
 // Adds the rectangle of line lhj of paragraph lhi for the selection from lhsa to lhsb to lhc, if any of the line is covered: from the pen of its first covered offset to where the covered text ends (lay_xend), the height of the line, and the width of the paragraph mark when the line ends one that the selection goes on past.
 // By hand in "BBB EEE BBB" selected from 1 to 6: line 1 is covered from 4 to 6, 2560 to 3926 across the page, 1366 wide and 1792 down; line 2, from 8, is not covered at all and adds nothing.
-lay_rect_line(View lhv, int lhi, int lhj, Pos lhsa, Pos lhsb, int[] lhc) {
-  Para lhpa = lhv.doc.body.paras[lhi];
-  int[] lhr = [0, 0, 0];
-  lay_range(lhpa, lhi, lhj, lhsa, lhsb, lhr);
-} chain (View lhv, int lhi, int lhj, Pos lhsa, Pos lhsb, int[] lhc) {
-  if(lhr[1] > lhr[0] || lhr[2] == 1) {
-    lay_rect(lhc, lay_margin(lhv.doc, 3) + lhpa.lay.pen[lhr[0]], lay_line_y(lhv, lhi, lhj), lay_xend(lhpa, lhj, lhr[1]) - lhpa.lay.pen[lhr[0]] + lhr[2] * (import quill_layout_mark_width), lay_line_h(lhv, lhi, lhj));
+lay_rect_line(View hit_view, int target_paragraph, int target_line, Pos selection_start, Pos selection_end, int[] rectangle_list) {
+  Para line_paragraph = hit_view.doc.body.paras[target_paragraph];
+  int[] result_list = [0, 0, 0];
+  lay_range(line_paragraph, target_paragraph, target_line, selection_start, selection_end, result_list);
+} chain (View hit_view, int target_paragraph, int target_line, Pos selection_start, Pos selection_end, int[] rectangle_list) {
+  if(result_list[1] > result_list[0] || result_list[2] == 1) {
+    lay_rect(rectangle_list, lay_margin(hit_view.doc, 3) + line_paragraph.lay.pen[result_list[0]], lay_line_y(hit_view, target_paragraph, target_line), layout_page_x_end(line_paragraph, target_line, result_list[1]) - line_paragraph.lay.pen[result_list[0]] + result_list[2] * (import quill_layout_mark_width), layout_page_line_height(hit_view, target_paragraph, target_line));
   }
 } return void;
-given lg_t_text("BBB EEE BBB") given lg_t_out ((import lp_t_v), 0, 1, Pos(0, 1), Pos(0, 6), (import lg_t_o)):() then lg_t_outs:("outs 2560,1792,1366,1152,")
-given lg_t_text("BBB EEE BBB") given lg_t_out ((import lp_t_v), 0, 2, Pos(0, 1), Pos(0, 6), (import lg_t_o)):() then lg_t_outs:("outs ")
+given layout_page_test_text("BBB EEE BBB") given layout_page_test_out ((import layout_paragraph_test_view), 0, 1, Pos(0, 1), Pos(0, 6), (import layout_page_test_out_list)):() then layout_page_test_outs:("outs 2560,1792,1366,1152,")
+given layout_page_test_text("BBB EEE BBB") given layout_page_test_out ((import layout_paragraph_test_view), 0, 2, Pos(0, 1), Pos(0, 6), (import layout_page_test_out_list)):() then layout_page_test_outs:("outs ")

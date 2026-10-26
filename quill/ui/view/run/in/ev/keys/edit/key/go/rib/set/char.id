@@ -1,37 +1,37 @@
 // The character field that the command cvi_cmd sets to the argument cvi_arg, by the table cv_cc_cmd: the font size in half-points, the font colour, the highlight; on the selected text, or on what is typed next when nothing is selected. Any other command is left alone.
-cv_char(View cvv, Ctl cvc, int cvi_cmd, int cvi_arg) {
-  int cvi_k = list_index_of((import cv_cc_cmd), cvi_cmd);
-  if(cvi_k >= 0) {
-    ed_set_char(cvv.doc, cvc, (import cv_cc_fld)[cvi_k], cvi_arg);
+view_input_character_field_set(View view_input_character_view, Ctl view_input_character_controller, int view_input_character_command_number, int view_input_character_value) {
+  int view_input_character_index = list_index_of((import cv_cc_cmd), view_input_character_command_number);
+  if(view_input_character_index >= 0) {
+    editor_set_character(view_input_character_view.doc, view_input_character_controller, (import cv_cc_fld)[view_input_character_index], view_input_character_value);
   }
 } return void;
-given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) given cv_t_ask(2) ((import lp_t_v), (import vw_ctl), 308, 28):() then cv_t_ans:(28)
-given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) given cv_t_ask(4) ((import lp_t_v), (import vw_ctl), 312, 16776960):() then cv_t_ans:(16776960)
-given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) given cv_t_ask(2) ((import lp_t_v), (import vw_ctl), 311, 28):() then cv_t_ans:(24)
+given view_flow_test_open_edit("AB") given editor_select_all((import layout_paragraph_test_document), (import view_input_controller)) given view_flow_test_ask_field(2) ((import layout_paragraph_test_view), (import view_input_controller), 308, 28):() then view_flow_test_answer_state:(28)
+given view_flow_test_open_edit("AB") given editor_select_all((import layout_paragraph_test_document), (import view_input_controller)) given view_flow_test_ask_field(4) ((import layout_paragraph_test_view), (import view_input_controller), 312, 16776960):() then view_flow_test_answer_state:(16776960)
+given view_flow_test_open_edit("AB") given editor_select_all((import layout_paragraph_test_document), (import view_input_controller)) given view_flow_test_ask_field(2) ((import layout_paragraph_test_view), (import view_input_controller), 311, 28):() then view_flow_test_answer_state:(24)
 
 // The font family of the selection set to the family named cvs_name when the command is cmd_font_family: its number in the document's list of fonts, which gets the family at the end when it has not got it yet. An empty name sets nothing.
-cv_family(View cvv, Ctl cvc, int cvi_cmd, string cvs_name) {
-  int cvi_f = list_string_index(cvv.doc.ext.fonts, cvs_name);
-  int cvi_on = cvi_cmd == (import cmd_font_family) && len(cvs_name) > 0;
-  if(cvi_on == 1 && cvi_f < 0) {
-    push(cvv.doc.ext.fonts, cvs_name);
-    cvi_f = len(cvv.doc.ext.fonts) - 1;
+view_input_font_family_set(View view_input_family_view, Ctl view_input_family_controller, int view_input_family_command_number, string view_input_family_name) {
+  int view_input_family_number = list_string_index(view_input_family_view.doc.ext.fonts, view_input_family_name);
+  int view_input_family_enabled = view_input_family_command_number == (import cmd_font_family) && len(view_input_family_name) > 0;
+  if(view_input_family_enabled == 1 && view_input_family_number < 0) {
+    push(view_input_family_view.doc.ext.fonts, view_input_family_name);
+    view_input_family_number = len(view_input_family_view.doc.ext.fonts) - 1;
   }
-} chain (View cvv, Ctl cvc, int cvi_cmd, string cvs_name) {
-  if(cvi_on == 1) {
-    ed_set_char(cvv.doc, cvc, (import quill_character_font), cvi_f);
+} chain (View view_input_family_view, Ctl view_input_family_controller, int view_input_family_command_number, string view_input_family_name) {
+  if(view_input_family_enabled == 1) {
+    editor_set_character(view_input_family_view.doc, view_input_family_controller, (import quill_character_font), view_input_family_number);
   }
 } return void;
-given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) given cv_t_ask(1) ((import lp_t_v), (import vw_ctl), 307, "Serif"):() then cv_t_ans:(1)
-given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) given cv_t_ask(1) ((import lp_t_v), (import vw_ctl), 307, ""):() then cv_t_ans:(0)
+given view_flow_test_open_edit("AB") given editor_select_all((import layout_paragraph_test_document), (import view_input_controller)) given view_flow_test_ask_field(1) ((import layout_paragraph_test_view), (import view_input_controller), 307, "Serif"):() then view_flow_test_answer_state:(1)
+given view_flow_test_open_edit("AB") given editor_select_all((import layout_paragraph_test_document), (import view_input_controller)) given view_flow_test_ask_field(1) ((import layout_paragraph_test_view), (import view_input_controller), 307, ""):() then view_flow_test_answer_state:(0)
 
 // The grow font button (cmd_size_grow) makes the size of the selection one step bigger and the shrink button (cmd_size_shrink) one step smaller, as far as two half-points; a selection whose size differs along it, or any other command, is left alone.
-cv_resize(View cvv, Ctl cvc, int cvi_cmd) {
-  int cvi_s = sel_state(cvv.doc, cvc, (import quill_character_size));
-  int cvi_d = (cvi_cmd == (import cmd_size_grow)) - (cvi_cmd == (import cmd_size_shrink));
-  if(cvi_d != 0 && cvi_s > 0) {
-    ed_set_char(cvv.doc, cvc, (import quill_character_size), fixed_point_maximum(cvi_s + cvi_d * (import cv_grow), 2));
+view_input_font_size_step(View view_input_resize_view, Ctl view_input_resize_controller, int view_input_resize_command_number) {
+  int view_input_resize_size = editor_selection_state(view_input_resize_view.doc, view_input_resize_controller, (import quill_character_size));
+  int view_input_resize_direction = (view_input_resize_command_number == (import cmd_size_grow)) - (view_input_resize_command_number == (import cmd_size_shrink));
+  if(view_input_resize_direction != 0 && view_input_resize_size > 0) {
+    editor_set_character(view_input_resize_view.doc, view_input_resize_controller, (import quill_character_size), fixed_point_maximum(view_input_resize_size + view_input_resize_direction * (import cv_grow), 2));
   }
 } return void;
-given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) given cv_t_ask(2) ((import lp_t_v), (import vw_ctl), 309):() then cv_t_ans:(26)
-given cv_t_ed("AB") given ed_select_all((import lp_t_d), (import vw_ctl)) given cv_t_ask(2) ((import lp_t_v), (import vw_ctl), 310):() then cv_t_ans:(22)
+given view_flow_test_open_edit("AB") given editor_select_all((import layout_paragraph_test_document), (import view_input_controller)) given view_flow_test_ask_field(2) ((import layout_paragraph_test_view), (import view_input_controller), 309):() then view_flow_test_answer_state:(26)
+given view_flow_test_open_edit("AB") given editor_select_all((import layout_paragraph_test_document), (import view_input_controller)) given view_flow_test_ask_field(2) ((import layout_paragraph_test_view), (import view_input_controller), 310):() then view_flow_test_answer_state:(22)

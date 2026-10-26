@@ -1,31 +1,31 @@
 // The name the model gives an ODT style: "Normal" for LibreOffice's "Standard", else its display name, else the ODT name with each _20_ (an encoded space) turned back into a space.
-ost_mname(string os_swire, string os_sdisp) {
-  string[] os_lparts = str_split(os_swire, "_20_");
-  string os_sname = str_join(os_lparts, " ");
-  if(os_sdisp != "") {
-    os_sname = os_sdisp;
+odt_style_model_name(string odt_style_model_name_wire_name, string odt_style_model_name_display_name) {
+  string[] odt_style_model_name_parts = str_split(odt_style_model_name_wire_name, "_20_");
+  string odt_style_model_name_name = str_join(odt_style_model_name_parts, " ");
+  if(odt_style_model_name_display_name != "") {
+    odt_style_model_name_name = odt_style_model_name_display_name;
   }
-} chain (string os_swire, string os_sdisp) {
-  if(os_swire == (import quill_style_wire)[0]) {
-    os_sname = (import quill_style_names)[0];
+} chain (string odt_style_model_name_wire_name, string odt_style_model_name_display_name) {
+  if(odt_style_model_name_wire_name == (import quill_style_wire)[0]) {
+    odt_style_model_name_name = (import quill_style_names)[0];
   }
-} return string os_sname;
+} return string odt_style_model_name_name;
 ("Heading_20_1", ""):("Heading 1")
 ("Standard", ""):("Normal")
 ("Text_20_body", "Text body"):("Text body")
 ("Emphasis", ""):("Emphasis")
 
 // The index of the model style called os_sname in family os_ifam (0 paragraph, 1 text), -1 when there is none.
-ost_sty_find(Fmt os_f, string os_sname, int os_ifam) {
-  int os_ires = 0 - 1;
+odt_style_model_find(Fmt odt_style_model_find_format, string odt_style_model_find_name, int odt_style_model_find_family) {
+  int odt_style_model_find_result = 0 - 1;
   int i = 0;
-  while(i < len(os_f.sty.styles) && os_ires < 0) {
-    if(os_f.sty.styles[i].name == os_sname && os_f.sty.styles[i].rel[(import quill_style_family)] == os_ifam) {
-      os_ires = i;
+  while(i < len(odt_style_model_find_format.sty.styles) && odt_style_model_find_result < 0) {
+    if(odt_style_model_find_format.sty.styles[i].name == odt_style_model_find_name && odt_style_model_find_format.sty.styles[i].rel[(import quill_style_family)] == odt_style_model_find_family) {
+      odt_style_model_find_result = i;
     }
     i = i + 1;
   }
-} return int os_ires;
+} return int odt_style_model_find_result;
 (Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("A", [0, -1, 0], [0, 0]), Style("A", [1, -1, 1], [0, 0])], [], 0)), "A", 1):(1)
 (Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("A", [0, -1, 0], [0, 0])], [], 0)), "B", 0):(-1)
 (Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("A", [0, -1, 0], [0, 0]), Style("B", [0, 0, 0], [0, 0])], [], 0)), "B", 0):(1)

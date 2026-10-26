@@ -1,39 +1,39 @@
 // The size field of a character row for a font-size value: half-points, or ost_pct_base minus the percentage when it is relative (the parent's size is not known yet), -1 when unreadable.
-ost_csize(string os_sv) {
-  int os_ipct = ost_pct(os_sv);
-  int os_ihp = ost_size(os_sv, 0 - 1);
-  if(os_ipct != (import ost_bad)) {
-    os_ihp = (import ost_pct_base) - os_ipct;
+odt_named_character_size(string odt_named_character_size_text) {
+  int odt_named_character_size_percent = odt_named_percent_parse(odt_named_character_size_text);
+  int odt_named_character_size_half_points = odt_named_font_size(odt_named_character_size_text, 0 - 1);
+  if(odt_named_character_size_percent != (import ost_bad)) {
+    odt_named_character_size_half_points = (import ost_pct_base) - odt_named_character_size_percent;
   }
-} chain (string os_sv) {
-  if(os_ihp == (import ost_bad)) {
-    os_ihp = 0 - 1;
+} chain (string odt_named_character_size_text) {
+  if(odt_named_character_size_half_points == (import ost_bad)) {
+    odt_named_character_size_half_points = 0 - 1;
   }
-} return int os_ihp;
+} return int odt_named_character_size_half_points;
 ("12pt"):(24)
 ("130%"):(-1130)
 ("huge"):(-1)
 
 // Applies the value of text attribute k (the order of ost_cattr) to a character row; the font is not a number here, the caller reads its name.
-ost_cset(int[] os_lcrow, int os_ik, string os_sv) {
-  int os_ibit = 1 << os_ik;
-  if(os_ik < 4) {
-    int os_iflag = ost_isflag(os_ik, os_sv);
-    ost_flagset(os_lcrow, os_ibit, os_iflag * os_ibit);
+odt_named_character_apply(int[] odt_named_character_apply_row, int odt_named_character_apply_attribute, string odt_named_character_apply_text) {
+  int odt_named_character_apply_bit = 1 << odt_named_character_apply_attribute;
+  if(odt_named_character_apply_attribute < 4) {
+    int odt_named_character_apply_enabled = odt_named_flag_enabled(odt_named_character_apply_attribute, odt_named_character_apply_text);
+    odt_named_flag_apply(odt_named_character_apply_row, odt_named_character_apply_bit, odt_named_character_apply_enabled * odt_named_character_apply_bit);
   }
-  if(os_ik == 4) {
-    int os_ipos = ost_pos(os_sv);
-    ost_flagset(os_lcrow, 48, os_ipos);
+  if(odt_named_character_apply_attribute == 4) {
+    int odt_named_character_apply_position = odt_named_position_flag(odt_named_character_apply_text);
+    odt_named_flag_apply(odt_named_character_apply_row, 48, odt_named_character_apply_position);
   }
-} chain (int[] os_lcrow, int os_ik, string os_sv) {
-  if(os_ik == 5) {
-    os_lcrow[(import quill_character_size)] = ost_csize(os_sv);
+} chain (int[] odt_named_character_apply_row, int odt_named_character_apply_attribute, string odt_named_character_apply_text) {
+  if(odt_named_character_apply_attribute == 5) {
+    odt_named_character_apply_row[(import quill_character_size)] = odt_named_character_size(odt_named_character_apply_text);
   }
-  if(os_ik == 6) {
-    os_lcrow[(import quill_character_color)] = ost_color(os_sv);
+  if(odt_named_character_apply_attribute == 6) {
+    odt_named_character_apply_row[(import quill_character_color)] = odt_named_color_parse(odt_named_character_apply_text);
   }
-  if(os_ik == 7) {
-    os_lcrow[(import quill_character_highlight)] = ost_color(os_sv);
+  if(odt_named_character_apply_attribute == 7) {
+    odt_named_character_apply_row[(import quill_character_highlight)] = odt_named_color_parse(odt_named_character_apply_text);
   }
 } return void;
 ([0, -1, -1, -1, -1, 0, 0], 0, "bold"):([0, -1, -1, -1, -1, 1, 1], 0, "bold")

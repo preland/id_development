@@ -1,33 +1,33 @@
 // Test setup: the view of the viewer's fixture sheet (1500 by 3000 twips, so a text area 2560 lu wide) over a document whose paragraphs are the parts of cvs_t between bars, laid out and paginated, in the exported lp_t_v. In that area "AB " is 1651 lu wide, so the words of "AB AB AB" take a line each.
-cv_t_view(string cvs_t) {
-  lp_t_font();
-  lg_t_page(1500, 3000, 150, 300, 450, 600);
-  cv_t_paras(cvs_t);
-} chain (string cvs_t) {
-  lay_all((import lp_t_v));
-  lay_paginate((import lp_t_v), 0);
+view_flow_test_make_view(string view_flow_make_text) {
+  layout_paragraph_test_font();
+  layout_page_test_page(1500, 3000, 150, 300, 450, 600);
+  view_flow_test_add_paragraphs(view_flow_make_text);
+} chain (string view_flow_make_text) {
+  lay_all((import layout_paragraph_test_view));
+  lay_paginate((import layout_paragraph_test_view), 0);
 } return void;
-("AB"):() then cv_t_dump:("AB")
-("AB|CD"):() then (import lp_t_v).pages.count:(1)
+("AB"):() then view_flow_test_dump_text:("AB")
+("AB|CD"):() then (import layout_paragraph_test_view).pages.count:(1)
 
 // Test setup: the text of every paragraph of cvs_t, split at the bars, goes into the test document.
-cv_t_paras(string cvs_t) {
-  string[] cvl_p = str_split(cvs_t, "|");
-  int cvi_k = 0;
-  while(cvi_k < len(cvl_p)) {
-    cv_t_para(cvl_p, cvi_k);
-    cvi_k = cvi_k + 1;
+view_flow_test_add_paragraphs(string view_flow_paragraphs_text) {
+  string[] view_flow_paragraphs_parts = str_split(view_flow_paragraphs_text, "|");
+  int view_flow_paragraphs_index = 0;
+  while(view_flow_paragraphs_index < len(view_flow_paragraphs_parts)) {
+    view_flow_test_add_paragraph(view_flow_paragraphs_parts, view_flow_paragraphs_index);
+    view_flow_paragraphs_index = view_flow_paragraphs_index + 1;
   }
 } return void;
-given lp_t_new ("AB"):() then cv_t_dump:("AB")
-given lp_t_new ("A|B|C"):() then cv_t_dump:("A|B|C")
+given layout_paragraph_test_new ("AB"):() then view_flow_test_dump_text:("AB")
+given layout_paragraph_test_new ("A|B|C"):() then view_flow_test_dump_text:("A|B|C")
 
 // Test setup: part cvi_k of cvl_p is the text of paragraph cvi_k of the test document, which is split off after it when another part follows.
-cv_t_para(string[] cvl_p, int cvi_k) {
-  lp_t_ins(cvi_k, cvl_p[cvi_k]);
-  if(cvi_k + 1 < len(cvl_p)) {
-    lp_t_split(cvi_k, len(cvl_p[cvi_k]));
+view_flow_test_add_paragraph(string[] view_flow_add_parts, int view_flow_add_index) {
+  layout_paragraph_test_insert(view_flow_add_index, view_flow_add_parts[view_flow_add_index]);
+  if(view_flow_add_index + 1 < len(view_flow_add_parts)) {
+    layout_paragraph_test_split(view_flow_add_index, len(view_flow_add_parts[view_flow_add_index]));
   }
 } return void;
-given lp_t_new (["x"], 0):() then cv_t_dump:("x")
-given lp_t_new (["x", "y"], 0):() then cv_t_dump:("x|")
+given layout_paragraph_test_new (["x"], 0):() then view_flow_test_dump_text:("x")
+given layout_paragraph_test_new (["x", "y"], 0):() then view_flow_test_dump_text:("x|")

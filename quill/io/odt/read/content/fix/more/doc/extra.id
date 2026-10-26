@@ -1,15 +1,15 @@
 // Test fixture: adds a paragraph style called name to the document of orc_tc, as a style a file brings.
-orc_t_style(string name) {
-  Cx cx = (import orc_tc);
+odt_read_fixture_add_style(string name) {
+  Odt_Read_Context odt_read_fixture_style_context = (import odt_read_fixture_context);
   Style st = Style(name, [0, -1, 0], [0, 0]);
-  push(cx.d.fmt.sty.styles, st);
+  push(odt_read_fixture_style_context.d.fmt.sty.styles, st);
 } return void;
-given orc_t_open("<a/>") ("X Y"):() then len((import orc_tc).d.fmt.sty.styles):(9)
-given orc_t_open("<a/>") ("Z"):() then len((import orc_tc).d.fmt.sty.styles):(9)
+given odt_read_fixture_open("<a/>") ("X Y"):() then len((import odt_read_fixture_context).d.fmt.sty.styles):(9)
+given odt_read_fixture_open("<a/>") ("Z"):() then len((import odt_read_fixture_context).d.fmt.sty.styles):(9)
 
 // Test fixture: the byte offset the XML reader of orc_tr has read up to.
-orc_t_pos() {
-  int at = orc_pos((import orc_tr));
+odt_read_fixture_reader_position() {
+  int at = odt_read_reader_offset((import odt_read_fixture_xml_reader));
 } return int at;
-given orc_t_open("<a>x</a>") ():(0)
-given orc_t_open("<a>x</a>") given orc_t_steps(2) ():(4)
+given odt_read_fixture_open("<a>x</a>") ():(0)
+given odt_read_fixture_open("<a>x</a>") given odt_read_fixture_step_events(2) ():(4)

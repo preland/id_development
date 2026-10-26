@@ -1,27 +1,27 @@
 // For ed_change: moves paragraph wai_p wal_a[0] levels, when it is in a list and the level it comes to is one of the list's, by the paragraph row that par_set makes.
-wa_step(Doc wad, Ctl wac, int wai_p, int wai_lo, int wai_hi, int[] wal_a) {
-  int wai_pp = wad.body.paras[wai_p].pprop;
-  int wai_l = style_eff_p(wad.fmt, wai_pp, (import quill_paragraph_list));
-  int wai_v = fixed_point_maximum(style_eff_p(wad.fmt, wai_pp, (import quill_paragraph_level)), 0) + wal_a[0];
-} chain (Doc wad, Ctl wac, int wai_p, int wai_lo, int wai_hi, int[] wal_a) {
-  int[] wal_v = [(import quill_paragraph_level), wai_v];
-  if(wai_l > 0 && wai_v >= 0 && wai_v <= (import wa_deepest)) {
-    par_set(wad, wac, wai_p, wai_lo, wai_hi, wal_v);
+app_list_step(Doc wad, Ctl app_list_step_controller, int app_list_step_paragraph, int app_list_step_low, int app_list_step_high, int[] app_list_step_arguments) {
+  int app_list_step_properties = wad.body.paras[app_list_step_paragraph].pprop;
+  int app_list_step_list = document_style_effective_paragraph(wad.fmt, app_list_step_properties, (import quill_paragraph_list));
+  int app_list_step_level = fixed_point_maximum(document_style_effective_paragraph(wad.fmt, app_list_step_properties, (import quill_paragraph_level)), 0) + app_list_step_arguments[0];
+} chain (Doc wad, Ctl app_list_step_controller, int app_list_step_paragraph, int app_list_step_low, int app_list_step_high, int[] app_list_step_arguments) {
+  int[] app_list_step_values = [(import quill_paragraph_level), app_list_step_level];
+  if(app_list_step_list > 0 && app_list_step_level >= 0 && app_list_step_level <= (import wa_deepest)) {
+    par_set(wad, app_list_step_controller, app_list_step_paragraph, app_list_step_low, app_list_step_high, app_list_step_values);
   }
 } return void;
-given wa_t_app given wa_t_list(1, 0) given txn_begin((import wa_t_c)) ((import wa_t_d), (import wa_t_c), 0, 0, 0, [1]):() then wa_t_level:("1:1")
-given wa_t_app given wa_t_list(1, 2) given txn_begin((import wa_t_c)) ((import wa_t_d), (import wa_t_c), 0, 0, 0, [1]):() then wa_t_level:("1:2")
-given wa_t_app given wa_t_list(0, 0) given txn_begin((import wa_t_c)) ((import wa_t_d), (import wa_t_c), 0, 0, 0, [1]):() then wa_t_level:("0:0")
+given cli_test_boot_app given app_test_set_list(1, 0) given editor_transaction_begin((import app_test_controller)) ((import app_test_document), (import app_test_controller), 0, 0, 0, [1]):() then app_test_list_level:("1:1")
+given cli_test_boot_app given app_test_set_list(1, 2) given editor_transaction_begin((import app_test_controller)) ((import app_test_document), (import app_test_controller), 0, 0, 0, [1]):() then app_test_list_level:("1:2")
+given cli_test_boot_app given app_test_set_list(0, 0) given editor_transaction_begin((import app_test_controller)) ((import app_test_document), (import app_test_controller), 0, 0, 0, [1]):() then app_test_list_level:("0:0")
 
 // Test setup: the first paragraph of the app's document is on the list wai_id at the level wai_lv, and the document and its controller are the exports wa_t_d and wa_t_c.
-wa_t_list(int wai_id, int wai_lv) {
-  App waa = (import wa_app);
-  ed_set_para(waa.doc, waa.ctl, (import quill_paragraph_list), wai_id);
-  ed_set_para(waa.doc, waa.ctl, (import quill_paragraph_level), wai_lv);
-} chain (int wai_id, int wai_lv) {
-  export Doc wa_t_d = waa.doc;
-  export Ctl wa_t_c = waa.ctl;
+app_test_set_list(int app_test_set_list_kind, int app_test_set_list_level) {
+  App app_test_set_list_application = (import cli_application);
+  editor_set_paragraph(app_test_set_list_application.doc, app_test_set_list_application.ctl, (import quill_paragraph_list), app_test_set_list_kind);
+  editor_set_paragraph(app_test_set_list_application.doc, app_test_set_list_application.ctl, (import quill_paragraph_level), app_test_set_list_level);
+} chain (int app_test_set_list_kind, int app_test_set_list_level) {
+  export Doc app_test_document = app_test_set_list_application.doc;
+  export Ctl app_test_controller = app_test_set_list_application.ctl;
 } return void;
-given wa_t_app (1, 0):() then wa_t_level:("1:0")
-given wa_t_app (2, 1):() then wa_t_level:("2:1")
+given cli_test_boot_app (1, 0):() then app_test_list_level:("1:0")
+given cli_test_boot_app (2, 1):() then app_test_list_level:("2:1")
 

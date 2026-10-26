@@ -1,28 +1,28 @@
 // Test helper: the ASCII bytes of s as code points.
-lp_t_cps(string text) {
-  int[] cps = [];
-  int j = 0;
-  while(j < len(text)) {
-    push(cps, character_code_at(text, j));
-    j = j + 1;
+layout_paragraph_test_code_points(string text) {
+  int[] code_points_result = [];
+  int code_points_position = 0;
+  while(code_points_position < len(text)) {
+    push(code_points_result, character_code_at(text, code_points_position));
+    code_points_position = code_points_position + 1;
   }
-} return int[] cps;
+} return int[] code_points_result;
 ("AB"):([65, 66])
 (""):([])
 
 // Test setup: appends s, in character row 0, to paragraph i of the test document.
-lp_t_ins(int i, string text) {
-  Doc d = (import lp_t_d);
-  Text t = d.body.paras[i].txt;
-  text_insert(t, len(t.cps), lp_t_cps(text), 0);
+layout_paragraph_test_insert(int insert_paragraph_index, string text) {
+  Doc insert_document = (import layout_paragraph_test_document);
+  Text insert_text = insert_document.body.paras[insert_paragraph_index].txt;
+  text_insert(insert_text, len(insert_text.cps), layout_paragraph_test_code_points(text), 0);
 } return void;
-given lp_t_new (0, "AB"):(0, "AB") then lp_t_c0:([65, 66])
-given lp_t_new given lp_t_ins(0, "x") (0, "yz"):(0, "yz") then lp_t_c0:([120, 121, 122])
+given layout_paragraph_test_new (0, "AB"):(0, "AB") then layout_paragraph_test_first_code_points:([65, 66])
+given layout_paragraph_test_new given layout_paragraph_test_insert(0, "x") (0, "yz"):(0, "yz") then layout_paragraph_test_first_code_points:([120, 121, 122])
 
 // Test setup: splits paragraph i of the test document at code point off.
-lp_t_split(int i, int off) {
-  Doc d = (import lp_t_d);
-  body_split(d.body, i, off);
+layout_paragraph_test_split(int split_paragraph_index, int off) {
+  Doc split_document = (import layout_paragraph_test_document);
+  body_split(split_document.body, split_paragraph_index, off);
 } return void;
-given lp_t_new given lp_t_ins(0, "ABCD") (0, 2):(0, 2) then lp_t_c0:([65, 66]) then len((import lp_t_d).body.paras):(2)
-given lp_t_new given lp_t_ins(0, "ABCD") (0, 4):(0, 4) then lp_t_c0:([65, 66, 67, 68]) then len((import lp_t_d).body.paras):(2)
+given layout_paragraph_test_new given layout_paragraph_test_insert(0, "ABCD") (0, 2):(0, 2) then layout_paragraph_test_first_code_points:([65, 66]) then len((import layout_paragraph_test_document).body.paras):(2)
+given layout_paragraph_test_new given layout_paragraph_test_insert(0, "ABCD") (0, 4):(0, 4) then layout_paragraph_test_first_code_points:([65, 66, 67, 68]) then len((import layout_paragraph_test_document).body.paras):(2)

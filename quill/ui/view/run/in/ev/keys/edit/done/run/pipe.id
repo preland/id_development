@@ -1,37 +1,37 @@
 // Starts a command that may change the document or the selection: the layout is kept (cv_keep) to see afterwards what moved, and the paragraphs of the selection as it is now are asked to be repainted.
-cv_begin(View cvv) {
-  cv_keep(cvv, (import vw_tp));
-  cv_sel_dirty(cvv);
+view_input_command_begin(View view_input_begin_view) {
+  view_input_layout_keep(view_input_begin_view, (import view_input_kept_tops));
+  view_input_mark_selection_paragraphs(view_input_begin_view);
 } return void;
-given cv_t_ed("AB|CD") ((import lp_t_v)):() then cv_t_eds:("eds 0,0,0,0,0,-1,187,219,") then cv_t_tp:("tp 640,2304,3456,")
-given cv_t_ed("AB|CD") given lset((import vw_tp), 0, 7) ((import lp_t_v)):() then cv_t_eds:("eds 0,0,0,0,0,-1,187,219,") then cv_t_tp:("tp 640,2304,3456,")
+given view_flow_test_open_edit("AB|CD") ((import layout_paragraph_test_view)):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,187,219,") then view_flow_test_tops_text:("tp 640,2304,3456,")
+given view_flow_test_open_edit("AB|CD") given lset((import view_input_kept_tops), 0, 7) ((import layout_paragraph_test_view)):() then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,187,219,") then view_flow_test_tops_text:("tp 640,2304,3456,")
 
 // Ends a command: the paragraphs it made stale are laid out again and the pages made again, the part of the picture that changed is asked for (the paragraphs it touched and what moved, and the paragraphs of the selection as it is now), the caret is brought into view, and it is solid again for a blink.
-cv_end(View cvv) {
-  int[] cvl_r = cv_stale(cvv);
-  int cvi_np = lay_page_count(cvv);
-  int cvi_n = cv_lay(cvv, cvl_r);
-} chain (View cvv) {
-  cv_dirty(cvv, cvl_r, cvi_np);
-  cv_sel_dirty(cvv);
-  cv_see(cvv);
-} chain (View cvv) {
-  lset((import vw_ed), (import cv_e_t0), cv_now());
-  lset((import vw_ed), (import cv_e_ph), 1);
-  cv_look(cvv);
+view_input_command_end(View view_input_finish_view) {
+  int[] view_input_finish_range = view_input_stale_paragraphs_find(view_input_finish_view);
+  int view_input_finish_page_count = lay_page_count(view_input_finish_view);
+  int view_input_finish_relaid_count = view_input_again_stale(view_input_finish_view, view_input_finish_range);
+} chain (View view_input_finish_view) {
+  view_input_mark_edit_changes(view_input_finish_view, view_input_finish_range, view_input_finish_page_count);
+  view_input_mark_selection_paragraphs(view_input_finish_view);
+  view_input_scroll_to_caret(view_input_finish_view);
+} chain (View view_input_finish_view) {
+  lset((import view_input_edit_state), (import cv_e_t0), view_input_clock_now());
+  lset((import view_input_edit_state), (import cv_e_ph), 1);
+  view_input_selection_look(view_input_finish_view);
 } return void;
-given cv_t_ed("AB|CD") given cv_t_clock(0) given cv_t_mark((import lp_t_v), 1) ((import lp_t_v)):() then cv_t_eds:("eds 0,0,0,0,1,0,187,237,")
-given cv_t_ed("AB|CD") given cv_t_clock(500) ((import lp_t_v)):() then cv_t_eds:("eds 0,0,0,500,1,500,187,219,")
-given cv_t_ed("A|A|A|A|A|A|A|A") given ed_move((import lp_t_d), (import vw_ctl), 1, 5, 0) ((import lp_t_v)):() then vw_t_sts:("sts 0,204,100,1,")
+given view_flow_test_open_edit("AB|CD") given view_input_test_clock_set(0) given view_flow_test_mark_stale((import layout_paragraph_test_view), 1) ((import layout_paragraph_test_view)):() then view_flow_test_edit_states_text:("eds 0,0,0,0,1,0,187,237,")
+given view_flow_test_open_edit("AB|CD") given view_input_test_clock_set(500) ((import layout_paragraph_test_view)):() then view_flow_test_edit_states_text:("eds 0,0,0,500,1,500,187,219,")
+given view_flow_test_open_edit("A|A|A|A|A|A|A|A") given editor_move((import layout_paragraph_test_document), (import view_input_controller), 1, 5, 0) ((import layout_paragraph_test_view)):() then view_test_state_dump:("sts 0,204,100,1,")
 
 // Lays the document out again when something needs it: an edit marked paragraphs stale (cvl_r says which) or the paragraphs are not the ones the pagination has. Answers how many were laid out again.
-cv_lay(View cvv, int[] cvl_r) {
-  int cvi_n = 0;
-  int cvi_u = cvl_r[0] >= 0 || len(cvv.pages.tops) != len(cvv.doc.body.paras);
-  if(cvi_u == 1) {
-    cvi_n = lay_relayout(cvv);
+view_input_again_stale(View view_input_again_view, int[] view_input_again_range) {
+  int view_input_again_count = 0;
+  int view_input_again_needed = view_input_again_range[0] >= 0 || len(view_input_again_view.pages.tops) != len(view_input_again_view.doc.body.paras);
+  if(view_input_again_needed == 1) {
+    view_input_again_count = layout_page_layout_again(view_input_again_view);
   }
-} return int cvi_n;
-given cv_t_view("AB|CD") given cv_t_mark((import lp_t_v), 1) ((import lp_t_v), [1, 1]):(1)
-given cv_t_view("AB|CD") ((import lp_t_v), [-1, -1]):(0)
-given cv_t_view("AB|CD") given lp_t_split(0, 1) ((import lp_t_v), [-1, -1]):(2)
+} return int view_input_again_count;
+given view_flow_test_make_view("AB|CD") given view_flow_test_mark_stale((import layout_paragraph_test_view), 1) ((import layout_paragraph_test_view), [1, 1]):(1)
+given view_flow_test_make_view("AB|CD") ((import layout_paragraph_test_view), [-1, -1]):(0)
+given view_flow_test_make_view("AB|CD") given layout_paragraph_test_split(0, 1) ((import layout_paragraph_test_view), [-1, -1]):(2)

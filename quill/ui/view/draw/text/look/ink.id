@@ -1,41 +1,41 @@
 // Fills the face and the metrics of the look list vwl_q for run vwi_ri of paragraph vwi_p at zoom vwi_z percent: the face (the face cache's, at that zoom) and its ascent and descent in pixels.
-vw_look(View vwv, int vwi_p, int vwi_ri, int vwi_z, int[] vwl_q) {
-  Para vwp = vwv.doc.body.paras[vwi_p];
-  int vwi_ps = tab_get(vwv.doc.fmt.paras, vwp.pprop, (import quill_paragraph_style));
-  int vwi_fh = face_for(vwv.faces, vwv.doc, vwi_ps, vwp.txt.runs[vwi_ri].cprop, vwi_z);
-} chain (View vwv, int vwi_p, int vwi_ri, int vwi_z, int[] vwl_q) {
-  int vwi_a = gui_font_ascent(vwi_fh);
-  int vwi_d = gui_font_descent(vwi_fh);
-  lset(vwl_q, (import vw_q_fh), vwi_fh);
-} chain (View vwv, int vwi_p, int vwi_ri, int vwi_z, int[] vwl_q) {
-  lset(vwl_q, (import vw_q_asc), vwi_a);
-  lset(vwl_q, (import vw_q_desc), vwi_d);
+view_look_fill_face(View view_look_fill_face_viewer, int view_look_fill_face_paragraph_index, int view_look_fill_face_run_index, int view_look_fill_face_zoom, int[] view_look_fill_face_look) {
+  Para view_look_fill_face_paragraph = view_look_fill_face_viewer.doc.body.paras[view_look_fill_face_paragraph_index];
+  int view_look_fill_face_style = tab_get(view_look_fill_face_viewer.doc.fmt.paras, view_look_fill_face_paragraph.pprop, (import quill_paragraph_style));
+  int view_look_fill_face_handle = face_for(view_look_fill_face_viewer.faces, view_look_fill_face_viewer.doc, view_look_fill_face_style, view_look_fill_face_paragraph.txt.runs[view_look_fill_face_run_index].cprop, view_look_fill_face_zoom);
+} chain (View view_look_fill_face_viewer, int view_look_fill_face_paragraph_index, int view_look_fill_face_run_index, int view_look_fill_face_zoom, int[] view_look_fill_face_look) {
+  int view_look_fill_face_ascent = gui_font_ascent(view_look_fill_face_handle);
+  int view_look_fill_face_descent = gui_font_descent(view_look_fill_face_handle);
+  lset(view_look_fill_face_look, (import vw_q_fh), view_look_fill_face_handle);
+} chain (View view_look_fill_face_viewer, int view_look_fill_face_paragraph_index, int view_look_fill_face_run_index, int view_look_fill_face_zoom, int[] view_look_fill_face_look) {
+  lset(view_look_fill_face_look, (import vw_q_asc), view_look_fill_face_ascent);
+  lset(view_look_fill_face_look, (import vw_q_desc), view_look_fill_face_descent);
 } return void;
-given lp_t_font given lp_t_ins(0, "AB") given vw_t_q0 ((import lp_t_v), 0, 0, 100, (import vw_t_q)):() then vw_t_qs:("qs 1,0,0,0,14,3,")
-given lp_t_font given lp_t_ins(0, "AB") given vw_t_q0 ((import lp_t_v), 0, 0, 200, (import vw_t_q)):() then vw_t_qs:("qs 2,0,0,0,29,7,")
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "AB") given view_test_look_zeros ((import layout_paragraph_test_view), 0, 0, 100, (import view_test_look_numbers)):() then view_test_look_dump:("qs 1,0,0,0,14,3,")
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "AB") given view_test_look_zeros ((import layout_paragraph_test_view), 0, 0, 200, (import view_test_look_numbers)):() then view_test_look_dump:("qs 2,0,0,0,29,7,")
 
 // Fills the ink of the look list vwl_q for run vwi_ri of paragraph vwi_p: its colour (black when nothing sets one, the link colour inside a hyperlink), its highlight (-1 for none) and its flag bits (a hyperlink is underlined).
-vw_ink(View vwv, int vwi_p, int vwi_ri, int[] vwl_q) {
-  Para vwp = vwv.doc.body.paras[vwi_p];
-  int vwi_ps = tab_get(vwv.doc.fmt.paras, vwp.pprop, (import quill_paragraph_style));
-  int vwi_cr = vwp.txt.runs[vwi_ri].cprop;
-} chain (View vwv, int vwi_p, int vwi_ri, int[] vwl_q) {
-  int vwi_col = style_eff_c(vwv.doc.fmt, vwi_ps, vwi_cr, (import quill_character_color));
-  int vwi_hl = style_eff_c(vwv.doc.fmt, vwi_ps, vwi_cr, (import quill_character_highlight));
-  int vwi_bits = style_eff_c(vwv.doc.fmt, vwi_ps, vwi_cr, (import quill_character_on));
-} chain (View vwv, int vwi_p, int vwi_ri, int[] vwl_q) {
-  if(vwi_col < 0) {
-    vwi_col = 0;
+view_look_fill_ink(View view_look_fill_ink_viewer, int view_look_fill_ink_paragraph_index, int view_look_fill_ink_run_index, int[] view_look_fill_ink_look) {
+  Para view_look_fill_ink_paragraph = view_look_fill_ink_viewer.doc.body.paras[view_look_fill_ink_paragraph_index];
+  int view_look_fill_ink_style = tab_get(view_look_fill_ink_viewer.doc.fmt.paras, view_look_fill_ink_paragraph.pprop, (import quill_paragraph_style));
+  int view_look_fill_ink_character_properties = view_look_fill_ink_paragraph.txt.runs[view_look_fill_ink_run_index].cprop;
+} chain (View view_look_fill_ink_viewer, int view_look_fill_ink_paragraph_index, int view_look_fill_ink_run_index, int[] view_look_fill_ink_look) {
+  int view_look_fill_ink_color = document_style_effective_character(view_look_fill_ink_viewer.doc.fmt, view_look_fill_ink_style, view_look_fill_ink_character_properties, (import quill_character_color));
+  int view_look_fill_ink_highlight = document_style_effective_character(view_look_fill_ink_viewer.doc.fmt, view_look_fill_ink_style, view_look_fill_ink_character_properties, (import quill_character_highlight));
+  int view_look_fill_ink_flag_bits = document_style_effective_character(view_look_fill_ink_viewer.doc.fmt, view_look_fill_ink_style, view_look_fill_ink_character_properties, (import quill_character_on));
+} chain (View view_look_fill_ink_viewer, int view_look_fill_ink_paragraph_index, int view_look_fill_ink_run_index, int[] view_look_fill_ink_look) {
+  if(view_look_fill_ink_color < 0) {
+    view_look_fill_ink_color = 0;
   }
-  if(vwp.txt.runs[vwi_ri].link >= 0) {
-    vwi_col = (import vw_c_link);
-    vwi_bits = vwi_bits | 4;
+  if(view_look_fill_ink_paragraph.txt.runs[view_look_fill_ink_run_index].link >= 0) {
+    view_look_fill_ink_color = (import vw_c_link);
+    view_look_fill_ink_flag_bits = view_look_fill_ink_flag_bits | 4;
   }
-  lset(vwl_q, (import vw_q_col), vwi_col);
-} chain (View vwv, int vwi_p, int vwi_ri, int[] vwl_q) {
-  lset(vwl_q, (import vw_q_hl), vwi_hl);
-  lset(vwl_q, (import vw_q_bits), vwi_bits);
+  lset(view_look_fill_ink_look, (import vw_q_col), view_look_fill_ink_color);
+} chain (View view_look_fill_ink_viewer, int view_look_fill_ink_paragraph_index, int view_look_fill_ink_run_index, int[] view_look_fill_ink_look) {
+  lset(view_look_fill_ink_look, (import vw_q_hl), view_look_fill_ink_highlight);
+  lset(view_look_fill_ink_look, (import vw_q_bits), view_look_fill_ink_flag_bits);
 } return void;
-given lp_t_new given lp_t_ins(0, "AB") given vw_t_q0 ((import lp_t_v), 0, 0, (import vw_t_q)):() then vw_t_qs:("qs 0,0,-1,0,0,0,")
-given lp_t_new given lp_t_ins(0, "AB") given vw_t_set(0, 0, 2, 3, 255) given vw_t_set(0, 0, 2, 4, 65280) given lp_t_bits(0, 0, 2, 4) given vw_t_q0 ((import lp_t_v), 0, 0, (import vw_t_q)):() then vw_t_qs:("qs 0,255,65280,4,0,0,")
-given lp_t_new given lp_t_ins(0, "AB") given vw_t_link(0, 0) given vw_t_q0 ((import lp_t_v), 0, 0, (import vw_t_q)):() then vw_t_qs:("qs 0,353217,-1,4,0,0,")
+given layout_paragraph_test_new given layout_paragraph_test_insert(0, "AB") given view_test_look_zeros ((import layout_paragraph_test_view), 0, 0, (import view_test_look_numbers)):() then view_test_look_dump:("qs 0,0,-1,0,0,0,")
+given layout_paragraph_test_new given layout_paragraph_test_insert(0, "AB") given view_test_set_character(0, 0, 2, 3, 255) given view_test_set_character(0, 0, 2, 4, 65280) given layout_paragraph_test_flag_bits(0, 0, 2, 4) given view_test_look_zeros ((import layout_paragraph_test_view), 0, 0, (import view_test_look_numbers)):() then view_test_look_dump:("qs 0,255,65280,4,0,0,")
+given layout_paragraph_test_new given layout_paragraph_test_insert(0, "AB") given view_test_set_hyperlink(0, 0) given view_test_look_zeros ((import layout_paragraph_test_view), 0, 0, (import view_test_look_numbers)):() then view_test_look_dump:("qs 0,353217,-1,4,0,0,")

@@ -1,25 +1,25 @@
 // Test fixture: a writer kept in oc_fw, empty when k is negative, else with the root r open and then k more: 1 opens a child p, k above 1 opens k - 1 nested text:list and text:list-item pairs.
-oc_t_w(int oc_k) {
-  export XmlW oc_fw = xw_new();
-  if(oc_k >= 0) {
-    xw_start(oc_fw, "r");
-    oc_t_nest(oc_fw, oc_k);
+odt_write_test_writer_nested(int odt_write_test_writer_depth) {
+  export XmlW odt_write_test_writer_output = xw_new();
+  if(odt_write_test_writer_depth >= 0) {
+    xw_start(odt_write_test_writer_output, "r");
+    odt_write_test_open_nesting(odt_write_test_writer_output, odt_write_test_writer_depth);
   }
 } return void;
-(0):() then (import oc_fw).out:([60, 114])
-(-1):() then (import oc_fw).out:([])
-(3):() then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 45, 105, 116, 101, 109, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 45, 105, 116, 101, 109])
+(0):() then (import odt_write_test_writer_output).out:([60, 114])
+(-1):() then (import odt_write_test_writer_output).out:([])
+(3):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 45, 105, 116, 101, 109, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 45, 105, 116, 101, 109])
 
 // Test fixture: opens what oc_t_w describes for k below the root.
-oc_t_nest(XmlW oc_w, int oc_k) {
-  if(oc_k == 1) {
-    xw_start(oc_w, "p");
+odt_write_test_open_nesting(XmlW odt_write_test_nest_writer, int odt_write_test_nest_depth) {
+  if(odt_write_test_nest_depth == 1) {
+    xw_start(odt_write_test_nest_writer, "p");
   }
-  while(oc_k > 1) {
-    xw_start(oc_w, "text:list");
-    xw_start(oc_w, "text:list-item");
-    oc_k = oc_k - 1;
+  while(odt_write_test_nest_depth > 1) {
+    xw_start(odt_write_test_nest_writer, "text:list");
+    xw_start(odt_write_test_nest_writer, "text:list-item");
+    odt_write_test_nest_depth = odt_write_test_nest_depth - 1;
   }
 } return void;
-given oc_t_w(0) ((import oc_fw), 2):() then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 45, 105, 116, 101, 109])
-given oc_t_w(0) ((import oc_fw), 1):() then (import oc_fw).out:([60, 114, 62, 60, 112])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 2):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 62, 60, 116, 101, 120, 116, 58, 108, 105, 115, 116, 45, 105, 116, 101, 109])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 1):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 112])

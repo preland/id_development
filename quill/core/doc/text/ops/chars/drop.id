@@ -1,8 +1,8 @@
 // An emptied paragraph keeps one empty run, with the properties the deleted text had.
-rs_fill(Run[] rs, int cprop) {
-  if(len(rs) == 0) {
-    Run nr = Run(0, cprop, -1);
-    push(rs, nr);
+document_runs_fill(Run[] fill_runs_run_list, int fill_runs_character_row) {
+  if(len(fill_runs_run_list) == 0) {
+    Run fill_runs_new_run = Run(0, fill_runs_character_row, -1);
+    push(fill_runs_run_list, fill_runs_new_run);
   }
 } return void;
 ([], 7):([Run(0, 7, -1)], 7)
@@ -10,25 +10,25 @@ rs_fill(Run[] rs, int cprop) {
 ([Run(1, 0, -1)], 7):([Run(1, 0, -1)], 7)
 
 // Removes the runs that cover lo..hi; the code points are removed by text_delete.
-text_drop(Text t, int lo, int hi) {
-  int ia = run_cut(t, lo);
-  int iz = run_cut(t, hi);
-  int keep = t.runs[ia].cprop;
-} chain (Text t, int lo, int hi) {
-  rs_remove(t.runs, ia, iz - ia);
-  rs_fill(t.runs, keep);
-  t.rev = t.rev + 1;
+text_drop(Text drop_runs_text, int drop_runs_lower_bound, int hi) {
+  int drop_runs_first_run = run_cut(drop_runs_text, drop_runs_lower_bound);
+  int drop_runs_last_run = run_cut(drop_runs_text, hi);
+  int keep = drop_runs_text.runs[drop_runs_first_run].cprop;
+} chain (Text drop_runs_text, int drop_runs_lower_bound, int hi) {
+  document_runs_remove(drop_runs_text.runs, drop_runs_first_run, drop_runs_last_run - drop_runs_first_run);
+  document_runs_fill(drop_runs_text.runs, keep);
+  drop_runs_text.rev = drop_runs_text.rev + 1;
 } return void;
 (Text([1, 2, 3, 4], [Run(4, 0, -1)], 0), 1, 3):(Text([1, 2, 3, 4], [Run(1, 0, -1), Run(1, 0, -1)], 1), 1, 3)
 (Text([1, 2], [Run(2, 5, -1)], 0), 0, 2):(Text([1, 2], [Run(0, 5, -1)], 1), 0, 2)
 
 // Deletes the code points lo..hi-1, which must lie inside the text; an empty range does nothing. Neighbours left with equal properties merge.
-text_delete(Text t, int lo, int hi) {
+text_delete(Text delete_range_text, int delete_range_lower_bound, int hi) {
   int[] none = [];
-  if(lo < hi) {
-    text_drop(t, lo, hi);
-    list_splice(t.cps, lo, hi, none);
-    text_merge(t);
+  if(delete_range_lower_bound < hi) {
+    text_drop(delete_range_text, delete_range_lower_bound, hi);
+    list_splice(delete_range_text.cps, delete_range_lower_bound, hi, none);
+    text_merge(delete_range_text);
   }
 } return void;
 (Text([1, 2, 3, 4], [Run(4, 0, -1)], 0), 1, 3):(Text([1, 4], [Run(2, 0, -1)], 1), 1, 3)

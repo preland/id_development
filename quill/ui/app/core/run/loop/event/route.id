@@ -1,54 +1,54 @@
 // One event of the window, of kind wai_kind with the fields wal_ev: a dialog that is open has it; otherwise it is routed (wa_route). Afterwards the title and the ribbon's switches are brought up to date, except after a mouse move or the wheel. Answers 1 when the app should close.
-app_on(App waa, int wai_kind, int[] wal_ev) {
-  int wai_d = (import wa_st)[(import wa_s_dlg)];
-  if(wai_d != (import wa_d_none)) {
-    wa_dlg_event(waa, wai_kind, wal_ev);
+app_on(App app_on_application, int app_on_kind, int[] app_on_fields) {
+  int app_on_dialog = (import cli_state_list)[(import wa_s_dlg)];
+  if(app_on_dialog != (import wa_d_none)) {
+    app_dialog_event(app_on_application, app_on_kind, app_on_fields);
   }
-  if(wai_d == (import wa_d_none)) {
-    wa_route(waa, wai_kind, wal_ev);
+  if(app_on_dialog == (import wa_d_none)) {
+    app_event_route(app_on_application, app_on_kind, app_on_fields);
   }
-} chain (App waa, int wai_kind, int[] wal_ev) {
-  int wai_q = (import wa_st)[(import wa_s_quit)];
-  if(wai_kind != 5 && wai_kind != 8) {
-    wa_note(waa);
+} chain (App app_on_application, int app_on_kind, int[] app_on_fields) {
+  int app_on_quit = (import cli_state_list)[(import wa_s_quit)];
+  if(app_on_kind != 5 && app_on_kind != 8) {
+    app_state_refresh(app_on_application);
   }
-} return int wai_q;
-given wa_t_app ((import wa_app), 7, [7, 0, 0, 0, 0]):(1)
-given wa_t_app given wa_t_type(120) ((import wa_app), 7, [7, 0, 0, 0, 0]):(0) then wa_t_state:("0,3,1,0,|0|1")
+} return int app_on_quit;
+given cli_test_boot_app ((import cli_application), 7, [7, 0, 0, 0, 0]):(1)
+given cli_test_boot_app given cli_test_type_code_point(120) ((import cli_application), 7, [7, 0, 0, 0, 0]):(0) then cli_test_state_text:("0,3,1,0,|0|1")
 
 // An event that no dialog took: the ribbon sees it first (wa_rib); the window closing asks about unsaved changes; and what the ribbon did not take goes to the page area or the scrollbar (wa_input).
-wa_route(App waa, int wai_kind, int[] wal_ev) {
-  int wai_t = wa_rib(waa, wai_kind, wal_ev);
-  if(wai_kind == 7) {
-    wa_ask(waa, (import wa_a_close));
+app_event_route(App app_route_application, int app_route_kind, int[] app_route_fields) {
+  int app_route_ribbon_took = app_ribbon_event(app_route_application, app_route_kind, app_route_fields);
+  if(app_route_kind == 7) {
+    app_action_ask(app_route_application, (import wa_a_close));
   }
-  if(wai_t == 0) {
-    wa_input(waa, wai_kind, wal_ev);
+  if(app_route_ribbon_took == 0) {
+    app_event_page(app_route_application, app_route_kind, app_route_fields);
   }
 } return void;
-given wa_t_app ((import wa_app), 7, [7, 0, 0, 0, 0]):() then wa_t_state:("0,0,0,1,|0|0")
-given wa_t_app given wa_route((import wa_app), 3, [3, 24, 14, 1, 1]) ((import wa_app), 4, [4, 24, 14, 1, 1]):() then wa_t_state:("0,0,3,0,|0|0")
+given cli_test_boot_app ((import cli_application), 7, [7, 0, 0, 0, 0]):() then cli_test_state_text:("0,0,0,1,|0|0")
+given cli_test_boot_app given app_event_route((import cli_application), 3, [3, 24, 14, 1, 1]) ((import cli_application), 4, [4, 24, 14, 1, 1]):() then cli_test_state_text:("0,0,3,0,|0|0")
 
 // What the page area takes of an event the ribbon did not: a key (wa_key), the text a key types, the wheel (scroll, or zoom with Ctrl), the mouse, and a resize, which makes the picture stale.
-wa_input(App waa, int wai_kind, int[] wal_ev) {
-  if(wai_kind == 1) {
-    wa_key(waa, wal_ev[1], wal_ev[2]);
+app_event_page(App app_input_application, int app_input_kind, int[] app_input_fields) {
+  if(app_input_kind == 1) {
+    app_key_event(app_input_application, app_input_fields[1], app_input_fields[2]);
   }
-  if(wai_kind == 2) {
-    cv_text(waa.ui.view, wal_ev[1], wal_ev[2]);
+  if(app_input_kind == 2) {
+    view_input_text_type(app_input_application.ui.view, app_input_fields[1], app_input_fields[2]);
   }
-  if(wai_kind == 8) {
-    vw_wheel(waa.ui.view, wal_ev[1], wal_ev[2], gfx_mods(), vw_box("canvas", 3), vw_box("canvas", 2));
+  if(app_input_kind == 8) {
+    view_input_wheel_handle(app_input_application.ui.view, app_input_fields[1], app_input_fields[2], gfx_mods(), view_box_field("canvas", 3), view_box_field("canvas", 2));
   }
-} chain (App waa, int wai_kind, int[] wal_ev) {
-  if(wai_kind >= 3 && wai_kind <= 5) {
-    vw_mouse(waa.ui.view, wai_kind, wal_ev);
+} chain (App app_input_application, int app_input_kind, int[] app_input_fields) {
+  if(app_input_kind >= 3 && app_input_kind <= 5) {
+    view_input_mouse_handle(app_input_application.ui.view, app_input_kind, app_input_fields);
   }
-  if(wai_kind == 6) {
-    lset((import vw_st), (import vw_s_d), 1);
+  if(app_input_kind == 6) {
+    lset((import view_state), (import vw_s_d), 1);
   }
 } return void;
-given wa_t_app ((import wa_app), 2, [2, 120, 0, 0, 0]):() then wa_t_text:("x")
-given wa_t_app given lset((import vw_st), 3, 0) ((import wa_app), 6, [6, 400, 300, 0, 0]):() then vw_t_sts:("sts 0,0,100,1,")
-given wa_t_app ((import wa_app), 8, [8, 0, 1, 0, 0]):() then vw_t_sts:("sts 0,48,100,1,")
-given wa_t_app given wa_t_lines(3) ((import wa_app), 3, [3, 200, 170, 1, 1]):() then cv_t_sel:("0:1-0:1")
+given cli_test_boot_app ((import cli_application), 2, [2, 120, 0, 0, 0]):() then cli_test_document_text:("x")
+given cli_test_boot_app given lset((import view_state), 3, 0) ((import cli_application), 6, [6, 400, 300, 0, 0]):() then view_test_state_dump:("sts 0,0,100,1,")
+given cli_test_boot_app ((import cli_application), 8, [8, 0, 1, 0, 0]):() then view_test_state_dump:("sts 0,48,100,1,")
+given cli_test_boot_app given app_test_fill_lines(3) ((import cli_application), 3, [3, 200, 170, 1, 1]):() then view_flow_test_selection_text:("0:1-0:1")

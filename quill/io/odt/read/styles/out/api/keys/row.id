@@ -1,28 +1,28 @@
 // 1 when a character row specifies anything: a font, size, colour, highlight or a flag.
-ost_hasc(int[] os_lrow) {
-  int os_ihas = os_lrow[(import quill_character_set)] != 0;
+odt_style_character_row_sets_any(int[] odt_style_character_row_sets_any_row) {
+  int odt_style_character_row_sets_any_found = odt_style_character_row_sets_any_row[(import quill_character_set)] != 0;
   int i = (import quill_character_font);
   while(i <= (import quill_character_highlight)) {
-    os_ihas = os_ihas || os_lrow[i] != 0 - 1;
+    odt_style_character_row_sets_any_found = odt_style_character_row_sets_any_found || odt_style_character_row_sets_any_row[i] != 0 - 1;
     i = i + 1;
   }
-} return int os_ihas;
+} return int odt_style_character_row_sets_any_found;
 ([0, -1, -1, -1, -1, 0, 0]):(0)
 ([0, -1, 24, -1, -1, 0, 0]):(1)
 ([0, -1, -1, -1, -1, 1, 1]):(1)
 
 // The style index the rows of record os_i sit on: a named style's own index; for an automatic style its named parent's, or Normal (0) for one with none.
-ost_key_style(StyBag os_b, int[] os_lidx, int os_i) {
-  int os_istyle = os_lidx[os_i];
-  int os_ip = ost_par(os_b, os_i);
-  if(os_istyle < 0) {
-    os_istyle = 0;
+odt_style_key_style_index(odt_named_style_records odt_style_key_style_index_bag, int[] odt_style_key_style_index_indexes, int odt_style_key_style_index_record) {
+  int odt_style_key_style_index_style = odt_style_key_style_index_indexes[odt_style_key_style_index_record];
+  int odt_style_key_style_index_parent = odt_style_record_parent(odt_style_key_style_index_bag, odt_style_key_style_index_record);
+  if(odt_style_key_style_index_style < 0) {
+    odt_style_key_style_index_style = 0;
   }
-} chain (StyBag os_b, int[] os_lidx, int os_i) {
-  if(os_ip >= 0 && os_lidx[os_i] < 0) {
-    os_istyle = os_lidx[os_ip];
+} chain (odt_named_style_records odt_style_key_style_index_bag, int[] odt_style_key_style_index_indexes, int odt_style_key_style_index_record) {
+  if(odt_style_key_style_index_parent >= 0 && odt_style_key_style_index_indexes[odt_style_key_style_index_record] < 0) {
+    odt_style_key_style_index_style = odt_style_key_style_index_indexes[odt_style_key_style_index_parent];
   }
-} return int os_istyle;
-(StyBag(["A", "", "", "", "", "", "p", "n", "P1", "A", "", "", "", "", "p", "a"], [[], []], [[], []]), [3, -1], 0):(3)
-(StyBag(["A", "", "", "", "", "", "p", "n", "P1", "A", "", "", "", "", "p", "a"], [[], []], [[], []]), [3, -1], 1):(3)
-(StyBag(["P1", "", "", "", "", "", "p", "a"], [[]], [[]]), [-1], 0):(0)
+} return int odt_style_key_style_index_style;
+(odt_named_style_records(["A", "", "", "", "", "", "p", "n", "P1", "A", "", "", "", "", "p", "a"], [[], []], [[], []]), [3, -1], 0):(3)
+(odt_named_style_records(["A", "", "", "", "", "", "p", "n", "P1", "A", "", "", "", "", "p", "a"], [[], []], [[], []]), [3, -1], 1):(3)
+(odt_named_style_records(["P1", "", "", "", "", "", "p", "a"], [[]], [[]]), [-1], 0):(0)

@@ -1,21 +1,21 @@
 // Paints page vwi_k with its sheet's top at vwi_top: the sheet with its shadow, centred across the page area vwl_r, the page's text on it (only what reaches into the band being painted), and over the text the selection and the caret.
-vw_show(View vwv, int vwi_k, int[] vwl_r, int vwi_top) {
-  int[] vwl_st = (import vw_st);
-  int vwi_z = vwl_st[(import vw_s_z)];
-  int vwi_x = vwl_r[0] + vw_sx(vwv, vwi_z, vwl_r[2], vwl_st[(import vw_s_x)]);
-} chain (View vwv, int vwi_k, int[] vwl_r, int vwi_top) {
-  int vwi_pw = vw_px(lay_sheet(vwv.doc, 0), vwi_z);
-  int vwi_ph = vw_px(lay_sheet(vwv.doc, 1), vwi_z);
-  vw_sheet(vwi_x, vwi_top, vwi_pw, vwi_ph, vwl_r[(import cv_a_y0)], vwl_r[(import cv_a_y1)]);
-} chain (View vwv, int vwi_k, int[] vwl_r, int vwi_top) {
-  int[] vwl_g = [vwi_x, vwi_top, vwi_z, lay_margin(vwv.doc, 3), lay_margin(vwv.doc, 0)];
-  cv_cull(vwl_g, vwl_r[(import cv_a_y0)], vwl_r[(import cv_a_y1)]);
-  vw_page(vwv, vwi_k, vwl_g);
-} chain (View vwv, int vwi_k, int[] vwl_r, int vwi_top) {
-  cv_over(vwv, vwi_k, vwl_g);
+view_page_show(View view_page_show_viewer, int view_page_show_page_index, int[] view_page_show_area, int view_page_show_top) {
+  int[] view_page_show_state = (import view_state);
+  int view_page_show_zoom = view_page_show_state[(import vw_s_z)];
+  int view_page_show_left = view_page_show_area[0] + view_sheet_left(view_page_show_viewer, view_page_show_zoom, view_page_show_area[2], view_page_show_state[(import vw_s_x)]);
+} chain (View view_page_show_viewer, int view_page_show_page_index, int[] view_page_show_area, int view_page_show_top) {
+  int view_page_show_sheet_width = view_units_pixels(lay_sheet(view_page_show_viewer.doc, 0), view_page_show_zoom);
+  int view_page_show_sheet_height = view_units_pixels(lay_sheet(view_page_show_viewer.doc, 1), view_page_show_zoom);
+  view_sheet_paint(view_page_show_left, view_page_show_top, view_page_show_sheet_width, view_page_show_sheet_height, view_page_show_area[(import cv_a_y0)], view_page_show_area[(import cv_a_y1)]);
+} chain (View view_page_show_viewer, int view_page_show_page_index, int[] view_page_show_area, int view_page_show_top) {
+  int[] view_page_show_geometry = [view_page_show_left, view_page_show_top, view_page_show_zoom, lay_margin(view_page_show_viewer.doc, 3), lay_margin(view_page_show_viewer.doc, 0)];
+  view_flow_add_band(view_page_show_geometry, view_page_show_area[(import cv_a_y0)], view_page_show_area[(import cv_a_y1)]);
+  view_flow_draw_page(view_page_show_viewer, view_page_show_page_index, view_page_show_geometry);
+} chain (View view_page_show_viewer, int view_page_show_page_index, int[] view_page_show_area, int view_page_show_top) {
+  view_flow_paint_over(view_page_show_viewer, view_page_show_page_index, view_page_show_geometry);
 } return void;
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(142, 152) ((import lp_t_v), 0, [0, 128, 384, 150, 128, 278], 152):() then vw_t_px:(16777215)
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(141, 152) ((import lp_t_v), 0, [0, 128, 384, 150, 128, 278], 152):() then vw_t_px:(0)
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given ed_select_all((import lp_t_d), (import vw_ctl)) given vw_t_at(186, 178) ((import lp_t_v), 0, [0, 128, 384, 150, 128, 278], 152):() then vw_t_px:(12049407)
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given d2_l_rect(0, 0, 400, 300, 16777215) given cv_t_clock(530) given vw_t_box0(182, 162, 193, 177) given vw_t_bg(16777215) ((import lp_t_v), 0, [0, 128, 384, 150, 152, 160], 152):() then vw_t_inked:(0)
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given d2_l_rect(0, 0, 400, 300, 16777215) given cv_t_clock(530) given vw_t_box0(182, 162, 193, 177) given vw_t_bg(16777215) ((import lp_t_v), 0, [0, 128, 384, 150, 152, 278], 152):() then vw_t_inked:(1)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given view_test_remember_pixel(142, 152) ((import layout_paragraph_test_view), 0, [0, 128, 384, 150, 128, 278], 152):() then view_test_pixel_color:(16777215)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given view_test_remember_pixel(141, 152) ((import layout_paragraph_test_view), 0, [0, 128, 384, 150, 128, 278], 152):() then view_test_pixel_color:(0)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given editor_select_all((import layout_paragraph_test_document), (import view_input_controller)) given view_test_remember_pixel(186, 178) ((import layout_paragraph_test_view), 0, [0, 128, 384, 150, 128, 278], 152):() then view_test_pixel_color:(12049407)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given d2_l_rect(0, 0, 400, 300, 16777215) given view_input_test_clock_set(530) given view_test_remember_box(182, 162, 193, 177) given view_test_set_background(16777215) ((import layout_paragraph_test_view), 0, [0, 128, 384, 150, 152, 160], 152):() then view_test_box_inked:(0)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given d2_l_rect(0, 0, 400, 300, 16777215) given view_input_test_clock_set(530) given view_test_remember_box(182, 162, 193, 177) given view_test_set_background(16777215) ((import layout_paragraph_test_view), 0, [0, 128, 384, 150, 152, 278], 152):() then view_test_box_inked:(1)

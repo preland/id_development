@@ -1,16 +1,16 @@
 // The effective value of a character field: the run's own row, then its character style chain, then the paragraph style chain; -1 when none of them sets it. The flag fields are merged bit by bit: "on" by style_bits and "set" is every bit.
-style_eff_c(Fmt f, int pstyle, int cprop, int field) {
-  int got = tab_get(f.chars, cprop, field);
-  int cs = tab_get(f.chars, cprop, (import quill_character_style));
-  if(got == -1 && cs > 0) {
-    got = style_up(f, cs, 0, field);
+document_style_effective_character(Fmt effective_character_format_set, int effective_character_paragraph_style, int effective_character_character_row, int field) {
+  int got = tab_get(effective_character_format_set.chars, effective_character_character_row, field);
+  int effective_character_character_style = tab_get(effective_character_format_set.chars, effective_character_character_row, (import quill_character_style));
+  if(got == -1 && effective_character_character_style > 0) {
+    got = style_up(effective_character_format_set, effective_character_character_style, 0, field);
   }
-} chain (Fmt f, int pstyle, int cprop, int field) {
+} chain (Fmt effective_character_format_set, int effective_character_paragraph_style, int effective_character_character_row, int field) {
   if(got == -1) {
-    got = style_up(f, pstyle, 0, field);
+    got = style_up(effective_character_format_set, effective_character_paragraph_style, 0, field);
   }
   if(field == (import quill_character_on)) {
-    got = style_bits(f, pstyle, cprop);
+    got = style_bits(effective_character_format_set, effective_character_paragraph_style, effective_character_character_row);
   }
   if(field == (import quill_character_set)) {
     got = (import quill_flag_all);
@@ -26,11 +26,11 @@ style_eff_c(Fmt f, int pstyle, int cprop, int field) {
 (Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, 24, -1, -1, 0, 0, 0, -1, 32, -1, -1, 1, 1, 0, -1, -1, 5, -1, 0, 1, 0, -1, 40, -1, -1, 2, 2, 3, -1, -1, -1, -1, 0, 0, 0, -1, 50, -1, -1, 4, 4], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0, -1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0, 1, 2, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("A", [0, -1, 0], [1, 1]), Style("B", [0, 0, 0], [2, 2]), Style("C", [0, 1, 0], [3, 1]), Style("D", [1, -1, -1], [4, 0])], [], 0)), 2, 0, 6):(63)
 
 // The effective value of a paragraph field: the paragraph's own row, then its style chain; -1 when none sets it.
-style_eff_p(Fmt f, int pprop, int field) {
-  int got = tab_get(f.paras, pprop, field);
-  int sid = tab_get(f.paras, pprop, (import quill_paragraph_style));
+document_style_effective_paragraph(Fmt effective_paragraph_format_set, int effective_paragraph_paragraph_row, int field) {
+  int got = tab_get(effective_paragraph_format_set.paras, effective_paragraph_paragraph_row, field);
+  int effective_paragraph_style_identifier = tab_get(effective_paragraph_format_set.paras, effective_paragraph_paragraph_row, (import quill_paragraph_style));
   if(got == -1) {
-    got = style_up(f, sid, 1, field);
+    got = style_up(effective_paragraph_format_set, effective_paragraph_style_identifier, 1, field);
   }
 } return int got;
 (Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, 24, -1, -1, 0, 0, 0, -1, 32, -1, -1, 1, 1, 0, -1, -1, 5, -1, 0, 1, 0, -1, 40, -1, -1, 2, 2, 3, -1, -1, -1, -1, 0, 0, 0, -1, 50, -1, -1, 4, 4], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0, -1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0, 1, 2, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("A", [0, -1, 0], [1, 1]), Style("B", [0, 0, 0], [2, 2]), Style("C", [0, 1, 0], [3, 1]), Style("D", [1, -1, -1], [4, 0])], [], 0)), 3, 1):(2)

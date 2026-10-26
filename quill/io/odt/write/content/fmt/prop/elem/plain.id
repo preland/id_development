@@ -1,34 +1,34 @@
 // 1 when every cell of the row from lo up to hi is unset (-1).
-oc_unset(int[] oc_rw, int oc_lo, int oc_hi) {
-  int oc_ok = 1;
-  while(oc_lo < oc_hi) {
-    if(oc_rw[oc_lo] != -1) {
-      oc_ok = 0;
+odt_write_range_unset(int[] odt_write_range_unset_row, int odt_write_range_unset_low, int odt_write_range_unset_high) {
+  int odt_write_range_unset_result = 1;
+  while(odt_write_range_unset_low < odt_write_range_unset_high) {
+    if(odt_write_range_unset_row[odt_write_range_unset_low] != -1) {
+      odt_write_range_unset_result = 0;
     }
-    oc_lo = oc_lo + 1;
+    odt_write_range_unset_low = odt_write_range_unset_low + 1;
   }
-} return int oc_ok;
+} return int odt_write_range_unset_result;
 ([-1, 5, -1, -1], 0, 1):(1)
 ([-1, 5, -1, -1], 1, 4):(0)
 ([-1, 5, -1, -1], 2, 2):(1)
 
 // 1 when paragraph row pid sets nothing a paragraph style would have to carry (alignment, indents, spacing, line height, page break), so the paragraph needs no automatic style.
-oc_plain_p(Tab oc_tb, int oc_pid) {
-  int[] oc_rw = tab_row(oc_tb, oc_pid);
-  int oc_un = oc_unset(oc_rw, (import quill_paragraph_alignment), (import quill_paragraph_break_before));
-  int oc_pl = oc_un * (oc_rw[(import quill_paragraph_break_before)] == 0);
-} return int oc_pl;
+odt_write_paragraph_plain(Tab odt_write_paragraph_plain_table, int odt_write_paragraph_plain_paragraph_number) {
+  int[] odt_write_paragraph_plain_row = tab_row(odt_write_paragraph_plain_table, odt_write_paragraph_plain_paragraph_number);
+  int odt_write_paragraph_plain_unset = odt_write_range_unset(odt_write_paragraph_plain_row, (import quill_paragraph_alignment), (import quill_paragraph_break_before));
+  int odt_write_paragraph_plain_result = odt_write_paragraph_plain_unset * (odt_write_paragraph_plain_row[(import quill_paragraph_break_before)] == 0);
+} return int odt_write_paragraph_plain_result;
 (Tab([3, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), 0):(1)
 (Tab([3, 0, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), 0):(0)
 (Tab([3, -1, -1, -1, -1, -1, -1, 100, 0, 0, 0, 0], 12, []), 0):(0)
 (Tab([3, -1, -1, -1, -1, -1, -1, -1, 1, 0, 0, 0], 12, []), 0):(0)
 
 // 1 when character row cid sets nothing a span would have to carry, so its run is written as plain text.
-oc_plain_c(Tab oc_tb, int oc_cid) {
-  int[] oc_rw = tab_row(oc_tb, oc_cid);
-  int oc_un = oc_unset(oc_rw, (import quill_character_font), (import quill_character_on));
-  int oc_pl = oc_un * (oc_rw[(import quill_character_style)] == 0) * (oc_rw[(import quill_character_set)] == 0);
-} return int oc_pl;
+odt_write_character_plain(Tab odt_write_character_plain_table, int odt_write_character_plain_character_number) {
+  int[] odt_write_character_plain_row = tab_row(odt_write_character_plain_table, odt_write_character_plain_character_number);
+  int odt_write_character_plain_unset = odt_write_range_unset(odt_write_character_plain_row, (import quill_character_font), (import quill_character_on));
+  int odt_write_character_plain_result = odt_write_character_plain_unset * (odt_write_character_plain_row[(import quill_character_style)] == 0) * (odt_write_character_plain_row[(import quill_character_set)] == 0);
+} return int odt_write_character_plain_result;
 (Tab([0, -1, -1, -1, -1, 0, 0], 7, []), 0):(1)
 (Tab([0, 0, -1, -1, -1, 0, 0], 7, []), 0):(0)
 (Tab([2, -1, -1, -1, -1, 0, 0], 7, []), 0):(0)

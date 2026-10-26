@@ -1,27 +1,27 @@
 // Parses idml source into a fresh tape, kept in the exports vw_t (the tape), vw_s (its strings) and vw_rc (the rectangles of the last layout). Answers the parser's diagnostic, "" when the source is good.
-vw_load(string vws_src) {
-  export int[] vw_t = [];
-  export string[] vw_s = [];
-  gui_new(vw_t, vw_s);
-} chain (string vws_src) {
-  int vwi_err = gui_parse(vws_src, vw_t, vw_s, "quill.idml", fs_read_text);
-  export int[] vw_rc = [];
-  string vws_diag = gui_diag(vw_t, vw_s);
-} return string vws_diag;
+view_chrome_load(string view_chrome_load_source) {
+  export int[] view_chrome_tape = [];
+  export string[] view_chrome_strings = [];
+  gui_new(view_chrome_tape, view_chrome_strings);
+} chain (string view_chrome_load_source) {
+  int view_chrome_load_parse_result = gui_parse(view_chrome_load_source, view_chrome_tape, view_chrome_strings, "quill.idml", fs_read_text);
+  export int[] view_chrome_rectangles = [];
+  string view_chrome_load_diagnostic = gui_diag(view_chrome_tape, view_chrome_strings);
+} return string view_chrome_load_diagnostic;
 ("./\nCol()[100,100,top-left]{}\n"):("")
 ("./\nCol()[100,"):("2:11: a dimension is a number (a percentage of the parent, up to two decimals) or an @ref; write the number or bind it with @name")
 
 // The chrome document: vw_idml parsed by vw_load. Answers the parser's diagnostic, "" when the idml is good.
-vw_make() {
-  string vws_src = str_join((import vw_idml), "\n");
-  string vws_diag = vw_load(vws_src);
-} return string vws_diag;
-():("") then vw_t_count:("count 11")
-given vw_t_ld("./\nCol()[100,100,top-left]{}\n") ():("") then vw_t_count:("count 11")
+view_chrome_make() {
+  string view_chrome_make_source = str_join((import vw_idml), "\n");
+  string view_chrome_make_diagnostic = view_chrome_load(view_chrome_make_source);
+} return string view_chrome_make_diagnostic;
+():("") then view_test_record_count:("count 11")
+given view_test_load_chrome("./\nCol()[100,100,top-left]{}\n") ():("") then view_test_record_count:("count 11")
 
 // Test setup: the tape of the idml source vws_src, whatever the parser thought of it.
-vw_t_ld(string vws_src) {
-  string vws_diag = vw_load(vws_src);
+view_test_load_chrome(string view_test_load_chrome_source) {
+  string view_test_load_chrome_diagnostic = view_chrome_load(view_test_load_chrome_source);
 } return void;
-("./\nCol()[100,100,top-left]{}\n"):() then vw_t_count:("count 2")
-("./\nCol()[100,100,top-left]{}\nCol()[100,100,top-left]{}\n"):() then vw_t_count:("count 3")
+("./\nCol()[100,100,top-left]{}\n"):() then view_test_record_count:("count 2")
+("./\nCol()[100,100,top-left]{}\nCol()[100,100,top-left]{}\n"):() then view_test_record_count:("count 3")

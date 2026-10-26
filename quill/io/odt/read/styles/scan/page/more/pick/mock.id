@@ -1,24 +1,24 @@
 // Test fixture: a table with one layout, "L", and no master page, kept in an export.
-ost_t_pgone() {
-  PgTab os_pg = ost_pg_new();
-  push(os_pg.names, "L");
-  push(os_pg.vals, list_copy((import ost_pgdef)));
+odt_named_page_table_fixture() {
+  odt_named_page_layouts odt_named_page_table_fixture_table = odt_named_page_table_new();
+  push(odt_named_page_table_fixture_table.names, "L");
+  push(odt_named_page_table_fixture_table.odt_read_values, list_copy((import ost_pgdef)));
 } chain () {
-  export PgTab ost_t_pg = os_pg;
-} return void export ost_t_pg;
-():() then ost_t_vals:([11906, 16838, 0, 1440, 1440, 1440, 1440])
-given ost_t_pgone ():() then (import ost_t_pg).masters:([])
+  export odt_named_page_layouts odt_named_page_table = odt_named_page_table_fixture_table;
+} return void export odt_named_page_table;
+():() then odt_named_page_table_values:([11906, 16838, 0, 1440, 1440, 1440, 1440])
+given odt_named_page_table_fixture ():() then (import odt_named_page_table).masters:([])
 
 // Test fixture: the ints of every layout of the fixture table, one after the other.
-ost_t_vals() {
-  PgTab os_pg = (import ost_t_pg);
-  int[] os_lall = [];
-  int os_il = 0;
+odt_named_page_table_values() {
+  odt_named_page_layouts odt_named_page_table_values_table = (import odt_named_page_table);
+  int[] odt_named_page_table_values_result = [];
+  int odt_named_page_table_values_position = 0;
 } chain () {
-  while(os_il < len(os_pg.vals)) {
-    list_extend(os_lall, os_pg.vals[os_il]);
-    os_il = os_il + 1;
+  while(odt_named_page_table_values_position < len(odt_named_page_table_values_table.odt_read_values)) {
+    list_extend(odt_named_page_table_values_result, odt_named_page_table_values_table.odt_read_values[odt_named_page_table_values_position]);
+    odt_named_page_table_values_position = odt_named_page_table_values_position + 1;
   }
-} return int[] os_lall;
-given ost_t_pgone ():([11906, 16838, 0, 1440, 1440, 1440, 1440])
-given ost_t_pgone given ost_t_pgone ():([11906, 16838, 0, 1440, 1440, 1440, 1440])
+} return int[] odt_named_page_table_values_result;
+given odt_named_page_table_fixture ():([11906, 16838, 0, 1440, 1440, 1440, 1440])
+given odt_named_page_table_fixture given odt_named_page_table_fixture ():([11906, 16838, 0, 1440, 1440, 1440, 1440])

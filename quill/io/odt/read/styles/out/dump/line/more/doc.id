@@ -1,40 +1,40 @@
 // The run records of a paragraph: its runs merged where their printed properties are equal, each on a line after a line feed; "" for an empty paragraph.
-ndump_runs(Doc os_d, Para os_p) {
-  int os_ipstyle = fixed_point_maximum(tab_get(os_d.fmt.paras, os_p.pprop, (import quill_paragraph_style)), 0);
-  string[] os_lsig = [];
-  int[] os_lends = [];
-} chain (Doc os_d, Para os_p) {
+odt_style_dump_runs(Doc odt_style_dump_runs_document, Para odt_style_dump_runs_paragraph) {
+  int odt_style_dump_runs_paragraph_style = fixed_point_maximum(tab_get(odt_style_dump_runs_document.fmt.paras, odt_style_dump_runs_paragraph.pprop, (import quill_paragraph_style)), 0);
+  string[] odt_style_dump_runs_signatures = [];
+  int[] odt_style_dump_runs_ends = [];
+} chain (Doc odt_style_dump_runs_document, Para odt_style_dump_runs_paragraph) {
   int i = 0;
-  while(i < len(os_p.txt.runs)) {
-    ndump_take(os_d, os_ipstyle, os_p.txt.runs[i], os_lsig, os_lends);
+  while(i < len(odt_style_dump_runs_paragraph.txt.runs)) {
+    odt_style_dump_run_take(odt_style_dump_runs_document, odt_style_dump_runs_paragraph_style, odt_style_dump_runs_paragraph.txt.runs[i], odt_style_dump_runs_signatures, odt_style_dump_runs_ends);
     i = i + 1;
   }
-  string os_sout = ndump_lines(os_p.txt.cps, os_lsig, os_lends);
-} return string os_sout;
-given ost_t_doc ((import ost_t_d), Para(Text([104, 105, 33], [Run(2, 0, -1), Run(1, 0, -1)], 0), Lay([], [], -1), 0)):("\nrun b=0 i=0 u=0 s=0 sup=0 sub=0 size=24 color=- hl=- link=- font=\"serif\" text=\"hi!\"")
-given ost_t_doc ((import ost_t_d), Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 0)):("")
+  string odt_style_dump_runs_text = odt_style_dump_run_lines(odt_style_dump_runs_paragraph.txt.cps, odt_style_dump_runs_signatures, odt_style_dump_runs_ends);
+} return string odt_style_dump_runs_text;
+given odt_style_test_document ((import odt_style_test_default_document), Para(Text([104, 105, 33], [Run(2, 0, -1), Run(1, 0, -1)], 0), Lay([], [], -1), 0)):("\nrun b=0 i=0 u=0 s=0 sup=0 sub=0 size=24 color=- hl=- link=- font=\"serif\" text=\"hi!\"")
+given odt_style_test_document ((import odt_style_test_default_document), Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 0)):("")
 
 // A paragraph's records: its head, then its runs, unless it is an opaque block (which has no runs in a dump).
-ndump_para(Doc os_d, int os_i) {
-  Para os_p = os_d.body.paras[os_i];
-  string os_sout = ndump_phead(os_d, os_p, os_i);
-  if(tab_get(os_d.fmt.paras, os_p.pprop, (import quill_paragraph_kind)) == 0) {
-    os_sout = os_sout + ndump_runs(os_d, os_p);
+odt_style_dump_paragraph(Doc odt_style_dump_paragraph_document, int odt_style_dump_paragraph_position) {
+  Para odt_style_dump_paragraph_paragraph = odt_style_dump_paragraph_document.body.paras[odt_style_dump_paragraph_position];
+  string odt_style_dump_paragraph_text = odt_style_dump_paragraph_head(odt_style_dump_paragraph_document, odt_style_dump_paragraph_paragraph, odt_style_dump_paragraph_position);
+  if(tab_get(odt_style_dump_paragraph_document.fmt.paras, odt_style_dump_paragraph_paragraph.pprop, (import quill_paragraph_kind)) == 0) {
+    odt_style_dump_paragraph_text = odt_style_dump_paragraph_text + odt_style_dump_runs(odt_style_dump_paragraph_document, odt_style_dump_paragraph_paragraph);
   }
-} return string os_sout;
-given ost_t_doc ((import ost_t_d), 0):("para 0 style=\"Normal\" align=0 left=0 right=0 first=0 before=0 after=120 line=100 brk=0 level=0 list=-")
+} return string odt_style_dump_paragraph_text;
+given odt_style_test_document ((import odt_style_test_default_document), 0):("para 0 style=\"Normal\" align=0 left=0 right=0 first=0 before=0 after=120 line=100 brk=0 level=0 list=-")
 (Doc(Body([Para(Text([104, 105], [Run(2, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, 24, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0):("para 0 style=\"N\" align=- left=- right=- first=- before=- after=- line=- brk=0 level=0 list=-\nrun b=0 i=0 u=0 s=0 sup=0 sub=0 size=24 color=- hl=- link=- font=\"F\" text=\"hi\"")
 
 // The normalised dump of a document, as docs/QUILL.md 4.9 defines it: the page record, then every paragraph's records, each line ending in a line feed. Two documents with the same text and the same effective formatting dump identically however their rows and styles are numbered.
-ndump_doc(Doc os_d) {
-  string os_sout = ndump_page(os_d.body.page);
+odt_style_dump_document(Doc odt_style_dump_document_document) {
+  string odt_style_dump_document_text = odt_style_dump_page(odt_style_dump_document_document.body.page);
   int i = 0;
-  while(i < len(os_d.body.paras)) {
-    os_sout = os_sout + "\n" + ndump_para(os_d, i);
+  while(i < len(odt_style_dump_document_document.body.paras)) {
+    odt_style_dump_document_text = odt_style_dump_document_text + "\n" + odt_style_dump_paragraph(odt_style_dump_document_document, i);
     i = i + 1;
   }
-} chain (Doc os_d) {
-  os_sout = os_sout + "\n";
-} return string os_sout;
-given ost_t_doc ((import ost_t_d)):("page w=11906 h=16838 orient=0 top=1440 right=1440 bottom=1440 left=1440\npara 0 style=\"Normal\" align=0 left=0 right=0 first=0 before=0 after=120 line=100 brk=0 level=0 list=-\n")
+} chain (Doc odt_style_dump_document_document) {
+  odt_style_dump_document_text = odt_style_dump_document_text + "\n";
+} return string odt_style_dump_document_text;
+given odt_style_test_document ((import odt_style_test_default_document)):("page w=11906 h=16838 orient=0 top=1440 right=1440 bottom=1440 left=1440\npara 0 style=\"Normal\" align=0 left=0 right=0 first=0 before=0 after=120 line=100 brk=0 level=0 list=-\n")
 (Doc(Body([Para(Text([104], [Run(1, 1, -1)], 0), Lay([], [], -1), 0), Para(Text([91, 84, 93], [Run(3, 0, -1)], 0), Lay([], [], -1), 1)], Page([100, 200, 1], [5, 6, 7, 8], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, 24, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 1], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], []))):("page w=100 h=200 orient=1 top=5 right=6 bottom=7 left=8\npara 0 style=\"N\" align=- left=- right=- first=- before=- after=- line=- brk=0 level=0 list=-\nrun b=0 i=0 u=0 s=0 sup=0 sub=0 size=24 color=- hl=- link=- font=\"F\" text=\"h\"\npara 1 opaque\n")

@@ -1,13 +1,13 @@
 // The code point a dump shows for os_icp: every private-use code point (U+E000 to U+F8FF, and quill_object_marker up to U+FFFFD, the plane the readers keep inline objects in) shows as U+E000, and a cell that is not a valid code point shows as U+FFFD.
-ndump_cp(int os_icp) {
-  int os_ishown = os_icp;
-  if((os_icp >= 57344 && os_icp <= 63743) || (os_icp >= (import quill_object_marker) && os_icp <= 1048573)) {
-    os_ishown = 57344;
+odt_style_dump_code_point(int odt_style_dump_code_point_code_point) {
+  int odt_style_dump_code_point_shown = odt_style_dump_code_point_code_point;
+  if((odt_style_dump_code_point_code_point >= 57344 && odt_style_dump_code_point_code_point <= 63743) || (odt_style_dump_code_point_code_point >= (import quill_object_marker) && odt_style_dump_code_point_code_point <= 1048573)) {
+    odt_style_dump_code_point_shown = 57344;
   }
-  if(os_icp <= 0 || os_icp > 1114111) {
-    os_ishown = 65533;
+  if(odt_style_dump_code_point_code_point <= 0 || odt_style_dump_code_point_code_point > 1114111) {
+    odt_style_dump_code_point_shown = 65533;
   }
-} return int os_ishown;
+} return int odt_style_dump_code_point_shown;
 (57349):(57344)
 (63743):(57344)
 (97):(97)
@@ -17,26 +17,26 @@ ndump_cp(int os_icp) {
 (0):(65533)
 
 // The code points os_lcps[os_ilo..os_ihi) as a UTF-8 string, as ndump_cp shows them.
-ndump_str(int[] os_lcps, int os_ilo, int os_ihi) {
-  string os_sout = "";
-  int i = os_ilo;
-  while(i < os_ihi) {
-    os_sout = os_sout + utf8_string(ndump_cp(os_lcps[i]));
+odt_style_dump_code_points_string(int[] odt_style_dump_code_points_string_code_points, int odt_style_dump_code_points_string_low, int odt_style_dump_code_points_string_high) {
+  string odt_style_dump_code_points_string_text = "";
+  int i = odt_style_dump_code_points_string_low;
+  while(i < odt_style_dump_code_points_string_high) {
+    odt_style_dump_code_points_string_text = odt_style_dump_code_points_string_text + utf8_string(odt_style_dump_code_point(odt_style_dump_code_points_string_code_points[i]));
     i = i + 1;
   }
-} return string os_sout;
+} return string odt_style_dump_code_points_string_text;
 ([104, 105, 233, 57345], 0, 4):("hié\uE000")
 ([57345], 0, 1):("\uE000")
 ([104, 105, 233], 1, 2):("i")
 ([], 0, 0):("")
 
 // A value as a dump prints it: its number, or "-" for -1, which every unset field is.
-ndump_num(int os_in) {
-  string os_sout = "" + os_in;
-  if(os_in == 0 - 1) {
-    os_sout = "-";
+odt_style_dump_number(int odt_style_dump_number_number) {
+  string odt_style_dump_number_text = "" + odt_style_dump_number_number;
+  if(odt_style_dump_number_number == 0 - 1) {
+    odt_style_dump_number_text = "-";
   }
-} return string os_sout;
+} return string odt_style_dump_number_text;
 (24):("24")
 (-1):("-")
 (0):("0")

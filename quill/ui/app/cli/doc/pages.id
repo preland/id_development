@@ -2,7 +2,7 @@
 cli_pages(string path) {
   Doc d = doc_new();
   int code = odt_load(path, d);
-  int rc = code != 0;
+  int cli_pages_status = code != 0;
 } chain (string path) {
   if(code == 0) {
     gui_font_init();
@@ -10,9 +10,9 @@ cli_pages(string path) {
   } else {
     eprint(odt_error(code));
   }
-} return int rc;
+} return int cli_pages_status;
 ("/nonexistent/none.odt"):(1) then eprints:("ODT: the file could not be read; check that the path exists and that you may read it [/nonexistent/none.odt]\n")
-given orc_t_zip("<r><office:text><text:p>Hi</text:p></office:text></r>", "") given orc_t_save ((import orc_tp)):(0) then prints:("pages 1\npage 1 para 0 line 0\n") then orc_t_gone:(0)
+given odt_read_fixture_make_archive("<r><office:text><text:p>Hi</text:p></office:text></r>", "") given odt_read_fixture_save_archive ((import odt_read_fixture_scratch_path)):(0) then prints:("pages 1\npage 1 para 0 line 0\n") then odt_read_fixture_remove_file:(0)
 
 // The text word --pages prints for a document: the page count, then the first paragraph and line of every page.
 cli_laid(Doc d) {
@@ -22,8 +22,8 @@ cli_laid(Doc d) {
 } chain (Doc d) {
   string text = "pages " + lay_page_count(v) + "\n" + cli_starts(v);
 } return string text;
-given gui_font_init given orc_t_open("<r><office:text><text:p>Hi</text:p><text:p>x</text:p></office:text></r>") given orc_t_load ((import orc_td)):("pages 1\npage 1 para 0 line 0\n")
-given gui_font_init given orc_t_open("<a/>") ((import orc_td)):("pages 1\npage 1 para 0 line 0\n")
+given gui_font_init given odt_read_fixture_open("<r><office:text><text:p>Hi</text:p><text:p>x</text:p></office:text></r>") given odt_read_fixture_read_content ((import odt_read_fixture_document)):("pages 1\npage 1 para 0 line 0\n")
+given gui_font_init given odt_read_fixture_open("<a/>") ((import odt_read_fixture_document)):("pages 1\npage 1 para 0 line 0\n")
 
 // One line "page K para I line J" for every page of the view, each ending in a line feed.
 cli_starts(View v) {
@@ -34,5 +34,5 @@ cli_starts(View v) {
     k = k + 1;
   }
 } return string text;
-given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lp_t_paras(8) given lay_all((import lp_t_v)) given lg_t_pag ((import lp_t_v)):("page 1 para 0 line 0\npage 2 para 6 line 0\n")
-given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v)):("page 1 para 0 line 0\npage 2 para 0 line 8\n")
+given layout_paragraph_test_font given layout_page_test_page(1500, 3000, 150, 300, 450, 600) given layout_paragraph_test_paragraphs(8) given lay_all((import layout_paragraph_test_view)) given layout_page_test_paginate ((import layout_paragraph_test_view)):("page 1 para 0 line 0\npage 2 para 6 line 0\n")
+given layout_page_test_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import layout_paragraph_test_view)):("page 1 para 0 line 0\npage 2 para 0 line 8\n")

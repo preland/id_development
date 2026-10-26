@@ -1,44 +1,44 @@
 // Puts in lho the first position of the line that holds position lhq.
 // By hand: offset 6 of "BBB EEE BBB" is on line 1, which starts at 4.
-lay_line_start(View lhv, Pos lhq, Pos lho) {
-  Para lhpa = lhv.doc.body.paras[lhq.para];
-  int lhj = lay_line_in(lhpa, lhq.off);
-  lho.off = lhpa.lay.lines[lhj * (import quill_line_stride) + (import quill_line_low)];
-} chain (View lhv, Pos lhq, Pos lho) {
-  lho.para = lhq.para;
+lay_line_start(View hit_view, Pos query_position, Pos output_position) {
+  Para line_paragraph = hit_view.doc.body.paras[query_position.para];
+  int target_line = lay_line_in(line_paragraph, query_position.off);
+  output_position.off = line_paragraph.lay.lines[target_line * (import quill_line_stride) + (import quill_line_low)];
+} chain (View hit_view, Pos query_position, Pos output_position) {
+  output_position.para = query_position.para;
 } return void;
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 6), Pos(9, 9)):((import lp_t_v), Pos(0, 6), Pos(0, 4))
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 2), Pos(9, 9)):((import lp_t_v), Pos(0, 2), Pos(0, 0))
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), Pos(0, 6), Pos(9, 9)):((import layout_paragraph_test_view), Pos(0, 6), Pos(0, 4))
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), Pos(0, 2), Pos(9, 9)):((import layout_paragraph_test_view), Pos(0, 2), Pos(0, 0))
 
 // Puts in lho the last position of the line that holds position lhq (lay_maxoff).
 // By hand: offset 6 of "BBB EEE BBB" is on line 1, whose visible text ends at 7; offset 1 is on line 0, which ends at 3; offset 11 is the end.
-lay_line_end(View lhv, Pos lhq, Pos lho) {
-  Para lhpa = lhv.doc.body.paras[lhq.para];
-  int lhj = lay_line_in(lhpa, lhq.off);
-  lho.para = lhq.para;
-} chain (View lhv, Pos lhq, Pos lho) {
-  lho.off = lay_maxoff(lhpa, lhj);
+lay_line_end(View hit_view, Pos query_position, Pos output_position) {
+  Para line_paragraph = hit_view.doc.body.paras[query_position.para];
+  int target_line = lay_line_in(line_paragraph, query_position.off);
+  output_position.para = query_position.para;
+} chain (View hit_view, Pos query_position, Pos output_position) {
+  output_position.off = layout_page_maximum_offset(line_paragraph, target_line);
 } return void;
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 6), Pos(9, 9)):((import lp_t_v), Pos(0, 6), Pos(0, 7))
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 1), Pos(9, 9)):((import lp_t_v), Pos(0, 1), Pos(0, 3))
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 11), Pos(9, 9)):((import lp_t_v), Pos(0, 11), Pos(0, 11))
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), Pos(0, 6), Pos(9, 9)):((import layout_paragraph_test_view), Pos(0, 6), Pos(0, 7))
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), Pos(0, 1), Pos(9, 9)):((import layout_paragraph_test_view), Pos(0, 1), Pos(0, 3))
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), Pos(0, 11), Pos(9, 9)):((import layout_paragraph_test_view), Pos(0, 11), Pos(0, 11))
 
 // The offset on line lhj of paragraph lhi whose pen is nearest to lhx, in lu from the left edge of the text area.
 // By hand: line 1 of "BBB EEE BBB" has its offsets 4 to 7 at 0, 683, 1366 and 2049: 700 is nearest 683, offset 5; 1100 is nearer 1366 than 683, offset 6; left of everything is the first, 4; far to the right is the last, 7.
-lay_off_at(View lhv, int lhi, int lhj, int lhx) {
-  Para lhpa = lhv.doc.body.paras[lhi];
-  int lhe = lhpa.lay.lines[lhj * (import quill_line_stride) + (import quill_line_low)];
-  int lhm = lay_maxoff(lhpa, lhj);
-} chain (View lhv, int lhi, int lhj, int lhx) {
-  int lhk = lhe;
-  while(lhk <= lhm) {
-    if(fixed_point_absolute(lhpa.lay.pen[lhk] - lhx) < fixed_point_absolute(lhpa.lay.pen[lhe] - lhx)) {
-      lhe = lhk;
+lay_off_at(View hit_view, int target_paragraph, int target_line, int target_x) {
+  Para line_paragraph = hit_view.doc.body.paras[target_paragraph];
+  int best_offset = line_paragraph.lay.lines[target_line * (import quill_line_stride) + (import quill_line_low)];
+  int last_offset = layout_page_maximum_offset(line_paragraph, target_line);
+} chain (View hit_view, int target_paragraph, int target_line, int target_x) {
+  int candidate_offset = best_offset;
+  while(candidate_offset <= last_offset) {
+    if(fixed_point_absolute(line_paragraph.lay.pen[candidate_offset] - target_x) < fixed_point_absolute(line_paragraph.lay.pen[best_offset] - target_x)) {
+      best_offset = candidate_offset;
     }
-    lhk = lhk + 1;
+    candidate_offset = candidate_offset + 1;
   }
-} return int lhe;
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 1, 700):(5)
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 1, 1100):(6)
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 1, -50):(4)
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 1, 90000):(7)
+} return int best_offset;
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 1, 700):(5)
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 1, 1100):(6)
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 1, -50):(4)
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 1, 90000):(7)

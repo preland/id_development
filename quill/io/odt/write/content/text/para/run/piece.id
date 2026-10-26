@@ -1,31 +1,31 @@
 // Opens the text:span of character row cid.
-oc_span(XmlW oc_w, int oc_cid) {
-  xw_start(oc_w, "text:span");
-  xw_attr(oc_w, "text:style-name", "WT" + oc_cid);
+odt_write_span_open(XmlW odt_write_span_open_writer, int odt_write_span_open_character_number) {
+  xw_start(odt_write_span_open_writer, "text:span");
+  xw_attr(odt_write_span_open_writer, "text:style-name", "WT" + odt_write_span_open_character_number);
 } return void;
-given oc_t_w(0) ((import oc_fw), 3):() then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 115, 112, 97, 110, 32, 116, 101, 120, 116, 58, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 34, 87, 84, 51, 34])
-given oc_t_w(0) ((import oc_fw), 12):() then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 115, 112, 97, 110, 32, 116, 101, 120, 116, 58, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 34, 87, 84, 49, 50, 34])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 3):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 115, 112, 97, 110, 32, 116, 101, 120, 116, 58, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 34, 87, 84, 51, 34])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 12):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 115, 112, 97, 110, 32, 116, 101, 120, 116, 58, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 34, 87, 84, 49, 50, 34])
 
 // One run's text, inside a text:span when its character row sets anything and bare when it does not.
-oc_run(XmlW oc_w, Doc oc_d, Text oc_tx, int oc_off, Run oc_ru) {
-  int oc_pl = oc_plain_c(oc_d.fmt.chars, oc_ru.cprop);
-  if(oc_pl == 0) {
-    oc_span(oc_w, oc_ru.cprop);
+odt_write_run(XmlW odt_write_run_writer, Doc odt_write_run_document, Text odt_write_run_text, int odt_write_run_offset, Run odt_write_run_run) {
+  int odt_write_run_plain = odt_write_character_plain(odt_write_run_document.fmt.chars, odt_write_run_run.cprop);
+  if(odt_write_run_plain == 0) {
+    odt_write_span_open(odt_write_run_writer, odt_write_run_run.cprop);
   }
-  oc_text(oc_w, oc_tx, oc_d.ext, oc_off, oc_off + oc_ru.len);
-} chain (XmlW oc_w, Doc oc_d, Text oc_tx, int oc_off, Run oc_ru) {
-  if(oc_pl == 0) {
-    xw_end(oc_w);
+  odt_write_text_range(odt_write_run_writer, odt_write_run_text, odt_write_run_document.ext, odt_write_run_offset, odt_write_run_offset + odt_write_run_run.len);
+} chain (XmlW odt_write_run_writer, Doc odt_write_run_document, Text odt_write_run_text, int odt_write_run_offset, Run odt_write_run_run) {
+  if(odt_write_run_plain == 0) {
+    xw_end(odt_write_run_writer);
   }
 } return void;
-given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98, 99], [Run(1, 0, -1), Run(2, 1, -1)], 0), 1, Run(2, 1, -1)):() then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 115, 112, 97, 110, 32, 116, 101, 120, 116, 58, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 34, 87, 84, 49, 34, 62, 98, 99, 60, 47, 116, 101, 120, 116, 58, 115, 112, 97, 110, 62])
-given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98, 99], [Run(1, 0, -1), Run(2, 1, -1)], 0), 0, Run(1, 0, -1)):() then (import oc_fw).out:([60, 114, 62, 97])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98, 99], [Run(1, 0, -1), Run(2, 1, -1)], 0), 1, Run(2, 1, -1)):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 115, 112, 97, 110, 32, 116, 101, 120, 116, 58, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 34, 87, 84, 49, 34, 62, 98, 99, 60, 47, 116, 101, 120, 116, 58, 115, 112, 97, 110, 62])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98, 99], [Run(1, 0, -1), Run(2, 1, -1)], 0), 0, Run(1, 0, -1)):() then (import odt_write_test_writer_output).out:([60, 114, 62, 97])
 
 // Writes the run at offset off as the hyperlink state in st says (st[0] is the offset of the next run, st[1] the hyperlink open now), then moves the state on.
-oc_piece(XmlW oc_w, Doc oc_d, Text oc_tx, Run oc_ru, int[] oc_st) {
-  oc_st[1] = oc_link(oc_w, oc_d, oc_st[1], oc_ru.link);
-  oc_run(oc_w, oc_d, oc_tx, oc_st[0], oc_ru);
-  oc_st[0] = oc_st[0] + oc_ru.len;
+odt_write_run_piece(XmlW odt_write_run_piece_writer, Doc odt_write_run_piece_document, Text odt_write_run_piece_text, Run odt_write_run_piece_run, int[] odt_write_run_piece_state) {
+  odt_write_run_piece_state[1] = odt_write_link_switch(odt_write_run_piece_writer, odt_write_run_piece_document, odt_write_run_piece_state[1], odt_write_run_piece_run.link);
+  odt_write_run(odt_write_run_piece_writer, odt_write_run_piece_document, odt_write_run_piece_text, odt_write_run_piece_state[0], odt_write_run_piece_run);
+  odt_write_run_piece_state[0] = odt_write_run_piece_state[0] + odt_write_run_piece_run.len;
 } return void;
-given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98], [Run(1, 0, -1), Run(1, 0, 1)], 0), Run(1, 0, 1), [1, -1]):((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98], [Run(1, 0, -1), Run(1, 0, 1)], 0), Run(1, 0, 1), [2, 1]) then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 97, 32, 120, 108, 105, 110, 107, 58, 116, 121, 112, 101, 61, 34, 115, 105, 109, 112, 108, 101, 34, 32, 120, 108, 105, 110, 107, 58, 104, 114, 101, 102, 61, 34, 118, 34, 62, 98])
-given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98], [Run(2, 0, -1)], 0), Run(2, 0, -1), [0, -1]):((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98], [Run(2, 0, -1)], 0), Run(2, 0, -1), [2, -1]) then (import oc_fw).out:([60, 114, 62, 97, 98])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98], [Run(1, 0, -1), Run(1, 0, 1)], 0), Run(1, 0, 1), [1, -1]):((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98], [Run(1, 0, -1), Run(1, 0, 1)], 0), Run(1, 0, 1), [2, 1]) then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 97, 32, 120, 108, 105, 110, 107, 58, 116, 121, 112, 101, 61, 34, 115, 105, 109, 112, 108, 101, 34, 32, 120, 108, 105, 110, 107, 58, 104, 114, 101, 102, 61, 34, 118, 34, 62, 98])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98], [Run(2, 0, -1)], 0), Run(2, 0, -1), [0, -1]):((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Arial"], ["u", "v"], [])), Text([97, 98], [Run(2, 0, -1)], 0), Run(2, 0, -1), [2, -1]) then (import odt_write_test_writer_output).out:([60, 114, 62, 97, 98])

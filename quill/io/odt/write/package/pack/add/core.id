@@ -1,37 +1,37 @@
 // Records that a part could not be written on the archive itself, as a refused entry would be, so that zw_ok is 0 and zw_finish gives []; the first failure is kept.
-odp_fail(ZipW pkz, string pkname, string pkwhy) {
-  string[] pkerr = pkz.names;
-  if(len(pkerr[0]) == 0) {
-    pkerr[0] = "odt: " + pkname + " could not be written (" + pkwhy + "); this is a fault in the ODT writer, so report it with the document that caused it";
+odp_fail(ZipW odt_package_fail_archive, string odt_package_fail_name, string odt_package_fail_reason) {
+  string[] odt_package_fail_names = odt_package_fail_archive.names;
+  if(len(odt_package_fail_names[0]) == 0) {
+    odt_package_fail_names[0] = "odt: " + odt_package_fail_name + " could not be written (" + odt_package_fail_reason + "); this is a fault in the ODT writer, so report it with the document that caused it";
   }
 } return void;
-given odp_t_new ((import odp_t_z), "a.xml", "why"):() then (import odp_t_z).names:(["odt: a.xml could not be written (why); this is a fault in the ODT writer, so report it with the document that caused it"])
-given odp_t_new given odp_fail((import odp_t_z), "first.xml", "x") ((import odp_t_z), "second.xml", "y"):() then (import odp_t_z).names:(["odt: first.xml could not be written (x); this is a fault in the ODT writer, so report it with the document that caused it"])
+given odt_package_fixture_new ((import odt_package_exported_archive), "a.xml", "why"):() then (import odt_package_exported_archive).names:(["odt: a.xml could not be written (why); this is a fault in the ODT writer, so report it with the document that caused it"])
+given odt_package_fixture_new given odp_fail((import odt_package_exported_archive), "first.xml", "x") ((import odt_package_exported_archive), "second.xml", "y"):() then (import odt_package_exported_archive).names:(["odt: first.xml could not be written (x); this is a fault in the ODT writer, so report it with the document that caused it"])
 
 // Adds a finished XML part as a stored entry; when the writer holds no document, because an element was left open, the archive records the failure instead.
-odp_put(ZipW pkz, string pkname, XmlW pkw) {
-  int[] pkby = xw_done(pkw);
-  if(len(pkby) > 0) {
-    zw_add(pkz, pkname, pkby, 0);
+odp_put(ZipW odt_package_put_archive, string odt_package_put_name, XmlW odt_package_put_writer) {
+  int[] odt_package_put_bytes = xw_done(odt_package_put_writer);
+  if(len(odt_package_put_bytes) > 0) {
+    zw_add(odt_package_put_archive, odt_package_put_name, odt_package_put_bytes, 0);
   }
-  if(len(pkby) == 0) {
-    odp_fail(pkz, pkname, xw_error(pkw));
+  if(len(odt_package_put_bytes) == 0) {
+    odp_fail(odt_package_put_archive, odt_package_put_name, xw_error(odt_package_put_writer));
   }
 } return void;
-given odp_t_new given xw_end((import odp_t_w)) ((import odp_t_z), "x.xml", (import odp_t_w)):() then (import odp_t_z).names:(["", "x.xml"])
-given odp_t_new ((import odp_t_z), "x.xml", (import odp_t_w)):() then (import odp_t_z).names:(["odt: x.xml could not be written (xw_done before the document is complete: write a root element, then call xw_end once for every xw_start); this is a fault in the ODT writer, so report it with the document that caused it"])
+given odt_package_fixture_new given xw_end((import odt_package_exported_writer)) ((import odt_package_exported_archive), "x.xml", (import odt_package_exported_writer)):() then (import odt_package_exported_archive).names:(["", "x.xml"])
+given odt_package_fixture_new ((import odt_package_exported_archive), "x.xml", (import odt_package_exported_writer)):() then (import odt_package_exported_archive).names:(["odt: x.xml could not be written (xw_done before the document is complete: write a root element, then call xw_end once for every xw_start); this is a fault in the ODT writer, so report it with the document that caused it"])
 
 // Adds the three files this writer makes besides the manifest: content.xml as the caller built it, then styles.xml and meta.xml, all stored.
-odp_core(ZipW pkz, Doc pkd, int[] pkc) {
-  zw_add(pkz, "content.xml", pkc, 0);
-  XmlW pkw = odp_doc();
-  odp_styles(pkw, pkd);
-} chain (ZipW pkz, Doc pkd, int[] pkc) {
-  odp_put(pkz, "styles.xml", pkw);
-  pkw = odp_doc();
-  odp_meta(pkw, (import odp_generator));
-} chain (ZipW pkz, Doc pkd, int[] pkc) {
-  odp_put(pkz, "meta.xml", pkw);
+odp_core(ZipW odt_package_core_archive, Doc odt_package_core_document, int[] odt_package_core_content) {
+  zw_add(odt_package_core_archive, "content.xml", odt_package_core_content, 0);
+  XmlW odt_package_core_writer = odp_doc();
+  odp_styles(odt_package_core_writer, odt_package_core_document);
+} chain (ZipW odt_package_core_archive, Doc odt_package_core_document, int[] odt_package_core_content) {
+  odp_put(odt_package_core_archive, "styles.xml", odt_package_core_writer);
+  odt_package_core_writer = odp_doc();
+  odp_meta(odt_package_core_writer, (import odp_generator));
+} chain (ZipW odt_package_core_archive, Doc odt_package_core_document, int[] odt_package_core_content) {
+  odp_put(odt_package_core_archive, "meta.xml", odt_package_core_writer);
 } return void;
-given odp_t_new ((import odp_t_z), (import odp_t_d), [1, 2]):() then (import odp_t_z).names:(["", "content.xml", "styles.xml", "meta.xml"])
-given odp_t_new given zw_mimetype((import odp_t_z), "x") ((import odp_t_z), (import odp_t_d), []):() then (import odp_t_z).names:(["", "mimetype", "content.xml", "styles.xml", "meta.xml"])
+given odt_package_fixture_new ((import odt_package_exported_archive), (import odt_package_exported_default_document), [1, 2]):() then (import odt_package_exported_archive).names:(["", "content.xml", "styles.xml", "meta.xml"])
+given odt_package_fixture_new given zw_mimetype((import odt_package_exported_archive), "x") ((import odt_package_exported_archive), (import odt_package_exported_default_document), []):() then (import odt_package_exported_archive).names:(["", "mimetype", "content.xml", "styles.xml", "meta.xml"])

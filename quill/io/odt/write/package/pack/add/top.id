@@ -1,22 +1,22 @@
 // Adds META-INF/manifest.xml, which lists every entry written after it except itself.
-odp_mf(ZipW pkz, Ext pkx) {
-  string[] pknames = odp_names(pkx);
-  string[] pktypes = odp_types(pknames);
-  XmlW pkw = odp_doc();
-} chain (ZipW pkz, Ext pkx) {
-  odp_manifest(pkw, pknames, pktypes);
-  odp_put(pkz, "META-INF/manifest.xml", pkw);
+odt_package_add_manifest(ZipW odt_package_attach_archive, Ext odt_package_attach_references) {
+  string[] odt_package_attach_names = odp_names(odt_package_attach_references);
+  string[] odt_package_attach_types = odp_types(odt_package_attach_names);
+  XmlW odt_package_attach_writer = odp_doc();
+} chain (ZipW odt_package_attach_archive, Ext odt_package_attach_references) {
+  odp_manifest(odt_package_attach_writer, odt_package_attach_names, odt_package_attach_types);
+  odp_put(odt_package_attach_archive, "META-INF/manifest.xml", odt_package_attach_writer);
 } return void;
-given odp_t_new ((import odp_t_z), (import odp_t_x)):() then (import odp_t_z).names:(["", "META-INF/manifest.xml"])
-given odp_t_new given zw_add((import odp_t_z), "x", [1], 0) ((import odp_t_z), (import odp_t_x)):() then (import odp_t_z).names:(["", "x", "META-INF/manifest.xml"])
+given odt_package_fixture_new ((import odt_package_exported_archive), (import odt_package_exported_references)):() then (import odt_package_exported_archive).names:(["", "META-INF/manifest.xml"])
+given odt_package_fixture_new given zw_add((import odt_package_exported_archive), "x", [1], 0) ((import odt_package_exported_archive), (import odt_package_exported_references)):() then (import odt_package_exported_archive).names:(["", "x", "META-INF/manifest.xml"])
 
 // Fills an empty archive with the package of the document: mimetype first and stored, then META-INF/manifest.xml, content.xml (the caller's bytes), styles.xml, meta.xml and the preserved parts. Entries are all stored; zw_why on the archive says if one was refused.
-odp_pack(Doc pkd, int[] pkc, ZipW pkz) {
-  zw_mimetype(pkz, (import odp_mime));
-  odp_mf(pkz, pkd.ext);
-  odp_core(pkz, pkd, pkc);
-} chain (Doc pkd, int[] pkc, ZipW pkz) {
-  odp_parts(pkz, pkd.ext);
+odp_pack(Doc odt_package_pack_document, int[] odt_package_pack_content, ZipW odt_package_pack_archive) {
+  zw_mimetype(odt_package_pack_archive, (import odp_mime));
+  odt_package_add_manifest(odt_package_pack_archive, odt_package_pack_document.ext);
+  odp_core(odt_package_pack_archive, odt_package_pack_document, odt_package_pack_content);
+} chain (Doc odt_package_pack_document, int[] odt_package_pack_content, ZipW odt_package_pack_archive) {
+  odp_parts(odt_package_pack_archive, odt_package_pack_document.ext);
 } return void;
-given odp_t_new ((import odp_t_d), [1, 2], (import odp_t_z)):() then (import odp_t_z).names:(["", "mimetype", "META-INF/manifest.xml", "content.xml", "styles.xml", "meta.xml"])
-given odp_t_new given odp_t_img () ((import odp_t_d), [], (import odp_t_z)):() then (import odp_t_z).names:(["", "mimetype", "META-INF/manifest.xml", "content.xml", "styles.xml", "meta.xml", "Pictures/a.png"])
+given odt_package_fixture_new ((import odt_package_exported_default_document), [1, 2], (import odt_package_exported_archive)):() then (import odt_package_exported_archive).names:(["", "mimetype", "META-INF/manifest.xml", "content.xml", "styles.xml", "meta.xml"])
+given odt_package_fixture_new given odt_package_fixture_add_image () ((import odt_package_exported_default_document), [], (import odt_package_exported_archive)):() then (import odt_package_exported_archive).names:(["", "mimetype", "META-INF/manifest.xml", "content.xml", "styles.xml", "meta.xml", "Pictures/a.png"])

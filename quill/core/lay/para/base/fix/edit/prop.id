@@ -1,26 +1,26 @@
 // Test setup: sets field of paragraph i's property row to value (the row is interned again, never edited).
-lp_t_row(int i, int field, int value) {
-  Doc d = (import lp_t_d);
-  Para p = d.body.paras[i];
-  p.pprop = tab_with(d.fmt.paras, p.pprop, field, value);
+layout_paragraph_test_set_property(int row_paragraph_index, int field, int value) {
+  Doc row_document = (import layout_paragraph_test_document);
+  Para row_paragraph = row_document.body.paras[row_paragraph_index];
+  row_paragraph.pprop = tab_with(row_document.fmt.paras, row_paragraph.pprop, field, value);
 } return void;
-given lp_t_new (0, 5, 600):(0, 5, 600) then lp_t_pr0:([0, -1, -1, -1, -1, 600, -1, -1, 0, 0, 0, 0])
-given lp_t_new (0, 7, 150):(0, 7, 150) then lp_t_pr0:([0, -1, -1, -1, -1, -1, -1, 150, 0, 0, 0, 0])
+given layout_paragraph_test_new (0, 5, 600):(0, 5, 600) then layout_paragraph_test_first_property_row:([0, -1, -1, -1, -1, 600, -1, -1, 0, 0, 0, 0])
+given layout_paragraph_test_new (0, 7, 150):(0, 7, 150) then layout_paragraph_test_first_property_row:([0, -1, -1, -1, -1, -1, -1, 150, 0, 0, 0, 0])
 
 // Test setup: turns character flag bits on over lo..hi-1 of paragraph i, as the bold button would.
-lp_t_bits(int i, int lo, int hi, int bits) {
-  Doc d = (import lp_t_d);
-  Text t = d.body.paras[i].txt;
-  text_apply(t, lo, hi, (d.fmt.chars), bits, 1, (import quill_mode_bits));
+layout_paragraph_test_flag_bits(int bits_paragraph_index, int bits_start, int hi, int bits) {
+  Doc bits_document = (import layout_paragraph_test_document);
+  Text bits_text = bits_document.body.paras[bits_paragraph_index].txt;
+  text_apply(bits_text, bits_start, hi, (bits_document.fmt.chars), bits, 1, (import quill_mode_bits));
 } return void;
-given lp_t_new given lp_t_ins(0, "ABCD") (0, 1, 3, 1):(0, 1, 3, 1) then lp_t_nr0:(3)
-given lp_t_new given lp_t_ins(0, "ABCD") (0, 0, 4, 2):(0, 0, 4, 2) then lp_t_nr0:(1)
+given layout_paragraph_test_new given layout_paragraph_test_insert(0, "ABCD") (0, 1, 3, 1):(0, 1, 3, 1) then layout_paragraph_test_first_run_count:(3)
+given layout_paragraph_test_new given layout_paragraph_test_insert(0, "ABCD") (0, 0, 4, 2):(0, 0, 4, 2) then layout_paragraph_test_first_run_count:(1)
 
 // Test setup: sets the font size to hp half-points over lo..hi-1 of paragraph i.
-lp_t_size(int i, int lo, int hi, int hp) {
-  Doc d = (import lp_t_d);
-  Text t = d.body.paras[i].txt;
-  text_apply(t, lo, hi, d.fmt.chars, (import quill_character_size), hp, (import quill_mode_field));
+layout_paragraph_test_font_size(int size_paragraph_index, int size_start, int hi, int size_half_points) {
+  Doc size_document = (import layout_paragraph_test_document);
+  Text size_text = size_document.body.paras[size_paragraph_index].txt;
+  text_apply(size_text, size_start, hi, size_document.fmt.chars, (import quill_character_size), size_half_points, (import quill_mode_field));
 } return void;
-given lp_t_new given lp_t_ins(0, "ABCD") (0, 1, 3, 48):(0, 1, 3, 48) then lp_t_nr0:(3)
-given lp_t_new given lp_t_ins(0, "ABCD") (0, 0, 4, 24):(0, 0, 4, 24) then lp_t_nr0:(1)
+given layout_paragraph_test_new given layout_paragraph_test_insert(0, "ABCD") (0, 1, 3, 48):(0, 1, 3, 48) then layout_paragraph_test_first_run_count:(3)
+given layout_paragraph_test_new given layout_paragraph_test_insert(0, "ABCD") (0, 0, 4, 24):(0, 0, 4, 24) then layout_paragraph_test_first_run_count:(1)

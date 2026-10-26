@@ -1,36 +1,36 @@
 // The code points the run triples [len, cprop, link, ...] cover; a trailing partial triple is ignored.
 runs_sum(int[] runs) {
-  int n = 0;
-  int i = 0;
-  while(i + 2 < len(runs)) {
-    n = n + runs[i];
-    i = i + 3;
+  int runs_covered_total = 0;
+  int runs_covered_index = 0;
+  while(runs_covered_index + 2 < len(runs)) {
+    runs_covered_total = runs_covered_total + runs[runs_covered_index];
+    runs_covered_index = runs_covered_index + 3;
   }
-} return int n;
+} return int runs_covered_total;
 ([2, 0, -1, 3, 5, 1]):(5)
 ([]):(0)
 ([2, 0]):(0)
 
 // Inserts a run for each triple of runs, in order, starting at index at.
-runs_load(Run[] rs, int at, int[] runs) {
-  int i = 0;
-  while(i + 2 < len(runs)) {
-    Run nr = Run(runs[i], runs[i + 1], runs[i + 2]);
-    rs_insert(rs, at + i / 3, nr);
-    i = i + 3;
+runs_load(Run[] runs_load_in_run_list, int at, int[] runs) {
+  int runs_load_in_index = 0;
+  while(runs_load_in_index + 2 < len(runs)) {
+    Run runs_load_in_new_run = Run(runs[runs_load_in_index], runs[runs_load_in_index + 1], runs[runs_load_in_index + 2]);
+    document_runs_insert(runs_load_in_run_list, at + runs_load_in_index / 3, runs_load_in_new_run);
+    runs_load_in_index = runs_load_in_index + 3;
   }
 } return void;
 ([Run(1, 0, -1)], 0, [2, 5, -1]):([Run(2, 5, -1), Run(1, 0, -1)], 0, [2, 5, -1])
 ([Run(1, 0, -1)], 1, [1, 2, 3, 1, 4, 5]):([Run(1, 0, -1), Run(1, 2, 3), Run(1, 4, 5)], 1, [1, 2, 3, 1, 4, 5])
 
 // Replaces the runs covering lo..hi by the ones in runs; text_runs_set checks that they cover as many code points.
-text_swap(Text t, int lo, int hi, int[] runs) {
-  int ia = run_cut(t, lo);
-  int iz = run_cut(t, hi);
-  rs_remove(t.runs, ia, iz - ia);
-} chain (Text t, int lo, int hi, int[] runs) {
-  runs_load(t.runs, ia, runs);
-  t.rev = t.rev + 1;
+text_swap(Text runs_swap_text, int runs_swap_lower_bound, int hi, int[] runs) {
+  int runs_swap_first_run = run_cut(runs_swap_text, runs_swap_lower_bound);
+  int runs_swap_last_run = run_cut(runs_swap_text, hi);
+  document_runs_remove(runs_swap_text.runs, runs_swap_first_run, runs_swap_last_run - runs_swap_first_run);
+} chain (Text runs_swap_text, int runs_swap_lower_bound, int hi, int[] runs) {
+  runs_load(runs_swap_text.runs, runs_swap_first_run, runs);
+  runs_swap_text.rev = runs_swap_text.rev + 1;
 } return void;
 (Text([1, 2, 3], [Run(3, 0, -1)], 0), 1, 2, [1, 5, -1]):(Text([1, 2, 3], [Run(1, 0, -1), Run(1, 5, -1), Run(1, 0, -1)], 1), 1, 2, [1, 5, -1])
 (Text([1, 2, 3], [Run(1, 0, -1), Run(1, 1, -1), Run(1, 2, -1)], 0), 0, 3, [3, 9, 4]):(Text([1, 2, 3], [Run(3, 9, 4)], 1), 0, 3, [3, 9, 4])

@@ -1,8 +1,8 @@
 // 1 when the line that starts at lo still fits after the code points lo..k-1 are placed: nothing is placed yet, or the last one is a space (trailing spaces hang past the right edge without counting), or the pen has moved no further than avail from where the line began.
-lp_fit(Para p, int lo, int k, int avail) {
+layout_paragraph_fits(Para fit_paragraph, int fit_start, int fit_position, int avail) {
   int ok = 1;
-  if(k > lo) {
-    ok = p.txt.cps[k - 1] == (import quill_code_point_space) || p.lay.pen[k] - p.lay.pen[lo] <= avail;
+  if(fit_position > fit_start) {
+    ok = fit_paragraph.txt.cps[fit_position - 1] == (import quill_code_point_space) || fit_paragraph.lay.pen[fit_position] - fit_paragraph.lay.pen[fit_start] <= avail;
   }
 } return int ok;
 (Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [0, 683, 1366], -1), 0), 0, 2, 1366):(1)
@@ -12,10 +12,10 @@ lp_fit(Para p, int lo, int k, int avail) {
 (Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [500, 1183, 1866], -1), 0), 1, 2, 683):(1)
 
 // 1 when a line may break before code point k (0 < k < n): after a space, a tab or a hyphen, or before a CJK ideograph or kana (U+2E80 to U+9FFF). Never before a space, so spaces stay with the word they follow.
-lp_opp(Para p, int k) {
-  int prev = p.txt.cps[k - 1];
-  int now = p.txt.cps[k];
-  int ok = prev == (import quill_code_point_space) || prev == (import quill_code_point_tab) || prev == (import quill_code_point_dash) || (now >= 11904 && now <= 40959);
+layout_paragraph_break_opportunity(Para break_paragraph, int break_position) {
+  int break_previous = break_paragraph.txt.cps[break_position - 1];
+  int now = break_paragraph.txt.cps[break_position];
+  int ok = break_previous == (import quill_code_point_space) || break_previous == (import quill_code_point_tab) || break_previous == (import quill_code_point_dash) || (now >= 11904 && now <= 40959);
 } return int ok;
 (Para(Text([65, 32, 66], [Run(3, 0, -1)], 0), Lay([], [], -1), 0), 2):(1)
 (Para(Text([65, 66, 32], [Run(3, 0, -1)], 0), Lay([], [], -1), 0), 2):(0)
@@ -25,15 +25,15 @@ lp_opp(Para p, int k) {
 (Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [], -1), 0), 1):(0)
 
 // Where the line that starts at lo ends when code point ov (>= lo) did not fit: at the last break opportunity in lo+1..ov; with none, before ov itself (a word longer than the line breaks at the glyph); and never before lo+1, so every line holds a code point and the paragraph always advances.
-lp_cut(Para p, int lo, int ov) {
-  int q = ov;
-  while(q > lo && lp_opp(p, q) == 0) {
-    q = q - 1;
+layout_paragraph_cut(Para cut_paragraph, int cut_start, int cut_overflow) {
+  int cut_position = cut_overflow;
+  while(cut_position > cut_start && layout_paragraph_break_opportunity(cut_paragraph, cut_position) == 0) {
+    cut_position = cut_position - 1;
   }
-  int hi = q;
-} chain (Para p, int lo, int ov) {
-  if(q == lo) {
-    hi = fixed_point_maximum(ov, lo + 1);
+  int hi = cut_position;
+} chain (Para cut_paragraph, int cut_start, int cut_overflow) {
+  if(cut_position == cut_start) {
+    hi = fixed_point_maximum(cut_overflow, cut_start + 1);
   }
 } return int hi;
 (Para(Text([65, 65, 65, 65, 32, 66, 66, 66, 66], [Run(9, 0, -1)], 0), Lay([], [], -1), 0), 0, 5):(5)

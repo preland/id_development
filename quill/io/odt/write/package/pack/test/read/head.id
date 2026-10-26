@@ -1,31 +1,31 @@
 // Test fixture (internal): the first 38 bytes of the exported archive once packed, which are the local header of the first entry and its name.
-odp_t_head() {
-  int[] pkby = zw_finish((import odp_t_z));
-  int[] pkh = list_slice(pkby, 0, (import odp_head_bytes));
-} return int[] pkh;
-given odp_t_new given odp_pack((import odp_t_d), [1], (import odp_t_z)) ():([80, 75, 3, 4, 10, 0, 0, 0, 0, 0, 0, 0, 33, 0, 94, 198, 50, 12, 39, 0, 0, 0, 39, 0, 0, 0, 8, 0, 0, 0, 109, 105, 109, 101, 116, 121, 112, 101])
-given odp_t_new given odp_t_img given odp_pack((import odp_t_d), [], (import odp_t_z)) ():([80, 75, 3, 4, 10, 0, 0, 0, 0, 0, 0, 0, 33, 0, 94, 198, 50, 12, 39, 0, 0, 0, 39, 0, 0, 0, 8, 0, 0, 0, 109, 105, 109, 101, 116, 121, 112, 101])
+odt_package_fixture_header_bytes() {
+  int[] odt_package_header_archive = zw_finish((import odt_package_exported_archive));
+  int[] odt_package_header_slice = list_slice(odt_package_header_archive, 0, (import odp_head_bytes));
+} return int[] odt_package_header_slice;
+given odt_package_fixture_new given odp_pack((import odt_package_exported_default_document), [1], (import odt_package_exported_archive)) ():([80, 75, 3, 4, 10, 0, 0, 0, 0, 0, 0, 0, 33, 0, 94, 198, 50, 12, 39, 0, 0, 0, 39, 0, 0, 0, 8, 0, 0, 0, 109, 105, 109, 101, 116, 121, 112, 101])
+given odt_package_fixture_new given odt_package_fixture_add_image given odp_pack((import odt_package_exported_default_document), [], (import odt_package_exported_archive)) ():([80, 75, 3, 4, 10, 0, 0, 0, 0, 0, 0, 0, 33, 0, 94, 198, 50, 12, 39, 0, 0, 0, 39, 0, 0, 0, 8, 0, 0, 0, 109, 105, 109, 101, 116, 121, 112, 101])
 
 // Test fixture (internal): the bytes right after those 38, which must be the media type with nothing around it.
-odp_t_mime() {
-  int[] pkby = zw_finish((import odp_t_z));
-  int[] pkm = list_slice(pkby, (import odp_head_bytes), len((import odp_mime)));
-  string pkr = exec_text(pkm);
-} return string pkr;
-given odp_t_new given odp_pack((import odp_t_d), [1], (import odp_t_z)) ():("application/vnd.oasis.opendocument.text")
-given odp_t_new given odp_t_img given odp_pack((import odp_t_d), [], (import odp_t_z)) ():("application/vnd.oasis.opendocument.text")
+odt_package_fixture_media_type() {
+  int[] odt_package_media_archive = zw_finish((import odt_package_exported_archive));
+  int[] odt_package_media_slice = list_slice(odt_package_media_archive, (import odp_head_bytes), len((import odp_mime)));
+  string odt_package_media_text = exec_text(odt_package_media_slice);
+} return string odt_package_media_text;
+given odt_package_fixture_new given odp_pack((import odt_package_exported_default_document), [1], (import odt_package_exported_archive)) ():("application/vnd.oasis.opendocument.text")
+given odt_package_fixture_new given odt_package_fixture_add_image given odp_pack((import odt_package_exported_default_document), [], (import odt_package_exported_archive)) ():("application/vnd.oasis.opendocument.text")
 
 // Test fixture (internal): 1 when our reader opens the exported archive and reads every entry with its size and CRC-32 matching, 0 otherwise.
-odp_t_crc() {
-  bytes pkzb = bytes_of_int_list(zw_finish((import odp_t_z)));
-  Zip pkzr = zip_reader_open(pkzb);
-  int pki = 0;
+odt_package_fixture_checksum_matches() {
+  bytes odt_package_checksum_bytes = bytes_of_int_list(zw_finish((import odt_package_exported_archive)));
+  Zip odt_package_checksum_reader = zip_reader_open(odt_package_checksum_bytes);
+  int odt_package_checksum_index = 0;
 } chain () {
-  while(pki < zip_reader_count(pkzr)) {
-    int[] pkrd = zip_reader_read(pkzr, pki);
-    pki = pki + 1;
+  while(odt_package_checksum_index < zip_reader_count(odt_package_checksum_reader)) {
+    int[] odt_package_checksum_content = zip_reader_read(odt_package_checksum_reader, odt_package_checksum_index);
+    odt_package_checksum_index = odt_package_checksum_index + 1;
   }
-  int pkq = zip_reader_ok(pkzr);
-} return int pkq;
-given odp_t_new given odp_t_img given odp_pack((import odp_t_d), [1, 2, 3], (import odp_t_z)) ():(1)
-given odp_t_new given odp_pack((import odp_t_d), [1, 2, 3], (import odp_t_z)) given odp_t_flip(40) ():(0)
+  int odt_package_checksum_status = zip_reader_ok(odt_package_checksum_reader);
+} return int odt_package_checksum_status;
+given odt_package_fixture_new given odt_package_fixture_add_image given odp_pack((import odt_package_exported_default_document), [1, 2, 3], (import odt_package_exported_archive)) ():(1)
+given odt_package_fixture_new given odp_pack((import odt_package_exported_default_document), [1, 2, 3], (import odt_package_exported_archive)) given odt_package_fixture_corrupt_byte(40) ():(0)

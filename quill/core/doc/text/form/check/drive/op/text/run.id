@@ -1,44 +1,44 @@
 // Give a random range random runs: character rows, and links of -1, 0 or 1.
-op_runs(Doc d, Model mo, int[] rg) {
-  int para = pick_para(d, rg);
-  Para p = d.body.paras[para];
+document_operation_runs(Doc runs_any_document, Model runs_any_model, int[] random_generator_seed) {
+  int para = pick_para(runs_any_document, random_generator_seed);
+  Para runs_any_paragraph = runs_any_document.body.paras[para];
   int[] runs = [];
-} chain (Doc d, Model mo, int[] rg) {
-  int[] sp = [0, 0];
-  rng_span(rg, para_len(p), sp);
-  rand_runs(rg, sp[1] - sp[0], tab_count(d.fmt.chars), runs);
-} chain (Doc d, Model mo, int[] rg) {
-  int k = flat_at(d, para, sp[0]);
-  model_put(mo, k, expand_runs(runs, 1), expand_runs(runs, 2));
-  text_runs_set(p.txt, sp[0], sp[1], runs);
+} chain (Doc runs_any_document, Model runs_any_model, int[] random_generator_seed) {
+  int[] span_bounds = [0, 0];
+  document_random_span(random_generator_seed, document_paragraph_length(runs_any_paragraph), span_bounds);
+  rand_runs(random_generator_seed, span_bounds[1] - span_bounds[0], tab_count(runs_any_document.fmt.chars), runs);
+} chain (Doc runs_any_document, Model runs_any_model, int[] random_generator_seed) {
+  int runs_any_flat_index = flat_at(runs_any_document, para, span_bounds[0]);
+  model_put(runs_any_model, runs_any_flat_index, expand_runs(runs, 1), expand_runs(runs, 2));
+  text_runs_set(runs_any_paragraph.txt, span_bounds[0], span_bounds[1], runs);
 } return void;
 (Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), Model([4, 5, -1, -1, 7, 8, 9, -1], [0, 1, -1, -1, 1, 1, 1, -1], [-1, 3, -1, -1, -1, -1, -1, -1]), [6]):(Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(1, 1, 0), Run(2, 2, 0)], 1), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), Model([4, 5, -1, -1, 7, 8, 9, -1], [0, 1, -1, -1, 1, 2, 2, -1], [-1, 3, -1, -1, 0, 0, 0, -1]), [255264703])
 (Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), Model([4, 5, -1, -1, 7, 8, 9, -1], [0, 1, -1, -1, 1, 1, 1, -1], [-1, 3, -1, -1, -1, -1, -1, -1]), [11]):(Doc(Body([Para(Text([4, 5], [Run(1, 2, 1), Run(1, 0, -1)], 1), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), Model([4, 5, -1, -1, 7, 8, 9, -1], [2, 0, -1, -1, 1, 1, 1, -1], [1, -1, -1, -1, -1, -1, -1, -1]), [1595495168])
 
 // Set one character field over a random range.
-op_patch(Doc d, Model mo, int[] rg) {
-  int para = pick_para(d, rg);
-  Para p = d.body.paras[para];
-  int pick = rng_below(rg, len((import quill_script_patch)) / 2) * 2;
-} chain (Doc d, Model mo, int[] rg) {
-  int[] sp = [0, 0];
-  rng_span(rg, para_len(p), sp);
-  int k = flat_at(d, para, sp[0]);
-} chain (Doc d, Model mo, int[] rg) {
+document_operation_patch(Doc patch_any_document, Model patch_any_model, int[] random_generator_seed) {
+  int para = pick_para(patch_any_document, random_generator_seed);
+  Para patch_any_paragraph = patch_any_document.body.paras[para];
+  int pick = document_random_below(random_generator_seed, len((import quill_script_patch)) / 2) * 2;
+} chain (Doc patch_any_document, Model patch_any_model, int[] random_generator_seed) {
+  int[] span_bounds = [0, 0];
+  document_random_span(random_generator_seed, document_paragraph_length(patch_any_paragraph), span_bounds);
+  int patch_any_flat_index = flat_at(patch_any_document, para, span_bounds[0]);
+} chain (Doc patch_any_document, Model patch_any_model, int[] random_generator_seed) {
   int key = (import quill_script_patch)[pick];
-  int val = (import quill_script_patch)[pick + 1];
-  model_patch(mo, d.fmt.chars, k, sp[1] - sp[0], key, val, (import quill_mode_field));
-} chain (Doc d, Model mo, int[] rg) {
-  text_apply(p.txt, sp[0], sp[1], d.fmt.chars, key, val, (import quill_mode_field));
+  int patch_any_value = (import quill_script_patch)[pick + 1];
+  model_patch(patch_any_model, patch_any_document.fmt.chars, patch_any_flat_index, span_bounds[1] - span_bounds[0], key, patch_any_value, (import quill_mode_field));
+} chain (Doc patch_any_document, Model patch_any_model, int[] random_generator_seed) {
+  text_apply(patch_any_paragraph.txt, span_bounds[0], span_bounds[1], patch_any_document.fmt.chars, key, patch_any_value, (import quill_mode_field));
 } return void;
 (Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), Model([4, 5, -1, -1, 7, 8, 9, -1], [0, 1, -1, -1, 1, 1, 1, -1], [-1, 3, -1, -1, -1, -1, -1, -1]), [3]):(Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 3, -1)], 1), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1, 0, -1, 24, 255, -1, 0, 0], 7, [2, 3, 4, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), Model([4, 5, -1, -1, 7, 8, 9, -1], [0, 1, -1, -1, 3, 3, 3, -1], [-1, 3, -1, -1, -1, -1, -1, -1]), [544774495])
 (Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), Model([4, 5, -1, -1, 7, 8, 9, -1], [0, 1, -1, -1, 1, 1, 1, -1], [-1, 3, -1, -1, -1, -1, -1, -1]), [6]):(Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(2, 1, -1), Run(1, 3, -1)], 1), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1, 0, -1, 24, 255, -1, 0, 0], 7, [2, 3, 4, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), Model([4, 5, -1, -1, 7, 8, 9, -1], [0, 1, -1, -1, 1, 1, 3, -1], [-1, 3, -1, -1, -1, -1, -1, -1]), [1787565714])
 
 // Normalise one paragraph's runs again; the text and the properties of every code point must not change.
-op_merge(Doc d, Model mo, int[] rg) {
-  int para = pick_para(d, rg);
-  Para p = d.body.paras[para];
-  text_merge(p.txt);
+document_operation_merge(Doc merge_any_document, Model merge_any_model, int[] random_generator_seed) {
+  int para = pick_para(merge_any_document, random_generator_seed);
+  Para merge_any_paragraph = merge_any_document.body.paras[para];
+  text_merge(merge_any_paragraph.txt);
 } return void;
 (Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), Model([4, 5, -1, -1, 7, 8, 9, -1], [0, 1, -1, -1, 1, 1, 1, -1], [-1, 3, -1, -1, -1, -1, -1, -1]), [3]):(Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), Model([4, 5, -1, -1, 7, 8, 9, -1], [0, 1, -1, -1, 1, 1, 1, -1], [-1, 3, -1, -1, -1, -1, -1, -1]), [1163074432])
 (Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), Model([4, 5, -1, -1, 7, 8, 9, -1], [0, 1, -1, -1, 1, 1, 1, -1], [-1, 3, -1, -1, -1, -1, -1, -1]), [4]):(Doc(Body([Para(Text([4, 5], [Run(1, 0, -1), Run(1, 1, 3)], 0), Lay([], [], -1), 0), Para(Text([], [Run(0, 2, -1)], 0), Lay([], [], -1), 1), Para(Text([7, 8, 9], [Run(3, 1, -1)], 0), Lay([], [], -1), 0)], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 1, 1], 7, [2, 3, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 2, 0]), Sty([], [], 0)), Ext([], [], [])), Model([4, 5, -1, -1, 7, 8, 9, -1], [0, 1, -1, -1, 1, 1, 1, -1], [-1, 3, -1, -1, -1, -1, -1, -1]), [119106029])

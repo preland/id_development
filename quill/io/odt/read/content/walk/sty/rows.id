@@ -1,37 +1,37 @@
 // A text:span starts: the character row in force becomes the row of the span's text style laid over the row that was in force (ost_row for the name, ost_merge for the layering), so the text inside takes it. A span with no style, or one the document does not define, changes nothing.
-orc_span_in(Cx cx) {
-  int[] rstk = cx.cs.look.rstk;
-  int under = list_last(rstk);
-  string sname = xml_reader_attr(cx.rd, "text:style-name");
-} chain (Cx cx) {
-  int over = ost_row(cx.cs.look.osty, "t:", sname);
-  int merged = ost_merge(cx.d, under, over);
-  push(rstk, merged);
+orc_span_in(Odt_Read_Context odt_read_span_in_context) {
+  int[] odt_read_span_in_row_stack = odt_read_span_in_context.cs.look.odt_read_row_stack;
+  int under = list_last(odt_read_span_in_row_stack);
+  string odt_read_span_in_style_name = xml_reader_attr(odt_read_span_in_context.odt_read_xml_reader, "text:style-name");
+} chain (Odt_Read_Context odt_read_span_in_context) {
+  int over = odt_style_lookup_row(odt_read_span_in_context.cs.look.odt_read_style_lookup, "t:", odt_read_span_in_style_name);
+  int merged = odt_style_merge_character_rows(odt_read_span_in_context.d, under, over);
+  push(odt_read_span_in_row_stack, merged);
 } return void;
-given orc_t_open("<r><office:automatic-styles><style:style style:name='T1' style:family='text'><style:text-properties fo:font-weight='bold'/></style:style></office:automatic-styles><text:span text:style-name='T1'/></r>") given orc_t_steps(7) ((import orc_tc)):() then orc_t_rows:("0,1,")
-given orc_t_open("<r><text:span text:style-name='Nope'/></r>") given orc_t_steps(2) ((import orc_tc)):() then orc_t_rows:("0,0,")
+given odt_read_fixture_open("<r><office:automatic-styles><style:style style:name='T1' style:family='text'><style:text-properties fo:font-weight='bold'/></style:style></office:automatic-styles><text:span text:style-name='T1'/></r>") given odt_read_fixture_step_events(7) ((import odt_read_fixture_context)):() then odt_read_fixture_character_rows:("0,1,")
+given odt_read_fixture_open("<r><text:span text:style-name='Nope'/></r>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context)):() then odt_read_fixture_character_rows:("0,0,")
 
 // A text:span ends: its row comes off the stack, and the paragraph's own row at the bottom never does.
-orc_span_out(Cx cx) {
-  int[] rstk = cx.cs.look.rstk;
-  if(len(rstk) > 1) {
-    pop(rstk);
+orc_span_out(Odt_Read_Context odt_read_span_out_context) {
+  int[] odt_read_span_out_row_stack = odt_read_span_out_context.cs.look.odt_read_row_stack;
+  if(len(odt_read_span_out_row_stack) > 1) {
+    pop(odt_read_span_out_row_stack);
   }
 } return void;
-given orc_t_open("<r><text:span text:style-name='Nope'></text:span></r>") given orc_t_steps(2) given orc_span_in((import orc_tc)) given orc_t_steps(1) ((import orc_tc)):() then orc_t_rows:("0,")
-given orc_t_open("<a/>") ((import orc_tc)):() then orc_t_rows:("0,")
+given odt_read_fixture_open("<r><text:span text:style-name='Nope'></text:span></r>") given odt_read_fixture_step_events(2) given orc_span_in((import odt_read_fixture_context)) given odt_read_fixture_step_events(1) ((import odt_read_fixture_context)):() then odt_read_fixture_character_rows:("0,")
+given odt_read_fixture_open("<a/>") ((import odt_read_fixture_context)):() then odt_read_fixture_character_rows:("0,")
 
 // Test fixture: the on onv of the character rows in force in orc_tc, bottom first, as dump_ints writes them.
-orc_t_rows() {
-  Cx cx = (import orc_tc);
-  int[] onv = [];
+odt_read_fixture_character_rows() {
+  Odt_Read_Context odt_read_fixture_rows_context = (import odt_read_fixture_context);
+  int[] odt_read_fixture_rows_on_values = [];
   int i = 0;
 } chain () {
-  while(i < len(cx.cs.look.rstk)) {
-    push(onv, tab_get(cx.d.fmt.chars, cx.cs.look.rstk[i], (import quill_character_on)));
+  while(i < len(odt_read_fixture_rows_context.cs.look.odt_read_row_stack)) {
+    push(odt_read_fixture_rows_on_values, tab_get(odt_read_fixture_rows_context.d.fmt.chars, odt_read_fixture_rows_context.cs.look.odt_read_row_stack[i], (import quill_character_on)));
     i = i + 1;
   }
-  string text = dump_ints(onv);
+  string text = document_dump_integers(odt_read_fixture_rows_on_values);
 } return string text;
-given orc_t_open("<a/>") ():("0,")
-given orc_t_open("<a/>") given orc_span_in((import orc_tc)) ():("0,0,")
+given odt_read_fixture_open("<a/>") ():("0,")
+given odt_read_fixture_open("<a/>") given orc_span_in((import odt_read_fixture_context)) ():("0,0,")

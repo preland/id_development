@@ -1,31 +1,31 @@
 // The look of the control of item row rbi_row: the index in rbd_k_shape of its kind.
-rbd_shape(int rbi_row) {
-  int rbi_kind = (import rb_kind)[rbi_row];
-  int rbi_shape = (import rbd_k_shape)[rbi_kind];
-} return int rbi_shape;
+ribbon_item_shape(int ribbon_shape_row) {
+  int ribbon_shape_kind = (import rb_kind)[ribbon_shape_row];
+  int ribbon_shape_look = (import rbd_k_shape)[ribbon_shape_kind];
+} return int ribbon_shape_look;
 (14):(0)
 (10):(6)
 (33):(5)
 
 // The colour of the ink of the control rbg: the dark of an icon, the dimmed one when the control is disabled.
-rbd_ink(GuiToggle rbg) {
-  int rbi_col = (import rbd_c_icon);
-  if(gui_btn_cell(rbg.btn, 5) == 0) {
-    rbi_col = (import rbd_c_dim);
+ribbon_item_ink(GuiToggle ribbon_ink_control) {
+  int ribbon_ink_color = (import rbd_c_icon);
+  if(gui_btn_cell(ribbon_ink_control.btn, 5) == 0) {
+    ribbon_ink_color = (import rbd_c_dim);
   }
-} return int rbi_col;
+} return int ribbon_ink_color;
 (GuiToggle(GuiButton([0, 0, 10, 10, 0, 1, 0, 0, 0], "", 0), 0, 0)):(4210752)
 (GuiToggle(GuiButton([0, 0, 10, 10, 0, 0, 0, 0, 0], "", 0), 0, 0)):(10526880)
 
 // Writes the name of item row rbi_row at the left of its field rbg in colour rbi_col, cut to the field so a long name never marks what is beside it, and leaving room at the right for the sign of a menu.
-rbd_field(GuiToggle rbg, int rbi_row, int rbi_col) {
-  int[] rbl_v = rbg.btn.v;
-  int rbi_f = (import rbd_ui)[0];
-  sf_l_clip(rbl_v[0] + 1, rbl_v[1] + 1, rbl_v[2] - 16, rbl_v[3] - 2);
-} chain (GuiToggle rbg, int rbi_row, int rbi_col) {
-  string rbs_t = rbd_caption(rbi_row);
-  gui_text_draw(rbi_f, rbl_v[0] + 6, rbl_v[1] + (rbl_v[3] - gui_font_line(rbi_f)) / 2, rbs_t, rbi_col);
+ribbon_draw_field(GuiToggle ribbon_field_control, int ribbon_field_row, int ribbon_field_color) {
+  int[] ribbon_field_values = ribbon_field_control.btn.v;
+  int ribbon_field_face = (import ribbon_faces)[0];
+  sf_l_clip(ribbon_field_values[0] + 1, ribbon_field_values[1] + 1, ribbon_field_values[2] - 16, ribbon_field_values[3] - 2);
+} chain (GuiToggle ribbon_field_control, int ribbon_field_row, int ribbon_field_color) {
+  string ribbon_field_text = ribbon_field_caption(ribbon_field_row);
+  gui_text_draw(ribbon_field_face, ribbon_field_values[0] + 6, ribbon_field_values[1] + (ribbon_field_values[3] - gui_font_line(ribbon_field_face)) / 2, ribbon_field_text, ribbon_field_color);
   sf_l_unclip();
 } return void;
-given lp_t_font given rbd_ui_set(1, 1, 1) given sf_l_init(130, 40) given d2_l_rect(0, 0, 130, 40, 16777215) given vw_t_box0(4, 4, 100, 26) given vw_t_bg(16777215) (GuiToggle(GuiButton([2, 2, 120, 24, 0, 1, 0, 0, 0], "", 0), 0, 0), 10, 0):() then vw_t_inked:(1)
-given lp_t_font given rbd_ui_set(1, 1, 1) given sf_l_init(130, 40) given d2_l_rect(0, 0, 130, 40, 16777215) given vw_t_box0(106, 4, 126, 26) given vw_t_bg(16777215) (GuiToggle(GuiButton([2, 2, 120, 24, 0, 1, 0, 0, 0], "", 0), 0, 0), 10, 0):() then vw_t_inked:(0)
+given layout_paragraph_test_font given ribbon_faces_set(1, 1, 1) given sf_l_init(130, 40) given d2_l_rect(0, 0, 130, 40, 16777215) given view_test_remember_box(4, 4, 100, 26) given view_test_set_background(16777215) (GuiToggle(GuiButton([2, 2, 120, 24, 0, 1, 0, 0, 0], "", 0), 0, 0), 10, 0):() then view_test_box_inked:(1)
+given layout_paragraph_test_font given ribbon_faces_set(1, 1, 1) given sf_l_init(130, 40) given d2_l_rect(0, 0, 130, 40, 16777215) given view_test_remember_box(106, 4, 126, 26) given view_test_set_background(16777215) (GuiToggle(GuiButton([2, 2, 120, 24, 0, 1, 0, 0, 0], "", 0), 0, 0), 10, 0):() then view_test_box_inked:(0)

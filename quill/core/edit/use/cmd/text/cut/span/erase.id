@@ -1,33 +1,33 @@
 // Runs the one-number operation of the given kind (a JOIN or a DEL_PARA) on paragraph para, in the open undo step.
-ed_one(Doc d, Ctl ctl, int kind, int para) {
-  int[] loc = [para];
+editor_one_number_operation(Doc d, Ctl ctl, int kind, int para) {
+  int[] location = [para];
   int[] none = [];
-  Op operation = Op(kind, loc, none);
+  Op operation = Op(kind, location, none);
 } chain (Doc d, Ctl ctl, int kind, int para) {
-  ed_run(d, ctl, operation);
+  editor_run(d, ctl, operation);
 } return void;
-given fx_setup("a|b|c") given txn_begin((import fxc)) ((import fxd), (import fxc), 8, 1):((import fxd), (import fxc), 8, 1) then fx_show:("a|c") then fx_hist:("u1 r0 o0 n1")
-given fx_setup("a|b|c") given txn_begin((import fxc)) ((import fxd), (import fxc), 4, 0):((import fxd), (import fxc), 4, 0) then fx_show:("ab|c")
+given editor_fixture_setup("a|b|c") given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 8, 1):((import fixture_document), (import fixture_control), 8, 1) then editor_fixture_show:("a|c") then editor_fixture_history:("u1 r0 o0 n1")
+given editor_fixture_setup("a|b|c") given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 4, 0):((import fixture_document), (import fixture_control), 4, 0) then editor_fixture_show:("ab|c")
 
 // Removes n code points of paragraph para from off, in the open undo step; n of 0 changes nothing and records nothing.
-ed_del_in(Doc d, Ctl ctl, int para, int off, int n) {
-  int[] loc = [para, off, n, -1, -1];
+editor_delete_in(Doc d, Ctl ctl, int para, int off, int n) {
+  int[] location = [para, off, n, -1, -1];
   int[] none = [];
   if(n > 0) {
-    Op deletion = Op((import ed_k_del), loc, none);
-    ed_run(d, ctl, deletion);
+    Op deletion = Op((import ed_k_del), location, none);
+    editor_run(d, ctl, deletion);
   }
 } return void;
-given fx_setup("abcd") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 1, 2):((import fxd), (import fxc), 0, 1, 2) then fx_show:("ad") then fx_hist:("u1 r0 o0 n1")
-given fx_setup("abcd") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 1, 0):((import fxd), (import fxc), 0, 1, 0) then fx_show:("abcd") then fx_hist:("u1 r0 o0 n0")
+given editor_fixture_setup("abcd") given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0, 1, 2):((import fixture_document), (import fixture_control), 0, 1, 2) then editor_fixture_show:("ad") then editor_fixture_history:("u1 r0 o0 n1")
+given editor_fixture_setup("abcd") given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0, 1, 0):((import fixture_document), (import fixture_control), 0, 1, 0) then editor_fixture_show:("abcd") then editor_fixture_history:("u1 r0 o0 n0")
 
 // Removes the paragraphs first up to stop - 1, last one first so the indices stay right, in the open undo step.
-ed_del_mid(Doc d, Ctl ctl, int first, int stop) {
+editor_delete_middle(Doc d, Ctl ctl, int first, int stop) {
   int i = stop - 1;
   while(i >= first) {
-    ed_one(d, ctl, (import ed_k_delpara), i);
+    editor_one_number_operation(d, ctl, (import ed_k_delpara), i);
     i = i - 1;
   }
 } return void;
-given fx_setup("a|b|c|d") given txn_begin((import fxc)) ((import fxd), (import fxc), 1, 3):((import fxd), (import fxc), 1, 3) then fx_show:("a|d") then fx_hist:("u1 r0 o0 n2")
-given fx_setup("a|b|c|d") given txn_begin((import fxc)) ((import fxd), (import fxc), 2, 2):((import fxd), (import fxc), 2, 2) then fx_show:("a|b|c|d")
+given editor_fixture_setup("a|b|c|d") given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 1, 3):((import fixture_document), (import fixture_control), 1, 3) then editor_fixture_show:("a|d") then editor_fixture_history:("u1 r0 o0 n2")
+given editor_fixture_setup("a|b|c|d") given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 2, 2):((import fixture_document), (import fixture_control), 2, 2) then editor_fixture_show:("a|b|c|d")

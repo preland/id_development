@@ -1,49 +1,49 @@
 // Reads the list style the reader is at, called by its style:name, into a new list definition: three levels (kind, format or bullet, start, indents) started from the round-bullet defaults and overwritten by what the style says.
-ost_list_read(Fmt os_f, XmlR os_r, int os_iev) {
-  string os_sname = xml_reader_attr(os_r, "style:name");
-  int[] os_llv = list_copy((import quill_list_bullet));
-  int os_idepth = xml_reader_depth(os_r);
-} chain (Fmt os_f, XmlR os_r, int os_iev) {
-  int os_icur = 0 - 1;
-  int os_ie = 0;
-  if(os_iev == 1) {
-    os_ie = xml_reader_next(os_r);
+odt_named_list_read(Fmt odt_named_list_read_format, XmlR odt_named_list_read_reader, int odt_named_list_read_event) {
+  string odt_named_list_read_list_name = xml_reader_attr(odt_named_list_read_reader, "style:name");
+  int[] odt_named_list_read_levels = list_copy((import quill_list_bullet));
+  int odt_named_list_read_depth = xml_reader_depth(odt_named_list_read_reader);
+} chain (Fmt odt_named_list_read_format, XmlR odt_named_list_read_reader, int odt_named_list_read_event) {
+  int odt_named_list_read_current = 0 - 1;
+  int odt_named_list_read_next_event = 0;
+  if(odt_named_list_read_event == 1) {
+    odt_named_list_read_next_event = xml_reader_next(odt_named_list_read_reader);
   }
-} chain (Fmt os_f, XmlR os_r, int os_iev) {
-  int os_imore = xml_reader_inside(os_r, os_ie, os_idepth);
-  while(os_imore == 1) {
-    os_icur = ost_lvl_event(os_llv, os_r, os_ie, os_icur);
-    os_ie = xml_reader_next(os_r);
-    os_imore = xml_reader_inside(os_r, os_ie, os_idepth);
+} chain (Fmt odt_named_list_read_format, XmlR odt_named_list_read_reader, int odt_named_list_read_event) {
+  int odt_named_list_read_inside = xml_reader_inside(odt_named_list_read_reader, odt_named_list_read_next_event, odt_named_list_read_depth);
+  while(odt_named_list_read_inside == 1) {
+    odt_named_list_read_current = odt_named_level_event(odt_named_list_read_levels, odt_named_list_read_reader, odt_named_list_read_next_event, odt_named_list_read_current);
+    odt_named_list_read_next_event = xml_reader_next(odt_named_list_read_reader);
+    odt_named_list_read_inside = xml_reader_inside(odt_named_list_read_reader, odt_named_list_read_next_event, odt_named_list_read_depth);
   }
-  ost_list_add(os_f, os_sname, os_llv);
+  odt_named_list_append(odt_named_list_read_format, odt_named_list_read_list_name, odt_named_list_read_levels);
 } return void;
-given ost_t_open("<text:list-style style:name=\"L1\"><text:list-level-style-number text:level=\"1\" style:num-format=\"1\"><style:list-level-properties><style:list-level-label-alignment fo:margin-left=\"0.5in\" fo:text-indent=\"-0.25in\"/></style:list-level-properties></text:list-level-style-number></text:list-style>") given xml_reader_skip((import ost_t_r), 1) given ost_t_fmt ((import ost_t_f), (import ost_t_r), 1):((import ost_t_f), (import ost_t_r), 1) then ost_t_lists:([1, 0, 1, 720, 360, 0, 9702, 0, 1440, 360, 0, 9642, 0, 2160, 360])
-given ost_t_open("<text:list-style style:name=\"E\"/>") given xml_reader_skip((import ost_t_r), 1) given ost_t_fmt ((import ost_t_f), (import ost_t_r), 4):((import ost_t_f), (import ost_t_r), 4) then ost_t_lists:([0, 8226, 0, 720, 360, 0, 9702, 0, 1440, 360, 0, 9642, 0, 2160, 360])
+given odt_named_reader_open("<text:list-style style:name=\"L1\"><text:list-level-style-number text:level=\"1\" style:num-format=\"1\"><style:list-level-properties><style:list-level-label-alignment fo:margin-left=\"0.5in\" fo:text-indent=\"-0.25in\"/></style:list-level-properties></text:list-level-style-number></text:list-style>") given xml_reader_skip((import odt_named_reader), 1) given odt_named_format_fixture ((import odt_named_format), (import odt_named_reader), 1):((import odt_named_format), (import odt_named_reader), 1) then odt_named_level_values:([1, 0, 1, 720, 360, 0, 9702, 0, 1440, 360, 0, 9642, 0, 2160, 360])
+given odt_named_reader_open("<text:list-style style:name=\"E\"/>") given xml_reader_skip((import odt_named_reader), 1) given odt_named_format_fixture ((import odt_named_format), (import odt_named_reader), 4):((import odt_named_format), (import odt_named_reader), 4) then odt_named_level_values:([0, 8226, 0, 720, 360, 0, 9702, 0, 1440, 360, 0, 9642, 0, 2160, 360])
 
 // Reads one event of a styles or content document: a list style is read into the document, and the body ends the reading. Answers 1 to go on, 0 to stop.
-ost_lists_one(Fmt os_f, XmlR os_r, int os_iev) {
-  string os_sname = xml_reader_get(os_r, (import xml_reader_k_name));
-  int os_igo = 1;
-  if(os_sname == "text:list-style" && os_iev != 2) {
-    ost_list_read(os_f, os_r, os_iev);
+odt_named_list_event(Fmt odt_named_list_event_format, XmlR odt_named_list_event_reader, int odt_named_list_event_event) {
+  string odt_named_list_event_element_name = xml_reader_get(odt_named_list_event_reader, (import xml_reader_k_name));
+  int odt_named_list_event_continue = 1;
+  if(odt_named_list_event_element_name == "text:list-style" && odt_named_list_event_event != 2) {
+    odt_named_list_read(odt_named_list_event_format, odt_named_list_event_reader, odt_named_list_event_event);
   }
-} chain (Fmt os_f, XmlR os_r, int os_iev) {
-  if(os_sname == "office:body") {
-    os_igo = 0;
+} chain (Fmt odt_named_list_event_format, XmlR odt_named_list_event_reader, int odt_named_list_event_event) {
+  if(odt_named_list_event_element_name == "office:body") {
+    odt_named_list_event_continue = 0;
   }
-} return int os_igo;
-given ost_t_open("<office:body/>") given xml_reader_skip((import ost_t_r), 1) given ost_t_fmt ((import ost_t_f), (import ost_t_r), 1):(0)
-given ost_t_open("<text:list-style style:name=\"L\"/>") given xml_reader_skip((import ost_t_r), 1) given ost_t_fmt ((import ost_t_f), (import ost_t_r), 4):(1) then ost_t_lists:([0, 8226, 0, 720, 360, 0, 9702, 0, 1440, 360, 0, 9642, 0, 2160, 360])
+} return int odt_named_list_event_continue;
+given odt_named_reader_open("<office:body/>") given xml_reader_skip((import odt_named_reader), 1) given odt_named_format_fixture ((import odt_named_format), (import odt_named_reader), 1):(0)
+given odt_named_reader_open("<text:list-style style:name=\"L\"/>") given xml_reader_skip((import odt_named_reader), 1) given odt_named_format_fixture ((import odt_named_format), (import odt_named_reader), 4):(1) then odt_named_level_values:([0, 8226, 0, 720, 360, 0, 9702, 0, 1440, 360, 0, 9642, 0, 2160, 360])
 
 // Reads every list style of a styles or content document into the document's lists, up to the body.
-ost_lists(Fmt os_f, XmlR os_r) {
-  int os_iev = xml_reader_next(os_r);
-  int os_igo = 1;
-  while(os_iev > 0 && os_igo == 1) {
-    os_igo = ost_lists_one(os_f, os_r, os_iev);
-    os_iev = xml_reader_next(os_r);
+odt_named_lists_read(Fmt odt_named_lists_read_format, XmlR odt_named_lists_read_reader) {
+  int odt_named_lists_read_event = xml_reader_next(odt_named_lists_read_reader);
+  int odt_named_lists_read_continue = 1;
+  while(odt_named_lists_read_event > 0 && odt_named_lists_read_continue == 1) {
+    odt_named_lists_read_continue = odt_named_list_event(odt_named_lists_read_format, odt_named_lists_read_reader, odt_named_lists_read_event);
+    odt_named_lists_read_event = xml_reader_next(odt_named_lists_read_reader);
   }
 } return void;
-given ost_t_fmt given ost_t_open("<a><text:list-style style:name=\"L\"/><office:body/><text:list-style style:name=\"M\"/></a>") ((import ost_t_f), (import ost_t_r)):((import ost_t_f), (import ost_t_r)) then len((import ost_t_f).sty.lists):(1)
-given ost_t_fmt given ost_t_open("<a><text:list-style style:name=\"L\"/><text:list-style style:name=\"M\"/></a>") ((import ost_t_f), (import ost_t_r)):((import ost_t_f), (import ost_t_r)) then len((import ost_t_f).sty.lists):(2)
+given odt_named_format_fixture given odt_named_reader_open("<a><text:list-style style:name=\"L\"/><office:body/><text:list-style style:name=\"M\"/></a>") ((import odt_named_format), (import odt_named_reader)):((import odt_named_format), (import odt_named_reader)) then len((import odt_named_format).sty.lists):(1)
+given odt_named_format_fixture given odt_named_reader_open("<a><text:list-style style:name=\"L\"/><text:list-style style:name=\"M\"/></a>") ((import odt_named_format), (import odt_named_reader)):((import odt_named_format), (import odt_named_reader)) then len((import odt_named_format).sty.lists):(2)

@@ -1,43 +1,43 @@
 // The index of the model style called os_sname in family os_ifam, appended with no properties and no parent when the document does not have it yet.
-ost_sty_need(Fmt os_f, string os_sname, int os_ifam) {
-  int os_idx = ost_sty_find(os_f, os_sname, os_ifam);
-  int[] os_lrel = [os_ifam, 0 - 1, 0 - 1];
-  int[] os_lfm = [0, 0];
-} chain (Fmt os_f, string os_sname, int os_ifam) {
-  Style os_st = Style(os_sname, os_lrel, os_lfm);
-  if(os_idx < 0) {
-    push(os_f.sty.styles, os_st);
-    os_idx = len(os_f.sty.styles) - 1;
+odt_style_model_ensure(Fmt odt_style_model_ensure_format, string odt_style_model_ensure_name, int odt_style_model_ensure_family) {
+  int odt_style_model_ensure_style = odt_style_model_find(odt_style_model_ensure_format, odt_style_model_ensure_name, odt_style_model_ensure_family);
+  int[] odt_style_model_ensure_relation = [odt_style_model_ensure_family, 0 - 1, 0 - 1];
+  int[] odt_style_model_ensure_style_format = [0, 0];
+} chain (Fmt odt_style_model_ensure_format, string odt_style_model_ensure_name, int odt_style_model_ensure_family) {
+  Style odt_style_model_ensure_new_style = Style(odt_style_model_ensure_name, odt_style_model_ensure_relation, odt_style_model_ensure_style_format);
+  if(odt_style_model_ensure_style < 0) {
+    push(odt_style_model_ensure_format.sty.styles, odt_style_model_ensure_new_style);
+    odt_style_model_ensure_style = len(odt_style_model_ensure_format.sty.styles) - 1;
   }
-} return int os_idx;
+} return int odt_style_model_ensure_style;
 (Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("A", [0, -1, 0], [0, 0])], [], 0)), "A", 0):(0)
 (Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("A", [0, -1, 0], [0, 0])], [], 0)), "A", 1):(1)
 (Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), "Heading 1", 0):(0)
 
 // The model style a record stands for: for a named style its index (found, or appended), -1 for any other kind of record.
-ost_reg_one(Fmt os_f, StyBag os_b, int os_i) {
-  string os_skind = os_b.strings[os_i * (import ost_s_width) + (import ost_s_kind)];
-  int os_ifam = os_b.strings[os_i * (import ost_s_width) + (import ost_s_fam)] == "t";
-  int os_idx = 0 - 1;
-} chain (Fmt os_f, StyBag os_b, int os_i) {
-  string os_swire = os_b.strings[os_i * (import ost_s_width) + (import ost_s_name)];
-  string os_sdisp = os_b.strings[os_i * (import ost_s_width) + (import ost_s_disp)];
-  if(os_skind == "n") {
-    os_idx = ost_sty_need(os_f, ost_mname(os_swire, os_sdisp), os_ifam);
+odt_style_register_record(Fmt odt_style_register_record_format, odt_named_style_records odt_style_register_record_bag, int odt_style_register_record_record) {
+  string odt_style_register_record_kind = odt_style_register_record_bag.strings[odt_style_register_record_record * (import ost_s_width) + (import ost_s_kind)];
+  int odt_style_register_record_family = odt_style_register_record_bag.strings[odt_style_register_record_record * (import ost_s_width) + (import ost_s_fam)] == "t";
+  int odt_style_register_record_style = 0 - 1;
+} chain (Fmt odt_style_register_record_format, odt_named_style_records odt_style_register_record_bag, int odt_style_register_record_record) {
+  string odt_style_register_record_wire_name = odt_style_register_record_bag.strings[odt_style_register_record_record * (import ost_s_width) + (import ost_s_name)];
+  string odt_style_register_record_display_name = odt_style_register_record_bag.strings[odt_style_register_record_record * (import ost_s_width) + (import ost_s_disp)];
+  if(odt_style_register_record_kind == "n") {
+    odt_style_register_record_style = odt_style_model_ensure(odt_style_register_record_format, odt_style_model_name(odt_style_register_record_wire_name, odt_style_register_record_display_name), odt_style_register_record_family);
   }
-} return int os_idx;
-(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), StyBag(["Standard", "", "", "", "", "", "p", "n"], [[]], [[]]), 0):(0)
-(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), StyBag(["Text_20_body", "", "", "", "", "", "p", "n"], [[]], [[]]), 0):(1)
-(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), StyBag(["P1", "", "", "", "", "", "p", "a"], [[]], [[]]), 0):(-1)
+} return int odt_style_register_record_style;
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), odt_named_style_records(["Standard", "", "", "", "", "", "p", "n"], [[]], [[]]), 0):(0)
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), odt_named_style_records(["Text_20_body", "", "", "", "", "", "p", "n"], [[]], [[]]), 0):(1)
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), odt_named_style_records(["P1", "", "", "", "", "", "p", "a"], [[]], [[]]), 0):(-1)
 
 // The model style index of every record of the bag, in order: styles the document names are found among the model's or appended; every other record gets -1.
-ost_reg(Fmt os_f, StyBag os_b) {
-  int[] os_lidx = [];
+odt_style_register_all(Fmt odt_style_register_all_format, odt_named_style_records odt_style_register_all_bag) {
+  int[] odt_style_register_all_indexes = [];
   int i = 0;
-  while(i < ost_bag_n(os_b)) {
-    push(os_lidx, ost_reg_one(os_f, os_b, i));
+  while(i < odt_named_bag_count(odt_style_register_all_bag)) {
+    push(odt_style_register_all_indexes, odt_style_register_record(odt_style_register_all_format, odt_style_register_all_bag, i));
     i = i + 1;
   }
-} return int[] os_lidx;
-(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), StyBag(["Standard", "", "", "", "", "", "p", "n", "Foo", "", "", "", "", "", "p", "n", "P1", "", "", "", "", "", "p", "a"], [[], [], []], [[], [], []])):([0, 1, -1])
-(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), StyBag([], [], [])):([])
+} return int[] odt_style_register_all_indexes;
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0)), odt_named_style_records(["Standard", "", "", "", "", "", "p", "n", "Foo", "", "", "", "", "", "p", "n", "P1", "", "", "", "", "", "p", "a"], [[], [], []], [[], [], []])):([0, 1, -1])
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), odt_named_style_records([], [], [])):([])

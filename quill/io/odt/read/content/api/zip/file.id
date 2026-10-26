@@ -8,26 +8,26 @@ orc_file_bytes(string path) {
     list_fill(xs, n, 0);
     int got = fs_read(h, xs, n);
   }
-  int c = fs_close(h);
+  int odt_read_file_close_status = fs_close(h);
 } return int[] xs;
-given orc_t_file("abc") ((import orc_tp)):([97, 98, 99]) then orc_t_gone:(0)
-given orc_t_file("") ((import orc_tp)):([]) then orc_t_gone:(0)
+given odt_read_fixture_make_file("abc") ((import odt_read_fixture_scratch_path)):([97, 98, 99]) then odt_read_fixture_remove_file:(0)
+given odt_read_fixture_make_file("") ((import odt_read_fixture_scratch_path)):([]) then odt_read_fixture_remove_file:(0)
 ("/nonexistent/none.odt"):([])
 
 // Remembers where a load went wrong, for odt_error to put in brackets after its message. A load starts by clearing it.
 // odt_why: Test fixture: the reason the last load went wrong, as odt_error will bracket it.
-orc_why(string msg) {
-  export string odt_why = msg;
+orc_why(string odt_read_why_message) {
+  export string odt_why = odt_read_why_message;
 } return void export odt_why;
 ("a"):() then (import odt_why):("a")
 (""):() then (import odt_why):("")
 
 // 1 when the bytes of xs are exactly the bytes of s.
-orc_same(int[] xs, string s) {
-  int same = len(xs) == len(s);
+orc_same(int[] xs, string odt_read_same_text) {
+  int same = len(xs) == len(odt_read_same_text);
   int i = 0;
   while(i < len(xs) && same == 1) {
-    same = xs[i] == character_code_at(s, i);
+    same = xs[i] == character_code_at(odt_read_same_text, i);
     i = i + 1;
   }
 } return int same;

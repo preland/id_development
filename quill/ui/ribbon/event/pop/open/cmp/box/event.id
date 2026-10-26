@@ -1,47 +1,47 @@
 // 1 when the point (rbi_px, rbi_py) is on combo box number rbi_k: its text box and arrow, or its list while the list is open; 0 when it is not, and always 0 for a combo box whose control is not in the open tab.
-rbe_cb_on(int rbi_k, int rbi_px, int rbi_py) {
-  GuiCombo rbc = (import rbd_cb)[rbi_k];
-  int[] rbl_v = rbc.box.v;
-  int[] rbl_r = [rbl_v[0], rbl_v[1], rbl_v[2] + (import idstd_popup_arrow), rbl_v[3]];
-} chain (int rbi_k, int rbi_px, int rbi_py) {
-  int rbi_a = gui_popup_in(rbl_r, 0, rbi_px, rbi_py);
-  int rbi_l = gui_popup_in(rbc.list.rects, 0, rbi_px, rbi_py) * rbc.set.sel[0];
-  int rbi_on = (rbi_a + rbi_l > 0) * ((import rbd_cx)[rbi_k] >= 0);
-} return int rbi_on;
-given lp_t_font given rbd_t_up(1024) (0, 160, 70):(1)
-given lp_t_font given rbd_t_up(1024) (1, 160, 70):(0)
-given lp_t_font given rbd_t_up(1024) given rib_show((import rbd_t_r), 3) (0, 160, 70):(0)
+ribbon_combo_contains(int ribbon_combo_contains_number, int ribbon_combo_contains_x, int ribbon_combo_contains_y) {
+  GuiCombo ribbon_combo_contains_box = (import ribbon_fit_combos)[ribbon_combo_contains_number];
+  int[] ribbon_combo_contains_values = ribbon_combo_contains_box.box.v;
+  int[] ribbon_combo_contains_field = [ribbon_combo_contains_values[0], ribbon_combo_contains_values[1], ribbon_combo_contains_values[2] + (import idstd_popup_arrow), ribbon_combo_contains_values[3]];
+} chain (int ribbon_combo_contains_number, int ribbon_combo_contains_x, int ribbon_combo_contains_y) {
+  int ribbon_combo_contains_field_hit = gui_popup_in(ribbon_combo_contains_field, 0, ribbon_combo_contains_x, ribbon_combo_contains_y);
+  int ribbon_combo_contains_list_hit = gui_popup_in(ribbon_combo_contains_box.list.rects, 0, ribbon_combo_contains_x, ribbon_combo_contains_y) * ribbon_combo_contains_box.set.sel[0];
+  int ribbon_combo_contains_result = (ribbon_combo_contains_field_hit + ribbon_combo_contains_list_hit > 0) * ((import ribbon_fit_combo_controls)[ribbon_combo_contains_number] >= 0);
+} return int ribbon_combo_contains_result;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) (0, 160, 70):(1)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) (1, 160, 70):(0)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given rib_show((import ribbon_fit_test_ribbon), 3) (0, 160, 70):(0)
 
 // The combo box a press at the point (rbi_px, rbi_py) is on, -1 when it is on none.
-rbe_cb_hit(int rbi_px, int rbi_py) {
-  int rbi_k = 0;
-  int rbi_at = -1;
-  while(rbi_k < len((import rbd_cb)) && rbi_at < 0) {
-    rbi_at = rbi_at + (rbi_k + 1) * rbe_cb_on(rbi_k, rbi_px, rbi_py);
-    rbi_k = rbi_k + 1;
+ribbon_combo_at(int ribbon_combo_at_x, int ribbon_combo_at_y) {
+  int ribbon_combo_at_number = 0;
+  int ribbon_combo_at_found = -1;
+  while(ribbon_combo_at_number < len((import ribbon_fit_combos)) && ribbon_combo_at_found < 0) {
+    ribbon_combo_at_found = ribbon_combo_at_found + (ribbon_combo_at_number + 1) * ribbon_combo_contains(ribbon_combo_at_number, ribbon_combo_at_x, ribbon_combo_at_y);
+    ribbon_combo_at_number = ribbon_combo_at_number + 1;
   }
-} return int rbi_at;
-given lp_t_font given rbd_t_up(1024) (160, 70):(0)
-given lp_t_font given rbd_t_up(1024) (240, 70):(1)
-given lp_t_font given rbd_t_up(1024) (20, 20):(-1)
+} return int ribbon_combo_at_found;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) (160, 70):(0)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) (240, 70):(1)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) (20, 20):(-1)
 
 // An event of kind rbi_kind for the ribbon's combo boxes. The combo box that has the keyboard takes every event, and a press that is not on it is its end: it commits what was typed and the press is owed to what is under. A press on a combo box that has not the keyboard gives it the keyboard and goes to it, unless a menu, a gallery or a colour grid is open, which has the press. Answers bits like rib_event: 1 paint again, 2 a command was given (rbe_cb_emit), 4 the press is owed to what is under, 8 the combo box took the event; 0 when it is none of its business.
-rbe_cb_event(Ribbon rib, int rbi_kind, int[] rbl_ev) {
-  int rbi_h = -1;
-  if((import rbd_fo)[0] < 0 && rbi_kind == 3 && (import rbd_s)[(import rbd_s_pk)] == 0) {
-    rbi_h = rbe_cb_hit(rbl_ev[1], rbl_ev[2]);
+ribbon_combo_event(Ribbon rib, int ribbon_combo_event_kind, int[] ribbon_combo_event_fields) {
+  int ribbon_combo_event_pressed = -1;
+  if((import ribbon_fit_focused_combo)[0] < 0 && ribbon_combo_event_kind == 3 && (import ribbon_fit_state)[(import rbd_s_pk)] == 0) {
+    ribbon_combo_event_pressed = ribbon_combo_at(ribbon_combo_event_fields[1], ribbon_combo_event_fields[2]);
   }
-  if(rbi_h >= 0) {
-    rbe_cb_focus(rib, rbi_h);
+  if(ribbon_combo_event_pressed >= 0) {
+    ribbon_combo_focus(rib, ribbon_combo_event_pressed);
   }
-} chain (Ribbon rib, int rbi_kind, int[] rbl_ev) {
-  int rbi_k = (import rbd_fo)[0];
-  int rbi_b = 0;
-  if(rbi_k >= 0) {
-    rbi_b = rbe_cb_done(rbi_k, rbi_kind, gui_combo_event((import rbd_cb)[rbi_k], rbi_kind, rbl_ev));
+} chain (Ribbon rib, int ribbon_combo_event_kind, int[] ribbon_combo_event_fields) {
+  int ribbon_combo_event_focused = (import ribbon_fit_focused_combo)[0];
+  int ribbon_combo_event_bits = 0;
+  if(ribbon_combo_event_focused >= 0) {
+    ribbon_combo_event_bits = ribbon_combo_finish(ribbon_combo_event_focused, ribbon_combo_event_kind, gui_combo_event((import ribbon_fit_combos)[ribbon_combo_event_focused], ribbon_combo_event_kind, ribbon_combo_event_fields));
   }
-} return int rbi_b;
-given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 3, [3, 240, 70, 1, 0]):(9) then rbd_t_cn:("2|3,4,|1,")
-given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), 5, [5, 240, 70, 0, 0]):(0)
-given lp_t_font given rbd_t_up(1024) given rbd_t_ev(3, 240, 70) ((import rbd_t_r), 3, [3, 500, 40, 1, 0]):(5) then rbd_t_cn:("2|3,4,|-1,")
-given lp_t_font given rbd_t_up(1024) given rbd_t_ev(3, 240, 70) ((import rbd_t_r), 1, [1, 1011, 0, 0, 0]):(9) then rbd_t_cn:("2|3,4,|-1,")
+} return int ribbon_combo_event_bits;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ((import ribbon_fit_test_ribbon), 3, [3, 240, 70, 1, 0]):(9) then ribbon_fit_check_combo_counts:("2|3,4,|1,")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ((import ribbon_fit_test_ribbon), 5, [5, 240, 70, 0, 0]):(0)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_send_mouse_event(3, 240, 70) ((import ribbon_fit_test_ribbon), 3, [3, 500, 40, 1, 0]):(5) then ribbon_fit_check_combo_counts:("2|3,4,|-1,")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_send_mouse_event(3, 240, 70) ((import ribbon_fit_test_ribbon), 1, [1, 1011, 0, 0, 0]):(9) then ribbon_fit_check_combo_counts:("2|3,4,|-1,")

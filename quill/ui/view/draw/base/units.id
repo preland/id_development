@@ -1,18 +1,18 @@
 // Layout units (1/64 px at 96 dpi, zoom 100) as pixels at zoom vwi_z percent: the 64ths of vw_x64 divided by 64, truncated toward zero.
 // By hand: one inch is 6144 lu, 96 px; at 200 percent 192 px; a raise of 337 lu is 5 px.
-vw_px(int vwi_lu, int vwi_z) {
-  int vwi_n = vw_x64(vwi_lu, vwi_z);
-  int vwi_p = vwi_n / 64;
-} return int vwi_p;
+view_units_pixels(int view_units_pixels_units, int view_units_pixels_zoom) {
+  int view_units_pixels_sixty_fourths = view_units_sixty_fourths(view_units_pixels_units, view_units_pixels_zoom);
+  int view_units_pixels_result = view_units_pixels_sixty_fourths / 64;
+} return int view_units_pixels_result;
 (6144, 100):(96)
 (6144, 200):(192)
 (-640, 100):(-10)
 
 // Layout units as 64ths of a pixel at zoom vwi_z percent, which is the pen position gui_cp_draw takes.
 // By hand: a B is 683 lu wide, 683 64ths at 100 percent and 683 * 150 / 100 = 1024 at 150.
-vw_x64(int vwi_lu, int vwi_z) {
-  int vwi_p = vwi_lu * vwi_z / 100;
-} return int vwi_p;
+view_units_sixty_fourths(int view_units_sixty_fourths_units, int view_units_sixty_fourths_zoom) {
+  int view_units_sixty_fourths_result = view_units_sixty_fourths_units * view_units_sixty_fourths_zoom / 100;
+} return int view_units_sixty_fourths_result;
 (683, 100):(683)
 (683, 150):(1024)
 (0, 400):(0)

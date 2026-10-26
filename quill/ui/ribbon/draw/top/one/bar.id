@@ -1,24 +1,24 @@
 // The colour the colour button of item row rbi_row applies when its body is pressed, as it remembers it (-1 for automatic).
-rbd_col_of(int rbi_row) {
-  int rbi_k = list_index_of((import rbd_col_cmd), (import rb_cmd)[rbi_row]);
-  int rbi_col = (import rbd_col)[rbi_k];
-} return int rbi_col;
-given rbe_state (21):(12582912)
-given rbe_state given lset((import rbd_col), 0, 7) (20):(7)
+ribbon_color_remembered(int ribbon_remembered_row) {
+  int ribbon_remembered_index = list_index_of((import rbd_col_cmd), (import rb_cmd)[ribbon_remembered_row]);
+  int ribbon_remembered_color = (import ribbon_fit_colors)[ribbon_remembered_index];
+} return int ribbon_remembered_color;
+given ribbon_fit_create_state_lists (21):(12582912)
+given ribbon_fit_create_state_lists given lset((import ribbon_fit_colors), 0, 7) (20):(7)
 
 // The colour of the bar under the icon of the colour button of item row rbi_row: the colour it remembers, black for automatic.
-rbd_bar_col(int rbi_row) {
-  int rbi_col = fixed_point_maximum(rbd_col_of(rbi_row), 0);
-} return int rbi_col;
-given rbe_state given lset((import rbd_col), 1, 7) (21):(7)
-given rbe_state given lset((import rbd_col), 1, -1) (21):(0)
+ribbon_bar_color(int ribbon_bar_color_row) {
+  int ribbon_bar_color_result = fixed_point_maximum(ribbon_color_remembered(ribbon_bar_color_row), 0);
+} return int ribbon_bar_color_result;
+given ribbon_fit_create_state_lists given lset((import ribbon_fit_colors), 1, 7) (21):(7)
+given ribbon_fit_create_state_lists given lset((import ribbon_fit_colors), 1, -1) (21):(0)
 
 // Paints the bar of a colour button of item row rbi_row under its icon, inside the body of the control at (rbi_x, rbi_y) of size rbi_w by rbi_h (its arrow strip left out); any other control has none.
-rbd_bar(int rbi_x, int rbi_y, int rbi_w, int rbi_h, int rbi_row) {
-  int rbi_on = (import rb_kind)[rbi_row] == (import kind_color);
-  if(rbi_on == 1) {
-    d2_l_rect(rbi_x + 4, rbi_y + rbi_h - 5, rbi_w - (import rbd_arrow_px) - 8, 3, rbd_bar_col(rbi_row));
+ribbon_draw_color_bar(int ribbon_bar_x, int ribbon_bar_y, int ribbon_bar_width, int ribbon_bar_height, int ribbon_bar_row) {
+  int ribbon_bar_wanted = (import rb_kind)[ribbon_bar_row] == (import kind_color);
+  if(ribbon_bar_wanted == 1) {
+    d2_l_rect(ribbon_bar_x + 4, ribbon_bar_y + ribbon_bar_height - 5, ribbon_bar_width - (import rbd_arrow_px) - 8, 3, ribbon_bar_color(ribbon_bar_row));
   }
 } return void;
-given rbe_state given lset((import rbd_col), 1, 7) given sf_l_init(60, 40) given vw_t_at(10, 22) (2, 2, 48, 24, 21):() then vw_t_px:(7)
-given rbe_state given sf_l_init(60, 40) given vw_t_at(10, 22) (2, 2, 48, 24, 14):() then vw_t_px:(0)
+given ribbon_fit_create_state_lists given lset((import ribbon_fit_colors), 1, 7) given sf_l_init(60, 40) given view_test_remember_pixel(10, 22) (2, 2, 48, 24, 21):() then view_test_pixel_color:(7)
+given ribbon_fit_create_state_lists given sf_l_init(60, 40) given view_test_remember_pixel(10, 22) (2, 2, 48, 24, 14):() then view_test_pixel_color:(0)

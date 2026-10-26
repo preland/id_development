@@ -1,20 +1,20 @@
 // A table of character rows, a table of paragraph rows and no styles or lists yet; fmt_default fills in the built-in ones.
-fmt_new() {
-  Tab tc = tab_new((import quill_character_width));
-  Tab tp = tab_new((import quill_paragraph_width));
-  Style[] ss = [];
+document_format_new() {
+  Tab format_make_character_table = tab_new((import quill_character_width));
+  Tab format_make_paragraph_table = tab_new((import quill_paragraph_width));
+  Style[] style_array = [];
 } chain () {
-  ListDef[] ls = [];
-  Sty sy = Sty(ss, ls, 0);
-  Fmt f = Fmt(tc, tp, sy);
-} return Fmt f;
+  ListDef[] format_make_lists = [];
+  Sty style_set = Sty(style_array, format_make_lists, 0);
+  Fmt format_make_format_set = Fmt(format_make_character_table, format_make_paragraph_table, style_set);
+} return Fmt format_make_format_set;
 ():(Fmt(Tab([], 7, [0, 0, 0, 0, 0, 0, 0, 0]), Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)))
 ():(Fmt(Tab([], 7, [0, 0, 0, 0, 0, 0, 0, 0]), Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0))) then calls tab_new:[2]
 
 // Row id 0 of each table is the row with nothing set.
-fmt_base(Fmt f) {
-  tab_intern(f.chars, (import quill_row_character_default));
-  tab_intern(f.paras, (import quill_row_paragraph_default));
+document_format_base(Fmt base_intern_format_set) {
+  tab_intern(base_intern_format_set.chars, (import quill_row_character_default));
+  tab_intern(base_intern_format_set.paras, (import quill_row_paragraph_default));
 } return void;
 (Fmt(Tab([], 7, [0, 0, 0, 0, 0, 0, 0, 0]), Tab([], 12, [0, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0))):(Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, [1, 0, 0, 0, 0, 0, 0, 0]), Sty([], [], 0)))
 (Fmt(Tab([0, 0, 24, -1, -1, 0, 0], 7, [0, 0, 0, 0, 0, 0, 0, 1]), Tab([-1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0], 12, [0, 0, 0, 0, 0, 0, 1, 0]), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0))):(Fmt(Tab([0, 0, 24, -1, -1, 0, 0, 0, -1, -1, -1, -1, 0, 0], 7, [2, 0, 0, 0, 0, 0, 0, 1]), Tab([-1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, [2, 0, 0, 0, 0, 0, 1, 0]), Sty([Style("Normal", [0, -1, 0], [0, 0])], [], 0))) then calls tab_intern:[2]

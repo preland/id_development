@@ -1,29 +1,29 @@
 // Test fixture (internal): a path for a scratch file, from fs_mktemp so that two builds never share it; the file exists and is empty.
-odw_t_path() {
-  export string odw_tp = fs_mktemp("odw_odt_", 0);
-  fs_drop_exit(odw_tp);
+odt_package_fixture_scratch_path() {
+  export string odt_package_scratch_file = fs_mktemp("odw_odt_", 0);
+  fs_drop_exit(odt_package_scratch_file);
 } return void;
-():() then odw_t_gone:("gone 0")
-():() then odw_t_bytes:([])
+():() then odt_package_fixture_remove_scratch:("gone 0")
+():() then odt_package_fixture_scratch_bytes:([])
 
 // Test fixture (internal): removes the scratch file; 0 when it was there.
-odw_t_gone() {
-  string pkq_t = "gone " + (fs_remove((import odw_tp)));
-} return string pkq_t;
-given odw_t_path ():("gone 0")
-given odw_t_path given odw_t_put ():("gone 0")
+odt_package_fixture_remove_scratch() {
+  string odt_package_gone_text = "gone " + (fs_remove((import odt_package_scratch_file)));
+} return string odt_package_gone_text;
+given odt_package_fixture_scratch_path ():("gone 0")
+given odt_package_fixture_scratch_path given odt_package_fixture_put_byte ():("gone 0")
 
 // Test fixture (internal): the bytes of the scratch file, one per cell; [] when it is missing or empty.
-odw_t_bytes() {
-  int pkn = fs_size((import odw_tp));
-  int pkfh = fs_open((import odw_tp), "r");
-  int[] pkby = [];
+odt_package_fixture_scratch_bytes() {
+  int odt_package_scratch_size = fs_size((import odt_package_scratch_file));
+  int odt_package_scratch_handle = fs_open((import odt_package_scratch_file), "r");
+  int[] odt_package_scratch_content = [];
 } chain () {
-  if(pkn > 0 && pkfh >= 0) {
-    list_fill(pkby, pkn, 0);
-    pkn = fs_read(pkfh, pkby, pkn);
+  if(odt_package_scratch_size > 0 && odt_package_scratch_handle >= 0) {
+    list_fill(odt_package_scratch_content, odt_package_scratch_size, 0);
+    odt_package_scratch_size = fs_read(odt_package_scratch_handle, odt_package_scratch_content, odt_package_scratch_size);
   }
-  pkn = fs_close(pkfh);
-} return int[] pkby;
-given odw_t_path given odw_t_put ():([97])
-given odw_t_path ():([])
+  odt_package_scratch_size = fs_close(odt_package_scratch_handle);
+} return int[] odt_package_scratch_content;
+given odt_package_fixture_scratch_path given odt_package_fixture_put_byte ():([97])
+given odt_package_fixture_scratch_path ():([])

@@ -1,39 +1,39 @@
 // Paints the page area: the desk, then every sheet that shows in it, cut to the area (cv_area, over the whole of it). The rectangle of the area is the chrome's, the scroll and the zoom are the viewer's state.
-vw_canvas(View vwv) {
-  int vwi_y = vw_box("canvas", 1);
-  int[] vwl_r = [0, 0, 0, 0, 0, 0];
-  cv_rows(vwi_y, vwi_y + vw_box("canvas", 3), vwl_r);
-} chain (View vwv) {
-  cv_area(vwv, vwl_r);
+view_canvas_paint(View view_canvas_paint_viewer) {
+  int view_canvas_paint_area_row = view_box_field("canvas", 1);
+  int[] view_canvas_paint_area = [0, 0, 0, 0, 0, 0];
+  view_flow_set_area_rows(view_canvas_paint_area_row, view_canvas_paint_area_row + view_box_field("canvas", 3), view_canvas_paint_area);
+} chain (View view_canvas_paint_viewer) {
+  view_flow_paint_area(view_canvas_paint_viewer, view_canvas_paint_area);
 } return void;
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(5, 170) ((import lp_t_v)):() then vw_t_px:(13619151)
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(150, 190) ((import lp_t_v)):() then vw_t_px:(16777215)
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(150, 290) ((import lp_t_v)):() then vw_t_px:(0)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given view_test_remember_pixel(5, 170) ((import layout_paragraph_test_view)):() then view_test_pixel_color:(13619151)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given view_test_remember_pixel(150, 190) ((import layout_paragraph_test_view)):() then view_test_pixel_color:(16777215)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given view_test_remember_pixel(150, 290) ((import layout_paragraph_test_view)):() then view_test_pixel_color:(0)
 
 // Paints every page from the first, each when it shows in the page area vwl_r (x, y, width, height).
-vw_pages(View vwv, int[] vwl_r) {
-  int vwi_k = 0;
-  int vwi_n = lay_page_count(vwv);
-  while(vwi_k < vwi_n) {
-    vw_pk(vwv, vwi_k, vwl_r);
-    vwi_k = vwi_k + 1;
+view_canvas_paint_pages(View view_canvas_paint_pages_viewer, int[] view_canvas_paint_pages_area) {
+  int view_canvas_paint_pages_index = 0;
+  int view_canvas_paint_pages_count = lay_page_count(view_canvas_paint_pages_viewer);
+  while(view_canvas_paint_pages_index < view_canvas_paint_pages_count) {
+    view_canvas_paint_page(view_canvas_paint_pages_viewer, view_canvas_paint_pages_index, view_canvas_paint_pages_area);
+    view_canvas_paint_pages_index = view_canvas_paint_pages_index + 1;
   }
 } return void;
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(150, 160) ((import lp_t_v), [0, 128, 384, 150, 128, 278]):() then vw_t_px:(16777215)
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(150, 160) ((import lp_t_v), [0, 400, 384, 150, 400, 550]):() then vw_t_px:(0)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given view_test_remember_pixel(150, 160) ((import layout_paragraph_test_view), [0, 128, 384, 150, 128, 278]):() then view_test_pixel_color:(16777215)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given view_test_remember_pixel(150, 160) ((import layout_paragraph_test_view), [0, 400, 384, 150, 400, 550]):() then view_test_pixel_color:(0)
 
 // Paints page vwi_k when its sheet shows in the band being painted (the rows of the area list vwl_r from cv_a_y0 to cv_a_y1): where it lies is the page's top in the document less the scroll, from the top of the page area, centred across it.
-vw_pk(View vwv, int vwi_k, int[] vwl_r) {
-  int[] vwl_st = (import vw_st);
-  int vwi_z = vwl_st[(import vw_s_z)];
-  int vwi_ph = vw_px(lay_sheet(vwv.doc, 1), vwi_z);
-} chain (View vwv, int vwi_k, int[] vwl_r) {
-  int vwi_top = vwl_r[1] + vw_top(vwv, vwi_k, vwi_z) - vwl_st[(import vw_s_y)];
-  int vwi_v = vw_vis(vwi_top, vwi_ph, vwl_r[(import cv_a_y0)], vwl_r[(import cv_a_y1)] - vwl_r[(import cv_a_y0)]);
-  if(vwi_v == 1) {
-    vw_show(vwv, vwi_k, vwl_r, vwi_top);
+view_canvas_paint_page(View view_canvas_paint_page_viewer, int view_canvas_paint_page_index, int[] view_canvas_paint_page_area) {
+  int[] view_canvas_paint_page_state = (import view_state);
+  int view_canvas_paint_page_zoom = view_canvas_paint_page_state[(import vw_s_z)];
+  int view_canvas_paint_page_sheet_height = view_units_pixels(lay_sheet(view_canvas_paint_page_viewer.doc, 1), view_canvas_paint_page_zoom);
+} chain (View view_canvas_paint_page_viewer, int view_canvas_paint_page_index, int[] view_canvas_paint_page_area) {
+  int view_canvas_paint_page_top = view_canvas_paint_page_area[1] + view_page_top(view_canvas_paint_page_viewer, view_canvas_paint_page_index, view_canvas_paint_page_zoom) - view_canvas_paint_page_state[(import vw_s_y)];
+  int view_canvas_paint_page_visible = view_sheet_visible(view_canvas_paint_page_top, view_canvas_paint_page_sheet_height, view_canvas_paint_page_area[(import cv_a_y0)], view_canvas_paint_page_area[(import cv_a_y1)] - view_canvas_paint_page_area[(import cv_a_y0)]);
+  if(view_canvas_paint_page_visible == 1) {
+    view_page_show(view_canvas_paint_page_viewer, view_canvas_paint_page_index, view_canvas_paint_page_area, view_canvas_paint_page_top);
   }
 } return void;
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(150, 160) ((import lp_t_v), 0, [0, 128, 384, 150, 128, 278]):() then vw_t_px:(16777215)
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(150, 160) ((import lp_t_v), 1, [0, 128, 384, 150, 128, 278]):() then vw_t_px:(0)
-given vw_t_two given vw_state_new given vw_t_up(400, 300) given vw_t_at(150, 160) ((import lp_t_v), 0, [0, 128, 384, 150, 128, 140]):() then vw_t_px:(0)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given view_test_remember_pixel(150, 160) ((import layout_paragraph_test_view), 0, [0, 128, 384, 150, 128, 278]):() then view_test_pixel_color:(16777215)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given view_test_remember_pixel(150, 160) ((import layout_paragraph_test_view), 1, [0, 128, 384, 150, 128, 278]):() then view_test_pixel_color:(0)
+given view_test_two_pages given view_state_new given view_test_fit_chrome(400, 300) given view_test_remember_pixel(150, 160) ((import layout_paragraph_test_view), 0, [0, 128, 384, 150, 128, 140]):() then view_test_pixel_color:(0)

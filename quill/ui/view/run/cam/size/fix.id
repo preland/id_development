@@ -1,31 +1,31 @@
 // Test setup: a view of eight one-line paragraphs on a small sheet, so that it has two pages, laid out and paginated, in the exported lp_t_v, with the editing state of the canvas (the controller vw_ctl and the edit state list) for it.
-vw_t_two() {
-  lp_t_font();
-  lg_t_page(1500, 3000, 150, 300, 450, 600);
-  lp_t_paras(8);
+view_test_two_pages() {
+  layout_paragraph_test_font();
+  layout_page_test_page(1500, 3000, 150, 300, 450, 600);
+  layout_paragraph_test_paragraphs(8);
 } chain () {
-  lay_all((import lp_t_v));
-  lay_paginate((import lp_t_v), 0);
-  cv_ed_new((import lp_t_v));
+  lay_all((import layout_paragraph_test_view));
+  lay_paginate((import layout_paragraph_test_view), 0);
+  view_input_editing_start((import layout_paragraph_test_view));
 } return void;
-():() then (import lp_t_v).pages.count:(2)
-():() then (import lp_t_v).pages.starts:([0, 0, 6, 0, 8, 0])
-():() then cv_t_sel:("0:0-0:0")
+():() then (import layout_paragraph_test_view).pages.count:(2)
+():() then (import layout_paragraph_test_view).pages.starts:([0, 0, 6, 0, 8, 0])
+():() then view_flow_test_selection_text:("0:0-0:0")
 
 // Test check: the viewer's state list, comma separated: scroll x, scroll y, zoom, stale.
-vw_t_sts() {
-  string vws_z_t = "sts " + (dump_ints((import vw_st)));
-} return string vws_z_t;
-given vw_state_new ():("sts 0,0,100,1,")
-given vw_state_new given lset((import vw_st), 1, 7) ():("sts 0,7,100,1,")
+view_test_state_dump() {
+  string view_test_state_dump_text = "sts " + (document_dump_integers((import view_state)));
+} return string view_test_state_dump_text;
+given view_state_new ():("sts 0,0,100,1,")
+given view_state_new given lset((import view_state), 1, 7) ():("sts 0,7,100,1,")
 
 // Test setup: the state is current (nothing stale) with the page area scrolled to vwi_y pixels at the zoom vwi_z.
-vw_t_at_y(int vwi_y, int vwi_z) {
-  vw_state_new();
-  lset((import vw_st), (import vw_s_y), vwi_y);
-  lset((import vw_st), (import vw_s_z), vwi_z);
-} chain (int vwi_y, int vwi_z) {
-  lset((import vw_st), (import vw_s_d), 0);
+view_test_state_scrolled(int view_test_state_scrolled_row, int view_test_state_scrolled_zoom) {
+  view_state_new();
+  lset((import view_state), (import vw_s_y), view_test_state_scrolled_row);
+  lset((import view_state), (import vw_s_z), view_test_state_scrolled_zoom);
+} chain (int view_test_state_scrolled_row, int view_test_state_scrolled_zoom) {
+  lset((import view_state), (import vw_s_d), 0);
 } return void;
-(5, 100):() then vw_t_sts:("sts 0,5,100,0,")
-(9, 150):() then vw_t_sts:("sts 0,9,150,0,")
+(5, 100):() then view_test_state_dump:("sts 0,5,100,0,")
+(9, 150):() then view_test_state_dump:("sts 0,9,150,0,")

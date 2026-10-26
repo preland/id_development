@@ -1,27 +1,27 @@
 // A writer with the XML declaration already written, which is where every part of the package starts.
 odp_doc() {
-  XmlW pkw = xw_new();
-  xw_decl(pkw);
-} return XmlW pkw;
+  XmlW odt_package_start_writer = xw_new();
+  xw_decl(odt_package_start_writer);
+} return XmlW odt_package_start_writer;
 ():(XmlW([60, 63, 120, 109, 108, 32, 118, 101, 114, 115, 105, 111, 110, 61, 34, 49, 46, 48, 34, 32, 101, 110, 99, 111, 100, 105, 110, 103, 61, 34, 85, 84, 70, 45, 56, 34, 63, 62], [], 0))
 ():(XmlW([60, 63, 120, 109, 108, 32, 118, 101, 114, 115, 105, 111, 110, 61, 34, 49, 46, 48, 34, 32, 101, 110, 99, 111, 100, 105, 110, 103, 61, 34, 85, 84, 70, 45, 56, 34, 63, 62], [], 0)) then calls xw_decl:[1]
 
 // Starts the root element of a part: its name, every namespace the writer knows and the ODF version.
-odp_root(XmlW pkw, string pkname) {
-  xw_start(pkw, pkname);
-  oc_ns(pkw);
-  xw_attr(pkw, "office:version", (import odp_version));
+odp_root(XmlW odt_package_root_writer, string odt_package_root_name) {
+  xw_start(odt_package_root_writer, odt_package_root_name);
+  odt_write_prefixes(odt_package_root_writer);
+  xw_attr(odt_package_root_writer, "office:version", (import odp_version));
 } return void;
-given odp_t_new ((import odp_t_w), "x:y"):() then odp_t_ends:("<r><x:y xmlns:office=\"urn:oasis:names:tc|eld:1.0\" xmlns:formx=\"urn:openoffice:names:experimental:ooxml-odf-interop:xmlns:form:1.0\" office:version=\"1.3\"|1752")
-given odp_t_new ((import odp_t_w), "z"):() then odp_t_ends:("<r><z xmlns:office=\"urn:oasis:names:tc:o|eld:1.0\" xmlns:formx=\"urn:openoffice:names:experimental:ooxml-odf-interop:xmlns:form:1.0\" office:version=\"1.3\"|1750")
+given odt_package_fixture_new ((import odt_package_exported_writer), "x:y"):() then odt_package_fixture_trimmed_output:("<r><x:y xmlns:office=\"urn:oasis:names:tc|eld:1.0\" xmlns:formx=\"urn:openoffice:names:experimental:ooxml-odf-interop:xmlns:form:1.0\" office:version=\"1.3\"|1752")
+given odt_package_fixture_new ((import odt_package_exported_writer), "z"):() then odt_package_fixture_trimmed_output:("<r><z xmlns:office=\"urn:oasis:names:tc:o|eld:1.0\" xmlns:formx=\"urn:openoffice:names:experimental:ooxml-odf-interop:xmlns:form:1.0\" office:version=\"1.3\"|1750")
 
 // Test fixture (internal): the start and the end of a long text with its length, which is enough to tell a root element from the namespaces and the version it carries; a short text is returned whole.
-odp_t_cut(string pkr) {
-  string pkend = pkr;
-  if(len(pkr) > 150) {
-    pkend = str_sub(pkr, 0, 40) + "|" + str_sub(pkr, len(pkr) - 110, 110) + "|" + len(pkr);
+odt_package_fixture_trim_text(string odt_package_cut_text) {
+  string odt_package_cut_result = odt_package_cut_text;
+  if(len(odt_package_cut_text) > 150) {
+    odt_package_cut_result = str_sub(odt_package_cut_text, 0, 40) + "|" + str_sub(odt_package_cut_text, len(odt_package_cut_text) - 110, 110) + "|" + len(odt_package_cut_text);
   }
-} return string pkend;
+} return string odt_package_cut_result;
 ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"):("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa|aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa|163")
 ("0123456789012345678901234567890123456789ABCDEFGHIJ0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789xyz"):("0123456789012345678901234567890123456789|DEFGHIJ0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789xyz|153")
 ("short"):("short")

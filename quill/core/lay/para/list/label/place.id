@@ -1,21 +1,21 @@
 // Where the label of paragraph i starts, in lu from the left edge of the text area: the left indent plus the first-line indent, which for a hanging list item is the left indent minus the hanging, so the label sits at left - hanging.
-lay_label_x(View v, int i) {
-  int xp = lp_ind(v, i, (import quill_paragraph_indent_left)) + lp_ind(v, i, (import quill_paragraph_indent_first));
-} return int xp;
-given lp_t_new given lp_t_row(0, 9, 1) ((import lp_t_v), 0):(1536)
-given lp_t_new given lp_t_row(0, 2, 720) given lp_t_row(0, 4, 360) ((import lp_t_v), 0):(4608)
-given lp_t_new ((import lp_t_v), 0):(0)
+lay_label_x(View label_x_view, int label_x_paragraph_index) {
+  int label_x_result = layout_paragraph_indent(label_x_view, label_x_paragraph_index, (import quill_paragraph_indent_left)) + layout_paragraph_indent(label_x_view, label_x_paragraph_index, (import quill_paragraph_indent_first));
+} return int label_x_result;
+given layout_paragraph_test_new given layout_paragraph_test_set_property(0, 9, 1) ((import layout_paragraph_test_view), 0):(1536)
+given layout_paragraph_test_new given layout_paragraph_test_set_property(0, 2, 720) given layout_paragraph_test_set_property(0, 4, 360) ((import layout_paragraph_test_view), 0):(4608)
+given layout_paragraph_test_new ((import layout_paragraph_test_view), 0):(0)
 
 // Where the first line's text starts: left + first, and for a list item no earlier than the left indent and no earlier than the end of the label, so the label never overlaps the text.
 // By hand: a bullet item at level 0 has left 3072 and hanging 1536, so the label is at 1536 and the text at 3072 as long as the label is narrower than 1536.
-lp_xfirst(View v, int i) {
-  int xl = lp_ind(v, i, (import quill_paragraph_indent_left));
-  int xp = lay_label_x(v, i);
-  if(lp_prop(v, i, (import quill_paragraph_list)) > 0) {
-    xp = fixed_point_maximum(xl, xp + lp_lw(v, i));
+layout_paragraph_first_line_start(View first_view, int first_paragraph_index) {
+  int first_left_edge = layout_paragraph_indent(first_view, first_paragraph_index, (import quill_paragraph_indent_left));
+  int first_start = lay_label_x(first_view, first_paragraph_index);
+  if(layout_paragraph_property(first_view, first_paragraph_index, (import quill_paragraph_list)) > 0) {
+    first_start = fixed_point_maximum(first_left_edge, first_start + layout_paragraph_label_width(first_view, first_paragraph_index));
   }
-} return int xp;
-given lp_t_font given lp_t_ins(0, "B") given lp_t_row(0, 9, 1) ((import lp_t_v), 0):(3072)
-given lp_t_font given lp_t_ins(0, "B") given lp_t_row(0, 9, 2) given lp_t_row(0, 4, -100) ((import lp_t_v), 0):(3501)
-given lp_t_font given lp_t_ins(0, "B") given lp_t_row(0, 4, 360) ((import lp_t_v), 0):(1536)
-given lp_t_font given lp_t_ins(0, "B") given lp_t_row(0, 2, 720) given lp_t_row(0, 4, -360) ((import lp_t_v), 0):(1536)
+} return int first_start;
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "B") given layout_paragraph_test_set_property(0, 9, 1) ((import layout_paragraph_test_view), 0):(3072)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "B") given layout_paragraph_test_set_property(0, 9, 2) given layout_paragraph_test_set_property(0, 4, -100) ((import layout_paragraph_test_view), 0):(3501)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "B") given layout_paragraph_test_set_property(0, 4, 360) ((import layout_paragraph_test_view), 0):(1536)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "B") given layout_paragraph_test_set_property(0, 2, 720) given layout_paragraph_test_set_property(0, 4, -360) ((import layout_paragraph_test_view), 0):(1536)

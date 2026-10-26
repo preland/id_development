@@ -1,37 +1,37 @@
 // The name of the file at the path, which is what follows its last slash, or the name of a document that has no file yet when the path is empty.
-wa_name(string was_path) {
-  string[] wat_p = str_split(was_path, "/");
-  string was_n = wat_p[len(wat_p) - 1];
-  if(len(was_n) == 0) {
-    was_n = (import wa_untitled);
+cli_file_name(string was_path) {
+  string[] cli_name_parts = str_split(was_path, "/");
+  string cli_name_last = cli_name_parts[len(cli_name_parts) - 1];
+  if(len(cli_name_last) == 0) {
+    cli_name_last = (import wa_untitled);
   }
-} return string was_n;
+} return string cli_name_last;
 ("a/b/c.odt"):("c.odt")
 (""):("Untitled")
 ("c.odt"):("c.odt")
 ("/x/"):("Untitled")
 
 // The title of the window: the name of the document's file, a star after it when there are changes that are not saved, then the program.
-app_title(App waa) {
-  string was_n = wa_name(waa.ui.shell.path);
-  string was_s = "";
-  if(waa.ui.shell.dirty == 1) {
-    was_s = (import wa_star);
+app_title(App cli_window_app) {
+  string cli_window_name = cli_file_name(cli_window_app.ui.shell.path);
+  string cli_window_star = "";
+  if(cli_window_app.ui.shell.dirty == 1) {
+    cli_window_star = (import wa_star);
   }
-} chain (App waa) {
-  string was_t = was_n + was_s + (import wa_prog);
-} return string was_t;
-given wa_t_app ((import wa_app)):("Untitled - Quill")
-given wa_t_app given wa_t_type(120) given wa_dirty((import wa_app)) ((import wa_app)):("Untitled* - Quill")
+} chain (App cli_window_app) {
+  string cli_window_title = cli_window_name + cli_window_star + (import wa_prog);
+} return string cli_window_title;
+given cli_test_boot_app ((import cli_application)):("Untitled - Quill")
+given cli_test_boot_app given cli_test_type_code_point(120) given cli_update_dirty((import cli_application)) ((import cli_application)):("Untitled* - Quill")
 
 // Gives the window the title app_title makes, and keeps it in cell 0 of wat_k with the path and the star (was_s) it was made from in cells 1 and 2, so that wa_note makes the title again only when one of the two changes.
-wa_retitle(App waa, string[] wat_k, string was_s) {
-  string was_t = app_title(waa);
-  wat_k[0] = was_t;
-  wat_k[1] = waa.ui.shell.path;
-} chain (App waa, string[] wat_k, string was_s) {
-  wat_k[2] = was_s;
-  int wai_g = gfx_title(was_t);
+cli_retitle_window(App cli_retitle_app, string[] cli_retitle_cells, string cli_retitle_star) {
+  string cli_retitle_title = app_title(cli_retitle_app);
+  cli_retitle_cells[0] = cli_retitle_title;
+  cli_retitle_cells[1] = cli_retitle_app.ui.shell.path;
+} chain (App cli_retitle_app, string[] cli_retitle_cells, string cli_retitle_star) {
+  cli_retitle_cells[2] = cli_retitle_star;
+  int cli_retitle_set = gfx_title(cli_retitle_title);
 } return void;
-given wa_t_app ((import wa_app), ["", "x", "y"], "*"):((import wa_app), ["Untitled - Quill", "", "*"], "*")
-given wa_t_app given wa_t_type(120) given wa_dirty((import wa_app)) ((import wa_app), ["", "x", ""], "*"):((import wa_app), ["Untitled* - Quill", "", "*"], "*")
+given cli_test_boot_app ((import cli_application), ["", "x", "y"], "*"):((import cli_application), ["Untitled - Quill", "", "*"], "*")
+given cli_test_boot_app given cli_test_type_code_point(120) given cli_update_dirty((import cli_application)) ((import cli_application), ["", "x", ""], "*"):((import cli_application), ["Untitled* - Quill", "", "*"], "*")

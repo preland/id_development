@@ -1,18 +1,18 @@
 // Makes the app's own state: the list wa_st (no change counted, no action waiting, no dialog, not closing), wa_ti, which holds the title the window has, the path and the star it was made from, so that it is made and set again only when one of them changes, wa_ps, the states the ribbon was told for the commands of wa_put_cmd, none yet, and wa_ev, the list the window's events are read into.
-wa_state_new() {
-  export int[] wa_st = [0, 0, 0, 0];
-  export string[] wa_ti = ["", "\n", ""];
-  export int[] wa_ps = [-1, -1, -1, -1, -1, -1, -1, -1];
+cli_state_new() {
+  export int[] cli_state_list = [0, 0, 0, 0];
+  export string[] cli_title_cache = ["", "\n", ""];
+  export int[] cli_ribbon_states = [-1, -1, -1, -1, -1, -1, -1, -1];
 } chain () {
-  export int[] wa_ev = [0, 0, 0, 0, 0];
+  export int[] cli_event_list = [0, 0, 0, 0, 0];
 } return void;
-given wa_t_app given lset((import wa_st), 1, 3) ():() then wa_t_state:("0,0,0,0,|0|0")
-():() then wa_t_ti:("")
+given cli_test_boot_app given lset((import cli_state_list), 1, 3) ():() then cli_test_state_text:("0,0,0,0,|0|0")
+():() then cli_test_window_title:("")
 
 // Test check: the title the app last gave the window.
-wa_t_ti() {
-  string[] wat_k = (import wa_ti);
-  string was_t = wat_k[0];
-} return string was_t;
-given wa_state_new ():("")
-given wa_t_app given wa_note((import wa_app)) ():("Untitled - Quill")
+cli_test_window_title() {
+  string[] cli_title_cells = (import cli_title_cache);
+  string cli_title_text = cli_title_cells[0];
+} return string cli_title_text;
+given cli_state_new ():("")
+given cli_test_boot_app given app_state_refresh((import cli_application)) ():("Untitled - Quill")

@@ -1,19 +1,19 @@
 // Adds a preserved part as a stored entry when it is kept, with its bytes exactly as they were read.
-odp_part(ZipW pkz, Part pkpt) {
-  if(odp_keep(pkpt) == 1) {
-    zw_add(pkz, pkpt.name, pkpt.data, 0);
+odp_part(ZipW odt_package_preserved_archive, Part odt_package_preserved_part) {
+  if(odp_keep(odt_package_preserved_part) == 1) {
+    zw_add(odt_package_preserved_archive, odt_package_preserved_part.name, odt_package_preserved_part.data, 0);
   }
 } return void;
-given odp_t_new ((import odp_t_z), Part("Pictures/a.png", [137, 0, 255], 1)):() then (import odp_t_z).names:(["", "Pictures/a.png"])
-given odp_t_new ((import odp_t_z), Part("Pictures/a.png", [137, 0, 255], 0)):() then (import odp_t_z).names:([""])
+given odt_package_fixture_new ((import odt_package_exported_archive), Part("Pictures/a.png", [137, 0, 255], 1)):() then (import odt_package_exported_archive).names:(["", "Pictures/a.png"])
+given odt_package_fixture_new ((import odt_package_exported_archive), Part("Pictures/a.png", [137, 0, 255], 0)):() then (import odt_package_exported_archive).names:([""])
 
 // Adds every kept part of the document, in order.
-odp_parts(ZipW pkz, Ext pkx) {
-  int pki = 0;
-  while(pki < len(pkx.parts)) {
-    odp_part(pkz, pkx.parts[pki]);
-    pki = pki + 1;
+odp_parts(ZipW odt_package_parts_archive, Ext odt_package_parts_references) {
+  int odt_package_parts_index = 0;
+  while(odt_package_parts_index < len(odt_package_parts_references.parts)) {
+    odp_part(odt_package_parts_archive, odt_package_parts_references.parts[odt_package_parts_index]);
+    odt_package_parts_index = odt_package_parts_index + 1;
   }
 } return void;
-given odp_t_new ((import odp_t_z), Ext(["f"], [], [Part("a/", [], 1), Part("b.png", [1], 1)])):() then (import odp_t_z).names:(["", "a/", "b.png"])
-given odp_t_new ((import odp_t_z), Ext(["f"], [], [])):() then (import odp_t_z).names:([""])
+given odt_package_fixture_new ((import odt_package_exported_archive), Ext(["f"], [], [Part("a/", [], 1), Part("b.png", [1], 1)])):() then (import odt_package_exported_archive).names:(["", "a/", "b.png"])
+given odt_package_fixture_new ((import odt_package_exported_archive), Ext(["f"], [], [])):() then (import odt_package_exported_archive).names:([""])

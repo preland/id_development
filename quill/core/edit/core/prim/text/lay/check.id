@@ -1,35 +1,35 @@
 // Test fixture: every paragraph of the fixture document stands as laid out (height 0), as a view leaves them after laying them out, so that what an operation marks stale can be told.
-fx_fresh() {
-  Doc d = (import fxd);
+editor_fixture_fresh() {
+  Doc d = (import fixture_document);
   int i = 0;
   while(i < len(d.body.paras)) {
     d.body.paras[i].lay.h = 0;
     i = i + 1;
   }
 } return void;
-given fx_setup("ab|cd") ():() then fx_stale:("0,0")
-given fx_setup("ab|cd|ef") ():() then fx_stale:("0,0,0")
+given editor_fixture_setup("ab|cd") ():() then editor_fixture_stale:("0,0")
+given editor_fixture_setup("ab|cd|ef") ():() then editor_fixture_stale:("0,0,0")
 
 // Test check: the heights of the fixture document's paragraphs (a height of -1 is a paragraph marked stale), comma separated.
-fx_stale() {
-  Doc d = (import fxd);
+editor_fixture_stale() {
+  Doc d = (import fixture_document);
   string lays = "";
   int i = 0;
 } chain () {
   while(i < len(d.body.paras)) {
-    lays = fx_height(lays, d, i);
+    lays = editor_fixture_height(lays, d, i);
     i = i + 1;
   }
 } return string lays;
-given fx_setup("ab|cd") ():("-1,-1")
-given fx_setup("ab|cd|ef") given fx_fresh ():("0,0,0")
+given editor_fixture_setup("ab|cd") ():("-1,-1")
+given editor_fixture_setup("ab|cd|ef") given editor_fixture_fresh ():("0,0,0")
 
 // Test check helper: lays with the height of paragraph i of d added, after a comma unless it is the first.
-fx_height(string lays, Doc d, int i) {
-  string lnew = lays + d.body.paras[i].lay.h;
+editor_fixture_height(string lays, Doc d, int i) {
+  string layout_heights_extended = lays + d.body.paras[i].lay.h;
   if(i > 0) {
-    lnew = lays + "," + d.body.paras[i].lay.h;
+    layout_heights_extended = lays + "," + d.body.paras[i].lay.h;
   }
-} return string lnew;
-given fx_setup("ab|cd") given fx_fresh ("", (import fxd), 0):("0")
-given fx_setup("ab|cd") given fx_fresh ("1", (import fxd), 1):("1,0")
+} return string layout_heights_extended;
+given editor_fixture_setup("ab|cd") given editor_fixture_fresh ("", (import fixture_document), 0):("0")
+given editor_fixture_setup("ab|cd") given editor_fixture_fresh ("1", (import fixture_document), 1):("1,0")

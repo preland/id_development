@@ -1,21 +1,21 @@
 // Adds to the geometry list cvl_g the band of the surface being painted, its top row and the row after its bottom, so that cv_seen can leave out what is wholly above or below it.
-cv_cull(int[] cvl_g, int cvi_y0, int cvi_y1) {
-  push(cvl_g, cvi_y0);
-  push(cvl_g, cvi_y1);
+view_flow_add_band(int[] view_flow_cull_geometry, int view_flow_cull_top_row, int view_flow_cull_bottom_row) {
+  push(view_flow_cull_geometry, view_flow_cull_top_row);
+  push(view_flow_cull_geometry, view_flow_cull_bottom_row);
 } return void;
 ([1, 2, 3, 4, 5], 10, 20):([1, 2, 3, 4, 5, 10, 20], 10, 20)
 ([], 0, 5):([0, 5], 0, 5)
 
 // 1 when paragraph cvi_p, whose own top is cvi_base lu down the page of geometry cvl_g, reaches into the band that the geometry names (cv_cull); always 1 for a geometry with no band. The paragraph is taken to run from its top the whole of its height.
-cv_seen(View cvv, int cvi_p, int[] cvl_g, int cvi_base) {
-  int cvi_s = 1;
-  int cvi_t = cvl_g[(import vw_g_y)] + vw_px(cvl_g[(import vw_g_t)] + cvi_base, cvl_g[(import vw_g_z)]);
-  int cvi_b = cvl_g[(import vw_g_y)] + vw_px(cvl_g[(import vw_g_t)] + cvi_base + cvv.doc.body.paras[cvi_p].lay.h, cvl_g[(import vw_g_z)]);
-} chain (View cvv, int cvi_p, int[] cvl_g, int cvi_base) {
-  if(len(cvl_g) > (import cv_g_y0)) {
-    cvi_s = cvi_t < cvl_g[(import cv_g_y1)] && cvi_b > cvl_g[(import cv_g_y0)];
+view_flow_paragraph_seen(View view_flow_seen_view, int view_flow_seen_paragraph, int[] view_flow_seen_geometry, int view_flow_seen_base) {
+  int view_flow_seen_result = 1;
+  int view_flow_seen_top = view_flow_seen_geometry[(import vw_g_y)] + view_units_pixels(view_flow_seen_geometry[(import vw_g_t)] + view_flow_seen_base, view_flow_seen_geometry[(import vw_g_z)]);
+  int view_flow_seen_bottom = view_flow_seen_geometry[(import vw_g_y)] + view_units_pixels(view_flow_seen_geometry[(import vw_g_t)] + view_flow_seen_base + view_flow_seen_view.doc.body.paras[view_flow_seen_paragraph].lay.h, view_flow_seen_geometry[(import vw_g_z)]);
+} chain (View view_flow_seen_view, int view_flow_seen_paragraph, int[] view_flow_seen_geometry, int view_flow_seen_base) {
+  if(len(view_flow_seen_geometry) > (import cv_g_y0)) {
+    view_flow_seen_result = view_flow_seen_top < view_flow_seen_geometry[(import cv_g_y1)] && view_flow_seen_bottom > view_flow_seen_geometry[(import cv_g_y0)];
   }
-} return int cvi_s;
-given vw_t_two () ((import lp_t_v), 3, [0, 0, 100, 2560, 640], 4800):(1)
-given vw_t_two () ((import lp_t_v), 3, [0, 0, 100, 2560, 640, 0, 50], 4800):(0)
-given vw_t_two () ((import lp_t_v), 3, [0, 0, 100, 2560, 640, 80, 130], 4800):(1)
+} return int view_flow_seen_result;
+given view_test_two_pages () ((import layout_paragraph_test_view), 3, [0, 0, 100, 2560, 640], 4800):(1)
+given view_test_two_pages () ((import layout_paragraph_test_view), 3, [0, 0, 100, 2560, 640, 0, 50], 4800):(0)
+given view_test_two_pages () ((import layout_paragraph_test_view), 3, [0, 0, 100, 2560, 640, 80, 130], 4800):(1)

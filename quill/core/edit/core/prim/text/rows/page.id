@@ -9,29 +9,29 @@ page_list(Page pg, int field) {
 (Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 4):([3, 4, 5, 6])
 
 // The index inside page_list's list of a SET_PAGE field.
-page_ix(int field) {
-  int ix = field;
+editor_page_index(int field) {
+  int page_index_page_field_index = field;
   if(field >= (import ed_g_margin)) {
-    ix = field - (import ed_g_margin);
+    page_index_page_field_index = field - (import ed_g_margin);
   }
-} return int ix;
+} return int page_index_page_field_index;
 (4):(1)
 (6):(3)
 (1):(1)
 
 // SET_PAGE, at = [field], data = [the new value]: a page size entry (0 width, 1 height, 2 orientation) or a margin (3 top, 4 right, 5 bottom, 6 left). The inverse sets the old value. Every paragraph is marked stale, since the text area they are laid out in changes.
-ap_page(Doc d, Op eo) {
-  int[] cells = page_list(d.body.page, eo.at[0]);
-  int ix = page_ix(eo.at[0]);
-  int[] old = [cells[ix]];
-} chain (Doc d, Op eo) {
-  cells[ix] = eo.data[0];
+editor_apply_page(Doc d, Op edit_operation) {
+  int[] cells = page_list(d.body.page, edit_operation.at[0]);
+  int apply_page_page_field_index = editor_page_index(edit_operation.at[0]);
+  int[] old = [cells[apply_page_page_field_index]];
+} chain (Doc d, Op edit_operation) {
+  cells[apply_page_page_field_index] = edit_operation.data[0];
   d.body.rev = d.body.rev + 1;
-  int[] loc = list_copy(eo.at);
-} chain (Doc d, Op eo) {
-  Op inv = Op((import ed_k_page), loc, old);
-  ed_stale_all(d);
-} return Op inv;
-given fx_setup("") ((import fxd), Op(9, [0], [5000])):(Op(9, [0], [11906])) then fx_dump:("G 5000,16838,0, 1440,1440,1440,1440, 0,0,0,\nP0  0:0:-1,")
-given fx_setup("") ((import fxd), Op(9, [6], [720])):(Op(9, [6], [1440])) then fx_dump:("G 11906,16838,0, 1440,1440,1440,720, 0,0,0,\nP0  0:0:-1,")
-given fx_setup("ab|cd") given fx_fresh ((import fxd), Op(9, [0], [5000])):(Op(9, [0], [11906])) then fx_stale:("-1,-1")
+  int[] location = list_copy(edit_operation.at);
+} chain (Doc d, Op edit_operation) {
+  Op inverse = Op((import ed_k_page), location, old);
+  editor_stale_all(d);
+} return Op inverse;
+given editor_fixture_setup("") ((import fixture_document), Op(9, [0], [5000])):(Op(9, [0], [11906])) then editor_fixture_dump:("G 5000,16838,0, 1440,1440,1440,1440, 0,0,0,\nP0  0:0:-1,")
+given editor_fixture_setup("") ((import fixture_document), Op(9, [6], [720])):(Op(9, [6], [1440])) then editor_fixture_dump:("G 11906,16838,0, 1440,1440,1440,720, 0,0,0,\nP0  0:0:-1,")
+given editor_fixture_setup("ab|cd") given editor_fixture_fresh ((import fixture_document), Op(9, [0], [5000])):(Op(9, [0], [11906])) then editor_fixture_stale:("-1,-1")

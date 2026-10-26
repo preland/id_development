@@ -11,31 +11,31 @@ runs_zero(int[] runs, int step) {
 ([], 3):([])
 
 // For ed_over: in code points lo..hi-1 of paragraph para, applies the character change acc = [field, value] (see fmt_row) as one SET_RUNS in the open undo step, or does nothing when the runs would come out unchanged.
-fmt_runs(Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
+editor_format_runs(Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
   Para p = d.body.paras[para];
   Text t = text_copy(p.txt);
-  fmt_text(d, para, t, lo, hi, acc[0], acc[1]);
+  editor_format_text(d, para, t, lo, hi, acc[0], acc[1]);
 } chain (Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
   int[] runs = runs_span(t, lo, hi);
   int[] old = runs_span(p.txt, lo, hi);
-  if(ints_eq(runs, old) == 0) {
-    int[] loc = [para, lo, hi];
-    Op run_change = Op((import ed_k_runs), loc, runs);
-    ed_run(d, ctl, run_change);
+  if(document_integers_equal(runs, old) == 0) {
+    int[] location = [para, lo, hi];
+    Op run_change = Op((import ed_k_runs), location, runs);
+    editor_run(d, ctl, run_change);
   }
 } return void;
-given fx_setup("abcd") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 1, 3, [101, 1]):((import fxd), (import fxc), 0, 1, 3, [101, 1]) then fx_show:("a*bc*d") then fx_hist:("u1 r0 o0 n1")
-given fx_setup("a*bc*d") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 1, 3, [101, 1]):((import fxd), (import fxc), 0, 1, 3, [101, 1]) then fx_hist:("u1 r0 o0 n0")
-given fx_setup("") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 0, 0, [101, 1]):((import fxd), (import fxc), 0, 0, 0, [101, 1]) then fx_show:("**")
-given fx_setup("abcd") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 2, 2, [101, 1]):((import fxd), (import fxc), 0, 2, 2, [101, 1]) then fx_hist:("u1 r0 o0 n0")
+given editor_fixture_setup("abcd") given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0, 1, 3, [101, 1]):((import fixture_document), (import fixture_control), 0, 1, 3, [101, 1]) then editor_fixture_show:("a*bc*d") then editor_fixture_history:("u1 r0 o0 n1")
+given editor_fixture_setup("a*bc*d") given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0, 1, 3, [101, 1]):((import fixture_document), (import fixture_control), 0, 1, 3, [101, 1]) then editor_fixture_history:("u1 r0 o0 n0")
+given editor_fixture_setup("") given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0, 0, 0, [101, 1]):((import fixture_document), (import fixture_control), 0, 0, 0, [101, 1]) then editor_fixture_show:("**")
+given editor_fixture_setup("abcd") given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0, 2, 2, [101, 1]):((import fixture_document), (import fixture_control), 0, 2, 2, [101, 1]) then editor_fixture_history:("u1 r0 o0 n0")
 
 // Sets the pending typing row, the one row the next typed character takes: the row at the caret with the change [field, value]. Any caret move or edit drops it. The open undo step is closed.
-ed_set_pending(Doc d, Ctl ctl, int field, int value) {
-  txn_end(ctl);
-  int cprop = ed_cprop(d, ctl);
-  int nc = fmt_row(d, ctl.sel.caret.para, cprop, field, value);
+editor_set_pending(Doc d, Ctl ctl, int field, int value) {
+  editor_transaction_end(ctl);
+  int cprop = editor_character_property(d, ctl);
+  int nc = editor_format_row(d, ctl.sel.caret.para, cprop, field, value);
 } chain (Doc d, Ctl ctl, int field, int value) {
   typing_set(nc);
 } return void;
-given fx_setup("ab") ((import fxd), (import fxc), 101, 1):((import fxd), (import fxc), 101, 1) then (import ed_typing)[0]:(8)
-given fx_setup("a*b*") given fx_at(0, 2, 0, 2) ((import fxd), (import fxc), 101, -2):((import fxd), (import fxc), 101, -2) then (import ed_typing)[0]:(0)
+given editor_fixture_setup("ab") ((import fixture_document), (import fixture_control), 101, 1):((import fixture_document), (import fixture_control), 101, 1) then (import editor_typing_row)[0]:(8)
+given editor_fixture_setup("a*b*") given editor_fixture_selection_at(0, 2, 0, 2) ((import fixture_document), (import fixture_control), 101, -2):((import fixture_document), (import fixture_control), 101, -2) then (import editor_typing_row)[0]:(0)

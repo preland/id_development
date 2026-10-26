@@ -1,36 +1,36 @@
 // What one event of a document adds to the face list (pairs of declared name and family): a style:font-face adds its pair. Answers 1 to go on and 0 once the body begins.
-ost_face_one(string[] os_lface, XmlR os_r, int os_iev) {
-  string os_sname = xml_reader_get(os_r, (import xml_reader_k_name));
-  int os_igo = 1;
-  if(os_sname == "style:font-face" && os_iev != 2) {
-    ost_face_add(os_lface, os_r);
+odt_named_face_event(string[] odt_named_face_event_faces, XmlR odt_named_face_event_reader, int odt_named_face_event_event) {
+  string odt_named_face_event_element_name = xml_reader_get(odt_named_face_event_reader, (import xml_reader_k_name));
+  int odt_named_face_event_continue = 1;
+  if(odt_named_face_event_element_name == "style:font-face" && odt_named_face_event_event != 2) {
+    odt_named_face_append(odt_named_face_event_faces, odt_named_face_event_reader);
   }
-} chain (string[] os_lface, XmlR os_r, int os_iev) {
-  if(os_sname == "office:body") {
-    os_igo = 0;
+} chain (string[] odt_named_face_event_faces, XmlR odt_named_face_event_reader, int odt_named_face_event_event) {
+  if(odt_named_face_event_element_name == "office:body") {
+    odt_named_face_event_continue = 0;
   }
-} return int os_igo;
-given ost_t_open("<style:font-face style:name=\"A\" svg:font-family=\"B\"/>") given xml_reader_skip((import ost_t_r), 1) ([], (import ost_t_r), 4):(1) 
-given ost_t_open("<office:body/>") given xml_reader_skip((import ost_t_r), 1) ([], (import ost_t_r), 1):(0)
+} return int odt_named_face_event_continue;
+given odt_named_reader_open("<style:font-face style:name=\"A\" svg:font-family=\"B\"/>") given xml_reader_skip((import odt_named_reader), 1) ([], (import odt_named_reader), 4):(1) 
+given odt_named_reader_open("<office:body/>") given xml_reader_skip((import odt_named_reader), 1) ([], (import odt_named_reader), 1):(0)
 
 // Adds the style:font-face the reader is at to the face list: the name it is declared by and its family, without quotes.
-ost_face_add(string[] os_lface, XmlR os_r) {
-  string os_sname = xml_reader_attr(os_r, "style:name");
-  string os_sfam = ost_unquote(xml_reader_attr(os_r, "svg:font-family"));
-  list_string_extend(os_lface, [os_sname, os_sfam]);
+odt_named_face_append(string[] odt_named_face_append_faces, XmlR odt_named_face_append_reader) {
+  string odt_named_face_append_declared_name = xml_reader_attr(odt_named_face_append_reader, "style:name");
+  string odt_named_face_append_family = odt_named_family_unquote(xml_reader_attr(odt_named_face_append_reader, "svg:font-family"));
+  list_string_extend(odt_named_face_append_faces, [odt_named_face_append_declared_name, odt_named_face_append_family]);
 } return void;
-given ost_t_open("<style:font-face style:name=\"Liberation Serif1\" svg:font-family=\"&apos;Liberation Serif&apos;\"/>") given xml_reader_skip((import ost_t_r), 1) ([], (import ost_t_r)):(["Liberation Serif1", "Liberation Serif"], (import ost_t_r))
-given ost_t_open("<style:font-face style:name=\"FreeSans\" svg:font-family=\"FreeSans\"/>") given xml_reader_skip((import ost_t_r), 1) (["A", "B"], (import ost_t_r)):(["A", "B", "FreeSans", "FreeSans"], (import ost_t_r))
+given odt_named_reader_open("<style:font-face style:name=\"Liberation Serif1\" svg:font-family=\"&apos;Liberation Serif&apos;\"/>") given xml_reader_skip((import odt_named_reader), 1) ([], (import odt_named_reader)):(["Liberation Serif1", "Liberation Serif"], (import odt_named_reader))
+given odt_named_reader_open("<style:font-face style:name=\"FreeSans\" svg:font-family=\"FreeSans\"/>") given xml_reader_skip((import odt_named_reader), 1) (["A", "B"], (import odt_named_reader)):(["A", "B", "FreeSans", "FreeSans"], (import odt_named_reader))
 
 // Reads every font face a styles or content document declares into the face list, up to the body.
-ost_faces(string[] os_lface, XmlR os_r) {
-  int os_iev = xml_reader_next(os_r);
-  int os_igo = 1;
-  while(os_iev > 0 && os_igo == 1) {
-    os_igo = ost_face_one(os_lface, os_r, os_iev);
-    os_iev = xml_reader_next(os_r);
+odt_named_faces_read(string[] odt_named_faces_read_faces, XmlR odt_named_faces_read_reader) {
+  int odt_named_faces_read_event = xml_reader_next(odt_named_faces_read_reader);
+  int odt_named_faces_read_continue = 1;
+  while(odt_named_faces_read_event > 0 && odt_named_faces_read_continue == 1) {
+    odt_named_faces_read_continue = odt_named_face_event(odt_named_faces_read_faces, odt_named_faces_read_reader, odt_named_faces_read_event);
+    odt_named_faces_read_event = xml_reader_next(odt_named_faces_read_reader);
   }
 } return void;
-given ost_t_open("<a><office:font-face-decls><style:font-face style:name=\"A\" svg:font-family=\"'B C'\"/></office:font-face-decls><office:body/><style:font-face style:name=\"Z\" svg:font-family=\"Z\"/></a>") ([], (import ost_t_r)):(["A", "B C"], (import ost_t_r))
-given ost_t_open("<a><style:font-face style:name=\"A\" svg:font-family=\"B\"/><style:font-face style:name=\"C\" svg:font-family=\"D\"/><office:body/></a>") ([], (import ost_t_r)):(["A", "B", "C", "D"], (import ost_t_r))
-given ost_t_open("<a/>") (["X", "Y"], (import ost_t_r)):(["X", "Y"], (import ost_t_r))
+given odt_named_reader_open("<a><office:font-face-decls><style:font-face style:name=\"A\" svg:font-family=\"'B C'\"/></office:font-face-decls><office:body/><style:font-face style:name=\"Z\" svg:font-family=\"Z\"/></a>") ([], (import odt_named_reader)):(["A", "B C"], (import odt_named_reader))
+given odt_named_reader_open("<a><style:font-face style:name=\"A\" svg:font-family=\"B\"/><style:font-face style:name=\"C\" svg:font-family=\"D\"/><office:body/></a>") ([], (import odt_named_reader)):(["A", "B", "C", "D"], (import odt_named_reader))
+given odt_named_reader_open("<a/>") (["X", "Y"], (import odt_named_reader)):(["X", "Y"], (import odt_named_reader))

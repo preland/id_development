@@ -1,21 +1,21 @@
 // Test check: the height of every paragraph of the test document, comma separated.
-lg_t_hs() {
-  Doc lgd = (import lp_t_d);
-  int[] lgxs = [];
-  int lgi = 0;
+layout_page_test_heights() {
+  Doc document = (import layout_paragraph_test_document);
+  int[] height_list = [];
+  int paragraph_index = 0;
 } chain () {
-  while(lgi < len(lgd.body.paras)) {
-    push(lgxs, lgd.body.paras[lgi].lay.h);
-    lgi = lgi + 1;
+  while(paragraph_index < len(document.body.paras)) {
+    push(height_list, document.body.paras[paragraph_index].lay.h);
+    paragraph_index = paragraph_index + 1;
   }
-  string lgz = dump_ints(lgxs);
-} return string lgz;
-given lp_t_new ():("-1,")
-given lp_t_new given lp_t_paras(2) ():("-1,-1,")
+  string result_text = document_dump_integers(height_list);
+} return string result_text;
+given layout_paragraph_test_new ():("-1,")
+given layout_paragraph_test_new given layout_paragraph_test_paragraphs(2) ():("-1,-1,")
 
 // Test check: 1 when paragraph 0 of the test document asks for a page break, from its paragraph row.
-lg_t_brkof() {
-  string lgb_t = "brkof " + (lg_t_prop((import quill_paragraph_break_before)));
-} return string lgb_t;
-given lp_t_new ():("brkof 0")
-given lp_t_new given lp_t_row(0, 8, 1) ():("brkof 1")
+layout_page_test_break_of() {
+  string break_text = "brkof " + (layout_page_test_property((import quill_paragraph_break_before)));
+} return string break_text;
+given layout_paragraph_test_new ():("brkof 0")
+given layout_paragraph_test_new given layout_paragraph_test_set_property(0, 8, 1) ():("brkof 1")

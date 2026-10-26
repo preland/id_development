@@ -1,31 +1,31 @@
 // An empty table of page layouts.
-ost_pg_new() {
-  string[] os_lnames = [];
-  int[][] os_lvals = [];
-  string[] os_lmast = [];
+odt_named_page_table_new() {
+  string[] odt_named_page_table_new_names = [];
+  int[][] odt_named_page_table_new_values = [];
+  string[] odt_named_page_table_new_masters = [];
 } chain () {
-  PgTab os_pg = PgTab(os_lnames, os_lvals, os_lmast);
-} return PgTab os_pg;
-():(PgTab([], [], []))
-given ost_t_pgone ():(PgTab([], [], []))
+  odt_named_page_layouts odt_named_page_table_new_table = odt_named_page_layouts(odt_named_page_table_new_names, odt_named_page_table_new_values, odt_named_page_table_new_masters);
+} return odt_named_page_layouts odt_named_page_table_new_table;
+():(odt_named_page_layouts([], [], []))
+given odt_named_page_table_fixture ():(odt_named_page_layouts([], [], []))
 
 // Reads the width, height and four margins of the style:page-layout-properties element the reader is at into a layout's ints; an attribute that is absent or unreadable leaves its int as it was.
-ost_pg_dims(int[] os_lpg, XmlR os_r) {
-  int os_ik = 0;
-  while(os_ik < len((import ost_gattr))) {
-    string os_sv = xml_reader_attr(os_r, (import ost_gattr)[os_ik]);
-    ost_pg_set(os_lpg, os_ik, os_sv);
-    os_ik = os_ik + 1;
+odt_named_page_dimensions(int[] odt_named_page_dimensions_layout, XmlR odt_named_page_dimensions_reader) {
+  int odt_named_page_dimensions_attribute = 0;
+  while(odt_named_page_dimensions_attribute < len((import ost_gattr))) {
+    string odt_named_page_dimensions_text = xml_reader_attr(odt_named_page_dimensions_reader, (import ost_gattr)[odt_named_page_dimensions_attribute]);
+    odt_named_page_dimension_set(odt_named_page_dimensions_layout, odt_named_page_dimensions_attribute, odt_named_page_dimensions_text);
+    odt_named_page_dimensions_attribute = odt_named_page_dimensions_attribute + 1;
   }
 } return void;
-given ost_t_open("<p fo:page-width=\"8.5in\" fo:page-height=\"11in\" fo:margin-left=\"2cm\"/>") given xml_reader_skip((import ost_t_r), 1) ([0, 0, 0, 1, 1, 1, 1], (import ost_t_r)):([12240, 15840, 0, 1, 1, 1, 1134], (import ost_t_r))
-given ost_t_open("<p fo:page-width=\"wide\" fo:margin-top=\"1in\"/>") given xml_reader_skip((import ost_t_r), 1) ([5, 6, 0, 1, 1, 1, 1], (import ost_t_r)):([5, 6, 0, 1440, 1, 1, 1], (import ost_t_r))
+given odt_named_reader_open("<p fo:page-width=\"8.5in\" fo:page-height=\"11in\" fo:margin-left=\"2cm\"/>") given xml_reader_skip((import odt_named_reader), 1) ([0, 0, 0, 1, 1, 1, 1], (import odt_named_reader)):([12240, 15840, 0, 1, 1, 1, 1134], (import odt_named_reader))
+given odt_named_reader_open("<p fo:page-width=\"wide\" fo:margin-top=\"1in\"/>") given xml_reader_skip((import odt_named_reader), 1) ([5, 6, 0, 1, 1, 1, 1], (import odt_named_reader)):([5, 6, 0, 1440, 1, 1, 1], (import odt_named_reader))
 
 // Sets one int of a layout from the text of its attribute: a length in twips, and nothing for "" or an unreadable value or the orientation slot (2).
-ost_pg_set(int[] os_lpg, int os_ik, string os_sv) {
-  int os_itw = ost_len(os_sv);
-  if(os_sv != "" && os_itw != (import ost_bad) && os_ik != 2) {
-    os_lpg[os_ik] = os_itw;
+odt_named_page_dimension_set(int[] odt_named_page_dimension_set_layout, int odt_named_page_dimension_set_attribute, string odt_named_page_dimension_set_text) {
+  int odt_named_page_dimension_set_twentieths = odt_named_length_parse(odt_named_page_dimension_set_text);
+  if(odt_named_page_dimension_set_text != "" && odt_named_page_dimension_set_twentieths != (import ost_bad) && odt_named_page_dimension_set_attribute != 2) {
+    odt_named_page_dimension_set_layout[odt_named_page_dimension_set_attribute] = odt_named_page_dimension_set_twentieths;
   }
 } return void;
 ([1, 2, 3, 4, 5, 6, 7], 0, "1in"):([1440, 2, 3, 4, 5, 6, 7], 0, "1in")

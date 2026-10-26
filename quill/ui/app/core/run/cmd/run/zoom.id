@@ -1,42 +1,42 @@
 // The zoom that makes the page fit the width of the page area, in percent: the page area's width over the sheet and a gap on each side, all at 100 percent. The least and the most the viewer allows are its business (vw_zoom).
-wa_fit(App waa) {
-  int wai_w = vw_px(lay_sheet(waa.doc, 0), 100);
-  int wai_g = vw_px((import quill_layout_sheet_gap), 100);
-  int wai_z = vw_box("canvas", 2) * 100 / (wai_w + 2 * wai_g);
-} return int wai_z;
-given wa_t_app ((import wa_app)):(45)
-given wa_t_app given sf_l_init(800, 600) given vw_fit ((import wa_app)):(93)
+app_zoom_fit(App app_fit_application) {
+  int app_fit_sheet_width = view_units_pixels(lay_sheet(app_fit_application.doc, 0), 100);
+  int app_fit_gap = view_units_pixels((import quill_layout_sheet_gap), 100);
+  int app_fit_zoom = view_box_field("canvas", 2) * 100 / (app_fit_sheet_width + 2 * app_fit_gap);
+} return int app_fit_zoom;
+given cli_test_boot_app ((import cli_application)):(45)
+given cli_test_boot_app given sf_l_init(800, 600) given view_chrome_fit ((import cli_application)):(93)
 
 // The zoom the command wai_cmd asks for when the zoom is wai_z now: a step in or out, 100, or fit to the width; any other command asks for the zoom it has.
-wa_scale(App waa, int wai_cmd, int wai_z) {
-  int wai_n = wai_z;
-  if(wai_cmd == (import cmd_zoom_in)) {
-    wai_n = wai_z + (import vw_zoom_step);
+app_zoom_target(App app_scale_application, int app_scale_command_code, int app_scale_zoom) {
+  int app_scale_result = app_scale_zoom;
+  if(app_scale_command_code == (import cmd_zoom_in)) {
+    app_scale_result = app_scale_zoom + (import vw_zoom_step);
   }
-  if(wai_cmd == (import cmd_zoom_out)) {
-    wai_n = wai_z - (import vw_zoom_step);
+  if(app_scale_command_code == (import cmd_zoom_out)) {
+    app_scale_result = app_scale_zoom - (import vw_zoom_step);
   }
-} chain (App waa, int wai_cmd, int wai_z) {
-  if(wai_cmd == (import cmd_zoom_100)) {
-    wai_n = 100;
+} chain (App app_scale_application, int app_scale_command_code, int app_scale_zoom) {
+  if(app_scale_command_code == (import cmd_zoom_100)) {
+    app_scale_result = 100;
   }
-  if(wai_cmd == (import cmd_zoom_fit)) {
-    wai_n = wa_fit(waa);
+  if(app_scale_command_code == (import cmd_zoom_fit)) {
+    app_scale_result = app_zoom_fit(app_scale_application);
   }
-} return int wai_n;
-given wa_t_app ((import wa_app), 601, 100):(110)
-given wa_t_app ((import wa_app), 604, 100):(45)
-given wa_t_app ((import wa_app), 602, 100):(90)
-given wa_t_app ((import wa_app), 603, 150):(100)
-given wa_t_app ((import wa_app), 301, 150):(150)
+} return int app_scale_result;
+given cli_test_boot_app ((import cli_application), 601, 100):(110)
+given cli_test_boot_app ((import cli_application), 604, 100):(45)
+given cli_test_boot_app ((import cli_application), 602, 100):(90)
+given cli_test_boot_app ((import cli_application), 603, 150):(100)
+given cli_test_boot_app ((import cli_application), 301, 150):(150)
 
 // The zoom commands: zoom in, zoom out, 100 percent and fit to the width set the viewer's zoom, which keeps the part of the document in view. Any other command is left alone.
-wa_zoom(App waa, int wai_cmd) {
-  int wai_z = (import vw_st)[(import vw_s_z)];
-  int wai_n = wa_scale(waa, wai_cmd, wai_z);
-  if(wai_n != wai_z) {
-    vw_zoom(waa.ui.view, wai_n, vw_box("canvas", 3));
+app_zoom_commands(App app_zoom_application, int app_zoom_command_code) {
+  int app_zoom_current = (import view_state)[(import vw_s_z)];
+  int app_zoom_wanted = app_zoom_target(app_zoom_application, app_zoom_command_code, app_zoom_current);
+  if(app_zoom_wanted != app_zoom_current) {
+    view_state_zoom(app_zoom_application.ui.view, app_zoom_wanted, view_box_field("canvas", 3));
   }
 } return void;
-given wa_t_app ((import wa_app), 604):() then vw_t_sts:("sts 0,0,45,1,")
-given wa_t_app ((import wa_app), 301):() then vw_t_sts:("sts 0,0,100,1,")
+given cli_test_boot_app ((import cli_application), 604):() then view_test_state_dump:("sts 0,0,45,1,")
+given cli_test_boot_app ((import cli_application), 301):() then view_test_state_dump:("sts 0,0,100,1,")

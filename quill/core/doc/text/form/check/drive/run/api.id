@@ -1,38 +1,38 @@
 // Runs steps random steps from seed on a new document, checking after each one, and returns the 1-based number of the first step after which a check failed, or 0. sx = [verify code, kinds seen, most paragraphs, most code points, most runs in one paragraph] is filled in.
-script_run(int seed, int steps, int[] sx) {
-  int[] rg = [seed];
-  Doc d = doc_new();
-  ext_add_links(d.ext, 2);
-} chain (int seed, int steps, int[] sx) {
-  Model mo = model_new(d);
-  int i = 0;
-  sx[0] = script_verify(d, mo);
-} chain (int seed, int steps, int[] sx) {
-  while(i < steps && sx[0] == 0) {
-    script_step(d, mo, rg, sx);
-    i = i + 1;
+script_run(int seed, int steps, int[] script_execute_statistics) {
+  int[] random_generator_seed = [seed];
+  Doc script_execute_document = doc_new();
+  document_extras_add_links(script_execute_document.ext, 2);
+} chain (int seed, int steps, int[] script_execute_statistics) {
+  Model script_execute_model = model_new(script_execute_document);
+  int script_execute_index = 0;
+  script_execute_statistics[0] = script_verify(script_execute_document, script_execute_model);
+} chain (int seed, int steps, int[] script_execute_statistics) {
+  while(script_execute_index < steps && script_execute_statistics[0] == 0) {
+    script_step(script_execute_document, script_execute_model, random_generator_seed, script_execute_statistics);
+    script_execute_index = script_execute_index + 1;
   }
-  int res = 0;
-  if(sx[0] != 0) {
-    res = i;
+  int script_execute_result = 0;
+  if(script_execute_statistics[0] != 0) {
+    script_execute_result = script_execute_index;
   }
-} return int res;
+} return int script_execute_result;
 (3, 40, [0, 0, 0, 0, 0]):(0)
 (4, 60, [0, 0, 0, 0, 0]):(0)
 
 // The randomised, seeded script of docs/QUILL.md 5.3 B1: steps primitive calls from seed, every one checked against the run invariants and against an independent model. 0 means all held, otherwise the 1-based step that broke one.
 doc_script(int seed, int steps) {
-  int[] sx = [0, 0, 0, 0, 0];
-  int res = script_run(seed, steps, sx);
-} return int res;
+  int[] script_result_statistics = [0, 0, 0, 0, 0];
+  int script_result_result = script_run(seed, steps, script_result_statistics);
+} return int script_result_result;
 (1, 2000):(0)
 (7, 2000):(0)
 
 // One number from a script run, to show what it reached: which 0 the verify code, 1 the kinds seen as a bit mask (all ten is 1023), 2 the most paragraphs, 3 the most code points, 4 the most runs in one paragraph.
 script_probe(int seed, int steps, int which) {
-  int[] sx = [0, 0, 0, 0, 0];
-  int res = script_run(seed, steps, sx);
-  int got = sx[which];
+  int[] script_probe_read_statistics = [0, 0, 0, 0, 0];
+  int script_probe_read_result = script_run(seed, steps, script_probe_read_statistics);
+  int got = script_probe_read_statistics[which];
 } return int got;
 (1, 2000, 1):(1023)
 (7, 2000, 1):(1023)

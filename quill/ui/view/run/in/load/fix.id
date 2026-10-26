@@ -1,13 +1,13 @@
 // Test check: how many pages the viewer's document has.
-vw_t_pages() {
-  int vwi_n = lay_page_count((import vw_v));
-} return int vwi_n;
-given lp_t_font given vw_t_op("/nonexistent/x.odt") ():(1)
-given vw_t_two given vw_t_op("/nonexistent/x.odt") ():(1)
+view_input_test_page_count() {
+  int view_input_test_pages_count = lay_page_count((import view_input_viewer_view));
+} return int view_input_test_pages_count;
+given layout_paragraph_test_font given view_input_test_open("/nonexistent/x.odt") ():(1)
+given view_test_two_pages given view_input_test_open("/nonexistent/x.odt") ():(1)
 
 // Test setup: the viewer opens the document at the path, whatever happens to it.
-vw_t_op(string vws_path) {
-  int vwi_code = vw_open(vws_path);
+view_input_test_open(string view_input_test_open_path) {
+  int view_input_test_open_code = view_input_document_open(view_input_test_open_path);
 } return void;
-given gui_font_init ("/nonexistent/x.odt"):() then vw_t_pages:(1)
-given gui_font_init (""):() then vw_t_pages:(1) then (import vw_msg)[0]:("ODT: the file could not be read; check that the path exists and that you may read it []") then calls vw_open:("")
+given gui_font_init ("/nonexistent/x.odt"):() then view_input_test_page_count:(1)
+given gui_font_init (""):() then view_input_test_page_count:(1) then (import view_input_message_list)[0]:("ODT: the file could not be read; check that the path exists and that you may read it []") then calls view_input_document_open:("")

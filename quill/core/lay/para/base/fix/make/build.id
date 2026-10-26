@@ -1,46 +1,46 @@
 // Test setup: a new document, an empty face cache and a view over them, exported as lp_t_d, lp_t_f and lp_t_v. No font is touched, so a case that needs only the document can stay independent of the machine.
-lp_t_new() {
-  Doc d = doc_new();
-  int[] hnd = [];
+layout_paragraph_test_new() {
+  Doc new_document = doc_new();
+  int[] new_handles = [];
   int[] keys = [];
 } chain () {
   int[] starts = [];
   int[] tops = [];
-  Face fa = Face(hnd, keys, 100);
+  Face new_face_cache = Face(new_handles, keys, 100);
 } chain () {
-  Pages pgs = Pages(starts, tops, 0);
-  View v = View(d, pgs, fa);
-  export Doc lp_t_d = d;
+  Pages new_pages = Pages(starts, tops, 0);
+  View new_view = View(new_document, new_pages, new_face_cache);
+  export Doc layout_paragraph_test_document = new_document;
 } chain () {
-  export Face lp_t_f = fa;
-  export View lp_t_v = v;
+  export Face layout_paragraph_test_face_cache = new_face_cache;
+  export View layout_paragraph_test_view = new_view;
 } return void;
-():() then lp_t_c0:([])
-():() then lp_t_h0:(-1)
+():() then layout_paragraph_test_first_code_points:([])
+():() then layout_paragraph_test_first_height:(-1)
 
 // Test setup: lp_t_new, then the font layer started and the face cache seeded with Liberation Sans Regular at 9, 16, 32 and 18 px (12 pt is 16 px, 24 pt is 32 px, a 12 pt superscript is 9 px and a 24 pt one is 18), so layout in a case never asks the machine for a font.
-lp_t_font() {
-  lp_t_new();
+layout_paragraph_test_font() {
+  layout_paragraph_test_new();
   gui_font_init();
-  Face fa = (import lp_t_f);
+  Face font_face_cache = (import layout_paragraph_test_face_cache);
 } chain () {
-  lp_t_seed(fa, 9);
-  lp_t_seed(fa, 16);
-  lp_t_seed(fa, 32);
+  layout_paragraph_test_seed(font_face_cache, 9);
+  layout_paragraph_test_seed(font_face_cache, 16);
+  layout_paragraph_test_seed(font_face_cache, 32);
 } chain () {
-  lp_t_seed(fa, 18);
-  export int lp_t_h9 = fa.hnd[0];
-  export int lp_t_h16 = fa.hnd[1];
+  layout_paragraph_test_seed(font_face_cache, 18);
+  export int layout_paragraph_test_handle_script = font_face_cache.hnd[0];
+  export int layout_paragraph_test_handle_normal = font_face_cache.hnd[1];
 } chain () {
-  export int lp_t_h32 = fa.hnd[2];
+  export int layout_paragraph_test_handle_large = font_face_cache.hnd[2];
 } return void;
-():() then len((import lp_t_f).hnd):(4) then calls lp_t_seed:[4]
-():() then (import lp_t_f).key[10]:(18) then (import lp_t_h32):(2) then calls gui_font_init:[1]
+():() then len((import layout_paragraph_test_face_cache).hnd):(4) then calls layout_paragraph_test_seed:[4]
+():() then (import layout_paragraph_test_face_cache).key[10]:(18) then (import layout_paragraph_test_handle_large):(2) then calls gui_font_init:[1]
 
 // Test setup: deletes code points lo..hi-1 of paragraph i of the test document, as a user's Delete does.
-lp_t_cut(int i, int lo, int hi) {
-  Doc d = (import lp_t_d);
-  text_delete(d.body.paras[i].txt, lo, hi);
+layout_paragraph_test_delete(int delete_paragraph_index, int delete_start, int hi) {
+  Doc delete_document = (import layout_paragraph_test_document);
+  text_delete(delete_document.body.paras[delete_paragraph_index].txt, delete_start, hi);
 } return void;
-given lp_t_new given lp_t_ins(0, "BBBB EEEE") (0, 0, 5):(0, 0, 5) then lp_t_c0:([69, 69, 69, 69])
-given lp_t_new given lp_t_ins(0, "BB") (0, 0, 2):(0, 0, 2) then lp_t_c0:([])
+given layout_paragraph_test_new given layout_paragraph_test_insert(0, "BBBB EEEE") (0, 0, 5):(0, 0, 5) then layout_paragraph_test_first_code_points:([69, 69, 69, 69])
+given layout_paragraph_test_new given layout_paragraph_test_insert(0, "BB") (0, 0, 2):(0, 0, 2) then layout_paragraph_test_first_code_points:([])

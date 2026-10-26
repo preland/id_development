@@ -1,23 +1,23 @@
 // Seals the open step at index at: it records the selection to restore on redo, and a step that holds no operation is dropped.
 hist_seal(Ctl ctl, int at) {
-  Txn tx = ctl.hist.undo[at];
-  tx.after = sel_copy(ctl.sel);
+  Txn transaction = ctl.hist.undo[at];
+  transaction.after = editor_selection_copy(ctl.sel);
   ctl.hist.open = -1;
 } chain (Ctl ctl, int at) {
-  if(len(tx.ops) == 0) {
+  if(len(transaction.ops) == 0) {
     pop(ctl.hist.undo);
   }
 } return void;
-given fx_blank given txn_begin((import fxc)) given hist_note((import fxc), Op(6, [0], [1])) ((import fxc), 0):((import fxc), 0) then fx_hist:("u1 r0 o-1 n1")
-given fx_blank given txn_begin((import fxc)) ((import fxc), 0):((import fxc), 0) then fx_hist:("u0 r0 o-1 n0")
+given editor_fixture_blank given editor_transaction_begin((import fixture_control)) given hist_note((import fixture_control), Op(6, [0], [1])) ((import fixture_control), 0):((import fixture_control), 0) then editor_fixture_history:("u1 r0 o-1 n1")
+given editor_fixture_blank given editor_transaction_begin((import fixture_control)) ((import fixture_control), 0):((import fixture_control), 0) then editor_fixture_history:("u0 r0 o-1 n0")
 
 // Closes the open undo step, if any; typing after this starts a new one.
-txn_end(Ctl ctl) {
+editor_transaction_end(Ctl ctl) {
   int at = ctl.hist.open;
   if(at >= 0) {
     hist_seal(ctl, at);
   }
 } return void;
-given fx_blank given txn_begin((import fxc)) given hist_note((import fxc), Op(6, [0], [1])) ((import fxc)):((import fxc)) then fx_hist:("u1 r0 o-1 n1")
-given fx_blank ((import fxc)):((import fxc)) then fx_hist:("u0 r0 o-1 n0")
-given fx_blank given txn_begin((import fxc)) given hist_note((import fxc), Op(6, [0], [1])) given fx_at(0, 0, 1, 2) ((import fxc)):((import fxc)) then fx_txsel:("0:0-0:0 0:0-1:2")
+given editor_fixture_blank given editor_transaction_begin((import fixture_control)) given hist_note((import fixture_control), Op(6, [0], [1])) ((import fixture_control)):((import fixture_control)) then editor_fixture_history:("u1 r0 o-1 n1")
+given editor_fixture_blank ((import fixture_control)):((import fixture_control)) then editor_fixture_history:("u0 r0 o-1 n0")
+given editor_fixture_blank given editor_transaction_begin((import fixture_control)) given hist_note((import fixture_control), Op(6, [0], [1])) given editor_fixture_selection_at(0, 0, 1, 2) ((import fixture_control)):((import fixture_control)) then editor_fixture_transaction_selections:("0:0-0:0 0:0-1:2")

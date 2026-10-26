@@ -1,37 +1,37 @@
 // Test fixture: puts the fixture selection where row k of the command table (ed_t_cmds in conf.id) says, and for a paste does what comes before it (fx_pre_copy).
-fx_arm(Doc d, Ctl ctl, int k) {
+editor_fixture_arm(Doc d, Ctl ctl, int k) {
   int[] row = list_slice((import ed_t_cmds), k * (import ed_t_cstride), (import ed_t_cstride));
-  Sel sel = sel_make(row[1], row[2], row[3], row[4]);
-  sel_load(ctl.sel, sel);
+  Sel sel = editor_selection_make(row[1], row[2], row[3], row[4]);
+  editor_selection_load(ctl.sel, sel);
 } chain (Doc d, Ctl ctl, int k) {
   if(row[0] == 20) {
-    fx_pre_copy(d, ctl, row);
+    editor_fixture_prepare_copy(d, ctl, row);
   }
 } return void;
-given fx_rich ((import fxd), (import fxc), 1):((import fxd), (import fxc), 1) then fx_sel:("0:1-0:3")
-given fx_rich ((import fxd), (import fxc), 10):((import fxd), (import fxc), 10) then fx_sel:("0:2-2:1")
-given fx_rich ((import fxd), (import fxc), 21):((import fxd), (import fxc), 21) then fx_sel:("2:1-2:1")
+given editor_fixture_rich ((import fixture_document), (import fixture_control), 1):((import fixture_document), (import fixture_control), 1) then editor_fixture_selection:("0:1-0:3")
+given editor_fixture_rich ((import fixture_document), (import fixture_control), 10):((import fixture_document), (import fixture_control), 10) then editor_fixture_selection:("0:2-2:1")
+given editor_fixture_rich ((import fixture_document), (import fixture_control), 21):((import fixture_document), (import fixture_control), 21) then editor_fixture_selection:("2:1-2:1")
 
 // Test fixture: runs row k of the command table on the document, with the selection it arms (see fx_arm).
-fx_cmd(Doc d, Ctl ctl, int k) {
+editor_fixture_command(Doc d, Ctl ctl, int k) {
   int[] row = list_slice((import ed_t_cmds), k * (import ed_t_cstride), (import ed_t_cstride));
   if(row[0] < 10) {
-    fx_cmd_text(d, ctl, row);
+    editor_fixture_command_text(d, ctl, row);
   }
   if(row[0] >= 10 && row[0] < 20) {
-    fx_cmd_fmt(d, ctl, row);
+    editor_fixture_command_format(d, ctl, row);
   }
 } chain (Doc d, Ctl ctl, int k) {
   if(row[0] >= 20) {
-    fx_cmd_more(d, ctl, row);
+    editor_fixture_command_more(d, ctl, row);
   }
 } return void;
-given fx_rich given fx_arm((import fxd), (import fxc), 2) ((import fxd), (import fxc), 2):((import fxd), (import fxc), 2) then fx_show:("ab|*cd*e|fgh|ij*k*|**")
-given fx_rich given fx_arm((import fxd), (import fxc), 14) ((import fxd), (import fxc), 14):((import fxd), (import fxc), 14) then fx_show:("a[9:b][10:cd]e|fgh|ij*k*|**")
+given editor_fixture_rich given editor_fixture_arm((import fixture_document), (import fixture_control), 2) ((import fixture_document), (import fixture_control), 2):((import fixture_document), (import fixture_control), 2) then editor_fixture_show:("ab|*cd*e|fgh|ij*k*|**")
+given editor_fixture_rich given editor_fixture_arm((import fixture_document), (import fixture_control), 14) ((import fixture_document), (import fixture_control), 14):((import fixture_document), (import fixture_control), 14) then editor_fixture_show:("a[9:b][10:cd]e|fgh|ij*k*|**")
 
 // Test fixture: the fixture document and selection as one string, which an edit and its undo must leave as they were.
-fx_dumpsel(Doc d) {
-  string text = doc_dump(d) + "#" + fx_sel();
+editor_fixture_dump_selection(Doc d) {
+  string text = doc_dump(d) + "#" + editor_fixture_selection();
 } return string text;
-given fx_rich ((import fxd)):("G 11906,16838,0, 1440,1440,1440,1440, 0,0,0,\nP0 97,98,99,100,101, 2:0:-1,2:8:-1,1:0:-1,\nP0 102,103,104, 3:0:-1,\nP0 105,106,107, 2:0:-1,1:8:-1,\nP0  0:8:-1,#0:0-0:0")
-given fx_setup("") ((import fxd)):("G 11906,16838,0, 1440,1440,1440,1440, 0,0,0,\nP0  0:0:-1,#0:0-0:0")
+given editor_fixture_rich ((import fixture_document)):("G 11906,16838,0, 1440,1440,1440,1440, 0,0,0,\nP0 97,98,99,100,101, 2:0:-1,2:8:-1,1:0:-1,\nP0 102,103,104, 3:0:-1,\nP0 105,106,107, 2:0:-1,1:8:-1,\nP0  0:8:-1,#0:0-0:0")
+given editor_fixture_setup("") ((import fixture_document)):("G 11906,16838,0, 1440,1440,1440,1440, 0,0,0,\nP0  0:0:-1,#0:0-0:0")

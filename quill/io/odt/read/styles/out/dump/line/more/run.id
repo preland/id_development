@@ -1,35 +1,35 @@
 // What a dump prints of a run's properties, resolved through its character style and its paragraph's style: the flags, size, colour, highlight, link and font, as the fields of a run record without its text. os_ipstyle is the index of the paragraph's style.
-ndump_sig(Doc os_d, int os_ipstyle, Run os_ru) {
-  int os_ic = os_ru.cprop;
-  string os_sbits = ndump_bits(style_eff_c(os_d.fmt, os_ipstyle, os_ic, (import quill_character_on)));
-  string os_ssize = "size=" + ndump_num(style_eff_c(os_d.fmt, os_ipstyle, os_ic, (import quill_character_size)));
-} chain (Doc os_d, int os_ipstyle, Run os_ru) {
-  string os_scol = "color=" + ndump_color(style_eff_c(os_d.fmt, os_ipstyle, os_ic, (import quill_character_color)));
-  string os_shl = "hl=" + ndump_color(style_eff_c(os_d.fmt, os_ipstyle, os_ic, (import quill_character_highlight)));
-  string os_slink = "link=" + ndump_link(os_d, os_ru);
-} chain (Doc os_d, int os_ipstyle, Run os_ru) {
-  string os_sfont = "font=" + ndump_font(os_d, os_ipstyle, os_ic);
-  string os_sout = os_sbits + " " + os_ssize + " " + os_scol + " " + os_shl + " " + os_slink + " " + os_sfont;
-} return string os_sout;
+odt_style_dump_run_signature(Doc odt_style_dump_run_signature_document, int odt_style_dump_run_signature_paragraph_style, Run odt_style_dump_run_signature_run) {
+  int odt_style_dump_run_signature_character_property = odt_style_dump_run_signature_run.cprop;
+  string odt_style_dump_run_signature_flags = odt_style_dump_flag_bits(document_style_effective_character(odt_style_dump_run_signature_document.fmt, odt_style_dump_run_signature_paragraph_style, odt_style_dump_run_signature_character_property, (import quill_character_on)));
+  string odt_style_dump_run_signature_size = "size=" + odt_style_dump_number(document_style_effective_character(odt_style_dump_run_signature_document.fmt, odt_style_dump_run_signature_paragraph_style, odt_style_dump_run_signature_character_property, (import quill_character_size)));
+} chain (Doc odt_style_dump_run_signature_document, int odt_style_dump_run_signature_paragraph_style, Run odt_style_dump_run_signature_run) {
+  string odt_style_dump_run_signature_color = "color=" + odt_style_dump_color(document_style_effective_character(odt_style_dump_run_signature_document.fmt, odt_style_dump_run_signature_paragraph_style, odt_style_dump_run_signature_character_property, (import quill_character_color)));
+  string odt_style_dump_run_signature_highlight = "hl=" + odt_style_dump_color(document_style_effective_character(odt_style_dump_run_signature_document.fmt, odt_style_dump_run_signature_paragraph_style, odt_style_dump_run_signature_character_property, (import quill_character_highlight)));
+  string odt_style_dump_run_signature_link = "link=" + odt_style_dump_link(odt_style_dump_run_signature_document, odt_style_dump_run_signature_run);
+} chain (Doc odt_style_dump_run_signature_document, int odt_style_dump_run_signature_paragraph_style, Run odt_style_dump_run_signature_run) {
+  string odt_style_dump_run_signature_font = "font=" + odt_style_dump_font(odt_style_dump_run_signature_document, odt_style_dump_run_signature_paragraph_style, odt_style_dump_run_signature_character_property);
+  string odt_style_dump_run_signature_text = odt_style_dump_run_signature_flags + " " + odt_style_dump_run_signature_size + " " + odt_style_dump_run_signature_color + " " + odt_style_dump_run_signature_highlight + " " + odt_style_dump_run_signature_link + " " + odt_style_dump_run_signature_font;
+} return string odt_style_dump_run_signature_text;
 (Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, 24, 16711680, 65280, 5, 5], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], ["u"], [])), 0, Run(3, 1, 0)):("b=1 i=0 u=1 s=0 sup=0 sub=0 size=24 color=#ff0000 hl=#00ff00 link=\"u\" font=\"F\"")
 (Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, Run(1, 0, -1)):("b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-")
 
 
 // Adds one run to a paragraph's merged runs: the signature list (each merged run's printed properties) and the list of where each merged run ends in the paragraph's text. A run that prints the same as the last merged run extends it, any other starts a new one; an empty run adds nothing.
-ndump_take(Doc os_d, int os_ipstyle, Run os_ru, string[] os_lsig, int[] os_lends) {
-  string os_ssig = ndump_sig(os_d, os_ipstyle, os_ru);
-  int os_ilast = len(os_lsig) - 1;
-  int os_iprev = 0;
-} chain (Doc os_d, int os_ipstyle, Run os_ru, string[] os_lsig, int[] os_lends) {
-  if(os_ilast >= 0) {
-    os_iprev = os_lends[os_ilast];
+odt_style_dump_run_take(Doc odt_style_dump_run_take_document, int odt_style_dump_run_take_paragraph_style, Run odt_style_dump_run_take_run, string[] odt_style_dump_run_take_signatures, int[] odt_style_dump_run_take_ends) {
+  string odt_style_dump_run_take_signature = odt_style_dump_run_signature(odt_style_dump_run_take_document, odt_style_dump_run_take_paragraph_style, odt_style_dump_run_take_run);
+  int odt_style_dump_run_take_last = len(odt_style_dump_run_take_signatures) - 1;
+  int odt_style_dump_run_take_previous_end = 0;
+} chain (Doc odt_style_dump_run_take_document, int odt_style_dump_run_take_paragraph_style, Run odt_style_dump_run_take_run, string[] odt_style_dump_run_take_signatures, int[] odt_style_dump_run_take_ends) {
+  if(odt_style_dump_run_take_last >= 0) {
+    odt_style_dump_run_take_previous_end = odt_style_dump_run_take_ends[odt_style_dump_run_take_last];
   }
-  if(os_ru.len > 0 && os_ilast >= 0 && os_lsig[os_ilast] == os_ssig) {
-    os_lends[os_ilast] = os_iprev + os_ru.len;
+  if(odt_style_dump_run_take_run.len > 0 && odt_style_dump_run_take_last >= 0 && odt_style_dump_run_take_signatures[odt_style_dump_run_take_last] == odt_style_dump_run_take_signature) {
+    odt_style_dump_run_take_ends[odt_style_dump_run_take_last] = odt_style_dump_run_take_previous_end + odt_style_dump_run_take_run.len;
   }
-  if(os_ru.len > 0 && (os_ilast < 0 || os_lsig[os_ilast] != os_ssig)) {
-    push(os_lsig, os_ssig);
-    push(os_lends, os_iprev + os_ru.len);
+  if(odt_style_dump_run_take_run.len > 0 && (odt_style_dump_run_take_last < 0 || odt_style_dump_run_take_signatures[odt_style_dump_run_take_last] != odt_style_dump_run_take_signature)) {
+    push(odt_style_dump_run_take_signatures, odt_style_dump_run_take_signature);
+    push(odt_style_dump_run_take_ends, odt_style_dump_run_take_previous_end + odt_style_dump_run_take_run.len);
   }
 } return void;
 (Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, Run(2, 0, -1), [], []):(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, Run(2, 0, -1), ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-"], [2])
@@ -38,16 +38,16 @@ ndump_take(Doc os_d, int os_ipstyle, Run os_ru, string[] os_lsig, int[] os_lends
 (Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, Run(0, 1, -1), ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-"], [2]):(Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, -1, 24, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, Run(0, 1, -1), ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-"], [2])
 
 // The run records of a paragraph, each on a line of its own after a line feed: "run" and the merged run's printed properties, then its text in quotes; os_lends says where each merged run ends in os_lcps.
-ndump_lines(int[] os_lcps, string[] os_lsig, int[] os_lends) {
-  string os_sout = "";
-  int os_istart = 0;
+odt_style_dump_run_lines(int[] odt_style_dump_run_lines_code_points, string[] odt_style_dump_run_lines_signatures, int[] odt_style_dump_run_lines_ends) {
+  string odt_style_dump_run_lines_text = "";
+  int odt_style_dump_run_lines_start = 0;
   int i = 0;
-} chain (int[] os_lcps, string[] os_lsig, int[] os_lends) {
-  while(i < len(os_lsig)) {
-    os_sout = os_sout + "\nrun " + os_lsig[i] + " text=" + string_quote(ndump_str(os_lcps, os_istart, os_lends[i]));
-    os_istart = os_lends[i];
+} chain (int[] odt_style_dump_run_lines_code_points, string[] odt_style_dump_run_lines_signatures, int[] odt_style_dump_run_lines_ends) {
+  while(i < len(odt_style_dump_run_lines_signatures)) {
+    odt_style_dump_run_lines_text = odt_style_dump_run_lines_text + "\nrun " + odt_style_dump_run_lines_signatures[i] + " text=" + string_quote(odt_style_dump_code_points_string(odt_style_dump_run_lines_code_points, odt_style_dump_run_lines_start, odt_style_dump_run_lines_ends[i]));
+    odt_style_dump_run_lines_start = odt_style_dump_run_lines_ends[i];
     i = i + 1;
   }
-} return string os_sout;
+} return string odt_style_dump_run_lines_text;
 ([104, 105, 33], ["b=1", "b=0"], [2, 3]):("\nrun b=1 text=\"hi\"\nrun b=0 text=\"!\"")
 ([], [], []):("")

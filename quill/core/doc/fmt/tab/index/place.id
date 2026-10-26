@@ -1,39 +1,39 @@
 // Puts row id into the first empty slot of its probe; the table keeps half its slots empty (tab_add), so the probe ends.
-tab_slot(Tab tb, int id) {
-  int[] row = tab_row(tb, id);
-  int k = tab_home(tb, row);
-  int[] sls = tb.slots;
-} chain (Tab tb, int id) {
-  while(sls[k] != 0) {
-    k = (k + 1) & (len(sls) - 1);
+tab_slot(Tab slot_place_table, int slot_place_row_identifier) {
+  int[] row = tab_row(slot_place_table, slot_place_row_identifier);
+  int slot_place_slot_index = tab_home(slot_place_table, row);
+  int[] slot_list = slot_place_table.slots;
+} chain (Tab slot_place_table, int slot_place_row_identifier) {
+  while(slot_list[slot_place_slot_index] != 0) {
+    slot_place_slot_index = (slot_place_slot_index + 1) & (len(slot_list) - 1);
   }
-  sls[k] = id + 1;
+  slot_list[slot_place_slot_index] = slot_place_row_identifier + 1;
 } return void;
 (Tab([5, 6], 2, [0, 0, 0, 0, 0, 0, 0, 0]), 0):(Tab([5, 6], 2, [0, 0, 1, 0, 0, 0, 0, 0]), 0)
 (Tab([5, 6, 7, 8], 2, [0, 0, 1, 0, 0, 0, 0, 0]), 1):(Tab([5, 6, 7, 8], 2, [0, 0, 1, 2, 0, 0, 0, 0]), 1)
 
-tab_grow(Tab tb) {
-  int[] sls = [];
-  list_fill(sls, len(tb.slots) * 2, 0);
-  tb.slots = sls;
-} chain (Tab tb) {
-  int n = len(tb.rows) / tb.width;
-  int i = 0;
-  while(i < n) {
-    tab_slot(tb, i);
-    i = i + 1;
+tab_grow(Tab grow_slots_table) {
+  int[] slot_list = [];
+  list_fill(slot_list, len(grow_slots_table.slots) * 2, 0);
+  grow_slots_table.slots = slot_list;
+} chain (Tab grow_slots_table) {
+  int grow_slots_row_count = len(grow_slots_table.rows) / grow_slots_table.width;
+  int grow_slots_index = 0;
+  while(grow_slots_index < grow_slots_row_count) {
+    tab_slot(grow_slots_table, grow_slots_index);
+    grow_slots_index = grow_slots_index + 1;
   }
 } return void;
 (Tab([5, 13, 5, 6], 2, [0, 1, 2, 0, 0, 0, 0, 0])):(Tab([5, 13, 5, 6], 2, [0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]))
 (Tab([], 2, [0, 0, 0, 0])):(Tab([], 2, [0, 0, 0, 0, 0, 0, 0, 0]))
 
-tab_add(Tab tb, int[] row) {
-  int id = len(tb.rows) / tb.width;
-  list_extend(tb.rows, row);
-  tab_slot(tb, id);
-} chain (Tab tb, int[] row) {
-  if(len(tb.rows) / tb.width * 2 > len(tb.slots)) {
-    tab_grow(tb);
+tab_add(Tab row_add_table, int[] row) {
+  int row_add_row_identifier = len(row_add_table.rows) / row_add_table.width;
+  list_extend(row_add_table.rows, row);
+  tab_slot(row_add_table, row_add_row_identifier);
+} chain (Tab row_add_table, int[] row) {
+  if(len(row_add_table.rows) / row_add_table.width * 2 > len(row_add_table.slots)) {
+    tab_grow(row_add_table);
   }
 } return void;
 (Tab([], 2, [0, 0, 0, 0, 0, 0, 0, 0]), [5, 6]):(Tab([5, 6], 2, [0, 0, 1, 0, 0, 0, 0, 0]), [5, 6])

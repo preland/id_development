@@ -1,35 +1,35 @@
 // The INS_TEXT that undoes a delete of cps at para, off: the code points followed by the runs that covered them, so the runs come back exactly.
-ed_inv_ins(int para, int off, int[] cps, int[] runs) {
-  int nrun = len(runs) / 3;
+editor_inverse_insert(int para, int off, int[] cps, int[] runs) {
+  int run_count = len(runs) / 3;
   int cprop = 0;
   int[] dat = list_copy(cps);
 } chain (int para, int off, int[] cps, int[] runs) {
-  if(nrun > 0) {
+  if(run_count > 0) {
     cprop = runs[1];
   }
   list_extend(dat, runs);
-  int[] loc = [para, off, cprop, nrun];
+  int[] location = [para, off, cprop, run_count];
 } chain (int para, int off, int[] cps, int[] runs) {
-  Op eo = Op((import ed_k_ins), loc, dat);
-} return Op eo;
+  Op edit_operation = Op((import ed_k_ins), location, dat);
+} return Op edit_operation;
 (1, 2, [7, 8], [2, 5, -1]):(Op(1, [1, 2, 5, 1], [7, 8, 2, 5, -1]))
 (0, 0, [], []):(Op(1, [0, 0, 0, 0], []))
 
 // DEL_TEXT, at = [para, off, count, keep cprop, keep link]: removes count code points; when that empties the paragraph and keep cprop is not -1, the empty run gets those properties. The inverse is an INS_TEXT that brings back the code points and their runs.
-ap_del(Doc d, Op eo) {
-  Para p = d.body.paras[eo.at[0]];
-  int lo = eo.at[1];
-  int hi = lo + eo.at[2];
-} chain (Doc d, Op eo) {
+editor_apply_delete(Doc d, Op edit_operation) {
+  Para p = d.body.paras[edit_operation.at[0]];
+  int lo = edit_operation.at[1];
+  int hi = lo + edit_operation.at[2];
+} chain (Doc d, Op edit_operation) {
   int[] cps = list_slice(p.txt.cps, lo, hi - lo);
   int[] runs = runs_span(p.txt, lo, hi);
   text_delete(p.txt, lo, hi);
-} chain (Doc d, Op eo) {
-  empty_fix(p.txt, eo.at[3], eo.at[4]);
+} chain (Doc d, Op edit_operation) {
+  empty_fix(p.txt, edit_operation.at[3], edit_operation.at[4]);
   para_stale(p);
-  Op inv = ed_inv_ins(eo.at[0], lo, cps, runs);
-} return Op inv;
-given fx_setup("abc") ((import fxd), Op(2, [0, 1, 1, -1, -1], [])):(Op(1, [0, 1, 0, 1], [98, 1, 0, -1])) then fx_show:("ac")
-given fx_setup("a*bc*d") ((import fxd), Op(2, [0, 1, 2, -1, -1], [])):(Op(1, [0, 1, 8, 1], [98, 99, 2, 8, -1])) then fx_show:("ad")
-given fx_setup("*ab*") ((import fxd), Op(2, [0, 0, 2, -1, -1], [])):(Op(1, [0, 0, 8, 1], [97, 98, 2, 8, -1])) then fx_show:("**")
-given fx_setup("*ab*") ((import fxd), Op(2, [0, 0, 2, 0, -1], [])):(Op(1, [0, 0, 8, 1], [97, 98, 2, 8, -1])) then fx_show:("")
+  Op inverse = editor_inverse_insert(edit_operation.at[0], lo, cps, runs);
+} return Op inverse;
+given editor_fixture_setup("abc") ((import fixture_document), Op(2, [0, 1, 1, -1, -1], [])):(Op(1, [0, 1, 0, 1], [98, 1, 0, -1])) then editor_fixture_show:("ac")
+given editor_fixture_setup("a*bc*d") ((import fixture_document), Op(2, [0, 1, 2, -1, -1], [])):(Op(1, [0, 1, 8, 1], [98, 99, 2, 8, -1])) then editor_fixture_show:("ad")
+given editor_fixture_setup("*ab*") ((import fixture_document), Op(2, [0, 0, 2, -1, -1], [])):(Op(1, [0, 0, 8, 1], [97, 98, 2, 8, -1])) then editor_fixture_show:("**")
+given editor_fixture_setup("*ab*") ((import fixture_document), Op(2, [0, 0, 2, 0, -1], [])):(Op(1, [0, 0, 8, 1], [97, 98, 2, 8, -1])) then editor_fixture_show:("")

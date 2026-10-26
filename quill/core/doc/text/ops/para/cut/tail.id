@@ -1,12 +1,12 @@
 // Moves the runs from index from on out of src and onto the end of dst.
-rs_move(Run[] src, int begin, Run[] dst) {
-  int i = begin;
-  while(i < len(src)) {
-    push(dst, src[i]);
-    i = i + 1;
+document_runs_move(Run[] runs_relocate_source, int begin, Run[] runs_relocate_destination) {
+  int runs_relocate_index = begin;
+  while(runs_relocate_index < len(runs_relocate_source)) {
+    push(runs_relocate_destination, runs_relocate_source[runs_relocate_index]);
+    runs_relocate_index = runs_relocate_index + 1;
   }
-  while(len(src) > begin) {
-    pop(src);
+  while(len(runs_relocate_source) > begin) {
+    pop(runs_relocate_source);
   }
 } return void;
 ([Run(1, 0, -1), Run(2, 5, -1), Run(3, 6, -1)], 1, [Run(9, 9, 9)]):([Run(1, 0, -1)], 1, [Run(9, 9, 9), Run(2, 5, -1), Run(3, 6, -1)])
@@ -14,37 +14,37 @@ rs_move(Run[] src, int begin, Run[] dst) {
 ([Run(1, 0, -1)], 1, []):([Run(1, 0, -1)], 1, [])
 
 // Cuts t at off: t keeps the code points before it and the new Text returned holds the rest, with the runs moved over; each half that would be empty keeps one empty run carrying the properties of the text next to the cut.
-text_tail(Text t, int off) {
-  int first = t.runs[0].cprop;
-  int last = t.runs[len(t.runs) - 1].cprop;
-  int k = run_cut(t, off);
-} chain (Text t, int off) {
-  Run[] tr = [];
-  rs_move(t.runs, k, tr);
-  rs_fill(t.runs, first);
-} chain (Text t, int off) {
-  rs_fill(tr, last);
-  int[] rest = list_slice(t.cps, off, len(t.cps) - off);
+text_tail(Text tail_cut_text, int off) {
+  int first = tail_cut_text.runs[0].cprop;
+  int last = tail_cut_text.runs[len(tail_cut_text.runs) - 1].cprop;
+  int tail_cut_run_index = run_cut(tail_cut_text, off);
+} chain (Text tail_cut_text, int off) {
+  Run[] tail_cut_tail_runs = [];
+  document_runs_move(tail_cut_text.runs, tail_cut_run_index, tail_cut_tail_runs);
+  document_runs_fill(tail_cut_text.runs, first);
+} chain (Text tail_cut_text, int off) {
+  document_runs_fill(tail_cut_tail_runs, last);
+  int[] rest = list_slice(tail_cut_text.cps, off, len(tail_cut_text.cps) - off);
   int[] none = [];
-} chain (Text t, int off) {
-  list_splice(t.cps, off, len(t.cps), none);
-  Text nt = Text(rest, tr, 0);
-  t.rev = t.rev + 1;
+} chain (Text tail_cut_text, int off) {
+  list_splice(tail_cut_text.cps, off, len(tail_cut_text.cps), none);
+  Text nt = Text(rest, tail_cut_tail_runs, 0);
+  tail_cut_text.rev = tail_cut_text.rev + 1;
 } return Text nt;
 (Text([1, 2, 3, 4], [Run(2, 0, -1), Run(2, 5, -1)], 7), 3):(Text([4], [Run(1, 5, -1)], 0))
 (Text([1, 2], [Run(2, 5, -1)], 0), 0):(Text([1, 2], [Run(2, 5, -1)], 0))
 (Text([1, 2], [Run(2, 5, -1)], 0), 2):(Text([], [Run(0, 5, -1)], 0))
 (Text([], [Run(0, 4, -1)], 0), 0):(Text([], [Run(0, 4, -1)], 0))
-(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 0), 0):(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 0)) then calls rs_fill:([Run(0, 0, -1)], 0)
-(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 0), 2):(Text([], [Run(0, 5, -1)], 0)) then calls rs_fill:([Run(0, 5, -1)], 5)
+(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 0), 0):(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 0)) then calls document_runs_fill:([Run(0, 0, -1)], 0)
+(Text([1, 2], [Run(1, 0, -1), Run(1, 5, -1)], 0), 2):(Text([], [Run(0, 5, -1)], 0)) then calls document_runs_fill:([Run(0, 5, -1)], 5)
 
 // A paragraph of the given text and paragraph row whose layout is stale (h is -1).
-para_make(Text t, int pprop) {
+para_make(Text paragraph_make_text, int pprop) {
   int[] lines = [];
   int[] pen = [];
-  Lay ly = Lay(lines, pen, -1);
-} chain (Text t, int pprop) {
-  Para p = Para(t, ly, pprop);
-} return Para p;
+  Lay paragraph_layout = Lay(lines, pen, -1);
+} chain (Text paragraph_make_text, int pprop) {
+  Para paragraph_make_paragraph = Para(paragraph_make_text, paragraph_layout, pprop);
+} return Para paragraph_make_paragraph;
 (Text([1], [Run(1, 0, -1)], 0), 3):(Para(Text([1], [Run(1, 0, -1)], 0), Lay([], [], -1), 3))
 (Text([], [Run(0, 4, -1)], 2), 0):(Para(Text([], [Run(0, 4, -1)], 2), Lay([], [], -1), 0))

@@ -1,10 +1,10 @@
 // Appends copies of the runs in src to dst; the copies are separate structs, so changing one never changes the other.
-rs_copy(Run[] dst, Run[] src) {
-  int i = 0;
-  while(i < len(src)) {
-    Run nr = Run(src[i].len, src[i].cprop, src[i].link);
-    push(dst, nr);
-    i = i + 1;
+document_runs_copy(Run[] runs_duplicate_destination, Run[] runs_duplicate_source) {
+  int runs_duplicate_index = 0;
+  while(runs_duplicate_index < len(runs_duplicate_source)) {
+    Run runs_duplicate_new_run = Run(runs_duplicate_source[runs_duplicate_index].len, runs_duplicate_source[runs_duplicate_index].cprop, runs_duplicate_source[runs_duplicate_index].link);
+    push(runs_duplicate_destination, runs_duplicate_new_run);
+    runs_duplicate_index = runs_duplicate_index + 1;
   }
 } return void;
 ([], [Run(1, 2, 3), Run(4, 5, 6)]):([Run(1, 2, 3), Run(4, 5, 6)], [Run(1, 2, 3), Run(4, 5, 6)])
@@ -12,12 +12,12 @@ rs_copy(Run[] dst, Run[] src) {
 ([Run(9, 9, 9)], []):([Run(9, 9, 9)], [])
 
 // Appends the text of u to t. An empty t gives up its empty run, so the result takes u's properties; an empty u adds nothing.
-text_append(Text t, Text u) {
-  list_extend(t.cps, u.cps);
-  rs_copy(t.runs, u.runs);
-  text_merge(t);
-} chain (Text t, Text u) {
-  t.rev = t.rev + 1;
+text_append(Text text_join_text, Text text_join_other_text) {
+  list_extend(text_join_text.cps, text_join_other_text.cps);
+  document_runs_copy(text_join_text.runs, text_join_other_text.runs);
+  text_merge(text_join_text);
+} chain (Text text_join_text, Text text_join_other_text) {
+  text_join_text.rev = text_join_text.rev + 1;
 } return void;
 (Text([1], [Run(1, 0, -1)], 0), Text([2, 3], [Run(2, 5, -1)], 0)):(Text([1, 2, 3], [Run(1, 0, -1), Run(2, 5, -1)], 1), Text([2, 3], [Run(2, 5, -1)], 0))
 (Text([], [Run(0, 9, -1)], 0), Text([2], [Run(1, 5, -1)], 0)):(Text([2], [Run(1, 5, -1)], 1), Text([2], [Run(1, 5, -1)], 0))
@@ -26,12 +26,12 @@ text_append(Text t, Text u) {
 (Text([1], [Run(1, 0, -1)], 0), Text([2], [Run(1, 0, -1)], 0)):(Text([1, 2], [Run(2, 0, -1)], 1), Text([2], [Run(1, 0, -1)], 0))
 
 // A deep copy: nothing in it is shared with t.
-text_copy(Text t) {
-  int[] cps = list_copy(t.cps);
-  Run[] rs = [];
-  rs_copy(rs, t.runs);
-} chain (Text t) {
-  Text nt = Text(cps, rs, t.rev);
-} return Text nt;
-(Text([1, 2], [Run(2, 3, 4)], 5)):(Text([1, 2], [Run(2, 3, 4)], 5)) then calls rs_copy:([Run(2, 3, 4)], [Run(2, 3, 4)])
-(Text([], [Run(0, 0, -1)], 0)):(Text([], [Run(0, 0, -1)], 0)) then calls rs_copy:([Run(0, 0, -1)], [Run(0, 0, -1)])
+text_copy(Text text_clone_text) {
+  int[] text_clone_code_points = list_copy(text_clone_text.cps);
+  Run[] text_clone_run_list = [];
+  document_runs_copy(text_clone_run_list, text_clone_text.runs);
+} chain (Text text_clone_text) {
+  Text text_clone_new_text = Text(text_clone_code_points, text_clone_run_list, text_clone_text.rev);
+} return Text text_clone_new_text;
+(Text([1, 2], [Run(2, 3, 4)], 5)):(Text([1, 2], [Run(2, 3, 4)], 5)) then calls document_runs_copy:([Run(2, 3, 4)], [Run(2, 3, 4)])
+(Text([], [Run(0, 0, -1)], 0)):(Text([], [Run(0, 0, -1)], 0)) then calls document_runs_copy:([Run(0, 0, -1)], [Run(0, 0, -1)])

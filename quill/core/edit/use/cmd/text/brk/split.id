@@ -1,33 +1,33 @@
 // The style a paragraph of style sid is followed by when Enter is pressed at its end (Heading 1 is followed by Normal); a style with no next, or an id that is no style, stays itself.
 style_next(Doc d, int sid) {
-  int nx = sid;
+  int next_style_index = sid;
   if(sid >= 0 && sid < len(d.fmt.sty.styles) && d.fmt.sty.styles[sid].rel[(import quill_style_next)] >= 0) {
-    nx = d.fmt.sty.styles[sid].rel[(import quill_style_next)];
+    next_style_index = d.fmt.sty.styles[sid].rel[(import quill_style_next)];
   }
-} return int nx;
-given fx_setup("") ((import fxd), 3):(0)
-given fx_setup("") ((import fxd), 6):(6)
-given fx_setup("") ((import fxd), 99):(99)
+} return int next_style_index;
+given editor_fixture_setup("") ((import fixture_document), 3):(0)
+given editor_fixture_setup("") ((import fixture_document), 6):(6)
+given editor_fixture_setup("") ((import fixture_document), 99):(99)
 
 // The paragraph row of the paragraph that Enter or a page break creates after one with row pprop: the same row with the page break set to brk, and at the end of the paragraph (atend 1) the style that follows its style.
-pprop_after(Doc d, int pprop, int atend, int brk) {
-  int pn = tab_with(d.fmt.paras, pprop, (import quill_paragraph_break_before), brk);
-  int nx = style_next(d, tab_get(d.fmt.paras, pn, (import quill_paragraph_style)));
-  if(atend == 1) {
-    pn = tab_with(d.fmt.paras, pn, (import quill_paragraph_style), nx);
+editor_paragraph_property_after(Doc d, int pprop, int at_paragraph_end, int paragraph_after_break_kind) {
+  int paragraph_row_index = tab_with(d.fmt.paras, pprop, (import quill_paragraph_break_before), paragraph_after_break_kind);
+  int paragraph_after_next_style_index = style_next(d, tab_get(d.fmt.paras, paragraph_row_index, (import quill_paragraph_style)));
+  if(at_paragraph_end == 1) {
+    paragraph_row_index = tab_with(d.fmt.paras, paragraph_row_index, (import quill_paragraph_style), paragraph_after_next_style_index);
   }
-} return int pn;
-given fx_setup("") ((import fxd), 0, 1, 0):(0)
-given fx_setup("") ((import fxd), 0, 0, 1):(9)
+} return int paragraph_row_index;
+given editor_fixture_setup("") ((import fixture_document), 0, 1, 0):(0)
+given editor_fixture_setup("") ((import fixture_document), 0, 0, 1):(9)
 
 // Splits the paragraph at the caret in the open undo step and puts the caret at the start of the new paragraph, which gets the row pprop_after says (a page break goes before it when brk is 1).
-ed_split(Doc d, Ctl ctl, int brk) {
+editor_split(Doc d, Ctl ctl, int editor_split_break_kind) {
   Para p = d.body.paras[ctl.sel.caret.para];
-  int atend = ctl.sel.caret.off == para_len(p) && brk == 0;
-  int pn = pprop_after(d, p.pprop, atend, brk);
-} chain (Doc d, Ctl ctl, int brk) {
-  ed_split_row(d, ctl, pn);
+  int at_paragraph_end = ctl.sel.caret.off == document_paragraph_length(p) && editor_split_break_kind == 0;
+  int paragraph_row_index = editor_paragraph_property_after(d, p.pprop, at_paragraph_end, editor_split_break_kind);
+} chain (Doc d, Ctl ctl, int editor_split_break_kind) {
+  editor_split_row(d, ctl, paragraph_row_index);
 } return void;
-given fx_setup("abcd") given fx_at(0, 2, 0, 2) given txn_begin((import fxc)) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("ab|cd") then fx_sel:("1:0-1:0")
-given fx_setup("abcd") given fx_at(0, 2, 0, 2) given txn_begin((import fxc)) ((import fxd), (import fxc), 1):((import fxd), (import fxc), 1) then fx_show:("ab|{9}cd")
-given fx_setup("ab") given fx_style(0, 3) given fx_at(0, 2, 0, 2) given txn_begin((import fxc)) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("{9}ab|")
+given editor_fixture_setup("abcd") given editor_fixture_selection_at(0, 2, 0, 2) given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0):((import fixture_document), (import fixture_control), 0) then editor_fixture_show:("ab|cd") then editor_fixture_selection:("1:0-1:0")
+given editor_fixture_setup("abcd") given editor_fixture_selection_at(0, 2, 0, 2) given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 1):((import fixture_document), (import fixture_control), 1) then editor_fixture_show:("ab|{9}cd")
+given editor_fixture_setup("ab") given editor_fixture_style(0, 3) given editor_fixture_selection_at(0, 2, 0, 2) given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0):((import fixture_document), (import fixture_control), 0) then editor_fixture_show:("{9}ab|")

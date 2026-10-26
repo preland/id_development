@@ -5,22 +5,22 @@ find_next(Doc d, Pos from, int[] needle, int flags, Pos spot) {
     res = find_scan(d, from, needle, flags, spot);
   }
 } return int res;
-given fx_setup("one two one") given fx_hit(9, 9) ((import fxd), Pos(0, 1), [111, 110, 101], 0, (import fxh)):(1) then fx_hit_str:("0:8")
-given fx_setup("one two one") given fx_hit(9, 9) ((import fxd), Pos(0, 0), [], 0, (import fxh)):(0) then fx_hit_str:("9:9")
-given fx_setup("One two") given fx_hit(9, 9) ((import fxd), Pos(0, 0), [111, 110, 101], 1, (import fxh)):(0)
-given fx_setup("One two") given fx_hit(9, 9) ((import fxd), Pos(0, 0), [111, 110, 101], 0, (import fxh)):(1) then fx_hit_str:("0:0")
+given editor_fixture_setup("one two one") given editor_fixture_hit(9, 9) ((import fixture_document), Pos(0, 1), [111, 110, 101], 0, (import fixture_hit)):(1) then editor_fixture_hit_string:("0:8")
+given editor_fixture_setup("one two one") given editor_fixture_hit(9, 9) ((import fixture_document), Pos(0, 0), [], 0, (import fixture_hit)):(0) then editor_fixture_hit_string:("9:9")
+given editor_fixture_setup("One two") given editor_fixture_hit(9, 9) ((import fixture_document), Pos(0, 0), [111, 110, 101], 1, (import fixture_hit)):(0)
+given editor_fixture_setup("One two") given editor_fixture_hit(9, 9) ((import fixture_document), Pos(0, 0), [111, 110, 101], 0, (import fixture_hit)):(1) then editor_fixture_hit_string:("0:0")
 
 // The offsets of the matches of needle in paragraph p, ascending and not overlapping (the next search starts after the last match), ignoring ed_f_back. An empty needle has none.
 find_all(Para p, int[] needle, int flags) {
-  int[] ofs = [];
-  int fw = flags & ~(import ed_f_back);
-  int at = find_in(p, needle, 0, fw);
+  int[] match_offsets = [];
+  int forward_flags = flags & ~(import ed_f_back);
+  int at = find_in(p, needle, 0, forward_flags);
 } chain (Para p, int[] needle, int flags) {
   while(at >= 0 && len(needle) > 0) {
-    push(ofs, at);
-    at = find_in(p, needle, at + len(needle), fw);
+    push(match_offsets, at);
+    at = find_in(p, needle, at + len(needle), forward_flags);
   }
-} return int[] ofs;
+} return int[] match_offsets;
 (Para(Text([97, 97, 97, 97, 97], [Run(5, 0, -1)], 0), Lay([], [], -1), 0), [97, 97], 0):([0, 2])
 (Para(Text([97, 98, 65, 66], [Run(4, 0, -1)], 0), Lay([], [], -1), 0), [97, 98], 0):([0, 2])
 (Para(Text([97, 98, 65, 66], [Run(4, 0, -1)], 0), Lay([], [], -1), 0), [97, 98], 1):([0])

@@ -1,56 +1,56 @@
 // 0 when the archive can be read as an ODT: the zip is sound, it has a content.xml, and its mimetype entry, if it has one, says text document. Otherwise the code of the first thing wrong (the reason is kept for odt_error).
-orc_zip_code(Zip z) {
+orc_zip_code(Zip odt_read_zip_code_archive) {
   int code = 0;
-  int mi = zip_reader_find(z, "mimetype");
-  int ci = zip_reader_find(z, "content.xml");
-} chain (Zip z) {
-  if(zip_reader_ok(z) == 0) {
+  int odt_read_zip_code_media_type_index = zip_reader_find(odt_read_zip_code_archive, "mimetype");
+  int odt_read_zip_code_content_index = zip_reader_find(odt_read_zip_code_archive, "content.xml");
+} chain (Zip odt_read_zip_code_archive) {
+  if(zip_reader_ok(odt_read_zip_code_archive) == 0) {
     code = (import orc_e_zip);
-    orc_why(zip_reader_why(z));
+    orc_why(zip_reader_why(odt_read_zip_code_archive));
   }
-  if(code == 0 && ci < 0) {
+  if(code == 0 && odt_read_zip_code_content_index < 0) {
     code = (import orc_e_nocontent);
   }
-  if(code == 0 && mi >= 0) {
-    code = orc_mime(z, mi);
+  if(code == 0 && odt_read_zip_code_media_type_index >= 0) {
+    code = orc_mime(odt_read_zip_code_archive, odt_read_zip_code_media_type_index);
   }
 } return int code;
-given orc_t_zip("<a/>", "application/vnd.oasis.opendocument.text") ((import orc_tzo)):(0)
-given orc_t_zip("<a/>", "") ((import orc_tzo)):(0)
-given orc_t_zip("", "") ((import orc_tzo)):(6)
-given orc_t_zip("<a/>", "x") ((import orc_tzo)):(5)
+given odt_read_fixture_make_archive("<a/>", "application/vnd.oasis.opendocument.text") ((import odt_read_fixture_archive)):(0)
+given odt_read_fixture_make_archive("<a/>", "") ((import odt_read_fixture_archive)):(0)
+given odt_read_fixture_make_archive("", "") ((import odt_read_fixture_archive)):(6)
+given odt_read_fixture_make_archive("<a/>", "x") ((import odt_read_fixture_archive)):(5)
 (Zip([1, 2, 3], [], ["zip: broken"])):(2) then calls zip_reader_find:[2]
 
 // 0 when the mimetype entry (entry mi) is exactly the text document type; otherwise the mimetype code, with the entry's size kept as the reason.
-orc_mime(Zip z, int mi) {
-  int[] xs = zip_reader_read(z, mi);
+orc_mime(Zip odt_read_mime_archive, int odt_read_mime_entry_index) {
+  int[] xs = zip_reader_read(odt_read_mime_archive, odt_read_mime_entry_index);
   int code = 0;
   if(orc_same(xs, (import orc_mimetype)) == 0) {
     code = (import orc_e_mime);
     orc_why("the mimetype entry is " + len(xs) + " bytes and does not read " + (import orc_mimetype));
   }
 } return int code;
-given orc_t_zip("<a/>", "application/vnd.oasis.opendocument.text") ((import orc_tzo), 0):(0)
-given orc_t_zip("<a/>", "application/vnd.oasis.opendocument.texy") ((import orc_tzo), 0):(5) then calls zip_reader_read:[1]
+given odt_read_fixture_make_archive("<a/>", "application/vnd.oasis.opendocument.text") ((import odt_read_fixture_archive), 0):(0)
+given odt_read_fixture_make_archive("<a/>", "application/vnd.oasis.opendocument.texy") ((import odt_read_fixture_archive), 0):(5) then calls zip_reader_read:[1]
 
 // Reads the styles and then content.xml of a sound archive into the document: ost_load for what the style names mean, then the XML reader over the body, the read, and its code. A bad CRC on the way surfaces as the zip code.
-orc_parse(Zip z, Doc d) {
-  int ci = zip_reader_find(z, "content.xml");
-  int[] xs = zip_reader_read(z, ci);
-  OdtSty osty = ost_new();
-} chain (Zip z, Doc d) {
-  int code = orc_sty(z, d, xs, osty);
-  XmlR rd = xml_reader_open(xs);
-  Cx cx = orc_new(d, rd, osty);
-} chain (Zip z, Doc d) {
+orc_parse(Zip odt_read_parse_archive, Doc d) {
+  int odt_read_parse_content_index = zip_reader_find(odt_read_parse_archive, "content.xml");
+  int[] xs = zip_reader_read(odt_read_parse_archive, odt_read_parse_content_index);
+  Odt_style_lookup odt_read_parse_styles = odt_style_lookup_new();
+} chain (Zip odt_read_parse_archive, Doc d) {
+  int code = orc_sty(odt_read_parse_archive, d, xs, odt_read_parse_styles);
+  XmlR odt_read_parse_reader = xml_reader_open(xs);
+  Odt_Read_Context odt_read_parse_context = orc_new(d, odt_read_parse_reader, odt_read_parse_styles);
+} chain (Zip odt_read_parse_archive, Doc d) {
   if(code == 0) {
-    code = orc_content(cx);
+    code = orc_content(odt_read_parse_context);
   }
-  if(zip_reader_ok(z) == 0) {
+  if(zip_reader_ok(odt_read_parse_archive) == 0) {
     code = (import orc_e_zip);
-    orc_why(zip_reader_why(z));
+    orc_why(zip_reader_why(odt_read_parse_archive));
   }
 } return int code;
-given orc_t_zip("<r><office:text><text:p>Hi</text:p></office:text></r>", "") ((import orc_tzo), (import orc_td)):(0) then orc_t_show:("P0 72,105, 2:0:-1, {0,0,0,0,0} |  | ")
-given orc_t_zip("<r><office:body><office:text><text:p>Hi</text:p></r>", "") ((import orc_tzo), (import orc_td)):(3)
-given orc_t_zip("<a/>", "") given orc_t_flip(41) ((import orc_tzo), (import orc_td)):(2)
+given odt_read_fixture_make_archive("<r><office:text><text:p>Hi</text:p></office:text></r>", "") ((import odt_read_fixture_archive), (import odt_read_fixture_document)):(0) then odt_read_fixture_show:("P0 72,105, 2:0:-1, {0,0,0,0,0} |  | ")
+given odt_read_fixture_make_archive("<r><office:body><office:text><text:p>Hi</text:p></r>", "") ((import odt_read_fixture_archive), (import odt_read_fixture_document)):(3)
+given odt_read_fixture_make_archive("<a/>", "") given odt_read_fixture_flip_bit(41) ((import odt_read_fixture_archive), (import odt_read_fixture_document)):(2)

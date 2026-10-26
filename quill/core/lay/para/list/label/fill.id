@@ -1,27 +1,27 @@
 // Fills lbl, emptied first, with the label of list item lid at level lvl of paragraph i: a bullet is its one code point; a number is lay_number written in the level's format followed by a full stop. Nothing is written for an unknown list or level.
-lp_lfill(View v, int i, int[] lbl, int lid, int lvl) {
-  int kind = lp_lrow(v, lid, lvl, (import quill_list_level_kind));
-  int lf = lp_lrow(v, lid, lvl, (import quill_list_level_format));
+layout_paragraph_label_fill(View fill_view, int fill_paragraph_index, int[] fill_label, int lid, int fill_level) {
+  int kind = layout_paragraph_list_cell(fill_view, lid, fill_level, (import quill_list_level_kind));
+  int lf = layout_paragraph_list_cell(fill_view, lid, fill_level, (import quill_list_level_format));
   if(kind == 0 && lf > 0) {
-    push(lbl, lf);
+    push(fill_label, lf);
   }
-} chain (View v, int i, int[] lbl, int lid, int lvl) {
+} chain (View fill_view, int fill_paragraph_index, int[] fill_label, int lid, int fill_level) {
   if(kind == 1) {
-    lp_num(lbl, lay_number(v, i), lf);
-    push(lbl, (import quill_code_point_dot));
+    layout_paragraph_number(fill_label, lay_number(fill_view, fill_paragraph_index), lf);
+    push(fill_label, (import quill_code_point_dot));
   }
 } return void;
-given lp_t_new given lp_t_paras(5) given lp_t_item(0, 2, 0) given lp_t_item(1, 2, 0) given lp_t_item(2, 2, 0) given lp_t_item(3, 2, 1) given lp_t_item(4, 2, 0) ((import lp_t_v), 4, [], 2, 0):((import lp_t_v), 4, [52, 46], 2, 0)
-given lp_t_new given lp_t_paras(5) given lp_t_item(0, 2, 0) given lp_t_item(1, 2, 0) given lp_t_item(2, 2, 0) given lp_t_item(3, 2, 1) given lp_t_item(4, 2, 0) ((import lp_t_v), 3, [], 2, 1):((import lp_t_v), 3, [97, 46], 2, 1)
-given lp_t_new ((import lp_t_v), 0, [], 1, 0):((import lp_t_v), 0, [8226], 1, 0)
-given lp_t_new ((import lp_t_v), 0, [], 0, 0):((import lp_t_v), 0, [], 0, 0)
-given lp_t_new ((import lp_t_v), 0, [], 9, 0):((import lp_t_v), 0, [], 9, 0)
+given layout_paragraph_test_new given layout_paragraph_test_paragraphs(5) given layout_paragraph_test_item(0, 2, 0) given layout_paragraph_test_item(1, 2, 0) given layout_paragraph_test_item(2, 2, 0) given layout_paragraph_test_item(3, 2, 1) given layout_paragraph_test_item(4, 2, 0) ((import layout_paragraph_test_view), 4, [], 2, 0):((import layout_paragraph_test_view), 4, [52, 46], 2, 0)
+given layout_paragraph_test_new given layout_paragraph_test_paragraphs(5) given layout_paragraph_test_item(0, 2, 0) given layout_paragraph_test_item(1, 2, 0) given layout_paragraph_test_item(2, 2, 0) given layout_paragraph_test_item(3, 2, 1) given layout_paragraph_test_item(4, 2, 0) ((import layout_paragraph_test_view), 3, [], 2, 1):((import layout_paragraph_test_view), 3, [97, 46], 2, 1)
+given layout_paragraph_test_new ((import layout_paragraph_test_view), 0, [], 1, 0):((import layout_paragraph_test_view), 0, [8226], 1, 0)
+given layout_paragraph_test_new ((import layout_paragraph_test_view), 0, [], 0, 0):((import layout_paragraph_test_view), 0, [], 0, 0)
+given layout_paragraph_test_new ((import layout_paragraph_test_view), 0, [], 9, 0):((import layout_paragraph_test_view), 0, [], 9, 0)
 
 // Fills lbl, emptied first, with the label of paragraph i, nothing for a paragraph that is not a list item. The label is drawn in the face of the paragraph's first run, starting at lay_label_x.
-lay_label(View v, int i, int[] lbl) {
-  lp_clear(lbl);
-  lp_lfill(v, i, lbl, lp_prop(v, i, (import quill_paragraph_list)), lp_prop(v, i, (import quill_paragraph_level)));
+lay_label(View label_view, int label_paragraph_index, int[] label_list) {
+  layout_paragraph_clear(label_list);
+  layout_paragraph_label_fill(label_view, label_paragraph_index, label_list, layout_paragraph_property(label_view, label_paragraph_index, (import quill_paragraph_list)), layout_paragraph_property(label_view, label_paragraph_index, (import quill_paragraph_level)));
 } return void;
-given lp_t_new given lp_t_paras(3) given lp_t_item(0, 2, 0) given lp_t_item(1, 2, 0) given lp_t_item(2, 1, 0) ((import lp_t_v), 1, [9, 9, 9]):((import lp_t_v), 1, [50, 46])
-given lp_t_new given lp_t_paras(3) given lp_t_item(0, 2, 0) given lp_t_item(1, 2, 0) given lp_t_item(2, 1, 0) ((import lp_t_v), 2, []):((import lp_t_v), 2, [8226])
-given lp_t_new ((import lp_t_v), 0, [9, 9]):((import lp_t_v), 0, [])
+given layout_paragraph_test_new given layout_paragraph_test_paragraphs(3) given layout_paragraph_test_item(0, 2, 0) given layout_paragraph_test_item(1, 2, 0) given layout_paragraph_test_item(2, 1, 0) ((import layout_paragraph_test_view), 1, [9, 9, 9]):((import layout_paragraph_test_view), 1, [50, 46])
+given layout_paragraph_test_new given layout_paragraph_test_paragraphs(3) given layout_paragraph_test_item(0, 2, 0) given layout_paragraph_test_item(1, 2, 0) given layout_paragraph_test_item(2, 1, 0) ((import layout_paragraph_test_view), 2, []):((import layout_paragraph_test_view), 2, [8226])
+given layout_paragraph_test_new ((import layout_paragraph_test_view), 0, [9, 9]):((import layout_paragraph_test_view), 0, [])

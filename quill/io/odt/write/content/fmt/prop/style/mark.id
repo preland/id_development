@@ -1,27 +1,27 @@
 // A list with one 0 for each row of the table, ready to be marked as used.
-oc_zeros(Tab oc_tb) {
-  int oc_n = len(oc_tb.rows) / oc_tb.width;
-  int[] oc_ms = [];
-  list_fill(oc_ms, oc_n, 0);
-} return int[] oc_ms;
+odt_write_zero_marks(Tab odt_write_zero_marks_table) {
+  int odt_write_zero_marks_row_count = len(odt_write_zero_marks_table.rows) / odt_write_zero_marks_table.width;
+  int[] odt_write_zero_marks_marks = [];
+  list_fill(odt_write_zero_marks_marks, odt_write_zero_marks_row_count, 0);
+} return int[] odt_write_zero_marks_marks;
 (Tab([1, 2, 3, 4], 2, [])):([0, 0])
 (Tab([], 7, [])):([])
 
 // Marks the character row of every run of a text as used.
-oc_mark_runs(Text oc_tx, int[] oc_cm) {
-  int oc_i = 0;
-  while(oc_i < len(oc_tx.runs)) {
-    oc_cm[oc_tx.runs[oc_i].cprop] = 1;
-    oc_i = oc_i + 1;
+odt_write_mark_run_styles(Text odt_write_mark_run_styles_text, int[] odt_write_mark_run_styles_character_marks) {
+  int odt_write_mark_run_styles_index = 0;
+  while(odt_write_mark_run_styles_index < len(odt_write_mark_run_styles_text.runs)) {
+    odt_write_mark_run_styles_character_marks[odt_write_mark_run_styles_text.runs[odt_write_mark_run_styles_index].cprop] = 1;
+    odt_write_mark_run_styles_index = odt_write_mark_run_styles_index + 1;
   }
 } return void;
 (Text([1, 2], [Run(1, 2, -1), Run(1, 0, -1)], 0), [0, 0, 0]):(Text([1, 2], [Run(1, 2, -1), Run(1, 0, -1)], 0), [1, 0, 1])
 (Text([], [Run(0, 1, -1)], 0), [0, 0]):(Text([], [Run(0, 1, -1)], 0), [0, 1])
 
 // Marks a paragraph's own row and the character rows of its runs as used.
-oc_mark_para(Para oc_pa, int[] oc_pm, int[] oc_cm) {
-  oc_pm[oc_pa.pprop] = 1;
-  oc_mark_runs(oc_pa.txt, oc_cm);
+odt_write_mark_paragraph_styles(Para odt_write_mark_paragraph_styles_paragraph, int[] odt_write_mark_paragraph_styles_paragraph_marks, int[] odt_write_mark_paragraph_styles_character_marks) {
+  odt_write_mark_paragraph_styles_paragraph_marks[odt_write_mark_paragraph_styles_paragraph.pprop] = 1;
+  odt_write_mark_run_styles(odt_write_mark_paragraph_styles_paragraph.txt, odt_write_mark_paragraph_styles_character_marks);
 } return void;
 (Para(Text([1], [Run(1, 1, -1)], 0), Lay([], [], -1), 2), [0, 0, 0], [0, 0]):(Para(Text([1], [Run(1, 1, -1)], 0), Lay([], [], -1), 2), [0, 0, 1], [0, 1])
 (Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 0), [0], [0]):(Para(Text([], [Run(0, 0, -1)], 0), Lay([], [], -1), 0), [1], [1])

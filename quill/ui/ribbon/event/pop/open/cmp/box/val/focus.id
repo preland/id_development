@@ -1,47 +1,47 @@
 // Gives the keyboard to combo box number rbi_k, whose control the ribbon rib has in the open tab. The font family combo box first looks up the installed families, which it then offers (rbe_fonts, and the combo boxes are made again so that they hold them), because the scan costs a moment and is not done when the ribbon starts.
-rbe_cb_focus(Ribbon rib, int rbi_k) {
-  if((import rbd_cb_cmd)[rbi_k] == (import cmd_font_family) && len((import rbd_fm)) == 0) {
-    rbe_fonts();
-    rbe_cb_place(rib);
+ribbon_combo_focus(Ribbon rib, int ribbon_combo_focus_number) {
+  if((import rbd_cb_cmd)[ribbon_combo_focus_number] == (import cmd_font_family) && len((import ribbon_fit_font_families)) == 0) {
+    ribbon_fonts_load();
+    ribbon_combo_place(rib);
   }
-  GuiCombo rbc = (import rbd_cb)[rbi_k];
-  gui_textbox_focus(rbc.box, 1);
-} chain (Ribbon rib, int rbi_k) {
-  lset((import rbd_fo), 0, rbi_k);
+  GuiCombo ribbon_combo_focus_box = (import ribbon_fit_combos)[ribbon_combo_focus_number];
+  gui_textbox_focus(ribbon_combo_focus_box.box, 1);
+} chain (Ribbon rib, int ribbon_combo_focus_number) {
+  lset((import ribbon_fit_focused_combo), 0, ribbon_combo_focus_number);
 } return void;
-given lp_t_font given rbd_t_up(1024) given list_string_splice((import rbd_fm), 0, 0, ["A"]) ((import rbd_t_r), 1):() then rbd_t_cn:("2|3,4,|1,")
-given lp_t_font given rbd_t_up(1024) given list_string_splice((import rbd_fm), 0, 0, ["A", "B"]) ((import rbd_t_r), 0):() then rbd_t_cn:("2|3,4,|0,")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given list_string_splice((import ribbon_fit_font_families), 0, 0, ["A"]) ((import ribbon_fit_test_ribbon), 1):() then ribbon_fit_check_combo_counts:("2|3,4,|1,")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given list_string_splice((import ribbon_fit_font_families), 0, 0, ["A", "B"]) ((import ribbon_fit_test_ribbon), 0):() then ribbon_fit_check_combo_counts:("2|3,4,|0,")
 
 // Takes the keyboard away from the combo box that has it, if one has, and puts back the text it had when it was last committed: what a change of the ribbon's band or tab does to a combo box in the middle of being typed in.
-rbe_cb_blur() {
-  int rbi_k = (import rbd_fo)[0];
-  GuiCombo[] rbl_b = (import rbd_cb);
-  if(rbi_k >= 0) {
-    gui_textbox_focus(rbl_b[rbi_k].box, 0);
-    gui_combo_set(rbl_b[rbi_k], rbl_b[rbi_k].set.back);
+ribbon_combo_release() {
+  int ribbon_combo_release_number = (import ribbon_fit_focused_combo)[0];
+  GuiCombo[] ribbon_combo_release_boxes = (import ribbon_fit_combos);
+  if(ribbon_combo_release_number >= 0) {
+    gui_textbox_focus(ribbon_combo_release_boxes[ribbon_combo_release_number].box, 0);
+    gui_combo_set(ribbon_combo_release_boxes[ribbon_combo_release_number], ribbon_combo_release_boxes[ribbon_combo_release_number].set.back);
   }
 } chain () {
-  lset((import rbd_fo), 0, -1);
+  lset((import ribbon_fit_focused_combo), 0, -1);
 } return void;
-given lp_t_font given rbd_t_up(1024) ():() then rbd_t_cn:("2|3,4,|-1,")
-given lp_t_font given rbd_t_up(1024) given rbd_t_ev(3, 240, 70) ():() then rbd_t_cn:("2|3,4,|-1,")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ():() then ribbon_fit_check_combo_counts:("2|3,4,|-1,")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_send_mouse_event(3, 240, 70) ():() then ribbon_fit_check_combo_counts:("2|3,4,|-1,")
 
 // What a combo box number rbi_k did, from the bits rbi_b it answered to an event of kind rbi_kind: a value committed is given to the program (rbe_cb_emit), and a commit or a give-up lets the keyboard go. Answers the bits of rib_event: the paint bit kept, 2 for a command given, and 4 for a press that ended the combo box (it is owed to what is under) or else 8, the event taken.
-rbe_cb_done(int rbi_k, int rbi_kind, int rbi_b) {
-  int rbi_c = 0;
-  if((rbi_b & 2) != 0) {
-    rbi_c = rbe_cb_emit(rbi_k);
+ribbon_combo_finish(int ribbon_combo_finish_number, int ribbon_combo_finish_kind, int ribbon_combo_finish_bits) {
+  int ribbon_combo_finish_given = 0;
+  if((ribbon_combo_finish_bits & 2) != 0) {
+    ribbon_combo_finish_given = ribbon_combo_emit(ribbon_combo_finish_number);
   }
-  int rbi_end = (rbi_b & 6) != 0;
-} chain (int rbi_k, int rbi_kind, int rbi_b) {
-  if(rbi_end == 1) {
-    gui_textbox_focus((import rbd_cb)[rbi_k].box, 0);
-    lset((import rbd_fo), 0, -1);
+  int ribbon_combo_finish_ended = (ribbon_combo_finish_bits & 6) != 0;
+} chain (int ribbon_combo_finish_number, int ribbon_combo_finish_kind, int ribbon_combo_finish_bits) {
+  if(ribbon_combo_finish_ended == 1) {
+    gui_textbox_focus((import ribbon_fit_combos)[ribbon_combo_finish_number].box, 0);
+    lset((import ribbon_fit_focused_combo), 0, -1);
   }
-  int rbi_owed = rbi_end == 1 && rbi_kind == 3;
-  int rbi_r = (rbi_b & 1) + 2 * rbi_c + 4 * rbi_owed + 8 * (1 - rbi_owed);
-} return int rbi_r;
-given lp_t_font given rbd_t_up(1024) (1, 1, 5):(9)
-given lp_t_font given rbd_t_up(1024) (1, 1, 0):(8)
-given lp_t_font given rbd_t_up(1024) (1, 3, 3):(5)
-given lp_t_font given rbd_t_up(1024) given rib_text((import rbd_t_r), 308, "14") (1, 4, 3):(11) then rbd_t_cmd:("308,28,14")
+  int ribbon_combo_finish_owed = ribbon_combo_finish_ended == 1 && ribbon_combo_finish_kind == 3;
+  int ribbon_combo_finish_result = (ribbon_combo_finish_bits & 1) + 2 * ribbon_combo_finish_given + 4 * ribbon_combo_finish_owed + 8 * (1 - ribbon_combo_finish_owed);
+} return int ribbon_combo_finish_result;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) (1, 1, 5):(9)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) (1, 1, 0):(8)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) (1, 3, 3):(5)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given rib_text((import ribbon_fit_test_ribbon), 308, "14") (1, 4, 3):(11) then ribbon_fit_check_command:("308,28,14")

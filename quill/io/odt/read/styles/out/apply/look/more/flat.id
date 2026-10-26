@@ -1,37 +1,37 @@
 // The id of the list definition called os_sname (searched from the end), 0 for none.
-ost_list_id(Fmt os_f, string os_sname) {
-  int os_il = 0;
-  int i = len(os_f.sty.lists) - 1;
-  while(i > 0 && os_il == 0) {
-    if(os_f.sty.lists[i].name == os_sname) {
-      os_il = i;
+odt_style_list_find(Fmt odt_style_list_find_format, string odt_style_list_find_name) {
+  int odt_style_list_find_list = 0;
+  int i = len(odt_style_list_find_format.sty.lists) - 1;
+  while(i > 0 && odt_style_list_find_list == 0) {
+    if(odt_style_list_find_format.sty.lists[i].name == odt_style_list_find_name) {
+      odt_style_list_find_list = i;
     }
     i = i - 1;
   }
-} return int os_il;
+} return int odt_style_list_find_list;
 (Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("A", [], 0), ListDef("B", [], 1), ListDef("A", [], 1)], 0)), "A"):(3)
 (Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("A", [], 0)], 0)), "Z"):(0)
 
 // 1 when record os_i or a style up its parent chain has a page break before it.
-ost_fbrk(StyBag os_b, int os_i, int os_id) {
-  int os_ibrk = os_b.prows[os_i][(import quill_paragraph_break_before)];
-  int os_ip = ost_par(os_b, os_i);
-  if(os_ibrk == 0 && os_ip >= 0 && os_id < (import quill_style_depth)) {
-    os_ibrk = ost_fbrk(os_b, os_ip, os_id + 1);
+odt_style_break_before_resolve(odt_named_style_records odt_style_break_before_resolve_bag, int odt_style_break_before_resolve_record, int odt_style_break_before_resolve_depth) {
+  int odt_style_break_before_resolve_break_before = odt_style_break_before_resolve_bag.prows[odt_style_break_before_resolve_record][(import quill_paragraph_break_before)];
+  int odt_style_break_before_resolve_parent = odt_style_record_parent(odt_style_break_before_resolve_bag, odt_style_break_before_resolve_record);
+  if(odt_style_break_before_resolve_break_before == 0 && odt_style_break_before_resolve_parent >= 0 && odt_style_break_before_resolve_depth < (import quill_style_depth)) {
+    odt_style_break_before_resolve_break_before = odt_style_break_before_resolve(odt_style_break_before_resolve_bag, odt_style_break_before_resolve_parent, odt_style_break_before_resolve_depth + 1);
   }
-} return int os_ibrk;
-(StyBag(["A", "", "", "", "", "", "p", "n", "B", "A", "", "", "", "", "p", "a"], [[], []], [[-1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]), 1, 0):(1)
-(StyBag(["A", "", "", "", "", "", "p", "n", "B", "A", "", "", "", "", "p", "a"], [[], []], [[-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]), 1, 0):(0)
+} return int odt_style_break_before_resolve_break_before;
+(odt_named_style_records(["A", "", "", "", "", "", "p", "n", "B", "A", "", "", "", "", "p", "a"], [[], []], [[-1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]), 1, 0):(1)
+(odt_named_style_records(["A", "", "", "", "", "", "p", "n", "B", "A", "", "", "", "", "p", "a"], [[], []], [[-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]), 1, 0):(0)
 
 // The list definition a record puts its paragraphs in: its own style:list-style-name, else its parent chain's, 0 for none.
-ost_flist(Fmt os_f, StyBag os_b, int os_i, int os_id) {
-  string os_slist = os_b.strings[os_i * (import ost_s_width) + (import ost_s_list)];
-  int os_il = ost_list_id(os_f, os_slist);
-  int os_ip = ost_par(os_b, os_i);
-} chain (Fmt os_f, StyBag os_b, int os_i, int os_id) {
-  if(os_slist == "" && os_ip >= 0 && os_id < (import quill_style_depth)) {
-    os_il = ost_flist(os_f, os_b, os_ip, os_id + 1);
+odt_style_list_resolve(Fmt odt_style_list_resolve_format, odt_named_style_records odt_style_list_resolve_bag, int odt_style_list_resolve_record, int odt_style_list_resolve_depth) {
+  string odt_style_list_resolve_list_name = odt_style_list_resolve_bag.strings[odt_style_list_resolve_record * (import ost_s_width) + (import ost_s_list)];
+  int odt_style_list_resolve_list = odt_style_list_find(odt_style_list_resolve_format, odt_style_list_resolve_list_name);
+  int odt_style_list_resolve_parent = odt_style_record_parent(odt_style_list_resolve_bag, odt_style_list_resolve_record);
+} chain (Fmt odt_style_list_resolve_format, odt_named_style_records odt_style_list_resolve_bag, int odt_style_list_resolve_record, int odt_style_list_resolve_depth) {
+  if(odt_style_list_resolve_list_name == "" && odt_style_list_resolve_parent >= 0 && odt_style_list_resolve_depth < (import quill_style_depth)) {
+    odt_style_list_resolve_list = odt_style_list_resolve(odt_style_list_resolve_format, odt_style_list_resolve_bag, odt_style_list_resolve_parent, odt_style_list_resolve_depth + 1);
   }
-} return int os_il;
-(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("L1", [], 0)], 0)), StyBag(["A", "", "", "L1", "", "", "p", "n", "B", "A", "", "", "", "", "p", "a"], [[], []], [[], []]), 1, 0):(1)
-(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("L1", [], 0)], 0)), StyBag(["A", "", "", "", "", "", "p", "n"], [[]], [[]]), 0, 0):(0)
+} return int odt_style_list_resolve_list;
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("L1", [], 0)], 0)), odt_named_style_records(["A", "", "", "L1", "", "", "p", "n", "B", "A", "", "", "", "", "p", "a"], [[], []], [[], []]), 1, 0):(1)
+(Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [ListDef("", [], 0), ListDef("L1", [], 0)], 0)), odt_named_style_records(["A", "", "", "", "", "", "p", "n"], [[]], [[]]), 0, 0):(0)

@@ -1,24 +1,24 @@
 // The error code for a reader that met a fault: 0 when it did not, else os_icode (ost_e_styles or ost_e_content).
-ost_xerr(XmlR os_r, int os_icode) {
-  string os_serr = xml_reader_get(os_r, (import xml_reader_k_error));
-  int os_ires = 0;
-  if(os_serr != "") {
-    os_ires = os_icode;
+odt_style_reader_error_code(XmlR odt_style_reader_error_code_reader, int odt_style_reader_error_code_code) {
+  string odt_style_reader_error_code_message = xml_reader_get(odt_style_reader_error_code_reader, (import xml_reader_k_error));
+  int odt_style_reader_error_code_result = 0;
+  if(odt_style_reader_error_code_message != "") {
+    odt_style_reader_error_code_result = odt_style_reader_error_code_code;
   }
-} return int os_ires;
-given ost_t_open("<a><b></a>") given xml_reader_skip((import ost_t_r), 3) ((import ost_t_r), 50):(50)
-given ost_t_open("<a/>") given xml_reader_skip((import ost_t_r), 2) ((import ost_t_r), 51):(0)
+} return int odt_style_reader_error_code_result;
+given odt_named_reader_open("<a><b></a>") given xml_reader_skip((import odt_named_reader), 3) ((import odt_named_reader), 50):(50)
+given odt_named_reader_open("<a/>") given xml_reader_skip((import odt_named_reader), 2) ((import odt_named_reader), 51):(0)
 
 // The message for an error code of ost_load, naming the file and the fix.
-ost_error(int os_icode) {
-  string os_smsg = "";
-  if(os_icode == (import ost_e_styles)) {
-    os_smsg = "styles.xml is not well-formed XML, so the styles cannot be read; re-save the document in LibreOffice or Word, or repair the byte ost_fault_at reports";
+odt_style_error_message(int odt_style_error_message_code) {
+  string odt_style_error_message_message = "";
+  if(odt_style_error_message_code == (import ost_e_styles)) {
+    odt_style_error_message_message = "styles.xml is not well-formed XML, so the styles cannot be read; re-save the document in LibreOffice or Word, or repair the byte ost_fault_at reports";
   }
-  if(os_icode == (import ost_e_content)) {
-    os_smsg = "content.xml is not well-formed XML before the document body, so the automatic styles cannot be read; re-save the document in LibreOffice or Word, or repair the byte ost_fault_at reports";
+  if(odt_style_error_message_code == (import ost_e_content)) {
+    odt_style_error_message_message = "content.xml is not well-formed XML before the document body, so the automatic styles cannot be read; re-save the document in LibreOffice or Word, or repair the byte ost_fault_at reports";
   }
-} return string os_smsg;
+} return string odt_style_error_message_message;
 (50):("styles.xml is not well-formed XML, so the styles cannot be read; re-save the document in LibreOffice or Word, or repair the byte ost_fault_at reports")
 (51):("content.xml is not well-formed XML before the document body, so the automatic styles cannot be read; re-save the document in LibreOffice or Word, or repair the byte ost_fault_at reports")
 (0):("")

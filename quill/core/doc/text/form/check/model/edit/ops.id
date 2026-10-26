@@ -1,30 +1,30 @@
 // Inserts ins at flat index k; its entries get the character row cprop and the link link, the -1 marks stay -1.
-model_ins(Model mo, int k, int[] ins, int cprop, int link) {
-  int[] vs = rep_like(ins, cprop);
-  int[] ws = rep_like(ins, link);
-  mo.cps = model_splice(mo.cps, k, 0, ins);
-} chain (Model mo, int k, int[] ins, int cprop, int link) {
-  mo.cprops = model_splice(mo.cprops, k, 0, vs);
-  mo.links = model_splice(mo.links, k, 0, ws);
+document_model_insert(Model model_insert_range_model, int model_insert_range_flat_index, int[] ins, int cprop, int link) {
+  int[] model_insert_range_character_fill = document_repeat_like(ins, cprop);
+  int[] link_fill_values = document_repeat_like(ins, link);
+  model_insert_range_model.cps = model_splice(model_insert_range_model.cps, model_insert_range_flat_index, 0, ins);
+} chain (Model model_insert_range_model, int model_insert_range_flat_index, int[] ins, int cprop, int link) {
+  model_insert_range_model.cprops = model_splice(model_insert_range_model.cprops, model_insert_range_flat_index, 0, model_insert_range_character_fill);
+  model_insert_range_model.links = model_splice(model_insert_range_model.links, model_insert_range_flat_index, 0, link_fill_values);
 } return void;
 (Model([1, -1], [0, -1], [-1, -1]), 1, [9, 8], 5, 3):(Model([1, 9, 8, -1], [0, 5, 5, -1], [-1, 3, 3, -1]), 1, [9, 8], 5, 3)
 (Model([1, -1], [0, -1], [-1, -1]), 2, [-1], -1, -1):(Model([1, -1, -1], [0, -1, -1], [-1, -1, -1]), 2, [-1], -1, -1)
 
 // Removes m entries from flat index k.
-model_del(Model mo, int k, int m) {
+document_model_delete(Model model_delete_range_model, int model_delete_range_flat_index, int model_delete_range_count) {
   int[] none = [];
-  mo.cps = model_splice(mo.cps, k, m, none);
-  mo.cprops = model_splice(mo.cprops, k, m, none);
-} chain (Model mo, int k, int m) {
-  mo.links = model_splice(mo.links, k, m, none);
+  model_delete_range_model.cps = model_splice(model_delete_range_model.cps, model_delete_range_flat_index, model_delete_range_count, none);
+  model_delete_range_model.cprops = model_splice(model_delete_range_model.cprops, model_delete_range_flat_index, model_delete_range_count, none);
+} chain (Model model_delete_range_model, int model_delete_range_flat_index, int model_delete_range_count) {
+  model_delete_range_model.links = model_splice(model_delete_range_model.links, model_delete_range_flat_index, model_delete_range_count, none);
 } return void;
 (Model([1, 2, 3, -1], [0, 5, 6, -1], [-1, 3, 4, -1]), 1, 2):(Model([1, -1], [0, -1], [-1, -1]), 1, 2)
 (Model([1, -1, 2, -1], [0, -1, 5, -1], [-1, -1, 3, -1]), 1, 1):(Model([1, 2, -1], [0, 5, -1], [-1, 3, -1]), 1, 1)
 
 // Overwrites the character rows and the links of len(vs) entries from flat index k.
-model_put(Model mo, int k, int[] vs, int[] ws) {
-  mo.cprops = model_splice(mo.cprops, k, len(vs), vs);
-  mo.links = model_splice(mo.links, k, len(ws), ws);
+model_put(Model model_replace_model, int model_replace_flat_index, int[] model_replace_character_values, int[] link_fill_values) {
+  model_replace_model.cprops = model_splice(model_replace_model.cprops, model_replace_flat_index, len(model_replace_character_values), model_replace_character_values);
+  model_replace_model.links = model_splice(model_replace_model.links, model_replace_flat_index, len(link_fill_values), link_fill_values);
 } return void;
 (Model([1, 2, 3, -1], [0, 0, 0, -1], [-1, -1, -1, -1]), 1, [5, 6], [3, 4]):(Model([1, 2, 3, -1], [0, 5, 6, -1], [-1, 3, 4, -1]), 1, [5, 6], [3, 4])
 (Model([1, 2, 3, -1], [0, 0, 0, -1], [-1, -1, -1, -1]), 0, [7], [8]):(Model([1, 2, 3, -1], [7, 0, 0, -1], [8, -1, -1, -1]), 0, [7], [8])

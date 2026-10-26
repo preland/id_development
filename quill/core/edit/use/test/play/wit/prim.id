@@ -1,26 +1,26 @@
 // Test fixture: row k of the table of primitive operations (ed_t_ops in conf.id) as an operation.
-fx_op(int k) {
+editor_fixture_operation(int k) {
   int[] row = list_slice((import ed_t_ops), k * (import ed_t_stride), (import ed_t_stride));
-  int[] loc = list_slice(row, 1, 5);
+  int[] location = list_slice(row, 1, 5);
   int[] dat = list_slice(row, 7, row[6]);
 } chain (int k) {
-  Op eo = Op(row[0], loc, dat);
-} return Op eo;
+  Op edit_operation = Op(row[0], location, dat);
+} return Op edit_operation;
 (0):(Op(1, [0, 1, 0, 0, 0], [120]))
 (13):(Op(7, [1, 0, 0, 0, 0], [0, 2, 122, 122, 2, 0, -1]))
 (16):(Op(9, [2, 0, 0, 0, 0], [1]))
 
 // Test fixture: the verdict of an apply-undo-redo round trip from the four dumps: before the operation, after it, after its inverse and after the inverse of the inverse. 0 when the operation changed something, its inverse restored the first dump and the inverse of that restored the second; 1 when the operation changed nothing (a witness that cannot fail), 2 when the first restore differs, 3 when the second does.
-fx_code(string dump0, string dump1, string dump2, string dump3) {
+editor_fixture_code(string dump_before, string dump_applied, string dump_undone, string dump_redone) {
   int code = 0;
-  if(dump0 == dump1) {
+  if(dump_before == dump_applied) {
     code = 1;
   }
-  if(code == 0 && dump2 != dump0) {
+  if(code == 0 && dump_undone != dump_before) {
     code = 2;
   }
-} chain (string dump0, string dump1, string dump2, string dump3) {
-  if(code == 0 && dump3 != dump1) {
+} chain (string dump_before, string dump_applied, string dump_undone, string dump_redone) {
+  if(code == 0 && dump_redone != dump_applied) {
     code = 3;
   }
 } return int code;
@@ -30,39 +30,39 @@ fx_code(string dump0, string dump1, string dump2, string dump3) {
 ("a", "b", "a", "c"):(3)
 
 // Test fixture: applies primitive k of the table to the fixture document, then its inverse, then the inverse of that, and returns fx_code of the four doc_dump strings, or 4 when a document invariant (doc_check) broke on the way.
-fx_twice(int k) {
-  Doc d = (import fxd);
-  string dump0 = doc_dump(d);
-  Op inv = op_apply(d, fx_op(k));
+editor_fixture_twice(int k) {
+  Doc d = (import fixture_document);
+  string dump_before = doc_dump(d);
+  Op inverse = editor_operation_apply(d, editor_fixture_operation(k));
 } chain (int k) {
-  string dump1 = doc_dump(d);
-  int chk = doc_check(d);
-  Op inv2 = op_apply(d, inv);
+  string dump_applied = doc_dump(d);
+  int check_result = doc_check(d);
+  Op inverse_of_inverse = editor_operation_apply(d, inverse);
 } chain (int k) {
-  string dump2 = doc_dump(d);
-  chk = chk + doc_check(d);
-  Op inv3 = op_apply(d, inv2);
+  string dump_undone = doc_dump(d);
+  check_result = check_result + doc_check(d);
+  Op inverse_of_inverse_again = editor_operation_apply(d, inverse_of_inverse);
 } chain (int k) {
-  string dump3 = doc_dump(d);
-  int code = fx_code(dump0, dump1, dump2, dump3);
-  if(code == 0 && chk + doc_check(d) != 0) {
+  string dump_redone = doc_dump(d);
+  int code = editor_fixture_code(dump_before, dump_applied, dump_undone, dump_redone);
+  if(code == 0 && check_result + doc_check(d) != 0) {
     code = 4;
   }
 } return int code;
-given fx_rich (1):(0)
-given fx_rich (2):(0)
-given fx_rich (0):(0)
-given fx_rich (3):(0)
-given fx_rich (4):(0)
-given fx_rich (5):(0)
-given fx_rich (6):(0)
-given fx_rich (7):(0)
-given fx_rich (8):(0)
-given fx_rich (9):(0)
-given fx_rich (10):(0)
-given fx_rich (11):(0)
-given fx_rich (12):(0)
-given fx_rich (13):(0)
-given fx_rich (14):(0)
-given fx_rich (15):(0)
-given fx_rich (16):(0)
+given editor_fixture_rich (1):(0)
+given editor_fixture_rich (2):(0)
+given editor_fixture_rich (0):(0)
+given editor_fixture_rich (3):(0)
+given editor_fixture_rich (4):(0)
+given editor_fixture_rich (5):(0)
+given editor_fixture_rich (6):(0)
+given editor_fixture_rich (7):(0)
+given editor_fixture_rich (8):(0)
+given editor_fixture_rich (9):(0)
+given editor_fixture_rich (10):(0)
+given editor_fixture_rich (11):(0)
+given editor_fixture_rich (12):(0)
+given editor_fixture_rich (13):(0)
+given editor_fixture_rich (14):(0)
+given editor_fixture_rich (15):(0)
+given editor_fixture_rich (16):(0)

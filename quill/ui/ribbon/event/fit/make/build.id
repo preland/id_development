@@ -1,39 +1,39 @@
 // The text a control of item row rbi_row has on its face: the name of a wide control, which has no icon; any other control shows an icon or is drawn by the ribbon, so none.
-rbe_label(int rbi_row) {
-  string rbs_t = "";
-  if((import rb_kind)[rbi_row] == (import kind_wide)) {
-    rbs_t = (import rb_label)[rbi_row];
+ribbon_fit_control_label(int ribbon_fit_label_row) {
+  string ribbon_fit_label_text = "";
+  if((import rb_kind)[ribbon_fit_label_row] == (import kind_wide)) {
+    ribbon_fit_label_text = (import rb_label)[ribbon_fit_label_row];
   }
-} return string rbs_t;
+} return string ribbon_fit_label_text;
 (33):("Find")
 (14):("")
 
 // Makes the widget for control rbi_i of the ribbon rib at the rectangle it was placed at, in the ribbon's regular face, and keeps it after the others in rbl_ws: its body is the whole rectangle less the arrow strip of a split button, and none at all for a combo box, which is a widget of its own (rbd_cb) and must not meet the pointer twice.
-rbe_make(Ribbon rib, GuiToggle[] rbl_ws, int rbi_i) {
-  int rbi_row = rib.items[rbi_i];
-  int rbi_q = rbi_i * 4;
-  GuiToggle rbg = gui_tgl_new(rbe_label(rbi_row), (import rb_icon)[rbi_row], (import rb_cmd)[rbi_row], 0);
-} chain (Ribbon rib, GuiToggle[] rbl_ws, int rbi_i) {
-  int rbi_w = rib.rects[rbi_q + 2] - (import rbd_arrow_px) * (rbd_shape(rbi_row) == 2);
-  int rbi_on = rbd_shape(rbi_row) != 6;
-  gui_tgl_place(rbg, rib.rects[rbi_q], rib.rects[rbi_q + 1], rbi_w * rbi_on, rib.rects[rbi_q + 3] * rbi_on);
-} chain (Ribbon rib, GuiToggle[] rbl_ws, int rbi_i) {
-  gui_btn_font(rbg.btn, (import rbd_ui)[0]);
-  push(rbl_ws, rbg);
+ribbon_fit_make_widget(Ribbon rib, GuiToggle[] ribbon_fit_make_list, int ribbon_fit_make_control) {
+  int ribbon_fit_make_row = rib.items[ribbon_fit_make_control];
+  int ribbon_fit_make_cell = ribbon_fit_make_control * 4;
+  GuiToggle ribbon_fit_make_toggle = gui_tgl_new(ribbon_fit_control_label(ribbon_fit_make_row), (import rb_icon)[ribbon_fit_make_row], (import rb_cmd)[ribbon_fit_make_row], 0);
+} chain (Ribbon rib, GuiToggle[] ribbon_fit_make_list, int ribbon_fit_make_control) {
+  int ribbon_fit_make_width = rib.ribbon_rectangles[ribbon_fit_make_cell + 2] - (import rbd_arrow_px) * (ribbon_item_shape(ribbon_fit_make_row) == 2);
+  int ribbon_fit_make_visible = ribbon_item_shape(ribbon_fit_make_row) != 6;
+  gui_tgl_place(ribbon_fit_make_toggle, rib.ribbon_rectangles[ribbon_fit_make_cell], rib.ribbon_rectangles[ribbon_fit_make_cell + 1], ribbon_fit_make_width * ribbon_fit_make_visible, rib.ribbon_rectangles[ribbon_fit_make_cell + 3] * ribbon_fit_make_visible);
+} chain (Ribbon rib, GuiToggle[] ribbon_fit_make_list, int ribbon_fit_make_control) {
+  gui_btn_font(ribbon_fit_make_toggle.btn, (import ribbon_faces)[0]);
+  push(ribbon_fit_make_list, ribbon_fit_make_toggle);
 } return void;
-given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), (import rbd_ws), 0):() then rbd_t_nw:("30,3")
-given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), (import rbd_qs), 1):() then rbd_t_nw:("29,4")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ((import ribbon_fit_test_ribbon), (import ribbon_fit_body_widgets), 0):() then ribbon_fit_check_widget_counts:("30,3")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ((import ribbon_fit_test_ribbon), (import ribbon_fit_quick_widgets), 1):() then ribbon_fit_check_widget_counts:("29,4")
 
 // Makes a widget for every control of the ribbon rib, in the order of its controls, replacing those in rbl_ws.
-rbe_widgets(Ribbon rib, GuiToggle[] rbl_ws) {
-  int rbi_i = 0;
-  while(len(rbl_ws) > 0) {
-    pop(rbl_ws);
+ribbon_fit_make_widgets(Ribbon rib, GuiToggle[] ribbon_fit_widgets_list) {
+  int ribbon_fit_widgets_index = 0;
+  while(len(ribbon_fit_widgets_list) > 0) {
+    pop(ribbon_fit_widgets_list);
   }
-  while(rbi_i < len(rib.items)) {
-    rbe_make(rib, rbl_ws, rbi_i);
-    rbi_i = rbi_i + 1;
+  while(ribbon_fit_widgets_index < len(rib.items)) {
+    ribbon_fit_make_widget(rib, ribbon_fit_widgets_list, ribbon_fit_widgets_index);
+    ribbon_fit_widgets_index = ribbon_fit_widgets_index + 1;
   }
 } return void;
-given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), (import rbd_ws)):() then rbd_t_nw:("29,3")
-given lp_t_font given rbd_t_up(1024) ((import rbd_t_r), (import rbd_qs)):() then rbd_t_nw:("29,29")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ((import ribbon_fit_test_ribbon), (import ribbon_fit_body_widgets)):() then ribbon_fit_check_widget_counts:("29,3")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ((import ribbon_fit_test_ribbon), (import ribbon_fit_quick_widgets)):() then ribbon_fit_check_widget_counts:("29,29")

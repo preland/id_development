@@ -1,21 +1,21 @@
 // Test setup: asks for what the selection of the controller is like in the field cvi_f of sel_state (a quill_character_* offset, or 200 plus a quill_paragraph_* offset); cv_t_ans answers.
-cv_t_ask(int cvi_f) {
-  export int cv_t_f = cvi_f;
+view_flow_test_ask_field(int view_flow_ask_field) {
+  export int view_flow_test_field = view_flow_ask_field;
 } return void;
-given cv_t_ed("AB") (1):() then cv_t_ans:(0)
-given cv_t_ed("AB") (2):() then cv_t_ans:(24)
+given view_flow_test_open_edit("AB") (1):() then view_flow_test_answer_state:(0)
+given view_flow_test_open_edit("AB") (2):() then view_flow_test_answer_state:(24)
 
 // Test check: the answer of sel_state for the field cv_t_ask chose, for the selection of the controller.
-cv_t_ans() {
-  Ctl cvc = (import vw_ctl);
-  int cvi_s = sel_state((import lp_t_d), cvc, (import cv_t_f));
-} return int cvi_s;
-given cv_t_ed("AB") given cv_t_ask(2) ():(24)
-given cv_t_ed("AB") given cv_t_ask(201) ():(0)
+view_flow_test_answer_state() {
+  Ctl view_flow_answer_controller = (import view_input_controller);
+  int view_flow_answer_state = editor_selection_state((import layout_paragraph_test_document), view_flow_answer_controller, (import view_flow_test_field));
+} return int view_flow_answer_state;
+given view_flow_test_open_edit("AB") given view_flow_test_ask_field(2) ():(24)
+given view_flow_test_open_edit("AB") given view_flow_test_ask_field(201) ():(0)
 
 // Test check: the list vw_lk of what the selection looks like, comma separated.
-cv_t_lk() {
-  string cvs_z_t = "lk " + (dump_ints((import vw_lk)));
-} return string cvs_z_t;
-given cv_t_ed("AB") ():("lk 0,0,0,0,0,0,1,0,0,0,0,24,1,")
-given cv_t_ed("AB") given lset((import vw_lk), 12, 0) ():("lk 0,0,0,0,0,0,1,0,0,0,0,24,0,")
+view_flow_test_look_text() {
+  string view_flow_look_list_text = "lk " + (document_dump_integers((import view_input_selection_look_list)));
+} return string view_flow_look_list_text;
+given view_flow_test_open_edit("AB") ():("lk 0,0,0,0,0,0,1,0,0,0,0,24,1,")
+given view_flow_test_open_edit("AB") given lset((import view_input_selection_look_list), 12, 0) ():("lk 0,0,0,0,0,0,1,0,0,0,0,24,0,")

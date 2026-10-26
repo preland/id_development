@@ -1,42 +1,42 @@
 // The index of the master page called os_smaster in the table's master pairs, counted in pairs; the first master page when the name is "" or unknown, -1 when there is none.
-ost_pg_master_at(PgTab os_pg, string os_smaster) {
-  int os_im = 0 - 1;
-  int os_ik = 0;
-  if(len(os_pg.masters) > 0) {
-    os_im = 0;
+odt_named_page_master_index(odt_named_page_layouts odt_named_page_master_index_table, string odt_named_page_master_index_master_name) {
+  int odt_named_page_master_index_result = 0 - 1;
+  int odt_named_page_master_index_position = 0;
+  if(len(odt_named_page_master_index_table.masters) > 0) {
+    odt_named_page_master_index_result = 0;
   }
-} chain (PgTab os_pg, string os_smaster) {
-  while(os_ik < len(os_pg.masters)) {
-    if(os_pg.masters[os_ik] == os_smaster) {
-      os_im = os_ik / 2;
+} chain (odt_named_page_layouts odt_named_page_master_index_table, string odt_named_page_master_index_master_name) {
+  while(odt_named_page_master_index_position < len(odt_named_page_master_index_table.masters)) {
+    if(odt_named_page_master_index_table.masters[odt_named_page_master_index_position] == odt_named_page_master_index_master_name) {
+      odt_named_page_master_index_result = odt_named_page_master_index_position / 2;
     }
-    os_ik = os_ik + 2;
+    odt_named_page_master_index_position = odt_named_page_master_index_position + 2;
   }
-} return int os_im;
-(PgTab(["L"], [[1, 2, 0, 3, 3, 3, 3]], ["A", "L", "B", "L"]), "B"):(1)
-(PgTab(["L"], [[1, 2, 0, 3, 3, 3, 3]], ["A", "L", "B", "L"]), ""):(0)
-(PgTab(["L"], [[1, 2, 0, 3, 3, 3, 3]], []), "A"):(-1)
+} return int odt_named_page_master_index_result;
+(odt_named_page_layouts(["L"], [[1, 2, 0, 3, 3, 3, 3]], ["A", "L", "B", "L"]), "B"):(1)
+(odt_named_page_layouts(["L"], [[1, 2, 0, 3, 3, 3, 3]], ["A", "L", "B", "L"]), ""):(0)
+(odt_named_page_layouts(["L"], [[1, 2, 0, 3, 3, 3, 3]], []), "A"):(-1)
 
 // The index of the layout called os_slayout in the table, 0 (the first) when it is unknown.
-ost_pg_layout_at(PgTab os_pg, string os_slayout) {
-  int os_il = 0;
-  int os_ik = 0;
-  while(os_ik < len(os_pg.names)) {
-    if(os_pg.names[os_ik] == os_slayout) {
-      os_il = os_ik;
+odt_named_page_layout_index(odt_named_page_layouts odt_named_page_layout_index_table, string odt_named_page_layout_index_layout_name) {
+  int odt_named_page_layout_index_result = 0;
+  int odt_named_page_layout_index_position = 0;
+  while(odt_named_page_layout_index_position < len(odt_named_page_layout_index_table.names)) {
+    if(odt_named_page_layout_index_table.names[odt_named_page_layout_index_position] == odt_named_page_layout_index_layout_name) {
+      odt_named_page_layout_index_result = odt_named_page_layout_index_position;
     }
-    os_ik = os_ik + 1;
+    odt_named_page_layout_index_position = odt_named_page_layout_index_position + 1;
   }
-} return int os_il;
-(PgTab(["L", "N"], [[1, 2, 0, 3, 3, 3, 3], [4, 5, 0, 6, 6, 6, 6]], []), "N"):(1)
-(PgTab(["L", "N"], [[1, 2, 0, 3, 3, 3, 3], [4, 5, 0, 6, 6, 6, 6]], []), "Q"):(0)
+} return int odt_named_page_layout_index_result;
+(odt_named_page_layouts(["L", "N"], [[1, 2, 0, 3, 3, 3, 3], [4, 5, 0, 6, 6, 6, 6]], []), "N"):(1)
+(odt_named_page_layouts(["L", "N"], [[1, 2, 0, 3, 3, 3, 3], [4, 5, 0, 6, 6, 6, 6]], []), "Q"):(0)
 
 // The name of the layout of master pair im, "" for no master.
-ost_pg_lname(PgTab os_pg, int os_im) {
-  string os_slay = "";
-  if(os_im >= 0) {
-    os_slay = os_pg.masters[os_im * 2 + 1];
+odt_named_page_layout_name(odt_named_page_layouts odt_named_page_layout_name_table, int odt_named_page_layout_name_master_index) {
+  string odt_named_page_layout_name_result = "";
+  if(odt_named_page_layout_name_master_index >= 0) {
+    odt_named_page_layout_name_result = odt_named_page_layout_name_table.masters[odt_named_page_layout_name_master_index * 2 + 1];
   }
-} return string os_slay;
-(PgTab([], [], ["A", "L", "B", "M"]), 1):("M")
-(PgTab([], [], []), -1):("")
+} return string odt_named_page_layout_name_result;
+(odt_named_page_layouts([], [], ["A", "L", "B", "M"]), 1):("M")
+(odt_named_page_layouts([], [], []), -1):("")

@@ -1,28 +1,28 @@
 // Test fixture: the fields of paragraph row pp that this reader sets, as style,brk,list,level,kind.
-orc_t_row(Cx cx, int pp) {
-  Tab tb = cx.d.fmt.paras;
+odt_read_fixture_paragraph_fields(Odt_Read_Context odt_read_fixture_row_context, int pp) {
+  Tab tb = odt_read_fixture_row_context.d.fmt.paras;
   string text = tab_get(tb, pp, (import quill_paragraph_style)) + "," + tab_get(tb, pp, (import quill_paragraph_break_before)) + "," + tab_get(tb, pp, (import quill_paragraph_list));
   text = text + "," + tab_get(tb, pp, (import quill_paragraph_level)) + "," + tab_get(tb, pp, (import quill_paragraph_kind));
 } return string text;
-given orc_t_open("<a/>") ((import orc_tc), 0):("0,0,0,0,0")
-given orc_t_open("<a/>") ((import orc_tc), 8):("-1,0,0,0,0")
-given orc_t_open("<r><office:styles><style:style style:name='Quote2' style:family='paragraph'/></office:styles></r>") ((import orc_tc), 10):("8,0,0,0,0")
-given orc_t_open("<r><office:styles><style:style style:name='Heading_20_2' style:family='paragraph'/></office:styles><text:h text:outline-level='1'/><text:h text:style-name='Heading_20_2' text:outline-level='1'/></r>") given orc_t_steps(5) given orc_t_prop given orc_t_steps(1) given orc_t_prop ((import orc_tc), 10):("4,0,0,0,0")
+given odt_read_fixture_open("<a/>") ((import odt_read_fixture_context), 0):("0,0,0,0,0")
+given odt_read_fixture_open("<a/>") ((import odt_read_fixture_context), 8):("-1,0,0,0,0")
+given odt_read_fixture_open("<r><office:styles><style:style style:name='Quote2' style:family='paragraph'/></office:styles></r>") ((import odt_read_fixture_context), 10):("8,0,0,0,0")
+given odt_read_fixture_open("<r><office:styles><style:style style:name='Heading_20_2' style:family='paragraph'/></office:styles><text:h text:outline-level='1'/><text:h text:style-name='Heading_20_2' text:outline-level='1'/></r>") given odt_read_fixture_step_events(5) given odt_read_fixture_add_paragraph given odt_read_fixture_step_events(1) given odt_read_fixture_add_paragraph ((import odt_read_fixture_context), 10):("4,0,0,0,0")
 
 // Test fixture: where the automatic styles orc_tc has noted are, as name:offset, comma separated.
-orc_t_names() {
-  Cx cx = (import orc_tc);
-  string text = orc_t_pairs(cx.cs.lstyles);
+odt_read_fixture_style_offsets() {
+  Odt_Read_Context odt_read_fixture_names_context = (import odt_read_fixture_context);
+  string text = odt_read_fixture_name_pairs(odt_read_fixture_names_context.cs.odt_read_automatic_styles);
 } return string text;
-given orc_t_open("<a/>") ():("")
-given orc_t_open("<a/>") given orc_a_push((import orc_tc), "P1", 5, 9) ():("auto:P1:5,aend:P1:9,")
+given odt_read_fixture_open("<a/>") ():("")
+given odt_read_fixture_open("<a/>") given odt_read_automatic_push((import odt_read_fixture_context), "P1", 5, 9) ():("auto:P1:5,aend:P1:9,")
 
 // Test fixture: a table of names as name:value, comma separated.
-orc_t_pairs(Names nm) {
+odt_read_fixture_name_pairs(Names odt_read_fixture_pairs_names) {
   string text = "";
   int i = 0;
-  while(i < len(nm.keys)) {
-    text = text + nm.keys[i] + ":" + nm.vals[i] + ",";
+  while(i < len(odt_read_fixture_pairs_names.keys)) {
+    text = text + odt_read_fixture_pairs_names.keys[i] + ":" + odt_read_fixture_pairs_names.odt_read_values[i] + ",";
     i = i + 1;
   }
 } return string text;

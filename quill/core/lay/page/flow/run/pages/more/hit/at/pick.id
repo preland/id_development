@@ -1,44 +1,44 @@
 // Which lines of paragraph lhi are on page lhk: lhr becomes [first line, line after the last]. A paragraph that carries on from the page before starts at the line the page starts at, one that goes on past the page ends at the line the next page starts at.
 // By hand: the 28-letter paragraph has lines 0 to 7 on page 0 and 8 and 9 on page 1; of 8 one-line paragraphs, paragraph 7 is on page 1 with its line 0.
-lay_span(View lhv, int lhk, int lhi, int[] lhr) {
-  int lhf = 0;
-  int lht = len(lhv.doc.body.paras[lhi].lay.lines) / (import quill_line_stride);
-  if(lhv.pages.starts[2 * lhk] == lhi) {
-    lhf = lhv.pages.starts[2 * lhk + 1];
+lay_span(View hit_view, int target_page, int target_paragraph, int[] result_list) {
+  int span_first_line = 0;
+  int span_end_line = len(hit_view.doc.body.paras[target_paragraph].lay.lines) / (import quill_line_stride);
+  if(hit_view.pages.starts[2 * target_page] == target_paragraph) {
+    span_first_line = hit_view.pages.starts[2 * target_page + 1];
   }
-} chain (View lhv, int lhk, int lhi, int[] lhr) {
-  if(lhv.pages.starts[2 * lhk + 2] == lhi) {
-    lht = lhv.pages.starts[2 * lhk + 3];
+} chain (View hit_view, int target_page, int target_paragraph, int[] result_list) {
+  if(hit_view.pages.starts[2 * target_page + 2] == target_paragraph) {
+    span_end_line = hit_view.pages.starts[2 * target_page + 3];
   }
-  lset(lhr, 0, lhf);
-  lset(lhr, 1, lht);
+  lset(result_list, 0, span_first_line);
+  lset(result_list, 1, span_end_line);
 } return void;
-given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 0, 0, [9, 9]):((import lp_t_v), 0, 0, [0, 8])
-given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 1, 0, [9, 9]):((import lp_t_v), 1, 0, [8, 10])
-given lg_t_paged(8) ((import lp_t_v), 1, 7, [9, 9]):((import lp_t_v), 1, 7, [0, 1])
+given layout_page_test_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import layout_paragraph_test_view), 0, 0, [9, 9]):((import layout_paragraph_test_view), 0, 0, [0, 8])
+given layout_page_test_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import layout_paragraph_test_view), 1, 0, [9, 9]):((import layout_paragraph_test_view), 1, 0, [8, 10])
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), 1, 7, [9, 9]):((import layout_paragraph_test_view), 1, 7, [0, 1])
 
 // Records line lhj of paragraph lhi in lhr, [paragraph, line, found], found being 1 when the line reaches below page height lhy, that is when it is the line that holds lhy or one below it.
 // By hand: line 1 of "BBB EEE BBB" spans 1792 to 2944 on the page, so it reaches below 1000 and does not reach below 5000.
-lay_visit(View lhv, int lhi, int lhj, int lhy, int[] lhr) {
-  int lhf = lay_line_y(lhv, lhi, lhj) + lay_line_h(lhv, lhi, lhj) > lhy;
-  lset(lhr, 0, lhi);
-  lset(lhr, 1, lhj);
-} chain (View lhv, int lhi, int lhj, int lhy, int[] lhr) {
-  lset(lhr, 2, lhf);
+lay_visit(View hit_view, int target_paragraph, int target_line, int target_height, int[] result_list) {
+  int reaches_below = lay_line_y(hit_view, target_paragraph, target_line) + layout_page_line_height(hit_view, target_paragraph, target_line) > target_height;
+  lset(result_list, 0, target_paragraph);
+  lset(result_list, 1, target_line);
+} chain (View hit_view, int target_paragraph, int target_line, int target_height, int[] result_list) {
+  lset(result_list, 2, reaches_below);
 } return void;
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 1, 1000, [9, 9, 9]):((import lp_t_v), 0, 1, 1000, [0, 1, 1])
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 1, 5000, [9, 9, 9]):((import lp_t_v), 0, 1, 5000, [0, 1, 0])
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 1, 1000, [9, 9, 9]):((import layout_paragraph_test_view), 0, 1, 1000, [0, 1, 1])
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 1, 5000, [9, 9, 9]):((import layout_paragraph_test_view), 0, 1, 5000, [0, 1, 0])
 
 // The line of page lhk that holds height lhy, in lu from the top of the page, or the last line of the page when lhy is below them all: lhr, which must hold [0, 0, 0], becomes [paragraph, line, found], found 0 for the last line of a page that lhy is below. The gap between two paragraphs belongs to the line under it.
 // By hand: in "BBB EEE BBB" the heights 1900 and 2000 are on line 1 (1792 to 2944) and 9000 is below all three, so the last line, 2, without found; on page 1 of the 28-letter paragraph 700 is above its first line, 8.
-lay_pick(View lhv, int lhk, int lhy, int[] lhr) {
-  int lhi = lhv.pages.starts[2 * lhk];
-  int lhe = lhv.pages.starts[2 * lhk + 2] + (lhv.pages.starts[2 * lhk + 3] > 0);
-  while(lhi < lhe && lhr[2] == 0) {
-    lay_pick_para(lhv, lhk, lhi, lhy, lhr);
-    lhi = lhi + 1;
+lay_pick(View hit_view, int target_page, int target_height, int[] result_list) {
+  int target_paragraph = hit_view.pages.starts[2 * target_page];
+  int layout_end_paragraph = hit_view.pages.starts[2 * target_page + 2] + (hit_view.pages.starts[2 * target_page + 3] > 0);
+  while(target_paragraph < layout_end_paragraph && result_list[2] == 0) {
+    lay_pick_para(hit_view, target_page, target_paragraph, target_height, result_list);
+    target_paragraph = target_paragraph + 1;
   }
 } return void;
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 1900, [0, 0, 0]):((import lp_t_v), 0, 1900, [0, 1, 1])
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 9000, [0, 0, 0]):((import lp_t_v), 0, 9000, [0, 2, 0])
-given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 1, 700, [0, 0, 0]):((import lp_t_v), 1, 700, [0, 8, 1])
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 1900, [0, 0, 0]):((import layout_paragraph_test_view), 0, 1900, [0, 1, 1])
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 9000, [0, 0, 0]):((import layout_paragraph_test_view), 0, 9000, [0, 2, 0])
+given layout_page_test_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import layout_paragraph_test_view), 1, 700, [0, 0, 0]):((import layout_paragraph_test_view), 1, 700, [0, 8, 1])

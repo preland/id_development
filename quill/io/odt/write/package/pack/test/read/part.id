@@ -1,22 +1,22 @@
 // Test fixture (internal): the bytes of the preserved image as the exported archive, once packed, hands them back through our reader.
-odp_t_part() {
-  bytes pkzb = bytes_of_int_list(zw_finish((import odp_t_z)));
-  Zip pkzr = zip_reader_open(pkzb);
-  int pkat = zip_reader_find(pkzr, "Pictures/a.png");
+odt_package_fixture_image_bytes() {
+  bytes odt_package_image_archive = bytes_of_int_list(zw_finish((import odt_package_exported_archive)));
+  Zip odt_package_image_reader = zip_reader_open(odt_package_image_archive);
+  int odt_package_image_position = zip_reader_find(odt_package_image_reader, "Pictures/a.png");
 } chain () {
-  int[] pkrd = zip_reader_read(pkzr, pkat);
-} return int[] pkrd;
-given odp_t_new given odp_t_img given odp_pack((import odp_t_d), [1], (import odp_t_z)) ():([137, 80, 78, 71, 0, 255])
-given odp_t_new given odp_pack((import odp_t_d), [1], (import odp_t_z)) ():([])
+  int[] odt_package_image_content = zip_reader_read(odt_package_image_reader, odt_package_image_position);
+} return int[] odt_package_image_content;
+given odt_package_fixture_new given odt_package_fixture_add_image given odp_pack((import odt_package_exported_default_document), [1], (import odt_package_exported_archive)) ():([137, 80, 78, 71, 0, 255])
+given odt_package_fixture_new given odp_pack((import odt_package_exported_default_document), [1], (import odt_package_exported_archive)) ():([])
 
 // Test fixture (internal): how many entries of the archive, other than mimetype and the manifest itself, the manifest text does not give a manifest:full-path.
-odp_t_unlisted(Zip pkzr, string pkmf) {
-  int pki = 0;
-  int pkn = 0;
-  while(pki < zip_reader_count(pkzr)) {
-    pkn = pkn + odp_t_miss(pkzr, pki, pkmf);
-    pki = pki + 1;
+odt_package_fixture_count_unlisted(Zip odt_package_unlisted_reader, string odt_package_unlisted_manifest) {
+  int odt_package_unlisted_index = 0;
+  int odt_package_unlisted_count = 0;
+  while(odt_package_unlisted_index < zip_reader_count(odt_package_unlisted_reader)) {
+    odt_package_unlisted_count = odt_package_unlisted_count + odt_package_fixture_entry_unlisted(odt_package_unlisted_reader, odt_package_unlisted_index, odt_package_unlisted_manifest);
+    odt_package_unlisted_index = odt_package_unlisted_index + 1;
   }
-} return int pkn;
+} return int odt_package_unlisted_count;
 (Zip([], [], ["", "mimetype", "a", "META-INF/manifest.xml"]), "manifest:full-path=\"a\""):(0)
 (Zip([], [], ["", "mimetype", "a", "b", "META-INF/manifest.xml"]), "manifest:full-path=\"a\""):(1)

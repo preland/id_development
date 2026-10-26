@@ -1,34 +1,34 @@
 // One hex digit folded into a colour under construction; -1 stays -1 and a value that is not a digit makes it -1.
-ost_hexacc(int os_icol, int os_iv) {
-  int os_iout = os_icol * 16 + os_iv;
-  if(os_icol < 0 || os_iv < 0) {
-    os_iout = 0 - 1;
+odt_named_hex_accumulate(int odt_named_hex_accumulate_color, int odt_named_hex_accumulate_digit) {
+  int odt_named_hex_accumulate_result = odt_named_hex_accumulate_color * 16 + odt_named_hex_accumulate_digit;
+  if(odt_named_hex_accumulate_color < 0 || odt_named_hex_accumulate_digit < 0) {
+    odt_named_hex_accumulate_result = 0 - 1;
   }
-} return int os_iout;
+} return int odt_named_hex_accumulate_result;
 (255, 10):(4090)
 (255, -1):(-1)
 (-1, 5):(-1)
 
 // The six hex digits of os_ss from index 1 as a number, -1 when one of them is not a hex digit.
-ost_hex6(string os_ss) {
-  int os_icol = 0;
+odt_named_hex_six_digits(string odt_named_hex_six_digits_text) {
+  int odt_named_hex_six_digits_color = 0;
   int i = 1;
   while(i < 7) {
-    int os_iv = ost_hexval(character_code_at(os_ss, i));
-    os_icol = ost_hexacc(os_icol, os_iv);
+    int odt_named_hex_six_digits_digit = odt_named_hex_digit_value(character_code_at(odt_named_hex_six_digits_text, i));
+    odt_named_hex_six_digits_color = odt_named_hex_accumulate(odt_named_hex_six_digits_color, odt_named_hex_six_digits_digit);
     i = i + 1;
   }
-} return int os_icol;
+} return int odt_named_hex_six_digits_color;
 ("#ff0000"):(16711680)
 ("#12345g"):(-1)
 
 // "#rrggbb" as 0xRRGGBB, or -1 for anything else ("transparent", a name, a short form).
-ost_color(string os_ss) {
-  int os_icol = 0 - 1;
-  if(len(os_ss) == 7 && character_code_at(os_ss, 0) == 35) {
-    os_icol = ost_hex6(os_ss);
+odt_named_color_parse(string odt_named_color_parse_text) {
+  int odt_named_color_parse_color = 0 - 1;
+  if(len(odt_named_color_parse_text) == 7 && character_code_at(odt_named_color_parse_text, 0) == 35) {
+    odt_named_color_parse_color = odt_named_hex_six_digits(odt_named_color_parse_text);
   }
-} return int os_icol;
+} return int odt_named_color_parse_color;
 ("#00aa00"):(43520)
 ("transparent"):(-1)
 ("#0000ff"):(255)

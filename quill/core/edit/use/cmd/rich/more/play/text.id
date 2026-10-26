@@ -1,34 +1,34 @@
 // The typing and deleting verbs of ed_play: T types argt, E is Enter, B Backspace, W Ctrl+Backspace, D Delete, F Ctrl+Delete.
-ed_play_text(Doc d, Ctl ctl, int verb, string argt) {
+editor_play_text(Doc d, Ctl ctl, int verb, string argument_text) {
   if(verb == 84) {
-    ed_type_str(d, ctl, argt);
+    editor_type_string(d, ctl, argument_text);
   }
   if(verb == 69) {
-    ed_break(d, ctl, 0);
+    editor_break(d, ctl, 0);
   }
   if(verb == 66) {
-    ed_back(d, ctl, 0);
+    editor_back(d, ctl, 0);
   }
-} chain (Doc d, Ctl ctl, int verb, string argt) {
+} chain (Doc d, Ctl ctl, int verb, string argument_text) {
   if(verb == 87) {
-    ed_back(d, ctl, 1);
+    editor_back(d, ctl, 1);
   }
   if(verb == 68) {
-    ed_delete(d, ctl, 0);
+    editor_delete(d, ctl, 0);
   }
   if(verb == 70) {
-    ed_delete(d, ctl, 1);
+    editor_delete(d, ctl, 1);
   }
 } return void;
-given fx_setup("foo bar") given fx_at(0, 7, 0, 7) ((import fxd), (import fxc), 87, ""):((import fxd), (import fxc), 87, "") then fx_show:("foo ")
-given fx_setup("foo bar") ((import fxd), (import fxc), 70, ""):((import fxd), (import fxc), 70, "") then fx_show:("bar")
-given fx_setup("foo bar") ((import fxd), (import fxc), 84, "x"):((import fxd), (import fxc), 84, "x") then fx_show:("xfoo bar")
-given fx_setup("foo bar") given fx_at(0, 3, 0, 3) ((import fxd), (import fxc), 66, ""):((import fxd), (import fxc), 66, "") then fx_show:("fo bar")
-given fx_setup("foo bar") given fx_at(0, 3, 0, 3) ((import fxd), (import fxc), 68, ""):((import fxd), (import fxc), 68, "") then fx_show:("foobar")
-given fx_setup("foo bar") given fx_at(0, 3, 0, 3) ((import fxd), (import fxc), 69, ""):((import fxd), (import fxc), 69, "") then fx_show:("foo| bar")
+given editor_fixture_setup("foo bar") given editor_fixture_selection_at(0, 7, 0, 7) ((import fixture_document), (import fixture_control), 87, ""):((import fixture_document), (import fixture_control), 87, "") then editor_fixture_show:("foo ")
+given editor_fixture_setup("foo bar") ((import fixture_document), (import fixture_control), 70, ""):((import fixture_document), (import fixture_control), 70, "") then editor_fixture_show:("bar")
+given editor_fixture_setup("foo bar") ((import fixture_document), (import fixture_control), 84, "x"):((import fixture_document), (import fixture_control), 84, "x") then editor_fixture_show:("xfoo bar")
+given editor_fixture_setup("foo bar") given editor_fixture_selection_at(0, 3, 0, 3) ((import fixture_document), (import fixture_control), 66, ""):((import fixture_document), (import fixture_control), 66, "") then editor_fixture_show:("fo bar")
+given editor_fixture_setup("foo bar") given editor_fixture_selection_at(0, 3, 0, 3) ((import fixture_document), (import fixture_control), 68, ""):((import fixture_document), (import fixture_control), 68, "") then editor_fixture_show:("foobar")
+given editor_fixture_setup("foo bar") given editor_fixture_selection_at(0, 3, 0, 3) ((import fixture_document), (import fixture_control), 69, ""):((import fixture_document), (import fixture_control), 69, "") then editor_fixture_show:("foo| bar")
 
 // The history and clipboard verbs of ed_play: U undo, R redo, C copy, X cut, V paste what was copied (through its plain text, as the system clipboard would), P paste argt as foreign text.
-ed_play_hist(Doc d, Ctl ctl, int verb, string argt) {
+editor_play_history(Doc d, Ctl ctl, int verb, string argument_text) {
   if(verb == 85) {
     hist_undo(d, ctl);
   }
@@ -36,22 +36,22 @@ ed_play_hist(Doc d, Ctl ctl, int verb, string argt) {
     hist_redo(d, ctl);
   }
   if(verb == 67) {
-    ed_copy(d, ctl);
+    editor_copy(d, ctl);
   }
-} chain (Doc d, Ctl ctl, int verb, string argt) {
+} chain (Doc d, Ctl ctl, int verb, string argument_text) {
   if(verb == 88) {
-    ed_cut(d, ctl);
+    editor_cut(d, ctl);
   }
   if(verb == 86) {
-    ed_paste(d, ctl, frag_plain(ctl.clip));
+    editor_paste(d, ctl, frag_plain(ctl.clip));
   }
   if(verb == 80) {
-    ed_paste(d, ctl, argt);
+    editor_paste(d, ctl, argument_text);
   }
 } return void;
-given fx_setup("ab") given fx_at(0, 0, 0, 1) ((import fxd), (import fxc), 88, ""):((import fxd), (import fxc), 88, "") then fx_show:("b")
-given fx_setup("ab") given fx_at(0, 0, 0, 1) given fx_copied given fx_at(0, 2, 0, 2) ((import fxd), (import fxc), 86, ""):((import fxd), (import fxc), 86, "") then fx_show:("aba")
-given fx_setup("ab") ((import fxd), (import fxc), 80, "zz"):((import fxd), (import fxc), 80, "zz") then fx_show:("zzab")
-given fx_setup("ab") given fx_at(0, 0, 0, 1) ((import fxd), (import fxc), 67, ""):((import fxd), (import fxc), 67, "") then fx_clip:("a")
-given fx_setup("ab") given ed_type((import fxd), (import fxc), 120) given fx_undo ((import fxd), (import fxc), 82, ""):((import fxd), (import fxc), 82, "") then fx_show:("xab")
-given fx_setup("ab") given ed_type((import fxd), (import fxc), 120) ((import fxd), (import fxc), 85, ""):((import fxd), (import fxc), 85, "") then fx_show:("ab")
+given editor_fixture_setup("ab") given editor_fixture_selection_at(0, 0, 0, 1) ((import fixture_document), (import fixture_control), 88, ""):((import fixture_document), (import fixture_control), 88, "") then editor_fixture_show:("b")
+given editor_fixture_setup("ab") given editor_fixture_selection_at(0, 0, 0, 1) given editor_fixture_copied given editor_fixture_selection_at(0, 2, 0, 2) ((import fixture_document), (import fixture_control), 86, ""):((import fixture_document), (import fixture_control), 86, "") then editor_fixture_show:("aba")
+given editor_fixture_setup("ab") ((import fixture_document), (import fixture_control), 80, "zz"):((import fixture_document), (import fixture_control), 80, "zz") then editor_fixture_show:("zzab")
+given editor_fixture_setup("ab") given editor_fixture_selection_at(0, 0, 0, 1) ((import fixture_document), (import fixture_control), 67, ""):((import fixture_document), (import fixture_control), 67, "") then editor_fixture_clipboard:("a")
+given editor_fixture_setup("ab") given editor_type((import fixture_document), (import fixture_control), 120) given editor_fixture_undo ((import fixture_document), (import fixture_control), 82, ""):((import fixture_document), (import fixture_control), 82, "") then editor_fixture_show:("xab")
+given editor_fixture_setup("ab") given editor_type((import fixture_document), (import fixture_control), 120) ((import fixture_document), (import fixture_control), 85, ""):((import fixture_document), (import fixture_control), 85, "") then editor_fixture_show:("ab")

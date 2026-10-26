@@ -1,39 +1,39 @@
 // The text of a font family value without the quotes ODT wraps around a name with a space: 'Liberation Sans' is Liberation Sans.
-ost_unquote(string os_sv) {
-  string os_su = os_sv;
-  int os_ic = character_code_at(os_sv, 0);
-  int os_in = len(os_sv) - 2;
-} chain (string os_sv) {
-  if((os_ic == 39 || os_ic == 34) && os_in >= 0) {
-    os_su = str_sub(os_sv, 1, os_in);
+odt_named_family_unquote(string odt_named_family_unquote_text) {
+  string odt_named_family_unquote_result = odt_named_family_unquote_text;
+  int odt_named_family_unquote_code = character_code_at(odt_named_family_unquote_text, 0);
+  int os_in = len(odt_named_family_unquote_text) - 2;
+} chain (string odt_named_family_unquote_text) {
+  if((odt_named_family_unquote_code == 39 || odt_named_family_unquote_code == 34) && os_in >= 0) {
+    odt_named_family_unquote_result = str_sub(odt_named_family_unquote_text, 1, os_in);
   }
-} return string os_su;
+} return string odt_named_family_unquote_result;
 ("'Liberation Sans'"):("Liberation Sans")
 ("\"A\""):("A")
 ("FreeSans"):("FreeSans")
 
 // The font family a text-properties element names: style:font-name (a face declared in font-face-decls, resolved later) or else fo:font-family; "" when neither.
-ost_cfont(XmlR os_r) {
-  string os_sf = xml_reader_attr(os_r, "style:font-name");
-  string os_sg = xml_reader_attr(os_r, "fo:font-family");
-  if(os_sf == "") {
-    os_sf = ost_unquote(os_sg);
+odt_named_font_family(XmlR odt_named_font_family_reader) {
+  string odt_named_font_family_font_name = xml_reader_attr(odt_named_font_family_reader, "style:font-name");
+  string odt_named_font_family_family_attribute = xml_reader_attr(odt_named_font_family_reader, "fo:font-family");
+  if(odt_named_font_family_font_name == "") {
+    odt_named_font_family_font_name = odt_named_family_unquote(odt_named_font_family_family_attribute);
   }
-} return string os_sf;
-given ost_t_open("<p style:font-name=\"Liberation Serif\" fo:font-family=\"x\"/>") given xml_reader_skip((import ost_t_r), 1) ((import ost_t_r)):("Liberation Serif")
-given ost_t_open("<p fo:font-family=\"'Liberation Sans'\"/>") given xml_reader_skip((import ost_t_r), 1) ((import ost_t_r)):("Liberation Sans")
-given ost_t_open("<p/>") given xml_reader_skip((import ost_t_r), 1) ((import ost_t_r)):("")
+} return string odt_named_font_family_font_name;
+given odt_named_reader_open("<p style:font-name=\"Liberation Serif\" fo:font-family=\"x\"/>") given xml_reader_skip((import odt_named_reader), 1) ((import odt_named_reader)):("Liberation Serif")
+given odt_named_reader_open("<p fo:font-family=\"'Liberation Sans'\"/>") given xml_reader_skip((import odt_named_reader), 1) ((import odt_named_reader)):("Liberation Sans")
+given odt_named_reader_open("<p/>") given xml_reader_skip((import odt_named_reader), 1) ((import odt_named_reader)):("")
 
 // Reads every attribute ost_cattr lists off the current element into a character row.
-ost_ctext(int[] os_lcrow, XmlR os_r) {
-  int os_ik = 0;
-  while(os_ik < len((import ost_cattr))) {
-    string os_sv = xml_reader_attr(os_r, (import ost_cattr)[os_ik]);
-    if(os_sv != "") {
-      ost_cset(os_lcrow, os_ik, os_sv);
+odt_named_character_attributes(int[] odt_named_character_attributes_row, XmlR odt_named_character_attributes_reader) {
+  int odt_named_character_attributes_attribute = 0;
+  while(odt_named_character_attributes_attribute < len((import ost_cattr))) {
+    string odt_named_character_attributes_text = xml_reader_attr(odt_named_character_attributes_reader, (import ost_cattr)[odt_named_character_attributes_attribute]);
+    if(odt_named_character_attributes_text != "") {
+      odt_named_character_apply(odt_named_character_attributes_row, odt_named_character_attributes_attribute, odt_named_character_attributes_text);
     }
-    os_ik = os_ik + 1;
+    odt_named_character_attributes_attribute = odt_named_character_attributes_attribute + 1;
   }
 } return void;
-given ost_t_open("<p fo:font-weight=\"bold\" fo:color=\"#0000ff\" fo:font-size=\"18pt\"/>") given xml_reader_skip((import ost_t_r), 1) ([0, -1, -1, -1, -1, 0, 0], (import ost_t_r)):([0, -1, 36, 255, -1, 1, 1], (import ost_t_r))
-given ost_t_open("<p style:text-underline-style=\"solid\" fo:font-style=\"italic\"/>") given xml_reader_skip((import ost_t_r), 1) ([0, -1, -1, -1, -1, 0, 0], (import ost_t_r)):([0, -1, -1, -1, -1, 6, 6], (import ost_t_r))
+given odt_named_reader_open("<p fo:font-weight=\"bold\" fo:color=\"#0000ff\" fo:font-size=\"18pt\"/>") given xml_reader_skip((import odt_named_reader), 1) ([0, -1, -1, -1, -1, 0, 0], (import odt_named_reader)):([0, -1, 36, 255, -1, 1, 1], (import odt_named_reader))
+given odt_named_reader_open("<p style:text-underline-style=\"solid\" fo:font-style=\"italic\"/>") given xml_reader_skip((import odt_named_reader), 1) ([0, -1, -1, -1, -1, 0, 0], (import odt_named_reader)):([0, -1, -1, -1, -1, 6, 6], (import odt_named_reader))

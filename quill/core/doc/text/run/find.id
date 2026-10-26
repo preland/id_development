@@ -1,38 +1,38 @@
 // The index of the run holding code point off; an offset past the end gives the last run, so a caret at the end of a paragraph still finds one.
-run_at(Text t, int off) {
-  int i = 0;
-  int end = t.runs[0].len;
-  while(end <= off && i < len(t.runs) - 1) {
-    i = i + 1;
-    end = end + t.runs[i].len;
+run_at(Text run_find_text, int off) {
+  int run_find_index = 0;
+  int end = run_find_text.runs[0].len;
+  while(end <= off && run_find_index < len(run_find_text.runs) - 1) {
+    run_find_index = run_find_index + 1;
+    end = end + run_find_text.runs[run_find_index].len;
   }
-} return int i;
+} return int run_find_index;
 (Text([1, 2, 3], [Run(2, 0, -1), Run(1, 5, -1)], 0), 0):(0)
 (Text([1, 2, 3], [Run(2, 0, -1), Run(1, 5, -1)], 0), 1):(0)
 (Text([1, 2, 3], [Run(2, 0, -1), Run(1, 5, -1)], 0), 2):(1)
 (Text([1, 2, 3], [Run(2, 0, -1), Run(1, 5, -1)], 0), 3):(1)
 (Text([], [Run(0, 0, -1)], 0), 0):(0)
 
-run_start(Text t, int i) {
+run_start(Text run_begin_text, int run_begin_run_index) {
   int at = 0;
-  int j = 0;
-  while(j < i) {
-    at = at + t.runs[j].len;
-    j = j + 1;
+  int run_begin_step_index = 0;
+  while(run_begin_step_index < run_begin_run_index) {
+    at = at + run_begin_text.runs[run_begin_step_index].len;
+    run_begin_step_index = run_begin_step_index + 1;
   }
 } return int at;
 (Text([1, 2, 3], [Run(2, 0, -1), Run(1, 5, -1)], 0), 0):(0)
 (Text([1, 2, 3], [Run(2, 0, -1), Run(1, 5, -1)], 0), 1):(2)
 
 // Makes a run boundary at off and returns the index of the run that starts there: 0 for an offset at or before the start, the run count for one at or past the end.
-run_cut(Text t, int off) {
-  int i = len(t.runs);
+run_cut(Text run_boundary_text, int off) {
+  int run_boundary_index = len(run_boundary_text.runs);
   if(off <= 0) {
-    i = 0;
-  } else if(off < len(t.cps)) {
-    i = run_split(t, run_at(t, off), off);
+    run_boundary_index = 0;
+  } else if(off < len(run_boundary_text.cps)) {
+    run_boundary_index = run_split(run_boundary_text, run_at(run_boundary_text, off), off);
   }
-} return int i;
+} return int run_boundary_index;
 (Text([1, 2, 3], [Run(3, 0, -1)], 0), 1):(1) then calls run_halve:[1]
 (Text([1, 2, 3], [Run(1, 0, -1), Run(2, 5, -1)], 0), 1):(1) then calls run_halve:[0]
 (Text([1, 2, 3], [Run(3, 0, -1)], 0), 3):(1) then calls run_split:[0]

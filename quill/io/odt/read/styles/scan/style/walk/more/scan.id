@@ -1,38 +1,38 @@
 // What one event of a styles document changes: whether the reader is inside office:automatic-styles (1 or 0, -1 once the body has begun and nothing more is wanted), and a record when the event starts a style:style or the default paragraph style.
-ost_scan_one(StyBag os_b, XmlR os_r, int os_iev, int os_iauto) {
-  string os_sname = xml_reader_get(os_r, (import xml_reader_k_name));
-  int os_inext = os_iauto;
-  string os_skind = ost_kind(os_iauto);
-} chain (StyBag os_b, XmlR os_r, int os_iev, int os_iauto) {
-  if(os_sname == "style:style") {
-    ost_rec_read(os_b, os_r, os_iev, os_skind);
+odt_named_scan_event(odt_named_style_records odt_named_scan_event_bag, XmlR odt_named_scan_event_reader, int odt_named_scan_event_event, int odt_named_scan_event_automatic) {
+  string odt_named_scan_event_element_name = xml_reader_get(odt_named_scan_event_reader, (import xml_reader_k_name));
+  int odt_named_scan_event_next_state = odt_named_scan_event_automatic;
+  string odt_named_scan_event_kind = odt_named_record_kind(odt_named_scan_event_automatic);
+} chain (odt_named_style_records odt_named_scan_event_bag, XmlR odt_named_scan_event_reader, int odt_named_scan_event_event, int odt_named_scan_event_automatic) {
+  if(odt_named_scan_event_element_name == "style:style") {
+    odt_named_record_read(odt_named_scan_event_bag, odt_named_scan_event_reader, odt_named_scan_event_event, odt_named_scan_event_kind);
   }
-  if(os_sname == "office:automatic-styles") {
-    os_inext = os_iev == 1;
+  if(odt_named_scan_event_element_name == "office:automatic-styles") {
+    odt_named_scan_event_next_state = odt_named_scan_event_event == 1;
   }
-  if(os_sname == "office:body") {
-    os_inext = 0 - 1;
+  if(odt_named_scan_event_element_name == "office:body") {
+    odt_named_scan_event_next_state = 0 - 1;
   }
-} chain (StyBag os_b, XmlR os_r, int os_iev, int os_iauto) {
-  if(os_sname == "style:default-style" && xml_reader_attr(os_r, "style:family") == "paragraph") {
-    ost_rec_read(os_b, os_r, os_iev, "d");
+} chain (odt_named_style_records odt_named_scan_event_bag, XmlR odt_named_scan_event_reader, int odt_named_scan_event_event, int odt_named_scan_event_automatic) {
+  if(odt_named_scan_event_element_name == "style:default-style" && xml_reader_attr(odt_named_scan_event_reader, "style:family") == "paragraph") {
+    odt_named_record_read(odt_named_scan_event_bag, odt_named_scan_event_reader, odt_named_scan_event_event, "d");
   }
-} return int os_inext;
-given ost_t_mkbag given ost_t_open("<style:default-style style:family=\"paragraph\"><style:text-properties fo:font-size=\"12pt\"/></style:default-style>") given xml_reader_skip((import ost_t_r), 1) given ost_t_pick(0) ((import ost_t_b), (import ost_t_r), 1, 0):(0) then ost_t_c:([0, -1, 24, -1, -1, 0, 0])
-given ost_t_mkbag given ost_t_open("<style:default-style style:family=\"table\"><style:text-properties fo:font-size=\"12pt\"/></style:default-style>") given xml_reader_skip((import ost_t_r), 1) ((import ost_t_b), (import ost_t_r), 1, 0):(0) then (import ost_t_b).strings:([])
-given ost_t_mkbag given ost_t_open("<office:automatic-styles/>") given xml_reader_skip((import ost_t_r), 1) ((import ost_t_b), (import ost_t_r), 4, 1):(0)
-given ost_t_mkbag given ost_t_open("<office:automatic-styles><a/></office:automatic-styles>") given xml_reader_skip((import ost_t_r), 1) ((import ost_t_b), (import ost_t_r), 1, 0):(1)
-given ost_t_mkbag given ost_t_open("<office:body/>") given xml_reader_skip((import ost_t_r), 1) ((import ost_t_b), (import ost_t_r), 1, 1):(-1)
-given ost_t_mkbag given ost_t_open("<style:style style:name=\"P\" style:family=\"paragraph\"/>") given xml_reader_skip((import ost_t_r), 1) ((import ost_t_b), (import ost_t_r), 4, 1):(1) then (import ost_t_b).strings:(["P", "", "", "", "", "", "p", "a"])
+} return int odt_named_scan_event_next_state;
+given odt_named_bag_fixture given odt_named_reader_open("<style:default-style style:family=\"paragraph\"><style:text-properties fo:font-size=\"12pt\"/></style:default-style>") given xml_reader_skip((import odt_named_reader), 1) given odt_named_bag_pick(0) ((import odt_named_bag), (import odt_named_reader), 1, 0):(0) then odt_named_bag_character_row:([0, -1, 24, -1, -1, 0, 0])
+given odt_named_bag_fixture given odt_named_reader_open("<style:default-style style:family=\"table\"><style:text-properties fo:font-size=\"12pt\"/></style:default-style>") given xml_reader_skip((import odt_named_reader), 1) ((import odt_named_bag), (import odt_named_reader), 1, 0):(0) then (import odt_named_bag).strings:([])
+given odt_named_bag_fixture given odt_named_reader_open("<office:automatic-styles/>") given xml_reader_skip((import odt_named_reader), 1) ((import odt_named_bag), (import odt_named_reader), 4, 1):(0)
+given odt_named_bag_fixture given odt_named_reader_open("<office:automatic-styles><a/></office:automatic-styles>") given xml_reader_skip((import odt_named_reader), 1) ((import odt_named_bag), (import odt_named_reader), 1, 0):(1)
+given odt_named_bag_fixture given odt_named_reader_open("<office:body/>") given xml_reader_skip((import odt_named_reader), 1) ((import odt_named_bag), (import odt_named_reader), 1, 1):(-1)
+given odt_named_bag_fixture given odt_named_reader_open("<style:style style:name=\"P\" style:family=\"paragraph\"/>") given xml_reader_skip((import odt_named_reader), 1) ((import odt_named_bag), (import odt_named_reader), 4, 1):(1) then (import odt_named_bag).strings:(["P", "", "", "", "", "", "p", "a"])
 
 // Reads a whole styles or content document into the bag: every style:style (named, or automatic inside office:automatic-styles) and the default paragraph style, up to the body.
-ost_scan(StyBag os_b, XmlR os_r) {
-  int os_iev = xml_reader_next(os_r);
-  int os_iauto = 0;
-  while(os_iev > 0 && os_iauto >= 0) {
-    os_iauto = ost_scan_one(os_b, os_r, os_iev, os_iauto);
-    os_iev = xml_reader_next(os_r);
+odt_named_scan(odt_named_style_records odt_named_scan_bag, XmlR odt_named_scan_reader) {
+  int odt_named_scan_current_event = xml_reader_next(odt_named_scan_reader);
+  int odt_named_scan_automatic = 0;
+  while(odt_named_scan_current_event > 0 && odt_named_scan_automatic >= 0) {
+    odt_named_scan_automatic = odt_named_scan_event(odt_named_scan_bag, odt_named_scan_reader, odt_named_scan_current_event, odt_named_scan_automatic);
+    odt_named_scan_current_event = xml_reader_next(odt_named_scan_reader);
   }
 } return void;
-given ost_t_mkbag given ost_t_open("<a><style:style style:name=\"N\" style:family=\"text\"/><office:automatic-styles><style:style style:name=\"T1\" style:family=\"text\"/></office:automatic-styles><office:body><style:style style:name=\"Z\" style:family=\"text\"/></office:body></a>") ((import ost_t_b), (import ost_t_r)):((import ost_t_b), (import ost_t_r)) then (import ost_t_b).strings:(["N", "", "", "", "", "", "t", "n", "T1", "", "", "", "", "", "t", "a"])
-given ost_t_mkbag given ost_t_open("<a/>") ((import ost_t_b), (import ost_t_r)):((import ost_t_b), (import ost_t_r)) then (import ost_t_b).strings:([])
+given odt_named_bag_fixture given odt_named_reader_open("<a><style:style style:name=\"N\" style:family=\"text\"/><office:automatic-styles><style:style style:name=\"T1\" style:family=\"text\"/></office:automatic-styles><office:body><style:style style:name=\"Z\" style:family=\"text\"/></office:body></a>") ((import odt_named_bag), (import odt_named_reader)):((import odt_named_bag), (import odt_named_reader)) then (import odt_named_bag).strings:(["N", "", "", "", "", "", "t", "n", "T1", "", "", "", "", "", "t", "a"])
+given odt_named_bag_fixture given odt_named_reader_open("<a/>") ((import odt_named_bag), (import odt_named_reader)):((import odt_named_bag), (import odt_named_reader)) then (import odt_named_bag).strings:([])

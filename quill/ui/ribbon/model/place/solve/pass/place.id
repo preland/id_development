@@ -1,14 +1,14 @@
-rib_place(Ribbon rib, int rx, int y, int w, int h) {
-  int[] geo = [rx, y, h, 0];
+rib_place(Ribbon rib, int ribbon_place_left, int y, int w, int h) {
+  int[] ribbon_place_geometry = [ribbon_place_left, y, h, 0];
   int[] probe = [];
-  int nat = rib_pass(rib.items, geo, probe);
-} chain (Ribbon rib, int rx, int y, int w, int h) {
-  int fx = fixed_point_clamp(w - (nat - rx), 0, (import rib_flex_grow));
-  geo[3] = fx;
+  int ribbon_place_natural = rib_pass(rib.items, ribbon_place_geometry, probe);
+} chain (Ribbon rib, int ribbon_place_left, int y, int w, int h) {
+  int ribbon_place_extra = fixed_point_clamp(w - (ribbon_place_natural - ribbon_place_left), 0, (import rib_flex_grow));
+  ribbon_place_geometry[3] = ribbon_place_extra;
   int[] out = [];
-} chain (Ribbon rib, int rx, int y, int w, int h) {
-  int right = rib_pass(rib.items, geo, out);
-  rib.rects = out;
+} chain (Ribbon rib, int ribbon_place_left, int y, int w, int h) {
+  int right = rib_pass(rib.items, ribbon_place_geometry, out);
+  rib.ribbon_rectangles = out;
 } return void;
 (Ribbon([36], [], [0]), 0, 0, 300, 92):(Ribbon([36], [8, 4, 52, 66, 4, 0, 60, 92], [0]), 0, 0, 300, 92)
 (Ribbon([36], [], [0]), 10, 5, 400, 92):(Ribbon([36], [18, 9, 52, 66, 14, 5, 60, 92], [0]), 10, 5, 400, 92)

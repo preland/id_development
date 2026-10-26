@@ -1,27 +1,27 @@
 // The time now in milliseconds that the caret blinks by: the clock a case froze, else ticks().
-cv_now() {
-  int cvi_c = (import vw_ed)[(import cv_e_clk)];
-  int cvi_t = ticks();
-  if(cvi_c >= 0) {
-    cvi_t = cvi_c;
+view_input_clock_now() {
+  int view_input_now_frozen = (import view_input_edit_state)[(import cv_e_clk)];
+  int view_input_now_time = ticks();
+  if(view_input_now_frozen >= 0) {
+    view_input_now_time = view_input_now_frozen;
   }
-} return int cvi_t;
-given cv_t_ed("AB") given cv_t_clock(530) ():(530)
-given cv_t_ed("AB") given cv_t_clock(0) ():(0)
+} return int view_input_now_time;
+given view_flow_test_open_edit("AB") given view_input_test_clock_set(530) ():(530)
+given view_flow_test_open_edit("AB") given view_input_test_clock_set(0) ():(0)
 
 // 1 when the caret is drawn now: it is in the first half of a blink period, counted from the last time it became solid, so it is on for cv_blink milliseconds and off for as many.
-cv_on() {
-  int cvi_a = cv_now() - (import vw_ed)[(import cv_e_t0)];
-  int cvi_o = cvi_a % (2 * (import cv_blink)) < (import cv_blink);
-} return int cvi_o;
-given cv_t_ed("AB") given cv_t_clock(529) ():(1)
-given cv_t_ed("AB") given cv_t_clock(530) ():(0)
-given cv_t_ed("AB") given cv_t_clock(1060) ():(1)
-given cv_t_ed("AB") given lset((import vw_ed), 3, 500) given cv_t_clock(1030) ():(0)
+view_input_caret_visible() {
+  int view_input_visible_elapsed = view_input_clock_now() - (import view_input_edit_state)[(import cv_e_t0)];
+  int view_input_visible_lit = view_input_visible_elapsed % (2 * (import cv_blink)) < (import cv_blink);
+} return int view_input_visible_lit;
+given view_flow_test_open_edit("AB") given view_input_test_clock_set(529) ():(1)
+given view_flow_test_open_edit("AB") given view_input_test_clock_set(530) ():(0)
+given view_flow_test_open_edit("AB") given view_input_test_clock_set(1060) ():(1)
+given view_flow_test_open_edit("AB") given lset((import view_input_edit_state), 3, 500) given view_input_test_clock_set(1030) ():(0)
 
 // Test setup: the caret's clock stands at cvi_ms milliseconds.
-cv_t_clock(int cvi_ms) {
-  lset((import vw_ed), (import cv_e_clk), cvi_ms);
+view_input_test_clock_set(int view_input_clock_milliseconds) {
+  lset((import view_input_edit_state), (import cv_e_clk), view_input_clock_milliseconds);
 } return void;
-given cv_t_ed("AB") (530):(530) then cv_t_eds:("eds 0,0,0,0,0,530,-1,-1,")
-given cv_t_ed("AB") (-1):(-1) then cv_t_eds:("eds 0,0,0,0,0,-1,-1,-1,")
+given view_flow_test_open_edit("AB") (530):(530) then view_flow_test_edit_states_text:("eds 0,0,0,0,0,530,-1,-1,")
+given view_flow_test_open_edit("AB") (-1):(-1) then view_flow_test_edit_states_text:("eds 0,0,0,0,0,-1,-1,-1,")

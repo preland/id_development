@@ -1,32 +1,32 @@
 // How many pixels a drag whose pointer is at row cvi_my scrolls the page area in a frame, when the area starts at row cvi_cy and is cvi_ch tall: down (positive) below it and up above it, a quarter of the distance and at least cv_pull_px pixels; 0 while the pointer is inside it.
-cv_out(int cvi_my, int cvi_cy, int cvi_ch) {
-  int cvi_o = 0;
-  if(cvi_my < cvi_cy) {
-    cvi_o = 0 - ((cvi_cy - cvi_my) / 4 + (import cv_pull_px));
+view_input_drag_pull_distance(int view_input_outside_pointer_row, int view_input_outside_area_top, int view_input_outside_area_height) {
+  int view_input_outside_distance = 0;
+  if(view_input_outside_pointer_row < view_input_outside_area_top) {
+    view_input_outside_distance = 0 - ((view_input_outside_area_top - view_input_outside_pointer_row) / 4 + (import cv_pull_px));
   }
-  if(cvi_my >= cvi_cy + cvi_ch) {
-    cvi_o = (cvi_my - cvi_cy - cvi_ch) / 4 + (import cv_pull_px);
+  if(view_input_outside_pointer_row >= view_input_outside_area_top + view_input_outside_area_height) {
+    view_input_outside_distance = (view_input_outside_pointer_row - view_input_outside_area_top - view_input_outside_area_height) / 4 + (import cv_pull_px);
   }
-} return int cvi_o;
+} return int view_input_outside_distance;
 (100, 128, 150):(-11)
 (300, 128, 150):(9)
 (200, 128, 150):(0)
 
 // Once a frame, while a drag rests outside the page area, scrolls it a step towards the pointer and grows the selection to what shows under the pointer there. The page area is looked up only while there is a drag: a lookup allocates, and this runs every frame.
-cv_pull(View cvv) {
-  int[] cvl_e = (import vw_ed);
-  int cvi_ch = 0;
-  int cvi_o = 0;
-} chain (View cvv) {
-  if(cvl_e[(import cv_e_drag)] == 1) {
-    cvi_ch = vw_box("canvas", 3);
-    cvi_o = cv_out(cvl_e[(import cv_e_my)], vw_box("canvas", 1), cvi_ch);
+view_input_drag_pull(View view_input_pull_view) {
+  int[] view_input_pull_edit_state = (import view_input_edit_state);
+  int view_input_pull_area_height = 0;
+  int view_input_pull_distance = 0;
+} chain (View view_input_pull_view) {
+  if(view_input_pull_edit_state[(import cv_e_drag)] == 1) {
+    view_input_pull_area_height = view_box_field("canvas", 3);
+    view_input_pull_distance = view_input_drag_pull_distance(view_input_pull_edit_state[(import cv_e_my)], view_box_field("canvas", 1), view_input_pull_area_height);
   }
-  if(cvi_o != 0) {
-    vw_scroll(cvv, cvi_o, cvi_ch);
-    cv_drag(cvv, cvl_e[(import cv_e_mx)], cvl_e[(import cv_e_my)]);
+  if(view_input_pull_distance != 0) {
+    view_state_scroll(view_input_pull_view, view_input_pull_distance, view_input_pull_area_height);
+    view_input_drag_select(view_input_pull_view, view_input_pull_edit_state[(import cv_e_mx)], view_input_pull_edit_state[(import cv_e_my)]);
   }
 } return void;
-given cv_t_ed("A|A|A|A|A|A|A|A") given cv_press((import lp_t_v), [3, 183, 245, 1, 1]) given lset((import vw_ed), 2, 290) ((import lp_t_v)):() then vw_t_sts:("sts 0,58,100,1,") then cv_t_sel:("2:0-4:0")
-given cv_t_ed("A|A|A|A|A|A|A|A") given lset((import vw_ed), 2, 290) ((import lp_t_v)):() then vw_t_sts:("sts 0,0,100,0,")
-given cv_t_ed("A|A|A|A|A|A|A|A") given cv_press((import lp_t_v), [3, 183, 245, 1, 1]) given lset((import vw_ed), 2, 200) ((import lp_t_v)):() then cv_t_sel:("2:0-2:0")
+given view_flow_test_open_edit("A|A|A|A|A|A|A|A") given view_input_press_start((import layout_paragraph_test_view), [3, 183, 245, 1, 1]) given lset((import view_input_edit_state), 2, 290) ((import layout_paragraph_test_view)):() then view_test_state_dump:("sts 0,58,100,1,") then view_flow_test_selection_text:("2:0-4:0")
+given view_flow_test_open_edit("A|A|A|A|A|A|A|A") given lset((import view_input_edit_state), 2, 290) ((import layout_paragraph_test_view)):() then view_test_state_dump:("sts 0,0,100,0,")
+given view_flow_test_open_edit("A|A|A|A|A|A|A|A") given view_input_press_start((import layout_paragraph_test_view), [3, 183, 245, 1, 1]) given lset((import view_input_edit_state), 2, 200) ((import layout_paragraph_test_view)):() then view_flow_test_selection_text:("2:0-2:0")

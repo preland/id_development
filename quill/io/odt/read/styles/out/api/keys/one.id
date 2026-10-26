@@ -1,30 +1,30 @@
 // The id a paragraph style's name stands for: its paragraph row, interned, sitting on the style it names (a named style) or on its parent (an automatic one).
-ost_key_pid(Doc os_d, StyBag os_b, int[] os_lidx, int os_i) {
-  int os_istyle = ost_key_style(os_b, os_lidx, os_i);
-  int[] os_lrow = ost_rowp(os_d.fmt, os_b, os_i, os_istyle);
-  int os_iid = tab_intern(os_d.fmt.paras, os_lrow);
-} return int os_iid;
-given ost_t_doc given ost_t_scan("<a><style:style style:name=\"Standard\" style:family=\"paragraph\"/></a>") given ost_t_reg ((import ost_t_d), (import ost_t_b), (import ost_t_x), 0):(0)
-given ost_t_doc given ost_t_scan("<a><style:style style:name=\"Standard\" style:family=\"paragraph\"/><style:style style:name=\"Foo\" style:family=\"paragraph\"><style:paragraph-properties fo:text-align=\"center\"/></style:style></a>") given ost_t_reg ((import ost_t_d), (import ost_t_b), (import ost_t_x), 1):(9)
+odt_style_key_paragraph_identifier(Doc odt_style_key_paragraph_identifier_document, odt_named_style_records odt_style_key_paragraph_identifier_bag, int[] odt_style_key_paragraph_identifier_indexes, int odt_style_key_paragraph_identifier_record) {
+  int odt_style_key_paragraph_identifier_style = odt_style_key_style_index(odt_style_key_paragraph_identifier_bag, odt_style_key_paragraph_identifier_indexes, odt_style_key_paragraph_identifier_record);
+  int[] odt_style_key_paragraph_identifier_row = odt_style_paragraph_row(odt_style_key_paragraph_identifier_document.fmt, odt_style_key_paragraph_identifier_bag, odt_style_key_paragraph_identifier_record, odt_style_key_paragraph_identifier_style);
+  int odt_style_key_paragraph_identifier_identifier = tab_intern(odt_style_key_paragraph_identifier_document.fmt.paras, odt_style_key_paragraph_identifier_row);
+} return int odt_style_key_paragraph_identifier_identifier;
+given odt_style_test_document given odt_named_bag_scan_fixture("<a><style:style style:name=\"Standard\" style:family=\"paragraph\"/></a>") given odt_style_test_register ((import odt_style_test_default_document), (import odt_named_bag), (import odt_style_test_index_list), 0):(0)
+given odt_style_test_document given odt_named_bag_scan_fixture("<a><style:style style:name=\"Standard\" style:family=\"paragraph\"/><style:style style:name=\"Foo\" style:family=\"paragraph\"><style:paragraph-properties fo:text-align=\"center\"/></style:style></a>") given odt_style_test_register ((import odt_style_test_default_document), (import odt_named_bag), (import odt_style_test_index_list), 1):(9)
 
 // The character row a text style's name stands for: a named style is the row that only names it, an automatic style carries its own properties on top of its parent character style.
-ost_key_trow(Doc os_d, StyBag os_b, string[] os_lface, int[] os_lidx, int os_i) {
-  int os_istyle = ost_key_style(os_b, os_lidx, os_i);
-  int[] os_lrow = ost_rowc(os_d, os_b, os_lface, os_i, os_istyle);
-  string os_skind = os_b.strings[os_i * (import ost_s_width) + (import ost_s_kind)];
-} chain (Doc os_d, StyBag os_b, string[] os_lface, int[] os_lidx, int os_i) {
-  if(os_skind == "n") {
-    os_lrow = list_copy((import ost_cdef));
-    os_lrow[(import quill_character_style)] = os_istyle;
+odt_style_key_text_row(Doc odt_style_key_text_row_document, odt_named_style_records odt_style_key_text_row_bag, string[] odt_style_key_text_row_faces, int[] odt_style_key_text_row_indexes, int odt_style_key_text_row_record) {
+  int odt_style_key_text_row_style = odt_style_key_style_index(odt_style_key_text_row_bag, odt_style_key_text_row_indexes, odt_style_key_text_row_record);
+  int[] odt_style_key_text_row_row = odt_style_character_row(odt_style_key_text_row_document, odt_style_key_text_row_bag, odt_style_key_text_row_faces, odt_style_key_text_row_record, odt_style_key_text_row_style);
+  string odt_style_key_text_row_kind = odt_style_key_text_row_bag.strings[odt_style_key_text_row_record * (import ost_s_width) + (import ost_s_kind)];
+} chain (Doc odt_style_key_text_row_document, odt_named_style_records odt_style_key_text_row_bag, string[] odt_style_key_text_row_faces, int[] odt_style_key_text_row_indexes, int odt_style_key_text_row_record) {
+  if(odt_style_key_text_row_kind == "n") {
+    odt_style_key_text_row_row = list_copy((import ost_cdef));
+    odt_style_key_text_row_row[(import quill_character_style)] = odt_style_key_text_row_style;
   }
-} return int[] os_lrow;
-given ost_t_doc given ost_t_scan("<a><style:style style:name=\"Strong\" style:family=\"text\"><style:text-properties fo:font-weight=\"bold\"/></style:style></a>") given ost_t_reg ((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 0):([8, -1, -1, -1, -1, 0, 0])
-given ost_t_doc given ost_t_scan("<a><office:automatic-styles><style:style style:name=\"T1\" style:family=\"text\"><style:text-properties fo:font-weight=\"bold\"/></style:style></office:automatic-styles></a>") given ost_t_reg ((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 0):([0, -1, -1, -1, -1, 1, 1])
+} return int[] odt_style_key_text_row_row;
+given odt_style_test_document given odt_named_bag_scan_fixture("<a><style:style style:name=\"Strong\" style:family=\"text\"><style:text-properties fo:font-weight=\"bold\"/></style:style></a>") given odt_style_test_register ((import odt_style_test_default_document), (import odt_named_bag), [], (import odt_style_test_index_list), 0):([8, -1, -1, -1, -1, 0, 0])
+given odt_style_test_document given odt_named_bag_scan_fixture("<a><office:automatic-styles><style:style style:name=\"T1\" style:family=\"text\"><style:text-properties fo:font-weight=\"bold\"/></style:style></office:automatic-styles></a>") given odt_style_test_register ((import odt_style_test_default_document), (import odt_named_bag), [], (import odt_style_test_index_list), 0):([0, -1, -1, -1, -1, 1, 1])
 
 // The id a text style's name stands for: its character row, interned.
-ost_key_tid(Doc os_d, StyBag os_b, string[] os_lface, int[] os_lidx, int os_i) {
-  int[] os_lrow = ost_key_trow(os_d, os_b, os_lface, os_lidx, os_i);
-  int os_iid = tab_intern(os_d.fmt.chars, os_lrow);
-} return int os_iid;
-given ost_t_doc given ost_t_scan("<a><office:automatic-styles><style:style style:name=\"T1\" style:family=\"text\"/></office:automatic-styles></a>") given ost_t_reg ((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 0):(0)
-given ost_t_doc given ost_t_scan("<a><style:style style:name=\"Strong\" style:family=\"text\"/></a>") given ost_t_reg ((import ost_t_d), (import ost_t_b), [], (import ost_t_x), 0):(8)
+odt_style_key_text_identifier(Doc odt_style_key_text_identifier_document, odt_named_style_records odt_style_key_text_identifier_bag, string[] odt_style_key_text_identifier_faces, int[] odt_style_key_text_identifier_indexes, int odt_style_key_text_identifier_record) {
+  int[] odt_style_key_text_identifier_row = odt_style_key_text_row(odt_style_key_text_identifier_document, odt_style_key_text_identifier_bag, odt_style_key_text_identifier_faces, odt_style_key_text_identifier_indexes, odt_style_key_text_identifier_record);
+  int odt_style_key_text_identifier_identifier = tab_intern(odt_style_key_text_identifier_document.fmt.chars, odt_style_key_text_identifier_row);
+} return int odt_style_key_text_identifier_identifier;
+given odt_style_test_document given odt_named_bag_scan_fixture("<a><office:automatic-styles><style:style style:name=\"T1\" style:family=\"text\"/></office:automatic-styles></a>") given odt_style_test_register ((import odt_style_test_default_document), (import odt_named_bag), [], (import odt_style_test_index_list), 0):(0)
+given odt_style_test_document given odt_named_bag_scan_fixture("<a><style:style style:name=\"Strong\" style:family=\"text\"/></a>") given odt_style_test_register ((import odt_style_test_default_document), (import odt_named_bag), [], (import odt_style_test_index_list), 0):(8)

@@ -1,42 +1,42 @@
 // Types every code point of text, one ed_type each (so ed_type's rules and coalescing apply): what a stream of text events does.
-ed_type_str(Doc d, Ctl ctl, string text) {
+editor_type_string(Doc d, Ctl ctl, string text) {
   int i = 0;
   while(character_code_at(text, i) >= 0) {
-    ed_type(d, ctl, utf8_code_point(text, i));
+    editor_type(d, ctl, utf8_code_point(text, i));
     i = utf8_next(text, i);
   }
 } return void;
-given fx_setup("") ((import fxd), (import fxc), "hi"):((import fxd), (import fxc), "hi") then fx_show:("hi") then fx_hist:("u1 r0 o0 n2")
-given fx_setup("") ((import fxd), (import fxc), "a é"):((import fxd), (import fxc), "a é") then fx_show:("a é")
+given editor_fixture_setup("") ((import fixture_document), (import fixture_control), "hi"):((import fixture_document), (import fixture_control), "hi") then editor_fixture_show:("hi") then editor_fixture_history:("u1 r0 o0 n2")
+given editor_fixture_setup("") ((import fixture_document), (import fixture_control), "a é"):((import fixture_document), (import fixture_control), "a é") then editor_fixture_show:("a é")
 
 // One event of a script: the first character is the verb, the rest its argument, with ":" between numbers. Verbs (see ed_play): T E B W D F typing and deleting, U R C X V P history and clipboard, M A S G O L Y Z K H movement, selection and formatting. Anything else is skipped.
-ed_play_event(Doc d, Ctl ctl, string line) {
+editor_play_event(Doc d, Ctl ctl, string line) {
   int verb = character_code_at(line, 0);
   int n = fixed_point_maximum(len(line) - 1, 0);
-  string argt = str_sub(line, 1, n);
+  string argument_text = str_sub(line, 1, n);
 } chain (Doc d, Ctl ctl, string line) {
-  string[] flds = str_split(argt, ":");
-  ed_play_text(d, ctl, verb, argt);
-  ed_play_hist(d, ctl, verb, argt);
+  string[] fields = str_split(argument_text, ":");
+  editor_play_text(d, ctl, verb, argument_text);
+  editor_play_history(d, ctl, verb, argument_text);
 } chain (Doc d, Ctl ctl, string line) {
-  ed_play_fmt(d, ctl, verb, flds);
+  editor_play_format(d, ctl, verb, fields);
 } return void;
-given fx_setup("") ((import fxd), (import fxc), "Tab"):((import fxd), (import fxc), "Tab") then fx_show:("ab")
-given fx_setup("ab") ((import fxd), (import fxc), "E"):((import fxd), (import fxc), "E") then fx_show:("|ab")
-given fx_setup("ab") ((import fxd), (import fxc), "?x"):((import fxd), (import fxc), "?x") then fx_show:("ab") then fx_hist:("u0 r0 o-1 n0")
+given editor_fixture_setup("") ((import fixture_document), (import fixture_control), "Tab"):((import fixture_document), (import fixture_control), "Tab") then editor_fixture_show:("ab")
+given editor_fixture_setup("ab") ((import fixture_document), (import fixture_control), "E"):((import fixture_document), (import fixture_control), "E") then editor_fixture_show:("|ab")
+given editor_fixture_setup("ab") ((import fixture_document), (import fixture_control), "?x"):((import fixture_document), (import fixture_control), "?x") then editor_fixture_show:("ab") then editor_fixture_history:("u0 r0 o-1 n0")
 
 // Plays a script of events against the document, one event per line (the text of a "quill --script" file): T<text> types it, E presses Enter, B and W Backspace and Ctrl+Backspace, D and F Delete and Ctrl+Delete, U and R undo and redo, C X V copy, cut and paste what was copied, P<text> pastes foreign text, M<dir>:<unit>:<extend> moves, A selects all, S<para>:<off>:<para>:<off> selects, G<bit> toggles a flag, O<field>:<value> sets a character field, L<field>:<value> a paragraph field, Y<style> a style, Z clears formatting, K is a page break and H<needle>:<with> replaces all (matching case).
-ed_play(Doc d, Ctl ctl, string script) {
+editor_play(Doc d, Ctl ctl, string script) {
   string[] pieces = str_split(script, "\n");
   int k = 0;
   while(k < len(pieces)) {
-    ed_play_event(d, ctl, pieces[k]);
+    editor_play_event(d, ctl, pieces[k]);
     k = k + 1;
   }
 } return void;
-given fx_setup("") ((import fxd), (import fxc), "Thello world\nU"):((import fxd), (import fxc), "Thello world\nU") then fx_show:("hello ")
-given fx_setup("") ((import fxd), (import fxc), "Thello world\nU\nU\nR"):((import fxd), (import fxc), "Thello world\nU\nU\nR") then fx_show:("hello ")
-given fx_setup("") ((import fxd), (import fxc), ""):((import fxd), (import fxc), "") then fx_show:("")
-given fx_setup("") ((import fxd), (import fxc), "Thello world"):((import fxd), (import fxc), "Thello world") then fx_show:("hello world") then fx_hist:("u2 r0 o1 n5")
-given fx_setup("") ((import fxd), (import fxc), "Thello world\nU\nU"):((import fxd), (import fxc), "Thello world\nU\nU") then fx_show:("") then fx_hist:("u0 r2 o-1 n0")
-given fx_setup("") ((import fxd), (import fxc), "Thello world\nU\nU\nR\nR"):((import fxd), (import fxc), "Thello world\nU\nU\nR\nR") then fx_show:("hello world") then fx_hist:("u2 r0 o-1 n5")
+given editor_fixture_setup("") ((import fixture_document), (import fixture_control), "Thello world\nU"):((import fixture_document), (import fixture_control), "Thello world\nU") then editor_fixture_show:("hello ")
+given editor_fixture_setup("") ((import fixture_document), (import fixture_control), "Thello world\nU\nU\nR"):((import fixture_document), (import fixture_control), "Thello world\nU\nU\nR") then editor_fixture_show:("hello ")
+given editor_fixture_setup("") ((import fixture_document), (import fixture_control), ""):((import fixture_document), (import fixture_control), "") then editor_fixture_show:("")
+given editor_fixture_setup("") ((import fixture_document), (import fixture_control), "Thello world"):((import fixture_document), (import fixture_control), "Thello world") then editor_fixture_show:("hello world") then editor_fixture_history:("u2 r0 o1 n5")
+given editor_fixture_setup("") ((import fixture_document), (import fixture_control), "Thello world\nU\nU"):((import fixture_document), (import fixture_control), "Thello world\nU\nU") then editor_fixture_show:("") then editor_fixture_history:("u0 r2 o-1 n0")
+given editor_fixture_setup("") ((import fixture_document), (import fixture_control), "Thello world\nU\nU\nR\nR"):((import fixture_document), (import fixture_control), "Thello world\nU\nU\nR\nR") then editor_fixture_show:("hello world") then editor_fixture_history:("u2 r0 o-1 n5")

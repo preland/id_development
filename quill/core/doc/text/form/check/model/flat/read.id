@@ -1,27 +1,27 @@
 // n copies of v.
-rep_list(int got, int n) {
-  int[] xs = [];
-  list_fill(xs, n, got);
-} return int[] xs;
+document_repeat_list(int got, int repeat_value_count) {
+  int[] repeat_value_values = [];
+  list_fill(repeat_value_values, repeat_value_count, got);
+} return int[] repeat_value_values;
 (7, 3):([7, 7, 7])
 (7, 0):([])
 
 // Appends one entry per code point the run covers: its character row (which 1) or its link (which 2).
-flat_fill(int[] acc, Run ru, int which) {
-  int got = ru.cprop;
+flat_fill(int[] flat_run_fill_collected, Run flat_run_fill_run, int which) {
+  int got = flat_run_fill_run.cprop;
   if(which == 2) {
-    got = ru.link;
+    got = flat_run_fill_run.link;
   }
-  list_extend(acc, rep_list(got, ru.len));
+  list_extend(flat_run_fill_collected, document_repeat_list(got, flat_run_fill_run.len));
 } return void;
 ([9], Run(2, 5, 3), 1):([9, 5, 5], Run(2, 5, 3), 1)
 ([9], Run(2, 5, 3), 2):([9, 3, 3], Run(2, 5, 3), 2)
 
-flat_runs(Run[] rs, int which, int[] acc) {
-  int i = 0;
-  while(i < len(rs)) {
-    flat_fill(acc, rs[i], which);
-    i = i + 1;
+flat_runs(Run[] flat_runs_fill_run_list, int which, int[] flat_runs_fill_collected) {
+  int flat_runs_fill_index = 0;
+  while(flat_runs_fill_index < len(flat_runs_fill_run_list)) {
+    flat_fill(flat_runs_fill_collected, flat_runs_fill_run_list[flat_runs_fill_index], which);
+    flat_runs_fill_index = flat_runs_fill_index + 1;
   }
 } return void;
 ([Run(1, 5, -1), Run(2, 6, 3)], 1, []):([Run(1, 5, -1), Run(2, 6, 3)], 1, [5, 6, 6])

@@ -1,31 +1,31 @@
 // Samples what sel_state asks about into acc: a paragraph field over the paragraphs of the selection, a character field over its runs, or at the caret when nothing is selected.
-sel_walk(Doc d, Ctl ctl, int[] acc) {
-  int empty = sel_empty(ctl.sel);
+editor_selection_walk(Doc d, Ctl ctl, int[] acc) {
+  int empty = editor_selection_empty(ctl.sel);
   if(acc[0] >= (import ed_s_para)) {
-    ed_over(d, ctl, smp_para, acc);
+    editor_over_selection(d, ctl, editor_sample_paragraph, acc);
   }
   if(acc[0] < (import ed_s_para) && empty == 1) {
-    smp_caret(d, ctl, acc);
+    editor_sample_caret(d, ctl, acc);
   }
 } chain (Doc d, Ctl ctl, int[] acc) {
   if(acc[0] < (import ed_s_para) && empty == 0) {
-    ed_over(d, ctl, smp_run, acc);
+    editor_over_selection(d, ctl, editor_sample_runs, acc);
   }
 } return void;
-given fx_setup("a*bc*d") given fx_at(0, 0, 0, 4) ((import fxd), (import fxc), [101, 0, 0]):((import fxd), (import fxc), [101, 1, -2])
-given fx_setup("a*bc*d") given fx_at(0, 2, 0, 2) ((import fxd), (import fxc), [101, 0, 0]):((import fxd), (import fxc), [101, 1, 1])
-given fx_setup("ab|cd") given fx_at(0, 0, 1, 1) ((import fxd), (import fxc), [201, 0, 0]):((import fxd), (import fxc), [201, 1, 0])
+given editor_fixture_setup("a*bc*d") given editor_fixture_selection_at(0, 0, 0, 4) ((import fixture_document), (import fixture_control), [101, 0, 0]):((import fixture_document), (import fixture_control), [101, 1, -2])
+given editor_fixture_setup("a*bc*d") given editor_fixture_selection_at(0, 2, 0, 2) ((import fixture_document), (import fixture_control), [101, 0, 0]):((import fixture_document), (import fixture_control), [101, 1, 1])
+given editor_fixture_setup("ab|cd") given editor_fixture_selection_at(0, 0, 1, 1) ((import fixture_document), (import fixture_control), [201, 0, 0]):((import fixture_document), (import fixture_control), [201, 1, 0])
 
 // The answer of sel_state from the samples: for a flag 0 off, 1 on, 2 mixed (and 0 when nothing was sampled); for any other field its value, -2 for mixed, -1 when nothing was sampled.
-sel_out(int[] acc) {
+editor_selection_answer(int[] acc) {
   int res = acc[2];
-  int isflag = acc[0] >= (import ed_s_flag) && acc[0] < (import ed_s_para);
-  if(isflag == 1 && res == -2) {
+  int is_flag_field = acc[0] >= (import ed_s_flag) && acc[0] < (import ed_s_para);
+  if(is_flag_field == 1 && res == -2) {
     res = 2;
   }
 } chain (int[] acc) {
   if(acc[1] == 0) {
-    res = isflag - 1;
+    res = is_flag_field - 1;
   }
 } return int res;
 ([101, 1, 1]):(1)
@@ -37,18 +37,18 @@ sel_out(int[] acc) {
 ([2, 0, 0]):(-1)
 
 // What is true of the selection, for the ribbon to show (docs/QUILL.md 4.3): for a flag (ed_s_flag plus a quill_flag_* bit) 0 off, 1 on, 2 mixed; for a character field (a quill_character_* offset) its effective value or -2 when the selection mixes values; for a paragraph field (ed_s_para plus a quill_paragraph_* offset) likewise. With nothing selected it describes the text the next typed character takes.
-sel_state(Doc d, Ctl ctl, int field) {
-  int[] acc = (import ed_acc);
+editor_selection_state(Doc d, Ctl ctl, int field) {
+  int[] acc = (import editor_sample_cells);
   lset(acc, 0, field);
   lset(acc, 1, 0);
 } chain (Doc d, Ctl ctl, int field) {
   lset(acc, 2, 0);
-  sel_walk(d, ctl, acc);
-  int res = sel_out(acc);
+  editor_selection_walk(d, ctl, acc);
+  int res = editor_selection_answer(acc);
 } return int res;
-given fx_setup("a*bc*d") given fx_at(0, 0, 0, 4) ((import fxd), (import fxc), 101):(2)
-given fx_setup("a*bc*d") given fx_at(0, 1, 0, 3) ((import fxd), (import fxc), 101):(1)
-given fx_setup("a*bc*d") given fx_at(0, 3, 0, 4) ((import fxd), (import fxc), 101):(0)
-given fx_setup("a*bc*d") given fx_at(0, 2, 0, 2) ((import fxd), (import fxc), 101):(1)
-given fx_setup("ab") given fx_at(0, 0, 0, 2) ((import fxd), (import fxc), 2):(24)
-given fx_setup("ab|cd") given fx_at(0, 0, 1, 1) ((import fxd), (import fxc), 201):(0)
+given editor_fixture_setup("a*bc*d") given editor_fixture_selection_at(0, 0, 0, 4) ((import fixture_document), (import fixture_control), 101):(2)
+given editor_fixture_setup("a*bc*d") given editor_fixture_selection_at(0, 1, 0, 3) ((import fixture_document), (import fixture_control), 101):(1)
+given editor_fixture_setup("a*bc*d") given editor_fixture_selection_at(0, 3, 0, 4) ((import fixture_document), (import fixture_control), 101):(0)
+given editor_fixture_setup("a*bc*d") given editor_fixture_selection_at(0, 2, 0, 2) ((import fixture_document), (import fixture_control), 101):(1)
+given editor_fixture_setup("ab") given editor_fixture_selection_at(0, 0, 0, 2) ((import fixture_document), (import fixture_control), 2):(24)
+given editor_fixture_setup("ab|cd") given editor_fixture_selection_at(0, 0, 1, 1) ((import fixture_document), (import fixture_control), 201):(0)

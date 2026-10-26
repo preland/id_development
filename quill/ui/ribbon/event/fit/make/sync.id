@@ -1,9 +1,9 @@
 // Makes the widget rbg follow the state rbi_st of its control: a toggle shows on (1) or mixed (2) and is off for any other state, and the control is enabled unless the state is disabled (3).
-rbe_one(GuiToggle rbg, int rbi_st) {
-  int rbi_on = rbi_st != 3;
-  gui_tgl_set(rbg, (rbi_st == 1 || rbi_st == 2) * rbi_st);
-  if(gui_btn_cell(rbg.btn, 5) != rbi_on) {
-    gui_btn_enable(rbg.btn, rbi_on);
+ribbon_fit_sync_widget(GuiToggle ribbon_fit_one_widget, int ribbon_fit_one_state) {
+  int ribbon_fit_one_enabled = ribbon_fit_one_state != 3;
+  gui_tgl_set(ribbon_fit_one_widget, (ribbon_fit_one_state == 1 || ribbon_fit_one_state == 2) * ribbon_fit_one_state);
+  if(gui_btn_cell(ribbon_fit_one_widget.btn, 5) != ribbon_fit_one_enabled) {
+    gui_btn_enable(ribbon_fit_one_widget.btn, ribbon_fit_one_enabled);
   }
 } return void;
 (GuiToggle(GuiButton([0, 0, 10, 10, 0, 1, 0, 0, 0], "", 0), 0, 0), 1):(GuiToggle(GuiButton([0, 0, 10, 10, 0, 1, 0, 0, 0], "", 0), 1, 0))
@@ -11,20 +11,20 @@ rbe_one(GuiToggle rbg, int rbi_st) {
 (GuiToggle(GuiButton([0, 0, 10, 10, 1, 1, 0, 0, 0], "", 0), 2, 0), 0):(GuiToggle(GuiButton([0, 0, 10, 10, 1, 1, 0, 0, 0], "", 0), 0, 0))
 
 // Makes every widget in rbl_ws follow the state of the control it stands for in the ribbon rib.
-rbe_follow(Ribbon rib, GuiToggle[] rbl_ws) {
-  int rbi_i = 0;
-  while(rbi_i < len(rbl_ws)) {
-    rbe_one(rbl_ws[rbi_i], rib.state[rbi_i]);
-    rbi_i = rbi_i + 1;
+ribbon_fit_sync_widget_list(Ribbon rib, GuiToggle[] ribbon_fit_follow_widgets) {
+  int ribbon_fit_follow_index = 0;
+  while(ribbon_fit_follow_index < len(ribbon_fit_follow_widgets)) {
+    ribbon_fit_sync_widget(ribbon_fit_follow_widgets[ribbon_fit_follow_index], rib.state[ribbon_fit_follow_index]);
+    ribbon_fit_follow_index = ribbon_fit_follow_index + 1;
   }
 } return void;
-given lp_t_font given rbd_t_up(1024) given rib_put((import rbd_t_r), 301, 1) given rbd_t_k(7) ((import rbd_t_r), (import rbd_ws)):() then rbd_t_wd:("102,84,24,24,0,1,301,1,0,1")
-given lp_t_font given rbd_t_up(1024) given rbd_t_k(7) ((import rbd_t_r), (import rbd_ws)):() then rbd_t_wd:("102,84,24,24,0,1,301,1,0,0")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given rib_put((import ribbon_fit_test_ribbon), 301, 1) given ribbon_fit_remember_widget(7) ((import ribbon_fit_test_ribbon), (import ribbon_fit_body_widgets)):() then ribbon_fit_check_widget_dump:("102,84,24,24,0,1,301,1,0,1")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_remember_widget(7) ((import ribbon_fit_test_ribbon), (import ribbon_fit_body_widgets)):() then ribbon_fit_check_widget_dump:("102,84,24,24,0,1,301,1,0,0")
 
 // Makes the widgets of the body and of the quick-access strip follow the state the ribbon rib was given.
-rbe_sync(Ribbon rib) {
-  rbe_follow(rib, (import rbd_ws));
-  rbe_follow((import rbd_q), (import rbd_qs));
+ribbon_fit_sync_widgets(Ribbon rib) {
+  ribbon_fit_sync_widget_list(rib, (import ribbon_fit_body_widgets));
+  ribbon_fit_sync_widget_list((import ribbon_fit_quick_ribbon), (import ribbon_fit_quick_widgets));
 } return void;
-given lp_t_font given rbd_t_up(1024) given rib_put((import rbd_t_r), 301, 2) given rbd_t_k(7) ((import rbd_t_r)):() then rbd_t_wd:("102,84,24,24,0,1,301,1,0,2")
-given lp_t_font given rbd_t_up(1024) given rib_put((import rbd_t_r), 201, 3) given rbd_t_kq(1) ((import rbd_t_r)):() then rbd_t_wd:("38,4,24,20,0,0,201,1,0,0")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given rib_put((import ribbon_fit_test_ribbon), 301, 2) given ribbon_fit_remember_widget(7) ((import ribbon_fit_test_ribbon)):() then ribbon_fit_check_widget_dump:("102,84,24,24,0,1,301,1,0,2")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given rib_put((import ribbon_fit_test_ribbon), 201, 3) given ribbon_fit_remember_quick_widget(1) ((import ribbon_fit_test_ribbon)):() then ribbon_fit_check_widget_dump:("38,4,24,20,0,0,201,1,0,0")

@@ -1,18 +1,18 @@
 // The largest ascent (which 0) or descent (which 1) over the runs that overlap code points lo..hi-1 of paragraph i; the run holding lo always counts, so an empty paragraph measures its one run.
-lp_maxm(View v, int i, int lo, int hi, int which) {
-  Para p = v.doc.body.paras[i];
-  int ri = para_run(p, lo);
-  int m = lp_rm(v, i, ri, which);
-} chain (View v, int i, int lo, int hi, int which) {
-  int rb = lp_rend(p, ri);
-  while(rb < hi) {
-    ri = ri + 1;
-    m = fixed_point_maximum(m, lp_rm(v, i, ri, which));
-    rb = rb + p.txt.runs[ri].len;
+layout_paragraph_maximum_extent(View extent_view, int extent_paragraph_index, int extent_start, int hi, int which) {
+  Para extent_paragraph = extent_view.doc.body.paras[extent_paragraph_index];
+  int extent_run_index = para_run(extent_paragraph, extent_start);
+  int extent_maximum = layout_paragraph_run_metric(extent_view, extent_paragraph_index, extent_run_index, which);
+} chain (View extent_view, int extent_paragraph_index, int extent_start, int hi, int which) {
+  int extent_run_boundary = layout_paragraph_run_end(extent_paragraph, extent_run_index);
+  while(extent_run_boundary < hi) {
+    extent_run_index = extent_run_index + 1;
+    extent_maximum = fixed_point_maximum(extent_maximum, layout_paragraph_run_metric(extent_view, extent_paragraph_index, extent_run_index, which));
+    extent_run_boundary = extent_run_boundary + extent_paragraph.txt.runs[extent_run_index].len;
   }
-} return int m;
-given lp_t_font given lp_t_ins(0, "BE") given lp_t_size(0, 1, 2, 48) ((import lp_t_v), 0, 0, 2, 0):(1920)
-given lp_t_font given lp_t_ins(0, "BE") given lp_t_size(0, 1, 2, 48) ((import lp_t_v), 0, 0, 2, 1):(448)
-given lp_t_font given lp_t_ins(0, "BE") given lp_t_size(0, 1, 2, 48) ((import lp_t_v), 0, 0, 1, 0):(960)
-given lp_t_font given lp_t_ins(0, "BE") given lp_t_size(0, 1, 2, 48) ((import lp_t_v), 0, 1, 2, 1):(448)
-given lp_t_font ((import lp_t_v), 0, 0, 0, 0):(960)
+} return int extent_maximum;
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BE") given layout_paragraph_test_font_size(0, 1, 2, 48) ((import layout_paragraph_test_view), 0, 0, 2, 0):(1920)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BE") given layout_paragraph_test_font_size(0, 1, 2, 48) ((import layout_paragraph_test_view), 0, 0, 2, 1):(448)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BE") given layout_paragraph_test_font_size(0, 1, 2, 48) ((import layout_paragraph_test_view), 0, 0, 1, 0):(960)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "BE") given layout_paragraph_test_font_size(0, 1, 2, 48) ((import layout_paragraph_test_view), 0, 1, 2, 1):(448)
+given layout_paragraph_test_font ((import layout_paragraph_test_view), 0, 0, 0, 0):(960)

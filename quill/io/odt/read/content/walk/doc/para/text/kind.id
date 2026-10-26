@@ -1,52 +1,52 @@
 // What an event inside a paragraph is: -1 an element the model does not know, 0 text, 1 an element whose text flows on (a span) or that adds nothing, 2 the start of a hyperlink, 3 the end of one, 4 spaces, 5 a tab, 6 a line break.
-orc_ikind(Cx cx, int ev) {
-  string name = orc_name(cx, ev);
+odt_read_inline_kind(Odt_Read_Context odt_read_kind_context, int odt_read_kind_event) {
+  string name = orc_name(odt_read_kind_context, odt_read_kind_event);
   int at = list_string_index((import orc_inline_names), name);
   int k = 0 - 1;
-} chain (Cx cx, int ev) {
+} chain (Odt_Read_Context odt_read_kind_context, int odt_read_kind_event) {
   if(at >= 0) {
     k = (import orc_inline_kind)[at];
   }
-  if(ev == 3) {
+  if(odt_read_kind_event == 3) {
     k = 0;
   }
-  if(ev == 2) {
-    k = 1 + 2 * (xml_reader_get((cx.rd), (import xml_reader_k_name)) == "text:a");
+  if(odt_read_kind_event == 2) {
+    k = 1 + 2 * (xml_reader_get((odt_read_kind_context.odt_read_xml_reader), (import xml_reader_k_name)) == "text:a");
   }
 } return int k;
-given orc_t_open("<a>x</a>") given orc_t_steps(2) ((import orc_tc), 3):(0)
-given orc_t_open("<text:span>") given orc_t_steps(1) ((import orc_tc), 1):(1)
-given orc_t_open("<text:a>") given orc_t_steps(1) ((import orc_tc), 1):(2)
-given orc_t_open("<text:a></text:a>") given orc_t_steps(2) ((import orc_tc), 2):(3)
-given orc_t_open("<text:span></text:span>") given orc_t_steps(2) ((import orc_tc), 2):(1)
-given orc_t_open("<text:s/>") given orc_t_steps(1) ((import orc_tc), 4):(4)
-given orc_t_open("<text:tab/>") given orc_t_steps(1) ((import orc_tc), 4):(5)
-given orc_t_open("<text:line-break/>") given orc_t_steps(1) ((import orc_tc), 4):(6)
-given orc_t_open("<text:soft-page-break/>") given orc_t_steps(1) ((import orc_tc), 4):(1)
-given orc_t_open("<draw:frame/>") given orc_t_steps(1) ((import orc_tc), 4):(-1)
+given odt_read_fixture_open("<a>x</a>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), 3):(0)
+given odt_read_fixture_open("<text:span>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 1):(1)
+given odt_read_fixture_open("<text:a>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 1):(2)
+given odt_read_fixture_open("<text:a></text:a>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), 2):(3)
+given odt_read_fixture_open("<text:span></text:span>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), 2):(1)
+given odt_read_fixture_open("<text:s/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 4):(4)
+given odt_read_fixture_open("<text:tab/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 4):(5)
+given odt_read_fixture_open("<text:line-break/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 4):(6)
+given odt_read_fixture_open("<text:soft-page-break/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 4):(1)
+given odt_read_fixture_open("<draw:frame/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 4):(-1)
 
 // The name of the element a start or empty event opened, "" for any other event: an end tag does not open one.
-orc_name(Cx cx, int ev) {
+orc_name(Odt_Read_Context odt_read_name_context, int odt_read_name_event) {
   string name = "";
-  if(ev == 1 || ev == 4) {
-    name = xml_reader_get((cx.rd), (import xml_reader_k_name));
+  if(odt_read_name_event == 1 || odt_read_name_event == 4) {
+    name = xml_reader_get((odt_read_name_context.odt_read_xml_reader), (import xml_reader_k_name));
   }
 } return string name;
-given orc_t_open("<a:b>x</a:b>") given orc_t_steps(1) ((import orc_tc), 1):("a:b")
-given orc_t_open("<a:b/>") given orc_t_steps(1) ((import orc_tc), 4):("a:b")
-given orc_t_open("<a:b></a:b>") given orc_t_steps(2) ((import orc_tc), 2):("")
+given odt_read_fixture_open("<a:b>x</a:b>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 1):("a:b")
+given odt_read_fixture_open("<a:b/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 4):("a:b")
+given odt_read_fixture_open("<a:b></a:b>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), 2):("")
 
 // A text:a opens: the text up to its end tag is a hyperlink, whose target is the xlink:href (a target already in ext.links is reused).
-orc_link(Cx cx) {
-  string[] hrefs = cx.d.ext.links;
-  string href = xml_reader_attr(cx.rd, "xlink:href");
-  int at = list_string_index(hrefs, href);
-} chain (Cx cx) {
+orc_link(Odt_Read_Context odt_read_link_context) {
+  string[] odt_read_link_targets = odt_read_link_context.d.ext.links;
+  string odt_read_link_target = xml_reader_attr(odt_read_link_context.odt_read_xml_reader, "xlink:href");
+  int at = list_string_index(odt_read_link_targets, odt_read_link_target);
+} chain (Odt_Read_Context odt_read_link_context) {
   if(at < 0) {
-    push(hrefs, href);
-    at = len(hrefs) - 1;
+    push(odt_read_link_targets, odt_read_link_target);
+    at = len(odt_read_link_targets) - 1;
   }
-  lset(cx.cs.slots, (import orc_s_link), at + 1);
+  lset(odt_read_link_context.cs.slots, (import orc_s_link), at + 1);
 } return void;
-given orc_t_open("<text:a xlink:href='u'/>") given orc_t_steps(1) ((import orc_tc)):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} | u | ") then (import orc_tc).cs.slots:([0, 0, 0, 1, 0, 0, 0, 0])
-given orc_t_open("<r><text:a xlink:href='u'/><text:a xlink:href='u'/><text:a xlink:href='v'/></r>") given orc_t_steps(2) given orc_link((import orc_tc)) given orc_t_steps(1) given orc_link((import orc_tc)) given orc_t_steps(1) ((import orc_tc)):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} | u,v | ") then (import orc_tc).cs.slots:([0, 0, 0, 2, 51, 0, 0, 0])
+given odt_read_fixture_open("<text:a xlink:href='u'/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context)):() then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0} | u | ") then (import odt_read_fixture_context).cs.slots:([0, 0, 0, 1, 0, 0, 0, 0])
+given odt_read_fixture_open("<r><text:a xlink:href='u'/><text:a xlink:href='u'/><text:a xlink:href='v'/></r>") given odt_read_fixture_step_events(2) given orc_link((import odt_read_fixture_context)) given odt_read_fixture_step_events(1) given orc_link((import odt_read_fixture_context)) given odt_read_fixture_step_events(1) ((import odt_read_fixture_context)):() then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0} | u,v | ") then (import odt_read_fixture_context).cs.slots:([0, 0, 0, 2, 51, 0, 0, 0])

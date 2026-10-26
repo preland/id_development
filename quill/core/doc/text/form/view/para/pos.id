@@ -1,26 +1,26 @@
-pos_eq(Pos pa, Pos pb) {
-  int res = pa.para == pb.para && pa.off == pb.off;
-} return int res;
+document_position_equal(Pos position_equal_first_position, Pos position_equal_second_position) {
+  int position_equal_result = position_equal_first_position.para == position_equal_second_position.para && position_equal_first_position.off == position_equal_second_position.off;
+} return int position_equal_result;
 (Pos(1, 2), Pos(1, 2)):(1)
 (Pos(1, 2), Pos(1, 3)):(0)
 (Pos(1, 2), Pos(2, 2)):(0)
 
 // Document order: an earlier paragraph first, then an earlier offset.
-pos_lt(Pos pa, Pos pb) {
-  int res = pa.para < pb.para || (pa.para == pb.para && pa.off < pb.off);
-} return int res;
+document_position_less(Pos position_less_first_position, Pos position_less_second_position) {
+  int position_less_result = position_less_first_position.para < position_less_second_position.para || (position_less_first_position.para == position_less_second_position.para && position_less_first_position.off < position_less_second_position.off);
+} return int position_less_result;
 (Pos(1, 2), Pos(1, 3)):(1)
 (Pos(1, 9), Pos(2, 0)):(1)
 (Pos(2, 0), Pos(1, 9)):(0)
 (Pos(1, 3), Pos(1, 3)):(0)
 
 // The code points lo..hi-1 of the text as a string; a code point that is not valid UTF-8 text, and 0, become U+FFFD and nothing as utf8_str says.
-text_str(Text t, int lo, int hi) {
+document_text_string(Text text_render_text, int text_render_lower_bound, int hi) {
   string text = "";
-  int i = lo;
-  while(i < hi) {
-    text = text + utf8_string(t.cps[i]);
-    i = i + 1;
+  int text_render_index = text_render_lower_bound;
+  while(text_render_index < hi) {
+    text = text + utf8_string(text_render_text.cps[text_render_index]);
+    text_render_index = text_render_index + 1;
   }
 } return string text;
 (Text([104, 105, 8364], [Run(3, 0, -1)], 0), 0, 3):("hi€")

@@ -1,30 +1,30 @@
 // The six flags of a run as a dump prints them: "b=0 i=0 u=0 s=0 sup=0 sub=0", bold, italic, underline, strike, superscript, subscript.
-ndump_bits(int os_ibits) {
-  string os_sa = "b=" + (os_ibits & 1) + " i=" + ((os_ibits >> 1) & 1) + " u=" + ((os_ibits >> 2) & 1);
-  string os_sb = "s=" + ((os_ibits >> 3) & 1) + " sup=" + ((os_ibits >> 4) & 1) + " sub=" + ((os_ibits >> 5) & 1);
-  string os_sout = os_sa + " " + os_sb;
-} return string os_sout;
+odt_style_dump_flag_bits(int odt_style_dump_flag_bits_flags) {
+  string odt_style_dump_flag_bits_first_flags = "b=" + (odt_style_dump_flag_bits_flags & 1) + " i=" + ((odt_style_dump_flag_bits_flags >> 1) & 1) + " u=" + ((odt_style_dump_flag_bits_flags >> 2) & 1);
+  string odt_style_dump_flag_bits_second_flags = "s=" + ((odt_style_dump_flag_bits_flags >> 3) & 1) + " sup=" + ((odt_style_dump_flag_bits_flags >> 4) & 1) + " sub=" + ((odt_style_dump_flag_bits_flags >> 5) & 1);
+  string odt_style_dump_flag_bits_text = odt_style_dump_flag_bits_first_flags + " " + odt_style_dump_flag_bits_second_flags;
+} return string odt_style_dump_flag_bits_text;
 (0):("b=0 i=0 u=0 s=0 sup=0 sub=0")
 (21):("b=1 i=0 u=1 s=0 sup=1 sub=0")
 (10):("b=0 i=1 u=0 s=1 sup=0 sub=0")
 
 // The hyperlink of a run as a dump prints it: its target in quotes, "-" for none.
-ndump_link(Doc os_d, Run os_ru) {
-  string os_sout = "-";
-  if(os_ru.link >= 0 && os_ru.link < len(os_d.ext.links)) {
-    os_sout = string_quote(os_d.ext.links[os_ru.link]);
+odt_style_dump_link(Doc odt_style_dump_link_document, Run odt_style_dump_link_run) {
+  string odt_style_dump_link_text = "-";
+  if(odt_style_dump_link_run.link >= 0 && odt_style_dump_link_run.link < len(odt_style_dump_link_document.ext.links)) {
+    odt_style_dump_link_text = string_quote(odt_style_dump_link_document.ext.links[odt_style_dump_link_run.link]);
   }
-} return string os_sout;
+} return string odt_style_dump_link_text;
 (Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], ["http://a"], [])), Run(2, 0, 0)):("\"http://a\"")
 (Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext([], ["http://a"], [])), Run(2, 0, -1)):("-")
 
 // The effective font family of a run as a dump prints it: its name in quotes, "-" when no style gives one.
-ndump_font(Doc os_d, int os_ipstyle, int os_icprop) {
-  string os_sout = "-";
-  int os_ifont = style_eff_c(os_d.fmt, os_ipstyle, os_icprop, (import quill_character_font));
-  if(os_ifont >= 0 && os_ifont < len(os_d.ext.fonts)) {
-    os_sout = string_quote(os_d.ext.fonts[os_ifont]);
+odt_style_dump_font(Doc odt_style_dump_font_document, int odt_style_dump_font_paragraph_style, int odt_style_dump_font_character_property) {
+  string odt_style_dump_font_text = "-";
+  int odt_style_dump_font_font = document_style_effective_character(odt_style_dump_font_document.fmt, odt_style_dump_font_paragraph_style, odt_style_dump_font_character_property, (import quill_character_font));
+  if(odt_style_dump_font_font >= 0 && odt_style_dump_font_font < len(odt_style_dump_font_document.ext.fonts)) {
+    odt_style_dump_font_text = string_quote(odt_style_dump_font_document.ext.fonts[odt_style_dump_font_font]);
   }
-} return string os_sout;
+} return string odt_style_dump_font_text;
 (Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, 1):("\"F\"")
 (Doc(Body([], Page([1, 2, 0], [1, 1, 1, 1], [0, 0, 0]), 0), Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, -1, 0, 0], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("N", [0, -1, 0], [0, 0])], [], 0)), Ext(["F"], [], [])), 0, 0):("-")

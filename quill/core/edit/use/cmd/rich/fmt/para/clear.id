@@ -1,35 +1,35 @@
 // Gives paragraph para the paragraph row 0 (Normal, nothing set) in the open undo step, unless it has it already or is a block the model does not edit.
 par_reset(Doc d, Ctl ctl, int para) {
-  int[] loc = [para];
+  int[] location = [para];
   int[] dat = [0];
-  if(d.body.paras[para].pprop != 0 && ed_solid(d, para) == 0) {
-    Op row_change = Op((import ed_k_pprop), loc, dat);
-    ed_run(d, ctl, row_change);
+  if(d.body.paras[para].pprop != 0 && editor_is_solid_block(d, para) == 0) {
+    Op row_change = Op((import ed_k_pprop), location, dat);
+    editor_run(d, ctl, row_change);
   }
 } return void;
-given fx_setup("ab") given fx_style(0, 3) given txn_begin((import fxc)) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_show:("ab") then fx_hist:("u1 r0 o0 n1")
-given fx_setup("ab") given txn_begin((import fxc)) ((import fxd), (import fxc), 0):((import fxd), (import fxc), 0) then fx_hist:("u1 r0 o0 n0")
+given editor_fixture_setup("ab") given editor_fixture_style(0, 3) given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0):((import fixture_document), (import fixture_control), 0) then editor_fixture_show:("ab") then editor_fixture_history:("u1 r0 o0 n1")
+given editor_fixture_setup("ab") given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0):((import fixture_document), (import fixture_control), 0) then editor_fixture_history:("u1 r0 o0 n0")
 
 // For ed_over: puts the part of paragraph para that is selected back to character row 0, and the paragraph to paragraph row 0, in the open undo step; hyperlinks stay.
-clr_run(Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
+editor_clear_run(Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
   int[] runs = runs_span(d.body.paras[para].txt, lo, hi);
   int[] old = list_copy(runs);
   runs_zero(runs, 3);
 } chain (Doc d, Ctl ctl, int para, int lo, int hi, int[] acc) {
-  if(ints_eq(runs, old) == 0) {
-    int[] loc = [para, lo, hi];
-    Op run_change = Op((import ed_k_runs), loc, runs);
-    ed_run(d, ctl, run_change);
+  if(document_integers_equal(runs, old) == 0) {
+    int[] location = [para, lo, hi];
+    Op run_change = Op((import ed_k_runs), location, runs);
+    editor_run(d, ctl, run_change);
   }
   par_reset(d, ctl, para);
 } return void;
-given fx_setup("a*bc*d") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 0, 4, []):((import fxd), (import fxc), 0, 0, 4, []) then fx_show:("abcd") then fx_hist:("u1 r0 o0 n1")
-given fx_setup("abcd") given txn_begin((import fxc)) ((import fxd), (import fxc), 0, 0, 4, []):((import fxd), (import fxc), 0, 0, 4, []) then fx_hist:("u1 r0 o0 n0")
+given editor_fixture_setup("a*bc*d") given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0, 0, 4, []):((import fixture_document), (import fixture_control), 0, 0, 4, []) then editor_fixture_show:("abcd") then editor_fixture_history:("u1 r0 o0 n1")
+given editor_fixture_setup("abcd") given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 0, 0, 4, []):((import fixture_document), (import fixture_control), 0, 0, 4, []) then editor_fixture_history:("u1 r0 o0 n0")
 
 // Clear formatting: the selected text goes back to no character formatting and every paragraph it touches to paragraph row 0, as one undo step.
-ed_clear_format(Doc d, Ctl ctl) {
+editor_clear_format(Doc d, Ctl ctl) {
   int[] acc = [];
-  ed_change(d, ctl, clr_run, acc);
+  editor_change(d, ctl, editor_clear_run, acc);
 } return void;
-given fx_setup("a*bc*d|ef") given fx_at(0, 1, 0, 3) ((import fxd), (import fxc)):((import fxd), (import fxc)) then fx_show:("abcd|ef") then fx_hist:("u1 r0 o-1 n1")
-given fx_setup("ab") given fx_style(0, 3) ((import fxd), (import fxc)):((import fxd), (import fxc)) then fx_show:("ab")
+given editor_fixture_setup("a*bc*d|ef") given editor_fixture_selection_at(0, 1, 0, 3) ((import fixture_document), (import fixture_control)):((import fixture_document), (import fixture_control)) then editor_fixture_show:("abcd|ef") then editor_fixture_history:("u1 r0 o-1 n1")
+given editor_fixture_setup("ab") given editor_fixture_style(0, 3) ((import fixture_document), (import fixture_control)):((import fixture_document), (import fixture_control)) then editor_fixture_show:("ab")

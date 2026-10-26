@@ -1,45 +1,45 @@
 // The x on the surface, in pixels, of the caret wal_o ([page, x, y, height] in lu, as cv_where has it) at the zoom and the scroll the page area has now.
-wa_x(App waa, int[] wal_o) {
-  int wai_z = (import vw_st)[(import vw_s_z)];
-  int wai_s = vw_sx(waa.ui.view, wai_z, vw_box("canvas", 2), (import vw_st)[(import vw_s_x)]);
-  int wai_x = vw_box("canvas", 0) + wai_s + vw_px(wal_o[1], wai_z);
-} return int wai_x;
-given wa_t_app ((import wa_app), [0, 0, 0, 0]):(24)
-given wa_t_app ((import wa_app), [0, 6400, 0, 0]):(124)
+app_caret_surface_x(App app_surface_application, int[] app_surface_caret) {
+  int app_surface_zoom = (import view_state)[(import vw_s_z)];
+  int app_surface_scroll = view_sheet_left(app_surface_application.ui.view, app_surface_zoom, view_box_field("canvas", 2), (import view_state)[(import vw_s_x)]);
+  int app_surface_position = view_box_field("canvas", 0) + app_surface_scroll + view_units_pixels(app_surface_caret[1], app_surface_zoom);
+} return int app_surface_position;
+given cli_test_boot_app ((import cli_application), [0, 0, 0, 0]):(24)
+given cli_test_boot_app ((import cli_application), [0, 6400, 0, 0]):(124)
 
 // Puts the caret where the pixel at the surface's wai_my and the caret's own x are, after the page area scrolled wai_by pixels (down positive): the position under that pixel, with the selection growing from where it was when wai_ext is 1. When the page area could not scroll (wai_by is 0) the caret goes to the end of the document, or its start, by wai_dir.
-wa_land(App waa, int wai_dir, int wai_ext, int[] wal_o, int wai_my, int wai_by) {
-  Pos wap = Pos(0, 0);
-  int wai_mx = wa_x(waa, wal_o);
-  cv_begin(waa.ui.view);
-} chain (App waa, int wai_dir, int wai_ext, int[] wal_o, int wai_my, int wai_by) {
-  if(wai_by != 0) {
-    cv_hit(waa.ui.view, wai_mx, wai_my, wap);
-    ed_place(waa.doc, waa.ctl, wap, wai_ext);
+app_caret_land(App app_land_application, int app_land_direction, int app_land_extend, int[] app_land_caret, int app_land_mouse_y, int app_land_scrolled) {
+  Pos app_land_position = Pos(0, 0);
+  int app_land_mouse_x = app_caret_surface_x(app_land_application, app_land_caret);
+  view_input_command_begin(app_land_application.ui.view);
+} chain (App app_land_application, int app_land_direction, int app_land_extend, int[] app_land_caret, int app_land_mouse_y, int app_land_scrolled) {
+  if(app_land_scrolled != 0) {
+    view_input_pixel_hit(app_land_application.ui.view, app_land_mouse_x, app_land_mouse_y, app_land_position);
+    editor_place(app_land_application.doc, app_land_application.ctl, app_land_position, app_land_extend);
   }
-  if(wai_by == 0) {
-    ed_move(waa.doc, waa.ctl, wai_dir, (import ed_u_doc), wai_ext);
+  if(app_land_scrolled == 0) {
+    editor_move(app_land_application.doc, app_land_application.ctl, app_land_direction, (import ed_u_doc), app_land_extend);
   }
-  cv_end(waa.ui.view);
+  view_input_command_end(app_land_application.ui.view);
 } return void;
-given wa_t_app given wa_t_lines(3) ((import wa_app), -1, 0, [0, 0, 0, 0], 0, 0):() then cv_t_sel:("0:0-0:0")
-given wa_t_app given wa_t_lines(3) given wa_page((import wa_app), -1, 0) ((import wa_app), 1, 0, [0, 0, 0, 0], 0, 0):() then cv_t_sel:("3:0-3:0")
+given cli_test_boot_app given app_test_fill_lines(3) ((import cli_application), -1, 0, [0, 0, 0, 0], 0, 0):() then view_flow_test_selection_text:("0:0-0:0")
+given cli_test_boot_app given app_test_fill_lines(3) given app_page_scroll((import cli_application), -1, 0) ((import cli_application), 1, 0, [0, 0, 0, 0], 0, 0):() then view_flow_test_selection_text:("3:0-3:0")
 
 // Moves the page area a screenful, less wa_overlap pixels, up (wai_dir -1) or down (1), and the caret with it: it stays at the same place on the screen, so the lines it was among are the ones it lands among, and when the page area cannot move any more it goes to the start or the end of the document, as in Word. With wai_ext 1 the selection grows.
-wa_page(App waa, int wai_dir, int wai_ext) {
-  int[] wal_o = [0, 0, 0, 0];
-  cv_where(waa.ui.view, wal_o);
-  int wai_ch = vw_box("canvas", 3);
-} chain (App waa, int wai_dir, int wai_ext) {
-  int wai_sy = (import vw_st)[(import vw_s_y)];
-  int wai_z = (import vw_st)[(import vw_s_z)];
-  int wai_ty = vw_top(waa.ui.view, wal_o[0], wai_z) + vw_px(wal_o[2] + wal_o[3] / 2, wai_z) - wai_sy;
-} chain (App waa, int wai_dir, int wai_ext) {
-  vw_scroll(waa.ui.view, wai_dir * (wai_ch - (import wa_overlap)), wai_ch);
-  int wai_by = (import vw_st)[(import vw_s_y)] - wai_sy;
-  int wai_my = vw_box("canvas", 1) + fixed_point_clamp(wai_ty, 0, wai_ch - 1);
-} chain (App waa, int wai_dir, int wai_ext) {
-  wa_land(waa, wai_dir, wai_ext, wal_o, wai_my, wai_by);
+app_page_scroll(App app_page_application, int app_page_direction, int app_page_extend) {
+  int[] app_page_caret = [0, 0, 0, 0];
+  view_input_caret_place(app_page_application.ui.view, app_page_caret);
+  int app_page_canvas_height = view_box_field("canvas", 3);
+} chain (App app_page_application, int app_page_direction, int app_page_extend) {
+  int app_page_scroll_start = (import view_state)[(import vw_s_y)];
+  int app_page_zoom = (import view_state)[(import vw_s_z)];
+  int app_page_caret_top = view_page_top(app_page_application.ui.view, app_page_caret[0], app_page_zoom) + view_units_pixels(app_page_caret[2] + app_page_caret[3] / 2, app_page_zoom) - app_page_scroll_start;
+} chain (App app_page_application, int app_page_direction, int app_page_extend) {
+  view_state_scroll(app_page_application.ui.view, app_page_direction * (app_page_canvas_height - (import wa_overlap)), app_page_canvas_height);
+  int app_page_scrolled = (import view_state)[(import vw_s_y)] - app_page_scroll_start;
+  int app_page_mouse_y = view_box_field("canvas", 1) + fixed_point_clamp(app_page_caret_top, 0, app_page_canvas_height - 1);
+} chain (App app_page_application, int app_page_direction, int app_page_extend) {
+  app_caret_land(app_page_application, app_page_direction, app_page_extend, app_page_caret, app_page_mouse_y, app_page_scrolled);
 } return void;
-given wa_t_app given wa_t_lines(40) given sf_l_init(500, 700) given vw_fit_all((import vw_v)) given lset((import vw_st), 1, 0) given wa_page((import wa_app), -1, 0) ((import wa_app), 1, 0):() then vw_t_sts:("sts 0,482,100,1,") then cv_t_sel:("18:0-18:0")
-given wa_t_app given wa_t_lines(40) given sf_l_init(500, 700) given vw_fit_all((import vw_v)) given lset((import vw_st), 1, 0) given wa_page((import wa_app), -1, 0) given wa_page((import wa_app), 1, 0) ((import wa_app), -1, 0):() then vw_t_sts:("sts 0,0,100,1,") then cv_t_sel:("0:0-0:0")
+given cli_test_boot_app given app_test_fill_lines(40) given sf_l_init(500, 700) given view_input_window_fit((import view_input_viewer_view)) given lset((import view_state), 1, 0) given app_page_scroll((import cli_application), -1, 0) ((import cli_application), 1, 0):() then view_test_state_dump:("sts 0,482,100,1,") then view_flow_test_selection_text:("18:0-18:0")
+given cli_test_boot_app given app_test_fill_lines(40) given sf_l_init(500, 700) given view_input_window_fit((import view_input_viewer_view)) given lset((import view_state), 1, 0) given app_page_scroll((import cli_application), -1, 0) given app_page_scroll((import cli_application), 1, 0) ((import cli_application), -1, 0):() then view_test_state_dump:("sts 0,0,100,1,") then view_flow_test_selection_text:("0:0-0:0")

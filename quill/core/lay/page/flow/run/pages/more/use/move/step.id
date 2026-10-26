@@ -1,37 +1,37 @@
 // Records in lhr, [paragraph, line], the line one step from line lhj of paragraph lhi, up (lhd -1) or down (1): the next line of the paragraph, or the first line of the next paragraph, or the last line of the one before; the same line when there is none.
 // By hand: in "BBB", "A", "BBB" every paragraph has one line, so a step down from paragraph 0 is paragraph 1; in "BBB EEE BBB" a step down from line 0 is line 1 and from line 2 there is none.
-lay_step(View lhv, int lhi, int lhj, int lhd, int[] lhr) {
-  lset(lhr, 0, lhi);
-  lset(lhr, 1, lhj);
-  lay_cross(lhv, lhi, lhj, lhd, lhr);
+lay_step(View hit_view, int target_paragraph, int target_line, int step_direction, int[] result_list) {
+  lset(result_list, 0, target_paragraph);
+  lset(result_list, 1, target_line);
+  lay_cross(hit_view, target_paragraph, target_line, step_direction, result_list);
 } return void;
-given lg_t_rows(["BBB", "A", "BBB"]) ((import lp_t_v), 0, 0, 1, [9, 9]):((import lp_t_v), 0, 0, 1, [1, 0])
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 0, 1, [9, 9]):((import lp_t_v), 0, 0, 1, [0, 1])
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 2, 1, [9, 9]):((import lp_t_v), 0, 2, 1, [0, 2])
+given layout_page_test_rows(["BBB", "A", "BBB"]) ((import layout_paragraph_test_view), 0, 0, 1, [9, 9]):((import layout_paragraph_test_view), 0, 0, 1, [1, 0])
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 0, 1, [9, 9]):((import layout_paragraph_test_view), 0, 0, 1, [0, 1])
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 2, 1, [9, 9]):((import layout_paragraph_test_view), 0, 2, 1, [0, 2])
 
 // Puts in lhr, [paragraph, line], line lhj + lhd of the paragraph when it has one, and the line beyond it in the next paragraph (lay_next) when it has not.
 // By hand: "BBB EEE BBB" has lines 0 to 2, so from line 1 a step down is line 2 and from line 2 it leaves the paragraph.
-lay_cross(View lhv, int lhi, int lhj, int lhd, int[] lhr) {
-  int lhn = len(lhv.doc.body.paras[lhi].lay.lines) / (import quill_line_stride);
-  if(lhj + lhd >= 0 && lhj + lhd < lhn) {
-    lset(lhr, 1, lhj + lhd);
+lay_cross(View hit_view, int target_paragraph, int target_line, int step_direction, int[] result_list) {
+  int line_total = len(hit_view.doc.body.paras[target_paragraph].lay.lines) / (import quill_line_stride);
+  if(target_line + step_direction >= 0 && target_line + step_direction < line_total) {
+    lset(result_list, 1, target_line + step_direction);
   } else {
-    lay_next(lhv, lhi, lhd, lhr);
+    lay_next(hit_view, target_paragraph, step_direction, result_list);
   }
 } return void;
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), 0, 1, 1, [0, 1]):((import lp_t_v), 0, 1, 1, [0, 2])
-given lg_t_rows(["BBB EEE BBB", "A"]) ((import lp_t_v), 0, 2, 1, [0, 2]):((import lp_t_v), 0, 2, 1, [1, 0])
-given lg_t_rows(["BBB EEE BBB", "A"]) ((import lp_t_v), 1, 0, -1, [1, 0]):((import lp_t_v), 1, 0, -1, [0, 2])
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), 0, 1, 1, [0, 1]):((import layout_paragraph_test_view), 0, 1, 1, [0, 2])
+given layout_page_test_rows(["BBB EEE BBB", "A"]) ((import layout_paragraph_test_view), 0, 2, 1, [0, 2]):((import layout_paragraph_test_view), 0, 2, 1, [1, 0])
+given layout_page_test_rows(["BBB EEE BBB", "A"]) ((import layout_paragraph_test_view), 1, 0, -1, [1, 0]):((import layout_paragraph_test_view), 1, 0, -1, [0, 2])
 
 // Puts in lhr, [paragraph, line], the first line of paragraph lhi + lhd when stepping down, or its last line when stepping up, and leaves lhr alone when there is no such paragraph.
 // By hand: with "BBB EEE BBB" and "A", a step up out of paragraph 1 is line 2 of paragraph 0; a step down out of paragraph 1 has nowhere to go.
-lay_next(View lhv, int lhi, int lhd, int[] lhr) {
-  int lht = lhi + lhd;
-  if(lht >= 0 && lht < len(lhv.doc.body.paras)) {
-    lset(lhr, 0, lht);
-    lset(lhr, 1, (lhd < 0) * (len(lhv.doc.body.paras[lht].lay.lines) / (import quill_line_stride) - 1));
+lay_next(View hit_view, int target_paragraph, int step_direction, int[] result_list) {
+  int next_paragraph = target_paragraph + step_direction;
+  if(next_paragraph >= 0 && next_paragraph < len(hit_view.doc.body.paras)) {
+    lset(result_list, 0, next_paragraph);
+    lset(result_list, 1, (step_direction < 0) * (len(hit_view.doc.body.paras[next_paragraph].lay.lines) / (import quill_line_stride) - 1));
   }
 } return void;
-given lg_t_rows(["BBB EEE BBB", "A"]) ((import lp_t_v), 1, -1, [1, 0]):((import lp_t_v), 1, -1, [0, 2])
-given lg_t_rows(["BBB EEE BBB", "A"]) ((import lp_t_v), 0, 1, [0, 2]):((import lp_t_v), 0, 1, [1, 0])
-given lg_t_rows(["BBB EEE BBB", "A"]) ((import lp_t_v), 1, 1, [1, 0]):((import lp_t_v), 1, 1, [1, 0])
+given layout_page_test_rows(["BBB EEE BBB", "A"]) ((import layout_paragraph_test_view), 1, -1, [1, 0]):((import layout_paragraph_test_view), 1, -1, [0, 2])
+given layout_page_test_rows(["BBB EEE BBB", "A"]) ((import layout_paragraph_test_view), 0, 1, [0, 2]):((import layout_paragraph_test_view), 0, 1, [1, 0])
+given layout_page_test_rows(["BBB EEE BBB", "A"]) ((import layout_paragraph_test_view), 1, 1, [1, 0]):((import layout_paragraph_test_view), 1, 1, [1, 0])

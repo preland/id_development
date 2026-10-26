@@ -1,41 +1,41 @@
 // Reads one document of the package (styles.xml, part 1, or content.xml, part 2) three times, each time up to its body: its font faces, its styles into the bag, its list styles into the document. Answers 0, or the error code of ost_error when the document is not well-formed before its body.
-ost_pass(Doc os_d, StyBag os_b, string[] os_lface, int[] os_lxml, int os_ipart) {
-  XmlR os_r1 = xml_reader_open(os_lxml);
-  ost_faces(os_lface, os_r1);
-  XmlR os_r2 = xml_reader_open(os_lxml);
-} chain (Doc os_d, StyBag os_b, string[] os_lface, int[] os_lxml, int os_ipart) {
-  ost_scan(os_b, os_r2);
-  XmlR os_r3 = xml_reader_open(os_lxml);
-  ost_lists(os_d.fmt, os_r3);
-} chain (Doc os_d, StyBag os_b, string[] os_lface, int[] os_lxml, int os_ipart) {
-  int os_icode = ost_xerr(os_r2, os_ipart);
-} return int os_icode;
-given ost_t_doc given ost_t_mkbag given ost_t_xml("<a><style:style style:name=\"A\" style:family=\"text\"/></a>", "") ((import ost_t_d), (import ost_t_b), [], (import ost_t_sx), 50):(0)
-given ost_t_doc given ost_t_mkbag given ost_t_xml("<a><b></a>", "") ((import ost_t_d), (import ost_t_b), [], (import ost_t_sx), 51):(51)
+odt_style_read_pass(Doc odt_style_read_pass_document, odt_named_style_records odt_style_read_pass_bag, string[] odt_style_read_pass_faces, int[] odt_style_read_pass_bytes, int odt_style_read_pass_part) {
+  XmlR odt_style_read_pass_first_reader = xml_reader_open(odt_style_read_pass_bytes);
+  odt_named_faces_read(odt_style_read_pass_faces, odt_style_read_pass_first_reader);
+  XmlR odt_style_read_pass_second_reader = xml_reader_open(odt_style_read_pass_bytes);
+} chain (Doc odt_style_read_pass_document, odt_named_style_records odt_style_read_pass_bag, string[] odt_style_read_pass_faces, int[] odt_style_read_pass_bytes, int odt_style_read_pass_part) {
+  odt_named_scan(odt_style_read_pass_bag, odt_style_read_pass_second_reader);
+  XmlR odt_style_read_pass_third_reader = xml_reader_open(odt_style_read_pass_bytes);
+  odt_named_lists_read(odt_style_read_pass_document.fmt, odt_style_read_pass_third_reader);
+} chain (Doc odt_style_read_pass_document, odt_named_style_records odt_style_read_pass_bag, string[] odt_style_read_pass_faces, int[] odt_style_read_pass_bytes, int odt_style_read_pass_part) {
+  int odt_style_read_pass_code = odt_style_reader_error_code(odt_style_read_pass_second_reader, odt_style_read_pass_part);
+} return int odt_style_read_pass_code;
+given odt_style_test_document given odt_named_bag_fixture given odt_style_test_xml_bytes("<a><style:style style:name=\"A\" style:family=\"text\"/></a>", "") ((import odt_style_test_default_document), (import odt_named_bag), [], (import odt_style_test_styles_bytes), 50):(0)
+given odt_style_test_document given odt_named_bag_fixture given odt_style_test_xml_bytes("<a><b></a>", "") ((import odt_style_test_default_document), (import odt_named_bag), [], (import odt_style_test_styles_bytes), 51):(51)
 
 // The master page a paragraph style names, looked up in pairs of style name and master page name; "" for no style or none paired.
-ost_pair(string[] os_lpairs, string os_sname) {
-  string os_smaster = "";
+odt_style_master_for_style(string[] odt_style_master_for_style_pairs, string odt_style_master_for_style_style_name) {
+  string odt_style_master_for_style_master = "";
   int i = 0;
-  while(i < len(os_lpairs) && os_sname != "") {
-    if(os_lpairs[i] == os_sname) {
-      os_smaster = os_lpairs[i + 1];
+  while(i < len(odt_style_master_for_style_pairs) && odt_style_master_for_style_style_name != "") {
+    if(odt_style_master_for_style_pairs[i] == odt_style_master_for_style_style_name) {
+      odt_style_master_for_style_master = odt_style_master_for_style_pairs[i + 1];
     }
     i = i + 2;
   }
-} return string os_smaster;
+} return string odt_style_master_for_style_master;
 (["P1", "Letter", "P2", "Wide"], "P2"):("Wide")
 (["P1", "Letter"], "P3"):("")
 (["P1", "Letter"], ""):("")
 
 // What one event of a content document says about the master page of the first paragraph: a style that names a master page adds a pair; the first paragraph or heading answers 1 to stop.
-ost_master_one(string[] os_lpairs, XmlR os_r, int os_iev) {
-  string os_sname = xml_reader_get(os_r, (import xml_reader_k_name));
-  int os_istop = (os_sname == "text:p" || os_sname == "text:h") && os_iev != 2;
-  if(os_sname == "style:style" && os_iev != 2 && xml_reader_attr(os_r, "style:master-page-name") != "") {
-    list_string_extend(os_lpairs, [xml_reader_attr(os_r, "style:name"), xml_reader_attr(os_r, "style:master-page-name")]);
+odt_style_master_event(string[] odt_style_master_event_pairs, XmlR odt_style_master_event_reader, int odt_style_master_event_event) {
+  string odt_style_master_event_tag_name = xml_reader_get(odt_style_master_event_reader, (import xml_reader_k_name));
+  int odt_style_master_event_stop = (odt_style_master_event_tag_name == "text:p" || odt_style_master_event_tag_name == "text:h") && odt_style_master_event_event != 2;
+  if(odt_style_master_event_tag_name == "style:style" && odt_style_master_event_event != 2 && xml_reader_attr(odt_style_master_event_reader, "style:master-page-name") != "") {
+    list_string_extend(odt_style_master_event_pairs, [xml_reader_attr(odt_style_master_event_reader, "style:name"), xml_reader_attr(odt_style_master_event_reader, "style:master-page-name")]);
   }
-} return int os_istop;
-given ost_t_open("<style:style style:name=\"P1\" style:master-page-name=\"Letter\"/>") given xml_reader_skip((import ost_t_r), 1) ([], (import ost_t_r), 4):(0)
-given ost_t_open("<text:p text:style-name=\"P1\">x</text:p>") given xml_reader_skip((import ost_t_r), 1) ([], (import ost_t_r), 1):(1)
-given ost_t_open("<text:p>x</text:p>") given xml_reader_skip((import ost_t_r), 2) ([], (import ost_t_r), 3):(0)
+} return int odt_style_master_event_stop;
+given odt_named_reader_open("<style:style style:name=\"P1\" style:master-page-name=\"Letter\"/>") given xml_reader_skip((import odt_named_reader), 1) ([], (import odt_named_reader), 4):(0)
+given odt_named_reader_open("<text:p text:style-name=\"P1\">x</text:p>") given xml_reader_skip((import odt_named_reader), 1) ([], (import odt_named_reader), 1):(1)
+given odt_named_reader_open("<text:p>x</text:p>") given xml_reader_skip((import odt_named_reader), 2) ([], (import odt_named_reader), 3):(0)

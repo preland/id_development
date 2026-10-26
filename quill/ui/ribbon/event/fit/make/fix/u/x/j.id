@@ -1,51 +1,51 @@
 // Test check: whether the Home tab fits the width of the surface, and how many of its rectangles overlap another, comma separated.
-rbd_t_hf() {
-  Ribbon rbr = (import rbd_t_r);
-  int rbi_f = rib_fits(rbr, (import sf_l_w));
-  int rbi_o = rects_overlap(rbr.rects, len(rbr.items));
+ribbon_fit_check_home_fit() {
+  Ribbon ribbon_fit_home_ribbon = (import ribbon_fit_test_ribbon);
+  int ribbon_fit_home_fits = rib_fits(ribbon_fit_home_ribbon, (import sf_l_w));
+  int ribbon_fit_home_overlaps = ribbon_rectangles_overlap(ribbon_fit_home_ribbon.ribbon_rectangles, len(ribbon_fit_home_ribbon.items));
 } chain () {
-  string rbs_z = rbi_f + "," + rbi_o;
-} return string rbs_z;
-given lp_t_font given rbd_t_up(1024) ():("1,0")
-given lp_t_font given rbd_t_up(600) ():("0,0")
+  string ribbon_fit_home_text = ribbon_fit_home_fits + "," + ribbon_fit_home_overlaps;
+} return string ribbon_fit_home_text;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ():("1,0")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(600) ():("0,0")
 
 // Test check: the rectangles of the open menu, gallery or the open list of the combo box that has the keyboard: its box, then each choice, then what follows them; none when nothing is open.
-rbd_t_rects() {
-  int rbi_pk = (import rbd_s)[(import rbd_s_pk)];
-  int[] rbl_r = [];
-  if(rbi_pk == 1) {
-    GuiMenu rbm = (import rbd_menu)[0];
-    rbl_r = rbm.rects;
+ribbon_fit_open_popup_rectangles() {
+  int ribbon_fit_rectangles_open_kind = (import ribbon_fit_state)[(import rbd_s_pk)];
+  int[] ribbon_fit_rectangles_list = [];
+  if(ribbon_fit_rectangles_open_kind == 1) {
+    GuiMenu ribbon_fit_rectangles_menu = (import ribbon_fit_menus)[0];
+    ribbon_fit_rectangles_list = ribbon_fit_rectangles_menu.rects;
   }
 } chain () {
-  if(rbi_pk == 2) {
-    GuiGallery rby = (import rbd_gal)[0];
-    rbl_r = rby.rects;
+  if(ribbon_fit_rectangles_open_kind == 2) {
+    GuiGallery ribbon_fit_rectangles_gallery = (import ribbon_fit_galleries)[0];
+    ribbon_fit_rectangles_list = ribbon_fit_rectangles_gallery.rects;
   }
-  if(rbi_pk == 0 && (import rbd_fo)[0] >= 0) {
-    GuiCombo rbc = (import rbd_cb)[(import rbd_fo)[0]];
-    rbl_r = rbc.list.rects;
+  if(ribbon_fit_rectangles_open_kind == 0 && (import ribbon_fit_focused_combo)[0] >= 0) {
+    GuiCombo ribbon_fit_rectangles_combo = (import ribbon_fit_combos)[(import ribbon_fit_focused_combo)[0]];
+    ribbon_fit_rectangles_list = ribbon_fit_rectangles_combo.list.rects;
   }
-} return int[] rbl_r;
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) ():([10, 30, 53, 158, 11, 31, 51, 26, 11, 57, 51, 26, 11, 83, 51, 26, 11, 109, 51, 26, 11, 135, 51, 26, 11, 161, 51, 26, 1])
-given lp_t_font given rbd_t_up(1024) ():([])
+} return int[] ribbon_fit_rectangles_list;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(409) ():([10, 30, 53, 158, 11, 31, 51, 26, 11, 57, 51, 26, 11, 83, 51, 26, 11, 109, 51, 26, 11, 135, 51, 26, 11, 161, 51, 26, 1])
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) ():([])
 
 // Test setup: a tap on choice rbi_k of the open menu or gallery: a press and a release at the middle of its rectangle, the ribbon in rbd_t_r getting both.
-rbd_t_choose(int rbi_k) {
-  int[] rbl_r = rbd_t_rects();
-  int rbi_q = 4 + 4 * rbi_k;
-  int rbi_x = rbl_r[rbi_q] + rbl_r[rbi_q + 2] / 2;
-} chain (int rbi_k) {
-  int rbi_y = rbl_r[rbi_q + 1] + rbl_r[rbi_q + 3] / 2;
-  rbd_t_ev(3, rbi_x, rbi_y);
-  rbd_t_ev(4, rbi_x, rbi_y);
+ribbon_fit_tap_choice(int ribbon_fit_choose_index) {
+  int[] ribbon_fit_choose_rectangles = ribbon_fit_open_popup_rectangles();
+  int ribbon_fit_choose_cell = 4 + 4 * ribbon_fit_choose_index;
+  int ribbon_fit_choose_column = ribbon_fit_choose_rectangles[ribbon_fit_choose_cell] + ribbon_fit_choose_rectangles[ribbon_fit_choose_cell + 2] / 2;
+} chain (int ribbon_fit_choose_index) {
+  int ribbon_fit_choose_row = ribbon_fit_choose_rectangles[ribbon_fit_choose_cell + 1] + ribbon_fit_choose_rectangles[ribbon_fit_choose_cell + 3] / 2;
+  ribbon_fit_send_mouse_event(3, ribbon_fit_choose_column, ribbon_fit_choose_row);
+  ribbon_fit_send_mouse_event(4, ribbon_fit_choose_column, ribbon_fit_choose_row);
 } return void;
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) (2):() then rbd_t_cmd:("409,150,1.5")
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(414) (1):() then rbd_t_cmd:("414,1,Title")
-given lp_t_font given rbd_t_up(1024) given rbd_t_tap(4, 14) (4):() then rbd_t_cmd:("308,24,12")
-given lp_t_font given rbd_t_up(1024) given rbd_t_tap(24, 0) (3):() then rbd_t_cmd:("409,200,2.0")
-given lp_t_font given rbd_t_up(1024) given rbd_t_tap(25, 0) (2):() then rbd_t_cmd:("414,2,Heading 1")
-given lp_t_font given rbd_t_up(1024) given rib_show((import rbd_t_r), 3) given rbd_t_tap(0, 0) (1):() then rbd_t_cmd:("504,1,Narrow")
-given lp_t_font given rbd_t_up(1024) given rib_show((import rbd_t_r), 3) given rbd_t_tap(1, 0) (1):() then rbd_t_cmd:("503,1,Landscape")
-given lp_t_font given rbd_t_up(1024) given rib_show((import rbd_t_r), 3) given rbd_t_tap(2, 0) (1):() then rbd_t_cmd:("502,1,A4")
-given lp_t_font given rbd_t_up(1024) given rib_show((import rbd_t_r), 3) given rbd_t_tap(3, 0) (2):() then rbd_t_cmd:("410,720,0.5 in")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(409) (2):() then ribbon_fit_check_command:("409,150,1.5")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(414) (1):() then ribbon_fit_check_command:("414,1,Title")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_tap_control(4, 14) (4):() then ribbon_fit_check_command:("308,24,12")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_tap_control(24, 0) (3):() then ribbon_fit_check_command:("409,200,2.0")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_tap_control(25, 0) (2):() then ribbon_fit_check_command:("414,2,Heading 1")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given rib_show((import ribbon_fit_test_ribbon), 3) given ribbon_fit_tap_control(0, 0) (1):() then ribbon_fit_check_command:("504,1,Narrow")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given rib_show((import ribbon_fit_test_ribbon), 3) given ribbon_fit_tap_control(1, 0) (1):() then ribbon_fit_check_command:("503,1,Landscape")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given rib_show((import ribbon_fit_test_ribbon), 3) given ribbon_fit_tap_control(2, 0) (1):() then ribbon_fit_check_command:("502,1,A4")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given rib_show((import ribbon_fit_test_ribbon), 3) given ribbon_fit_tap_control(3, 0) (2):() then ribbon_fit_check_command:("410,720,0.5 in")

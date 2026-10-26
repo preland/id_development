@@ -1,14 +1,14 @@
 // What paragraph j, met while counting backwards for an item of list lid at level lvl, does to the count: 1 it is an item of the same list and level and counts, 2 it is an item of the same list at a shallower level and so ends the count, 0 anything else (another list, no list, a deeper item).
-lp_nd(View v, int j, int lid, int lvl) {
-  int lj = lp_prop(v, j, (import quill_paragraph_list));
-  int vj = lp_prop(v, j, (import quill_paragraph_level));
-  int res = 0;
-} chain (View v, int j, int lid, int lvl) {
-  if(lj == lid) {
-    res = (vj == lvl) + 2 * (vj < lvl);
+layout_paragraph_count_effect(View effect_view, int effect_paragraph_index, int lid, int effect_level) {
+  int effect_list = layout_paragraph_property(effect_view, effect_paragraph_index, (import quill_paragraph_list));
+  int effect_other_level = layout_paragraph_property(effect_view, effect_paragraph_index, (import quill_paragraph_level));
+  int effect_result = 0;
+} chain (View effect_view, int effect_paragraph_index, int lid, int effect_level) {
+  if(effect_list == lid) {
+    effect_result = (effect_other_level == effect_level) + 2 * (effect_other_level < effect_level);
   }
-} return int res;
-given lp_t_new given lp_t_row(0, 9, 2) ((import lp_t_v), 0, 2, 0):(1)
-given lp_t_new given lp_t_row(0, 9, 2) ((import lp_t_v), 0, 2, 1):(2)
-given lp_t_new given lp_t_row(0, 9, 2) given lp_t_row(0, 10, 1) ((import lp_t_v), 0, 2, 0):(0)
-given lp_t_new given lp_t_row(0, 9, 1) ((import lp_t_v), 0, 2, 0):(0)
+} return int effect_result;
+given layout_paragraph_test_new given layout_paragraph_test_set_property(0, 9, 2) ((import layout_paragraph_test_view), 0, 2, 0):(1)
+given layout_paragraph_test_new given layout_paragraph_test_set_property(0, 9, 2) ((import layout_paragraph_test_view), 0, 2, 1):(2)
+given layout_paragraph_test_new given layout_paragraph_test_set_property(0, 9, 2) given layout_paragraph_test_set_property(0, 10, 1) ((import layout_paragraph_test_view), 0, 2, 0):(0)
+given layout_paragraph_test_new given layout_paragraph_test_set_property(0, 9, 1) ((import layout_paragraph_test_view), 0, 2, 0):(0)

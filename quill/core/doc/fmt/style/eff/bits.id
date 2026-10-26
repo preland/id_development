@@ -1,17 +1,17 @@
 // The effective flag bits of a run: its own, then its character style chain, then the paragraph style chain, each bit decided by the first layer that specifies it.
-style_bits(Fmt f, int pstyle, int cprop) {
-  int on = tab_get(f.chars, cprop, (import quill_character_on));
-  int sb = tab_get(f.chars, cprop, (import quill_character_set));
-  int cs = tab_get(f.chars, cprop, (import quill_character_style));
-} chain (Fmt f, int pstyle, int cprop) {
-  int fold = bits_fold(0, on, sb);
-  if(cs > 0) {
-    fold = style_fold(f, cs, fold);
+style_bits(Fmt bits_effective_format_set, int bits_effective_paragraph_style, int bits_effective_character_row) {
+  int on = tab_get(bits_effective_format_set.chars, bits_effective_character_row, (import quill_character_on));
+  int specified_bits = tab_get(bits_effective_format_set.chars, bits_effective_character_row, (import quill_character_set));
+  int bits_effective_character_style = tab_get(bits_effective_format_set.chars, bits_effective_character_row, (import quill_character_style));
+} chain (Fmt bits_effective_format_set, int bits_effective_paragraph_style, int bits_effective_character_row) {
+  int fold = bits_fold(0, on, specified_bits);
+  if(bits_effective_character_style > 0) {
+    fold = style_fold(bits_effective_format_set, bits_effective_character_style, fold);
   }
-  fold = style_fold(f, pstyle, fold);
-} chain (Fmt f, int pstyle, int cprop) {
-  int res = fold & 255;
-} return int res;
+  fold = style_fold(bits_effective_format_set, bits_effective_paragraph_style, fold);
+} chain (Fmt bits_effective_format_set, int bits_effective_paragraph_style, int bits_effective_character_row) {
+  int bits_effective_result = fold & 255;
+} return int bits_effective_result;
 (Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, 24, -1, -1, 0, 0, 0, -1, 32, -1, -1, 1, 1, 0, -1, -1, 5, -1, 0, 1, 0, -1, 40, -1, -1, 2, 2, 3, -1, -1, -1, -1, 0, 0, 0, -1, 50, -1, -1, 4, 4], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0, -1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0, 1, 2, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("A", [0, -1, 0], [1, 1]), Style("B", [0, 0, 0], [2, 2]), Style("C", [0, 1, 0], [3, 1]), Style("D", [1, -1, -1], [4, 0])], [], 0)), 2, 0):(0)
 (Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, 24, -1, -1, 0, 0, 0, -1, 32, -1, -1, 1, 1, 0, -1, -1, 5, -1, 0, 1, 0, -1, 40, -1, -1, 2, 2, 3, -1, -1, -1, -1, 0, 0, 0, -1, 50, -1, -1, 4, 4], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0, -1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0, 1, 2, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("A", [0, -1, 0], [1, 1]), Style("B", [0, 0, 0], [2, 2]), Style("C", [0, 1, 0], [3, 1]), Style("D", [1, -1, -1], [4, 0])], [], 0)), 2, 5):(2)
 (Fmt(Tab([0, -1, -1, -1, -1, 0, 0, 0, 0, 24, -1, -1, 0, 0, 0, -1, 32, -1, -1, 1, 1, 0, -1, -1, 5, -1, 0, 1, 0, -1, 40, -1, -1, 2, 2, 3, -1, -1, -1, -1, 0, 0, 0, -1, 50, -1, -1, 4, 4], 7, []), Tab([0, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 120, 100, 0, 0, 0, 0, -1, -1, -1, -1, -1, 240, 0, -1, 0, 0, 0, 0, 1, 2, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0], 12, []), Sty([Style("A", [0, -1, 0], [1, 1]), Style("B", [0, 0, 0], [2, 2]), Style("C", [0, 1, 0], [3, 1]), Style("D", [1, -1, -1], [4, 0])], [], 0)), 2, 6):(4)

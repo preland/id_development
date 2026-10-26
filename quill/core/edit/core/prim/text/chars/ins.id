@@ -1,16 +1,16 @@
 // The DEL_TEXT that undoes an insert of n code points at para, off: kp is what text_keep saw before, so a paragraph that was empty gets its empty run back.
-ed_inv_del(int para, int off, int n, int[] kp) {
-  int[] loc = [para, off, n, kp[0], kp[1]];
+editor_inverse_delete(int para, int off, int n, int[] keep_properties) {
+  int[] location = [para, off, n, keep_properties[0], keep_properties[1]];
   int[] none = [];
-  Op eo = Op((import ed_k_del), loc, none);
-} return Op eo;
+  Op edit_operation = Op((import ed_k_del), location, none);
+} return Op edit_operation;
 (0, 2, 3, [-1, -1]):(Op(2, [0, 2, 3, -1, -1], []))
 (4, 0, 1, [5, 7]):(Op(2, [4, 0, 1, 5, 7], []))
 
 // When the insert carries runs (at[3] of them, as triples after the code points), sets them over the n new code points.
-ins_runs(Text t, int off, int n, Op eo) {
-  if(eo.at[3] > 0) {
-    int[] runs = list_slice(eo.data, n, 3 * eo.at[3]);
+ins_runs(Text t, int off, int n, Op edit_operation) {
+  if(edit_operation.at[3] > 0) {
+    int[] runs = list_slice(edit_operation.data, n, 3 * edit_operation.at[3]);
     text_runs_set(t, off, off + n, runs);
   }
 } return void;
@@ -19,19 +19,19 @@ ins_runs(Text t, int off, int n, Op eo) {
 (Text([1, 2, 3], [Run(3, 0, -1)], 0), 1, 1, Op(1, [0, 1, 0, 0], [9])):(Text([1, 2, 3], [Run(3, 0, -1)], 0), 1, 1, Op(1, [0, 1, 0, 0], [9]))
 
 // INS_TEXT, at = [para, off, cprop, nruns], data = the code points then nruns run triples (none: the new text takes cprop). The inverse is the DEL_TEXT of the same span.
-ap_ins(Doc d, Op eo) {
-  Para p = d.body.paras[eo.at[0]];
-  int[] kp = text_keep(p.txt);
-  int n = len(eo.data) - 3 * eo.at[3];
-} chain (Doc d, Op eo) {
-  int[] cps = list_slice(eo.data, 0, n);
-  text_insert(p.txt, eo.at[1], cps, eo.at[2]);
-  ins_runs(p.txt, eo.at[1], n, eo);
-} chain (Doc d, Op eo) {
+editor_apply_insert(Doc d, Op edit_operation) {
+  Para p = d.body.paras[edit_operation.at[0]];
+  int[] keep_properties = text_keep(p.txt);
+  int n = len(edit_operation.data) - 3 * edit_operation.at[3];
+} chain (Doc d, Op edit_operation) {
+  int[] cps = list_slice(edit_operation.data, 0, n);
+  text_insert(p.txt, edit_operation.at[1], cps, edit_operation.at[2]);
+  ins_runs(p.txt, edit_operation.at[1], n, edit_operation);
+} chain (Doc d, Op edit_operation) {
   para_stale(p);
-  Op inv = ed_inv_del(eo.at[0], eo.at[1], n, kp);
-} return Op inv;
-given fx_setup("ab") ((import fxd), Op(1, [0, 1, 0, 0], [120])):(Op(2, [0, 1, 1, -1, -1], [])) then fx_show:("axb")
-given fx_setup("") ((import fxd), Op(1, [0, 0, 0, 0], [104])):(Op(2, [0, 0, 1, 0, -1], [])) then fx_show:("h")
-given fx_setup("ab") ((import fxd), Op(1, [0, 1, 0, 1], [120, 1, 8, -1])):(Op(2, [0, 1, 1, -1, -1], [])) then fx_show:("a*x*b")
-given fx_setup("ab") ((import fxd), Op(1, [0, 1, 8, 0], [120])):(Op(2, [0, 1, 1, -1, -1], [])) then fx_show:("a*x*b")
+  Op inverse = editor_inverse_delete(edit_operation.at[0], edit_operation.at[1], n, keep_properties);
+} return Op inverse;
+given editor_fixture_setup("ab") ((import fixture_document), Op(1, [0, 1, 0, 0], [120])):(Op(2, [0, 1, 1, -1, -1], [])) then editor_fixture_show:("axb")
+given editor_fixture_setup("") ((import fixture_document), Op(1, [0, 0, 0, 0], [104])):(Op(2, [0, 0, 1, 0, -1], [])) then editor_fixture_show:("h")
+given editor_fixture_setup("ab") ((import fixture_document), Op(1, [0, 1, 0, 1], [120, 1, 8, -1])):(Op(2, [0, 1, 1, -1, -1], [])) then editor_fixture_show:("a*x*b")
+given editor_fixture_setup("ab") ((import fixture_document), Op(1, [0, 1, 8, 0], [120])):(Op(2, [0, 1, 1, -1, -1], [])) then editor_fixture_show:("a*x*b")

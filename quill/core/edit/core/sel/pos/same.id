@@ -1,30 +1,30 @@
 // Copies orig into sel field by field, so everything holding sel sees the new selection.
-sel_load(Sel sel, Sel orig) {
-  sel.anchor.para = orig.anchor.para;
-  sel.anchor.off = orig.anchor.off;
-  sel.caret.para = orig.caret.para;
-} chain (Sel sel, Sel orig) {
-  sel.caret.off = orig.caret.off;
-  sel.goal = orig.goal;
+editor_selection_load(Sel sel, Sel selection_original) {
+  sel.anchor.para = selection_original.anchor.para;
+  sel.anchor.off = selection_original.anchor.off;
+  sel.caret.para = selection_original.caret.para;
+} chain (Sel sel, Sel selection_original) {
+  sel.caret.off = selection_original.caret.off;
+  sel.goal = selection_original.goal;
 } return void;
 (Sel(Pos(0, 0), Pos(0, 0), -1), Sel(Pos(1, 2), Pos(3, 4), 7)):(Sel(Pos(1, 2), Pos(3, 4), 7), Sel(Pos(1, 2), Pos(3, 4), 7))
 (Sel(Pos(5, 5), Pos(6, 6), 1), Sel(Pos(0, 0), Pos(0, 0), -1)):(Sel(Pos(0, 0), Pos(0, 0), -1), Sel(Pos(0, 0), Pos(0, 0), -1))
 
 // 1 when nothing is selected: the caret is the anchor.
-sel_empty(Sel sel) {
-  int res = pos_eq(sel.anchor, sel.caret);
+editor_selection_empty(Sel sel) {
+  int res = document_position_equal(sel.anchor, sel.caret);
 } return int res;
 (Sel(Pos(1, 2), Pos(1, 2), -1)):(1)
 (Sel(Pos(1, 2), Pos(1, 3), -1)):(0)
 (Sel(Pos(1, 2), Pos(2, 2), -1)):(0)
 
 // The earlier end of the selection in document order, as a position of its own.
-sel_lo(Sel sel) {
-  Pos ps = Pos(sel.anchor.para, sel.anchor.off);
-  if(pos_lt(sel.caret, sel.anchor) == 1) {
-    ps.para = sel.caret.para;
-    ps.off = sel.caret.off;
+editor_selection_low(Sel sel) {
+  Pos current_position = Pos(sel.anchor.para, sel.anchor.off);
+  if(document_position_less(sel.caret, sel.anchor) == 1) {
+    current_position.para = sel.caret.para;
+    current_position.off = sel.caret.off;
   }
-} return Pos ps;
+} return Pos current_position;
 (Sel(Pos(1, 2), Pos(3, 0), -1)):(Pos(1, 2))
 (Sel(Pos(3, 0), Pos(1, 2), -1)):(Pos(1, 2))

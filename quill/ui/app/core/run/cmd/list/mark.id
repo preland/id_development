@@ -1,46 +1,46 @@
 // Starts the built-in list wai_id (1 bullets, 2 numbers) on the paragraphs the selection touches, as one undo step, or takes them out of it when they are in it already (a mixed selection is put in it) or when wai_arg is 1, the menu's "Remove" entry.
-wa_mark(App waa, int wai_id, int wai_arg) {
-  int wai_cur = sel_state(waa.doc, waa.ctl, (import ed_s_para) + (import quill_paragraph_list));
-  int wai_to = wai_id;
-  if(wai_cur == wai_id || wai_arg == 1) {
-    wai_to = 0;
+app_list_start(App app_list_start_application, int app_list_start_kind, int app_list_start_argument) {
+  int app_list_start_current = editor_selection_state(app_list_start_application.doc, app_list_start_application.ctl, (import ed_s_para) + (import quill_paragraph_list));
+  int app_list_start_target = app_list_start_kind;
+  if(app_list_start_current == app_list_start_kind || app_list_start_argument == 1) {
+    app_list_start_target = 0;
   }
-} chain (App waa, int wai_id, int wai_arg) {
-  cv_begin(waa.ui.view);
-  ed_set_para(waa.doc, waa.ctl, (import quill_paragraph_list), wai_to);
-  cv_end(waa.ui.view);
+} chain (App app_list_start_application, int app_list_start_kind, int app_list_start_argument) {
+  view_input_command_begin(app_list_start_application.ui.view);
+  editor_set_paragraph(app_list_start_application.doc, app_list_start_application.ctl, (import quill_paragraph_list), app_list_start_target);
+  view_input_command_end(app_list_start_application.ui.view);
 } return void;
-given wa_t_app ((import wa_app), 1, 0):() then wa_t_level:("1:0")
-given wa_t_app given wa_t_list(1, 0) ((import wa_app), 1, 0):() then wa_t_level:("0:0")
-given wa_t_app given wa_t_list(2, 0) ((import wa_app), 1, 0):() then wa_t_level:("1:0")
-given wa_t_app given wa_t_list(1, 0) ((import wa_app), 2, 1):() then wa_t_level:("0:0")
+given cli_test_boot_app ((import cli_application), 1, 0):() then app_test_list_level:("1:0")
+given cli_test_boot_app given app_test_set_list(1, 0) ((import cli_application), 1, 0):() then app_test_list_level:("0:0")
+given cli_test_boot_app given app_test_set_list(2, 0) ((import cli_application), 1, 0):() then app_test_list_level:("1:0")
+given cli_test_boot_app given app_test_set_list(1, 0) ((import cli_application), 2, 1):() then app_test_list_level:("0:0")
 
 // Moves the paragraphs of the selection that are in a list wai_d levels in (1) or out (-1), as one undo step; a paragraph that is not in a list, or would leave the levels there are, stays.
-wa_shift(App waa, int wai_d) {
-  int[] wal_a = [wai_d];
-  cv_begin(waa.ui.view);
-  ed_change(waa.doc, waa.ctl, wa_step, wal_a);
-} chain (App waa, int wai_d) {
-  cv_end(waa.ui.view);
+app_list_shift(App app_list_shift_application, int app_list_shift_direction) {
+  int[] app_list_shift_arguments = [app_list_shift_direction];
+  view_input_command_begin(app_list_shift_application.ui.view);
+  editor_change(app_list_shift_application.doc, app_list_shift_application.ctl, app_list_step, app_list_shift_arguments);
+} chain (App app_list_shift_application, int app_list_shift_direction) {
+  view_input_command_end(app_list_shift_application.ui.view);
 } return void;
-given wa_t_app given wa_t_list(1, 0) ((import wa_app), 1):() then wa_t_level:("1:1")
-given wa_t_app given wa_t_list(1, 1) ((import wa_app), -1):() then wa_t_level:("1:0")
+given cli_test_boot_app given app_test_set_list(1, 0) ((import cli_application), 1):() then app_test_list_level:("1:1")
+given cli_test_boot_app given app_test_set_list(1, 1) ((import cli_application), -1):() then app_test_list_level:("1:0")
 
 // The list commands: bullets and numbering start or stop their list (wa_mark), and deeper and shallower move the paragraphs a level in or out (wa_shift). Any other command is left alone.
-wa_list(App waa, int wai_cmd, int wai_arg) {
-  int wai_k = list_index_of((import wa_list_cmd), wai_cmd);
-  if(wai_k >= 0) {
-    wa_mark(waa, wai_k + 1, wai_arg);
+app_list_command(App app_list_command_application, int app_list_command_command_code, int app_list_command_argument) {
+  int app_list_command_index = list_index_of((import wa_list_cmd), app_list_command_command_code);
+  if(app_list_command_index >= 0) {
+    app_list_start(app_list_command_application, app_list_command_index + 1, app_list_command_argument);
   }
-  if(wai_cmd == (import cmd_list_deeper)) {
-    wa_shift(waa, 1);
+  if(app_list_command_command_code == (import cmd_list_deeper)) {
+    app_list_shift(app_list_command_application, 1);
   }
-} chain (App waa, int wai_cmd, int wai_arg) {
-  if(wai_cmd == (import cmd_list_shallower)) {
-    wa_shift(waa, 0 - 1);
+} chain (App app_list_command_application, int app_list_command_command_code, int app_list_command_argument) {
+  if(app_list_command_command_code == (import cmd_list_shallower)) {
+    app_list_shift(app_list_command_application, 0 - 1);
   }
 } return void;
-given wa_t_app ((import wa_app), 406, 0):() then wa_t_level:("2:0")
-given wa_t_app given wa_t_list(1, 1) ((import wa_app), 419, 0):() then wa_t_level:("1:0")
-given wa_t_app given wa_t_list(1, 0) ((import wa_app), 418, 0):() then wa_t_level:("1:1")
-given wa_t_app ((import wa_app), 301, 0):() then wa_t_level:("0:0")
+given cli_test_boot_app ((import cli_application), 406, 0):() then app_test_list_level:("2:0")
+given cli_test_boot_app given app_test_set_list(1, 1) ((import cli_application), 419, 0):() then app_test_list_level:("1:0")
+given cli_test_boot_app given app_test_set_list(1, 0) ((import cli_application), 418, 0):() then app_test_list_level:("1:1")
+given cli_test_boot_app ((import cli_application), 301, 0):() then app_test_list_level:("0:0")

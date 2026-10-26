@@ -1,25 +1,25 @@
-item_place(int[] out, int[] rcur, int[] fr, int rrow) {
-  int ri = (import rb_row)[rrow];
-  int w = item_w(rrow, fr[3]);
-  int rx = rcur[ri % 3];
-} chain (int[] out, int[] rcur, int[] fr, int rrow) {
-  int[] quad = row_rect(fr, ri, rx, w);
+item_place(int[] out, int[] ribbon_item_place_cursors, int[] ribbon_item_place_frame, int ribbon_item_place_row) {
+  int ribbon_item_place_line = (import rb_row)[ribbon_item_place_row];
+  int w = ribbon_item_width(ribbon_item_place_row, ribbon_item_place_frame[3]);
+  int ribbon_item_place_left = ribbon_item_place_cursors[ribbon_item_place_line % 3];
+} chain (int[] out, int[] ribbon_item_place_cursors, int[] ribbon_item_place_frame, int ribbon_item_place_row) {
+  int[] quad = row_rect(ribbon_item_place_frame, ribbon_item_place_line, ribbon_item_place_left, w);
   list_extend(out, quad);
-  cur_adv(rcur, ri, w + (import rib_hgap));
+  ribbon_cursor_advance(ribbon_item_place_cursors, ribbon_item_place_line, w + (import rib_hgap));
 } return void;
 ([], [3, 3, 3], [4, 22, 66, 0], 7):([3, 4, 52, 66], [57, 57, 57], [4, 22, 66, 0], 7)
 ([], [10, 20, 30], [4, 22, 66, 0], 8):([10, 4, 24, 22], [36, 20, 30], [4, 22, 66, 0], 8)
 
-grp_cur(int gx) {
-  int rx = gx + (import rib_gpad);
-  int[] rcur = [rx, rx, rx];
-} return int[] rcur;
+ribbon_group_cursors(int ribbon_group_cursors_start) {
+  int ribbon_group_cursors_left = ribbon_group_cursors_start + (import rib_gpad);
+  int[] ribbon_group_cursors_result = [ribbon_group_cursors_left, ribbon_group_cursors_left, ribbon_group_cursors_left];
+} return int[] ribbon_group_cursors_result;
 (0):([4, 4, 4])
 (10):([14, 14, 14])
 
-grp_items(int[] items, int k, int e, int[] fr, int[] rcur, int[] out) {
+ribbon_group_items(int[] items, int k, int e, int[] ribbon_group_items_frame, int[] ribbon_group_items_cursors, int[] out) {
   while(k < e) {
-    item_place(out, rcur, fr, items[k]);
+    item_place(out, ribbon_group_items_cursors, ribbon_group_items_frame, items[k]);
     k = k + 1;
   }
 } return void;

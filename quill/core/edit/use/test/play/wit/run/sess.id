@@ -1,27 +1,27 @@
 // Test fixture: a blank fixture after the long editing session (ed_t_rounds repeats of ed_t_cycle) played through ed_play.
-fx_session() {
-  fx_blank();
-  ed_play((import fxd), (import fxc), str_repeat((import ed_t_cycle), (import ed_t_rounds)));
+editor_fixture_session() {
+  editor_fixture_blank();
+  editor_play((import fixture_document), (import fixture_control), str_repeat((import ed_t_cycle), (import ed_t_rounds)));
 } return void;
-():() then fx_session_ok:(1)
-():() then fx_hist:("u768 r0 o-1 n1")
+():() then editor_fixture_session_ok:(1)
+():() then editor_fixture_history:("u768 r0 o-1 n1")
 
 // Test fixture: undoes every step of the fixture, as a setup.
-fx_unwind() {
+editor_fixture_unwind() {
   int more = 1;
   while(more == 1) {
-    more = hist_undo((import fxd), (import fxc));
+    more = hist_undo((import fixture_document), (import fixture_control));
   }
 } return void;
-given fx_session ():() then fx_show:("") then fx_hist:("u0 r768 o-1 n0")
-given fx_setup("ab") ():() then fx_show:("ab")
+given editor_fixture_session ():() then editor_fixture_show:("") then editor_fixture_history:("u0 r768 o-1 n0")
+given editor_fixture_setup("ab") ():() then editor_fixture_show:("ab")
 
 // Test fixture: redoes every step of the fixture, as a setup.
-fx_rewind() {
+editor_fixture_rewind() {
   int more = 1;
   while(more == 1) {
-    more = hist_redo((import fxd), (import fxc));
+    more = hist_redo((import fixture_document), (import fixture_control));
   }
 } return void;
-given fx_session given fx_unwind ():() then fx_session_ok:(1) then fx_hist:("u768 r0 o-1 n1")
-given fx_setup("ab") ():() then fx_show:("ab")
+given editor_fixture_session given editor_fixture_unwind ():() then editor_fixture_session_ok:(1) then editor_fixture_history:("u768 r0 o-1 n1")
+given editor_fixture_setup("ab") ():() then editor_fixture_show:("ab")

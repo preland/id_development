@@ -1,19 +1,19 @@
 // Reads the head of content.xml up to the start of office:text, noting where each automatic style is (what the names mean is the lookup of ost_load). Answers the event the head stopped at: 1 or 4 for the office:text element, 0 or -1 when the document ended or broke first.
-orc_styles(Cx cx) {
-  int ev = orc_next(cx);
-  while(ev > 0 && orc_at_body(cx, ev) == 0) {
-    orc_a_ev(cx, ev);
-    ev = orc_next(cx);
+orc_styles(Odt_Read_Context odt_read_head_context) {
+  int odt_read_head_event = orc_next(odt_read_head_context);
+  while(odt_read_head_event > 0 && orc_at_body(odt_read_head_context, odt_read_head_event) == 0) {
+    odt_read_automatic_event(odt_read_head_context, odt_read_head_event);
+    odt_read_head_event = orc_next(odt_read_head_context);
   }
-} return int ev;
-given orc_t_open("<r><office:automatic-styles><style:style style:name='P1' style:family='paragraph'/></office:automatic-styles><office:text><text:p/></office:text></r>") ((import orc_tc)):(1) then orc_t_names:("auto:P1:28,aend:P1:83,")
-given orc_t_open("<r><style:style style:name='P1' style:family='paragraph'/></r>") ((import orc_tc)):(0) then orc_t_names:("")
-given orc_t_open("<r><office:text/></r>") ((import orc_tc)):(4)
+} return int odt_read_head_event;
+given odt_read_fixture_open("<r><office:automatic-styles><style:style style:name='P1' style:family='paragraph'/></office:automatic-styles><office:text><text:p/></office:text></r>") ((import odt_read_fixture_context)):(1) then odt_read_fixture_style_offsets:("auto:P1:28,aend:P1:83,")
+given odt_read_fixture_open("<r><style:style style:name='P1' style:family='paragraph'/></r>") ((import odt_read_fixture_context)):(0) then odt_read_fixture_style_offsets:("")
+given odt_read_fixture_open("<r><office:text/></r>") ((import odt_read_fixture_context)):(4)
 
 // 1 when the event is the office:text start or empty tag, where the body begins.
-orc_at_body(Cx cx, int ev) {
-  int at = (ev == 1 || ev == 4) && xml_reader_get((cx.rd), (import xml_reader_k_name)) == "office:text";
+orc_at_body(Odt_Read_Context odt_read_body_start_context, int odt_read_body_start_event) {
+  int at = (odt_read_body_start_event == 1 || odt_read_body_start_event == 4) && xml_reader_get((odt_read_body_start_context.odt_read_xml_reader), (import xml_reader_k_name)) == "office:text";
 } return int at;
-given orc_t_open("<office:text/>") given orc_t_steps(1) ((import orc_tc), 4):(1)
-given orc_t_open("<office:text><a/></office:text>") given orc_t_steps(2) ((import orc_tc), 4):(0)
-given orc_t_open("<office:text></office:text>") given orc_t_steps(2) ((import orc_tc), 2):(0)
+given odt_read_fixture_open("<office:text/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 4):(1)
+given odt_read_fixture_open("<office:text><a/></office:text>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), 4):(0)
+given odt_read_fixture_open("<office:text></office:text>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), 2):(0)

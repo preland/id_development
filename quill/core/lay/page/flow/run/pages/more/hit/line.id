@@ -1,29 +1,29 @@
 // Where the top of line lhj of paragraph lhi is, in lu from the top of the page it is on.
 // By hand: line 0 of the 28-letter paragraph is at the top margin, 640; line 9 is on page 1, its page's second line, 640 + 1152 = 1792.
-lay_line_y(View lhv, int lhi, int lhj) {
-  int lhk = lay_page_of(lhv, lhi, lhj);
-  int lhy = lay_origin(lhv, lhi, lhk) + lhv.doc.body.paras[lhi].lay.lines[lhj * (import quill_line_stride) + (import quill_line_y)];
-} return int lhy;
-given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 0, 0):(640)
-given lg_t_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import lp_t_v), 0, 9):(1792)
+lay_line_y(View hit_view, int target_paragraph, int target_line) {
+  int target_page = lay_page_of(hit_view, target_paragraph, target_line);
+  int line_top = lay_origin(hit_view, target_paragraph, target_page) + hit_view.doc.body.paras[target_paragraph].lay.lines[target_line * (import quill_line_stride) + (import quill_line_y)];
+} return int line_top;
+given layout_page_test_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import layout_paragraph_test_view), 0, 0):(640)
+given layout_page_test_text("AAAAAAAAAAAAAAAAAAAAAAAAAAAA") ((import layout_paragraph_test_view), 0, 9):(1792)
 
 // The line of a paragraph that holds offset lhoff: the first line that ends after it, or the last line for the end of the text, so an offset where a line breaks belongs to the line that starts there.
 // By hand: for lines 0 to 4, 4 to 8 and 8 to 11, offset 3 is on line 0, offset 4 on line 1 and offset 11, the end, on line 2.
-lay_line_in(Para lhpa, int lhoff) {
-  int lhn = len(lhpa.lay.lines) / (import quill_line_stride);
-  int lhj = 0;
-  while(lhj < lhn - 1 && lhpa.lay.lines[lhj * (import quill_line_stride) + (import quill_line_high)] <= lhoff) {
-    lhj = lhj + 1;
+lay_line_in(Para line_paragraph, int target_offset) {
+  int line_total = len(line_paragraph.lay.lines) / (import quill_line_stride);
+  int target_line = 0;
+  while(target_line < line_total - 1 && line_paragraph.lay.lines[target_line * (import quill_line_stride) + (import quill_line_high)] <= target_offset) {
+    target_line = target_line + 1;
   }
-} return int lhj;
+} return int target_line;
 (Para(Text([], [Run(0, 0, -1)], 0), Lay([0, 4, 0, 960, 192, 2049, 4, 8, 1152, 960, 192, 2049, 8, 11, 2304, 960, 192, 2049], [], 3968), 0), 3):(0)
 (Para(Text([], [Run(0, 0, -1)], 0), Lay([0, 4, 0, 960, 192, 2049, 4, 8, 1152, 960, 192, 2049, 8, 11, 2304, 960, 192, 2049], [], 3968), 0), 4):(1)
 (Para(Text([], [Run(0, 0, -1)], 0), Lay([0, 4, 0, 960, 192, 2049, 4, 8, 1152, 960, 192, 2049, 8, 11, 2304, 960, 192, 2049], [], 3968), 0), 11):(2)
 
 // The line of its paragraph that holds position lhq.
 // By hand: in "BBB EEE BBB" laid out in lines of 4, 4 and 3 code points, offset 5 is on line 1 and offset 11 on line 2.
-lay_line_of(View lhv, Pos lhq) {
-  int lhj = lay_line_in(lhv.doc.body.paras[lhq.para], lhq.off);
-} return int lhj;
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 5)):(1)
-given lg_t_text("BBB EEE BBB") ((import lp_t_v), Pos(0, 11)):(2)
+lay_line_of(View hit_view, Pos query_position) {
+  int target_line = lay_line_in(hit_view.doc.body.paras[query_position.para], query_position.off);
+} return int target_line;
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), Pos(0, 5)):(1)
+given layout_page_test_text("BBB EEE BBB") ((import layout_paragraph_test_view), Pos(0, 11)):(2)

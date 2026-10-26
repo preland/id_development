@@ -1,27 +1,27 @@
 // Does the command wai_cmd of the ribbon's table (word/conf.id) with the argument wai_arg the ribbon gave it, unless a dialog is open, which has every event: the file commands, the zoom, the lists and the heading shortcuts are the app's, any other command is the canvas's (cv_rib), which leaves alone the ones it does not do.
-cmd_run_arg(App waa, int wai_cmd, int wai_arg) {
-  if((import wa_st)[(import wa_s_dlg)] == (import wa_d_none)) {
-    wa_do(waa, wai_cmd, wai_arg);
+app_run_command_argument(App app_run_argument_application, int app_run_argument_command_code, int app_run_argument_value) {
+  if((import cli_state_list)[(import wa_s_dlg)] == (import wa_d_none)) {
+    app_dispatch_command(app_run_argument_application, app_run_argument_command_code, app_run_argument_value);
   }
 } return void;
-given wa_t_app given wa_t_type(120) ((import wa_app), 101, 0):() then wa_t_state:("0,1,1,0,|0|1")
-given wa_t_app given wa_open("T", ["a"], ["OK"], 4) ((import wa_app), 102, 0):() then wa_t_state:("0,0,4,0,|0|0")
+given cli_test_boot_app given cli_test_type_code_point(120) ((import cli_application), 101, 0):() then cli_test_state_text:("0,1,1,0,|0|1")
+given cli_test_boot_app given app_dialog_show("T", ["a"], ["OK"], 4) ((import cli_application), 102, 0):() then cli_test_state_text:("0,0,4,0,|0|0")
 
 // Does the command wai_cmd, which takes no argument (a key's, or a button's).
-cmd_run(App waa, int wai_cmd) {
-  cmd_run_arg(waa, wai_cmd, 0);
+app_run_command(App app_run_application, int app_run_command_code) {
+  app_run_command_argument(app_run_application, app_run_command_code, 0);
 } return void;
-given wa_t_app ((import wa_app), 102):() then wa_t_state:("0,0,2,0,|0|0")
-given wa_t_app given wa_t_type(120) ((import wa_app), 201):() then wa_t_text:("")
+given cli_test_boot_app ((import cli_application), 102):() then cli_test_state_text:("0,0,2,0,|0|0")
+given cli_test_boot_app given cli_test_type_code_point(120) ((import cli_application), 201):() then cli_test_document_text:("")
 
 // The dispatcher under cmd_run_arg: each family of commands looks at the command and does it when it is its own.
-wa_do(App waa, int wai_cmd, int wai_arg) {
-  wa_file(waa, wai_cmd);
-  wa_zoom(waa, wai_cmd);
-  wa_list(waa, wai_cmd, wai_arg);
-} chain (App waa, int wai_cmd, int wai_arg) {
-  wa_head(waa, wai_cmd);
-  cv_rib(waa.ui.view, wai_cmd, wai_arg, rib_name(waa.ui.rib));
+app_dispatch_command(App app_dispatch_application, int app_dispatch_command_code, int app_dispatch_argument) {
+  app_file_commands(app_dispatch_application, app_dispatch_command_code);
+  app_zoom_commands(app_dispatch_application, app_dispatch_command_code);
+  app_list_command(app_dispatch_application, app_dispatch_command_code, app_dispatch_argument);
+} chain (App app_dispatch_application, int app_dispatch_command_code, int app_dispatch_argument) {
+  app_heading_shortcuts(app_dispatch_application, app_dispatch_command_code);
+  view_input_ribbon_command(app_dispatch_application.ui.view, app_dispatch_command_code, app_dispatch_argument, rib_name(app_dispatch_application.ui.rib));
 } return void;
-given wa_t_app given wa_t_type(120) ((import wa_app), 201, 0):() then wa_t_text:("")
-given wa_t_app ((import wa_app), 103, 0):() then wa_t_state:("0,0,3,0,|0|0")
+given cli_test_boot_app given cli_test_type_code_point(120) ((import cli_application), 201, 0):() then cli_test_document_text:("")
+given cli_test_boot_app ((import cli_application), 103, 0):() then cli_test_state_text:("0,0,3,0,|0|0")

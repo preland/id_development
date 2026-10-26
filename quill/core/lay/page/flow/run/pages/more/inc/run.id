@@ -1,59 +1,59 @@
 // Paginates again from the page before paragraph lwf and answers how many paragraphs it placed. Paragraphs from lwf to lwl are the ones that changed: once a page starts at the same paragraph and line as it did, past lwl, with the paragraph count the same, everything after it is as it was, so the walk keeps the old pages and the old tops from there and stops. Every paragraph must have been laid out already.
 // By hand: 100 one-line paragraphs, 6 to a page, with paragraph 50 changed: the page before it starts at 48, the page after it at 54 is where it was, so paragraphs 48 to 54 are walked, 7 of 100.
-lay_walk(View lwv, int lwf, int lwl) {
-  int[] lwo = list_copy(lwv.pages.starts);
-  int lwk = lay_page_before(lwv, lwf);
-  int[] lws = [0, 0, 0];
-} chain (View lwv, int lwf, int lwl) {
-  lay_resume(lwv, lwk, lws);
-  int lwp = lwv.pages.starts[2 * lwk];
-  lay_tops(lwv, lwo, lwp);
-} chain (View lwv, int lwf, int lwl) {
-  int lwi = lwp + 1;
-  int lwn = len(lwv.doc.body.paras);
-  int lwx = lay_stable(lwv, lwo, lwl);
-} chain (View lwv, int lwf, int lwl) {
-  while(lwi < lwn && lwx == 0) {
-    lay_place(lwv, lwi, lws);
-    lwx = lay_stable(lwv, lwo, lwl);
-    lwi = lwi + 1;
+lay_walk(View layout_walk_view, int first_changed_paragraph, int last_changed_paragraph) {
+  int[] old_starts = list_copy(layout_walk_view.pages.starts);
+  int restart_page = lay_page_before(layout_walk_view, first_changed_paragraph);
+  int[] pagination_walk = [0, 0, 0];
+} chain (View layout_walk_view, int first_changed_paragraph, int last_changed_paragraph) {
+  lay_resume(layout_walk_view, restart_page, pagination_walk);
+  int restart_paragraph = layout_walk_view.pages.starts[2 * restart_page];
+  lay_tops(layout_walk_view, old_starts, restart_paragraph);
+} chain (View layout_walk_view, int first_changed_paragraph, int last_changed_paragraph) {
+  int layout_walk_paragraph = restart_paragraph + 1;
+  int paragraph_limit = len(layout_walk_view.doc.body.paras);
+  int walk_may_stop = lay_stable(layout_walk_view, old_starts, last_changed_paragraph);
+} chain (View layout_walk_view, int first_changed_paragraph, int last_changed_paragraph) {
+  while(layout_walk_paragraph < paragraph_limit && walk_may_stop == 0) {
+    lay_place(layout_walk_view, layout_walk_paragraph, pagination_walk);
+    walk_may_stop = lay_stable(layout_walk_view, old_starts, last_changed_paragraph);
+    layout_walk_paragraph = layout_walk_paragraph + 1;
   }
-  lay_finish(lwv, lwo, lwx);
-  int lwd = lwi - lwp;
-} return int lwd;
-given lg_t_paged(100) given lg_t_edit(50, "x") given lay_all((import lp_t_v)) ((import lp_t_v), 50, 50):(7) then (import lp_t_v).pages.count:(17)
-given lg_t_paged(8) ((import lp_t_v), 3, 8):(8) then (import lp_t_v).pages.starts:([0, 0, 6, 0, 8, 0]) then (import lp_t_v).pages.tops:([640, 2304, 3968, 5632, 7296, 8960, 14976, 16640])
-given lg_t_paged(8) ((import lp_t_v), 7, 8):(2) then (import lp_t_v).pages.starts:([0, 0, 6, 0, 8, 0])
-given lg_t_paged(12) given lp_t_row(2, 6, 0) given lg_t_edit(2, "") given lay_all((import lp_t_v)) ((import lp_t_v), 2, 2):(7) then (import lp_t_v).pages.starts:([0, 0, 6, 0, 12, 0]) then (import lp_t_v).pages.tops:([640, 2304, 3968, 5120, 6784, 8448, 14976, 16640, 18304, 19968, 21632, 23296])
+  lay_finish(layout_walk_view, old_starts, walk_may_stop);
+  int placed_total = layout_walk_paragraph - restart_paragraph;
+} return int placed_total;
+given layout_page_test_paged(100) given layout_page_test_edit(50, "x") given lay_all((import layout_paragraph_test_view)) ((import layout_paragraph_test_view), 50, 50):(7) then (import layout_paragraph_test_view).pages.count:(17)
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), 3, 8):(8) then (import layout_paragraph_test_view).pages.starts:([0, 0, 6, 0, 8, 0]) then (import layout_paragraph_test_view).pages.tops:([640, 2304, 3968, 5632, 7296, 8960, 14976, 16640])
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), 7, 8):(2) then (import layout_paragraph_test_view).pages.starts:([0, 0, 6, 0, 8, 0])
+given layout_page_test_paged(12) given layout_paragraph_test_set_property(2, 6, 0) given layout_page_test_edit(2, "") given lay_all((import layout_paragraph_test_view)) ((import layout_paragraph_test_view), 2, 2):(7) then (import layout_paragraph_test_view).pages.starts:([0, 0, 6, 0, 12, 0]) then (import layout_paragraph_test_view).pages.tops:([640, 2304, 3968, 5120, 6784, 8448, 14976, 16640, 18304, 19968, 21632, 23296])
 
 // The last page whose first paragraph comes before paragraph lwf, which is where a walk that has to redo lwf starts again; 0 when no page does or none is known.
 // By hand: with pages starting at paragraphs 0 and 6, paragraph 7 is redone from page 1 and paragraph 6, which starts page 1 itself, from page 0, because what comes before it may have changed.
-lay_page_before(View lwv, int lwf) {
-  int lwk = 0;
-  int lwj = 0;
-  while(lwj < lwv.pages.count) {
-    if(lwv.pages.starts[2 * lwj] < lwf) {
-      lwk = lwj;
+lay_page_before(View layout_walk_view, int first_changed_paragraph) {
+  int restart_page = 0;
+  int scanned_page_index = 0;
+  while(scanned_page_index < layout_walk_view.pages.count) {
+    if(layout_walk_view.pages.starts[2 * scanned_page_index] < first_changed_paragraph) {
+      restart_page = scanned_page_index;
     }
-    lwj = lwj + 1;
+    scanned_page_index = scanned_page_index + 1;
   }
-} return int lwk;
-given lg_t_paged(8) ((import lp_t_v), 7):(1)
-given lg_t_paged(8) ((import lp_t_v), 6):(0)
-given lp_t_new ((import lp_t_v), 3):(0)
+} return int restart_page;
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), 7):(1)
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), 6):(0)
+given layout_paragraph_test_new ((import layout_paragraph_test_view), 3):(0)
 
 // Keeps the first lwn pages and forgets the rest, the sentinel too; a view that has no pages yet gets its first one.
 // By hand: after paginating 8 paragraphs the pages are 0, 6 and the sentinel 8; keeping one leaves [0, 0].
-lay_keep(View lwv, int lwn) {
-  if(len(lwv.pages.starts) < 2 * lwn) {
-    lay_pages_reset(lwv);
+lay_keep(View layout_walk_view, int pages_kept) {
+  if(len(layout_walk_view.pages.starts) < 2 * pages_kept) {
+    lay_pages_reset(layout_walk_view);
   } else {
-    lwv.pages.count = lwn;
+    layout_walk_view.pages.count = pages_kept;
   }
-  while(len(lwv.pages.starts) > 2 * lwn) {
-    pop(lwv.pages.starts);
+  while(len(layout_walk_view.pages.starts) > 2 * pages_kept) {
+    pop(layout_walk_view.pages.starts);
   }
 } return void;
-given lg_t_paged(8) ((import lp_t_v), 1):() then (import lp_t_v).pages.starts:([0, 0]) then (import lp_t_v).pages.count:(1)
-given lp_t_new ((import lp_t_v), 1):() then (import lp_t_v).pages.starts:([0, 0]) then (import lp_t_v).pages.count:(1)
-given lg_t_paged(8) ((import lp_t_v), 2):() then (import lp_t_v).pages.starts:([0, 0, 6, 0]) then (import lp_t_v).pages.count:(2)
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), 1):() then (import layout_paragraph_test_view).pages.starts:([0, 0]) then (import layout_paragraph_test_view).pages.count:(1)
+given layout_paragraph_test_new ((import layout_paragraph_test_view), 1):() then (import layout_paragraph_test_view).pages.starts:([0, 0]) then (import layout_paragraph_test_view).pages.count:(1)
+given layout_page_test_paged(8) ((import layout_paragraph_test_view), 2):() then (import layout_paragraph_test_view).pages.starts:([0, 0, 6, 0]) then (import layout_paragraph_test_view).pages.count:(2)

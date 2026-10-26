@@ -1,21 +1,21 @@
 // How far code point k of paragraph p moves the pen, in 64ths: its face's advance with kerning against the next code point, or up to the next tab stop for a tab, which needs pen[k] (the pen where it starts) to be filled already.
 // By hand at 16 px: A is 683; A before V kerns by -76, so 607; a tab at pen 683 moves 3072 - 683 = 2389.
-lp_cpadv(Para p, int fh, int k) {
-  int cp = p.txt.cps[k];
-  int got = gui_cp_adv(fh, cp, lp_nx(p.txt.cps, k));
-  if(cp == (import quill_code_point_tab)) {
-    got = lp_tab(p.lay.pen[k]);
+layout_paragraph_code_point_advance(Para advance_paragraph, int advance_face_handle, int advance_position) {
+  int advance_code_point = advance_paragraph.txt.cps[advance_position];
+  int got = gui_cp_adv(advance_face_handle, advance_code_point, layout_paragraph_next_code_point(advance_paragraph.txt.cps, advance_position));
+  if(advance_code_point == (import quill_code_point_tab)) {
+    got = layout_paragraph_tab_advance(advance_paragraph.lay.pen[advance_position]);
   }
 } return int got;
-given lp_t_font (Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [0, 683, 1366], -1), 0), (import lp_t_h16), 0):(683)
-given lp_t_font (Para(Text([65, 86], [Run(2, 0, -1)], 0), Lay([], [0, 683, 1290], -1), 0), (import lp_t_h16), 0):(607)
-given lp_t_font (Para(Text([65, 9, 66], [Run(3, 0, -1)], 0), Lay([], [0, 683, 3072, 3755], -1), 0), (import lp_t_h16), 1):(2389)
+given layout_paragraph_test_font (Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [0, 683, 1366], -1), 0), (import layout_paragraph_test_handle_normal), 0):(683)
+given layout_paragraph_test_font (Para(Text([65, 86], [Run(2, 0, -1)], 0), Lay([], [0, 683, 1290], -1), 0), (import layout_paragraph_test_handle_normal), 0):(607)
+given layout_paragraph_test_font (Para(Text([65, 9, 66], [Run(3, 0, -1)], 0), Lay([], [0, 683, 3072, 3755], -1), 0), (import layout_paragraph_test_handle_normal), 1):(2389)
 
 // Places code point k: fills pen[k + 1] with pen[k] plus its advance, so a line is scanned left to right with every earlier pen entry final.
 // By hand: A at pen 0 ends at 683; the tab at pen 100 ends on the first stop, 3072.
-lp_step(Para p, int fh, int k) {
-  int got = lp_cpadv(p, fh, k);
-  lp_put(p.lay.pen, k + 1, p.lay.pen[k] + got);
+layout_paragraph_step(Para step_paragraph, int step_face_handle, int step_position) {
+  int got = layout_paragraph_code_point_advance(step_paragraph, step_face_handle, step_position);
+  layout_paragraph_put(step_paragraph.lay.pen, step_position + 1, step_paragraph.lay.pen[step_position] + got);
 } return void;
-given lp_t_font (Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [0, 999], -1), 0), (import lp_t_h16), 0):(Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [0, 683], -1), 0), (import lp_t_h16), 0)
-given lp_t_font (Para(Text([65, 9, 66], [Run(3, 0, -1)], 0), Lay([], [0, 100], -1), 0), (import lp_t_h16), 1):(Para(Text([65, 9, 66], [Run(3, 0, -1)], 0), Lay([], [0, 100, 3072], -1), 0), (import lp_t_h16), 1)
+given layout_paragraph_test_font (Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [0, 999], -1), 0), (import layout_paragraph_test_handle_normal), 0):(Para(Text([65, 66], [Run(2, 0, -1)], 0), Lay([], [0, 683], -1), 0), (import layout_paragraph_test_handle_normal), 0)
+given layout_paragraph_test_font (Para(Text([65, 9, 66], [Run(3, 0, -1)], 0), Lay([], [0, 100], -1), 0), (import layout_paragraph_test_handle_normal), 1):(Para(Text([65, 9, 66], [Run(3, 0, -1)], 0), Lay([], [0, 100, 3072], -1), 0), (import layout_paragraph_test_handle_normal), 1)

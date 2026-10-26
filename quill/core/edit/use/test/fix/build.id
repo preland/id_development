@@ -1,22 +1,22 @@
 // Test fixture: a new document and a new editing state, kept in the exports fxd and fxc for a case's setup and checks to share.
-fx_blank() {
-  export Doc fxd = doc_new();
-  export Ctl fxc = ctl_new();
+editor_fixture_blank() {
+  export Doc fixture_document = doc_new();
+  export Ctl fixture_control = editor_control_new();
 } return void;
-():() then fx_show:("")
-():() then fx_sel:("0:0-0:0")
+():() then editor_fixture_show:("")
+():() then editor_fixture_selection:("0:0-0:0")
 
 // Test fixture: a document of the paragraphs in spec, split at "|", with the text between two "*" in bold, and the caret at the start.
-fx_setup(string spec) {
-  fx_blank();
-  fx_fill((import fxd), spec);
+editor_fixture_setup(string spec) {
+  editor_fixture_blank();
+  editor_fixture_fill((import fixture_document), spec);
 } return void;
-("ab*cd*e|x"):() then fx_show:("ab*cd*e|x")
-("one|two|"):() then fx_show:("one|two|")
+("ab*cd*e|x"):() then editor_fixture_show:("ab*cd*e|x")
+("one|two|"):() then editor_fixture_show:("one|two|")
 
 // Test fixture: a document of four paragraphs that has the awkward places an edit must put back: "abcde" with a bold run in the middle, "fgh", "ijk" with a bold k, and an empty paragraph.
-fx_rich() {
-  fx_setup("ab*cd*e|fgh|ij*k*|");
+editor_fixture_rich() {
+  editor_fixture_setup("ab*cd*e|fgh|ij*k*|");
 } return void;
-():() then fx_show:("ab*cd*e|fgh|ij*k*|**")
-():() then fx_sel:("0:0-0:0")
+():() then editor_fixture_show:("ab*cd*e|fgh|ij*k*|**")
+():() then editor_fixture_selection:("0:0-0:0")

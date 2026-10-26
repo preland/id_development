@@ -1,57 +1,57 @@
 // Takes what the open menu or gallery has hot as the choice made: its command is the one the menu was opened for (for the File tab's menu, command 0, the choice is itself a command), its argument and its name are the choice's, and a colour choice is remembered for the colour button.
-rbe_pick() {
-  int[] rbl_s = (import rbd_s);
-  int rbi_k = rbe_hot();
-  int rbi_cmd = rbl_s[(import rbd_s_pcmd)];
+ribbon_choice_take() {
+  int[] ribbon_choice_take_state = (import ribbon_fit_state);
+  int ribbon_choice_take_position = ribbon_choice_hot();
+  int ribbon_choice_take_command = ribbon_choice_take_state[(import rbd_s_pcmd)];
 } chain () {
-  int rbi_arg = (import rbd_pa)[rbi_k];
-  string rbs_n = (import rbd_pl)[rbi_k];
-  if(rbi_cmd == 0) {
-    rbi_cmd = rbi_arg;
-    rbi_arg = 0;
+  int ribbon_choice_take_argument = (import ribbon_fit_answers)[ribbon_choice_take_position];
+  string ribbon_choice_take_name = (import ribbon_fit_labels)[ribbon_choice_take_position];
+  if(ribbon_choice_take_command == 0) {
+    ribbon_choice_take_command = ribbon_choice_take_argument;
+    ribbon_choice_take_argument = 0;
   }
 } chain () {
-  rbe_emit(rbi_cmd, rbi_arg, rbs_n);
-  rbe_remember(rbi_cmd, rbi_arg);
+  ribbon_answer_write(ribbon_choice_take_command, ribbon_choice_take_argument, ribbon_choice_take_name);
+  ribbon_color_remember(ribbon_choice_take_command, ribbon_choice_take_argument);
 } return void;
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(308) given rbd_t_hot(2) ():() then rbd_t_sd:("1,-1,308,20,0,-1,1,0,0,0,1024,156,-1,308,1,|16776960,12582912,|20")
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(0) given rbd_t_hot(1) ():() then rbd_t_sd:("1,-1,102,0,0,-1,1,0,0,0,1024,156,-1,0,1,|16776960,12582912,|20")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(308) given ribbon_fit_set_hot_choice(2) ():() then ribbon_fit_check_state_dump:("1,-1,308,20,0,-1,1,0,0,0,1024,156,-1,308,1,|16776960,12582912,|20")
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(0) given ribbon_fit_set_hot_choice(1) ():() then ribbon_fit_check_state_dump:("1,-1,102,0,0,-1,1,0,0,0,1024,156,-1,0,1,|16776960,12582912,|20")
 
 // What an event did to the open menu or gallery, as the widget's own bits: 1 draw again, 2 a choice was made, 4 dismissed; 0 when nothing is open.
-rbe_route(int rbi_kind, int[] rbl_ev) {
-  int rbi_pk = (import rbd_s)[(import rbd_s_pk)];
-  int rbi_b = 0;
-  if(rbi_pk == 1) {
-    rbi_b = gui_menu_event((import rbd_menu)[0], rbi_kind, rbl_ev);
+ribbon_popup_route(int ribbon_popup_route_kind, int[] ribbon_popup_route_fields) {
+  int ribbon_popup_route_popup = (import ribbon_fit_state)[(import rbd_s_pk)];
+  int ribbon_popup_route_bits = 0;
+  if(ribbon_popup_route_popup == 1) {
+    ribbon_popup_route_bits = gui_menu_event((import ribbon_fit_menus)[0], ribbon_popup_route_kind, ribbon_popup_route_fields);
   }
-} chain (int rbi_kind, int[] rbl_ev) {
-  if(rbi_pk == 2) {
-    rbi_b = gui_gallery_event((import rbd_gal)[0], rbi_kind, rbl_ev);
+} chain (int ribbon_popup_route_kind, int[] ribbon_popup_route_fields) {
+  if(ribbon_popup_route_popup == 2) {
+    ribbon_popup_route_bits = gui_gallery_event((import ribbon_fit_galleries)[0], ribbon_popup_route_kind, ribbon_popup_route_fields);
   }
-  if(rbi_pk == 3) {
-    rbi_b = gui_colors_event((import rbd_cg)[0], rbi_kind, rbl_ev);
+  if(ribbon_popup_route_popup == 3) {
+    ribbon_popup_route_bits = gui_colors_event((import ribbon_fit_color_grids)[0], ribbon_popup_route_kind, ribbon_popup_route_fields);
   }
-  if((rbi_b & 2) != 0 && rbi_pk == 3) {
-    rbe_note_colour();
+  if((ribbon_popup_route_bits & 2) != 0 && ribbon_popup_route_popup == 3) {
+    ribbon_color_answer();
   }
-} return int rbi_b;
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(308) (1, [1, 1004, 0, 0, 0]):(1)
-given lp_t_font given rbd_t_up(1024) (1, [1, 1004, 0, 0, 0]):(0)
+} return int ribbon_popup_route_bits;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(308) (1, [1, 1004, 0, 0, 0]):(1)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) (1, [1, 1004, 0, 0, 0]):(0)
 
 // An event for the open menu or gallery: the widget decides what it means, and the answer is rbe_ret's. A choice is taken and every end of the menu closes it.
-rbe_pop_event(int rbi_kind, int[] rbl_ev) {
-  int rbi_b = rbe_route(rbi_kind, rbl_ev);
-  int rbi_on = gui_popup_in((import rbd_an), 0, rbl_ev[1], rbl_ev[2]);
-  int rbi_r = rbe_ret(rbi_b, rbi_kind, rbi_on);
-} chain (int rbi_kind, int[] rbl_ev) {
-  if((rbi_b & 2) != 0) {
-    rbe_pick();
+ribbon_popup_event(int ribbon_popup_event_kind, int[] ribbon_popup_event_fields) {
+  int ribbon_popup_event_bits = ribbon_popup_route(ribbon_popup_event_kind, ribbon_popup_event_fields);
+  int ribbon_popup_event_on_opener = gui_popup_in((import ribbon_fit_anchor), 0, ribbon_popup_event_fields[1], ribbon_popup_event_fields[2]);
+  int ribbon_popup_event_result = ribbon_popup_answer(ribbon_popup_event_bits, ribbon_popup_event_kind, ribbon_popup_event_on_opener);
+} chain (int ribbon_popup_event_kind, int[] ribbon_popup_event_fields) {
+  if((ribbon_popup_event_bits & 2) != 0) {
+    ribbon_choice_take();
   }
-  if((rbi_b & 6) != 0) {
-    rbe_close();
+  if((ribbon_popup_event_bits & 6) != 0) {
+    ribbon_popup_close();
   }
-} return int rbi_r;
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(308) (1, [1, 1004, 0, 0, 0]):(9) then (import rbd_s)[(import rbd_s_pk)]:(1)
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(308) (1, [1, 1011, 0, 0, 0]):(9) then (import rbd_s)[(import rbd_s_pk)]:(0)
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(308) (3, [3, 500, 200, 1, 0]):(5) then (import rbd_s)[(import rbd_s_pk)]:(0)
-given lp_t_font given rbd_t_up(1024) given rbd_t_open(409) (3, [3, 20, 15, 1, 0]):(9) then (import rbd_s)[(import rbd_s_pk)]:(0)
+} return int ribbon_popup_event_result;
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(308) (1, [1, 1004, 0, 0, 0]):(9) then (import ribbon_fit_state)[(import rbd_s_pk)]:(1)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(308) (1, [1, 1011, 0, 0, 0]):(9) then (import ribbon_fit_state)[(import rbd_s_pk)]:(0)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(308) (3, [3, 500, 200, 1, 0]):(5) then (import ribbon_fit_state)[(import rbd_s_pk)]:(0)
+given layout_paragraph_test_font given ribbon_fit_setup_surface(1024) given ribbon_fit_open_menu(409) (3, [3, 20, 15, 1, 0]):(9) then (import ribbon_fit_state)[(import rbd_s_pk)]:(0)

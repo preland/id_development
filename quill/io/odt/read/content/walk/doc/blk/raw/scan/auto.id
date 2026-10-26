@@ -1,23 +1,23 @@
 // Keeps the automatic styles that an element kept as a part (its bytes are bytes) names, each once, as parts called "auto:NAME" holding the style's element: the writer puts them back in office:automatic-styles, which is how a table keeps its borders. The data are read again with a reader of their own, so the read of the document is not disturbed.
-orc_autos(Cx cx, int[] data) {
-  XmlR rd2 = xml_reader_open(data);
-  int ev = xml_reader_next(rd2);
-  while(ev > 0) {
-    orc_refs(cx, rd2);
-    ev = xml_reader_next(rd2);
+orc_autos(Odt_Read_Context odt_read_autos_context, int[] data) {
+  XmlR odt_read_autos_reader = xml_reader_open(data);
+  int odt_read_autos_event = xml_reader_next(odt_read_autos_reader);
+  while(odt_read_autos_event > 0) {
+    odt_read_style_references(odt_read_autos_context, odt_read_autos_reader);
+    odt_read_autos_event = xml_reader_next(odt_read_autos_reader);
   }
 } return void;
-given orc_t_open("<style:style style:name='S1'/>") given orc_a_push((import orc_tc), "S1", 0, 30) ((import orc_tc), [60, 97, 32, 116, 101, 120, 116, 58, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 39, 83, 49, 39, 47, 62]):((import orc_tc), [60, 97, 32, 116, 101, 120, 116, 58, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 39, 83, 49, 39, 47, 62]) then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | auto:S1:0:<style:style style:name='S1'/>,")
-given orc_t_open("<style:style style:name='S1'/>") given orc_a_push((import orc_tc), "S1", 0, 30) ((import orc_tc), [60, 97, 47, 62]):((import orc_tc), [60, 97, 47, 62]) then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | ")
+given odt_read_fixture_open("<style:style style:name='S1'/>") given odt_read_automatic_push((import odt_read_fixture_context), "S1", 0, 30) ((import odt_read_fixture_context), [60, 97, 32, 116, 101, 120, 116, 58, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 39, 83, 49, 39, 47, 62]):((import odt_read_fixture_context), [60, 97, 32, 116, 101, 120, 116, 58, 115, 116, 121, 108, 101, 45, 110, 97, 109, 101, 61, 39, 83, 49, 39, 47, 62]) then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0} |  | auto:S1:0:<style:style style:name='S1'/>,")
+given odt_read_fixture_open("<style:style style:name='S1'/>") given odt_read_automatic_push((import odt_read_fixture_context), "S1", 0, 30) ((import odt_read_fixture_context), [60, 97, 47, 62]):((import odt_read_fixture_context), [60, 97, 47, 62]) then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0} |  | ")
 
 // What one element names: each of the attributes that name a style (conf.id) in the element the reader is at.
-orc_refs(Cx cx, XmlR rd2) {
-  string[] attrs = (import orc_style_attrs);
+odt_read_style_references(Odt_Read_Context odt_read_references_context, XmlR odt_read_references_reader) {
+  string[] odt_read_references_attributes = (import orc_style_attrs);
   int i = 0;
-  while(i < len(attrs)) {
-    orc_ref(cx, xml_reader_attr(rd2, attrs[i]));
+  while(i < len(odt_read_references_attributes)) {
+    odt_read_style_reference(odt_read_references_context, xml_reader_attr(odt_read_references_reader, odt_read_references_attributes[i]));
     i = i + 1;
   }
 } return void;
-given orc_t_open("<a text:style-name='S1'/>") given orc_a_push((import orc_tc), "S1", 0, 25) given orc_t_steps(1) ((import orc_tc), (import orc_tr)):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | auto:S1:0:<a text:style-name='S1'/>,")
-given orc_t_open("<a x='1'/>") given orc_a_push((import orc_tc), "S1", 0, 10) given orc_t_steps(1) ((import orc_tc), (import orc_tr)):() then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | ")
+given odt_read_fixture_open("<a text:style-name='S1'/>") given odt_read_automatic_push((import odt_read_fixture_context), "S1", 0, 25) given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), (import odt_read_fixture_xml_reader)):() then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0} |  | auto:S1:0:<a text:style-name='S1'/>,")
+given odt_read_fixture_open("<a x='1'/>") given odt_read_automatic_push((import odt_read_fixture_context), "S1", 0, 10) given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), (import odt_read_fixture_xml_reader)):() then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0} |  | ")

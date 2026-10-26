@@ -1,54 +1,54 @@
 // Puts the styles the bag holds into the document and the lookup: sizes made absolute, named styles registered and filled, then every style and list definition keyed by its name.
-ost_apply(Doc os_d, StyBag os_b, string[] os_lface, OdtSty os_k) {
-  ost_sizes(os_b);
-  int[] os_lidx = ost_reg(os_d.fmt, os_b);
-  ost_fill(os_d, os_b, os_lface, os_lidx);
-} chain (Doc os_d, StyBag os_b, string[] os_lface, OdtSty os_k) {
-  ost_keys(os_d, os_b, os_lface, os_lidx, os_k);
-  ost_key_lists(os_d.fmt, os_k);
+odt_style_apply_bag(Doc odt_style_apply_bag_document, odt_named_style_records odt_style_apply_bag_bag, string[] odt_style_apply_bag_faces, Odt_style_lookup odt_style_apply_bag_lookup) {
+  odt_style_size_resolve_all(odt_style_apply_bag_bag);
+  int[] odt_style_apply_bag_indexes = odt_style_register_all(odt_style_apply_bag_document.fmt, odt_style_apply_bag_bag);
+  odt_style_fill_all(odt_style_apply_bag_document, odt_style_apply_bag_bag, odt_style_apply_bag_faces, odt_style_apply_bag_indexes);
+} chain (Doc odt_style_apply_bag_document, odt_named_style_records odt_style_apply_bag_bag, string[] odt_style_apply_bag_faces, Odt_style_lookup odt_style_apply_bag_lookup) {
+  odt_style_keys_add_all(odt_style_apply_bag_document, odt_style_apply_bag_bag, odt_style_apply_bag_faces, odt_style_apply_bag_indexes, odt_style_apply_bag_lookup);
+  odt_style_key_add_lists(odt_style_apply_bag_document.fmt, odt_style_apply_bag_lookup);
 } return void;
-given ost_t_doc given ost_t_scan("<a><style:style style:name=\"Standard\" style:family=\"paragraph\"/><office:automatic-styles><style:style style:name=\"P1\" style:family=\"paragraph\" style:parent-style-name=\"Standard\"><style:text-properties fo:font-weight=\"bold\"/></style:style></office:automatic-styles></a>") ((import ost_t_d), (import ost_t_b), [], OdtSty([], [], [])):((import ost_t_d), (import ost_t_b), [], OdtSty(["p:Standard", "p:P1", "l:Bullet", "l:Number"], [0, 0, 1, 2], [-1, 8, -1, -1]))
-given ost_t_doc given ost_t_scan("<a/>") ((import ost_t_d), (import ost_t_b), [], OdtSty([], [], [])):((import ost_t_d), (import ost_t_b), [], OdtSty(["l:Bullet", "l:Number"], [1, 2], [-1, -1]))
+given odt_style_test_document given odt_named_bag_scan_fixture("<a><style:style style:name=\"Standard\" style:family=\"paragraph\"/><office:automatic-styles><style:style style:name=\"P1\" style:family=\"paragraph\" style:parent-style-name=\"Standard\"><style:text-properties fo:font-weight=\"bold\"/></style:style></office:automatic-styles></a>") ((import odt_style_test_default_document), (import odt_named_bag), [], Odt_style_lookup([], [], [])):((import odt_style_test_default_document), (import odt_named_bag), [], Odt_style_lookup(["p:Standard", "p:P1", "l:Bullet", "l:Number"], [0, 0, 1, 2], [-1, 8, -1, -1]))
+given odt_style_test_document given odt_named_bag_scan_fixture("<a/>") ((import odt_style_test_default_document), (import odt_named_bag), [], Odt_style_lookup([], [], [])):((import odt_style_test_default_document), (import odt_named_bag), [], Odt_style_lookup(["l:Bullet", "l:Number"], [1, 2], [-1, -1]))
 
 // The master page named by the style of the first paragraph or heading of a content document, "" when that style names none or there is no paragraph.
-ost_first_master(int[] os_lcx) {
-  XmlR os_r = xml_reader_open(os_lcx);
-  string[] os_lpairs = [];
-  int os_iev = xml_reader_next(os_r);
-} chain (int[] os_lcx) {
-  int os_istop = 0;
-  string os_sstyle = "";
-  while(os_iev > 0 && os_istop == 0) {
-    os_istop = ost_master_one(os_lpairs, os_r, os_iev);
-    if(os_istop == 1) {
-      os_sstyle = xml_reader_attr(os_r, "text:style-name");
+odt_style_first_master_page(int[] odt_style_first_master_page_content_bytes) {
+  XmlR odt_style_first_master_page_reader = xml_reader_open(odt_style_first_master_page_content_bytes);
+  string[] odt_style_first_master_page_pairs = [];
+  int odt_style_first_master_page_event = xml_reader_next(odt_style_first_master_page_reader);
+} chain (int[] odt_style_first_master_page_content_bytes) {
+  int odt_style_first_master_page_stop = 0;
+  string odt_style_first_master_page_style_name = "";
+  while(odt_style_first_master_page_event > 0 && odt_style_first_master_page_stop == 0) {
+    odt_style_first_master_page_stop = odt_style_master_event(odt_style_first_master_page_pairs, odt_style_first_master_page_reader, odt_style_first_master_page_event);
+    if(odt_style_first_master_page_stop == 1) {
+      odt_style_first_master_page_style_name = xml_reader_attr(odt_style_first_master_page_reader, "text:style-name");
     }
-    os_iev = xml_reader_next(os_r);
+    odt_style_first_master_page_event = xml_reader_next(odt_style_first_master_page_reader);
   }
-} chain (int[] os_lcx) {
-  string os_smaster = ost_pair(os_lpairs, os_sstyle);
-} return string os_smaster;
-given ost_t_xml("", "<a><office:automatic-styles><style:style style:name=\"P1\" style:family=\"paragraph\" style:master-page-name=\"Letter\"/></office:automatic-styles><office:body><office:text><text:p text:style-name=\"P1\">x</text:p></office:text></office:body></a>") ((import ost_t_cx)):("Letter")
-given ost_t_xml("", "<a><office:automatic-styles><style:style style:name=\"P1\" style:family=\"paragraph\" style:master-page-name=\"Letter\"/></office:automatic-styles><office:body><office:text><text:p text:style-name=\"P2\">x</text:p><text:p text:style-name=\"P1\">y</text:p></office:text></office:body></a>") ((import ost_t_cx)):("")
-given ost_t_xml("", "<a/>") ((import ost_t_cx)):("")
+} chain (int[] odt_style_first_master_page_content_bytes) {
+  string odt_style_first_master_page_master = odt_style_master_for_style(odt_style_first_master_page_pairs, odt_style_first_master_page_style_name);
+} return string odt_style_first_master_page_master;
+given odt_style_test_xml_bytes("", "<a><office:automatic-styles><style:style style:name=\"P1\" style:family=\"paragraph\" style:master-page-name=\"Letter\"/></office:automatic-styles><office:body><office:text><text:p text:style-name=\"P1\">x</text:p></office:text></office:body></a>") ((import odt_style_test_content_bytes)):("Letter")
+given odt_style_test_xml_bytes("", "<a><office:automatic-styles><style:style style:name=\"P1\" style:family=\"paragraph\" style:master-page-name=\"Letter\"/></office:automatic-styles><office:body><office:text><text:p text:style-name=\"P2\">x</text:p><text:p text:style-name=\"P1\">y</text:p></office:text></office:body></a>") ((import odt_style_test_content_bytes)):("")
+given odt_style_test_xml_bytes("", "<a/>") ((import odt_style_test_content_bytes)):("")
 
 // Reads the styles of an ODT package into a document made by doc_new: os_lsx is styles.xml and os_lcx is content.xml, as bytes. The named styles replace or join the document's styles, the font faces join its fonts, the list styles join its lists, and the page layout of the first paragraph's master page becomes its page. os_k becomes the lookup the content reader asks. Answers 0, or a code for ost_error.
-ost_load(Doc os_d, int[] os_lsx, int[] os_lcx, OdtSty os_k) {
-  string[] os_lface = [];
-  StyBag os_b = ost_bag_new();
-  int os_icode = ost_pass(os_d, os_b, os_lface, os_lsx, (import ost_e_styles));
-} chain (Doc os_d, int[] os_lsx, int[] os_lcx, OdtSty os_k) {
-  if(os_icode == 0) {
-    os_icode = ost_pass(os_d, os_b, os_lface, os_lcx, (import ost_e_content));
+odt_style_load(Doc odt_style_load_document, int[] odt_style_load_styles_bytes, int[] odt_style_load_content_bytes, Odt_style_lookup odt_style_load_lookup) {
+  string[] odt_style_load_faces = [];
+  odt_named_style_records odt_style_load_bag = odt_named_bag_new();
+  int odt_style_load_code = odt_style_read_pass(odt_style_load_document, odt_style_load_bag, odt_style_load_faces, odt_style_load_styles_bytes, (import ost_e_styles));
+} chain (Doc odt_style_load_document, int[] odt_style_load_styles_bytes, int[] odt_style_load_content_bytes, Odt_style_lookup odt_style_load_lookup) {
+  if(odt_style_load_code == 0) {
+    odt_style_load_code = odt_style_read_pass(odt_style_load_document, odt_style_load_bag, odt_style_load_faces, odt_style_load_content_bytes, (import ost_e_content));
   }
-  if(os_icode == 0) {
-    ost_apply(os_d, os_b, os_lface, os_k);
+  if(odt_style_load_code == 0) {
+    odt_style_apply_bag(odt_style_load_document, odt_style_load_bag, odt_style_load_faces, odt_style_load_lookup);
   }
-  string os_smaster = ost_first_master(os_lcx);
-} chain (Doc os_d, int[] os_lsx, int[] os_lcx, OdtSty os_k) {
-  PgTab os_pt = ost_pg_scan(xml_reader_open(os_lsx));
-  int[] os_lpg = ost_pg_pick(os_pt, os_smaster);
-  ost_pg_apply(os_d, os_lpg);
-} return int os_icode;
-given ost_t_doc given ost_t_xml("<a><office:font-face-decls><style:font-face style:name=\"F\" svg:font-family=\"Liberation Sans\"/></office:font-face-decls><office:styles><style:style style:name=\"Standard\" style:family=\"paragraph\"><style:text-properties style:font-name=\"F\" fo:font-size=\"10pt\"/></style:style></office:styles><office:automatic-styles><style:page-layout style:name=\"L\"><style:page-layout-properties fo:page-width=\"8.5in\" fo:page-height=\"11in\" fo:margin-top=\"1in\" fo:margin-bottom=\"1in\" fo:margin-left=\"1in\" fo:margin-right=\"1in\"/></style:page-layout></office:automatic-styles><office:master-styles><style:master-page style:name=\"Standard\" style:page-layout-name=\"L\"/></office:master-styles></a>", "<a><office:body><text:p>x</text:p></office:body></a>") given ost_t_pick(0) ((import ost_t_d), (import ost_t_sx), (import ost_t_cx), OdtSty([], [], [])):(0) then ost_t_sty:([0, -1, 0, 0, 1, 20, -1, -1, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]) then ost_t_page:([12240, 15840, 0, 1440, 1440, 1440, 1440])
-given ost_t_doc given ost_t_xml("<a><b></a>", "<a/>") ((import ost_t_d), (import ost_t_sx), (import ost_t_cx), OdtSty([], [], [])):(50) then ost_t_page:([11906, 16838, 0, 1440, 1440, 1440, 1440])
+  string odt_style_load_master = odt_style_first_master_page(odt_style_load_content_bytes);
+} chain (Doc odt_style_load_document, int[] odt_style_load_styles_bytes, int[] odt_style_load_content_bytes, Odt_style_lookup odt_style_load_lookup) {
+  odt_named_page_layouts odt_style_load_page_table = odt_named_page_scan(xml_reader_open(odt_style_load_styles_bytes));
+  int[] odt_style_load_page_row = odt_named_page_pick(odt_style_load_page_table, odt_style_load_master);
+  odt_named_page_apply(odt_style_load_document, odt_style_load_page_row);
+} return int odt_style_load_code;
+given odt_style_test_document given odt_style_test_xml_bytes("<a><office:font-face-decls><style:font-face style:name=\"F\" svg:font-family=\"Liberation Sans\"/></office:font-face-decls><office:styles><style:style style:name=\"Standard\" style:family=\"paragraph\"><style:text-properties style:font-name=\"F\" fo:font-size=\"10pt\"/></style:style></office:styles><office:automatic-styles><style:page-layout style:name=\"L\"><style:page-layout-properties fo:page-width=\"8.5in\" fo:page-height=\"11in\" fo:margin-top=\"1in\" fo:margin-bottom=\"1in\" fo:margin-left=\"1in\" fo:margin-right=\"1in\"/></style:page-layout></office:automatic-styles><office:master-styles><style:master-page style:name=\"Standard\" style:page-layout-name=\"L\"/></office:master-styles></a>", "<a><office:body><text:p>x</text:p></office:body></a>") given odt_named_bag_pick(0) ((import odt_style_test_default_document), (import odt_style_test_styles_bytes), (import odt_style_test_content_bytes), Odt_style_lookup([], [], [])):(0) then odt_style_test_picked_style:([0, -1, 0, 0, 1, 20, -1, -1, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0]) then odt_style_test_page:([12240, 15840, 0, 1440, 1440, 1440, 1440])
+given odt_style_test_document given odt_style_test_xml_bytes("<a><b></a>", "<a/>") ((import odt_style_test_default_document), (import odt_style_test_styles_bytes), (import odt_style_test_content_bytes), Odt_style_lookup([], [], [])):(50) then odt_style_test_page:([11906, 16838, 0, 1440, 1440, 1440, 1440])

@@ -1,20 +1,20 @@
 // What ost_load makes of the archive's styles.xml (none when it has none) and of the automatic styles of content.xml, the bytes xs. 0, or 50 and 51 when one of the two is not well-formed, with where kept for odt_error.
-orc_sty(Zip z, Doc d, int[] xs, OdtSty osty) {
-  int si = zip_reader_find(z, "styles.xml");
+orc_sty(Zip odt_read_styles_archive, Doc d, int[] xs, Odt_style_lookup odt_read_styles_styles) {
+  int odt_read_styles_entry_index = zip_reader_find(odt_read_styles_archive, "styles.xml");
   int[] sx = [];
-  if(si >= 0) {
-    sx = zip_reader_read(z, si);
+  if(odt_read_styles_entry_index >= 0) {
+    sx = zip_reader_read(odt_read_styles_archive, odt_read_styles_entry_index);
   }
-} chain (Zip z, Doc d, int[] xs, OdtSty osty) {
-  int code = ost_load(d, sx, xs, osty);
-  int at = ost_fault_at(sx);
+} chain (Zip odt_read_styles_archive, Doc d, int[] xs, Odt_style_lookup odt_read_styles_styles) {
+  int code = odt_style_load(d, sx, xs, odt_read_styles_styles);
+  int at = odt_style_fault_byte(sx);
   if(code == (import ost_e_content)) {
-    at = ost_fault_at(xs);
+    at = odt_style_fault_byte(xs);
   }
-} chain (Zip z, Doc d, int[] xs, OdtSty osty) {
+} chain (Zip odt_read_styles_archive, Doc d, int[] xs, Odt_style_lookup odt_read_styles_styles) {
   if(code != 0) {
     orc_why("byte " + at);
   }
 } return int code;
-given orc_t_zip("<a/>", "") ((import orc_tzo), (import orc_td), [60, 97, 47, 62], OdtSty([], [], [])):(0)
-given orc_t_zip("<a/>", "") ((import orc_tzo), (import orc_td), [60, 97, 62], OdtSty([], [], [])):(51) then calls zip_reader_find:[1]
+given odt_read_fixture_make_archive("<a/>", "") ((import odt_read_fixture_archive), (import odt_read_fixture_document), [60, 97, 47, 62], Odt_style_lookup([], [], [])):(0)
+given odt_read_fixture_make_archive("<a/>", "") ((import odt_read_fixture_archive), (import odt_read_fixture_document), [60, 97, 62], Odt_style_lookup([], [], [])):(51) then calls zip_reader_find:[1]

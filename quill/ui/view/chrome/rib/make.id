@@ -1,21 +1,21 @@
 // The ribbon band's rectangle from the chrome as a list: x, y, width and height.
-vw_rib_rect() {
-  int[] vwl_r = [vw_box("ribbon", 0), vw_box("ribbon", 1), vw_box("ribbon", 2), vw_box("ribbon", 3)];
-} return int[] vwl_r;
-given vw_t_up(800, 600) ():([0, 0, 800, 156])
-given vw_t_up(1000, 700) ():([0, 0, 1000, 156])
+view_ribbon_rectangle() {
+  int[] view_ribbon_rectangle_values = [view_box_field("ribbon", 0), view_box_field("ribbon", 1), view_box_field("ribbon", 2), view_box_field("ribbon", 3)];
+} return int[] view_ribbon_rectangle_values;
+given view_test_fit_chrome(800, 600) ():([0, 0, 800, 156])
+given view_test_fit_chrome(1000, 700) ():([0, 0, 1000, 156])
 
 // Starts the ribbon (B7b) in the faces rbd_ui_set gave, which are the viewer's own text's too, and keeps the ribbon of the Home tab in the export vw_rb. Call it once, after rbd_ui_set.
-vw_rib_make() {
-  export Ribbon vw_rb = rib_init();
+view_ribbon_make() {
+  export Ribbon view_ribbon = ribbon_fit_start_ribbon();
 } return void;
-given rbd_ui_set(1, 1, 1) ():() then rbd_t_tf:(1)
-given rbd_ui_set(5, 6, 7) ():() then rbd_t_tf:(5)
+given ribbon_faces_set(1, 1, 1) ():() then ribbon_fit_check_tip_font:(1)
+given ribbon_faces_set(5, 6, 7) ():() then ribbon_fit_check_tip_font:(5)
 
 // Puts the ribbon in the band the chrome gave it. Call it after every change of the surface.
-vw_rib_fit() {
-  int[] vwl_r = vw_rib_rect();
-  rib_fit((import vw_rb), vwl_r[0], vwl_r[1], vwl_r[2], vwl_r[3]);
+view_ribbon_fit() {
+  int[] view_ribbon_fit_rectangle = view_ribbon_rectangle();
+  rib_fit((import view_ribbon), view_ribbon_fit_rectangle[0], view_ribbon_fit_rectangle[1], view_ribbon_fit_rectangle[2], view_ribbon_fit_rectangle[3]);
 } return void;
-given lp_t_font given vw_t_up(800, 600) given rbd_ui_set(1, 1, 1) given vw_rib_make ():() then rbd_t_nw:("29,3")
-given lp_t_font given vw_t_up(1000, 600) given rbd_ui_set(1, 1, 1) given vw_rib_make ():() then rbd_t_sd:("1,-1,0,0,0,-1,-1,0,0,0,1000,156,-1,0,0,|16776960,12582912,|20")
+given layout_paragraph_test_font given view_test_fit_chrome(800, 600) given ribbon_faces_set(1, 1, 1) given view_ribbon_make ():() then ribbon_fit_check_widget_counts:("29,3")
+given layout_paragraph_test_font given view_test_fit_chrome(1000, 600) given ribbon_faces_set(1, 1, 1) given view_ribbon_make ():() then ribbon_fit_check_state_dump:("1,-1,0,0,0,-1,-1,0,0,0,1000,156,-1,0,0,|16776960,12582912,|20")

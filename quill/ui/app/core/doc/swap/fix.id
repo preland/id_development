@@ -1,33 +1,33 @@
 // Test setup: two scratch files named by fs_mktemp so two builds never share them: the target wa_t_p holding was_old and, beside it, the file wa_t_q that a save writes first, holding was_new. The case removes both with `then wa_t_gone`.
-wa_t_pair(string was_new, string was_old) {
-  string was_p = fs_mktemp("wa_save_", 0);
-  string was_q = was_p + (import wa_part);
-  export string wa_t_p = was_p;
+cli_test_make_pair(string was_new, string was_old) {
+  string cli_pair_path = fs_mktemp("wa_save_", 0);
+  string cli_pair_partial = cli_pair_path + (import wa_part);
+  export string cli_test_target_path = cli_pair_path;
 } chain (string was_new, string was_old) {
-  export string wa_t_q = was_q;
-  int wai_a = exec_file_put(was_p, was_old, 420);
-  int wai_b = exec_file_put(was_q, was_new, 420);
+  export string cli_test_partial_path = cli_pair_partial;
+  int cli_pair_target_put = exec_file_put(cli_pair_path, was_old, 420);
+  int cli_pair_partial_put = exec_file_put(cli_pair_partial, was_new, 420);
 } return void;
-("nn", "oo"):() then wa_t_files:("111,111,|1") then wa_t_gone:(0)
-("ab", "cd"):() then wa_t_files:("99,100,|1") then wa_t_gone:(0)
+("nn", "oo"):() then cli_test_pair_files:("111,111,|1") then cli_test_remove_pair:(0)
+("ab", "cd"):() then cli_test_pair_files:("99,100,|1") then cli_test_remove_pair:(0)
 
 // Test check: the first two bytes of the target scratch file, a bar, and whether the file beside it is there.
-wa_t_files() {
-  int wai_h = fs_open((import wa_t_p), "r");
-  int[] wal_b = [0, 0];
-  int wai_n = fs_read(wai_h, wal_b, 2);
+cli_test_pair_files() {
+  int cli_files_handle = fs_open((import cli_test_target_path), "r");
+  int[] cli_files_bytes = [0, 0];
+  int cli_files_read = fs_read(cli_files_handle, cli_files_bytes, 2);
 } chain () {
-  int wai_c = fs_close(wai_h);
-  int wai_e = fs_exists((import wa_t_q));
-  string was_s = dump_ints(wal_b) + "|" + wai_e;
-} return string was_s;
-given wa_t_pair("new", "old") ():("111,108,|1") then wa_t_gone:(0)
-given wa_t_pair("zz", "xy") ():("120,121,|1") then wa_t_gone:(0)
+  int cli_files_closed = fs_close(cli_files_handle);
+  int cli_files_partial_exists = fs_exists((import cli_test_partial_path));
+  string cli_files_text = document_dump_integers(cli_files_bytes) + "|" + cli_files_partial_exists;
+} return string cli_files_text;
+given cli_test_make_pair("new", "old") ():("111,108,|1") then cli_test_remove_pair:(0)
+given cli_test_make_pair("zz", "xy") ():("120,121,|1") then cli_test_remove_pair:(0)
 
 // Test check: removes both scratch files; 0 when the target was there.
-wa_t_gone() {
-  int wai_a = fs_remove((import wa_t_p));
-  int wai_b = fs_remove((import wa_t_q));
-} return int wai_a;
-given wa_t_pair("aa", "bb") ():(0)
-given wa_t_pair("cc", "dd") ():(0)
+cli_test_remove_pair() {
+  int cli_gone_target = fs_remove((import cli_test_target_path));
+  int cli_gone_partial = fs_remove((import cli_test_partial_path));
+} return int cli_gone_target;
+given cli_test_make_pair("aa", "bb") ():(0)
+given cli_test_make_pair("cc", "dd") ():(0)

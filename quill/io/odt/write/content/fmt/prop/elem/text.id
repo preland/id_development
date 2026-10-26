@@ -1,38 +1,38 @@
 // The character flags in turn: bold, italic, underline, strike.
-oc_flags(XmlW oc_w, int oc_set, int oc_on) {
-  int oc_ix = 0;
-  while(oc_ix < len((import odt_flag_attr))) {
-    oc_a_flag(oc_w, oc_set, oc_on, oc_ix);
-    oc_ix = oc_ix + 1;
+odt_write_character_flags(XmlW odt_write_character_flags_writer, int odt_write_character_flags_set_bits, int odt_write_character_flags_on_bits) {
+  int odt_write_character_flags_index = 0;
+  while(odt_write_character_flags_index < len((import odt_flag_attr))) {
+    odt_write_flag_attribute(odt_write_character_flags_writer, odt_write_character_flags_set_bits, odt_write_character_flags_on_bits, odt_write_character_flags_index);
+    odt_write_character_flags_index = odt_write_character_flags_index + 1;
   }
 } return void;
-given oc_t_w(0) ((import oc_fw), 15, 5):() then (import oc_fw).out:([60, 114, 32, 102, 111, 58, 102, 111, 110, 116, 45, 119, 101, 105, 103, 104, 116, 61, 34, 98, 111, 108, 100, 34, 32, 102, 111, 58, 102, 111, 110, 116, 45, 115, 116, 121, 108, 101, 61, 34, 110, 111, 114, 109, 97, 108, 34, 32, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 117, 110, 100, 101, 114, 108, 105, 110, 101, 45, 115, 116, 121, 108, 101, 61, 34, 115, 111, 108, 105, 100, 34, 32, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 108, 105, 110, 101, 45, 116, 104, 114, 111, 117, 103, 104, 45, 115, 116, 121, 108, 101, 61, 34, 110, 111, 110, 101, 34])
-given oc_t_w(0) ((import oc_fw), 0, 15):() then (import oc_fw).out:([60, 114])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 15, 5):() then (import odt_write_test_writer_output).out:([60, 114, 32, 102, 111, 58, 102, 111, 110, 116, 45, 119, 101, 105, 103, 104, 116, 61, 34, 98, 111, 108, 100, 34, 32, 102, 111, 58, 102, 111, 110, 116, 45, 115, 116, 121, 108, 101, 61, 34, 110, 111, 114, 109, 97, 108, 34, 32, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 117, 110, 100, 101, 114, 108, 105, 110, 101, 45, 115, 116, 121, 108, 101, 61, 34, 115, 111, 108, 105, 100, 34, 32, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 108, 105, 110, 101, 45, 116, 104, 114, 111, 117, 103, 104, 45, 115, 116, 121, 108, 101, 61, 34, 110, 111, 110, 101, 34])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), 0, 15):() then (import odt_write_test_writer_output).out:([60, 114])
 
 // The font attribute: the family name at index f of the document's fonts, written when f is set and names one.
-oc_a_font(XmlW oc_w, Doc oc_d, int oc_fi) {
-  if(oc_fi >= 0 && oc_fi < len(oc_d.ext.fonts)) {
-    xw_attr(oc_w, "style:font-name", oc_d.ext.fonts[oc_fi]);
+odt_write_font_attribute(XmlW odt_write_font_attribute_writer, Doc odt_write_font_attribute_document, int odt_write_font_attribute_font_index) {
+  if(odt_write_font_attribute_font_index >= 0 && odt_write_font_attribute_font_index < len(odt_write_font_attribute_document.ext.fonts)) {
+    xw_attr(odt_write_font_attribute_writer, "style:font-name", odt_write_font_attribute_document.ext.fonts[odt_write_font_attribute_font_index]);
   }
 } return void;
-given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), 1):() then (import oc_fw).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 102, 111, 110, 116, 45, 110, 97, 109, 101, 61, 34, 65, 114, 105, 97, 108, 34])
-given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), 2):() then (import oc_fw).out:([60, 114])
-given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), -1):() then (import oc_fw).out:([60, 114])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), 1):() then (import odt_write_test_writer_output).out:([60, 114, 32, 115, 116, 121, 108, 101, 58, 102, 111, 110, 116, 45, 110, 97, 109, 101, 61, 34, 65, 114, 105, 97, 108, 34])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), 2):() then (import odt_write_test_writer_output).out:([60, 114])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), -1):() then (import odt_write_test_writer_output).out:([60, 114])
 
 // The style:text-properties element of character row cid: font, size, colour, highlight, then flags and position.
-oc_cprops(XmlW oc_w, Doc oc_d, int oc_cid) {
-  int[] oc_rw = tab_row(oc_d.fmt.chars, oc_cid);
-  xw_start(oc_w, "style:text-properties");
-  oc_a_font(oc_w, oc_d, oc_rw[(import quill_character_font)]);
-} chain (XmlW oc_w, Doc oc_d, int oc_cid) {
-  oc_a_size(oc_w, oc_rw[(import quill_character_size)]);
-  oc_a_rgb(oc_w, "fo:color", oc_rw[(import quill_character_color)]);
-  oc_a_rgb(oc_w, "fo:background-color", oc_rw[(import quill_character_highlight)]);
-} chain (XmlW oc_w, Doc oc_d, int oc_cid) {
-  oc_flags(oc_w, oc_rw[(import quill_character_set)], oc_rw[(import quill_character_on)]);
-  oc_a_pos(oc_w, oc_rw[(import quill_character_set)], oc_rw[(import quill_character_on)]);
-  xw_end(oc_w);
+odt_write_character_properties(XmlW odt_write_character_properties_writer, Doc odt_write_character_properties_document, int odt_write_character_properties_character_number) {
+  int[] odt_write_character_properties_row = tab_row(odt_write_character_properties_document.fmt.chars, odt_write_character_properties_character_number);
+  xw_start(odt_write_character_properties_writer, "style:text-properties");
+  odt_write_font_attribute(odt_write_character_properties_writer, odt_write_character_properties_document, odt_write_character_properties_row[(import quill_character_font)]);
+} chain (XmlW odt_write_character_properties_writer, Doc odt_write_character_properties_document, int odt_write_character_properties_character_number) {
+  odt_write_size_attribute(odt_write_character_properties_writer, odt_write_character_properties_row[(import quill_character_size)]);
+  odt_write_color_attribute(odt_write_character_properties_writer, "fo:color", odt_write_character_properties_row[(import quill_character_color)]);
+  odt_write_color_attribute(odt_write_character_properties_writer, "fo:background-color", odt_write_character_properties_row[(import quill_character_highlight)]);
+} chain (XmlW odt_write_character_properties_writer, Doc odt_write_character_properties_document, int odt_write_character_properties_character_number) {
+  odt_write_character_flags(odt_write_character_properties_writer, odt_write_character_properties_row[(import quill_character_set)], odt_write_character_properties_row[(import quill_character_on)]);
+  odt_write_position_attribute(odt_write_character_properties_writer, odt_write_character_properties_row[(import quill_character_set)], odt_write_character_properties_row[(import quill_character_on)]);
+  xw_end(odt_write_character_properties_writer);
 } return void;
-given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), 0):() then (import oc_fw).out:([60, 114, 62, 60, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 112, 114, 111, 112, 101, 114, 116, 105, 101, 115, 32, 115, 116, 121, 108, 101, 58, 102, 111, 110, 116, 45, 110, 97, 109, 101, 61, 34, 65, 114, 105, 97, 108, 34, 32, 102, 111, 58, 102, 111, 110, 116, 45, 115, 105, 122, 101, 61, 34, 49, 50, 112, 116, 34, 32, 102, 111, 58, 99, 111, 108, 111, 114, 61, 34, 35, 102, 102, 48, 48, 48, 48, 34, 32, 102, 111, 58, 98, 97, 99, 107, 103, 114, 111, 117, 110, 100, 45, 99, 111, 108, 111, 114, 61, 34, 35, 102, 102, 102, 102, 48, 48, 34, 32, 102, 111, 58, 102, 111, 110, 116, 45, 119, 101, 105, 103, 104, 116, 61, 34, 98, 111, 108, 100, 34, 32, 102, 111, 58, 102, 111, 110, 116, 45, 115, 116, 121, 108, 101, 61, 34, 105, 116, 97, 108, 105, 99, 34, 47, 62])
-given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), 1):() then (import oc_fw).out:([60, 114, 62, 60, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 112, 114, 111, 112, 101, 114, 116, 105, 101, 115, 47, 62])
-given oc_t_w(0) ((import oc_fw), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), 2):() then (import oc_fw).out:([60, 114, 62, 60, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 112, 114, 111, 112, 101, 114, 116, 105, 101, 115, 32, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 117, 110, 100, 101, 114, 108, 105, 110, 101, 45, 115, 116, 121, 108, 101, 61, 34, 115, 111, 108, 105, 100, 34, 32, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 108, 105, 110, 101, 45, 116, 104, 114, 111, 117, 103, 104, 45, 115, 116, 121, 108, 101, 61, 34, 110, 111, 110, 101, 34, 32, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 112, 111, 115, 105, 116, 105, 111, 110, 61, 34, 115, 117, 112, 101, 114, 32, 53, 56, 37, 34, 47, 62])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), 0):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 112, 114, 111, 112, 101, 114, 116, 105, 101, 115, 32, 115, 116, 121, 108, 101, 58, 102, 111, 110, 116, 45, 110, 97, 109, 101, 61, 34, 65, 114, 105, 97, 108, 34, 32, 102, 111, 58, 102, 111, 110, 116, 45, 115, 105, 122, 101, 61, 34, 49, 50, 112, 116, 34, 32, 102, 111, 58, 99, 111, 108, 111, 114, 61, 34, 35, 102, 102, 48, 48, 48, 48, 34, 32, 102, 111, 58, 98, 97, 99, 107, 103, 114, 111, 117, 110, 100, 45, 99, 111, 108, 111, 114, 61, 34, 35, 102, 102, 102, 102, 48, 48, 34, 32, 102, 111, 58, 102, 111, 110, 116, 45, 119, 101, 105, 103, 104, 116, 61, 34, 98, 111, 108, 100, 34, 32, 102, 111, 58, 102, 111, 110, 116, 45, 115, 116, 121, 108, 101, 61, 34, 105, 116, 97, 108, 105, 99, 34, 47, 62])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), 1):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 112, 114, 111, 112, 101, 114, 116, 105, 101, 115, 47, 62])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Doc(Body([], Page([1, 2, 0], [3, 4, 5, 6], [0, 0, 0]), 0), Fmt(Tab([0, 1, 24, 16711680, 16776960, 3, 3, 0, -1, -1, -1, -1, 0, 0, 0, -1, -1, -1, -1, 20, 60], 7, []), Tab([], 12, []), Sty([], [], 0)), Ext(["Liberation Serif", "Arial"], [], [])), 2):() then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 112, 114, 111, 112, 101, 114, 116, 105, 101, 115, 32, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 117, 110, 100, 101, 114, 108, 105, 110, 101, 45, 115, 116, 121, 108, 101, 61, 34, 115, 111, 108, 105, 100, 34, 32, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 108, 105, 110, 101, 45, 116, 104, 114, 111, 117, 103, 104, 45, 115, 116, 121, 108, 101, 61, 34, 110, 111, 110, 101, 34, 32, 115, 116, 121, 108, 101, 58, 116, 101, 120, 116, 45, 112, 111, 115, 105, 116, 105, 111, 110, 61, 34, 115, 117, 112, 101, 114, 32, 53, 56, 37, 34, 47, 62])

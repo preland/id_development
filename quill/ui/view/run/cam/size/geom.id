@@ -1,28 +1,28 @@
 // The height of the whole continuous document in pixels at zoom vwi_z percent: a gap, then every sheet followed by a gap.
 // By hand: a 3000 twip sheet is 12800 lu, 200 px at 100 percent, and the gap is 24; two sheets are 24 + 2 * (200 + 24) = 472; at 200 percent every size doubles, 944.
-vw_dh(View vwv, int vwi_z) {
-  int vwi_ph = vw_px(lay_sheet(vwv.doc, 1), vwi_z);
-  int vwi_gap = vw_px((import quill_layout_sheet_gap), vwi_z);
-  int vwi_n = lay_page_count(vwv);
-} chain (View vwv, int vwi_z) {
-  int vwi_h = vwi_gap + vwi_n * (vwi_ph + vwi_gap);
-} return int vwi_h;
-given vw_t_two () ((import lp_t_v), 100):(472)
-given vw_t_two () ((import lp_t_v), 200):(944)
+view_document_height(View view_document_height_viewer, int view_document_height_zoom) {
+  int view_document_height_sheet_height = view_units_pixels(lay_sheet(view_document_height_viewer.doc, 1), view_document_height_zoom);
+  int view_document_height_gap = view_units_pixels((import quill_layout_sheet_gap), view_document_height_zoom);
+  int view_document_height_page_count = lay_page_count(view_document_height_viewer);
+} chain (View view_document_height_viewer, int view_document_height_zoom) {
+  int view_document_height_result = view_document_height_gap + view_document_height_page_count * (view_document_height_sheet_height + view_document_height_gap);
+} return int view_document_height_result;
+given view_test_two_pages () ((import layout_paragraph_test_view), 100):(472)
+given view_test_two_pages () ((import layout_paragraph_test_view), 200):(944)
 
 // How far the page area can scroll: the document less one screenful of it (vwi_ch pixels), never below 0.
-vw_ymax(View vwv, int vwi_z, int vwi_ch) {
-  int vwi_h = vw_dh(vwv, vwi_z);
-  int vwi_m = fixed_point_maximum(vwi_h - vwi_ch, 0);
-} return int vwi_m;
-given vw_t_two () ((import lp_t_v), 100, 300):(172)
-given vw_t_two () ((import lp_t_v), 100, 1000):(0)
+view_scroll_maximum(View view_scroll_maximum_viewer, int view_scroll_maximum_zoom, int view_scroll_maximum_area_height) {
+  int view_scroll_maximum_document_height = view_document_height(view_scroll_maximum_viewer, view_scroll_maximum_zoom);
+  int view_scroll_maximum_result = fixed_point_maximum(view_scroll_maximum_document_height - view_scroll_maximum_area_height, 0);
+} return int view_scroll_maximum_result;
+given view_test_two_pages () ((import layout_paragraph_test_view), 100, 300):(172)
+given view_test_two_pages () ((import layout_paragraph_test_view), 100, 1000):(0)
 
 // The top of page vwi_k in the continuous document in pixels at zoom vwi_z: a gap, and a sheet and a gap for every page above.
-vw_top(View vwv, int vwi_k, int vwi_z) {
-  int vwi_ph = vw_px(lay_sheet(vwv.doc, 1), vwi_z);
-  int vwi_gap = vw_px((import quill_layout_sheet_gap), vwi_z);
-  int vwi_t = vwi_gap + vwi_k * (vwi_ph + vwi_gap);
-} return int vwi_t;
-given vw_t_two () ((import lp_t_v), 0, 100):(24)
-given vw_t_two () ((import lp_t_v), 1, 100):(248)
+view_page_top(View view_page_top_viewer, int view_page_top_page_index, int view_page_top_zoom) {
+  int view_page_top_sheet_height = view_units_pixels(lay_sheet(view_page_top_viewer.doc, 1), view_page_top_zoom);
+  int view_page_top_gap = view_units_pixels((import quill_layout_sheet_gap), view_page_top_zoom);
+  int view_page_top_result = view_page_top_gap + view_page_top_page_index * (view_page_top_sheet_height + view_page_top_gap);
+} return int view_page_top_result;
+given view_test_two_pages () ((import layout_paragraph_test_view), 0, 100):(24)
+given view_test_two_pages () ((import layout_paragraph_test_view), 1, 100):(248)

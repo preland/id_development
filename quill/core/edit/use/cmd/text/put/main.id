@@ -1,35 +1,35 @@
 // 1 when typing cp continues the open undo step, which is gui_tb's rule: a step is open, nothing is selected, a character was typed before the caret, and cp is not the first word character after a space or punctuation, so "hello world" is the steps "hello " and "world".
 hist_joins(Doc d, Ctl ctl, int cp) {
-  int cl = utf8_class(cp);
-  int pcl = ed_prev_class(d, ctl.sel.caret);
-  int cont = ctl.hist.open >= 0 && sel_empty(ctl.sel) == 1 && pcl >= 0 && (cl != 1 || pcl == 1);
+  int character_class = utf8_class(cp);
+  int previous_character_class = editor_previous_class(d, ctl.sel.caret);
+  int cont = ctl.hist.open >= 0 && editor_selection_empty(ctl.sel) == 1 && previous_character_class >= 0 && (character_class != 1 || previous_character_class == 1);
 } return int cont;
-given fx_setup("ab") given fx_at(0, 2, 0, 2) given txn_begin((import fxc)) ((import fxd), (import fxc), 99):(1)
-given fx_setup("ab") given fx_at(0, 2, 0, 2) ((import fxd), (import fxc), 99):(0)
-given fx_setup("a ") given fx_at(0, 2, 0, 2) given txn_begin((import fxc)) ((import fxd), (import fxc), 98):(0)
-given fx_setup("a ") given fx_at(0, 2, 0, 2) given txn_begin((import fxc)) ((import fxd), (import fxc), 32):(1)
-given fx_setup("ab") given fx_at(0, 1, 0, 2) given txn_begin((import fxc)) ((import fxd), (import fxc), 99):(0)
+given editor_fixture_setup("ab") given editor_fixture_selection_at(0, 2, 0, 2) given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 99):(1)
+given editor_fixture_setup("ab") given editor_fixture_selection_at(0, 2, 0, 2) ((import fixture_document), (import fixture_control), 99):(0)
+given editor_fixture_setup("a ") given editor_fixture_selection_at(0, 2, 0, 2) given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 98):(0)
+given editor_fixture_setup("a ") given editor_fixture_selection_at(0, 2, 0, 2) given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 32):(1)
+given editor_fixture_setup("ab") given editor_fixture_selection_at(0, 1, 0, 2) given editor_transaction_begin((import fixture_control)) ((import fixture_document), (import fixture_control), 99):(0)
 
 // Types cp: it joins the open undo step when hist_joins says so, otherwise a new step opens (replacing the selection, if any) and stays open for the characters that follow.
-ed_type_at(Doc d, Ctl ctl, int cp) {
+editor_type_at(Doc d, Ctl ctl, int cp) {
   int cont = hist_joins(d, ctl, cp);
   int[] cps = [cp];
   if(cont == 0) {
-    ed_begin_over(d, ctl);
+    editor_begin_replace(d, ctl);
   }
 } chain (Doc d, Ctl ctl, int cp) {
-  ed_put_cps(d, ctl, cps);
+  editor_put_code_points(d, ctl, cps);
 } return void;
-given fx_setup("") ((import fxd), (import fxc), 104):((import fxd), (import fxc), 104) then fx_show:("h") then fx_hist:("u1 r0 o0 n1")
-given fx_setup("") given ed_type((import fxd), (import fxc), 104) ((import fxd), (import fxc), 105):((import fxd), (import fxc), 105) then fx_show:("hi") then fx_hist:("u1 r0 o0 n2")
+given editor_fixture_setup("") ((import fixture_document), (import fixture_control), 104):((import fixture_document), (import fixture_control), 104) then editor_fixture_show:("h") then editor_fixture_history:("u1 r0 o0 n1")
+given editor_fixture_setup("") given editor_type((import fixture_document), (import fixture_control), 104) ((import fixture_document), (import fixture_control), 105):((import fixture_document), (import fixture_control), 105) then editor_fixture_show:("hi") then editor_fixture_history:("u1 r0 o0 n2")
 
 // Types the character cp at the caret, in place of the selection if there is one. A character that cannot be typed (see cp_typable) and a block the model does not edit are ignored.
-ed_type(Doc d, Ctl ctl, int cp) {
-  int ok = cp_typable(cp);
-  if(ok == 1 && ed_solid(d, ctl.sel.caret.para) == 0) {
-    ed_type_at(d, ctl, cp);
+editor_type(Doc d, Ctl ctl, int cp) {
+  int ok = editor_code_point_can_be_typed(cp);
+  if(ok == 1 && editor_is_solid_block(d, ctl.sel.caret.para) == 0) {
+    editor_type_at(d, ctl, cp);
   }
 } return void;
-given fx_setup("") ((import fxd), (import fxc), 104):((import fxd), (import fxc), 104) then fx_show:("h")
-given fx_setup("") ((import fxd), (import fxc), 10):((import fxd), (import fxc), 10) then fx_show:("") then fx_hist:("u0 r0 o-1 n0")
-given fx_setup("") given fx_opaque(0) ((import fxd), (import fxc), 104):((import fxd), (import fxc), 104) then fx_hist:("u0 r0 o-1 n0")
+given editor_fixture_setup("") ((import fixture_document), (import fixture_control), 104):((import fixture_document), (import fixture_control), 104) then editor_fixture_show:("h")
+given editor_fixture_setup("") ((import fixture_document), (import fixture_control), 10):((import fixture_document), (import fixture_control), 10) then editor_fixture_show:("") then editor_fixture_history:("u0 r0 o-1 n0")
+given editor_fixture_setup("") given editor_fixture_opaque(0) ((import fixture_document), (import fixture_control), 104):((import fixture_document), (import fixture_control), 104) then editor_fixture_history:("u0 r0 o-1 n0")

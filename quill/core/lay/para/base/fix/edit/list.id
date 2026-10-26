@@ -1,27 +1,27 @@
 // Test setup: n paragraphs, each holding the letter A, in the test document.
-lp_t_paras(int n) {
-  int j = 1;
-  lp_t_ins(0, "A");
-  while(j < n) {
-    lp_t_split(j - 1, 1);
-    lp_t_ins(j, "A");
-    j = j + 1;
+layout_paragraph_test_paragraphs(int paragraphs_count) {
+  int paragraphs_position = 1;
+  layout_paragraph_test_insert(0, "A");
+  while(paragraphs_position < paragraphs_count) {
+    layout_paragraph_test_split(paragraphs_position - 1, 1);
+    layout_paragraph_test_insert(paragraphs_position, "A");
+    paragraphs_position = paragraphs_position + 1;
   }
 } return void;
-given lp_t_new (3):(3) then len((import lp_t_d).body.paras):(3)
-given lp_t_new (1):(1) then len((import lp_t_d).body.paras):(1)
+given layout_paragraph_test_new (3):(3) then len((import layout_paragraph_test_document).body.paras):(3)
+given layout_paragraph_test_new (1):(1) then len((import layout_paragraph_test_document).body.paras):(1)
 
 // Test setup: makes paragraph i an item of list lid at level lvl.
-lp_t_item(int i, int lid, int lvl) {
-  lp_t_row(i, (import quill_paragraph_list), lid);
-  lp_t_row(i, (import quill_paragraph_level), lvl);
+layout_paragraph_test_item(int item_paragraph_index, int lid, int item_level) {
+  layout_paragraph_test_set_property(item_paragraph_index, (import quill_paragraph_list), lid);
+  layout_paragraph_test_set_property(item_paragraph_index, (import quill_paragraph_level), item_level);
 } return void;
-given lp_t_new (0, 2, 1):(0, 2, 1) then lp_t_pr0:([0, -1, -1, -1, -1, -1, -1, -1, 0, 2, 1, 0])
-given lp_t_new (0, 1, 0):(0, 1, 0) then lp_t_pr0:([0, -1, -1, -1, -1, -1, -1, -1, 0, 1, 0, 0])
+given layout_paragraph_test_new (0, 2, 1):(0, 2, 1) then layout_paragraph_test_first_property_row:([0, -1, -1, -1, -1, -1, -1, -1, 0, 2, 1, 0])
+given layout_paragraph_test_new (0, 1, 0):(0, 1, 0) then layout_paragraph_test_first_property_row:([0, -1, -1, -1, -1, -1, -1, -1, 0, 1, 0, 0])
 
 // Test setup: lays out paragraph 0 of the test view in a text area wd lu wide.
-lp_t_lay(int wd) {
-  lay_para((import lp_t_v), 0, wd);
+layout_paragraph_test_layout(int layout_width) {
+  lay_para((import layout_paragraph_test_view), 0, layout_width);
 } return void;
-given lp_t_font given lp_t_ins(0, "AB") (6000):(6000) then lp_t_l0:([0, 2, 0, 960, 192, 1366])
-given lp_t_font given lp_t_ins(0, "AB") (100):(100) then calls lay_para:((import lp_t_v), 0, 100)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "AB") (6000):(6000) then layout_paragraph_test_first_lines:([0, 2, 0, 960, 192, 1366])
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "AB") (100):(100) then calls lay_para:((import layout_paragraph_test_view), 0, 100)

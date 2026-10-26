@@ -1,19 +1,19 @@
 // The number of the numbered item i of its list: its level's start value plus the items of the same list at the same level before it, counted backwards until an item of the same list at a shallower level, so a deeper item neither counts nor breaks the count and a shallower one restarts it. Nothing is stored; the count is recomputed from the paragraphs.
-lay_number(View v, int i) {
-  int lid = lp_prop(v, i, (import quill_paragraph_list));
-  int lvl = lp_prop(v, i, (import quill_paragraph_level));
-  int cnt = lp_lrow(v, lid, lvl, (import quill_list_level_start));
-} chain (View v, int i) {
-  int j = i - 1;
-  int res = 0;
-  while(j >= 0 && res < 2) {
-    res = lp_nd(v, j, lid, lvl);
-    cnt = cnt + (res == 1);
-    j = j - 1;
+lay_number(View number_view, int number_paragraph_index) {
+  int lid = layout_paragraph_property(number_view, number_paragraph_index, (import quill_paragraph_list));
+  int number_level = layout_paragraph_property(number_view, number_paragraph_index, (import quill_paragraph_level));
+  int number_total = layout_paragraph_list_cell(number_view, lid, number_level, (import quill_list_level_start));
+} chain (View number_view, int number_paragraph_index) {
+  int number_position = number_paragraph_index - 1;
+  int number_effect = 0;
+  while(number_position >= 0 && number_effect < 2) {
+    number_effect = layout_paragraph_count_effect(number_view, number_position, lid, number_level);
+    number_total = number_total + (number_effect == 1);
+    number_position = number_position - 1;
   }
-} return int cnt;
-given lp_t_new given lp_t_paras(5) given lp_t_item(0, 2, 0) given lp_t_item(1, 2, 0) given lp_t_item(2, 2, 0) given lp_t_item(3, 2, 1) given lp_t_item(4, 2, 0) ((import lp_t_v), 4):(4)
-given lp_t_new given lp_t_paras(5) given lp_t_item(0, 2, 0) given lp_t_item(1, 2, 0) given lp_t_item(2, 2, 0) given lp_t_item(3, 2, 1) given lp_t_item(4, 2, 0) ((import lp_t_v), 3):(1)
-given lp_t_new given lp_t_paras(5) given lp_t_item(0, 2, 0) given lp_t_item(1, 2, 0) given lp_t_item(2, 2, 0) given lp_t_item(3, 2, 1) given lp_t_item(4, 2, 0) ((import lp_t_v), 0):(1)
-given lp_t_new given lp_t_paras(5) given lp_t_item(0, 2, 0) given lp_t_item(1, 2, 1) given lp_t_item(2, 2, 1) given lp_t_item(3, 2, 0) given lp_t_item(4, 2, 1) ((import lp_t_v), 4):(1)
-given lp_t_new given lp_t_paras(5) given lp_t_item(0, 2, 0) given lp_t_item(1, 2, 1) given lp_t_item(2, 2, 1) given lp_t_item(3, 2, 0) given lp_t_item(4, 2, 1) ((import lp_t_v), 2):(2)
+} return int number_total;
+given layout_paragraph_test_new given layout_paragraph_test_paragraphs(5) given layout_paragraph_test_item(0, 2, 0) given layout_paragraph_test_item(1, 2, 0) given layout_paragraph_test_item(2, 2, 0) given layout_paragraph_test_item(3, 2, 1) given layout_paragraph_test_item(4, 2, 0) ((import layout_paragraph_test_view), 4):(4)
+given layout_paragraph_test_new given layout_paragraph_test_paragraphs(5) given layout_paragraph_test_item(0, 2, 0) given layout_paragraph_test_item(1, 2, 0) given layout_paragraph_test_item(2, 2, 0) given layout_paragraph_test_item(3, 2, 1) given layout_paragraph_test_item(4, 2, 0) ((import layout_paragraph_test_view), 3):(1)
+given layout_paragraph_test_new given layout_paragraph_test_paragraphs(5) given layout_paragraph_test_item(0, 2, 0) given layout_paragraph_test_item(1, 2, 0) given layout_paragraph_test_item(2, 2, 0) given layout_paragraph_test_item(3, 2, 1) given layout_paragraph_test_item(4, 2, 0) ((import layout_paragraph_test_view), 0):(1)
+given layout_paragraph_test_new given layout_paragraph_test_paragraphs(5) given layout_paragraph_test_item(0, 2, 0) given layout_paragraph_test_item(1, 2, 1) given layout_paragraph_test_item(2, 2, 1) given layout_paragraph_test_item(3, 2, 0) given layout_paragraph_test_item(4, 2, 1) ((import layout_paragraph_test_view), 4):(1)
+given layout_paragraph_test_new given layout_paragraph_test_paragraphs(5) given layout_paragraph_test_item(0, 2, 0) given layout_paragraph_test_item(1, 2, 1) given layout_paragraph_test_item(2, 2, 1) given layout_paragraph_test_item(3, 2, 0) given layout_paragraph_test_item(4, 2, 1) ((import layout_paragraph_test_view), 2):(2)

@@ -1,31 +1,31 @@
 // The first index from i, before hi, that is not plain text; hi when everything up to it is.
-oc_plain_end(int[] oc_cps, int oc_i, int oc_hi) {
-  while(oc_i < oc_hi && oc_cls(oc_cps, oc_i) < 2) {
-    oc_i = oc_i + 1;
+odt_write_plain_end(int[] odt_write_plain_end_code_points, int odt_write_plain_end_index, int odt_write_plain_end_high) {
+  while(odt_write_plain_end_index < odt_write_plain_end_high && odt_write_code_point_class(odt_write_plain_end_code_points, odt_write_plain_end_index) < 2) {
+    odt_write_plain_end_index = odt_write_plain_end_index + 1;
   }
-} return int oc_i;
+} return int odt_write_plain_end_index;
 ([97, 98, 9, 99], 0, 4):(2)
 ([97, 98], 0, 2):(2)
 ([97, 32, 98], 0, 3):(3)
 ([9, 97], 0, 2):(0)
 
 // Writes the next piece of text starting at i, either the plain stretch up to the next special code point or that one code point, and answers where the next piece starts.
-oc_chunk(XmlW oc_w, Text oc_tx, Ext oc_ex, int oc_i, int oc_hi) {
-  int oc_j = oc_plain_end(oc_tx.cps, oc_i, oc_hi);
-  if(oc_j > oc_i) {
-    xw_text(oc_w, text_str(oc_tx, oc_i, oc_j));
+odt_write_chunk(XmlW odt_write_chunk_writer, Text odt_write_chunk_text, Ext odt_write_chunk_extras, int odt_write_chunk_low, int odt_write_chunk_high) {
+  int odt_write_chunk_end = odt_write_plain_end(odt_write_chunk_text.cps, odt_write_chunk_low, odt_write_chunk_high);
+  if(odt_write_chunk_end > odt_write_chunk_low) {
+    xw_text(odt_write_chunk_writer, document_text_string(odt_write_chunk_text, odt_write_chunk_low, odt_write_chunk_end));
   } else {
-    oc_j = oc_special(oc_w, oc_tx.cps, oc_ex, oc_i, oc_hi);
+    odt_write_chunk_end = odt_write_special_code_point(odt_write_chunk_writer, odt_write_chunk_text.cps, odt_write_chunk_extras, odt_write_chunk_low, odt_write_chunk_high);
   }
-} return int oc_j;
-given oc_t_w(0) ((import oc_fw), Text([104, 105, 9, 33], [Run(4, 0, -1)], 0), Ext([], [], []), 0, 4):(2) then (import oc_fw).out:([60, 114, 62, 104, 105])
-given oc_t_w(0) ((import oc_fw), Text([104, 105, 9, 33], [Run(4, 0, -1)], 0), Ext([], [], []), 2, 4):(3) then (import oc_fw).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 116, 97, 98, 47, 62])
+} return int odt_write_chunk_end;
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Text([104, 105, 9, 33], [Run(4, 0, -1)], 0), Ext([], [], []), 0, 4):(2) then (import odt_write_test_writer_output).out:([60, 114, 62, 104, 105])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Text([104, 105, 9, 33], [Run(4, 0, -1)], 0), Ext([], [], []), 2, 4):(3) then (import odt_write_test_writer_output).out:([60, 114, 62, 60, 116, 101, 120, 116, 58, 116, 97, 98, 47, 62])
 
 // The code points lo up to hi of a text as XML content: plain stretches as text, the rest as text:s, text:tab, text:line-break or an inline object.
-oc_text(XmlW oc_w, Text oc_tx, Ext oc_ex, int oc_lo, int oc_hi) {
-  while(oc_lo < oc_hi) {
-    oc_lo = oc_chunk(oc_w, oc_tx, oc_ex, oc_lo, oc_hi);
+odt_write_text_range(XmlW odt_write_text_range_writer, Text odt_write_text_range_text, Ext odt_write_text_range_extras, int odt_write_text_range_low, int odt_write_text_range_high) {
+  while(odt_write_text_range_low < odt_write_text_range_high) {
+    odt_write_text_range_low = odt_write_chunk(odt_write_text_range_writer, odt_write_text_range_text, odt_write_text_range_extras, odt_write_text_range_low, odt_write_text_range_high);
   }
 } return void;
-given oc_t_w(0) ((import oc_fw), Text([97, 32, 98, 32, 32, 9, 38, 60], [Run(8, 0, -1)], 0), Ext([], [], []), 0, 8):() then (import oc_fw).out:([60, 114, 62, 97, 32, 98, 60, 116, 101, 120, 116, 58, 115, 32, 116, 101, 120, 116, 58, 99, 61, 34, 50, 34, 47, 62, 60, 116, 101, 120, 116, 58, 116, 97, 98, 47, 62, 38, 97, 109, 112, 59, 38, 108, 116, 59])
-given oc_t_w(0) ((import oc_fw), Text([97, 98, 99], [Run(3, 0, -1)], 0), Ext([], [], []), 1, 2):() then (import oc_fw).out:([60, 114, 62, 98])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Text([97, 32, 98, 32, 32, 9, 38, 60], [Run(8, 0, -1)], 0), Ext([], [], []), 0, 8):() then (import odt_write_test_writer_output).out:([60, 114, 62, 97, 32, 98, 60, 116, 101, 120, 116, 58, 115, 32, 116, 101, 120, 116, 58, 99, 61, 34, 50, 34, 47, 62, 60, 116, 101, 120, 116, 58, 116, 97, 98, 47, 62, 38, 97, 109, 112, 59, 38, 108, 116, 59])
+given odt_write_test_writer_nested(0) ((import odt_write_test_writer_output), Text([97, 98, 99], [Run(3, 0, -1)], 0), Ext([], [], []), 1, 2):() then (import odt_write_test_writer_output).out:([60, 114, 62, 98])

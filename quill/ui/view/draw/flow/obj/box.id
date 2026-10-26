@@ -1,29 +1,29 @@
 // Draws the box that stands for object paragraph vwi_p, whose own top is vwi_base lu down the page: the width of the text area and quill_layout_object_height high, edged and filled, and the object's label centred in it.
-vw_obj(View vwv, int vwi_p, int[] vwl_g, int vwi_base) {
-  int vwi_z = vwl_g[(import vw_g_z)];
-  int vwi_x = vwl_g[(import vw_g_x)] + vw_px(vwl_g[(import vw_g_l)], vwi_z);
-  int vwi_y = vwl_g[(import vw_g_y)] + vw_px(vwl_g[(import vw_g_t)] + vwi_base + vwv.doc.body.paras[vwi_p].lay.lines[(import quill_line_y)], vwi_z);
-} chain (View vwv, int vwi_p, int[] vwl_g, int vwi_base) {
-  int vwi_w = vw_px(lay_area(vwv.doc, 0), vwi_z);
-  int vwi_h = vw_px(lay_obj_h(vwv.doc, vwi_p), vwi_z);
-  d2_l_rect(vwi_x, vwi_y, vwi_w, vwi_h, (import vw_c_edge));
-} chain (View vwv, int vwi_p, int[] vwl_g, int vwi_base) {
-  d2_l_rect(vwi_x + 1, vwi_y + 1, vwi_w - 2, vwi_h - 2, (import vw_c_obj));
-  vw_tag(vwv.doc, vwi_p, vwi_x, vwi_y, vwi_w, vwi_h);
+view_flow_draw_object(View view_flow_object_box_view, int view_flow_object_box_paragraph, int[] view_flow_object_box_geometry, int view_flow_object_box_base) {
+  int view_flow_object_box_scale = view_flow_object_box_geometry[(import vw_g_z)];
+  int view_flow_object_box_left = view_flow_object_box_geometry[(import vw_g_x)] + view_units_pixels(view_flow_object_box_geometry[(import vw_g_l)], view_flow_object_box_scale);
+  int view_flow_object_box_top = view_flow_object_box_geometry[(import vw_g_y)] + view_units_pixels(view_flow_object_box_geometry[(import vw_g_t)] + view_flow_object_box_base + view_flow_object_box_view.doc.body.paras[view_flow_object_box_paragraph].lay.lines[(import quill_line_y)], view_flow_object_box_scale);
+} chain (View view_flow_object_box_view, int view_flow_object_box_paragraph, int[] view_flow_object_box_geometry, int view_flow_object_box_base) {
+  int view_flow_object_box_width = view_units_pixels(lay_area(view_flow_object_box_view.doc, 0), view_flow_object_box_scale);
+  int view_flow_object_box_height = view_units_pixels(layout_page_object_height(view_flow_object_box_view.doc, view_flow_object_box_paragraph), view_flow_object_box_scale);
+  d2_l_rect(view_flow_object_box_left, view_flow_object_box_top, view_flow_object_box_width, view_flow_object_box_height, (import vw_c_edge));
+} chain (View view_flow_object_box_view, int view_flow_object_box_paragraph, int[] view_flow_object_box_geometry, int view_flow_object_box_base) {
+  d2_l_rect(view_flow_object_box_left + 1, view_flow_object_box_top + 1, view_flow_object_box_width - 2, view_flow_object_box_height - 2, (import vw_c_obj));
+  view_flow_draw_object_tag(view_flow_object_box_view.doc, view_flow_object_box_paragraph, view_flow_object_box_left, view_flow_object_box_top, view_flow_object_box_width, view_flow_object_box_height);
 } return void;
-given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lg_t_obj(0) given lg_t_mark(0) given lp_t_ins(0, "[Table]") given lay_all((import lp_t_v)) given rbd_ui_set(1, 1, 1) given sf_l_init(100, 100) given vw_t_at(10, 10) ((import lp_t_v), 0, [10, 10, 100, 0, 0], 0):() then vw_t_px:(10132122)
-given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lg_t_obj(0) given lg_t_mark(0) given lp_t_ins(0, "[Table]") given lay_all((import lp_t_v)) given rbd_ui_set(1, 1, 1) given sf_l_init(100, 100) given vw_t_at(12, 12) ((import lp_t_v), 0, [10, 10, 100, 0, 0], 0):() then vw_t_px:(15592941)
-given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lg_t_obj(0) given lg_t_mark(0) given lp_t_ins(0, "[Table]") given lay_all((import lp_t_v)) given rbd_ui_set(1, 1, 1) given sf_l_init(120, 200) given vw_t_at(89, 12) ((import lp_t_v), 0, [10, 10, 200, 0, 0], 0):() then vw_t_px:(10132122)
-given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lg_t_obj(0) given lg_t_mark(0) given lp_t_ins(0, "[Table]") given lay_all((import lp_t_v)) given rbd_ui_set(1, 1, 1) given sf_l_init(120, 200) given vw_t_at(90, 12) ((import lp_t_v), 0, [10, 10, 200, 0, 0], 0):() then vw_t_px:(0)
+given layout_paragraph_test_font given layout_page_test_page(1500, 3000, 150, 300, 450, 600) given layout_page_test_object(0) given layout_page_test_mark(0) given layout_paragraph_test_insert(0, "[Table]") given lay_all((import layout_paragraph_test_view)) given ribbon_faces_set(1, 1, 1) given sf_l_init(100, 100) given view_test_remember_pixel(10, 10) ((import layout_paragraph_test_view), 0, [10, 10, 100, 0, 0], 0):() then view_test_pixel_color:(10132122)
+given layout_paragraph_test_font given layout_page_test_page(1500, 3000, 150, 300, 450, 600) given layout_page_test_object(0) given layout_page_test_mark(0) given layout_paragraph_test_insert(0, "[Table]") given lay_all((import layout_paragraph_test_view)) given ribbon_faces_set(1, 1, 1) given sf_l_init(100, 100) given view_test_remember_pixel(12, 12) ((import layout_paragraph_test_view), 0, [10, 10, 100, 0, 0], 0):() then view_test_pixel_color:(15592941)
+given layout_paragraph_test_font given layout_page_test_page(1500, 3000, 150, 300, 450, 600) given layout_page_test_object(0) given layout_page_test_mark(0) given layout_paragraph_test_insert(0, "[Table]") given lay_all((import layout_paragraph_test_view)) given ribbon_faces_set(1, 1, 1) given sf_l_init(120, 200) given view_test_remember_pixel(89, 12) ((import layout_paragraph_test_view), 0, [10, 10, 200, 0, 0], 0):() then view_test_pixel_color:(10132122)
+given layout_paragraph_test_font given layout_page_test_page(1500, 3000, 150, 300, 450, 600) given layout_page_test_object(0) given layout_page_test_mark(0) given layout_paragraph_test_insert(0, "[Table]") given lay_all((import layout_paragraph_test_view)) given ribbon_faces_set(1, 1, 1) given sf_l_init(120, 200) given view_test_remember_pixel(90, 12) ((import layout_paragraph_test_view), 0, [10, 10, 200, 0, 0], 0):() then view_test_pixel_color:(0)
 
 // Writes the label of object paragraph vwi_p centred in the box at (vwi_x, vwi_y), vwi_w by vwi_h, in the viewer's own face.
-vw_tag(Doc vwd, int vwi_p, int vwi_x, int vwi_y, int vwi_w, int vwi_h) {
-  string vws_l = vw_obj_label(vwd, vwi_p);
-  int vwi_f = (import rbd_ui)[0];
-  int vwi_tw = gui_text_width(vwi_f, vws_l);
-} chain (Doc vwd, int vwi_p, int vwi_x, int vwi_y, int vwi_w, int vwi_h) {
-  int vwi_th = gui_font_line(vwi_f);
-  gui_text_draw(vwi_f, vwi_x + (vwi_w - vwi_tw) / 2, vwi_y + (vwi_h - vwi_th) / 2, vws_l, (import vw_c_label));
+view_flow_draw_object_tag(Doc view_flow_tag_document, int view_flow_tag_paragraph, int view_flow_tag_left, int view_flow_tag_top, int view_flow_tag_width, int view_flow_tag_height) {
+  string view_flow_tag_label = view_flow_object_label(view_flow_tag_document, view_flow_tag_paragraph);
+  int view_flow_tag_font = (import ribbon_faces)[0];
+  int view_flow_tag_text_width = gui_text_width(view_flow_tag_font, view_flow_tag_label);
+} chain (Doc view_flow_tag_document, int view_flow_tag_paragraph, int view_flow_tag_left, int view_flow_tag_top, int view_flow_tag_width, int view_flow_tag_height) {
+  int view_flow_tag_text_height = gui_font_line(view_flow_tag_font);
+  gui_text_draw(view_flow_tag_font, view_flow_tag_left + (view_flow_tag_width - view_flow_tag_text_width) / 2, view_flow_tag_top + (view_flow_tag_height - view_flow_tag_text_height) / 2, view_flow_tag_label, (import vw_c_label));
 } return void;
-given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lg_t_obj(0) given lg_t_mark(0) given lp_t_ins(0, "[Table]") given lay_all((import lp_t_v)) given rbd_ui_set(1, 1, 1) given sf_l_init(100, 100) given d2_l_rect(0, 0, 100, 100, 15592941) given vw_t_box0(10, 40, 60, 60) given vw_t_bg(15592941) ((import lp_t_d), 0, 10, 10, 40, 72):() then vw_t_inked:(1)
-given lp_t_font given lg_t_page(1500, 3000, 150, 300, 450, 600) given lg_t_obj(0) given lg_t_mark(0) given lp_t_ins(0, "[Table]") given lay_all((import lp_t_v)) given rbd_ui_set(1, 1, 1) given sf_l_init(100, 100) given d2_l_rect(0, 0, 100, 100, 15592941) given vw_t_box0(10, 5, 60, 20) given vw_t_bg(15592941) ((import lp_t_d), 0, 10, 10, 40, 72):() then vw_t_inked:(0)
+given layout_paragraph_test_font given layout_page_test_page(1500, 3000, 150, 300, 450, 600) given layout_page_test_object(0) given layout_page_test_mark(0) given layout_paragraph_test_insert(0, "[Table]") given lay_all((import layout_paragraph_test_view)) given ribbon_faces_set(1, 1, 1) given sf_l_init(100, 100) given d2_l_rect(0, 0, 100, 100, 15592941) given view_test_remember_box(10, 40, 60, 60) given view_test_set_background(15592941) ((import layout_paragraph_test_document), 0, 10, 10, 40, 72):() then view_test_box_inked:(1)
+given layout_paragraph_test_font given layout_page_test_page(1500, 3000, 150, 300, 450, 600) given layout_page_test_object(0) given layout_page_test_mark(0) given layout_paragraph_test_insert(0, "[Table]") given lay_all((import layout_paragraph_test_view)) given ribbon_faces_set(1, 1, 1) given sf_l_init(100, 100) given d2_l_rect(0, 0, 100, 100, 15592941) given view_test_remember_box(10, 5, 60, 20) given view_test_set_background(15592941) ((import layout_paragraph_test_document), 0, 10, 10, 40, 72):() then view_test_box_inked:(0)

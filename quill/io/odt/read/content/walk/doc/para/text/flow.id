@@ -1,64 +1,64 @@
 // The content of a paragraph, one event at a time, until the end tag of the paragraph itself (the end event at depth base).
-orc_inline(Cx cx, Text t, int base) {
-  int ev = orc_next(cx);
-  while(ev > 0 && orc_inside(cx, ev, base) == 1) {
-    orc_inline_ev(cx, t, ev);
-    ev = orc_next(cx);
+orc_inline(Odt_Read_Context odt_read_inline_context, Text t, int base) {
+  int odt_read_inline_event_code = orc_next(odt_read_inline_context);
+  while(odt_read_inline_event_code > 0 && orc_inside(odt_read_inline_context, odt_read_inline_event_code, base) == 1) {
+    odt_read_inline_event(odt_read_inline_context, t, odt_read_inline_event_code);
+    odt_read_inline_event_code = orc_next(odt_read_inline_context);
   }
 } return void;
-given orc_t_open("<text:p>ab</text:p>") given orc_t_steps(1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 0):((import orc_tc), Text([97, 98], [Run(2, 0, -1)], 0), 0)
-given orc_t_open("<r><text:p>a</text:p>b</r>") given orc_t_steps(2) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 1):((import orc_tc), Text([97], [Run(1, 0, -1)], 0), 1) then orc_t_pos:(21)
+given odt_read_fixture_open("<text:p>ab</text:p>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 0):((import odt_read_fixture_context), Text([97, 98], [Run(2, 0, -1)], 0), 0)
+given odt_read_fixture_open("<r><text:p>a</text:p>b</r>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 1):((import odt_read_fixture_context), Text([97], [Run(1, 0, -1)], 0), 1) then odt_read_fixture_reader_position:(21)
 
 // 1 while the event is part of the paragraph: every event but the end tag of the paragraph, the end event at depth base.
-orc_inside(Cx cx, int ev, int base) {
-  int ended = ev == 2 && xml_reader_depth(cx.rd) == base;
+orc_inside(Odt_Read_Context odt_read_inside_context, int odt_read_inside_event, int base) {
+  int ended = odt_read_inside_event == 2 && xml_reader_depth(odt_read_inside_context.odt_read_xml_reader) == base;
   int in = 1 - ended;
 } return int in;
-given orc_t_open("<a></a>") given orc_t_steps(2) ((import orc_tc), 2, 0):(0)
-given orc_t_open("<a></a>") given orc_t_steps(2) ((import orc_tc), 2, 1):(1)
-given orc_t_open("<a></a>") given orc_t_steps(1) ((import orc_tc), 1, 0):(1)
+given odt_read_fixture_open("<a></a>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), 2, 0):(0)
+given odt_read_fixture_open("<a></a>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), 2, 1):(1)
+given odt_read_fixture_open("<a></a>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), 1, 0):(1)
 
 // What one event inside a paragraph adds: text, spaces, a tab or a line break as code points, the start or end of a hyperlink or of a text:span (the character row of the text follows it), or, for an element the model does not know, an object kept untouched.
-orc_inline_ev(Cx cx, Text t, int ev) {
-  int k = orc_ikind(cx, ev);
+odt_read_inline_event(Odt_Read_Context odt_read_inline_step_context, Text t, int odt_read_inline_step_event) {
+  int k = odt_read_inline_kind(odt_read_inline_step_context, odt_read_inline_step_event);
   if(k == 0) {
-    orc_text(cx, t, xml_reader_text(cx.rd));
+    orc_text(odt_read_inline_step_context, t, xml_reader_text(odt_read_inline_step_context.odt_read_xml_reader));
   }
   if(k == 2) {
-    orc_link(cx);
+    orc_link(odt_read_inline_step_context);
   }
-} chain (Cx cx, Text t, int ev) {
+} chain (Odt_Read_Context odt_read_inline_step_context, Text t, int odt_read_inline_step_event) {
   if(k == 3) {
-    lset(cx.cs.slots, (import orc_s_link), 0);
+    lset(odt_read_inline_step_context.cs.slots, (import orc_s_link), 0);
   }
   if(k == 4) {
-    orc_gap(cx, t);
+    orc_gap(odt_read_inline_step_context, t);
   }
   if(k == 5) {
-    orc_run(cx, t, (import orc_cp_tab), 1);
+    orc_run(odt_read_inline_step_context, t, (import orc_cp_tab), 1);
   }
-} chain (Cx cx, Text t, int ev) {
+} chain (Odt_Read_Context odt_read_inline_step_context, Text t, int odt_read_inline_step_event) {
   if(k == 6) {
-    orc_run(cx, t, (import orc_cp_break), 1);
+    orc_run(odt_read_inline_step_context, t, (import orc_cp_break), 1);
   }
   if(k < 0) {
-    orc_object(cx, t, ev);
+    orc_object(odt_read_inline_step_context, t, odt_read_inline_step_event);
   }
-  if(k == 1 && ev == 1 && xml_reader_get((cx.rd), (import xml_reader_k_name)) == "text:span") {
-    orc_span_in(cx);
+  if(k == 1 && odt_read_inline_step_event == 1 && xml_reader_get((odt_read_inline_step_context.odt_read_xml_reader), (import xml_reader_k_name)) == "text:span") {
+    orc_span_in(odt_read_inline_step_context);
   }
-} chain (Cx cx, Text t, int ev) {
-  if(k == 1 && ev == 2 && xml_reader_get((cx.rd), (import xml_reader_k_name)) == "text:span") {
-    orc_span_out(cx);
+} chain (Odt_Read_Context odt_read_inline_step_context, Text t, int odt_read_inline_step_event) {
+  if(k == 1 && odt_read_inline_step_event == 2 && xml_reader_get((odt_read_inline_step_context.odt_read_xml_reader), (import xml_reader_k_name)) == "text:span") {
+    orc_span_out(odt_read_inline_step_context);
   }
 } return void;
-given orc_t_open("<a>hi</a>") given orc_t_steps(2) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 3):((import orc_tc), Text([104, 105], [Run(2, 0, -1)], 0), 3)
-given orc_t_open("<text:a xlink:href='u'/>") given orc_t_steps(1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 4):((import orc_tc), Text([], [Run(0, 0, -1)], 0), 4) then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} | u | ")
-given orc_t_open("<text:a></text:a>") given orc_t_steps(2) given orc_t_set(3, 2) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 2):((import orc_tc), Text([], [Run(0, 0, -1)], 0), 2) then (import orc_tc).cs.slots:([0, 0, 0, 0, 8, 0, 0, 0])
-given orc_t_open("<text:span></text:span>") given orc_t_steps(2) given orc_t_set(3, 2) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 2):((import orc_tc), Text([], [Run(0, 0, -1)], 0), 2) then (import orc_tc).cs.slots:([0, 0, 0, 2, 11, 0, 0, 0])
-given orc_t_open("<text:s text:c='2'/>") given orc_t_steps(1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 4):((import orc_tc), Text([32, 32], [Run(2, 0, -1)], 0), 4)
-given orc_t_open("<text:tab/>") given orc_t_steps(1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 4):((import orc_tc), Text([9], [Run(1, 0, -1)], 0), 4)
-given orc_t_open("<text:line-break/>") given orc_t_steps(1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 4):((import orc_tc), Text([11], [Run(1, 0, -1)], 0), 4)
-given orc_t_open("<draw:frame/>") given orc_t_steps(1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 4):((import orc_tc), Text([983040], [Run(1, 0, -1)], 0), 4) then orc_t_show:("P0  0:0:-1, {0,0,0,0,0} |  | draw:frame:0:<draw:frame/>,")
-given orc_t_open("<r><office:automatic-styles><style:style style:name='T1' style:family='text'><style:text-properties fo:font-weight='bold'/></style:style></office:automatic-styles><text:span text:style-name='T1'></text:span></r>") given orc_t_steps(7) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 1):((import orc_tc), Text([], [Run(0, 0, -1)], 0), 1) then orc_t_rows:("0,1,")
-given orc_t_open("<r><office:automatic-styles><style:style style:name='T1' style:family='text'><style:text-properties fo:font-weight='bold'/></style:style></office:automatic-styles><text:span text:style-name='T1'></text:span></r>") given orc_t_steps(7) given orc_span_in((import orc_tc)) given orc_t_steps(1) ((import orc_tc), Text([], [Run(0, 0, -1)], 0), 2):((import orc_tc), Text([], [Run(0, 0, -1)], 0), 2) then orc_t_rows:("0,")
+given odt_read_fixture_open("<a>hi</a>") given odt_read_fixture_step_events(2) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 3):((import odt_read_fixture_context), Text([104, 105], [Run(2, 0, -1)], 0), 3)
+given odt_read_fixture_open("<text:a xlink:href='u'/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 4):((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 4) then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0} | u | ")
+given odt_read_fixture_open("<text:a></text:a>") given odt_read_fixture_step_events(2) given odt_read_fixture_set_slot(3, 2) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 2):((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 2) then (import odt_read_fixture_context).cs.slots:([0, 0, 0, 0, 8, 0, 0, 0])
+given odt_read_fixture_open("<text:span></text:span>") given odt_read_fixture_step_events(2) given odt_read_fixture_set_slot(3, 2) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 2):((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 2) then (import odt_read_fixture_context).cs.slots:([0, 0, 0, 2, 11, 0, 0, 0])
+given odt_read_fixture_open("<text:s text:c='2'/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 4):((import odt_read_fixture_context), Text([32, 32], [Run(2, 0, -1)], 0), 4)
+given odt_read_fixture_open("<text:tab/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 4):((import odt_read_fixture_context), Text([9], [Run(1, 0, -1)], 0), 4)
+given odt_read_fixture_open("<text:line-break/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 4):((import odt_read_fixture_context), Text([11], [Run(1, 0, -1)], 0), 4)
+given odt_read_fixture_open("<draw:frame/>") given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 4):((import odt_read_fixture_context), Text([983040], [Run(1, 0, -1)], 0), 4) then odt_read_fixture_show:("P0  0:0:-1, {0,0,0,0,0} |  | draw:frame:0:<draw:frame/>,")
+given odt_read_fixture_open("<r><office:automatic-styles><style:style style:name='T1' style:family='text'><style:text-properties fo:font-weight='bold'/></style:style></office:automatic-styles><text:span text:style-name='T1'></text:span></r>") given odt_read_fixture_step_events(7) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 1):((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 1) then odt_read_fixture_character_rows:("0,1,")
+given odt_read_fixture_open("<r><office:automatic-styles><style:style style:name='T1' style:family='text'><style:text-properties fo:font-weight='bold'/></style:style></office:automatic-styles><text:span text:style-name='T1'></text:span></r>") given odt_read_fixture_step_events(7) given orc_span_in((import odt_read_fixture_context)) given odt_read_fixture_step_events(1) ((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 2):((import odt_read_fixture_context), Text([], [Run(0, 0, -1)], 0), 2) then odt_read_fixture_character_rows:("0,")

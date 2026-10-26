@@ -1,11 +1,11 @@
 // A percentage written "115%" as 115, or ost_bad.
-ost_pct(string os_ss) {
-  int os_ie = ost_split(os_ss);
-  int os_ipct = (import ost_bad);
-  if(character_code_at(os_ss, os_ie) == 37 && os_ie > 0 && character_code_at(os_ss, os_ie + 1) < 0) {
-    os_ipct = to_int(os_ss);
+odt_named_percent_parse(string odt_named_percent_parse_text) {
+  int odt_named_percent_parse_number_end = odt_named_number_end(odt_named_percent_parse_text);
+  int odt_named_percent_parse_percent = (import ost_bad);
+  if(character_code_at(odt_named_percent_parse_text, odt_named_percent_parse_number_end) == 37 && odt_named_percent_parse_number_end > 0 && character_code_at(odt_named_percent_parse_text, odt_named_percent_parse_number_end + 1) < 0) {
+    odt_named_percent_parse_percent = to_int(odt_named_percent_parse_text);
   }
-} return int os_ipct;
+} return int odt_named_percent_parse_percent;
 ("115%"):(115)
 ("12pt"):(-2147483647)
 ("%"):(-2147483647)
@@ -13,21 +13,21 @@ ost_pct(string os_ss) {
 ("115"):(-2147483647)
 
 // A font size in half-points: points doubled, other units through twips, or a percentage of os_ibase (the parent's size; 24 when that is unknown); ost_bad when unreadable.
-ost_size(string os_ss, int os_ibase) {
-  int os_ipct = ost_pct(os_ss);
-  int os_iref = os_ibase;
-  int os_ihp = ost_len(os_ss);
-} chain (string os_ss, int os_ibase) {
-  if(os_iref < 0) {
-    os_iref = 24;
+odt_named_font_size(string odt_named_font_size_text, int odt_named_font_size_base) {
+  int odt_named_font_size_percent = odt_named_percent_parse(odt_named_font_size_text);
+  int odt_named_font_size_reference = odt_named_font_size_base;
+  int odt_named_font_size_half_points = odt_named_length_parse(odt_named_font_size_text);
+} chain (string odt_named_font_size_text, int odt_named_font_size_base) {
+  if(odt_named_font_size_reference < 0) {
+    odt_named_font_size_reference = 24;
   }
-  if(os_ihp != (import ost_bad)) {
-    os_ihp = (os_ihp + 5) / 10;
+  if(odt_named_font_size_half_points != (import ost_bad)) {
+    odt_named_font_size_half_points = (odt_named_font_size_half_points + 5) / 10;
   }
-  if(os_ipct != (import ost_bad)) {
-    os_ihp = (os_iref * os_ipct + 50) / 100;
+  if(odt_named_font_size_percent != (import ost_bad)) {
+    odt_named_font_size_half_points = (odt_named_font_size_reference * odt_named_font_size_percent + 50) / 100;
   }
-} return int os_ihp;
+} return int odt_named_font_size_half_points;
 ("12pt", -1):(24)
 ("10.5pt", -1):(21)
 ("130%", 28):(36)
@@ -37,19 +37,19 @@ ost_size(string os_ss, int os_ibase) {
 ("big", 20):(-2147483647)
 
 // The value of one hex digit byte code, -1 when it is not one.
-ost_hexval(int os_ic) {
-  int os_iv = 0 - 1;
-  if(character_is_digit(os_ic) == 1) {
-    os_iv = os_ic - 48;
+odt_named_hex_digit_value(int odt_named_hex_digit_value_code) {
+  int odt_named_hex_digit_value_result = 0 - 1;
+  if(character_is_digit(odt_named_hex_digit_value_code) == 1) {
+    odt_named_hex_digit_value_result = odt_named_hex_digit_value_code - 48;
   }
-  if(os_ic >= 97 && os_ic <= 102) {
-    os_iv = os_ic - 87;
+  if(odt_named_hex_digit_value_code >= 97 && odt_named_hex_digit_value_code <= 102) {
+    odt_named_hex_digit_value_result = odt_named_hex_digit_value_code - 87;
   }
-} chain (int os_ic) {
-  if(os_ic >= 65 && os_ic <= 70) {
-    os_iv = os_ic - 55;
+} chain (int odt_named_hex_digit_value_code) {
+  if(odt_named_hex_digit_value_code >= 65 && odt_named_hex_digit_value_code <= 70) {
+    odt_named_hex_digit_value_result = odt_named_hex_digit_value_code - 55;
   }
-} return int os_iv;
+} return int odt_named_hex_digit_value_result;
 (53):(5)
 (102):(15)
 (70):(15)

@@ -1,15 +1,15 @@
 // The indent of paragraph i in lu for field quill_paragraph_indent_left, quill_paragraph_indent_right or quill_paragraph_indent_first: the paragraph's own value when it sets one, else lp_lind (its list level, or its style).
-lp_ind(View v, int i, int field) {
-  Para p = v.doc.body.paras[i];
-  int tw = tab_get(v.doc.fmt.paras, p.pprop, field);
-  if(tw == -1) {
-    tw = lp_lind(v, i, field);
+layout_paragraph_indent(View indent_view, int indent_paragraph_index, int field) {
+  Para indent_paragraph = indent_view.doc.body.paras[indent_paragraph_index];
+  int indent_raw = tab_get(indent_view.doc.fmt.paras, indent_paragraph.pprop, field);
+  if(indent_raw == -1) {
+    indent_raw = layout_paragraph_list_indent(indent_view, indent_paragraph_index, field);
   }
-} chain (View v, int i, int field) {
-  int lu = lp_lu(tw);
-} return int lu;
-given lp_t_new given lp_t_row(0, 2, 300) ((import lp_t_v), 0, 2):(1280)
-given lp_t_new given lp_t_row(0, 9, 1) ((import lp_t_v), 0, 2):(3072)
-given lp_t_new given lp_t_row(0, 9, 1) given lp_t_row(0, 2, 300) ((import lp_t_v), 0, 2):(1280)
-given lp_t_new given lp_t_row(0, 9, 1) ((import lp_t_v), 0, 4):(-1536)
-given lp_t_new ((import lp_t_v), 0, 3):(0)
+} chain (View indent_view, int indent_paragraph_index, int field) {
+  int indent_units = layout_paragraph_units(indent_raw);
+} return int indent_units;
+given layout_paragraph_test_new given layout_paragraph_test_set_property(0, 2, 300) ((import layout_paragraph_test_view), 0, 2):(1280)
+given layout_paragraph_test_new given layout_paragraph_test_set_property(0, 9, 1) ((import layout_paragraph_test_view), 0, 2):(3072)
+given layout_paragraph_test_new given layout_paragraph_test_set_property(0, 9, 1) given layout_paragraph_test_set_property(0, 2, 300) ((import layout_paragraph_test_view), 0, 2):(1280)
+given layout_paragraph_test_new given layout_paragraph_test_set_property(0, 9, 1) ((import layout_paragraph_test_view), 0, 4):(-1536)
+given layout_paragraph_test_new ((import layout_paragraph_test_view), 0, 3):(0)
