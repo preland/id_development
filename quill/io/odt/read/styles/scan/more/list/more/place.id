@@ -1,7 +1,7 @@
 // Sets a level's left indent and hanging indent, in twips, from a style:list-level-label-alignment element: fo:margin-left is the text's left edge, and a negative fo:text-indent is how far the label hangs out to its left.
 ost_lvl_align(int[] os_llv, XmlR os_r, int os_ib) {
-  int os_ileft = ost_plen(xr_attr(os_r, "fo:margin-left"));
-  int os_iind = ost_plen(xr_attr(os_r, "fo:text-indent"));
+  int os_ileft = ost_plen(xml_reader_attr(os_r, "fo:margin-left"));
+  int os_iind = ost_plen(xml_reader_attr(os_r, "fo:text-indent"));
   if(os_ileft != (import ost_bad)) {
     os_llv[os_ib + (import quill_list_level_indent)] = os_ileft;
   }
@@ -10,13 +10,13 @@ ost_lvl_align(int[] os_llv, XmlR os_r, int os_ib) {
     os_llv[os_ib + (import quill_list_level_hanging)] = fixed_point_maximum(0 - os_iind, 0);
   }
 } return void;
-given ost_t_open("<a fo:margin-left=\"0.3937in\" fo:text-indent=\"-0.1965in\"/>") given xr_skip((import ost_t_r), 1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 5):([0, 0, 0, 0, 0, 0, 0, 0, 567, 283, 0, 0, 0, 0, 0], (import ost_t_r), 5)
-given ost_t_open("<a fo:text-indent=\"0.1in\"/>") given xr_skip((import ost_t_r), 1) ([0, 0, 0, 7, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0):([0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0)
+given ost_t_open("<a fo:margin-left=\"0.3937in\" fo:text-indent=\"-0.1965in\"/>") given xml_reader_skip((import ost_t_r), 1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 5):([0, 0, 0, 0, 0, 0, 0, 0, 567, 283, 0, 0, 0, 0, 0], (import ost_t_r), 5)
+given ost_t_open("<a fo:text-indent=\"0.1in\"/>") given xml_reader_skip((import ost_t_r), 1) ([0, 0, 0, 7, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0):([0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0)
 
 // Sets a level's left and hanging indent from the older style:list-level-properties spelling: the label starts text:space-before from the margin and takes text:min-label-width, so the text starts at their sum.
 ost_lvl_legacy(int[] os_llv, XmlR os_r, int os_ib) {
-  int os_isp = ost_plen(xr_attr(os_r, "text:space-before"));
-  int os_imw = ost_plen(xr_attr(os_r, "text:min-label-width"));
+  int os_isp = ost_plen(xml_reader_attr(os_r, "text:space-before"));
+  int os_imw = ost_plen(xml_reader_attr(os_r, "text:min-label-width"));
   if(os_imw != (import ost_bad)) {
     os_llv[os_ib + (import quill_list_level_hanging)] = os_imw;
   }
@@ -25,17 +25,17 @@ ost_lvl_legacy(int[] os_llv, XmlR os_r, int os_ib) {
     os_llv[os_ib + (import quill_list_level_indent)] = os_isp + os_imw;
   }
 } return void;
-given ost_t_open("<a text:space-before=\"0.25in\" text:min-label-width=\"0.25in\"/>") given xr_skip((import ost_t_r), 1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0):([0, 0, 0, 720, 360, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0)
-given ost_t_open("<a text:min-label-width=\"0.25in\"/>") given xr_skip((import ost_t_r), 1) ([0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0):([0, 0, 0, 1, 360, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0)
-given ost_t_open("<a text:space-before=\"0.25in\"/>") given xr_skip((import ost_t_r), 1) ([0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0):([0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0)
+given ost_t_open("<a text:space-before=\"0.25in\" text:min-label-width=\"0.25in\"/>") given xml_reader_skip((import ost_t_r), 1) ([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0):([0, 0, 0, 720, 360, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0)
+given ost_t_open("<a text:min-label-width=\"0.25in\"/>") given xml_reader_skip((import ost_t_r), 1) ([0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0):([0, 0, 0, 1, 360, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0)
+given ost_t_open("<a text:space-before=\"0.25in\"/>") given xml_reader_skip((import ost_t_r), 1) ([0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0):([0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], (import ost_t_r), 0)
 
 // The level a style:list-level-style-* element describes as 0 to 2, or -1 for a level the model does not keep (it keeps three).
 ost_level_of(XmlR os_r) {
-  int os_ilevel = to_int(xr_attr(os_r, "text:level")) - 1;
+  int os_ilevel = to_int(xml_reader_attr(os_r, "text:level")) - 1;
   if(os_ilevel < 0 || os_ilevel > 2) {
     os_ilevel = 0 - 1;
   }
 } return int os_ilevel;
-given ost_t_open("<a text:level=\"1\"/>") given xr_skip((import ost_t_r), 1) ((import ost_t_r)):(0)
-given ost_t_open("<a text:level=\"4\"/>") given xr_skip((import ost_t_r), 1) ((import ost_t_r)):(-1)
-given ost_t_open("<a text:level=\"3\"/>") given xr_skip((import ost_t_r), 1) ((import ost_t_r)):(2)
+given ost_t_open("<a text:level=\"1\"/>") given xml_reader_skip((import ost_t_r), 1) ((import ost_t_r)):(0)
+given ost_t_open("<a text:level=\"4\"/>") given xml_reader_skip((import ost_t_r), 1) ((import ost_t_r)):(-1)
+given ost_t_open("<a text:level=\"3\"/>") given xml_reader_skip((import ost_t_r), 1) ((import ost_t_r)):(2)

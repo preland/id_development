@@ -8,18 +8,18 @@ given odw_t_path ():() then calls odw_write:((import odw_tp), [97])
 // Test fixture (internal): the entry names, comma separated, of the zip in the scratch file once every entry has been read with its size and CRC-32 checked; "bad: " and the reader's reason when anything is wrong.
 odw_t_file() {
   bytes pkzb = bytes_of_int_list(odw_t_bytes());
-  Zip pkzr = zr_open(pkzb);
+  Zip pkzr = zip_reader_open(pkzb);
   int pki = 0;
 } chain () {
-  while(pki < zr_count(pkzr)) {
-    int[] pkrd = zr_read(pkzr, pki);
+  while(pki < zip_reader_count(pkzr)) {
+    int[] pkrd = zip_reader_read(pkzr, pki);
     pki = pki + 1;
   }
   string[] pkns = list_string_tail(pkzr.names, 1);
   string pkr = str_join(pkns, ",");
 } chain () {
-  if(zr_ok(pkzr) == 0) {
-    pkr = "bad: " + zr_why(pkzr);
+  if(zip_reader_ok(pkzr) == 0) {
+    pkr = "bad: " + zip_reader_why(pkzr);
   }
 } return string pkr;
 given odw_t_path ():("bad: zip: no end-of-central-directory record, so this is not a zip archive or it was cut short; open an archive written by a zip tool, or re-download it")

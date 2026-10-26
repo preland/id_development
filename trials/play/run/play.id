@@ -19,14 +19,14 @@ given pl_t_wav ((import fs_temp_path), "null", 0):(0) then prints:("play: 800 fr
 // Opens the stream for the loaded file described by pl_info (the wav_info list) and plays it. A null stream gets a ring as big as the file, because nothing drains it until aud_run_null does.
 pl_stream(word[] pl_box, int[] pl_info, string pl_backend, int pl_linger) {
   int pl_ring = (pl_backend == "null") * pl_info[6];
-  int pl_h = aud_open(pl_backend, "id-play", (import aud_dir_play), pl_info[3], pl_info[2], pl_info[1], pl_ring);
+  int pl_h = audio_open(pl_backend, "id-play", (import audio_dir_play), pl_info[3], pl_info[2], pl_info[1], pl_ring);
   int pl_rc = 1;
 } chain (word[] pl_box, int[] pl_info, string pl_backend, int pl_linger) {
   if (pl_h >= 0) {
     pl_rc = pl_send(pl_h, pl_box[0] + pl_info[4], pl_info, pl_linger);
   }
   if (pl_h < 0) {
-    eprint("play: " + aud_error());
+    eprint("play: " + audio_error());
   }
 } return int pl_rc;
 given pl_t_load ((import pl_t_box), (import pl_t_info), "null", 0):(0) then prints:("play: 800 frames, 8000 Hz, 1 ch, s16\nplay: backend null, ring 800 frames, quantum 800 frames, delay 0 frames\nplay: moved 800 frames, 0 xruns, 0 frames lost\n")
@@ -34,15 +34,15 @@ given pl_t_load ((import pl_t_box), (import pl_t_info), "bogus", 0):(1) then epr
 
 // Writes the frames at pl_data (pl_info[6] of them) to the open stream pl_h, lets the device take them (sampling the delay the device reports while the ring is full), waits pl_linger ms more, reports and closes. Answers 0 when everything was written and taken.
 pl_send(int pl_h, word pl_data, int[] pl_info, int pl_linger) {
-  int pl_n = aud_move_all(pl_h, pl_data, pl_info[6], 3000);
-  int pl_pm = aud_run_null(pl_h, pl_info[6]);
-  int pl_dly = aud_info(pl_h, (import aud_i_delay));
+  int pl_n = audio_move_all(pl_h, pl_data, pl_info[6], 3000);
+  int pl_pm = audio_run_null(pl_h, pl_info[6]);
+  int pl_dly = audio_info(pl_h, (import audio_i_delay));
 } chain (int pl_h, word pl_data, int[] pl_info, int pl_linger) {
-  int pl_left = aud_drain_wait(pl_h, 3000);
+  int pl_left = audio_drain_wait(pl_h, 3000);
   sleep_ms(50 + pl_linger);
   pl_report(pl_h, pl_info, pl_dly);
 } chain (int pl_h, word pl_data, int[] pl_info, int pl_linger) {
-  int pl_cl = aud_close(pl_h);
+  int pl_cl = audio_close(pl_h);
   int pl_ok = (pl_n == pl_info[6]) && (pl_left == 0);
   int pl_rc = 1 - pl_ok;
 } return int pl_rc;

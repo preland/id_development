@@ -18,7 +18,7 @@ given orc_t_file("not a zip") given orc_t_open("<a/>") ((import orc_tp), (import
 // The same from the bytes of the archive, one per cell. The zip is checked first (every entry read has its CRC verified), then the mimetype, then content.xml is read into the body, and last the entries the model does not know are kept as file parts.
 odt_load_bytes(int[] zip, Doc d) {
   orc_why("");
-  Zip z = zr_open(bytes_of_int_list(zip));
+  Zip z = zip_reader_open(bytes_of_int_list(zip));
   int code = orc_zip_code(z);
 } chain (int[] zip, Doc d) {
   if(code == 0) {
@@ -27,9 +27,9 @@ odt_load_bytes(int[] zip, Doc d) {
   if(code == 0) {
     orc_keep(z, d);
   }
-  if(code == 0 && zr_ok(z) == 0) {
+  if(code == 0 && zip_reader_ok(z) == 0) {
     code = (import orc_e_zip);
-    orc_why(zr_why(z));
+    orc_why(zip_reader_why(z));
   }
 } return int code;
 given orc_t_zip("<r><office:text><text:p>Hi</text:p><text:p>There</text:p></office:text></r>", "application/vnd.oasis.opendocument.text") ((import orc_tz), (import orc_td)):(0) then orc_t_show:("P0 72,105, 2:0:-1, {0,0,0,0,0}\nP0 84,104,101,114,101, 5:0:-1, {0,0,0,0,0} |  | Pictures/a.png:1:3,")

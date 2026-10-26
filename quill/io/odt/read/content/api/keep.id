@@ -1,7 +1,7 @@
 // Keeps every zip entry the model does not read itself (pictures, thumbnails, settings, the empty directories) as a file part, in archive order, so a save can store it again.
 orc_keep(Zip z, Doc d) {
   int i = 0;
-  while(i < zr_count(z)) {
+  while(i < zip_reader_count(z)) {
     orc_keep_one(z, d, i);
     i = i + 1;
   }
@@ -11,10 +11,10 @@ given orc_t_zip("", "") ((import orc_tzo), (import orc_td)):() then orc_t_show:(
 
 // Entry i of the archive, kept as a file part unless the model reads it itself.
 orc_keep_one(Zip z, Doc d, int i) {
-  string name = zr_name(z, i);
+  string name = zip_reader_name(z, i);
   int[] xs = [];
   if(orc_known(name) == 0) {
-    xs = zr_read(z, i);
+    xs = zip_reader_read(z, i);
     Part pt = Part(name, xs, (import orc_part_file));
     push(d.ext.parts, pt);
   }

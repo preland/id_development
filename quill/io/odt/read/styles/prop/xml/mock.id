@@ -1,14 +1,14 @@
 // Test fixtures: a reader over a string kept in an export, so a case can `given` it, step it and hand it to the function under test.
 ost_t_open(string os_ss) {
   int[] os_lsrc = exec_bytes(os_ss);
-  export XmlR ost_t_r = xr_open(os_lsrc);
+  export XmlR ost_t_r = xml_reader_open(os_lsrc);
 } return void;
 ("<a/>"):() then ost_t_name:("")
 ("<a><b/></a>"):() then ost_t_name:("")
 
 ost_t_name() {
   XmlR os_r = (import ost_t_r);
-  string os_sname = xr_get(os_r, (import xr_k_name));
+  string os_sname = xml_reader_get(os_r, (import xml_reader_k_name));
 } return string os_sname;
-given ost_t_open("<ab/>") given xr_skip((import ost_t_r), 1) ():("ab")
-given ost_t_open("<a><b/></a>") given xr_skip((import ost_t_r), 2) ():("b")
+given ost_t_open("<ab/>") given xml_reader_skip((import ost_t_r), 1) ():("ab")
+given ost_t_open("<a><b/></a>") given xml_reader_skip((import ost_t_r), 2) ():("b")

@@ -12,22 +12,22 @@ ofd_numf(string owv) {
 
 // The level, 1 to 3, of a style:list-level-style-* element the reader is at, 0 for a level the dump does not follow.
 ofd_level(XmlR owr) {
-  int owl = to_int(xr_attr(owr, "text:level"));
+  int owl = to_int(xml_reader_attr(owr, "text:level"));
   if(owl < 1 || owl > 3) {
     owl = 0;
   }
 } return int owl;
-given ofd_t_open("<a text:level=\"2\"/>") given xr_skip((import ofd_t_r), 1) ((import ofd_t_r)):(2)
-given ofd_t_open("<a text:level=\"4\"/>") given xr_skip((import ofd_t_r), 1) ((import ofd_t_r)):(0)
-given ofd_t_open("<a/>") given xr_skip((import ofd_t_r), 1) ((import ofd_t_r)):(0)
+given ofd_t_open("<a text:level=\"2\"/>") given xml_reader_skip((import ofd_t_r), 1) ((import ofd_t_r)):(2)
+given ofd_t_open("<a text:level=\"4\"/>") given xml_reader_skip((import ofd_t_r), 1) ((import ofd_t_r)):(0)
+given ofd_t_open("<a/>") given xml_reader_skip((import ofd_t_r), 1) ((import ofd_t_r)):(0)
 
 
 // The start value of a numbered level as text: its text:start-value, 1 when it has none.
 ofd_start(XmlR owr) {
-  string owv = xr_attr(owr, "text:start-value");
+  string owv = xml_reader_attr(owr, "text:start-value");
   if(owv == "") {
     owv = "1";
   }
 } return string owv;
-given ofd_t_open("<a text:start-value=\"5\"/>") given xr_skip((import ofd_t_r), 1) ((import ofd_t_r)):("5")
-given ofd_t_open("<a/>") given xr_skip((import ofd_t_r), 1) ((import ofd_t_r)):("1")
+given ofd_t_open("<a text:start-value=\"5\"/>") given xml_reader_skip((import ofd_t_r), 1) ((import ofd_t_r)):("5")
+given ofd_t_open("<a/>") given xml_reader_skip((import ofd_t_r), 1) ((import ofd_t_r)):("1")

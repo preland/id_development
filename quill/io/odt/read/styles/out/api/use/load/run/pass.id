@@ -1,11 +1,11 @@
 // Reads one document of the package (styles.xml, part 1, or content.xml, part 2) three times, each time up to its body: its font faces, its styles into the bag, its list styles into the document. Answers 0, or the error code of ost_error when the document is not well-formed before its body.
 ost_pass(Doc os_d, StyBag os_b, string[] os_lface, int[] os_lxml, int os_ipart) {
-  XmlR os_r1 = xr_open(os_lxml);
+  XmlR os_r1 = xml_reader_open(os_lxml);
   ost_faces(os_lface, os_r1);
-  XmlR os_r2 = xr_open(os_lxml);
+  XmlR os_r2 = xml_reader_open(os_lxml);
 } chain (Doc os_d, StyBag os_b, string[] os_lface, int[] os_lxml, int os_ipart) {
   ost_scan(os_b, os_r2);
-  XmlR os_r3 = xr_open(os_lxml);
+  XmlR os_r3 = xml_reader_open(os_lxml);
   ost_lists(os_d.fmt, os_r3);
 } chain (Doc os_d, StyBag os_b, string[] os_lface, int[] os_lxml, int os_ipart) {
   int os_icode = ost_xerr(os_r2, os_ipart);
@@ -30,12 +30,12 @@ ost_pair(string[] os_lpairs, string os_sname) {
 
 // What one event of a content document says about the master page of the first paragraph: a style that names a master page adds a pair; the first paragraph or heading answers 1 to stop.
 ost_master_one(string[] os_lpairs, XmlR os_r, int os_iev) {
-  string os_sname = xr_get(os_r, (import xr_k_name));
+  string os_sname = xml_reader_get(os_r, (import xml_reader_k_name));
   int os_istop = (os_sname == "text:p" || os_sname == "text:h") && os_iev != 2;
-  if(os_sname == "style:style" && os_iev != 2 && xr_attr(os_r, "style:master-page-name") != "") {
-    list_string_extend(os_lpairs, [xr_attr(os_r, "style:name"), xr_attr(os_r, "style:master-page-name")]);
+  if(os_sname == "style:style" && os_iev != 2 && xml_reader_attr(os_r, "style:master-page-name") != "") {
+    list_string_extend(os_lpairs, [xml_reader_attr(os_r, "style:name"), xml_reader_attr(os_r, "style:master-page-name")]);
   }
 } return int os_istop;
-given ost_t_open("<style:style style:name=\"P1\" style:master-page-name=\"Letter\"/>") given xr_skip((import ost_t_r), 1) ([], (import ost_t_r), 4):(0)
-given ost_t_open("<text:p text:style-name=\"P1\">x</text:p>") given xr_skip((import ost_t_r), 1) ([], (import ost_t_r), 1):(1)
-given ost_t_open("<text:p>x</text:p>") given xr_skip((import ost_t_r), 2) ([], (import ost_t_r), 3):(0)
+given ost_t_open("<style:style style:name=\"P1\" style:master-page-name=\"Letter\"/>") given xml_reader_skip((import ost_t_r), 1) ([], (import ost_t_r), 4):(0)
+given ost_t_open("<text:p text:style-name=\"P1\">x</text:p>") given xml_reader_skip((import ost_t_r), 1) ([], (import ost_t_r), 1):(1)
+given ost_t_open("<text:p>x</text:p>") given xml_reader_skip((import ost_t_r), 2) ([], (import ost_t_r), 3):(0)

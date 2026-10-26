@@ -1,15 +1,15 @@
 // What one event of a fodt document's style sections adds to the store: a font face, a style (automatic when owauto is 1, which is inside office:automatic-styles), the default paragraph style, a list style, a page layout with its properties, or a master page. Answers the new owauto: 1 or 0, and -1 once the body begins.
 ofd_pass_one(OfdSty owst, XmlR owr, int owev, int owauto) {
-  string owname = xr_get(owr, (import xr_k_name));
+  string owname = xml_reader_get(owr, (import xml_reader_k_name));
   int ownext = owauto;
   if(owname == "style:font-face" && owev != 2) {
     ofd_face(owst, owr);
   }
 } chain (OfdSty owst, XmlR owr, int owev, int owauto) {
   if(owname == "style:style" && owev != 2) {
-    ofd_style_read(owst, owr, owev, xr_attr(owr, "style:family"), owauto);
+    ofd_style_read(owst, owr, owev, xml_reader_attr(owr, "style:family"), owauto);
   }
-  if(owname == "style:default-style" && owev != 2 && xr_attr(owr, "style:family") == "paragraph") {
+  if(owname == "style:default-style" && owev != 2 && xml_reader_attr(owr, "style:family") == "paragraph") {
     ofd_style_read(owst, owr, owev, "paragraph", 0);
   }
   if(owname == "text:list-style" && owev != 2) {
@@ -33,19 +33,19 @@ ofd_pass_one(OfdSty owst, XmlR owr, int owev, int owauto) {
     ownext = 0 - 1;
   }
 } return int ownext;
-given ofd_t_open("<office:body/>") given xr_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r), 1, 0):(-1)
-given ofd_t_open("<office:automatic-styles/>") given xr_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r), 4, 1):(0)
-given ofd_t_open("<office:automatic-styles><a/></office:automatic-styles>") given xr_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r), 1, 0):(1)
-given ofd_t_open("<style:default-style style:family=\"paragraph\"/>") given xr_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r), 4, 1):(1)
+given ofd_t_open("<office:body/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r), 1, 0):(-1)
+given ofd_t_open("<office:automatic-styles/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r), 4, 1):(0)
+given ofd_t_open("<office:automatic-styles><a/></office:automatic-styles>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r), 1, 0):(1)
+given ofd_t_open("<style:default-style style:family=\"paragraph\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r), 4, 1):(1)
 
 // Reads every style, face, list style, page layout and master page up to the document body into the store; the reader is left at the body's start.
 ofd_styles(OfdSty owst, XmlR owr) {
-  int owev = xr_next(owr);
+  int owev = xml_reader_next(owr);
   int owauto = 0;
   while(owev > 0 && owauto >= 0) {
     owauto = ofd_pass_one(owst, owr, owev, owauto);
     if(owauto >= 0) {
-      owev = xr_next(owr);
+      owev = xml_reader_next(owr);
     }
   }
 } return void;

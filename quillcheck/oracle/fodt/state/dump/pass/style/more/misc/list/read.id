@@ -1,6 +1,6 @@
 // What one event inside a list style does to the entry owi, given the level owcur that the last level element chose: a level element starts the level it names (0 when the dump follows no such level), any other element applies to the current level. Answers the new current level.
 ofd_lvl_event(OfdSty owst, int owi, XmlR owr, int owev, int owcur) {
-  int owhead = owev != 2 && str_starts(xr_get(owr, (import xr_k_name)), "text:list-level-style-") == 1;
+  int owhead = owev != 2 && str_starts(xml_reader_get(owr, (import xml_reader_k_name)), "text:list-level-style-") == 1;
   int owl = owcur;
   if(owhead == 1) {
     owl = ofd_level(owr);
@@ -13,37 +13,37 @@ ofd_lvl_event(OfdSty owst, int owi, XmlR owr, int owev, int owcur) {
     ofd_lvl_kid(owst, owi, owr, owl);
   }
 } return int owl;
-given ofd_t_open("<text:list-level-style-bullet text:level=\"2\"/>") given xr_skip((import ofd_t_r), 1) (OfdSty(["l:L"], [""], ["", "", ""]), 0, (import ofd_t_r), 1, 0):(2)
-given ofd_t_open("<text:list-level-style-bullet text:level=\"5\"/>") given xr_skip((import ofd_t_r), 1) (OfdSty(["l:L"], [""], ["", "", ""]), 0, (import ofd_t_r), 1, 0):(0)
-given ofd_t_open("<style:list-level-label-alignment fo:margin-left=\"0.5in\"/>") given xr_skip((import ofd_t_r), 1) (OfdSty(["l:L"], [""], ["", "", ""]), 0, (import ofd_t_r), 1, 3):(3)
+given ofd_t_open("<text:list-level-style-bullet text:level=\"2\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["l:L"], [""], ["", "", ""]), 0, (import ofd_t_r), 1, 0):(2)
+given ofd_t_open("<text:list-level-style-bullet text:level=\"5\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["l:L"], [""], ["", "", ""]), 0, (import ofd_t_r), 1, 0):(0)
+given ofd_t_open("<style:list-level-label-alignment fo:margin-left=\"0.5in\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["l:L"], [""], ["", "", ""]), 0, (import ofd_t_r), 1, 3):(3)
 
 // Adds the entry of the list style the reader is at ("l:" and its name), with the built-in levels in its bag; answers the entry.
 ofd_list_open(OfdSty owst, XmlR owr) {
   string[] owlp = owst.props;
-  ofd_add(owst, "l:" + xr_attr(owr, "style:name"), "", "", "");
+  ofd_add(owst, "l:" + xml_reader_attr(owr, "style:name"), "", "", "");
   owlp[len(owlp) - 1] = (import ow_lvdef);
 } return void;
-given ofd_t_open("<text:list-style style:name=\"L1\"/>") given xr_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r)):(OfdSty(["l:L1"], ["|1.k=b|1.f=8226|1.s=1|1.l=720|1.h=360|2.k=b|2.f=9702|2.s=1|2.l=1440|2.h=360|3.k=b|3.f=9642|3.s=1|3.l=2160|3.h=360"], ["", "", ""]), (import ofd_t_r))
-given ofd_t_open("<text:list-style/>") given xr_skip((import ofd_t_r), 1) (OfdSty(["x"], ["y"], ["1", "2", "3"]), (import ofd_t_r)):(OfdSty(["x", "l:"], ["y", "|1.k=b|1.f=8226|1.s=1|1.l=720|1.h=360|2.k=b|2.f=9702|2.s=1|2.l=1440|2.h=360|3.k=b|3.f=9642|3.s=1|3.l=2160|3.h=360"], ["1", "2", "3", "", "", ""]), (import ofd_t_r))
+given ofd_t_open("<text:list-style style:name=\"L1\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r)):(OfdSty(["l:L1"], ["|1.k=b|1.f=8226|1.s=1|1.l=720|1.h=360|2.k=b|2.f=9702|2.s=1|2.l=1440|2.h=360|3.k=b|3.f=9642|3.s=1|3.l=2160|3.h=360"], ["", "", ""]), (import ofd_t_r))
+given ofd_t_open("<text:list-style/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["x"], ["y"], ["1", "2", "3"]), (import ofd_t_r)):(OfdSty(["x", "l:"], ["y", "|1.k=b|1.f=8226|1.s=1|1.l=720|1.h=360|2.k=b|2.f=9702|2.s=1|2.l=1440|2.h=360|3.k=b|3.f=9642|3.s=1|3.l=2160|3.h=360"], ["1", "2", "3", "", "", ""]), (import ofd_t_r))
 
 // Reads a list style from its start event through its end into the store: its entry, then every level element and the label alignment or properties inside them.
 ofd_list_read(OfdSty owst, XmlR owr, int owev) {
-  int owid = xr_depth(owr);
+  int owid = xml_reader_depth(owr);
   ofd_list_open(owst, owr);
   int owi = len(owst.keys) - 1;
 } chain (OfdSty owst, XmlR owr, int owev) {
   int owe = 0;
   int owcur = 0;
   if(owev == 1) {
-    owe = xr_next(owr);
+    owe = xml_reader_next(owr);
   }
 } chain (OfdSty owst, XmlR owr, int owev) {
-  int owmore = xr_inside(owr, owe, owid);
+  int owmore = xml_reader_inside(owr, owe, owid);
   while(owmore == 1) {
     owcur = ofd_lvl_event(owst, owi, owr, owe, owcur);
-    owe = xr_next(owr);
-    owmore = xr_inside(owr, owe, owid);
+    owe = xml_reader_next(owr);
+    owmore = xml_reader_inside(owr, owe, owid);
   }
 } return void;
-given ofd_t_open("<text:list-style style:name=\"L\"><text:list-level-style-number text:level=\"1\" style:num-format=\"a\"><style:list-level-properties><style:list-level-label-alignment fo:margin-left=\"0.5in\" fo:text-indent=\"-0.25in\"/></style:list-level-properties></text:list-level-style-number></text:list-style>") given xr_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r), 1):(OfdSty(["l:L"], ["|2.k=b|2.f=9702|2.s=1|2.l=1440|2.h=360|3.k=b|3.f=9642|3.s=1|3.l=2160|3.h=360|1.k=n|1.f=1|1.s=1|1.l=720|1.h=360"], ["", "", ""]), (import ofd_t_r), 1)
-given ofd_t_open("<text:list-style style:name=\"E\"/>") given xr_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r), 4):(OfdSty(["l:E"], ["|1.k=b|1.f=8226|1.s=1|1.l=720|1.h=360|2.k=b|2.f=9702|2.s=1|2.l=1440|2.h=360|3.k=b|3.f=9642|3.s=1|3.l=2160|3.h=360"], ["", "", ""]), (import ofd_t_r), 4)
+given ofd_t_open("<text:list-style style:name=\"L\"><text:list-level-style-number text:level=\"1\" style:num-format=\"a\"><style:list-level-properties><style:list-level-label-alignment fo:margin-left=\"0.5in\" fo:text-indent=\"-0.25in\"/></style:list-level-properties></text:list-level-style-number></text:list-style>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r), 1):(OfdSty(["l:L"], ["|2.k=b|2.f=9702|2.s=1|2.l=1440|2.h=360|3.k=b|3.f=9642|3.s=1|3.l=2160|3.h=360|1.k=n|1.f=1|1.s=1|1.l=720|1.h=360"], ["", "", ""]), (import ofd_t_r), 1)
+given ofd_t_open("<text:list-style style:name=\"E\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r), 4):(OfdSty(["l:E"], ["|1.k=b|1.f=8226|1.s=1|1.l=720|1.h=360|2.k=b|2.f=9702|2.s=1|2.l=1440|2.h=360|3.k=b|3.f=9642|3.s=1|3.l=2160|3.h=360"], ["", "", ""]), (import ofd_t_r), 4)

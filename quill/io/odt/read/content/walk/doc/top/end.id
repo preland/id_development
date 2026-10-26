@@ -13,7 +13,7 @@ given orc_t_open("<a/>") ((import orc_tc)):() then orc_t_show:("P0  0:0:-1, {0,0
 
 // 0 when the read went well; the XML fault when the reader met one (its message, which carries the byte offset, is kept for odt_error); else the missing-body code when the head ended without an office:text start tag (at is the event the head stopped at).
 orc_status(Cx cx, int at) {
-  string err = xr_get((cx.rd), (import xr_k_error));
+  string err = xml_reader_get((cx.rd), (import xml_reader_k_error));
   int code = 0;
   if(at <= 0 && err == "") {
     code = (import orc_e_body);
@@ -26,11 +26,11 @@ orc_status(Cx cx, int at) {
 } return int code;
 given orc_t_open("<a/>") ((import orc_tc), 1):(0)
 given orc_t_open("<a/>") ((import orc_tc), 0):(4)
-given orc_t_open("<a b>") given orc_t_steps(1) ((import orc_tc), 1):(3) then calls xr_get:[1]
+given orc_t_open("<a b>") given orc_t_steps(1) ((import orc_tc), 1):(3) then calls xml_reader_get:[1]
 
 // The byte offset the reader has read up to: just past the event it last returned.
 orc_pos(XmlR rd) {
-  int at = rd.st[(import idstd_xr_o_pos)];
+  int at = rd.st[(import idstd_xml_reader_o_pos)];
 } return int at;
 given orc_t_open("<ab>x</ab>") ((import orc_tr)):(0)
 given orc_t_open("<ab>x</ab>") given orc_t_steps(2) ((import orc_tr)):(5)

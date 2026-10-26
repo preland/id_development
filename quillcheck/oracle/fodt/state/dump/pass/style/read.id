@@ -1,22 +1,22 @@
 // Adds an entry for the style:style the reader is at, with its parent, list style and master page, and its display name in the bag; answers its entry, -1 for a family the oracle does not follow.
 ofd_style_open(OfdSty owst, XmlR owr, string owfam, int owauto) {
   string owk = ofd_famk(owfam);
-  string owparent = xr_attr(owr, "style:parent-style-name");
+  string owparent = xml_reader_attr(owr, "style:parent-style-name");
   int owi = 0 - 1;
 } chain (OfdSty owst, XmlR owr, string owfam, int owauto) {
   if(owk != "") {
-    ofd_add(owst, owk + xr_attr(owr, "style:name"), ofd_pk(owk, owparent), xr_attr(owr, "style:list-style-name"), xr_attr(owr, "style:master-page-name"));
+    ofd_add(owst, owk + xml_reader_attr(owr, "style:name"), ofd_pk(owk, owparent), xml_reader_attr(owr, "style:list-style-name"), xml_reader_attr(owr, "style:master-page-name"));
     owi = len(owst.keys) - 1;
   }
   if(owi >= 0) {
-    ofd_prop(owst, owi, "d", xr_attr(owr, "style:display-name"));
+    ofd_prop(owst, owi, "d", xml_reader_attr(owr, "style:display-name"));
   }
   if(owi >= 0 && owauto == 1) {
     ofd_prop(owst, owi, "a", "1");
   }
 } return int owi;
-given ofd_t_open("<style:style style:name=\"P1\" style:parent-style-name=\"Standard\" style:list-style-name=\"L1\" style:display-name=\"Para\"/>") given xr_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r), "paragraph", 0):(0)
-given ofd_t_open("<style:style style:name=\"G\"/>") given xr_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r), "graphic", 1):(-1)
+given ofd_t_open("<style:style style:name=\"P1\" style:parent-style-name=\"Standard\" style:list-style-name=\"L1\" style:display-name=\"Para\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r), "paragraph", 0):(0)
+given ofd_t_open("<style:style style:name=\"G\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r), "graphic", 1):(-1)
 
 // The key of a parent style: its family prefix (see ofd_famk) and name, "" when there is none.
 ofd_pk(string owk, string owparent) {

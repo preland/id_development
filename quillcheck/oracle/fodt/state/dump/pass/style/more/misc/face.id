@@ -13,11 +13,11 @@ ofd_unq(string owv) {
 
 // Adds the font face the reader is at, keyed "f:" and its declared name, with its family unquoted in the bag.
 ofd_face(OfdSty owst, XmlR owr) {
-  string owk = "f:" + xr_attr(owr, "style:name");
-  string owfam = ofd_unq(xr_attr(owr, "svg:font-family"));
+  string owk = "f:" + xml_reader_attr(owr, "style:name");
+  string owfam = ofd_unq(xml_reader_attr(owr, "svg:font-family"));
   ofd_add(owst, owk, "", "", "");
 } chain (OfdSty owst, XmlR owr) {
   ofd_prop(owst, len(owst.keys) - 1, "fam", owfam);
 } return void;
-given ofd_t_open("<style:font-face style:name=\"Liberation Serif1\" svg:font-family=\"&apos;Liberation Serif&apos;\"/>") given xr_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r)):(OfdSty(["f:Liberation Serif1"], ["|fam=Liberation Serif"], ["", "", ""]), (import ofd_t_r))
-given ofd_t_open("<style:font-face style:name=\"A\" svg:font-family=\"B\"/>") given xr_skip((import ofd_t_r), 1) (OfdSty(["x"], ["y"], ["1", "2", "3"]), (import ofd_t_r)):(OfdSty(["x", "f:A"], ["y", "|fam=B"], ["1", "2", "3", "", "", ""]), (import ofd_t_r))
+given ofd_t_open("<style:font-face style:name=\"Liberation Serif1\" svg:font-family=\"&apos;Liberation Serif&apos;\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty([], [], []), (import ofd_t_r)):(OfdSty(["f:Liberation Serif1"], ["|fam=Liberation Serif"], ["", "", ""]), (import ofd_t_r))
+given ofd_t_open("<style:font-face style:name=\"A\" svg:font-family=\"B\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["x"], ["y"], ["1", "2", "3"]), (import ofd_t_r)):(OfdSty(["x", "f:A"], ["y", "|fam=B"], ["1", "2", "3", "", "", ""]), (import ofd_t_r))

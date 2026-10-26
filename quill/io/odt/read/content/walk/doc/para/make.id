@@ -5,7 +5,7 @@ orc_para(Cx cx, int ev) {
   orc_reset(cx);
 } chain (Cx cx, int ev) {
   if(ev == 1) {
-    orc_inline(cx, t, xr_depth(cx.rd));
+    orc_inline(cx, t, xml_reader_depth(cx.rd));
   }
   Para p = para_make(t, pp);
   push(cx.d.body.paras, p);
@@ -20,8 +20,8 @@ given orc_t_open("<text:p>x</text:p>") given orc_t_pop given orc_t_set(0, 5) giv
 
 // The paragraph row of the paragraph element that has just started: its style (a heading with none takes Heading 1 to 3 by its outline level), then the list and level it sits in.
 orc_pprop(Cx cx) {
-  string sname = xr_attr(cx.rd, "text:style-name");
-  int lvl = to_int(xr_attr(cx.rd, "text:outline-level"));
+  string sname = xml_reader_attr(cx.rd, "text:style-name");
+  int lvl = to_int(xml_reader_attr(cx.rd, "text:outline-level"));
   int rw = orc_pstyle(cx, sname, lvl);
 } chain (Cx cx) {
   int pp = orc_plist(cx, rw);
@@ -34,7 +34,7 @@ given orc_t_open("<r><office:styles><style:style style:name='Heading_20_2' style
 orc_reset(Cx cx) {
   lset(cx.cs.slots, (import orc_s_space), 1);
   lset(cx.cs.slots, (import orc_s_link), 0);
-  string sname = xr_attr(cx.rd, "text:style-name");
+  string sname = xml_reader_attr(cx.rd, "text:style-name");
 } chain (Cx cx) {
   int ov = ost_over(cx.cs.look.osty, sname);
   int[] rstk = cx.cs.look.rstk;

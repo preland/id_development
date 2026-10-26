@@ -9,25 +9,25 @@ ofd_text(OfdSty owst, OfdAcc owacc, string[] owspans, string owtext) {
 // A text:span's effect on the stack of span styles: its style key goes on when it starts and comes off when it ends.
 ofd_span(string[] owspans, XmlR owr, int owev) {
   if(owev == 1) {
-    push(owspans, "t:" + xr_attr(owr, "text:style-name"));
+    push(owspans, "t:" + xml_reader_attr(owr, "text:style-name"));
   }
   if(owev == 2) {
     pop(owspans);
   }
 } return void;
-given ofd_t_open("<text:span text:style-name=\"T1\"/>") given xr_skip((import ofd_t_r), 1) (["t:A"], (import ofd_t_r), 1):(["t:A", "t:T1"], (import ofd_t_r), 1)
-given ofd_t_open("<text:span text:style-name=\"T1\"/>") given xr_skip((import ofd_t_r), 1) (["t:A", "t:T1"], (import ofd_t_r), 2):(["t:A"], (import ofd_t_r), 2)
-given ofd_t_open("<text:span text:style-name=\"T1\"/>") given xr_skip((import ofd_t_r), 1) (["t:A"], (import ofd_t_r), 4):(["t:A"], (import ofd_t_r), 4)
+given ofd_t_open("<text:span text:style-name=\"T1\"/>") given xml_reader_skip((import ofd_t_r), 1) (["t:A"], (import ofd_t_r), 1):(["t:A", "t:T1"], (import ofd_t_r), 1)
+given ofd_t_open("<text:span text:style-name=\"T1\"/>") given xml_reader_skip((import ofd_t_r), 1) (["t:A", "t:T1"], (import ofd_t_r), 2):(["t:A"], (import ofd_t_r), 2)
+given ofd_t_open("<text:span text:style-name=\"T1\"/>") given xml_reader_skip((import ofd_t_r), 1) (["t:A"], (import ofd_t_r), 4):(["t:A"], (import ofd_t_r), 4)
 
 // A text:a's effect on the hyperlink: its target is kept while it is open.
 ofd_link(OfdAcc owacc, XmlR owr, int owev) {
   string[] owlss = owacc.ss;
   if(owev == 1) {
-    owlss[2] = xr_attr(owr, "xlink:href");
+    owlss[2] = xml_reader_attr(owr, "xlink:href");
   }
   if(owev == 2) {
     owlss[2] = "";
   }
 } return void;
-given ofd_t_open("<text:a xlink:href=\"http://x\"/>") given xr_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 1, 0], ["", "", "", "", ""], []), (import ofd_t_r), 1):(OfdAcc([-1, 0, 1, 0], ["", "", "http://x", "", ""], []), (import ofd_t_r), 1)
-given ofd_t_open("<text:a xlink:href=\"http://x\"/>") given xr_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 1, 0], ["", "", "http://x", "", ""], []), (import ofd_t_r), 2):(OfdAcc([-1, 0, 1, 0], ["", "", "", "", ""], []), (import ofd_t_r), 2)
+given ofd_t_open("<text:a xlink:href=\"http://x\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 1, 0], ["", "", "", "", ""], []), (import ofd_t_r), 1):(OfdAcc([-1, 0, 1, 0], ["", "", "http://x", "", ""], []), (import ofd_t_r), 1)
+given ofd_t_open("<text:a xlink:href=\"http://x\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 1, 0], ["", "", "http://x", "", ""], []), (import ofd_t_r), 2):(OfdAcc([-1, 0, 1, 0], ["", "", "", "", ""], []), (import ofd_t_r), 2)

@@ -11,7 +11,7 @@ given orc_t_open("<r><text:p>a</text:p>b</r>") given orc_t_steps(2) ((import orc
 
 // 1 while the event is part of the paragraph: every event but the end tag of the paragraph, the end event at depth base.
 orc_inside(Cx cx, int ev, int base) {
-  int ended = ev == 2 && xr_depth(cx.rd) == base;
+  int ended = ev == 2 && xml_reader_depth(cx.rd) == base;
   int in = 1 - ended;
 } return int in;
 given orc_t_open("<a></a>") given orc_t_steps(2) ((import orc_tc), 2, 0):(0)
@@ -22,7 +22,7 @@ given orc_t_open("<a></a>") given orc_t_steps(1) ((import orc_tc), 1, 0):(1)
 orc_inline_ev(Cx cx, Text t, int ev) {
   int k = orc_ikind(cx, ev);
   if(k == 0) {
-    orc_text(cx, t, xr_text(cx.rd));
+    orc_text(cx, t, xml_reader_text(cx.rd));
   }
   if(k == 2) {
     orc_link(cx);
@@ -44,11 +44,11 @@ orc_inline_ev(Cx cx, Text t, int ev) {
   if(k < 0) {
     orc_object(cx, t, ev);
   }
-  if(k == 1 && ev == 1 && xr_get((cx.rd), (import xr_k_name)) == "text:span") {
+  if(k == 1 && ev == 1 && xml_reader_get((cx.rd), (import xml_reader_k_name)) == "text:span") {
     orc_span_in(cx);
   }
 } chain (Cx cx, Text t, int ev) {
-  if(k == 1 && ev == 2 && xr_get((cx.rd), (import xr_k_name)) == "text:span") {
+  if(k == 1 && ev == 2 && xml_reader_get((cx.rd), (import xml_reader_k_name)) == "text:span") {
     orc_span_out(cx);
   }
 } return void;

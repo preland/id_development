@@ -17,12 +17,12 @@ ofd_attrs(string owpre, string[] owlnames, XmlR owr) {
   string owout = "";
   int owi = 0;
   while(owi < len(owlnames)) {
-    owout = owout + ofd_pair(owpre + owlnames[owi], xr_attr(owr, owlnames[owi]));
+    owout = owout + ofd_pair(owpre + owlnames[owi], xml_reader_attr(owr, owlnames[owi]));
     owi = owi + 1;
   }
 } return string owout;
-given ofd_t_open("<p fo:color=\"#ff0000\" fo:font-size=\"12pt\"/>") given xr_skip((import ofd_t_r), 1) ("t.", ["fo:color", "fo:font-size", "fo:x"], (import ofd_t_r)):("|t.fo:color=#ff0000|t.fo:font-size=12pt")
-given ofd_t_open("<p/>") given xr_skip((import ofd_t_r), 1) ("p.", ["fo:color"], (import ofd_t_r)):("")
+given ofd_t_open("<p fo:color=\"#ff0000\" fo:font-size=\"12pt\"/>") given xml_reader_skip((import ofd_t_r), 1) ("t.", ["fo:color", "fo:font-size", "fo:x"], (import ofd_t_r)):("|t.fo:color=#ff0000|t.fo:font-size=12pt")
+given ofd_t_open("<p/>") given xml_reader_skip((import ofd_t_r), 1) ("p.", ["fo:color"], (import ofd_t_r)):("")
 
 // "|name=value", or "" when the value is empty.
 ofd_pair(string own, string owv) {

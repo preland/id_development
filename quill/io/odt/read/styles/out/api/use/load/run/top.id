@@ -12,18 +12,18 @@ given ost_t_doc given ost_t_scan("<a/>") ((import ost_t_d), (import ost_t_b), []
 
 // The master page named by the style of the first paragraph or heading of a content document, "" when that style names none or there is no paragraph.
 ost_first_master(int[] os_lcx) {
-  XmlR os_r = xr_open(os_lcx);
+  XmlR os_r = xml_reader_open(os_lcx);
   string[] os_lpairs = [];
-  int os_iev = xr_next(os_r);
+  int os_iev = xml_reader_next(os_r);
 } chain (int[] os_lcx) {
   int os_istop = 0;
   string os_sstyle = "";
   while(os_iev > 0 && os_istop == 0) {
     os_istop = ost_master_one(os_lpairs, os_r, os_iev);
     if(os_istop == 1) {
-      os_sstyle = xr_attr(os_r, "text:style-name");
+      os_sstyle = xml_reader_attr(os_r, "text:style-name");
     }
-    os_iev = xr_next(os_r);
+    os_iev = xml_reader_next(os_r);
   }
 } chain (int[] os_lcx) {
   string os_smaster = ost_pair(os_lpairs, os_sstyle);
@@ -46,7 +46,7 @@ ost_load(Doc os_d, int[] os_lsx, int[] os_lcx, OdtSty os_k) {
   }
   string os_smaster = ost_first_master(os_lcx);
 } chain (Doc os_d, int[] os_lsx, int[] os_lcx, OdtSty os_k) {
-  PgTab os_pt = ost_pg_scan(xr_open(os_lsx));
+  PgTab os_pt = ost_pg_scan(xml_reader_open(os_lsx));
   int[] os_lpg = ost_pg_pick(os_pt, os_smaster);
   ost_pg_apply(os_d, os_lpg);
 } return int os_icode;

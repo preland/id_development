@@ -11,7 +11,7 @@ orc_ikind(Cx cx, int ev) {
     k = 0;
   }
   if(ev == 2) {
-    k = 1 + 2 * (xr_get((cx.rd), (import xr_k_name)) == "text:a");
+    k = 1 + 2 * (xml_reader_get((cx.rd), (import xml_reader_k_name)) == "text:a");
   }
 } return int k;
 given orc_t_open("<a>x</a>") given orc_t_steps(2) ((import orc_tc), 3):(0)
@@ -29,7 +29,7 @@ given orc_t_open("<draw:frame/>") given orc_t_steps(1) ((import orc_tc), 4):(-1)
 orc_name(Cx cx, int ev) {
   string name = "";
   if(ev == 1 || ev == 4) {
-    name = xr_get((cx.rd), (import xr_k_name));
+    name = xml_reader_get((cx.rd), (import xml_reader_k_name));
   }
 } return string name;
 given orc_t_open("<a:b>x</a:b>") given orc_t_steps(1) ((import orc_tc), 1):("a:b")
@@ -39,7 +39,7 @@ given orc_t_open("<a:b></a:b>") given orc_t_steps(2) ((import orc_tc), 2):("")
 // A text:a opens: the text up to its end tag is a hyperlink, whose target is the xlink:href (a target already in ext.links is reused).
 orc_link(Cx cx) {
   string[] hrefs = cx.d.ext.links;
-  string href = xr_attr(cx.rd, "xlink:href");
+  string href = xml_reader_attr(cx.rd, "xlink:href");
   int at = list_string_index(hrefs, href);
 } chain (Cx cx) {
   if(at < 0) {

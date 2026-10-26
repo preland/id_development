@@ -6,15 +6,15 @@ pl_report(int pl_h, int[] pl_info, int pl_dl) {
   string[] pl_bes = ["null", "pw"];
   print("play: " + pl_info[6] + " frames, " + pl_info[3] + " Hz, " + pl_info[2] + " ch, " + pl_fmts[pl_info[1]]);
 } chain (int pl_h, int[] pl_info, int pl_dl) {
-  int pl_ri = aud_info(pl_h, (import aud_i_ring));
-  int pl_q = aud_info(pl_h, (import aud_i_quantum));
-  int pl_be = aud_info(pl_h, (import aud_i_back));
+  int pl_ri = audio_info(pl_h, (import audio_i_ring));
+  int pl_q = audio_info(pl_h, (import audio_i_quantum));
+  int pl_be = audio_info(pl_h, (import audio_i_back));
 } chain (int pl_h, int[] pl_info, int pl_dl) {
   print("play: backend " + pl_bes[pl_be] + ", ring " + pl_ri + " frames, quantum " + pl_q + " frames, delay " + pl_dl + " frames");
-  int pl_mv = aud_moved(pl_h);
-  int pl_xr = aud_xruns(pl_h);
+  int pl_mv = audio_moved(pl_h);
+  int pl_xr = audio_xruns(pl_h);
 } chain (int pl_h, int[] pl_info, int pl_dl) {
-  int pl_lo = aud_info(pl_h, (import aud_i_lost));
+  int pl_lo = audio_info(pl_h, (import audio_i_lost));
   print("play: moved " + pl_mv + " frames, " + pl_xr + " xruns, " + pl_lo + " frames lost");
 } return void;
 given pl_t_stream (800) ((import pl_t_h), (import pl_t_info), 0):() then prints:("play: 800 frames, 8000 Hz, 1 ch, s16\nplay: backend null, ring 800 frames, quantum 0 frames, delay 0 frames\nplay: moved 0 frames, 0 xruns, 0 frames lost\n")

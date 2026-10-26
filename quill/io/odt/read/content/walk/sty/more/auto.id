@@ -1,7 +1,7 @@
 // Notes where the automatic styles of content.xml are, so an opaque element that names one can keep it: office:automatic-styles opening says how deep its children are, and each child, whatever kind of style it is, is noted by its name and its start and end. The closing tag of office:automatic-styles ends the noting.
 orc_a_ev(Cx cx, int ev) {
-  string name = xr_get((cx.rd), (import xr_k_name));
-  int dep = xr_depth(cx.rd);
+  string name = xml_reader_get((cx.rd), (import xml_reader_k_name));
+  int dep = xml_reader_depth(cx.rd);
   int adep = cx.cs.slots[(import orc_s_adep)];
 } chain (Cx cx, int ev) {
   if(ev == 1 && name == "office:automatic-styles") {
@@ -22,7 +22,7 @@ given orc_t_open("<r><office:automatic-styles><style:style style:name='P1'><x st
 
 // An event that is a direct child of office:automatic-styles: a start or empty tag that has a style:name opens an entry for that style (an empty element ends at once), and an end tag gives the open entry its end.
 orc_a_child(Cx cx, int ev) {
-  string sname = xr_attr(cx.rd, "style:name");
+  string sname = xml_reader_attr(cx.rd, "style:name");
   int lo = orc_tag_at(cx.rd, cx.cs.slots[(import orc_s_prev)]);
   int hi = orc_pos(cx.rd) * (ev != 1);
 } chain (Cx cx, int ev) {

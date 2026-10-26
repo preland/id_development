@@ -11,7 +11,7 @@ ofd_clr(string[] owlx) {
 // Starts a paragraph or heading: its style key, no runs yet, no span styles, and, for the first paragraph, its style key kept for finding the page.
 ofd_pstart(OfdAcc owacc, XmlR owr, string[] owspans) {
   string[] owlss = owacc.ss;
-  owlss[0] = "p:" + xr_attr(owr, "text:style-name");
+  owlss[0] = "p:" + xml_reader_attr(owr, "text:style-name");
   ofd_clr(owacc.sg);
 } chain (OfdAcc owacc, XmlR owr, string[] owspans) {
   ofd_clr(owspans);
@@ -20,8 +20,8 @@ ofd_pstart(OfdAcc owacc, XmlR owr, string[] owspans) {
     owlss[4] = owlss[0];
   }
 } return void;
-given ofd_t_open("<text:p text:style-name=\"P1\"/>") given xr_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], ["a", "b"]), (import ofd_t_r), ["t:T"]):(OfdAcc([-1, 0, 1, 0], ["p:P1", "", "", "", "p:P1"], []), (import ofd_t_r), [])
-given ofd_t_open("<text:h text:style-name=\"H\"/>") given xr_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 0, 2], ["", "", "", "", "p:P1"], []), (import ofd_t_r), []):(OfdAcc([-1, 0, 1, 2], ["p:H", "", "", "", "p:P1"], []), (import ofd_t_r), [])
+given ofd_t_open("<text:p text:style-name=\"P1\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], ["a", "b"]), (import ofd_t_r), ["t:T"]):(OfdAcc([-1, 0, 1, 0], ["p:P1", "", "", "", "p:P1"], []), (import ofd_t_r), [])
+given ofd_t_open("<text:h text:style-name=\"H\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 0, 2], ["", "", "", "", "p:P1"], []), (import ofd_t_r), []):(OfdAcc([-1, 0, 1, 2], ["p:H", "", "", "", "p:P1"], []), (import ofd_t_r), [])
 
 // The list style a paragraph sits in: inside a text:list the outermost list's style name, outside one the list style its paragraph style gives; "" for none.
 ofd_plist(OfdSty owst, OfdAcc owacc) {

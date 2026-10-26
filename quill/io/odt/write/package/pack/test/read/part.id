@@ -1,10 +1,10 @@
 // Test fixture (internal): the bytes of the preserved image as the exported archive, once packed, hands them back through our reader.
 odp_t_part() {
   bytes pkzb = bytes_of_int_list(zw_finish((import odp_t_z)));
-  Zip pkzr = zr_open(pkzb);
-  int pkat = zr_find(pkzr, "Pictures/a.png");
+  Zip pkzr = zip_reader_open(pkzb);
+  int pkat = zip_reader_find(pkzr, "Pictures/a.png");
 } chain () {
-  int[] pkrd = zr_read(pkzr, pkat);
+  int[] pkrd = zip_reader_read(pkzr, pkat);
 } return int[] pkrd;
 given odp_t_new given odp_t_img given odp_pack((import odp_t_d), [1], (import odp_t_z)) ():([137, 80, 78, 71, 0, 255])
 given odp_t_new given odp_pack((import odp_t_d), [1], (import odp_t_z)) ():([])
@@ -13,7 +13,7 @@ given odp_t_new given odp_pack((import odp_t_d), [1], (import odp_t_z)) ():([])
 odp_t_unlisted(Zip pkzr, string pkmf) {
   int pki = 0;
   int pkn = 0;
-  while(pki < zr_count(pkzr)) {
+  while(pki < zip_reader_count(pkzr)) {
     pkn = pkn + odp_t_miss(pkzr, pki, pkmf);
     pki = pki + 1;
   }
