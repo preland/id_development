@@ -1182,8 +1182,15 @@ case has passed, since a count from a case that failed measures nothing.
 The harness is built for and run on the machine doing the build. A
 `--freestanding` tree's cases run there too, against the same source compiled
 for the host: the kernel's cases run on every kernel build, and a failing one
-stops it. Functions that reach an `asm` body cannot run on the host and are
-exempt from the minimum; the compiler names each one.
+stops it. A function that reaches an `asm` function with no body for the host's
+triple owes its two cases like any other: without them it gets the ordinary
+short-of-cases error ([E0501], which `--allow-untested` silences like any other),
+and a case under it is an error too, until the asm function has a host overload
+(`asm "<host triple>" NAME(...)`, `docs/ASM.md`, "Overloading by platform").
+Both errors name the asm function and that overload. The function and every
+caller of it then run on the host like any other. Only a native, or in
+`--runtime` a function named after a runtime helper, is exempt from the minimum,
+with a note.
 A program that uses a native backend gets the
 backend linked into its harness as well, so a tested function that calls into
 one really runs.

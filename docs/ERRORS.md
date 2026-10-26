@@ -1281,6 +1281,12 @@ describe two different behaviours, and each must be able to fail if the function
 is wrong. The diagnostic offers a skeleton to fill in (`idc --diagnostics=json`
 gives it as an edit with placeholders).
 
+A function that reaches an `asm` function with no body for the build host's
+triple gets this error too, with a `related:` line naming that asm function and
+the overload that makes the function testable
+(`asm "<host triple>" NAME(...)`, `docs/ASM.md`); reaching a host-less asm is
+not an exemption.
+
 Incorrect:
 
 ```id tests

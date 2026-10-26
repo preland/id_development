@@ -138,11 +138,15 @@ and the object is built only if every one passes (`docs/TESTS.md`, "A
 freestanding build runs its cases on the build host"). A function that reaches
 something with no host implementation cannot run there: an `asm` function with
 no body for the host's triple (`in8`, `lidt_load`, `cpu_halt`), a native, or,
-in `--runtime`, a function named after a runtime helper. Such a function is
-exempt from the two-case minimum, with a note naming what it reaches, and a case
-under it is an error. What it does is checked by `idc/tests/kernel.sh`, which
-boots the image. The kernel and the runtime still build with `--allow-untested`
-until their other functions have their cases.
+in `--runtime`, a function named after a runtime helper. A function reaching a
+host-less `asm` function is not exempt: it owes its two cases, and gets the
+ordinary short-of-cases error naming the asm function and the host overload
+(`asm "x86_64-unknown-linux-gnu" in8(...)`, `docs/ASM.md`) that makes it
+testable; a case under it is an error until that overload exists. A native or a
+runtime helper stays exempt, with a note, and a case under it is an error. What
+the asm does is checked by `idc/tests/kernel.sh`, which boots the image. The
+kernel and the runtime build with `--allow-untested` until their asm leaves have
+host overloads and their functions have their cases.
 
 String comparison is the one lowering that differs: hosted it calls `strcmp`
 and gets libc's, freestanding it calls `id_strcmp` and gets the runtime's. A

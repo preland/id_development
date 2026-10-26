@@ -58,6 +58,12 @@ The compiler is told its target with `--triple`, defaulting to the host. It
 selects the body whose triple matches exactly. Signatures must agree across
 overloads; a mismatch is an error.
 
+An `asm` function is also what decides whether its callers can be tested. Cases
+run on the build host, so a function that reaches an `asm` function with no body
+for the host's triple cannot run them: the compiler reports it short of cases
+and names the missing `asm "<host triple>" NAME(...)` overload. Adding that
+overload makes the function and its callers testable like any other.
+
 ## An unsupported platform is a compile error
 
 Building for a target with no matching body fails, naming what was available:
