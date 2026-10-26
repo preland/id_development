@@ -1,14 +1,14 @@
 // The word a lane verdict is printed as; an unavailable lane says why, and so does one that is skipped.
-rep_verdict(int v) {
+report_verdict(int verdict) {
   string says = "FAIL";
-  if (v == (import lane_ok)) {
+  if (verdict == (import lane_ok)) {
     says = "OK";
   }
-  if (v == (import lane_unavailable)) {
+  if (verdict == (import lane_unavailable)) {
     says = "UNAVAILABLE(" + (import no_word) + ")";
   }
-} chain (int v) {
-  if (v == (import lane_skipped)) {
+} chain (int verdict) {
+  if (verdict == (import lane_skipped)) {
     says = (import skip_pages);
   }
 } return string says;
@@ -18,10 +18,10 @@ rep_verdict(int v) {
 (3):("SKIP(the document model keeps one page layout; this fixture changes it per paragraph)")
 
 // "mode=VERDICT" for one quill-binary lane; vs holds the verdicts of the lanes that have run, [--text, --pages].
-rep_word_one(string wmode, int[] vs) {
-  int v = wlane_run(wmode, vs);
-  string says = rep_verdict(v);
-  string part = wmode + "=" + says;
+report_word_one(string lane_mode, int[] quill_verdicts) {
+  int verdict = quill_lane_run(lane_mode, quill_verdicts);
+  string says = report_verdict(verdict);
+  string part = lane_mode + "=" + says;
 } return string part;
 ("--text", [2, 1]):("--text=UNAVAILABLE(quill binary not available)")
 ("--text", [1, 2]):("--text=OK")
@@ -30,14 +30,14 @@ rep_word_one(string wmode, int[] vs) {
 ("--bogus", [1, 1]):("--bogus=FAIL")
 
 // The quill-binary lanes, space separated.
-rep_word_all(string[] modes, int[] vs) {
+report_word_all(string[] modes, int[] quill_verdicts) {
   string[] parts = [];
-  int i = 0;
-  while (i < len(modes)) {
-    push(parts, rep_word_one(modes[i], vs));
-    i = i + 1;
+  int mode_cursor = 0;
+  while (mode_cursor < len(modes)) {
+    push(parts, report_word_one(modes[mode_cursor], quill_verdicts));
+    mode_cursor = mode_cursor + 1;
   }
-} chain (string[] modes, int[] vs) {
+} chain (string[] modes, int[] quill_verdicts) {
   string line = str_join(parts, " ");
 } return string line;
 (["--text", "--dump"], [2, 2]):("--text=UNAVAILABLE(quill binary not available) --dump=UNAVAILABLE(quill binary not available)")

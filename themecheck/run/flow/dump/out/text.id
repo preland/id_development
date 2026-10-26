@@ -1,37 +1,37 @@
 // How many lines each text broke into, and the pixels.
 //
 // One line per node that has text: its number and how many lines the text broke into.
-tc_texts(int[] t, string[] s, int[] rc, int[][] ys, int[] ns) {
-  string[] ls = [];
-  int i = 0;
-  while (i < len(ns)) {
-    tc_text1(ls, t, s, rc, ys, ns[i], i);
-    i = i + 1;
+text_line_counts(int[] tape, string[] tape_strings, int[] rectangles, int[][] styles, int[] node_records) {
+  string[] line_list = [];
+  int node_index = 0;
+  while (node_index < len(node_records)) {
+    node_text_line_count(line_list, tape, tape_strings, rectangles, styles, node_records[node_index], node_index);
+    node_index = node_index + 1;
   }
-} chain (int[] t, string[] s, int[] rc, int[][] ys, int[] ns) {
-  string txt = str_join(ls, "\n") + "\n";
-} return string txt;
-given tc_t_view ((import tc_tt), (import tc_ts), (import tc_xr), (import tc_xy), (import tc_xn)):("1|1\n")
-given tc_t_view ((import tc_tt), (import tc_ts), (import tc_xr), (import tc_xy), [5]):("\n")
+} chain (int[] tape, string[] tape_strings, int[] rectangles, int[][] styles, int[] node_records) {
+  string document_text = str_join(line_list, "\n") + "\n";
+} return string document_text;
+given rendered_view_fixture ((import page_tape), (import page_tape_strings), (import view_rectangles), (import view_styles), (import view_nodes)):("1|1\n")
+given rendered_view_fixture ((import page_tape), (import page_tape_strings), (import view_rectangles), (import view_styles), [5]):("\n")
 
 // The line of node i (record rec), when it has text.
-tc_text1(string[] ls, int[] t, string[] s, int[] rc, int[][] ys, int rec, int i) {
-  string[] ln = theme_text_lines(t, s, rec, ys[rec], gui_rect_get(rc, rec, 2));
-  if (len(ln) > 0) {
-    push(ls, i + "|" + len(ln));
+node_text_line_count(string[] line_list, int[] tape, string[] tape_strings, int[] rectangles, int[][] styles, int record_index, int node_index) {
+  string[] text_lines = theme_text_lines(tape, tape_strings, record_index, styles[record_index], gui_rect_get(rectangles, record_index, 2));
+  if (len(text_lines) > 0) {
+    push(line_list, node_index + "|" + len(text_lines));
   }
 } return void;
-given tc_t_view ([], (import tc_tt), (import tc_ts), (import tc_xr), (import tc_xy), 6, 1):(["1|1"], (import tc_tt), (import tc_ts), (import tc_xr), (import tc_xy), 6, 1)
-given tc_t_view ([], (import tc_tt), (import tc_ts), (import tc_xr), (import tc_xy), 5, 0):([], (import tc_tt), (import tc_ts), (import tc_xr), (import tc_xy), 5, 0)
+given rendered_view_fixture ([], (import page_tape), (import page_tape_strings), (import view_rectangles), (import view_styles), 6, 1):(["1|1"], (import page_tape), (import page_tape_strings), (import view_rectangles), (import view_styles), 6, 1)
+given rendered_view_fixture ([], (import page_tape), (import page_tape_strings), (import view_rectangles), (import view_styles), 5, 0):([], (import page_tape), (import page_tape_strings), (import view_rectangles), (import view_styles), 5, 0)
 
 // Write the list surface to the file at path as a binary PPM (P6); the number of bytes written, or -1.
-tc_ppm(string path) {
-  string hd = "P6\n" + (import sf_l_w) + " " + (import sf_l_h) + "\n255\n";
-  word ad = alloc(len(hd) + (import sf_l_w) * (import sf_l_h) * 3);
-  str_blit(hd, 0, len(hd), ad);
+image_save(string path) {
+  string image_header = "P6\n" + (import sf_l_w) + " " + (import sf_l_h) + "\n255\n";
+  word address = alloc(len(image_header) + (import sf_l_w) * (import sf_l_h) * 3);
+  str_blit(image_header, 0, len(image_header), address);
 } chain (string path) {
-  tc_ppmpx(ad + len(hd), 0);
-  int n = fs_save(path, ad, len(hd) + (import sf_l_w) * (import sf_l_h) * 3);
-} return int n;
-given tg_t_dir given tg_t_pick("p.ppm") given tc_t_px(4276803) ((import tg_xn)):(14) then tg_t_fsize:(14)
-given tg_t_dir given tg_t_pick("none/p.ppm") given tc_t_px(4276803) ((import tg_xn)):(-1)
+  image_pixels_write(address + len(image_header), 0);
+  int bytes_written = fs_save(path, address, len(image_header) + (import sf_l_w) * (import sf_l_h) * 3);
+} return int bytes_written;
+given scratch_directory_make given picked_file_choose("p.ppm") given one_pixel_surface(4276803) ((import picked_path)):(14) then picked_file_size:(14)
+given scratch_directory_make given picked_file_choose("none/p.ppm") given one_pixel_surface(4276803) ((import picked_path)):(-1)

@@ -2,37 +2,37 @@
 // property and the value in the web's spelling (th_css, th_cval).
 //
 // The lines of every node, in node order.
-tc_computed(int[][] ys, int[][] tq, int[] ns) {
-  string[] ls = [];
-  int i = 0;
-  while (i < len(ns)) {
-    tc_crow(ls, tq, ys[ns[i]], i);
-    i = i + 1;
+computed_lines(int[][] styles, int[][] themes, int[] node_records) {
+  string[] line_list = [];
+  int node_index = 0;
+  while (node_index < len(node_records)) {
+    node_computed_lines(line_list, themes, styles[node_records[node_index]], node_index);
+    node_index = node_index + 1;
   }
-} chain (int[][] ys, int[][] tq, int[] ns) {
-  string txt = str_join(ls, "\n") + "\n";
-} return string txt;
-given tc_t_view ((import tc_xy), (import tc_xq), (import tc_xn)):("0|background-color|#fafafa\n0|border-color|#d0d0d0\n0|border-width|1px\n0|padding-top|8px\n0|padding-right|8px\n0|padding-bottom|8px\n0|padding-left|8px\n0|row-gap|4px\n0|column-gap|4px\n0|border-radius|6px\n1|color|#202028\n1|font-size|16px\n1|line-height|22px\n1|font-weight|600\n1|font-family|system-ui, sans-serif\n2|background-color|#2b579a\n2|border-radius|9999px\n")
-given tc_t_view ((import tc_xy), (import tc_xq), [7]):("0|background-color|#2b579a\n0|border-radius|9999px\n")
+} chain (int[][] styles, int[][] themes, int[] node_records) {
+  string document_text = str_join(line_list, "\n") + "\n";
+} return string document_text;
+given rendered_view_fixture ((import view_styles), (import view_themes), (import view_nodes)):("0|background-color|#fafafa\n0|border-color|#d0d0d0\n0|border-width|1px\n0|padding-top|8px\n0|padding-right|8px\n0|padding-bottom|8px\n0|padding-left|8px\n0|row-gap|4px\n0|column-gap|4px\n0|border-radius|6px\n1|color|#202028\n1|font-size|16px\n1|line-height|22px\n1|font-weight|600\n1|font-family|system-ui, sans-serif\n2|background-color|#2b579a\n2|border-radius|9999px\n")
+given rendered_view_fixture ((import view_styles), (import view_themes), [7]):("0|background-color|#2b579a\n0|border-radius|9999px\n")
 
 // The lines of node i, whose style is sy: one per property that has a rank above 0, which is the properties some
 // class or inline value set (the others are what a node inherits or never had).
-tc_crow(string[] ls, int[][] tq, int[] sy, int i) {
-  int[] th = tq[sy[36]];
-  int p = 0;
-  while (p < 18) {
-    tc_cprop(ls, th, sy, i, p);
-    p = p + 1;
+node_computed_lines(string[] line_list, int[][] themes, int[] node_style, int node_index) {
+  int[] theme_values = themes[node_style[36]];
+  int property_index = 0;
+  while (property_index < 18) {
+    property_computed_line(line_list, theme_values, node_style, node_index, property_index);
+    property_index = property_index + 1;
   }
 } return void;
-given tc_t_view ([], (import tc_xq), (import tc_xs), 2):(["2|background-color|#2b579a","2|border-radius|9999px"], (import tc_xq), (import tc_xs), 2)
-given tc_t_view ([], (import tc_xq), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0):([], (import tc_xq), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0)
+given rendered_view_fixture ([], (import view_themes), (import view_last_style), 2):(["2|background-color|#2b579a","2|border-radius|9999px"], (import view_themes), (import view_last_style), 2)
+given rendered_view_fixture ([], (import view_themes), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0):([], (import view_themes), [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0)
 
 // The line of property p of node i, when something set it.
-tc_cprop(string[] ls, int[] th, int[] sy, int i, int p) {
-  if (sy[2 * p + 1] > 0) {
-    push(ls, i + "|" + (import theme_css)[p] + "|" + theme_cval(th, sy, p));
+property_computed_line(string[] line_list, int[] theme_values, int[] node_style, int node_index, int property_index) {
+  if (node_style[2 * property_index + 1] > 0) {
+    push(line_list, node_index + "|" + (import theme_css)[property_index] + "|" + theme_cval(theme_values, node_style, property_index));
   }
 } return void;
-given tc_t_view given idstd_theme_fixture_mk ([], (import idstd_theme_tt), (import tc_xs), 2, 0):(["2|background-color|#2b579a"], (import idstd_theme_tt), (import tc_xs), 2, 0)
-given tc_t_view given idstd_theme_fixture_mk ([], (import idstd_theme_tt), (import tc_xs), 2, 1):([], (import idstd_theme_tt), (import tc_xs), 2, 1)
+given rendered_view_fixture given idstd_theme_fixture_mk ([], (import idstd_theme_tt), (import view_last_style), 2, 0):(["2|background-color|#2b579a"], (import idstd_theme_tt), (import view_last_style), 2, 0)
+given rendered_view_fixture given idstd_theme_fixture_mk ([], (import idstd_theme_tt), (import view_last_style), 2, 1):([], (import idstd_theme_tt), (import view_last_style), 2, 1)

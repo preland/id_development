@@ -1,9 +1,9 @@
 // Looking at the files of one directory for built programs. A visit that finds one
 // adds its row to a list and leaves the list alone otherwise.
 
-// Adds the row for scan_dir/scan_name to scan_hits when that file is a built program.
-scan_visit(string scan_dir, string scan_name, string[] scan_hits) {
-  string scan_path = scan_dir + "/" + scan_name;
+// Adds the row for scan_directory/scan_name to scan_hits when that file is a built program.
+scan_visit(string scan_directory, string scan_name, string[] scan_hits) {
+  string scan_path = scan_directory + "/" + scan_name;
   int scan_good = scan_file(scan_path);
   if (scan_good == 1) {
     int scan_when = fs_mtime(scan_path);
@@ -14,10 +14,10 @@ scan_visit(string scan_dir, string scan_name, string[] scan_hits) {
 ("/bin", "no_such_program", []):("/bin", "no_such_program", [])
 
 // Visits every file name of a directory.
-scan_files(string scan_dir, string[] scan_names, string[] scan_hits) {
+scan_files(string scan_directory, string[] scan_names, string[] scan_hits) {
   int scan_index = 0;
   while (scan_index < len(scan_names)) {
-    scan_visit(scan_dir, scan_names[scan_index], scan_hits);
+    scan_visit(scan_directory, scan_names[scan_index], scan_hits);
     scan_index = scan_index + 1;
   }
 } return void;

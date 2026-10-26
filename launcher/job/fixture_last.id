@@ -1,21 +1,21 @@
 // Test fixture: the kind times 256 plus the code of the last wait this process did.
 
-job_t_last() {
-  int job_t_kind = proc_wait_kind();
-  int job_t_code = proc_wait_code();
-  int job_t_both = job_t_kind * 256 + job_t_code;
-} return int job_t_both;
-given job_t_start("exit 7") given job_t_wait(0) ():(7)
-given job_t_start("kill -9 $$") given job_t_wait(0) ():(265)
+job_test_last() {
+  int job_test_kind = proc_wait_kind();
+  int job_test_code = proc_wait_code();
+  int job_test_both = job_test_kind * 256 + job_test_code;
+} return int job_test_both;
+given job_test_start("exit 7") given job_test_wait(0) ():(7)
+given job_test_start("kill -9 $$") given job_test_wait(0) ():(265)
 
-job_t_flags() {
-  export int[] job_t_marks = [0];
-} return void export job_t_marks;
-():() then (import job_t_marks)[0]:(0)
-():() then len((import job_t_marks)):(1)
+job_test_flags() {
+  export int[] job_test_marks = [0];
+} return void export job_test_marks;
+():() then (import job_test_marks)[0]:(0)
+():() then len((import job_test_marks)):(1)
 
-job_t_settle() {
-  int job_t_slept = clock_sleep_nanoseconds(300000000);
+job_test_settle() {
+  int job_test_slept = clock_sleep_nanoseconds(300000000);
 } return void;
-given job_t_start("exit 1") given job_t_wait(0) ():() then job_t_last:(1)
-given job_t_start("exit 2") given job_t_wait(0) ():() then job_t_last:(2)
+given job_test_start("exit 1") given job_test_wait(0) ():() then job_test_last:(1)
+given job_test_start("exit 2") given job_test_wait(0) ():() then job_test_last:(2)

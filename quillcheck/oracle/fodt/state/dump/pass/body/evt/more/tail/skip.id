@@ -1,30 +1,30 @@
 // While skipping a subtree, the end of the element the skip began at ends it: the skip depth goes back to -1.
-ofd_skipping(OfdAcc owacc, XmlR owr, int owev) {
-  if(owev == 2 && xml_reader_depth(owr) == owacc.st[0]) {
-    owacc.st[0] = 0 - 1;
+fodt_dump_skipping(Accumulator accumulator, XmlR document_reader, int reader_event) {
+  if(reader_event == 2 && xml_reader_depth(document_reader) == accumulator.walk_state[0]) {
+    accumulator.walk_state[0] = 0 - 1;
   }
 } return void;
-given ofd_t_open("<a><b></b></a>") given xml_reader_skip((import ofd_t_r), 3) (OfdAcc([1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 2):(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 2)
-given ofd_t_open("<a><b></b></a>") given xml_reader_skip((import ofd_t_r), 1) (OfdAcc([0, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 2):(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 2)
-given ofd_t_open("<a><b></b></a>") given xml_reader_skip((import ofd_t_r), 3) (OfdAcc([0, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 2):(OfdAcc([0, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 2)
+given fodt_dump_test_open("<a><b></b></a>") given xml_reader_skip((import fodt_dump_test_reader), 3) (Accumulator([1, 0, 0, 0], ["", "", "", "", ""], []), (import fodt_dump_test_reader), 2):(Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], []), (import fodt_dump_test_reader), 2)
+given fodt_dump_test_open("<a><b></b></a>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Accumulator([0, 0, 0, 0], ["", "", "", "", ""], []), (import fodt_dump_test_reader), 2):(Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], []), (import fodt_dump_test_reader), 2)
+given fodt_dump_test_open("<a><b></b></a>") given xml_reader_skip((import fodt_dump_test_reader), 3) (Accumulator([0, 0, 0, 0], ["", "", "", "", ""], []), (import fodt_dump_test_reader), 2):(Accumulator([0, 0, 0, 0], ["", "", "", "", ""], []), (import fodt_dump_test_reader), 2)
 
 // Starts skipping the element the reader is at, with everything inside it, unless it is empty and has nothing inside.
-ofd_skip_start(OfdAcc owacc, XmlR owr, int owev) {
-  if(owev == 1) {
-    owacc.st[0] = xml_reader_depth(owr);
+fodt_dump_skip_start(Accumulator accumulator, XmlR document_reader, int reader_event) {
+  if(reader_event == 1) {
+    accumulator.walk_state[0] = xml_reader_depth(document_reader);
   }
 } return void;
-given ofd_t_open("<a><b/></a>") given xml_reader_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 1):(OfdAcc([0, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 1)
-given ofd_t_open("<a><b/></a>") given xml_reader_skip((import ofd_t_r), 2) (OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 1):(OfdAcc([1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 1)
-given ofd_t_open("<a><b/></a>") given xml_reader_skip((import ofd_t_r), 2) (OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 4):(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 4)
+given fodt_dump_test_open("<a><b/></a>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], []), (import fodt_dump_test_reader), 1):(Accumulator([0, 0, 0, 0], ["", "", "", "", ""], []), (import fodt_dump_test_reader), 1)
+given fodt_dump_test_open("<a><b/></a>") given xml_reader_skip((import fodt_dump_test_reader), 2) (Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], []), (import fodt_dump_test_reader), 1):(Accumulator([1, 0, 0, 0], ["", "", "", "", ""], []), (import fodt_dump_test_reader), 1)
+given fodt_dump_test_open("<a><b/></a>") given xml_reader_skip((import fodt_dump_test_reader), 2) (Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], []), (import fodt_dump_test_reader), 4):(Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], []), (import fodt_dump_test_reader), 4)
 
 // An opaque block, such as a table: one "para N opaque" line, and its subtree is skipped.
-ofd_opaque(OfdAcc owacc, XmlR owr, int owev) {
-  string[] owlss = owacc.ss;
-  owlss[3] = owlss[3] + "\npara " + owacc.st[3] + " opaque";
-  owacc.st[3] = owacc.st[3] + 1;
-} chain (OfdAcc owacc, XmlR owr, int owev) {
-  ofd_skip_start(owacc, owr, owev);
+fodt_dump_opaque_block(Accumulator accumulator, XmlR document_reader, int reader_event) {
+  string[] string_slots = accumulator.slot_strings;
+  string_slots[3] = string_slots[3] + "\npara " + accumulator.walk_state[3] + " opaque";
+  accumulator.walk_state[3] = accumulator.walk_state[3] + 1;
+} chain (Accumulator accumulator, XmlR document_reader, int reader_event) {
+  fodt_dump_skip_start(accumulator, document_reader, reader_event);
 } return void;
-given ofd_t_open("<table:table><x/></table:table>") given xml_reader_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 0, 2], ["", "", "", "\nA", ""], []), (import ofd_t_r), 1):(OfdAcc([0, 0, 0, 3], ["", "", "", "\nA\npara 2 opaque", ""], []), (import ofd_t_r), 1)
-given ofd_t_open("<table:table/>") given xml_reader_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), (import ofd_t_r), 4):(OfdAcc([-1, 0, 0, 1], ["", "", "", "\npara 0 opaque", ""], []), (import ofd_t_r), 4)
+given fodt_dump_test_open("<table:table><x/></table:table>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Accumulator([-1, 0, 0, 2], ["", "", "", "\nA", ""], []), (import fodt_dump_test_reader), 1):(Accumulator([0, 0, 0, 3], ["", "", "", "\nA\npara 2 opaque", ""], []), (import fodt_dump_test_reader), 1)
+given fodt_dump_test_open("<table:table/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], []), (import fodt_dump_test_reader), 4):(Accumulator([-1, 0, 0, 1], ["", "", "", "\npara 0 opaque", ""], []), (import fodt_dump_test_reader), 4)

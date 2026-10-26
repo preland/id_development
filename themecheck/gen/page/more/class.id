@@ -1,14 +1,14 @@
 // The class strings of the swatches.
 //
-// The classes of spacing form fm (0 to 3) at step stp: the families of tg_forms, three to a form, the third being
+// The classes of spacing form spacing_form (0 to 3) at step spacing_step: the families of tg_forms, three to a form, the third being
 // -1 for a form with only two.
-tg_sp(int stp, int fm) {
-  int[] fa = (import tg_forms);
-  string cl = theme_cname(fa[3 * fm], stp) + " " + theme_cname(fa[3 * fm + 1], stp);
-  if (fa[3 * fm + 2] >= 0) {
-    cl = cl + " " + theme_cname(fa[3 * fm + 2], stp);
+spacing_classes(int spacing_step, int spacing_form) {
+  int[] form_families = (import tg_forms);
+  string class_names = theme_cname(form_families[3 * spacing_form], spacing_step) + " " + theme_cname(form_families[3 * spacing_form + 1], spacing_step);
+  if (form_families[3 * spacing_form + 2] >= 0) {
+    class_names = class_names + " " + theme_cname(form_families[3 * spacing_form + 2], spacing_step);
   }
-} return string cl;
+} return string class_names;
 (0, 0):("p-0 gap-y-0")
 (5, 1):("px-2.5 pt-2.5 gap-x-2.5")
 (12, 2):("py-12 pr-12 gap-12")
@@ -16,12 +16,12 @@ tg_sp(int stp, int fm) {
 
 // The value a spacing form takes from its parity: forms 0 and 2 take the even value, 1 and 3 the odd one. The swatch's container
 // is Col or Row, and its two kids each take half of the content along the main axis.
-tg_pick(int fm, string tg_even, string tg_odd) {
-  string tg_v = tg_even;
-  if (fm % 2 == 1) {
-    tg_v = tg_odd;
+parity_pick(int spacing_form, string even_value, string odd_value) {
+  string picked_value = even_value;
+  if (spacing_form % 2 == 1) {
+    picked_value = odd_value;
   }
-} return string tg_v;
+} return string picked_value;
 (0, "Col", "Row"):("Col")
 (3, "Col", "Row"):("Row")
 (0, "Kid()[50,100,top-left]{}|Kid()[50,100,top-left]{}", "Kid()[100,50,top-left]{}|Kid()[100,50,top-left]{}"):("Kid()[50,100,top-left]{}|Kid()[50,100,top-left]{}")

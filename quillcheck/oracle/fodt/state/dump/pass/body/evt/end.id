@@ -1,23 +1,23 @@
 // The list level of a paragraph: inside a text:list its nesting depth less one, at most 2; outside one, 0.
-ofd_plevel(OfdAcc owacc) {
-  int owlevel = 0;
-  if(owacc.st[1] > 0) {
-    owlevel = fixed_point_minimum(owacc.st[1] - 1, 2);
+fodt_dump_paragraph_level(Accumulator accumulator) {
+  int list_level = 0;
+  if(accumulator.walk_state[1] > 0) {
+    list_level = fixed_point_minimum(accumulator.walk_state[1] - 1, 2);
   }
-} return int owlevel;
-(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], [])):(0)
-(OfdAcc([-1, 2, 1, 0], ["", "", "", "", ""], [])):(1)
-(OfdAcc([-1, 5, 1, 0], ["", "", "", "", ""], [])):(2)
+} return int list_level;
+(Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], [])):(0)
+(Accumulator([-1, 2, 1, 0], ["", "", "", "", ""], [])):(1)
+(Accumulator([-1, 5, 1, 0], ["", "", "", "", ""], [])):(2)
 
 // Ends a paragraph: its records, the head and the runs, are added to the dump text, the paragraph count goes up and the accumulator is no longer in a paragraph.
-ofd_pend(OfdSty owst, OfdAcc owacc) {
-  string owlist = ofd_plist(owst, owacc);
-  string owsh = ofd_phead(owst, owacc.ss[0], owlist, ofd_plevel(owacc), owacc.st[3]);
-  string[] owlss = owacc.ss;
-} chain (OfdSty owst, OfdAcc owacc) {
-  owlss[3] = owlss[3] + "\n" + owsh + ofd_runs(owacc);
-  owacc.st[3] = owacc.st[3] + 1;
-  owacc.st[2] = 0;
+fodt_dump_paragraph_end(Catalog style_store, Accumulator accumulator) {
+  string list_style = fodt_dump_paragraph_list(style_store, accumulator);
+  string head_text = fodt_dump_paragraph_head(style_store, accumulator.slot_strings[0], list_style, fodt_dump_paragraph_level(accumulator), accumulator.walk_state[3]);
+  string[] string_slots = accumulator.slot_strings;
+} chain (Catalog style_store, Accumulator accumulator) {
+  string_slots[3] = string_slots[3] + "\n" + head_text + fodt_dump_run_records(accumulator);
+  accumulator.walk_state[3] = accumulator.walk_state[3] + 1;
+  accumulator.walk_state[2] = 0;
 } return void;
-(OfdSty(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:Standard", "", "", "", ""], ["b=0", "x"])):(OfdSty(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), OfdAcc([-1, 0, 0, 1], ["p:Standard", "", "", "\npara 0 style=\"Normal\" align=- left=- right=- first=- before=- after=- line=- brk=0 level=0 list=-\nrun b=0 text=\"x\"", ""], ["b=0", "x"]))
-(OfdSty(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), OfdAcc([-1, 0, 1, 1], ["p:Standard", "", "", "\nA", ""], [])):(OfdSty(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), OfdAcc([-1, 0, 0, 2], ["p:Standard", "", "", "\nA\npara 1 style=\"Normal\" align=- left=- right=- first=- before=- after=- line=- brk=0 level=0 list=-", ""], []))
+(Catalog(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), Accumulator([-1, 0, 1, 0], ["p:Standard", "", "", "", ""], ["b=0", "x"])):(Catalog(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), Accumulator([-1, 0, 0, 1], ["p:Standard", "", "", "\npara 0 style=\"Normal\" align=- left=- right=- first=- before=- after=- line=- brk=0 level=0 list=-\nrun b=0 text=\"x\"", ""], ["b=0", "x"]))
+(Catalog(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), Accumulator([-1, 0, 1, 1], ["p:Standard", "", "", "\nA", ""], [])):(Catalog(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), Accumulator([-1, 0, 0, 2], ["p:Standard", "", "", "\nA\npara 1 style=\"Normal\" align=- left=- right=- first=- before=- after=- line=- brk=0 level=0 list=-", ""], []))

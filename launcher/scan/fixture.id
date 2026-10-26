@@ -1,25 +1,25 @@
 // Test fixtures for the scan's cases: an open handle on idstd's scratch file, and a
 // helper that writes a word into a byte list.
 
-scan_t_open() {
-  int scan_t_h = fs_open((import idstd_fs_fixture_path), "r");
-  export int scan_t_handle = scan_t_h;
-} return void export scan_t_handle;
-given idstd_fs_fixture_file ([1, 2]) ():() then scan_t_size:(2)
-given idstd_fs_fixture_file ([]) ():() then scan_t_size:(0)
+scan_test_open() {
+  int scan_test_opened = fs_open((import idstd_fs_fixture_path), "r");
+  export int scan_test_handle = scan_test_opened;
+} return void export scan_test_handle;
+given idstd_fs_fixture_file ([1, 2]) ():() then scan_test_size:(2)
+given idstd_fs_fixture_file ([]) ():() then scan_test_size:(0)
 
-scan_t_size() {
-  int[] scan_t_read = scan_chunk((import scan_t_handle));
-  int scan_t_amount = len(scan_t_read);
-} return int scan_t_amount;
-given idstd_fs_fixture_file ([1, 2, 3]) given scan_t_open ():(3)
-given idstd_fs_fixture_file ([9]) given scan_t_open ():(1)
+scan_test_size() {
+  int[] scan_test_read = scan_chunk((import scan_test_handle));
+  int scan_test_amount = len(scan_test_read);
+} return int scan_test_amount;
+given idstd_fs_fixture_file ([1, 2, 3]) given scan_test_open ():(3)
+given idstd_fs_fixture_file ([9]) given scan_test_open ():(1)
 
-scan_t_plant(int[] scan_t_cells, int scan_t_at, string scan_t_word) {
-  int scan_t_k = 0;
-  while (scan_t_at >= 0 && scan_t_k < len(scan_t_word)) {
-    scan_t_cells[scan_t_at + scan_t_k] = character_code_at(scan_t_word, scan_t_k);
-    scan_t_k = scan_t_k + 1;
+scan_test_plant(int[] scan_test_cells, int scan_test_at, string scan_test_word) {
+  int scan_test_offset = 0;
+  while (scan_test_at >= 0 && scan_test_offset < len(scan_test_word)) {
+    scan_test_cells[scan_test_at + scan_test_offset] = character_code_at(scan_test_word, scan_test_offset);
+    scan_test_offset = scan_test_offset + 1;
   }
 } return void;
 ([65, 65, 65, 65], 1, "xy"):([65, 120, 121, 65], 1, "xy")

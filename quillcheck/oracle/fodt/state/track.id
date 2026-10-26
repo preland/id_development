@@ -1,10 +1,10 @@
 // Turns the body flag on at the <office:text> line and off at its end tag.
-ofodt_flag(string line, int[] st) {
-  if (ofodt_opens(line, "<office:text") == 1) {
-    st[(import s_body)] = 1;
+fodt_flag(string line, int[] walk_state) {
+  if (fodt_opens(line, "<office:text") == 1) {
+    walk_state[(import s_body)] = 1;
   }
   if (str_starts(line, "</office:text>") == 1) {
-    st[(import s_body)] = 0;
+    walk_state[(import s_body)] = 0;
   }
 } return void;
 ("<office:text>", [0, 0, 0, 0]):("<office:text>", [1, 0, 0, 0])
@@ -12,18 +12,18 @@ ofodt_flag(string line, int[] st) {
 ("<text:p>", [1, 0, 0, 0]):("<text:p>", [1, 0, 0, 0])
 
 // Updates the walker's state for one trimmed line.
-ofodt_track(string line, int[] st) {
-  ofodt_flag(line, st);
-  ofodt_depth(line, st);
+fodt_track(string line, int[] walk_state) {
+  fodt_flag(line, walk_state);
+  fodt_depth(line, walk_state);
 } return void;
 ("<office:text>", [0, 0, 0, 0]):("<office:text>", [1, 0, 0, 0])
 ("<text:list>", [1, 0, 0, 0]):("<text:list>", [1, 1, 0, 0])
 
 // One line of the fodt: its record is emitted against the state the line found, then the state moves on.
-ofodt_step(string line, int[] st, string[] recs) {
+fodt_step(string line, int[] walk_state, string[] records) {
   string trimmed = str_trim(line);
-  ofodt_emit(trimmed, st, recs);
-  ofodt_track(trimmed, st);
+  fodt_emit(trimmed, walk_state, records);
+  fodt_track(trimmed, walk_state);
 } return void;
 ("   <text:p>Hi</text:p>", [1, 0, 0, 0], []):("   <text:p>Hi</text:p>", [1, 0, 0, 0], ["p:Hi"])
 ("  <text:p>Hi</text:p>", [1, 2, 0, 0], []):("  <text:p>Hi</text:p>", [1, 2, 0, 0], ["li2:Hi"])

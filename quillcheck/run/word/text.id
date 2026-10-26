@@ -1,46 +1,46 @@
 // The --text lane: runs the quill binary on the fixture and compares what it prints with the paragraph text of the fodt that soffice wrote from the same file (the txt export is not the oracle: it carries a byte-order mark, list labels, and table cells joined by tabs). 1 equal, 0 different (the first difference goes to stderr), 2 when the binary does not exist.
-wlane_text(string wbin, string root, string src, string stem) {
-  int[] sout = [];
-  int code = wlane_exec(wbin, (import text_mode), src, sout);
-  string said = exec_text(sout);
-} chain (string wbin, string root, string src, string stem) {
-  string norm = ofodt_norm_file(lane_out(root, stem, (import r_fodt)));
-  string wanted = ofodt_lines(norm);
-  int v = wlane_cmp(code, said, wanted);
-} chain (string wbin, string root, string src, string stem) {
-  if (v == (import lane_fail)) {
-    wlane_diff(said, wanted, code);
+quill_lane_text(string quill_binary_path, string root, string source_path, string stem) {
+  int[] output_bytes = [];
+  int code = quill_lane_exec(quill_binary_path, (import text_mode), source_path, output_bytes);
+  string said = exec_text(output_bytes);
+} chain (string quill_binary_path, string root, string source_path, string stem) {
+  string norm = fodt_norm_file(lane_out(root, stem, (import r_fodt)));
+  string wanted = fodt_lines(norm);
+  int verdict = quill_lane_compare(code, said, wanted);
+} chain (string quill_binary_path, string root, string source_path, string stem) {
+  if (verdict == (import lane_fail)) {
+    quill_lane_diff(said, wanted, code);
   }
-} return int v;
-given wlane_t_script("printf 'A4 portrait, 21 by 29.7 cm, margins 2 cm.\\nUS Letter portrait, 8.5 by 11 in, margins 2 cm.\\nA4 landscape, 29.7 by 21 cm, margins 2 cm.\\n'") ((import wl_script), "../quillcorpus/oracle", "x.odt", "07_pages"):(1) then wlane_t_gone:(0)
-given wlane_t_script("echo 'A4 portrait, 21 by 29.7 cm, margins 2 cm.'") ((import wl_script), "../quillcorpus/oracle", "x.odt", "07_pages"):(0) then eprints:("quillcheck: quill --text (exit 0) differs from the fodt at paragraph 2: quill printed '', the fodt has 'US Letter portrait, 8.5 by 11 in, margins 2 cm.'; fix the ODT reader (quill/io/odt/read/content), or the fodt walker (quillcheck/oracle/fodt) when the fodt is the one that is wrong\n") then wlane_t_gone:(0)
+} return int verdict;
+given quill_lane_test_script("printf 'A4 portrait, 21 by 29.7 cm, margins 2 cm.\\nUS Letter portrait, 8.5 by 11 in, margins 2 cm.\\nA4 landscape, 29.7 by 21 cm, margins 2 cm.\\n'") ((import wl_script), "../quillcorpus/oracle", "x.odt", "07_pages"):(1) then quill_lane_test_gone:(0)
+given quill_lane_test_script("echo 'A4 portrait, 21 by 29.7 cm, margins 2 cm.'") ((import wl_script), "../quillcorpus/oracle", "x.odt", "07_pages"):(0) then eprints:("quillcheck: quill --text (exit 0) differs from the fodt at paragraph 2: quill printed '', the fodt has 'US Letter portrait, 8.5 by 11 in, margins 2 cm.'; fix the ODT reader (quill/io/odt/read/content), or the fodt walker (quillcheck/oracle/fodt) when the fodt is the one that is wrong\n") then quill_lane_test_gone:(0)
 ("/nonexistent/word", "../quillcorpus/oracle", "x.odt", "07_pages"):(2)
 
 // Runs the quill binary in one mode on one file and answers its exit status (127 for a binary that does not exist); its standard output is appended to sout.
-wlane_exec(string wbin, string wmode, string src, int[] sout) {
-  string cmd = wbin + "\n" + wmode + "\n" + src + "\n";
+quill_lane_exec(string quill_binary_path, string lane_mode, string source_path, int[] output_bytes) {
+  string command_lines = quill_binary_path + "\n" + lane_mode + "\n" + source_path + "\n";
   int[] sin = [];
-  int[] serr = [];
-} chain (string wbin, string wmode, string src, int[] sout) {
-  int code = exec_run(cmd, 0, 0, sin, sout, serr, (import quill_timeout_milliseconds));
+  int[] error_bytes = [];
+} chain (string quill_binary_path, string lane_mode, string source_path, int[] output_bytes) {
+  int code = exec_run(command_lines, 0, 0, sin, output_bytes, error_bytes, (import quill_timeout_milliseconds));
 } return int code;
 ("echo", "-n", "x.odt", []):(0)
 ("/nonexistent/word", "--text", "x.odt", []):(127)
 
 // The --pages lane: runs the quill binary with --pages on the fixture and compares the page count on its first line with want, the page count of soffice's pdf of the same file, within pages_tol pages (lane_pages_cmp): 1 within, 0 not, with the printed line on stderr, 2 when the binary does not exist, 3 for a fixture the model cannot lay out as soffice does yet.
-wlane_pages(string wbin, string src, int want, int n) {
-  int[] sout = [];
-  int code = wlane_exec(wbin, (import pages_mode), src, sout);
-  string said = exec_text(sout);
-} chain (string wbin, string src, int want, int n) {
-  int v = lane_pages_cmp(code, said, want, n);
-  int e = str_eol(said, 0);
-  string first = str_sub(said, 0, e);
-} chain (string wbin, string src, int want, int n) {
-  if (v == (import lane_fail)) {
+quill_lane_pages(string quill_binary_path, string source_path, int want, int fixture_number) {
+  int[] output_bytes = [];
+  int code = quill_lane_exec(quill_binary_path, (import pages_mode), source_path, output_bytes);
+  string said = exec_text(output_bytes);
+} chain (string quill_binary_path, string source_path, int want, int fixture_number) {
+  int verdict = lane_pages_compare(code, said, want, fixture_number);
+  int printed_line_end = str_eol(said, 0);
+  string first = str_sub(said, 0, printed_line_end);
+} chain (string quill_binary_path, string source_path, int want, int fixture_number) {
+  if (verdict == (import lane_fail)) {
     eprint("quillcheck: quill --pages (exit " + code + ") printed '" + first + "', soffice's pdf has " + want + " pages, more than " + (import pages_tol) + " apart; fix the layout in quill/core/lay (line height, margins, page breaks), or the page count read by quillcheck/oracle/pdf when the pdf is the one that is wrong");
   }
-} return int v;
-given wlane_t_script("echo 'pages 20'") ((import wl_script), "x.odt", 20, 8):(1) then wlane_t_gone:(0)
-given wlane_t_script("echo 'pages 5'") ((import wl_script), "x.odt", 20, 8):(0) then eprints:("quillcheck: quill --pages (exit 0) printed 'pages 5', soffice's pdf has 20 pages, more than 1 apart; fix the layout in quill/core/lay (line height, margins, page breaks), or the page count read by quillcheck/oracle/pdf when the pdf is the one that is wrong\n") then wlane_t_gone:(0)
+} return int verdict;
+given quill_lane_test_script("echo 'pages 20'") ((import wl_script), "x.odt", 20, 8):(1) then quill_lane_test_gone:(0)
+given quill_lane_test_script("echo 'pages 5'") ((import wl_script), "x.odt", 20, 8):(0) then eprints:("quillcheck: quill --pages (exit 0) printed 'pages 5', soffice's pdf has 20 pages, more than 1 apart; fix the layout in quill/core/lay (line height, margins, page breaks), or the page count read by quillcheck/oracle/pdf when the pdf is the one that is wrong\n") then quill_lane_test_gone:(0)
 ("/nonexistent/word", "x.odt", 3, 8):(2)

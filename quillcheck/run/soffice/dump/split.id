@@ -1,27 +1,27 @@
 // The tokens of a dump line: the record word and every "key=value" pair, a quoted value kept whole with its quotes.
-ofd_tokens(string owline) {
-  string[] owlt = [];
-  int owi = 0;
-  while(character_code_at(owline, owi) >= 0) {
-    owi = ofd_tpush(owlt, owline, owi);
+fodt_dump_tokens(string dump_line) {
+  string[] token_list = [];
+  int token_cursor = 0;
+  while(character_code_at(dump_line, token_cursor) >= 0) {
+    token_cursor = fodt_dump_token_push(token_list, dump_line, token_cursor);
   }
-} return string[] owlt;
+} return string[] token_list;
 ("para 3 style=\"A B\" x=-"):(["para", "3", "style=\"A B\"", "x=-"])
 (""):([])
 
 // Adds the token that starts at or after index owi (past spaces) of a dump line to the list and answers the index after it.
-ofd_tpush(string[] owlt, string owline, int owi) {
-  int owa = owi;
-  while(character_code_at(owline, owa) == 32) {
-    owa = owa + 1;
+fodt_dump_token_push(string[] token_list, string dump_line, int resume_position) {
+  int token_start = resume_position;
+  while(character_code_at(dump_line, token_start) == 32) {
+    token_start = token_start + 1;
   }
-  int owe = ofd_tend(owline, owa);
-} chain (string[] owlt, string owline, int owi) {
-  if(character_code_at(owline, owa) >= 0) {
-    push(owlt, str_sub(owline, owa, owe - owa));
+  int owe = fodt_dump_token_end(dump_line, token_start);
+} chain (string[] token_list, string dump_line, int resume_position) {
+  if(character_code_at(dump_line, token_start) >= 0) {
+    push(token_list, str_sub(dump_line, token_start, owe - token_start));
   }
-  if(character_code_at(owline, owa) < 0) {
-    owe = len(owline);
+  if(character_code_at(dump_line, token_start) < 0) {
+    owe = len(dump_line);
   }
 } return int owe;
 ([], "a=1 b", 0):(3)
@@ -29,13 +29,13 @@ ofd_tpush(string[] owlt, string owline, int owi) {
 ([], "   ", 0):(3)
 
 // The value of a token: its text after its first "=", the whole token when it has none.
-ofd_after(string owx) {
-  int owik = str_find(owx, "=");
-  string owv = owx;
-  if(owik >= 0) {
-    owv = str_sub(owx, owik + 1, len(owx) - owik - 1);
+fodt_dump_token_value(string whole_token) {
+  int equals_index = str_find(whole_token, "=");
+  string value_text = whole_token;
+  if(equals_index >= 0) {
+    value_text = str_sub(whole_token, equals_index + 1, len(whole_token) - equals_index - 1);
   }
-} return string owv;
+} return string value_text;
 ("a=1"):("1")
 ("b=\"x=y\""):("\"x=y\"")
 ("run"):("run")

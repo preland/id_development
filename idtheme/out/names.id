@@ -1,40 +1,40 @@
 // The names of the classes, for the files that list them (the guard exemption idml reads).
 //
 // The name of every class of family f, in token order.
-it_fnames(string[] out, int f) {
-  int k = 0;
-  while (len(theme_cname(f, k)) > 0) {
-    push(out, theme_cname(f, k));
-    k = k + 1;
+it_family_names(string[] out, int family_index) {
+  int class_index = 0;
+  while (len(theme_cname(family_index, class_index)) > 0) {
+    push(out, theme_cname(family_index, class_index));
+    class_index = class_index + 1;
   }
 } return void;
 ([], 3):(["border-0", "border", "border-2"], 3)
 ([], 19):(["ease-standard"], 19)
 
 // The name of every class there is, family by family.
-it_cnames(string[] out) {
-  int f = 0;
-  while (f < len((import idstd_tt_fpre))) {
-    it_fnames(out, f);
-    f = f + 1;
+it_class_names(string[] out) {
+  int family_index = 0;
+  while (family_index < len((import idstd_tt_fpre))) {
+    it_family_names(out, family_index);
+    family_index = family_index + 1;
   }
 } return void;
-given it_t_out ((import it_xo)):() then len((import it_xo)):(244) then (import it_xo)[0]:("bg-window") then (import it_xo)[243]:("ease-standard")
-given it_t_out ((import it_xo)):() then (import it_xo)[84]:("border-0") then (import it_xo)[232]:("rounded-lg")
+given it_test_output ((import it_scratch_rules)):() then len((import it_scratch_rules)):(244) then (import it_scratch_rules)[0]:("bg-window") then (import it_scratch_rules)[243]:("ease-standard")
+given it_test_output ((import it_scratch_rules)):() then (import it_scratch_rules)[84]:("border-0") then (import it_scratch_rules)[232]:("rounded-lg")
 
 // The class names as a JSON array, one to a line, for a tool that wants the list as data.
-it_cjson(string[] out) {
+it_class_names_json(string[] out) {
   string[] names = [];
-  it_cnames(names);
+  it_class_names(names);
   push(out, "[");
 } chain (string[] out) {
-  int i = 0;
-  while (i < len(names)) {
-    string cm = it_comma(i, len(names));
-    push(out, "  \"" + names[i] + "\"" + cm);
-    i = i + 1;
+  int json_name_index = 0;
+  while (json_name_index < len(names)) {
+    string comma_text = it_comma(json_name_index, len(names));
+    push(out, "  \"" + names[json_name_index] + "\"" + comma_text);
+    json_name_index = json_name_index + 1;
   }
   push(out, "]");
 } return void;
-given it_t_out ((import it_xo)):() then len((import it_xo)):(246) then (import it_xo)[0]:("[") then (import it_xo)[1]:("  \"bg-window\",") then (import it_xo)[244]:("  \"ease-standard\"")
-given it_t_out ((import it_xo)):() then (import it_xo)[245]:("]")
+given it_test_output ((import it_scratch_rules)):() then len((import it_scratch_rules)):(246) then (import it_scratch_rules)[0]:("[") then (import it_scratch_rules)[1]:("  \"bg-window\",") then (import it_scratch_rules)[244]:("  \"ease-standard\"")
+given it_test_output ((import it_scratch_rules)):() then (import it_scratch_rules)[245]:("]")

@@ -4,12 +4,12 @@
 //
 // Kind 0: a colour swatch, which sets a background, a border width, a border colour and a text colour, the three
 // colours being three different roles so that no two classes agree by accident.
-tg_sw0(string[] defs, string[] names, string[] kids, string[] sts, int j) {
-  string c1 = theme_cname(0, j) + " " + theme_cname(3, 1);
-  string c2 = theme_cname(2, (j + 7) % tg_n(0)) + " " + theme_cname(1, (j + 14) % tg_n(0));
-  push(defs, "C" + j + ":Col `" + c1 + "`\n  `" + c2 + "`{}");
-} chain (string[] defs, string[] names, string[] kids, string[] sts, int j) {
-  push(names, "C" + j);
+color_swatch_add(string[] definitions, string[] names, string[] kids, string[] state_lines, int swatch_index) {
+  string first_classes = theme_cname(0, swatch_index) + " " + theme_cname(3, 1);
+  string second_classes = theme_cname(2, (swatch_index + 7) % family_token_count(0)) + " " + theme_cname(1, (swatch_index + 14) % family_token_count(0));
+  push(definitions, "C" + swatch_index + ":Col `" + first_classes + "`\n  `" + second_classes + "`{}");
+} chain (string[] definitions, string[] names, string[] kids, string[] state_lines, int swatch_index) {
+  push(names, "C" + swatch_index);
   push(kids, "");
 } return void;
 ([], [], [], [], 0):(["C0:Col `bg-window border`\n  `border-selection text-accent`{}"], ["C0"], [""], [], 0)
@@ -18,14 +18,14 @@ tg_sw0(string[] defs, string[] names, string[] kids, string[] sts, int j) {
 // Kind 1: a spacing swatch, four to a step. The first sets the padding on all sides and the gap between rows, the
 // second the horizontal padding, the top padding and the gap between columns, the third the vertical padding, the
 // right padding and both gaps, the fourth the bottom and left padding; two kids in each show what they did.
-tg_sw1(string[] defs, string[] names, string[] kids, string[] sts, int j) {
-  int stp = j / 4;
-  int fm = j % 4;
-  string cl = tg_sp(stp, fm);
-} chain (string[] defs, string[] names, string[] kids, string[] sts, int j) {
-  push(defs, "P" + j + ":" + tg_pick(fm, "Col", "Row") + " `bg-surface-sunken " + cl + "`{}");
-  push(names, "P" + j);
-  push(kids, tg_pick(fm, "Kid()[50,100,top-left]{}|Kid()[50,100,top-left]{}", "Kid()[100,50,top-left]{}|Kid()[100,50,top-left]{}"));
+spacing_swatch_add(string[] definitions, string[] names, string[] kids, string[] state_lines, int swatch_index) {
+  int spacing_step = swatch_index / 4;
+  int spacing_form = swatch_index % 4;
+  string class_names = spacing_classes(spacing_step, spacing_form);
+} chain (string[] definitions, string[] names, string[] kids, string[] state_lines, int swatch_index) {
+  push(definitions, "P" + swatch_index + ":" + parity_pick(spacing_form, "Col", "Row") + " `bg-surface-sunken " + class_names + "`{}");
+  push(names, "P" + swatch_index);
+  push(kids, parity_pick(spacing_form, "Kid()[50,100,top-left]{}|Kid()[50,100,top-left]{}", "Kid()[100,50,top-left]{}|Kid()[100,50,top-left]{}"));
 } return void;
 ([], [], [], [], 0):(["P0:Col `bg-surface-sunken p-0 gap-y-0`{}"], ["P0"], ["Kid()[50,100,top-left]{}|Kid()[50,100,top-left]{}"], [], 0)
 ([], [], [], [], 5):(["P5:Row `bg-surface-sunken px-0.5 pt-0.5 gap-x-0.5`{}"], ["P5"], ["Kid()[100,50,top-left]{}|Kid()[100,50,top-left]{}"], [], 5)
@@ -33,13 +33,13 @@ tg_sw1(string[] defs, string[] names, string[] kids, string[] sts, int j) {
 
 // Kind 2: a type swatch: a style (text-caption to text-code), a weight on the body style, or a text long enough to
 // wrap, in a box with padding, as a Text variant under a Col.
-tg_sw2(string[] defs, string[] names, string[] kids, string[] sts, int j) {
-  string tw = tg_tx(j);
-  string cl = tg_tcl(j);
-  push(defs, "S" + j + ":Col `bg-surface-raised p-2`{}\nT" + j + ":Text(\"" + tw + "\") `" + cl + "`");
-} chain (string[] defs, string[] names, string[] kids, string[] sts, int j) {
-  push(names, "S" + j);
-  push(kids, "T" + j + "()[100,100,top-left]{}");
+type_swatch_add(string[] definitions, string[] names, string[] kids, string[] state_lines, int swatch_index) {
+  string swatch_words = type_swatch_words(swatch_index);
+  string class_names = type_swatch_classes(swatch_index);
+  push(definitions, "S" + swatch_index + ":Col `bg-surface-raised p-2`{}\nT" + swatch_index + ":Text(\"" + swatch_words + "\") `" + class_names + "`");
+} chain (string[] definitions, string[] names, string[] kids, string[] state_lines, int swatch_index) {
+  push(names, "S" + swatch_index);
+  push(kids, "T" + swatch_index + "()[100,100,top-left]{}");
 } return void;
 ([], [], [], [], 0):(["S0:Col `bg-surface-raised p-2`{}\nT0:Text(\"Sphinx of black quartz\") `text-label text-caption`"], ["S0"], ["T0()[100,100,top-left]{}"], [], 0)
 ([], [], [], [], 8):(["S8:Col `bg-surface-raised p-2`{}\nT8:Text(\"Sphinx of black quartz\") `text-body text-label font-normal`"], ["S8"], ["T8()[100,100,top-left]{}"], [], 8)

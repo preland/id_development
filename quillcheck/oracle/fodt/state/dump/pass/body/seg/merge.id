@@ -1,39 +1,39 @@
 // An empty accumulator: no skipping, no list, no paragraph, and the five strings empty.
-ofd_acc_new() {
-  int[] owlcnt = [0 - 1, 0, 0, 0];
-  string[] owlss = ["", "", "", "", ""];
-  string[] owlsg = [];
+fodt_dump_accumulator_new() {
+  int[] start_counters = [0 - 1, 0, 0, 0];
+  string[] string_slots = ["", "", "", "", ""];
+  string[] run_segments = [];
 } chain () {
-  OfdAcc owacc = OfdAcc(owlcnt, owlss, owlsg);
-} return OfdAcc owacc;
-():(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []))
-given ofd_t_open("<a/>") ():(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []))
+  Accumulator accumulator = Accumulator(start_counters, string_slots, run_segments);
+} return Accumulator accumulator;
+():(Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], []))
+given fodt_dump_test_open("<a/>") ():(Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], []))
 
 // Adds a piece of text with its printed properties to the current paragraph's merged runs: a piece with the properties of the last one extends it, any other starts a new run.
-ofd_seg(OfdAcc owacc, string owsig, string owtext) {
-  int owi = len(owacc.sg) - 2;
-  string[] owlsg = owacc.sg;
-  int owsame = owi >= 0 && owlsg[owi] == owsig;
-} chain (OfdAcc owacc, string owsig, string owtext) {
-  if(owsame == 1) {
-    owlsg[owi + 1] = owlsg[owi + 1] + owtext;
+fodt_dump_segment(Accumulator accumulator, string run_signature, string run_text) {
+  int signature_index = len(accumulator.segment_strings) - 2;
+  string[] run_segments = accumulator.segment_strings;
+  int same_signature = signature_index >= 0 && run_segments[signature_index] == run_signature;
+} chain (Accumulator accumulator, string run_signature, string run_text) {
+  if(same_signature == 1) {
+    run_segments[signature_index + 1] = run_segments[signature_index + 1] + run_text;
   }
-  if(owsame == 0) {
-    list_string_extend(owlsg, [owsig, owtext]);
+  if(same_signature == 0) {
+    list_string_extend(run_segments, [run_signature, run_text]);
   }
 } return void;
-(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], []), "a", "x"):(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], ["a", "x"]), "a", "x")
-(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], ["a", "x"]), "a", "y"):(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], ["a", "xy"]), "a", "y")
-(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], ["a", "x"]), "b", "y"):(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], ["a", "x", "b", "y"]), "b", "y")
+(Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], []), "a", "x"):(Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], ["a", "x"]), "a", "x")
+(Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], ["a", "x"]), "a", "y"):(Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], ["a", "xy"]), "a", "y")
+(Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], ["a", "x"]), "b", "y"):(Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], ["a", "x", "b", "y"]), "b", "y")
 
 // The run records of the current paragraph, each on a line of its own after a line feed: "run" and the printed properties, then the text in quotes.
-ofd_runs(OfdAcc owacc) {
-  string owout = "";
-  int owi = 0;
-  while(owi < len(owacc.sg)) {
-    owout = owout + "\nrun " + owacc.sg[owi] + " text=" + string_quote(owacc.sg[owi + 1]);
-    owi = owi + 2;
+fodt_dump_run_records(Accumulator accumulator) {
+  string result_text = "";
+  int run_cursor = 0;
+  while(run_cursor < len(accumulator.segment_strings)) {
+    result_text = result_text + "\nrun " + accumulator.segment_strings[run_cursor] + " text=" + string_quote(accumulator.segment_strings[run_cursor + 1]);
+    run_cursor = run_cursor + 2;
   }
-} return string owout;
-(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], ["b=0", "hi", "b=1", "!"])):("\nrun b=0 text=\"hi\"\nrun b=1 text=\"!\"")
-(OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], [])):("")
+} return string result_text;
+(Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], ["b=0", "hi", "b=1", "!"])):("\nrun b=0 text=\"hi\"\nrun b=1 text=\"!\"")
+(Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], [])):("")

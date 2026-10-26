@@ -1,27 +1,27 @@
 // The index after the closing quote of a quoted value whose first character after the opening quote is at owi; a backslash escapes the character after it.
-ofd_qend(string owline, int owi) {
-  int owe = owi;
-  while(character_code_at(owline, owe) >= 0 && character_code_at(owline, owe) != 34) {
-    owe = owe + 1 + (character_code_at(owline, owe) == 92);
+fodt_dump_quote_end(string dump_line, int quote_position) {
+  int owe = quote_position;
+  while(character_code_at(dump_line, owe) >= 0 && character_code_at(dump_line, owe) != 34) {
+    owe = owe + 1 + (character_code_at(dump_line, owe) == 92);
   }
-  int owafter = owe + 1;
-} return int owafter;
+  int after_quote = owe + 1;
+} return int after_quote;
 ("\"a\\\"b\" c", 1):(6)
 ("\"\"", 1):(2)
 
 // Where the value that starts at index owi of a dump line ends: after the closing quote for a quoted value, at the next space otherwise; the index after its last character.
-ofd_vend(string owline, int owi) {
-  int owe = owi;
-  int owq = character_code_at(owline, owi) == 34;
-  if(owq == 1) {
-    owe = ofd_qend(owline, owi + 1);
+fodt_dump_value_end(string dump_line, int value_position) {
+  int owe = value_position;
+  int is_quoted = character_code_at(dump_line, value_position) == 34;
+  if(is_quoted == 1) {
+    owe = fodt_dump_quote_end(dump_line, value_position + 1);
   }
-} chain (string owline, int owi) {
-  if(owq == 0) {
-    owe = str_findat(owline, " ", owi);
+} chain (string dump_line, int value_position) {
+  if(is_quoted == 0) {
+    owe = str_findat(dump_line, " ", value_position);
   }
-  if(owq == 0 && owe < 0) {
-    owe = len(owline);
+  if(is_quoted == 0 && owe < 0) {
+    owe = len(dump_line);
   }
 } return int owe;
 ("a=\"x y\" b=2", 2):(7)
@@ -29,16 +29,16 @@ ofd_vend(string owline, int owi) {
 ("a=1", 2):(3)
 
 // Where the token that starts at index owi of a dump line ends: a bare word ends at the next space, "key=value" after its value (see ofd_vend).
-ofd_tend(string owline, int owi) {
-  int owsp = str_findat(owline, " ", owi);
-  int owq = str_findat(owline, "=", owi);
-  int owe = owsp;
-} chain (string owline, int owi) {
-  if(owsp < 0) {
-    owe = len(owline);
+fodt_dump_token_end(string dump_line, int token_position) {
+  int space_position = str_findat(dump_line, " ", token_position);
+  int equals_position = str_findat(dump_line, "=", token_position);
+  int owe = space_position;
+} chain (string dump_line, int token_position) {
+  if(space_position < 0) {
+    owe = len(dump_line);
   }
-  if(owq >= 0 && (owsp < 0 || owq < owsp)) {
-    owe = ofd_vend(owline, owq + 1);
+  if(equals_position >= 0 && (space_position < 0 || equals_position < space_position)) {
+    owe = fodt_dump_value_end(dump_line, equals_position + 1);
   }
 } return int owe;
 ("para 3 style=\"A B\" x=1", 0):(4)

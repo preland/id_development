@@ -3,43 +3,43 @@
 //
 // Write the page whose variants are defs and whose swatches are names, each with its kid lines in the same place of
 // kids ("" for none, kid lines joined by "|"), to path, under the header line hdr. Answers the bytes written.
-tg_emit(string path, string hdr, string[] defs, string[] names, string[] kids) {
-  string[] gl = [hdr, "# Every swatch carries classes the render check compares.", ""];
-  list_string_extend(gl, defs);
+page_write(string path, string header_line, string[] definitions, string[] names, string[] kids) {
+  string[] gl = [header_line, "# Every swatch carries classes the render check compares.", ""];
+  list_string_extend(gl, definitions);
   push(gl, "");
-} chain (string path, string hdr, string[] defs, string[] names, string[] kids) {
+} chain (string path, string header_line, string[] definitions, string[] names, string[] kids) {
   push(gl, "./");
   push(gl, "Col()[100,100,top-left] {");
-  tg_rows(gl, names, kids);
-} chain (string path, string hdr, string[] defs, string[] names, string[] kids) {
+  swatch_rows_add(gl, names, kids);
+} chain (string path, string header_line, string[] definitions, string[] names, string[] kids) {
   push(gl, "}");
-  string tx = str_join(gl, "\n") + "\n";
-  int n = fs_save(path, mem_of_str(tx), len(tx));
-} return int n;
-given tg_t_dir given tg_t_pick("f.idml") ((import tg_xn), "# p.idml", ["C0:Col `bg-window border`\n  `border-selection text-accent`{}"], ["C0"], [""]):(222) then tg_t_fsize:(222)
-given tg_t_dir given tg_t_pick("f.idml") ((import tg_xn), "# q.idml", [], ["A", "B", "C", "D"], ["", "", "K()[50,100,top-left]{}|L()[50,100,top-left]{}", ""]):(335) then tg_t_fsize:(335)
+  string output_text = str_join(gl, "\n") + "\n";
+  int bytes_written = fs_save(path, mem_of_str(output_text), len(output_text));
+} return int bytes_written;
+given scratch_directory_make given picked_file_choose("f.idml") ((import picked_path), "# p.idml", ["C0:Col `bg-window border`\n  `border-selection text-accent`{}"], ["C0"], [""]):(222) then picked_file_size:(222)
+given scratch_directory_make given picked_file_choose("f.idml") ((import picked_path), "# q.idml", [], ["A", "B", "C", "D"], ["", "", "K()[50,100,top-left]{}|L()[50,100,top-left]{}", ""]):(335) then picked_file_size:(335)
 
 // Every row of the swatches, as many as the swatches need at three to a row.
-tg_rows(string[] gl, string[] names, string[] kids) {
+swatch_rows_add(string[] gl, string[] names, string[] kids) {
   int rows = (len(names) + 2) / 3;
-  int r = 0;
-  while (r < rows) {
-    tg_row(gl, names, kids, r, rows);
-    r = r + 1;
+  int row_cursor = 0;
+  while (row_cursor < rows) {
+    swatch_row_add(gl, names, kids, row_cursor, rows);
+    row_cursor = row_cursor + 1;
   }
 } return void;
 ([], ["A", "B", "C", "D"], ["", "", "K()[50,100,top-left]{}|L()[50,100,top-left]{}", ""]):(["  Row()[50,100,top-left] {", "    A()[100,40,top-left]{}", "    B()[100,30,top-left]{}", "    C()[100,30,top-left] {", "      K()[50,100,top-left]{}", "      L()[50,100,top-left]{}", "    }", "  }", "  Row()[50,100,top-left] {", "    D()[100,100,top-left]{}", "  }"], ["A", "B", "C", "D"], ["", "", "K()[50,100,top-left]{}|L()[50,100,top-left]{}", ""])
 ([], ["Z"], [""]):(["  Row()[100,100,top-left] {", "    Z()[100,100,top-left]{}", "  }"], ["Z"], [""])
 
-// Row r of rows: up to three swatches side by side, each as wide as tg_pct says, the row as tall as it says.
-tg_row(string[] gl, string[] names, string[] kids, int r, int rows) {
-  int nr = fixed_point_minimum(3, len(names) - 3 * r);
-  push(gl, "  Row()[" + tg_pct(rows, r) + ",100,top-left] {");
-  int j = 0;
-} chain (string[] gl, string[] names, string[] kids, int r, int rows) {
-  while (j < nr) {
-    tg_item(gl, names[3 * r + j], kids[3 * r + j], tg_pct(nr, j));
-    j = j + 1;
+// Row r of rows: up to three swatches side by side, each as wide as item_width_percent says, the row as tall as it says.
+swatch_row_add(string[] gl, string[] names, string[] kids, int row_index, int rows) {
+  int row_item_count = fixed_point_minimum(3, len(names) - 3 * row_index);
+  push(gl, "  Row()[" + item_width_percent(rows, row_index) + ",100,top-left] {");
+  int row_item_index = 0;
+} chain (string[] gl, string[] names, string[] kids, int row_index, int rows) {
+  while (row_item_index < row_item_count) {
+    item_lines_add(gl, names[3 * row_index + row_item_index], kids[3 * row_index + row_item_index], item_width_percent(row_item_count, row_item_index));
+    row_item_index = row_item_index + 1;
   }
   push(gl, "  }");
 } return void;

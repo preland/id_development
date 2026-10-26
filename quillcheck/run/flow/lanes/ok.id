@@ -1,9 +1,9 @@
 // 1 when the page count is the one the corpus says fixture n lays out as; 0 for a count that differs or a fixture with no expectation.
-lane_pages_ok(int pages, int n) {
+lane_pages_ok(int pages, int fixture_number) {
   int[] plan = (import expect_pages);
   int ok = 0;
-  if (n >= 1 && n <= len(plan)) {
-    ok = plan[n - 1] == pages;
+  if (fixture_number >= 1 && fixture_number <= len(plan)) {
+    ok = plan[fixture_number - 1] == pages;
   }
 } return int ok;
 (3, 7):(1)
@@ -12,40 +12,40 @@ lane_pages_ok(int pages, int n) {
 (1, 99):(0)
 
 // Every soffice lane for one fixture: [txt verdict, fodt verdict, pdf verdict, page count, cross-check misses].
-lane_all(string bin, string root, string src, string stem, int n) {
-  int v_txt = lane_txt(bin, root, src, stem);
-  int v_fodt = lane_fodt(bin, root, src, stem);
-  int pages = lane_pdf(bin, root, src, stem);
-} chain (string bin, string root, string src, string stem, int n) {
+lane_all(string bin, string root, string source_path, string stem, int fixture_number) {
+  int plain_lane_verdict = lane_plain(bin, root, source_path, stem);
+  int fodt_lane_verdict = lane_fodt(bin, root, source_path, stem);
+  int pages = lane_pdf(bin, root, source_path, stem);
+} chain (string bin, string root, string source_path, string stem, int fixture_number) {
   int cross = lane_cross(root, stem);
-  int v_pdf = lane_pages_ok(pages, n);
-  int[] res = [v_txt, v_fodt, v_pdf, pages, cross];
-} return int[] res;
+  int pdf_lane_verdict = lane_pages_ok(pages, fixture_number);
+  int[] lane_results = [plain_lane_verdict, fodt_lane_verdict, pdf_lane_verdict, pages, cross];
+} return int[] lane_results;
 ("true", "../quillcorpus/oracle", "x.odt", "07_pages", 7):([1, 1, 1, 3, 0])
 ("true", "../quillcorpus/oracle", "x.odt", "07_pages", 99):([1, 1, 0, 3, 0])
 ("false", "../quillcorpus/oracle", "x.odt", "07_pages", 7):([0, 0, 0, 0, 0])
 
 // The verdict of the --pages lane from what the quill binary did: its exit status code, what it printed (said, whose first line is "pages N"), the page count want of soffice's pdf, and the fixture number n. Unavailable (2) when the binary does not exist; skipped (3) for a fixture in pages_gap; ok (1) when it exited 0 and N is within pages_tol of want; failed (0) otherwise, including a first line that is not "pages N".
-lane_pages_cmp(int code, string said, int want, int n) {
+lane_pages_compare(int code, string said, int want, int fixture_number) {
   int got = 0 - 1;
-  int e = str_eol(said, 0);
+  int said_line_end = str_eol(said, 0);
   if (str_starts(said, "pages ")) {
-    string num = str_sub(said, 6, e - 6);
-    got = to_int(num);
+    string pages_text = str_sub(said, 6, said_line_end - 6);
+    got = to_int(pages_text);
   }
-} chain (int code, string said, int want, int n) {
-  int v = (import lane_fail);
+} chain (int code, string said, int want, int fixture_number) {
+  int verdict = (import lane_fail);
   if (code == 127 || code == 0 - 1) {
-    v = (import lane_unavailable);
+    verdict = (import lane_unavailable);
   }
   if (code == 0 && fixed_point_absolute(got - want) <= (import pages_tol)) {
-    v = (import lane_ok);
+    verdict = (import lane_ok);
   }
-} chain (int code, string said, int want, int n) {
-  if (code == 0 && list_find((import pages_gap), n) == 1) {
-    v = (import lane_skipped);
+} chain (int code, string said, int want, int fixture_number) {
+  if (code == 0 && list_find((import pages_gap), fixture_number) == 1) {
+    verdict = (import lane_skipped);
   }
-} return int v;
+} return int verdict;
 (0, "pages 20\npage 1 para 0 line 0\n", 20, 8):(1)
 (0, "pages 19\n", 20, 8):(1)
 (0, "pages 18\n", 20, 8):(0)

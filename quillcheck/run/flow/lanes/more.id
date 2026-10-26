@@ -1,7 +1,7 @@
 // The fodt lane: 1 when soffice exits 0 and its fodt output has at least one normalised record.
-lane_fodt(string bin, string root, string src, string stem) {
-  int code = lane_soff(bin, root, (import r_fodt), src);
-  string norm = ofodt_norm_file(lane_out(root, stem, (import r_fodt)));
+lane_fodt(string bin, string root, string source_path, string stem) {
+  int code = lane_office(bin, root, (import r_fodt), source_path);
+  string norm = fodt_norm_file(lane_out(root, stem, (import r_fodt)));
   int ok = code == 0 && len(norm) > 0;
 } return int ok;
 ("true", "../quillcorpus/oracle", "x.odt", "07_pages"):(1)
@@ -9,9 +9,9 @@ lane_fodt(string bin, string root, string src, string stem) {
 ("true", "../quillcorpus/oracle", "x.odt", "none"):(0)
 
 // The pdf lane: the page count of soffice's pdf, 0 when soffice failed or left none.
-lane_pdf(string bin, string root, string src, string stem) {
-  int code = lane_soff(bin, root, (import r_pdf), src);
-  int pages = opdf_pages_file(lane_out(root, stem, (import r_pdf)));
+lane_pdf(string bin, string root, string source_path, string stem) {
+  int code = lane_office(bin, root, (import r_pdf), source_path);
+  int pages = pdf_pages_file(lane_out(root, stem, (import r_pdf)));
   int shown = pages * (code == 0);
 } return int shown;
 ("true", "../quillcorpus/oracle", "x.odt", "07_pages"):(3)
@@ -19,11 +19,11 @@ lane_pdf(string bin, string root, string src, string stem) {
 
 // How many fodt records carry text the txt output lacks, -1 when either output is missing.
 lane_cross(string root, string stem) {
-  string txt = otxt_norm_file(lane_out(root, stem, (import r_txt)));
-  string norm = ofodt_norm_file(lane_out(root, stem, (import r_fodt)));
-  int missing = otxt_cover(txt, norm);
+  string lane_text = plain_norm_file(lane_out(root, stem, (import r_txt)));
+  string norm = fodt_norm_file(lane_out(root, stem, (import r_fodt)));
+  int missing = plain_cover(lane_text, norm);
 } chain (string root, string stem) {
-  if (len(txt) == 0 || len(norm) == 0) {
+  if (len(lane_text) == 0 || len(norm) == 0) {
     missing = 0 - 1;
   }
 } return int missing;

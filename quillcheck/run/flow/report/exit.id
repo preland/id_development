@@ -1,20 +1,20 @@
 // How many soffice lanes of a result failed: the txt, fodt and pdf verdicts, and a cross-check that found missing text or missing output.
-rep_bad(int[] res) {
-  int bad = (res[(import r_txt)] == 0) + (res[(import r_fodt)] == 0) + (res[(import r_pdf)] == 0);
-  int cross = res[(import r_cross)] != 0;
+report_failures(int[] lane_results) {
+  int bad = (lane_results[(import r_txt)] == 0) + (lane_results[(import r_fodt)] == 0) + (lane_results[(import r_pdf)] == 0);
+  int cross = lane_results[(import r_cross)] != 0;
   int all = bad + cross;
 } return int all;
 ([1, 1, 1, 3, 0]):(0)
 ([0, 1, 0, 3, -1]):(3)
 
 // The driver's exit status: failed when a soffice lane failed or a quill-binary lane ran and differed (failed counts those), unavailable when only quill-binary lanes are open, 0 when all passed.
-rep_exit(int[] res, int open, int failed) {
-  int bad = rep_bad(res) + failed;
+report_exit(int[] lane_results, int open, int failed) {
+  int bad = report_failures(lane_results) + failed;
   int code = 0;
   if (open > 0) {
     code = (import exit_unavailable);
   }
-} chain (int[] res, int open, int failed) {
+} chain (int[] lane_results, int open, int failed) {
   if (bad > 0) {
     code = (import exit_failed);
   }

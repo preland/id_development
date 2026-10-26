@@ -1,32 +1,32 @@
 // The mode after the file name: --dump prints the document, --rects lays it out,
 // anything else just says it is fine.
-uc_ok(int argc, string[] argv, int[] t, string[] s) {
-  string md = uc_arg(argc, argv, 2);
-  if (md == "--dump") {
-    print(gui_dump(t, s));
+report_requested_mode(int argc, string[] argv, int[] tape, string[] strings) {
+  string mode_flag = command_line_argument(argc, argv, 2);
+  if (mode_flag == "--dump") {
+    print(gui_dump(tape, strings));
   } else {
-    uc_ok2(argc, argv, t, s, md);
+    report_rectangles_or_count(argc, argv, tape, strings, mode_flag);
   }
 } return void;
-given uc_t_tiny (2, ["uicheck", "x"], (import uc_tt), (import uc_ts)):() then prints:("ok 8 records\n")
-given uc_t_tiny (3, ["uicheck", "x", "--dump"], (import uc_tt), (import uc_ts)):() then prints:("var Card:Col`c`\nroute /\nnode Card()[100,100,top-left]`c`{Row()[50,100,top-left]{Spacer()[100,25,top-left] Text(\"a\")[100,75,top-left]} Spacer()[50,100,top-left]}\n")
+given tiny_tape_fixture (2, ["uicheck", "x"], (import fixture_tape), (import fixture_strings)):() then prints:("ok 8 records\n")
+given tiny_tape_fixture (3, ["uicheck", "x", "--dump"], (import fixture_tape), (import fixture_strings)):() then prints:("var Card:Col`c`\nroute /\nnode Card()[100,100,top-left]`c`{Row()[50,100,top-left]{Spacer()[100,25,top-left] Text(\"a\")[100,75,top-left]} Spacer()[50,100,top-left]}\n")
 
 // --rects with its two sizes, or the plain report.
-uc_ok2(int argc, string[] argv, int[] t, string[] s, string md) {
-  if (md == "--rects") {
-    uc_size(argc, argv, t, s);
+report_rectangles_or_count(int argc, string[] argv, int[] tape, string[] strings, string mode_flag) {
+  if (mode_flag == "--rects") {
+    print_rectangles_for_window_size(argc, argv, tape, strings);
   } else {
-    print("ok " + gui_count(t) + " records");
+    print("ok " + gui_count(tape) + " records");
   }
 } return void;
-given uc_t_tiny (2, ["uicheck", "x"], (import uc_tt), (import uc_ts), ""):() then prints:("ok 8 records\n")
-given uc_t_tiny (5, ["uicheck", "x", "--rects", "40", "40"], (import uc_tt), (import uc_ts), "--rects"):() then prints:("0 0 40 40 Card c\n0 0 40 20 Row\n0 0 10 20 Spacer\n10 0 30 20 Text\n0 20 40 20 Spacer\n")
+given tiny_tape_fixture (2, ["uicheck", "x"], (import fixture_tape), (import fixture_strings), ""):() then prints:("ok 8 records\n")
+given tiny_tape_fixture (5, ["uicheck", "x", "--rects", "40", "40"], (import fixture_tape), (import fixture_strings), "--rects"):() then prints:("0 0 40 40 Card c\n0 0 40 20 Row\n0 0 10 20 Spacer\n10 0 30 20 Text\n0 20 40 20 Spacer\n")
 
 // The window size from the command line, then the rectangles.
-uc_size(int argc, string[] argv, int[] t, string[] s) {
-  int w = to_int(uc_arg(argc, argv, 3));
-  int h = to_int(uc_arg(argc, argv, 4));
-  uc_rects(t, s, w, h);
+print_rectangles_for_window_size(int argc, string[] argv, int[] tape, string[] strings) {
+  int window_width = to_int(command_line_argument(argc, argv, 3));
+  int window_height = to_int(command_line_argument(argc, argv, 4));
+  print_laid_out_rectangles(tape, strings, window_width, window_height);
 } return void;
-given uc_t_tiny (5, ["uicheck", "x", "--rects", "200", "100"], (import uc_tt), (import uc_ts)):() then prints:("0 0 200 100 Card c\n0 0 200 50 Row\n0 0 50 50 Spacer\n50 0 150 50 Text\n0 50 200 50 Spacer\n")
-given uc_t_tiny (5, ["uicheck", "x", "--rects", "100", "50"], (import uc_tt), (import uc_ts)):() then prints:("0 0 100 50 Card c\n0 0 100 25 Row\n0 0 25 25 Spacer\n25 0 75 25 Text\n0 25 100 25 Spacer\n")
+given tiny_tape_fixture (5, ["uicheck", "x", "--rects", "200", "100"], (import fixture_tape), (import fixture_strings)):() then prints:("0 0 200 100 Card c\n0 0 200 50 Row\n0 0 50 50 Spacer\n50 0 150 50 Text\n0 50 200 50 Spacer\n")
+given tiny_tape_fixture (5, ["uicheck", "x", "--rects", "100", "50"], (import fixture_tape), (import fixture_strings)):() then prints:("0 0 100 50 Card c\n0 0 100 25 Row\n0 0 25 25 Spacer\n25 0 75 25 Text\n0 25 100 25 Spacer\n")

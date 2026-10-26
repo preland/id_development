@@ -1,33 +1,33 @@
 // An empty store.
-ofd_new() {
-  string[] owkeys = [];
-  string[] owprops = [];
-  string[] owmeta = [];
+fodt_dump_store_new() {
+  string[] entry_keys = [];
+  string[] entry_properties = [];
+  string[] meta_strings = [];
 } chain () {
-  OfdSty owst = OfdSty(owkeys, owprops, owmeta);
-} return OfdSty owst;
-():(OfdSty([], [], []))
-given ofd_t_open("<a/>") ():(OfdSty([], [], []))
+  Catalog style_store = Catalog(entry_keys, entry_properties, meta_strings);
+} return Catalog style_store;
+():(Catalog([], [], []))
+given fodt_dump_test_open("<a/>") ():(Catalog([], [], []))
 
 // The entry of a key, -1 when it is not there; a later entry of the same key wins.
-ofd_idx(OfdSty owst, string owk) {
-  int owi = len(owst.keys) - 1;
-  int owfound = 0 - 1;
-  while(owi >= 0 && owfound < 0) {
-    if(owst.keys[owi] == owk) {
-      owfound = owi;
+fodt_dump_entry_index(Catalog style_store, string style_key) {
+  int key_cursor = len(style_store.keys) - 1;
+  int found_index = 0 - 1;
+  while(key_cursor >= 0 && found_index < 0) {
+    if(style_store.keys[key_cursor] == style_key) {
+      found_index = key_cursor;
     }
-    owi = owi - 1;
+    key_cursor = key_cursor - 1;
   }
-} return int owfound;
-(OfdSty(["a", "b", "a"], ["", "", ""], ["", "", "", "", "", "", "", "", ""]), "a"):(2)
-(OfdSty(["a"], [""], ["", "", ""]), "z"):(-1)
+} return int found_index;
+(Catalog(["a", "b", "a"], ["", "", ""], ["", "", "", "", "", "", "", "", ""]), "a"):(2)
+(Catalog(["a"], [""], ["", "", ""]), "z"):(-1)
 
 // Adds an entry with no properties and the three meta strings.
-ofd_add(OfdSty owst, string owk, string owparent, string owlist, string owmaster) {
-  push(owst.keys, owk);
-  push(owst.props, "");
-  list_string_extend(owst.meta, [owparent, owlist, owmaster]);
+fodt_dump_add_entry(Catalog style_store, string style_key, string parent_name, string list_style, string master_name) {
+  push(style_store.keys, style_key);
+  push(style_store.props, "");
+  list_string_extend(style_store.meta, [parent_name, list_style, master_name]);
 } return void;
-(OfdSty([], [], []), "p:A", "p:B", "L", "M"):(OfdSty(["p:A"], [""], ["p:B", "L", "M"]), "p:A", "p:B", "L", "M")
-(OfdSty(["x"], ["y"], ["1", "2", "3"]), "p:", "", "", ""):(OfdSty(["x", "p:"], ["y", ""], ["1", "2", "3", "", "", ""]), "p:", "", "", "")
+(Catalog([], [], []), "p:A", "p:B", "L", "M"):(Catalog(["p:A"], [""], ["p:B", "L", "M"]), "p:A", "p:B", "L", "M")
+(Catalog(["x"], ["y"], ["1", "2", "3"]), "p:", "", "", ""):(Catalog(["x", "p:"], ["y", ""], ["1", "2", "3", "", "", ""]), "p:", "", "", "")

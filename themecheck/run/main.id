@@ -12,31 +12,31 @@
 // 4 active, 8 disabled) before it is bound. gen writes the pages that stress every class of the design system, from
 // the class set itself, and gen.json listing them.
 main(int argc, string[] argv) {
-  int r = tc_go(argc, argv);
-} return int r;
+  int exit_code = command_run(argc, argv);
+} return int exit_code;
 (1, ["themecheck"]):(2)
 (2, ["themecheck", "bogus"]):(2)
 
 // Run the command asked for, or say how to use the program.
-tc_go(int argc, string[] argv) {
-  int r = 2;
+command_run(int argc, string[] argv) {
+  int exit_code = 2;
   if (argc >= 7 && argv[1] == "render") {
-    r = tc_render(argc, argv);
+    exit_code = page_render(argc, argv);
   }
   if (argc >= 3 && argv[1] == "gen") {
-    r = tg_gen(argv[2]);
+    exit_code = pages_generate(argv[2]);
   }
 } chain (int argc, string[] argv) {
-  if (r == 2) {
-    tc_usage();
+  if (exit_code == 2) {
+    usage_print();
   }
-} return int r;
+} return int exit_code;
 (3, ["themecheck", "render", "x"]):(2)
 (7, ["themecheck", "render", "test_assets/none.idml", "light", "8", "8", "x"]):(1)
-given tg_t_dir (3, ["themecheck", "gen", (import tg_xd)]):(0)
+given scratch_directory_make (3, ["themecheck", "gen", (import scratch_directory)]):(0)
 
 // How to use it.
-tc_usage() {
+usage_print() {
   eprint("usage: themecheck render PAGE.idml light|dark W H OUT [SYSTEM.json [APP.json]]");
 } return void;
 ():() then eprints:("usage: themecheck render PAGE.idml light|dark W H OUT [SYSTEM.json [APP.json]]\n")

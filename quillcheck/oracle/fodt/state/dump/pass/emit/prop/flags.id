@@ -1,30 +1,30 @@
 // The value of a text property for a run: the first of its span styles (innermost, the last of the list, outward) to give one through its chain, else its paragraph style's chain; "" when none does.
-ofd_rget(OfdSty owst, string[] owspans, string owpk, string own) {
-  string owv = "";
-  int owi = len(owspans) - 1;
-  while(owi >= 0 && owv == "") {
-    owv = ofd_get(owst, owspans[owi], own);
-    owi = owi - 1;
+fodt_dump_run_property(Catalog style_store, string[] span_styles, string paragraph_key, string own) {
+  string value_text = "";
+  int property_span_cursor = len(span_styles) - 1;
+  while(property_span_cursor >= 0 && value_text == "") {
+    value_text = fodt_dump_inherited(style_store, span_styles[property_span_cursor], own);
+    property_span_cursor = property_span_cursor - 1;
   }
-} chain (OfdSty owst, string[] owspans, string owpk, string own) {
-  if(owv == "") {
-    owv = ofd_get(owst, owpk, own);
+} chain (Catalog style_store, string[] span_styles, string paragraph_key, string own) {
+  if(value_text == "") {
+    value_text = fodt_dump_inherited(style_store, paragraph_key, own);
   }
-} return string owv;
-(OfdSty(["t:T", "p:P", "p:"], ["|t.fo:color=#ff0000", "|t.fo:color=#00ff00", ""], ["", "", "", "", "", "", "", "", ""]), ["t:T"], "p:P", "t.fo:color"):("#ff0000")
-(OfdSty(["t:T", "p:P", "p:"], ["", "|t.fo:color=#00ff00", ""], ["", "", "", "", "", "", "", "", ""]), ["t:T"], "p:P", "t.fo:color"):("#00ff00")
-(OfdSty(["p:P"], [""], ["", "", ""]), [], "p:P", "t.fo:color"):("")
+} return string value_text;
+(Catalog(["t:T", "p:P", "p:"], ["|t.fo:color=#ff0000", "|t.fo:color=#00ff00", ""], ["", "", "", "", "", "", "", "", ""]), ["t:T"], "p:P", "t.fo:color"):("#ff0000")
+(Catalog(["t:T", "p:P", "p:"], ["", "|t.fo:color=#00ff00", ""], ["", "", "", "", "", "", "", "", ""]), ["t:T"], "p:P", "t.fo:color"):("#00ff00")
+(Catalog(["p:P"], [""], ["", "", ""]), [], "p:P", "t.fo:color"):("")
 
 // Whether a flag property value turns the flag on: kind 0 bold ("bold" or a weight of 600 and up), 1 italic ("italic" or "oblique"), 2 anything but "" and "none" (underline and strike).
-ofd_on(string owv, int owwhich) {
-  int owon = owv != "" && owv != "none";
-  if(owwhich == 0) {
-    owon = owv == "bold" || to_int(owv) >= 600;
+fodt_dump_flag_on(string value_text, int flag_kind) {
+  int flag_on = value_text != "" && value_text != "none";
+  if(flag_kind == 0) {
+    flag_on = value_text == "bold" || to_int(value_text) >= 600;
   }
-  if(owwhich == 1) {
-    owon = owv == "italic" || owv == "oblique";
+  if(flag_kind == 1) {
+    flag_on = value_text == "italic" || value_text == "oblique";
   }
-} return int owon;
+} return int flag_on;
 ("bold", 0):(1)
 ("700", 0):(1)
 ("normal", 0):(0)
@@ -33,17 +33,17 @@ ofd_on(string owv, int owwhich) {
 ("none", 2):(0)
 
 // 1 for a superscript text-position value ("super 58%", or a positive percentage), 2 for a subscript one ("sub 58%", or a negative one), 0 for neither.
-ofd_pos(string owv) {
-  int owp = 0;
-  float owfv = str_to_float(owv);
-  if(owfv > 0.0 || str_starts(owv, "super") == 1) {
-    owp = 1;
+fodt_dump_script_position(string value_text) {
+  int position_kind = 0;
+  float position_number = str_to_float(value_text);
+  if(position_number > 0.0 || str_starts(value_text, "super") == 1) {
+    position_kind = 1;
   }
-} chain (string owv) {
-  if(owfv < 0.0 || str_starts(owv, "sub") == 1) {
-    owp = 2;
+} chain (string value_text) {
+  if(position_number < 0.0 || str_starts(value_text, "sub") == 1) {
+    position_kind = 2;
   }
-} return int owp;
+} return int position_kind;
 ("super 58%"):(1)
 ("sub 58%"):(2)
 ("33% 58%"):(1)

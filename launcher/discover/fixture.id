@@ -2,24 +2,24 @@
 // executable with the runtime marker and a build stamp at its end, and a scratch directory tree
 // with source directories in it.
 
-discover_t_config(string discover_t_body) {
-  string discover_t_dir = fs_mktemp("discover_t_", 1);
-  int discover_t_made = fs_mkdir_p(discover_t_dir + "/idlaunch");
-  int discover_t_put = fs_write_text(discover_t_dir + "/idlaunch/roots", discover_t_body);
-} chain (string discover_t_body) {
-  environment_put("XDG_CONFIG_HOME", discover_t_dir);
+discover_test_configuration(string discover_test_body) {
+  string discover_test_directory = fs_mktemp("discover_t_", 1);
+  int discover_test_made = fs_mkdir_p(discover_test_directory + "/idlaunch");
+  int discover_test_put = fs_write_text(discover_test_directory + "/idlaunch/roots", discover_test_body);
+} chain (string discover_test_body) {
+  environment_put("XDG_CONFIG_HOME", discover_test_directory);
 } return void;
-("/x\n"):() then discover_t_config_text():("/x\n")
-(""):() then discover_t_config_text():("")
+("/x\n"):() then discover_test_configuration_text():("/x\n")
+(""):() then discover_test_configuration_text():("")
 
-discover_t_config_text() {
-  string discover_t_read = fs_read_text(environment_text("XDG_CONFIG_HOME") + "/idlaunch/roots");
-} return string discover_t_read;
-given discover_t_config("a\nb\n") ():("a\nb\n")
-given discover_t_config("") ():("")
+discover_test_configuration_text() {
+  string discover_test_read = fs_read_text(environment_text("XDG_CONFIG_HOME") + "/idlaunch/roots");
+} return string discover_test_read;
+given discover_test_configuration("a\nb\n") ():("a\nb\n")
+given discover_test_configuration("") ():("")
 
-discover_t_here() {
-  discover_t_config(fs_dir_of((import discover_t_path)));
+discover_test_here() {
+  discover_test_configuration(fs_dir_of((import discover_test_path)));
 } return void;
-given discover_t_image(7, "", "NOPE", 0) ():() then discover_t_runnable():(7)
-given discover_t_image(9000, "", "\x7fELF", 1) ():() then discover_t_runnable():(9000)
+given discover_test_image(7, "", "NOPE", 0) ():() then discover_test_runnable():(7)
+given discover_test_image(9000, "", "\x7fELF", 1) ():() then discover_test_runnable():(9000)

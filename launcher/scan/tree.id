@@ -2,14 +2,14 @@
 // walk does (walk_skipped) and no deeper than walk_depth_limit; it follows no symbolic
 // link, since fs_list_kind lists links as links and the walk only asks for files and directories.
 
-// Walks the subdirectories of scan_dir (level scan_depth), adding what scan_tree finds in them.
-scan_dirs(string scan_dir, int scan_depth, string[] scan_hits) {
-  string[] scan_names = str_lines(fs_list_kind(scan_dir, 2));
+// Walks the subdirectories of scan_directory (level scan_depth), adding what scan_tree finds in them.
+scan_directories(string scan_directory, int scan_depth, string[] scan_hits) {
+  string[] scan_names = str_lines(fs_list_kind(scan_directory, 2));
   int scan_index = 0;
   while (scan_index < len(scan_names)) {
-    int scan_skipped = walk_skipped(scan_names[scan_index], scan_dir + "/" + scan_names[scan_index]);
+    int scan_skipped = walk_skipped(scan_names[scan_index], scan_directory + "/" + scan_names[scan_index]);
     if (scan_skipped == 0) {
-      scan_tree(scan_dir + "/" + scan_names[scan_index], scan_depth + 1, scan_hits);
+      scan_tree(scan_directory + "/" + scan_names[scan_index], scan_depth + 1, scan_hits);
     }
     scan_index = scan_index + 1;
   }
@@ -17,12 +17,12 @@ scan_dirs(string scan_dir, int scan_depth, string[] scan_hits) {
 ("/no/dir", 0, []):("/no/dir", 0, [])
 ("/proc/self/no_such", 3, []):("/proc/self/no_such", 3, [])
 
-// Adds a row to scan_hits for every built program in scan_dir and below it.
-scan_tree(string scan_dir, int scan_depth, string[] scan_hits) {
-  string[] scan_names = str_lines(fs_list_kind(scan_dir, 1));
-  scan_files(scan_dir, scan_names, scan_hits);
+// Adds a row to scan_hits for every built program in scan_directory and below it.
+scan_tree(string scan_directory, int scan_depth, string[] scan_hits) {
+  string[] scan_names = str_lines(fs_list_kind(scan_directory, 1));
+  scan_files(scan_directory, scan_names, scan_hits);
   if (scan_depth < (import walk_depth_limit)) {
-    scan_dirs(scan_dir, scan_depth, scan_hits);
+    scan_directories(scan_directory, scan_depth, scan_hits);
   }
 } return void;
 ("/no/dir", 0, []):("/no/dir", 0, [])

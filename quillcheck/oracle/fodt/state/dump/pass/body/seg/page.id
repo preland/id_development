@@ -1,33 +1,33 @@
 // The bag of the page layout the master page called owmaster uses; the first master page's when it is called "" or unknown, "" when the document has none.
-ofd_pgbag(OfdSty owst, string owmaster) {
-  int owi = ofd_idx(owst, "m:" + owmaster);
-  string owbag = "";
+fodt_dump_page_bag(Catalog style_store, string master_name) {
+  int entry_index = fodt_dump_entry_index(style_store, "m:" + master_name);
+  string layout_bag = "";
   int owl = 0 - 1;
-} chain (OfdSty owst, string owmaster) {
-  if(owi < 0) {
-    owi = ofd_first(owst, "m:");
+} chain (Catalog style_store, string master_name) {
+  if(entry_index < 0) {
+    entry_index = fodt_dump_first_with_prefix(style_store, "m:");
   }
-  if(owi >= 0) {
-    owl = ofd_idx(owst, "g:" + owst.meta[owi * 3 + 2]);
+  if(entry_index >= 0) {
+    owl = fodt_dump_entry_index(style_store, "g:" + style_store.meta[entry_index * 3 + 2]);
   }
   if(owl >= 0) {
-    owbag = owst.props[owl];
+    layout_bag = style_store.props[owl];
   }
-} return string owbag;
-(OfdSty(["g:L1", "g:L2", "m:A", "m:B"], ["|fo:page-width=1in", "|fo:page-width=2in", "", ""], ["", "", "", "", "", "", "", "", "L1", "", "", "L2"]), "B"):("|fo:page-width=2in")
-(OfdSty(["g:L1", "g:L2", "m:A", "m:B"], ["|fo:page-width=1in", "|fo:page-width=2in", "", ""], ["", "", "", "", "", "", "", "", "L1", "", "", "L2"]), ""):("|fo:page-width=1in")
-(OfdSty(["p:A"], [""], ["", "", ""]), ""):("")
+} return string layout_bag;
+(Catalog(["g:L1", "g:L2", "m:A", "m:B"], ["|fo:page-width=1in", "|fo:page-width=2in", "", ""], ["", "", "", "", "", "", "", "", "L1", "", "", "L2"]), "B"):("|fo:page-width=2in")
+(Catalog(["g:L1", "g:L2", "m:A", "m:B"], ["|fo:page-width=1in", "|fo:page-width=2in", "", ""], ["", "", "", "", "", "", "", "", "L1", "", "", "L2"]), ""):("|fo:page-width=1in")
+(Catalog(["p:A"], [""], ["", "", ""]), ""):("")
 
 // The first entry whose key starts with the prefix, -1 when there is none.
-ofd_first(OfdSty owst, string owpre) {
-  int owfound = 0 - 1;
-  int owi = 0;
-  while(owi < len(owst.keys) && owfound < 0) {
-    if(str_starts(owst.keys[owi], owpre) == 1) {
-      owfound = owi;
+fodt_dump_first_with_prefix(Catalog style_store, string key_prefix) {
+  int found_index = 0 - 1;
+  int first_cursor = 0;
+  while(first_cursor < len(style_store.keys) && found_index < 0) {
+    if(str_starts(style_store.keys[first_cursor], key_prefix) == 1) {
+      found_index = first_cursor;
     }
-    owi = owi + 1;
+    first_cursor = first_cursor + 1;
   }
-} return int owfound;
-(OfdSty(["p:A", "m:B", "m:C"], ["", "", ""], ["", "", "", "", "", "", "", "", ""]), "m:"):(1)
-(OfdSty(["p:A"], [""], ["", "", ""]), "m:"):(-1)
+} return int found_index;
+(Catalog(["p:A", "m:B", "m:C"], ["", "", ""], ["", "", "", "", "", "", "", "", ""]), "m:"):(1)
+(Catalog(["p:A"], [""], ["", "", ""]), "m:"):(-1)

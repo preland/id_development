@@ -1,44 +1,44 @@
 // The name the dump gives a named style key: "Normal" for LibreOffice's "Standard" and for the default style, else its display name, else the name with each _20_ (an encoded space) read as a space.
-ofd_sname(OfdSty owst, string owk) {
-  int owlen = fixed_point_maximum(len(owk) - 2, 0);
-  string owname = str_sub(owk, 2, owlen);
-  string owdisp = ofd_own(owst, owk, "d");
-} chain (OfdSty owst, string owk) {
-  string owout = str_join(str_split(owname, "_20_"), " ");
-  if(owdisp != "") {
-    owout = owdisp;
+fodt_dump_style_name(Catalog style_store, string style_name_key) {
+  int name_length = fixed_point_maximum(len(style_name_key) - 2, 0);
+  string style_name = str_sub(style_name_key, 2, name_length);
+  string display_name = fodt_dump_own(style_store, style_name_key, "d");
+} chain (Catalog style_store, string style_name_key) {
+  string result_text = str_join(str_split(style_name, "_20_"), " ");
+  if(display_name != "") {
+    result_text = display_name;
   }
-  if(owname == "Standard" || owname == "") {
-    owout = "Normal";
+  if(style_name == "Standard" || style_name == "") {
+    result_text = "Normal";
   }
-} return string owout;
-(OfdSty(["p:Heading_20_1"], [""], ["", "", ""]), "p:Heading_20_1"):("Heading 1")
-(OfdSty(["p:Text_20_body"], ["|d=Text body"], ["", "", ""]), "p:Text_20_body"):("Text body")
-(OfdSty(["p:Standard"], [""], ["", "", ""]), "p:Standard"):("Normal")
-(OfdSty(["p:"], [""], ["", "", ""]), "p:"):("Normal")
-(OfdSty([], [], []), ""):("Normal")
+} return string result_text;
+(Catalog(["p:Heading_20_1"], [""], ["", "", ""]), "p:Heading_20_1"):("Heading 1")
+(Catalog(["p:Text_20_body"], ["|d=Text body"], ["", "", ""]), "p:Text_20_body"):("Text body")
+(Catalog(["p:Standard"], [""], ["", "", ""]), "p:Standard"):("Normal")
+(Catalog(["p:"], [""], ["", "", ""]), "p:"):("Normal")
+(Catalog([], [], []), ""):("Normal")
 
 // The named style a paragraph sits on: its own when it is a named style, the style it names as its parent when it is automatic (the default style when it names none).
-ofd_named(OfdSty owst, string owpk) {
-  string owk = owpk;
-  if(ofd_own(owst, owpk, "a") == "1") {
-    owk = ofd_up(owst, owpk);
+fodt_dump_named_style(Catalog style_store, string paragraph_key) {
+  string style_key = paragraph_key;
+  if(fodt_dump_own(style_store, paragraph_key, "a") == "1") {
+    style_key = fodt_dump_parent(style_store, paragraph_key);
   }
-} return string owk;
-(OfdSty(["p:P1", "p:Standard"], ["|a=1", ""], ["p:Standard", "", "", "", "", ""]), "p:P1"):("p:Standard")
-(OfdSty(["p:Standard"], [""], ["", "", ""]), "p:Standard"):("p:Standard")
-(OfdSty(["p:P1"], ["|a=1"], ["", "", ""]), "p:P1"):("p:")
+} return string style_key;
+(Catalog(["p:P1", "p:Standard"], ["|a=1", ""], ["p:Standard", "", "", "", "", ""]), "p:P1"):("p:Standard")
+(Catalog(["p:Standard"], [""], ["", "", ""]), "p:Standard"):("p:Standard")
+(Catalog(["p:P1"], ["|a=1"], ["", "", ""]), "p:P1"):("p:")
 
 // The meta string at slot owpart (1 the list style name, 2 the master page name) that entry owk's own meta says, "" when the entry is unknown or has none. Bound with bind(ofd_meta, PART) to walk a style chain.
-ofd_meta(int owpart, OfdSty owst, string owk) {
-  int owi = ofd_idx(owst, owk);
-  string owm = "";
-  if(owi >= 0) {
-    owm = owst.meta[owi * 3 + owpart];
+fodt_dump_meta_slot(int meta_slot, Catalog style_store, string style_key) {
+  int entry_index = fodt_dump_entry_index(style_store, style_key);
+  string meta_value = "";
+  if(entry_index >= 0) {
+    meta_value = style_store.meta[entry_index * 3 + meta_slot];
   }
-} return string owm;
-(1, OfdSty(["p:A"], [""], ["", "L1", ""]), "p:A"):("L1")
-(1, OfdSty(["p:A"], [""], ["", "L1", ""]), "p:Z"):("")
-(2, OfdSty(["p:A"], [""], ["", "", "Wide"]), "p:A"):("Wide")
-(2, OfdSty(["p:A"], [""], ["", "", "Wide"]), "p:Z"):("")
+} return string meta_value;
+(1, Catalog(["p:A"], [""], ["", "L1", ""]), "p:A"):("L1")
+(1, Catalog(["p:A"], [""], ["", "L1", ""]), "p:Z"):("")
+(2, Catalog(["p:A"], [""], ["", "", "Wide"]), "p:A"):("Wide")
+(2, Catalog(["p:A"], [""], ["", "", "Wide"]), "p:Z"):("")
 

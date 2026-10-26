@@ -1,18 +1,18 @@
 // Test fixtures for the record's cases: a scratch file holding given text, its
-// path left in (import record_t_path). fs_mktemp puts it in the case's own
+// path left in (import record_test_path). fs_mktemp puts it in the case's own
 // directory, which the harness removes, so nothing here cleans up.
 
-record_t_file(string record_t_body) {
-  string record_t_place = fs_mktemp("record_t_", 0);
-  export string record_t_path = record_t_place;
-  int record_t_put = fs_write_text(record_t_place, record_t_body);
-} return void export record_t_path;
-("ab"):() then record_t_lines:(1)
-("a\tb\nc\n"):() then record_t_lines:(2)
+record_test_file(string record_test_body) {
+  string record_test_place = fs_mktemp("record_t_", 0);
+  export string record_test_path = record_test_place;
+  int record_test_put = fs_write_text(record_test_place, record_test_body);
+} return void export record_test_path;
+("ab"):() then record_test_lines:(1)
+("a\tb\nc\n"):() then record_test_lines:(2)
 
-record_t_lines() {
-  string record_t_read = fs_read_text((import record_t_path));
-  int record_t_count = len(str_lines(record_t_read));
-} return int record_t_count;
-given record_t_file("x\ny\nz\n") ():(3)
-given record_t_file("") ():(0)
+record_test_lines() {
+  string record_test_read = fs_read_text((import record_test_path));
+  int record_test_count = len(str_lines(record_test_read));
+} return int record_test_count;
+given record_test_file("x\ny\nz\n") ():(3)
+given record_test_file("") ():(0)

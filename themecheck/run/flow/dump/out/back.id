@@ -1,26 +1,27 @@
 // Fixtures for the cases of the writers: a rendered page's pieces, a one-pixel surface.
 //
 // The page test_assets/rows.idml, themed in both modes, laid out in a 60 by 40 window and painted in the light one:
-// tq the themes, xn the nodes, xr the rectangles, xy the styles and xs the style of the last node.
-tc_t_view() {
-  tc_t_page("test_assets/rows.idml");
-  export int[][] tc_xq = tc_themes("", "");
-  export int[] tc_xn = tc_nodes((import tc_tt));
+// view_themes the themes, view_nodes the nodes, view_rectangles the rectangles, view_styles the styles and
+// view_last_style the style of the last node.
+rendered_view_fixture() {
+  page_fixture_load("test_assets/rows.idml");
+  export int[][] view_themes = mode_themes_build("", "");
+  export int[] view_nodes = page_node_records((import page_tape));
 } chain () {
-  export int[] tc_xr = [];
-  export int[][] tc_xy = [];
-  int[] fl = [];
+  export int[] view_rectangles = [];
+  export int[][] view_styles = [];
+  int[] state_flags = [];
 } chain () {
-  tc_paint((import tc_tt), (import tc_ts), (import tc_xq), 0, fl, (import tc_xy), (import tc_xr), 60, 40);
-  export int[] tc_xs = (import tc_xy)[7];
-} return void export tc_xr;
-():() then calls tc_paint:[1]
-():() then calls tc_nodes:[1]
+  view_paint((import page_tape), (import page_tape_strings), (import view_themes), 0, state_flags, (import view_styles), (import view_rectangles), 60, 40);
+  export int[] view_last_style = (import view_styles)[7];
+} return void export view_rectangles;
+():() then calls view_paint:[1]
+():() then calls page_node_records:[1]
 
 // A surface of one pixel, of colour c.
-tc_t_px(int c) {
+one_pixel_surface(int color) {
   sf_l_init(1, 1);
-  sf_l_pset(0, 0, c);
+  sf_l_pset(0, 0, color);
 } return void;
 (4276803):() then (import sf_l_px)[0]:(4276803)
 (0):() then len((import sf_l_px)):(1)

@@ -2,40 +2,40 @@
 // can run, of a plausible size, with its size and modification time from one stat call, which is
 // all the cache needs to know whether the file changed.
 
-// Adds "path size mtime" to discover_out when discover_dir/discover_name is runnable and the right size.
-discover_probe(string discover_dir, string discover_name, string[] discover_out, word[] discover_stat) {
-  string discover_path = discover_dir + "/" + discover_name;
-  int discover_rc = fs_stat(discover_path, discover_stat);
-  int discover_size = discover_stat[(import fs_st_size)];
-} chain (string discover_dir, string discover_name, string[] discover_out, word[] discover_stat) {
-  int discover_user = discover_stat[(import fs_st_mode)] / 64 % 2;
+// Adds "path size mtime" to discover_out when discover_directory/discover_name is runnable and the right size.
+discover_probe(string discover_directory, string discover_name, string[] discover_out, word[] discover_file_status) {
+  string discover_path = discover_directory + "/" + discover_name;
+  int discover_status_code = fs_stat(discover_path, discover_file_status);
+  int discover_size = discover_file_status[(import fs_st_size)];
+} chain (string discover_directory, string discover_name, string[] discover_out, word[] discover_file_status) {
+  int discover_user = discover_file_status[(import fs_st_mode)] / 64 % 2;
   int discover_fits = (discover_size > 3) * (discover_size <= (import scan_size_limit));
-  if (discover_rc == 0 && discover_user * discover_fits == 1) {
-    push(discover_out, discover_path + "\t" + discover_size + "\t" + discover_stat[(import fs_st_mtime)]);
+  if (discover_status_code == 0 && discover_user * discover_fits == 1) {
+    push(discover_out, discover_path + "\t" + discover_size + "\t" + discover_file_status[(import fs_st_mtime)]);
   }
 } return void;
 ("/no/dir", "x", [], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]):("/no/dir", "x", [])
 ("/bin", "no_such_program", [], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]):("/bin", "no_such_program", [])
 
 // Probes every name in discover_names.
-discover_files(string discover_dir, string[] discover_names, string[] discover_out, word[] discover_stat) {
+discover_files(string discover_directory, string[] discover_names, string[] discover_out, word[] discover_file_status) {
   int discover_index = 0;
   while (discover_index < len(discover_names)) {
-    discover_probe(discover_dir, discover_names[discover_index], discover_out, discover_stat);
+    discover_probe(discover_directory, discover_names[discover_index], discover_out, discover_file_status);
     discover_index = discover_index + 1;
   }
 } return void;
 ("/no/dir", [], [], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]):("/no/dir", [], [])
 ("/no/dir", ["a", "b"], [], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]):("/no/dir", ["a", "b"], [])
 
-// Walks the subdirectories of discover_dir (at level discover_depth) that no walk skips.
-discover_dirs(string discover_dir, int discover_depth, string[] discover_out, word[] discover_stat) {
-  string[] discover_names = str_lines(fs_list_kind(discover_dir, 2));
+// Walks the subdirectories of discover_directory (at level discover_depth) that no walk skips.
+discover_directories(string discover_directory, int discover_depth, string[] discover_out, word[] discover_file_status) {
+  string[] discover_names = str_lines(fs_list_kind(discover_directory, 2));
   int discover_index = 0;
   while (discover_index < len(discover_names)) {
-    int discover_skipped = walk_skipped(discover_names[discover_index], discover_dir + "/" + discover_names[discover_index]);
+    int discover_skipped = walk_skipped(discover_names[discover_index], discover_directory + "/" + discover_names[discover_index]);
     if (discover_skipped == 0) {
-      discover_walk(discover_dir + "/" + discover_names[discover_index], discover_depth + 1, discover_out, discover_stat);
+      discover_walk(discover_directory + "/" + discover_names[discover_index], discover_depth + 1, discover_out, discover_file_status);
     }
     discover_index = discover_index + 1;
   }

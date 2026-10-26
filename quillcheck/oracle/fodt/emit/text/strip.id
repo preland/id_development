@@ -1,16 +1,16 @@
 // A line of XML without its tags: every <...> span removed, text between them kept. A tag that never closes drops the rest of the line.
-ofodt_strip(string line) {
-  int lt = str_find(line, "<");
-  int gt = str_findat(line, ">", lt);
+fodt_strip(string line) {
+  int open_index = str_find(line, "<");
+  int close_index = str_findat(line, ">", open_index);
   string kept = line;
 } chain (string line) {
-  if (lt >= 0 && gt < 0) {
-    gt = len(line) - 1;
+  if (open_index >= 0 && close_index < 0) {
+    close_index = len(line) - 1;
   }
-  if (lt >= 0) {
-    string rest = str_sub(line, gt + 1, len(line) - gt - 1);
-    string tail = ofodt_strip(rest);
-    kept = str_sub(line, 0, lt) + tail;
+  if (open_index >= 0) {
+    string rest = str_sub(line, close_index + 1, len(line) - close_index - 1);
+    string tail = fodt_strip(rest);
+    kept = str_sub(line, 0, open_index) + tail;
   }
 } return string kept;
 ("a <text:span text:style-name=\"T1\">bold</text:span> c"):("a bold c")
@@ -19,14 +19,14 @@ ofodt_strip(string line) {
 ("no tags"):("no tags")
 
 // The five predefined XML entities decoded; &amp; last so that "&amp;lt;" becomes "&lt;" and no further.
-ofodt_decode(string txt) {
-  string ltd = str_replace(txt, "&lt;", "<");
-  string gtd = str_replace(ltd, "&gt;", ">");
-  string qtd = str_replace(gtd, "&quot;", "\"");
-} chain (string txt) {
-  string ap = str_replace(qtd, "&apos;", "'");
-  string amp = str_replace(ap, "&amp;", "&");
-} return string amp;
+fodt_decode(string escaped_text) {
+  string less_decoded = str_replace(escaped_text, "&lt;", "<");
+  string greater_decoded = str_replace(less_decoded, "&gt;", ">");
+  string quote_decoded = str_replace(greater_decoded, "&quot;", "\"");
+} chain (string escaped_text) {
+  string apostrophe_decoded = str_replace(quote_decoded, "&apos;", "'");
+  string ampersand_decoded = str_replace(apostrophe_decoded, "&amp;", "&");
+} return string ampersand_decoded;
 ("1 &lt; 2 &amp; 3 &gt; 2"):("1 < 2 & 3 > 2")
 ("&amp;lt;"):("&lt;")
 ("&quot;x&apos;"):("\"x'")

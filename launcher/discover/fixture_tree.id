@@ -1,28 +1,28 @@
-discover_t_tree() {
-  string discover_t_root_dir = fs_mktemp("discover_t_", 1);
-  export string discover_t_root = discover_t_root_dir;
-  int discover_t_one = fs_mkdir_p(discover_t_root_dir + "/proj/word");
+discover_test_tree() {
+  string discover_test_root_directory = fs_mktemp("discover_t_", 1);
+  export string discover_test_root = discover_test_root_directory;
+  int discover_test_one = fs_mkdir_p(discover_test_root_directory + "/proj/word");
 } chain () {
-  int discover_t_two = fs_write_text(discover_t_root_dir + "/proj/word/conf.id", "int x = 1;\n");
-  int discover_t_three = fs_mkdir_p(discover_t_root_dir + "/solo");
-  int discover_t_four = fs_write_text(discover_t_root_dir + "/solo/main.id", "main() {} return int 0;\n");
-} return void export discover_t_root;
-():() then discover_t_has("/proj/word/conf.id"):(1)
-():() then discover_t_has("/solo/main.id"):(1)
+  int discover_test_two = fs_write_text(discover_test_root_directory + "/proj/word/conf.id", "int x = 1;\n");
+  int discover_test_three = fs_mkdir_p(discover_test_root_directory + "/solo");
+  int discover_test_four = fs_write_text(discover_test_root_directory + "/solo/main.id", "main() {} return int 0;\n");
+} return void export discover_test_root;
+():() then discover_test_has("/proj/word/conf.id"):(1)
+():() then discover_test_has("/solo/main.id"):(1)
 
-discover_t_has(string discover_t_tail_path) {
-  int discover_t_there = fs_exists((import discover_t_root) + discover_t_tail_path);
-} return int discover_t_there;
-given discover_t_tree() ("/solo/main.id"):(1)
-given discover_t_tree() ("/none"):(0)
+discover_test_has(string discover_test_tail_path) {
+  int discover_test_there = fs_exists((import discover_test_root) + discover_test_tail_path);
+} return int discover_test_there;
+given discover_test_tree() ("/solo/main.id"):(1)
+given discover_test_tree() ("/none"):(0)
 
-discover_t_guessed(string discover_t_tail_path) {
-  string discover_t_found = discover_guess((import discover_t_root) + discover_t_tail_path, [(import discover_t_root)]);
-  string discover_t_short = "";
-  if (len(discover_t_found) > 0) {
-    discover_t_short = str_sub(discover_t_found, len((import discover_t_root)), len(discover_t_found) - len((import discover_t_root)));
+discover_test_guessed(string discover_test_tail_path) {
+  string discover_test_found = discover_guess((import discover_test_root) + discover_test_tail_path, [(import discover_test_root)]);
+  string discover_test_short = "";
+  if (len(discover_test_found) > 0) {
+    discover_test_short = str_sub(discover_test_found, len((import discover_test_root)), len(discover_test_found) - len((import discover_test_root)));
   }
-} return string discover_t_short;
-given discover_t_tree() ("/build/word"):("/proj/word")
-given discover_t_tree() ("/x/solo"):("/solo")
-given discover_t_tree() ("/build/none"):("")
+} return string discover_test_short;
+given discover_test_tree() ("/build/word"):("/proj/word")
+given discover_test_tree() ("/x/solo"):("/solo")
+given discover_test_tree() ("/build/none"):("")

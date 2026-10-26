@@ -1,43 +1,43 @@
 // The font family of a run as a dump prints it: the first span style (innermost, the last of the list, outward) to name one through its chain, else the paragraph style's, in quotes; "-" when none does.
-ofd_font(OfdSty owst, string[] owspans, string owpk) {
-  string owfam = "";
-  int owi = len(owspans) - 1;
-  string owout = "-";
-} chain (OfdSty owst, string[] owspans, string owpk) {
-  while(owi >= 0 && owfam == "") {
-    owfam = ofd_walk(owst, owspans[owi], ofd_fam1);
-    owi = owi - 1;
+fodt_dump_font(Catalog style_store, string[] span_styles, string paragraph_key) {
+  string family_found = "";
+  int font_span_cursor = len(span_styles) - 1;
+  string result_text = "-";
+} chain (Catalog style_store, string[] span_styles, string paragraph_key) {
+  while(font_span_cursor >= 0 && family_found == "") {
+    family_found = fodt_dump_walk(style_store, span_styles[font_span_cursor], fodt_dump_style_family);
+    font_span_cursor = font_span_cursor - 1;
   }
-  if(owfam == "") {
-    owfam = ofd_walk(owst, owpk, ofd_fam1);
+  if(family_found == "") {
+    family_found = fodt_dump_walk(style_store, paragraph_key, fodt_dump_style_family);
   }
-  if(owfam != "") {
-    owout = string_quote(owfam);
+  if(family_found != "") {
+    result_text = string_quote(family_found);
   }
-} return string owout;
-(OfdSty(["t:T", "p:P", "p:"], ["|t.fo:font-family=A", "", "|t.fo:font-family=B"], ["", "", "", "", "", "", "", "", ""]), ["t:T"], "p:P"):("\"A\"")
-(OfdSty(["t:T", "p:P", "p:"], ["", "", "|t.fo:font-family=B"], ["", "", "", "", "", "", "", "", ""]), ["t:T"], "p:P"):("\"B\"")
-(OfdSty(["p:P"], [""], ["", "", ""]), [], "p:P"):("-")
+} return string result_text;
+(Catalog(["t:T", "p:P", "p:"], ["|t.fo:font-family=A", "", "|t.fo:font-family=B"], ["", "", "", "", "", "", "", "", ""]), ["t:T"], "p:P"):("\"A\"")
+(Catalog(["t:T", "p:P", "p:"], ["", "", "|t.fo:font-family=B"], ["", "", "", "", "", "", "", "", ""]), ["t:T"], "p:P"):("\"B\"")
+(Catalog(["p:P"], [""], ["", "", ""]), [], "p:P"):("-")
 
 // What a dump prints of a run's properties: the flags, size, colour, highlight, link and font, as the fields of a run record without its text. owlink is the run's hyperlink target, "" for none.
-ofd_sig(OfdSty owst, string[] owspans, string owpk, string owlink) {
-  string owbits = ofd_bits(owst, owspans, owpk);
-  int owhp = ofd_rsize(owst, owspans, owpk);
-  string owcol = ofd_color(ofd_rget(owst, owspans, owpk, "t.fo:color"));
-} chain (OfdSty owst, string[] owspans, string owpk, string owlink) {
-  string owhl = ofd_color(ofd_rget(owst, owspans, owpk, "t.fo:background-color"));
-  string owlk = "-";
-  if(owlink != "") {
-    owlk = string_quote(owlink);
+fodt_dump_run_signature(Catalog style_store, string[] span_styles, string paragraph_key, string link_target) {
+  string flag_text = fodt_dump_flags(style_store, span_styles, paragraph_key);
+  int half_points = fodt_dump_run_size(style_store, span_styles, paragraph_key);
+  string color_text = fodt_dump_color(fodt_dump_run_property(style_store, span_styles, paragraph_key, "t.fo:color"));
+} chain (Catalog style_store, string[] span_styles, string paragraph_key, string link_target) {
+  string highlight_text = fodt_dump_color(fodt_dump_run_property(style_store, span_styles, paragraph_key, "t.fo:background-color"));
+  string link_text = "-";
+  if(link_target != "") {
+    link_text = string_quote(link_target);
   }
-} chain (OfdSty owst, string[] owspans, string owpk, string owlink) {
-  string owfont = ofd_font(owst, owspans, owpk);
-  string owsize = "-";
-  if(owhp >= 0) {
-    owsize = "" + owhp;
+} chain (Catalog style_store, string[] span_styles, string paragraph_key, string link_target) {
+  string font_text = fodt_dump_font(style_store, span_styles, paragraph_key);
+  string size_text = "-";
+  if(half_points >= 0) {
+    size_text = "" + half_points;
   }
-} chain (OfdSty owst, string[] owspans, string owpk, string owlink) {
-  string owout = owbits + " size=" + owsize + " color=" + owcol + " hl=" + owhl + " link=" + owlk + " font=" + owfont;
-} return string owout;
-(OfdSty(["t:T", "p:", "f:F"], ["|t.fo:font-weight=bold|t.fo:color=#FF0000", "|t.fo:font-size=12pt|t.style:font-name=F", "|fam=Liberation Serif"], ["", "", "", "", "", "", "", "", ""]), ["t:T"], "p:", ""):("b=1 i=0 u=0 s=0 sup=0 sub=0 size=24 color=#ff0000 hl=- link=- font=\"Liberation Serif\"")
-(OfdSty(["p:"], [""], ["", "", ""]), [], "p:", "http://x"):("b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=\"http://x\" font=-")
+} chain (Catalog style_store, string[] span_styles, string paragraph_key, string link_target) {
+  string result_text = flag_text + " size=" + size_text + " color=" + color_text + " hl=" + highlight_text + " link=" + link_text + " font=" + font_text;
+} return string result_text;
+(Catalog(["t:T", "p:", "f:F"], ["|t.fo:font-weight=bold|t.fo:color=#FF0000", "|t.fo:font-size=12pt|t.style:font-name=F", "|fam=Liberation Serif"], ["", "", "", "", "", "", "", "", ""]), ["t:T"], "p:", ""):("b=1 i=0 u=0 s=0 sup=0 sub=0 size=24 color=#ff0000 hl=- link=- font=\"Liberation Serif\"")
+(Catalog(["p:"], [""], ["", "", ""]), [], "p:", "http://x"):("b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=\"http://x\" font=-")

@@ -1,32 +1,32 @@
 // The fixture of the cases of the writers: a scratch directory, removed when the case's process exits.
 //
-// A scratch directory in tg_xd.
-tg_t_dir() {
-  export string tg_xd = fs_mktemp("themecheck_", 1);
-  int r = fs_drop_exit((import tg_xd));
-} return void export tg_xd;
-():() then tg_t_base:(17)
-():() then tg_t_base:(17) then tg_t_base:(17)
+// A scratch directory in scratch_directory.
+scratch_directory_make() {
+  export string scratch_directory = fs_mktemp("themecheck_", 1);
+  int drop_status = fs_drop_exit((import scratch_directory));
+} return void export scratch_directory;
+():() then scratch_base_length:(17)
+():() then scratch_base_length:(17) then scratch_base_length:(17)
 
-// A four-byte buffer in tc_xm that holds the colour 66051 (bytes 1, 2, 3), for the cases of the pixel writers: a
+// A four-byte buffer in color_buffer that holds the colour 66051 (bytes 1, 2, 3), for the cases of the pixel writers: a
 // writer that leaves it alone and one that overwrites it are told apart.
-tc_t_mem() {
-  export word tc_xm = alloc(4);
-  poke8((import tc_xm), 1);
-  poke8((import tc_xm) + 1, 2);
+color_buffer_make() {
+  export word color_buffer = alloc(4);
+  poke8((import color_buffer), 1);
+  poke8((import color_buffer) + 1, 2);
 } chain () {
-  poke8((import tc_xm) + 2, 3);
-} return void export tc_xm;
-():() then tc_t_peek:(66051)
-():() then tc_t_peek:(66051) then tc_t_peek:(66051)
+  poke8((import color_buffer) + 2, 3);
+} return void export color_buffer;
+():() then color_buffer_read:(66051)
+():() then color_buffer_read:(66051) then color_buffer_read:(66051)
 
-// The three bytes of tc_xm read as one colour.
-tc_t_peek() {
-  int r = peek8((import tc_xm));
-  int g = peek8((import tc_xm) + 1);
-  int b = peek8((import tc_xm) + 2);
+// The three bytes of color_buffer read as one colour.
+color_buffer_read() {
+  int red = peek8((import color_buffer));
+  int green = peek8((import color_buffer) + 1);
+  int blue = peek8((import color_buffer) + 2);
 } chain () {
-  int c = r * 65536 + g * 256 + b;
-} return int c;
-given tc_t_mem ():(66051)
-given tc_t_mem ():(66051) then tc_t_peek:(66051)
+  int color = red * 65536 + green * 256 + blue;
+} return int color;
+given color_buffer_make ():(66051)
+given color_buffer_make ():(66051) then color_buffer_read:(66051)

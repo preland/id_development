@@ -1,26 +1,26 @@
 // The keys that change what the list contains: `s` adds programs found by walking a directory, `r` reads the record again.
 
-// Scans menu_dir for built programs, merges what it finds into the list and the record, and answers how many it found.
-menu_scan_into(string[] menu_rows, string[] menu_words, int[] menu_place, string menu_dir) {
+// Scans menu_directory for built programs, merges what it finds into the list and the record, and answers how many it found.
+menu_scan_into(string[] menu_rows, string[] menu_words, int[] menu_place, string menu_directory) {
   string[] menu_found = [];
-  scan_tree(menu_dir, 0, menu_found);
+  scan_tree(menu_directory, 0, menu_found);
   string[] menu_merged = menu_merge(menu_rows, menu_found);
-} chain (string[] menu_rows, string[] menu_words, int[] menu_place, string menu_dir) {
+} chain (string[] menu_rows, string[] menu_words, int[] menu_place, string menu_directory) {
   menu_replace(menu_rows, menu_merged);
   int menu_saved = record_save(menu_words[(import menu_at_record)], entry_bares(menu_rows));
   menu_words[(import menu_at_status)] = "scan found " + len(menu_found) + " programs";
-} chain (string[] menu_rows, string[] menu_words, int[] menu_place, string menu_dir) {
+} chain (string[] menu_rows, string[] menu_words, int[] menu_place, string menu_directory) {
   int menu_count = len(menu_found);
 } return int menu_count;
-given record_t_file("") given scan_t_image(100, 20, "\x7fELF") given scan_t_bury(1, "n") ([], ["", "", "", (import record_t_path), ""], [0, 0, 0, 0, 0, 0], (import scan_t_root)):(1) then record_t_lines:(1)
-given record_t_file("") ([], ["", "", "", (import record_t_path), ""], [0, 0, 0, 0, 0, 0], "/no/such/dir"):(0) then record_t_lines:(0)
+given record_test_file("") given scan_test_image(100, 20, "\x7fELF") given scan_test_bury(1, "n") ([], ["", "", "", (import record_test_path), ""], [0, 0, 0, 0, 0, 0], (import scan_test_root)):(1) then record_test_lines:(1)
+given record_test_file("") ([], ["", "", "", (import record_test_path), ""], [0, 0, 0, 0, 0, 0], "/no/such/dir"):(0) then record_test_lines:(0)
 
 // `s`: asks for a directory (Escape cancels) and scans it.
 menu_scan(string[] menu_rows, string[] menu_words, int[] menu_place) {
-  string menu_dir = menu_prompt("scan directory: ", "");
+  string menu_directory = menu_prompt("scan directory: ", "");
   int menu_count = 0;
-  if (menu_dir != chr(27) && len(menu_dir) > 0) {
-    menu_count = menu_scan_into(menu_rows, menu_words, menu_place, menu_dir);
+  if (menu_directory != chr(27) && len(menu_directory) > 0) {
+    menu_count = menu_scan_into(menu_rows, menu_words, menu_place, menu_directory);
   }
 } return void;
 stdin "\x1b" ([], ["", "", "", "/proc/no_such_dir/record", ""], [0, 0, 0, 0, 0, 0]):([], ["", "", "", "/proc/no_such_dir/record", ""], [0, 0, 0, 0, 0, 0])
@@ -35,5 +35,5 @@ menu_reload(string[] menu_rows, string[] menu_words, int[] menu_place) {
   menu_words[(import menu_at_status)] = "reloaded: " + len(menu_rows) + " programs";
   menu_measure(menu_place);
 } return void;
-given discover_t_config("/proc/no_root\n") given record_t_file("/bin/sh\t-\tc\t5000\n") stdin "" ([], ["", "", "", (import record_t_path), ""], [4, 0, 0, 0, 0, 0]):(["/bin/sh\t-\tc\t5\t?"], ["", "", "reloaded: 1 programs", (import record_t_path), ""], [0, 0, 0, 18, 80, 24])
-given discover_t_config("/proc/no_root\n") given record_t_file("") stdin "" (["/x\t-\tc\t1\t?"], ["", "", "", (import record_t_path), ""], [0, 0, 0, 0, 0, 0]):([], ["", "", "reloaded: 0 programs", (import record_t_path), ""], [0, 0, 0, 18, 80, 24])
+given discover_test_configuration("/proc/no_root\n") given record_test_file("/bin/sh\t-\tc\t5000\n") stdin "" ([], ["", "", "", (import record_test_path), ""], [4, 0, 0, 0, 0, 0]):(["/bin/sh\t-\tc\t5\t?"], ["", "", "reloaded: 1 programs", (import record_test_path), ""], [0, 0, 0, 18, 80, 24])
+given discover_test_configuration("/proc/no_root\n") given record_test_file("") stdin "" (["/x\t-\tc\t1\t?"], ["", "", "", (import record_test_path), ""], [0, 0, 0, 0, 0, 0]):([], ["", "", "reloaded: 0 programs", (import record_test_path), ""], [0, 0, 0, 18, 80, 24])

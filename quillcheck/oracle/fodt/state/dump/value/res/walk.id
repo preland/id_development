@@ -1,15 +1,15 @@
 // What a function over one style gives for the style or, when it gives nothing (""), for the style it inherits from, and so up the chain; "" when nothing in the chain does. The chain is cut after 24 steps, which only a cycle reaches.
-ofd_walk(OfdSty owst, string owk, func(OfdSty, string) return string owstep) {
-  string owkc = owk;
-  string owv = "";
-  int owi = 0;
-} chain (OfdSty owst, string owk, func(OfdSty, string) return string owstep) {
-  while(owkc != "" && owv == "" && owi < 24) {
-    owv = owstep(owst, owkc);
-    owkc = ofd_up(owst, owkc);
-    owi = owi + 1;
+fodt_dump_walk(Catalog style_store, string style_key, func(Catalog, string) return string step_function) {
+  string ancestor_key = style_key;
+  string value_text = "";
+  int entry_index = 0;
+} chain (Catalog style_store, string style_key, func(Catalog, string) return string step_function) {
+  while(ancestor_key != "" && value_text == "" && entry_index < 24) {
+    value_text = step_function(style_store, ancestor_key);
+    ancestor_key = fodt_dump_parent(style_store, ancestor_key);
+    entry_index = entry_index + 1;
   }
-} return string owv;
-(OfdSty(["p:A", "p:B"], ["", ""], ["p:B", "", "", "", "L1", ""]), "p:A", bind(ofd_meta, 1)):("L1")
-(OfdSty(["p:A"], [""], ["", "", ""]), "p:A", bind(ofd_meta, 1)):("")
-(OfdSty(["t:T", "p:P"], ["", "|t.style:font-name=Z"], ["", "", "", "", "", ""]), "p:P", ofd_fam1):("Z")
+} return string value_text;
+(Catalog(["p:A", "p:B"], ["", ""], ["p:B", "", "", "", "L1", ""]), "p:A", bind(fodt_dump_meta_slot, 1)):("L1")
+(Catalog(["p:A"], [""], ["", "", ""]), "p:A", bind(fodt_dump_meta_slot, 1)):("")
+(Catalog(["t:T", "p:P"], ["", "|t.style:font-name=Z"], ["", "", "", "", "", ""]), "p:P", fodt_dump_style_family):("Z")

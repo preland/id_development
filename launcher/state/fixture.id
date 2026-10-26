@@ -2,34 +2,34 @@
 // modification times, made inside the case's own directory (the harness removes
 // it). Layout: a.id (500), sub/b.id, .git/c.id, notes.txt (9000, not source).
 
-state_t_file(string state_t_path, int state_t_when) {
-  int state_t_made = fs_mkdir_p(fs_dir_of(state_t_path));
-  int state_t_put = fs_write_text(state_t_path, "x");
-  int state_t_set = fs_set_mtime(state_t_path, state_t_when, 0);
+state_test_file(string state_test_path, int state_test_when) {
+  int state_test_made = fs_mkdir_p(fs_dir_of(state_test_path));
+  int state_test_put = fs_write_text(state_test_path, "x");
+  int state_test_set = fs_set_mtime(state_test_path, state_test_when, 0);
 } return void;
 ("/proc/state_t_none/x.id", 5):()
 ("/proc/state_t_none/y.id", 6):()
 
-state_t_tree(int state_t_sub, int state_t_git) {
-  string state_t_dir = fs_mktemp("state_t_", 1);
-  export string state_t_root = state_t_dir;
-  state_t_file(state_t_dir + "/a.id", 500);
-} chain (int state_t_sub, int state_t_git) {
-  string state_t_inner = state_t_dir + "/sub/b.id";
-  export string state_t_leaf = state_t_inner;
-  state_t_file(state_t_inner, state_t_sub);
-} chain (int state_t_sub, int state_t_git) {
-  state_t_file(state_t_dir + "/.git/c.id", state_t_git);
-  string state_t_note = state_t_dir + "/notes.txt";
-  export string state_t_plain = state_t_note;
-} chain (int state_t_sub, int state_t_git) {
-  state_t_file(state_t_note, 9000);
-} return void export state_t_root;
-(1, 2):() then state_t_mtime:(1)
-(7, 2):() then state_t_mtime:(7)
+state_test_tree(int state_test_sub, int state_test_git) {
+  string state_test_directory = fs_mktemp("state_t_", 1);
+  export string state_test_root = state_test_directory;
+  state_test_file(state_test_directory + "/a.id", 500);
+} chain (int state_test_sub, int state_test_git) {
+  string state_test_inner = state_test_directory + "/sub/b.id";
+  export string state_test_leaf = state_test_inner;
+  state_test_file(state_test_inner, state_test_sub);
+} chain (int state_test_sub, int state_test_git) {
+  state_test_file(state_test_directory + "/.git/c.id", state_test_git);
+  string state_test_note = state_test_directory + "/notes.txt";
+  export string state_test_plain = state_test_note;
+} chain (int state_test_sub, int state_test_git) {
+  state_test_file(state_test_note, 9000);
+} return void export state_test_root;
+(1, 2):() then state_test_mtime:(1)
+(7, 2):() then state_test_mtime:(7)
 
-state_t_mtime() {
-  int state_t_seen = fs_mtime((import state_t_leaf));
-} return int state_t_seen;
-given state_t_tree(3, 4) ():(3)
-given state_t_tree(8, 4) ():(8)
+state_test_mtime() {
+  int state_test_seen = fs_mtime((import state_test_leaf));
+} return int state_test_seen;
+given state_test_tree(3, 4) ():(3)
+given state_test_tree(8, 4) ():(8)

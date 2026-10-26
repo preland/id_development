@@ -2,11 +2,11 @@
 // mode, a window or an app palette is one block of variables and no class changes.
 //
 // One line per role of the theme: --isd-color-NAME: #rrggbb;
-it_roles(string[] out, int[] th) {
-  int k = 0;
-  while (k < (import idstd_tt_ts)[1]) {
-    push(out, "  --isd-color-" + it_role(k) + ": " + theme_hexs(th[k]) + ";");
-    k = k + 1;
+it_roles(string[] out, int[] theme_table) {
+  int class_index = 0;
+  while (class_index < (import idstd_tt_ts)[1]) {
+    push(out, "  --isd-color-" + it_role(class_index) + ": " + theme_hexs(theme_table[class_index]) + ";");
+    class_index = class_index + 1;
   }
 } return void;
 ([], [15987699, 16448250, 16777215, 16777215, 15987699, 15068921, 12769264, 12308972, 2105384, 6316128, 7039851, 10526880, 7763574, 353217, 2840474, 16777215, 4221092, 5601710, 14411510, 13684944, 8751763, 12582912, 16777215, 9067008, 3046706, 16777215, 3433963, 0, 0, 1, 2, 0, 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 40, 48, 11, 14, 400, 0, 12, 16, 400, 0, 14, 20, 400, 0, 14, 20, 600, 0, 16, 22, 600, 0, 20, 26, 600, 0, 26, 32, 600, 0, 13, 18, 400, 1, 400, 500, 600, 700, 0, 3, 6, 10, 16, 9999, 1, 2, 20, 4, 12, 25, 12, 32, 35, 0, 0, 0, 100, 180, 300]):(["  --isd-color-window: #f3f3f3;", "  --isd-color-surface: #fafafa;", "  --isd-color-surface-raised: #ffffff;", "  --isd-color-surface-sunken: #ffffff;", "  --isd-color-control: #f3f3f3;", "  --isd-color-control-hover: #e5eef9;", "  --isd-color-control-pressed: #c2d7f0;", "  --isd-color-selection: #bbd1ec;", "  --isd-color-label: #202028;", "  --isd-color-label-secondary: #606060;", "  --isd-color-label-tertiary: #6b6b6b;", "  --isd-color-label-disabled: #a0a0a0;", "  --isd-color-placeholder: #767676;", "  --isd-color-link: #0563c1;", "  --isd-color-accent: #2b579a;", "  --isd-color-on-accent: #ffffff;", "  --isd-color-accent-hover: #4068a4;", "  --isd-color-accent-pressed: #5579ae;", "  --isd-color-accent-subtle: #dbe6f6;", "  --isd-color-separator: #d0d0d0;", "  --isd-color-separator-strong: #858a93;", "  --isd-color-destructive: #c00000;", "  --isd-color-on-destructive: #ffffff;", "  --isd-color-warning: #8a5a00;", "  --isd-color-success: #2e7d32;", "  --isd-color-on-success: #ffffff;", "  --isd-color-focus-ring: #3465eb;", "  --isd-color-scrim: #000000;"], [15987699, 16448250, 16777215, 16777215, 15987699, 15068921, 12769264, 12308972, 2105384, 6316128, 7039851, 10526880, 7763574, 353217, 2840474, 16777215, 4221092, 5601710, 14411510, 13684944, 8751763, 12582912, 16777215, 9067008, 3046706, 16777215, 3433963, 0, 0, 1, 2, 0, 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 40, 48, 11, 14, 400, 0, 12, 16, 400, 0, 14, 20, 400, 0, 14, 20, 600, 0, 16, 22, 600, 0, 20, 26, 600, 0, 26, 32, 600, 0, 13, 18, 400, 1, 400, 500, 600, 700, 0, 3, 6, 10, 16, 9999, 1, 2, 20, 4, 12, 25, 12, 32, 35, 0, 0, 0, 100, 180, 300])
@@ -14,11 +14,11 @@ it_roles(string[] out, int[] th) {
 
 // A rule that defines the variables of theme th on the selector sel, the shadow colour as the three numbers a
 // colour function wants, then the lines in tail, then the closing brace.
-it_vars(string[] out, int[] th, string sel, string[] tail) {
-  push(out, sel + " {");
-  it_roles(out, th);
-  push(out, "  --isd-shadow-rgb: " + ((th[(import theme_r_scrim)] >> 16) & 255) + " " + ((th[(import theme_r_scrim)] >> 8) & 255) + " " + (th[(import theme_r_scrim)] & 255) + ";");
-} chain (string[] out, int[] th, string sel, string[] tail) {
+it_variables(string[] out, int[] theme_table, string selector, string[] tail) {
+  push(out, selector + " {");
+  it_roles(out, theme_table);
+  push(out, "  --isd-shadow-rgb: " + ((theme_table[(import theme_r_scrim)] >> 16) & 255) + " " + ((theme_table[(import theme_r_scrim)] >> 8) & 255) + " " + (theme_table[(import theme_r_scrim)] & 255) + ";");
+} chain (string[] out, int[] theme_table, string selector, string[] tail) {
   list_string_extend(out, tail);
   push(out, "}");
 } return void;

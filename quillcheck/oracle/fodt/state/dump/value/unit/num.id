@@ -1,44 +1,44 @@
 // The part of a length after its number: "in" for "0.25in", "%" for "115%", "" for a bare number.
-ofd_unit(string ows) {
-  int owi = 0;
-  int owc = character_code_at(ows, 0);
-  while(owc == 45 || owc == 43 || owc == 46 || character_is_digit(owc) == 1) {
-    owi = owi + 1;
-    owc = character_code_at(ows, owi);
+fodt_dump_unit(string length_text) {
+  int digit_cursor = 0;
+  int unit_character = character_code_at(length_text, 0);
+  while(unit_character == 45 || unit_character == 43 || unit_character == 46 || character_is_digit(unit_character) == 1) {
+    digit_cursor = digit_cursor + 1;
+    unit_character = character_code_at(length_text, digit_cursor);
   }
-} chain (string ows) {
-  string owu = str_sub(ows, owi, len(ows) - owi);
-} return string owu;
+} chain (string length_text) {
+  string unit_text = str_sub(length_text, digit_cursor, len(length_text) - digit_cursor);
+} return string unit_text;
 ("0.25in"):("in")
 ("-12pt"):("pt")
 ("115%"):("%")
 ("7"):("")
 
 // How many twips one unit is: 1440.0 for "in", and -1.0 for a unit the oracle does not know.
-ofd_fac(string owu) {
-  float owf = 0.0 - 1.0;
-  int owi = list_string_index((import ow_units), owu);
-  if(owi >= 0) {
-    owf = (import ow_twips)[owi];
+fodt_dump_unit_factor(string unit_name) {
+  float unit_factor = 0.0 - 1.0;
+  int unit_index = list_string_index((import ow_units), unit_name);
+  if(unit_index >= 0) {
+    unit_factor = (import ow_twips)[unit_index];
   }
-} return float owf;
+} return float unit_factor;
 ("in"):(1440.0)
 ("pt"):(20.0)
 ("furlong"):(-1.0)
 
 // A length in twips, rounded to the nearest and away from zero at a half; ow_bad when it has no number or its unit is not a length.
-ofd_tw(string ows) {
-  float owfac = ofd_fac(ofd_unit(ows));
-  float owfv = str_to_float(ows) * owfac;
-  int owtw = (import ow_bad);
-} chain (string ows) {
-  if(owfac > 0.0 && owfv < 0.0) {
-    owtw = owfv - 0.5;
+fodt_dump_length(string length_text) {
+  float length_per_unit = fodt_dump_unit_factor(fodt_dump_unit(length_text));
+  float scaled_value = str_to_float(length_text) * length_per_unit;
+  int length_value = (import ow_bad);
+} chain (string length_text) {
+  if(length_per_unit > 0.0 && scaled_value < 0.0) {
+    length_value = scaled_value - 0.5;
   }
-  if(owfac > 0.0 && owfv >= 0.0) {
-    owtw = owfv + 0.5;
+  if(length_per_unit > 0.0 && scaled_value >= 0.0) {
+    length_value = scaled_value + 0.5;
   }
-} return int owtw;
+} return int length_value;
 ("1in"):(1440)
 ("1.27cm"):(720)
 ("-0.25in"):(-360)

@@ -1,13 +1,13 @@
 // The ASSETS argument when there is one (the last word of the command line, which sits at a different place for each mode), the default corpus directory otherwise.
 cli_assets(int argc, string[] argv, int mode) {
-  string dir = (import assets_dir);
+  string assets_path = (import assets_dir);
   if (argc == 3 && mode >= (import mode_run) && mode <= (import mode_count)) {
-    dir = argv[2];
+    assets_path = argv[2];
   }
   if ((argc == 4 && mode == (import mode_oracle)) || (argc == 5 && mode == (import mode_dump))) {
-    dir = argv[argc - 1];
+    assets_path = argv[argc - 1];
   }
-} return string dir;
+} return string assets_path;
 (2, ["quillcheck", "1"], 1):("quillcorpus")
 (3, ["quillcheck", "1", "x/y"], 1):("x/y")
 (3, ["quillcheck", "--oracle", "7"], 4):("quillcorpus")
@@ -18,7 +18,7 @@ cli_assets(int argc, string[] argv, int mode) {
 // Carries out a mode: runs one fixture, lists them, counts them, prints the oracle's dump of one, compares a quill binary's dump of one, or says how to ask. The exit status.
 cli_go(int mode, string[] argv, string assets) {
   int code = 0;
-  string odt_dir = assets + "/" + (import odt_sub);
+  string fixture_directory = assets + "/" + (import odt_sub);
   if (mode == (import mode_usage)) {
     eprint((import usage_text));
     code = (import exit_usage);
@@ -28,10 +28,10 @@ cli_go(int mode, string[] argv, string assets) {
     code = check_run((import soffice_bin), to_int(argv[1]), assets);
   }
   if (mode == (import mode_list)) {
-    fixt_list(odt_dir);
+    fixture_list(fixture_directory);
   }
   if (mode == (import mode_count)) {
-    int total = fixt_count(odt_dir);
+    int total = fixture_count(fixture_directory);
     print(total);
   }
 } chain (int mode, string[] argv, string assets) {

@@ -1,42 +1,42 @@
-discover_t_image(int discover_t_total, string discover_t_stamp, string discover_t_magic, int discover_t_marked) {
-  int[] discover_t_bytes = list_filled(discover_t_total, 65);
-  string discover_t_place = fs_mktemp("discover_t_", 0);
-  export string discover_t_path = discover_t_place;
-} chain (int discover_t_total, string discover_t_stamp, string discover_t_magic, int discover_t_marked) {
-  scan_t_plant(discover_t_bytes, discover_t_marked * 20 - 1, (import scan_marker_text));
-  scan_t_plant(discover_t_bytes, 0, discover_t_magic);
-  int discover_t_end = discover_t_total - len(discover_t_stamp) - len((import discover_marker_text)) - 1;
-} chain (int discover_t_total, string discover_t_stamp, string discover_t_magic, int discover_t_marked) {
-  if (len(discover_t_stamp) > 0) {
-    scan_t_plant(discover_t_bytes, discover_t_end, (import discover_marker_text) + discover_t_stamp);
-    discover_t_bytes[discover_t_total - 1] = 0;
+discover_test_image(int discover_test_total, string discover_test_stamp, string discover_test_magic, int discover_test_marked) {
+  int[] discover_test_bytes = list_filled(discover_test_total, 65);
+  string discover_test_place = fs_mktemp("discover_t_", 0);
+  export string discover_test_path = discover_test_place;
+} chain (int discover_test_total, string discover_test_stamp, string discover_test_magic, int discover_test_marked) {
+  scan_test_plant(discover_test_bytes, discover_test_marked * 20 - 1, (import scan_marker_text));
+  scan_test_plant(discover_test_bytes, 0, discover_test_magic);
+  int discover_test_end = discover_test_total - len(discover_test_stamp) - len((import discover_marker_text)) - 1;
+} chain (int discover_test_total, string discover_test_stamp, string discover_test_magic, int discover_test_marked) {
+  if (len(discover_test_stamp) > 0) {
+    scan_test_plant(discover_test_bytes, discover_test_end, (import discover_marker_text) + discover_test_stamp);
+    discover_test_bytes[discover_test_total - 1] = 0;
   }
-  int discover_t_h = fs_open(discover_t_place, "w");
-  int discover_t_put = fs_write(discover_t_h, discover_t_bytes, len(discover_t_bytes));
-} chain (int discover_t_total, string discover_t_stamp, string discover_t_magic, int discover_t_marked) {
-  int discover_t_shut = fs_close(discover_t_h);
-  int discover_t_mode = fs_chmod(discover_t_place, 493);
-} return void export discover_t_path;
-(100, "/src/a", "\x7fELF", 1):() then discover_t_runnable():(100)
-(9000, "", "\x7fELF", 0):() then discover_t_runnable():(9000)
+  int discover_test_handle = fs_open(discover_test_place, "w");
+  int discover_test_put = fs_write(discover_test_handle, discover_test_bytes, len(discover_test_bytes));
+} chain (int discover_test_total, string discover_test_stamp, string discover_test_magic, int discover_test_marked) {
+  int discover_test_shut = fs_close(discover_test_handle);
+  int discover_test_mode = fs_chmod(discover_test_place, 493);
+} return void export discover_test_path;
+(100, "/src/a", "\x7fELF", 1):() then discover_test_runnable():(100)
+(9000, "", "\x7fELF", 0):() then discover_test_runnable():(9000)
 
-discover_t_runnable() {
-  int discover_t_length = fs_size((import discover_t_path));
-  int discover_t_can = fs_can((import discover_t_path), 1);
-  int discover_t_product = discover_t_length * discover_t_can;
-} return int discover_t_product;
-given discover_t_image(100, "/src/a", "\x7fELF", 1) ():(100)
-given discover_t_image(7, "", "NOPE", 0) ():(7)
+discover_test_runnable() {
+  int discover_test_length = fs_size((import discover_test_path));
+  int discover_test_can = fs_can((import discover_test_path), 1);
+  int discover_test_product = discover_test_length * discover_test_can;
+} return int discover_test_product;
+given discover_test_image(100, "/src/a", "\x7fELF", 1) ():(100)
+given discover_test_image(7, "", "NOPE", 0) ():(7)
 
-discover_t_look() {
-  string[] discover_t_rows = discover_rows("/proc/no_dir/id/built.tsv");
-  string discover_t_first = "none";
-  int discover_t_count = len(discover_t_rows);
+discover_test_look() {
+  string[] discover_test_rows = discover_rows("/proc/no_dir/id/built.tsv");
+  string discover_test_first = "none";
+  int discover_test_count = len(discover_test_rows);
 } chain () {
-  if (len(discover_t_rows) > 0) {
-    discover_t_first = str_field(discover_t_rows[0], "\t", 1) + " " + str_field(discover_t_rows[0], "\t", 2) + " " + discover_t_count;
+  if (len(discover_test_rows) > 0) {
+    discover_test_first = str_field(discover_test_rows[0], "\t", 1) + " " + str_field(discover_test_rows[0], "\t", 2) + " " + discover_test_count;
   }
-} return string discover_t_first;
-given discover_t_image(100, "/src/a", "\x7fELF", 1) given discover_t_here() ():("/src/a found 1")
-given discover_t_image(100, "", "\x7fELF", 0) given discover_t_here() ():("none")
-given discover_t_image(9000, "", "\x7fELF", 1) given discover_t_here() ():("- found 1")
+} return string discover_test_first;
+given discover_test_image(100, "/src/a", "\x7fELF", 1) given discover_test_here() ():("/src/a found 1")
+given discover_test_image(100, "", "\x7fELF", 0) given discover_test_here() ():("none")
+given discover_test_image(9000, "", "\x7fELF", 1) given discover_test_here() ():("- found 1")

@@ -1,28 +1,28 @@
 // Test fixtures that run real child processes for the job cases: a shell script in
 // its own process group (its pid is the group), waiting for it, and the last wait's result.
 
-job_t_start(string job_t_script) {
-  string job_t_lines = "/bin/sh\n-c\n" + job_t_script + "\n";
-  int job_t_child = proc_start(job_t_lines, "", "", (import proc_f_group), -1, -1, -1);
-  export int job_t_pid = job_t_child;
-} return void export job_t_pid;
-("exit 0"):() then job_t_after(0):(0)
-("exit 4"):() then job_t_after(0):(4)
-("kill -9 $$"):() then job_t_after(0):(265)
+job_test_start(string job_test_script) {
+  string job_test_lines = "/bin/sh\n-c\n" + job_test_script + "\n";
+  int job_test_child = proc_start(job_test_lines, "", "", (import proc_f_group), -1, -1, -1);
+  export int job_test_pid = job_test_child;
+} return void export job_test_pid;
+("exit 0"):() then job_test_after(0):(0)
+("exit 4"):() then job_test_after(0):(4)
+("kill -9 $$"):() then job_test_after(0):(265)
 
-job_t_after(int job_t_options) {
-  int job_t_seen = proc_waitpid((import job_t_pid), job_t_options);
-  int job_t_kind = proc_wait_kind();
-  int job_t_code = proc_wait_code();
-} chain (int job_t_options) {
-  int job_t_outcome = (job_t_kind * 256 + job_t_code) * (job_t_seen > 0) - (job_t_seen <= 0);
-} return int job_t_outcome;
-given job_t_start("exit 3") (0):(3)
-given job_t_start("sleep 2") (1):(-1)
-given job_t_start("exit 5") (2):(5)
+job_test_after(int job_test_options) {
+  int job_test_seen = proc_waitpid((import job_test_pid), job_test_options);
+  int job_test_kind = proc_wait_kind();
+  int job_test_code = proc_wait_code();
+} chain (int job_test_options) {
+  int job_test_outcome = (job_test_kind * 256 + job_test_code) * (job_test_seen > 0) - (job_test_seen <= 0);
+} return int job_test_outcome;
+given job_test_start("exit 3") (0):(3)
+given job_test_start("sleep 2") (1):(-1)
+given job_test_start("exit 5") (2):(5)
 
-job_t_wait(int job_t_how) {
-  int job_t_ignored = job_t_after(job_t_how);
+job_test_wait(int job_test_how) {
+  int job_test_ignored = job_test_after(job_test_how);
 } return void;
-given job_t_start("exit 2") (0):(0) then job_t_last:(2)
-given job_t_start("kill -9 $$") (0):(0) then job_t_last:(265)
+given job_test_start("exit 2") (0):(0) then job_test_last:(2)
+given job_test_start("kill -9 $$") (0):(0) then job_test_last:(265)

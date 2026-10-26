@@ -1,7 +1,7 @@
 // Empties a list of strings.
-ofd_clr(string[] owlx) {
-  while(len(owlx) > 0) {
-    pop(owlx);
+fodt_dump_clear(string[] emptied_list) {
+  while(len(emptied_list) > 0) {
+    pop(emptied_list);
   }
 } return void;
 (["a", "b"]):([])
@@ -9,27 +9,27 @@ ofd_clr(string[] owlx) {
 ([]):([])
 
 // Starts a paragraph or heading: its style key, no runs yet, no span styles, and, for the first paragraph, its style key kept for finding the page.
-ofd_pstart(OfdAcc owacc, XmlR owr, string[] owspans) {
-  string[] owlss = owacc.ss;
-  owlss[0] = "p:" + xml_reader_attr(owr, "text:style-name");
-  ofd_clr(owacc.sg);
-} chain (OfdAcc owacc, XmlR owr, string[] owspans) {
-  ofd_clr(owspans);
-  owacc.st[2] = 1;
-  if(owacc.st[3] == 0) {
-    owlss[4] = owlss[0];
+fodt_dump_paragraph_start(Accumulator accumulator, XmlR document_reader, string[] span_styles) {
+  string[] string_slots = accumulator.slot_strings;
+  string_slots[0] = "p:" + xml_reader_attr(document_reader, "text:style-name");
+  fodt_dump_clear(accumulator.segment_strings);
+} chain (Accumulator accumulator, XmlR document_reader, string[] span_styles) {
+  fodt_dump_clear(span_styles);
+  accumulator.walk_state[2] = 1;
+  if(accumulator.walk_state[3] == 0) {
+    string_slots[4] = string_slots[0];
   }
 } return void;
-given ofd_t_open("<text:p text:style-name=\"P1\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 0, 0], ["", "", "", "", ""], ["a", "b"]), (import ofd_t_r), ["t:T"]):(OfdAcc([-1, 0, 1, 0], ["p:P1", "", "", "", "p:P1"], []), (import ofd_t_r), [])
-given ofd_t_open("<text:h text:style-name=\"H\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 0, 2], ["", "", "", "", "p:P1"], []), (import ofd_t_r), []):(OfdAcc([-1, 0, 1, 2], ["p:H", "", "", "", "p:P1"], []), (import ofd_t_r), [])
+given fodt_dump_test_open("<text:p text:style-name=\"P1\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Accumulator([-1, 0, 0, 0], ["", "", "", "", ""], ["a", "b"]), (import fodt_dump_test_reader), ["t:T"]):(Accumulator([-1, 0, 1, 0], ["p:P1", "", "", "", "p:P1"], []), (import fodt_dump_test_reader), [])
+given fodt_dump_test_open("<text:h text:style-name=\"H\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Accumulator([-1, 0, 0, 2], ["", "", "", "", "p:P1"], []), (import fodt_dump_test_reader), []):(Accumulator([-1, 0, 1, 2], ["p:H", "", "", "", "p:P1"], []), (import fodt_dump_test_reader), [])
 
 // The list style a paragraph sits in: inside a text:list the outermost list's style name, outside one the list style its paragraph style gives; "" for none.
-ofd_plist(OfdSty owst, OfdAcc owacc) {
-  string owlist = ofd_walk(owst, owacc.ss[0], bind(ofd_meta, 1));
-  if(owacc.st[1] > 0) {
-    owlist = owacc.ss[1];
+fodt_dump_paragraph_list(Catalog style_store, Accumulator accumulator) {
+  string list_style = fodt_dump_walk(style_store, accumulator.slot_strings[0], bind(fodt_dump_meta_slot, 1));
+  if(accumulator.walk_state[1] > 0) {
+    list_style = accumulator.slot_strings[1];
   }
-} return string owlist;
-(OfdSty(["p:A"], [""], ["", "L1", ""]), OfdAcc([-1, 0, 0, 0], ["p:A", "", "", "", ""], [])):("L1")
-(OfdSty(["p:A"], [""], ["", "L1", ""]), OfdAcc([-1, 2, 1, 0], ["p:A", "L2", "", "", ""], [])):("L2")
-(OfdSty(["p:A"], [""], ["", "L1", ""]), OfdAcc([-1, 1, 1, 0], ["p:A", "", "", "", ""], [])):("")
+} return string list_style;
+(Catalog(["p:A"], [""], ["", "L1", ""]), Accumulator([-1, 0, 0, 0], ["p:A", "", "", "", ""], [])):("L1")
+(Catalog(["p:A"], [""], ["", "L1", ""]), Accumulator([-1, 2, 1, 0], ["p:A", "L2", "", "", ""], [])):("L2")
+(Catalog(["p:A"], [""], ["", "L1", ""]), Accumulator([-1, 1, 1, 0], ["p:A", "", "", "", ""], [])):("")

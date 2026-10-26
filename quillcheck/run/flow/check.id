@@ -1,38 +1,38 @@
 // Runs every lane for fixture stem in a throwaway root under /tmp, prints its line, and removes the root, soffice's profile with it; the exit status of rep_exit.
-check_fixture(string bin, int n, string assets, string stem) {
+check_fixture(string bin, int fixture_number, string assets, string stem) {
   string root = fs_mktemp((import tmp_prefix), 1);
   fs_drop_exit(root);
   int made = fs_mkdir(root + "/" + (import out_sub));
-} chain (string bin, int n, string assets, string stem) {
-  string src = assets + "/" + (import odt_sub) + "/" + stem + ".odt";
-  int[] res = lane_all(bin, root, src, stem, n);
-  int vt = wlane_text((import quill_binary), root, src, stem);
-} chain (string bin, int n, string assets, string stem) {
-  int vp = wlane_pages((import quill_binary), src, res[(import r_pages)], n);
-  int[] vs = [vt, vp];
+} chain (string bin, int fixture_number, string assets, string stem) {
+  string source_path = assets + "/" + (import odt_sub) + "/" + stem + ".odt";
+  int[] lane_results = lane_all(bin, root, source_path, stem, fixture_number);
+  int quill_text_verdict = quill_lane_text((import quill_binary), root, source_path, stem);
+} chain (string bin, int fixture_number, string assets, string stem) {
+  int quill_pages_verdict = quill_lane_pages((import quill_binary), source_path, lane_results[(import r_pages)], fixture_number);
+  int[] quill_verdicts = [quill_text_verdict, quill_pages_verdict];
   string[] modes = (import quill_modes);
-} chain (string bin, int n, string assets, string stem) {
-  string words = rep_word_all(modes, vs);
-  print(rep_line(n, stem, res, words));
-  int ok = wlane_count(modes, vs, (import lane_ok));
-} chain (string bin, int n, string assets, string stem) {
-  int failed = wlane_count(modes, vs, (import lane_fail));
+} chain (string bin, int fixture_number, string assets, string stem) {
+  string words = report_word_all(modes, quill_verdicts);
+  print(report_line(fixture_number, stem, lane_results, words));
+  int ok = quill_lane_count(modes, quill_verdicts, (import lane_ok));
+} chain (string bin, int fixture_number, string assets, string stem) {
+  int failed = quill_lane_count(modes, quill_verdicts, (import lane_fail));
   int gone = exec_drop(root);
-  int code = rep_exit(res, len(modes) - ok, failed);
+  int code = report_exit(lane_results, len(modes) - ok, failed);
 } return int code;
 ("false", 3, "../quillcorpus", "03_inline"):(1) then prints:("3 03_inline txt=FAIL fodt=FAIL pdf=FAIL(0 pages) cross=FAIL(-1 missing) | --text=UNAVAILABLE(quill binary not available) --dump=UNAVAILABLE(quill binary not available) --roundtrip=UNAVAILABLE(quill binary not available) --pages=UNAVAILABLE(quill binary not available)\n")
 ("true", 7, "../quillcorpus", "07_pages"):(1) then prints:("7 07_pages txt=FAIL fodt=FAIL pdf=FAIL(0 pages) cross=FAIL(-1 missing) | --text=UNAVAILABLE(quill binary not available) --dump=UNAVAILABLE(quill binary not available) --roundtrip=UNAVAILABLE(quill binary not available) --pages=UNAVAILABLE(quill binary not available)\n")
 
 // Runs fixture n of the corpus under assets, or says there is none; exit status 2 for a missing fixture.
-check_run(string bin, int n, string assets) {
-  string stem = fixt_name(assets + "/" + (import odt_sub), n);
+check_run(string bin, int fixture_number, string assets) {
+  string stem = fixture_name(assets + "/" + (import odt_sub), fixture_number);
   int code = (import exit_usage);
   if (stem != "") {
-    code = check_fixture(bin, n, assets, stem);
+    code = check_fixture(bin, fixture_number, assets, stem);
   }
-} chain (string bin, int n, string assets) {
+} chain (string bin, int fixture_number, string assets) {
   if (stem == "") {
-    eprint("quillcheck: no fixture " + n + " in " + assets + "/" + (import odt_sub) + "; list the fixtures with: quillcheck --list");
+    eprint("quillcheck: no fixture " + fixture_number + " in " + assets + "/" + (import odt_sub) + "; list the fixtures with: quillcheck --list");
   }
 } return int code;
 ("false", 99, "../quillcorpus"):(2) then eprints:("quillcheck: no fixture 99 in ../quillcorpus/odt; list the fixtures with: quillcheck --list\n")

@@ -2,19 +2,19 @@
 // only the part fs_mktemp makes up (the prefix and the six characters after it) and the part a case appends are stable.
 //
 // The length of the scratch directory's own name when it starts with themecheck_, else -1.
-tg_t_base() {
-  string tg_xb = path_base((import tg_xd));
-  int tg_len = len(tg_xb);
-  if (str_starts(tg_xb, "themecheck_") == 0) {
-    tg_len = -1;
+scratch_base_length() {
+  string scratch_base = path_base((import scratch_directory));
+  int base_length = len(scratch_base);
+  if (str_starts(scratch_base, "themecheck_") == 0) {
+    base_length = -1;
   }
-} return int tg_len;
-given tg_t_dir ():(17)
-given tg_t_dir ():(17) then tg_t_base:(17)
+} return int base_length;
+given scratch_directory_make ():(17)
+given scratch_directory_make ():(17) then scratch_base_length:(17)
 
 // The last part of the picked path in the scratch directory.
-tg_t_tail() {
-  string tg_tl = path_base((import tg_xn));
-} return string tg_tl;
-given tg_t_dir given tg_t_pick("a.idml") ():("a.idml")
-given tg_t_dir given tg_t_pick("gen.json") ():("gen.json")
+picked_file_tail() {
+  string tail_name = path_base((import picked_path));
+} return string tail_name;
+given scratch_directory_make given picked_file_choose("a.idml") ():("a.idml")
+given scratch_directory_make given picked_file_choose("gen.json") ():("gen.json")

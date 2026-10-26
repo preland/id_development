@@ -1,29 +1,29 @@
 // The text of a type swatch, its classes, and the classes of a box swatch.
 //
 // The words of type swatch j: a pangram, or for the last swatch a sentence that wraps in a swatch's width.
-tg_tx(int j) {
-  string tw = "Sphinx of black quartz";
-  if (j >= tg_n(14) + tg_n(15)) {
-    tw = "A line long enough to wrap in a swatch.";
+type_swatch_words(int swatch_index) {
+  string swatch_words = "Sphinx of black quartz";
+  if (swatch_index >= family_token_count(14) + family_token_count(15)) {
+    swatch_words = "A line long enough to wrap in a swatch.";
   }
-} return string tw;
+} return string swatch_words;
 (0):("Sphinx of black quartz")
 (12):("A line long enough to wrap in a swatch.")
 
 // The classes of type swatch j: a style for the first swatches (colour and style), a weight on the body style for
 // the next, and the plain body style for the last.
-tg_tcl(int j) {
-  int nt = tg_n(14);
-  int nw = tg_n(15);
-  string cx = "text-body text-label";
-} chain (int j) {
-  if (j < nt) {
-    cx = "text-label " + theme_cname(14, j);
+type_swatch_classes(int swatch_index) {
+  int style_count = family_token_count(14);
+  int weight_count = family_token_count(15);
+  string swatch_classes = "text-body text-label";
+} chain (int swatch_index) {
+  if (swatch_index < style_count) {
+    swatch_classes = "text-label " + theme_cname(14, swatch_index);
   }
-  if (j >= nt && j < nt + nw) {
-    cx = cx + " " + theme_cname(15, j - nt);
+  if (swatch_index >= style_count && swatch_index < style_count + weight_count) {
+    swatch_classes = swatch_classes + " " + theme_cname(15, swatch_index - style_count);
   }
-} return string cx;
+} return string swatch_classes;
 (0):("text-label text-caption")
 (8):("text-body text-label font-normal")
 (11):("text-body text-label font-bold")
@@ -31,23 +31,23 @@ tg_tcl(int j) {
 
 // The classes of box swatch j: a radius on an accent fill, a shadow on a raised surface, a border width with an
 // accent border, or a duration with the easing on a control face.
-tg_bcl(int j) {
-  int nr = tg_n(16);
-  int nh = tg_n(17);
-  int nb = tg_n(3);
-} chain (int j) {
-  string cx = "bg-accent " + theme_cname(16, j % nr);
-  if (j >= nr) {
-    cx = "bg-surface-raised " + theme_cname(17, (j - nr) % nh);
+box_swatch_classes(int swatch_index) {
+  int radius_count = family_token_count(16);
+  int shadow_count = family_token_count(17);
+  int border_count = family_token_count(3);
+} chain (int swatch_index) {
+  string swatch_classes = "bg-accent " + theme_cname(16, swatch_index % radius_count);
+  if (swatch_index >= radius_count) {
+    swatch_classes = "bg-surface-raised " + theme_cname(17, (swatch_index - radius_count) % shadow_count);
   }
-  if (j >= nr + nh) {
-    cx = "bg-surface border-accent " + theme_cname(3, (j - nr - nh) % nb);
+  if (swatch_index >= radius_count + shadow_count) {
+    swatch_classes = "bg-surface border-accent " + theme_cname(3, (swatch_index - radius_count - shadow_count) % border_count);
   }
-} chain (int j) {
-  if (j >= nr + nh + nb) {
-    cx = "bg-control " + theme_cname(18, j - nr - nh - nb) + " " + theme_cname(19, 0);
+} chain (int swatch_index) {
+  if (swatch_index >= radius_count + shadow_count + border_count) {
+    swatch_classes = "bg-control " + theme_cname(18, swatch_index - radius_count - shadow_count - border_count) + " " + theme_cname(19, 0);
   }
-} return string cx;
+} return string swatch_classes;
 (0):("bg-accent rounded-none")
 (6):("bg-accent rounded")
 (7):("bg-surface-raised shadow-1")

@@ -1,53 +1,53 @@
 // Records, in the bag of list entry owi, what the level element the reader is at says: its kind (b bullet, n number), its bullet code point or number format, and its start value.
-ofd_lvl_head(OfdSty owst, int owi, XmlR owr, int owl) {
-  string owkind = "b";
-  string owbul = xml_reader_attr(owr, "text:bullet-char");
-  int owfmt = 8226;
-} chain (OfdSty owst, int owi, XmlR owr, int owl) {
-  if(owbul != "") {
-    owfmt = utf8_code_point(owbul, 0);
+fodt_dump_level_head(Catalog style_store, int entry_index, XmlR document_reader, int owl) {
+  string level_kind = "b";
+  string bullet_text = xml_reader_attr(document_reader, "text:bullet-char");
+  int format_code = 8226;
+} chain (Catalog style_store, int entry_index, XmlR document_reader, int owl) {
+  if(bullet_text != "") {
+    format_code = utf8_code_point(bullet_text, 0);
   }
-  if(xml_reader_get(owr, (import xml_reader_k_name)) == "text:list-level-style-number") {
-    owkind = "n";
-    owfmt = ofd_numf(xml_reader_attr(owr, "style:num-format"));
+  if(xml_reader_get(document_reader, (import xml_reader_k_name)) == "text:list-level-style-number") {
+    level_kind = "n";
+    format_code = fodt_dump_number_format(xml_reader_attr(document_reader, "style:num-format"));
   }
-  ofd_prop(owst, owi, owl + ".k", owkind);
-} chain (OfdSty owst, int owi, XmlR owr, int owl) {
-  ofd_prop(owst, owi, owl + ".f", "" + owfmt);
-  ofd_prop(owst, owi, owl + ".s", ofd_start(owr));
+  fodt_dump_property(style_store, entry_index, owl + ".k", level_kind);
+} chain (Catalog style_store, int entry_index, XmlR document_reader, int owl) {
+  fodt_dump_property(style_store, entry_index, owl + ".f", "" + format_code);
+  fodt_dump_property(style_store, entry_index, owl + ".s", fodt_dump_start_value(document_reader));
 } return void;
-given ofd_t_open("<text:list-level-style-number text:level=\"1\" style:num-format=\"a\" text:start-value=\"3\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["l:L"], [""], ["", "", ""]), 0, (import ofd_t_r), 1):(OfdSty(["l:L"], ["|1.k=n|1.f=1|1.s=3"], ["", "", ""]), 0, (import ofd_t_r), 1)
-given ofd_t_open("<text:list-level-style-bullet text:level=\"2\" text:bullet-char=\"-\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["l:L"], [""], ["", "", ""]), 0, (import ofd_t_r), 2):(OfdSty(["l:L"], ["|2.k=b|2.f=45|2.s=1"], ["", "", ""]), 0, (import ofd_t_r), 2)
+given fodt_dump_test_open("<text:list-level-style-number text:level=\"1\" style:num-format=\"a\" text:start-value=\"3\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Catalog(["l:L"], [""], ["", "", ""]), 0, (import fodt_dump_test_reader), 1):(Catalog(["l:L"], ["|1.k=n|1.f=1|1.s=3"], ["", "", ""]), 0, (import fodt_dump_test_reader), 1)
+given fodt_dump_test_open("<text:list-level-style-bullet text:level=\"2\" text:bullet-char=\"-\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Catalog(["l:L"], [""], ["", "", ""]), 0, (import fodt_dump_test_reader), 2):(Catalog(["l:L"], ["|2.k=b|2.f=45|2.s=1"], ["", "", ""]), 0, (import fodt_dump_test_reader), 2)
 
 // Records a level's left indent and hanging indent, in twips, from the element the reader is at: a style:list-level-label-alignment (margin-left, and a negative text-indent as the hang) or the older style:list-level-properties (space-before plus min-label-width, and the width as the hang).
-ofd_lvl_kid(OfdSty owst, int owi, XmlR owr, int owl) {
-  string owname = xml_reader_get(owr, (import xml_reader_k_name));
-  int owmar = ofd_tw(xml_reader_attr(owr, "fo:margin-left"));
-  int owind = ofd_tw(xml_reader_attr(owr, "fo:text-indent"));
-} chain (OfdSty owst, int owi, XmlR owr, int owl) {
-  if(owname == "style:list-level-label-alignment" && owmar != (import ow_bad)) {
-    ofd_prop(owst, owi, owl + ".l", "" + owmar);
+fodt_dump_level_child(Catalog style_store, int entry_index, XmlR document_reader, int owl) {
+  string element_name = xml_reader_get(document_reader, (import xml_reader_k_name));
+  int margin_length = fodt_dump_length(xml_reader_attr(document_reader, "fo:margin-left"));
+  int indent_length = fodt_dump_length(xml_reader_attr(document_reader, "fo:text-indent"));
+} chain (Catalog style_store, int entry_index, XmlR document_reader, int owl) {
+  if(element_name == "style:list-level-label-alignment" && margin_length != (import ow_bad)) {
+    fodt_dump_property(style_store, entry_index, owl + ".l", "" + margin_length);
   }
-  if(owname == "style:list-level-label-alignment" && owind != (import ow_bad)) {
-    ofd_prop(owst, owi, owl + ".h", "" + fixed_point_maximum(0 - owind, 0));
+  if(element_name == "style:list-level-label-alignment" && indent_length != (import ow_bad)) {
+    fodt_dump_property(style_store, entry_index, owl + ".h", "" + fixed_point_maximum(0 - indent_length, 0));
   }
-  if(owname == "style:list-level-properties" && xml_reader_attr(owr, "text:min-label-width") != "") {
-    ofd_legacy(owst, owi, owr, owl);
+  if(element_name == "style:list-level-properties" && xml_reader_attr(document_reader, "text:min-label-width") != "") {
+    fodt_dump_legacy_indents(style_store, entry_index, document_reader, owl);
   }
 } return void;
-given ofd_t_open("<style:list-level-label-alignment fo:margin-left=\"0.5in\" fo:text-indent=\"-0.25in\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["l:L"], [""], ["", "", ""]), 0, (import ofd_t_r), 1):(OfdSty(["l:L"], ["|1.l=720|1.h=360"], ["", "", ""]), 0, (import ofd_t_r), 1)
-given ofd_t_open("<style:list-level-properties text:space-before=\"0.25in\" text:min-label-width=\"0.25in\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["l:L"], [""], ["", "", ""]), 0, (import ofd_t_r), 2):(OfdSty(["l:L"], ["|2.h=360|2.l=720"], ["", "", ""]), 0, (import ofd_t_r), 2)
-given ofd_t_open("<other fo:margin-left=\"0.5in\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["l:L"], [""], ["", "", ""]), 0, (import ofd_t_r), 1):(OfdSty(["l:L"], [""], ["", "", ""]), 0, (import ofd_t_r), 1)
+given fodt_dump_test_open("<style:list-level-label-alignment fo:margin-left=\"0.5in\" fo:text-indent=\"-0.25in\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Catalog(["l:L"], [""], ["", "", ""]), 0, (import fodt_dump_test_reader), 1):(Catalog(["l:L"], ["|1.l=720|1.h=360"], ["", "", ""]), 0, (import fodt_dump_test_reader), 1)
+given fodt_dump_test_open("<style:list-level-properties text:space-before=\"0.25in\" text:min-label-width=\"0.25in\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Catalog(["l:L"], [""], ["", "", ""]), 0, (import fodt_dump_test_reader), 2):(Catalog(["l:L"], ["|2.h=360|2.l=720"], ["", "", ""]), 0, (import fodt_dump_test_reader), 2)
+given fodt_dump_test_open("<other fo:margin-left=\"0.5in\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Catalog(["l:L"], [""], ["", "", ""]), 0, (import fodt_dump_test_reader), 1):(Catalog(["l:L"], [""], ["", "", ""]), 0, (import fodt_dump_test_reader), 1)
 
 // Records a level's indents from the older spelling: the label starts text:space-before from the margin and is text:min-label-width wide, so the text starts at their sum and the label hangs by the width.
-ofd_legacy(OfdSty owst, int owi, XmlR owr, int owl) {
-  int owsp = ofd_tw(xml_reader_attr(owr, "text:space-before"));
-  int owmw = ofd_tw(xml_reader_attr(owr, "text:min-label-width"));
-  ofd_prop(owst, owi, owl + ".h", "" + owmw);
-} chain (OfdSty owst, int owi, XmlR owr, int owl) {
-  if(owsp != (import ow_bad)) {
-    ofd_prop(owst, owi, owl + ".l", "" + (owsp + owmw));
+fodt_dump_legacy_indents(Catalog style_store, int entry_index, XmlR document_reader, int owl) {
+  int space_before = fodt_dump_length(xml_reader_attr(document_reader, "text:space-before"));
+  int label_width = fodt_dump_length(xml_reader_attr(document_reader, "text:min-label-width"));
+  fodt_dump_property(style_store, entry_index, owl + ".h", "" + label_width);
+} chain (Catalog style_store, int entry_index, XmlR document_reader, int owl) {
+  if(space_before != (import ow_bad)) {
+    fodt_dump_property(style_store, entry_index, owl + ".l", "" + (space_before + label_width));
   }
 } return void;
-given ofd_t_open("<a text:space-before=\"0.25in\" text:min-label-width=\"0.5in\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["l:L"], [""], ["", "", ""]), 0, (import ofd_t_r), 3):(OfdSty(["l:L"], ["|3.h=720|3.l=1080"], ["", "", ""]), 0, (import ofd_t_r), 3)
-given ofd_t_open("<a text:min-label-width=\"0.5in\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["l:L"], [""], ["", "", ""]), 0, (import ofd_t_r), 1):(OfdSty(["l:L"], ["|1.h=720"], ["", "", ""]), 0, (import ofd_t_r), 1)
+given fodt_dump_test_open("<a text:space-before=\"0.25in\" text:min-label-width=\"0.5in\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Catalog(["l:L"], [""], ["", "", ""]), 0, (import fodt_dump_test_reader), 3):(Catalog(["l:L"], ["|3.h=720|3.l=1080"], ["", "", ""]), 0, (import fodt_dump_test_reader), 3)
+given fodt_dump_test_open("<a text:min-label-width=\"0.5in\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Catalog(["l:L"], [""], ["", "", ""]), 0, (import fodt_dump_test_reader), 1):(Catalog(["l:L"], ["|1.h=720"], ["", "", ""]), 0, (import fodt_dump_test_reader), 1)

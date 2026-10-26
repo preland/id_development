@@ -1,30 +1,30 @@
 // What is written out about a view: the rectangles, the computed values, the text, the pixels. One line a node,
-// the nodes numbered as tc_nodes numbers them, so a web page's elements in document order line up with them.
+// the nodes numbered as page_node_records numbers them, so a web page's elements in document order line up with them.
 //
 // One line per node: its number, its rectangle x y w h, and its kind (1 Row, 2 Col, 3 Text, ...).
-tc_rects(int[] t, string[] s, int[] rc, int[] ns) {
-  string[] ls = [];
-  int i = 0;
-  while (i < len(ns)) {
-    push(ls, tc_rect1(t, rc, ns[i], i));
-    i = i + 1;
+rectangle_lines(int[] tape, string[] tape_strings, int[] rectangles, int[] node_records) {
+  string[] line_list = [];
+  int node_index = 0;
+  while (node_index < len(node_records)) {
+    push(line_list, node_rectangle_line(tape, rectangles, node_records[node_index], node_index));
+    node_index = node_index + 1;
   }
-} chain (int[] t, string[] s, int[] rc, int[] ns) {
-  string txt = str_join(ls, "\n") + "\n";
-} return string txt;
-given tc_t_view ((import tc_tt), (import tc_ts), (import tc_xr), (import tc_xn)):("0 0 0 60 40 2\n1 9 9 42 11 3\n2 9 24 42 9 2\n")
-given tc_t_view ((import tc_tt), (import tc_ts), (import tc_xr), [7]):("0 9 24 42 9 2\n")
+} chain (int[] tape, string[] tape_strings, int[] rectangles, int[] node_records) {
+  string document_text = str_join(line_list, "\n") + "\n";
+} return string document_text;
+given rendered_view_fixture ((import page_tape), (import page_tape_strings), (import view_rectangles), (import view_nodes)):("0 0 0 60 40 2\n1 9 9 42 11 3\n2 9 24 42 9 2\n")
+given rendered_view_fixture ((import page_tape), (import page_tape_strings), (import view_rectangles), [7]):("0 9 24 42 9 2\n")
 
 // The line of node i, which is record rec of the tape.
-tc_rect1(int[] t, int[] rc, int rec, int i) {
-  string row = i + " " + gui_rect_get(rc, rec, 0) + " " + gui_rect_get(rc, rec, 1) + " " + gui_rect_get(rc, rec, 2) + " " + gui_rect_get(rc, rec, 3) + " " + gui_get(t, rec, (import gui_f_kind));
+node_rectangle_line(int[] tape, int[] rectangles, int record_index, int node_index) {
+  string row = node_index + " " + gui_rect_get(rectangles, record_index, 0) + " " + gui_rect_get(rectangles, record_index, 1) + " " + gui_rect_get(rectangles, record_index, 2) + " " + gui_rect_get(rectangles, record_index, 3) + " " + gui_get(tape, record_index, (import gui_f_kind));
 } return string row;
-given tc_t_view ((import tc_tt), (import tc_xr), 6, 1):("1 9 9 42 11 3")
-given tc_t_view ((import tc_tt), (import tc_xr), 5, 0):("0 0 0 60 40 2")
+given rendered_view_fixture ((import page_tape), (import view_rectangles), 6, 1):("1 9 9 42 11 3")
+given rendered_view_fixture ((import page_tape), (import view_rectangles), 5, 0):("0 0 0 60 40 2")
 
 // Write text to the file at path; the number of bytes written, or -1.
-tc_save(string path, string text) {
-  int n = fs_save(path, mem_of_str(text), len(text));
-} return int n;
-given tg_t_dir given tg_t_pick("s.txt") ((import tg_xn), "hello"):(5) then tg_t_fsize:(5)
-given tg_t_dir given tg_t_pick("none/s.txt") ((import tg_xn), "x"):(-1)
+text_save(string path, string text) {
+  int bytes_written = fs_save(path, mem_of_str(text), len(text));
+} return int bytes_written;
+given scratch_directory_make given picked_file_choose("s.txt") ((import picked_path), "hello"):(5) then picked_file_size:(5)
+given scratch_directory_make given picked_file_choose("none/s.txt") ((import picked_path), "x"):(-1)

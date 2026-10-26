@@ -1,11 +1,11 @@
 // The other two kinds of swatch, and the classes of a state swatch.
 //
 // Kind 3: a box swatch: a radius, a shadow, a border width or a duration with the easing, on a fill that shows it.
-tg_sw3(string[] defs, string[] names, string[] kids, string[] sts, int j) {
-  string cl = tg_bcl(j);
-  push(defs, "B" + j + ":Col `" + cl + "`{}");
-  push(names, "B" + j);
-} chain (string[] defs, string[] names, string[] kids, string[] sts, int j) {
+box_swatch_add(string[] definitions, string[] names, string[] kids, string[] state_lines, int swatch_index) {
+  string class_names = box_swatch_classes(swatch_index);
+  push(definitions, "B" + swatch_index + ":Col `" + class_names + "`{}");
+  push(names, "B" + swatch_index);
+} chain (string[] definitions, string[] names, string[] kids, string[] state_lines, int swatch_index) {
   push(kids, "");
 } return void;
 ([], [], [], [], 0):(["B0:Col `bg-accent rounded-none`{}"], ["B0"], [""], [], 0)
@@ -14,14 +14,14 @@ tg_sw3(string[] defs, string[] names, string[] kids, string[] sts, int j) {
 
 // Kind 4: a state swatch: a Col (a Button for disabled) that has a background and a text colour of its own and more for one state,
 // forced into that state by the page's states file (the line is the node's number, then the state's bit).
-tg_sw4(string[] defs, string[] names, string[] kids, string[] sts, int j) {
-  int st = j / tg_n(0);
-  int k = j % tg_n(0);
-  push(defs, "S" + j + ":" + tg_scl(st, k));
-} chain (string[] defs, string[] names, string[] kids, string[] sts, int j) {
-  push(names, "S" + j);
+state_swatch_add(string[] definitions, string[] names, string[] kids, string[] state_lines, int swatch_index) {
+  int state_index = swatch_index / family_token_count(0);
+  int color_index = swatch_index % family_token_count(0);
+  push(definitions, "S" + swatch_index + ":" + state_swatch_definition(state_index, color_index));
+} chain (string[] definitions, string[] names, string[] kids, string[] state_lines, int swatch_index) {
+  push(names, "S" + swatch_index);
   push(kids, "");
-  push(sts, (2 + (j % 9) / 3 * 4 + (j % 9) % 3) + " " + (1 << st));
+  push(state_lines, (2 + (swatch_index % 9) / 3 * 4 + (swatch_index % 9) % 3) + " " + (1 << state_index));
 } return void;
 ([], [], [], [], 0):(["S0:Col `bg-control text-label border`\n  `hover:bg-window hover:text-accent\n  hover:border-selection`"], ["S0"], [""], ["2 1"], 0)
 ([], [], [], [], 28):(["S28:Col `bg-control text-label border`\n  `focus:bg-window focus:text-accent\n  focus:border-selection`"], ["S28"], [""], ["3 2"], 28)
@@ -31,13 +31,13 @@ tg_sw4(string[] defs, string[] names, string[] kids, string[] sts, int j) {
 // border, carrying the state's prefix on a background, a text and a border colour, each a few roles from the last so
 // that they differ; a Button for disabled, which a Col is not, whose inline border:none leaves it no border colour, so
 // it carries the first two only.
-tg_scl(int st, int k) {
-  string pf = (import idstd_tt_spre)[st];
-  string cx = "Button `bg-control text-label`\n  `" + pf + theme_cname(0, k) + " " + pf + theme_cname(1, (k + 14) % tg_n(0)) + "`";
-  if (st < 3) {
-    cx = "Col `bg-control text-label border`\n  `" + pf + theme_cname(0, k) + " " + pf + theme_cname(1, (k + 14) % tg_n(0)) + "\n  " + pf + theme_cname(2, (k + 7) % tg_n(0)) + "`";
+state_swatch_definition(int state_index, int color_offset) {
+  string state_prefix = (import idstd_tt_spre)[state_index];
+  string swatch_classes = "Button `bg-control text-label`\n  `" + state_prefix + theme_cname(0, color_offset) + " " + state_prefix + theme_cname(1, (color_offset + 14) % family_token_count(0)) + "`";
+  if (state_index < 3) {
+    swatch_classes = "Col `bg-control text-label border`\n  `" + state_prefix + theme_cname(0, color_offset) + " " + state_prefix + theme_cname(1, (color_offset + 14) % family_token_count(0)) + "\n  " + state_prefix + theme_cname(2, (color_offset + 7) % family_token_count(0)) + "`";
   }
-} return string cx;
+} return string swatch_classes;
 (0, 0):("Col `bg-control text-label border`\n  `hover:bg-window hover:text-accent\n  hover:border-selection`")
 (3, 27):("Button `bg-control text-label`\n  `disabled:bg-scrim disabled:text-link`")
 (1, 8):("Col `bg-control text-label border`\n  `focus:bg-label focus:text-on-destructive\n  focus:border-on-accent`")

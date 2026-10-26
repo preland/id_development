@@ -19,12 +19,12 @@ launch_serve(int launch_kind, string[] launch_words, int launch_now) {
     launch_code = menu_start(launch_rows, launch_record, launch_home, launch_now);
   }
 } return int launch_code;
-given launch_t_state("/bin/sh\t-\tc\t5000\n") (1, ["idlaunch", "--list"], 7205):(0) then prints:("1\tsh\t?\t2h\t/bin/sh\t-\n")
-given launch_t_state("") (1, ["idlaunch", "--list"], 7205):(0) then prints:("")
-given launch_t_state("/bin/sh\t-\tc\t5000\n/no/such/x\t-\tc\t9000\n") (1, ["idlaunch", "--list"], 30):(0) then prints:("1\tsh\t?\tnow\t/bin/sh\t-\n")
-given launch_t_state("/bin/sh\t-\tc\t5000\n") (2, ["idlaunch", "--run", "1", "-c", "exit 7"], 0):(7) then prints:("sh exited with status 7 after 0.0 s\n")
-given launch_t_state("") (2, ["idlaunch", "--run", "1"], 0):(1) then eprints:("idlaunch: no program 1 in the list (idlaunch --list shows it)\n")
-given launch_t_state("") (0, ["idlaunch"], 0):(1) then eprints:("idlaunch: standard input is not a terminal (use --list or --run N)\n")
+given launch_test_state("/bin/sh\t-\tc\t5000\n") (1, ["idlaunch", "--list"], 7205):(0) then prints:("1\tsh\t?\t2h\t/bin/sh\t-\n")
+given launch_test_state("") (1, ["idlaunch", "--list"], 7205):(0) then prints:("")
+given launch_test_state("/bin/sh\t-\tc\t5000\n/no/such/x\t-\tc\t9000\n") (1, ["idlaunch", "--list"], 30):(0) then prints:("1\tsh\t?\tnow\t/bin/sh\t-\n")
+given launch_test_state("/bin/sh\t-\tc\t5000\n") (2, ["idlaunch", "--run", "1", "-c", "exit 7"], 0):(7) then prints:("sh exited with status 7 after 0.0 s\n")
+given launch_test_state("") (2, ["idlaunch", "--run", "1"], 0):(1) then eprints:("idlaunch: no program 1 in the list (idlaunch --list shows it)\n")
+given launch_test_state("") (0, ["idlaunch"], 0):(1) then eprints:("idlaunch: standard input is not a terminal (use --list or --run N)\n")
 
 // The exit status for a command line: the usage text and 2 when the arguments make no sense, else launch_serve's.
 launch_dispatch(int launch_kind, string[] launch_words, int launch_now) {
@@ -37,4 +37,4 @@ launch_dispatch(int launch_kind, string[] launch_words, int launch_now) {
   }
 } return int launch_code;
 (3, ["idlaunch", "--bogus"], 0):(2) then eprints:("usage: idlaunch              open the menu (needs a terminal)\n       idlaunch --list       print the programs, one per line\n       idlaunch --run N ...  run program N of --list with the arguments after N\n")
-given launch_t_state("/bin/sh\t-\tc\t5000\n") (1, ["idlaunch", "--list"], 30):(0) then prints:("1\tsh\t?\tnow\t/bin/sh\t-\n")
+given launch_test_state("/bin/sh\t-\tc\t5000\n") (1, ["idlaunch", "--list"], 30):(0) then prints:("1\tsh\t?\tnow\t/bin/sh\t-\n")

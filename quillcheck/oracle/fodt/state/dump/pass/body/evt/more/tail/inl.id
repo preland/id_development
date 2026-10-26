@@ -1,28 +1,28 @@
 // A text:s, text:tab or text:line-break as text: text:c spaces (one without it), a tab, a line feed.
-ofd_special(OfdSty owst, OfdAcc owacc, XmlR owr, string[] owspans) {
-  string owname = xml_reader_get(owr, (import xml_reader_k_name));
-  string owtext = "\t";
-  int owc = to_int(xml_reader_attr(owr, "text:c"));
-} chain (OfdSty owst, OfdAcc owacc, XmlR owr, string[] owspans) {
-  if(owname == "text:s") {
-    owtext = str_repeat(" ", fixed_point_maximum(owc, 1));
+fodt_dump_special(Catalog style_store, Accumulator accumulator, XmlR document_reader, string[] span_styles) {
+  string element_name = xml_reader_get(document_reader, (import xml_reader_k_name));
+  string run_text = "\t";
+  int space_count = to_int(xml_reader_attr(document_reader, "text:c"));
+} chain (Catalog style_store, Accumulator accumulator, XmlR document_reader, string[] span_styles) {
+  if(element_name == "text:s") {
+    run_text = str_repeat(" ", fixed_point_maximum(space_count, 1));
   }
-  if(owname == "text:line-break") {
-    owtext = "\n";
+  if(element_name == "text:line-break") {
+    run_text = "\n";
   }
-  ofd_text(owst, owacc, owspans, owtext);
+  fodt_dump_add_text(style_store, accumulator, span_styles, run_text);
 } return void;
-given ofd_t_open("<text:s text:c=\"3\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", "   "]), (import ofd_t_r), [])
-given ofd_t_open("<text:tab/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", "\t"]), (import ofd_t_r), [])
-given ofd_t_open("<text:s/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", " "]), (import ofd_t_r), [])
-given ofd_t_open("<text:line-break/>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", "\n"]), (import ofd_t_r), [])
+given fodt_dump_test_open("<text:s text:c=\"3\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Catalog(["p:"], [""], ["", "", ""]), Accumulator([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import fodt_dump_test_reader), []):(Catalog(["p:"], [""], ["", "", ""]), Accumulator([-1, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", "   "]), (import fodt_dump_test_reader), [])
+given fodt_dump_test_open("<text:tab/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Catalog(["p:"], [""], ["", "", ""]), Accumulator([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import fodt_dump_test_reader), []):(Catalog(["p:"], [""], ["", "", ""]), Accumulator([-1, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", "\t"]), (import fodt_dump_test_reader), [])
+given fodt_dump_test_open("<text:s/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Catalog(["p:"], [""], ["", "", ""]), Accumulator([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import fodt_dump_test_reader), []):(Catalog(["p:"], [""], ["", "", ""]), Accumulator([-1, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", " "]), (import fodt_dump_test_reader), [])
+given fodt_dump_test_open("<text:line-break/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Catalog(["p:"], [""], ["", "", ""]), Accumulator([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import fodt_dump_test_reader), []):(Catalog(["p:"], [""], ["", "", ""]), Accumulator([-1, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", "\n"]), (import fodt_dump_test_reader), [])
 
 // An inline object (a drawing frame, an image): one private-use character in the paragraph's text, and its subtree is skipped.
-ofd_frame(OfdSty owst, OfdAcc owacc, XmlR owr, int owev, string[] owspans) {
-  if(owacc.st[2] == 1) {
-    ofd_text(owst, owacc, owspans, utf8_string(57344));
+fodt_dump_frame(Catalog style_store, Accumulator accumulator, XmlR document_reader, int reader_event, string[] span_styles) {
+  if(accumulator.walk_state[2] == 1) {
+    fodt_dump_add_text(style_store, accumulator, span_styles, utf8_string(57344));
   }
-  ofd_skip_start(owacc, owr, owev);
+  fodt_dump_skip_start(accumulator, document_reader, reader_event);
 } return void;
-given ofd_t_open("<draw:frame><x/></draw:frame>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), 1, []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([0, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", ""]), (import ofd_t_r), 1, [])
-given ofd_t_open("<draw:frame><x/></draw:frame>") given xml_reader_skip((import ofd_t_r), 1) (OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([-1, 0, 0, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), 1, []):(OfdSty(["p:"], [""], ["", "", ""]), OfdAcc([0, 0, 0, 0], ["p:", "", "", "", ""], []), (import ofd_t_r), 1, [])
+given fodt_dump_test_open("<draw:frame><x/></draw:frame>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Catalog(["p:"], [""], ["", "", ""]), Accumulator([-1, 0, 1, 0], ["p:", "", "", "", ""], []), (import fodt_dump_test_reader), 1, []):(Catalog(["p:"], [""], ["", "", ""]), Accumulator([0, 0, 1, 0], ["p:", "", "", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", ""]), (import fodt_dump_test_reader), 1, [])
+given fodt_dump_test_open("<draw:frame><x/></draw:frame>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Catalog(["p:"], [""], ["", "", ""]), Accumulator([-1, 0, 0, 0], ["p:", "", "", "", ""], []), (import fodt_dump_test_reader), 1, []):(Catalog(["p:"], [""], ["", "", ""]), Accumulator([0, 0, 0, 0], ["p:", "", "", "", ""], []), (import fodt_dump_test_reader), 1, [])

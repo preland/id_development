@@ -1,18 +1,18 @@
 // The byte at k, or -1 when k is outside the file.
-opdf_byte(int[] b, int k) {
-  int v = 0 - 1;
-  if (k >= 0 && k < len(b)) {
-    v = b[k];
+pdf_byte(int[] byte_list, int byte_index) {
+  int byte_value = 0 - 1;
+  if (byte_index >= 0 && byte_index < len(byte_list)) {
+    byte_value = byte_list[byte_index];
   }
-} return int v;
+} return int byte_value;
 ([5, 6], 1):(6)
 ([5, 6], 2):(-1)
 ([5, 6], -1):(-1)
 
 // 1 when byte at+i of the file is byte i of the pattern.
-opdf_same(int[] b, string pat, int at, int i) {
-  int got = opdf_byte(b, at + i);
-  int want = character_code_at(pat, i);
+pdf_same(int[] byte_list, string pat, int at, int pattern_offset) {
+  int got = pdf_byte(byte_list, at + pattern_offset);
+  int want = character_code_at(pat, pattern_offset);
   int same = got == want;
 } return int same;
 ([47, 84], "/T", 0, 1):(1)
@@ -20,10 +20,10 @@ opdf_same(int[] b, string pat, int at, int i) {
 ([47, 84], "/T", 1, 1):(0)
 
 // The first index at or after j that is not a space.
-opdf_skip(int[] b, int j) {
-  while (opdf_byte(b, j) == 32) {
-    j = j + 1;
+pdf_skip(int[] byte_list, int blank_end) {
+  while (pdf_byte(byte_list, blank_end) == 32) {
+    blank_end = blank_end + 1;
   }
-} return int j;
+} return int blank_end;
 ([47, 32, 32, 80], 1):(3)
 ([47, 80], 0):(0)

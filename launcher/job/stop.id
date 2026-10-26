@@ -12,8 +12,8 @@ job_resume(int job_pid, int job_group) {
   int job_seen = proc_waitpid(job_pid, (import proc_w_stopped));
   int job_kind = job_event(job_seen);
 } return int job_kind;
-given job_t_start("kill -STOP $$; exit 5") given job_t_wait(2) ((import job_t_pid), (import job_t_pid)):(0) then job_t_last:(5)
-given job_t_start("kill -STOP $$; kill -9 $$") given job_t_wait(2) ((import job_t_pid), (import job_t_pid)):(1) then job_t_last:(265)
+given job_test_start("kill -STOP $$; exit 5") given job_test_wait(2) ((import job_test_pid), (import job_test_pid)):(0) then job_test_last:(5)
+given job_test_start("kill -STOP $$; kill -9 $$") given job_test_wait(2) ((import job_test_pid), (import job_test_pid)):(1) then job_test_last:(265)
 
 // Ends the program: SIGTERM and SIGCONT to its group, up to 2 s for it to go, then SIGKILL.
 // Answers the kind of the final wait (killed, 1) or -1 when there was nothing to wait for.
@@ -28,6 +28,6 @@ job_terminate(int job_pid, int job_group) {
   }
   int job_kind = job_event(job_reaped);
 } return int job_kind;
-given job_t_start("sleep 4") ((import job_t_pid), (import job_t_pid)):(1) then job_t_last:(271)
-given job_t_start("trap '' TERM; sleep 4") given job_t_settle ((import job_t_pid), (import job_t_pid)):(1) then job_t_last:(265)
+given job_test_start("sleep 4") ((import job_test_pid), (import job_test_pid)):(1) then job_test_last:(271)
+given job_test_start("trap '' TERM; sleep 4") given job_test_settle ((import job_test_pid), (import job_test_pid)):(1) then job_test_last:(265)
 (99999999, 99999999):(-1)

@@ -1,9 +1,9 @@
 // Steps every line, in order.
-ofodt_each(string[] lines, int[] st, string[] recs) {
-  int i = 0;
-  while (i < len(lines)) {
-    ofodt_step(lines[i], st, recs);
-    i = i + 1;
+fodt_each(string[] lines, int[] walk_state, string[] records) {
+  int line_cursor = 0;
+  while (line_cursor < len(lines)) {
+    fodt_step(lines[line_cursor], walk_state, records);
+    line_cursor = line_cursor + 1;
   }
 } return void;
 (["<office:text>", "<text:p>a</text:p>", "</office:text>", "<text:p>z</text:p>"], [0, 0, 0, 0], []):(["<office:text>", "<text:p>a</text:p>", "</office:text>", "<text:p>z</text:p>"], [0, 0, 0, 0], ["p:a"])
@@ -11,17 +11,17 @@ ofodt_each(string[] lines, int[] st, string[] recs) {
 ([], [0, 0, 0, 0], []):([], [0, 0, 0, 0], [])
 
 // The paragraphs, headings, list items, tables and frames of a fodt document as one "kind:text" line each, in document order, "" for a document with none. Tags, styles and everything outside the body are dropped.
-ofodt_norm(string raw) {
+fodt_norm(string raw) {
   string[] lines = str_split(raw, "\n");
-  int[] st = [];
-  string[] recs = [];
+  int[] walk_state = [];
+  string[] records = [];
 } chain (string raw) {
-  list_fill(st, (import st_len), 0);
-  ofodt_each(lines, st, recs);
-  string joined = str_join(recs, "\n");
+  list_fill(walk_state, (import st_len), 0);
+  fodt_each(lines, walk_state, records);
+  string joined = str_join(records, "\n");
 } chain (string raw) {
   string norm = joined;
-  if (len(recs) > 0) {
+  if (len(records) > 0) {
     norm = joined + "\n";
   }
 } return string norm;
@@ -30,9 +30,9 @@ ofodt_norm(string raw) {
 ("<office:text>\n<text:list text:style-name=\"L1\">\n<text:list-item>\n<text:p>x</text:p>\n<text:list>\n<text:list-item>\n<text:p>y</text:p>\n</text:list-item>\n</text:list>\n</text:list-item>\n</text:list>\n<text:p>after</text:p>\n<table:table table:name=\"T\">\n<table:table-row>\n<text:p>cell</text:p>\n</table:table-row>\n</table:table>\n<text:p><draw:frame a=\"1\">\n<text:p/>\n</draw:frame></text:p>\n<text:p>end</text:p>\n</office:text>\n"):("li1:x\nli2:y\np:after\ntable:\np:\nframe:\np:end\n")
 
 // The normalised records of a fodt file soffice wrote; "" when it cannot be read.
-ofodt_norm_file(string path) {
+fodt_norm_file(string path) {
   string raw = fs_read_text(path);
-  string norm = ofodt_norm(raw);
+  string norm = fodt_norm(raw);
 } return string norm;
 ("../quillcorpus/oracle/out/07_pages.fodt"):("p:A4 portrait, 21 by 29.7 cm, margins 2 cm.\np:US Letter portrait, 8.5 by 11 in, margins 2 cm.\np:A4 landscape, 29.7 by 21 cm, margins 2 cm.\n")
 ("../quillcorpus/oracle/out/none.fodt"):("")

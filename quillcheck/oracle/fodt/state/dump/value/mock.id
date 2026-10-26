@@ -1,15 +1,15 @@
 // Test fixture: a reader over a string kept in an export, so a case can `given` it, step it and hand it to the function under test.
-ofd_t_open(string owss) {
-  int[] owlsrc = exec_bytes(owss);
-  export XmlR ofd_t_r = xml_reader_open(owlsrc);
+fodt_dump_test_open(string fixture_xml) {
+  int[] fixture_bytes = exec_bytes(fixture_xml);
+  export XmlR fodt_dump_test_reader = xml_reader_open(fixture_bytes);
 } return void;
-("<a/>"):() then ofd_t_name:("")
-("<a><b/></a>"):() then ofd_t_name:("")
+("<a/>"):() then fodt_dump_test_name:("")
+("<a><b/></a>"):() then fodt_dump_test_name:("")
 
 // Test fixture: the name of the fixture reader's element.
-ofd_t_name() {
-  XmlR owr = (import ofd_t_r);
-  string own = xml_reader_get(owr, (import xml_reader_k_name));
+fodt_dump_test_name() {
+  XmlR document_reader = (import fodt_dump_test_reader);
+  string own = xml_reader_get(document_reader, (import xml_reader_k_name));
 } return string own;
-given ofd_t_open("<ab/>") given xml_reader_skip((import ofd_t_r), 1) ():("ab")
-given ofd_t_open("<a><b/></a>") given xml_reader_skip((import ofd_t_r), 2) ():("b")
+given fodt_dump_test_open("<ab/>") given xml_reader_skip((import fodt_dump_test_reader), 1) ():("ab")
+given fodt_dump_test_open("<a><b/></a>") given xml_reader_skip((import fodt_dump_test_reader), 2) ():("b")

@@ -8,8 +8,8 @@ job_event(int job_seen) {
     job_kind = proc_wait_kind();
   }
 } return int job_kind;
-given job_t_start("exit 6") given job_t_wait(0) (1):(0)
-given job_t_start("kill -9 $$") given job_t_wait(0) (1):(1)
+given job_test_start("exit 6") given job_test_wait(0) (1):(0)
+given job_test_start("kill -9 $$") given job_test_wait(0) (1):(1)
 (0):(-1)
 (-1):(-1)
 
@@ -26,8 +26,8 @@ job_poll(int job_pid, int job_ticks) {
 } chain (int job_pid, int job_ticks) {
   int job_flag = (job_seen > 0) - (job_seen < 0);
 } return int job_flag;
-given job_t_start("exit 0") ((import job_t_pid), 40):(1)
-given job_t_start("sleep 3") ((import job_t_pid), 2):(0)
+given job_test_start("exit 0") ((import job_test_pid), 40):(1)
+given job_test_start("sleep 3") ((import job_test_pid), 2):(0)
 (99999999, 3):(-1)
 
 // Waits for the program job_pid (leader of process group job_group) and answers how it ended: the kind of
@@ -40,7 +40,7 @@ job_watch(int job_pid, int job_group, int[] job_flags) {
     job_kind = job_pause(job_pid, job_group, job_flags);
   }
 } return int job_kind;
-given job_t_start("exit 3") given job_t_flags ((import job_t_pid), (import job_t_pid), (import job_t_marks)):(0) then job_t_last:(3) then (import job_t_marks)[0]:(0)
-given job_t_start("kill -9 $$") given job_t_flags ((import job_t_pid), (import job_t_pid), (import job_t_marks)):(1) then job_t_last:(265)
-given job_t_start("kill -STOP $$; exit 5") given job_t_flags stdin "c" ((import job_t_pid), (import job_t_pid), (import job_t_marks)):(0) then job_t_last:(5) then (import job_t_marks)[0]:(0)
-given job_t_start("kill -STOP $$; sleep 4") given job_t_flags stdin "k" ((import job_t_pid), (import job_t_pid), (import job_t_marks)):(1) then job_t_last:(271) then (import job_t_marks)[0]:(1)
+given job_test_start("exit 3") given job_test_flags ((import job_test_pid), (import job_test_pid), (import job_test_marks)):(0) then job_test_last:(3) then (import job_test_marks)[0]:(0)
+given job_test_start("kill -9 $$") given job_test_flags ((import job_test_pid), (import job_test_pid), (import job_test_marks)):(1) then job_test_last:(265)
+given job_test_start("kill -STOP $$; exit 5") given job_test_flags stdin "c" ((import job_test_pid), (import job_test_pid), (import job_test_marks)):(0) then job_test_last:(5) then (import job_test_marks)[0]:(0)
+given job_test_start("kill -STOP $$; sleep 4") given job_test_flags stdin "k" ((import job_test_pid), (import job_test_pid), (import job_test_marks)):(1) then job_test_last:(271) then (import job_test_marks)[0]:(1)

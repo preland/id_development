@@ -1,49 +1,49 @@
 // Line k of a list of lines, or the note owdef past the end.
-line_or(string[] owrows, int owik, string owdef) {
-  string owline = owdef;
-  if(owik < len(owrows)) {
-    owline = owrows[owik];
+line_or(string[] line_rows, int row_index, string missing_line) {
+  string dump_line = missing_line;
+  if(row_index < len(line_rows)) {
+    dump_line = line_rows[row_index];
   }
-} return string owline;
+} return string dump_line;
 (["a", "b"], 1, ""):("b")
 (["a", "b"], 2, ""):("")
 (["a"], 1, "(no such paragraph)"):("(no such paragraph)")
 (["a", "b"], 1, "(no such paragraph)"):("b")
 
 // The report lines for line owik of two dumps, "" when the lines are equal; the counters in owcnt follow the lines.
-ofd_kdiff(string[] owrowa, string[] owrowb, int owik, int[] owcnt) {
-  string owx = line_or(owrowa, owik, "");
-  string owy = line_or(owrowb, owik, "");
-  string owline = owx;
-} chain (string[] owrowa, string[] owrowb, int owik, int[] owcnt) {
-  if(owx == "") {
-    owline = owy;
+fodt_dump_row_difference(string[] ours_rows, string[] theirs_rows, int line_index, int[] dump_counters) {
+  string ours_row = line_or(ours_rows, line_index, "");
+  string theirs_row = line_or(theirs_rows, line_index, "");
+  string dump_line = ours_row;
+} chain (string[] ours_rows, string[] theirs_rows, int line_index, int[] dump_counters) {
+  if(ours_row == "") {
+    dump_line = theirs_row;
   }
-  ofd_ctx(owline, owcnt);
-  string owout = ofd_diffline(owx, owy, ofd_cname(owline, owcnt));
-} return string owout;
+  fodt_dump_context(dump_line, dump_counters);
+  string result_text = fodt_dump_line_difference(ours_row, theirs_row, fodt_dump_context_name(dump_line, dump_counters));
+} return string result_text;
 (["para 0 x=1"], ["para 0 x=2"], 0, [-1, -1]):("p0 x: ours=1 theirs=2")
 (["para 0 x=1"], ["para 0 x=1"], 0, [-1, -1]):("")
 
 // How two dumps differ: one report line per differing field, each naming the paragraph, the run and the field, as "p3 r1 color: ours=#ff0000 theirs=-"; "" when they are equal. A line only one of them has is reported as records that differ.
-ofd_diff(string owours, string owtheirs) {
-  string[] owrowa = str_split(owours, "\n");
-  string[] owrowb = str_split(owtheirs, "\n");
-  int[] owcnt = [0 - 1, 0 - 1];
-} chain (string owours, string owtheirs) {
-  string[] owlout = [];
-  int owik = 0;
-  int owcount = fixed_point_maximum(len(owrowa), len(owrowb));
-} chain (string owours, string owtheirs) {
-  while(owik < owcount) {
-    string owrep = ofd_kdiff(owrowa, owrowb, owik, owcnt);
-    if(owrep != "") {
-      push(owlout, owrep);
+fodt_dump_difference(string our_dump, string their_dump) {
+  string[] ours_rows = str_split(our_dump, "\n");
+  string[] theirs_rows = str_split(their_dump, "\n");
+  int[] dump_counters = [0 - 1, 0 - 1];
+} chain (string our_dump, string their_dump) {
+  string[] difference_lines = [];
+  int diff_index = 0;
+  int row_count = fixed_point_maximum(len(ours_rows), len(theirs_rows));
+} chain (string our_dump, string their_dump) {
+  while(diff_index < row_count) {
+    string difference_text = fodt_dump_row_difference(ours_rows, theirs_rows, diff_index, dump_counters);
+    if(difference_text != "") {
+      push(difference_lines, difference_text);
     }
-    owik = owik + 1;
+    diff_index = diff_index + 1;
   }
-  string owout = str_join(owlout, "\n");
-} return string owout;
+  string result_text = str_join(difference_lines, "\n");
+} return string result_text;
 ("page w=1\npara 0 x=1\n", "page w=1\npara 0 x=1\n"):("")
 ("page w=1\npara 0 x=1\nrun b=1\n", "page w=1\npara 0 x=1\nrun b=0\n"):("p0 r0 b: ours=1 theirs=0")
 ("page w=1\n", "page w=2\n"):("page w: ours=1 theirs=2")

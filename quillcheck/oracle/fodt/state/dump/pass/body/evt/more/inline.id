@@ -1,33 +1,33 @@
 // Adds text to the current paragraph with the properties its span styles (innermost last) and its paragraph style give it, and the hyperlink it is inside, if any.
-ofd_text(OfdSty owst, OfdAcc owacc, string[] owspans, string owtext) {
-  string owsig = ofd_sig(owst, owspans, owacc.ss[0], owacc.ss[2]);
-  ofd_seg(owacc, owsig, owtext);
+fodt_dump_add_text(Catalog style_store, Accumulator accumulator, string[] span_styles, string run_text) {
+  string run_signature = fodt_dump_run_signature(style_store, span_styles, accumulator.slot_strings[0], accumulator.slot_strings[2]);
+  fodt_dump_segment(accumulator, run_signature, run_text);
 } return void;
-(OfdSty(["p:Standard", "p:"], ["", "|t.fo:font-weight=bold"], ["", "", "", "", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:Standard", "", "", "", ""], []), [], "hi"):(OfdSty(["p:Standard", "p:"], ["", "|t.fo:font-weight=bold"], ["", "", "", "", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:Standard", "", "", "", ""], ["b=1 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", "hi"]), [], "hi")
-(OfdSty(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:Standard", "", "http://x", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=\"http://x\" font=-", "a"]), [], "b"):(OfdSty(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), OfdAcc([-1, 0, 1, 0], ["p:Standard", "", "http://x", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=\"http://x\" font=-", "ab"]), [], "b")
+(Catalog(["p:Standard", "p:"], ["", "|t.fo:font-weight=bold"], ["", "", "", "", "", ""]), Accumulator([-1, 0, 1, 0], ["p:Standard", "", "", "", ""], []), [], "hi"):(Catalog(["p:Standard", "p:"], ["", "|t.fo:font-weight=bold"], ["", "", "", "", "", ""]), Accumulator([-1, 0, 1, 0], ["p:Standard", "", "", "", ""], ["b=1 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=-", "hi"]), [], "hi")
+(Catalog(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), Accumulator([-1, 0, 1, 0], ["p:Standard", "", "http://x", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=\"http://x\" font=-", "a"]), [], "b"):(Catalog(["p:Standard", "p:"], ["", ""], ["", "", "", "", "", ""]), Accumulator([-1, 0, 1, 0], ["p:Standard", "", "http://x", "", ""], ["b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=\"http://x\" font=-", "ab"]), [], "b")
 
 // A text:span's effect on the stack of span styles: its style key goes on when it starts and comes off when it ends.
-ofd_span(string[] owspans, XmlR owr, int owev) {
-  if(owev == 1) {
-    push(owspans, "t:" + xml_reader_attr(owr, "text:style-name"));
+fodt_dump_span(string[] span_styles, XmlR document_reader, int reader_event) {
+  if(reader_event == 1) {
+    push(span_styles, "t:" + xml_reader_attr(document_reader, "text:style-name"));
   }
-  if(owev == 2) {
-    pop(owspans);
+  if(reader_event == 2) {
+    pop(span_styles);
   }
 } return void;
-given ofd_t_open("<text:span text:style-name=\"T1\"/>") given xml_reader_skip((import ofd_t_r), 1) (["t:A"], (import ofd_t_r), 1):(["t:A", "t:T1"], (import ofd_t_r), 1)
-given ofd_t_open("<text:span text:style-name=\"T1\"/>") given xml_reader_skip((import ofd_t_r), 1) (["t:A", "t:T1"], (import ofd_t_r), 2):(["t:A"], (import ofd_t_r), 2)
-given ofd_t_open("<text:span text:style-name=\"T1\"/>") given xml_reader_skip((import ofd_t_r), 1) (["t:A"], (import ofd_t_r), 4):(["t:A"], (import ofd_t_r), 4)
+given fodt_dump_test_open("<text:span text:style-name=\"T1\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (["t:A"], (import fodt_dump_test_reader), 1):(["t:A", "t:T1"], (import fodt_dump_test_reader), 1)
+given fodt_dump_test_open("<text:span text:style-name=\"T1\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (["t:A", "t:T1"], (import fodt_dump_test_reader), 2):(["t:A"], (import fodt_dump_test_reader), 2)
+given fodt_dump_test_open("<text:span text:style-name=\"T1\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (["t:A"], (import fodt_dump_test_reader), 4):(["t:A"], (import fodt_dump_test_reader), 4)
 
 // A text:a's effect on the hyperlink: its target is kept while it is open.
-ofd_link(OfdAcc owacc, XmlR owr, int owev) {
-  string[] owlss = owacc.ss;
-  if(owev == 1) {
-    owlss[2] = xml_reader_attr(owr, "xlink:href");
+fodt_dump_link(Accumulator accumulator, XmlR document_reader, int reader_event) {
+  string[] string_slots = accumulator.slot_strings;
+  if(reader_event == 1) {
+    string_slots[2] = xml_reader_attr(document_reader, "xlink:href");
   }
-  if(owev == 2) {
-    owlss[2] = "";
+  if(reader_event == 2) {
+    string_slots[2] = "";
   }
 } return void;
-given ofd_t_open("<text:a xlink:href=\"http://x\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 1, 0], ["", "", "", "", ""], []), (import ofd_t_r), 1):(OfdAcc([-1, 0, 1, 0], ["", "", "http://x", "", ""], []), (import ofd_t_r), 1)
-given ofd_t_open("<text:a xlink:href=\"http://x\"/>") given xml_reader_skip((import ofd_t_r), 1) (OfdAcc([-1, 0, 1, 0], ["", "", "http://x", "", ""], []), (import ofd_t_r), 2):(OfdAcc([-1, 0, 1, 0], ["", "", "", "", ""], []), (import ofd_t_r), 2)
+given fodt_dump_test_open("<text:a xlink:href=\"http://x\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Accumulator([-1, 0, 1, 0], ["", "", "", "", ""], []), (import fodt_dump_test_reader), 1):(Accumulator([-1, 0, 1, 0], ["", "", "http://x", "", ""], []), (import fodt_dump_test_reader), 1)
+given fodt_dump_test_open("<text:a xlink:href=\"http://x\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) (Accumulator([-1, 0, 1, 0], ["", "", "http://x", "", ""], []), (import fodt_dump_test_reader), 2):(Accumulator([-1, 0, 1, 0], ["", "", "", "", ""], []), (import fodt_dump_test_reader), 2)

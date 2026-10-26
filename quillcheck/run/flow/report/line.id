@@ -1,20 +1,20 @@
 // The soffice lanes of a result as "txt=OK fodt=OK pdf=OK(3 pages) cross=OK(0 missing)".
-rep_soff(int[] res) {
-  string t = rep_verdict(res[(import r_txt)]);
-  string f = rep_verdict(res[(import r_fodt)]);
-  string p = rep_verdict(res[(import r_pdf)]);
-} chain (int[] res) {
-  int cx = res[(import r_cross)] == 0;
-  string c = rep_verdict(cx);
-  string line = "txt=" + t + " fodt=" + f + " pdf=" + p + "(" + res[(import r_pages)] + " pages) cross=" + c + "(" + res[(import r_cross)] + " missing)";
+report_office(int[] lane_results) {
+  string plain_report = report_verdict(lane_results[(import r_txt)]);
+  string fodt_report = report_verdict(lane_results[(import r_fodt)]);
+  string pdf_report = report_verdict(lane_results[(import r_pdf)]);
+} chain (int[] lane_results) {
+  int cross_clean = lane_results[(import r_cross)] == 0;
+  string cross_report = report_verdict(cross_clean);
+  string line = "txt=" + plain_report + " fodt=" + fodt_report + " pdf=" + pdf_report + "(" + lane_results[(import r_pages)] + " pages) cross=" + cross_report + "(" + lane_results[(import r_cross)] + " missing)";
 } return string line;
 ([1, 1, 1, 3, 0]):("txt=OK fodt=OK pdf=OK(3 pages) cross=OK(0 missing)")
 ([0, 1, 0, 0, -1]):("txt=FAIL fodt=OK pdf=FAIL(0 pages) cross=FAIL(-1 missing)")
 
 // One fixture's output line: index, name, the soffice lanes, then the quill-binary lanes.
-rep_line(int n, string stem, int[] res, string words) {
-  string soff = rep_soff(res);
-  string line = "" + n + " " + stem + " " + soff + " | " + words;
+report_line(int fixture_number, string stem, int[] lane_results, string words) {
+  string office_text = report_office(lane_results);
+  string line = "" + fixture_number + " " + stem + " " + office_text + " | " + words;
 } return string line;
 (3, "03_inline", [1, 1, 1, 1, 0], "--text=FAIL"):("3 03_inline txt=OK fodt=OK pdf=OK(1 pages) cross=OK(0 missing) | --text=FAIL")
 (12, "12_image", [0, 0, 0, 0, 2], "x"):("12 12_image txt=FAIL fodt=FAIL pdf=FAIL(0 pages) cross=FAIL(2 missing) | x")

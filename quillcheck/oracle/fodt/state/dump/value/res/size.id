@@ -1,60 +1,60 @@
 // The size in points a style gives text: its own font-size (a percentage is taken of what the style it inherits from gives, 12 points when that gives none), else what it inherits; -1.0 when nothing in the chain sets one.
-ofd_pts(OfdSty owst, string owk, int owid) {
-  string own = ofd_own(owst, owk, "t.fo:font-size");
-  string owup = ofd_up(owst, owk);
-  float owbase = 0.0 - 1.0;
-} chain (OfdSty owst, string owk, int owid) {
-  if(owup != "" && owid < 24) {
-    owbase = ofd_pts(owst, owup, owid + 1);
+fodt_dump_points(Catalog style_store, string style_key, int inherit_depth) {
+  string own = fodt_dump_own(style_store, style_key, "t.fo:font-size");
+  string parent_key = fodt_dump_parent(style_store, style_key);
+  float base_points = 0.0 - 1.0;
+} chain (Catalog style_store, string style_key, int inherit_depth) {
+  if(parent_key != "" && inherit_depth < 24) {
+    base_points = fodt_dump_points(style_store, parent_key, inherit_depth + 1);
   }
-  float owpts = owbase;
-  int owtw = ofd_tw(own);
-} chain (OfdSty owst, string owk, int owid) {
-  float owref = 12.0;
-  if(owbase >= 0.0) {
-    owref = owbase;
+  float size_points = base_points;
+  int length_value = fodt_dump_length(own);
+} chain (Catalog style_store, string style_key, int inherit_depth) {
+  float reference_points = 12.0;
+  if(base_points >= 0.0) {
+    reference_points = base_points;
   }
-  if(own != "" && owtw != (import ow_bad)) {
-    owpts = owtw / 20.0;
+  if(own != "" && length_value != (import ow_bad)) {
+    size_points = length_value / 20.0;
   }
-} chain (OfdSty owst, string owk, int owid) {
-  if(ofd_unit(own) == "%") {
-    owpts = owref * str_to_float(own) / 100.0;
+} chain (Catalog style_store, string style_key, int inherit_depth) {
+  if(fodt_dump_unit(own) == "%") {
+    size_points = reference_points * str_to_float(own) / 100.0;
   }
-} return float owpts;
-(OfdSty(["p:H", "p:"], ["|t.fo:font-size=14pt", ""], ["", "", "", "", "", ""]), "p:H", 0):(14.0)
-(OfdSty(["p:H1", "p:H", "p:"], ["|t.fo:font-size=130%", "|t.fo:font-size=14pt", ""], ["p:H", "", "", "", "", "", "", "", ""]), "p:H1", 0):(18.2)
-(OfdSty(["p:A", "p:"], ["", "|t.fo:font-size=12pt"], ["", "", "", "", "", ""]), "p:A", 0):(12.0)
-(OfdSty(["p:A", "p:"], ["|t.fo:font-size=50%", ""], ["", "", "", "", "", ""]), "p:A", 0):(6.0)
-(OfdSty(["p:A"], [""], ["", "", ""]), "p:A", 0):(-1.0)
+} return float size_points;
+(Catalog(["p:H", "p:"], ["|t.fo:font-size=14pt", ""], ["", "", "", "", "", ""]), "p:H", 0):(14.0)
+(Catalog(["p:H1", "p:H", "p:"], ["|t.fo:font-size=130%", "|t.fo:font-size=14pt", ""], ["p:H", "", "", "", "", "", "", "", ""]), "p:H1", 0):(18.2)
+(Catalog(["p:A", "p:"], ["", "|t.fo:font-size=12pt"], ["", "", "", "", "", ""]), "p:A", 0):(12.0)
+(Catalog(["p:A", "p:"], ["|t.fo:font-size=50%", ""], ["", "", "", "", "", ""]), "p:A", 0):(6.0)
+(Catalog(["p:A"], [""], ["", "", ""]), "p:A", 0):(-1.0)
 
 // A size in points as half-points, rounded to the nearest; -1 for a size that is not set.
-ofd_hp(float owpts) {
-  int owhp = 0 - 1;
-  if(owpts >= 0.0) {
-    owhp = owpts * 2.0 + 0.5;
+fodt_dump_half_points(float size_points) {
+  int half_points = 0 - 1;
+  if(size_points >= 0.0) {
+    half_points = size_points * 2.0 + 0.5;
   }
-} return int owhp;
+} return int half_points;
 (12.0):(24)
 (18.2):(36)
 (10.25):(21)
 (-1.0):(-1)
 
 // The size in half-points text has: the first of the spans (innermost, the last of the list, outward) to set one, else the paragraph style's; -1 when none does.
-ofd_rsize(OfdSty owst, string[] owspans, string owpk) {
-  float owpts = ofd_pts(owst, owpk, 0);
-  int owi = len(owspans) - 1;
-  float owfq = 0.0 - 1.0;
-} chain (OfdSty owst, string[] owspans, string owpk) {
-  while(owi >= 0 && owfq < 0.0) {
-    owfq = ofd_pts(owst, owspans[owi], 0);
-    owi = owi - 1;
+fodt_dump_run_size(Catalog style_store, string[] span_styles, string paragraph_key) {
+  float size_points = fodt_dump_points(style_store, paragraph_key, 0);
+  int size_span_cursor = len(span_styles) - 1;
+  float span_points = 0.0 - 1.0;
+} chain (Catalog style_store, string[] span_styles, string paragraph_key) {
+  while(size_span_cursor >= 0 && span_points < 0.0) {
+    span_points = fodt_dump_points(style_store, span_styles[size_span_cursor], 0);
+    size_span_cursor = size_span_cursor - 1;
   }
-  if(owfq >= 0.0) {
-    owpts = owfq;
+  if(span_points >= 0.0) {
+    size_points = span_points;
   }
-  int owhp = ofd_hp(owpts);
-} return int owhp;
-(OfdSty(["t:T", "p:P", "p:"], ["|t.fo:font-size=20pt", "", "|t.fo:font-size=12pt"], ["", "", "", "", "", "", "", "", ""]), ["t:T"], "p:P"):(40)
-(OfdSty(["t:T", "p:P", "p:"], ["", "", "|t.fo:font-size=12pt"], ["", "", "", "", "", "", "", "", ""]), ["t:T"], "p:P"):(24)
-(OfdSty(["p:P"], [""], ["", "", ""]), [], "p:P"):(-1)
+  int half_points = fodt_dump_half_points(size_points);
+} return int half_points;
+(Catalog(["t:T", "p:P", "p:"], ["|t.fo:font-size=20pt", "", "|t.fo:font-size=12pt"], ["", "", "", "", "", "", "", "", ""]), ["t:T"], "p:P"):(40)
+(Catalog(["t:T", "p:P", "p:"], ["", "", "|t.fo:font-size=12pt"], ["", "", "", "", "", "", "", "", ""]), ["t:T"], "p:P"):(24)
+(Catalog(["p:P"], [""], ["", "", ""]), [], "p:P"):(-1)

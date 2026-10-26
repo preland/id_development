@@ -1,28 +1,28 @@
 // The laid-out rectangles of every item, one line each in document order.
-uc_rects(int[] t, string[] s, int w, int h) {
-  int[] rc = [];
-  gui_layout(t, rc, w, h);
-  uc_lines(t, s, rc, 1, gui_count(t));
+print_laid_out_rectangles(int[] tape, string[] strings, int window_width, int window_height) {
+  int[] rectangle_values = [];
+  gui_layout(tape, rectangle_values, window_width, window_height);
+  print_record_lines(tape, strings, rectangle_values, 1, gui_count(tape));
 } return void;
-given uc_t_tiny ((import uc_tt), (import uc_ts), 200, 100):() then prints:("0 0 200 100 Card c\n0 0 200 50 Row\n0 0 50 50 Spacer\n50 0 150 50 Text\n0 50 200 50 Spacer\n")
-given uc_t_tiny ((import uc_tt), (import uc_ts), 40, 40):() then prints:("0 0 40 40 Card c\n0 0 40 20 Row\n0 0 10 20 Spacer\n10 0 30 20 Text\n0 20 40 20 Spacer\n")
+given tiny_tape_fixture ((import fixture_tape), (import fixture_strings), 200, 100):() then prints:("0 0 200 100 Card c\n0 0 200 50 Row\n0 0 50 50 Spacer\n50 0 150 50 Text\n0 50 200 50 Spacer\n")
+given tiny_tape_fixture ((import fixture_tape), (import fixture_strings), 40, 40):() then prints:("0 0 40 40 Card c\n0 0 40 20 Row\n0 0 10 20 Spacer\n10 0 30 20 Text\n0 20 40 20 Spacer\n")
 
-// Records i up to n.
-uc_lines(int[] t, string[] s, int[] rc, int i, int n) {
-  while (i < n) {
-    uc_line(t, s, rc, i);
-    i = i + 1;
+// Records from record_index up to record_limit.
+print_record_lines(int[] tape, string[] strings, int[] rectangle_values, int record_index, int record_limit) {
+  while (record_index < record_limit) {
+    print_record_line(tape, strings, rectangle_values, record_index);
+    record_index = record_index + 1;
   }
 } return void;
-given uc_t_tiny ((import uc_tt), (import uc_ts), (import uc_trq), 4, 6):() then prints:("0 0 50 50 Spacer\n50 0 150 50 Text\n")
-given uc_t_tiny ((import uc_tt), (import uc_ts), (import uc_trq), 1, 1):() then prints:("")
+given tiny_tape_fixture ((import fixture_tape), (import fixture_strings), (import fixture_rectangles), 4, 6):() then prints:("0 0 50 50 Spacer\n50 0 150 50 Text\n")
+given tiny_tape_fixture ((import fixture_tape), (import fixture_strings), (import fixture_rectangles), 1, 1):() then prints:("")
 
 // One line for a node record; variants, arguments and defines print nothing.
-uc_line(int[] t, string[] s, int[] rc, int nd) {
-  if (gui_is_node(t, nd) == 1) {
-    print(uc_row(t, s, rc, nd));
+print_record_line(int[] tape, string[] strings, int[] rectangle_values, int node_index) {
+  if (gui_is_node(tape, node_index) == 1) {
+    print(rectangle_row_text(tape, strings, rectangle_values, node_index));
   }
 } return void;
-given uc_t_tiny ((import uc_tt), (import uc_ts), (import uc_trq), 2):() then prints:("0 0 200 100 Card c\n")
-given uc_t_tiny ((import uc_tt), (import uc_ts), (import uc_trq), 1):() then prints:("")
-given uc_t_tiny ((import uc_tt), (import uc_ts), (import uc_trq), 6):() then prints:("")
+given tiny_tape_fixture ((import fixture_tape), (import fixture_strings), (import fixture_rectangles), 2):() then prints:("0 0 200 100 Card c\n")
+given tiny_tape_fixture ((import fixture_tape), (import fixture_strings), (import fixture_rectangles), 1):() then prints:("")
+given tiny_tape_fixture ((import fixture_tape), (import fixture_strings), (import fixture_rectangles), 6):() then prints:("")

@@ -1,11 +1,11 @@
 // The walk over a directory tree for discovery, and over all the roots.
 
-// Adds a row for every runnable file in discover_dir and below it, no deeper than walk_depth_limit.
-discover_walk(string discover_dir, int discover_depth, string[] discover_out, word[] discover_stat) {
-  string[] discover_names = str_lines(fs_list_kind(discover_dir, 1));
-  discover_files(discover_dir, discover_names, discover_out, discover_stat);
+// Adds a row for every runnable file in discover_directory and below it, no deeper than walk_depth_limit.
+discover_walk(string discover_directory, int discover_depth, string[] discover_out, word[] discover_file_status) {
+  string[] discover_names = str_lines(fs_list_kind(discover_directory, 1));
+  discover_files(discover_directory, discover_names, discover_out, discover_file_status);
   if (discover_depth < (import walk_depth_limit)) {
-    discover_dirs(discover_dir, discover_depth, discover_out, discover_stat);
+    discover_directories(discover_directory, discover_depth, discover_out, discover_file_status);
   }
 } return void;
 ("/no/dir", 0, [], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]):("/no/dir", 0, [])
@@ -14,12 +14,12 @@ discover_walk(string discover_dir, int discover_depth, string[] discover_out, wo
 // "path size mtime" for the runnable files under every root.
 discover_candidates(string[] discover_root_list) {
   string[] discover_out = [];
-  word[] discover_stat = [];
+  word[] discover_file_status = [];
   int discover_index = 0;
 } chain (string[] discover_root_list) {
-  fs_stat_pad(discover_stat);
+  fs_stat_pad(discover_file_status);
   while (discover_index < len(discover_root_list)) {
-    discover_walk(discover_root_list[discover_index], 0, discover_out, discover_stat);
+    discover_walk(discover_root_list[discover_index], 0, discover_out, discover_file_status);
     discover_index = discover_index + 1;
   }
 } return string[] discover_out;

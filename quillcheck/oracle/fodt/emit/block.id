@@ -1,14 +1,14 @@
 // The kind of block a trimmed fodt line opens: "p", "li<depth>", "h<level>", "table", or "" for any other line.
-ofodt_kind(string line, int depth) {
+fodt_kind(string line, int depth) {
   string kind = "";
-  if (ofodt_opens(line, "<text:p") == 1) {
-    kind = ofodt_para(depth);
+  if (fodt_opens(line, "<text:p") == 1) {
+    kind = fodt_para(depth);
   }
-  if (ofodt_opens(line, "<text:h") == 1) {
-    kind = "h" + ofodt_level(line);
+  if (fodt_opens(line, "<text:h") == 1) {
+    kind = "h" + fodt_level(line);
   }
 } chain (string line, int depth) {
-  if (ofodt_opens(line, "<table:table") == 1) {
+  if (fodt_opens(line, "<table:table") == 1) {
     kind = "table";
   }
 } return string kind;
@@ -19,31 +19,31 @@ ofodt_kind(string line, int depth) {
 ("<table:table-row>", 0):("")
 
 // The normalised record of a trimmed line, "kind:text" with the tags stripped and the entities decoded, or "" when the line opens no block.
-ofodt_rec(string line, int depth) {
-  string kind = ofodt_kind(line, depth);
-  string rec = "";
+fodt_record(string line, int depth) {
+  string kind = fodt_kind(line, depth);
+  string record_text = "";
   if (len(kind) > 0) {
-    rec = kind + ":" + ofodt_decode(ofodt_strip(line));
+    record_text = kind + ":" + fodt_decode(fodt_strip(line));
   }
-} return string rec;
+} return string record_text;
 ("<text:p>a &lt; b</text:p>", 0):("p:a < b")
 ("<text:p>x</text:p>", 1):("li1:x")
 ("<text:p/>", 0):("p:")
 ("</text:p>", 0):("")
 
 // Appends the record of a line to recs when the line is live (in the body, outside every table and frame); a line that also opens a drawing frame adds a "frame:" record.
-ofodt_emit(string line, int[] st, string[] recs) {
-  int live = ofodt_live(st);
-  string rec = "";
+fodt_emit(string line, int[] walk_state, string[] records) {
+  int live = fodt_live(walk_state);
+  string record_text = "";
   if (live == 1) {
-    rec = ofodt_rec(line, st[(import s_list)]);
+    record_text = fodt_record(line, walk_state[(import s_list)]);
   }
-} chain (string line, int[] st, string[] recs) {
-  if (len(rec) > 0) {
-    push(recs, rec);
+} chain (string line, int[] walk_state, string[] records) {
+  if (len(record_text) > 0) {
+    push(records, record_text);
   }
-  if (len(rec) > 0 && str_find(line, "<draw:frame ") >= 0) {
-    push(recs, "frame:");
+  if (len(record_text) > 0 && str_find(line, "<draw:frame ") >= 0) {
+    push(records, "frame:");
   }
 } return void;
 ("<text:p>Hi</text:p>", [1, 0, 0, 0], []):("<text:p>Hi</text:p>", [1, 0, 0, 0], ["p:Hi"])

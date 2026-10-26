@@ -7,19 +7,19 @@ lane_out(string root, string stem, int lane) {
 ("/r", "03_x", 2):("/r/out/03_x.pdf")
 
 // Runs soffice (or the stand-in bin) for one lane on one source; the exit status.
-lane_soff(string bin, string root, int lane, string src) {
+lane_office(string bin, string root, int lane, string source_path) {
   string[] filters = (import lane_filters);
-  string cmd = soff_argv(bin, root, filters[lane], src);
-  int code = soff_exec(cmd, (import soffice_ms), root);
+  string command_lines = office_arguments(bin, root, filters[lane], source_path);
+  int code = office_execute(command_lines, (import soffice_ms), root);
 } return int code;
 ("true", "/tmp/quillcheck_none", 0, "x.odt"):(0)
 ("false", "/tmp/quillcheck_none", 1, "x.odt"):(1)
 
 // The txt lane: 1 when soffice exits 0 and its txt output has text after normalising.
-lane_txt(string bin, string root, string src, string stem) {
-  int code = lane_soff(bin, root, (import r_txt), src);
-  string txt = otxt_norm_file(lane_out(root, stem, (import r_txt)));
-  int ok = code == 0 && len(txt) > 0;
+lane_plain(string bin, string root, string source_path, string stem) {
+  int code = lane_office(bin, root, (import r_txt), source_path);
+  string plain_output = plain_norm_file(lane_out(root, stem, (import r_txt)));
+  int ok = code == 0 && len(plain_output) > 0;
 } return int ok;
 ("true", "../quillcorpus/oracle", "x.odt", "07_pages"):(1)
 ("false", "../quillcorpus/oracle", "x.odt", "07_pages"):(0)

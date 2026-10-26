@@ -1,35 +1,35 @@
 // The key prefix of a paragraph style family ("p:"), of a text style family ("t:"), "" for any other.
-ofd_famk(string owfam) {
-  string owk = "";
-  if(owfam == "paragraph") {
-    owk = "p:";
+fodt_dump_family_prefix(string font_family) {
+  string style_prefix = "";
+  if(font_family == "paragraph") {
+    style_prefix = "p:";
   }
-  if(owfam == "text") {
-    owk = "t:";
+  if(font_family == "text") {
+    style_prefix = "t:";
   }
-} return string owk;
+} return string style_prefix;
 ("paragraph"):("p:")
 ("text"):("t:")
 ("graphic"):("")
 
 // The listed attributes the reader's element has, as "|prefix+name=value" pairs one after the other; an attribute the element lacks adds nothing.
-ofd_attrs(string owpre, string[] owlnames, XmlR owr) {
-  string owout = "";
-  int owi = 0;
-  while(owi < len(owlnames)) {
-    owout = owout + ofd_pair(owpre + owlnames[owi], xml_reader_attr(owr, owlnames[owi]));
-    owi = owi + 1;
+fodt_dump_attributes(string key_prefix, string[] attribute_names, XmlR document_reader) {
+  string result_text = "";
+  int name_cursor = 0;
+  while(name_cursor < len(attribute_names)) {
+    result_text = result_text + fodt_dump_pair(key_prefix + attribute_names[name_cursor], xml_reader_attr(document_reader, attribute_names[name_cursor]));
+    name_cursor = name_cursor + 1;
   }
-} return string owout;
-given ofd_t_open("<p fo:color=\"#ff0000\" fo:font-size=\"12pt\"/>") given xml_reader_skip((import ofd_t_r), 1) ("t.", ["fo:color", "fo:font-size", "fo:x"], (import ofd_t_r)):("|t.fo:color=#ff0000|t.fo:font-size=12pt")
-given ofd_t_open("<p/>") given xml_reader_skip((import ofd_t_r), 1) ("p.", ["fo:color"], (import ofd_t_r)):("")
+} return string result_text;
+given fodt_dump_test_open("<p fo:color=\"#ff0000\" fo:font-size=\"12pt\"/>") given xml_reader_skip((import fodt_dump_test_reader), 1) ("t.", ["fo:color", "fo:font-size", "fo:x"], (import fodt_dump_test_reader)):("|t.fo:color=#ff0000|t.fo:font-size=12pt")
+given fodt_dump_test_open("<p/>") given xml_reader_skip((import fodt_dump_test_reader), 1) ("p.", ["fo:color"], (import fodt_dump_test_reader)):("")
 
 // "|name=value", or "" when the value is empty.
-ofd_pair(string own, string owv) {
-  string owout = "";
-  if(owv != "") {
-    owout = "|" + own + "=" + owv;
+fodt_dump_pair(string own, string value_text) {
+  string result_text = "";
+  if(value_text != "") {
+    result_text = "|" + own + "=" + value_text;
   }
-} return string owout;
+} return string result_text;
 ("a", "b"):("|a=b")
 ("a", ""):("")

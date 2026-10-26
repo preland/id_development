@@ -1,45 +1,45 @@
 // How two lines of a dump differ, one report line per field: "CONTEXT KEY: ours=VALUE theirs=VALUE" for every token that differs (a value is the token's text after its "="), or a single "CONTEXT: records differ" line when they have different words or a different number of tokens; "" when they are equal.
-ofd_diffline(string owla, string owlb, string owctx) {
-  string[] owta = ofd_tokens(owla);
-  string[] owtb = ofd_tokens(owlb);
-  string owout = "";
-} chain (string owla, string owlb, string owctx) {
-  if(owla != owlb) {
-    owout = owctx + ": records differ: ours=" + owla + " theirs=" + owlb;
+fodt_dump_line_difference(string ours_line, string theirs_line, string diff_context) {
+  string[] ours_tokens = fodt_dump_tokens(ours_line);
+  string[] theirs_tokens = fodt_dump_tokens(theirs_line);
+  string result_text = "";
+} chain (string ours_line, string theirs_line, string diff_context) {
+  if(ours_line != theirs_line) {
+    result_text = diff_context + ": records differ: ours=" + ours_line + " theirs=" + theirs_line;
   }
-  if(owla != owlb && len(owta) == len(owtb) && len(owta) > 0) {
-    owout = ofd_fields(owta, owtb, owctx);
+  if(ours_line != theirs_line && len(ours_tokens) == len(theirs_tokens) && len(ours_tokens) > 0) {
+    result_text = fodt_dump_fields_difference(ours_tokens, theirs_tokens, diff_context);
   }
-} return string owout;
+} return string result_text;
 ("para 1 style=\"A\" x=1", "para 1 style=\"A\" x=1", "p1"):("")
 ("run b=1 size=24", "run b=0 size=24", "p1 r0"):("p1 r0 b: ours=1 theirs=0")
 ("run b=1", "run b=1 c=2", "p0 r0"):("p0 r0: records differ: ours=run b=1 theirs=run b=1 c=2")
 ("para 0 x=1 y=2", "para 0 x=3 y=4", "p0"):("p0 x: ours=1 theirs=3\np0 y: ours=2 theirs=4")
 
 // The report lines for every token that differs between two token lists of equal length, joined by line feeds.
-ofd_fields(string[] owta, string[] owtb, string owctx) {
-  string[] owlout = [];
-  int owi = 0;
-  while(owi < len(owta)) {
-    ofd_field(owlout, owta[owi], owtb[owi], owctx);
-    owi = owi + 1;
+fodt_dump_fields_difference(string[] ours_tokens, string[] theirs_tokens, string diff_context) {
+  string[] report_lines = [];
+  int entry_index = 0;
+  while(entry_index < len(ours_tokens)) {
+    fodt_dump_field_difference(report_lines, ours_tokens[entry_index], theirs_tokens[entry_index], diff_context);
+    entry_index = entry_index + 1;
   }
-} chain (string[] owta, string[] owtb, string owctx) {
-  string owout = str_join(owlout, "\n");
-} return string owout;
+} chain (string[] ours_tokens, string[] theirs_tokens, string diff_context) {
+  string result_text = str_join(report_lines, "\n");
+} return string result_text;
 (["a=1", "b=2"], ["a=1", "b=3"], "c"):("c b: ours=2 theirs=3")
 (["a=1"], ["a=1"], "c"):("")
 
 // Adds the report line for one pair of tokens when they differ: the key (the token's text up to its "=", all of it for a token with none) and the two values.
-ofd_field(string[] owlout, string owx, string owy, string owctx) {
-  int owik = str_find(owx, "=");
-  string owkey = owx;
-  if(owik >= 0) {
-    owkey = str_sub(owx, 0, owik);
+fodt_dump_field_difference(string[] report_lines, string ours_token, string theirs_token, string diff_context) {
+  int equals_index = str_find(ours_token, "=");
+  string field_key = ours_token;
+  if(equals_index >= 0) {
+    field_key = str_sub(ours_token, 0, equals_index);
   }
-} chain (string[] owlout, string owx, string owy, string owctx) {
-  if(owx != owy) {
-    push(owlout, owctx + " " + owkey + ": ours=" + ofd_after(owx) + " theirs=" + ofd_after(owy));
+} chain (string[] report_lines, string ours_token, string theirs_token, string diff_context) {
+  if(ours_token != theirs_token) {
+    push(report_lines, diff_context + " " + field_key + ": ours=" + fodt_dump_token_value(ours_token) + " theirs=" + fodt_dump_token_value(theirs_token));
   }
 } return void;
 ([], "a=1", "a=2", "c"):(["c a: ours=1 theirs=2"], "a=1", "a=2", "c")

@@ -1,31 +1,31 @@
 // Test fixtures (internal). A case's setup takes no arguments, so the tape it
 // builds is an export that the case's checks read back.
 //
-// A fresh tape and its strings, in the exports uc_tt and uc_ts.
-uc_t_new() {
-  export int[] uc_tt = [];
-  export string[] uc_ts = [];
-  gui_new((import uc_tt), (import uc_ts));
+// A fresh tape and its strings, in the exports fixture_tape and fixture_strings.
+fresh_tape_fixture() {
+  export int[] fixture_tape = [];
+  export string[] fixture_strings = [];
+  gui_new((import fixture_tape), (import fixture_strings));
 } return void;
-():() then uc_t_count:("count 1")
-():() then uc_t_strs:("strs ")
+():() then tape_count_report:("count 1")
+():() then tape_strings_report:("strs ")
 
 // tiny.idml loaded and laid out in a 200x100 window, the rectangles in the
-// export uc_trq.
-uc_t_tiny() {
-  uc_t_new();
-  export int[] uc_trq = [];
-  int e = gui_load("test_assets/tiny.idml", (import uc_tt), (import uc_ts));
+// export fixture_rectangles.
+tiny_tape_fixture() {
+  fresh_tape_fixture();
+  export int[] fixture_rectangles = [];
+  int load_status = gui_load("test_assets/tiny.idml", (import fixture_tape), (import fixture_strings));
 } chain () {
-  gui_layout((import uc_tt), (import uc_trq), 200, 100);
+  gui_layout((import fixture_tape), (import fixture_rectangles), 200, 100);
 } return void;
-():() then uc_t_count:("count 8")
-():() then uc_t_strs:("strs |Card|Col|c|/|Card|Row|Spacer|Text|a|Spacer")
+():() then tape_count_report:("count 8")
+():() then tape_strings_report:("strs |Card|Col|c|/|Card|Row|Spacer|Text|a|Spacer")
 
 // A load that fails: the file does not exist, so the tape holds the diagnostic.
-uc_t_miss() {
-  uc_t_new();
-  int e = gui_load("test_assets/none.idml", (import uc_tt), (import uc_ts));
+missing_file_fixture() {
+  fresh_tape_fixture();
+  int load_status = gui_load("test_assets/none.idml", (import fixture_tape), (import fixture_strings));
 } return void;
-():() then uc_t_strs:("strs ||test_assets/none.idml")
-():() then uc_t_count:("count 1")
+():() then tape_strings_report:("strs ||test_assets/none.idml")
+():() then tape_count_report:("count 1")

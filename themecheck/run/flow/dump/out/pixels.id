@@ -1,33 +1,33 @@
 // The pixels of a PPM.
 //
 // Write the pixels from index i on, three bytes each, at ad.
-tc_ppmpx(word ad, int i) {
-  while (i < len((import sf_l_px))) {
-    tc_poke3(ad + i * 3, (import sf_l_px)[i]);
-    i = i + 1;
+image_pixels_write(word address, int pixel_index) {
+  while (pixel_index < len((import sf_l_px))) {
+    color_bytes_poke(address + pixel_index * 3, (import sf_l_px)[pixel_index]);
+    pixel_index = pixel_index + 1;
   }
 } return void;
-given tc_t_px(4276803) given tc_t_mem ((import tc_xm), 0):() then tc_t_peek:(4276803)
-given tc_t_px(4276803) given tc_t_mem ((import tc_xm), 1):() then tc_t_peek:(66051)
+given one_pixel_surface(4276803) given color_buffer_make ((import color_buffer), 0):() then color_buffer_read:(4276803)
+given one_pixel_surface(4276803) given color_buffer_make ((import color_buffer), 1):() then color_buffer_read:(66051)
 
 // Three bytes at ad: the red, green and blue of colour c.
-tc_poke3(word ad, int c) {
-  poke8(ad, (c >> 16) & 255);
-  poke8(ad + 1, (c >> 8) & 255);
-  poke8(ad + 2, c & 255);
+color_bytes_poke(word address, int color) {
+  poke8(address, (color >> 16) & 255);
+  poke8(address + 1, (color >> 8) & 255);
+  poke8(address + 2, color & 255);
 } return void;
-given tc_t_mem ((import tc_xm), 11259375):() then tc_t_peek:(11259375)
-given tc_t_mem ((import tc_xm), 28036591):() then tc_t_peek:(11259375)
+given color_buffer_make ((import color_buffer), 11259375):() then color_buffer_read:(11259375)
+given color_buffer_make ((import color_buffer), 28036591):() then color_buffer_read:(11259375)
 
 // Everything a view writes into the directory dir, which is made when it is not there: rects.txt, computed.txt,
 // text.txt and page.ppm.
-tc_dump(string dir, int[] t, string[] s, int[] rc, int[][] ys, int[][] tq, int[] ns) {
-  int made = fs_mkdir_p(dir);
-  int w1 = tc_save(dir + "/rects.txt", tc_rects(t, s, rc, ns));
-  int w2 = tc_save(dir + "/computed.txt", tc_computed(ys, tq, ns));
-} chain (string dir, int[] t, string[] s, int[] rc, int[][] ys, int[][] tq, int[] ns) {
-  int w3 = tc_save(dir + "/text.txt", tc_texts(t, s, rc, ys, ns));
-  int w4 = tc_ppm(dir + "/page.ppm");
+view_dump(string directory, int[] tape, string[] tape_strings, int[] rectangles, int[][] styles, int[][] themes, int[] node_records) {
+  int made = fs_mkdir_p(directory);
+  int rectangles_bytes_written = text_save(directory + "/rects.txt", rectangle_lines(tape, tape_strings, rectangles, node_records));
+  int computed_bytes_written = text_save(directory + "/computed.txt", computed_lines(styles, themes, node_records));
+} chain (string directory, int[] tape, string[] tape_strings, int[] rectangles, int[][] styles, int[][] themes, int[] node_records) {
+  int text_bytes_written = text_save(directory + "/text.txt", text_line_counts(tape, tape_strings, rectangles, styles, node_records));
+  int image_bytes_written = image_save(directory + "/page.ppm");
 } return void;
-given tg_t_dir given tg_t_pick("rects.txt") given tc_t_view ((import tg_xd), (import tc_tt), (import tc_ts), (import tc_xr), (import tc_xy), (import tc_xq), (import tc_xn)):() then tg_t_fsize:(42)
-given tg_t_dir given tg_t_pick("text.txt") given tc_t_view ((import tg_xd), (import tc_tt), (import tc_ts), (import tc_xr), (import tc_xy), (import tc_xq), [5]):() then tg_t_fsize:(1)
+given scratch_directory_make given picked_file_choose("rects.txt") given rendered_view_fixture ((import scratch_directory), (import page_tape), (import page_tape_strings), (import view_rectangles), (import view_styles), (import view_themes), (import view_nodes)):() then picked_file_size:(42)
+given scratch_directory_make given picked_file_choose("text.txt") given rendered_view_fixture ((import scratch_directory), (import page_tape), (import page_tape_strings), (import view_rectangles), (import view_styles), (import view_themes), [5]):() then picked_file_size:(1)

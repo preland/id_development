@@ -1,10 +1,10 @@
 // One line of a states file, and the paint.
 //
 // Put the node a line "node mask" names in the states of its mask. A line that is not two numbers is ignored.
-tc_flag1(int[] fl, int[] ns, string line) {
-  string[] pr = str_split(line, " ");
-  if (len(pr) == 2) {
-    fl[ns[to_int(pr[0])]] = to_int(pr[1]);
+state_flag_apply(int[] state_flags, int[] node_records, string line) {
+  string[] pair_parts = str_split(line, " ");
+  if (len(pair_parts) == 2) {
+    state_flags[node_records[to_int(pair_parts[0])]] = to_int(pair_parts[1]);
   }
 } return void;
 ([0, 0, 0], [1, 2], "1 8"):([0, 0, 8], [1, 2], "1 8")
@@ -13,24 +13,24 @@ tc_flag1(int[] fl, int[] ns, string line) {
 
 // Bind the themes to the page, lay it out in a w by h window, and paint it onto a fresh surface of that size, in
 // mode (0 light, 1 dark). The styles are left in ys and the rectangles in rc.
-tc_paint(int[] t, string[] s, int[][] tq, int mode, int[] fl, int[][] ys, int[] rc, int w, int h) {
-  gui_theme(t, s, tq, mode, fl, ys);
-  gui_layout(t, rc, w, h);
-  sf_l_init(w, h);
-} chain (int[] t, string[] s, int[][] tq, int mode, int[] fl, int[][] ys, int[] rc, int w, int h) {
+view_paint(int[] tape, string[] tape_strings, int[][] themes, int mode, int[] state_flags, int[][] styles, int[] rectangles, int window_width, int window_height) {
+  gui_theme(tape, tape_strings, themes, mode, state_flags, styles);
+  gui_layout(tape, rectangles, window_width, window_height);
+  sf_l_init(window_width, window_height);
+} chain (int[] tape, string[] tape_strings, int[][] themes, int mode, int[] state_flags, int[][] styles, int[] rectangles, int window_width, int window_height) {
   gui_font_init();
-  gui_paint(t, s, rc, ys, tq);
+  gui_paint(tape, tape_strings, rectangles, styles, themes);
 } return void;
-given idstd_theme_fixture_mq given tc_t_page("test_assets/rows.idml") ((import tc_tt), (import tc_ts), (import idstd_theme_xq), 0, [], [], [], 60, 40):() then (import sf_l_px)[0]:(15987699)
-given idstd_theme_fixture_mq given tc_t_page("test_assets/rows.idml") ((import tc_tt), (import tc_ts), (import idstd_theme_xq), 1, [], [], [], 60, 40):() then (import sf_l_px)[0]:(2039583)
+given idstd_theme_fixture_mq given page_fixture_load("test_assets/rows.idml") ((import page_tape), (import page_tape_strings), (import idstd_theme_xq), 0, [], [], [], 60, 40):() then (import sf_l_px)[0]:(15987699)
+given idstd_theme_fixture_mq given page_fixture_load("test_assets/rows.idml") ((import page_tape), (import page_tape_strings), (import idstd_theme_xq), 1, [], [], [], 60, 40):() then (import sf_l_px)[0]:(2039583)
 
-// The page of the file at path parsed into tc_tt and tc_ts, for the cases.
-tc_t_page(string path) {
-  export int[] tc_tt = [];
-  export string[] tc_ts = [];
-  gui_new(tc_tt, tc_ts);
+// The page of the file at path parsed into page_tape and page_tape_strings, for the cases.
+page_fixture_load(string path) {
+  export int[] page_tape = [];
+  export string[] page_tape_strings = [];
+  gui_new(page_tape, page_tape_strings);
 } chain (string path) {
-  int e = gui_load(path, tc_tt, tc_ts);
-} return void export tc_tt;
-("test_assets/tiny.idml"):() then len((import tc_tt)):(208)
-("test_assets/rows.idml"):() then len((import tc_tt)):(208)
+  int load_status = gui_load(path, page_tape, page_tape_strings);
+} return void export page_tape;
+("test_assets/tiny.idml"):() then len((import page_tape)):(208)
+("test_assets/rows.idml"):() then len((import page_tape)):(208)

@@ -1,20 +1,20 @@
 // What the quill binary prints for "--dump" of a document: its standard output as text, "" when it cannot be run or prints nothing.
-ofd_ours(string owwbin, string owsrc) {
-  string owcmd = owwbin + "\n--dump\n" + owsrc + "\n";
-  int[] owsin = [];
-  int[] owsout = [];
-} chain (string owwbin, string owsrc) {
-  int[] owserr = [];
-  int owcode = exec_run(owcmd, 0, 0, owsin, owsout, owserr, (import soffice_ms));
-  string owtext = exec_text(owsout);
-} return string owtext;
+fodt_dump_ours(string binary_path, string dump_source) {
+  string dump_command = binary_path + "\n--dump\n" + dump_source + "\n";
+  int[] dump_input_bytes = [];
+  int[] dump_output_bytes = [];
+} chain (string binary_path, string dump_source) {
+  int[] dump_error_bytes = [];
+  int exit_status = exec_run(dump_command, 0, 0, dump_input_bytes, dump_output_bytes, dump_error_bytes, (import soffice_ms));
+  string binary_output = exec_text(dump_output_bytes);
+} return string binary_output;
 ("echo", "x.odt"):("--dump x.odt\n")
 ("false", "x.odt"):("")
 
 // The dump of the fodt file soffice left for a fixture under root.
-ofd_theirs(string owroot, string owstem) {
-  string owraw = fs_read_text(lane_out(owroot, owstem, (import r_fodt)));
-  string owtext = ofd_dump(owraw);
-} return string owtext;
+fodt_dump_theirs(string work_root, string fixture_stem) {
+  string raw_text = fs_read_text(lane_out(work_root, fixture_stem, (import r_fodt)));
+  string fodt_dump_text = fodt_dump_document(raw_text);
+} return string fodt_dump_text;
 ("../quillcorpus/oracle", "07_pages"):("page w=11906 h=16838 orient=0 top=1134 right=1134 bottom=1134 left=1134\npara 0 style=\"Normal\" align=- left=- right=- first=- before=- after=- line=- brk=0 level=0 list=-\nrun b=0 i=0 u=0 s=0 sup=0 sub=0 size=24 color=- hl=- link=- font=\"Liberation Serif\" text=\"A4 portrait, 21 by 29.7 cm, margins 2 cm.\"\npara 1 style=\"Normal\" align=- left=- right=- first=- before=- after=- line=- brk=0 level=0 list=-\nrun b=0 i=0 u=0 s=0 sup=0 sub=0 size=24 color=- hl=- link=- font=\"Liberation Serif\" text=\"US Letter portrait, 8.5 by 11 in, margins 2 cm.\"\npara 2 style=\"Normal\" align=- left=- right=- first=- before=- after=- line=- brk=0 level=0 list=-\nrun b=0 i=0 u=0 s=0 sup=0 sub=0 size=24 color=- hl=- link=- font=\"Liberation Serif\" text=\"A4 landscape, 29.7 by 21 cm, margins 2 cm.\"\n")
 ("../quillcorpus/oracle", "none"):("page w=11906 h=16838 orient=0 top=1440 right=1440 bottom=1440 left=1440\n")

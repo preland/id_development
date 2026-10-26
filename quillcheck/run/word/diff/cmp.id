@@ -1,25 +1,25 @@
 // The verdict of a --text run: unavailable when the binary does not exist (the shell's 127, or no child at all), equal when it exited 0 and printed exactly the fodt's paragraphs, different otherwise.
-wlane_cmp(int code, string said, string wanted) {
-  int v = (import lane_fail);
+quill_lane_compare(int code, string said, string wanted) {
+  int verdict = (import lane_fail);
   if (code == 127 || code == 0 - 1) {
-    v = (import lane_unavailable);
+    verdict = (import lane_unavailable);
   }
   if (code == 0 && said == wanted) {
-    v = (import lane_ok);
+    verdict = (import lane_ok);
   }
-} return int v;
+} return int verdict;
 (127, "", "x"):(2)
 (0, "a\n", "a\n"):(1)
 (0, "a\n", "b\n"):(0)
 (1, "a\n", "a\n"):(0)
 
 // The index of the first line two lists of lines differ at, or the length of the shorter one when one is a prefix of the other.
-wlane_first(string[] gl, string[] wl) {
-  int i = 0;
-  while (i < len(gl) && i < len(wl) && gl[i] == wl[i]) {
-    i = i + 1;
+quill_lane_first(string[] gl, string[] wl) {
+  int first_difference = 0;
+  while (first_difference < len(gl) && first_difference < len(wl) && gl[first_difference] == wl[first_difference]) {
+    first_difference = first_difference + 1;
   }
-} return int i;
+} return int first_difference;
 (["a", "b"], ["a", "c"]):(1)
 (["a"], ["a", "b"]):(1)
 ([], ["a"]):(0)

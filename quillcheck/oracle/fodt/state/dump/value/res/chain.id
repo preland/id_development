@@ -1,44 +1,44 @@
 // The style a style inherits from: its parent, else the default paragraph style "p:" for a paragraph style, else "" (a text style has nothing above it, its text takes what the paragraph gives).
-ofd_up(OfdSty owst, string owk) {
-  int owi = ofd_idx(owst, owk);
-  string owup = "";
-  if(owi >= 0) {
-    owup = owst.meta[owi * 3];
+fodt_dump_parent(Catalog style_store, string style_key) {
+  int entry_index = fodt_dump_entry_index(style_store, style_key);
+  string parent_key = "";
+  if(entry_index >= 0) {
+    parent_key = style_store.meta[entry_index * 3];
   }
-} chain (OfdSty owst, string owk) {
-  if(owup == "" && str_starts(owk, "p:") == 1 && owk != "p:") {
-    owup = "p:";
+} chain (Catalog style_store, string style_key) {
+  if(parent_key == "" && str_starts(style_key, "p:") == 1 && style_key != "p:") {
+    parent_key = "p:";
   }
-} return string owup;
-(OfdSty(["p:A", "p:B", "p:"], ["", "", ""], ["p:B", "", "", "", "", "", "", "", ""]), "p:A"):("p:B")
-(OfdSty(["p:A", "p:"], ["", ""], ["", "", "", "", "", ""]), "p:A"):("p:")
-(OfdSty(["t:A", "p:"], ["", ""], ["", "", "", "", "", ""]), "t:A"):("")
-(OfdSty(["p:"], [""], ["", "", ""]), "p:"):("")
+} return string parent_key;
+(Catalog(["p:A", "p:B", "p:"], ["", "", ""], ["p:B", "", "", "", "", "", "", "", ""]), "p:A"):("p:B")
+(Catalog(["p:A", "p:"], ["", ""], ["", "", "", "", "", ""]), "p:A"):("p:")
+(Catalog(["t:A", "p:"], ["", ""], ["", "", "", "", "", ""]), "t:A"):("")
+(Catalog(["p:"], [""], ["", "", ""]), "p:"):("")
 
 // The value of a property for a style: its own, else its parent's and so on up the chain, "" when none sets it. The chain is cut after 24 steps, which only a cycle reaches.
-ofd_get(OfdSty owst, string owk, string own) {
-  string owkc = owk;
-  string owv = "";
-  int owi = 0;
-} chain (OfdSty owst, string owk, string own) {
-  while(owkc != "" && owv == "" && owi < 24) {
-    owv = ofd_own(owst, owkc, own);
-    owkc = ofd_up(owst, owkc);
-    owi = owi + 1;
+fodt_dump_inherited(Catalog style_store, string style_key, string own) {
+  string ancestor_key = style_key;
+  string value_text = "";
+  int hop_count = 0;
+} chain (Catalog style_store, string style_key, string own) {
+  while(ancestor_key != "" && value_text == "" && hop_count < 24) {
+    value_text = fodt_dump_own(style_store, ancestor_key, own);
+    ancestor_key = fodt_dump_parent(style_store, ancestor_key);
+    hop_count = hop_count + 1;
   }
-} return string owv;
-(OfdSty(["p:A", "p:B", "p:"], ["|p.x=1", "|p.x=2|p.y=3", "|p.z=4"], ["p:B", "", "", "", "", "", "", "", ""]), "p:A", "p.x"):("1")
-(OfdSty(["p:A", "p:B", "p:"], ["", "|p.x=2|p.y=3", "|p.z=4"], ["p:B", "", "", "", "", "", "", "", ""]), "p:A", "p.y"):("3")
-(OfdSty(["p:A", "p:B", "p:"], ["", "|p.x=2|p.y=3", "|p.z=4"], ["p:B", "", "", "", "", "", "", "", ""]), "p:A", "p.z"):("4")
-(OfdSty(["p:A"], [""], ["p:A", "", ""]), "p:A", "p.x"):("")
+} return string value_text;
+(Catalog(["p:A", "p:B", "p:"], ["|p.x=1", "|p.x=2|p.y=3", "|p.z=4"], ["p:B", "", "", "", "", "", "", "", ""]), "p:A", "p.x"):("1")
+(Catalog(["p:A", "p:B", "p:"], ["", "|p.x=2|p.y=3", "|p.z=4"], ["p:B", "", "", "", "", "", "", "", ""]), "p:A", "p.y"):("3")
+(Catalog(["p:A", "p:B", "p:"], ["", "|p.x=2|p.y=3", "|p.z=4"], ["p:B", "", "", "", "", "", "", "", ""]), "p:A", "p.z"):("4")
+(Catalog(["p:A"], [""], ["p:A", "", ""]), "p:A", "p.x"):("")
 
 // The value of a property in a style's own bag, "" when the style is not known or does not set it.
-ofd_own(OfdSty owst, string owk, string own) {
-  int owi = ofd_idx(owst, owk);
-  string owv = "";
-  if(owi >= 0) {
-    owv = ofd_val(owst.props[owi], own);
+fodt_dump_own(Catalog style_store, string style_key, string own) {
+  int entry_index = fodt_dump_entry_index(style_store, style_key);
+  string value_text = "";
+  if(entry_index >= 0) {
+    value_text = fodt_dump_value(style_store.props[entry_index], own);
   }
-} return string owv;
-(OfdSty(["p:A"], ["|p.x=1"], ["", "", ""]), "p:A", "p.x"):("1")
-(OfdSty(["p:A"], ["|p.x=1"], ["", "", ""]), "p:B", "p.x"):("")
+} return string value_text;
+(Catalog(["p:A"], ["|p.x=1"], ["", "", ""]), "p:A", "p.x"):("1")
+(Catalog(["p:A"], ["|p.x=1"], ["", "", ""]), "p:B", "p.x"):("")

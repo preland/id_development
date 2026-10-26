@@ -1,18 +1,18 @@
-// Test fixtures that turn the scratch tree of state_t_tree into record rows (a
+// Test fixtures that turn the scratch tree of state_test_tree into record rows (a
 // file source and a directory source) so a case can hand a path to state_word.
 
-state_t_rows(int state_t_built) {
-  string state_t_root_row = "/x\t" + (import state_t_root) + "\tc\t" + state_t_built;
-  export string state_t_row_dir = state_t_root_row;
-  string state_t_leaf_row = "/x\t" + (import state_t_leaf) + "\tc\t" + state_t_built;
-} chain (int state_t_built) {
-  export string state_t_row_file = state_t_leaf_row;
-} return void export state_t_row_dir;
-given state_t_tree(1, 2) (3):() then state_t_tail("\tc\t3"):(1)
-given state_t_tree(1, 2) (4):() then state_t_tail("\tc\t3"):(0)
+state_test_rows(int state_test_built) {
+  string state_test_root_row = "/x\t" + (import state_test_root) + "\tc\t" + state_test_built;
+  export string state_test_row_directory = state_test_root_row;
+  string state_test_leaf_row = "/x\t" + (import state_test_leaf) + "\tc\t" + state_test_built;
+} chain (int state_test_built) {
+  export string state_test_row_file = state_test_leaf_row;
+} return void export state_test_row_directory;
+given state_test_tree(1, 2) (3):() then state_test_tail("\tc\t3"):(1)
+given state_test_tree(1, 2) (4):() then state_test_tail("\tc\t3"):(0)
 
-state_t_tail(string state_t_suffix) {
-  int state_t_ends = str_ends((import state_t_row_dir), state_t_suffix) * str_ends((import state_t_row_file), state_t_suffix);
-} return int state_t_ends;
-given state_t_tree(1, 2) given state_t_rows(5) ("\tc\t5"):(1)
-given state_t_tree(1, 2) given state_t_rows(5) ("\tc\t6"):(0)
+state_test_tail(string state_test_suffix) {
+  int state_test_ends = str_ends((import state_test_row_directory), state_test_suffix) * str_ends((import state_test_row_file), state_test_suffix);
+} return int state_test_ends;
+given state_test_tree(1, 2) given state_test_rows(5) ("\tc\t5"):(1)
+given state_test_tree(1, 2) given state_test_rows(5) ("\tc\t6"):(0)

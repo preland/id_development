@@ -1,42 +1,42 @@
 // What a paragraph's list says in a dump: "-" without a list, else the level's token: "b:CODEPOINT:LEFT:HANG" for a bullet, "n:FORMAT:START:LEFT:HANG" for a number.
-ofd_ltok(OfdSty owst, string owlist, int owlevel) {
-  int owi = ofd_idx(owst, "l:" + owlist);
-  string owout = "-";
-  if(owlist != "" && owi >= 0) {
-    owout = ofd_tok(owst.props[owi], fixed_point_minimum(owlevel, 2) + 1);
+fodt_dump_list_token(Catalog style_store, string list_style, int list_level) {
+  int entry_index = fodt_dump_entry_index(style_store, "l:" + list_style);
+  string result_text = "-";
+  if(list_style != "" && entry_index >= 0) {
+    result_text = fodt_dump_level_token(style_store.props[entry_index], fixed_point_minimum(list_level, 2) + 1);
   }
-} return string owout;
-(OfdSty(["l:L"], ["|1.k=b|1.f=8226|1.s=1|1.l=720|1.h=360|2.k=n|2.f=1|2.s=3|2.l=1440|2.h=360"], ["", "", ""]), "L", 0):("b:8226:720:360")
-(OfdSty(["l:L"], ["|1.k=b|1.f=8226|1.s=1|1.l=720|1.h=360|2.k=n|2.f=1|2.s=3|2.l=1440|2.h=360"], ["", "", ""]), "L", 1):("n:1:3:1440:360")
-(OfdSty(["l:L"], [""], ["", "", ""]), "", 0):("-")
-(OfdSty(["l:L"], [""], ["", "", ""]), "Z", 0):("-")
+} return string result_text;
+(Catalog(["l:L"], ["|1.k=b|1.f=8226|1.s=1|1.l=720|1.h=360|2.k=n|2.f=1|2.s=3|2.l=1440|2.h=360"], ["", "", ""]), "L", 0):("b:8226:720:360")
+(Catalog(["l:L"], ["|1.k=b|1.f=8226|1.s=1|1.l=720|1.h=360|2.k=n|2.f=1|2.s=3|2.l=1440|2.h=360"], ["", "", ""]), "L", 1):("n:1:3:1440:360")
+(Catalog(["l:L"], [""], ["", "", ""]), "", 0):("-")
+(Catalog(["l:L"], [""], ["", "", ""]), "Z", 0):("-")
 
 // A level of a list's bag as a dump prints it: "n:FORMAT:START:LEFT:HANG" for a number level, "b:CODEPOINT:LEFT:HANG" otherwise.
-ofd_tok(string owb, int owl) {
-  string owsf = ofd_val(owb, owl + ".f");
-  string owsind = ofd_val(owb, owl + ".l") + ":" + ofd_val(owb, owl + ".h");
-  string owout = "b:" + owsf + ":" + owsind;
-} chain (string owb, int owl) {
-  if(ofd_val(owb, owl + ".k") == "n") {
-    owout = "n:" + owsf + ":" + ofd_val(owb, owl + ".s") + ":" + owsind;
+fodt_dump_level_token(string property_bag, int owl) {
+  string format_text = fodt_dump_value(property_bag, owl + ".f");
+  string indent_text = fodt_dump_value(property_bag, owl + ".l") + ":" + fodt_dump_value(property_bag, owl + ".h");
+  string result_text = "b:" + format_text + ":" + indent_text;
+} chain (string property_bag, int owl) {
+  if(fodt_dump_value(property_bag, owl + ".k") == "n") {
+    result_text = "n:" + format_text + ":" + fodt_dump_value(property_bag, owl + ".s") + ":" + indent_text;
   }
-} return string owout;
+} return string result_text;
 ("|1.k=b|1.f=9702|1.l=1|1.h=2", 1):("b:9702:1:2")
 ("|2.k=n|2.f=3|2.s=5|2.l=7|2.h=9", 2):("n:3:5:7:9")
 
 // The paragraph record of a dump, without its runs: "para N style= align= left= right= first= before= after= line= brk= level= list=", resolved for the paragraph style key owpk; owlist is the list style the paragraph sits in and owlevel its level.
-ofd_phead(OfdSty owst, string owpk, string owlist, int owlevel, int owi) {
-  string owsn = ofd_sname(owst, ofd_named(owst, owpk));
-  string owsty = string_quote(owsn);
-  string owsa = "para " + owi + " style=" + owsty + " align=" + ofd_align(ofd_get(owst, owpk, "p.fo:text-align"));
-} chain (OfdSty owst, string owpk, string owlist, int owlevel, int owi) {
-  string owsb = "left=" + ofd_pn(owst, owpk, "p.fo:margin-left") + " right=" + ofd_pn(owst, owpk, "p.fo:margin-right");
-  string owsc = "first=" + ofd_pn(owst, owpk, "p.fo:text-indent") + " before=" + ofd_pn(owst, owpk, "p.fo:margin-top");
-  string owsd = "after=" + ofd_pn(owst, owpk, "p.fo:margin-bottom") + " line=" + ofd_pline(ofd_get(owst, owpk, "p.fo:line-height"));
-} chain (OfdSty owst, string owpk, string owlist, int owlevel, int owi) {
-  int owbrk = ofd_get(owst, owpk, "p.fo:break-before") == "page";
-  string owse = "brk=" + owbrk + " level=" + owlevel + " list=" + ofd_ltok(owst, owlist, owlevel);
-  string owout = owsa + " " + owsb + " " + owsc + " " + owsd + " " + owse;
-} return string owout;
-(OfdSty(["p:Standard", "p:"], ["", "|t.fo:font-size=12pt"], ["", "", "", "", "", ""]), "p:Standard", "", 0, 3):("para 3 style=\"Normal\" align=- left=- right=- first=- before=- after=- line=- brk=0 level=0 list=-")
-(OfdSty(["p:H", "p:P1", "l:L"], ["|d=Heading 1|p.fo:margin-top=0.1665in|p.fo:margin-bottom=0.0835in|p.fo:line-height=115%", "|a=1|p.fo:text-align=center|p.fo:break-before=page", "|1.k=b|1.f=8226|1.s=1|1.l=720|1.h=360"], ["", "", "", "p:H", "", "", "", "", ""]), "p:P1", "L", 0, 0):("para 0 style=\"Heading 1\" align=1 left=- right=- first=- before=240 after=120 line=115 brk=1 level=0 list=b:8226:720:360")
+fodt_dump_paragraph_head(Catalog style_store, string paragraph_key, string list_style, int list_level, int paragraph_number) {
+  string style_text = fodt_dump_style_name(style_store, fodt_dump_named_style(style_store, paragraph_key));
+  string quoted_name = string_quote(style_text);
+  string record_start = "para " + paragraph_number + " style=" + quoted_name + " align=" + fodt_dump_alignment(fodt_dump_inherited(style_store, paragraph_key, "p.fo:text-align"));
+} chain (Catalog style_store, string paragraph_key, string list_style, int list_level, int paragraph_number) {
+  string margin_fields = "left=" + fodt_dump_paragraph_box(style_store, paragraph_key, "p.fo:margin-left") + " right=" + fodt_dump_paragraph_box(style_store, paragraph_key, "p.fo:margin-right");
+  string indent_fields = "first=" + fodt_dump_paragraph_box(style_store, paragraph_key, "p.fo:text-indent") + " before=" + fodt_dump_paragraph_box(style_store, paragraph_key, "p.fo:margin-top");
+  string after_fields = "after=" + fodt_dump_paragraph_box(style_store, paragraph_key, "p.fo:margin-bottom") + " line=" + fodt_dump_line_height(fodt_dump_inherited(style_store, paragraph_key, "p.fo:line-height"));
+} chain (Catalog style_store, string paragraph_key, string list_style, int list_level, int paragraph_number) {
+  int break_before = fodt_dump_inherited(style_store, paragraph_key, "p.fo:break-before") == "page";
+  string break_fields = "brk=" + break_before + " level=" + list_level + " list=" + fodt_dump_list_token(style_store, list_style, list_level);
+  string result_text = record_start + " " + margin_fields + " " + indent_fields + " " + after_fields + " " + break_fields;
+} return string result_text;
+(Catalog(["p:Standard", "p:"], ["", "|t.fo:font-size=12pt"], ["", "", "", "", "", ""]), "p:Standard", "", 0, 3):("para 3 style=\"Normal\" align=- left=- right=- first=- before=- after=- line=- brk=0 level=0 list=-")
+(Catalog(["p:H", "p:P1", "l:L"], ["|d=Heading 1|p.fo:margin-top=0.1665in|p.fo:margin-bottom=0.0835in|p.fo:line-height=115%", "|a=1|p.fo:text-align=center|p.fo:break-before=page", "|1.k=b|1.f=8226|1.s=1|1.l=720|1.h=360"], ["", "", "", "p:H", "", "", "", "", ""]), "p:P1", "L", 0, 0):("para 0 style=\"Heading 1\" align=1 left=- right=- first=- before=240 after=120 line=115 brk=1 level=0 list=b:8226:720:360")

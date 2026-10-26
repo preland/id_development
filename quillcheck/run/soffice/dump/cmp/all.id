@@ -1,11 +1,11 @@
 // Keeps the paragraph and run counters of a dump walk, owcnt = [paragraph index, run index within it]: a "para N" line sets the paragraph and resets the run to -1, a "run" line counts one more.
-ofd_ctx(string owline, int[] owcnt) {
-  if(str_starts(owline, "para ") == 1) {
-    owcnt[0] = ofd_pnum(owline);
-    owcnt[1] = 0 - 1;
+fodt_dump_context(string dump_line, int[] dump_counters) {
+  if(str_starts(dump_line, "para ") == 1) {
+    dump_counters[0] = fodt_dump_paragraph_number(dump_line);
+    dump_counters[1] = 0 - 1;
   }
-  if(str_starts(owline, "run ") == 1) {
-    owcnt[1] = owcnt[1] + 1;
+  if(str_starts(dump_line, "run ") == 1) {
+    dump_counters[1] = dump_counters[1] + 1;
   }
 } return void;
 ("para 7 style=\"A\"", [0, 3]):("para 7 style=\"A\"", [7, -1])
@@ -13,24 +13,24 @@ ofd_ctx(string owline, int[] owcnt) {
 ("page w=1", [4, 2]):("page w=1", [4, 2])
 
 // What a report line says a difference is in: "page" for the page record, "pN" for a paragraph record and "pN rM" for a run record.
-ofd_cname(string owline, int[] owcnt) {
-  string owname = "p" + owcnt[0];
-  if(str_starts(owline, "page ") == 1) {
-    owname = "page";
+fodt_dump_context_name(string dump_line, int[] dump_counters) {
+  string element_name = "p" + dump_counters[0];
+  if(str_starts(dump_line, "page ") == 1) {
+    element_name = "page";
   }
-  if(str_starts(owline, "run ") == 1) {
-    owname = "p" + owcnt[0] + " r" + owcnt[1];
+  if(str_starts(dump_line, "run ") == 1) {
+    element_name = "p" + dump_counters[0] + " r" + dump_counters[1];
   }
-} return string owname;
+} return string element_name;
 ("page w=1", [4, 2]):("page")
 ("para 4 x=1", [4, -1]):("p4")
 ("run b=0", [4, 2]):("p4 r2")
 
 // The number after "para " in a paragraph record line.
-ofd_pnum(string owline) {
-  int owlen = len(owline) - 5;
-  string owtail = str_sub(owline, 5, owlen);
-  int owi = to_int(owtail);
-} return int owi;
+fodt_dump_paragraph_number(string dump_line) {
+  int number_length = len(dump_line) - 5;
+  string tail_text = str_sub(dump_line, 5, number_length);
+  int entry_index = to_int(tail_text);
+} return int entry_index;
 ("para 7 style=\"A\""):(7)
 ("para 12"):(12)

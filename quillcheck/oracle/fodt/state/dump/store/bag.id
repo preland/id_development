@@ -1,43 +1,43 @@
 // The value of name in a bag of "|name=value" pairs, "" when it is not there.
-ofd_val(string owb, string own) {
-  string owneedle = "|" + own + "=";
-  int owi = str_find(owb, owneedle);
-  string owv = "";
-} chain (string owb, string own) {
-  int owa = owi + len(owneedle);
-  if(owi >= 0) {
-    string owtail = str_sub(owb, owa, len(owb) - owa);
-    string[] owparts = str_split(owtail, "|");
-    owv = owparts[0];
+fodt_dump_value(string property_bag, string own) {
+  string needle_text = "|" + own + "=";
+  int needle_position = str_find(property_bag, needle_text);
+  string value_text = "";
+} chain (string property_bag, string own) {
+  int value_start = needle_position + len(needle_text);
+  if(needle_position >= 0) {
+    string tail_text = str_sub(property_bag, value_start, len(property_bag) - value_start);
+    string[] pair_parts = str_split(tail_text, "|");
+    value_text = pair_parts[0];
   }
-} return string owv;
+} return string value_text;
 ("|t.fo:color=#ff0000|p.fo:margin-left=1in", "t.fo:color"):("#ff0000")
 ("|t.fo:color=#ff0000|p.fo:margin-left=1in", "p.fo:margin-left"):("1in")
 ("|t.fo:color-x=1", "t.fo:color"):("")
 ("", "a"):("")
 
 // The bag with name set to value: an earlier pair of that name is dropped first.
-ofd_set(string owb, string own, string owv) {
-  string[] owparts = str_split(owb, "|");
-  string owout = "";
-  int owi = 1;
-} chain (string owb, string own, string owv) {
-  while(owi < len(owparts)) {
-    owout = owout + ofd_keep(owparts[owi], own);
-    owi = owi + 1;
+fodt_dump_set_property(string property_bag, string own, string value_text) {
+  string[] pair_parts = str_split(property_bag, "|");
+  string result_text = "";
+  int pair_cursor = 1;
+} chain (string property_bag, string own, string value_text) {
+  while(pair_cursor < len(pair_parts)) {
+    result_text = result_text + fodt_dump_keep_pair(pair_parts[pair_cursor], own);
+    pair_cursor = pair_cursor + 1;
   }
-  owout = owout + "|" + own + "=" + owv;
-} return string owout;
+  result_text = result_text + "|" + own + "=" + value_text;
+} return string result_text;
 ("|a=1|b=2", "a", "9"):("|b=2|a=9")
 ("", "a", "9"):("|a=9")
 
 // "|pair" when the pair ("name=value") is not the one for name, else "": what a bag keeps of a pair when name is set again.
-ofd_keep(string owpair, string own) {
-  string owout = "|" + owpair;
-  if(str_starts(owpair, own + "=") == 1) {
-    owout = "";
+fodt_dump_keep_pair(string pair_text, string own) {
+  string result_text = "|" + pair_text;
+  if(str_starts(pair_text, own + "=") == 1) {
+    result_text = "";
   }
-} return string owout;
+} return string result_text;
 ("a=1", "b"):("|a=1")
 ("b=2", "b"):("")
 ("bb=2", "b"):("|bb=2")

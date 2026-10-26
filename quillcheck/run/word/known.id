@@ -1,27 +1,27 @@
 // 1 when the mode is one of the quill binary's CLI modes (docs/QUILL.md 4.9).
-wlane_known(string wmode, string[] modes) {
-  int i = 0;
+quill_lane_known(string lane_mode, string[] modes) {
+  int known_cursor = 0;
   int known = 0;
-  while (i < len(modes)) {
-    known = known + (modes[i] == wmode);
-    i = i + 1;
+  while (known_cursor < len(modes)) {
+    known = known + (modes[known_cursor] == lane_mode);
+    known_cursor = known_cursor + 1;
   }
 } return int known;
 ("--dump", ["--text", "--dump"]):(1)
 ("--render", ["--text", "--dump"]):(0)
 
 // The verdict of one quill-binary lane. vs holds the verdicts of the lanes that have run, [--text, --pages]; every other known mode has nothing to run yet and is reported unavailable, never as a pass; an unknown mode fails.
-wlane_run(string wmode, int[] vs) {
+quill_lane_run(string lane_mode, int[] quill_verdicts) {
   int code = (import lane_fail);
-  if (wlane_known(wmode, (import quill_modes)) == 1) {
+  if (quill_lane_known(lane_mode, (import quill_modes)) == 1) {
     code = (import lane_unavailable);
   }
-  if (wmode == (import text_mode)) {
-    code = vs[0];
+  if (lane_mode == (import text_mode)) {
+    code = quill_verdicts[0];
   }
-} chain (string wmode, int[] vs) {
-  if (wmode == (import pages_mode)) {
-    code = vs[1];
+} chain (string lane_mode, int[] quill_verdicts) {
+  if (lane_mode == (import pages_mode)) {
+    code = quill_verdicts[1];
   }
 } return int code;
 ("--text", [1, 2]):(1)
@@ -32,14 +32,14 @@ wlane_run(string wmode, int[] vs) {
 ("--bogus", [1, 1]):(0)
 
 // How many of the quill-binary lanes have verdict v.
-wlane_count(string[] modes, int[] vs, int v) {
-  int i = 0;
-  int n = 0;
-  while (i < len(modes)) {
-    n = n + (wlane_run(modes[i], vs) == v);
-    i = i + 1;
+quill_lane_count(string[] modes, int[] quill_verdicts, int verdict) {
+  int count_cursor = 0;
+  int matching_lanes = 0;
+  while (count_cursor < len(modes)) {
+    matching_lanes = matching_lanes + (quill_lane_run(modes[count_cursor], quill_verdicts) == verdict);
+    count_cursor = count_cursor + 1;
   }
-} return int n;
+} return int matching_lanes;
 (["--text", "--dump"], [1, 2], 1):(1)
 (["--text", "--dump"], [0, 2], 2):(1)
 (["--text", "--pages"], [1, 1], 1):(2)

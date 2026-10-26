@@ -5,15 +5,15 @@
 // 1 when the source at state_path (a file, or a directory searched whole) has a
 // `.id` file newer than state_built.
 state_newer(string state_path, int state_built) {
-  int state_is_dir = fs_is_dir(state_path);
+  int state_is_directory = fs_is_dir(state_path);
   int state_hit = state_file(state_path, state_built);
-  if (state_is_dir == 1) {
+  if (state_is_directory == 1) {
     state_hit = state_tree(state_path, state_built, 0);
   }
 } return int state_hit;
-given state_t_tree(2000, 2000) ((import state_t_leaf), 1000):(1)
-given state_t_tree(2000, 2000) ((import state_t_root), 1000):(1)
-given state_t_tree(2000, 2000) ((import state_t_root), 5000):(0)
+given state_test_tree(2000, 2000) ((import state_test_leaf), 1000):(1)
+given state_test_tree(2000, 2000) ((import state_test_root), 1000):(1)
+given state_test_tree(2000, 2000) ((import state_test_root), 5000):(0)
 ("/bin/sh", 0):(0)
 
 // The word for a row: fresh, stale, or ? (see state_label).
@@ -25,9 +25,9 @@ state_word(string state_entry) {
   int state_newer_found = state_newer(state_source, state_built);
   string state_text = state_label(state_source, state_there, state_newer_found);
 } return string state_text;
-given state_t_tree(2000, 2000) given state_t_rows(1000) ((import state_t_row_file)):("stale")
-given state_t_tree(2000, 2000) given state_t_rows(3000) ((import state_t_row_file)):("fresh")
-given state_t_tree(2000, 2000) given state_t_rows(1000) ((import state_t_row_dir)):("stale")
+given state_test_tree(2000, 2000) given state_test_rows(1000) ((import state_test_row_file)):("stale")
+given state_test_tree(2000, 2000) given state_test_rows(3000) ((import state_test_row_file)):("fresh")
+given state_test_tree(2000, 2000) given state_test_rows(1000) ((import state_test_row_directory)):("stale")
 ("/x\t-\tc\t5"):("?")
 ("/x\t/no/such/dir\tc\t5"):("?")
 ("/x\t/bin/sh\tc\t5"):("fresh")

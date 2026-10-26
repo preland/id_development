@@ -1,0 +1,48 @@
+// Turning the line typed at the `a` prompt into program arguments: split on
+// spaces, with "..." keeping spaces inside one argument. No other quoting and no
+// shell: the line is not interpreted, so a program receives exactly these words.
+
+// Takes one byte (argument_code) of the line: a quote flips argument_flags[0] and is dropped, a space outside
+// quotes starts the next argument (once the current one has something in it), anything else is
+// appended to the last argument in argument_parts.
+argument_take(string[] argument_parts, int[] argument_flags, int argument_code) {
+  int argument_spacing = (argument_code == 32) * (1 - argument_flags[0]);
+  if (argument_code == 34) {
+    argument_flags[0] = 1 - argument_flags[0];
+  }
+  if (argument_spacing == 1 && len(argument_parts[len(argument_parts) - 1]) > 0) {
+    push(argument_parts, "");
+  }
+} chain (string[] argument_parts, int[] argument_flags, int argument_code) {
+  if (argument_code != 34 && argument_spacing == 0) {
+    argument_parts[len(argument_parts) - 1] = argument_parts[len(argument_parts) - 1] + chr(argument_code);
+  }
+} return void;
+([""], [0], 97):(["a"], [0], 97)
+(["ab"], [0], 32):(["ab", ""], [0], 32)
+([""], [0], 32):([""], [0], 32)
+(["ab"], [0], 34):(["ab"], [1], 34)
+(["ab"], [1], 34):(["ab"], [0], 34)
+(["ab"], [1], 32):(["ab "], [1], 32)
+
+// The arguments in a line: "a b" gives two, "a \"b c\"" gives two with a space in the second.
+argument_split(string argument_line) {
+  string[] argument_parts = [""];
+  int[] argument_flags = [0];
+  int argument_index = 0;
+} chain (string argument_line) {
+  while (argument_index < len(argument_line)) {
+    argument_take(argument_parts, argument_flags, character_code_at(argument_line, argument_index));
+    argument_index = argument_index + 1;
+  }
+  if (len(argument_parts[len(argument_parts) - 1]) == 0) {
+    pop(argument_parts);
+  }
+} return string[] argument_parts;
+("one two"):(["one", "two"])
+("  one   two  "):(["one", "two"])
+("one \"two three\" four"):(["one", "two three", "four"])
+(""):([])
+("\"open quote"):(["open quote"])
+("a b c d"):(["a", "b", "c", "d"])[time:O(n), mem:O(n)]
+("a b c d a b c d"):(["a", "b", "c", "d", "a", "b", "c", "d"])[time:O(n), mem:O(n)]

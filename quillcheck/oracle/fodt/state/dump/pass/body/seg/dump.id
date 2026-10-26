@@ -1,47 +1,47 @@
 // The fields of a page layout bag as a dump prints them: "w= h= orient= top= right= bottom= left=", in twips (the orientation 0 portrait, 1 landscape); an absent or unreadable size or margin is A4 with one-inch margins.
-ofd_pgfields(string owbag) {
-  int owfw = ofd_dim(owbag, "fo:page-width", 11906);
-  int owfh = ofd_dim(owbag, "fo:page-height", 16838);
-  string owor = ofd_val(owbag, "style:print-orientation");
-} chain (string owbag) {
-  int owland = owfw > owfh;
-  if(owor != "") {
-    owland = owor == "landscape";
+fodt_dump_page_fields(string layout_bag) {
+  int page_width = fodt_dump_dimension(layout_bag, "fo:page-width", 11906);
+  int page_height = fodt_dump_dimension(layout_bag, "fo:page-height", 16838);
+  string orientation_text = fodt_dump_value(layout_bag, "style:print-orientation");
+} chain (string layout_bag) {
+  int is_landscape = page_width > page_height;
+  if(orientation_text != "") {
+    is_landscape = orientation_text == "landscape";
   }
-  string owsa = "w=" + owfw + " h=" + owfh + " orient=" + owland;
-} chain (string owbag) {
-  string owsm = "top=" + ofd_dim(owbag, "fo:margin-top", 1440) + " right=" + ofd_dim(owbag, "fo:margin-right", 1440);
-  string owsn = "bottom=" + ofd_dim(owbag, "fo:margin-bottom", 1440) + " left=" + ofd_dim(owbag, "fo:margin-left", 1440);
-  string owout = owsa + " " + owsm + " " + owsn;
-} return string owout;
+  string size_fields = "w=" + page_width + " h=" + page_height + " orient=" + is_landscape;
+} chain (string layout_bag) {
+  string top_right_fields = "top=" + fodt_dump_dimension(layout_bag, "fo:margin-top", 1440) + " right=" + fodt_dump_dimension(layout_bag, "fo:margin-right", 1440);
+  string bottom_left_fields = "bottom=" + fodt_dump_dimension(layout_bag, "fo:margin-bottom", 1440) + " left=" + fodt_dump_dimension(layout_bag, "fo:margin-left", 1440);
+  string result_text = size_fields + " " + top_right_fields + " " + bottom_left_fields;
+} return string result_text;
 ("|fo:page-width=8.2681in|fo:page-height=11.6929in|style:print-orientation=portrait|fo:margin-top=0.7874in|fo:margin-right=0.7874in|fo:margin-bottom=0.7874in|fo:margin-left=0.7874in"):("w=11906 h=16838 orient=0 top=1134 right=1134 bottom=1134 left=1134")
 ("|fo:page-width=29.7cm|fo:page-height=21cm"):("w=16838 h=11906 orient=1 top=1440 right=1440 bottom=1440 left=1440")
 (""):("w=11906 h=16838 orient=0 top=1440 right=1440 bottom=1440 left=1440")
 
 // A length in a layout bag in twips, owdefault when it is absent or does not read.
-ofd_dim(string owbag, string own, int owdefault) {
-  int owtw = ofd_tw(ofd_val(owbag, own));
-  if(owtw == (import ow_bad)) {
-    owtw = owdefault;
+fodt_dump_dimension(string layout_bag, string own, int default_length) {
+  int length_value = fodt_dump_length(fodt_dump_value(layout_bag, own));
+  if(length_value == (import ow_bad)) {
+    length_value = default_length;
   }
-} return int owtw;
+} return int length_value;
 ("|fo:margin-left=1in", "fo:margin-left", 5):(1440)
 ("|fo:margin-left=1in", "fo:margin-top", 5):(5)
 ("|fo:margin-left=big", "fo:margin-left", 7):(7)
 
 // The normalised dump of a fodt document, as docs/QUILL.md 4.9 defines it: the page record (the page layout of the first paragraph's master page), then every paragraph's records, each line ending in a line feed.
-ofd_dump(string owraw) {
-  int[] owlbytes = exec_bytes(owraw);
-  XmlR owr = xml_reader_open(owlbytes);
-  OfdSty owst = ofd_new();
-} chain (string owraw) {
-  ofd_styles(owst, owr);
-  OfdAcc owacc = ofd_acc_new();
-  ofd_body(owst, owr, owacc);
-} chain (string owraw) {
-  string owmast = ofd_walk(owst, owacc.ss[4], bind(ofd_meta, 2));
-  string owpage = "page " + ofd_pgfields(ofd_pgbag(owst, owmast));
-  string owout = owpage + owacc.ss[3] + "\n";
-} return string owout;
+fodt_dump_document(string raw_text) {
+  int[] document_bytes = exec_bytes(raw_text);
+  XmlR document_reader = xml_reader_open(document_bytes);
+  Catalog style_store = fodt_dump_store_new();
+} chain (string raw_text) {
+  fodt_dump_styles(style_store, document_reader);
+  Accumulator accumulator = fodt_dump_accumulator_new();
+  fodt_dump_body(style_store, document_reader, accumulator);
+} chain (string raw_text) {
+  string master_page = fodt_dump_walk(style_store, accumulator.slot_strings[4], bind(fodt_dump_meta_slot, 2));
+  string page_record = "page " + fodt_dump_page_fields(fodt_dump_page_bag(style_store, master_page));
+  string result_text = page_record + accumulator.slot_strings[3] + "\n";
+} return string result_text;
 ("<a><office:body><text:p text:style-name=\"Standard\">hi</text:p></office:body></a>"):("page w=11906 h=16838 orient=0 top=1440 right=1440 bottom=1440 left=1440\npara 0 style=\"Normal\" align=- left=- right=- first=- before=- after=- line=- brk=0 level=0 list=-\nrun b=0 i=0 u=0 s=0 sup=0 sub=0 size=- color=- hl=- link=- font=- text=\"hi\"\n")
 ("<a><style:page-layout style:name=\"L\"><style:page-layout-properties fo:page-width=\"1in\"/></style:page-layout><style:master-page style:name=\"M\" style:page-layout-name=\"L\"/><office:body/></a>"):("page w=1440 h=16838 orient=0 top=1440 right=1440 bottom=1440 left=1440\n")

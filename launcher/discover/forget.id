@@ -22,18 +22,18 @@ discover_unforgotten(string[] discover_listing, string[] discover_hidden) {
 // Adds discover_path, as it is now, to the forget list beside the record; 1 when it was added, 0 when the program is not there.
 discover_forget(string discover_record, string discover_path) {
   string discover_file = discover_beside(discover_record, "forgotten.tsv");
-  word[] discover_stat = [];
-  fs_stat_pad(discover_stat);
+  word[] discover_file_status = [];
+  fs_stat_pad(discover_file_status);
 } chain (string discover_record, string discover_path) {
-  int discover_rc = fs_stat(discover_path, discover_stat);
-  string discover_line = discover_path + "\t" + discover_stat[(import fs_st_mtime)] + "\n";
+  int discover_status_code = fs_stat(discover_path, discover_file_status);
+  string discover_line = discover_path + "\t" + discover_file_status[(import fs_st_mtime)] + "\n";
   int discover_written = 0;
 } chain (string discover_record, string discover_path) {
-  if (discover_rc == 0) {
+  if (discover_status_code == 0) {
     int discover_put = fs_write_text(discover_file, fs_read_text(discover_file) + discover_line);
     discover_written = discover_put > 0;
   }
 } return int discover_written;
-given record_t_file("") ((import record_t_path), "/no/such/program"):(0)
-given record_t_file("") given discover_t_image(100, "/src/a", "\x7fELF", 1) ((import record_t_path), (import discover_t_path)):(1) then discover_t_forgotten(0):(1)
-given record_t_file("") given discover_t_image(100, "/src/a", "\x7fELF", 1) ((import record_t_path), "/no/such/program"):(0) then discover_t_forgotten(0):(0)
+given record_test_file("") ((import record_test_path), "/no/such/program"):(0)
+given record_test_file("") given discover_test_image(100, "/src/a", "\x7fELF", 1) ((import record_test_path), (import discover_test_path)):(1) then discover_test_forgotten(0):(1)
+given record_test_file("") given discover_test_image(100, "/src/a", "\x7fELF", 1) ((import record_test_path), "/no/such/program"):(0) then discover_test_forgotten(0):(0)

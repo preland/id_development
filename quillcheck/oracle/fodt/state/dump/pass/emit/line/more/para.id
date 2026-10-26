@@ -1,37 +1,37 @@
 // A paragraph box property of a style as a dump prints it: its length in twips, "-" when no style in its chain sets it or it does not read; a length of exactly -1 twip prints as 0, because the model's -1 means unset.
-ofd_pn(OfdSty owst, string owpk, string own) {
-  int owtw = ofd_tw(ofd_get(owst, owpk, own));
-  string owout = "-";
-  if(owtw != (import ow_bad)) {
-    owout = "" + owtw;
+fodt_dump_paragraph_box(Catalog style_store, string paragraph_key, string own) {
+  int length_value = fodt_dump_length(fodt_dump_inherited(style_store, paragraph_key, own));
+  string result_text = "-";
+  if(length_value != (import ow_bad)) {
+    result_text = "" + length_value;
   }
-} chain (OfdSty owst, string owpk, string own) {
-  if(owtw == 0 - 1) {
-    owout = "0";
+} chain (Catalog style_store, string paragraph_key, string own) {
+  if(length_value == 0 - 1) {
+    result_text = "0";
   }
-} return string owout;
-(OfdSty(["p:A"], ["|p.fo:margin-left=0.25in"], ["", "", ""]), "p:A", "p.fo:margin-left"):("360")
-(OfdSty(["p:A"], ["|p.fo:margin-left=-0.25in"], ["", "", ""]), "p:A", "p.fo:margin-left"):("-360")
-(OfdSty(["p:A"], [""], ["", "", ""]), "p:A", "p.fo:margin-left"):("-")
-(OfdSty(["p:A"], ["|p.fo:margin-left=-1pt"], ["", "", ""]), "p:A", "p.fo:margin-left"):("-20")
+} return string result_text;
+(Catalog(["p:A"], ["|p.fo:margin-left=0.25in"], ["", "", ""]), "p:A", "p.fo:margin-left"):("360")
+(Catalog(["p:A"], ["|p.fo:margin-left=-0.25in"], ["", "", ""]), "p:A", "p.fo:margin-left"):("-360")
+(Catalog(["p:A"], [""], ["", "", ""]), "p:A", "p.fo:margin-left"):("-")
+(Catalog(["p:A"], ["|p.fo:margin-left=-1pt"], ["", "", ""]), "p:A", "p.fo:margin-left"):("-20")
 
 // A fo:text-align value as a dump prints it: start or left 0, center 1, end or right 2, justify 3, "-" for anything else.
-ofd_align(string owv) {
-  string owout = "-";
-  if(owv == "start" || owv == "left") {
-    owout = "0";
+fodt_dump_alignment(string value_text) {
+  string result_text = "-";
+  if(value_text == "start" || value_text == "left") {
+    result_text = "0";
   }
-  if(owv == "center") {
-    owout = "1";
+  if(value_text == "center") {
+    result_text = "1";
   }
-} chain (string owv) {
-  if(owv == "end" || owv == "right") {
-    owout = "2";
+} chain (string value_text) {
+  if(value_text == "end" || value_text == "right") {
+    result_text = "2";
   }
-  if(owv == "justify") {
-    owout = "3";
+  if(value_text == "justify") {
+    result_text = "3";
   }
-} return string owout;
+} return string result_text;
 ("start"):("0")
 ("center"):("1")
 ("right"):("2")
@@ -39,12 +39,12 @@ ofd_align(string owv) {
 ("both"):("-")
 
 // A line height as a dump prints it: its percentage, "-" for anything else (a length is not a proportion).
-ofd_pline(string owv) {
-  string owout = "-";
-  if(ofd_unit(owv) == "%" && ofd_unit(owv) != "") {
-    owout = "" + to_int(owv);
+fodt_dump_line_height(string value_text) {
+  string result_text = "-";
+  if(fodt_dump_unit(value_text) == "%" && fodt_dump_unit(value_text) != "") {
+    result_text = "" + to_int(value_text);
   }
-} return string owout;
+} return string result_text;
 ("115%"):("115")
 ("0.5cm"):("-")
 (""):("-")
