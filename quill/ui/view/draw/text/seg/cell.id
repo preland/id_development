@@ -6,9 +6,9 @@ view_glyph_draw(int[] view_glyph_draw_geometry, int[] view_glyph_draw_look, int 
     gui_cp_draw(view_glyph_draw_look[(import vw_q_fh)], view_glyph_draw_pen_sixty_fourths, view_glyph_draw_baseline, view_glyph_draw_code_point, view_glyph_draw_look[(import vw_q_col)]);
   }
 } return void;
-given layout_paragraph_test_font given layout_paragraph_test_insert(0, "B") given view_test_remember_box(10, 19, 21, 31) given sf_l_init(60, 40) ([10, 0, 100, 0, 0], [1, 255, -1, 0, 14, 3], 65, 0, 30):() then view_test_box_inked:(1)
-given layout_paragraph_test_font given layout_paragraph_test_insert(0, "B") given view_test_remember_box(10, 19, 21, 31) given sf_l_init(60, 40) ([10, 0, 100, 0, 0], [1, 255, -1, 0, 14, 3], 32, 0, 30):() then view_test_box_inked:(0)
-given layout_paragraph_test_font given layout_paragraph_test_insert(0, "B") given view_test_remember_box(30, 19, 41, 31) given sf_l_init(60, 40) ([10, 0, 100, 0, 0], [1, 255, -1, 0, 14, 3], 65, 0, 30):() then view_test_box_inked:(0)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "B") given view_test_remember_box(10, 19, 21, 31) given surface_create(60, 40) ([10, 0, 100, 0, 0], [1, 255, -1, 0, 14, 3], 65, 0, 30):() then view_test_box_inked:(1)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "B") given view_test_remember_box(10, 19, 21, 31) given surface_create(60, 40) ([10, 0, 100, 0, 0], [1, 255, -1, 0, 14, 3], 32, 0, 30):() then view_test_box_inked:(0)
+given layout_paragraph_test_font given layout_paragraph_test_insert(0, "B") given view_test_remember_box(30, 19, 41, 31) given surface_create(60, 40) ([10, 0, 100, 0, 0], [1, 255, -1, 0, 14, 3], 65, 0, 30):() then view_test_box_inked:(0)
 
 
 // Test check: how many pixels of one row, from vwi_x0 to vwi_x1 - 1 at vwi_y, are not the colour vwi_bg on the list surface.
@@ -16,16 +16,16 @@ view_test_row_count(int view_test_row_count_left, int view_test_row_count_right,
   int view_test_row_count_result = 0;
   int view_test_row_count_column = view_test_row_count_left;
   while(view_test_row_count_column < view_test_row_count_right) {
-    view_test_row_count_result = view_test_row_count_result + ((import sf_l_px)[sf_l_idx(view_test_row_count_column, view_test_row_count_row)] != view_test_row_count_background);
+    view_test_row_count_result = view_test_row_count_result + ((import surface_pixels)[surface_pixel_index(view_test_row_count_column, view_test_row_count_row)] != view_test_row_count_background);
     view_test_row_count_column = view_test_row_count_column + 1;
   }
 } return int view_test_row_count_result;
-given sf_l_init(8, 8) given d2_l_rect(2, 2, 2, 2, 5) (0, 8, 2, 0):(2)
-given sf_l_init(8, 8) given d2_l_rect(2, 2, 2, 2, 5) (4, 8, 2, 0):(0)
+given surface_create(8, 8) given surface_fill_rectangle(2, 2, 2, 2, 5) (0, 8, 2, 0):(2)
+given surface_create(8, 8) given surface_fill_rectangle(2, 2, 2, 2, 5) (4, 8, 2, 0):(0)
 
 // Test setup: the colour that vw_t_inked counts as background in the remembered box.
 view_test_set_background(int view_test_set_background_color) {
   lset((import view_test_box_numbers), 4, view_test_set_background_color);
 } return void;
 given view_test_remember_box(0, 0, 1, 1) (7):() then view_test_box_dump:("bxs 0,0,1,1,7,")
-given sf_l_init(4, 4) given d2_l_rect(0, 0, 4, 4, 9) given view_test_remember_box(0, 0, 4, 4) (9):() then view_test_box_inked:(0)
+given surface_create(4, 4) given surface_fill_rectangle(0, 0, 4, 4, 9) given view_test_remember_box(0, 0, 4, 4) (9):() then view_test_box_inked:(0)

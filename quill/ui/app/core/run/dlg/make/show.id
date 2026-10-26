@@ -13,7 +13,7 @@ given cli_test_boot_app ("Q", ["a", "b"], ["Yes", "No"], 1):() then cli_test_sta
 // Puts the open dialog in the middle of the window as it is now, and the file list of a picker in the free part of it. Call it after the window changed size.
 app_dialog_center() {
   GuiDialog app_center_dialog = (import app_open_dialog);
-  gui_dialog_place(app_center_dialog, (import sf_l_w), (import sf_l_h));
+  gui_dialog_place(app_center_dialog, (import pixel_surface_width), (import pixel_surface_height));
   int app_center_state = (import cli_state_list)[(import wa_s_dlg)];
 } chain () {
   int[] app_center_area = gui_dialog_area(app_center_dialog);
@@ -21,8 +21,8 @@ app_dialog_center() {
     gui_files_place((import app_picker_file_list), app_center_area[0], app_center_area[1], app_center_area[2], app_center_area[3]);
   }
 } return void;
-given cli_test_boot_app given app_dialog_show("T", ["hi"], ["OK"], 4) given sf_l_init(800, 600) ():() then app_test_dialog_centered:(1)
-given cli_test_boot_app given app_dialog_show("T", ["hi"], ["OK"], 4) given sf_l_init(1000, 700) ():() then app_test_dialog_centered:(1)
+given cli_test_boot_app given app_dialog_show("T", ["hi"], ["OK"], 4) given surface_create(800, 600) ():() then app_test_dialog_centered:(1)
+given cli_test_boot_app given app_dialog_show("T", ["hi"], ["OK"], 4) given surface_create(1000, 700) ():() then app_test_dialog_centered:(1)
 
 // Paints the open dialog over the picture, and the file list in it when it is a picker; nothing when there is no dialog.
 app_dialog_paint() {

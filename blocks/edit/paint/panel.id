@@ -20,7 +20,7 @@ editor_draw_row(string editor_string_name, int[] bel_geometry, int editor_intege
   string editor_string_text_list = editor_string_name + " " + bel_geometry[5 * editor_integer_index] + "," + bel_geometry[5 * editor_integer_index + 1] + " " + bel_geometry[5 * editor_integer_index + 2];
   draw_filled_circle(editor_integer_origin + 4, editor_integer_y + 4, 4, (import constant_cat_column)[editor_integer_index % (import constant_metric_tabs)]);
 } chain (string editor_string_name, int[] bel_geometry, int editor_integer_index, int editor_integer_origin) {
-  txt_g8_draw(editor_integer_origin + 14, editor_integer_y, editor_string_text_list, (import constant_x_ink), 1);
+  bitmap_font_draw_text(editor_integer_origin + 14, editor_integer_y, editor_string_text_list, (import constant_x_ink), 1);
 } return void;
 given idstd_graph_view_test_canvas(960, 600) given fixed_point_trig_initialize given idstd_graph_view_test_look(670, 278) given idstd_graph_view_test_look(670, 294) given idstd_graph_view_test_ink(0x575E75) ("Cat", [0, 0, 90, 100, 1], 0, 666):() then idstd_graph_view_test_seen:("5019647,0,197")
 given idstd_graph_view_test_canvas(960, 600) given fixed_point_trig_initialize given idstd_graph_view_test_look(670, 278) given idstd_graph_view_test_look(670, 294) ("Cat", [0, 0, 90, 100, 1, 5, 6, 0, 100, 1], 1, 666):() then idstd_graph_view_test_seen:("0,10053375")
@@ -28,18 +28,18 @@ given idstd_graph_view_test_canvas(960, 600) given fixed_point_trig_initialize g
 editor_draw_stage(string[][] editor_string_session, int[][] editor_matrix_session) {
   int[] bel_state = editor_matrix_session[(import constant_y_state)];
   int editor_integer_origin = bel_state[(import graph_view_state_width)] - (import constant_metric_stage);
-  d2_l_rect(editor_integer_origin, (import constant_metric_bar), (import constant_metric_stage), bel_state[(import graph_view_state_height)] - (import constant_metric_bar), (import constant_x_palette_background));
+  surface_fill_rectangle(editor_integer_origin, (import constant_metric_bar), (import constant_metric_stage), bel_state[(import graph_view_state_height)] - (import constant_metric_bar), (import constant_x_palette_background));
 } chain (string[][] editor_string_session, int[][] editor_matrix_session) {
-  d2_l_rect(editor_integer_origin + (import constant_metric_stage_margin) - 1, (import constant_metric_bar) + (import constant_metric_stage_margin) - 1, (import constant_metric_stage_width) + 2, (import constant_metric_stage_height) + 2, (import constant_x_stage_edge));
-  d2_l_rect(editor_integer_origin + (import constant_metric_stage_margin), (import constant_metric_bar) + (import constant_metric_stage_margin), (import constant_metric_stage_width), (import constant_metric_stage_height), (import constant_x_stage));
-  sf_l_clip(editor_integer_origin + (import constant_metric_stage_margin), (import constant_metric_bar) + (import constant_metric_stage_margin), (import constant_metric_stage_width), (import constant_metric_stage_height));
+  surface_fill_rectangle(editor_integer_origin + (import constant_metric_stage_margin) - 1, (import constant_metric_bar) + (import constant_metric_stage_margin) - 1, (import constant_metric_stage_width) + 2, (import constant_metric_stage_height) + 2, (import constant_x_stage_edge));
+  surface_fill_rectangle(editor_integer_origin + (import constant_metric_stage_margin), (import constant_metric_bar) + (import constant_metric_stage_margin), (import constant_metric_stage_width), (import constant_metric_stage_height), (import constant_x_stage));
+  surface_clip_push(editor_integer_origin + (import constant_metric_stage_margin), (import constant_metric_bar) + (import constant_metric_stage_margin), (import constant_metric_stage_width), (import constant_metric_stage_height));
 } chain (string[][] editor_string_session, int[][] editor_matrix_session) {
   int editor_integer_index = 0;
   while (editor_integer_index < len(editor_string_session[(import constant_z_names)])) {
     editor_draw_sprite(editor_string_session, editor_matrix_session, editor_integer_index);
     editor_integer_index = editor_integer_index + 1;
   }
-  sf_l_unclip();
+  surface_clip_pop();
 } chain (string[][] editor_string_session, int[][] editor_matrix_session) {
   editor_draw_list(editor_string_session, editor_matrix_session);
 } return void;

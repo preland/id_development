@@ -19,8 +19,8 @@ app_surface_resize(App app_resize_application) {
     app_dialog_center();
   }
 } return void;
-given cli_test_boot_app given sf_l_init(800, 600) ((import cli_application)):() then view_test_ribbon_rectangle:("0,0,800,156")
-given cli_test_boot_app given app_dialog_show("T", ["hi"], ["OK"], 4) given sf_l_init(800, 600) ((import cli_application)):() then app_test_dialog_centered:(1)
+given cli_test_boot_app given surface_create(800, 600) ((import cli_application)):() then view_test_ribbon_rectangle:("0,0,800,156")
+given cli_test_boot_app given app_dialog_show("T", ["hi"], ["OK"], 4) given surface_create(800, 600) ((import cli_application)):() then app_test_dialog_centered:(1)
 
 // Paints the window when the picture is stale: the page and the chrome (vw_paint), and over them the dialog when one is open, which is painted whole, never as a band, so that a band does not paint the page over it. Nothing is painted when the app is closing (wai_q is 1).
 app_window_paint(App app_paint_application, int app_paint_quit) {
@@ -33,7 +33,7 @@ app_window_paint(App app_paint_application, int app_paint_quit) {
   if(app_paint_dialog != (import wa_d_none) && app_paint_stale != 0 && app_paint_quit == 0) {
     view_input_window_draw(app_paint_application.ui.view);
     app_dialog_paint();
-    lset((import view_state), (import vw_s_d), 1 - gfx_present((import sf_l_px)));
+    lset((import view_state), (import vw_s_d), 1 - gfx_present((import surface_pixels)));
   }
 } return void;
 given cli_test_boot_app given app_dialog_show("T", ["hi"], ["OK"], 4) given view_test_remember_pixel(200, 150) ((import cli_application), 0):() then view_test_pixel_color:(16777215)

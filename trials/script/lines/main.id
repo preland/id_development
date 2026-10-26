@@ -7,7 +7,7 @@ main(int argc, string[] argv) {
 ln_run(string[] argv) {
   string[] vals = [];
   string[] rest = [];
-  string err = opt_parse((import ln_spec), argv, vals, rest);
+  string err = options_parse((import ln_spec), argv, vals, rest);
 } chain (string[] argv) {
   int rc = ln_go(err, vals, rest);
 } return int rc;
@@ -19,7 +19,7 @@ stdin "a\n\nb\n" (["lines", "--skip-blank", "--prefix=> ", "--max", "1"]):(0) th
 ln_go(string err, string[] vals, string[] rest) {
   int rc = 0;
   if (err == "help") {
-    print(opt_help("lines", (import ln_spec)));
+    print(options_help("lines", (import ln_spec)));
   }
   if (err != "" && err != "help") {
     eprint("lines: " + err + " (try lines --help)");

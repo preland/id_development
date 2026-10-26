@@ -2,14 +2,14 @@
 call_graph_pixel_row(int number_y) {
   int[] list_bytes = [];
   int number_x = 0;
-  while (number_x < (import sf_l_w)) {
-    int number_third = (import sf_l_px)[sf_l_idx(number_x, number_y)];
+  while (number_x < (import pixel_surface_width)) {
+    int number_third = (import surface_pixels)[surface_pixel_index(number_x, number_y)];
     list_extend(list_bytes, call_graph_color_bytes(number_third));
     number_x = number_x + 1;
   }
 } return int[] list_bytes;
-given sf_l_init(2, 2) given d2_l_rect(0, 0, 2, 2, 1193046) (1):([18, 52, 86, 18, 52, 86])
-given sf_l_init(1, 1) (0):([0, 0, 0])
+given surface_create(2, 2) given surface_fill_rectangle(0, 0, 2, 2, 1193046) (1):([18, 52, 86, 18, 52, 86])
+given surface_create(1, 1) (0):([0, 0, 0])
 
 // The three bytes of a packed 0xRRGGBB colour.
 call_graph_color_bytes(int number_color) {
@@ -22,11 +22,11 @@ call_graph_color_bytes(int number_color) {
 call_graph_rows(int number_height) {
   int number_y = 0;
   int number_lost = 0;
-  while (number_y < (import sf_l_h)) {
+  while (number_y < (import pixel_surface_height)) {
     int[] list_row = call_graph_pixel_row(number_y);
     number_lost = number_lost + len(list_row) - fs_write(number_height, list_row, len(list_row));
     number_y = number_y + 1;
   }
 } return int number_lost;
-given sf_l_init(2, 2) given d2_l_rect(0, 0, 2, 2, 1193046) given call_graph_test_file("a") ((import call_graph_test_height)):(0) then call_graph_test_got:(12)
-given sf_l_init(3, 1) given call_graph_test_file("b") ((import call_graph_test_height)):(0) then call_graph_test_got:(9)
+given surface_create(2, 2) given surface_fill_rectangle(0, 0, 2, 2, 1193046) given call_graph_test_file("a") ((import call_graph_test_height)):(0) then call_graph_test_got:(12)
+given surface_create(3, 1) given call_graph_test_file("b") ((import call_graph_test_height)):(0) then call_graph_test_got:(9)

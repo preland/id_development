@@ -4,7 +4,7 @@
 // here, so every command is a function of its words and the clock it is handed.
 
 command_now(string[] command_values, word command_clock) {
-  string command_now_text = opt_get((import command_options), command_values, "now");
+  string command_now_text = options_get((import command_options), command_values, "now");
   word command_now_value = command_clock;
   if (command_now_text != "") {
     command_now_value = 0 - 1;
@@ -20,7 +20,7 @@ command_now(string[] command_values, word command_clock) {
 (["", "", "1760000000000", "", "", "", "", "", "", ""], 5):(1760000000000)
 
 command_number(string[] command_values, string command_name, int command_fallback) {
-  string command_number_text = opt_get((import command_options), command_values, command_name);
+  string command_number_text = options_get((import command_options), command_values, command_name);
   int command_number_value = command_fallback;
   if (command_number_text != "") {
     command_number_value = 0 - 1;
@@ -40,7 +40,7 @@ command_required(string[] command_values, string[] command_names) {
   string command_missing = "";
   int command_at = 0;
   while (command_at < len(command_names)) {
-    if (command_missing == "" && opt_get((import command_options), command_values, command_names[command_at]) == "") {
+    if (command_missing == "" && options_get((import command_options), command_values, command_names[command_at]) == "") {
       command_missing = "error: --" + command_names[command_at] + " is required; gym --help lists every option";
     }
     command_at = command_at + 1;

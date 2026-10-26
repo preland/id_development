@@ -10,8 +10,8 @@ command_score(string[] command_values, word command_clock) {
     return command_out;
   }
 } chain (string[] command_values, word command_clock) {
-  Pack command_book = pack_load(opt_get((import command_options), command_values, "pack"));
-  Log_replay command_replayed = log_replay(opt_get((import command_options), command_values, "log"));
+  Pack command_book = pack_load(options_get((import command_options), command_values, "pack"));
+  Log_replay command_replayed = log_replay(options_get((import command_options), command_values, "log"));
   Score_table command_table = score_table(command_replayed.events, command_book);
 } chain (string[] command_values, word command_clock) {
   command_out = ["0", command_score_text(command_table)];
@@ -21,7 +21,7 @@ given command_fixture_files("item: a\nprompt: Q1?\nanswer_kind: fraction\nanswer
 
 command_why(string[] command_values, word command_clock, string[] command_rest) {
   string command_refusal = command_check(command_values, command_clock, ["pack", "log"]);
-  string command_item = opt_get((import command_options), command_values, "item");
+  string command_item = options_get((import command_options), command_values, "item");
   if (command_item == "") {
     command_item = command_word(command_rest, 1);
   }
@@ -34,8 +34,8 @@ command_why(string[] command_values, word command_clock, string[] command_rest) 
     return command_out;
   }
 } chain (string[] command_values, word command_clock, string[] command_rest) {
-  Pack command_book = pack_load(opt_get((import command_options), command_values, "pack"));
-  Log_replay command_replayed = log_replay(opt_get((import command_options), command_values, "log"));
+  Pack command_book = pack_load(options_get((import command_options), command_values, "pack"));
+  Log_replay command_replayed = log_replay(options_get((import command_options), command_values, "log"));
   command_out = ["0", session_reason(command_book, command_replayed.events, command_item, command_now(command_values, command_clock), command_number(command_values, "seed", 1))];
 } chain (string[] command_values, word command_clock, string[] command_rest) {
   string[] command_shown = session_show_item(command_book, command_replayed.events, command_item);

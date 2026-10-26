@@ -7,7 +7,7 @@
 command_pack_check(string[] command_values, string[] command_rest) {
   string command_directory = command_word(command_rest, 2);
   if (command_directory == "") {
-    command_directory = opt_get((import command_options), command_values, "pack");
+    command_directory = options_get((import command_options), command_values, "pack");
   }
   string[] command_out = ["2", "error: say which pack: gym pack check DIR"];
 } chain (string[] command_values, string[] command_rest) {
@@ -33,11 +33,11 @@ command_grade(string[] command_values, word command_clock) {
     return command_out;
   }
 } chain (string[] command_values, word command_clock) {
-  string command_url = opt_get((import command_options), command_values, "url");
+  string command_url = options_get((import command_options), command_values, "url");
   if (command_url == "") {
     command_url = model_address();
   }
-  string[] command_feedback = probe_attempt(command_url, opt_get((import command_options), command_values, "pack"), opt_get((import command_options), command_values, "item"), opt_get((import command_options), command_values, "text"));
+  string[] command_feedback = probe_attempt(command_url, options_get((import command_options), command_values, "pack"), options_get((import command_options), command_values, "item"), options_get((import command_options), command_values, "text"));
 } chain (string[] command_values, word command_clock) {
   command_out = ["0", probe_lines(command_feedback)];
   if (command_feedback[0] == "refused" || command_feedback[0] == "unreachable") {

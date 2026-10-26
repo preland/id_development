@@ -28,7 +28,7 @@ command_grade_evaluation(string[] command_values, string[] command_rest, word co
 } chain (string[] command_values, string[] command_rest, word command_clock) {
   int command_from = command_whole(command_word(command_rest, 4), 0);
   int command_count = command_whole(command_word(command_rest, 5), 1000);
-  string command_url = opt_get((import command_options), command_values, "url");
+  string command_url = options_get((import command_options), command_values, "url");
 } chain (string[] command_values, string[] command_rest, word command_clock) {
   if (command_url == "") {
     command_url = model_address();
@@ -43,7 +43,7 @@ command_grade_evaluation(string[] command_values, string[] command_rest, word co
   int command_kept = 0;
   string[] command_out = ["2", command_refusal];
   if (command_refusal == "") {
-    command_kept = evaluation_slice(command_url, opt_get((import command_options), command_values, "pack"), command_set, command_results, command_from, command_count);
+    command_kept = evaluation_slice(command_url, options_get((import command_options), command_values, "pack"), command_set, command_results, command_from, command_count);
     command_out = ["0", "graded " + command_kept + " attempts into " + command_results];
   }
 } return string[] command_out;

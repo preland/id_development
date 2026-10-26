@@ -6,8 +6,8 @@ ab_canvas(int k) {
   int cw = ab_box("canvas", 2);
 } chain (int k) {
   int ch = ab_box("canvas", 3);
-  int panel = d2_pack(226, 230, 240);
-  d2_l_rect(cx + 16, cy, cw - 32, ch - 16, panel);
+  int panel = pack_color_channels(226, 230, 240);
+  surface_fill_rectangle(cx + 16, cy, cw - 32, ch - 16, panel);
 } chain (int k) {
   string msg = "blocks drawn: " + k;
   int mf = gui_font_open("sans-serif", 14);
@@ -45,10 +45,10 @@ ab_note(int x, int y, int w, int h) {
     col = (import theme_l_label_tertiary);
   }
   int dy = (h - gui_font_line(f)) / 2;
-  sf_l_clip(x, y, w, h);
+  surface_clip_push(x, y, w, h);
 } chain (int x, int y, int w, int h) {
   gui_text_draw(f, x, y + dy, t, col);
-  sf_l_unclip();
+  surface_clip_pop();
 } return void;
 given ab_fx (300, 215, 100, 120):() then ab_px_ink:(1)
 given ab_fx given gui_textbox_set((import ab_tb), "Ada") given ab_name given ab_tell (300, 215, 100, 120):() then ab_px_big:(1)

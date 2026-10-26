@@ -2,9 +2,9 @@
 cli_draw(View wav, int cli_draw_page_index, int cli_draw_zoom) {
   int cli_draw_width = view_units_pixels(lay_sheet(wav.doc, 0), cli_draw_zoom);
   int cli_draw_height = view_units_pixels(lay_sheet(wav.doc, 1), cli_draw_zoom);
-  sf_l_init(cli_draw_width, cli_draw_height);
+  surface_create(cli_draw_width, cli_draw_height);
 } chain (View wav, int cli_draw_page_index, int cli_draw_zoom) {
-  d2_l_rect(0, 0, cli_draw_width, cli_draw_height, (import vw_c_sheet));
+  surface_fill_rectangle(0, 0, cli_draw_width, cli_draw_height, (import vw_c_sheet));
   int[] cli_draw_geometry = [0, 0, cli_draw_zoom, lay_margin(wav.doc, 3), lay_margin(wav.doc, 0)];
   view_flow_add_band(cli_draw_geometry, 0, cli_draw_height);
 } chain (View wav, int cli_draw_page_index, int cli_draw_zoom) {
@@ -17,13 +17,13 @@ given view_test_two_pages given ribbon_faces_set(1, 1, 1) given view_test_rememb
 cli_test_has_ink() {
   int cli_test_ink_found = 0;
   int cli_test_ink_index = 0;
-  while(cli_test_ink_index < len((import sf_l_px))) {
-    cli_test_ink_found = cli_test_ink_found || (import sf_l_px)[cli_test_ink_index] != (import vw_c_sheet);
+  while(cli_test_ink_index < len((import surface_pixels))) {
+    cli_test_ink_found = cli_test_ink_found || (import surface_pixels)[cli_test_ink_index] != (import vw_c_sheet);
     cli_test_ink_index = cli_test_ink_index + 1;
   }
 } return int cli_test_ink_found;
-given sf_l_init(2, 2) given d2_l_rect(0, 0, 2, 2, 16777215) ():(0)
-given sf_l_init(2, 2) ():(1)
+given surface_create(2, 2) given surface_fill_rectangle(0, 0, 2, 2, 16777215) ():(0)
+given surface_create(2, 2) ():(1)
 
 // Test setup: a scratch file named by fs_mktemp, in the export cli_t_p, open for writing in the export cli_t_h.
 cli_test_open_scratch(string was_tag) {

@@ -26,12 +26,12 @@ given rendered_view_fixture ([], (import page_tape), (import page_tape_strings),
 
 // Write the list surface to the file at path as a binary PPM (P6); the number of bytes written, or -1.
 image_save(string path) {
-  string image_header = "P6\n" + (import sf_l_w) + " " + (import sf_l_h) + "\n255\n";
-  word address = alloc(len(image_header) + (import sf_l_w) * (import sf_l_h) * 3);
+  string image_header = "P6\n" + (import pixel_surface_width) + " " + (import pixel_surface_height) + "\n255\n";
+  word address = alloc(len(image_header) + (import pixel_surface_width) * (import pixel_surface_height) * 3);
   str_blit(image_header, 0, len(image_header), address);
 } chain (string path) {
   image_pixels_write(address + len(image_header), 0);
-  int bytes_written = fs_save(path, address, len(image_header) + (import sf_l_w) * (import sf_l_h) * 3);
+  int bytes_written = fs_save(path, address, len(image_header) + (import pixel_surface_width) * (import pixel_surface_height) * 3);
 } return int bytes_written;
 given scratch_directory_make given picked_file_choose("p.ppm") given one_pixel_surface(4276803) ((import picked_path)):(14) then picked_file_size:(14)
 given scratch_directory_make given picked_file_choose("none/p.ppm") given one_pixel_surface(4276803) ((import picked_path)):(-1)

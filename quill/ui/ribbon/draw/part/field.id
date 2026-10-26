@@ -10,7 +10,7 @@ ribbon_item_shape(int ribbon_shape_row) {
 // The colour of the ink of the control rbg: the dark of an icon, the dimmed one when the control is disabled.
 ribbon_item_ink(GuiToggle ribbon_ink_control) {
   int ribbon_ink_color = (import rbd_c_icon);
-  if(gui_btn_cell(ribbon_ink_control.btn, 5) == 0) {
+  if(gui_button_cell(ribbon_ink_control.btn, 5) == 0) {
     ribbon_ink_color = (import rbd_c_dim);
   }
 } return int ribbon_ink_color;
@@ -21,11 +21,11 @@ ribbon_item_ink(GuiToggle ribbon_ink_control) {
 ribbon_draw_field(GuiToggle ribbon_field_control, int ribbon_field_row, int ribbon_field_color) {
   int[] ribbon_field_values = ribbon_field_control.btn.v;
   int ribbon_field_face = (import ribbon_faces)[0];
-  sf_l_clip(ribbon_field_values[0] + 1, ribbon_field_values[1] + 1, ribbon_field_values[2] - 16, ribbon_field_values[3] - 2);
+  surface_clip_push(ribbon_field_values[0] + 1, ribbon_field_values[1] + 1, ribbon_field_values[2] - 16, ribbon_field_values[3] - 2);
 } chain (GuiToggle ribbon_field_control, int ribbon_field_row, int ribbon_field_color) {
   string ribbon_field_text = ribbon_field_caption(ribbon_field_row);
   gui_text_draw(ribbon_field_face, ribbon_field_values[0] + 6, ribbon_field_values[1] + (ribbon_field_values[3] - gui_font_line(ribbon_field_face)) / 2, ribbon_field_text, ribbon_field_color);
-  sf_l_unclip();
+  surface_clip_pop();
 } return void;
-given layout_paragraph_test_font given ribbon_faces_set(1, 1, 1) given sf_l_init(130, 40) given d2_l_rect(0, 0, 130, 40, 16777215) given view_test_remember_box(4, 4, 100, 26) given view_test_set_background(16777215) (GuiToggle(GuiButton([2, 2, 120, 24, 0, 1, 0, 0, 0], "", 0), 0, 0), 10, 0):() then view_test_box_inked:(1)
-given layout_paragraph_test_font given ribbon_faces_set(1, 1, 1) given sf_l_init(130, 40) given d2_l_rect(0, 0, 130, 40, 16777215) given view_test_remember_box(106, 4, 126, 26) given view_test_set_background(16777215) (GuiToggle(GuiButton([2, 2, 120, 24, 0, 1, 0, 0, 0], "", 0), 0, 0), 10, 0):() then view_test_box_inked:(0)
+given layout_paragraph_test_font given ribbon_faces_set(1, 1, 1) given surface_create(130, 40) given surface_fill_rectangle(0, 0, 130, 40, 16777215) given view_test_remember_box(4, 4, 100, 26) given view_test_set_background(16777215) (GuiToggle(GuiButton([2, 2, 120, 24, 0, 1, 0, 0, 0], "", 0), 0, 0), 10, 0):() then view_test_box_inked:(1)
+given layout_paragraph_test_font given ribbon_faces_set(1, 1, 1) given surface_create(130, 40) given surface_fill_rectangle(0, 0, 130, 40, 16777215) given view_test_remember_box(106, 4, 126, 26) given view_test_set_background(16777215) (GuiToggle(GuiButton([2, 2, 120, 24, 0, 1, 0, 0, 0], "", 0), 0, 0), 10, 0):() then view_test_box_inked:(0)
