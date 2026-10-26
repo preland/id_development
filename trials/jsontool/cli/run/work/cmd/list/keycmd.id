@@ -1,9 +1,9 @@
-cmd_keys(string file) {
+command_keys(string file) {
   int code = doc_load(file);
-  int root = (import jc)[(import c_root)];
-  int rc = keys_pick(code, root);
-} return int rc;
-given t_args stdin "{\"x\":1,\"y\":2}" ("-"):(0) then t_out:("x\ny\n")
-given t_args stdin "[1]" ("-"):(1) then eprints:("jsontool: keys: the top-level value is not an object\n")
-given t_args stdin "{\"x\":" ("-"):(1) then eprints:("<stdin>:1:6: error: expected a value (found end of input)\n")
-given t_args stdin "{}" ("-"):(0) then t_out:("")
+  int root = (import json_context)[(import c_root)];
+  int exit_status = keys_pick(code, root);
+} return int exit_status;
+given fixture_arguments stdin "{\"x\":1,\"y\":2}" ("-"):(0) then fixture_output_text:("x\ny\n")
+given fixture_arguments stdin "[1]" ("-"):(1) then eprints:("jsontool: keys: the top-level value is not an object\n")
+given fixture_arguments stdin "{\"x\":" ("-"):(1) then eprints:("<stdin>:1:6: error: expected a value (found end of input)\n")
+given fixture_arguments stdin "{}" ("-"):(0) then fixture_output_text:("")

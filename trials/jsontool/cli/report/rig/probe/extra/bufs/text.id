@@ -1,21 +1,21 @@
 // The text in a scratch buffer: the decoded bytes are followed by zeros, so the
 // length is where the first zero is. str_of_mem refuses a range that holds one.
-s_text(int w) {
-  word stx_ad = (import jw)[w];
-  int stx_n = buffer_length_before_zero(stx_ad, 8);
-  string stx_s = str_of_mem(stx_ad, stx_n);
-} return string stx_s;
-given t_dec_a stdin "a" (2):("a")
-given t_load stdin "abc" (2):("")
+scratch_buffer_text(int buffer_slot) {
+  word scratch_address = (import buffer_addresses)[buffer_slot];
+  int text_length = buffer_length_before_zero(scratch_address, 8);
+  string decoded_text = str_of_mem(scratch_address, text_length);
+} return string decoded_text;
+given fixture_decoded_text stdin "a" (2):("a")
+given fixture_loaded_input stdin "abc" (2):("")
 
-t_s0() {
-  string s = s_text((import w_s0));
-} return string s;
-given t_load stdin "abc" ():("")
-given t_dec_a stdin "a" ():("a")
+fixture_first_buffer() {
+  string first_text = scratch_buffer_text((import w_s0));
+} return string first_text;
+given fixture_loaded_input stdin "abc" ():("")
+given fixture_decoded_text stdin "a" ():("a")
 
-t_s1() {
-  string s_t = "t_s1 " + (s_text((import w_s1)));
-} return string s_t;
-given t_load stdin "abc" ():("t_s1 ")
-given t_dec2 stdin "{\"ab\":0,\"ac\":0}" ():("t_s1 ac")
+fixture_second_buffer() {
+  string prefixed_text = "t_s1 " + (scratch_buffer_text((import w_s1)));
+} return string prefixed_text;
+given fixture_loaded_input stdin "abc" ():("t_s1 ")
+given fixture_two_decoded_keys stdin "{\"ab\":0,\"ac\":0}" ():("t_s1 ac")

@@ -3,21 +3,21 @@
 // stage that reads jc itself (the position it stops at, the error it records)
 // states what every slot is meant to be afterwards, not only the slot that
 // stage happens to read.
-jc_state() {
-  string jcs_a = "pos=" + (import jc)[(import c_pos)] + " len=" + (import jc)[(import c_len)] + " cap=" + (import jc)[(import c_cap)] + " err=" + (import jc)[(import c_err)] + " erp=" + (import jc)[(import c_erp)] + " root=" + (import jc)[(import c_root)];
-  jcs_a = jcs_a + " of=" + (import jc)[(import c_of)] + " oh=" + (import jc)[(import c_oh)] + " ind=" + (import jc)[(import c_ind)] + " raw=" + (import jc)[(import c_raw)] + " errno=" + (import jc)[(import c_errno)] + " werr=" + (import jc)[(import c_werr)];
-  jcs_a = jcs_a + " pk=" + (import jc)[(import c_pk)] + " perr=" + (import jc)[(import c_perr)] + " pep=" + (import jc)[(import c_pep)] + " fk=" + (import jc)[(import c_fk)] + " fr=" + (import jc)[(import c_fr)] + " seen=" + (import jc)[(import c_seen)];
-} return string jcs_a;
-given st_init ():("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=0 perr=0 pep=0 fk=0 fr=0 seen=0")
-given t_load stdin "[7]" ():("pos=0 len=3 cap=65536 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=0 perr=0 pep=0 fk=0 fr=0 seen=0")
+context_state() {
+  string state_text = "pos=" + (import json_context)[(import c_pos)] + " len=" + (import json_context)[(import c_len)] + " cap=" + (import json_context)[(import c_cap)] + " err=" + (import json_context)[(import c_err)] + " erp=" + (import json_context)[(import c_erp)] + " root=" + (import json_context)[(import c_root)];
+  state_text = state_text + " of=" + (import json_context)[(import c_of)] + " oh=" + (import json_context)[(import c_oh)] + " ind=" + (import json_context)[(import c_ind)] + " raw=" + (import json_context)[(import c_raw)] + " errno=" + (import json_context)[(import c_errno)] + " werr=" + (import json_context)[(import c_werr)];
+  state_text = state_text + " pk=" + (import json_context)[(import c_pk)] + " perr=" + (import json_context)[(import c_perr)] + " pep=" + (import json_context)[(import c_pep)] + " fk=" + (import json_context)[(import c_fk)] + " fr=" + (import json_context)[(import c_fr)] + " seen=" + (import json_context)[(import c_seen)];
+} return string state_text;
+given state_start ():("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=0 perr=0 pep=0 fk=0 fr=0 seen=0")
+given fixture_loaded_input stdin "[7]" ():("pos=0 len=3 cap=65536 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=0 perr=0 pep=0 fk=0 fr=0 seen=0")
 
 // Test check: the whole emit stack -- how many open containers, then the
 // cursor of each, outermost first. emit_down (../../write/emit/walk/down.id)
 // reads the stack's depth itself to indent, so a check of that depth alone
 // would repeat its own read.
-stk_state() {
-  string stks_j = list_text((import stk), ",");
-  string stks_s = "stk " + len((import stk)) + ":" + stks_j;
-} return string stks_s;
-given st_init ():("stk 0:")
-given t_parse stdin "[1]" ():("stk 0:")
+stack_state() {
+  string joined_cursors = list_text((import container_stack), ",");
+  string stack_summary = "stk " + len((import container_stack)) + ":" + joined_cursors;
+} return string stack_summary;
+given state_start ():("stk 0:")
+given fixture_parsed_document stdin "[1]" ():("stk 0:")

@@ -1,12 +1,12 @@
-indent_value(string txt) {
-  int n = -1;
-  if (len(txt) >= 1 && len(txt) <= 3 && all_digits(txt) = 1) {
-    n = to_int(txt);
+indent_value(string indent_text) {
+  int indent_amount = -1;
+  if (len(indent_text) >= 1 && len(indent_text) <= 3 && all_digits(indent_text) = 1) {
+    indent_amount = to_int(indent_text);
   }
-  if (n > 64) {
-    n = -1;
+  if (indent_amount > 64) {
+    indent_amount = -1;
   }
-} return int n;
+} return int indent_amount;
 ("2"):(2)
 ("64"):(64)
 ("65"):(-1)
@@ -20,24 +20,24 @@ indent_value(string txt) {
 ("4294967297"):(-1)
 
 note_seen(int bit) {
-  int seen = (import jc)[(import c_seen)] | bit;
-  integer_list_set((import jc), (import c_seen), seen);
+  int seen = (import json_context)[(import c_seen)] | bit;
+  integer_list_set((import json_context), (import c_seen), seen);
 } return void;
-given st_init (1):() then (import jc)[(import c_seen)]:(1)
-given st_init (4):() then (import jc)[(import c_seen)]:(4)
-given t_noted (4):() then (import jc)[(import c_seen)]:(7)
+given state_start (1):() then (import json_context)[(import c_seen)]:(1)
+given state_start (4):() then (import json_context)[(import c_seen)]:(4)
+given fixture_noted_options (4):() then (import json_context)[(import c_seen)]:(7)
 
-indent_store(int n, string txt, int nxt) {
-  int r = nxt;
-  if (n < 0) {
-    eprint("jsontool: --indent needs an integer from 0 to 64, got '" + txt + "'");
-    r = (import a_bad);
+indent_store(int stored_indent, string indent_text, int next_position) {
+  int store_result = next_position;
+  if (stored_indent < 0) {
+    eprint("jsontool: --indent needs an integer from 0 to 64, got '" + indent_text + "'");
+    store_result = (import a_bad);
   } else {
-    integer_list_set((import jc), (import c_ind), n);
+    integer_list_set((import json_context), (import c_ind), stored_indent);
     note_seen(1);
   }
-} return int r;
-given st_init (5, "5", 7):(7) then (import jc)[(import c_ind)]:(5)
-given st_init (5, "5", 7):(7) then (import jc)[(import c_seen)]:(1)
-given st_init (-1, "abc", 7):(-1) then eprints:("jsontool: --indent needs an integer from 0 to 64, got 'abc'\n")
-given st_init (-1, "abc", 7):(-1) then (import jc)[(import c_ind)]:(2)
+} return int store_result;
+given state_start (5, "5", 7):(7) then (import json_context)[(import c_ind)]:(5)
+given state_start (5, "5", 7):(7) then (import json_context)[(import c_seen)]:(1)
+given state_start (-1, "abc", 7):(-1) then eprints:("jsontool: --indent needs an integer from 0 to 64, got 'abc'\n")
+given state_start (-1, "abc", 7):(-1) then (import json_context)[(import c_ind)]:(2)

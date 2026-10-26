@@ -1,21 +1,21 @@
-emit_step(int cur) {
-  int kind = nget(cur, (import f_kind));
-  int child = nget(cur, (import f_child));
-  int nx = emit_go(cur, kind, child);
-} return int nx;
-given t_parse stdin "[1]" (0):(1) then t_out:("[\n  ")
-given t_parse stdin "[1]" (1):(-1) then t_out:("1")
+emit_step(int current_node) {
+  int kind = node_get(current_node, (import f_kind));
+  int child = node_get(current_node, (import f_child));
+  int step_next_node = emit_go(current_node, kind, child);
+} return int step_next_node;
+given fixture_parsed_document stdin "[1]" (0):(1) then fixture_output_text:("[\n  ")
+given fixture_parsed_document stdin "[1]" (1):(-1) then fixture_output_text:("1")
 
 emit_tree(int root) {
-  int cur = root;
-  while (cur >= 0) {
-    cur = emit_step(cur);
+  int current_node = root;
+  while (current_node >= 0) {
+    current_node = emit_step(current_node);
   }
-  ob_byte((import k_nl));
+  output_byte((import k_nl));
 } return void;
-given t_parse stdin "[1,{\"a\":[]}]" (0):() then t_out:("[\n  1,\n  {\n    \"a\": []\n  }\n]\n")
-given t_parse stdin "[]" (0):() then t_out:("[]\n")
-given t_parse stdin "[[[]]]" (0):() then t_out:("[\n  [\n    []\n  ]\n]\n")
-given t_parse stdin "[1,2]" (1):() then t_out:("1\n")
-given t_parse stdin "{\"a\":1,\"b\":[true,null]}" (0):() then t_out:("{\n  \"a\": 1,\n  \"b\": [\n    true,\n    null\n  ]\n}\n")
-given t_parse stdin " \"s\" " (0):() then t_out:("\"s\"\n")
+given fixture_parsed_document stdin "[1,{\"a\":[]}]" (0):() then fixture_output_text:("[\n  1,\n  {\n    \"a\": []\n  }\n]\n")
+given fixture_parsed_document stdin "[]" (0):() then fixture_output_text:("[]\n")
+given fixture_parsed_document stdin "[[[]]]" (0):() then fixture_output_text:("[\n  [\n    []\n  ]\n]\n")
+given fixture_parsed_document stdin "[1,2]" (1):() then fixture_output_text:("1\n")
+given fixture_parsed_document stdin "{\"a\":1,\"b\":[true,null]}" (0):() then fixture_output_text:("{\n  \"a\": 1,\n  \"b\": [\n    true,\n    null\n  ]\n}\n")
+given fixture_parsed_document stdin " \"s\" " (0):() then fixture_output_text:("\"s\"\n")

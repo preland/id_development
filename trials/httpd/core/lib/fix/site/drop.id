@@ -1,4 +1,4 @@
-hd_t_rmall(string root) {
+server_fixture_remove_files(string root) {
   fs_remove(root + "/a.txt");
   fs_remove(root + "/sp ace.txt");
   fs_remove(root + "/idx/index.html");
@@ -8,18 +8,18 @@ hd_t_rmall(string root) {
   fs_remove(root);
 } return void;
 ("/nonexistent-hd-x"):("/nonexistent-hd-x")
-given hd_t_site ((import hd_t_root)):((import hd_t_root)) then hd_t_asize:("asize -1")
+given server_fixture_site ((import fixture_root)):((import fixture_root)) then server_fixture_file_size_text:("asize -1")
 
-hd_t_drop() {
-  string root = (import hd_t_root);
-  hd_t_rmall(root);
+server_fixture_discard_site() {
+  string root = (import fixture_root);
+  server_fixture_remove_files(root);
   int gone = 1 - fs_exists(root);
 } return int gone;
-given hd_t_site ():(1)
-given hd_t_site ():(1) then hd_t_asize:("asize -1")
+given server_fixture_site ():(1)
+given server_fixture_site ():(1) then server_fixture_file_size_text:("asize -1")
 
-hd_t_asize() {
-  string n_t = "asize " + (fs_size((import hd_t_apath)));
-} return string n_t;
-given hd_t_site ():("asize 6") then hd_t_drop:(1)
-given hd_t_site ():("asize 6") then hd_t_drop:(1) then hd_t_asize:("asize -1")
+server_fixture_file_size_text() {
+  string size_text = "asize " + (fs_size((import fixture_file_path)));
+} return string size_text;
+given server_fixture_site ():("asize 6") then server_fixture_discard_site:(1)
+given server_fixture_site ():("asize 6") then server_fixture_discard_site:(1) then server_fixture_file_size_text:("asize -1")

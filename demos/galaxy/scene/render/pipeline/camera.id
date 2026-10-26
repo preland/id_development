@@ -2,7 +2,7 @@
 // shape demos/gl3dgame/world/scene/render/init.id's build_view uses --
 // tilt the disk 55 degrees so the spiral reads as a disk seen from above
 // rather than edge-on, then push the whole thing 12 units down -Z so the
-// (up to 5-unit-radius, see conf.id's max_radius) cloud
+// (up to 5-unit-radius, see conf.id's maximum_radius) cloud
 // sits well inside the frustum. camera_proj rebuilds the perspective
 // matrix from gl_aspect_x1000() every single frame (rather than caching it
 // once like demos/gl3d does) specifically to track a live window resize,
@@ -14,16 +14,16 @@
 // back as, the same way demos/gl3d/scene/render/frame.id's modelview and
 // compose_rotation are.
 camera_rig() {
-  int gl_mat_translate_v = gl_mat_translate(0, 0, 0 - 12000);
-  int gl_mat_rotate_x_v = gl_mat_rotate_x(55000);
-  int ret_i = gl_mat_mul(gl_mat_translate_v, gl_mat_rotate_x_v);
-} return int ret_i;
+  int camera_translation = gl_mat_translate(0, 0, 0 - 12000);
+  int camera_tilt = gl_mat_rotate_x(55000);
+  int camera_matrix = gl_mat_mul(camera_translation, camera_tilt);
+} return int camera_matrix;
 ():(2)
 ():(2) then eprints:("")
 
-camera_proj() {
-  int gl_aspect_x1000_v = gl_aspect_x1000();
-  int ret_i = gl_mat_perspective(60000, gl_aspect_x1000_v, 100, 40000);
-} return int ret_i;
+camera_projection() {
+  int window_aspect = gl_aspect_x1000();
+  int perspective_matrix = gl_mat_perspective(60000, window_aspect, 100, 40000);
+} return int perspective_matrix;
 ():(0)
 ():(0) then eprints:("")

@@ -2,16 +2,16 @@
 // split again per axis) because the two pushes each need their own random
 // draw, which already fills a 3-action budget on its own.
 
-add_target_pos() {
-  add_target_axis((import grid_w), (import tgx));
-  add_target_axis((import grid_h), (import tgz));
+add_target_position() {
+  add_target_axis((import grid_width), (import target_columns));
+  add_target_axis((import grid_height), (import target_rows));
 } return void;
-given random_initialize(1) given targets_init ():() then calls add_target_axis:(15, (import tgx))
-given random_initialize(1) given targets_init ():() then calls add_target_axis:(13, (import tgz))
+given random_initialize(1) given create_targets ():() then calls add_target_axis:(15, (import target_columns))
+given random_initialize(1) given create_targets ():() then calls add_target_axis:(13, (import target_rows))
 
-add_target_axis(int cells, int[] pos) {
-  int rand_room_v = rand_room(cells);
-  push(pos, rand_room_v);
+add_target_axis(int cells, int[] axis_positions) {
+  int random_room_cell = rand_room(cells);
+  push(axis_positions, random_room_cell);
 } return void;
-given random_initialize(1) given targets_init (15, (import tgx)):() then calls rand_room:(15)
-given random_initialize(1) given targets_init (13, (import tgz)):() then calls random_next:[1] then calls rand_room:(13)
+given random_initialize(1) given create_targets (15, (import target_columns)):() then calls rand_room:(15)
+given random_initialize(1) given create_targets (13, (import target_rows)):() then calls random_next:[1] then calls rand_room:(13)

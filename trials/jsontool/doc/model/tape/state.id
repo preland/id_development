@@ -1,21 +1,21 @@
-st_init() {
-  export int[] jc = [0, 0, 0, 0, 0, -1, 0, -1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-  export word[] jw = [0, 0, 0, 0, 0];
-  export int[] nd = [];
+state_start() {
+  export int[] json_context = [0, 0, 0, 0, 0, -1, 0, -1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  export word[] buffer_addresses = [0, 0, 0, 0, 0];
+  export int[] node_cells = [];
 } chain () {
-  export int[] stk = [];
-} return void export jc;
-():() then t_nodes:(0)
-():() then (import jc)[(import c_root)]:(-1)
+  export int[] container_stack = [];
+} return void export json_context;
+():() then fixture_node_count:(0)
+():() then (import json_context)[(import c_root)]:(-1)
 
-nget(int node, int f) {
-  int v = (import nd)[node * (import nstride) + f];
-} return int v;
-given t_parse stdin "[7]" (0, 0):(5)
-given t_parse stdin "[7]" (1, 1):(1)
+node_get(int node, int field_index) {
+  int field_value = (import node_cells)[node * (import nstride) + field_index];
+} return int field_value;
+given fixture_parsed_document stdin "[7]" (0, 0):(5)
+given fixture_parsed_document stdin "[7]" (1, 1):(1)
 
-nput(int node, int f, int v) {
-  integer_list_set((import nd), node * (import nstride) + f, v);
+node_put(int node, int field_slot, int new_field_value) {
+  integer_list_set((import node_cells), node * (import nstride) + field_slot, new_field_value);
 } return void;
-given t_parse stdin "[7]" (1, 1, 9):() then t_dump:("5:1-1:1:-1;3:9-2:-1:-1;")
-given t_parse stdin "[7]" (0, 4, 1):() then t_dump:("5:1-1:1:1;3:1-2:-1:-1;")
+given fixture_parsed_document stdin "[7]" (1, 1, 9):() then fixture_node_dump:("5:1-1:1:-1;3:9-2:-1:-1;")
+given fixture_parsed_document stdin "[7]" (0, 4, 1):() then fixture_node_dump:("5:1-1:1:1;3:1-2:-1:-1;")

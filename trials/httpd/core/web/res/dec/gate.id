@@ -1,6 +1,6 @@
-hd_method_ok(string mth) {
+server_method_allowed(string method_name) {
   int ok = 0;
-  if(mth == "GET" || mth == "HEAD") {
+  if(method_name == "GET" || method_name == "HEAD") {
     ok = 1;
   }
 } return int ok;
@@ -9,14 +9,14 @@ hd_method_ok(string mth) {
 ("POST"):(0)
 ("get"):(0)
 
-hd_gate(string[] rq, string[] rs) {
-  int c = 0;
-  if(hd_method_ok(rq[(import http_q_method)]) == 0) {
-    rs[(import http_s_headers)] = "Allow: GET, HEAD\r\n";
-    c = 405;
+server_method_gate(string[] request, string[] response) {
+  int status_code = 0;
+  if(server_method_allowed(request[(import http_q_method)]) == 0) {
+    response[(import http_s_headers)] = "Allow: GET, HEAD\r\n";
+    status_code = 405;
   }
-} return int c;
-given hd_t_rsnew (["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import hd_t_rs)):(0) then (import hd_t_rs)[(import http_s_headers)]:("")
-given hd_t_rsnew (["DELETE", "/", "HTTP/1.1", "/", "", "", "DELETE / HTTP/1.1", "", "", "0"], (import hd_t_rs)):(405) then (import hd_t_rs)[(import http_s_headers)]:("Allow: GET, HEAD\r\n")
-given hd_t_rsnew (["HEAD", "/x", "HTTP/1.1", "/x", "", "", "HEAD /x HTTP/1.1", "", "", "0"], (import hd_t_rs)):(0)
-given hd_t_rsnew (["POST", "/x", "HTTP/1.1", "/x", "", "", "POST /x HTTP/1.1", "", "", "0"], (import hd_t_rs)):(405)
+} return int status_code;
+given server_fixture_response (["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import fixture_response)):(0) then (import fixture_response)[(import http_s_headers)]:("")
+given server_fixture_response (["DELETE", "/", "HTTP/1.1", "/", "", "", "DELETE / HTTP/1.1", "", "", "0"], (import fixture_response)):(405) then (import fixture_response)[(import http_s_headers)]:("Allow: GET, HEAD\r\n")
+given server_fixture_response (["HEAD", "/x", "HTTP/1.1", "/x", "", "", "HEAD /x HTTP/1.1", "", "", "0"], (import fixture_response)):(0)
+given server_fixture_response (["POST", "/x", "HTTP/1.1", "/x", "", "", "POST /x HTTP/1.1", "", "", "0"], (import fixture_response)):(405)

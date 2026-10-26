@@ -1,32 +1,32 @@
-cmd_fmt(string file) {
+command_format(string file) {
   int code = doc_load(file);
   if (code = 0) {
     code = doc_emit();
   }
 } return int code;
-given t_args stdin "[1,{\"a\":2}]" ("-"):(0) then t_out:("[\n  1,\n  {\n    \"a\": 2\n  }\n]\n")
-given t_args stdin "[1," ("-"):(1) then t_out:("")
-given t_args stdin "[1," ("-"):(1) then eprints:("<stdin>:1:4: error: expected a value (found end of input)\n")
-given t_args stdin "  true  " ("-"):(0) then t_out:("true\n")
+given fixture_arguments stdin "[1,{\"a\":2}]" ("-"):(0) then fixture_output_text:("[\n  1,\n  {\n    \"a\": 2\n  }\n]\n")
+given fixture_arguments stdin "[1," ("-"):(1) then fixture_output_text:("")
+given fixture_arguments stdin "[1," ("-"):(1) then eprints:("<stdin>:1:4: error: expected a value (found end of input)\n")
+given fixture_arguments stdin "  true  " ("-"):(0) then fixture_output_text:("true\n")
 
-cmd_sort(string file) {
+command_sort(string file) {
   int code = doc_load(file);
   if (code = 0) {
     sort_all();
     code = doc_emit();
   }
 } return int code;
-given t_args stdin "{\"b\":1,\"a\":2}" ("-"):(0) then t_out:("{\n  \"a\": 2,\n  \"b\": 1\n}\n")
-given t_args stdin "{\"b\":1,\"a\":" ("-"):(1) then t_out:("")
-given t_args stdin "[{\"z\":0,\"y\":[{\"q\":1,\"p\":2}]}]" ("-"):(0) then t_out:("[\n  {\n    \"y\": [\n      {\n        \"p\": 2,\n        \"q\": 1\n      }\n    ],\n    \"z\": 0\n  }\n]\n")
+given fixture_arguments stdin "{\"b\":1,\"a\":2}" ("-"):(0) then fixture_output_text:("{\n  \"a\": 2,\n  \"b\": 1\n}\n")
+given fixture_arguments stdin "{\"b\":1,\"a\":" ("-"):(1) then fixture_output_text:("")
+given fixture_arguments stdin "[{\"z\":0,\"y\":[{\"q\":1,\"p\":2}]}]" ("-"):(0) then fixture_output_text:("[\n  {\n    \"y\": [\n      {\n        \"p\": 2,\n        \"q\": 1\n      }\n    ],\n    \"z\": 0\n  }\n]\n")
 
 keys_emit(int root) {
-  int c = nget(root, (import f_child));
-  while (c >= 0) {
-    emit_raw(c);
-    c = nget(nget(c, (import f_next)), (import f_next));
+  int member_cursor = node_get(root, (import f_child));
+  while (member_cursor >= 0) {
+    emit_raw(member_cursor);
+    member_cursor = node_get(node_get(member_cursor, (import f_next)), (import f_next));
   }
 } return void;
-given t_parse stdin "{\"b\":1,\"a\":2}" (0):() then t_out:("b\na\n")
-given t_parse stdin "{}" (0):() then t_out:("")
-given t_parse stdin "{\"\\u00e9\":1,\"x\":{\"n\":2}}" (0):() then t_out:("é\nx\n")
+given fixture_parsed_document stdin "{\"b\":1,\"a\":2}" (0):() then fixture_output_text:("b\na\n")
+given fixture_parsed_document stdin "{}" (0):() then fixture_output_text:("")
+given fixture_parsed_document stdin "{\"\\u00e9\":1,\"x\":{\"n\":2}}" (0):() then fixture_output_text:("é\nx\n")

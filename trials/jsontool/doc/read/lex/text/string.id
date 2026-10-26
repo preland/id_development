@@ -1,49 +1,49 @@
-str_plain(int pos) {
-  int c = byte_at(pos);
-  while (c >= 32 && c != (import k_quote) && c != (import k_bslash) && c < 128) {
-    pos = pos + 1;
-    c = byte_at(pos);
+string_plain(int byte_position) {
+  int current_byte = byte_at(byte_position);
+  while (current_byte >= 32 && current_byte != (import k_quote) && current_byte != (import k_bslash) && current_byte < 128) {
+    byte_position = byte_position + 1;
+    current_byte = byte_at(byte_position);
   }
-} return int pos;
-given t_load stdin "abc\"" (0):(3)
-given t_load stdin "a\\b" (0):(1)
-given t_hexload stdin "61 62 01 63" (0):(2)
-given t_hexload stdin "61 1f 62" (0):(1)
-given t_hexload stdin "61 20 7f 62" (0):(4)
-given t_hexload stdin "61 c3 a9" (0):(1)
-given t_load stdin "abc" (-1):(-1)
-given t_load stdin "abc" (0):(3)
+} return int byte_position;
+given fixture_loaded_input stdin "abc\"" (0):(3)
+given fixture_loaded_input stdin "a\\b" (0):(1)
+given fixture_hex_input stdin "61 62 01 63" (0):(2)
+given fixture_hex_input stdin "61 1f 62" (0):(1)
+given fixture_hex_input stdin "61 20 7f 62" (0):(4)
+given fixture_hex_input stdin "61 c3 a9" (0):(1)
+given fixture_loaded_input stdin "abc" (-1):(-1)
+given fixture_loaded_input stdin "abc" (0):(3)
 
-str_open(int p, int c) {
-  int r = p >= 0 && c != (import k_quote);
-} return int r;
+string_open(int scan_position, int current_byte) {
+  int string_continues = scan_position >= 0 && current_byte != (import k_quote);
+} return int string_continues;
 (0, 97):(1)
 (0, 34):(0)
 (-1, 97):(0)
 (5, -1):(1)
 
-str_scan(int pos) {
-  int p = str_plain(pos + 1);
-  int c = byte_at(p);
-  while (str_open(p, c) = 1) {
-    p = str_special(p, c);
-    p = str_plain(p);
-    c = byte_at(p);
+string_scan(int byte_position) {
+  int scan_position = string_plain(byte_position + 1);
+  int current_byte = byte_at(scan_position);
+  while (string_open(scan_position, current_byte) = 1) {
+    scan_position = string_special(scan_position, current_byte);
+    scan_position = string_plain(scan_position);
+    current_byte = byte_at(scan_position);
   }
-} chain (int pos) {
-  if (c = (import k_quote)) {
-    p = p + 1;
+} chain (int byte_position) {
+  if (current_byte = (import k_quote)) {
+    scan_position = scan_position + 1;
   }
-} return int p;
-given t_load stdin "\"abc\"" (0):(5)
-given t_load stdin "\"a\\nb\"" (0):(6)
-given t_load stdin "\"abc" (0):(-1) then (import jc)[(import c_err)]:(13)
-given t_load stdin "\"abc" (0):(-1) then (import jc)[(import c_erp)]:(4)
-given t_hexload stdin "22 61 0a 22" (0):(-1) then (import jc)[(import c_err)]:(14)
-given t_hexload stdin "22 61 0a 22" (0):(-1) then (import jc)[(import c_erp)]:(2)
-given t_load stdin "\"\\q\"" (0):(-1) then (import jc)[(import c_err)]:(15)
-given t_load stdin "\"\\q\"" (0):(-1) then (import jc)[(import c_erp)]:(2)
-given t_hexload stdin "22 c3 a9 22" (0):(4)
-given t_hexload stdin "22 c0 80 22" (0):(-1) then (import jc)[(import c_err)]:(18)
-given t_load stdin "\"\"" (0):(2)
-given t_load stdin "\"a\\\"b\"x" (0):(6)
+} return int scan_position;
+given fixture_loaded_input stdin "\"abc\"" (0):(5)
+given fixture_loaded_input stdin "\"a\\nb\"" (0):(6)
+given fixture_loaded_input stdin "\"abc" (0):(-1) then (import json_context)[(import c_err)]:(13)
+given fixture_loaded_input stdin "\"abc" (0):(-1) then (import json_context)[(import c_erp)]:(4)
+given fixture_hex_input stdin "22 61 0a 22" (0):(-1) then (import json_context)[(import c_err)]:(14)
+given fixture_hex_input stdin "22 61 0a 22" (0):(-1) then (import json_context)[(import c_erp)]:(2)
+given fixture_loaded_input stdin "\"\\q\"" (0):(-1) then (import json_context)[(import c_err)]:(15)
+given fixture_loaded_input stdin "\"\\q\"" (0):(-1) then (import json_context)[(import c_erp)]:(2)
+given fixture_hex_input stdin "22 c3 a9 22" (0):(4)
+given fixture_hex_input stdin "22 c0 80 22" (0):(-1) then (import json_context)[(import c_err)]:(18)
+given fixture_loaded_input stdin "\"\"" (0):(2)
+given fixture_loaded_input stdin "\"a\\\"b\"x" (0):(6)

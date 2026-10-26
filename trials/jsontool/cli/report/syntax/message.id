@@ -1,18 +1,18 @@
 parse_message(string file) {
-  int pos = (import jc)[(import c_erp)];
-  int ln = err_line(pos);
-  int col = err_col(pos);
+  int error_position = (import json_context)[(import c_erp)];
+  int line_of_error = error_line(error_position);
+  int column_of_error = error_column(error_position);
 } chain (string file) {
-  string txt = err_text();
-  string msg = src_name(file, "<stdin>") + ":" + ln + ":" + col + ": error: " + txt;
-} return string msg;
-given t_parse stdin "[1 2]" ("f.json"):("f.json:1:4: error: expected ',' or ']' after an array element (found '2')")
-given t_parse stdin "[\n  1 2]" ("-"):("<stdin>:2:5: error: expected ',' or ']' after an array element (found '2')")
-given t_parse stdin "" ("e.json"):("e.json:1:1: error: expected a value (found end of input)")
+  string error_description = error_text();
+  string message = source_name(file, "<stdin>") + ":" + line_of_error + ":" + column_of_error + ": error: " + error_description;
+} return string message;
+given fixture_parsed_document stdin "[1 2]" ("f.json"):("f.json:1:4: error: expected ',' or ']' after an array element (found '2')")
+given fixture_parsed_document stdin "[\n  1 2]" ("-"):("<stdin>:2:5: error: expected ',' or ']' after an array element (found '2')")
+given fixture_parsed_document stdin "" ("e.json"):("e.json:1:1: error: expected a value (found end of input)")
 
-errno_text(int en) {
-  int at = list_index_of((import errnos), en);
-  string why = "error " + en;
+errno_text(int error_number) {
+  int at = list_index_of((import errnos), error_number);
+  string why = "error " + error_number;
   if (at >= 0) {
     why = (import errtxt)[at];
   }

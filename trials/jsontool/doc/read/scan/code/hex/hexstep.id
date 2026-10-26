@@ -1,10 +1,10 @@
-hex_step(int v, int at) {
-  int h = hex_val(byte_at(at));
-  int r = v * 16 + h;
-  if (h < 0) {
-    r = jfail((import e_hex), at);
+hex_step(int partial_value, int at) {
+  int hex_digit = hex_value(byte_at(at));
+  int hex_accumulator = partial_value * 16 + hex_digit;
+  if (hex_digit < 0) {
+    hex_accumulator = json_fail((import e_hex), at);
   }
-} return int r;
-given t_load stdin "f" (1, 0):(31)
-given t_load stdin "z" (1, 0):(-1) then (import jc)[(import c_err)]:(16)
-given t_load stdin "0a" (0, 1):(10)
+} return int hex_accumulator;
+given fixture_loaded_input stdin "f" (1, 0):(31)
+given fixture_loaded_input stdin "z" (1, 0):(-1) then (import json_context)[(import c_err)]:(16)
+given fixture_loaded_input stdin "0a" (0, 1):(10)

@@ -2,17 +2,17 @@
 // exactly halfway between them, since both are 2 apart on one axis -- then
 // visit the new room cell.
 
-carve_between(int x, int z, int nx, int nz) {
-  int wx = (x + nx) / 2;
-  int wz = (z + nz) / 2;
-  open_and_push(wx, wz, nx, nz);
+carve_between(int column, int row, int neighbor_column, int neighbor_row) {
+  int wall_column = (column + neighbor_column) / 2;
+  int wall_row = (row + neighbor_row) / 2;
+  open_and_push(wall_column, wall_row, neighbor_column, neighbor_row);
 } return void;
-given stack_t_empty_setup (3, 5, 1, 5):() then top_x:(1)
-given stack_t_empty_setup (3, 5, 5, 5):() then top_x:(5)
+given stack_empty_setup (3, 5, 1, 5):() then top_x:(1)
+given stack_empty_setup (3, 5, 5, 5):() then top_x:(5)
 
-open_and_push(int wx, int wz, int nx, int nz) {
-  grid_set(wx, wz, 0);
-  push_room(nx, nz);
+open_and_push(int opening_column, int opening_row, int neighbor_column, int neighbor_row) {
+  grid_set(opening_column, opening_row, 0);
+  push_room(neighbor_column, neighbor_row);
 } return void;
-given stack_t_empty_setup (2, 5, 1, 5):() then top_x:(1)
-given stack_t_empty_setup (4, 5, 5, 5):() then top_x:(5)
+given stack_empty_setup (2, 5, 1, 5):() then top_x:(1)
+given stack_empty_setup (4, 5, 5, 5):() then top_x:(5)

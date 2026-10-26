@@ -1,15 +1,15 @@
 // The two branches of the cavern and the four scenes under them, all read from
 // conf.id: fork 0 is the left tunnel (endings 1-4), fork 1 the right (5-8).
 
-scene_fork(int fk) {
-  string fk_ans = ask((import fork_ask)[fk]);
-  if(fk_ans == "1") {
-    scene_play(fk * 2);
+scene_fork(int fork_index) {
+  string fork_answer = ask((import fork_ask)[fork_index]);
+  if(fork_answer == "1") {
+    scene_play(fork_index * 2);
   } else {
-    if(fk_ans == "2") {
-      scene_play(fk * 2 + 1);
+    if(fork_answer == "2") {
+      scene_play(fork_index * 2 + 1);
     } else {
-      print((import fork_stray)[fk]);
+      print((import fork_stray)[fork_index]);
     }
   }
 } return void;
@@ -18,15 +18,15 @@ stdin "2\nx\n" (0):() then prints:("The left tunnel forks at an underground RIVE
 stdin "x\n" (1):() then prints:("The right tunnel opens into a vast CHAMBER above a black PIT.\n  1) Explore the chamber\n  2) Lower yourself into the pit\nChoose: \n>> The darkness drinks your nerve and you simply stop. THE END.\n")
 stdin "1\nx\n" (1):() then prints:("The right tunnel opens into a vast CHAMBER above a black PIT.\n  1) Explore the chamber\n  2) Lower yourself into the pit\nChoose: \nA CROWN rests on a pedestal; a DRAGON sleeps coiled around it.\n  1) Seize the crown\n  2) Bow and back away slowly\nChoose: \n>> You stand gawking until the dragon rolls over in its sleep. THE END.\n")
 
-scene_play(int sc) {
-  string sc_ans = ask((import scene_ask)[sc]);
-  if(sc_ans == "1") {
-    print((import scene_end_one)[sc]);
+scene_play(int scene_index) {
+  string scene_answer = ask((import scene_ask)[scene_index]);
+  if(scene_answer == "1") {
+    print((import scene_end_one)[scene_index]);
   } else {
-    if(sc_ans == "2") {
-      print((import scene_end_two)[sc]);
+    if(scene_answer == "2") {
+      print((import scene_end_two)[scene_index]);
     } else {
-      print((import scene_end_stray)[sc]);
+      print((import scene_end_stray)[scene_index]);
     }
   }
 } return void;

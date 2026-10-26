@@ -1,21 +1,21 @@
-hd_handle(string root, string[] rq, string[] rs) {
-  int c = hd_gate(rq, rs);
-  string np = path_norm(rq[(import http_q_path)]);
-  if(c == 0 && len(np) == 0) {
-    c = 403;
+server_handle(string root, string[] request, string[] response) {
+  int status_code = server_method_gate(request, response);
+  string normalized_path = path_norm(request[(import http_q_path)]);
+  if(status_code == 0 && len(normalized_path) == 0) {
+    status_code = 403;
   }
-} chain (string root, string[] rq, string[] rs) {
-  if(c == 0) {
-    c = hd_route(root, np, rq, rs);
+} chain (string root, string[] request, string[] response) {
+  if(status_code == 0) {
+    status_code = server_route(root, normalized_path, request, response);
   }
-  rs[(import http_s_headers)] = "Server: " + (import hd_server) + "\r\n" + rs[(import http_s_headers)];
-} return int c;
-given hd_t_site given hd_t_rsnew ((import hd_t_root), ["GET", "/a.txt", "HTTP/1.1", "/a.txt", "", "", "GET /a.txt HTTP/1.1", "", "", "0"], (import hd_t_rs)):(200) then hd_t_rsfile:(1) then hd_t_drop:(1)
-given hd_t_site given hd_t_rsnew ((import hd_t_root), ["GET", "/sp%20ace.txt", "HTTP/1.1", "/sp ace.txt", "", "", "GET /sp%20ace.txt HTTP/1.1", "", "", "0"], (import hd_t_rs)):(200) then hd_t_drop:(1)
-given hd_t_site given hd_t_rsnew ((import hd_t_root), ["GET", "/sub/../a.txt", "HTTP/1.1", "/sub/../a.txt", "", "", "GET /sub/../a.txt HTTP/1.1", "", "", "0"], (import hd_t_rs)):(200) then hd_t_drop:(1)
-given hd_t_site given hd_t_rsnew ((import hd_t_root), ["GET", "/../a.txt", "HTTP/1.1", "/../a.txt", "", "", "GET /../a.txt HTTP/1.1", "", "", "0"], (import hd_t_rs)):(403) then (import hd_t_rs)[(import http_s_headers)]:("Server: httpd-id/1.0\r\n") then hd_t_drop:(1)
-given hd_t_site given hd_t_rsnew ((import hd_t_root), ["GET", "/%2e%2e/a.txt", "HTTP/1.1", "/%2e%2e/a.txt", "", "", "GET /%2e%2e/a.txt HTTP/1.1", "", "", "0"], (import hd_t_rs)):(404) then hd_t_drop:(1)
-given hd_t_site given hd_t_rsnew ((import hd_t_root), ["POST", "/a.txt", "HTTP/1.1", "/a.txt", "", "", "POST /a.txt HTTP/1.1", "", "", "0"], (import hd_t_rs)):(405) then (import hd_t_rs)[(import http_s_headers)]:("Server: httpd-id/1.0\r\nAllow: GET, HEAD\r\n") then hd_t_drop:(1)
-given hd_t_site given hd_t_rsnew ((import hd_t_root), ["GET", "/nope", "HTTP/1.1", "/nope", "", "", "GET /nope HTTP/1.1", "", "", "0"], (import hd_t_rs)):(404) then hd_t_drop:(1)
-given hd_t_site given hd_t_rsnew ((import hd_t_root), ["GET", "/sub", "HTTP/1.1", "/sub", "x=1", "", "GET /sub HTTP/1.1", "", "", "0"], (import hd_t_rs)):(301) then (import hd_t_rs)[(import http_s_headers)]:("Server: httpd-id/1.0\r\nLocation: /sub/?x=1\r\n") then hd_t_drop:(1)
-given hd_t_site given hd_t_rsnew ((import hd_t_root), ["GET", "/idx/", "HTTP/1.1", "/idx/", "", "", "GET /idx/ HTTP/1.1", "", "", "0"], (import hd_t_rs)):(200) then hd_t_drop:(1)
+  response[(import http_s_headers)] = "Server: " + (import server_identification) + "\r\n" + response[(import http_s_headers)];
+} return int status_code;
+given server_fixture_site given server_fixture_response ((import fixture_root), ["GET", "/a.txt", "HTTP/1.1", "/a.txt", "", "", "GET /a.txt HTTP/1.1", "", "", "0"], (import fixture_response)):(200) then server_fixture_response_file_matches:(1) then server_fixture_discard_site:(1)
+given server_fixture_site given server_fixture_response ((import fixture_root), ["GET", "/sp%20ace.txt", "HTTP/1.1", "/sp ace.txt", "", "", "GET /sp%20ace.txt HTTP/1.1", "", "", "0"], (import fixture_response)):(200) then server_fixture_discard_site:(1)
+given server_fixture_site given server_fixture_response ((import fixture_root), ["GET", "/sub/../a.txt", "HTTP/1.1", "/sub/../a.txt", "", "", "GET /sub/../a.txt HTTP/1.1", "", "", "0"], (import fixture_response)):(200) then server_fixture_discard_site:(1)
+given server_fixture_site given server_fixture_response ((import fixture_root), ["GET", "/../a.txt", "HTTP/1.1", "/../a.txt", "", "", "GET /../a.txt HTTP/1.1", "", "", "0"], (import fixture_response)):(403) then (import fixture_response)[(import http_s_headers)]:("Server: httpd-id/1.0\r\n") then server_fixture_discard_site:(1)
+given server_fixture_site given server_fixture_response ((import fixture_root), ["GET", "/%2e%2e/a.txt", "HTTP/1.1", "/%2e%2e/a.txt", "", "", "GET /%2e%2e/a.txt HTTP/1.1", "", "", "0"], (import fixture_response)):(404) then server_fixture_discard_site:(1)
+given server_fixture_site given server_fixture_response ((import fixture_root), ["POST", "/a.txt", "HTTP/1.1", "/a.txt", "", "", "POST /a.txt HTTP/1.1", "", "", "0"], (import fixture_response)):(405) then (import fixture_response)[(import http_s_headers)]:("Server: httpd-id/1.0\r\nAllow: GET, HEAD\r\n") then server_fixture_discard_site:(1)
+given server_fixture_site given server_fixture_response ((import fixture_root), ["GET", "/nope", "HTTP/1.1", "/nope", "", "", "GET /nope HTTP/1.1", "", "", "0"], (import fixture_response)):(404) then server_fixture_discard_site:(1)
+given server_fixture_site given server_fixture_response ((import fixture_root), ["GET", "/sub", "HTTP/1.1", "/sub", "x=1", "", "GET /sub HTTP/1.1", "", "", "0"], (import fixture_response)):(301) then (import fixture_response)[(import http_s_headers)]:("Server: httpd-id/1.0\r\nLocation: /sub/?x=1\r\n") then server_fixture_discard_site:(1)
+given server_fixture_site given server_fixture_response ((import fixture_root), ["GET", "/idx/", "HTTP/1.1", "/idx/", "", "", "GET /idx/ HTTP/1.1", "", "", "0"], (import fixture_response)):(200) then server_fixture_discard_site:(1)

@@ -1,19 +1,19 @@
-sort_node(int i) {
-  if (nget(i, (import f_kind)) = (import kn_obj)) {
-    sort_obj(i);
+sort_node(int index) {
+  if (node_get(index, (import f_kind)) = (import kn_obj)) {
+    sort_object(index);
   }
 } return void;
-given t_parse stdin "{\"b\":1,\"a\":2}" (0):() then t_ec:("{\"a\":2,\"b\":1}\n")
-given t_parse stdin "{\"b\":1,\"a\":2}" (2):() then t_ec:("{\"b\":1,\"a\":2}\n")
+given fixture_parsed_document stdin "{\"b\":1,\"a\":2}" (0):() then fixture_compact_emit:("{\"a\":2,\"b\":1}\n")
+given fixture_parsed_document stdin "{\"b\":1,\"a\":2}" (2):() then fixture_compact_emit:("{\"b\":1,\"a\":2}\n")
 
 sort_all() {
-  int n = len((import nd)) / (import nstride);
-  int i = 0;
-  while (i < n) {
-    sort_node(i);
-    i = i + 1;
+  int node_total = len((import node_cells)) / (import nstride);
+  int index = 0;
+  while (index < node_total) {
+    sort_node(index);
+    index = index + 1;
   }
 } return void;
-given t_parse stdin "{\"b\":{\"y\":1,\"x\":2},\"a\":[{\"d\":0,\"c\":0}]}" ():() then t_ec:("{\"a\":[{\"c\":0,\"d\":0}],\"b\":{\"x\":2,\"y\":1}}\n")
-given t_parse stdin "[2,1,{\"z\":0,\"y\":0}]" ():() then t_ec:("[2,1,{\"y\":0,\"z\":0}]\n")
-given t_parse stdin "3" ():() then t_ec:("3\n")
+given fixture_parsed_document stdin "{\"b\":{\"y\":1,\"x\":2},\"a\":[{\"d\":0,\"c\":0}]}" ():() then fixture_compact_emit:("{\"a\":[{\"c\":0,\"d\":0}],\"b\":{\"x\":2,\"y\":1}}\n")
+given fixture_parsed_document stdin "[2,1,{\"z\":0,\"y\":0}]" ():() then fixture_compact_emit:("[2,1,{\"y\":0,\"z\":0}]\n")
+given fixture_parsed_document stdin "3" ():() then fixture_compact_emit:("3\n")

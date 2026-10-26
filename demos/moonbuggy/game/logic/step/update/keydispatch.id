@@ -2,22 +2,22 @@
 // advances the world (and reads jump input), while the crashed state only
 // listens for 'r' to restart.
 
-update(int k) {
-  if(k == 113) {
-    integer_list_set((import mb), 7, 1);
+update(int key_code) {
+  if(key_code == 113) {
+    integer_list_set((import game_state), 7, 1);
   } else {
-    update2(k);
+    update_by_state(key_code);
   }
 } return void;
-given mb_setup (113):() then mb_state:("0,0,0,1,0,0,20,1")
-given mb_setup (100):() then mb_state:("1,0,0,1,1,0,19,0")
+given game_setup (113):() then game_state_text:("0,0,0,1,0,0,20,1")
+given game_setup (100):() then game_state_text:("1,0,0,1,1,0,19,0")
 
-update2(int k) {
-  if((import mb)[3] == 1) {
-    update_play(k);
+update_by_state(int key_code) {
+  if((import game_state)[3] == 1) {
+    update_play(key_code);
   } else {
-    update_dead(k);
+    update_dead(key_code);
   }
 } return void;
-given mb_setup (100):() then mb_state:("1,0,0,1,1,0,19,0")
-given mb_setup_set(3, 0) (114):() then mb_state:("0,0,0,1,0,0,20,0") then ground_state:("1,60,1")
+given game_setup (100):() then game_state_text:("1,0,0,1,1,0,19,0")
+given game_setup_with_slot(3, 0) (114):() then game_state_text:("0,0,0,1,0,0,20,0") then ground_state:("1,60,1")

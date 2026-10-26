@@ -2,33 +2,33 @@
 // emitting gap columns; otherwise count down a cooldown, then occasionally
 // start a new crater of width 2-3.
 
-next_col() {
-  int c = 1;
-  if((import mb)[5] > 0) {
-    c = count_down(5, 0);
+next_column() {
+  int column_is_solid = 1;
+  if((import game_state)[5] > 0) {
+    column_is_solid = count_down(5, 0);
   } else {
-    c = ground_or_new();
+    column_is_solid = ground_or_new();
   }
-} return int c;
-given mb_setup ():(1) then mb_state:("0,0,0,1,0,0,19,0")
-given crater_setup ():(0) then mb_state:("0,0,0,1,0,1,20,0")
+} return int column_is_solid;
+given game_setup ():(1) then game_state_text:("0,0,0,1,0,0,19,0")
+given crater_setup ():(0) then game_state_text:("0,0,0,1,0,1,20,0")
 
-count_down(int cd_slot, int cd_ret) {
-  int gs_get_v = (import mb)[cd_slot];
-  integer_list_set((import mb), cd_slot, gs_get_v - 1);
-} return int cd_ret;
-given crater_setup (5, 0):(0) then mb_state:("0,0,0,1,0,1,20,0")
-given crater_setup (5, 0):(0) then mb_state:("0,0,0,1,0,1,20,0") then eprints:("")
-given mb_setup (6, 1):(1) then mb_state:("0,0,0,1,0,0,19,0")
-given dirty_setup (6, 1):(1) then mb_state:("0,5,3,1,7,0,19,0")
+count_down(int counter_slot, int column_result) {
+  int current_count = (import game_state)[counter_slot];
+  integer_list_set((import game_state), counter_slot, current_count - 1);
+} return int column_result;
+given crater_setup (5, 0):(0) then game_state_text:("0,0,0,1,0,1,20,0")
+given crater_setup (5, 0):(0) then game_state_text:("0,0,0,1,0,1,20,0") then eprints:("")
+given game_setup (6, 1):(1) then game_state_text:("0,0,0,1,0,0,19,0")
+given dirty_setup (6, 1):(1) then game_state_text:("0,5,3,1,7,0,19,0")
 
 ground_or_new() {
-  int c = 1;
-  if((import mb)[6] > 0) {
-    c = count_down(6, 1);
+  int column_is_solid = 1;
+  if((import game_state)[6] > 0) {
+    column_is_solid = count_down(6, 1);
   } else {
-    c = roll_crater();
+    column_is_solid = roll_crater();
   }
-} return int c;
-given mb_setup ():(1) then mb_state:("0,0,0,1,0,0,19,0")
-given mb_setup ():(1) then mb_state:("0,0,0,1,0,0,19,0") then eprints:("")
+} return int column_is_solid;
+given game_setup ():(1) then game_state_text:("0,0,0,1,0,0,19,0")
+given game_setup ():(1) then game_state_text:("0,0,0,1,0,0,19,0") then eprints:("")

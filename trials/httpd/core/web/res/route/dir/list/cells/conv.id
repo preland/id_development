@@ -1,27 +1,27 @@
-hd_poke_loop(int[] buf, word ad, int n) {
-  int i = 0;
-  while(i < n) {
-    poke8(ad + i, buf[i]);
-    i = i + 1;
+server_poke_cells(int[] cell_values, word memory_address, int cell_count) {
+  int cell_index = 0;
+  while(cell_index < cell_count) {
+    poke8(memory_address + cell_index, cell_values[cell_index]);
+    cell_index = cell_index + 1;
   }
 } return void;
-given hd_t_mem ([120, 121], (import hd_t_ad), 2):([120, 121], (import hd_t_ad), 2) then hd_t_first:(120)
-given hd_t_mem ([120, 121], (import hd_t_ad), 0):([120, 121], (import hd_t_ad), 0) then hd_t_first:(104)
+given server_fixture_memory_cells ([120, 121], (import fixture_cells_address), 2):([120, 121], (import fixture_cells_address), 2) then server_fixture_first_cell:(120)
+given server_fixture_memory_cells ([120, 121], (import fixture_cells_address), 0):([120, 121], (import fixture_cells_address), 0) then server_fixture_first_cell:(104)
 
-hd_cells_go(int[] buf, int n) {
-  word ad = alloc(n + 1);
-  hd_poke_loop(buf, ad, n);
-  string tx = str_of_mem(ad, n);
-} return string tx;
+server_cells_decode(int[] cell_values, int cell_count) {
+  word memory_address = alloc(cell_count + 1);
+  server_poke_cells(cell_values, memory_address, cell_count);
+  string cells_text = str_of_mem(memory_address, cell_count);
+} return string cells_text;
 ([104, 105, 33], 3):("hi!")
 ([104, 105, 33], 2):("hi")
 
-hd_cells_str(int[] buf, int n) {
-  string tx = "";
-  if(n > 0) {
-    tx = hd_cells_go(buf, n);
+server_cells_to_text(int[] cell_values, int cell_count) {
+  string cells_text = "";
+  if(cell_count > 0) {
+    cells_text = server_cells_decode(cell_values, cell_count);
   }
-} return string tx;
+} return string cells_text;
 ([104, 105], 2):("hi")
 ([104, 105], 0):("")
 ([104, 105], -1):("")

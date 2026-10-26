@@ -2,17 +2,17 @@
 // shooter's local x-direction, frozen at the yaw the shot was fired at.
 
 ray_advance_x() {
-  int rc_get_v = (import rc)[0];
-  int ps_get_v = (import ps)[2];
-  ray_advance_x_apply(rc_get_v, ps_get_v);
+  int ray_x = (import ray)[0];
+  int ray_x_yaw = (import player)[2];
+  ray_advance_x_apply(ray_x, ray_x_yaw);
 } return void;
-given player_init given fixed_point_trig_initialize given rc_setup ():() then calls integer_list_set:((import rc), 0, 1000)
-given player_init given fixed_point_trig_initialize given rc_setup ():() then calls fixed_point_sin_degrees:(0)
+given create_player given fixed_point_trig_initialize given ray_setup ():() then calls integer_list_set:((import ray), 0, 1000)
+given create_player given fixed_point_trig_initialize given ray_setup ():() then calls fixed_point_sin_degrees:(0)
 
-ray_advance_x_apply(int ray_x_pos, int ray_yaw_deg) {
-  int sin_deg_v = fixed_point_sin_degrees(ray_yaw_deg);
-  int shoot_step_v = (import shoot_step);
-  integer_list_set((import rc), 0, (ray_x_pos + (0 - sin_deg_v) * shoot_step_v / 1000));
+ray_advance_x_apply(int ray_x_position, int ray_yaw_degrees) {
+  int sine_value = fixed_point_sin_degrees(ray_yaw_degrees);
+  int x_step_length = (import shoot_step);
+  integer_list_set((import ray), 0, (ray_x_position + (0 - sine_value) * x_step_length / 1000));
 } return void;
-given fixed_point_trig_initialize given rc_setup (1000, 0):() then calls integer_list_set:((import rc), 0, 1000)
-given fixed_point_trig_initialize given rc_setup (1000, 90):() then calls integer_list_set:((import rc), 0, 850)
+given fixed_point_trig_initialize given ray_setup (1000, 0):() then calls integer_list_set:((import ray), 0, 1000)
+given fixed_point_trig_initialize given ray_setup (1000, 90):() then calls integer_list_set:((import ray), 0, 850)

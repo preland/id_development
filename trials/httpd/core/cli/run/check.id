@@ -1,29 +1,29 @@
-hd_root_msg(string rt) {
-  int kd = hd_kind(rt + "/");
-  string msg = "";
-  if(kd != 2) {
-    msg = "--root " + rt + " is not a readable directory";
+server_root_message(string root_directory) {
+  int entry_kind = server_path_kind(root_directory + "/");
+  string message = "";
+  if(entry_kind != 2) {
+    message = "--root " + root_directory + " is not a readable directory";
   }
-} return string msg;
+} return string message;
 ("/tmp"):("")
 ("/nonexistent-hd-x"):("--root /nonexistent-hd-x is not a readable directory")
 ("/dev/null"):("--root /dev/null is not a readable directory")
 
-hd_check_root(string rt) {
-  string msg = "--root DIR is required";
-  if(len(rt) > 0) {
-    msg = hd_root_msg(rt);
+server_check_root(string root_directory) {
+  string message = "--root DIR is required";
+  if(len(root_directory) > 0) {
+    message = server_root_message(root_directory);
   }
-} return string msg;
+} return string message;
 ("/tmp"):("")
 (""):("--root DIR is required")
 
-hd_check_port(string p) {
-  string msg = "";
-  if(len(p) > 0 && hd_port_ok(p) == 0) {
-    msg = "--port N must be a number from 0 to 65535 (omit --port to serve one connection on stdin/stdout)";
+server_check_port(string port_text) {
+  string message = "";
+  if(len(port_text) > 0 && server_port_valid(port_text) == 0) {
+    message = "--port N must be a number from 0 to 65535 (omit --port to serve one connection on stdin/stdout)";
   }
-} return string msg;
+} return string message;
 ("8080"):("")
 (""):("")
 ("x"):("--port N must be a number from 0 to 65535 (omit --port to serve one connection on stdin/stdout)")

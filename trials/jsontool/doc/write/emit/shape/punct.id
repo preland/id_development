@@ -1,27 +1,27 @@
 emit_colon() {
-  ob_byte((import k_colon));
-  if ((import jc)[(import c_ind)] >= 0) {
-    ob_byte((import k_sp));
+  output_byte((import k_colon));
+  if ((import json_context)[(import c_ind)] >= 0) {
+    output_byte((import k_sp));
   }
 } return void;
-given t_load ():() then t_out:(": ")
-given t_flat stdin "1" ():() then t_out:("1\n:")
+given fixture_loaded_input ():() then fixture_output_text:(": ")
+given fixture_flat_output stdin "1" ():() then fixture_output_text:("1\n:")
 
 emit_comma() {
-  ob_byte((import k_comma));
-  nl_indent(len((import stk)));
+  output_byte((import k_comma));
+  newline_indent(len((import container_stack)));
 } return void;
-given t_load ():() then t_out:(",\n")
-given t_parse stdin "[" ():() then t_out:(",\n  ")
-given t_flat stdin "1" ():() then t_out:("1\n,")
+given fixture_loaded_input ():() then fixture_output_text:(",\n")
+given fixture_parsed_document stdin "[" ():() then fixture_output_text:(",\n  ")
+given fixture_flat_output stdin "1" ():() then fixture_output_text:("1\n,")
 
 emit_pop() {
-  int top = pop((import stk));
-  nl_indent(len((import stk)));
-  int c = closer_of(nget(top, (import f_kind)));
+  int top = pop((import container_stack));
+  newline_indent(len((import container_stack)));
+  int closing_byte = closer_of(node_get(top, (import f_kind)));
 } chain () {
-  ob_byte(c);
+  output_byte(closing_byte);
 } return int top;
-given t_parse stdin "[" ():(0) then t_out:("\n]")
-given t_parse stdin "{" ():(0) then t_out:("\n}")
-given t_parse stdin "[[" ():(1) then t_out:("\n  ]")
+given fixture_parsed_document stdin "[" ():(0) then fixture_output_text:("\n]")
+given fixture_parsed_document stdin "{" ():(0) then fixture_output_text:("\n}")
+given fixture_parsed_document stdin "[[" ():(1) then fixture_output_text:("\n  ]")

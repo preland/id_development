@@ -3,22 +3,22 @@
 // milli-unit ints per point, and `col`, 1 packed 0xRRGGBB per point.
 
 build_particles() {
-  export int[] pos = [];
-  export int[] col = [];
+  export int[] particle_positions = [];
+  export int[] particle_colors = [];
   fill_particles(0);
 } return void;
-given init_math ():() then particle_state:("397,18000000,14802607,6000000")
-given init_math ():() then particle_state:("397,18000000,14802607,6000000") then eprints:("")
+given initialize_math ():() then particle_state:("397,18000000,14802607,6000000")
+given initialize_math ():() then particle_state:("397,18000000,14802607,6000000") then eprints:("")
 
 // The only case that does not need pos/col declared: at or past
 // particle_count the loop makes zero add_particle() calls, so nothing here
 // ever runs build_particles() a second time (see particles/gen/add.id's
 // note -- build_particles is pos/col's one legal declarer, and its own fill
 // touches all 6,000,000 particles, too expensive to pay for twice more).
-fill_particles(int i) {
-  while (i < (import particle_count)) {
-    add_particle(i);
-    i = i + 1;
+fill_particles(int particle_index) {
+  while (particle_index < (import particle_count)) {
+    add_particle(particle_index);
+    particle_index = particle_index + 1;
   }
 } return void;
 (6000000):()
@@ -30,7 +30,7 @@ fill_particles(int i) {
 // cap), paid once here by every case elsewhere in this tree that needs pos
 // or col populated, rather than duplicated per check.
 particle_state() {
-  string s = (import pos)[0] + "," + len((import pos)) + "," + (import col)[0] + "," + len((import col));
-} return string s;
-given init_math given build_particles ():("397,18000000,14802607,6000000")
-given init_math given build_particles ():("397,18000000,14802607,6000000") then eprints:("")
+  string state_text = (import particle_positions)[0] + "," + len((import particle_positions)) + "," + (import particle_colors)[0] + "," + len((import particle_colors));
+} return string state_text;
+given initialize_math given build_particles ():("397,18000000,14802607,6000000")
+given initialize_math given build_particles ():("397,18000000,14802607,6000000") then eprints:("")

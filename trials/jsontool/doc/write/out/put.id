@@ -1,33 +1,33 @@
-ob_room() {
-  int f = (import jc)[(import c_of)];
-  if (f >= (import obcap) && (import jc)[(import c_oh)] != -1) {
-    ob_flush();
-    f = 0;
+output_room() {
+  int fill_level = (import json_context)[(import c_of)];
+  if (fill_level >= (import obcap) && (import json_context)[(import c_oh)] != -1) {
+    output_flush();
+    fill_level = 0;
   }
-} return int f;
-given t_load ():(0)
-given t_ofull ():(65536)
-given t_tmp_ofull ():(0) then t_tmp_len:(65536) then t_tmp_drop:(0)
-given t_tmp_out ():(0) then t_tmp_len:(0) then t_tmp_drop:(0)
+} return int fill_level;
+given fixture_loaded_input ():(0)
+given fixture_full_output ():(65536)
+given fixture_temporary_output_full ():(0) then fixture_temporary_output_size:(65536) then fixture_temporary_remove:(0)
+given fixture_temporary_output ():(0) then fixture_temporary_output_size:(0) then fixture_temporary_remove:(0)
 
-ob_byte(int c) {
-  int f = ob_room();
-  poke8((import jw)[(import w_out)] + f, c);
-  integer_list_set((import jc), (import c_of), f + 1);
+output_byte(int output_byte_value) {
+  int fill_offset = output_room();
+  poke8((import buffer_addresses)[(import w_out)] + fill_offset, output_byte_value);
+  integer_list_set((import json_context), (import c_of), fill_offset + 1);
 } return void;
-given t_load (65):() then t_out:("A")
-given t_load (10):() then t_out:("\n")
-given t_load (65):() then (import jc)[(import c_of)]:(1)
-given t_tmp_ofull (66):() then (import jc)[(import c_of)]:(1) then t_tmp_len:(65536) then t_tmp_drop:(0)
+given fixture_loaded_input (65):() then fixture_output_text:("A")
+given fixture_loaded_input (10):() then fixture_output_text:("\n")
+given fixture_loaded_input (65):() then (import json_context)[(import c_of)]:(1)
+given fixture_temporary_output_full (66):() then (import json_context)[(import c_of)]:(1) then fixture_temporary_output_size:(65536) then fixture_temporary_remove:(0)
 
-ob_mem(word adr, int n) {
-  int i = 0;
-  while (i < n) {
-    int b = peek8(adr + i);
-    ob_byte(b);
-    i = i + 1;
+output_memory(word source_address, int memory_length) {
+  int index = 0;
+  while (index < memory_length) {
+    int memory_byte = peek8(source_address + index);
+    output_byte(memory_byte);
+    index = index + 1;
   }
 } return void;
-given t_srcadr stdin "hello" ((import srcad), 3):() then t_out:("hel")
-given t_srcadr stdin "hello" ((import srcad), 0):() then t_out:("")
-given t_srcadr stdin "hello" ((import srcad), 5):() then (import jc)[(import c_of)]:(5)
+given fixture_buffer_addresses stdin "hello" ((import saved_source_address), 3):() then fixture_output_text:("hel")
+given fixture_buffer_addresses stdin "hello" ((import saved_source_address), 0):() then fixture_output_text:("")
+given fixture_buffer_addresses stdin "hello" ((import saved_source_address), 5):() then (import json_context)[(import c_of)]:(5)

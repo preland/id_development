@@ -1,36 +1,36 @@
-ln_files(string[] vals, string[] rest) {
-  int[] st = [0];
-  int rc = 0;
+lines_from_files(string[] option_values, string[] rest) {
+  int[] printed_counter = [0];
+  int exit_code = 0;
   if (len(rest) == 0) {
-    ln_feed(read_all(), vals, st);
+    lines_from_text(read_all(), option_values, printed_counter);
   }
-} chain (string[] vals, string[] rest) {
+} chain (string[] option_values, string[] rest) {
   if (len(rest) > 0) {
-    rc = ln_each(rest, vals, st);
+    exit_code = lines_from_each_file(rest, option_values, printed_counter);
   }
-} return int rc;
+} return int exit_code;
 stdin "x\ny\n" (["0", "0", "", "0"], []):(0) then prints:("x\ny\n")
 given fs_temp_text("p\nq\n") (["0", "0", "", "0"], [(import fs_temp_path)]):(0) then prints:("p\nq\n")
 
-ln_each(string[] rest, string[] vals, int[] st) {
-  int rc = 0;
-  int i = 0;
-  while (i < len(rest)) {
-    rc = rc + ln_one(rest[i], vals, st);
-    i = i + 1;
+lines_from_each_file(string[] rest, string[] option_values, int[] printed_counter) {
+  int exit_code = 0;
+  int file_index = 0;
+  while (file_index < len(rest)) {
+    exit_code = exit_code + lines_from_one_file(rest[file_index], option_values, printed_counter);
+    file_index = file_index + 1;
   }
-} return int rc;
+} return int exit_code;
 given fs_temp_text("a\n") ([(import fs_temp_path), "/no/such/file_ln"], ["0", "0", "", "0"], [0]):(1) then prints:("a\n") then eprints:("lines: cannot read /no/such/file_ln\n")
 ([], [], [0]):(0)
 
-ln_one(string path, string[] vals, int[] st) {
-  int rc = 0;
+lines_from_one_file(string path, string[] option_values, int[] printed_counter) {
+  int exit_code = 0;
   if (fs_exists(path) == 1) {
-    ln_feed(fs_read_text(path), vals, st);
+    lines_from_text(fs_read_text(path), option_values, printed_counter);
   } else {
     eprint("lines: cannot read " + path);
-    rc = 1;
+    exit_code = 1;
   }
-} return int rc;
+} return int exit_code;
 given fs_temp_text("z\n") ((import fs_temp_path), ["0", "0", "", "0"], [0]):(0) then prints:("z\n")
 ("/no/such/file_ln", [], [0]):(1) then eprints:("lines: cannot read /no/such/file_ln\n")

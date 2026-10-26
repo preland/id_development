@@ -1,21 +1,21 @@
-hex2(int c) {
-  int hi = character_hex(c >> 4);
-  int lo = character_hex(c & 15);
-  string s = chr(hi) + chr(lo);
-} return string s;
+hex_pair_text(int value_to_hex) {
+  int hi = character_hex(value_to_hex >> 4);
+  int low_nibble = character_hex(value_to_hex & 15);
+  string hex_text = chr(hi) + chr(low_nibble);
+} return string hex_text;
 (0):("00")
 (15):("0f")
 (255):("ff")
 (171):("ab")
 
-found_desc(int c) {
-  string desc = "end of input";
-  if (c >= 32 && c < 127) {
-    desc = "'" + chr(c) + "'";
-  } else if (c >= 0) {
-    desc = "byte 0x" + hex2(c);
+found_description(int found_byte) {
+  string description = "end of input";
+  if (found_byte >= 32 && found_byte < 127) {
+    description = "'" + chr(found_byte) + "'";
+  } else if (found_byte >= 0) {
+    description = "byte 0x" + hex_pair_text(found_byte);
   }
-} return string desc;
+} return string description;
 (-1):("end of input")
 (120):("'x'")
 (32):("' '")
@@ -24,13 +24,13 @@ found_desc(int c) {
 (127):("byte 0x7f")
 (200):("byte 0xc8")
 
-err_text() {
-  int code = (import jc)[(import c_err)];
-  int c = byte_at((import jc)[(import c_erp)]);
-  string s = (import e_msg)[code] + " (found " + found_desc(c) + ")";
-} return string s;
-given t_parse stdin "[1 2]" ():("expected ',' or ']' after an array element (found '2')")
-given t_parse stdin "" ():("expected a value (found end of input)")
-given t_parse stdin "[01]" ():("invalid number: leading zeros are not allowed (found '1')")
-given t_parse stdin "\"\\q\"" ():("invalid escape sequence in string (found 'q')")
-given t_parse stdin "nul" ():("invalid literal: expected true, false or null (found 'n')")
+error_text() {
+  int code = (import json_context)[(import c_err)];
+  int byte_found = byte_at((import json_context)[(import c_erp)]);
+  string message_text = (import e_msg)[code] + " (found " + found_description(byte_found) + ")";
+} return string message_text;
+given fixture_parsed_document stdin "[1 2]" ():("expected ',' or ']' after an array element (found '2')")
+given fixture_parsed_document stdin "" ():("expected a value (found end of input)")
+given fixture_parsed_document stdin "[01]" ():("invalid number: leading zeros are not allowed (found '1')")
+given fixture_parsed_document stdin "\"\\q\"" ():("invalid escape sequence in string (found 'q')")
+given fixture_parsed_document stdin "nul" ():("invalid literal: expected true, false or null (found 'n')")

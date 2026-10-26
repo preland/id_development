@@ -2,24 +2,24 @@
 // Only (import num_targets) (3) entries, so a full linear scan every call is
 // cheap -- no need to short-circuit the loop.
 
-find_target_at(int cx, int cz) {
-  int found = scan_loop(cx, cz, 0, 0 - 1);
+find_target_at(int cell_column, int cell_row) {
+  int found = scan_loop(cell_column, cell_row, 0, 0 - 1);
 } return int found;
-given game_init (0, 0):(-1)
-given random_initialize(1) given targets_init (1, 5):(0)
+given start_new_game (0, 0):(-1)
+given random_initialize(1) given create_targets (1, 5):(0)
 
-scan_loop(int cx, int cz, int i, int found) {
-  while (i < (import num_targets)) {
-    found = check_one(cx, cz, i, found);
-    i = i + 1;
+scan_loop(int cell_column, int cell_row, int target_index, int found) {
+  while (target_index < (import target_count)) {
+    found = check_one(cell_column, cell_row, target_index, found);
+    target_index = target_index + 1;
   }
 } return int found;
-given game_init (0, 0, 0, -1):(-1)
+given start_new_game (0, 0, 0, -1):(-1)
 (0, 0, 3, -1):(-1)
 
-check_one(int cx, int cz, int i, int found) {
-  int f = found;
-  if ((import tgx)[i] = cx && (import tgz)[i] = cz) { f = i; }
-} return int f;
-given game_init (0, 0, 0, -1):(-1)
-given random_initialize(1) given targets_init (1, 5, 0, -1):(0)
+check_one(int cell_column, int cell_row, int target_index, int found) {
+  int match_index = found;
+  if ((import target_columns)[target_index] = cell_column && (import target_rows)[target_index] = cell_row) { match_index = target_index; }
+} return int match_index;
+given start_new_game (0, 0, 0, -1):(-1)
+given random_initialize(1) given create_targets (1, 5, 0, -1):(0)

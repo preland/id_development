@@ -1,28 +1,28 @@
-opt_raw(int i, int idx) {
-  int nxt = (import a_bad);
-  if (opt_allowed(idx, 4, "--raw") = 1) {
-    integer_list_set((import jc), (import c_raw), 1);
-    nxt = i + 1;
+option_raw(int index, int command_index) {
+  int next_position = (import a_bad);
+  if (option_allowed(command_index, 4, "--raw") = 1) {
+    integer_list_set((import json_context), (import c_raw), 1);
+    next_position = index + 1;
   }
-} return int nxt;
-given t_args (2, 2):(3) then (import jc)[(import c_raw)]:(1)
-given t_args (2, 0):(-1) then eprints:("jsontool: option --raw is not valid for 'fmt'\n")
-given t_args (2, 0):(-1) then (import jc)[(import c_raw)]:(0)
+} return int next_position;
+given fixture_arguments (2, 2):(3) then (import json_context)[(import c_raw)]:(1)
+given fixture_arguments (2, 0):(-1) then eprints:("jsontool: option --raw is not valid for 'fmt'\n")
+given fixture_arguments (2, 0):(-1) then (import json_context)[(import c_raw)]:(0)
 
-opt_unknown(string[] argv, int i) {
-  eprint("jsontool: unknown option '" + argv[i] + "'");
+option_unknown(string[] argv, int index) {
+  eprint("jsontool: unknown option '" + argv[index] + "'");
   eprint("Try 'jsontool --help' for usage.");
-  int r = (import a_bad);
-} return int r;
+  int unknown_status = (import a_bad);
+} return int unknown_status;
 (["p", "fmt", "-x"], 2):(-1) then eprints:("jsontool: unknown option '-x'\nTry 'jsontool --help' for usage.\n")
 (["p", "fmt", "--frob"], 2):(-1) then eprints:("jsontool: unknown option '--frob'\nTry 'jsontool --help' for usage.\n")
 
-args_rest(string[] argv, int i) {
-  while (i < len(argv)) {
-    push((import pargs), argv[i]);
-    i = i + 1;
+arguments_after_separator(string[] argv, int index) {
+  while (index < len(argv)) {
+    push((import positional_arguments), argv[index]);
+    index = index + 1;
   }
-} return int i;
-given t_args (["p", "fmt", "--", "-a", "b"], 3):(5) then len((import pargs)):(2)
-given t_args (["p", "fmt", "--"], 3):(3) then len((import pargs)):(0)
-given t_args (["p", "fmt", "--", "-a"], 3):(4) then (import pargs)[0]:("-a")
+} return int index;
+given fixture_arguments (["p", "fmt", "--", "-a", "b"], 3):(5) then len((import positional_arguments)):(2)
+given fixture_arguments (["p", "fmt", "--"], 3):(3) then len((import positional_arguments)):(0)
+given fixture_arguments (["p", "fmt", "--", "-a"], 3):(4) then (import positional_arguments)[0]:("-a")

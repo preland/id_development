@@ -1,39 +1,39 @@
-q_char(string path, int i) {
-  int c = character_code_at(path, i);
-  int adv = 1;
-  if (c = (import k_bslash)) {
-    adv = 2;
-    c = character_code_at(path, i + 1);
+quoted_character(string path, int index) {
+  int path_character = character_code_at(path, index);
+  int consumed = 1;
+  if (path_character = (import k_bslash)) {
+    consumed = 2;
+    path_character = character_code_at(path, index + 1);
   }
-} chain (string path, int i) {
-  pk_byte(c);
-} return int adv;
-given t_pinit ("a", 0):(1) then t_pkstr:("a")
-given t_pinit ("\\\"", 0):(2) then t_pkstr:("\"")
-given t_pinit ("\\\\", 0):(2) then t_pkstr:("\\")
+} chain (string path, int index) {
+  path_key_byte(path_character);
+} return int consumed;
+given fixture_path_buffers ("a", 0):(1) then fixture_key_buffer_text:("a")
+given fixture_path_buffers ("\\\"", 0):(2) then fixture_key_buffer_text:("\"")
+given fixture_path_buffers ("\\\\", 0):(2) then fixture_key_buffer_text:("\\")
 
-q_copy(string path, int i) {
-  while (i < len(path) && character_code_at(path, i) != (import k_quote)) {
-    i = i + q_char(path, i);
+quoted_copy(string path, int index) {
+  while (index < len(path) && character_code_at(path, index) != (import k_quote)) {
+    index = index + quoted_character(path, index);
   }
-} return int i;
-given t_pinit ("ab\"", 0):(2) then t_pkstr:("ab")
-given t_pinit ("a\\\"b\"", 0):(4) then t_pkstr:("a\"b")
-given t_pinit ("ab", 0):(2) then t_pkstr:("ab")
+} return int index;
+given fixture_path_buffers ("ab\"", 0):(2) then fixture_key_buffer_text:("ab")
+given fixture_path_buffers ("a\\\"b\"", 0):(4) then fixture_key_buffer_text:("a\"b")
+given fixture_path_buffers ("ab", 0):(2) then fixture_key_buffer_text:("ab")
 
-q_finish(string path, int e, int off) {
-  int q = e + 2;
-  if (character_code_at(path, e) != (import k_quote)) {
-    q = path_fail((import pe_quote), e);
-  } else if (character_code_at(path, e + 1) != (import k_rbrk)) {
-    q = path_fail((import pe_close), e + 1);
+quoted_finish(string path, int string_end, int off) {
+  int end_position = string_end + 2;
+  if (character_code_at(path, string_end) != (import k_quote)) {
+    end_position = path_fail((import pe_quote), string_end);
+  } else if (character_code_at(path, string_end + 1) != (import k_rbrk)) {
+    end_position = path_fail((import pe_close), string_end + 1);
   }
-} chain (string path, int e, int off) {
-  if (q >= 0) {
-    push_seg(0, off, (import jc)[(import c_pk)] - off);
+} chain (string path, int string_end, int off) {
+  if (end_position >= 0) {
+    push_segment(0, off, (import json_context)[(import c_pk)] - off);
   }
-} return int q;
-given t_pinit ("\"]", 0, 0):(2) then t_segs:(1)
-given t_pinit ("]", 0, 0):(-1) then jc_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=0 perr=5 pep=0 fk=0 fr=0 seen=0")
-given t_pinit ("\"x", 0, 0):(-1) then jc_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=0 perr=4 pep=1 fk=0 fr=0 seen=0")
-given t_pinit ("\"]", 0, 0):(2) then t_segstr:(".")
+} return int end_position;
+given fixture_path_buffers ("\"]", 0, 0):(2) then fixture_segment_count:(1)
+given fixture_path_buffers ("]", 0, 0):(-1) then context_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=0 perr=5 pep=0 fk=0 fr=0 seen=0")
+given fixture_path_buffers ("\"x", 0, 0):(-1) then context_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=0 perr=4 pep=1 fk=0 fr=0 seen=0")
+given fixture_path_buffers ("\"]", 0, 0):(2) then fixture_segments_text:(".")

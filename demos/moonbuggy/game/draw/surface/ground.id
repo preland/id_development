@@ -2,27 +2,27 @@
 // subsurface below; a crater column leaves a gap. ground_row is the surface y.
 
 ground_row() {
-  int ret_i = (import term_h) - 4;
-} return int ret_i;
-given term_setup_mb(60, 20) ():(16)
-given term_setup_mb(60, 20) ():(16) then eprints:("")
+  int ground_level = (import term_h) - 4;
+} return int ground_level;
+given setup_game_terminal(60, 20) ():(16)
+given setup_game_terminal(60, 20) ():(16) then eprints:("")
 
-draw_ground(int x) {
-  while(x < (import term_w)) {
-    draw_col(x);
-    x = x + 1;
+draw_ground(int column) {
+  while(column < (import term_w)) {
+    draw_column(column);
+    column = column + 1;
   }
 } return void;
-given mb_setup (60):() then idstd_term_fixture_sum:("screen 38400")
-given mb_setup (0):() then idstd_term_fixture_sum:("screen 44820")
+given game_setup (60):() then idstd_term_fixture_sum:("screen 38400")
+given game_setup (0):() then idstd_term_fixture_sum:("screen 44820")
 
-draw_col(int x) {
-  if((import ground)[x] == 1) {
-    solid_col(x);
+draw_column(int column) {
+  if((import ground)[column] == 1) {
+    solid_column(column);
   } else {
-    int ground_row_v = ground_row();
-    term_set(x, ground_row_v, 32, 0);
+    int surface_row = ground_row();
+    term_set(column, surface_row, 32, 0);
   }
 } return void;
-given mb_setup (0):() then idstd_term_fixture_sum:("screen 38507")
+given game_setup (0):() then idstd_term_fixture_sum:("screen 38507")
 given crater_setup (10):() then idstd_term_fixture_sum:("screen 38400")

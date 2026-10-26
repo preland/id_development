@@ -16,12 +16,12 @@ drain_input() {
 ():(1) then calls drain_loop:[1]
 
 drain_loop(int alive) {
-  int ev = glwin_poll();
-  while (ev >= 0) {
-    alive = handle_event(ev, alive);
-    ev = glwin_poll();
+  int event_code = glwin_poll();
+  while (event_code >= 0) {
+    alive = handle_event(event_code, alive);
+    event_code = glwin_poll();
   }
-  int ret_i = handle_event(ev, alive);
-} return int ret_i;
+  int final_alive = handle_event(event_code, alive);
+} return int final_alive;
 (1):(1) then calls handle_event:(-1, 1)
 (0):(0) then calls handle_event:(-1, 0)

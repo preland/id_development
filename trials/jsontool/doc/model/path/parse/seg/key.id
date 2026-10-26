@@ -1,42 +1,42 @@
-seg_key(string path, int from, int to) {
-  int off = (import jc)[(import c_pk)];
-  int i = from;
-  while (i < to) {
-    pk_byte(character_code_at(path, i));
-    i = i + 1;
+segment_key(string path, int from, int to) {
+  int off = (import json_context)[(import c_pk)];
+  int index = from;
+  while (index < to) {
+    path_key_byte(character_code_at(path, index));
+    index = index + 1;
   }
 } chain (string path, int from, int to) {
-  push_seg(0, off, to - from);
+  push_segment(0, off, to - from);
 } return void;
-given t_pinit ("a.bc", 2, 4):() then t_segstr:(".bc")
-given t_pinit ("a.bc", 2, 4):() then jc_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=2 perr=0 pep=0 fk=0 fr=0 seen=0")
-given t_pinit ("abc", 0, 1):() then t_pkstr:("a")
+given fixture_path_buffers ("a.bc", 2, 4):() then fixture_segments_text:(".bc")
+given fixture_path_buffers ("a.bc", 2, 4):() then context_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=2 perr=0 pep=0 fk=0 fr=0 seen=0")
+given fixture_path_buffers ("abc", 0, 1):() then fixture_key_buffer_text:("a")
 
-dot_empty(string path, int i) {
-  int ok = character_code_at(path, i + 1) == 91 || (i == 0 && len(path) == 1);
-  int q = i + 1;
+dot_empty(string path, int index) {
+  int ok = character_code_at(path, index + 1) == 91 || (index == 0 && len(path) == 1);
+  int end_position = index + 1;
   if (ok = 0) {
-    q = path_fail((import pe_name), i + 1);
+    end_position = path_fail((import pe_name), index + 1);
   }
-} return int q;
-given t_pinit (".", 0):(1)
-given t_pinit (".[0]", 0):(1)
-given t_pinit ("..a", 0):(-1) then (import jc)[(import c_perr)]:(2)
-given t_pinit (".a.", 2):(-1) then (import jc)[(import c_pep)]:(3)
+} return int end_position;
+given fixture_path_buffers (".", 0):(1)
+given fixture_path_buffers (".[0]", 0):(1)
+given fixture_path_buffers ("..a", 0):(-1) then (import json_context)[(import c_perr)]:(2)
+given fixture_path_buffers (".a.", 2):(-1) then (import json_context)[(import c_pep)]:(3)
 
-seg_dot(string path, int i) {
-  int e = name_end(path, i + 1);
-  int q = e;
-  if (e = i + 1) {
-    q = dot_empty(path, i);
+segment_dot(string path, int index) {
+  int name_end_position = name_end(path, index + 1);
+  int end_position = name_end_position;
+  if (name_end_position = index + 1) {
+    end_position = dot_empty(path, index);
   }
-} chain (string path, int i) {
-  if (e > i + 1) {
-    seg_key(path, i + 1, e);
+} chain (string path, int index) {
+  if (name_end_position > index + 1) {
+    segment_key(path, index + 1, name_end_position);
   }
-} return int q;
-given t_pinit (".ab", 0):(3) then t_segstr:(".ab")
-given t_pinit (".", 0):(1) then t_segs:(0)
-given t_pinit ("..", 0):(-1) then (import jc)[(import c_perr)]:(2)
-given t_pinit (".[", 0):(1) then t_segs:(0)
-given t_pinit (".a[0]", 0):(2) then t_segstr:(".a")
+} return int end_position;
+given fixture_path_buffers (".ab", 0):(3) then fixture_segments_text:(".ab")
+given fixture_path_buffers (".", 0):(1) then fixture_segment_count:(0)
+given fixture_path_buffers ("..", 0):(-1) then (import json_context)[(import c_perr)]:(2)
+given fixture_path_buffers (".[", 0):(1) then fixture_segment_count:(0)
+given fixture_path_buffers (".a[0]", 0):(2) then fixture_segments_text:(".a")

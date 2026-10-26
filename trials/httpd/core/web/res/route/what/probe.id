@@ -1,26 +1,26 @@
-hd_kind(string fp) {
-  int[] nb = [];
-  int n = fs_list(fp, nb, 0);
-  int k = 2;
-} chain (string fp) {
-  if(n < 0) {
-    k = hd_kind_err(fp);
+server_path_kind(string full_path) {
+  int[] size_probe = [];
+  int list_result = fs_list(full_path, size_probe, 0);
+  int probed_kind = 2;
+} chain (string full_path) {
+  if(list_result < 0) {
+    probed_kind = server_error_kind(full_path);
   }
-} return int k;
+} return int probed_kind;
 ("/tmp/"):(2)
 ("/nonexistent-hd-x"):(404)
 ("/dev/null"):(1)
 ("/dev/null/"):(404)
 
-hd_t_enoent() {
-  int h = fs_open("/nonexistent-hd-x", "r");
+server_fixture_missing_file_error() {
+  int file_handle = fs_open("/nonexistent-hd-x", "r");
 } return void;
 ():()
-():() then hd_t_errno:(-2)
+():() then server_fixture_negated_error:(-2)
 
-hd_t_errno() {
-  int e = fs_error();
-  int ne = 0 - e;
-} return int ne;
+server_fixture_negated_error() {
+  int error_number = fs_error();
+  int negated_error = 0 - error_number;
+} return int negated_error;
 ():(0)
-given hd_t_enoent ():(-2)
+given server_fixture_missing_file_error ():(-2)

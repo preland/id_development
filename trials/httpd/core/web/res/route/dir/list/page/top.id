@@ -1,20 +1,20 @@
-hd_list_ok(string fp, int need, string np, string[] rs) {
-  string txt = hd_dirtext(fp, need);
-  string pg = hd_page_list(np, txt);
-  rs[(import http_s_body)] = pg;
-} chain (string fp, int need, string np, string[] rs) {
-  rs[(import http_s_headers)] = "Content-Type: text/html; charset=utf-8\r\n";
-  int c = 200;
-} return int c;
-given hd_t_rsnew ("/nonexistent-hd-x", 0, "/", (import hd_t_rs)):(200) then (import hd_t_rs)[(import http_s_body)]:("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of /</title></head><body><h1>Index of /</h1><ul>\n</ul></body></html>\n") then (import hd_t_rs)[(import http_s_headers)]:("Content-Type: text/html; charset=utf-8\r\n")
-given hd_t_rsnew ("/nonexistent-hd-x", 0, "/a/", (import hd_t_rs)):(200) then (import hd_t_rs)[(import http_s_body)]:("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of /a/</title></head><body><h1>Index of /a/</h1><ul>\n<li><a href=\"../\">../</a></li>\n</ul></body></html>\n")
+server_listing_reply(string full_path, int need, string normalized_path, string[] response) {
+  string names_text = server_directory_text(full_path, need);
+  string listing_markup = server_listing_page(normalized_path, names_text);
+  response[(import http_s_body)] = listing_markup;
+} chain (string full_path, int need, string normalized_path, string[] response) {
+  response[(import http_s_headers)] = "Content-Type: text/html; charset=utf-8\r\n";
+  int status_code = 200;
+} return int status_code;
+given server_fixture_response ("/nonexistent-hd-x", 0, "/", (import fixture_response)):(200) then (import fixture_response)[(import http_s_body)]:("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of /</title></head><body><h1>Index of /</h1><ul>\n</ul></body></html>\n") then (import fixture_response)[(import http_s_headers)]:("Content-Type: text/html; charset=utf-8\r\n")
+given server_fixture_response ("/nonexistent-hd-x", 0, "/a/", (import fixture_response)):(200) then (import fixture_response)[(import http_s_body)]:("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of /a/</title></head><body><h1>Index of /a/</h1><ul>\n<li><a href=\"../\">../</a></li>\n</ul></body></html>\n")
 
-hd_list(string fp, string np, string[] rs) {
-  int need = hd_need(fp);
-  int code = hd_need_code(need, (import hd_max_list));
+server_listing(string full_path, string normalized_path, string[] response) {
+  int need = server_listing_size(full_path);
+  int code = server_listing_status(need, (import server_listing_limit));
   if(code == 0) {
-    code = hd_list_ok(fp, need, np, rs);
+    code = server_listing_reply(full_path, need, normalized_path, response);
   }
 } return int code;
-given hd_t_rsnew ("/nonexistent-hd-x/", "/", (import hd_t_rs)):(404) then (import hd_t_rs)[(import http_s_body)]:("")
-given hd_t_site given hd_t_rsnew ((import hd_t_dir), "/", (import hd_t_rs)):(200) then hd_t_drop:(1)
+given server_fixture_response ("/nonexistent-hd-x/", "/", (import fixture_response)):(404) then (import fixture_response)[(import http_s_body)]:("")
+given server_fixture_site given server_fixture_response ((import fixture_root_slash), "/", (import fixture_response)):(200) then server_fixture_discard_site:(1)

@@ -1,16 +1,16 @@
-t_rawparse() {
-  t_parse();
-  integer_list_set((import jc), (import c_raw), 1);
+fixture_raw_parse() {
+  fixture_parsed_document();
+  integer_list_set((import json_context), (import c_raw), 1);
 } return void;
-stdin "1" ():() then (import jc)[(import c_raw)]:(1)
-stdin "[1]" ():() then t_nodes:(2)
+stdin "1" ():() then (import json_context)[(import c_raw)]:(1)
+stdin "[1]" ():() then fixture_node_count:(2)
 
-t_get_path(string t_gp_s) {
-  t_tmp_make();
-  args_init();
-  push((import pargs), t_gp_s);
+fixture_get_path_file(string path_argument) {
+  fixture_temporary_file();
+  arguments_reset();
+  push((import positional_arguments), path_argument);
 } return void;
-stdin "{\"a\":[5,6]}" (".a[1]"):() then (import pargs)[0]:(".a[1]") then t_tmp_drop:(0)
-stdin "{\"a\":[5,6]}" (".a[1]"):() then t_tmp_size:("t_tmp_size 11") then t_tmp_drop:(0)
-stdin "{}" ("a"):() then (import pargs)[0]:("a") then t_tmp_drop:(0)
-stdin "{}" ("a"):() then t_tmp_size:("t_tmp_size 2") then t_tmp_drop:(0)
+stdin "{\"a\":[5,6]}" (".a[1]"):() then (import positional_arguments)[0]:(".a[1]") then fixture_temporary_remove:(0)
+stdin "{\"a\":[5,6]}" (".a[1]"):() then fixture_temporary_size_text:("t_tmp_size 11") then fixture_temporary_remove:(0)
+stdin "{}" ("a"):() then (import positional_arguments)[0]:("a") then fixture_temporary_remove:(0)
+stdin "{}" ("a"):() then fixture_temporary_size_text:("t_tmp_size 2") then fixture_temporary_remove:(0)

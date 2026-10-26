@@ -1,24 +1,24 @@
-hd_t_mem() {
-  export word hd_t_ad = alloc(8);
-  poke8(hd_t_ad, 104);
-  poke8(hd_t_ad + 1, 105);
+server_fixture_memory_cells() {
+  export word fixture_cells_address = alloc(8);
+  poke8(fixture_cells_address, 104);
+  poke8(fixture_cells_address + 1, 105);
 } chain () {
-  poke8(hd_t_ad + 2, 0);
-  poke8(hd_t_ad + 3, 33);
+  poke8(fixture_cells_address + 2, 0);
+  poke8(fixture_cells_address + 3, 33);
 } return void;
-():() then hd_t_first:(104)
-():() then hd_t_last:(33)
+():() then server_fixture_first_cell:(104)
+():() then server_fixture_last_cell:(33)
 
-hd_t_first() {
-  word ad = (import hd_t_ad);
-  int pv = peek8(ad);
-} return int pv;
-given hd_t_mem ():(104)
-given hd_t_mem ():(104) then hd_t_last:(33)
+server_fixture_first_cell() {
+  word memory_address = (import fixture_cells_address);
+  int peeked_byte = peek8(memory_address);
+} return int peeked_byte;
+given server_fixture_memory_cells ():(104)
+given server_fixture_memory_cells ():(104) then server_fixture_last_cell:(33)
 
-hd_t_last() {
-  word ad = (import hd_t_ad);
-  int pv = peek8(ad + 3);
-} return int pv;
-given hd_t_mem ():(33)
-given hd_t_mem ():(33) then hd_t_first:(104)
+server_fixture_last_cell() {
+  word memory_address = (import fixture_cells_address);
+  int peeked_byte = peek8(memory_address + 3);
+} return int peeked_byte;
+given server_fixture_memory_cells ():(33)
+given server_fixture_memory_cells ():(33) then server_fixture_first_cell:(104)

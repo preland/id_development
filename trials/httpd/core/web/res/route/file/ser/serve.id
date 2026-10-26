@@ -1,25 +1,25 @@
-hd_reply(int code, string fp, int mtm, string[] rs) {
-  int c = code;
+server_reply(int code, string full_path, int modified_time, string[] response) {
+  int status_code = code;
   if(code == 304) {
-    c = hd_notmod(mtm, rs);
+    status_code = server_reply_not_modified(modified_time, response);
   }
   if(code == 200) {
-    c = hd_full(fp, mtm, rs);
+    status_code = server_reply_full(full_path, modified_time, response);
   }
-} return int c;
-given hd_t_rsnew (500, "/f", -1, (import hd_t_rs)):(500) then (import hd_t_rs)[(import http_s_file)]:("")
-given hd_t_rsnew (304, "/f", 0, (import hd_t_rs)):(304) then (import hd_t_rs)[(import http_s_headers)]:("Last-Modified: Thu, 01 Jan 1970 00:00:00 GMT\r\n")
-given hd_t_rsnew (200, "/f.css", 0, (import hd_t_rs)):(200) then (import hd_t_rs)[(import http_s_file)]:("/f.css")
+} return int status_code;
+given server_fixture_response (500, "/f", -1, (import fixture_response)):(500) then (import fixture_response)[(import http_s_file)]:("")
+given server_fixture_response (304, "/f", 0, (import fixture_response)):(304) then (import fixture_response)[(import http_s_headers)]:("Last-Modified: Thu, 01 Jan 1970 00:00:00 GMT\r\n")
+given server_fixture_response (200, "/f.css", 0, (import fixture_response)):(200) then (import fixture_response)[(import http_s_file)]:("/f.css")
 
-hd_ok(string fp, string[] rq, string[] rs) {
-  int sz = fs_size(fp);
-  int mtm = fs_mtime(fp);
-  int fresh = hd_fresh(rq, mtm);
-} chain (string fp, string[] rq, string[] rs) {
-  int code = hd_pick(sz, fresh);
-  int c = hd_reply(code, fp, mtm, rs);
-} return int c;
-given hd_t_rsnew ("/nonexistent-hd-x", ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import hd_t_rs)):(500) then (import hd_t_rs)[(import http_s_file)]:("")
-given hd_t_site given hd_t_rsnew ((import hd_t_apath), ["GET", "/a.txt", "HTTP/1.1", "/a.txt", "", "Host: h", "GET /a.txt HTTP/1.1", "", "", "0"], (import hd_t_rs)):(200) then hd_t_rsfile:(1) then hd_t_drop:(1)
-given hd_t_site given hd_t_rsnew ((import hd_t_apath), ["GET", "/a.txt", "HTTP/1.1", "/a.txt", "", "If-Modified-Since: Tue, 19 Jan 2038 03:14:07 GMT", "GET /a.txt HTTP/1.1", "", "", "0"], (import hd_t_rs)):(304) then hd_t_rsfile:(0) then hd_t_drop:(1)
-given hd_t_site given hd_t_rsnew ((import hd_t_apath), ["GET", "/a.txt", "HTTP/1.1", "/a.txt", "", "If-Modified-Since: Thu, 01 Jan 1970 00:00:00 GMT", "GET /a.txt HTTP/1.1", "", "", "0"], (import hd_t_rs)):(200) then hd_t_rsfile:(1) then hd_t_drop:(1)
+server_file_ok(string full_path, string[] request, string[] response) {
+  int file_size = fs_size(full_path);
+  int modified_time = fs_mtime(full_path);
+  int fresh = server_not_modified(request, modified_time);
+} chain (string full_path, string[] request, string[] response) {
+  int code = server_pick_status(file_size, fresh);
+  int status_code = server_reply(code, full_path, modified_time, response);
+} return int status_code;
+given server_fixture_response ("/nonexistent-hd-x", ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import fixture_response)):(500) then (import fixture_response)[(import http_s_file)]:("")
+given server_fixture_site given server_fixture_response ((import fixture_file_path), ["GET", "/a.txt", "HTTP/1.1", "/a.txt", "", "Host: h", "GET /a.txt HTTP/1.1", "", "", "0"], (import fixture_response)):(200) then server_fixture_response_file_matches:(1) then server_fixture_discard_site:(1)
+given server_fixture_site given server_fixture_response ((import fixture_file_path), ["GET", "/a.txt", "HTTP/1.1", "/a.txt", "", "If-Modified-Since: Tue, 19 Jan 2038 03:14:07 GMT", "GET /a.txt HTTP/1.1", "", "", "0"], (import fixture_response)):(304) then server_fixture_response_file_matches:(0) then server_fixture_discard_site:(1)
+given server_fixture_site given server_fixture_response ((import fixture_file_path), ["GET", "/a.txt", "HTTP/1.1", "/a.txt", "", "If-Modified-Since: Thu, 01 Jan 1970 00:00:00 GMT", "GET /a.txt HTTP/1.1", "", "", "0"], (import fixture_response)):(200) then server_fixture_response_file_matches:(1) then server_fixture_discard_site:(1)

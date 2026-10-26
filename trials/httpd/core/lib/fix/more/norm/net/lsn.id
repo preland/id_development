@@ -1,28 +1,28 @@
-hd_t_lsn0() {
-  int ln = sock_tcp_listen("127.0.0.1", 0, 4);
-  int pt = sock_port(ln);
-  export int hd_t_ln = ln;
+server_fixture_listener() {
+  int listener = sock_tcp_listen("127.0.0.1", 0, 4);
+  int bound_port = sock_port(listener);
+  export int fixture_listener = listener;
 } chain () {
-  export int hd_t_pt = pt;
+  export int fixture_port = bound_port;
 } return void;
-():() then hd_t_tdown:(1)
-():() then hd_t_portok:(1) then hd_t_tdown:(1)
+():() then server_fixture_sockets_released:(1)
+():() then server_fixture_port_assigned:(1) then server_fixture_sockets_released:(1)
 
-hd_t_lsn() {
-  hd_t_lsn0();
-  int cl = sock_tcp_connect("127.0.0.1", (import hd_t_pt), 1000);
-  export int hd_t_cl = cl;
+server_fixture_connected_listener() {
+  server_fixture_listener();
+  int client = sock_tcp_connect("127.0.0.1", (import fixture_port), 1000);
+  export int fixture_client = client;
 } return void;
-():() then hd_t_sweep:(2)
-():() then hd_t_portok:(1) then hd_t_tdown:(1)
+():() then server_fixture_close_sockets:(2)
+():() then server_fixture_port_assigned:(1) then server_fixture_sockets_released:(1)
 
-hd_t_sweep() {
-  int i = 0;
-  int n = 0;
-  while(i < 8) {
-    n = n + (sock_close(i) == 0);
-    i = i + 1;
+server_fixture_close_sockets() {
+  int socket_index = 0;
+  int closed_count = 0;
+  while(socket_index < 8) {
+    closed_count = closed_count + (sock_close(socket_index) == 0);
+    socket_index = socket_index + 1;
   }
-} return int n;
+} return int closed_count;
 ():(0)
-given hd_t_lsn ():(2)
+given server_fixture_connected_listener ():(2)

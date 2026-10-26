@@ -1,33 +1,33 @@
 emit_raw(int node) {
-  int from = nget(node, (import f_from)) + 1;
-  int to = nget(node, (import f_to)) - 1;
-  int n = dec_range(from, to, (import jw)[(import w_s0)]);
+  int from = node_get(node, (import f_from)) + 1;
+  int to = node_get(node, (import f_to)) - 1;
+  int raw_length = decode_range(from, to, (import buffer_addresses)[(import w_s0)]);
 } chain (int node) {
-  ob_mem((import jw)[(import w_s0)], n);
-  ob_byte((import k_nl));
+  output_memory((import buffer_addresses)[(import w_s0)], raw_length);
+  output_byte((import k_nl));
 } return void;
-given t_parse stdin "\"a\\nb\"" (0):() then t_out:("a\nb\n")
-given t_parse stdin "\"\\ud83d\\ude00\"" (0):() then t_out:("😀\n")
-given t_parse stdin "{\"k\":1}" (1):() then t_out:("k\n")
-given t_parse stdin "\"\"" (0):() then t_out:("\n")
+given fixture_parsed_document stdin "\"a\\nb\"" (0):() then fixture_output_text:("a\nb\n")
+given fixture_parsed_document stdin "\"\\ud83d\\ude00\"" (0):() then fixture_output_text:("😀\n")
+given fixture_parsed_document stdin "{\"k\":1}" (1):() then fixture_output_text:("k\n")
+given fixture_parsed_document stdin "\"\"" (0):() then fixture_output_text:("\n")
 
 keys_run(int root) {
   keys_emit(root);
   int code = out_finish();
 } return int code;
-given t_parse stdin "{\"a\":1}" (0):(0) then t_out:("a\n")
-given t_parse stdin "{\"a\":1,\"b\":2}" (0):(0) then t_out:("a\nb\n")
+given fixture_parsed_document stdin "{\"a\":1}" (0):(0) then fixture_output_text:("a\n")
+given fixture_parsed_document stdin "{\"a\":1,\"b\":2}" (0):(0) then fixture_output_text:("a\nb\n")
 
 keys_pick(int code, int root) {
-  int rc = code;
-  if (code = 0 && nget(root, (import f_kind)) = (import kn_obj)) {
-    rc = keys_run(root);
+  int exit_status = code;
+  if (code = 0 && node_get(root, (import f_kind)) = (import kn_obj)) {
+    exit_status = keys_run(root);
   } else if (code = 0) {
     eprint("jsontool: keys: the top-level value is not an object");
-    rc = 1;
+    exit_status = 1;
   }
-} return int rc;
-given t_parse stdin "{\"a\":1}" (0, 0):(0) then t_out:("a\n")
-given t_parse stdin "[1]" (0, 0):(1) then eprints:("jsontool: keys: the top-level value is not an object\n")
-given t_parse stdin "[1]" (1, 0):(1) then eprints:("")
-given t_parse stdin "\"s\"" (0, 0):(1) then t_out:("")
+} return int exit_status;
+given fixture_parsed_document stdin "{\"a\":1}" (0, 0):(0) then fixture_output_text:("a\n")
+given fixture_parsed_document stdin "[1]" (0, 0):(1) then eprints:("jsontool: keys: the top-level value is not an object\n")
+given fixture_parsed_document stdin "[1]" (1, 0):(1) then eprints:("")
+given fixture_parsed_document stdin "\"s\"" (0, 0):(1) then fixture_output_text:("")

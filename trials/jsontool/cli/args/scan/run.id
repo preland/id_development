@@ -1,57 +1,57 @@
-arg_run(string[] argv, int i, int idx, int kind) {
-  int nxt = i + 1;
+argument_run(string[] argv, int index, int command_index, int kind) {
+  int next_position = index + 1;
   if (kind = 0) {
-    push((import pargs), argv[i]);
+    push((import positional_arguments), argv[index]);
   } else if (kind = 1) {
-    nxt = opt_indent(argv, i, idx);
+    next_position = option_indent(argv, index, command_index);
   }
-} chain (string[] argv, int i, int idx, int kind) {
+} chain (string[] argv, int index, int command_index, int kind) {
   if (kind = 2) {
-    nxt = opt_indent_eq(argv, i, idx);
+    next_position = option_indent_equals(argv, index, command_index);
   } else if (kind = 3) {
-    nxt = opt_compact(i, idx);
+    next_position = option_compact(index, command_index);
   }
   if (kind = 4) {
-    nxt = opt_raw(i, idx);
+    next_position = option_raw(index, command_index);
   }
-} chain (string[] argv, int i, int idx, int kind) {
+} chain (string[] argv, int index, int command_index, int kind) {
   if (kind = 5) {
-    nxt = (import a_help);
+    next_position = (import a_help);
   } else if (kind = 6) {
-    nxt = opt_unknown(argv, i);
+    next_position = option_unknown(argv, index);
   }
   if (kind = 7) {
-    nxt = args_rest(argv, i + 1);
+    next_position = arguments_after_separator(argv, index + 1);
   }
-} return int nxt;
-given t_args (["p", "fmt", "f.json"], 2, 0, 0):(3) then (import pargs)[0]:("f.json")
-given t_args (["p", "fmt", "--indent", "4"], 2, 0, 1):(4) then (import jc)[(import c_ind)]:(4)
-given t_args (["p", "fmt", "--indent=5"], 2, 0, 2):(3) then (import jc)[(import c_ind)]:(5)
-given t_args (["p", "fmt", "--compact"], 2, 0, 3):(3) then (import jc)[(import c_ind)]:(-1)
-given t_args (["p", "get", "--raw"], 2, 2, 4):(3) then (import jc)[(import c_raw)]:(1)
-given t_args (["p", "fmt", "-h"], 2, 0, 5):(-2)
-given t_args (["p", "fmt", "-x"], 2, 0, 6):(-1) then eprints:("jsontool: unknown option '-x'\nTry 'jsontool --help' for usage.\n")
-given t_args (["p", "fmt", "--", "a", "b"], 2, 0, 7):(5) then len((import pargs)):(2)
+} return int next_position;
+given fixture_arguments (["p", "fmt", "f.json"], 2, 0, 0):(3) then (import positional_arguments)[0]:("f.json")
+given fixture_arguments (["p", "fmt", "--indent", "4"], 2, 0, 1):(4) then (import json_context)[(import c_ind)]:(4)
+given fixture_arguments (["p", "fmt", "--indent=5"], 2, 0, 2):(3) then (import json_context)[(import c_ind)]:(5)
+given fixture_arguments (["p", "fmt", "--compact"], 2, 0, 3):(3) then (import json_context)[(import c_ind)]:(-1)
+given fixture_arguments (["p", "get", "--raw"], 2, 2, 4):(3) then (import json_context)[(import c_raw)]:(1)
+given fixture_arguments (["p", "fmt", "-h"], 2, 0, 5):(-2)
+given fixture_arguments (["p", "fmt", "-x"], 2, 0, 6):(-1) then eprints:("jsontool: unknown option '-x'\nTry 'jsontool --help' for usage.\n")
+given fixture_arguments (["p", "fmt", "--", "a", "b"], 2, 0, 7):(5) then len((import positional_arguments)):(2)
 
-arg_one(string[] argv, int i, int idx) {
-  int kind = opt_kind(argv[i]);
-  int nxt = arg_run(argv, i, idx, kind);
-} return int nxt;
-given t_args (["p", "get", ".a"], 2, 2):(3) then (import pargs)[0]:(".a")
-given t_args (["p", "fmt", "--compact"], 2, 0):(3) then (import jc)[(import c_ind)]:(-1)
-given t_args (["p", "fmt", "--indent", "3"], 2, 0):(4) then (import jc)[(import c_ind)]:(3)
-given t_args (["p", "fmt", "--help"], 2, 0):(-2)
+argument_one(string[] argv, int index, int command_index) {
+  int kind = option_kind(argv[index]);
+  int next_position = argument_run(argv, index, command_index, kind);
+} return int next_position;
+given fixture_arguments (["p", "get", ".a"], 2, 2):(3) then (import positional_arguments)[0]:(".a")
+given fixture_arguments (["p", "fmt", "--compact"], 2, 0):(3) then (import json_context)[(import c_ind)]:(-1)
+given fixture_arguments (["p", "fmt", "--indent", "3"], 2, 0):(4) then (import json_context)[(import c_ind)]:(3)
+given fixture_arguments (["p", "fmt", "--help"], 2, 0):(-2)
 
-args_scan(string[] argv, int idx) {
-  int i = 2;
-  while (i >= 0 && i < len(argv)) {
-    i = arg_one(argv, i, idx);
+arguments_scan(string[] argv, int command_index) {
+  int index = 2;
+  while (index >= 0 && index < len(argv)) {
+    index = argument_one(argv, index, command_index);
   }
-} return int i;
-given t_args (["p", "fmt", "--indent", "4", "f.json"], 0):(5) then (import jc)[(import c_ind)]:(4)
-given t_args (["p", "fmt", "--indent", "4", "f.json"], 0):(5) then (import pargs)[0]:("f.json")
-given t_args (["p", "fmt", "-h"], 0):(-2)
-given t_args (["p", "fmt", "--bogus"], 0):(-1) then eprints:("jsontool: unknown option '--bogus'\nTry 'jsontool --help' for usage.\n")
-given t_args (["p", "validate", "--compact"], 1):(-1) then len((import pargs)):(0)
-given t_args (["p", "fmt"], 0):(2) then len((import pargs)):(0)
-given t_args (["p", "get", "--raw", ".a", "f"], 2):(5) then len((import pargs)):(2)
+} return int index;
+given fixture_arguments (["p", "fmt", "--indent", "4", "f.json"], 0):(5) then (import json_context)[(import c_ind)]:(4)
+given fixture_arguments (["p", "fmt", "--indent", "4", "f.json"], 0):(5) then (import positional_arguments)[0]:("f.json")
+given fixture_arguments (["p", "fmt", "-h"], 0):(-2)
+given fixture_arguments (["p", "fmt", "--bogus"], 0):(-1) then eprints:("jsontool: unknown option '--bogus'\nTry 'jsontool --help' for usage.\n")
+given fixture_arguments (["p", "validate", "--compact"], 1):(-1) then len((import positional_arguments)):(0)
+given fixture_arguments (["p", "fmt"], 0):(2) then len((import positional_arguments)):(0)
+given fixture_arguments (["p", "get", "--raw", ".a", "f"], 2):(5) then len((import positional_arguments)):(2)

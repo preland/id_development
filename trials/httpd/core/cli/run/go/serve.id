@@ -1,29 +1,29 @@
-hd_banner(string[] opts) {
-  string bn = "httpd: serving " + opts[1] + " over stdin/stdout (inetd style; give --port N to listen)";
-} return string bn;
+server_banner(string[] options) {
+  string banner_text = "httpd: serving " + options[1] + " over stdin/stdout (inetd style; give --port N to listen)";
+} return string banner_text;
 (["", "/srv", "", ""]):("httpd: serving /srv over stdin/stdout (inetd style; give --port N to listen)")
 (["", "/", "", ""]):("httpd: serving / over stdin/stdout (inetd style; give --port N to listen)")
 
-hd_go(string[] opts) {
-  string bn = hd_banner(opts);
-  eprint(bn);
-  word bf = alloc(70000);
-} chain (string[] opts) {
-  string root = opts[1];
-  func(string[], string[]) return int fn = bind(hd_handle, root);
-  int served = http_serve_conn(-1, bf, fn, http_opts(1), "-");
+server_serve_standard_streams(string[] options) {
+  string banner_text = server_banner(options);
+  eprint(banner_text);
+  word connection_buffer = alloc(70000);
+} chain (string[] options) {
+  string root = options[1];
+  func(string[], string[]) return int request_handler = bind(server_handle, root);
+  int served = http_serve_conn(-1, connection_buffer, request_handler, http_opts(1), "-");
 } return int served;
 stdin "" (["", "/tmp", "", ""]):(0) then eprints:("httpd: serving /tmp over stdin/stdout (inetd style; give --port N to listen)\n")
 stdin "" (["", "/", "", ""]):(0) then eprints:("httpd: serving / over stdin/stdout (inetd style; give --port N to listen)\n")
 
-hd_run(string[] opts, string msg) {
-  int rc = 2;
-  if(len(msg) > 0) {
-    hd_usage(msg);
+server_run(string[] options, string message) {
+  int exit_status = 2;
+  if(len(message) > 0) {
+    server_usage(message);
   }
-  if(len(msg) == 0) {
-    rc = hd_mode(opts);
+  if(len(message) == 0) {
+    exit_status = server_mode(options);
   }
-} return int rc;
+} return int exit_status;
 (["", "", "", ""], "bad"):(2) then eprints:("httpd: bad\nusage: httpd [--port N] [--host ADDR] --root DIR\n")
 stdin "" (["", "/tmp", "", ""], ""):(0)

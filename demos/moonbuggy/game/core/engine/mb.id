@@ -20,20 +20,20 @@
 // keydispatch.id), and the run completes, so main()/start() are witnessed by
 // what they call rather than by the seed.
 main(int argc, string[] argv) {
-  word ticks_v = ticks();
-  int seed = ticks_v;
+  word clock_ticks = ticks();
+  int seed = clock_ticks;
   start_engine(seed);
 } return int 0;
 stdin "q" (1, ["prog"]):(0) then calls start_engine:[1]
 stdin "q" (2, ["prog", "x"]):(0) then calls term_done:[1]
 
 start() {
-  mb_init();
+  create_game();
   play();
   term_done();
 } return void;
-given term_setup_mb(60, 20) stdin "q" ():() then calls mb_init:[1] then calls term_done:[1] then mb_state:("0,0,0,1,0,0,20,1")
-given term_setup_mb(60, 20) stdin "q" ():() then calls play:[1] then (import mb)[7]:(1)
+given setup_game_terminal(60, 20) stdin "q" ():() then calls create_game:[1] then calls term_done:[1] then game_state_text:("0,0,0,1,0,0,20,1")
+given setup_game_terminal(60, 20) stdin "q" ():() then calls play:[1] then (import game_state)[7]:(1)
 
 play() {
   int running = 1;
@@ -41,5 +41,5 @@ play() {
     running = frame();
   }
 } return void;
-given mb_setup_set(7, 1) ():() then mb_state:("1,0,0,1,1,0,19,1")
-given mb_setup_set(7, 1) ():() then mb_state:("1,0,0,1,1,0,19,1") then eprints:("")
+given game_setup_with_slot(7, 1) ():() then game_state_text:("1,0,0,1,1,0,19,1")
+given game_setup_with_slot(7, 1) ():() then game_state_text:("1,0,0,1,1,0,19,1") then eprints:("")

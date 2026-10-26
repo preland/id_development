@@ -1,15 +1,15 @@
-hd_index(string fp, string np, string[] rq, string[] rs) {
-  string ix = fp + "index.html";
-  int kd = hd_kind(ix);
-  int c = 0;
-} chain (string fp, string np, string[] rq, string[] rs) {
-  if(kd == 1) {
-    c = hd_file(ix, rq, rs);
+server_index(string full_path, string normalized_path, string[] request, string[] response) {
+  string index_path = full_path + "index.html";
+  int entry_kind = server_path_kind(index_path);
+  int status_code = 0;
+} chain (string full_path, string normalized_path, string[] request, string[] response) {
+  if(entry_kind == 1) {
+    status_code = server_file(index_path, request, response);
   }
-  if(kd != 1) {
-    c = hd_list(fp, np, rs);
+  if(entry_kind != 1) {
+    status_code = server_listing(full_path, normalized_path, response);
   }
-} return int c;
-given hd_t_rsnew ("/nonexistent-hd-x/", "/", ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import hd_t_rs)):(404)
-given hd_t_site given hd_t_rsnew ((import hd_t_dir), "/", ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import hd_t_rs)):(200) then (import hd_t_rs)[(import http_s_body)]:("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of /</title></head><body><h1>Index of /</h1><ul>\n<li><a href=\"a.txt\">a.txt</a></li>\n<li><a href=\"idx/\">idx/</a></li>\n<li><a href=\"sp%20ace.txt\">sp ace.txt</a></li>\n<li><a href=\"sub/\">sub/</a></li>\n</ul></body></html>\n") then hd_t_drop:(1)
-given hd_t_site given hd_t_rsnew ((import hd_t_idir), "/idx/", ["GET", "/idx/", "HTTP/1.1", "/idx/", "", "", "GET /idx/ HTTP/1.1", "", "", "0"], (import hd_t_rs)):(200) then (import hd_t_rs)[(import http_s_body)]:("") then hd_t_drop:(1)
+} return int status_code;
+given server_fixture_response ("/nonexistent-hd-x/", "/", ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import fixture_response)):(404)
+given server_fixture_site given server_fixture_response ((import fixture_root_slash), "/", ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import fixture_response)):(200) then (import fixture_response)[(import http_s_body)]:("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of /</title></head><body><h1>Index of /</h1><ul>\n<li><a href=\"a.txt\">a.txt</a></li>\n<li><a href=\"idx/\">idx/</a></li>\n<li><a href=\"sp%20ace.txt\">sp ace.txt</a></li>\n<li><a href=\"sub/\">sub/</a></li>\n</ul></body></html>\n") then server_fixture_discard_site:(1)
+given server_fixture_site given server_fixture_response ((import fixture_index_directory), "/idx/", ["GET", "/idx/", "HTTP/1.1", "/idx/", "", "", "GET /idx/ HTTP/1.1", "", "", "0"], (import fixture_response)):(200) then (import fixture_response)[(import http_s_body)]:("") then server_fixture_discard_site:(1)

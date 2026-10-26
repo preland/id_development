@@ -2,23 +2,23 @@
 // degrees and fold back into 0..359 (idstd fx_norm_deg, on millidegrees).
 
 turn_left() {
-  int turn_speed_v = (import turn_speed);
-  turn_by(0 - turn_speed_v);
+  int turn_degrees = (import turn_speed);
+  turn_by(0 - turn_degrees);
 } return void;
-given player_init ():() then (import ps)[2]:(356)
-given player_init given turn_right ():() then (import ps)[2]:(0)
+given create_player ():() then (import player)[2]:(356)
+given create_player given turn_right ():() then (import player)[2]:(0)
 
 turn_right() {
-  int turn_speed_v = (import turn_speed);
-  turn_by(turn_speed_v);
+  int turn_degrees = (import turn_speed);
+  turn_by(turn_degrees);
 } return void;
-given player_init ():() then (import ps)[2]:(4)
-given player_init given turn_left ():() then (import ps)[2]:(0)
+given create_player ():() then (import player)[2]:(4)
+given create_player given turn_left ():() then (import player)[2]:(0)
 
 turn_by(int delta) {
-  int mdeg_v = ((import ps)[2] + delta) * (import mdeg_per_deg);
-  int fold_v = fixed_point_norm_degrees(mdeg_v);
-  integer_list_set((import ps), 2, fold_v / (import mdeg_per_deg));
+  int scaled_degrees = ((import player)[2] + delta) * (import degree_scale);
+  int folded_degrees = fixed_point_norm_degrees(scaled_degrees);
+  integer_list_set((import player), 2, folded_degrees / (import degree_scale));
 } return void;
-given player_init (4):() then (import ps)[2]:(4)
-given player_init (-4):() then (import ps)[2]:(356)
+given create_player (4):() then (import player)[2]:(4)
+given create_player (-4):() then (import player)[2]:(356)

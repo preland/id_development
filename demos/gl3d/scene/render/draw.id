@@ -3,29 +3,29 @@
 // 3-action limit (the same reason demos/gfxdemo/loop/frame.id keeps
 // presenting and polling in separate steps).
 
-draw_scene(int mv) {
-  clear_and_place(mv);
-  submit_tris();
+draw_scene(int placement_matrix) {
+  clear_and_place(placement_matrix);
+  submit_triangles();
 } return void;
-given mesh_init (0):() then calls clear_and_place:(0)
-given mesh_init (5):() then calls clear_and_place:(5)
+given mesh_initialize (0):() then calls clear_and_place:(0)
+given mesh_initialize (5):() then calls clear_and_place:(5)
 
 // The three real GL calls in this file take no case-observable state (no
 // exported global they leave a trace in, and glClear/glLoadMatrixf/
 // glDrawArrays have nothing an `id` check could read back), so all a case
 // can honestly prove is that the call completes rather than trapping -- a
 // no-op probe build first confirmed these run safely with no window open.
-clear_and_place(int mv) {
+clear_and_place(int placement_matrix) {
   gl_begin_frame(15, 15, 35);
-  gl_set_modelview(mv);
+  gl_set_modelview(placement_matrix);
 } return void;
 (0):()
 (5):()
 
-submit_tris() {
-  int tri_count_v = (import tri_count);
-  gl_draw_tris((import verts), (import colors), tri_count_v);
+submit_triangles() {
+  int triangle_total = (import triangle_count);
+  gl_draw_tris((import mesh_positions), (import colors), triangle_total);
   gl_end_frame();
 } return void;
-given mesh_init ():()
-given mesh_init ():() then eprints:("")
+given mesh_initialize ():()
+given mesh_initialize ():() then eprints:("")

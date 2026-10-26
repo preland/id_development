@@ -1,43 +1,43 @@
-hd_err_code(int e) {
-  int k = 500;
-  if(e == 13) {
-    k = 403;
+server_error_status(int error_number) {
+  int mapped_status = 500;
+  if(error_number == 13) {
+    mapped_status = 403;
   }
-  if(e == 2 || e == 20) {
-    k = 404;
+  if(error_number == 2 || error_number == 20) {
+    mapped_status = 404;
   }
-} return int k;
+} return int mapped_status;
 (13):(403)
 (2):(404)
 (20):(404)
 (0):(500)
 (28):(500)
 
-hd_errno_kind(int e, int x) {
-  int k = 500;
-  if(e == 20 && x == 1) {
-    k = 1;
+server_errno_kind(int error_number, int path_exists) {
+  int kind_code = 500;
+  if(error_number == 20 && path_exists == 1) {
+    kind_code = 1;
   }
-  if(e == 13) {
-    k = 403;
+  if(error_number == 13) {
+    kind_code = 403;
   }
-} chain (int e, int x) {
-  if(e == 2 || (e == 20 && x == 0)) {
-    k = 404;
+} chain (int error_number, int path_exists) {
+  if(error_number == 2 || (error_number == 20 && path_exists == 0)) {
+    kind_code = 404;
   }
-} return int k;
+} return int kind_code;
 (20, 1):(1)
 (20, 0):(404)
 (2, 0):(404)
 (13, 0):(403)
 (5, 0):(500)
 
-hd_kind_err(string fp) {
-  int e = fs_error();
-  int x = fs_exists(fp);
-  int k = hd_errno_kind(e, x);
-} return int k;
+server_error_kind(string full_path) {
+  int error_number = fs_error();
+  int path_exists = fs_exists(full_path);
+  int error_kind_code = server_errno_kind(error_number, path_exists);
+} return int error_kind_code;
 ("/dev/null"):(500)
 ("/nonexistent-hd-x"):(500)
-given hd_t_enoent ("/nonexistent-hd-x"):(404)
-given hd_t_enoent ("/dev/null"):(404)
+given server_fixture_missing_file_error ("/nonexistent-hd-x"):(404)
+given server_fixture_missing_file_error ("/dev/null"):(404)

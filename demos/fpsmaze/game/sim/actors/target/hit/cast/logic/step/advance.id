@@ -10,28 +10,28 @@ ray_advance() {
   ray_advance_z();
   ray_advance_step();
 } return void;
-given player_init given fixed_point_trig_initialize given rc_setup ():() then calls integer_list_set:((import rc), 0, 1000)
-given player_init given fixed_point_trig_initialize given rc_setup ():() then calls integer_list_set:((import rc), 2, 1)
+given create_player given fixed_point_trig_initialize given ray_setup ():() then calls integer_list_set:((import ray), 0, 1000)
+given create_player given fixed_point_trig_initialize given ray_setup ():() then calls integer_list_set:((import ray), 2, 1)
 
 // cell_x(1000) is always 8, an even (pillar) column, and target x-coordinates
 // are always odd (spawn/rand.id) -- so no target can ever sit there, and
 // ray_hit_now() at this rc is deterministically 0 no matter how the maze or
 // the target list were randomized.
 ray_hit_now() {
-  int rc_get_v = (import rc)[0];
-  int cell_x_v = cell_x(rc_get_v);
-  int ret_i = ray_hit_now_z(cell_x_v);
-} return int ret_i;
-given open_room_setup given random_initialize(1) given targets_init given rc_setup ():(0)
-given open_room_setup given random_initialize(1) given targets_init given rc_setup ():(0) then calls try_hit:(8, 7)
+  int ray_x = (import ray)[0];
+  int probe_column = cell_x(ray_x);
+  int target_hit = ray_hit_now_z(probe_column);
+} return int target_hit;
+given open_room_setup given random_initialize(1) given create_targets given ray_setup ():(0)
+given open_room_setup given random_initialize(1) given create_targets given ray_setup ():(0) then calls try_hit:(8, 7)
 
 // maze_init leaves every cell a wall, so grid_get(8,7) -- the cell under
 // rc_setup's fixed (1000,2000) -- is deterministically blocked, regardless
 // of how a real maze_build carve would have left it.
 ray_blocked_now() {
-  int rc_get_v = (import rc)[0];
-  int rc_get_v2 = (import rc)[1];
-  int ret_i = blocked_at(rc_get_v, rc_get_v2);
-} return int ret_i;
-given maze_init given rc_setup ():(1)
-given maze_init given rc_setup ():(1) then calls blocked_at:(1000, 2000)
+  int ray_x = (import ray)[0];
+  int ray_z = (import ray)[1];
+  int wall_hit = blocked_at(ray_x, ray_z);
+} return int wall_hit;
+given create_maze given ray_setup ():(1)
+given create_maze given ray_setup ():(1) then calls blocked_at:(1000, 2000)

@@ -1,15 +1,15 @@
-surr_class(int cp) {
-  int cls = 0;
-  if (cp >= 55296 && cp < 56320) {
-    cls = 1;
-  } else if (cp >= 56320 && cp < 57344) {
-    cls = 2;
+surrogate_class(int unit_value) {
+  int class_code = 0;
+  if (unit_value >= 55296 && unit_value < 56320) {
+    class_code = 1;
+  } else if (unit_value >= 56320 && unit_value < 57344) {
+    class_code = 2;
   }
-} chain (int cp) {
-  if (cp < 0) {
-    cls = 3;
+} chain (int unit_value) {
+  if (unit_value < 0) {
+    class_code = 3;
   }
-} return int cls;
+} return int class_code;
 (65):(0)
 (55295):(0)
 (55296):(1)
@@ -19,32 +19,32 @@ surr_class(int cp) {
 (57344):(0)
 (-1):(3)
 
-uesc_scan(int p) {
-  int cp = hex4(p + 2);
-  int q = uesc_next(p, cp);
-} return int q;
-given t_load stdin "\\u00e9" (0):(6)
-given t_load stdin "\\ud83d\\ude00" (0):(12)
-given t_load stdin "\\ud83dx" (0):(-1) then (import jc)[(import c_err)]:(17)
-given t_load stdin "\\u12G4" (0):(-1) then (import jc)[(import c_err)]:(16)
-given t_load stdin "\\udc00" (0):(-1) then (import jc)[(import c_err)]:(17)
+hex_escape_scan(int scan_position) {
+  int escape_unit = hex_four(scan_position + 2);
+  int end_position = hex_escape_next(scan_position, escape_unit);
+} return int end_position;
+given fixture_loaded_input stdin "\\u00e9" (0):(6)
+given fixture_loaded_input stdin "\\ud83d\\ude00" (0):(12)
+given fixture_loaded_input stdin "\\ud83dx" (0):(-1) then (import json_context)[(import c_err)]:(17)
+given fixture_loaded_input stdin "\\u12G4" (0):(-1) then (import json_context)[(import c_err)]:(16)
+given fixture_loaded_input stdin "\\udc00" (0):(-1) then (import json_context)[(import c_err)]:(17)
 
-uesc_next(int p, int cp) {
-  int cls = surr_class(cp);
-  int q = p + 6;
-  if (cls = 1) {
-    q = pair_scan(p);
+hex_escape_next(int scan_position, int escape_value) {
+  int surrogate_class_code = surrogate_class(escape_value);
+  int end_position = scan_position + 6;
+  if (surrogate_class_code = 1) {
+    end_position = pair_scan(scan_position);
   }
-} chain (int p, int cp) {
-  if (cls = 2) {
-    q = jfail((import e_surr), p);
+} chain (int scan_position, int escape_value) {
+  if (surrogate_class_code = 2) {
+    end_position = json_fail((import e_surr), scan_position);
   }
-  if (cls = 3) {
-    q = -1;
+  if (surrogate_class_code = 3) {
+    end_position = -1;
   }
-} return int q;
-given st_init (0, 65):(6)
-given st_init (0, 56320):(-1) then (import jc)[(import c_err)]:(17)
-given st_init (0, -1):(-1) then (import jc)[(import c_err)]:(0)
-given t_load stdin "\\ud83d\\ude00" (0, 55357):(12)
-given st_init (2, 0):(8)
+} return int end_position;
+given state_start (0, 65):(6)
+given state_start (0, 56320):(-1) then (import json_context)[(import c_err)]:(17)
+given state_start (0, -1):(-1) then (import json_context)[(import c_err)]:(0)
+given fixture_loaded_input stdin "\\ud83d\\ude00" (0, 55357):(12)
+given state_start (2, 0):(8)

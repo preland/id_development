@@ -1,32 +1,32 @@
-br_quoted(string path, int i) {
-  int off = (import jc)[(import c_pk)];
-  int e = q_copy(path, i);
-  int q = q_finish(path, e, off);
-} return int q;
-given t_pinit ("[\"a b\"]", 2):(7) then t_segstr:(".a b")
-given t_pinit ("[\"ab", 2):(-1) then jc_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=2 perr=5 pep=4 fk=0 fr=0 seen=0")
-given t_pinit ("[\"a\"x", 2):(-1) then jc_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=1 perr=4 pep=4 fk=0 fr=0 seen=0")
+bracket_quoted(string path, int index) {
+  int off = (import json_context)[(import c_pk)];
+  int quote_end = quoted_copy(path, index);
+  int end_position = quoted_finish(path, quote_end, off);
+} return int end_position;
+given fixture_path_buffers ("[\"a b\"]", 2):(7) then fixture_segments_text:(".a b")
+given fixture_path_buffers ("[\"ab", 2):(-1) then context_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=2 perr=5 pep=4 fk=0 fr=0 seen=0")
+given fixture_path_buffers ("[\"a\"x", 2):(-1) then context_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=1 perr=4 pep=4 fk=0 fr=0 seen=0")
 
-seg_bracket(string path, int i) {
-  int q = 0;
-  if (character_code_at(path, i + 1) = (import k_quote)) {
-    q = br_quoted(path, i + 2);
+segment_bracket(string path, int index) {
+  int end_position = 0;
+  if (character_code_at(path, index + 1) = (import k_quote)) {
+    end_position = bracket_quoted(path, index + 2);
   } else {
-    q = br_index(path, i + 1);
+    end_position = bracket_index(path, index + 1);
   }
-} return int q;
-given t_pinit ("[3]", 0):(3) then t_segstr:("[3]")
-given t_pinit ("[\"k\"]", 0):(5) then t_segstr:(".k")
-given t_pinit ("[x]", 0):(-1) then (import jc)[(import c_perr)]:(3)
+} return int end_position;
+given fixture_path_buffers ("[3]", 0):(3) then fixture_segments_text:("[3]")
+given fixture_path_buffers ("[\"k\"]", 0):(5) then fixture_segments_text:(".k")
+given fixture_path_buffers ("[x]", 0):(-1) then (import json_context)[(import c_perr)]:(3)
 
-seg_kind(int c) {
-  int k = 0;
-  if (c = (import k_dot)) {
-    k = 1;
-  } else if (c = (import k_lbrk)) {
-    k = 2;
+segment_kind_of(int lead_character) {
+  int kind_code = 0;
+  if (lead_character = (import k_dot)) {
+    kind_code = 1;
+  } else if (lead_character = (import k_lbrk)) {
+    kind_code = 2;
   }
-} return int k;
+} return int kind_code;
 (46):(1)
 (91):(2)
 (97):(0)

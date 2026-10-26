@@ -1,20 +1,20 @@
-hd_tcp_run(int ln, string host, string root, int rounds) {
-  int pt = sock_port(ln);
-  string fm = hd_up_msg(host, pt, root);
-  eprint(fm);
-} chain (int ln, string host, string root, int rounds) {
-  func(string[], string[]) return int fn = bind(hd_handle, root);
-  int served = http_serve(ln, fn, http_opts(1), rounds, -1);
-  sock_close(ln);
-} chain (int ln, string host, string root, int rounds) {
-  int rc = 0;
-} return int rc;
-given hd_t_lsn0 ((import hd_t_ln), "127.0.0.1", "/tmp", 0):(0) then hd_t_sweep:(0)
-given hd_t_lsn0 ((import hd_t_ln), "0.0.0.0", "/nonexistent-hd-x", 0):(0) then hd_t_sweep:(0)
+server_tcp_run(int listener, string host, string root, int rounds) {
+  int bound_port = sock_port(listener);
+  string report_text = server_listening_message(host, bound_port, root);
+  eprint(report_text);
+} chain (int listener, string host, string root, int rounds) {
+  func(string[], string[]) return int request_handler = bind(server_handle, root);
+  int served = http_serve(listener, request_handler, http_opts(1), rounds, -1);
+  sock_close(listener);
+} chain (int listener, string host, string root, int rounds) {
+  int exit_status = 0;
+} return int exit_status;
+given server_fixture_listener ((import fixture_listener), "127.0.0.1", "/tmp", 0):(0) then server_fixture_close_sockets:(0)
+given server_fixture_listener ((import fixture_listener), "0.0.0.0", "/nonexistent-hd-x", 0):(0) then server_fixture_close_sockets:(0)
 
-hd_tcp_fail(string host, string skp) {
-  string fm = hd_fail_msg(host, skp, sock_error());
-  eprint(fm);
+server_tcp_fail(string host, string failed_port_text) {
+  string report_text = server_listen_failure_message(host, failed_port_text, sock_error());
+  eprint(report_text);
 } return void;
 ("x", "0"):() then eprints:("httpd: cannot listen on x:0 (error 0); --host must be a numeric address such as 127.0.0.1 or 0.0.0.0, and --port a free port\n")
 ("999.1.1.1", "5"):() then eprints:("httpd: cannot listen on 999.1.1.1:5 (error 0); --host must be a numeric address such as 127.0.0.1 or 0.0.0.0, and --port a free port\n")

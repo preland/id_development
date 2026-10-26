@@ -1,43 +1,43 @@
-merge_take(int[] xs, int[] tmp, int lo, int mid, int hi) {
-  int i = lo;
-  int j = mid;
-  int k = lo;
-} chain (int[] xs, int[] tmp, int lo, int mid, int hi) {
-  while (k < hi) {
-    if (take_left(xs, i, j, mid, hi) = 1) {
-      integer_list_set(tmp, k, xs[i]);
-      i = i + 1;
+merge_take(int[] node_list, int[] scratch_list, int take_begin, int mid, int hi) {
+  int index = take_begin;
+  int right_position = mid;
+  int merged_index = take_begin;
+} chain (int[] node_list, int[] scratch_list, int take_begin, int mid, int hi) {
+  while (merged_index < hi) {
+    if (take_left(node_list, index, right_position, mid, hi) = 1) {
+      integer_list_set(scratch_list, merged_index, node_list[index]);
+      index = index + 1;
     } else {
-      integer_list_set(tmp, k, xs[j]);
-      j = j + 1;
+      integer_list_set(scratch_list, merged_index, node_list[right_position]);
+      right_position = right_position + 1;
     }
-    k = k + 1;
+    merged_index = merged_index + 1;
   }
 } return void;
-given t_parse stdin "{\"c\":0,\"d\":0,\"a\":0,\"b\":0}" ([1, 3, 5, 7], [0, 0, 0, 0], 0, 2, 4):([1, 3, 5, 7], [5, 7, 1, 3], 0, 2, 4)
-given t_parse stdin "{\"a\":0,\"b\":0,\"c\":0,\"d\":0}" ([1, 3, 5, 7], [0, 0, 0, 0], 0, 2, 4):([1, 3, 5, 7], [1, 3, 5, 7], 0, 2, 4)
-given t_parse stdin "{\"a\":0,\"a\":1}" ([1, 3], [0, 0], 0, 1, 2):([1, 3], [1, 3], 0, 1, 2)
+given fixture_parsed_document stdin "{\"c\":0,\"d\":0,\"a\":0,\"b\":0}" ([1, 3, 5, 7], [0, 0, 0, 0], 0, 2, 4):([1, 3, 5, 7], [5, 7, 1, 3], 0, 2, 4)
+given fixture_parsed_document stdin "{\"a\":0,\"b\":0,\"c\":0,\"d\":0}" ([1, 3, 5, 7], [0, 0, 0, 0], 0, 2, 4):([1, 3, 5, 7], [1, 3, 5, 7], 0, 2, 4)
+given fixture_parsed_document stdin "{\"a\":0,\"a\":1}" ([1, 3], [0, 0], 0, 1, 2):([1, 3], [1, 3], 0, 1, 2)
 
-merge_run(int[] xs, int[] tmp, int lo, int w) {
-  int n = len(xs);
-  int mid = fixed_point_minimum(lo + w, n);
-  int hi = fixed_point_minimum(lo + 2 * w, n);
-} chain (int[] xs, int[] tmp, int lo, int w) {
-  merge_take(xs, tmp, lo, mid, hi);
+merge_run(int[] node_list, int[] scratch_list, int run_begin, int run_width) {
+  int list_length = len(node_list);
+  int mid = fixed_point_minimum(run_begin + run_width, list_length);
+  int hi = fixed_point_minimum(run_begin + 2 * run_width, list_length);
+} chain (int[] node_list, int[] scratch_list, int run_begin, int run_width) {
+  merge_take(node_list, scratch_list, run_begin, mid, hi);
 } return void;
-given t_parse stdin "{\"c\":0,\"d\":0,\"a\":0,\"b\":0}" ([1, 3, 5, 7], [0, 0, 0, 0], 0, 2):([1, 3, 5, 7], [5, 7, 1, 3], 0, 2)
-given t_parse stdin "{\"c\":0,\"d\":0,\"a\":0,\"b\":0}" ([1, 3, 5, 7], [0, 0, 0, 0], 2, 2):([1, 3, 5, 7], [0, 0, 5, 7], 2, 2)
-given t_parse stdin "{\"c\":0,\"d\":0,\"a\":0,\"b\":0}" ([1, 3, 5, 7], [0, 0, 0, 0], 3, 2):([1, 3, 5, 7], [0, 0, 0, 7], 3, 2)
+given fixture_parsed_document stdin "{\"c\":0,\"d\":0,\"a\":0,\"b\":0}" ([1, 3, 5, 7], [0, 0, 0, 0], 0, 2):([1, 3, 5, 7], [5, 7, 1, 3], 0, 2)
+given fixture_parsed_document stdin "{\"c\":0,\"d\":0,\"a\":0,\"b\":0}" ([1, 3, 5, 7], [0, 0, 0, 0], 2, 2):([1, 3, 5, 7], [0, 0, 5, 7], 2, 2)
+given fixture_parsed_document stdin "{\"c\":0,\"d\":0,\"a\":0,\"b\":0}" ([1, 3, 5, 7], [0, 0, 0, 0], 3, 2):([1, 3, 5, 7], [0, 0, 0, 7], 3, 2)
 
-merge_pass(int[] xs, int[] tmp, int w) {
-  int lo = 0;
-  int n = len(xs);
-  while (lo < n) {
-    merge_run(xs, tmp, lo, w);
-    lo = lo + 2 * w;
+merge_pass(int[] node_list, int[] scratch_list, int pass_width) {
+  int run_start = 0;
+  int element_total = len(node_list);
+  while (run_start < element_total) {
+    merge_run(node_list, scratch_list, run_start, pass_width);
+    run_start = run_start + 2 * pass_width;
   }
-} chain (int[] xs, int[] tmp, int w) {
-  copy_back(xs, tmp);
+} chain (int[] node_list, int[] scratch_list, int pass_width) {
+  copy_back(node_list, scratch_list);
 } return void;
-given t_parse stdin "{\"c\":0,\"d\":0,\"a\":0,\"b\":0}" ([1, 3, 5, 7], [0, 0, 0, 0], 2):([5, 7, 1, 3], [5, 7, 1, 3], 2)
-given t_parse stdin "{\"d\":0,\"c\":0,\"b\":0,\"a\":0}" ([1, 3, 5, 7], [0, 0, 0, 0], 1):([3, 1, 7, 5], [3, 1, 7, 5], 1)
+given fixture_parsed_document stdin "{\"c\":0,\"d\":0,\"a\":0,\"b\":0}" ([1, 3, 5, 7], [0, 0, 0, 0], 2):([5, 7, 1, 3], [5, 7, 1, 3], 2)
+given fixture_parsed_document stdin "{\"d\":0,\"c\":0,\"b\":0,\"a\":0}" ([1, 3, 5, 7], [0, 0, 0, 0], 1):([3, 1, 7, 5], [3, 1, 7, 5], 1)

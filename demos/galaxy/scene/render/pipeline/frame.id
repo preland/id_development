@@ -4,18 +4,18 @@
 // projection (camera_proj rebuilds from the LIVE aspect every frame, per
 // backends/gl/README.md's resize recipe), then hands off to draw.id.
 
-render(int t) {
-  int mv = camera_view(t);
-  int proj = camera_proj();
-  draw_scene(mv, proj);
+render(int tick) {
+  int combined_matrix = camera_view(tick);
+  int projection_matrix = camera_projection();
+  draw_scene(combined_matrix, projection_matrix);
 } return void;
-given init_math given build_particles (0):()
-given init_math given build_particles (100):()
+given initialize_math given build_particles (0):()
+given initialize_math given build_particles (100):()
 
-camera_view(int t) {
-  int swirl = swirl_matrix(t);
-  int camera_rig_v = camera_rig();
-  int ret_i = gl_mat_mul(camera_rig_v, swirl);
-} return int ret_i;
+camera_view(int tick) {
+  int swirl = swirl_matrix(tick);
+  int rig_matrix = camera_rig();
+  int view_matrix = gl_mat_mul(rig_matrix, swirl);
+} return int view_matrix;
 (0):(4)
 (100):(4)

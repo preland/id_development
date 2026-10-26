@@ -1,4 +1,4 @@
-// particle_radius picks a milli-unit radius in 0..(import max_radius), biased
+// particle_radius picks a milli-unit radius in 0..(import maximum_radius), biased
 // toward the center: u is uniform in 0..1000, and squaring it (u*u/1000,
 // still 0..1000) compresses the distribution toward 0 -- a uniform variable
 // squared has more mass near zero, which is exactly "denser toward the
@@ -7,16 +7,16 @@
 // color and thickness falloffs (particles/look/color/pack.id,
 // particles/look/position/y.id).
 
-particle_radius(int i) {
-  int u = random_range(0, 1001 - 1);
-  int biased = u * u / 1000;
-  int ret_i = biased * (import max_radius) / 1000;
-} return int ret_i;
-given init_math (0):(450)
-given init_math (5):(450)
+particle_radius(int particle_index) {
+  int uniform_sample = random_range(0, 1001 - 1);
+  int biased = uniform_sample * uniform_sample / 1000;
+  int scaled_radius = biased * (import maximum_radius) / 1000;
+} return int scaled_radius;
+given initialize_math (0):(450)
+given initialize_math (5):(450)
 
-radius_frac(int r) {
-  int ret_i = r * 1000 / (import max_radius);
-} return int ret_i;
+radius_fraction(int radius) {
+  int fraction_of_maximum = radius * 1000 / (import maximum_radius);
+} return int fraction_of_maximum;
 (0):(0)
 (5000):(1000)

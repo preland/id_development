@@ -1,33 +1,33 @@
-cmd_pick(int idx, string file) {
-  int rc = 0;
-  if (idx = 0) {
-    rc = cmd_fmt(file);
-  } else if (idx = 1) {
-    rc = doc_load(file);
+command_pick(int command_index, string file) {
+  int exit_status = 0;
+  if (command_index = 0) {
+    exit_status = command_format(file);
+  } else if (command_index = 1) {
+    exit_status = doc_load(file);
   }
-} chain (int idx, string file) {
-  if (idx = 2) {
-    rc = cmd_get(file);
-  } else if (idx = 3) {
-    rc = cmd_keys(file);
+} chain (int command_index, string file) {
+  if (command_index = 2) {
+    exit_status = command_get(file);
+  } else if (command_index = 3) {
+    exit_status = command_keys(file);
   }
-  if (idx = 4) {
-    rc = cmd_sort(file);
+  if (command_index = 4) {
+    exit_status = command_sort(file);
   }
-} return int rc;
-given t_args stdin "[1]" (0, "-"):(0) then t_out:("[\n  1\n]\n")
-given t_args stdin "[1]" (1, "-"):(0) then t_out:("")
-given t_args stdin "[1," (1, "-"):(1) then eprints:("<stdin>:1:4: error: expected a value (found end of input)\n")
-given t_get_path(".a[1]") stdin "{\"a\":[5,6]}" (2, (import tp)):(0) then t_out:("6\n") then t_tmp_drop:(0)
-given t_args stdin "{\"k\":1}" (3, "-"):(0) then t_out:("k\n")
-given t_args stdin "{\"b\":1,\"a\":2}" (4, "-"):(0) then t_out:("{\n  \"a\": 2,\n  \"b\": 1\n}\n")
+} return int exit_status;
+given fixture_arguments stdin "[1]" (0, "-"):(0) then fixture_output_text:("[\n  1\n]\n")
+given fixture_arguments stdin "[1]" (1, "-"):(0) then fixture_output_text:("")
+given fixture_arguments stdin "[1," (1, "-"):(1) then eprints:("<stdin>:1:4: error: expected a value (found end of input)\n")
+given fixture_get_path_file(".a[1]") stdin "{\"a\":[5,6]}" (2, (import temporary_path)):(0) then fixture_output_text:("6\n") then fixture_temporary_remove:(0)
+given fixture_arguments stdin "{\"k\":1}" (3, "-"):(0) then fixture_output_text:("k\n")
+given fixture_arguments stdin "{\"b\":1,\"a\":2}" (4, "-"):(0) then fixture_output_text:("{\n  \"a\": 2,\n  \"b\": 1\n}\n")
 
-cmd_run(int idx) {
-  string file = arg_file((import cmd_need)[idx]);
-  int rc = cmd_pick(idx, file);
-} return int rc;
-given t_fmt_file stdin "[1]" (0):(0) then t_out:("[\n  1\n]\n") then t_tmp_drop:(0)
-given t_args stdin "[2]" (0):(0) then t_out:("[\n  2\n]\n")
-given t_args stdin "[2]" (1):(0) then t_out:("")
-given t_fmt_file stdin "[1]" (1):(0) then t_out:("") then t_tmp_drop:(0)
-given t_args stdin "{\"a\":1}" (3):(0) then t_out:("a\n")
+command_run(int command_index) {
+  string file = argument_file((import cmd_need)[command_index]);
+  int exit_status = command_pick(command_index, file);
+} return int exit_status;
+given fixture_format_file stdin "[1]" (0):(0) then fixture_output_text:("[\n  1\n]\n") then fixture_temporary_remove:(0)
+given fixture_arguments stdin "[2]" (0):(0) then fixture_output_text:("[\n  2\n]\n")
+given fixture_arguments stdin "[2]" (1):(0) then fixture_output_text:("")
+given fixture_format_file stdin "[1]" (1):(0) then fixture_output_text:("") then fixture_temporary_remove:(0)
+given fixture_arguments stdin "{\"a\":1}" (3):(0) then fixture_output_text:("a\n")

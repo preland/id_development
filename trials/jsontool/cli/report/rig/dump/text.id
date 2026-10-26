@@ -1,27 +1,27 @@
-t_node_text(int i) {
-  string s = nget(i, (import f_kind)) + ":" + nget(i, (import f_from)) + "-" + nget(i, (import f_to)) + ":" + nget(i, (import f_child)) + ":" + nget(i, (import f_next)) + ";";
-} return string s;
-given t_parse stdin "7" (0):("3:0-1:-1:-1;")
-given t_parse stdin "[]" (0):("5:0--1:-1:-1;")
+fixture_node_text(int index) {
+  string node_text = node_get(index, (import f_kind)) + ":" + node_get(index, (import f_from)) + "-" + node_get(index, (import f_to)) + ":" + node_get(index, (import f_child)) + ":" + node_get(index, (import f_next)) + ";";
+} return string node_text;
+given fixture_parsed_document stdin "7" (0):("3:0-1:-1:-1;")
+given fixture_parsed_document stdin "[]" (0):("5:0--1:-1:-1;")
 
-t_dump() {
-  string s = "";
-  int i = 0;
-  while (i < t_nodes()) {
-    s = s + t_node_text(i);
-    i = i + 1;
+fixture_node_dump() {
+  string dump_text = "";
+  int index = 0;
+  while (index < fixture_node_count()) {
+    dump_text = dump_text + fixture_node_text(index);
+    index = index + 1;
   }
-} return string s;
-given t_parse stdin "[7]" ():("5:1-1:1:-1;3:1-2:-1:-1;")
-given t_parse stdin "{\"a\":null}" ():("6:2-2:1:-1;7:1-4:-1:2;0:5-9:-1:-1;")
+} return string dump_text;
+given fixture_parsed_document stdin "[7]" ():("5:1-1:1:-1;3:1-2:-1:-1;")
+given fixture_parsed_document stdin "{\"a\":null}" ():("6:2-2:1:-1;7:1-4:-1:2;0:5-9:-1:-1;")
 
-t_segstr() {
-  string s = "";
-  int k = 0;
-  while (k * 3 < len((import pth))) {
-    s = s + seg_text(k);
-    k = k + 1;
+fixture_segments_text() {
+  string segments_text = "";
+  int segment_position = 0;
+  while (segment_position * 3 < len((import path_cells))) {
+    segments_text = segments_text + segment_text(segment_position);
+    segment_position = segment_position + 1;
   }
-} return string s;
-given t_path_a ():(".a[2]")
-given t_pinit ():("")
+} return string segments_text;
+given fixture_parsed_sample_path ():(".a[2]")
+given fixture_path_buffers ():("")

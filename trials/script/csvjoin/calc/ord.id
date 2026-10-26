@@ -1,24 +1,24 @@
-cj_tally(string[][] orows) {
+join_tally_orders(string[][] order_rows) {
   int i = 1;
-  while (i < len(orows)) {
-    cj_order(orows[i]);
+  while (i < len(order_rows)) {
+    join_add_order(order_rows[i]);
     i = i + 1;
   }
 } return void;
-given cj_state given cj_cust(["1", "A", "north"]) ([["o", "c", "a"], ["1", "1", "2.50"], ["2", "9", "1.25"]]):([["o", "c", "a"], ["1", "1", "2.50"], ["2", "9", "1.25"]]) then (import cj_sum):([125, 250]) then (import cj_num):([1, 1])
-given cj_state ([["o", "c", "a"]]):([["o", "c", "a"]]) then (import cj_num):([0])
+given join_start_state given join_add_customer(["1", "A", "north"]) ([["o", "c", "a"], ["1", "1", "2.50"], ["2", "9", "1.25"]]):([["o", "c", "a"], ["1", "1", "2.50"], ["2", "9", "1.25"]]) then (import region_totals):([125, 250]) then (import region_order_counts):([1, 1])
+given join_start_state ([["o", "c", "a"]]):([["o", "c", "a"]]) then (import region_order_counts):([0])
 
-cj_order(string[] row) {
-  string cust = list_string_get_or(row, (import cj_o_cust), "");
-  int r = hash_map_get((import cj_keys), (import cj_vals), (import cj_used), cust, (import cj_none));
-  int cents = cj_cents(list_string_get_or(row, (import cj_o_amt), ""));
+join_add_order(string[] row) {
+  string order_customer_identifier = list_string_get_or(row, (import order_customer_column), "");
+  int r = hash_map_get((import customer_keys), (import customer_regions), (import customer_slots_used), order_customer_identifier, (import unmatched_region));
+  int cents = join_amount_cents(list_string_get_or(row, (import order_amount_column), ""));
 } chain (string[] row) {
-  cj_add(r, cents);
+  join_add_to_region(r, cents);
 } return void;
-given cj_state given cj_cust(["1", "A", "north"]) (["5", "1", "2.50"]):(["5", "1", "2.50"]) then (import cj_sum):([0, 250]) then (import cj_num):([0, 1])
-given cj_state given cj_cust(["1", "A", "north"]) (["5", "2", "0.07"]):(["5", "2", "0.07"]) then (import cj_sum):([7, 0]) then (import cj_num):([1, 0])
+given join_start_state given join_add_customer(["1", "A", "north"]) (["5", "1", "2.50"]):(["5", "1", "2.50"]) then (import region_totals):([0, 250]) then (import region_order_counts):([0, 1])
+given join_start_state given join_add_customer(["1", "A", "north"]) (["5", "2", "0.07"]):(["5", "2", "0.07"]) then (import region_totals):([7, 0]) then (import region_order_counts):([1, 0])
 
-cj_cents(string amount) {
+join_amount_cents(string amount) {
   float scaled = num_val(amount) * 100.0 + 0.5;
   int c = scaled;
 } return int c;

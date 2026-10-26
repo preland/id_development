@@ -2,10 +2,10 @@
 // scroll/reset touch ground in place (lset), so this is what a case looks
 // at to prove which column actually changed.
 ground_state() {
-  string st = (import ground)[0] + "," + len((import ground)) + "," + (import ground)[(import bx)];
-} return string st;
-given mb_setup ():("1,60,1")
-given mb_setup ():("1,60,1") then eprints:("")
+  string state_text = (import ground)[0] + "," + len((import ground)) + "," + (import ground)[(import buggy_column)];
+} return string state_text;
+given game_setup ():("1,60,1")
+given game_setup ():("1,60,1") then eprints:("")
 
 // A crater already in progress, and one open at the buggy's own column --
 // the state count_down/next_col's crater-continuing branch and in_pit's/
@@ -13,11 +13,11 @@ given mb_setup ():("1,60,1") then eprints:("")
 // mb_setup alone ever reaches (a fresh game starts with crater_left 0 and
 // solid ground everywhere).
 crater_setup() {
-  mb_setup();
-  integer_list_set((import mb), 5, 2);
-  integer_list_set((import ground), (import bx), 0);
+  game_setup();
+  integer_list_set((import game_state), 5, 2);
+  integer_list_set((import ground), (import buggy_column), 0);
 } return void;
-():() then mb_state:("0,0,0,1,0,2,20,0")
+():() then game_state_text:("0,0,0,1,0,2,20,0")
 ():() then ground_state:("1,60,0")
 ():()
 ():() then eprints:("")

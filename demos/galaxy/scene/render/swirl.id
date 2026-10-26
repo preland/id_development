@@ -9,21 +9,21 @@
 // it (in the same milli-degree units) alongside the particle count so a
 // headless run has proof the swirl is actually advancing.
 
-swirl_deg(int t) {
-  int ret_i = (t * 300) % 360000;
-} return int ret_i;
+swirl_angle(int tick) {
+  int angle_at_tick = (tick * 300) % 360000;
+} return int angle_at_tick;
 (0):(0)
 (100):(30000)
 
-swirl_matrix(int t) {
-  int swirl_deg_v = swirl_deg(t);
-  int ret_i = gl_mat_rotate_y(swirl_deg_v);
-} return int ret_i;
+swirl_matrix(int tick) {
+  int swirl_rotation = swirl_angle(tick);
+  int rotation_matrix = gl_mat_rotate_y(swirl_rotation);
+} return int rotation_matrix;
 (0):(0)
 (100):(0)
 
-status_line(int t) {
-  string ret_s = "frame " + t + " particles " + (import particle_count) + " swirl_millideg " + swirl_deg(t);
-} return string ret_s;
+status_line(int tick) {
+  string status_text = "frame " + tick + " particles " + (import particle_count) + " swirl_millideg " + swirl_angle(tick);
+} return string status_text;
 (0):("frame 0 particles 6000000 swirl_millideg 0")
 (100):("frame 100 particles 6000000 swirl_millideg 30000")

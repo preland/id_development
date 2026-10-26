@@ -1,21 +1,21 @@
-t_flat() {
-  t_parse();
-  integer_list_set((import jc), (import c_ind), -1);
-  emit_tree((import jc)[(import c_root)]);
+fixture_flat_output() {
+  fixture_parsed_document();
+  integer_list_set((import json_context), (import c_ind), -1);
+  emit_tree((import json_context)[(import c_root)]);
 } return void;
-stdin "[ 1 , 2 ]" ():() then t_out:("[1,2]\n")
-stdin "{\"a\" : true}" ():() then t_out:("{\"a\":true}\n")
+stdin "[ 1 , 2 ]" ():() then fixture_output_text:("[1,2]\n")
+stdin "{\"a\" : true}" ():() then fixture_output_text:("{\"a\":true}\n")
 
-t_pretty() {
-  t_parse();
-  emit_tree((import jc)[(import c_root)]);
+fixture_pretty_output() {
+  fixture_parsed_document();
+  emit_tree((import json_context)[(import c_root)]);
 } return void;
-stdin "[1]" ():() then t_out:("[\n  1\n]\n")
-stdin "{}" ():() then t_out:("{}\n")
+stdin "[1]" ():() then fixture_output_text:("[\n  1\n]\n")
+stdin "{}" ():() then fixture_output_text:("{}\n")
 
-t_path_a() {
-  t_pinit();
-  int rc = path_parse(".a[2]");
+fixture_parsed_sample_path() {
+  fixture_path_buffers();
+  int sample_parse_result = path_parse(".a[2]");
 } return void;
-():() then t_segs:(2)
-():() then (import jc)[(import c_pk)]:(1)
+():() then fixture_segment_count:(2)
+():() then (import json_context)[(import c_pk)]:(1)

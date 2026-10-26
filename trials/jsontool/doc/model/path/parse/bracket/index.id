@@ -1,31 +1,31 @@
-br_close(string path, int e, int cnt) {
-  int q = e + 1;
-  if (cnt < 1 || cnt > 9) {
-    q = path_fail((import pe_index), e);
-  } else if (character_code_at(path, e) != (import k_rbrk)) {
-    q = path_fail((import pe_close), e);
+bracket_close(string path, int close_position, int digit_count) {
+  int end_position = close_position + 1;
+  if (digit_count < 1 || digit_count > 9) {
+    end_position = path_fail((import pe_index), close_position);
+  } else if (character_code_at(path, close_position) != (import k_rbrk)) {
+    end_position = path_fail((import pe_close), close_position);
   }
-} return int q;
-given t_pinit ("[5]", 2, 1):(3)
-given t_pinit ("[5", 2, 1):(-1) then (import jc)[(import c_perr)]:(4)
-given t_pinit ("[]", 1, 0):(-1) then (import jc)[(import c_perr)]:(3)
-given t_pinit ("[1234567890]", 11, 10):(-1) then (import jc)[(import c_perr)]:(3)
-given t_pinit ("[123456789]", 10, 9):(11)
+} return int end_position;
+given fixture_path_buffers ("[5]", 2, 1):(3)
+given fixture_path_buffers ("[5", 2, 1):(-1) then (import json_context)[(import c_perr)]:(4)
+given fixture_path_buffers ("[]", 1, 0):(-1) then (import json_context)[(import c_perr)]:(3)
+given fixture_path_buffers ("[1234567890]", 11, 10):(-1) then (import json_context)[(import c_perr)]:(3)
+given fixture_path_buffers ("[123456789]", 10, 9):(11)
 
-br_index(string path, int i) {
-  int neg = character_code_at(path, i) == 45;
-  int e = path_digits(path, i + neg);
-  int q = br_close(path, e, e - i - neg);
-} chain (string path, int i) {
-  string txt = str_sub(path, i, e - i);
-  int v = to_int(txt);
-  if (q >= 0) {
-    push_seg(1, v, 0);
+bracket_index(string path, int index) {
+  int negative_sign = character_code_at(path, index) == 45;
+  int digits_end = path_digits(path, index + negative_sign);
+  int end_position = bracket_close(path, digits_end, digits_end - index - negative_sign);
+} chain (string path, int index) {
+  string index_digits = str_sub(path, index, digits_end - index);
+  int index_value = to_int(index_digits);
+  if (end_position >= 0) {
+    push_segment(1, index_value, 0);
   }
-} return int q;
-given t_pinit ("[12]", 1):(4) then t_segstr:("[12]")
-given t_pinit ("[-3]", 1):(4) then t_segstr:("[-3]")
-given t_pinit ("[x]", 1):(-1) then (import jc)[(import c_perr)]:(3)
-given t_pinit ("[1", 1):(-1) then (import jc)[(import c_perr)]:(4)
-given t_pinit ("[-]", 1):(-1) then (import jc)[(import c_perr)]:(3)
-given t_pinit ("[0]", 1):(3) then t_segstr:("[0]")
+} return int end_position;
+given fixture_path_buffers ("[12]", 1):(4) then fixture_segments_text:("[12]")
+given fixture_path_buffers ("[-3]", 1):(4) then fixture_segments_text:("[-3]")
+given fixture_path_buffers ("[x]", 1):(-1) then (import json_context)[(import c_perr)]:(3)
+given fixture_path_buffers ("[1", 1):(-1) then (import json_context)[(import c_perr)]:(4)
+given fixture_path_buffers ("[-]", 1):(-1) then (import json_context)[(import c_perr)]:(3)
+given fixture_path_buffers ("[0]", 1):(3) then fixture_segments_text:("[0]")

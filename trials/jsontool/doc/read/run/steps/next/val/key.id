@@ -1,34 +1,34 @@
-key_end(int pos) {
-  int e = -1;
-  if (byte_at(pos) = (import k_quote)) {
-    e = str_scan(pos);
+key_end(int byte_position) {
+  int key_end_position = -1;
+  if (byte_at(byte_position) = (import k_quote)) {
+    key_end_position = string_scan(byte_position);
   } else {
-    e = jfail((import e_key), pos);
+    key_end_position = json_fail((import e_key), byte_position);
   }
-} return int e;
-given t_load stdin "\"a\"" (0):(3)
-given t_load stdin "x" (0):(-1) then (import jc)[(import c_err)]:(2)
-given t_load stdin "\"a" (0):(-1) then (import jc)[(import c_err)]:(13)
+} return int key_end_position;
+given fixture_loaded_input stdin "\"a\"" (0):(3)
+given fixture_loaded_input stdin "x" (0):(-1) then (import json_context)[(import c_err)]:(2)
+given fixture_loaded_input stdin "\"a" (0):(-1) then (import json_context)[(import c_err)]:(13)
 
-colon_step(int p) {
-  int nx = (import s_val);
-  if (byte_at(p) = (import k_colon)) {
-    integer_list_set((import jc), (import c_pos), skip_ws(p + 1));
+colon_step(int scan_position) {
+  int next_state = (import s_val);
+  if (byte_at(scan_position) = (import k_colon)) {
+    integer_list_set((import json_context), (import c_pos), skip_whitespace(scan_position + 1));
   } else {
-    int bad = jfail((import e_colon), p);
-    nx = (import s_bad);
+    int bad = json_fail((import e_colon), scan_position);
+    next_state = (import s_bad);
   }
-} return int nx;
-given t_load stdin ": 1" (0):(0) then (import jc)[(import c_pos)]:(2)
-given t_load stdin "1" (0):(4) then (import jc)[(import c_err)]:(3)
+} return int next_state;
+given fixture_loaded_input stdin ": 1" (0):(0) then (import json_context)[(import c_pos)]:(2)
+given fixture_loaded_input stdin "1" (0):(4) then (import json_context)[(import c_err)]:(3)
 
-key_take(int pos, int end) {
-  int node = node_new((import kn_key), pos, end);
+key_take(int byte_position, int end) {
+  int node = node_new((import kn_key), byte_position, end);
   attach(node);
-  int p = skip_ws(end);
-} chain (int pos, int end) {
-  int nx = colon_step(p);
-} return int nx;
-given t_load stdin "\"a\":1" (0, 3):(0) then t_dump:("7:0-3:-1:-1;")
-given t_load stdin "\"a\":1" (0, 3):(0) then (import jc)[(import c_pos)]:(4)
-given t_load stdin "\"a\" 1" (0, 3):(4) then (import jc)[(import c_err)]:(3)
+  int scan_position = skip_whitespace(end);
+} chain (int byte_position, int end) {
+  int next_state = colon_step(scan_position);
+} return int next_state;
+given fixture_loaded_input stdin "\"a\":1" (0, 3):(0) then fixture_node_dump:("7:0-3:-1:-1;")
+given fixture_loaded_input stdin "\"a\":1" (0, 3):(0) then (import json_context)[(import c_pos)]:(4)
+given fixture_loaded_input stdin "\"a\" 1" (0, 3):(4) then (import json_context)[(import c_err)]:(3)

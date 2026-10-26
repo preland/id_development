@@ -1,39 +1,39 @@
-hd_opt_slot(string sa) {
-  int k = -1;
-  if(sa == "--port") {
-    k = 0;
+server_option_slot(string flag) {
+  int slot = -1;
+  if(flag == "--port") {
+    slot = 0;
   }
-  if(sa == "--root") {
-    k = 1;
+  if(flag == "--root") {
+    slot = 1;
   }
-} chain (string sa) {
-  if(sa == "--host") {
-    k = 3;
+} chain (string flag) {
+  if(flag == "--host") {
+    slot = 3;
   }
-} return int k;
+} return int slot;
 ("--port"):(0)
 ("--root"):(1)
 ("--host"):(3)
 ("--x"):(-1)
 
-hd_arg_at(string[] av, int i) {
-  string v = "";
-  if(i < len(av)) {
-    v = av[i];
+server_argument_at(string[] argument_values, int argument_index) {
+  string argument_text = "";
+  if(argument_index < len(argument_values)) {
+    argument_text = argument_values[argument_index];
   }
-} return string v;
+} return string argument_text;
 (["a", "b"], 1):("b")
 (["a", "b"], 2):("")
 
-hd_opt_put(string[] opts, int k, string val, string sa) {
-  if(k >= 0 && len(val) > 0) {
-    opts[k] = val;
+server_option_store(string[] options, int slot, string option_value, string flag) {
+  if(slot >= 0 && len(option_value) > 0) {
+    options[slot] = option_value;
   }
-  if(k >= 0 && len(val) == 0 && len(opts[2]) == 0) {
-    opts[2] = sa + " needs a value";
+  if(slot >= 0 && len(option_value) == 0 && len(options[2]) == 0) {
+    options[2] = flag + " needs a value";
   }
-  if(k < 0 && len(opts[2]) == 0) {
-    opts[2] = "unknown argument: " + sa;
+  if(slot < 0 && len(options[2]) == 0) {
+    options[2] = "unknown argument: " + flag;
   }
 } return void;
 (["", "", "", ""], 0, "80", "--port"):(["80", "", "", ""], 0, "80", "--port")

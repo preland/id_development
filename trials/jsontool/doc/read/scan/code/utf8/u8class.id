@@ -1,15 +1,15 @@
-u8_need(int b) {
-  int n = 0;
-  if (b >= 194 && b <= 223) {
-    n = 2;
-  } else if (b >= 224 && b <= 239) {
-    n = 3;
+utf8_bytes_needed(int first_byte) {
+  int required_bytes = 0;
+  if (first_byte >= 194 && first_byte <= 223) {
+    required_bytes = 2;
+  } else if (first_byte >= 224 && first_byte <= 239) {
+    required_bytes = 3;
   }
-} chain (int b) {
-  if (b >= 240 && b <= 244) {
-    n = 4;
+} chain (int first_byte) {
+  if (first_byte >= 240 && first_byte <= 244) {
+    required_bytes = 4;
   }
-} return int n;
+} return int required_bytes;
 (65):(0)
 (128):(0)
 (193):(0)
@@ -21,14 +21,14 @@ u8_need(int b) {
 (244):(4)
 (245):(0)
 
-u8_bound(int b0, int u8_dflt, int u8_ka, int u8_va, int u8_kb, int u8_vb) {
-  int u8_lim = u8_dflt;
-  if (b0 = u8_ka) {
-    u8_lim = u8_va;
-  } else if (b0 = u8_kb) {
-    u8_lim = u8_vb;
+utf8_bound(int bound_lead, int default_bound, int first_lead, int first_limit, int second_lead, int second_limit) {
+  int chosen_limit = default_bound;
+  if (bound_lead = first_lead) {
+    chosen_limit = first_limit;
+  } else if (bound_lead = second_lead) {
+    chosen_limit = second_limit;
   }
-} return int u8_lim;
+} return int chosen_limit;
 (224, 128, 224, 160, 240, 144):(160)
 (240, 128, 224, 160, 240, 144):(144)
 (225, 128, 224, 160, 240, 144):(128)

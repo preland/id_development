@@ -1,32 +1,32 @@
-hd_query_sfx(string q) {
-  string sfx = "";
-  if(len(q) > 0) {
-    sfx = "?" + q;
+server_query_suffix(string query_text) {
+  string query_suffix = "";
+  if(len(query_text) > 0) {
+    query_suffix = "?" + query_text;
   }
-} return string sfx;
+} return string query_suffix;
 ("a=1"):("?a=1")
 (""):("")
 
-hd_redirect(string np, string[] rq, string[] rs) {
-  string loc = url_encode_keep(np, "/");
-  string q = hd_query_sfx(rq[(import http_q_query)]);
-  rs[(import http_s_headers)] = "Location: " + loc + "/" + q + "\r\n";
-} chain (string np, string[] rq, string[] rs) {
-  int c = 301;
-} return int c;
-given hd_t_rsnew ("/a b", ["GET", "/a b", "HTTP/1.1", "/a b", "x=1", "", "GET /a b HTTP/1.1", "", "", "0"], (import hd_t_rs)):(301) then (import hd_t_rs)[(import http_s_headers)]:("Location: /a%20b/?x=1\r\n")
-given hd_t_rsnew ("/d", ["GET", "/d", "HTTP/1.1", "/d", "", "", "GET /d HTTP/1.1", "", "", "0"], (import hd_t_rs)):(301) then (import hd_t_rs)[(import http_s_headers)]:("Location: /d/\r\n")
+server_redirect(string normalized_path, string[] request, string[] response) {
+  string location = url_encode_keep(normalized_path, "/");
+  string query_text = server_query_suffix(request[(import http_q_query)]);
+  response[(import http_s_headers)] = "Location: " + location + "/" + query_text + "\r\n";
+} chain (string normalized_path, string[] request, string[] response) {
+  int status_code = 301;
+} return int status_code;
+given server_fixture_response ("/a b", ["GET", "/a b", "HTTP/1.1", "/a b", "x=1", "", "GET /a b HTTP/1.1", "", "", "0"], (import fixture_response)):(301) then (import fixture_response)[(import http_s_headers)]:("Location: /a%20b/?x=1\r\n")
+given server_fixture_response ("/d", ["GET", "/d", "HTTP/1.1", "/d", "", "", "GET /d HTTP/1.1", "", "", "0"], (import fixture_response)):(301) then (import fixture_response)[(import http_s_headers)]:("Location: /d/\r\n")
 
-hd_dir(string fp, string np, string[] rq, string[] rs) {
-  int slash = string_ends_with(fp, "/");
-  int c = 0;
+server_directory(string full_path, string normalized_path, string[] request, string[] response) {
+  int slash = string_ends_with(full_path, "/");
+  int status_code = 0;
   if(slash == 0) {
-    c = hd_redirect(np, rq, rs);
+    status_code = server_redirect(normalized_path, request, response);
   }
-} chain (string fp, string np, string[] rq, string[] rs) {
+} chain (string full_path, string normalized_path, string[] request, string[] response) {
   if(slash == 1) {
-    c = hd_index(fp, np, rq, rs);
+    status_code = server_index(full_path, normalized_path, request, response);
   }
-} return int c;
-given hd_t_rsnew ("/tmp", "/tmp", ["GET", "/tmp", "HTTP/1.1", "/tmp", "", "", "GET /tmp HTTP/1.1", "", "", "0"], (import hd_t_rs)):(301) then (import hd_t_rs)[(import http_s_headers)]:("Location: /tmp/\r\n")
-given hd_t_site given hd_t_rsnew ((import hd_t_dir), "/", ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import hd_t_rs)):(200) then hd_t_drop:(1)
+} return int status_code;
+given server_fixture_response ("/tmp", "/tmp", ["GET", "/tmp", "HTTP/1.1", "/tmp", "", "", "GET /tmp HTTP/1.1", "", "", "0"], (import fixture_response)):(301) then (import fixture_response)[(import http_s_headers)]:("Location: /tmp/\r\n")
+given server_fixture_site given server_fixture_response ((import fixture_root_slash), "/", ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import fixture_response)):(200) then server_fixture_discard_site:(1)

@@ -1,28 +1,28 @@
-cj_report(string[][] crows, string[][] orows) {
-  cj_state();
-  cj_index(crows);
-  cj_tally(orows);
-} chain (string[][] crows, string[][] orows) {
-  int[] byname = order_strings((import cj_reg));
-  int[] bysum = order_descending(order_by_integers((import cj_sum), byname));
-  cj_lines(order_by_integers(byname, bysum));
+join_report(string[][] crows, string[][] order_rows) {
+  join_start_state();
+  join_index_customers(crows);
+  join_tally_orders(order_rows);
+} chain (string[][] crows, string[][] order_rows) {
+  int[] region_by_name = order_strings((import region_names));
+  int[] region_by_total = order_descending(order_by_integers((import region_totals), region_by_name));
+  join_print_regions(order_by_integers(region_by_name, region_by_total));
 } return void;
 ([["id", "n", "region"], ["1", "a", "north"]], [["o", "c", "a"], ["1", "1", "2.50"], ["2", "2", "1.00"]]):([["id", "n", "region"], ["1", "a", "north"]], [["o", "c", "a"], ["1", "1", "2.50"], ["2", "2", "1.00"]]) then prints:("north: 1 orders, total 2.50\n(unmatched): 1 orders, total 1.00\n")
 ([["id", "n", "region"], ["1", "a", "west"], ["2", "b", "east"]], [["o", "c", "a"], ["1", "1", "1.00"], ["2", "2", "1.00"]]):([["id", "n", "region"], ["1", "a", "west"], ["2", "b", "east"]], [["o", "c", "a"], ["1", "1", "1.00"], ["2", "2", "1.00"]]) then prints:("east: 1 orders, total 1.00\nwest: 1 orders, total 1.00\n(unmatched): 0 orders, total 0.00\n")
 
-cj_lines(int[] order) {
+join_print_regions(int[] order) {
   int i = 0;
   while (i < len(order)) {
-    print(cj_line(order[i]));
+    print(join_region_line(order[i]));
     i = i + 1;
   }
 } return void;
-given cj_state given cj_cust(["1", "a", "north"]) ([1, 0]):([1, 0]) then prints:("north: 0 orders, total 0.00\n(unmatched): 0 orders, total 0.00\n")
-given cj_state ([]):([])
+given join_start_state given join_add_customer(["1", "a", "north"]) ([1, 0]):([1, 0]) then prints:("north: 0 orders, total 0.00\n(unmatched): 0 orders, total 0.00\n")
+given join_start_state ([]):([])
 
-cj_line(int r) {
-  string name = (import cj_reg)[r];
-  string line = name + ": " + (import cj_num)[r] + " orders, total " + cj_money((import cj_sum)[r]);
+join_region_line(int r) {
+  string name = (import region_names)[r];
+  string line = name + ": " + (import region_order_counts)[r] + " orders, total " + join_format_money((import region_totals)[r]);
 } return string line;
-given cj_state given cj_cust(["1", "a", "north"]) given cj_add(1, 250) (1):("north: 1 orders, total 2.50")
-given cj_state (0):("(unmatched): 0 orders, total 0.00")
+given join_start_state given join_add_customer(["1", "a", "north"]) given join_add_to_region(1, 250) (1):("north: 1 orders, total 2.50")
+given join_start_state (0):("(unmatched): 0 orders, total 0.00")

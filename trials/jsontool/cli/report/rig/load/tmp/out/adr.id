@@ -1,20 +1,20 @@
-t_srcadr() {
-  t_load();
-  export word srcad = (import jw)[(import w_src)];
-  export word s0ad = (import jw)[(import w_s0)];
+fixture_buffer_addresses() {
+  fixture_loaded_input();
+  export word saved_source_address = (import buffer_addresses)[(import w_src)];
+  export word saved_first_address = (import buffer_addresses)[(import w_s0)];
 } return void;
-stdin "hey" ():() then t_src:("hey")
-stdin "" ():() then (import jc)[(import c_len)]:(0)
+stdin "hey" ():() then fixture_source_text:("hey")
+stdin "" ():() then (import json_context)[(import c_len)]:(0)
 
-t_ofull() {
-  t_load();
-  integer_list_set((import jc), (import c_of), (import obcap));
+fixture_full_output() {
+  fixture_loaded_input();
+  integer_list_set((import json_context), (import c_of), (import obcap));
 } return void;
-stdin "" ():() then (import jc)[(import c_of)]:(65536)
-stdin "" ():() then (import jc)[(import c_len)]:(0)
+stdin "" ():() then (import json_context)[(import c_of)]:(65536)
+stdin "" ():() then (import json_context)[(import c_len)]:(0)
 
-t_ohandle() {
-  int ok = (import jc)[(import c_oh)] == (import oh);
+fixture_output_handle_matches() {
+  int ok = (import json_context)[(import c_oh)] == (import output_handle);
 } return int ok;
-given t_tmp_out ():(1) then t_tmp_drop:(0)
-given t_tmp_ofull ():(1) then t_tmp_drop:(0)
+given fixture_temporary_output ():(1) then fixture_temporary_remove:(0)
+given fixture_temporary_output_full ():(1) then fixture_temporary_remove:(0)

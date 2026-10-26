@@ -3,24 +3,24 @@
 // passing the imported list as a parameter makes it an assignable identifier
 // again, and lists are reference-semantic so the store is shared.
 
-grid_get(int x, int z) {
-  int ret_i = (import mgrid)[z * (import grid_w) + x];
-} return int ret_i;
-given maze_init (0, 0):(1)
-given maze_init (14, 12):(1)
+grid_get(int column, int row) {
+  int cell_value = (import maze_grid)[row * (import grid_width) + column];
+} return int cell_value;
+given create_maze (0, 0):(1)
+given create_maze (14, 12):(1)
 given open_room_setup (1, 1):(0)
 
-grid_set(int x, int z, int v) {
-  int grid_index_v = z * (import grid_w) + x;
-  integer_list_set((import mgrid), grid_index_v, v);
+grid_set(int column, int row, int new_cell_value) {
+  int flat_index = row * (import grid_width) + column;
+  integer_list_set((import maze_grid), flat_index, new_cell_value);
 } return void;
-given maze_init (3, 4, 0):() then grid_check_3_4:(0)
-given maze_init (3, 4, 7):() then grid_check_3_4:(7)
+given create_maze (3, 4, 0):() then grid_sample_cell:(0)
+given create_maze (3, 4, 7):() then grid_sample_cell:(7)
 
 // Test check: cell (3,4) read through a zero-argument wrapper, since a
 // `then` check takes none but grid_get needs both coordinates.
-grid_check_3_4() {
-  int ret_i = grid_get(3, 4);
-} return int ret_i;
-given maze_init ():(1)
-given maze_init ():(1) then calls grid_get:(3, 4)
+grid_sample_cell() {
+  int sample_value = grid_get(3, 4);
+} return int sample_value;
+given create_maze ():(1)
+given create_maze ():(1) then calls grid_get:(3, 4)

@@ -1,22 +1,22 @@
-t_wdec() {
-  t_wpath(".a[1]");
-  int n = key_dec(1, (import w_s0));
+fixture_decoded_key() {
+  fixture_walk_path(".a[1]");
+  int decoded_key_length = key_decode(1, (import w_s0));
 } return void;
-stdin "{\"a\":1}" ():() then t_s0:("a")
-stdin "{\"bc\":1}" ():() then t_s0:("bc")
+stdin "{\"a\":1}" ():() then fixture_first_buffer:("a")
+stdin "{\"bc\":1}" ():() then fixture_first_buffer:("bc")
 
-t_path(string t_pa_s) {
-  st_init();
-  int rc = path_parse(t_pa_s);
+fixture_parsed_path(string path_text) {
+  state_start();
+  int parse_result = path_parse(path_text);
 } return void;
-("a"):() then (import jc)[(import c_perr)]:(1)
-("a"):() then (import jc)[(import c_pep)]:(0)
-("[\"x.y\"]"):() then t_segstr:(".x.y")
-("[\"x.y\"]"):() then (import jc)[(import c_pk)]:(3)
+("a"):() then (import json_context)[(import c_perr)]:(1)
+("a"):() then (import json_context)[(import c_pep)]:(0)
+("[\"x.y\"]"):() then fixture_segments_text:(".x.y")
+("[\"x.y\"]"):() then (import json_context)[(import c_pk)]:(3)
 
-t_walk_bad() {
-  t_wpath(".a[1]");
-  int hit = path_walk((import jc)[(import c_root)]);
+fixture_failed_walk() {
+  fixture_walk_path(".a[1]");
+  int hit = path_walk((import json_context)[(import c_root)]);
 } return void;
-stdin "{\"b\":1}" ():() then jc_state:("pos=7 len=7 cap=65536 err=0 erp=0 root=0 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=1 perr=0 pep=0 fk=0 fr=3 seen=0")
-stdin "{\"a\":[1]}" ():() then jc_state:("pos=9 len=9 cap=65536 err=0 erp=0 root=0 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=1 perr=0 pep=0 fk=1 fr=4 seen=0")
+stdin "{\"b\":1}" ():() then context_state:("pos=7 len=7 cap=65536 err=0 erp=0 root=0 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=1 perr=0 pep=0 fk=0 fr=3 seen=0")
+stdin "{\"a\":[1]}" ():() then context_state:("pos=9 len=9 cap=65536 err=0 erp=0 root=0 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=1 perr=0 pep=0 fk=1 fr=4 seen=0")

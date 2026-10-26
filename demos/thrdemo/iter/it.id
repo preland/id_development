@@ -1,16 +1,16 @@
-pure td_iter(float zr, float zi, float cr, float ci, int i) {
-  int r = i;
-  if(i < (import td_max) && zr * zr + zi * zi <= 4.0) {
-    r = td_iter(zr * zr - zi * zi + cr, 2.0 * zr * zi + ci, cr, ci, i + 1);
+pure fractal_escape_count(float real_part, float imaginary_part, float real_offset, float imaginary_offset, int iteration_count) {
+  int escape_iterations = iteration_count;
+  if(iteration_count < (import fractal_iteration_limit) && real_part * real_part + imaginary_part * imaginary_part <= 4.0) {
+    escape_iterations = fractal_escape_count(real_part * real_part - imaginary_part * imaginary_part + real_offset, 2.0 * real_part * imaginary_part + imaginary_offset, real_offset, imaginary_offset, iteration_count + 1);
   }
-} return int r;
+} return int escape_iterations;
 (0.0, 0.0, 3.0, 3.0, 0):(1)
 (0.0, 0.0, 0.0, 0.0, 0):(1000)
 
-pure td_px(int y, int x) {
-  float cr = 3.0 * x / (import td_size) - 2.0;
-  float ci = 2.0 * y / (import td_size) - 1.0;
-  int it = td_iter(0.0, 0.0, cr, ci, 0);
+pure fractal_pixel(int row_index, int column_index) {
+  float real_offset = 3.0 * column_index / (import fractal_size) - 2.0;
+  float imaginary_offset = 2.0 * row_index / (import fractal_size) - 1.0;
+  int it = fractal_escape_count(0.0, 0.0, real_offset, imaginary_offset, 0);
 } return int it;
 (0, 0):(1)
 (600, 800):(1000)

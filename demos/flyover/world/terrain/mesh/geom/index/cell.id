@@ -8,16 +8,16 @@
 // [0,1,2, 1,3,2] (corner 0=near-left,1=near-right,2=far-left,3=far-right).
 
 corner_index(int cell, int local) {
-  int cgx = cell % 12;
-  int cgz = cell / 12;
-  int ret_i = corner_from_cell(cgx, cgz, local);
-} return int ret_i;
+  int cell_column = cell % 12;
+  int cell_row = cell / 12;
+  int corner_slot = corner_from_cell(cell_column, cell_row, local);
+} return int corner_slot;
 (0, 0):(0)
 (13, 3):(28)
 
-corner_from_cell(int cgx, int cgz, int local) {
-  int gx = cgx + local % 2;
-  int ret_i = (cgz + local / 2) * 13 + gx;
-} return int ret_i;
+corner_from_cell(int cell_column, int cell_row, int local) {
+  int grid_column = cell_column + local % 2;
+  int corner_offset = (cell_row + local / 2) * 13 + grid_column;
+} return int corner_offset;
 (0, 0, 0):(0)
 (2, 3, 3):(55)

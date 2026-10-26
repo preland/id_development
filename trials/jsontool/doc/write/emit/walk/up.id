@@ -1,41 +1,41 @@
-emit_route(int kind, int nx) {
-  int r = nx;
+emit_route(int kind, int sibling_node) {
+  int route_marker = sibling_node;
   if (kind = (import kn_key)) {
     emit_colon();
-  } else if (nx >= 0) {
+  } else if (sibling_node >= 0) {
     emit_comma();
   }
-} chain (int kind, int nx) {
-  if (kind != (import kn_key) && nx < 0) {
-    r = (import em_pop);
+} chain (int kind, int sibling_node) {
+  if (kind != (import kn_key) && sibling_node < 0) {
+    route_marker = (import em_pop);
   }
-} return int r;
-given t_load (7, 3):(3) then t_out:(": ")
-given t_load (3, 4):(4) then t_out:(",\n")
-given t_load (3, -1):(-2) then t_out:("")
-given t_load (5, -1):(-2) then (import jc)[(import c_of)]:(0)
+} return int route_marker;
+given fixture_loaded_input (7, 3):(3) then fixture_output_text:(": ")
+given fixture_loaded_input (3, 4):(4) then fixture_output_text:(",\n")
+given fixture_loaded_input (3, -1):(-2) then fixture_output_text:("")
+given fixture_loaded_input (5, -1):(-2) then (import json_context)[(import c_of)]:(0)
 
-emit_after(int x) {
-  int kind = nget(x, (import f_kind));
-  int nx = nget(x, (import f_next));
-  int r = (import em_done);
-} chain (int x) {
-  if (len((import stk)) > 0) {
-    r = emit_route(kind, nx);
+emit_after(int done_node) {
+  int kind = node_get(done_node, (import f_kind));
+  int after_node = node_get(done_node, (import f_next));
+  int after_marker = (import em_done);
+} chain (int done_node) {
+  if (len((import container_stack)) > 0) {
+    after_marker = emit_route(kind, after_node);
   }
-} return int r;
-given t_parse stdin "[1" (1):(-2)
-given t_parse stdin "[1]" (1):(-1)
-given t_parse stdin "[1,2" (1):(2) then t_out:(",\n  ")
-given t_parse stdin "{\"a\"" (1):(-1)
+} return int after_marker;
+given fixture_parsed_document stdin "[1" (1):(-2)
+given fixture_parsed_document stdin "[1]" (1):(-1)
+given fixture_parsed_document stdin "[1,2" (1):(2) then fixture_output_text:(",\n  ")
+given fixture_parsed_document stdin "{\"a\"" (1):(-1)
 
-emit_up(int x) {
-  int nx = emit_after(x);
-  while (nx = (import em_pop)) {
-    x = emit_pop();
-    nx = emit_after(x);
+emit_up(int finished_node) {
+  int resume_node = emit_after(finished_node);
+  while (resume_node = (import em_pop)) {
+    finished_node = emit_pop();
+    resume_node = emit_after(finished_node);
   }
-} return int nx;
-given t_parse stdin "[1" (1):(-1) then t_out:("\n]")
-given t_parse stdin "[1,2" (1):(2) then t_out:(",\n  ")
-given t_parse stdin "[[1" (2):(-1) then t_out:("\n  ]\n]")
+} return int resume_node;
+given fixture_parsed_document stdin "[1" (1):(-1) then fixture_output_text:("\n]")
+given fixture_parsed_document stdin "[1,2" (1):(2) then fixture_output_text:(",\n  ")
+given fixture_parsed_document stdin "[[1" (2):(-1) then fixture_output_text:("\n  ]\n]")

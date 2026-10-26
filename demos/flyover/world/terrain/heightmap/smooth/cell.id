@@ -6,19 +6,19 @@
 // identifier again, and lists are reference-semantic so the store is shared
 // -- same trick demos/gl3dgame/world/game/state/mutate.id uses).
 
-smooth_cell(int gz, int gx) {
-  int i = gz * 13 + gx;
-  int sum = sum5(i);
-  integer_list_set((import heights), i, sum / 5);
+smooth_cell(int gz, int grid_column) {
+  int grid_index = gz * 13 + grid_column;
+  int sum = neighborhood_sum(grid_index);
+  integer_list_set((import heights), grid_index, sum / 5);
 } return void;
-given world_init (7, 9):() then (import heights)[100]:(1703)
-given world_init (1, 1):() then (import heights)[100]:(1672)
+given world_initialize (7, 9):() then (import heights)[100]:(1703)
+given world_initialize (1, 1):() then (import heights)[100]:(1672)
 
-sum5(int i) {
-  int a = (import heights)[i] + (import heights)[i - 1];
-  int b = (import heights)[i + 1] + (import heights)[i - 13];
-  int ret_i = a + b + (import heights)[i + 13];
-} return int ret_i;
-given world_init (100):(8515)
-given world_init (14):(6612)
+neighborhood_sum(int grid_index) {
+  int center_and_left = (import heights)[grid_index] + (import heights)[grid_index - 1];
+  int right_and_above = (import heights)[grid_index + 1] + (import heights)[grid_index - 13];
+  int total_height = center_and_left + right_and_above + (import heights)[grid_index + 13];
+} return int total_height;
+given world_initialize (100):(8515)
+given world_initialize (14):(6612)
 

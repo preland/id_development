@@ -1,39 +1,39 @@
-dec_esc(int pos, word dst, int o) {
-  int e = byte_at(pos + 1);
-  int r = dec_esc_at(e, pos, dst, o);
-} return int r;
-given t_srcadr stdin "\\n" (0, (import s0ad), 0):(1) then t_s0:("\n")
-given t_srcadr stdin "\\u0041" (0, (import s0ad), 0):(1) then t_s0:("A")
+decode_escape(int byte_position, word destination, int output_offset) {
+  int escape_letter = byte_at(byte_position + 1);
+  int escape_end_offset = decode_escape_at(escape_letter, byte_position, destination, output_offset);
+} return int escape_end_offset;
+given fixture_buffer_addresses stdin "\\n" (0, (import saved_first_address), 0):(1) then fixture_first_buffer:("\n")
+given fixture_buffer_addresses stdin "\\u0041" (0, (import saved_first_address), 0):(1) then fixture_first_buffer:("A")
 
-dec_esc_at(int e, int pos, word dst, int o) {
-  int r = o + 1;
-  if (e = 117) {
-    r = utf8_put(dst, o, dec_cp(pos));
+decode_escape_at(int escape_letter, int byte_position, word destination, int output_offset) {
+  int escape_next_offset = output_offset + 1;
+  if (escape_letter = 117) {
+    escape_next_offset = utf8_put(destination, output_offset, decode_code_point(byte_position));
   } else {
-    poke8(dst + o, esc_char(e));
+    poke8(destination + output_offset, escape_character(escape_letter));
   }
-} return int r;
-given t_srcadr stdin "\\n" (110, 0, (import s0ad), 0):(1) then t_s0:("\n")
-given t_srcadr stdin "\\u00e9" (117, 0, (import s0ad), 0):(2) then t_s0:("é")
-given t_srcadr stdin "\\ud83d\\ude00" (117, 0, (import s0ad), 0):(4) then t_s0:("😀")
+} return int escape_next_offset;
+given fixture_buffer_addresses stdin "\\n" (110, 0, (import saved_first_address), 0):(1) then fixture_first_buffer:("\n")
+given fixture_buffer_addresses stdin "\\u00e9" (117, 0, (import saved_first_address), 0):(2) then fixture_first_buffer:("é")
+given fixture_buffer_addresses stdin "\\ud83d\\ude00" (117, 0, (import saved_first_address), 0):(4) then fixture_first_buffer:("😀")
 
-esc_char(int e) {
-  int c = e;
-  if (e = 98) {
-    c = 8;
-  } else if (e = 102) {
-    c = 12;
+escape_character(int escape_letter) {
+  int escaped_character = escape_letter;
+  if (escape_letter = 98) {
+    escaped_character = 8;
+  } else if (escape_letter = 102) {
+    escaped_character = 12;
   }
-} chain (int e) {
-  if (e = 110) {
-    c = 10;
-  } else if (e = 114) {
-    c = 13;
+} chain (int escape_letter) {
+  if (escape_letter = 110) {
+    escaped_character = 10;
+  } else if (escape_letter = 114) {
+    escaped_character = 13;
   }
-  if (e = 116) {
-    c = 9;
+  if (escape_letter = 116) {
+    escaped_character = 9;
   }
-} return int c;
+} return int escaped_character;
 (98):(8)
 (102):(12)
 (110):(10)

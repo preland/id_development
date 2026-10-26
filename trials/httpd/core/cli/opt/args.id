@@ -1,35 +1,35 @@
-hd_arg_step(string[] av, string[] opts, int i) {
-  string sa = av[i];
-  int k = hd_opt_slot(sa);
-  string val = hd_arg_at(av, i + 1);
-} chain (string[] av, string[] opts, int i) {
-  hd_opt_put(opts, k, val, sa);
-  int nx = i + 2;
-  if(k < 0) {
-    nx = i + 1;
+server_argument_step(string[] argument_values, string[] options, int argument_index) {
+  string flag = argument_values[argument_index];
+  int slot = server_option_slot(flag);
+  string option_value = server_argument_at(argument_values, argument_index + 1);
+} chain (string[] argument_values, string[] options, int argument_index) {
+  server_option_store(options, slot, option_value, flag);
+  int next_index = argument_index + 2;
+  if(slot < 0) {
+    next_index = argument_index + 1;
   }
-} return int nx;
+} return int next_index;
 (["p", "--port", "80"], ["", "", "", ""], 1):(3)
 (["p", "--zap", "80"], ["", "", "", ""], 1):(2)
 
-hd_args(string[] av) {
-  string[] opts = ["", "", "", ""];
-  int i = 1;
-  while(i < len(av)) {
-    i = hd_arg_step(av, opts, i);
+server_arguments(string[] argument_values) {
+  string[] options = ["", "", "", ""];
+  int argument_index = 1;
+  while(argument_index < len(argument_values)) {
+    argument_index = server_argument_step(argument_values, options, argument_index);
   }
-} return string[] opts;
+} return string[] options;
 (["p", "--port", "80", "--root", "/tmp"]):(["80", "/tmp", "", ""])
 (["p"]):(["", "", "", ""])
 (["p", "--root"]):(["", "", "--root needs a value", ""])
 (["p", "--host", "0.0.0.0", "--port", "0"]):(["0", "", "", "0.0.0.0"])
 (["p", "bogus", "--port", "1"]):(["1", "", "unknown argument: bogus", ""])
 
-hd_port_ok(string p) {
+server_port_valid(string port_text) {
   int ok = 0;
-  if(http_uint(p) >= 0 && len(p) < 6) {
-    int n = to_int(p);
-    if(n >= 0 && n < 65536) {
+  if(http_uint(port_text) >= 0 && len(port_text) < 6) {
+    int parsed_port = to_int(port_text);
+    if(parsed_port >= 0 && parsed_port < 65536) {
       ok = 1;
     }
   }

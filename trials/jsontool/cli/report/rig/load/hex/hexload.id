@@ -1,27 +1,27 @@
-t_hexbyte(int at) {
-  int hi = hex_val(byte_at(at));
-  int lo = hex_val(byte_at(at + 1));
-  int b = hi * 16 + lo;
-} return int b;
-given t_load stdin "e2 82" (3):(130)
-given t_load stdin "0a" (0):(10)
+fixture_hex_pair_value(int at) {
+  int hi = hex_value(byte_at(at));
+  int low_digit = hex_value(byte_at(at + 1));
+  int pair_value = hi * 16 + low_digit;
+} return int pair_value;
+given fixture_loaded_input stdin "e2 82" (3):(130)
+given fixture_loaded_input stdin "0a" (0):(10)
 
-t_hexpack() {
-  int n = ((import jc)[(import c_len)] + 1) / 3;
-  int k = 0;
-  while (k < n) {
-    poke8((import jw)[(import w_src)] + k, t_hexbyte(k * 3));
-    k = k + 1;
+fixture_hex_pack() {
+  int hex_byte_total = ((import json_context)[(import c_len)] + 1) / 3;
+  int pair_index = 0;
+  while (pair_index < hex_byte_total) {
+    poke8((import buffer_addresses)[(import w_src)] + pair_index, fixture_hex_pair_value(pair_index * 3));
+    pair_index = pair_index + 1;
   }
 } chain () {
-  integer_list_set((import jc), (import c_len), n);
+  integer_list_set((import json_context), (import c_len), hex_byte_total);
 } return void;
-given t_load stdin "41 42" ():() then (import jc)[(import c_len)]:(2)
-given t_load stdin "" ():() then (import jc)[(import c_len)]:(0)
+given fixture_loaded_input stdin "41 42" ():() then (import json_context)[(import c_len)]:(2)
+given fixture_loaded_input stdin "" ():() then (import json_context)[(import c_len)]:(0)
 
-t_hexload() {
-  t_load();
-  t_hexpack();
+fixture_hex_input() {
+  fixture_loaded_input();
+  fixture_hex_pack();
 } return void;
-stdin "22 e2 82 ac 22" ():() then (import jc)[(import c_len)]:(5)
-stdin "ff" ():() then (import jc)[(import c_len)]:(1)
+stdin "22 e2 82 ac 22" ():() then (import json_context)[(import c_len)]:(5)
+stdin "ff" ():() then (import json_context)[(import c_len)]:(1)

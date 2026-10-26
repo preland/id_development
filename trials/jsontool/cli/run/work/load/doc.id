@@ -1,7 +1,7 @@
-src_name(string src_file, string src_dash) {
-  string path = src_file;
-  if (src_file = "-") {
-    path = src_dash;
+source_name(string source_file, string dash_name) {
+  string path = source_file;
+  if (source_file = "-") {
+    path = dash_name;
   }
 } return string path;
 ("-", "/dev/stdin"):("/dev/stdin")
@@ -11,22 +11,22 @@ src_name(string src_file, string src_dash) {
 ("a.json", "<stdin>"):("a.json")
 ("--", "<stdin>"):("--")
 
-doc_check(string file, int st) {
+doc_check(string file, int parser_state) {
   int code = 0;
-  if (st != (import s_end)) {
+  if (parser_state != (import s_end)) {
     eprint(parse_message(file));
     code = 1;
   }
 } return int code;
-given t_parse stdin "[1]" ("f.json", 3):(0) then eprints:("")
-given t_parse stdin "[1 2]" ("f.json", 4):(1) then eprints:("f.json:1:4: error: expected ',' or ']' after an array element (found '2')\n")
-given t_parse stdin "[1 2]" ("-", 4):(1) then eprints:("<stdin>:1:4: error: expected ',' or ']' after an array element (found '2')\n")
+given fixture_parsed_document stdin "[1]" ("f.json", 3):(0) then eprints:("")
+given fixture_parsed_document stdin "[1 2]" ("f.json", 4):(1) then eprints:("f.json:1:4: error: expected ',' or ']' after an array element (found '2')\n")
+given fixture_parsed_document stdin "[1 2]" ("-", 4):(1) then eprints:("<stdin>:1:4: error: expected ',' or ']' after an array element (found '2')\n")
 
 doc_parse(string file) {
-  buf_setup();
-  int st = parse_doc();
-  int code = doc_check(file, st);
+  buffer_setup();
+  int parser_state = parse_doc();
+  int code = doc_check(file, parser_state);
 } return int code;
-given t_load stdin "[1]" ("f"):(0) then t_nodes:(2)
-given t_load stdin "[" ("f"):(1) then eprints:("f:1:2: error: expected a value (found end of input)\n")
-given t_load stdin "1 2" ("f"):(1) then (import jc)[(import c_err)]:(7)
+given fixture_loaded_input stdin "[1]" ("f"):(0) then fixture_node_count:(2)
+given fixture_loaded_input stdin "[" ("f"):(1) then eprints:("f:1:2: error: expected a value (found end of input)\n")
+given fixture_loaded_input stdin "1 2" ("f"):(1) then (import json_context)[(import c_err)]:(7)

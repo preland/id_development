@@ -1,25 +1,25 @@
-io_message(string file) {
-  int en = (import jc)[(import c_errno)];
-  string why = errno_text(en);
-  string msg = "jsontool: " + src_name(file, "<stdin>") + ": cannot read: " + why;
-} return string msg;
-given t_errno_set ("x.json"):("jsontool: x.json: cannot read: no such file or directory")
-given t_errno_set ("-"):("jsontool: <stdin>: cannot read: no such file or directory")
+read_error_message(string file) {
+  int read_error_number = (import json_context)[(import c_errno)];
+  string why = errno_text(read_error_number);
+  string message = "jsontool: " + source_name(file, "<stdin>") + ": cannot read: " + why;
+} return string message;
+given fixture_failed_load ("x.json"):("jsontool: x.json: cannot read: no such file or directory")
+given fixture_failed_load ("-"):("jsontool: <stdin>: cannot read: no such file or directory")
 
 path_message(string path) {
-  int code = (import jc)[(import c_perr)];
-  int at = (import jc)[(import c_pep)];
-  string msg = "jsontool: invalid path '" + path + "' at position " + (at + 1) + ": " + (import p_msg)[code];
-} return string msg;
-given t_path("a") ("a"):("jsontool: invalid path 'a' at position 1: a path must start with '.' or '['")
-given t_path("q") ("q"):("jsontool: invalid path 'q' at position 1: a path must start with '.' or '['")
+  int code = (import json_context)[(import c_perr)];
+  int at = (import json_context)[(import c_pep)];
+  string message = "jsontool: invalid path '" + path + "' at position " + (at + 1) + ": " + (import p_msg)[code];
+} return string message;
+given fixture_parsed_path("a") ("a"):("jsontool: invalid path 'a' at position 1: a path must start with '.' or '['")
+given fixture_parsed_path("q") ("q"):("jsontool: invalid path 'q' at position 1: a path must start with '.' or '['")
 
-seg_body(int sk, int sa, int sb) {
-  string t = "[" + sa + "]";
-  if (sk = 0) {
-    t = "." + str_of_mem((import jw)[(import w_pth)] + sa, sb);
+segment_body(int segment_form, int segment_first, int segment_second) {
+  string segment_label = "[" + segment_first + "]";
+  if (segment_form = 0) {
+    segment_label = "." + str_of_mem((import buffer_addresses)[(import w_pth)] + segment_first, segment_second);
   }
-} return string t;
-given t_wpath(".a[1]") stdin "0" (0, 0, 1):(".a")
-given t_wpath(".a[1]") stdin "0" (1, 7, 0):("[7]")
-given t_wpath(".a[1]") stdin "0" (1, -1, 0):("[-1]")
+} return string segment_label;
+given fixture_walk_path(".a[1]") stdin "0" (0, 0, 1):(".a")
+given fixture_walk_path(".a[1]") stdin "0" (1, 7, 0):("[7]")
+given fixture_walk_path(".a[1]") stdin "0" (1, -1, 0):("[-1]")

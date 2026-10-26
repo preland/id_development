@@ -1,20 +1,20 @@
-t_tmp_open() {
-  t_tmp_make();
-  export int th = fs_open((import tp), "r");
+fixture_temporary_open() {
+  fixture_temporary_file();
+  export int temporary_handle = fs_open((import temporary_path), "r");
 } return void;
-stdin "hi" ():() then t_tmp_size:("t_tmp_size 2") then t_tmp_drop:(0)
-stdin "" ():() then t_tmp_size:("t_tmp_size 0") then t_tmp_drop:(0)
+stdin "hi" ():() then fixture_temporary_size_text:("t_tmp_size 2") then fixture_temporary_remove:(0)
+stdin "" ():() then fixture_temporary_size_text:("t_tmp_size 0") then fixture_temporary_remove:(0)
 
-t_tmp_ready() {
-  t_tmp_open();
+fixture_temporary_ready() {
+  fixture_temporary_open();
   in_setup(0);
 } return void;
-stdin "hi" ():() then (import jc)[(import c_cap)]:(65536) then t_tmp_drop:(0)
-stdin "hi" ():() then (import jc)[(import c_len)]:(0) then t_tmp_drop:(0)
+stdin "hi" ():() then (import json_context)[(import c_cap)]:(65536) then fixture_temporary_remove:(0)
+stdin "hi" ():() then (import json_context)[(import c_len)]:(0) then fixture_temporary_remove:(0)
 
-t_errno_set() {
-  st_init();
-  int rc = in_load("/nonexistent/jsontool_none");
+fixture_failed_load() {
+  state_start();
+  int failed_load_result = in_load("/nonexistent/jsontool_none");
 } return void;
-():() then (import jc)[(import c_errno)]:(2)
-():() then (import jc)[(import c_len)]:(0)
+():() then (import json_context)[(import c_errno)]:(2)
+():() then (import json_context)[(import c_len)]:(0)

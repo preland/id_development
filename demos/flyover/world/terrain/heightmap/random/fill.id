@@ -3,24 +3,24 @@
 // Mirrors demos/gl3d's build_verts/fill_verts shape: an exported list, filled
 // by walking an index with a while loop.
 
-raw_fill(int i) {
-  while(i < 520) {
-    push_height(i);
-    i = i + 1;
+raw_fill(int grid_index) {
+  while(grid_index < 520) {
+    push_height(grid_index);
+    grid_index = grid_index + 1;
   }
 } return void;
-given world_init (520):() then heights_state:("614,520")
-given world_init (519):() then heights_state:("614,521")
+given world_initialize (520):() then heights_state:("614,520")
+given world_initialize (519):() then heights_state:("614,521")
 
-push_height(int i) {
-  int rng_height_v = rng_height();
-  push((import heights), rng_height_v);
+push_height(int grid_index) {
+  int new_height = random_terrain_height();
+  push((import heights), new_height);
 } return void;
-given world_init (0):() then heights_state:("614,521")
-given world_init (5):() then heights_state:("614,521") then eprints:("")
+given world_initialize (0):() then heights_state:("614,521")
+given world_initialize (5):() then heights_state:("614,521") then eprints:("")
 
-rng_height() {
-  int v = random_next() % 3200;
-} return int v;
-given world_init ():(1365)
-given world_init ():(1365) then eprints:("")
+random_terrain_height() {
+  int height_sample = random_next() % 3200;
+} return int height_sample;
+given world_initialize ():(1365)
+given world_initialize ():(1365) then eprints:("")

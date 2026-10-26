@@ -1,23 +1,23 @@
-hd_need(string fp) {
-  int[] nb = [];
-  int n = fs_list(fp, nb, 0);
-  if(n < 0) {
-    n = 0 - fs_error();
+server_listing_size(string full_path) {
+  int[] size_probe = [];
+  int cells_needed = fs_list(full_path, size_probe, 0);
+  if(cells_needed < 0) {
+    cells_needed = 0 - fs_error();
   }
-} return int n;
+} return int cells_needed;
 ("/nonexistent-hd-x"):(-2)
 ("/dev/null"):(-20)
-given hd_t_site ((import hd_t_dir)):(27) then hd_t_drop:(1)
+given server_fixture_site ((import fixture_root_slash)):(27) then server_fixture_discard_site:(1)
 
-hd_need_code(int need, int mx) {
-  int c = 0;
+server_listing_status(int need, int listing_limit) {
+  int status_code = 0;
   if(need < 0) {
-    c = hd_err_code(0 - need);
+    status_code = server_error_status(0 - need);
   }
-  if(need > mx) {
-    c = 500;
+  if(need > listing_limit) {
+    status_code = 500;
   }
-} return int c;
+} return int status_code;
 (10, 100):(0)
 (101, 100):(500)
 (-13, 100):(403)

@@ -4,27 +4,27 @@
 // (-sin(yaw), -cos(yaw)). Scaled by (import move_speed) and divided back
 // down so the result is a milli-unit step per key event.
 
-fwd_dx() {
-  int ps_get_v = (import ps)[2];
-  int ret_i = (0 - fixed_point_sin_degrees(ps_get_v)) * (import move_speed) / 1000;
-} return int ret_i;
-given player_init given fixed_point_trig_initialize ():(0)
-given yaw90_setup ():(-70)
+forward_step_x() {
+  int player_yaw = (import player)[2];
+  int step_x = (0 - fixed_point_sin_degrees(player_yaw)) * (import move_speed) / 1000;
+} return int step_x;
+given create_player given fixed_point_trig_initialize ():(0)
+given quarter_turn_setup ():(-70)
 
-fwd_dz() {
-  int ps_get_v = (import ps)[2];
-  int ret_i = (0 - fixed_point_cos_degrees(ps_get_v)) * (import move_speed) / 1000;
-} return int ret_i;
-given player_init given fixed_point_trig_initialize ():(-70)
-given yaw90_setup ():(0)
+forward_step_z() {
+  int forward_z_yaw = (import player)[2];
+  int step_z = (0 - fixed_point_cos_degrees(forward_z_yaw)) * (import move_speed) / 1000;
+} return int step_z;
+given create_player given fixed_point_trig_initialize ():(-70)
+given quarter_turn_setup ():(0)
 
 // Test fixture: player state plus the trig table, with yaw forced to 90 --
 // gives fwd_dx/fwd_dz/right_dx a second, orthogonal facing to check
 // against yaw 0's (player_init's default facing).
-yaw90_setup() {
-  player_init();
+quarter_turn_setup() {
+  create_player();
   fixed_point_trig_initialize();
-  integer_list_set((import ps), 2, 90);
+  integer_list_set((import player), 2, 90);
 } return void;
-():() then (import ps)[2]:(90)
-():() then (import ps)[0]:(-12000)
+():() then (import player)[2]:(90)
+():() then (import player)[0]:(-12000)

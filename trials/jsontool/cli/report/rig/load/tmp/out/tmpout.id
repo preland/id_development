@@ -1,23 +1,23 @@
-t_tmp_out() {
-  t_tmp_make();
-  buf_setup();
-  export int oh = fs_open((import tp), "w");
+fixture_temporary_output() {
+  fixture_temporary_file();
+  buffer_setup();
+  export int output_handle = fs_open((import temporary_path), "w");
 } chain () {
-  integer_list_set((import jc), (import c_oh), (import oh));
+  integer_list_set((import json_context), (import c_oh), (import output_handle));
 } return void;
-stdin "" ():() then t_bufs:(1) then t_tmp_drop:(0)
-stdin "" ():() then t_ohandle:(1) then t_tmp_drop:(0)
+stdin "" ():() then fixture_buffers_allocated:(1) then fixture_temporary_remove:(0)
+stdin "" ():() then fixture_output_handle_matches:(1) then fixture_temporary_remove:(0)
 
-t_tmp_ofull() {
-  t_tmp_out();
-  integer_list_set((import jc), (import c_of), (import obcap));
+fixture_temporary_output_full() {
+  fixture_temporary_output();
+  integer_list_set((import json_context), (import c_of), (import obcap));
 } return void;
-stdin "" ():() then (import jc)[(import c_of)]:(65536) then t_tmp_drop:(0)
-stdin "" ():() then t_ohandle:(1) then t_tmp_drop:(0)
+stdin "" ():() then (import json_context)[(import c_of)]:(65536) then fixture_temporary_remove:(0)
+stdin "" ():() then fixture_output_handle_matches:(1) then fixture_temporary_remove:(0)
 
-t_tmp_len() {
-  int cl = fs_close((import oh));
-  int n = fs_size((import tp));
-} return int n;
-given t_tmp_out ():(0) then t_tmp_drop:(0)
-given t_tmp_ofull ():(0) then t_tmp_drop:(0)
+fixture_temporary_output_size() {
+  int output_close_status = fs_close((import output_handle));
+  int file_size = fs_size((import temporary_path));
+} return int file_size;
+given fixture_temporary_output ():(0) then fixture_temporary_remove:(0)
+given fixture_temporary_output_full ():(0) then fixture_temporary_remove:(0)

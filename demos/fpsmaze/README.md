@@ -27,7 +27,7 @@ for turning instead.
 
 ## The maze: randomized DFS on an odd/even grid
 
-`game/sim/maze` represents the maze as a flat `(import grid_w) x (import grid_h)` (15x13)
+`game/sim/maze` represents the maze as a flat `(import grid_width) x (import grid_height)` (15x13)
 `int[]` (`1` = wall, `0` = open), using the classic "maze on a grid" trick:
 **even** coordinates are always-wall pillars, **odd** coordinates are either
 carvable *room* cells or the *wall* cell exactly between two adjacent rooms.
@@ -217,7 +217,7 @@ Every function holds at most 3 actions, nesting never exceeds 2 deep
 tree keeps its shape), and no function
 duplicates another's logic (idc's own compile-time checks caught several
 attempts at this while building — e.g. a `right_dz()` turned out to compute
-exactly the same value as `fwd_dx()` by construction of the rotation, so it
+exactly the same value as `forward_step_x()` by construction of the rotation, so it
 is called directly rather than through a forwarder).
 
 ```
@@ -264,7 +264,7 @@ existing convention).
   for depth grounding but no separate ceiling mesh.
 - **Target respawn doesn't exclude the player's current cell or other
   targets' cells** — same scope cut `demos/gl3dgame`'s README notes for its
-  own single target; with `(import num_targets)=3` a rare double-occupied cell is
+  own single target; with `(import target_count)=3` a rare double-occupied cell is
   cosmetic at worst.
 - **Arrow keys don't work** (see Controls above) — a `backends/gl` platform
   limitation (`XLookupString` returns no string for them under the default

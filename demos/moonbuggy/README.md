@@ -23,5 +23,5 @@ The game runs the engine's frame loop on a clock (`sleep_ms(70)` per frame).
 Each frame it reads the latest key, applies vertical physics (a velocity +
 gravity parabola), scrolls the terrain one column and spawns craters at random,
 checks for a crash (on the ground over a crater), repaints, and flushes. All
-state lives in one exported `mb` list; the terrain is the exported `ground`
+state lives in one exported `game_state` list; the terrain is the exported `ground`
 list. See [`mb.id`](mb.id) for the index map.

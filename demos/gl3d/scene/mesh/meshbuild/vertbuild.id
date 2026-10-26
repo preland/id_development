@@ -3,28 +3,28 @@
 // backends/gl/gl.h's gl_draw_tris expects. Mirrors demos/gfxdemo/fb/fb.id's
 // fb_alloc/fb_fill shape: an exported list, filled by walking an index.
 
-build_verts() {
-  export int[] verts = [];
-  fill_verts(0);
+build_vertices() {
+  export int[] mesh_positions = [];
+  fill_vertices(0);
 } return void;
-():() then verts_state:("verts_state -1000,108,1000")
-():() then verts_state:("verts_state -1000,108,1000") then eprints:("")
+():() then vertices_state:("verts_state -1000,108,1000")
+():() then vertices_state:("verts_state -1000,108,1000") then eprints:("")
 
-fill_verts(int slot) {
+fill_vertices(int slot) {
   while(slot < 36) {
     push_vertex(slot);
     slot = slot + 1;
   }
 } return void;
-given build_verts (36):() then verts_state:("verts_state -1000,108,1000")
-given build_verts (35):() then verts_state:("verts_state -1000,111,1000")
+given build_vertices (36):() then vertices_state:("verts_state -1000,108,1000")
+given build_vertices (35):() then vertices_state:("verts_state -1000,111,1000")
 
 // The last coordinate pushed, not only the count, so a case that pushes the
 // wrong value (rather than the wrong number of values) still goes red -- a
 // mutation check on push_z caught this the first way round (mutate.id
 // house rule: strengthen a case that stays green).
-verts_state() {
-  string s_t = "verts_state " + ((import verts)[0] + "," + len((import verts)) + "," + (import verts)[len((import verts)) - 1]);
-} return string s_t;
-given build_verts ():("verts_state -1000,108,1000")
-given build_verts ():("verts_state -1000,108,1000") then eprints:("")
+vertices_state() {
+  string vertices_summary = "verts_state " + ((import mesh_positions)[0] + "," + len((import mesh_positions)) + "," + (import mesh_positions)[len((import mesh_positions)) - 1]);
+} return string vertices_summary;
+given build_vertices ():("verts_state -1000,108,1000")
+given build_vertices ():("verts_state -1000,108,1000") then eprints:("")

@@ -1,24 +1,24 @@
 
-comma_next(int p, int kind) {
-  int nx = kind - (import kn_arr);
-  if (byte_at(p) = closer_of(kind)) {
-    int fb_set = jfail((import e_comma), p);
-    nx = (import s_bad);
+comma_next(int scan_position, int kind) {
+  int next_state = kind - (import kn_arr);
+  if (byte_at(scan_position) = closer_of(kind)) {
+    int comma_failure = json_fail((import e_comma), scan_position);
+    next_state = (import s_bad);
   } else {
-    integer_list_set((import jc), (import c_pos), p);
+    integer_list_set((import json_context), (import c_pos), scan_position);
   }
-} return int nx;
-given t_load stdin "]" (0, 5):(4) then (import jc)[(import c_err)]:(6)
-given t_load stdin "       }" (7, 6):(4) then (import jc)[(import c_erp)]:(7)
-given t_load stdin "1" (0, 5):(0) then (import jc)[(import c_pos)]:(0)
-given t_load stdin " \"" (1, 6):(1) then (import jc)[(import c_pos)]:(1)
-given t_load stdin "}" (0, 6):(4) then (import jc)[(import c_err)]:(6)
-given t_load stdin "]" (0, 6):(1) then (import jc)[(import c_pos)]:(0)
+} return int next_state;
+given fixture_loaded_input stdin "]" (0, 5):(4) then (import json_context)[(import c_err)]:(6)
+given fixture_loaded_input stdin "       }" (7, 6):(4) then (import json_context)[(import c_erp)]:(7)
+given fixture_loaded_input stdin "1" (0, 5):(0) then (import json_context)[(import c_pos)]:(0)
+given fixture_loaded_input stdin " \"" (1, 6):(1) then (import json_context)[(import c_pos)]:(1)
+given fixture_loaded_input stdin "}" (0, 6):(4) then (import json_context)[(import c_err)]:(6)
+given fixture_loaded_input stdin "]" (0, 6):(1) then (import json_context)[(import c_pos)]:(0)
 
-aft_comma(int pos, int kind) {
-  int p = skip_ws(pos + 1);
-  int nx = comma_next(p, kind);
-} return int nx;
-given t_load stdin ", 1" (0, 5):(0) then (import jc)[(import c_pos)]:(2)
-given t_load stdin ", ]" (0, 5):(4) then (import jc)[(import c_erp)]:(2)
-given t_load stdin ",\"a\"" (0, 6):(1)
+aft_comma(int byte_position, int kind) {
+  int scan_position = skip_whitespace(byte_position + 1);
+  int next_state = comma_next(scan_position, kind);
+} return int next_state;
+given fixture_loaded_input stdin ", 1" (0, 5):(0) then (import json_context)[(import c_pos)]:(2)
+given fixture_loaded_input stdin ", ]" (0, 5):(4) then (import json_context)[(import c_erp)]:(2)
+given fixture_loaded_input stdin ",\"a\"" (0, 6):(1)

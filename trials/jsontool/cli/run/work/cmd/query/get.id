@@ -1,15 +1,15 @@
 get_emit(int node) {
-  if ((import jc)[(import c_raw)] = 1 && nget(node, (import f_kind)) = (import kn_str)) {
+  if ((import json_context)[(import c_raw)] = 1 && node_get(node, (import f_kind)) = (import kn_str)) {
     emit_raw(node);
   } else {
     emit_tree(node);
   }
   int code = out_finish();
 } return int code;
-given t_parse stdin "[\"s\"]" (1):(0) then t_out:("\"s\"\n")
-given t_rawparse stdin "[\"s\"]" (1):(0) then t_out:("s\n")
-given t_rawparse stdin "[7]" (1):(0) then t_out:("7\n")
-given t_rawparse stdin "[\"a\\tb\"]" (1):(0) then t_out:("a\tb\n")
+given fixture_parsed_document stdin "[\"s\"]" (1):(0) then fixture_output_text:("\"s\"\n")
+given fixture_raw_parse stdin "[\"s\"]" (1):(0) then fixture_output_text:("s\n")
+given fixture_raw_parse stdin "[7]" (1):(0) then fixture_output_text:("7\n")
+given fixture_raw_parse stdin "[\"a\\tb\"]" (1):(0) then fixture_output_text:("a\tb\n")
 
 get_pick(int hit, string path) {
   int code = 1;
@@ -19,13 +19,13 @@ get_pick(int hit, string path) {
     eprint(walk_message(path));
   }
 } return int code;
-given t_parse stdin "[5]" (1, ".a"):(0) then t_out:("5\n")
-given t_walk_bad stdin "{\"b\":1}" (-1, ".a[1]"):(1) then eprints:("jsontool: get: .a[1]: key not found at .a\n")
+given fixture_parsed_document stdin "[5]" (1, ".a"):(0) then fixture_output_text:("5\n")
+given fixture_failed_walk stdin "{\"b\":1}" (-1, ".a[1]"):(1) then eprints:("jsontool: get: .a[1]: key not found at .a\n")
 
 get_walk(string path) {
-  int hit = path_walk((import jc)[(import c_root)]);
+  int hit = path_walk((import json_context)[(import c_root)]);
   int code = get_pick(hit, path);
 } return int code;
-given t_wpath(".a[1]") stdin "{\"a\":[5,6]}" (".a[1]"):(0) then t_out:("6\n")
-given t_wpath(".a[1]") stdin "{\"b\":1}" (".a[1]"):(1) then eprints:("jsontool: get: .a[1]: key not found at .a\n")
-given t_wpath(".a[1]") stdin "{\"a\":[5,{\"x\":1}]}" (".a[1]"):(0) then t_out:("{\n  \"x\": 1\n}\n")
+given fixture_walk_path(".a[1]") stdin "{\"a\":[5,6]}" (".a[1]"):(0) then fixture_output_text:("6\n")
+given fixture_walk_path(".a[1]") stdin "{\"b\":1}" (".a[1]"):(1) then eprints:("jsontool: get: .a[1]: key not found at .a\n")
+given fixture_walk_path(".a[1]") stdin "{\"a\":[5,{\"x\":1}]}" (".a[1]"):(0) then fixture_output_text:("{\n  \"x\": 1\n}\n")

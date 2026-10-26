@@ -1,22 +1,22 @@
-t_dec_a() {
-  t_srcadr();
-  int n = dec_range(0, 1, (import s0ad));
+fixture_decoded_text() {
+  fixture_buffer_addresses();
+  int decoded_total = decode_range(0, 1, (import saved_first_address));
 } return void;
-stdin "a" ():() then t_s0:("a")
-stdin "b" ():() then t_s0:("b")
+stdin "a" ():() then fixture_first_buffer:("a")
+stdin "b" ():() then fixture_first_buffer:("b")
 
-t_dec2() {
-  t_parse();
-  int a = key_dec(1, (import w_s0));
-  int b = key_dec(3, (import w_s1));
+fixture_two_decoded_keys() {
+  fixture_parsed_document();
+  int first_length = key_decode(1, (import w_s0));
+  int second_length = key_decode(3, (import w_s1));
 } return void;
-stdin "{\"ab\":0,\"ac\":0}" ():() then t_s0:("ab")
-stdin "{\"ab\":0,\"ac\":0}" ():() then t_s1:("t_s1 ac")
+stdin "{\"ab\":0,\"ac\":0}" ():() then fixture_first_buffer:("ab")
+stdin "{\"ab\":0,\"ac\":0}" ():() then fixture_second_buffer:("t_s1 ac")
 
-t_ec() {
-  integer_list_set((import jc), (import c_ind), -1);
-  emit_tree((import jc)[(import c_root)]);
-  string s = str_of_mem((import jw)[(import w_out)], (import jc)[(import c_of)]);
-} return string s;
-given t_parse stdin "[1, 2]" ():("[1,2]\n")
-given t_parse stdin "{ \"a\" : [ ] }" ():("{\"a\":[]}\n")
+fixture_compact_emit() {
+  integer_list_set((import json_context), (import c_ind), -1);
+  emit_tree((import json_context)[(import c_root)]);
+  string emitted_text = str_of_mem((import buffer_addresses)[(import w_out)], (import json_context)[(import c_of)]);
+} return string emitted_text;
+given fixture_parsed_document stdin "[1, 2]" ():("[1,2]\n")
+given fixture_parsed_document stdin "{ \"a\" : [ ] }" ():("{\"a\":[]}\n")

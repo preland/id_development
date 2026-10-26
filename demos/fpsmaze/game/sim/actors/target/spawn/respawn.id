@@ -1,16 +1,16 @@
 // Move target `i` to a fresh random room cell (reuses maze/grid/access.id's
 // generic lset -- same helper, not a redefinition).
 
-respawn_target(int i) {
-  respawn_axis(i, (import grid_w), (import tgx));
-  respawn_axis(i, (import grid_h), (import tgz));
+relocate_target(int target_index) {
+  relocate_axis(target_index, (import grid_width), (import target_columns));
+  relocate_axis(target_index, (import grid_height), (import target_rows));
 } return void;
-given random_initialize(1) given targets_init (0):() then calls respawn_axis:(0, 15, (import tgx))
-given random_initialize(1) given targets_init (1):() then calls respawn_axis:(1, 13, (import tgz))
+given random_initialize(1) given create_targets (0):() then calls relocate_axis:(0, 15, (import target_columns))
+given random_initialize(1) given create_targets (1):() then calls relocate_axis:(1, 13, (import target_rows))
 
-respawn_axis(int i, int cells, int[] pos) {
-  int rand_room_v = rand_room(cells);
-  integer_list_set(pos, i, rand_room_v);
+relocate_axis(int target_index, int cells, int[] axis_positions) {
+  int random_room_cell = rand_room(cells);
+  integer_list_set(axis_positions, target_index, random_room_cell);
 } return void;
-given random_initialize(1) given targets_init (0, 15, (import tgx)):() then calls rand_room:(15)
-given random_initialize(1) given targets_init (0, 13, (import tgz)):() then calls random_next:[1] then calls rand_room:(13)
+given random_initialize(1) given create_targets (0, 15, (import target_columns)):() then calls rand_room:(15)
+given random_initialize(1) given create_targets (0, 13, (import target_rows)):() then calls random_next:[1] then calls rand_room:(13)

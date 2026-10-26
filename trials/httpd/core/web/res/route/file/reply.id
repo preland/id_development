@@ -1,27 +1,27 @@
-hd_notmod(int mtm, string[] rs) {
-  rs[(import http_s_headers)] = hd_lm_line(mtm);
-  int c = 304;
-} return int c;
-given hd_t_rsnew (784111777, (import hd_t_rs)):(304) then (import hd_t_rs)[(import http_s_headers)]:("Last-Modified: Sun, 06 Nov 1994 08:49:37 GMT\r\n")
-given hd_t_rsnew (0, (import hd_t_rs)):(304) then (import hd_t_rs)[(import http_s_headers)]:("Last-Modified: Thu, 01 Jan 1970 00:00:00 GMT\r\n")
+server_reply_not_modified(int modified_time, string[] response) {
+  response[(import http_s_headers)] = server_modified_line(modified_time);
+  int status_code = 304;
+} return int status_code;
+given server_fixture_response (784111777, (import fixture_response)):(304) then (import fixture_response)[(import http_s_headers)]:("Last-Modified: Sun, 06 Nov 1994 08:49:37 GMT\r\n")
+given server_fixture_response (0, (import fixture_response)):(304) then (import fixture_response)[(import http_s_headers)]:("Last-Modified: Thu, 01 Jan 1970 00:00:00 GMT\r\n")
 
-hd_full(string fp, int mtm, string[] rs) {
-  rs[(import http_s_headers)] = hd_ct_line(fp) + hd_lm_line(mtm);
-  rs[(import http_s_file)] = fp;
-  int c = 200;
-} return int c;
-given hd_t_rsnew ("/s/a.txt", 784111777, (import hd_t_rs)):(200) then (import hd_t_rs)[(import http_s_headers)]:("Content-Type: text/plain; charset=utf-8\r\nLast-Modified: Sun, 06 Nov 1994 08:49:37 GMT\r\n") then (import hd_t_rs)[(import http_s_file)]:("/s/a.txt")
-given hd_t_rsnew ("/s/a.png", -1, (import hd_t_rs)):(200) then (import hd_t_rs)[(import http_s_headers)]:("Content-Type: image/png\r\n")
+server_reply_full(string full_path, int modified_time, string[] response) {
+  response[(import http_s_headers)] = server_content_type_line(full_path) + server_modified_line(modified_time);
+  response[(import http_s_file)] = full_path;
+  int status_code = 200;
+} return int status_code;
+given server_fixture_response ("/s/a.txt", 784111777, (import fixture_response)):(200) then (import fixture_response)[(import http_s_headers)]:("Content-Type: text/plain; charset=utf-8\r\nLast-Modified: Sun, 06 Nov 1994 08:49:37 GMT\r\n") then (import fixture_response)[(import http_s_file)]:("/s/a.txt")
+given server_fixture_response ("/s/a.png", -1, (import fixture_response)):(200) then (import fixture_response)[(import http_s_headers)]:("Content-Type: image/png\r\n")
 
-hd_pick(int sz, int fresh) {
-  int c = 200;
+server_pick_status(int file_size, int fresh) {
+  int status_code = 200;
   if(fresh == 1) {
-    c = 304;
+    status_code = 304;
   }
-  if(sz < 0) {
-    c = 500;
+  if(file_size < 0) {
+    status_code = 500;
   }
-} return int c;
+} return int status_code;
 (10, 0):(200)
 (10, 1):(304)
 (-1, 1):(500)

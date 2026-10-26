@@ -4,25 +4,25 @@
 // and backtracked out of) -- a full spanning-tree maze with exactly one
 // path between any two rooms.
 
-gen_maze(int sx, int sz) {
-  gen_state_init(sx, sz);
-  run_gen();
+carve_maze(int start_column, int start_row) {
+  create_carving_state(start_column, start_row);
+  run_carving();
 } return void;
-given maze_init given random_initialize(1) (1, 1):() then stack_empty:(1)
-given maze_init given random_initialize(127772) (1, 1):() then stack_empty:(1)
+given create_maze given random_initialize(1) (1, 1):() then stack_empty:(1)
+given create_maze given random_initialize(127772) (1, 1):() then stack_empty:(1)
 
-run_gen() {
+run_carving() {
   while (stack_empty() = 0) {
-    gen_step();
+    carve_step();
   }
 } return void;
-given stack_t_full_setup given random_initialize(1) ():() then stack_empty:(1)
-given stack_t_full_setup given random_initialize(127772) ():() then stack_empty:(1)
+given stack_one_room_setup given random_initialize(1) ():() then stack_empty:(1)
+given stack_one_room_setup given random_initialize(127772) ():() then stack_empty:(1)
 
-gen_step() {
-  int x = list_last((import stackx));
-  int z = list_last((import stackz));
-  gen_step_at(x, z);
+carve_step() {
+  int column = list_last((import stack_columns));
+  int row = list_last((import stack_rows));
+  carve_step_at(column, row);
 } return void;
-given stack_t_full_setup given random_initialize(1) ():() then top_x:(1)
-given stack_t_full_setup given random_initialize(127772) ():() then top_x:(5)
+given stack_one_room_setup given random_initialize(1) ():() then top_x:(1)
+given stack_one_room_setup given random_initialize(127772) ():() then top_x:(5)

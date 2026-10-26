@@ -1,21 +1,21 @@
-t_load() {
-  st_init();
-  int rc = in_load("/dev/stdin");
-  buf_setup();
+fixture_loaded_input() {
+  state_start();
+  int load_result_unused = in_load("/dev/stdin");
+  buffer_setup();
 } return void;
-stdin "abc" ():() then (import jc)[(import c_len)]:(3)
-stdin "" ():() then (import jc)[(import c_len)]:(0)
+stdin "abc" ():() then (import json_context)[(import c_len)]:(3)
+stdin "" ():() then (import json_context)[(import c_len)]:(0)
 
-t_parse() {
-  t_load();
-  int st = parse_doc();
+fixture_parsed_document() {
+  fixture_loaded_input();
+  int parser_state = parse_doc();
 } return void;
-stdin "[1]" ():() then t_nodes:(2)
-stdin "[" ():() then (import jc)[(import c_err)]:(1)
+stdin "[1]" ():() then fixture_node_count:(2)
+stdin "[" ():() then (import json_context)[(import c_err)]:(1)
 
-t_pinit() {
-  st_init();
-  path_init(64);
+fixture_path_buffers() {
+  state_start();
+  path_start(64);
 } return void;
-():() then (import jc)[(import c_pk)]:(0)
-():() then t_segs:(0)
+():() then (import json_context)[(import c_pk)]:(0)
+():() then fixture_segment_count:(0)

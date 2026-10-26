@@ -1,29 +1,29 @@
-uesc_len(int pos) {
-  int n = 6;
-  if (surr_class(hex4(pos + 2)) = 1) {
-    n = 12;
+hex_escape_length(int byte_position) {
+  int escape_length = 6;
+  if (surrogate_class(hex_four(byte_position + 2)) = 1) {
+    escape_length = 12;
   }
-} return int n;
-given t_load stdin "\\u0041" (0):(6)
-given t_load stdin "\\ud83d\\ude00" (0):(12)
-given t_load stdin "\\udc00" (0):(6)
+} return int escape_length;
+given fixture_loaded_input stdin "\\u0041" (0):(6)
+given fixture_loaded_input stdin "\\ud83d\\ude00" (0):(12)
+given fixture_loaded_input stdin "\\udc00" (0):(6)
 
-dec_put(int pos, word dst, int o) {
-  int c = byte_at(pos);
-  int r = dec_put_at(c, pos, dst, o);
-} return int r;
-given t_srcadr stdin "a" (0, (import s0ad), 0):(1) then t_s0:("a")
-given t_srcadr stdin "\\n" (0, (import s0ad), 0):(1) then t_s0:("\n")
-given t_srcadr stdin "\\u00e9" (0, (import s0ad), 0):(2) then t_s0:("é")
+decode_put(int byte_position, word destination, int output_offset) {
+  int current_byte = byte_at(byte_position);
+  int put_next_offset = decode_put_at(current_byte, byte_position, destination, output_offset);
+} return int put_next_offset;
+given fixture_buffer_addresses stdin "a" (0, (import saved_first_address), 0):(1) then fixture_first_buffer:("a")
+given fixture_buffer_addresses stdin "\\n" (0, (import saved_first_address), 0):(1) then fixture_first_buffer:("\n")
+given fixture_buffer_addresses stdin "\\u00e9" (0, (import saved_first_address), 0):(2) then fixture_first_buffer:("é")
 
-dec_put_at(int c, int pos, word dst, int o) {
-  int r = o + 1;
-  if (c != (import k_bslash)) {
-    poke8(dst + o, c);
+decode_put_at(int current_byte, int byte_position, word destination, int output_offset) {
+  int put_at_next_offset = output_offset + 1;
+  if (current_byte != (import k_bslash)) {
+    poke8(destination + output_offset, current_byte);
   } else {
-    r = dec_esc(pos, dst, o);
+    put_at_next_offset = decode_escape(byte_position, destination, output_offset);
   }
-} return int r;
-given t_srcadr stdin "x" (120, 0, (import s0ad), 0):(1) then t_s0:("x")
-given t_srcadr stdin "\\t" (92, 0, (import s0ad), 0):(1) then t_s0:("\t")
-given t_srcadr stdin "x" (65, 0, (import s0ad), 2):(3) then t_s0:("")
+} return int put_at_next_offset;
+given fixture_buffer_addresses stdin "x" (120, 0, (import saved_first_address), 0):(1) then fixture_first_buffer:("x")
+given fixture_buffer_addresses stdin "\\t" (92, 0, (import saved_first_address), 0):(1) then fixture_first_buffer:("\t")
+given fixture_buffer_addresses stdin "x" (65, 0, (import saved_first_address), 2):(3) then fixture_first_buffer:("")

@@ -1,29 +1,29 @@
-ob_str(string s) {
-  int i = 0;
-  while (i < len(s)) {
-    ob_byte(character_code_at(s, i));
-    i = i + 1;
+output_string(string output_text) {
+  int index = 0;
+  while (index < len(output_text)) {
+    output_byte(character_code_at(output_text, index));
+    index = index + 1;
   }
 } return void;
-given t_load ("ab"):() then t_out:("ab")
-given t_load (""):() then t_out:("")
-given t_load ("a\nb"):() then t_out:("a\nb")
+given fixture_loaded_input ("ab"):() then fixture_output_text:("ab")
+given fixture_loaded_input (""):() then fixture_output_text:("")
+given fixture_loaded_input ("a\nb"):() then fixture_output_text:("a\nb")
 
-ob_range(int from, int to) {
-  word base = (import jw)[(import w_src)];
-  ob_mem(base + from, to - from);
+output_range(int from, int to) {
+  word base = (import buffer_addresses)[(import w_src)];
+  output_memory(base + from, to - from);
 } return void;
-given t_load stdin "abcdef" (1, 4):() then t_out:("bcd")
-given t_load stdin "abcdef" (2, 2):() then t_out:("")
-given t_load stdin "abcdef" (0, 6):() then t_out:("abcdef")
+given fixture_loaded_input stdin "abcdef" (1, 4):() then fixture_output_text:("bcd")
+given fixture_loaded_input stdin "abcdef" (2, 2):() then fixture_output_text:("")
+given fixture_loaded_input stdin "abcdef" (0, 6):() then fixture_output_text:("abcdef")
 
-ob_spaces(int n) {
-  int i = 0;
-  while (i < n) {
-    ob_byte((import k_sp));
-    i = i + 1;
+output_spaces(int space_total) {
+  int index = 0;
+  while (index < space_total) {
+    output_byte((import k_sp));
+    index = index + 1;
   }
 } return void;
-given t_load (3):() then t_out:("   ")
-given t_load (0):() then t_out:("")
-given t_load (-2):() then t_out:("")
+given fixture_loaded_input (3):() then fixture_output_text:("   ")
+given fixture_loaded_input (0):() then fixture_output_text:("")
+given fixture_loaded_input (-2):() then fixture_output_text:("")

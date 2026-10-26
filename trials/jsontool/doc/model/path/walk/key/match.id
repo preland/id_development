@@ -1,31 +1,31 @@
-mem_same(int off, int n) {
-  int i = 0;
-  while (i < n && peek8((import jw)[(import w_s0)] + i) = peek8((import jw)[(import w_pth)] + off + i)) {
-    i = i + 1;
+memory_same(int off, int compare_length) {
+  int index = 0;
+  while (index < compare_length && peek8((import buffer_addresses)[(import w_s0)] + index) = peek8((import buffer_addresses)[(import w_pth)] + off + index)) {
+    index = index + 1;
   }
-  int ok = i == n;
+  int ok = index == compare_length;
 } return int ok;
-given t_wdec stdin "{\"a\":1}" (0, 1):(1)
-given t_wdec stdin "{\"b\":1}" (0, 1):(0)
-given t_wdec stdin "{\"a\":1}" (0, 0):(1)
+given fixture_decoded_key stdin "{\"a\":1}" (0, 1):(1)
+given fixture_decoded_key stdin "{\"b\":1}" (0, 1):(0)
+given fixture_decoded_key stdin "{\"a\":1}" (0, 0):(1)
 
-key_eq(int c, int off, int n) {
-  int m = key_dec(c, (import w_s0));
+key_equals(int candidate_node, int off, int expected_length) {
+  int decoded_length = key_decode(candidate_node, (import w_s0));
   int ok = 0;
-  if (m = n) {
-    ok = mem_same(off, n);
+  if (decoded_length = expected_length) {
+    ok = memory_same(off, expected_length);
   }
 } return int ok;
-given t_wpath(".a[1]") stdin "{\"a\":7}" (1, 0, 1):(1)
-given t_wpath(".a[1]") stdin "{\"b\":7}" (1, 0, 1):(0)
-given t_wpath(".a[1]") stdin "{\"ab\":7}" (1, 0, 1):(0)
-given t_wpath(".a[1]") stdin "{\"\\u0061\":7}" (1, 0, 1):(1)
+given fixture_walk_path(".a[1]") stdin "{\"a\":7}" (1, 0, 1):(1)
+given fixture_walk_path(".a[1]") stdin "{\"b\":7}" (1, 0, 1):(0)
+given fixture_walk_path(".a[1]") stdin "{\"ab\":7}" (1, 0, 1):(0)
+given fixture_walk_path(".a[1]") stdin "{\"\\u0061\":7}" (1, 0, 1):(1)
 
-key_pick(int hit, int c, int off, int n) {
-  int r = hit;
-  if (key_eq(c, off, n) = 1) {
-    r = nget(c, (import f_next));
+key_pick(int hit, int picked_node, int off, int pick_length) {
+  int picked_hit = hit;
+  if (key_equals(picked_node, off, pick_length) = 1) {
+    picked_hit = node_get(picked_node, (import f_next));
   }
-} return int r;
-given t_wpath(".a[1]") stdin "{\"a\":7}" (-1, 1, 0, 1):(2)
-given t_wpath(".a[1]") stdin "{\"b\":7}" (5, 1, 0, 1):(5)
+} return int picked_hit;
+given fixture_walk_path(".a[1]") stdin "{\"a\":7}" (-1, 1, 0, 1):(2)
+given fixture_walk_path(".a[1]") stdin "{\"b\":7}" (5, 1, 0, 1):(5)

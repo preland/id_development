@@ -1,25 +1,25 @@
-key_scan(int cur, int off, int n) {
+key_scan(int current_node, int off, int scan_length) {
   int hit = -1;
-  int c = nget(cur, (import f_child));
-  while (c >= 0) {
-    hit = key_pick(hit, c, off, n);
-    c = nget(nget(c, (import f_next)), (import f_next));
+  int scanned_node = node_get(current_node, (import f_child));
+  while (scanned_node >= 0) {
+    hit = key_pick(hit, scanned_node, off, scan_length);
+    scanned_node = node_get(node_get(scanned_node, (import f_next)), (import f_next));
   }
 } return int hit;
-given t_wpath(".a[1]") stdin "{\"a\":1,\"b\":2}" (0, 0, 1):(2)
-given t_wpath(".a[1]") stdin "{\"a\":1,\"a\":2}" (0, 0, 1):(4)
-given t_wpath(".a[1]") stdin "{\"b\":1}" (0, 0, 1):(-1)
-given t_wpath(".a[1]") stdin "{}" (0, 0, 1):(-1)
+given fixture_walk_path(".a[1]") stdin "{\"a\":1,\"b\":2}" (0, 0, 1):(2)
+given fixture_walk_path(".a[1]") stdin "{\"a\":1,\"a\":2}" (0, 0, 1):(4)
+given fixture_walk_path(".a[1]") stdin "{\"b\":1}" (0, 0, 1):(-1)
+given fixture_walk_path(".a[1]") stdin "{}" (0, 0, 1):(-1)
 
-key_lookup(int cur, int off, int n) {
+key_lookup(int current_node, int off, int wanted_length) {
   int hit = -1;
-  if (nget(cur, (import f_kind)) = (import kn_obj)) {
-    hit = key_scan(cur, off, n);
-    integer_list_set((import jc), (import c_fr), (import fr_key));
+  if (node_get(current_node, (import f_kind)) = (import kn_obj)) {
+    hit = key_scan(current_node, off, wanted_length);
+    integer_list_set((import json_context), (import c_fr), (import fr_key));
   } else {
-    integer_list_set((import jc), (import c_fr), (import fr_type_obj));
+    integer_list_set((import json_context), (import c_fr), (import fr_type_obj));
   }
 } return int hit;
-given t_wpath(".a[1]") stdin "{\"a\":7}" (0, 0, 1):(2)
-given t_wpath(".a[1]") stdin "{\"b\":7}" (0, 0, 1):(-1) then (import jc)[(import c_fr)]:(3)
-given t_wpath(".a[1]") stdin "[1]" (0, 0, 1):(-1) then (import jc)[(import c_fr)]:(1)
+given fixture_walk_path(".a[1]") stdin "{\"a\":7}" (0, 0, 1):(2)
+given fixture_walk_path(".a[1]") stdin "{\"b\":7}" (0, 0, 1):(-1) then (import json_context)[(import c_fr)]:(3)
+given fixture_walk_path(".a[1]") stdin "[1]" (0, 0, 1):(-1) then (import json_context)[(import c_fr)]:(1)

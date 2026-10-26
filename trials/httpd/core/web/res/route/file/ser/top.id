@@ -1,10 +1,10 @@
-hd_file(string fp, string[] rq, string[] rs) {
-  int code = hd_probe(fp);
+server_file(string full_path, string[] request, string[] response) {
+  int code = server_probe_file(full_path);
   if(code == 0) {
-    code = hd_ok(fp, rq, rs);
+    code = server_file_ok(full_path, request, response);
   }
 } return int code;
-given hd_t_rsnew ("/nonexistent-hd-x", ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import hd_t_rs)):(404) then (import hd_t_rs)[(import http_s_file)]:("")
-given hd_t_rsnew ("/nonexistent-hd-y/z", ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import hd_t_rs)):(404)
-given hd_t_site given hd_t_rsnew ((import hd_t_apath), ["GET", "/a.txt", "HTTP/1.1", "/a.txt", "", "", "GET /a.txt HTTP/1.1", "", "", "0"], (import hd_t_rs)):(200) then hd_t_rsfile:(1) then hd_t_drop:(1)
-given hd_t_site given hd_t_rsnew ((import hd_t_apath), ["GET", "/a.txt", "HTTP/1.1", "/a.txt", "", "If-Modified-Since: Tue, 19 Jan 2038 03:14:07 GMT", "GET /a.txt HTTP/1.1", "", "", "0"], (import hd_t_rs)):(304) then hd_t_drop:(1)
+given server_fixture_response ("/nonexistent-hd-x", ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import fixture_response)):(404) then (import fixture_response)[(import http_s_file)]:("")
+given server_fixture_response ("/nonexistent-hd-y/z", ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import fixture_response)):(404)
+given server_fixture_site given server_fixture_response ((import fixture_file_path), ["GET", "/a.txt", "HTTP/1.1", "/a.txt", "", "", "GET /a.txt HTTP/1.1", "", "", "0"], (import fixture_response)):(200) then server_fixture_response_file_matches:(1) then server_fixture_discard_site:(1)
+given server_fixture_site given server_fixture_response ((import fixture_file_path), ["GET", "/a.txt", "HTTP/1.1", "/a.txt", "", "If-Modified-Since: Tue, 19 Jan 2038 03:14:07 GMT", "GET /a.txt HTTP/1.1", "", "", "0"], (import fixture_response)):(304) then server_fixture_discard_site:(1)

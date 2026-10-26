@@ -1,7 +1,7 @@
-opt_allowed(int idx, int bit, string name) {
-  int ok = ((import cmd_opts)[idx] & bit) != 0;
+option_allowed(int command_index, int bit, string name) {
+  int ok = ((import cmd_opts)[command_index] & bit) != 0;
   if (ok = 0) {
-    eprint("jsontool: option " + name + " is not valid for '" + (import cmd_names)[idx] + "'");
+    eprint("jsontool: option " + name + " is not valid for '" + (import cmd_names)[command_index] + "'");
   }
 } return int ok;
 (0, 1, "--indent"):(1)
@@ -11,19 +11,19 @@ opt_allowed(int idx, int bit, string name) {
 (3, 2, "--compact"):(0) then eprints:("jsontool: option --compact is not valid for 'keys'\n")
 (4, 2, "--compact"):(1) then eprints:("")
 
-indent_take(string txt, int nxt) {
-  int n = indent_value(txt);
-  int r = indent_store(n, txt, nxt);
-} return int r;
-given t_args ("4", 3):(3) then (import jc)[(import c_ind)]:(4)
-given t_args ("x", 3):(-1) then eprints:("jsontool: --indent needs an integer from 0 to 64, got 'x'\n")
+indent_take(string indent_text, int next_position) {
+  int taken_indent = indent_value(indent_text);
+  int take_result = indent_store(taken_indent, indent_text, next_position);
+} return int take_result;
+given fixture_arguments ("4", 3):(3) then (import json_context)[(import c_ind)]:(4)
+given fixture_arguments ("x", 3):(-1) then eprints:("jsontool: --indent needs an integer from 0 to 64, got 'x'\n")
 
-indent_set(int idx, string txt, int nxt) {
-  int r = (import a_bad);
-  if (opt_allowed(idx, 1, "--indent") = 1) {
-    r = indent_take(txt, nxt);
+indent_set(int command_index, string indent_text, int next_position) {
+  int set_result = (import a_bad);
+  if (option_allowed(command_index, 1, "--indent") = 1) {
+    set_result = indent_take(indent_text, next_position);
   }
-} return int r;
-given t_args (0, "3", 4):(4) then (import jc)[(import c_ind)]:(3)
-given t_args (1, "3", 4):(-1) then eprints:("jsontool: option --indent is not valid for 'validate'\n")
-given t_args (0, "99", 4):(-1) then (import jc)[(import c_ind)]:(2)
+} return int set_result;
+given fixture_arguments (0, "3", 4):(4) then (import json_context)[(import c_ind)]:(3)
+given fixture_arguments (1, "3", 4):(-1) then eprints:("jsontool: option --indent is not valid for 'validate'\n")
+given fixture_arguments (0, "99", 4):(-1) then (import json_context)[(import c_ind)]:(2)

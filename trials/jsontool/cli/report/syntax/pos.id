@@ -1,38 +1,38 @@
-col_step(int b) {
-  int r = (b & 192) != 128;
-} return int r;
+column_step(int column_byte) {
+  int starts_character = (column_byte & 192) != 128;
+} return int starts_character;
 (65):(1)
 (128):(0)
 (191):(0)
 (192):(1)
 (226):(1)
 
-err_line(int pos) {
-  int n = 1;
-  int i = 0;
-  while (i < pos) {
-    if (byte_at(i) = (import k_nl)) {
-      n = n + 1;
+error_line(int line_end_position) {
+  int line_number = 1;
+  int index = 0;
+  while (index < line_end_position) {
+    if (byte_at(index) = (import k_nl)) {
+      line_number = line_number + 1;
     }
-    i = i + 1;
+    index = index + 1;
   }
-} return int n;
-given t_load stdin "a\nb\nc" (4):(3)
-given t_load stdin "a\nb\nc" (0):(1)
-given t_load stdin "a\nb\nc" (2):(2)
-given t_load stdin "a\nb\nc" (1):(1)
-given t_load stdin "a\r\nb" (3):(2)
+} return int line_number;
+given fixture_loaded_input stdin "a\nb\nc" (4):(3)
+given fixture_loaded_input stdin "a\nb\nc" (0):(1)
+given fixture_loaded_input stdin "a\nb\nc" (2):(2)
+given fixture_loaded_input stdin "a\nb\nc" (1):(1)
+given fixture_loaded_input stdin "a\r\nb" (3):(2)
 
-err_col(int pos) {
-  int col = 1;
-  int i = pos - 1;
-  while (i >= 0 && byte_at(i) != (import k_nl)) {
-    col = col + col_step(byte_at(i));
-    i = i - 1;
+error_column(int column_end_position) {
+  int column_number = 1;
+  int index = column_end_position - 1;
+  while (index >= 0 && byte_at(index) != (import k_nl)) {
+    column_number = column_number + column_step(byte_at(index));
+    index = index - 1;
   }
-} return int col;
-given t_load stdin "abc" (2):(3)
-given t_load stdin "a\nbc" (3):(2)
-given t_load stdin "abc" (0):(1)
-given t_hexload stdin "c3 a9 78" (2):(2)
-given t_hexload stdin "e2 82 ac 78" (3):(2)
+} return int column_number;
+given fixture_loaded_input stdin "abc" (2):(3)
+given fixture_loaded_input stdin "a\nbc" (3):(2)
+given fixture_loaded_input stdin "abc" (0):(1)
+given fixture_hex_input stdin "c3 a9 78" (2):(2)
+given fixture_hex_input stdin "e2 82 ac 78" (3):(2)

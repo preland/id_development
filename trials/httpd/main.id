@@ -1,8 +1,8 @@
 main(int argc, string[] argv) {
-  string[] opts = hd_args(argv);
-  string msg = hd_check(opts);
-  int rc = hd_run(opts, msg);
-} return int rc;
+  string[] options = server_arguments(argv);
+  string message = server_check(options);
+  int exit_status = server_run(options, message);
+} return int exit_status;
 (1, ["httpd"]):(2) then eprints:("httpd: --root DIR is required\nusage: httpd [--port N] [--host ADDR] --root DIR\n")
 (3, ["httpd", "--bogus", "x"]):(2) then eprints:("httpd: unknown argument: --bogus\nusage: httpd [--port N] [--host ADDR] --root DIR\n")
 stdin "" (3, ["httpd", "--root", "/tmp"]):(0) then eprints:("httpd: serving /tmp over stdin/stdout (inetd style; give --port N to listen)\n")

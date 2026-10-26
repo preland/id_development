@@ -1,17 +1,17 @@
 // Remaining reset helpers: clear height/velocity/tick, and refill the terrain as solid ground.
 
 reset_phys() {
-  integer_list_set((import mb), 1, 0);
-  integer_list_set((import mb), 2, 0);
-  integer_list_set((import mb), 4, 0);
+  integer_list_set((import game_state), 1, 0);
+  integer_list_set((import game_state), 2, 0);
+  integer_list_set((import game_state), 4, 0);
 } return void;
-given dirty_setup ():() then mb_state:("0,0,0,1,0,0,20,0")
-given mb_setup ():() then mb_state:("0,0,0,1,0,0,20,0")
+given dirty_setup ():() then game_state_text:("0,0,0,1,0,0,20,0")
+given game_setup ():() then game_state_text:("0,0,0,1,0,0,20,0")
 
-reset_ground(int x) {
-  while(x < (import term_w)) {
-    integer_list_set((import ground), x, 1);
-    x = x + 1;
+reset_ground(int column) {
+  while(column < (import term_w)) {
+    integer_list_set((import ground), column, 1);
+    column = column + 1;
   }
 } return void;
 given crater_setup (0):() then ground_state:("1,60,1")

@@ -2,17 +2,17 @@
 // for the frame interval and reports whether to keep looping (stops on quit).
 
 frame() {
-  int k = term_key();
-  update(k);
-  int ret_i = frame_tail(k);
-} return int ret_i;
-given mb_setup ():(1)
-given mb_setup_set(7, 1) ():(0)
+  int key_code = term_key();
+  update(key_code);
+  int keep_looping = frame_tail(key_code);
+} return int keep_looping;
+given game_setup ():(1)
+given game_setup_with_slot(7, 1) ():(0)
 
-wait_cont(int k) {
+wait_cont(int key_code) {
   sleep_ms(70);
-  int ret_i = 1 - (import mb)[7];
-} return int ret_i;
-given mb_setup (0):(1)
-given mb_setup_set(7, 1) (5):(0)
-given mb_setup_set(7, 1) (0):(0)
+  int keep_looping = 1 - (import game_state)[7];
+} return int keep_looping;
+given game_setup (0):(1)
+given game_setup_with_slot(7, 1) (5):(0)
+given game_setup_with_slot(7, 1) (0):(0)

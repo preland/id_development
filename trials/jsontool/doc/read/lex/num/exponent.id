@@ -1,23 +1,23 @@
-exp_sign(int at) {
-  int q = at;
-  int c = byte_at(at);
-  if (c = (import k_plus) || c = (import k_minus)) {
-    q = at + 1;
+exponent_sign(int at) {
+  int end_position = at;
+  int sign_byte = byte_at(at);
+  if (sign_byte = (import k_plus) || sign_byte = (import k_minus)) {
+    end_position = at + 1;
   }
-} return int q;
-given t_load stdin "+1" (0):(1)
-given t_load stdin "-1" (0):(1)
-given t_load stdin "1" (0):(0)
+} return int end_position;
+given fixture_loaded_input stdin "+1" (0):(1)
+given fixture_loaded_input stdin "-1" (0):(1)
+given fixture_loaded_input stdin "1" (0):(0)
 
-num_exp(int p) {
-  int q = p;
-  int c = byte_at(p) | 32;
-  if (c = 101) {
-    q = need_digits(exp_sign(p + 1), (import e_exp));
+number_exponent(int scan_position) {
+  int end_position = scan_position;
+  int exponent_byte = byte_at(scan_position) | 32;
+  if (exponent_byte = 101) {
+    end_position = need_digits(exponent_sign(scan_position + 1), (import e_exp));
   }
-} return int q;
-given t_load stdin "e5" (0):(2)
-given t_load stdin "E-12" (0):(4)
-given t_load stdin "x" (0):(0)
-given t_load stdin "e" (0):(-1) then (import jc)[(import c_err)]:(12)
-given t_load stdin "e+" (0):(-1) then (import jc)[(import c_erp)]:(2)
+} return int end_position;
+given fixture_loaded_input stdin "e5" (0):(2)
+given fixture_loaded_input stdin "E-12" (0):(4)
+given fixture_loaded_input stdin "x" (0):(0)
+given fixture_loaded_input stdin "e" (0):(-1) then (import json_context)[(import c_err)]:(12)
+given fixture_loaded_input stdin "e+" (0):(-1) then (import json_context)[(import c_erp)]:(2)

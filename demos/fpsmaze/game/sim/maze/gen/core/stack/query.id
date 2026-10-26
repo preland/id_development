@@ -1,23 +1,23 @@
 
 stack_empty() {
-  int ret_i = len((import stackx)) = 0;
-} return int ret_i;
-given stack_t_empty_setup ():(1)
-given stack_t_full_setup ():(0)
+  int is_empty = len((import stack_columns)) = 0;
+} return int is_empty;
+given stack_empty_setup ():(1)
+given stack_one_room_setup ():(0)
 
 pop_room() {
-  pop((import stackx));
-  pop((import stackz));
+  pop((import stack_columns));
+  pop((import stack_rows));
 } return void;
-given stack_t_full_setup ():() then stack_empty:(1)
-given stack_t_full2_setup ():() then top_x:(3)
+given stack_one_room_setup ():() then stack_empty:(1)
+given stack_two_rooms_setup ():() then top_x:(3)
 
 // Test fixture: a maze grid plus a frontier with exactly one room, (3,5),
 // visited -- for stack_empty/pop_room's "one element left" case and for
 // anything downstream (dfsstep, valid) that needs a real mgrid to carve into.
-stack_t_full_setup() {
-  maze_init();
-  gen_state_init(3, 5);
+stack_one_room_setup() {
+  create_maze();
+  create_carving_state(3, 5);
 } return void;
 ():() then stack_empty:(0)
 ():() then top_x:(3) then eprints:("")

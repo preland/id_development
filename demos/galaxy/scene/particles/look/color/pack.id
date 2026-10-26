@@ -4,18 +4,18 @@
 // core/edge endpoints chosen in tint.id -- then packs them 0xRRGGBB the
 // same way demos/gl3d/scene/mesh/geom/color.id packs its corner colors.
 
-push_color(int r) {
-  int frac = radius_frac(r);
-  int c = build_color(frac);
-  push((import col), c);
+push_color(int radius) {
+  int radial_fraction = radius_fraction(radius);
+  int particle_color = build_color(radial_fraction);
+  push((import particle_colors), particle_color);
 } return void;
-given init_math given build_particles (1000):() then particle_state:("397,18000000,14802607,6000001")
-given init_math given build_particles (4000):() then particle_state:("397,18000000,14802607,6000001")
+given initialize_math given build_particles (1000):() then particle_state:("397,18000000,14802607,6000001")
+given initialize_math given build_particles (4000):() then particle_state:("397,18000000,14802607,6000001")
 
-build_color(int frac) {
-  int r = tint_channel(frac, 255, 80);
-  int g = tint_channel(frac, 240, 120);
-  int ret_i = build_color_b(frac, r, g);
-} return int ret_i;
-given init_math (0):(15724967)
-given init_math (1000):(4225522)
+build_color(int radial_fraction) {
+  int red_channel = tint_channel(radial_fraction, 255, 80);
+  int green_channel = tint_channel(radial_fraction, 240, 120);
+  int packed_color = build_color_with_blue(radial_fraction, red_channel, green_channel);
+} return int packed_color;
+given initialize_math (0):(15724967)
+given initialize_math (1000):(4225522)

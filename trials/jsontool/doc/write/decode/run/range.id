@@ -1,35 +1,35 @@
-dec_range(int from, int to, word dst) {
-  int o = 0;
+decode_range(int from, int to, word destination) {
+  int output_offset = 0;
   while (from < to) {
-    o = dec_put(from, dst, o);
-    from = from + dec_adv(from);
+    output_offset = decode_put(from, destination, output_offset);
+    from = from + decode_advance(from);
   }
-} return int o;
-given t_srcadr stdin "abc" (0, 3, (import s0ad)):(3) then t_s0:("abc")
-given t_srcadr stdin "a\\nb" (0, 4, (import s0ad)):(3) then t_s0:("a\nb")
-given t_srcadr stdin "\\u00e9" (0, 6, (import s0ad)):(2) then t_s0:("é")
-given t_srcadr stdin "\\ud83d\\ude00" (0, 12, (import s0ad)):(4) then t_s0:("😀")
-given t_srcadr stdin "abc" (1, 1, (import s0ad)):(0)
-given t_srcadr stdin "\\\"\\\\\\/" (0, 6, (import s0ad)):(3) then t_s0:("\"\\/")
+} return int output_offset;
+given fixture_buffer_addresses stdin "abc" (0, 3, (import saved_first_address)):(3) then fixture_first_buffer:("abc")
+given fixture_buffer_addresses stdin "a\\nb" (0, 4, (import saved_first_address)):(3) then fixture_first_buffer:("a\nb")
+given fixture_buffer_addresses stdin "\\u00e9" (0, 6, (import saved_first_address)):(2) then fixture_first_buffer:("é")
+given fixture_buffer_addresses stdin "\\ud83d\\ude00" (0, 12, (import saved_first_address)):(4) then fixture_first_buffer:("😀")
+given fixture_buffer_addresses stdin "abc" (1, 1, (import saved_first_address)):(0)
+given fixture_buffer_addresses stdin "\\\"\\\\\\/" (0, 6, (import saved_first_address)):(3) then fixture_first_buffer:("\"\\/")
 
-dec_adv(int pos) {
-  int n = 1;
-  int e = byte_at(pos + 1);
-  if (byte_at(pos) = (import k_bslash)) {
-    n = esc_len(pos, e);
+decode_advance(int byte_position) {
+  int escape_width = 1;
+  int escape_letter = byte_at(byte_position + 1);
+  if (byte_at(byte_position) = (import k_bslash)) {
+    escape_width = escape_run_length(byte_position, escape_letter);
   }
-} return int n;
-given t_load stdin "a" (0):(1)
-given t_load stdin "\\n" (0):(2)
-given t_load stdin "\\u0041" (0):(6)
-given t_load stdin "\\ud83d\\ude00" (0):(12)
+} return int escape_width;
+given fixture_loaded_input stdin "a" (0):(1)
+given fixture_loaded_input stdin "\\n" (0):(2)
+given fixture_loaded_input stdin "\\u0041" (0):(6)
+given fixture_loaded_input stdin "\\ud83d\\ude00" (0):(12)
 
-esc_len(int pos, int e) {
-  int n = 2;
-  if (e = 117) {
-    n = uesc_len(pos);
+escape_run_length(int byte_position, int escape_letter) {
+  int escape_bytes = 2;
+  if (escape_letter = 117) {
+    escape_bytes = hex_escape_length(byte_position);
   }
-} return int n;
-given st_init (0, 110):(2)
-given t_load stdin "\\u0041" (0, 117):(6)
-given t_load stdin "\\ud83d\\ude00" (0, 117):(12)
+} return int escape_bytes;
+given state_start (0, 110):(2)
+given fixture_loaded_input stdin "\\u0041" (0, 117):(6)
+given fixture_loaded_input stdin "\\ud83d\\ude00" (0, 117):(12)

@@ -3,16 +3,16 @@
 // (three (import ps) reads plus eye_y), one more than build.id's block budget.
 
 view_trans() {
-  int camx = (import ps)[0];
-  int camz = (import ps)[1];
-  int ret_i = view_trans_finish(camx, camz);
-} return int ret_i;
-given player_init ():(0)
-given player_init ():(0) then view_trans:(1)
+  int camera_x = (import player)[0];
+  int camera_z = (import player)[1];
+  int translation_matrix = view_trans_finish(camera_x, camera_z);
+} return int translation_matrix;
+given create_player ():(0)
+given create_player ():(0) then view_trans:(1)
 
-view_trans_finish(int camx, int camz) {
-  int eye_y_v = (import eye_y);
-  int ret_i = gl_mat_translate(0 - camx, 0 - eye_y_v, 0 - camz);
-} return int ret_i;
+view_trans_finish(int camera_x, int camera_z) {
+  int camera_height = (import eye_y);
+  int eye_translation_matrix = gl_mat_translate(0 - camera_x, 0 - camera_height, 0 - camera_z);
+} return int eye_translation_matrix;
 (0, 0):(0)
 (12000, -8000):(0)

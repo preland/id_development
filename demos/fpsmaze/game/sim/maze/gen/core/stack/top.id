@@ -1,23 +1,23 @@
 // The current frontier cell: the last element of stackx/stackz.
 
 top_x() {
-  int ret_i = list_last((import stackx));
-} return int ret_i;
-given stack_t_full_setup ():(3)
-given stack_t_full2_setup ():(11)
+  int top_column = list_last((import stack_columns));
+} return int top_column;
+given stack_one_room_setup ():(3)
+given stack_two_rooms_setup ():(11)
 
 top_z() {
-  string ret_i_t = "top_z " + (list_last((import stackz)));
-} return string ret_i_t;
-given stack_t_full_setup ():("top_z 5")
-given stack_t_full2_setup ():("top_z 9")
+  string top_text = "top_z " + (list_last((import stack_rows)));
+} return string top_text;
+given stack_one_room_setup ():("top_z 5")
+given stack_two_rooms_setup ():("top_z 9")
 
 // Test fixture: a two-deep frontier, (3,5) then (11,9), so top_x/top_z and
 // pop_room can be pinned against a stack with more than one element (a
 // one-deep stack can't tell "pop everything" from "pop the top").
-stack_t_full2_setup() {
-  maze_init();
-  gen_state_init(3, 5);
+stack_two_rooms_setup() {
+  create_maze();
+  create_carving_state(3, 5);
   push_room(11, 9);
 } return void;
 ():() then top_x:(11)

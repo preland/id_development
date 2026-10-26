@@ -1,19 +1,19 @@
-hd_open_code(int h) {
-  int c = 0;
-  if(h < 0) {
-    c = hd_err_code(fs_error());
+server_open_status(int file_handle) {
+  int status_code = 0;
+  if(file_handle < 0) {
+    status_code = server_error_status(fs_error());
   }
-  if(h >= 0) {
-    fs_close(h);
+  if(file_handle >= 0) {
+    fs_close(file_handle);
   }
-} return int c;
+} return int status_code;
 (-1):(500)
 (999):(0)
-given hd_t_enoent (-1):(404)
+given server_fixture_missing_file_error (-1):(404)
 
-hd_probe(string fp) {
-  int h = fs_open(fp, "r");
-  int c = hd_open_code(h);
-} return int c;
+server_probe_file(string full_path) {
+  int file_handle = fs_open(full_path, "r");
+  int status_code = server_open_status(file_handle);
+} return int status_code;
 ("/dev/null"):(0)
 ("/nonexistent-hd-x"):(404)

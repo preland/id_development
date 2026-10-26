@@ -3,26 +3,26 @@
 // giving a clean parabolic hop.
 
 physics() {
-  int off = (import mb)[1] + (import mb)[2];
+  int off = (import game_state)[1] + (import game_state)[2];
   physics_tail(off);
 } return void;
-given dirty_setup ():() then mb_state:("0,8,2,1,7,0,20,0")
-given mb_setup ():() then mb_state:("0,0,0,1,0,0,20,0")
+given dirty_setup ():() then game_state_text:("0,8,2,1,7,0,20,0")
+given game_setup ():() then game_state_text:("0,0,0,1,0,0,20,0")
 
 land(int off) {
-  integer_list_set((import mb), 1, off);
+  integer_list_set((import game_state), 1, off);
   if(off <= 0) {
-    gs_set_two(1, 0, 2, 0);
+    set_two_slots(1, 0, 2, 0);
   }
 } return void;
-given mb_setup (5):() then mb_state:("0,5,0,1,0,0,20,0")
-given mb_setup (0):() then mb_state:("0,0,0,1,0,0,20,0")
+given game_setup (5):() then game_state_text:("0,5,0,1,0,0,20,0")
+given game_setup (0):() then game_state_text:("0,0,0,1,0,0,20,0")
 
-gs_set_two(int gs_slot_a, int gs_val_a, int gs_slot_b, int gs_val_b) {
-  integer_list_set((import mb), gs_slot_a, gs_val_a);
-  integer_list_set((import mb), gs_slot_b, gs_val_b);
+set_two_slots(int first_slot, int first_value, int second_slot, int second_value) {
+  integer_list_set((import game_state), first_slot, first_value);
+  integer_list_set((import game_state), second_slot, second_value);
 } return void;
-given dirty_setup (1, 0, 2, 0):() then mb_state:("0,0,0,1,7,0,20,0")
-given mb_setup (1, 0, 2, 0):() then mb_state:("0,0,0,1,0,0,20,0")
-given crater_setup (5, 0, 6, 20):() then mb_state:("0,0,0,1,0,0,20,0")
-given mb_setup (5, 0, 6, 20):() then mb_state:("0,0,0,1,0,0,20,0")
+given dirty_setup (1, 0, 2, 0):() then game_state_text:("0,0,0,1,7,0,20,0")
+given game_setup (1, 0, 2, 0):() then game_state_text:("0,0,0,1,0,0,20,0")
+given crater_setup (5, 0, 6, 20):() then game_state_text:("0,0,0,1,0,0,20,0")
+given game_setup (5, 0, 6, 20):() then game_state_text:("0,0,0,1,0,0,20,0")

@@ -1,22 +1,22 @@
-ln_feed(string text, string[] vals, int[] st) {
+lines_from_text(string text, string[] option_values, int[] printed_counter) {
   string[] lines = string_lines(text);
-  int i = 0;
-  while (i < len(lines)) {
-    ln_emit(vals, st, lines[i]);
-    i = i + 1;
+  int line_index = 0;
+  while (line_index < len(lines)) {
+    lines_emit_line(option_values, printed_counter, lines[line_index]);
+    line_index = line_index + 1;
   }
 } return void;
 ("a\nb\n", ["0", "0", "", "0"], [0]):("a\nb\n", ["0", "0", "", "0"], [2]) then prints:("a\nb\n")
 ("", ["0", "0", "", "0"], [0]):("", ["0", "0", "", "0"], [0])
 
-ln_emit(string[] vals, int[] st, string line) {
-  int skip = (vals[(import ln_v_skip)] == "1") * (line == "");
-  int most = to_int(vals[(import ln_v_max)]);
-  int stop = (most > 0) * (st[0] >= most);
-} chain (string[] vals, int[] st, string line) {
+lines_emit_line(string[] option_values, int[] printed_counter, string line) {
+  int skip = (option_values[(import lines_option_skip)] == "1") * (line == "");
+  int most = to_int(option_values[(import lines_option_limit)]);
+  int stop = (most > 0) * (printed_counter[0] >= most);
+} chain (string[] option_values, int[] printed_counter, string line) {
   if (skip == 0 && stop == 0) {
-    st[0] = st[0] + 1;
-    print(ln_line(vals, st[0], line));
+    printed_counter[0] = printed_counter[0] + 1;
+    print(lines_format_line(option_values, printed_counter[0], line));
   }
 } return void;
 (["0", "0", "", "0"], [0], "x"):(["0", "0", "", "0"], [1], "x") then prints:("x\n")
@@ -24,14 +24,14 @@ ln_emit(string[] vals, int[] st, string line) {
 (["0", "1", "", "0"], [1], "x"):(["0", "1", "", "0"], [1], "x")
 (["1", "0", "", "0"], [4], "x"):(["1", "0", "", "0"], [5], "x") then prints:("5: x\n")
 
-ln_line(string[] vals, int n, string line) {
-  string prefix = vals[(import ln_v_prefix)];
-  string num = "";
-  if (vals[(import ln_v_number)] == "1") {
-    num = n + ": ";
+lines_format_line(string[] option_values, int line_number, string line) {
+  string prefix = option_values[(import lines_option_prefix)];
+  string number_label = "";
+  if (option_values[(import lines_option_number)] == "1") {
+    number_label = line_number + ": ";
   }
-} chain (string[] vals, int n, string line) {
-  string out = prefix + num + line;
+} chain (string[] option_values, int line_number, string line) {
+  string out = prefix + number_label + line;
 } return string out;
 (["1", "0", "> ", "0"], 3, "x"):("> 3: x")
 (["0", "0", "", "0"], 3, "x"):("x")

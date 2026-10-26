@@ -4,16 +4,16 @@
 // nested box-fill loops.
 
 push_vertex(int slot) {
-  int c = cube_corner(slot);
-  push_xyz(c);
+  int cube_corner_index = cube_corner(slot);
+  push_all_axes(cube_corner_index);
 } return void;
-given build_verts (0):() then verts_state:("verts_state -1000,111,-1000")
-given build_verts (35):() then verts_state:("verts_state -1000,111,1000")
+given build_vertices (0):() then vertices_state:("verts_state -1000,111,-1000")
+given build_vertices (35):() then vertices_state:("verts_state -1000,111,1000")
 
-push_xyz(int c) {
-  int corner_x_v = cube_at(c, 1, (import cube_half));
-  push((import verts), corner_x_v);
-  push_yz(c);
+push_all_axes(int cube_corner_index) {
+  int corner_x_position = cube_at(cube_corner_index, 1, (import cube_half));
+  push((import mesh_positions), corner_x_position);
+  push_height_and_depth(cube_corner_index);
 } return void;
-given build_verts (0):() then verts_state:("verts_state -1000,111,-1000")
-given build_verts (7):() then verts_state:("verts_state -1000,111,1000")
+given build_vertices (0):() then vertices_state:("verts_state -1000,111,-1000")
+given build_vertices (7):() then vertices_state:("verts_state -1000,111,1000")

@@ -1,29 +1,29 @@
-key_dec(int knode, int slot) {
-  int from = nget(knode, (import f_from)) + 1;
-  int to = nget(knode, (import f_to)) - 1;
-  int n = dec_range(from, to, (import jw)[slot]);
-} return int n;
-given t_parse stdin "{\"ab\":1}" (1, 2):(2) then t_s0:("ab")
-given t_parse stdin "{\"a\\u00e9\":1}" (1, 2):(3) then t_s0:("aé")
-given t_parse stdin "{\"k\":1,\"zz\":2}" (3, 3):(2) then t_s1:("t_s1 zz")
+key_decode(int key_node, int slot) {
+  int from = node_get(key_node, (import f_from)) + 1;
+  int to = node_get(key_node, (import f_to)) - 1;
+  int key_length = decode_range(from, to, (import buffer_addresses)[slot]);
+} return int key_length;
+given fixture_parsed_document stdin "{\"ab\":1}" (1, 2):(2) then fixture_first_buffer:("ab")
+given fixture_parsed_document stdin "{\"a\\u00e9\":1}" (1, 2):(3) then fixture_first_buffer:("aé")
+given fixture_parsed_document stdin "{\"k\":1,\"zz\":2}" (3, 3):(2) then fixture_second_buffer:("t_s1 zz")
 
-byte_diff(int i) {
-  int d = peek8((import jw)[(import w_s0)] + i) - peek8((import jw)[(import w_s1)] + i);
-  int r = fixed_point_sign(d);
-} return int r;
-given t_dec2 stdin "{\"ab\":0,\"ac\":0}" (1):(-1)
-given t_dec2 stdin "{\"ab\":0,\"ac\":0}" (0):(0)
-given t_dec2 stdin "{\"ac\":0,\"ab\":0}" (1):(1)
+byte_diff(int index) {
+  int byte_difference = peek8((import buffer_addresses)[(import w_s0)] + index) - peek8((import buffer_addresses)[(import w_s1)] + index);
+  int sign_result = fixed_point_sign(byte_difference);
+} return int sign_result;
+given fixture_two_decoded_keys stdin "{\"ab\":0,\"ac\":0}" (1):(-1)
+given fixture_two_decoded_keys stdin "{\"ab\":0,\"ac\":0}" (0):(0)
+given fixture_two_decoded_keys stdin "{\"ac\":0,\"ab\":0}" (1):(1)
 
-mem_diff(int m) {
-  int i = 0;
-  int r = 0;
-  while (i < m && r = 0) {
-    r = byte_diff(i);
-    i = i + 1;
+memory_difference(int compare_total) {
+  int index = 0;
+  int diff_result = 0;
+  while (index < compare_total && diff_result = 0) {
+    diff_result = byte_diff(index);
+    index = index + 1;
   }
-} return int r;
-given t_dec2 stdin "{\"ab\":0,\"ac\":0}" (2):(-1)
-given t_dec2 stdin "{\"ab\":0,\"ac\":0}" (1):(0)
-given t_dec2 stdin "{\"ab\":0,\"ac\":0}" (0):(0)
-given t_dec2 stdin "{\"bb\":0,\"ac\":0}" (2):(1)
+} return int diff_result;
+given fixture_two_decoded_keys stdin "{\"ab\":0,\"ac\":0}" (2):(-1)
+given fixture_two_decoded_keys stdin "{\"ab\":0,\"ac\":0}" (1):(0)
+given fixture_two_decoded_keys stdin "{\"ab\":0,\"ac\":0}" (0):(0)
+given fixture_two_decoded_keys stdin "{\"bb\":0,\"ac\":0}" (2):(1)

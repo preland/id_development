@@ -1,24 +1,24 @@
 pair_low(int at) {
-  int r = -1;
+  int low_unit = -1;
   if (byte_at(at) = (import k_bslash) && byte_at(at + 1) = 117) {
-    r = hex4(at + 2);
+    low_unit = hex_four(at + 2);
   }
-  if (surr_class(r) != 2) {
-    r = -1;
+  if (surrogate_class(low_unit) != 2) {
+    low_unit = -1;
   }
-} return int r;
-given t_load stdin "\\ude00" (0):(56832)
-given t_load stdin "\\u0041" (0):(-1)
-given t_load stdin "xyz" (0):(-1)
-given t_load stdin "\\ud83d" (0):(-1)
+} return int low_unit;
+given fixture_loaded_input stdin "\\ude00" (0):(56832)
+given fixture_loaded_input stdin "\\u0041" (0):(-1)
+given fixture_loaded_input stdin "xyz" (0):(-1)
+given fixture_loaded_input stdin "\\ud83d" (0):(-1)
 
-pair_scan(int p) {
-  int lo = pair_low(p + 6);
-  int q = p + 12;
-  if (lo < 0) {
-    q = jfail((import e_surr), p);
+pair_scan(int scan_position) {
+  int low_pair_unit = pair_low(scan_position + 6);
+  int end_position = scan_position + 12;
+  if (low_pair_unit < 0) {
+    end_position = json_fail((import e_surr), scan_position);
   }
-} return int q;
-given t_load stdin "\\ud83d\\ude00" (0):(12)
-given t_load stdin "\\ud83d" (0):(-1) then (import jc)[(import c_err)]:(17)
-given t_load stdin "\\ud83d\\ud83d" (0):(-1) then (import jc)[(import c_erp)]:(0)
+} return int end_position;
+given fixture_loaded_input stdin "\\ud83d\\ude00" (0):(12)
+given fixture_loaded_input stdin "\\ud83d" (0):(-1) then (import json_context)[(import c_err)]:(17)
+given fixture_loaded_input stdin "\\ud83d\\ud83d" (0):(-1) then (import json_context)[(import c_erp)]:(0)

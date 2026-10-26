@@ -7,31 +7,31 @@
 // push it 5 units down -Z so it sits in front of the camera (which looks
 // down -Z from the origin, the standard OpenGL convention).
 
-render(int t) {
-  int mv = modelview(t);
-  gl_set_projection((import proj));
-  draw_scene(mv);
+render(int tick) {
+  int placement_matrix = cube_transform(tick);
+  gl_set_projection((import projection_matrix));
+  draw_scene(placement_matrix);
 } return void;
-given scene_init (0):() then calls draw_scene:(5)
-given scene_init (100):() then calls draw_scene:(5)
+given scene_initialize (0):() then calls draw_scene:(5)
+given scene_initialize (100):() then calls draw_scene:(5)
 
 // gl_mat_*'s return is an opaque slot in the GL backend's own matrix pool
 // (backends/gl/gl_linux.c's mat_alloc), not a computed geometry value, so a
 // case can only pin it by asking a fresh process what the first few
 // allocations actually come back as -- confirmed against the real build
 // rather than assumed.
-modelview(int t) {
-  int r = compose_rotation(t);
-  int tr = gl_mat_translate(0, 0, 0 - 5000);
-  int ret_i = gl_mat_mul(tr, r);
-} return int ret_i;
+cube_transform(int tick) {
+  int rotation_matrix = compose_rotation(tick);
+  int translation_matrix = gl_mat_translate(0, 0, 0 - 5000);
+  int cube_matrix = gl_mat_mul(translation_matrix, rotation_matrix);
+} return int cube_matrix;
 (0):(4)
 (100):(4)
 
-compose_rotation(int t) {
-  int ry = gl_mat_rotate_y((t * 2000) % 360000);
-  int rx = gl_mat_rotate_x((t * 1000) % 360000);
-  int ret_i = gl_mat_mul(ry, rx);
-} return int ret_i;
+compose_rotation(int tick) {
+  int y_rotation = gl_mat_rotate_y((tick * 2000) % 360000);
+  int x_rotation = gl_mat_rotate_x((tick * 1000) % 360000);
+  int combined_rotation = gl_mat_mul(y_rotation, x_rotation);
+} return int combined_rotation;
 (0):(2)
 (100):(2)

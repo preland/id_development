@@ -1,19 +1,19 @@
-hd_fail_msg(string host, string skp, int err) {
-  string fm = "httpd: cannot listen on " + host + ":" + skp + " (error " + err + "); --host must be a numeric address such as 127.0.0.1 or 0.0.0.0, and --port a free port";
-} return string fm;
+server_listen_failure_message(string host, string failed_port_text, int error_code) {
+  string failure_text = "httpd: cannot listen on " + host + ":" + failed_port_text + " (error " + error_code + "); --host must be a numeric address such as 127.0.0.1 or 0.0.0.0, and --port a free port";
+} return string failure_text;
 ("127.0.0.1", "80", 13):("httpd: cannot listen on 127.0.0.1:80 (error 13); --host must be a numeric address such as 127.0.0.1 or 0.0.0.0, and --port a free port")
 ("x", "0", 99):("httpd: cannot listen on x:0 (error 99); --host must be a numeric address such as 127.0.0.1 or 0.0.0.0, and --port a free port")
 
-hd_up_msg(string host, int skn, string root) {
-  string fm = "httpd: serving " + root + " on " + host + ":" + skn;
-} return string fm;
+server_listening_message(string host, int port_number, string root) {
+  string listening_text = "httpd: serving " + root + " on " + host + ":" + port_number;
+} return string listening_text;
 ("127.0.0.1", 8080, "/srv"):("httpd: serving /srv on 127.0.0.1:8080")
 ("0.0.0.0", 1, "/"):("httpd: serving / on 0.0.0.0:1")
 
-hd_host_of(string[] opts) {
-  string host = opts[3];
+server_host_address(string[] options) {
+  string host = options[3];
   if(len(host) == 0) {
-    host = (import hd_host);
+    host = (import server_default_host);
   }
 } return string host;
 (["", "", "", ""]):("127.0.0.1")

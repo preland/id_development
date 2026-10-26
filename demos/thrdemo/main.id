@@ -1,29 +1,29 @@
 main(int argc, string[] argv) {
-  int th = td_threads(argc, argv);
-  int h = td_hash(th);
-  print("hash " + h);
+  int thread_count = thread_count_from_arguments(argc, argv);
+  int checksum = fractal_checksum(thread_count);
+  print("hash " + checksum);
 } return int 0;
 (1, ["p"]):(0) then prints:("hash 4135956\n")
 (2, ["p", "3"]):(0) then prints:("hash 4135956\n")
 
-td_threads(int argc, string[] argv) {
-  int t = 0 - 1;
+thread_count_from_arguments(int argc, string[] argv) {
+  int requested_threads = 0 - 1;
   if(argc > 1) {
-    t = to_int(argv[1]);
+    requested_threads = to_int(argv[1]);
   }
-} return int t;
+} return int requested_threads;
 (1, ["p"]):(-1)
 (2, ["p", "4"]):(4)
 
-td_hash(int th) {
-  int[] rs = [];
-  if(th < 0) {
-    rs = thread_map_serial(td_row, (import td_size));
+fractal_checksum(int thread_count) {
+  int[] row_totals = [];
+  if(thread_count < 0) {
+    row_totals = thread_map_serial(fractal_row_total, (import fractal_size));
   } else {
-    rs = thread_map(td_row, (import td_size), th);
+    row_totals = thread_map(fractal_row_total, (import fractal_size), thread_count);
   }
-} chain (int th) {
-  int h = td_fold(rs);
-} return int h;
+} chain (int thread_count) {
+  int checksum = fractal_fold_checksum(row_totals);
+} return int checksum;
 (-1):(4135956)
 (2):(4135956)

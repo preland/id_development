@@ -1,18 +1,18 @@
 // A throttled status line (once a second at ~60fps) so a headless run shows
 // real game state on stdout (id has no separate stderr print builtin).
 
-maybe_report(int t) {
-  if (t % 60 = 0) { print_status(); }
+maybe_report(int frame_number) {
+  if (frame_number % 60 = 0) { print_status(); }
 } return void;
-given player_init (0):() then calls print_status:()
-given player_init (120):() then prints:("cell=(1,1) xz=(-12000,-10000) yaw=0 score=0\n")
-given player_init (1):() then calls print_status:[0]
-given player_init (60):() then calls print_status:[1]
+given create_player (0):() then calls print_status:()
+given create_player (120):() then prints:("cell=(1,1) xz=(-12000,-10000) yaw=0 score=0\n")
+given create_player (1):() then calls print_status:[0]
+given create_player (60):() then calls print_status:[1]
 
 print_status() {
-  int x = (import ps)[0];
-  int z = (import ps)[1];
-  status_rest(x, z);
+  int status_x = (import player)[0];
+  int status_z = (import player)[1];
+  status_rest(status_x, status_z);
 } return void;
-given player_init ():() then calls status_rest:(-12000, -10000)
-given player_init ():() then prints:("cell=(1,1) xz=(-12000,-10000) yaw=0 score=0\n")
+given create_player ():() then calls status_rest:(-12000, -10000)
+given create_player ():() then prints:("cell=(1,1) xz=(-12000,-10000) yaw=0 score=0\n")

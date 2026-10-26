@@ -3,24 +3,24 @@
 // (core/stack/query.id's pop_room); otherwise pick one uniformly at random
 // and carve into it.
 
-do_step(int x, int z, int[] opts) {
-  if (len(opts) = 0) { pop_room(); } else { carve_random(x, z, opts); }
+do_step(int column, int row, int[] options) {
+  if (len(options) = 0) { pop_room(); } else { carve_random(column, row, options); }
 } return void;
-given stack_t_full_setup (0, 0, []):() then stack_empty:(1)
-given stack_t_empty_setup given random_initialize(1) (3, 5, [0, 1, 2, 3]):() then top_x:(1)
+given stack_one_room_setup (0, 0, []):() then stack_empty:(1)
+given stack_empty_setup given random_initialize(1) (3, 5, [0, 1, 2, 3]):() then top_x:(1)
 
-carve_random(int x, int z, int[] opts) {
-  int pick = random_next() % len(opts);
-  int dir = opts[pick];
-  do_carve(x, z, dir);
+carve_random(int column, int row, int[] options) {
+  int pick = random_next() % len(options);
+  int chosen_direction = options[pick];
+  do_carve(column, row, chosen_direction);
 } return void;
-given stack_t_empty_setup given random_initialize(1) (3, 5, [0, 1, 2, 3]):() then top_x:(1)
-given stack_t_empty_setup given random_initialize(127772) (3, 5, [0, 1, 2, 3]):() then top_x:(5)
+given stack_empty_setup given random_initialize(1) (3, 5, [0, 1, 2, 3]):() then top_x:(1)
+given stack_empty_setup given random_initialize(127772) (3, 5, [0, 1, 2, 3]):() then top_x:(5)
 
-do_carve(int x, int z, int dir) {
-  int nx = x + dir_dx(dir);
-  int nz = z + dir_dz(dir);
-  carve_between(x, z, nx, nz);
+do_carve(int column, int row, int chosen_direction) {
+  int neighbor_column = column + direction_delta_x(chosen_direction);
+  int neighbor_row = row + direction_delta_z(chosen_direction);
+  carve_between(column, row, neighbor_column, neighbor_row);
 } return void;
-given stack_t_empty_setup (3, 5, 2):() then top_x:(1)
-given stack_t_empty_setup (3, 5, 3):() then top_x:(5)
+given stack_empty_setup (3, 5, 2):() then top_x:(1)
+given stack_empty_setup (3, 5, 3):() then top_x:(5)

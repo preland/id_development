@@ -1,25 +1,25 @@
-t_tmp_make() {
-  st_init();
-  export string tp = fs_mktemp("jsontool_", 0);
-  fs_drop_exit(tp);
+fixture_temporary_file() {
+  state_start();
+  export string temporary_path = fs_mktemp("jsontool_", 0);
+  fs_drop_exit(temporary_path);
 } chain () {
-  string txt = read_all();
-  int h = fs_open((import tp), "w");
-  int w = fs_write_mem(h, mem_of_str(txt), len(txt));
+  string file_content = read_all();
+  int file_handle = fs_open((import temporary_path), "w");
+  int write_result = fs_write_mem(file_handle, mem_of_str(file_content), len(file_content));
 } chain () {
-  int c = fs_close(h);
+  int close_status = fs_close(file_handle);
 } return void;
-stdin "hey" ():() then t_tmp_size:("t_tmp_size 3") then t_tmp_drop:(0)
-stdin "" ():() then t_tmp_size:("t_tmp_size 0") then t_tmp_drop:(0)
+stdin "hey" ():() then fixture_temporary_size_text:("t_tmp_size 3") then fixture_temporary_remove:(0)
+stdin "" ():() then fixture_temporary_size_text:("t_tmp_size 0") then fixture_temporary_remove:(0)
 
-t_tmp_size() {
-  string n_t = "t_tmp_size " + (fs_size((import tp)));
-} return string n_t;
-given t_tmp_make stdin "abcd" ():("t_tmp_size 4") then t_tmp_drop:(0)
-given t_tmp_make stdin "x" ():("t_tmp_size 1") then t_tmp_drop:(0)
+fixture_temporary_size_text() {
+  string size_text = "t_tmp_size " + (fs_size((import temporary_path)));
+} return string size_text;
+given fixture_temporary_file stdin "abcd" ():("t_tmp_size 4") then fixture_temporary_remove:(0)
+given fixture_temporary_file stdin "x" ():("t_tmp_size 1") then fixture_temporary_remove:(0)
 
-t_tmp_drop() {
-  int rc = fs_remove((import tp));
-} return int rc;
-given t_tmp_make ():(0)
-given t_tmp_make ():(0) then t_tmp_size:("t_tmp_size -1")
+fixture_temporary_remove() {
+  int remove_status = fs_remove((import temporary_path));
+} return int remove_status;
+given fixture_temporary_file ():(0)
+given fixture_temporary_file ():(0) then fixture_temporary_size_text:("t_tmp_size -1")

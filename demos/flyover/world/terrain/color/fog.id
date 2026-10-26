@@ -5,22 +5,22 @@
 // 39, dimmed) -- a gentle depth cue instead of a full atmosphere blend.
 
 fog_scale(int gz) {
-  int ret_i = 100 - (gz * 60) / 39;
-} return int ret_i;
+  int fog_percent = 100 - (gz * 60) / 39;
+} return int fog_percent;
 (0):(100)
 (39):(40)
 
 apply_fog(int color, int gz) {
-  int s = fog_scale(gz);
-  int ret_i = fog_pack(color, s);
-} return int ret_i;
+  int fog_amount = fog_scale(gz);
+  int fogged_color = fog_pack(color, fog_amount);
+} return int fogged_color;
 (1338920, 0):(1338920)
 (14803425, 39):(5921370)
 
-fog_pack(int color, int s) {
-  int r = (color / 65536) * s / 100;
-  int g = ((color / 256) % 256) * s / 100;
-  int ret_i = r * 65536 + g * 256 + ((color % 256) * s / 100);
-} return int ret_i;
+fog_pack(int color, int fog_amount) {
+  int red_part = (color / 65536) * fog_amount / 100;
+  int green_part = ((color / 256) % 256) * fog_amount / 100;
+  int packed_fogged = red_part * 65536 + green_part * 256 + ((color % 256) * fog_amount / 100);
+} return int packed_fogged;
 (1338920, 100):(1338920)
 (14803425, 40):(5921370)

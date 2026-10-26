@@ -1,44 +1,44 @@
-seg_run(string path, int i, int k) {
-  int q = 0;
-  if (k = 1) {
-    q = seg_dot(path, i);
-  } else if (k = 2) {
-    q = seg_bracket(path, i);
+segment_run(string path, int index, int piece_kind) {
+  int end_position = 0;
+  if (piece_kind = 1) {
+    end_position = segment_dot(path, index);
+  } else if (piece_kind = 2) {
+    end_position = segment_bracket(path, index);
   }
-} chain (string path, int i, int k) {
-  if (k = 0) {
-    q = path_fail((import pe_start), i);
+} chain (string path, int index, int piece_kind) {
+  if (piece_kind = 0) {
+    end_position = path_fail((import pe_start), index);
   }
-} return int q;
-given t_pinit ("[3]", 0, 2):(3)
-given t_pinit (".a", 0, 1):(2)
-given t_pinit ("x", 0, 0):(-1) then (import jc)[(import c_perr)]:(1)
-given t_pinit ("x", 0, 0):(-1) then (import jc)[(import c_pep)]:(0)
+} return int end_position;
+given fixture_path_buffers ("[3]", 0, 2):(3)
+given fixture_path_buffers (".a", 0, 1):(2)
+given fixture_path_buffers ("x", 0, 0):(-1) then (import json_context)[(import c_perr)]:(1)
+given fixture_path_buffers ("x", 0, 0):(-1) then (import json_context)[(import c_pep)]:(0)
 
-path_seg(string path, int i) {
-  int k = seg_kind(character_code_at(path, i));
-  int q = seg_run(path, i, k);
-} return int q;
-given t_pinit (".a", 0):(2)
-given t_pinit ("x", 0):(-1) then (import jc)[(import c_perr)]:(1)
-given t_pinit (".a[1]", 2):(5) then t_segstr:("[1]")
+path_segment(string path, int index) {
+  int piece_type = segment_kind_of(character_code_at(path, index));
+  int end_position = segment_run(path, index, piece_type);
+} return int end_position;
+given fixture_path_buffers (".a", 0):(2)
+given fixture_path_buffers ("x", 0):(-1) then (import json_context)[(import c_perr)]:(1)
+given fixture_path_buffers (".a[1]", 2):(5) then fixture_segments_text:("[1]")
 
 path_parse(string path) {
-  path_init(len(path));
-  int i = 0;
-  while (i >= 0 && i < len(path)) {
-    i = path_seg(path, i);
+  path_start(len(path));
+  int index = 0;
+  while (index >= 0 && index < len(path)) {
+    index = path_segment(path, index);
   }
 } chain (string path) {
-  int code = (import jc)[(import c_perr)];
+  int code = (import json_context)[(import c_perr)];
 } return int code;
-given st_init (".a.b[2].c"):(0) then t_segstr:(".a.b[2].c")
-given st_init ("."):(0) then t_segs:(0)
-given st_init (""):(0) then t_segs:(0)
-given st_init (".a["):(3) then jc_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=1 perr=3 pep=3 fk=0 fr=0 seen=0")
-given st_init ("a"):(1)
-given st_init ("[-1]"):(0) then t_segstr:("[-1]")
-given st_init (".a..b"):(2) then jc_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=1 perr=2 pep=3 fk=0 fr=0 seen=0")
-given st_init (".a[\"x.y\"].z"):(0) then t_segstr:(".a.x.y.z")
-given st_init (".[0]"):(0) then t_segstr:("[0]")
-given st_init ("[\"a\\\"b\"]"):(0) then t_pkstr:("a\"b")
+given state_start (".a.b[2].c"):(0) then fixture_segments_text:(".a.b[2].c")
+given state_start ("."):(0) then fixture_segment_count:(0)
+given state_start (""):(0) then fixture_segment_count:(0)
+given state_start (".a["):(3) then context_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=1 perr=3 pep=3 fk=0 fr=0 seen=0")
+given state_start ("a"):(1)
+given state_start ("[-1]"):(0) then fixture_segments_text:("[-1]")
+given state_start (".a..b"):(2) then context_state:("pos=0 len=0 cap=0 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=1 perr=2 pep=3 fk=0 fr=0 seen=0")
+given state_start (".a[\"x.y\"].z"):(0) then fixture_segments_text:(".a.x.y.z")
+given state_start (".[0]"):(0) then fixture_segments_text:("[0]")
+given state_start ("[\"a\\\"b\"]"):(0) then fixture_key_buffer_text:("a\"b")

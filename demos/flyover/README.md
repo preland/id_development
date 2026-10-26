@@ -60,7 +60,7 @@ into `backends/gl/gl_linux.c` are:
   rebuild.
 
 `id` never sees a float. Angles and translations cross as integers scaled by
-1000 (milli-units/milli-degrees); the mesh's `verts`/`colors` cross as
+1000 (milli-units/milli-degrees); the mesh's `mesh_positions`/`colors` cross as
 `int[]` of milli-unit coordinates and packed `0xRRGGBB` colors.
 
 ## Terrain generation without floats or trig
@@ -81,7 +81,7 @@ into `backends/gl/gl_linux.c` are:
    scaled up to a grid. `geom/coords.id` turns a corner index into a
    milli-unit `(x, y, z)`; `geom/color.id` turns it into a height-shaded,
    fog-darkened color. `meshbuild/` walks all 2808 slots once at startup and
-   pushes the flattened `verts`/`colors` lists `gl_draw_tris` wants.
+   pushes the flattened `mesh_positions`/`colors` lists `gl_draw_tris` wants.
 4. **Flight** (`world/flight/`): the terrain mesh never changes after step 3
    — only the camera's matrices are rebuilt, every frame, as pure functions
    of the tick `t` (no stored camera state at all): `flown(t)` is

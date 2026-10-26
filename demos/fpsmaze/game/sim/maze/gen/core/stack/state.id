@@ -2,32 +2,32 @@
 // exported lists, mutated with the language's own push/pop -- no hand-rolled
 // stack pointer needed, unlike gl3dgame's fixed-slot state list.
 
-gen_state_init(int sx, int sz) {
-  export int[] stackx = [];
-  export int[] stackz = [];
-  push_room(sx, sz);
+create_carving_state(int start_column, int start_row) {
+  export int[] stack_columns = [];
+  export int[] stack_rows = [];
+  push_room(start_column, start_row);
 } return void;
-given maze_init (3, 5):() then top_x:(3)
-given maze_init (7, 9):() then top_z:("top_z 9")
+given create_maze (3, 5):() then top_x:(3)
+given create_maze (7, 9):() then top_z:("top_z 9")
 
 // Visit (x,z): mark it open in the grid and push it as the new frontier top.
-push_room(int x, int z) {
-  push((import stackx), x);
-  push((import stackz), z);
-  grid_set(x, z, 0);
+push_room(int column, int row) {
+  push((import stack_columns), column);
+  push((import stack_rows), row);
+  grid_set(column, row, 0);
 } return void;
-given stack_t_empty_setup (3, 5):() then top_x:(3)
-given stack_t_empty_setup (7, 9):() then top_z:("top_z 9")
+given stack_empty_setup (3, 5):() then top_x:(3)
+given stack_empty_setup (7, 9):() then top_z:("top_z 9")
 
 // Test fixture: the frontier lists exported and emptied back out again (only
 // gen_state_init may declare their export, so this reuses it and pops the
 // seed room back off) -- pair wherever a case needs the real exports to push
 // into but no frontier of its own (see stack_t_full_setup, query.id, for the
 // non-empty case).
-stack_t_empty_setup() {
-  maze_init();
-  gen_state_init(3, 5);
+stack_empty_setup() {
+  create_maze();
+  create_carving_state(3, 5);
   pop_room();
 } return void;
 ():() then stack_empty:(1)
-():() then (import mgrid)[78]:(0) then eprints:("")
+():() then (import maze_grid)[78]:(0) then eprints:("")

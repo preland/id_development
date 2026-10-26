@@ -1,17 +1,17 @@
 // The disk's thickness: a thin sheet of particles overall, but noticeably
 // thicker near the core (y_thickness falls linearly from 300 milli-units at
-// r=0 to 60 at (import max_radius)), with the actual vertical offset a PRNG
+// r=0 to 60 at (import maximum_radius)), with the actual vertical offset a PRNG
 // sample in -thickness..+thickness (noise_range, scene/math/rng/lset.id).
 
-particle_y(int r) {
-  int thick = y_thickness(r);
-  int ret_i = noise_range(thick);
-} return int ret_i;
-given init_math (0):(-151)
-given init_math (5000):(-23)
+particle_y(int radius) {
+  int thick = y_thickness(radius);
+  int vertical_offset = noise_range(thick);
+} return int vertical_offset;
+given initialize_math (0):(-151)
+given initialize_math (5000):(-23)
 
-y_thickness(int r) {
-  int t = 300 - r * 240 / (import max_radius);
-} return int t;
+y_thickness(int radius) {
+  int thickness_amount = 300 - radius * 240 / (import maximum_radius);
+} return int thickness_amount;
 (0):(300)
 (5000):(60)

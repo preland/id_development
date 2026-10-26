@@ -1,34 +1,34 @@
-dec_pair(int hi, int pos) {
-  int lo = hex4(pos + 8);
-  int cp = 65536 + ((hi - 55296) << 10) + (lo - 56320);
-} return int cp;
-given t_load stdin "\\ud83d\\ude00" (55357, 0):(128512)
-given t_load stdin "\\ud800\\udc00" (55296, 0):(65536)
-given t_load stdin "\\udbff\\udfff" (56319, 0):(1114111)
+decode_pair(int hi, int byte_position) {
+  int low_surrogate = hex_four(byte_position + 8);
+  int combined_point = 65536 + ((hi - 55296) << 10) + (low_surrogate - 56320);
+} return int combined_point;
+given fixture_loaded_input stdin "\\ud83d\\ude00" (55357, 0):(128512)
+given fixture_loaded_input stdin "\\ud800\\udc00" (55296, 0):(65536)
+given fixture_loaded_input stdin "\\udbff\\udfff" (56319, 0):(1114111)
 
-dec_cp(int pos) {
-  int cp = hex4(pos + 2);
-  if (surr_class(cp) = 1) {
-    cp = dec_pair(cp, pos);
+decode_code_point(int byte_position) {
+  int code_point = hex_four(byte_position + 2);
+  if (surrogate_class(code_point) = 1) {
+    code_point = decode_pair(code_point, byte_position);
   }
-} return int cp;
-given t_load stdin "\\u00e9" (0):(233)
-given t_load stdin "\\ud83d\\ude00" (0):(128512)
-given t_load stdin "\\u0041" (0):(65)
+} return int code_point;
+given fixture_loaded_input stdin "\\u00e9" (0):(233)
+given fixture_loaded_input stdin "\\ud83d\\ude00" (0):(128512)
+given fixture_loaded_input stdin "\\u0041" (0):(65)
 
-u8_size(int cp) {
-  int n = 1;
-  if (cp >= 128) {
-    n = 2;
+utf8_size(int scalar_value) {
+  int width_in_bytes = 1;
+  if (scalar_value >= 128) {
+    width_in_bytes = 2;
   }
-  if (cp >= 2048) {
-    n = 3;
+  if (scalar_value >= 2048) {
+    width_in_bytes = 3;
   }
-} chain (int cp) {
-  if (cp >= 65536) {
-    n = 4;
+} chain (int scalar_value) {
+  if (scalar_value >= 65536) {
+    width_in_bytes = 4;
   }
-} return int n;
+} return int width_in_bytes;
 (65):(1)
 (127):(1)
 (128):(2)

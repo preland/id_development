@@ -3,20 +3,20 @@
 // (noise_range) so particles at the same radius aren't all identically
 // colored, then clamped back into a byte (util.id).
 
-tint_channel(int frac, int core, int edge) {
-  int v = core + (edge - core) * frac / 1000;
-  int j = noise_range(20);
-  int ret_i = clamp255(v + j);
-} return int ret_i;
-given init_math (0, 255, 80):(239)
-given init_math (1000, 240, 120):(104)
+tint_channel(int radial_fraction, int core, int edge) {
+  int interpolated_channel = core + (edge - core) * radial_fraction / 1000;
+  int channel_wobble = noise_range(20);
+  int tinted_channel = clamp_channel(interpolated_channel + channel_wobble);
+} return int tinted_channel;
+given initialize_math (0, 255, 80):(239)
+given initialize_math (1000, 240, 120):(104)
 
 // pack.id's build_color needs a fourth action (the blue channel plus the
 // final pack) once its first two channels are named, one more than a block
 // gets -- so the tail lands here instead, beside the channel math it uses.
-build_color_b(int frac, int r, int g) {
-  int b = tint_channel(frac, 180, 255);
-  int ret_i = pack_color_channels(r, g, b);
-} return int ret_i;
-given init_math (500, 200, 200):(13158601)
-given init_math (0, 100, 50):(6566564)
+build_color_with_blue(int radial_fraction, int red_part, int green_part) {
+  int blue_channel = tint_channel(radial_fraction, 180, 255);
+  int packed_blue_color = pack_color_channels(red_part, green_part, blue_channel);
+} return int packed_blue_color;
+given initialize_math (500, 200, 200):(13158601)
+given initialize_math (0, 100, 50):(6566564)

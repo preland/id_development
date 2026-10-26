@@ -1,10 +1,10 @@
 parse_doc() {
-  int p = bom_len();
-  integer_list_set((import jc), (import c_pos), p);
-  int st = parse_loop((import s_val));
-} return int st;
-given t_load stdin "[1]" ():(3)
-given t_load stdin "" ():(4)
-given t_hexload stdin "ef bb bf 31" ():(3) then t_nodes:(1)
-given t_load stdin "[1,]" ():(4) then (import jc)[(import c_err)]:(6)
-given t_load stdin "{\"a\":1,\"a\":2}" ():(3) then t_nodes:(5)
+  int bom_length = bom_size();
+  integer_list_set((import json_context), (import c_pos), bom_length);
+  int parser_state = parse_loop((import s_val));
+} return int parser_state;
+given fixture_loaded_input stdin "[1]" ():(3)
+given fixture_loaded_input stdin "" ():(4)
+given fixture_hex_input stdin "ef bb bf 31" ():(3) then fixture_node_count:(1)
+given fixture_loaded_input stdin "[1,]" ():(4) then (import json_context)[(import c_err)]:(6)
+given fixture_loaded_input stdin "{\"a\":1,\"a\":2}" ():(3) then fixture_node_count:(5)

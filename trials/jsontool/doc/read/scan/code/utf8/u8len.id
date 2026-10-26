@@ -1,37 +1,37 @@
-u8_tail(int pos, int n) {
+utf8_tail(int byte_position, int tail_end) {
   int ok = 1;
-  int i = 2;
-  while (i < n) {
-    int cont_b = byte_at(pos + i);
-    ok = ok & character_in(cont_b, 128, 191);
-    i = i + 1;
+  int index = 2;
+  while (index < tail_end) {
+    int continuation_byte = byte_at(byte_position + index);
+    ok = ok & character_in(continuation_byte, 128, 191);
+    index = index + 1;
   }
 } return int ok;
-given t_hexload stdin "e2 82 ac" (0, 3):(1)
-given t_hexload stdin "e2 82 41" (0, 3):(0)
-given t_hexload stdin "f0 9f 98 41" (0, 4):(0)
-given t_hexload stdin "c3 a9" (0, 2):(1)
+given fixture_hex_input stdin "e2 82 ac" (0, 3):(1)
+given fixture_hex_input stdin "e2 82 41" (0, 3):(0)
+given fixture_hex_input stdin "f0 9f 98 41" (0, 4):(0)
+given fixture_hex_input stdin "c3 a9" (0, 2):(1)
 
-u8_len(int pos) {
-  int b0 = byte_at(pos);
-  int n = u8_need(b0);
-  int b1 = byte_at(pos + 1);
-} chain (int pos) {
-  int ok = b1 >= u8_bound(b0, 128, 224, 160, 240, 144) && b1 <= u8_bound(b0, 191, 237, 159, 244, 143);
-  if (ok = 1 && n > 2) {
-    ok = u8_tail(pos, n);
+utf8_length(int byte_position) {
+  int sequence_lead = byte_at(byte_position);
+  int needed_bytes = utf8_bytes_needed(sequence_lead);
+  int sequence_second = byte_at(byte_position + 1);
+} chain (int byte_position) {
+  int ok = sequence_second >= utf8_bound(sequence_lead, 128, 224, 160, 240, 144) && sequence_second <= utf8_bound(sequence_lead, 191, 237, 159, 244, 143);
+  if (ok = 1 && needed_bytes > 2) {
+    ok = utf8_tail(byte_position, needed_bytes);
   }
   if (ok = 0) {
-    n = 0;
+    needed_bytes = 0;
   }
-} return int n;
-given t_hexload stdin "c3 a9" (0):(2)
-given t_hexload stdin "e2 82 ac" (0):(3)
-given t_hexload stdin "f0 9f 98 80" (0):(4)
-given t_hexload stdin "c0 80" (0):(0)
-given t_hexload stdin "e0 80 80" (0):(0)
-given t_hexload stdin "ed a0 80" (0):(0)
-given t_hexload stdin "f4 90 80 80" (0):(0)
-given t_hexload stdin "c3 41" (0):(0)
-given t_hexload stdin "80" (0):(0)
-given t_hexload stdin "e2 82" (0):(0)
+} return int needed_bytes;
+given fixture_hex_input stdin "c3 a9" (0):(2)
+given fixture_hex_input stdin "e2 82 ac" (0):(3)
+given fixture_hex_input stdin "f0 9f 98 80" (0):(4)
+given fixture_hex_input stdin "c0 80" (0):(0)
+given fixture_hex_input stdin "e0 80 80" (0):(0)
+given fixture_hex_input stdin "ed a0 80" (0):(0)
+given fixture_hex_input stdin "f4 90 80 80" (0):(0)
+given fixture_hex_input stdin "c3 41" (0):(0)
+given fixture_hex_input stdin "80" (0):(0)
+given fixture_hex_input stdin "e2 82" (0):(0)

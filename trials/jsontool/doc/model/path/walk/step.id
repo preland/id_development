@@ -1,46 +1,46 @@
-seg_apply(int cur, int sk, int sa, int sb) {
+segment_apply(int current_node, int segment_form, int segment_first, int segment_second) {
   int hit = 0;
-  if (sk = 0) {
-    hit = key_lookup(cur, sa, sb);
+  if (segment_form = 0) {
+    hit = key_lookup(current_node, segment_first, segment_second);
   } else {
-    hit = idx_lookup(cur, sa);
+    hit = array_element_lookup(current_node, segment_first);
   }
 } return int hit;
-given t_wpath(".a[1]") stdin "{\"a\":9}" (0, 0, 0, 1):(2)
-given t_wpath(".a[1]") stdin "[3,4]" (0, 1, 1, 0):(2)
-given t_wpath(".a[1]") stdin "[3,4]" (0, 0, 0, 1):(-1) then (import jc)[(import c_fr)]:(1)
-given t_wpath(".a[1]") stdin "{\"a\":9}" (0, 1, 0, 0):(-1) then (import jc)[(import c_fr)]:(2)
+given fixture_walk_path(".a[1]") stdin "{\"a\":9}" (0, 0, 0, 1):(2)
+given fixture_walk_path(".a[1]") stdin "[3,4]" (0, 1, 1, 0):(2)
+given fixture_walk_path(".a[1]") stdin "[3,4]" (0, 0, 0, 1):(-1) then (import json_context)[(import c_fr)]:(1)
+given fixture_walk_path(".a[1]") stdin "{\"a\":9}" (0, 1, 0, 0):(-1) then (import json_context)[(import c_fr)]:(2)
 
-step_seg(int cur, int k) {
-  int sk = (import pth)[k * 3];
-  int sa = (import pth)[k * 3 + 1];
-  int sb = (import pth)[k * 3 + 2];
-} chain (int cur, int k) {
-  int hit = seg_apply(cur, sk, sa, sb);
+step_segment(int current_node, int step_number) {
+  int segment_form = (import path_cells)[step_number * 3];
+  int segment_first = (import path_cells)[step_number * 3 + 1];
+  int segment_second = (import path_cells)[step_number * 3 + 2];
+} chain (int current_node, int step_number) {
+  int hit = segment_apply(current_node, segment_form, segment_first, segment_second);
   if (hit < 0) {
-    integer_list_set((import jc), (import c_fk), k);
+    integer_list_set((import json_context), (import c_fk), step_number);
   }
 } return int hit;
-given t_wpath(".a[1]") stdin "{\"a\":[5,6]}" (0, 0):(2)
-given t_wpath(".a[1]") stdin "{\"a\":[5,6]}" (2, 1):(4)
-given t_wpath(".a[1]") stdin "{\"a\":[5,6]}" (2, 1):(4) then (import jc)[(import c_fk)]:(0)
-given t_wpath(".a[1]") stdin "{\"a\":7}" (2, 1):(-1) then (import jc)[(import c_fk)]:(1)
-given t_wpath(".a[1]") stdin "{\"a\":7}" (2, 1):(-1) then (import jc)[(import c_fr)]:(2)
+given fixture_walk_path(".a[1]") stdin "{\"a\":[5,6]}" (0, 0):(2)
+given fixture_walk_path(".a[1]") stdin "{\"a\":[5,6]}" (2, 1):(4)
+given fixture_walk_path(".a[1]") stdin "{\"a\":[5,6]}" (2, 1):(4) then (import json_context)[(import c_fk)]:(0)
+given fixture_walk_path(".a[1]") stdin "{\"a\":7}" (2, 1):(-1) then (import json_context)[(import c_fk)]:(1)
+given fixture_walk_path(".a[1]") stdin "{\"a\":7}" (2, 1):(-1) then (import json_context)[(import c_fr)]:(2)
 
 path_walk(int root) {
-  int cur = root;
-  int k = 0;
-  while (cur >= 0 && k * 3 < len((import pth))) {
-    cur = step_seg(cur, k);
-    k = k + 1;
+  int current_node = root;
+  int segment_index = 0;
+  while (current_node >= 0 && segment_index * 3 < len((import path_cells))) {
+    current_node = step_segment(current_node, segment_index);
+    segment_index = segment_index + 1;
   }
-} return int cur;
-given t_wpath(".a[1]") stdin "{\"a\":[5,6]}" (0):(4)
-given t_wpath(".a[1]") stdin "{\"a\":[5]}" (0):(-1) then (import jc)[(import c_fk)]:(1)
-given t_wpath(".a[1]") stdin "{\"a\":[5]}" (0):(-1) then (import jc)[(import c_fr)]:(4)
-given t_wpath(".a[1]") stdin "{\"b\":1}" (0):(-1) then (import jc)[(import c_fk)]:(0)
-given t_wpath(".a[1]") stdin "{\"a\":7}" (0):(-1) then (import jc)[(import c_fr)]:(2)
-given t_wpath(".a[-1]") stdin "{\"a\":[5,6]}" (0):(4)
-given t_wpath(".a[-1]") stdin "{\"a\":[5]}" (0):(3)
-given t_wpath(".a[-1]") stdin "{\"a\":[]}" (0):(-1) then (import jc)[(import c_fr)]:(4)
-given t_pinit stdin "7" (0):(0)
+} return int current_node;
+given fixture_walk_path(".a[1]") stdin "{\"a\":[5,6]}" (0):(4)
+given fixture_walk_path(".a[1]") stdin "{\"a\":[5]}" (0):(-1) then (import json_context)[(import c_fk)]:(1)
+given fixture_walk_path(".a[1]") stdin "{\"a\":[5]}" (0):(-1) then (import json_context)[(import c_fr)]:(4)
+given fixture_walk_path(".a[1]") stdin "{\"b\":1}" (0):(-1) then (import json_context)[(import c_fk)]:(0)
+given fixture_walk_path(".a[1]") stdin "{\"a\":7}" (0):(-1) then (import json_context)[(import c_fr)]:(2)
+given fixture_walk_path(".a[-1]") stdin "{\"a\":[5,6]}" (0):(4)
+given fixture_walk_path(".a[-1]") stdin "{\"a\":[5]}" (0):(3)
+given fixture_walk_path(".a[-1]") stdin "{\"a\":[]}" (0):(-1) then (import json_context)[(import c_fr)]:(4)
+given fixture_path_buffers stdin "7" (0):(0)

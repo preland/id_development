@@ -1,35 +1,35 @@
-hd_t_site() {
+server_fixture_site() {
   string root = fs_mktemp("hdt", 1);
   fs_drop_exit(root);
-  export string hd_t_root = root;
+  export string fixture_root = root;
 } chain () {
-  export string hd_t_dir = root + "/";
-  export string hd_t_apath = root + "/a.txt";
-  export string hd_t_idir = root + "/idx/";
+  export string fixture_root_slash = root + "/";
+  export string fixture_file_path = root + "/a.txt";
+  export string fixture_index_directory = root + "/idx/";
 } chain () {
-  hd_t_fill(root);
+  server_fixture_populate_site(root);
 } return void;
-():() then hd_t_drop:(1)
-():() then hd_t_asize:("asize 6") then hd_t_drop:(1)
+():() then server_fixture_discard_site:(1)
+():() then server_fixture_file_size_text:("asize 6") then server_fixture_discard_site:(1)
 
-hd_t_put(string path, string txt) {
-  int h = fs_open(path, "w");
-  word ad = mem_of_str(txt);
-  int n = len(txt);
-} chain (string path, string txt) {
-  int w = fs_write_mem(h, ad, n);
-  fs_close(h);
-} return int w;
+server_fixture_write_file(string path, string file_text) {
+  int file_handle = fs_open(path, "w");
+  word memory_address = mem_of_str(file_text);
+  int byte_count = len(file_text);
+} chain (string path, string file_text) {
+  int bytes_written = fs_write_mem(file_handle, memory_address, byte_count);
+  fs_close(file_handle);
+} return int bytes_written;
 ("/dev/null", "abc"):(3)
 ("/dev/null", ""):(0)
 
-hd_t_fill(string root) {
-  hd_t_put(root + "/a.txt", "hello\n");
-  hd_t_put(root + "/sp ace.txt", "sp\n");
+server_fixture_populate_site(string root) {
+  server_fixture_write_file(root + "/a.txt", "hello\n");
+  server_fixture_write_file(root + "/sp ace.txt", "sp\n");
   fs_mkdir(root + "/sub");
 } chain (string root) {
   fs_mkdir(root + "/idx");
-  hd_t_put(root + "/idx/index.html", "<p>idx</p>\n");
+  server_fixture_write_file(root + "/idx/index.html", "<p>idx</p>\n");
 } return void;
 ("/nonexistent-hd-x"):("/nonexistent-hd-x")
 ("/nonexistent-hd-y/z"):("/nonexistent-hd-y/z")

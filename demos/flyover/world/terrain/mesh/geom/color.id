@@ -3,17 +3,17 @@
 // (../color/fog.id). gz (the row, 0..39) is recovered from the flat index the
 // same way coords.id's corner_z does.
 
-corner_color(int i) {
-  int h = (import heights)[i];
-  int gz = i / 13;
-  int ret_i = shaded_fog(h, gz);
-} return int ret_i;
-given world_init (0):(1338920)
-given world_init (100):(7098669)
+corner_color(int grid_index) {
+  int terrain_height = (import heights)[grid_index];
+  int gz = grid_index / 13;
+  int shaded_color = shaded_fog(terrain_height, gz);
+} return int shaded_color;
+given world_initialize (0):(1338920)
+given world_initialize (100):(7098669)
 
-shaded_fog(int h, int gz) {
-  int base = height_color(h);
-  int ret_i = apply_fog(base, gz);
-} return int ret_i;
+shaded_fog(int terrain_height, int gz) {
+  int base = height_color(terrain_height);
+  int fogged_height_color = apply_fog(base, gz);
+} return int fogged_height_color;
 (500, 0):(1338920)
 (2000, 39):(5921370)

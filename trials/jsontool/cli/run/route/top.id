@@ -1,30 +1,30 @@
 cli_command(string[] argv) {
-  int idx = cmd_index(argv[1]);
-  int rc = cli_pick(argv, idx);
-} return int rc;
-given t_args stdin "[1]" (["p", "validate"]):(0)
-given t_args (["p", "zzz"]):(2) then eprints:("jsontool: unknown command 'zzz'\nTry 'jsontool --help' for usage.\n")
-given t_args stdin "[1]" (["p", "fmt", "--compact"]):(0) then t_out:("[1]\n")
+  int command_index = command_index_of(argv[1]);
+  int exit_status = cli_pick(argv, command_index);
+} return int exit_status;
+given fixture_arguments stdin "[1]" (["p", "validate"]):(0)
+given fixture_arguments (["p", "zzz"]):(2) then eprints:("jsontool: unknown command 'zzz'\nTry 'jsontool --help' for usage.\n")
+given fixture_arguments stdin "[1]" (["p", "fmt", "--compact"]):(0) then fixture_output_text:("[1]\n")
 
 cli_route(string[] argv) {
-  int rc = cli_word(argv[1]);
-  if (rc < 0) {
-    rc = cli_command(argv);
+  int exit_status = cli_word(argv[1]);
+  if (exit_status < 0) {
+    exit_status = cli_command(argv);
   }
-} return int rc;
-given t_args (["p", "--version"]):(0) then prints:("jsontool 1.0.0\n")
-given t_args stdin "{}" (["p", "fmt"]):(0) then t_out:("{}\n")
-given t_args (["p", "nope"]):(2)
+} return int exit_status;
+given fixture_arguments (["p", "--version"]):(0) then prints:("jsontool 1.0.0\n")
+given fixture_arguments stdin "{}" (["p", "fmt"]):(0) then fixture_output_text:("{}\n")
+given fixture_arguments (["p", "nope"]):(2)
 
 cli_dispatch(int argc, string[] argv) {
-  int rc = 2;
+  int exit_status = 2;
   if (argc < 2) {
     eprint((import usage_text));
   } else {
-    rc = cli_route(argv);
+    exit_status = cli_route(argv);
   }
-} return int rc;
-given t_args (1, ["p"]):(2)
-given t_args (2, ["p", "--version"]):(0) then prints:("jsontool 1.0.0\n")
-given t_args stdin "[]" (2, ["p", "fmt"]):(0) then t_out:("[]\n")
-given t_args (2, ["p", "keys", "--raw"]):(2) then eprints:("jsontool: option --raw is not valid for 'keys'\n")
+} return int exit_status;
+given fixture_arguments (1, ["p"]):(2)
+given fixture_arguments (2, ["p", "--version"]):(0) then prints:("jsontool 1.0.0\n")
+given fixture_arguments stdin "[]" (2, ["p", "fmt"]):(0) then fixture_output_text:("[]\n")
+given fixture_arguments (2, ["p", "keys", "--raw"]):(2) then eprints:("jsontool: option --raw is not valid for 'keys'\n")

@@ -1,29 +1,29 @@
-byte_at(int pos) {
-  int n = (import jc)[(import c_len)];
-  int b = -1;
-  if (ult(pos, n) = 1) {
-    b = peek8((import jw)[(import w_src)] + pos);
+byte_at(int byte_position) {
+  int source_length = (import json_context)[(import c_len)];
+  int byte_value = -1;
+  if (ult(byte_position, source_length) = 1) {
+    byte_value = peek8((import buffer_addresses)[(import w_src)] + byte_position);
   }
-} return int b;
-given t_load stdin "ab" (1):(98)
-given t_load stdin "ab" (2):(-1)
-given t_load stdin "ab" (-1):(-1)
-given t_load stdin "" (0):(-1)
+} return int byte_value;
+given fixture_loaded_input stdin "ab" (1):(98)
+given fixture_loaded_input stdin "ab" (2):(-1)
+given fixture_loaded_input stdin "ab" (-1):(-1)
+given fixture_loaded_input stdin "" (0):(-1)
 
-skip_ws(int pos) {
-  while (character_is_space(byte_at(pos)) = 1) {
-    pos = pos + 1;
+skip_whitespace(int byte_position) {
+  while (character_is_space(byte_at(byte_position)) = 1) {
+    byte_position = byte_position + 1;
   }
-} return int pos;
-given t_load stdin " \t\r\nx" (0):(4)
-given t_load stdin "x " (0):(0)
-given t_load stdin "x  " (1):(3)
+} return int byte_position;
+given fixture_loaded_input stdin " \t\r\nx" (0):(4)
+given fixture_loaded_input stdin "x " (0):(0)
+given fixture_loaded_input stdin "x  " (1):(3)
 
-digits(int pos) {
-  while (character_is_digit(byte_at(pos)) = 1) {
-    pos = pos + 1;
+digits(int byte_position) {
+  while (character_is_digit(byte_at(byte_position)) = 1) {
+    byte_position = byte_position + 1;
   }
-} return int pos;
-given t_load stdin "123a" (0):(3)
-given t_load stdin "a1" (0):(0)
-given t_load stdin "a19" (1):(3)
+} return int byte_position;
+given fixture_loaded_input stdin "123a" (0):(3)
+given fixture_loaded_input stdin "a1" (0):(0)
+given fixture_loaded_input stdin "a19" (1):(3)

@@ -2,24 +2,24 @@
 // cooldown, and flatten the terrain. (The exported lists already exist, so this
 // stores into them rather than re-declaring.)
 
-mb_reset() {
+game_reset() {
   reset_state();
   reset_ground(0);
 } return void;
-given crater_setup ():() then mb_state:("0,0,0,1,0,0,20,0") then ground_state:("1,60,1")
-given mb_setup ():() then mb_state:("0,0,0,1,0,0,20,0") then ground_state:("1,60,1")
+given crater_setup ():() then game_state_text:("0,0,0,1,0,0,20,0") then ground_state:("1,60,1")
+given game_setup ():() then game_state_text:("0,0,0,1,0,0,20,0") then ground_state:("1,60,1")
 
 reset_state() {
-  integer_list_set((import mb), 0, 0);
-  integer_list_set((import mb), 3, 1);
-  reset_state2();
+  integer_list_set((import game_state), 0, 0);
+  integer_list_set((import game_state), 3, 1);
+  reset_physics_and_craters();
 } return void;
-given crater_setup ():() then mb_state:("0,0,0,1,0,0,20,0")
-given mb_setup ():() then mb_state:("0,0,0,1,0,0,20,0")
+given crater_setup ():() then game_state_text:("0,0,0,1,0,0,20,0")
+given game_setup ():() then game_state_text:("0,0,0,1,0,0,20,0")
 
-reset_state2() {
+reset_physics_and_craters() {
   reset_phys();
-  gs_set_two(5, 0, 6, 20);
+  set_two_slots(5, 0, 6, 20);
 } return void;
-given crater_setup ():() then mb_state:("0,0,0,1,0,0,20,0")
-given dirty_setup ():() then mb_state:("0,0,0,1,0,0,20,0")
+given crater_setup ():() then game_state_text:("0,0,0,1,0,0,20,0")
+given dirty_setup ():() then game_state_text:("0,0,0,1,0,0,20,0")

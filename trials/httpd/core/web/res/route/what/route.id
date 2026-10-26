@@ -1,22 +1,22 @@
-hd_by_kind(string fp, string np, int kd, string[] rq, string[] rs) {
-  int c = kd;
-  if(kd == 1) {
-    c = hd_file(fp, rq, rs);
+server_dispatch_kind(string full_path, string normalized_path, int entry_kind, string[] request, string[] response) {
+  int status_code = entry_kind;
+  if(entry_kind == 1) {
+    status_code = server_file(full_path, request, response);
   }
-  if(kd == 2) {
-    c = hd_dir(fp, np, rq, rs);
+  if(entry_kind == 2) {
+    status_code = server_directory(full_path, normalized_path, request, response);
   }
-} return int c;
-given hd_t_rsnew ("/nonexistent-hd-x", "/", 404, ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import hd_t_rs)):(404)
-given hd_t_rsnew ("/tmp", "/tmp", 2, ["GET", "/tmp", "HTTP/1.1", "/tmp", "", "", "GET /tmp HTTP/1.1", "", "", "0"], (import hd_t_rs)):(301)
-given hd_t_rsnew ("/nonexistent-hd-x", "/", 1, ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import hd_t_rs)):(404) then calls hd_file:[1]
+} return int status_code;
+given server_fixture_response ("/nonexistent-hd-x", "/", 404, ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import fixture_response)):(404)
+given server_fixture_response ("/tmp", "/tmp", 2, ["GET", "/tmp", "HTTP/1.1", "/tmp", "", "", "GET /tmp HTTP/1.1", "", "", "0"], (import fixture_response)):(301)
+given server_fixture_response ("/nonexistent-hd-x", "/", 1, ["GET", "/", "HTTP/1.1", "/", "", "", "GET / HTTP/1.1", "", "", "0"], (import fixture_response)):(404) then calls server_file:[1]
 
-hd_route(string root, string np, string[] rq, string[] rs) {
-  string fp = root + np;
-  int kd = hd_kind(fp);
-  int c = hd_by_kind(fp, np, kd, rq, rs);
-} return int c;
-given hd_t_rsnew ("/nonexistent-hd-root", "/x", ["GET", "/x", "HTTP/1.1", "/x", "", "", "GET /x HTTP/1.1", "", "", "0"], (import hd_t_rs)):(404)
-given hd_t_site given hd_t_rsnew ((import hd_t_root), "/a.txt", ["GET", "/a.txt", "HTTP/1.1", "/a.txt", "", "", "GET /a.txt HTTP/1.1", "", "", "0"], (import hd_t_rs)):(200) then hd_t_rsfile:(1) then hd_t_drop:(1)
-given hd_t_site given hd_t_rsnew ((import hd_t_root), "/sub", ["GET", "/sub", "HTTP/1.1", "/sub", "", "", "GET /sub HTTP/1.1", "", "", "0"], (import hd_t_rs)):(301) then hd_t_drop:(1)
-given hd_t_site given hd_t_rsnew ((import hd_t_root), "/nope.txt", ["GET", "/nope.txt", "HTTP/1.1", "/nope.txt", "", "", "GET /nope.txt HTTP/1.1", "", "", "0"], (import hd_t_rs)):(404) then hd_t_drop:(1)
+server_route(string root, string normalized_path, string[] request, string[] response) {
+  string full_path = root + normalized_path;
+  int entry_kind = server_path_kind(full_path);
+  int status_code = server_dispatch_kind(full_path, normalized_path, entry_kind, request, response);
+} return int status_code;
+given server_fixture_response ("/nonexistent-hd-root", "/x", ["GET", "/x", "HTTP/1.1", "/x", "", "", "GET /x HTTP/1.1", "", "", "0"], (import fixture_response)):(404)
+given server_fixture_site given server_fixture_response ((import fixture_root), "/a.txt", ["GET", "/a.txt", "HTTP/1.1", "/a.txt", "", "", "GET /a.txt HTTP/1.1", "", "", "0"], (import fixture_response)):(200) then server_fixture_response_file_matches:(1) then server_fixture_discard_site:(1)
+given server_fixture_site given server_fixture_response ((import fixture_root), "/sub", ["GET", "/sub", "HTTP/1.1", "/sub", "", "", "GET /sub HTTP/1.1", "", "", "0"], (import fixture_response)):(301) then server_fixture_discard_site:(1)
+given server_fixture_site given server_fixture_response ((import fixture_root), "/nope.txt", ["GET", "/nope.txt", "HTTP/1.1", "/nope.txt", "", "", "GET /nope.txt HTTP/1.1", "", "", "0"], (import fixture_response)):(404) then server_fixture_discard_site:(1)

@@ -3,25 +3,25 @@
 
 collide() {
   if(in_pit()) {
-    integer_list_set((import mb), 3, 0);
+    integer_list_set((import game_state), 3, 0);
   }
 } return void;
-given mb_setup ():() then mb_state:("0,0,0,1,0,0,20,0")
-given crater_setup ():() then mb_state:("0,0,0,0,0,2,20,0")
+given game_setup ():() then game_state_text:("0,0,0,1,0,0,20,0")
+given crater_setup ():() then game_state_text:("0,0,0,0,0,2,20,0")
 
 in_pit() {
   int ok = 0;
-  if((import mb)[1] <= 0 && (import ground)[(import bx)] == 0) {
+  if((import game_state)[1] <= 0 && (import ground)[(import buggy_column)] == 0) {
     ok = 1;
   }
 } return int ok;
-given mb_setup ():(0)
+given game_setup ():(0)
 given crater_setup ():(1)
 
 bump_score() {
-  int gs_get_v = (import mb)[0];
-  integer_list_set((import mb), 0, gs_get_v + 1);
+  int previous_score = (import game_state)[0];
+  integer_list_set((import game_state), 0, previous_score + 1);
   bump_tick();
 } return void;
-given mb_setup ():() then mb_state:("1,0,0,1,1,0,20,0")
-given dirty_setup ():() then mb_state:("1,5,3,1,8,0,20,0")
+given game_setup ():() then game_state_text:("1,0,0,1,1,0,20,0")
+given dirty_setup ():() then game_state_text:("1,5,3,1,8,0,20,0")

@@ -1,25 +1,25 @@
 attach(int node) {
-  int par = stk_top();
+  int par = stack_top();
   if (par < 0) {
-    integer_list_set((import jc), (import c_root), node);
+    integer_list_set((import json_context), (import c_root), node);
   } else {
     attach_link(par, node);
   }
 } return void;
-given st_init (7):() then (import jc)[(import c_root)]:(7)
-given t_parse stdin "[1" (1):() then t_dump:("5:2-1:1:-1;3:1-2:-1:1;")
+given state_start (7):() then (import json_context)[(import c_root)]:(7)
+given fixture_parsed_document stdin "[1" (1):() then fixture_node_dump:("5:2-1:1:-1;3:1-2:-1:1;")
 
 attach_link(int par, int node) {
-  int last = nget(par, (import f_last));
+  int last = node_get(par, (import f_last));
   if (last < 0) {
-    nput(par, (import f_child), node);
+    node_put(par, (import f_child), node);
   } else {
-    nput(last, (import f_next), node);
+    node_put(last, (import f_next), node);
   }
 } chain (int par, int node) {
-  nput(par, (import f_last), node);
-  int cnt = nget(par, (import f_count));
-  nput(par, (import f_count), cnt + 1);
+  node_put(par, (import f_last), node);
+  int member_total = node_get(par, (import f_count));
+  node_put(par, (import f_count), member_total + 1);
 } return void;
-given t_parse stdin "[" (0, 0):() then t_dump:("5:1-0:0:-1;")
-given t_parse stdin "[1" (0, 1):() then t_dump:("5:2-1:1:-1;3:1-2:-1:1;")
+given fixture_parsed_document stdin "[" (0, 0):() then fixture_node_dump:("5:1-0:0:-1;")
+given fixture_parsed_document stdin "[1" (0, 1):() then fixture_node_dump:("5:2-1:1:-1;3:1-2:-1:1;")

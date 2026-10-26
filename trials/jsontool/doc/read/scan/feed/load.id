@@ -1,30 +1,30 @@
 in_setup(int hint) {
   int cap = fixed_point_maximum(hint + 1, (import inchunk));
-  word_list_set((import jw), (import w_src), alloc(cap));
-  integer_list_set((import jc), (import c_cap), cap);
+  word_list_set((import buffer_addresses), (import w_src), alloc(cap));
+  integer_list_set((import json_context), (import c_cap), cap);
 } return void;
-given st_init (10):() then (import jc)[(import c_cap)]:(65536)
-given st_init (100000):() then (import jc)[(import c_cap)]:(100001)
-given st_init (-5):() then (import jc)[(import c_cap)]:(65536)
+given state_start (10):() then (import json_context)[(import c_cap)]:(65536)
+given state_start (100000):() then (import json_context)[(import c_cap)]:(100001)
+given state_start (-5):() then (import json_context)[(import c_cap)]:(65536)
 
-in_fill(int h) {
+in_fill(int file_handle) {
   int got = 1;
   while (got > 0) {
-    got = in_pull(h);
+    got = in_pull(file_handle);
   }
 } return int got;
-given t_tmp_ready stdin "hello" ((import th)):(0) then t_src:("hello") then t_tmp_drop:(0)
-given t_tmp_ready stdin "hi" (-1):(-1) then t_tmp_drop:(0)
+given fixture_temporary_ready stdin "hello" ((import temporary_handle)):(0) then fixture_source_text:("hello") then fixture_temporary_remove:(0)
+given fixture_temporary_ready stdin "hi" (-1):(-1) then fixture_temporary_remove:(0)
 
-in_take(string path, int h) {
+in_take(string path, int file_handle) {
   in_setup(fs_size(path));
-  int got = in_fill(h);
+  int got = in_fill(file_handle);
   int code = fs_error();
-} chain (string path, int h) {
-  int cl = fs_close(h);
+} chain (string path, int file_handle) {
+  int close_result = fs_close(file_handle);
   if (got < 0) {
-    integer_list_set((import jc), (import c_errno), code);
+    integer_list_set((import json_context), (import c_errno), code);
   }
 } return int got;
-given t_tmp_open stdin "abc" ((import tp), (import th)):(0) then t_src:("abc") then t_tmp_drop:(0)
-given t_tmp_open stdin "abc" ((import tp), -1):(-1) then (import jc)[(import c_errno)]:(9) then t_tmp_drop:(0)
+given fixture_temporary_open stdin "abc" ((import temporary_path), (import temporary_handle)):(0) then fixture_source_text:("abc") then fixture_temporary_remove:(0)
+given fixture_temporary_open stdin "abc" ((import temporary_path), -1):(-1) then (import json_context)[(import c_errno)]:(9) then fixture_temporary_remove:(0)

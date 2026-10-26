@@ -8,25 +8,25 @@
 // falls through to blocked_now every time; open_room_setup's grid is all
 // wall except room (1,1), so blocked_at(1000,2000) is deterministically 1.
 ray_should_stop() {
-  int ret_i = ray_hit_now() || ray_blocked_now();
-} return int ret_i;
-given open_room_setup given random_initialize(1) given targets_init given rc_setup ():(1)
-given open_room_setup given random_initialize(1) given targets_init given rc_setup ():(1) then calls ray_hit_now:[1]
+  int should_stop = ray_hit_now() || ray_blocked_now();
+} return int should_stop;
+given open_room_setup given random_initialize(1) given create_targets given ray_setup ():(1)
+given open_room_setup given random_initialize(1) given create_targets given ray_setup ():(1) then calls ray_hit_now:[1]
 
 ray_check_stop() {
-  int ray_should_stop_v = ray_should_stop();
-  integer_list_set((import rc), 3, ray_should_stop_v);
+  int stop_now = ray_should_stop();
+  integer_list_set((import ray), 3, stop_now);
 } return void;
-given open_room_setup given random_initialize(1) given targets_init given rc_setup ():() then calls integer_list_set:((import rc), 3, 1)
-given open_room_setup given random_initialize(1) given targets_init given rc_setup ():() then rc_state:("x=1000 z=2000 steps=0 done=1") then calls ray_should_stop:[1]
+given open_room_setup given random_initialize(1) given create_targets given ray_setup ():() then calls integer_list_set:((import ray), 3, 1)
+given open_room_setup given random_initialize(1) given create_targets given ray_setup ():() then ray_state_text:("x=1000 z=2000 steps=0 done=1") then calls ray_should_stop:[1]
 
 // advance.id's ray_hit_now needs a fourth action (the z lookup plus try_hit)
 // once its x half is named, one more than a block gets -- so the tail
 // lands here instead, beside the rest of the stop-checking logic.
 ray_hit_now_z(int hit_cell_x) {
-  int rc_get_v2 = (import rc)[1];
-  int cell_z_v = (rc_get_v2 + ((import grid_h) * (import spacing)) / 2) / (import spacing);
-  int ret_i = try_hit(hit_cell_x, cell_z_v);
-} return int ret_i;
-given open_room_setup given random_initialize(1) given targets_init given rc_setup (8):(0)
-given open_room_setup given random_initialize(1) given targets_init given rc_setup (2):(0) then calls try_hit:(2, 7)
+  int ray_z = (import ray)[1];
+  int probe_row = (ray_z + ((import grid_height) * (import spacing)) / 2) / (import spacing);
+  int target_was_hit = try_hit(hit_cell_x, probe_row);
+} return int target_was_hit;
+given open_room_setup given random_initialize(1) given create_targets given ray_setup (8):(0)
+given open_room_setup given random_initialize(1) given create_targets given ray_setup (2):(0) then calls try_hit:(2, 7)

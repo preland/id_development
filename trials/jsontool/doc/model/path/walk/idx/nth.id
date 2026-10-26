@@ -1,43 +1,43 @@
-child_at(int cur, int i, int cnt) {
-  int c = -1;
-  if (i >= 0 && i < cnt) {
-    c = nget(cur, (import f_child));
-    while (i > 0) {
-      c = nget(c, (import f_next));
-      i = i - 1;
+child_at(int current_node, int index, int child_total) {
+  int child_node = -1;
+  if (index >= 0 && index < child_total) {
+    child_node = node_get(current_node, (import f_child));
+    while (index > 0) {
+      child_node = node_get(child_node, (import f_next));
+      index = index - 1;
     }
   }
-} return int c;
-given t_parse stdin "[10,20,30]" (0, 2, 3):(3)
-given t_parse stdin "[10,20,30]" (0, 0, 3):(1)
-given t_parse stdin "[10,20,30]" (0, 3, 3):(-1)
-given t_parse stdin "[10,20,30]" (0, -1, 3):(-1)
+} return int child_node;
+given fixture_parsed_document stdin "[10,20,30]" (0, 2, 3):(3)
+given fixture_parsed_document stdin "[10,20,30]" (0, 0, 3):(1)
+given fixture_parsed_document stdin "[10,20,30]" (0, 3, 3):(-1)
+given fixture_parsed_document stdin "[10,20,30]" (0, -1, 3):(-1)
 
-nth_child(int cur, int a) {
-  int cnt = nget(cur, (import f_count));
-  int i = a;
-  if (a < 0) {
-    i = cnt + a;
+nth_child(int current_node, int relative_index) {
+  int sibling_total = node_get(current_node, (import f_count));
+  int index = relative_index;
+  if (relative_index < 0) {
+    index = sibling_total + relative_index;
   }
-} chain (int cur, int a) {
-  int hit = child_at(cur, i, cnt);
+} chain (int current_node, int relative_index) {
+  int hit = child_at(current_node, index, sibling_total);
 } return int hit;
-given t_parse stdin "[10,20,30]" (0, 1):(2)
-given t_parse stdin "[10,20,30]" (0, -1):(3)
-given t_parse stdin "[10,20,30]" (0, 5):(-1)
-given t_parse stdin "[10,20,30]" (0, -4):(-1)
-given t_parse stdin "[]" (0, 0):(-1)
+given fixture_parsed_document stdin "[10,20,30]" (0, 1):(2)
+given fixture_parsed_document stdin "[10,20,30]" (0, -1):(3)
+given fixture_parsed_document stdin "[10,20,30]" (0, 5):(-1)
+given fixture_parsed_document stdin "[10,20,30]" (0, -4):(-1)
+given fixture_parsed_document stdin "[]" (0, 0):(-1)
 
-idx_lookup(int cur, int a) {
+array_element_lookup(int current_node, int signed_index) {
   int hit = -1;
-  if (nget(cur, (import f_kind)) = (import kn_arr)) {
-    hit = nth_child(cur, a);
-    integer_list_set((import jc), (import c_fr), (import fr_index));
+  if (node_get(current_node, (import f_kind)) = (import kn_arr)) {
+    hit = nth_child(current_node, signed_index);
+    integer_list_set((import json_context), (import c_fr), (import fr_index));
   } else {
-    integer_list_set((import jc), (import c_fr), (import fr_type_arr));
+    integer_list_set((import json_context), (import c_fr), (import fr_type_arr));
   }
 } return int hit;
-given t_parse stdin "[5,6]" (0, 1):(2)
-given t_parse stdin "[5,6]" (0, 0):(1)
-given t_parse stdin "{\"a\":1}" (0, 0):(-1) then (import jc)[(import c_fr)]:(2)
-given t_parse stdin "[5,6]" (0, 9):(-1) then (import jc)[(import c_fr)]:(4)
+given fixture_parsed_document stdin "[5,6]" (0, 1):(2)
+given fixture_parsed_document stdin "[5,6]" (0, 0):(1)
+given fixture_parsed_document stdin "{\"a\":1}" (0, 0):(-1) then (import json_context)[(import c_fr)]:(2)
+given fixture_parsed_document stdin "[5,6]" (0, 9):(-1) then (import json_context)[(import c_fr)]:(4)

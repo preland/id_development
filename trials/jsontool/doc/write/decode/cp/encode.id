@@ -1,27 +1,27 @@
-u8_lead(int n, int v) {
-  int b = v;
-  if (n = 2) {
-    b = 192 | v;
-  } else if (n = 3) {
-    b = 224 | v;
+utf8_lead(int sequence_size, int lead_bits) {
+  int lead_byte = lead_bits;
+  if (sequence_size = 2) {
+    lead_byte = 192 | lead_bits;
+  } else if (sequence_size = 3) {
+    lead_byte = 224 | lead_bits;
   }
-} chain (int n, int v) {
-  if (n = 4) {
-    b = 240 | v;
+} chain (int sequence_size, int lead_bits) {
+  if (sequence_size = 4) {
+    lead_byte = 240 | lead_bits;
   }
-} return int b;
+} return int lead_byte;
 (1, 65):(65)
 (2, 3):(195)
 (3, 14):(238)
 (4, 0):(240)
 
-u8_byte(int cp, int n, int k) {
-  int v = cp >> (6 * (n - 1 - k));
-  int b = 128 | (v & 63);
-  if (k = 0) {
-    b = u8_lead(n, v);
+utf8_byte(int point_value, int sequence_length, int byte_index) {
+  int shifted_value = point_value >> (6 * (sequence_length - 1 - byte_index));
+  int encoded_byte = 128 | (shifted_value & 63);
+  if (byte_index = 0) {
+    encoded_byte = utf8_lead(sequence_length, shifted_value);
   }
-} return int b;
+} return int encoded_byte;
 (233, 2, 0):(195)
 (233, 2, 1):(169)
 (8364, 3, 0):(226)
@@ -30,16 +30,16 @@ u8_byte(int cp, int n, int k) {
 (128512, 4, 0):(240)
 (128512, 4, 3):(128)
 
-utf8_put(word dst, int o, int cp) {
-  int n = u8_size(cp);
-  int k = 0;
-  while (k < n) {
-    poke8(dst + o, u8_byte(cp, n, k));
-    o = o + 1;
-    k = k + 1;
+utf8_put(word destination, int output_offset, int written_point) {
+  int encoded_length = utf8_size(written_point);
+  int written_count = 0;
+  while (written_count < encoded_length) {
+    poke8(destination + output_offset, utf8_byte(written_point, encoded_length, written_count));
+    output_offset = output_offset + 1;
+    written_count = written_count + 1;
   }
-} return int o;
-given t_srcadr ((import s0ad), 0, 233):(2) then t_s0:("é")
-given t_srcadr ((import s0ad), 0, 128512):(4) then t_s0:("😀")
-given t_srcadr ((import s0ad), 0, 65):(1) then t_s0:("A")
-given t_srcadr ((import s0ad), 0, 8364):(3) then t_s0:("€")
+} return int output_offset;
+given fixture_buffer_addresses ((import saved_first_address), 0, 233):(2) then fixture_first_buffer:("é")
+given fixture_buffer_addresses ((import saved_first_address), 0, 128512):(4) then fixture_first_buffer:("😀")
+given fixture_buffer_addresses ((import saved_first_address), 0, 65):(1) then fixture_first_buffer:("A")
+given fixture_buffer_addresses ((import saved_first_address), 0, 8364):(3) then fixture_first_buffer:("€")

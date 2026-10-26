@@ -1,28 +1,28 @@
-hd_shell(string pth, string body) {
-  string es = http_escape_markup(pth);
-  string hs = "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of " + es + "</title></head><body><h1>Index of " + es + "</h1><ul>\n" + body + "</ul></body></html>\n";
-} return string hs;
+server_page_shell(string page_path, string body) {
+  string escaped_path = http_escape_markup(page_path);
+  string page_markup = "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of " + escaped_path + "</title></head><body><h1>Index of " + escaped_path + "</h1><ul>\n" + body + "</ul></body></html>\n";
+} return string page_markup;
 ("/a/", "X"):("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of /a/</title></head><body><h1>Index of /a/</h1><ul>\nX</ul></body></html>\n")
 ("/<b>/", ""):("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of /&lt;b&gt;/</title></head><body><h1>Index of /&lt;b&gt;/</h1><ul>\n</ul></body></html>\n")
 
-hd_page_list(string pth, string txt) {
-  string[] li = [];
-  hd_parent_add(pth, li);
-  string[] ns = string_split(txt, "\n");
-} chain (string pth, string txt) {
-  hd_li_loop(ns, li, 0);
-  string body = string_join(li, "");
-  string hs = hd_shell(pth, body);
-} return string hs;
+server_listing_page(string page_path, string names_text) {
+  string[] list_items = [];
+  server_parent_link_add(page_path, list_items);
+  string[] name_list = string_split(names_text, "\n");
+} chain (string page_path, string names_text) {
+  server_items_add_all(name_list, list_items, 0);
+  string body = string_join(list_items, "");
+  string page_markup = server_page_shell(page_path, body);
+} return string page_markup;
 ("/", "a.txt\nd/\n"):("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of /</title></head><body><h1>Index of /</h1><ul>\n<li><a href=\"a.txt\">a.txt</a></li>\n<li><a href=\"d/\">d/</a></li>\n</ul></body></html>\n")
 ("/x/", ""):("<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Index of /x/</title></head><body><h1>Index of /x/</h1><ul>\n<li><a href=\"../\">../</a></li>\n</ul></body></html>\n")
 
-hd_dirtext(string fp, int need) {
-  int[] buf = [];
-  list_fill(buf, need, 0);
-  int got = fs_list(fp, buf, need);
-} chain (string fp, int need) {
-  string tx = hd_cells_str(buf, fixed_point_minimum(got, need));
-} return string tx;
+server_directory_text(string full_path, int need) {
+  int[] cell_values = [];
+  list_fill(cell_values, need, 0);
+  int got = fs_list(full_path, cell_values, need);
+} chain (string full_path, int need) {
+  string cells_text = server_cells_to_text(cell_values, fixed_point_minimum(got, need));
+} return string cells_text;
 ("/nonexistent-hd-x", 4):("")
-given hd_t_site ((import hd_t_dir), 27):("a.txt\nidx/\nsp ace.txt\nsub/\n") then hd_t_drop:(1)
+given server_fixture_site ((import fixture_root_slash), 27):("a.txt\nidx/\nsp ace.txt\nsub/\n") then server_fixture_discard_site:(1)

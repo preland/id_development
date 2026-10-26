@@ -1,45 +1,45 @@
-num_scan(int pos) {
-  int p = pos;
-  if (byte_at(pos) = (import k_minus)) {
-    p = pos + 1;
+number_scan(int byte_position) {
+  int after_sign = byte_position;
+  if (byte_at(byte_position) = (import k_minus)) {
+    after_sign = byte_position + 1;
   }
-  int q = num_int(p);
-} chain (int pos) {
-  if (q >= 0) {
-    q = num_frac(q);
+  int end_position = number_integer(after_sign);
+} chain (int byte_position) {
+  if (end_position >= 0) {
+    end_position = number_fraction(end_position);
   }
-  if (q >= 0) {
-    q = num_exp(q);
+  if (end_position >= 0) {
+    end_position = number_exponent(end_position);
   }
-} return int q;
-given t_load stdin "123" (0):(3)
-given t_load stdin "-0.5e+3x" (0):(7)
-given t_load stdin "-" (0):(-1) then (import jc)[(import c_err)]:(9)
-given t_load stdin "01" (0):(-1) then (import jc)[(import c_err)]:(10)
-given t_load stdin "1." (0):(-1) then (import jc)[(import c_err)]:(11)
-given t_load stdin "1e+" (0):(-1) then (import jc)[(import c_err)]:(12)
-given t_load stdin "1E5" (0):(3)
-given t_load stdin "1.5" (0):(3)
-given t_load stdin "0" (0):(1)
-given t_load stdin "-a" (0):(-1) then (import jc)[(import c_erp)]:(1)
+} return int end_position;
+given fixture_loaded_input stdin "123" (0):(3)
+given fixture_loaded_input stdin "-0.5e+3x" (0):(7)
+given fixture_loaded_input stdin "-" (0):(-1) then (import json_context)[(import c_err)]:(9)
+given fixture_loaded_input stdin "01" (0):(-1) then (import json_context)[(import c_err)]:(10)
+given fixture_loaded_input stdin "1." (0):(-1) then (import json_context)[(import c_err)]:(11)
+given fixture_loaded_input stdin "1e+" (0):(-1) then (import json_context)[(import c_err)]:(12)
+given fixture_loaded_input stdin "1E5" (0):(3)
+given fixture_loaded_input stdin "1.5" (0):(3)
+given fixture_loaded_input stdin "0" (0):(1)
+given fixture_loaded_input stdin "-a" (0):(-1) then (import json_context)[(import c_erp)]:(1)
 
-num_int(int p) {
-  int c = byte_at(p);
-  int q = num_lead(p, c);
-} return int q;
-given t_load stdin "42" (0):(2)
-given t_load stdin "0" (0):(1)
-given t_load stdin "x" (0):(-1) then (import jc)[(import c_err)]:(9)
+number_integer(int scan_position) {
+  int current_byte = byte_at(scan_position);
+  int end_position = number_lead(scan_position, current_byte);
+} return int end_position;
+given fixture_loaded_input stdin "42" (0):(2)
+given fixture_loaded_input stdin "0" (0):(1)
+given fixture_loaded_input stdin "x" (0):(-1) then (import json_context)[(import c_err)]:(9)
 
-num_lead(int p, int c) {
-  int q = digits(p);
-  if (c = (import k_zero)) {
-    q = num_zero(p);
-  } else if (character_is_digit(c) = 0) {
-    q = jfail((import e_minus), p);
+number_lead(int scan_position, int current_byte) {
+  int end_position = digits(scan_position);
+  if (current_byte = (import k_zero)) {
+    end_position = number_zero(scan_position);
+  } else if (character_is_digit(current_byte) = 0) {
+    end_position = json_fail((import e_minus), scan_position);
   }
-} return int q;
-given t_load stdin "0" (0, 48):(1)
-given t_load stdin "97" (0, 57):(2)
-given t_load stdin "x" (0, 120):(-1) then (import jc)[(import c_err)]:(9)
-given t_load stdin "01" (0, 48):(-1) then (import jc)[(import c_err)]:(10)
+} return int end_position;
+given fixture_loaded_input stdin "0" (0, 48):(1)
+given fixture_loaded_input stdin "97" (0, 57):(2)
+given fixture_loaded_input stdin "x" (0, 120):(-1) then (import json_context)[(import c_err)]:(9)
+given fixture_loaded_input stdin "01" (0, 48):(-1) then (import json_context)[(import c_err)]:(10)

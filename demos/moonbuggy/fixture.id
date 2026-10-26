@@ -3,19 +3,19 @@
 // (mb, and ground via init_ground). term_setup_mb is split out on its own
 // for mb_init's own cases, which must not call mb_init from their given.
 // A fixed seed (42) makes every crater/cooldown roll elsewhere reproducible.
-term_setup_mb(int mb_tw, int mb_th) {
-  term_init(mb_tw, mb_th, 42);
+setup_game_terminal(int screen_width, int screen_height) {
+  term_init(screen_width, screen_height, 42);
 } return void;
 (60, 20):() then (import term_w):(60)
 (30, 10):() then (import term_h):(10)
 (60, 20):()
 (60, 20):() then eprints:("")
 
-mb_setup() {
-  term_setup_mb(60, 20);
-  mb_init();
+game_setup() {
+  setup_game_terminal(60, 20);
+  create_game();
 } return void;
-():() then mb_state:("0,0,0,1,0,0,20,0")
+():() then game_state_text:("0,0,0,1,0,0,20,0")
 ():() then ground_state:("1,60,1")
 ():()
 ():() then eprints:("")
@@ -23,8 +23,8 @@ mb_setup() {
 // All 8 `mb` slots together (score, height, vy, alive, tick, crater_left,
 // cooldown, quit -- game/core/engine/mb.id), for every case elsewhere that
 // changes game state.
-mb_state() {
-  string st = (import mb)[0] + "," + (import mb)[1] + "," + (import mb)[2] + "," + (import mb)[3] + "," + (import mb)[4] + "," + (import mb)[5] + "," + (import mb)[6] + "," + (import mb)[7];
-} return string st;
-given mb_setup ():("0,0,0,1,0,0,20,0")
-given mb_setup ():("0,0,0,1,0,0,20,0") then eprints:("")
+game_state_text() {
+  string state_text = (import game_state)[0] + "," + (import game_state)[1] + "," + (import game_state)[2] + "," + (import game_state)[3] + "," + (import game_state)[4] + "," + (import game_state)[5] + "," + (import game_state)[6] + "," + (import game_state)[7];
+} return string state_text;
+given game_setup ():("0,0,0,1,0,0,20,0")
+given game_setup ():("0,0,0,1,0,0,20,0") then eprints:("")

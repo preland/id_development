@@ -1,28 +1,28 @@
 out_open() {
-  int h = fs_open("/dev/stdout", "a");
-  if (h < 0) {
-    h = -2;
+  int file_handle = fs_open("/dev/stdout", "a");
+  if (file_handle < 0) {
+    file_handle = -2;
   }
-  integer_list_set((import jc), (import c_oh), h);
+  integer_list_set((import json_context), (import c_oh), file_handle);
 } return void;
-given st_init ():() then t_oh_ok:(1)
-given st_init ():() then (import jc)[(import c_werr)]:(0)
+given state_start ():() then fixture_output_handle_open:(1)
+given state_start ():() then (import json_context)[(import c_werr)]:(0)
 
 out_finish() {
-  ob_flush();
-  int h = (import jc)[(import c_oh)];
-  if (h >= 0) {
-    int cl = fs_close(h);
-    if (cl < 0) {
-      integer_list_set((import jc), (import c_werr), 1);
+  output_flush();
+  int file_handle = (import json_context)[(import c_oh)];
+  if (file_handle >= 0) {
+    int output_close_result = fs_close(file_handle);
+    if (output_close_result < 0) {
+      integer_list_set((import json_context), (import c_werr), 1);
     }
   }
 } chain () {
-  int bad = (import jc)[(import c_werr)];
+  int bad = (import json_context)[(import c_werr)];
   if (bad = 1) {
     eprint("jsontool: error writing output");
   }
 } return int bad;
-given t_flat stdin "1" ():(0)
-given t_bad_send ():(1) then eprints:("jsontool: error writing output\n")
-given t_tmp_ofull ():(0) then t_tmp_len:(65536) then t_tmp_drop:(0)
+given fixture_flat_output stdin "1" ():(0)
+given fixture_failed_send ():(1) then eprints:("jsontool: error writing output\n")
+given fixture_temporary_output_full ():(0) then fixture_temporary_output_size:(65536) then fixture_temporary_remove:(0)

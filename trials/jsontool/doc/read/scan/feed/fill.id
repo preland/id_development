@@ -1,32 +1,32 @@
 in_grow() {
-  int cap = (import jc)[(import c_cap)];
-  word old = (import jw)[(import w_src)];
+  int cap = (import json_context)[(import c_cap)];
+  word old = (import buffer_addresses)[(import w_src)];
   word fresh = alloc(cap * 2);
 } chain () {
-  buffer_copy(fresh, old, (import jc)[(import c_len)]);
-  word_list_set((import jw), (import w_src), fresh);
-  integer_list_set((import jc), (import c_cap), cap * 2);
+  buffer_copy(fresh, old, (import json_context)[(import c_len)]);
+  word_list_set((import buffer_addresses), (import w_src), fresh);
+  integer_list_set((import json_context), (import c_cap), cap * 2);
 } return void;
-given t_load stdin "abc" ():() then (import jc)[(import c_cap)]:(131072)
-given t_load stdin "abc" ():() then t_src:("abc")
+given fixture_loaded_input stdin "abc" ():() then (import json_context)[(import c_cap)]:(131072)
+given fixture_loaded_input stdin "abc" ():() then fixture_source_text:("abc")
 
 in_room() {
-  if ((import jc)[(import c_len)] = (import jc)[(import c_cap)]) {
+  if ((import json_context)[(import c_len)] = (import json_context)[(import c_cap)]) {
     in_grow();
   }
 } return void;
-given t_load stdin "abc" ():() then jc_state:("pos=0 len=3 cap=65536 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=0 perr=0 pep=0 fk=0 fr=0 seen=0")
-given t_full ():() then jc_state:("pos=0 len=65536 cap=131072 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=0 perr=0 pep=0 fk=0 fr=0 seen=0")
+given fixture_loaded_input stdin "abc" ():() then context_state:("pos=0 len=3 cap=65536 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=0 perr=0 pep=0 fk=0 fr=0 seen=0")
+given fixture_full_source ():() then context_state:("pos=0 len=65536 cap=131072 err=0 erp=0 root=-1 of=0 oh=-1 ind=2 raw=0 errno=0 werr=0 pk=0 perr=0 pep=0 fk=0 fr=0 seen=0")
 
-in_pull(int h) {
+in_pull(int file_handle) {
   in_room();
-  int n = (import jc)[(import c_len)];
-  int got = fs_read_mem(h, (import jw)[(import w_src)] + n, (import jc)[(import c_cap)] - n);
-} chain (int h) {
+  int filled_length = (import json_context)[(import c_len)];
+  int got = fs_read_mem(file_handle, (import buffer_addresses)[(import w_src)] + filled_length, (import json_context)[(import c_cap)] - filled_length);
+} chain (int file_handle) {
   if (got > 0) {
-    integer_list_set((import jc), (import c_len), n + got);
+    integer_list_set((import json_context), (import c_len), filled_length + got);
   }
 } return int got;
-given t_tmp_ready stdin "hi" ((import th)):(2) then (import jc)[(import c_len)]:(2) then t_tmp_drop:(0)
-given t_tmp_ready stdin "" ((import th)):(0) then (import jc)[(import c_len)]:(0) then t_tmp_drop:(0)
-given t_tmp_ready stdin "hi" (-1):(-1) then (import jc)[(import c_len)]:(0) then t_tmp_drop:(0)
+given fixture_temporary_ready stdin "hi" ((import temporary_handle)):(2) then (import json_context)[(import c_len)]:(2) then fixture_temporary_remove:(0)
+given fixture_temporary_ready stdin "" ((import temporary_handle)):(0) then (import json_context)[(import c_len)]:(0) then fixture_temporary_remove:(0)
+given fixture_temporary_ready stdin "hi" (-1):(-1) then (import json_context)[(import c_len)]:(0) then fixture_temporary_remove:(0)

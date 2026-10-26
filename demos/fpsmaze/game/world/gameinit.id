@@ -1,13 +1,13 @@
 // Top-level one-time setup: seed the PRNG from the real clock (a fresh maze
 // every run), carve the maze, then build the world -- actors and GPU meshes.
 
-game_init() {
-  seed_rng();
+start_new_game() {
+  seed_random_numbers();
   maze_build();
-  init_world();
+  create_world();
 } return void;
-():() then calls seed_rng:() then calls maze_build:() then calls init_world:()
-():() then calls seed_rng:[1] then calls maze_build:[1] then calls init_world:[1] then (import ps)[0]:(-12000)
+():() then calls seed_random_numbers:() then calls maze_build:() then calls create_world:()
+():() then calls seed_random_numbers:[1] then calls maze_build:[1] then calls create_world:[1] then (import player)[0]:(-12000)
 
 // scene_init used to be defined and never called, so wall_verts/wall_colors/
 // target_verts/target_colors were NULL at every `(import ...)` site and
@@ -16,19 +16,19 @@ game_init() {
 // each link of an init chain is capped at 3 actions, so dropping one is easy
 // and nothing complains -- which is why this chain has one root and every
 // exporting function is reachable from it.
-init_world() {
-  init_actors();
-  scene_init();
+create_world() {
+  create_actors();
+  create_scene_meshes();
 } return void;
-given random_initialize(1) ():() then calls init_actors:() then calls scene_init:()
-given random_initialize(127772) ():() then calls init_actors:[1] then calls scene_init:[1] then (import ps)[0]:(-12000) then (import wall_verts)[0]:(-1000)
+given random_initialize(1) ():() then calls create_actors:() then calls create_scene_meshes:()
+given random_initialize(127772) ():() then calls create_actors:[1] then calls create_scene_meshes:[1] then (import player)[0]:(-12000) then (import wall_vertices)[0]:(-1000)
 
 // The actors turn and shoot along idstd's fx_sin_deg/fx_cos_deg, whose table
 // fx_trig_init exports, so it runs before either actor can move.
-init_actors() {
+create_actors() {
   fixed_point_trig_initialize();
-  player_init();
-  targets_init();
+  create_player();
+  create_targets();
 } return void;
-given random_initialize(1) ():() then calls fixed_point_trig_initialize:() then calls player_init:() then calls targets_init:()
-given random_initialize(127772) ():() then calls fixed_point_trig_initialize:[1] then calls player_init:[1] then calls targets_init:[1] then (import ps)[0]:(-12000)
+given random_initialize(1) ():() then calls fixed_point_trig_initialize:() then calls create_player:() then calls create_targets:()
+given random_initialize(127772) ():() then calls fixed_point_trig_initialize:[1] then calls create_player:[1] then calls create_targets:[1] then (import player)[0]:(-12000)

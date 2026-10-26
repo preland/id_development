@@ -2,19 +2,19 @@
 // the raw xz/yaw/score reads, and the final print together run past one
 // block's 3-action budget.
 
-status_rest(int x, int z) {
-  int cx = cell_x(x);
-  int cz = (z + ((import grid_h) * (import spacing)) / 2) / (import spacing);
-  status_line(x, z, cx, cz);
+status_rest(int report_x, int report_z) {
+  int cell_column = cell_x(report_x);
+  int cell_row = (report_z + ((import grid_height) * (import spacing)) / 2) / (import spacing);
+  status_line(report_x, report_z, cell_column, cell_row);
 } return void;
-given player_init (-12000, -10000):() then calls status_line:(-12000, -10000, 1, 1)
-given player_init (0, 0):() then calls status_line:(0, 0, 7, 6)
+given create_player (-12000, -10000):() then calls status_line:(-12000, -10000, 1, 1)
+given create_player (0, 0):() then calls status_line:(0, 0, 7, 6)
 
-status_line(int x, int z, int cx, int cz) {
-  int yaw = (import ps)[2];
-  int score = (import ps)[3];
-  print("cell=(" + cx + "," + cz + ") xz=(" + x + "," + z + ") yaw=" + yaw
+status_line(int line_x, int line_z, int cell_column, int cell_row) {
+  int yaw = (import player)[2];
+  int score = (import player)[3];
+  print("cell=(" + cell_column + "," + cell_row + ") xz=(" + line_x + "," + line_z + ") yaw=" + yaw
     + " score=" + score);
 } return void;
-given player_init (-12000, -10000, 1, 1):() then prints:("cell=(1,1) xz=(-12000,-10000) yaw=0 score=0\n")
-given player_init (0, 0, 7, 6):() then prints:("cell=(7,6) xz=(0,0) yaw=0 score=0\n")
+given create_player (-12000, -10000, 1, 1):() then prints:("cell=(1,1) xz=(-12000,-10000) yaw=0 score=0\n")
+given create_player (0, 0, 7, 6):() then prints:("cell=(7,6) xz=(0,0) yaw=0 score=0\n")

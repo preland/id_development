@@ -3,35 +3,35 @@
 // in the customers file. State is exported because every step reads the same
 // seven lists, which is how a script would hold them as globals.
 
-cj_state() {
-  export string[] cj_keys = [];
-  export int[] cj_vals = [];
-  export int[] cj_used = [];
+join_start_state() {
+  export string[] customer_keys = [];
+  export int[] customer_regions = [];
+  export int[] customer_slots_used = [];
 } chain () {
-  export int[] cj_cnt = [];
-  export string[] cj_reg = [(import cj_none_name)];
-  export int[] cj_sum = [0];
+  export int[] customer_count = [];
+  export string[] region_names = [(import unmatched_region_name)];
+  export int[] region_totals = [0];
 } chain () {
-  export int[] cj_num = [0];
-  hash_map_initialize((import cj_keys), (import cj_vals), (import cj_used), (import cj_cnt));
+  export int[] region_order_counts = [0];
+  hash_map_initialize((import customer_keys), (import customer_regions), (import customer_slots_used), (import customer_count));
 } return void;
-():() then cj_t_shape:("1 1 1 0")
-given cj_state given cj_cust(["1", "Z", "east"]) ():() then cj_t_shape:("1 1 1 0")
+():() then join_state_shape:("1 1 1 0")
+given join_start_state given join_add_customer(["1", "Z", "east"]) ():() then join_state_shape:("1 1 1 0")
 
-cj_index(string[][] crows) {
+join_index_customers(string[][] crows) {
   int i = 1;
   while (i < len(crows)) {
-    cj_cust(crows[i]);
+    join_add_customer(crows[i]);
     i = i + 1;
   }
 } return void;
-given cj_state ([["id", "name", "region"], ["7", "A", "north"], ["8", "B", "south"], ["9", "C", "north"]]):([["id", "name", "region"], ["7", "A", "north"], ["8", "B", "south"], ["9", "C", "north"]]) then (import cj_cnt)[0]:(3) then (import cj_reg):(["(unmatched)", "north", "south"])
-given cj_state ([["id", "name", "region"]]):([["id", "name", "region"]]) then (import cj_cnt)[0]:(0)
+given join_start_state ([["id", "name", "region"], ["7", "A", "north"], ["8", "B", "south"], ["9", "C", "north"]]):([["id", "name", "region"], ["7", "A", "north"], ["8", "B", "south"], ["9", "C", "north"]]) then (import customer_count)[0]:(3) then (import region_names):(["(unmatched)", "north", "south"])
+given join_start_state ([["id", "name", "region"]]):([["id", "name", "region"]]) then (import customer_count)[0]:(0)
 
-cj_cust(string[] row) {
-  string id = list_string_get_or(row, (import cj_c_id), "");
-  int r = cj_region(list_string_get_or(row, (import cj_c_region), ""));
-  hash_map_put((import cj_keys), (import cj_vals), (import cj_used), (import cj_cnt), id, r);
+join_add_customer(string[] row) {
+  string customer_identifier = list_string_get_or(row, (import customer_identifier_column), "");
+  int r = join_region_index(list_string_get_or(row, (import customer_region_column), ""));
+  hash_map_put((import customer_keys), (import customer_regions), (import customer_slots_used), (import customer_count), customer_identifier, r);
 } return void;
-given cj_state (["7", "A", "north"]):(["7", "A", "north"]) then (import cj_cnt)[0]:(1) then (import cj_reg):(["(unmatched)", "north"])
-given cj_state given cj_cust(["1", "Z", "east"]) (["7", "A", "north"]):(["7", "A", "north"]) then (import cj_cnt)[0]:(2) then (import cj_reg):(["(unmatched)", "east", "north"])
+given join_start_state (["7", "A", "north"]):(["7", "A", "north"]) then (import customer_count)[0]:(1) then (import region_names):(["(unmatched)", "north"])
+given join_start_state given join_add_customer(["1", "Z", "east"]) (["7", "A", "north"]):(["7", "A", "north"]) then (import customer_count)[0]:(2) then (import region_names):(["(unmatched)", "east", "north"])

@@ -1,29 +1,29 @@
-in_run(string path, int h, int code) {
+in_run(string path, int file_handle, int code) {
   int got = -1;
-  if (h >= 0) {
-    got = in_take(path, h);
+  if (file_handle >= 0) {
+    got = in_take(path, file_handle);
   } else {
-    integer_list_set((import jc), (import c_errno), code);
+    integer_list_set((import json_context), (import c_errno), code);
   }
 } return int got;
-given t_tmp_open stdin "hi" ((import tp), (import th), 0):(0) then t_src:("hi") then t_tmp_drop:(0)
-given t_tmp_open stdin "hi" ((import tp), -1, 13):(-1) then (import jc)[(import c_errno)]:(13) then t_tmp_drop:(0)
+given fixture_temporary_open stdin "hi" ((import temporary_path), (import temporary_handle), 0):(0) then fixture_source_text:("hi") then fixture_temporary_remove:(0)
+given fixture_temporary_open stdin "hi" ((import temporary_path), -1, 13):(-1) then (import json_context)[(import c_errno)]:(13) then fixture_temporary_remove:(0)
 
 in_load(string path) {
-  int h = fs_open(path, "r");
+  int file_handle = fs_open(path, "r");
   int code = fs_error();
-  int r = in_run(path, h, code);
-} return int r;
-given t_tmp_make stdin "abc" ((import tp)):(0) then t_src:("abc") then t_tmp_drop:(0)
-given st_init ("/nonexistent/jsontool_none"):(-1) then (import jc)[(import c_errno)]:(2)
-given st_init ("/tmp"):(-1) then (import jc)[(import c_errno)]:(21)
+  int load_result = in_run(path, file_handle, code);
+} return int load_result;
+given fixture_temporary_file stdin "abc" ((import temporary_path)):(0) then fixture_source_text:("abc") then fixture_temporary_remove:(0)
+given state_start ("/nonexistent/jsontool_none"):(-1) then (import json_context)[(import c_errno)]:(2)
+given state_start ("/tmp"):(-1) then (import json_context)[(import c_errno)]:(21)
 
-buf_setup() {
-  int n = (import jc)[(import c_len)] + 16;
-  word_list_set((import jw), (import w_s0), alloc(n));
-  word_list_set((import jw), (import w_s1), alloc(n));
+buffer_setup() {
+  int buffer_size = (import json_context)[(import c_len)] + 16;
+  word_list_set((import buffer_addresses), (import w_s0), alloc(buffer_size));
+  word_list_set((import buffer_addresses), (import w_s1), alloc(buffer_size));
 } chain () {
-  word_list_set((import jw), (import w_out), alloc((import obcap)));
+  word_list_set((import buffer_addresses), (import w_out), alloc((import obcap)));
 } return void;
-given st_init ():() then t_bufs:(1)
-given t_load stdin "x" ():() then t_bufs:(1)
+given state_start ():() then fixture_buffers_allocated:(1)
+given fixture_loaded_input stdin "x" ():() then fixture_buffers_allocated:(1)

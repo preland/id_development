@@ -1,24 +1,24 @@
 // try_hit(cx,cz): if a target sits there, score it and respawn it
 // elsewhere, returning 1; otherwise 0 (and no side effect).
 
-try_hit(int cx, int cz) {
-  int idx = find_target_at(cx, cz);
-  int did = apply_hit(idx);
+try_hit(int cell_column, int cell_row) {
+  int hit_target_index = find_target_at(cell_column, cell_row);
+  int did = apply_hit(hit_target_index);
 } return int did;
-given game_init (0, 0):(0)
-given player_init given random_initialize(1) given targets_init (1, 5):(1) then calls respawn_target:(0)
+given start_new_game (0, 0):(0)
+given create_player given random_initialize(1) given create_targets (1, 5):(1) then calls relocate_target:(0)
 
-apply_hit(int idx) {
+apply_hit(int hit_target_index) {
   int did = 0;
-  if (idx >= 0) { did = do_hit(idx); }
+  if (hit_target_index >= 0) { did = do_hit(hit_target_index); }
 } return int did;
 (-1):(0)
-given player_init given random_initialize(1) given targets_init (0):(1) then calls do_hit:(0)
+given create_player given random_initialize(1) given create_targets (0):(1) then calls do_hit:(0)
 
-do_hit(int idx) {
-  int ps_get_v = (import ps)[3];
-  integer_list_set((import ps), 3, ps_get_v + 1);
-  respawn_target(idx);
+do_hit(int hit_target_index) {
+  int previous_score = (import player)[3];
+  integer_list_set((import player), 3, previous_score + 1);
+  relocate_target(hit_target_index);
 } return int 1;
-given player_init given random_initialize(1) given targets_init (0):(1) then calls respawn_target:(0)
-given player_init given random_initialize(1) given targets_init (1):(1) then calls integer_list_set:((import ps), 3, 1)
+given create_player given random_initialize(1) given create_targets (0):(1) then calls relocate_target:(0)
+given create_player given random_initialize(1) given create_targets (1):(1) then calls integer_list_set:((import player), 3, 1)

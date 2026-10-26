@@ -1,31 +1,31 @@
-opt_indent(string[] argv, int i, int idx) {
-  string txt = "";
-  if (i + 1 < len(argv)) {
-    txt = argv[i + 1];
+option_indent(string[] argv, int index, int command_index) {
+  string indent_text = "";
+  if (index + 1 < len(argv)) {
+    indent_text = argv[index + 1];
   }
-  int nxt = indent_set(idx, txt, i + 2);
-} return int nxt;
-given t_args (["p", "fmt", "--indent", "4"], 2, 0):(4) then (import jc)[(import c_ind)]:(4)
-given t_args (["p", "fmt", "--indent"], 2, 0):(-1) then eprints:("jsontool: --indent needs an integer from 0 to 64, got ''\n")
-given t_args (["p", "keys", "--indent", "4"], 2, 3):(-1) then (import jc)[(import c_ind)]:(2)
+  int next_position = indent_set(command_index, indent_text, index + 2);
+} return int next_position;
+given fixture_arguments (["p", "fmt", "--indent", "4"], 2, 0):(4) then (import json_context)[(import c_ind)]:(4)
+given fixture_arguments (["p", "fmt", "--indent"], 2, 0):(-1) then eprints:("jsontool: --indent needs an integer from 0 to 64, got ''\n")
+given fixture_arguments (["p", "keys", "--indent", "4"], 2, 3):(-1) then (import json_context)[(import c_ind)]:(2)
 
-opt_indent_eq(string[] argv, int i, int idx) {
-  string s = argv[i];
-  string txt = str_sub(s, 9, len(s) - 9);
-  int nxt = indent_set(idx, txt, i + 1);
-} return int nxt;
-given t_args (["p", "fmt", "--indent=6"], 2, 0):(3) then (import jc)[(import c_ind)]:(6)
-given t_args (["p", "fmt", "--indent=x"], 2, 0):(-1) then (import jc)[(import c_ind)]:(2)
-given t_args (["p", "fmt", "--indent="], 2, 0):(-1) then (import jc)[(import c_ind)]:(2)
+option_indent_equals(string[] argv, int index, int command_index) {
+  string equals_option = argv[index];
+  string indent_text = str_sub(equals_option, 9, len(equals_option) - 9);
+  int next_position = indent_set(command_index, indent_text, index + 1);
+} return int next_position;
+given fixture_arguments (["p", "fmt", "--indent=6"], 2, 0):(3) then (import json_context)[(import c_ind)]:(6)
+given fixture_arguments (["p", "fmt", "--indent=x"], 2, 0):(-1) then (import json_context)[(import c_ind)]:(2)
+given fixture_arguments (["p", "fmt", "--indent="], 2, 0):(-1) then (import json_context)[(import c_ind)]:(2)
 
-opt_compact(int i, int idx) {
-  int nxt = (import a_bad);
-  if (opt_allowed(idx, 2, "--compact") = 1) {
-    integer_list_set((import jc), (import c_ind), -1);
+option_compact(int index, int command_index) {
+  int next_position = (import a_bad);
+  if (option_allowed(command_index, 2, "--compact") = 1) {
+    integer_list_set((import json_context), (import c_ind), -1);
     note_seen(2);
-    nxt = i + 1;
+    next_position = index + 1;
   }
-} return int nxt;
-given t_args (2, 0):(3) then (import jc)[(import c_ind)]:(-1)
-given t_args (2, 0):(3) then (import jc)[(import c_seen)]:(2)
-given t_args (2, 1):(-1) then eprints:("jsontool: option --compact is not valid for 'validate'\n")
+} return int next_position;
+given fixture_arguments (2, 0):(3) then (import json_context)[(import c_ind)]:(-1)
+given fixture_arguments (2, 0):(3) then (import json_context)[(import c_seen)]:(2)
+given fixture_arguments (2, 1):(-1) then eprints:("jsontool: option --compact is not valid for 'validate'\n")

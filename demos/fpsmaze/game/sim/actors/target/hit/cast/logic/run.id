@@ -5,20 +5,20 @@
 // instant it hits a target or a wall.
 
 shoot() {
-  int ps_get_v = (import ps)[0];
-  int ps_get_v2 = (import ps)[1];
-  shoot_at(ps_get_v, ps_get_v2);
+  int shooter_x = (import player)[0];
+  int shooter_z = (import player)[1];
+  shoot_at(shooter_x, shooter_z);
 } return void;
-given game_init ():() then calls shoot_at:(-12000, -10000)
-given game_init given integer_list_set((import ps), 0, 500) ():() then calls shoot_at:(500, -10000)
+given start_new_game ():() then calls shoot_at:(-12000, -10000)
+given start_new_game given integer_list_set((import player), 0, 500) ():() then calls shoot_at:(500, -10000)
 
-shoot_at(int x, int z) {
-  ray_init(x, z);
+shoot_at(int origin_x, int origin_z) {
+  create_ray(origin_x, origin_z);
   ray_loop();
 } return void;
-given game_init (500, 700):() then calls ray_init:(500, 700)
-given game_init (300, 400):() then calls ray_init:(300, 400)
-given game_init (0, 0):() then calls ray_loop:[1]
+given start_new_game (500, 700):() then calls create_ray:(500, 700)
+given start_new_game (300, 400):() then calls create_ray:(300, 400)
+given start_new_game (0, 0):() then calls ray_loop:[1]
 
 // yaw stays 0 the whole walk (advance.id never touches ps), so rc(0) never
 // moves off cell_x=8 -- an even (pillar) column -- and by the time rc(1) has
@@ -26,10 +26,10 @@ given game_init (0, 0):() then calls ray_loop:[1]
 // wall, so the loop is certain to set rc(3)=1 and stop well before the
 // 60-step cap, whatever the real maze carve looked like.
 ray_loop() {
-  while ((import rc)[2] < 60 && (import rc)[3] = 0) {
+  while ((import ray)[2] < 60 && (import ray)[3] = 0) {
     ray_advance();
     ray_check_stop();
   }
 } return void;
-given open_room_setup given fixed_point_trig_initialize given random_initialize(1) given targets_init given rc_setup ():() then calls integer_list_set:((import rc), 3, 1)
-given open_room_setup given fixed_point_trig_initialize given random_initialize(1) given targets_init given rc_setup ():() then rc_state:("x=1000 z=1850 steps=1 done=1")
+given open_room_setup given fixed_point_trig_initialize given random_initialize(1) given create_targets given ray_setup ():() then calls integer_list_set:((import ray), 3, 1)
+given open_room_setup given fixed_point_trig_initialize given random_initialize(1) given create_targets given ray_setup ():() then ray_state_text:("x=1000 z=1850 steps=1 done=1")

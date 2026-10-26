@@ -3,18 +3,18 @@
 // this column), and arm a cooldown of 8..13 ticks before the next one.
 
 roll_crater() {
-  int c = 1;
+  int column_is_solid = 1;
   if(random_range(0, 4 - 1) == 0) {
-    c = begin_crater();
+    column_is_solid = begin_crater();
   }
-} return int c;
-given mb_setup ():(1) then mb_state:("0,0,0,1,0,0,20,0")
-given mb_setup ():(1) then mb_state:("0,0,0,1,0,0,20,0") then eprints:("")
+} return int column_is_solid;
+given game_setup ():(1) then game_state_text:("0,0,0,1,0,0,20,0")
+given game_setup ():(1) then game_state_text:("0,0,0,1,0,0,20,0") then eprints:("")
 
 begin_crater() {
-  int rng_range_v = random_range(0, 2 - 1);
-  integer_list_set((import mb), 5, 1 + rng_range_v);
-  begin_cooldown();
+  int crater_extra_width = random_range(0, 2 - 1);
+  integer_list_set((import game_state), 5, 1 + crater_extra_width);
+  begin_crater_delay();
 } return int 0;
-given mb_setup ():(0) then mb_state:("0,0,0,1,0,2,10,0")
-given mb_setup ():(0) then mb_state:("0,0,0,1,0,2,10,0") then eprints:("")
+given game_setup ():(0) then game_state_text:("0,0,0,1,0,2,10,0")
+given game_setup ():(0) then game_state_text:("0,0,0,1,0,2,10,0") then eprints:("")
