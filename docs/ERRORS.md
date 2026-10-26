@@ -3585,6 +3585,98 @@ main(int argc, string[] argv) {
 } return int r;
 ```
 
+## E0808 `borrows` is not on a heap parameter of a native
+
+`borrows` is written before the type of a `native` parameter. It promises that
+the C behind the native does not store the argument beyond the call, return it,
+or hand it to a thread that outlives the call, so a caller may free a list it
+passed. Without it a native is assumed to keep every argument. An `int` or a
+`float` is not a heap value and a parameter of a function that has a body is
+not a native's, so `borrows` there promises nothing and is refused. The promise
+is believed, not proved: nothing checks the C.
+
+Incorrect:
+
+```id
+native weigh(borrows int n) return int;
+
+main(int argc, string[] argv) {
+  int r = weigh(1);
+} return int r;
+```
+
+Correct:
+
+```id
+native weigh(borrows int[] xs) return int;
+
+main(int argc, string[] argv) {
+  int r = weigh([1, 2]);
+} return int r;
+```
+
+## E0809 a channel end carries a `word`
+
+`sender(T)` and `receiver(T)` are the two ends of a channel that carries messages of
+type `T` between threads. A `word` is an address in the flat store, and the store
+belongs to one thread, so an address sent to another thread points at nothing or at
+the wrong memory. Send the value the address refers to.
+
+Incorrect:
+
+```id
+feed(sender(word) out) {
+  print(1);
+} return void;
+
+main(int argc, string[] argv) {
+  print(0);
+} return int 0;
+```
+
+Correct:
+
+```id
+feed(sender(int) out) {
+  print(1);
+} return void;
+
+main(int argc, string[] argv) {
+  print(0);
+} return int 0;
+```
+
+## E0810 a channel end carries a function value or void
+
+A function value points into the thread that made it, and `void` is no value, so
+neither can be the message type of `sender(T)` or `receiver(T)`. Send an int that
+names the action and let the receiving thread choose the function, or send a struct
+of plain values.
+
+Incorrect:
+
+```id
+feed(sender(func(int) return int) out) {
+  print(1);
+} return void;
+
+main(int argc, string[] argv) {
+  print(0);
+} return int 0;
+```
+
+Correct:
+
+```id
+feed(sender(int) out) {
+  print(1);
+} return void;
+
+main(int argc, string[] argv) {
+  print(0);
+} return int 0;
+```
+
 ## Retired codes
 
 A retired code is no longer emitted, has no section above, and is never reused for
