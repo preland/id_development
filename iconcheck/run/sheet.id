@@ -1,38 +1,38 @@
 // Starts the icon registry and registers word's icon set in it: every ic_cmd with its ic_path.
-ik_boot() {
+icon_start_registry() {
   vec_init();
   vec_load((import ic_cmd), (import ic_path));
 } return void;
 ():() then idstd_vec_fixture_n:(34000)
-given ik_boot() ():() then idstd_vec_fixture_n:(34000)
+given icon_start_registry() ():() then idstd_vec_fixture_n:(34000)
 
-// Icon number k of ic_cmd in its cell: at 16 px, and beside it at 24 px, in ik_ink.
-ik_cell(int ik_k) {
-  int ik_id = (import ic_cmd)[ik_k];
-  int ik_x = (ik_k % (import ik_cols)) * (import ik_cell_w) + 6;
-  int ik_y = (ik_k / (import ik_cols)) * (import ik_cell_h) + 4;
-} chain (int ik_k) {
-  vec_icon(ik_id, 16, (import ik_ink), ik_x, ik_y);
-  vec_icon(ik_id, 24, (import ik_ink), ik_x + 20, ik_y);
+// Icon number k of ic_cmd in its cell: at 16 px, and beside it at 24 px, in icon_ink_color.
+icon_sheet_cell(int cell_index) {
+  int icon_number = (import ic_cmd)[cell_index];
+  int cell_left = (cell_index % (import sheet_columns)) * (import sheet_cell_width) + 6;
+  int cell_top = (cell_index / (import sheet_columns)) * (import sheet_cell_height) + 4;
+} chain (int cell_index) {
+  vec_icon(icon_number, 16, (import icon_ink_color), cell_left, cell_top);
+  vec_icon(icon_number, 24, (import icon_ink_color), cell_left + 20, cell_top);
 } return void;
-given sf_l_init(364, 168) given ik_boot() (0):() then idstd_sf_l_fixture_sum:("px 472656912")
-given sf_l_init(364, 168) given ik_boot() (33):() then idstd_sf_l_fixture_sum:("px 438905103")
+given sf_l_init(364, 168) given icon_start_registry() (0):() then idstd_sf_l_fixture_sum:("px 472656912")
+given sf_l_init(364, 168) given icon_start_registry() (33):() then idstd_sf_l_fixture_sum:("px 438905103")
 
 // The contact sheet: the paper, then every cell, written as a PPM on stdout. Returns 0.
-ik_sheet() {
-  int ik_n = len((import ic_cmd));
-  int ik_rows = (ik_n + (import ik_cols) - 1) / (import ik_cols);
-  int ik_k = 0;
+icon_sheet_write() {
+  int icon_count = len((import ic_cmd));
+  int sheet_rows = (icon_count + (import sheet_columns) - 1) / (import sheet_columns);
+  int cell_index = 0;
 } chain () {
-  sf_l_init((import ik_cols) * (import ik_cell_w), ik_rows * (import ik_cell_h) + 8);
-  d2_l_rect(0, 0, (import ik_cols) * (import ik_cell_w), ik_rows * (import ik_cell_h) + 8, (import ik_paper));
-  while (ik_k < ik_n) {
-    ik_cell(ik_k);
-    ik_k = ik_k + 1;
+  sf_l_init((import sheet_columns) * (import sheet_cell_width), sheet_rows * (import sheet_cell_height) + 8);
+  d2_l_rect(0, 0, (import sheet_columns) * (import sheet_cell_width), sheet_rows * (import sheet_cell_height) + 8, (import icon_paper_color));
+  while (cell_index < icon_count) {
+    icon_sheet_cell(cell_index);
+    cell_index = cell_index + 1;
   }
 } chain () {
   ppm_l_dump();
-  int ik_z = 0;
-} return int ik_z;
-given ik_boot() ():(0)
-given ik_boot() ():(0) then idstd_sf_l_fixture_sum:("px 2043675735")
+  int sheet_status = 0;
+} return int sheet_status;
+given icon_start_registry() ():(0)
+given icon_start_registry() ():(0) then idstd_sf_l_fixture_sum:("px 2043675735")
