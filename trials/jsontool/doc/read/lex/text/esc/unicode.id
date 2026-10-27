@@ -32,14 +32,14 @@ given fixture_loaded_input stdin "\\udc00" (0):(-1) then (import json_context)[(
 hex_escape_next(int scan_position, int escape_value) {
   int surrogate_class_code = surrogate_class(escape_value);
   int end_position = scan_position + 6;
-  if (surrogate_class_code = 1) {
+  if (surrogate_class_code == 1) {
     end_position = pair_scan(scan_position);
   }
 } chain (int scan_position, int escape_value) {
-  if (surrogate_class_code = 2) {
+  if (surrogate_class_code == 2) {
     end_position = json_fail((import e_surr), scan_position);
   }
-  if (surrogate_class_code = 3) {
+  if (surrogate_class_code == 3) {
     end_position = -1;
   }
 } return int end_position;

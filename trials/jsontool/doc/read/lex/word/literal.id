@@ -1,6 +1,6 @@
 lit_match(int byte_position, string literal_text) {
   int index = 0;
-  while (index < len(literal_text) && byte_at(byte_position + index) = character_code_at(literal_text, index)) {
+  while (index < len(literal_text) && byte_at(byte_position + index) == character_code_at(literal_text, index)) {
     index = index + 1;
   }
   int ok = index == len(literal_text);
@@ -12,7 +12,7 @@ given fixture_loaded_input stdin "trux" (0, "true"):(0)
 lit_scan(int byte_position, int kind) {
   string literal_word = (import lit_words)[kind];
   int end_position = byte_position + len(literal_word);
-  if (lit_match(byte_position, literal_word) = 0) {
+  if (lit_match(byte_position, literal_word) == 0) {
     end_position = json_fail((import e_lit), byte_position);
   }
 } return int end_position;
@@ -23,24 +23,24 @@ given fixture_loaded_input stdin "nulx" (0, 0):(-1) then (import json_context)[(
 
 value_kind(int first_character) {
   int kind = -1;
-  if (first_character = (import k_lbrc)) {
+  if (first_character == (import k_lbrc)) {
     kind = (import kn_obj);
-  } else if (first_character = (import k_lbrk)) {
+  } else if (first_character == (import k_lbrk)) {
     kind = (import kn_arr);
   }
 } chain (int first_character) {
-  if (first_character = (import k_quote)) {
+  if (first_character == (import k_quote)) {
     kind = (import kn_str);
-  } else if (first_character = (import k_minus) || character_is_digit(first_character) = 1) {
+  } else if (first_character == (import k_minus) || character_is_digit(first_character) == 1) {
     kind = (import kn_num);
   }
-  if (first_character = 116) {
+  if (first_character == 116) {
     kind = (import kn_true);
   }
 } chain (int first_character) {
-  if (first_character = 102) {
+  if (first_character == 102) {
     kind = (import kn_false);
-  } else if (first_character = 110) {
+  } else if (first_character == 110) {
     kind = (import kn_null);
   }
 } return int kind;

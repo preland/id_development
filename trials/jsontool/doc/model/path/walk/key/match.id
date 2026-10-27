@@ -1,6 +1,6 @@
 memory_same(int off, int compare_length) {
   int index = 0;
-  while (index < compare_length && peek8((import buffer_addresses)[(import w_s0)] + index) = peek8((import buffer_addresses)[(import w_pth)] + off + index)) {
+  while (index < compare_length && peek8((import buffer_addresses)[(import w_s0)] + index) == peek8((import buffer_addresses)[(import w_pth)] + off + index)) {
     index = index + 1;
   }
   int ok = index == compare_length;
@@ -12,7 +12,7 @@ given fixture_decoded_key stdin "{\"a\":1}" (0, 0):(1)
 key_equals(int candidate_node, int off, int expected_length) {
   int decoded_length = key_decode(candidate_node, (import w_s0));
   int ok = 0;
-  if (decoded_length = expected_length) {
+  if (decoded_length == expected_length) {
     ok = memory_same(off, expected_length);
   }
 } return int ok;
@@ -23,7 +23,7 @@ given fixture_walk_path(".a[1]") stdin "{\"\\u0061\":7}" (1, 0, 1):(1)
 
 key_pick(int hit, int picked_node, int off, int pick_length) {
   int picked_hit = hit;
-  if (key_equals(picked_node, off, pick_length) = 1) {
+  if (key_equals(picked_node, off, pick_length) == 1) {
     picked_hit = node_get(picked_node, (import f_next));
   }
 } return int picked_hit;
