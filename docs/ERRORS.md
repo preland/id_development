@@ -864,6 +864,38 @@ main(int argc, string[] argv) {
 } return int 0;
 ```
 
+## E0313 a bare = used as equality
+
+In a statement `x = y;` stores, and in an expression two operands are compared
+with `==`. The grammar used to accept a single `=` between two operands as a
+comparison, so `if(a = 1)` compiled as equality although it reads as a store to
+anyone who knows C or the statement form. The parser now refuses it and hands the
+operator on as `==`, so the rest of the tree is built as meant and nothing else
+cascades. The diagnostic carries a machine-applicable edit that spells the `==`;
+`idc --fix` makes that rewrite for you.
+
+Incorrect:
+
+```id
+main(int argc, string[] argv) {
+  int a = argc;
+  if(a = 1) {
+    print(a);
+  }
+} return int 0;
+```
+
+Correct:
+
+```id
+main(int argc, string[] argv) {
+  int a = argc;
+  if(a == 1) {
+    print(a);
+  }
+} return int 0;
+```
+
 ## E0401 two functions with one name
 
 A function is called by its name alone, so a name can mean only one function.
@@ -1885,6 +1917,178 @@ speak(int x) {
 } return int y;
 (1):(2) then calls shout:(1)
 (2):(3) then calls shout:(2)
+```
+
+## E0520 a given block opened inside another block
+
+`given SETUP {` opens a block that shares one setup among the cases written up to
+the line holding only `}`. A second `given SETUP {` inside it would need a nesting
+level that cases do not have. Give the one block both setups, as in
+`given A given B {`, or close the first block with `}` before opening the second.
+
+Incorrect:
+
+```id
+mk() {
+  export int[] buf = [0, 0];
+} return void;
+():() then len((import buf)):(2)
+():() then (import buf)[1]:(0)
+
+bump(int[] b, int k) {
+  b[k] = b[k] + 1;
+} return void;
+given mk {
+  given mk {
+    ((import buf), 0):((import buf)) then (import buf)[0]:(1)
+  }
+  ((import buf), 1):((import buf)) then (import buf)[1]:(1)
+}
+```
+
+Correct:
+
+```id
+mk() {
+  export int[] buf = [0, 0];
+} return void;
+():() then len((import buf)):(2)
+():() then (import buf)[1]:(0)
+
+bump(int[] b, int k) {
+  b[k] = b[k] + 1;
+} return void;
+given mk {
+  ((import buf), 0):((import buf)) then (import buf)[0]:(1)
+}
+given mk {
+  ((import buf), 1):((import buf)) then (import buf)[1]:(1)
+}
+```
+
+## E0521 a given block with no cases
+
+A `given SETUP {` block only shares its setup among the cases written between the
+braces, so one with no case changes nothing. Write the cases that need the setup
+inside it, or delete the block.
+
+Incorrect:
+
+```id
+mk() {
+  export int[] buf = [0, 0];
+} return void;
+():() then len((import buf)):(2)
+():() then (import buf)[1]:(0)
+
+bump(int[] b, int k) {
+  b[k] = b[k] + 1;
+} return void;
+given mk {
+}
+```
+
+Correct:
+
+```id
+mk() {
+  export int[] buf = [0, 0];
+} return void;
+():() then len((import buf)):(2)
+():() then (import buf)[1]:(0)
+
+bump(int[] b, int k) {
+  b[k] = b[k] + 1;
+} return void;
+given mk {
+  ((import buf), 0):((import buf)) then (import buf)[0]:(1)
+}
+```
+
+## E0522 a given block that is never closed
+
+A `given SETUP {` block applies its setup to every case up to the closing brace,
+and the closing brace must be on a line of its own holding only `}`. The next line
+that is not a case ended the block first. End the block with a line that is exactly
+`}` after its last case.
+
+Incorrect:
+
+```id
+mk() {
+  export int[] buf = [0, 0];
+} return void;
+():() then len((import buf)):(2)
+():() then (import buf)[1]:(0)
+
+bump(int[] b, int k) {
+  b[k] = b[k] + 1;
+} return void;
+given mk {
+  ((import buf), 0):((import buf)) then (import buf)[0]:(1)
+  ((import buf), 1):((import buf)) then (import buf)[1]:(1)
+
+main(int argc, string[] argv) {
+  int r = 0;
+} return int r;
+(0, []):(0)
+(1, []):(0)
+```
+
+Correct:
+
+```id
+mk() {
+  export int[] buf = [0, 0];
+} return void;
+():() then len((import buf)):(2)
+():() then (import buf)[1]:(0)
+
+bump(int[] b, int k) {
+  b[k] = b[k] + 1;
+} return void;
+given mk {
+  ((import buf), 0):((import buf)) then (import buf)[0]:(1)
+  ((import buf), 1):((import buf)) then (import buf)[1]:(1)
+}
+
+main(int argc, string[] argv) {
+  int r = 0;
+} return int r;
+(0, []):(0)
+(1, []):(0)
+```
+
+## E0523 a setup repeated on every case
+
+Under `--given-blocks-strict`, a function whose cases all begin with the same first
+`given` and none of which is inside a block is refused: a setup repeated on every
+case line hides what the cases are testing, which is only their arguments and
+expected values. State the setup once: write `given SETUP {` before the first
+case, delete `given SETUP ` from each case, and end with a line holding only `}`.
+`idc --fix` makes that rewrite. Without the flag nothing is reported. The examples
+below are not built by the documentation test, which passes no flags.
+
+Incorrect (built with `--given-blocks-strict`):
+
+```text
+bump(int[] b, int k) {
+  b[k] = b[k] + 1;
+} return void;
+given mk ((import buf), 0):((import buf)) then (import buf)[0]:(1)
+given mk ((import buf), 1):((import buf)) then (import buf)[1]:(1)
+```
+
+Correct:
+
+```text
+bump(int[] b, int k) {
+  b[k] = b[k] + 1;
+} return void;
+given mk {
+  ((import buf), 0):((import buf)) then (import buf)[0]:(1)
+  ((import buf), 1):((import buf)) then (import buf)[1]:(1)
+}
 ```
 
 ## E0601 a comparison and a bitwise operator without parentheses
@@ -3225,6 +3429,154 @@ main(int argc, string[] argv) {
   int n = 2.5;
   int[] xs = [1];
   push(xs, n);
+} return int 0;
+```
+
+## E0646 a condition that is an int
+
+Under `--bool-strict` a condition must be a `bool`: an `int` or `word` is not a
+truth value, and C's implicit "not zero" is the conversion the flag refuses. Write
+the comparison that says what is being tested; the diagnostic's edit is the
+condition followed by ` != 0`. Without the flag nothing is reported. The examples
+below are not built by the documentation test, which passes no flags.
+
+Incorrect (built with `--bool-strict`):
+
+```text
+main(int argc, string[] argv) {
+  if(argc) {
+    print(argc);
+  }
+} return int 0;
+```
+
+Correct:
+
+```text
+main(int argc, string[] argv) {
+  if(argc != 0) {
+    print(argc);
+  }
+} return int 0;
+```
+
+## E0647 an int declared from a bool
+
+Under `--bool-strict` a comparison or a logical operator yields a `bool`, and a
+`bool` does not convert to an `int`, so `int n = a < b;` is refused. Declare the
+name `bool`; the diagnostic's edit is `int NAME` replaced by `bool NAME`. The
+examples below are not built by the documentation test, which passes no flags.
+
+Incorrect (built with `--bool-strict`):
+
+```text
+main(int argc, string[] argv) {
+  int big = argc < 3;
+  print(big);
+} return int 0;
+```
+
+Correct:
+
+```text
+main(int argc, string[] argv) {
+  bool big = argc < 3;
+  print(big);
+} return int 0;
+```
+
+## E0648 a bool used as a list index
+
+Under `--bool-strict` a `bool` is not an index: an index counts elements, and the
+bool no longer converts to the 0 or 1 it stood for. There is no mechanical edit,
+because the index depends on what was meant. Choose the element explicitly
+(`if(b) { i = 1; } else { i = 0; }`) and index with the resulting `int`. The
+examples below are not built by the documentation test, which passes no flags.
+
+Incorrect (built with `--bool-strict`):
+
+```text
+main(int argc, string[] argv) {
+  int[] xs = [10, 20];
+  bool b = argc < 3;
+  print(xs[b]);
+} return int 0;
+```
+
+Correct:
+
+```text
+main(int argc, string[] argv) {
+  int[] xs = [10, 20];
+  bool b = argc < 3;
+  int i = 0;
+  if(b) {
+    i = 1;
+  }
+  print(xs[i]);
+} return int 0;
+```
+
+## E0649 a number where a case needs a bool
+
+Under `--bool-strict` the expected value of a case for a `bool` result is written
+`true` or `false`; a bare number there is the int-to-bool conversion the flag
+refuses. When the number is 0 or 1 the diagnostic's edit rewrites `:(0)` to
+`:(false)` and `:(1)` to `:(true)`. The examples below are not built by the
+documentation test, which passes no flags.
+
+Incorrect (built with `--bool-strict`):
+
+```text
+positive(int n) {
+  bool p = n > 0;
+} return bool p;
+(3):(1)
+(0):(0)
+```
+
+Correct:
+
+```text
+positive(int n) {
+  bool p = n > 0;
+} return bool p;
+(3):(true)
+(0):(false)
+```
+
+## E0650 an int that only ever holds 0 or 1
+
+Under `--bool-strict` an `int` local whose declaration and every store in its
+function are the literals 0 or 1, with both values stored, is a flag, and a flag
+is a `bool`. A store that is not a literal 0 or 1, or an arithmetic use of the
+name, marks a counter and is not reported; an exported declaration is skipped,
+because other functions may store to it. Declare it `bool`, and store `true` and
+`false` instead of `1` and `0`. The diagnostic's edit, and so `idc --fix`, rewrites
+only the declaration for now; the stores and the return are left for you. The
+examples below are not built by the documentation test, which passes no flags.
+
+Incorrect (built with `--bool-strict`):
+
+```text
+main(int argc, string[] argv) {
+  int found = 0;
+  if(argc > 1) {
+    found = 1;
+  }
+  print(found);
+} return int 0;
+```
+
+Correct:
+
+```text
+main(int argc, string[] argv) {
+  bool found = false;
+  if(argc > 1) {
+    found = true;
+  }
+  print(found);
 } return int 0;
 ```
 
