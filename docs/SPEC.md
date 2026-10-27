@@ -1122,6 +1122,22 @@ first_even(int[] xs) {
 **Neither costs an action.** They end work rather than doing it, so the action
 limit counts neither; a block may hold three actions and a `break` or `return`.
 
+### 7.4 `for` is a counted `while`
+
+**`for (INIT; COND; V = V + K) { BODY }` is `INIT; while(COND) { BODY V = V + K; }`.**
+INIT declares or assigns the counter, and the step adds or subtracts `K`. The front end rewrites the loop into that `while` before any check runs, so a `for` keeps the while's rules and `break;` leaves it, skipping the step.
+
+```
+coverage_total(int[] bitmap) {
+  int total = 0;
+  for (int index = 5; index < len(bitmap); index = index + 1) {
+    total = total + bitmap[index];
+  }
+} return int total;
+```
+
+Under `--for-strict` a `while` that only steps a counter is rejected as E0651. That is a while whose counter is initialised earlier in its block, with no statement in between mentioning it. Its condition must read the counter, and its body must end in `V = V + K` and never otherwise assign `V`. Write such a loop as a `for`.
+
 ### 7.2 A function is not a constant
 
 **A function that only returns one scalar constant is rejected.** Such a

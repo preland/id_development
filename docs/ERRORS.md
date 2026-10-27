@@ -3580,6 +3580,41 @@ main(int argc, string[] argv) {
 } return int 0;
 ```
 
+## E0651 a counter-shaped while
+
+Under `--for-strict` a `while` is reported when it is a `for` in disguise. Its counter
+is initialised earlier in the same block, and no statement between that
+initialisation and the loop mentions it. The condition reads the counter. The
+body's last statement is `V = V + K` or `V = V - K`, where `K` is a literal or a
+name the body never assigns, and the body assigns `V` nowhere else. Write the
+loop as `for (INIT; COND; V = V + K) { ... }` (`docs/SPEC.md` §7.4), which keeps
+the initialisation, the test and the step on one line. The examples below are
+not built by the documentation test, which passes no flags.
+
+Incorrect (built with `--for-strict`):
+
+```text
+coverage_total(int[] bitmap) {
+  int index = 5;
+  int total = 0;
+  while(index < len(bitmap)) {
+    total = total + bitmap[index];
+    index = index + 1;
+  }
+} return int total;
+```
+
+Correct:
+
+```text
+coverage_total(int[] bitmap) {
+  int total = 0;
+  for (int index = 5; index < len(bitmap); index = index + 1) {
+    total = total + bitmap[index];
+  }
+} return int total;
+```
+
 ## E0702 a file with a generic name
 
 A name like `util.id`, `helper.id`, `misc.id` or `common.id` says nothing about
