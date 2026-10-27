@@ -252,7 +252,11 @@ count() {
   tokens, so changing one changes its cache key and the case runs again
   (tested in `idc/tests/cache.sh`). A function named in `then CHECK(LIT, ...)`
   is a test fixture exactly as one named in `then CHECK` is (E0408's
-  exemption, docs/ERRORS.md).
+  exemption, docs/ERRORS.md). A `then` may also name a builtin that only
+  reads memory, `peek8`, `peek16`, `peek32`, `peek64` and their `s`/`u`
+  variants, so a test reads memory with no reader function at all:
+  `given cells ((import cz), 5):() then peek64((import cz)):(5)`.
+  Builtins with effects (`poke*`, `print`, `alloc`) stay refused.
 
 - **`then (import NAME):(VALUE)`**, **`then (import NAME)[i]:(VALUE)`** and
   **`then len((import NAME)):(VALUE)`**
