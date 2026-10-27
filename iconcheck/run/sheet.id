@@ -1,10 +1,10 @@
 // Starts the icon registry and registers word's icon set in it: every ic_cmd with its ic_path.
 icon_start_registry() {
-  vec_init();
-  vec_load((import ic_cmd), (import ic_path));
+  vector_start();
+  vector_load((import ic_cmd), (import ic_path));
 } return void;
-():() then idstd_vec_fixture_n:(34000)
-given icon_start_registry() ():() then idstd_vec_fixture_n:(34000)
+():() then idstd_vector_fixture_counts:(34000)
+given icon_start_registry() ():() then idstd_vector_fixture_counts:(34000)
 
 // Icon number k of ic_cmd in its cell: at 16 px, and beside it at 24 px, in icon_ink_color.
 icon_sheet_cell(int cell_index) {
@@ -12,8 +12,8 @@ icon_sheet_cell(int cell_index) {
   int cell_left = (cell_index % (import sheet_columns)) * (import sheet_cell_width) + 6;
   int cell_top = (cell_index / (import sheet_columns)) * (import sheet_cell_height) + 4;
 } chain (int cell_index) {
-  vec_icon(icon_number, 16, (import icon_ink_color), cell_left, cell_top);
-  vec_icon(icon_number, 24, (import icon_ink_color), cell_left + 20, cell_top);
+  vector_icon(icon_number, 16, (import icon_ink_color), cell_left, cell_top);
+  vector_icon(icon_number, 24, (import icon_ink_color), cell_left + 20, cell_top);
 } return void;
 given surface_create(364, 168) given icon_start_registry() (0):() then idstd_surface_fixture_pixel_sum_text:("px 472656912")
 given surface_create(364, 168) given icon_start_registry() (33):() then idstd_surface_fixture_pixel_sum_text:("px 438905103")
@@ -31,7 +31,7 @@ icon_sheet_write() {
     cell_index = cell_index + 1;
   }
 } chain () {
-  ppm_l_dump();
+  picture_dump();
   int sheet_status = 0;
 } return int sheet_status;
 given icon_start_registry() ():(0)

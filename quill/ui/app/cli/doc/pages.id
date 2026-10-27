@@ -5,7 +5,7 @@ cli_pages(string path) {
   int cli_pages_status = code != 0;
 } chain (string path) {
   if(code == 0) {
-    gui_font_init();
+    gui_font_state_create();
     put(cli_laid(d));
   } else {
     eprint(odt_error(code));
@@ -22,8 +22,8 @@ cli_laid(Doc d) {
 } chain (Doc d) {
   string text = "pages " + lay_page_count(v) + "\n" + cli_starts(v);
 } return string text;
-given gui_font_init given odt_read_fixture_open("<r><office:text><text:p>Hi</text:p><text:p>x</text:p></office:text></r>") given odt_read_fixture_read_content ((import odt_read_fixture_document)):("pages 1\npage 1 para 0 line 0\n")
-given gui_font_init given odt_read_fixture_open("<a/>") ((import odt_read_fixture_document)):("pages 1\npage 1 para 0 line 0\n")
+given gui_font_state_create given odt_read_fixture_open("<r><office:text><text:p>Hi</text:p><text:p>x</text:p></office:text></r>") given odt_read_fixture_read_content ((import odt_read_fixture_document)):("pages 1\npage 1 para 0 line 0\n")
+given gui_font_state_create given odt_read_fixture_open("<a/>") ((import odt_read_fixture_document)):("pages 1\npage 1 para 0 line 0\n")
 
 // One line "page K para I line J" for every page of the view, each ending in a line feed.
 cli_starts(View v) {

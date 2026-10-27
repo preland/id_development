@@ -8,7 +8,7 @@ rc_rec(string rc_out, int rc_secs, string rc_bk) {
   }
 } return int rc_rc;
 ("x.wav", 0, "null"):(2)
-given fs_temp_text ("x") ((import fs_temp_path), 1, "null"):(0) then prints:("rec: 48000 of 48000 frames, 48000 Hz, 2 ch, s16\nrec: backend null, ring 48000 frames, quantum 48000 frames\nrec: 0 xruns, 0 frames lost, peak 0 of 32767\n") then idstd_audio_fixture_fsz:(48011)
+given fs_temp_text ("x") ((import fs_temp_path), 1, "null"):(0) then prints:("rec: 48000 of 48000 frames, 48000 Hz, 2 ch, s16\nrec: backend null, ring 48000 frames, quantum 48000 frames\nrec: 0 xruns, 0 frames lost, peak 0 of 32767\n") then idstd_audio_fixture_file_words:(48011)
 
 // Opens the capture stream (a null one gets a ring as big as the recording, because only rc_take lets its device run) and records on it. Answers 1 with a line on standard error when the stream will not open.
 rc_open(string rc_out, int rc_secs, string rc_bk) {
@@ -25,7 +25,7 @@ rc_open(string rc_out, int rc_secs, string rc_bk) {
   }
 } return int rc_rc;
 ("x.wav", 1, "bogus"):(1) then eprints:("rec: backend must be \"null\", \"pw\" or \"\" (the default: pw, or null when ID_AUDIO=null)\n")
-given fs_temp_text ("x") ((import fs_temp_path), 2, "null"):(0) then idstd_audio_fixture_fsz:(96011)
+given fs_temp_text ("x") ((import fs_temp_path), 2, "null"):(0) then idstd_audio_fixture_file_words:(96011)
 
 // Reads rc_frames frames from the open stream rc_h, writes them to rc_out, reports and closes. Answers 0 when every frame arrived and the file was written.
 rc_take(int rc_h, string rc_out, int rc_frames) {
@@ -43,5 +43,5 @@ rc_take(int rc_h, string rc_out, int rc_frames) {
   int rc_ok = (rc_n == rc_frames) && (rc_sz >= 0);
   int rc_rc = 1 - rc_ok;
 } return int rc_rc;
-given idstd_audio_fixture_new given idstd_audio_fixture_open (1, 4) given fs_temp_text ("x") ((import idstd_audio_fixture_handle), (import fs_temp_path), 4):(0) then prints:("rec: 4 of 4 frames, 48000 Hz, 2 ch, s16\nrec: backend null, ring 4 frames, quantum 4 frames\nrec: 0 xruns, 0 frames lost, peak 0 of 32767\n") then idstd_audio_fixture_fsz:(15)
+given idstd_audio_fixture_new given idstd_audio_fixture_open (1, 4) given fs_temp_text ("x") ((import idstd_audio_fixture_handle), (import fs_temp_path), 4):(0) then prints:("rec: 4 of 4 frames, 48000 Hz, 2 ch, s16\nrec: backend null, ring 4 frames, quantum 4 frames\nrec: 0 xruns, 0 frames lost, peak 0 of 32767\n") then idstd_audio_fixture_file_words:(15)
 given idstd_audio_fixture_new given idstd_audio_fixture_open (1, 4) ((import idstd_audio_fixture_handle), "/nonexistent/rec_no_dir/x.wav", 4):(1) then prints:("rec: 4 of 4 frames, 48000 Hz, 2 ch, s16\nrec: backend null, ring 4 frames, quantum 4 frames\nrec: 0 xruns, 0 frames lost, peak 0 of 32767\n") then eprints:("rec: cannot write /nonexistent/rec_no_dir/x.wav: check that its directory exists and is writable\n")

@@ -21,7 +21,7 @@ layout_paragraph_test_new() {
 // Test setup: lp_t_new, then the font layer started and the face cache seeded with Liberation Sans Regular at 9, 16, 32 and 18 px (12 pt is 16 px, 24 pt is 32 px, a 12 pt superscript is 9 px and a 24 pt one is 18), so layout in a case never asks the machine for a font.
 layout_paragraph_test_font() {
   layout_paragraph_test_new();
-  gui_font_init();
+  gui_font_state_create();
   Face font_face_cache = (import layout_paragraph_test_face_cache);
 } chain () {
   layout_paragraph_test_seed(font_face_cache, 9);
@@ -35,7 +35,7 @@ layout_paragraph_test_font() {
   export int layout_paragraph_test_handle_large = font_face_cache.hnd[2];
 } return void;
 ():() then len((import layout_paragraph_test_face_cache).hnd):(4) then calls layout_paragraph_test_seed:[4]
-():() then (import layout_paragraph_test_face_cache).key[10]:(18) then (import layout_paragraph_test_handle_large):(2) then calls gui_font_init:[1]
+():() then (import layout_paragraph_test_face_cache).key[10]:(18) then (import layout_paragraph_test_handle_large):(2) then calls gui_font_state_create:[1]
 
 // Test setup: deletes code points lo..hi-1 of paragraph i of the test document, as a user's Delete does.
 layout_paragraph_test_delete(int delete_paragraph_index, int delete_start, int hi) {

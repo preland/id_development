@@ -14,11 +14,11 @@ given surface_create(30, 30) given view_test_remember_pixel(12, 24) (65, 10, 8, 
 // Writes a letter icon: the code point rbi_cp centred on (rbi_cx, rbi_cy) in the ribbon's face in colour rbi_col, bold for a B and italic for an I, with a line under a U and through an S, as Word draws them. Anything that is not a printable ASCII letter draws nothing.
 ribbon_draw_letter(int ribbon_letter_code_point, int ribbon_letter_center_x, int ribbon_letter_center_y, int ribbon_letter_color) {
   int ribbon_letter_face = (import ribbon_faces)[(ribbon_letter_code_point == 66) + 2 * (ribbon_letter_code_point == 73)];
-  int ribbon_letter_width = gui_cp_adv(ribbon_letter_face, ribbon_letter_code_point, 0) / 64;
+  int ribbon_letter_width = gui_seam_code_point_advance(ribbon_letter_face, ribbon_letter_code_point, 0) / 64;
   int ribbon_letter_baseline = ribbon_letter_center_y + (gui_font_ascent(ribbon_letter_face) - gui_font_descent(ribbon_letter_face)) / 2;
 } chain (int ribbon_letter_code_point, int ribbon_letter_center_x, int ribbon_letter_center_y, int ribbon_letter_color) {
   if(ribbon_letter_code_point > 32 && ribbon_letter_code_point < 127) {
-    gui_cp_draw(ribbon_letter_face, (ribbon_letter_center_x - ribbon_letter_width / 2) * 64, ribbon_letter_baseline, ribbon_letter_code_point, ribbon_letter_color);
+    gui_seam_code_point_draw(ribbon_letter_face, (ribbon_letter_center_x - ribbon_letter_width / 2) * 64, ribbon_letter_baseline, ribbon_letter_code_point, ribbon_letter_color);
     ribbon_draw_letter_marks(ribbon_letter_code_point, ribbon_letter_center_x - ribbon_letter_width / 2, ribbon_letter_width, ribbon_letter_baseline, ribbon_letter_color);
   }
 } return void;

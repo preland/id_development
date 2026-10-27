@@ -13,7 +13,7 @@ icon_coverage_total(int[] bitmap) {
 
 // 1 when icon id at px pixels is drawn, with no fault in its path, and has some ink; else 0.
 icon_draws_cleanly(int icon_number, int pixel_size) {
-  int[] bitmap = vec_bitmap(icon_number, pixel_size);
+  int[] bitmap = vector_bitmap(icon_number, pixel_size);
   int coverage_total = icon_coverage_total(bitmap);
   int drawn_cleanly = 0;
 } chain (int icon_number, int pixel_size) {
@@ -21,19 +21,19 @@ icon_draws_cleanly(int icon_number, int pixel_size) {
     drawn_cleanly = 1;
   }
 } return int drawn_cleanly;
-given vec_init() given idstd_vec_add(7, "M 0 0 L 2 0 L 2 2 L 0 2 Z") (7, 16):(1)
-given vec_init() given idstd_vec_add(7, "M 0 0 X") (7, 16):(0)
-given vec_init() given idstd_vec_add(7, "M 0 0") (7, 16):(0)
-given vec_init() (7, 16):(0)
+given vector_start() given idstd_vector_register(7, "M 0 0 L 2 0 L 2 2 L 0 2 Z") (7, 16):(1)
+given vector_start() given idstd_vector_register(7, "M 0 0 X") (7, 16):(0)
+given vector_start() given idstd_vector_register(7, "M 0 0") (7, 16):(0)
+given vector_start() (7, 16):(0)
 
 // One line about icon id at px pixels, and whether it passed (icon_draws_cleanly).
 icon_report_line(int icon_number, int pixel_size) {
-  int[] bitmap = vec_bitmap(icon_number, pixel_size);
+  int[] bitmap = vector_bitmap(icon_number, pixel_size);
   int coverage_total = icon_coverage_total(bitmap);
   string report_text = "" + icon_number + " " + pixel_size + " status " + bitmap[0] + " " + bitmap[1] + "x" + bitmap[2] + " ink " + coverage_total;
 } chain (int icon_number, int pixel_size) {
   print(report_text);
   int drawn_cleanly = icon_draws_cleanly(icon_number, pixel_size);
 } return int drawn_cleanly;
-given vec_init() given idstd_vec_add(7, "M 0 0 L 2 0 L 2 2 L 0 2 Z") (7, 16):(1) then prints:("7 16 status 0 2x2 ink 1020\n")
-given vec_init() (7, 24):(0) then prints:("7 24 status 14 0x0 ink 0\n")
+given vector_start() given idstd_vector_register(7, "M 0 0 L 2 0 L 2 2 L 0 2 Z") (7, 16):(1) then prints:("7 16 status 0 2x2 ink 1020\n")
+given vector_start() (7, 24):(0) then prints:("7 24 status 14 0x0 ink 0\n")
