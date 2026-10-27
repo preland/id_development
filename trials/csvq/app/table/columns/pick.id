@@ -1,0 +1,32 @@
+column_list(string[] header) {
+  string label = "(none)";
+  if (len(header) > 0) {
+    label = string_join(header, ", ");
+  }
+} return string label;
+(["a", "b"]):("a, b")
+([]):("(none)")
+(["only"]):("only")
+
+column_message(string[] header, string spec) {
+  string label = column_list(header);
+  string message = "unknown column '" + spec + "'; available columns: " + label;
+  if (column_unsigned(spec) > len(header)) {
+    message = "column index " + spec + " is out of range; the input has " + len(header) + " columns: " + label;
+  }
+} return string message;
+(["a", "b"], "zip"):("unknown column 'zip'; available columns: a, b")
+(["a", "b"], "7"):("column index 7 is out of range; the input has 2 columns: a, b")
+([], "x"):("unknown column 'x'; available columns: (none)")
+
+column_pick(string[] header, string spec, int[] column_indexes, string[] diag) {
+  int at = column_find(header, spec);
+  if (at >= 0) {
+    push(column_indexes, at);
+  } else {
+    push(diag, column_message(header, spec));
+  }
+} return void;
+(["a", "b"], "b", [], []):(["a", "b"], "b", [1], [])
+(["a", "b"], "q", [0], []):(["a", "b"], "q", [0], ["unknown column 'q'; available columns: a, b"])
+(["a", "b"], "1", [], []):(["a", "b"], "1", [0], [])

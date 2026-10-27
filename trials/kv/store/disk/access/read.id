@@ -1,0 +1,28 @@
+// Reads from an open handle into the store until n bytes are in or the file gives no more; how many arrived.
+read_fill(int file_handle, word address, int bytes_wanted) {
+  int byte_position = 0;
+  int step = 1;
+  while(byte_position < bytes_wanted && step > 0) {
+    step = fs_read_mem(file_handle, address + byte_position, bytes_wanted - byte_position);
+    if(step > 0) {
+      byte_position = byte_position + step;
+    }
+  }
+} return int byte_position;
+given scratch_open_for_read ((import scratch_reader_handle), (import memory_block_address), 10):(10) then memory_block_sum:(547)
+given scratch_open_for_read ((import scratch_reader_handle), (import memory_block_address), 4):(4) then memory_block_sum:(226)
+given scratch_open_for_read ((import scratch_reader_handle), (import memory_block_address), 64):(10) then memory_block_sum:(547)
+(-1, 1, 5):(0)
+
+// Reads the first size bytes of the file at path into the store at ad. The count read, or -1 if the file will not open.
+log_read(string path, word address, int size) {
+  int file_handle = fs_open(path, "r");
+  int have = 0 - 1;
+  if(file_handle >= 0) {
+    have = read_fill(file_handle, address, size);
+    int shut = fs_close(file_handle);
+  }
+} return int have;
+given scratch_ten_bytes ((import scratch_path), (import memory_block_address), 10):(10)
+given scratch_ten_bytes ((import scratch_path), (import memory_block_address), 3):(3)
+("/nonexistent-kv-dir/none", 1, 8):(-1)

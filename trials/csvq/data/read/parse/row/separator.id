@@ -1,0 +1,39 @@
+csv_end_of_line(word base, int[] scan_state) {
+  int character_code = peek8(base + scan_state[(import s_pos)]);
+  if (character_code > 0) {
+    scan_state[(import s_pos)] = scan_state[(import s_pos)] + 1;
+    scan_state[(import s_line)] = scan_state[(import s_line)] + 1;
+  }
+  if (character_code == (import ch_cr) && peek8(base + scan_state[(import s_pos)]) == (import ch_nl)) {
+    scan_state[(import s_pos)] = scan_state[(import s_pos)] + 1;
+  }
+} return void;
+given csv_sample_buffers ((import sample_plain), [3, 1, -1, 0]):((import sample_plain), [5, 2, -1, 0])
+given csv_sample_buffers ((import sample_plain), [8, 7, -1, 0]):((import sample_plain), [9, 8, -1, 0])
+given csv_sample_buffers ((import sample_carriage_return), [1, 7, -1, 0]):((import sample_carriage_return), [2, 8, -1, 0])
+given csv_sample_buffers ((import sample_plain), [12, 1, -1, 0]):((import sample_plain), [12, 1, -1, 0])
+
+csv_end(word base, int[] scan_state, string[] diag) {
+  int character_code = peek8(base + scan_state[(import s_pos)]);
+  if (character_code == 0 || character_code == (import ch_nl) || character_code == (import ch_cr)) {
+    csv_end_of_line(base, scan_state);
+  } else {
+    push(diag, "line " + scan_state[(import s_line)] + ": unexpected character after a closing quote (expected the delimiter or the end of the line)");
+  }
+} return void;
+given csv_sample_buffers ((import sample_plain), [3, 1, -1, 0], []):((import sample_plain), [5, 2, -1, 0], [])
+given csv_sample_buffers ((import sample_plain), [12, 1, -1, 0], []):((import sample_plain), [12, 1, -1, 0], [])
+given csv_sample_buffers ((import sample_garbage_after_quote), [3, 6, -1, 0], []):((import sample_garbage_after_quote), [3, 6, -1, 0], ["line 6: unexpected character after a closing quote (expected the delimiter or the end of the line)"])
+
+csv_separator(word base, int delimiter, int[] scan_state, string[] diag) {
+  scan_state[(import s_more)] = 0;
+  if (peek8(base + scan_state[(import s_pos)]) == delimiter) {
+    scan_state[(import s_pos)] = scan_state[(import s_pos)] + 1;
+    scan_state[(import s_more)] = 1;
+  } else {
+    csv_end(base, scan_state, diag);
+  }
+} return void;
+given csv_sample_buffers ((import sample_plain), 44, [1, 1, -1, 0], []):((import sample_plain), 44, [2, 1, -1, 1], [])
+given csv_sample_buffers ((import sample_plain), 44, [3, 1, -1, 1], []):((import sample_plain), 44, [5, 2, -1, 0], [])
+given csv_sample_buffers ((import sample_plain), 59, [1, 1, -1, 0], []):((import sample_plain), 59, [1, 1, -1, 0], ["line 1: unexpected character after a closing quote (expected the delimiter or the end of the line)"])

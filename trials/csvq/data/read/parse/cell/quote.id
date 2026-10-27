@@ -1,36 +1,36 @@
-csv_dbl(word base, int j) {
-  int k = 0;
-  if (peek8(base + j) == (import ch_quote) && peek8(base + j + 1) == (import ch_quote)) {
-    k = 1;
+csv_doubled_quote(word base, int quote_index) {
+  int doubled = 0;
+  if (peek8(base + quote_index) == (import ch_quote) && peek8(base + quote_index + 1) == (import ch_quote)) {
+    doubled = 1;
   }
-} return int k;
-given csv_t_all ((import tq), 2):(1)
-given csv_t_all ((import tq), 5):(0)
-given csv_t_all ((import tq), 16):(0)
-given csv_t_all ((import ta), 0):(0)
+} return int doubled;
+given csv_sample_buffers ((import sample_quoted), 2):(1)
+given csv_sample_buffers ((import sample_quoted), 5):(0)
+given csv_sample_buffers ((import sample_quoted), 16):(0)
+given csv_sample_buffers ((import sample_plain), 0):(0)
 
-csv_qscan(word base, int i) {
-  int c = peek8(base + i);
-  while (c > 0 && (c != (import ch_quote) || csv_dbl(base, i) == 1)) {
-    i = i + 1 + csv_dbl(base, i);
-    c = peek8(base + i);
+csv_quote_scan(word base, int index) {
+  int character_code = peek8(base + index);
+  while (character_code > 0 && (character_code != (import ch_quote) || csv_doubled_quote(base, index) == 1)) {
+    index = index + 1 + csv_doubled_quote(base, index);
+    character_code = peek8(base + index);
   }
-} return int i;
-given csv_t_all ((import tq), 1):(5)
-given csv_t_all ((import tq), 8):(11)
-given csv_t_all ((import tx), 5):(10)
-given csv_t_all ((import tq), 2):(5)
+} return int index;
+given csv_sample_buffers ((import sample_quoted), 1):(5)
+given csv_sample_buffers ((import sample_quoted), 8):(11)
+given csv_sample_buffers ((import sample_unclosed), 5):(10)
+given csv_sample_buffers ((import sample_quoted), 2):(5)
 
-csv_nls(word base, int a, int b) {
-  int n = 0;
-  while (a < b) {
-    if (peek8(base + a) == (import ch_nl)) {
-      n = n + 1;
+csv_newline_count(word base, int from_index, int to_index) {
+  int newline_count = 0;
+  while (from_index < to_index) {
+    if (peek8(base + from_index) == (import ch_nl)) {
+      newline_count = newline_count + 1;
     }
-    a = a + 1;
+    from_index = from_index + 1;
   }
-} return int n;
-given csv_t_all ((import tq), 0, 16):(2)
-given csv_t_all ((import tq), 0, 9):(0)
-given csv_t_all ((import tq), 9, 10):(1)
-given csv_t_all ((import ta), 0, 12):(3)
+} return int newline_count;
+given csv_sample_buffers ((import sample_quoted), 0, 16):(2)
+given csv_sample_buffers ((import sample_quoted), 0, 9):(0)
+given csv_sample_buffers ((import sample_quoted), 9, 10):(1)
+given csv_sample_buffers ((import sample_plain), 0, 12):(3)

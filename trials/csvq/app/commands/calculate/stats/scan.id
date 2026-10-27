@@ -1,0 +1,31 @@
+statistics_row(float[] accumulator) {
+  string[] row = ["0", "", "", "", "0"];
+  if (accumulator[(import a_cnt)] > 0.0) {
+    statistics_fill(accumulator, row);
+  }
+} return string[] row;
+([0.0, 0.0, 0.0, 0.0, 0.0]):(["0", "", "", "", "0"])
+([6.0, 0.0, 3.0, 1.0, 3.0]):(["3", "1", "3", "2", "6"])
+
+statistics_cell(string[] header, string cell, int line_number, int column_index, float[] accumulator, string[] diag) {
+  if (cell != "") {
+    if (number_ok(cell) == 1) {
+      statistics_add(accumulator, number_value(cell));
+    } else {
+      push(diag, "line " + line_number + ": '" + cell + "' in column '" + header[column_index] + "' is not a number");
+    }
+  }
+} return void;
+(["a", "b"], "2.5", 4, 1, [0.0, 0.0, 0.0, 0.0, 0.0], []):(["a", "b"], "2.5", 4, 1, [2.5, 0.0, 1.0, 2.5, 2.5], [])
+(["a", "b"], "", 4, 1, [0.0, 0.0, 0.0, 0.0, 0.0], []):(["a", "b"], "", 4, 1, [0.0, 0.0, 0.0, 0.0, 0.0], [])
+(["a", "b"], "n/a", 9, 0, [0.0, 0.0, 0.0, 0.0, 0.0], []):(["a", "b"], "n/a", 9, 0, [0.0, 0.0, 0.0, 0.0, 0.0], ["line 9: 'n/a' in column 'a' is not a number"])
+
+statistics_scan(string[] header, string[][] rows, int[] lines, int column_index, float[] accumulator, string[] diag) {
+  int index = 0;
+  while (index < len(rows) && len(diag) == 0) {
+    statistics_cell(header, rows[index][column_index], lines[index], column_index, accumulator, diag);
+    index = index + 1;
+  }
+} return void;
+(["a"], [["1"], [""], ["3"]], [2, 3, 4], 0, [0.0, 0.0, 0.0, 0.0, 0.0], []):(["a"], [["1"], [""], ["3"]], [2, 3, 4], 0, [4.0, 0.0, 2.0, 1.0, 3.0], [])
+(["a"], [["1"], ["x"], ["3"]], [2, 3, 4], 0, [0.0, 0.0, 0.0, 0.0, 0.0], []):(["a"], [["1"], ["x"], ["3"]], [2, 3, 4], 0, [1.0, 0.0, 1.0, 1.0, 1.0], ["line 3: 'x' in column 'a' is not a number"])

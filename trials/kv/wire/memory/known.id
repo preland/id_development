@@ -1,0 +1,18 @@
+// Fixtures: a 64-byte block of the flat store with a known content, and a way to read it back.
+memory_block_zeroed() {
+  export word memory_block_address = alloc(64);
+  buffer_zero(memory_block_address, 64);
+} return void;
+():() then memory_block_sum:(0)
+():() then memory_block_byte_at(63):(0)
+
+memory_block_sum() {
+  int sum = 0;
+  int index = 0;
+  while(index < 32) {
+    sum = sum + peek8((import memory_block_address) + index);
+    index = index + 1;
+  }
+} return int sum;
+given memory_block_zeroed ():(0)
+given memory_block_zeroed given buffer_fill((import memory_block_address), 64, 1) ():(32)

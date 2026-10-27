@@ -1,0 +1,32 @@
+number_sign(string number_text, int index) {
+  int after_sign = index;
+  if (character_code_at(number_text, index) == (import ch_minus) || character_code_at(number_text, index) == (import ch_plus)) {
+    after_sign = index + 1;
+  }
+} return int after_sign;
+("-5", 0):(1)
+("+5", 0):(1)
+("5", 0):(0)
+("1e-5", 2):(3)
+("", 0):(0)
+
+number_digits(string number_text, int index) {
+  while (character_is_digit(character_code_at(number_text, index)) == 1) {
+    index = index + 1;
+  }
+} return int index;
+("123abc", 0):(3)
+("abc", 0):(0)
+("12", 1):(2)
+("", 0):(0)
+
+number_dot(string number_text, int digits_end) {
+  int dot_end = digits_end;
+  if (character_code_at(number_text, digits_end) == (import ch_dot)) {
+    dot_end = number_digits(number_text, digits_end + 1);
+  }
+} return int dot_end;
+("1.25", 1):(4)
+("12", 1):(1)
+("1.", 1):(2)
+("1.5e3", 1):(3)

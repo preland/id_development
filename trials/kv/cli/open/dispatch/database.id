@@ -1,0 +1,36 @@
+// Opens the database at path into fresh lists, reports what the open found, and runs the command. 3 if the file could not be opened as a log.
+cli_database(string path, string[] argv) {
+  string[] keys = [];
+  int[] entry_numbers = [];
+  int[] used = [];
+} chain (string path, string[] argv) {
+  int[] counters = [];
+  word[] entry_records = [];
+  database_new(keys, entry_numbers, used, counters);
+} chain (string path, string[] argv) {
+  int status = database_load(path, keys, entry_numbers, used, counters, entry_records);
+  warn_open(path, counters, status);
+  int code = 3;
+} chain (string path, string[] argv) {
+  if(status < 2) {
+    code = command_run(path, keys, entry_numbers, used, counters, entry_records, argv);
+  } else {
+    code = fail_open(path, status);
+  }
+} return int code;
+given log_image_prefix_on_file(57) ((import scratch_path), ["kv", "x", "list"]):(0) then prints:("cd\n") then scratch_remove:(0)
+given log_wrong_magic_file ((import scratch_path), ["kv", "x", "list"]):(3) then scratch_size_text:("size 57") then scratch_remove:(0)
+given log_image_prefix_on_file(52) ((import scratch_path), ["kv", "x", "stats"]):(0) then scratch_size_text:("size 52") then scratch_remove:(0)
+("/nonexistent-kv-dir/none", ["kv", "x", "list"]):(0) then prints:("")
+("/nonexistent-kv-dir/none", ["kv", "x", "get", "k"]):(1) then eprints:("kv: no such key: k\n")
+
+// What is wrong with the whole command line, or "" if nothing.
+cli_check(int argc, string[] argv) {
+  string bad = "expected: kv DB COMMAND [ARGS]";
+  if(argc >= 3) {
+    bad = command_bad(argc, argv[2]);
+  }
+} return string bad;
+(1, ["kv"]):("expected: kv DB COMMAND [ARGS]")
+(4, ["kv", "db", "get", "k"]):("")
+(3, ["kv", "db", "nope"]):("unknown command 'nope'")

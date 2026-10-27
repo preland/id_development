@@ -1,0 +1,44 @@
+// Drops a damaged tail: saves it, rewrites the sound part, and resets the counters to match. The new size, or -1 with the file untouched.
+// good is the sound length the counters hold, held to what the file has left in case something else shrank it.
+repair_swap(string path, word address, int[] counters, int total) {
+  int good = fixed_point_minimum(counters[(import st_size)], total);
+  int saved = repair_save(path, address, good, total);
+  int size = 0 - 1;
+} chain (string path, word address, int[] counters, int total) {
+  if(saved >= 0) {
+    size = repair_write(path, address, good);
+  }
+  if(size >= 0) {
+    counters_settle(counters, size);
+  }
+  if(saved > 0 && size >= 0) {
+    eprint(repair_message(path));
+  }
+} return int size;
+given log_counters_claim(42, 52) ((import scratch_path), (import log_image_address), (import store_counters), 52):(42) then store_file_counters_text:("42/42/0") then scratch_leftover_size(".bad"):(10) then scratch_remove:(0)
+given log_counters_claim(100, 100) ((import scratch_path), (import log_image_address), (import store_counters), 52):(52) then scratch_size_text:("size 52") then scratch_remove:(0)
+given log_cut_header ((import scratch_path), (import log_image_address), (import store_counters), 3):(8) then store_file_counters_text:("8/8/0") then scratch_leftover_size(".bad"):(-1) then scratch_remove:(0)
+
+// Reads the whole file, then repairs it from what was read.
+repair_file(string path, int[] counters, int total) {
+  word address = alloc(total);
+  int have = log_read(path, address, total);
+  int code = 0 - 1;
+} chain (string path, int[] counters, int total) {
+  if(have == total) {
+    code = repair_swap(path, address, counters, total);
+  }
+} return int code;
+given log_counters_claim(42, 52) ((import scratch_path), (import store_counters), 52):(42) then scratch_size_text:("size 42") then scratch_remove:(0)
+given store_empty_lists ("/nonexistent-kv-dir/none", (import store_counters), 4):(-1)
+
+// Repairs the log at path: everything after the sound bytes the counters hold is set aside in path.bad and dropped. The new size, or -1.
+log_repair(string path, int[] counters) {
+  int total = fs_size(path);
+  int code = 0 - 1;
+  if(total >= 0) {
+    code = repair_file(path, counters, total);
+  }
+} return int code;
+given log_counters_claim(42, 52) ((import scratch_path), (import store_counters)):(42) then store_file_counters_text:("42/42/0") then scratch_leftover_size(".bad"):(10) then scratch_remove:(0)
+given store_empty_lists ("/nonexistent-kv-dir/none", (import store_counters)):(-1) then store_file_counters_text:("0/0/0")

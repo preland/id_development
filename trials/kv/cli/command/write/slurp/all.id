@@ -1,0 +1,21 @@
+// Reads the handle to its end into the buffer. It stops early, without reading further, once more than rec_max_val bytes are in: no record could hold them. The last read's answer: 0 at the end of the file, -1 on an error.
+slurp_loop(int file_handle, word[] slurp_buffer) {
+  int got = 1;
+  while(got > 0 && slurp_buffer[2] <= (import rec_max_val)) {
+    got = slurp_step(file_handle, slurp_buffer);
+  }
+} return int got;
+given slurp_empty_buffer ((import scratch_reader_handle), (import slurp_empty_buffer_list)):(0) then slurp_buffer_state:("16/10/525") then scratch_remove:(0)
+given slurp_empty_buffer given word_list_set((import slurp_empty_buffer_list), 1, 4) ((import scratch_reader_handle), (import slurp_empty_buffer_list)):(0) then slurp_buffer_state:("16/10/525") then scratch_remove:(0)
+
+// Reads the whole file at path (standard input is /dev/stdin) into the buffer. 0 or more once it has been read, -1 if it could not be opened or read.
+slurp(string path, word[] slurp_buffer) {
+  int file_handle = fs_open(path, "r");
+  int got = 0 - 1;
+  if(file_handle >= 0) {
+    got = slurp_loop(file_handle, slurp_buffer);
+    int shut = fs_close(file_handle);
+  }
+} return int got;
+given slurp_empty_buffer ((import scratch_path), (import slurp_empty_buffer_list)):(0) then slurp_buffer_state:("16/10/525") then scratch_remove:(0)
+given slurp_empty_buffer given word_list_set((import slurp_empty_buffer_list), 1, 4) ("/nonexistent-kv-dir/none", (import slurp_empty_buffer_list)):(-1) then slurp_buffer_state:("4/0/0") then scratch_remove:(0)

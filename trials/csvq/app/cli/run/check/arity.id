@@ -1,10 +1,10 @@
-cli_arity(int at, string[] args, string[] diag) {
-  int extra = len(args) - 1 - (import cmd_need)[at];
+cli_arity(int at, string[] arguments, string[] diag) {
+  int extra = len(arguments) - 1 - (import cmd_need)[at];
   if (extra < 0) {
-    push(diag, args[0] + " needs " + (import cmd_use)[at]);
+    push(diag, arguments[0] + " needs " + (import cmd_use)[at]);
   } else {
     if (extra > (import cmd_files)[at]) {
-      push(diag, "too many arguments for " + args[0]);
+      push(diag, "too many arguments for " + arguments[0]);
     }
   }
 } return void;
@@ -14,11 +14,11 @@ cli_arity(int at, string[] args, string[] diag) {
 (3, ["count", "f.csv", "g.csv"], []):(3, ["count", "f.csv", "g.csv"], ["too many arguments for count"])
 (6, ["gen", "5", "f.csv"], []):(6, ["gen", "5", "f.csv"], ["too many arguments for gen"])
 
-cli_flags(string[] args, int[] o, string[] diag) {
-  if (args[0] != "sort" && o[(import o_desc)] == 1) {
+cli_flags(string[] arguments, int[] options, string[] diag) {
+  if (arguments[0] != "sort" && options[(import o_desc)] == 1) {
     push(diag, "--desc only applies to the sort command");
   }
-  if (args[0] != "sort" && o[(import o_num)] == 1) {
+  if (arguments[0] != "sort" && options[(import o_num)] == 1) {
     push(diag, "--numeric only applies to the sort command");
   }
 } return void;

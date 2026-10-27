@@ -1,22 +1,22 @@
 // The counters as "live/dead/recs".
-db_t_state() {
-  string state = (import db_t_st)[(import st_live)] + "/" + (import db_t_st)[(import st_dead)] + "/" + (import db_t_st)[(import st_recs)];
+store_state_text() {
+  string state = (import store_counters)[(import st_live)] + "/" + (import store_counters)[(import st_dead)] + "/" + (import store_counters)[(import st_recs)];
 } return string state;
-given db_t_lists ():("0/0/0")
-given db_t_puts ():("2/0/2")
+given store_empty_lists ():("0/0/0")
+given store_two_puts ():("2/0/2")
 
 // The entry numbers "ab" and "cd" resolve to, as "ab,cd".
-db_t_where() {
-  int ab = hash_map_get((import db_t_keys), (import db_t_vals), (import db_t_used), "ab", (import no_entry));
-  int cd = hash_map_get((import db_t_keys), (import db_t_vals), (import db_t_used), "cd", (import no_entry));
-  string where = ab + "," + cd;
+store_entries_text() {
+  int first_entry = hash_map_get((import store_keys), (import store_entry_numbers), (import store_slot_flags), "ab", (import no_entry));
+  int second_entry = hash_map_get((import store_keys), (import store_entry_numbers), (import store_slot_flags), "cd", (import no_entry));
+  string where = first_entry + "," + second_entry;
 } return string where;
-given db_t_lists ():("-1,-1")
-given db_t_puts ():("0,1")
+given store_empty_lists ():("-1,-1")
+given store_two_puts ():("0,1")
 
 // The counters that describe the log file, as "size/file/why".
-db_t_meta() {
-  string meta = (import db_t_st)[(import st_size)] + "/" + (import db_t_st)[(import st_file)] + "/" + (import db_t_st)[(import st_why)];
+store_file_counters_text() {
+  string meta = (import store_counters)[(import st_size)] + "/" + (import store_counters)[(import st_file)] + "/" + (import store_counters)[(import st_why)];
 } return string meta;
-given db_t_lists ():("0/0/0")
-given db_t_marked ():("9/11/-3")
+given store_empty_lists ():("0/0/0")
+given store_marked_counters ():("9/11/-3")

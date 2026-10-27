@@ -1,0 +1,18 @@
+// The value for the i-th entry: about a hundred bytes, different for every i.
+bench_value(int index) {
+  string value_text = "value-" + index + string_repeat(".", 80);
+} return string value_text;
+(7):("value-7................................................................................")
+(12):("value-12................................................................................")
+
+// Stores entries 0 to n-1, each with put_arg, stopping at the first that fails. Its exit status.
+bench_put(string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, int puts_wanted) {
+  int code = 0;
+  int index = 0;
+  while(index < puts_wanted && code == 0) {
+    code = put_argument(path, keys, entry_numbers, used, counters, entry_records, "key-" + index, bench_value(index));
+    index = index + 1;
+  }
+} return int code;
+given log_image_on_file ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), 3):(0) then store_state_text:("3/0/3") then scratch_size_text:("size 323") then scratch_remove:(0)
+given log_image_on_file ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), 0):(0) then store_state_text:("0/0/0") then scratch_size_text:("size 0") then scratch_remove:(0)

@@ -1,0 +1,25 @@
+// The whole record's length in bytes, from its own header.
+record_length(word record) {
+  int key_length = record_key_length(record);
+  int value_length = peek32(record + (import rec_off_vlen));
+  int size = record_size(key_length, value_length);
+} return int size;
+given record_good_put ((import memory_block_address)):(18)
+given record_good_delete ((import memory_block_address)):(15)
+
+// The CRC-32 a record's header should carry: over everything after the checksum field.
+record_checksum(word record) {
+  int size = record_length(record);
+  int covered_length = size - (import rec_crc_len);
+  word checksum = crc32(record + (import rec_crc_len), covered_length);
+} return word checksum;
+given record_good_put ((import memory_block_address)):(886510399)
+given record_good_delete ((import memory_block_address)):(3896803970)
+
+// Writes the checksum into the header.
+record_seal(word record) {
+  word checksum = record_checksum(record);
+  poke32(record, checksum);
+} return void;
+given record_poked_byte(15, 121) ((import memory_block_address)):((import memory_block_address)) then memory_block_sum:(768)
+given record_poked_byte(4, 9) ((import memory_block_address)):((import memory_block_address)) then memory_block_sum:(743)

@@ -1,0 +1,26 @@
+// The empty store with the three file counters set to 9, 11 and -3.
+store_marked_counters() {
+  store_empty_lists();
+  counters_add((import store_counters), (import st_size), 9);
+  counters_add((import store_counters), (import st_file), 11);
+} chain () {
+  counters_add((import store_counters), (import st_why), 0 - 3);
+} return void;
+():() then store_file_counters_text:("9/11/-3")
+():() then store_state_text:("0/0/0")
+
+// The two puts, then a third put of the same key as the first: entries 0 and 2 are both "ab", and only 2 is live.
+store_overwritten() {
+  store_two_puts();
+  apply_put((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import store_first_put_record));
+} return void;
+():() then store_state_text:("2/18/3")
+():() then store_entries_text:("2,1")
+
+// The two puts, then the delete of "ab": "ab" keeps its table slot but points at no entry.
+store_deleted() {
+  store_two_puts();
+  apply_delete((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import store_first_delete_record));
+} return void;
+():() then store_state_text:("1/33/3")
+():() then store_entries_text:("-1,1")

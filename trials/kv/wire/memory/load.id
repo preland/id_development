@@ -1,0 +1,11 @@
+// Pokes a list of byte values into the flat store, starting at ad. Test fixtures build their byte images from literal lists with it.
+memory_load(word address, int[] byte_values) {
+  int index = 0;
+  while(index < len(byte_values)) {
+    poke8(address + index, byte_values[index]);
+    index = index + 1;
+  }
+} return void;
+given memory_block_zeroed ((import memory_block_address), [1, 2, 3]):((import memory_block_address), [1, 2, 3]) then memory_block_sum:(6)
+given memory_block_zeroed ((import memory_block_address), [200, 100]):((import memory_block_address), [200, 100]) then memory_block_sum:(300)
+given memory_block_zeroed ((import memory_block_address), []):((import memory_block_address), []) then memory_block_sum:(0)

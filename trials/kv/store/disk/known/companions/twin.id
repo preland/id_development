@@ -1,0 +1,11 @@
+// A scratch file holding ten bytes, with a second file path.compact beside it holding three ("abc").
+scratch_with_compact_twin() {
+  scratch_ten_bytes();
+  export string scratch_compact_path = (import scratch_path) + ".compact";
+  int file_handle = fs_open(scratch_compact_path, "w");
+} chain () {
+  int wrote = fs_write(file_handle, [97, 98, 99], 3);
+  int shut = fs_close(file_handle);
+} return void;
+():() then scratch_size_text:("size 10") then scratch_leftover_size(".compact"):(3) then scratch_remove:(0)
+():() then scratch_byte_total:(525) then scratch_remove:(0)

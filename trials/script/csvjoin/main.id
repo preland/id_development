@@ -15,8 +15,8 @@ join_run(string customers_path, string orders_path) {
   string[] diag = [];
 } chain (string customers_path, string orders_path) {
   int[] lines = [];
-  join_load_file(customers_path, crows, lines, diag);
-  join_load_file(orders_path, order_rows, lines, diag);
+  input_file(customers_path, (import ch_comma), crows, lines, diag);
+  input_file(orders_path, (import ch_comma), order_rows, lines, diag);
 } chain (string customers_path, string orders_path) {
   int rc = join_report_diagnostics(diag);
   if (rc == 0) {
@@ -25,9 +25,3 @@ join_run(string customers_path, string orders_path) {
 } return int rc;
 given fs_temp_text("id,name,region\n1,x,north\n") ((import fs_temp_path), (import fs_temp_path)):(0) then prints:("(unmatched): 1 orders, total 0.00\nnorth: 0 orders, total 0.00\n")
 ("/no/such/cj_a", "/no/such/cj_b"):(1) then eprints:("csvjoin: cannot read: no such file or directory\ncsvjoin: cannot read: no such file or directory\n")
-
-join_load_file(string path, string[][] rows, int[] lines, string[] diag) {
-  inp_file(path, (import ch_comma), rows, lines, diag);
-} return void;
-given fs_temp_text("a,b\n1,2\n") ((import fs_temp_path), [], [], []):((import fs_temp_path), [["a", "b"], ["1", "2"]], [1, 2], [])
-("/no/such/cj_a", [], [], []):("/no/such/cj_a", [], [], ["cannot read: no such file or directory"])

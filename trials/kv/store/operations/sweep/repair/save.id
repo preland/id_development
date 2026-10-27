@@ -1,0 +1,32 @@
+// Keeps the bytes of a damaged tail, good..total of the image at ad, by appending them to path.bad -- unless nothing was ever sound (good is 0), when they were only the start of a header. The bytes kept, 0 if none were, or -1.
+repair_save(string path, word address, int good, int total) {
+  int saved = 0;
+  if(good > 0) {
+    saved = log_write(path + ".bad", "a", address + good, total - good);
+  }
+} return int saved;
+given log_image_prefix_on_file(52) ((import scratch_path), (import log_image_address), 42, 52):(10) then scratch_leftover_size(".bad"):(10) then scratch_remove:(0)
+given log_torn_with_bad ((import scratch_path), (import log_image_address), 42, 52):(10) then scratch_leftover_size(".bad"):(13) then scratch_remove:(0)
+given log_image_prefix_on_file(52) ((import scratch_path), (import log_image_address), 0, 52):(0) then scratch_leftover_size(".bad"):(-1) then scratch_remove:(0)
+
+// Builds the repaired log beside the original as path.repair -- the sound bytes, or a bare header if there were none -- and renames it into place. The new size, or -1 with the original untouched.
+repair_write(string path, word address, int good) {
+  string temporary_path = path + ".repair";
+  int made = repair_fresh(temporary_path, address, good);
+  int size = swap_in(temporary_path, path, made);
+} return int size;
+given log_image_prefix_on_file(52) ((import scratch_path), (import log_image_address), 42):(42) then scratch_size_text:("size 42") then scratch_byte_total:(2192) then scratch_remove:(0)
+given log_image_prefix_on_file(52) ((import scratch_path), (import log_image_address), 0):(8) then scratch_size_text:("size 8") then scratch_byte_total:(577) then scratch_remove:(0)
+("/nonexistent-kv-dir/none", 1, 0):(-1)
+
+// Writes the sound bytes to tmp, or a bare header if there are none.
+repair_fresh(string temporary_path, word address, int good) {
+  int made = 0 - 1;
+  if(good > 0) {
+    made = log_write(temporary_path, "w", address, good);
+  } else {
+    made = log_start(temporary_path);
+  }
+} return int made;
+given log_image_prefix_on_file(52) ((import scratch_path), (import log_image_address), 42):(42) then scratch_remove:(0)
+given log_image_prefix_on_file(52) ((import scratch_path), (import log_image_address), 0):(8) then scratch_remove:(0)

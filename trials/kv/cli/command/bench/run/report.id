@@ -1,0 +1,20 @@
+// Operations per second for n operations that took ms milliseconds (a millisecond at least, so a fast run does not divide by zero).
+bench_rate(int operation_count, int milliseconds) {
+  word operations = operation_count;
+  word per = operations * 1000 / fixed_point_maximum(milliseconds, 1);
+  int rate = per;
+} return int rate;
+(50000, 250):(200000)
+(3, 0):(3000)
+(10, 4000):(2)
+
+// The benchmark's four lines from its counts: res holds the milliseconds for the puts, the reopen and the gets, then how many values read back right and how many keys the reopened store had.
+bench_text(int printed_keys, int[] results) {
+  string puts = "put: " + printed_keys + " keys in " + results[0] + " ms (" + bench_rate(printed_keys, results[0]) + " keys/s)";
+  string open = "open: rebuilt " + results[4] + " keys in " + results[1] + " ms";
+  string gets = "get: " + printed_keys + " keys in " + results[2] + " ms (" + bench_rate(printed_keys, results[2]) + " keys/s)";
+} chain (int printed_keys, int[] results) {
+  string text = puts + "\n" + open + "\n" + gets + "\nverified: " + results[3] + " of " + printed_keys + " values correct";
+} return string text;
+(1000, [10, 5, 2, 1000, 1000]):("put: 1000 keys in 10 ms (100000 keys/s)\nopen: rebuilt 1000 keys in 5 ms\nget: 1000 keys in 2 ms (500000 keys/s)\nverified: 1000 of 1000 values correct")
+(4, [0, 0, 0, 3, 4]):("put: 4 keys in 0 ms (4000 keys/s)\nopen: rebuilt 4 keys in 0 ms\nget: 4 keys in 0 ms (4000 keys/s)\nverified: 3 of 4 values correct")

@@ -1,0 +1,21 @@
+// One bit of a reflected CRC-32: shift right, and fold in the polynomial when the bit that fell off was set.
+checksum_round(word checksum) {
+  word mask = 0 - (checksum & 1);
+  word next = ushr(checksum, 1) ^ (mask & (import crc_poly));
+} return word next;
+(1):(3988292384)
+(0):(0)
+(3):(3988292385)
+
+// One byte: eight rounds over the running value xor the byte.
+checksum_step(word checksum, word by) {
+  word run = checksum ^ by;
+  int index = 0;
+  while(index < 8) {
+    run = checksum_round(run);
+    index = index + 1;
+  }
+} return word run;
+(0, 1):(1996959894)
+(0, 0):(0)
+(4294967295, 97):(390611388)

@@ -1,0 +1,36 @@
+// Where the live record for key is in the flat store, or 0 if the key is absent or deleted.
+database_record(string[] keys, int[] entry_numbers, int[] used, word[] entry_records, string key) {
+  int entry_index = hash_map_get(keys, entry_numbers, used, key, (import no_entry));
+  word record = 0;
+  if(entry_index >= 0) {
+    record = entry_records[entry_index];
+  }
+} return word record;
+given store_two_puts ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records), "cd"):((import store_second_put_record))
+given store_two_puts ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records), "zz"):(0)
+given store_overwritten ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records), "ab"):((import store_first_put_record))
+given store_deleted ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records), "ab"):(0)
+
+// Adds the key in table slot i to picked if the slot holds a live key that starts with prefix. With these two keys, "ab" is in slot 2 and "cd" in slot 3.
+pick_one(string[] keys, int[] entry_numbers, int[] used, string prefix, string[] picked, int index) {
+  if(used[index] == 1 && entry_numbers[index] >= 0 && string_starts_with(keys[index], prefix) == 1) {
+    push(picked, keys[index]);
+  }
+} return void;
+given store_two_puts ((import store_keys), (import store_entry_numbers), (import store_slot_flags), "a", [], 2):((import store_keys), (import store_entry_numbers), (import store_slot_flags), "a", ["ab"])
+given store_two_puts ((import store_keys), (import store_entry_numbers), (import store_slot_flags), "", [], 3):((import store_keys), (import store_entry_numbers), (import store_slot_flags), "", ["cd"])
+given store_two_puts ((import store_keys), (import store_entry_numbers), (import store_slot_flags), "c", [], 2):((import store_keys), (import store_entry_numbers), (import store_slot_flags), "c", [])
+given store_two_puts ((import store_keys), (import store_entry_numbers), (import store_slot_flags), "", [], 0):((import store_keys), (import store_entry_numbers), (import store_slot_flags), "", [])
+given store_deleted ((import store_keys), (import store_entry_numbers), (import store_slot_flags), "", [], 2):((import store_keys), (import store_entry_numbers), (import store_slot_flags), "", [])
+
+// Adds every live key that starts with prefix to picked, in table order.
+keys_pick(string[] keys, int[] entry_numbers, int[] used, string prefix, string[] picked) {
+  int index = 0;
+  while(index < len(keys)) {
+    pick_one(keys, entry_numbers, used, prefix, picked, index);
+    index = index + 1;
+  }
+} return void;
+given store_two_puts ((import store_keys), (import store_entry_numbers), (import store_slot_flags), "", []):((import store_keys), (import store_entry_numbers), (import store_slot_flags), "", ["ab", "cd"])
+given store_two_puts ((import store_keys), (import store_entry_numbers), (import store_slot_flags), "zz", []):((import store_keys), (import store_entry_numbers), (import store_slot_flags), "zz", [])
+given store_deleted ((import store_keys), (import store_entry_numbers), (import store_slot_flags), "", []):((import store_keys), (import store_entry_numbers), (import store_slot_flags), "", ["cd"])

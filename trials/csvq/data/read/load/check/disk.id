@@ -1,31 +1,31 @@
-inp_t_disk() {
-  export string tf = fs_mktemp("csvq", 0);
-  export string tz = fs_mktemp("csvq", 0);
-  word ad = mem_of_str("a,b\n1,2\n");
+input_disk_files() {
+  export string data_path = fs_mktemp("csvq", 0);
+  export string empty_path = fs_mktemp("csvq", 0);
+  word buffer = mem_of_str("a,b\n1,2\n");
 } chain () {
-  int h = fs_open(tf, "w");
-  int n = fs_write_mem(h, ad, 8);
-  int rc = fs_close(h);
+  int file_handle = fs_open(data_path, "w");
+  int bytes_written = fs_write_mem(file_handle, buffer, 8);
+  int close_status = fs_close(file_handle);
 } chain () {
-  export int hf = fs_open(tf, "r");
-  fs_drop_exit(tf);
-  fs_drop_exit(tz);
+  export int read_handle = fs_open(data_path, "r");
+  fs_drop_exit(data_path);
+  fs_drop_exit(empty_path);
 } return void;
-():() then inp_t_sizes:(800) then inp_t_clean:(0)
-():() then inp_t_clean:(0)
+():() then input_disk_sizes:(800) then input_disk_cleanup:(0)
+():() then input_disk_cleanup:(0)
 
-inp_t_sizes() {
-  int a = fs_size((import tf));
-  int b = fs_size((import tz));
-  int r = a * 100 + b;
-} return int r;
-given inp_t_disk ():(800) then inp_t_clean:(0)
+input_disk_sizes() {
+  int data_size = fs_size((import data_path));
+  int empty_size = fs_size((import empty_path));
+  int size_code = data_size * 100 + empty_size;
+} return int size_code;
+given input_disk_files ():(800) then input_disk_cleanup:(0)
 ():() then traps:("uninitialised export")
 
-inp_t_clean() {
-  int a = fs_remove((import tf));
-  int b = fs_remove((import tz));
-  int rc = a + b;
-} return int rc;
-given inp_t_disk ():(0)
+input_disk_cleanup() {
+  int data_removed = fs_remove((import data_path));
+  int empty_removed = fs_remove((import empty_path));
+  int failure_total = data_removed + empty_removed;
+} return int failure_total;
+given input_disk_files ():(0)
 ():() then traps:("uninitialised export")

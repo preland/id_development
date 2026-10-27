@@ -1,0 +1,35 @@
+number_format_ratio(float numerator, float denominator) {
+  string result_text = number_format(numerator / denominator);
+} return string result_text;
+(0.0, 0.0):("nan")
+(1.0, 0.0):("inf")
+(-1.0, 0.0):("-inf")
+(1.0, 3.0):("0.333333333333333")
+
+number_whole(float float_value) {
+  int ok = 0;
+  if (float_value < 1000000000000000000.0) {
+    word integer_word = float_value;
+    float round_trip = integer_word;
+    ok = round_trip == float_value;
+  }
+} return int ok;
+(5.0):(1)
+(2.5):(0)
+(1000000000000000000.0):(0)
+(123456789012345678.0):(1)
+(0.5):(0)
+
+number_format_finite(float float_value) {
+  string result_text = "";
+  if (number_whole(float_value) == 1) {
+    word integer_word = float_value;
+    result_text = "" + integer_word;
+  } else {
+    result_text = number_body(float_value);
+  }
+} return string result_text;
+(12.0):("12")
+(10000000000000000.0):("10000000000000000")
+(0.5):("0.5")
+(1000000000000000000000.0):("1e+21")

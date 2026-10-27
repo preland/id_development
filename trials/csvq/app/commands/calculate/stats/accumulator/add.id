@@ -1,0 +1,32 @@
+statistics_range(float[] accumulator, float float_value) {
+  if (accumulator[(import a_cnt)] == 0.0 || float_value < accumulator[(import a_min)]) {
+    accumulator[(import a_min)] = float_value;
+  }
+  if (accumulator[(import a_cnt)] == 0.0 || float_value > accumulator[(import a_max)]) {
+    accumulator[(import a_max)] = float_value;
+  }
+} return void;
+([0.0, 0.0, 0.0, 0.0, 0.0], 5.0):([0.0, 0.0, 0.0, 5.0, 5.0], 5.0)
+([0.0, 0.0, 1.0, 3.0, 8.0], 2.0):([0.0, 0.0, 1.0, 2.0, 8.0], 2.0)
+([0.0, 0.0, 1.0, 3.0, 8.0], 9.0):([0.0, 0.0, 1.0, 3.0, 9.0], 9.0)
+([0.0, 0.0, 1.0, 3.0, 8.0], 5.0):([0.0, 0.0, 1.0, 3.0, 8.0], 5.0)
+
+statistics_add(float[] accumulator, float float_value) {
+  statistics_sum(accumulator, float_value);
+  statistics_range(accumulator, float_value);
+  accumulator[(import a_cnt)] = accumulator[(import a_cnt)] + 1.0;
+} return void;
+([0.0, 0.0, 0.0, 0.0, 0.0], 4.0):([4.0, 0.0, 1.0, 4.0, 4.0], 4.0)
+([4.0, 0.0, 1.0, 4.0, 4.0], -1.5):([2.5, 0.0, 2.0, -1.5, 4.0], -1.5)
+
+statistics_fill(float[] accumulator, string[] row) {
+  float corrected_sum = accumulator[(import a_sum)] + accumulator[(import a_comp)];
+  row[0] = number_format(accumulator[(import a_cnt)]);
+  row[1] = number_format(accumulator[(import a_min)]);
+} chain (float[] accumulator, string[] row) {
+  row[2] = number_format(accumulator[(import a_max)]);
+  row[3] = number_format(corrected_sum / accumulator[(import a_cnt)]);
+  row[4] = number_format(corrected_sum);
+} return void;
+([6.5, 0.0, 2.0, 2.5, 4.0], ["", "", "", "", ""]):([6.5, 0.0, 2.0, 2.5, 4.0], ["2", "2.5", "4", "3.25", "6.5"])
+([1.0, 0.0000000000000001, 1.0, 1.0, 1.0], ["", "", "", "", ""]):([1.0, 0.0000000000000001, 1.0, 1.0, 1.0], ["1", "1", "1", "1", "1"])

@@ -1,0 +1,24 @@
+column_names(string spec, string[] names, string[] diag) {
+  string[] bad = [];
+  csv_first(spec, (import ch_comma), names, bad);
+  if (len(bad) > 0) {
+    push(diag, "invalid column list '" + spec + "': " + bad[0]);
+  }
+} return void;
+("a,b", [], []):("a,b", ["a", "b"], [])
+("\"x,y\",z", [], []):("\"x,y\",z", ["x,y", "z"], [])
+("\"a", [], []):("\"a", ["a"], ["invalid column list '\"a': line 1: quoted field is never closed (missing closing quote)"])
+
+column_many(string[] header, string spec, int[] column_indexes, string[] diag) {
+  string[] names = [];
+  column_names(spec, names, diag);
+  int index = 0;
+} chain (string[] header, string spec, int[] column_indexes, string[] diag) {
+  while (index < len(names) && len(diag) == 0) {
+    column_pick(header, names[index], column_indexes, diag);
+    index = index + 1;
+  }
+} return void;
+(["a", "b", "c"], "c,a", [], []):(["a", "b", "c"], "c,a", [2, 0], [])
+(["a", "b", "c"], "b,zz,a", [], []):(["a", "b", "c"], "b,zz,a", [1], ["unknown column 'zz'; available columns: a, b, c"])
+(["a", "b", "c"], "2,2", [], []):(["a", "b", "c"], "2,2", [1, 1], [])

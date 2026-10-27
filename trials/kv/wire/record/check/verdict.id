@@ -1,0 +1,57 @@
+// The size of the record at rec if avail bytes hold a whole, valid one, otherwise a negative code (rec_why says what each means).
+// The checks run cheapest first, so a garbage length is refused before anything trusts it.
+record_check(word record, int avail) {
+  int code = record_check_header(avail);
+  if(code == 0) {
+    code = record_check_kind(record);
+  }
+  if(code == 0) {
+    code = record_check_lengths(record);
+  }
+} chain (word record, int avail) {
+  if(code == 0) {
+    code = record_check_room(record, avail);
+  }
+  if(code == 0) {
+    code = record_check_checksum(record);
+  }
+  if(code == 0) {
+    code = record_check_key(record);
+  }
+} chain (word record, int avail) {
+  if(code == 0) {
+    code = record_length(record);
+  }
+} return int code;
+given record_good_put ((import memory_block_address), 18):(18)
+given record_good_delete ((import memory_block_address), 15):(15)
+given record_good_put ((import memory_block_address), 12):(-1)
+given record_poked_byte(4, 9) ((import memory_block_address), 18):(-2)
+given record_with_length_field(2147483647) ((import memory_block_address), 18):(-3)
+given memory_block_zeroed given memory_load((import memory_block_address), [232, 243, 87, 197, 1, 0, 0, 0, 0, 3, 0, 0, 0, 120, 121, 122]) ((import memory_block_address), 16):(-3)
+given record_good_put ((import memory_block_address), 17):(-4)
+given record_poked_byte(15, 121) ((import memory_block_address), 18):(-5)
+given memory_block_zeroed given memory_load((import memory_block_address), [183, 44, 248, 165, 1, 2, 0, 0, 0, 3, 0, 0, 0, 97, 0, 120, 121, 122]) ((import memory_block_address), 18):(-6)
+given store_binary_value_with_writer ((import store_first_put_record), 19):(19) then scratch_remove:(0)
+
+// Whether the header fits in the bytes that are left: 0, or -1.
+record_check_header(int avail) {
+  int code = 0;
+  if(avail < (import rec_hdr)) {
+    code = 0 - 1;
+  }
+} return int code;
+(13):(0)
+(12):(-1)
+
+// Whether the kind byte is one a record has: 0, or -2.
+record_check_kind(word record) {
+  int kind = record_kind(record);
+  int code = 0;
+  if(kind != (import rec_put) && kind != (import rec_del)) {
+    code = 0 - 2;
+  }
+} return int code;
+given record_good_put ((import memory_block_address)):(0)
+given record_good_delete ((import memory_block_address)):(0)
+given record_poked_byte(4, 9) ((import memory_block_address)):(-2)

@@ -1,0 +1,30 @@
+statistics_absolute(float float_value) {
+  float absolute = float_value;
+  if (float_value < 0.0) {
+    absolute = 0.0 - float_value;
+  }
+} return float absolute;
+(-2.5):(2.5)
+(3.0):(3.0)
+(0.0):(0.0)
+
+statistics_lost_bits(float prior_sum, float addend, float new_sum) {
+  float lost_low_bits = (addend - new_sum) + prior_sum;
+  if (statistics_absolute(prior_sum) >= statistics_absolute(addend)) {
+    lost_low_bits = (prior_sum - new_sum) + addend;
+  }
+  if (float_is_finite(new_sum) == 0) {
+    lost_low_bits = 0.0;
+  }
+} return float lost_low_bits;
+(1.0, 0.0000000000000001, 1.0):(0.0000000000000001)
+(0.0000000000000001, 1.0, 1.0):(0.0000000000000001)
+(1.0, 2.0, 3.0):(0.0)
+
+statistics_sum(float[] accumulator, float float_value) {
+  float updated_sum = accumulator[(import a_sum)] + float_value;
+  accumulator[(import a_comp)] = accumulator[(import a_comp)] + statistics_lost_bits(accumulator[(import a_sum)], float_value, updated_sum);
+  accumulator[(import a_sum)] = updated_sum;
+} return void;
+([1.0, 0.0, 0.0, 0.0, 0.0], 0.0000000000000001):([1.0, 0.0000000000000001, 0.0, 0.0, 0.0], 0.0000000000000001)
+([0.0, 0.0, 0.0, 0.0, 0.0], 2.5):([2.5, 0.0, 0.0, 0.0, 0.0], 2.5)

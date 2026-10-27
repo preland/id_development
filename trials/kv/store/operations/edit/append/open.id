@@ -1,0 +1,18 @@
+// Fixtures: the scratch file cut to its first n bytes (57 whole, 52 torn), loaded into the lists.
+log_prefix_loaded(int prefix_length) {
+  log_image_prefix_on_file(prefix_length);
+  database_load((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records));
+} return void;
+(57):() then store_state_text:("1/33/3") then scratch_remove:(0)
+(57):() then store_file_counters_text:("57/57/0") then scratch_remove:(0)
+(52):() then store_state_text:("2/0/2") then scratch_remove:(0)
+(52):() then store_file_counters_text:("42/52/-1") then scratch_remove:(0)
+
+// The loaded 57 byte log, with the counters saying the log is nearly at log_max.
+log_nearly_full() {
+  log_prefix_loaded(57);
+  counters_add((import store_counters), (import st_size), 2147483583);
+  counters_add((import store_counters), (import st_file), 2147483583);
+} return void;
+():() then store_file_counters_text:("2147483640/2147483640/0") then scratch_remove:(0)
+():() then store_state_text:("1/33/3") then scratch_remove:(0)

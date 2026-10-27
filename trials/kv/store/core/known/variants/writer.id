@@ -1,0 +1,23 @@
+// Fixtures: the store with two puts applied (or three, the third overwriting the first), beside an empty scratch file open for writing.
+store_with_writer() {
+  store_two_puts();
+  scratch_open_for_write();
+} return void;
+():() then store_state_text:("2/0/2") then scratch_close_and_size:(0) then scratch_remove:(0)
+():() then store_entries_text:("0,1") then scratch_close_and_size:(0) then scratch_remove:(0)
+
+store_overwritten_with_writer() {
+  store_overwritten();
+  scratch_open_for_write();
+} return void;
+():() then store_state_text:("2/18/3") then scratch_close_and_size:(0) then scratch_remove:(0)
+():() then store_entries_text:("2,1") then scratch_close_and_size:(0) then scratch_remove:(0)
+
+// The store with two puts and the scratch file open, but the record of "ab" rebuilt around the four bytes 0, 255, 10 and 0: a NUL, a byte that is not text, a newline, a NUL.
+store_binary_value_with_writer() {
+  store_with_writer();
+  memory_load((import store_value_source), [0, 255, 10, 0]);
+  record_make((import store_first_put_record), 1, "ab", (import store_value_source), 4);
+} return void;
+():() then store_state_text:("2/0/2") then scratch_close_and_size:(0) then scratch_remove:(0)
+():() then store_entries_text:("0,1") then scratch_close_and_size:(0) then scratch_remove:(0)

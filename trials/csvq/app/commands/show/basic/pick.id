@@ -1,0 +1,9 @@
+command_select(string[] header, string[][] rows, int[] lines, int[] options, string[] arguments, string[] diag) {
+  int[] column_indexes = [];
+  column_many(header, arguments[1], column_indexes, diag);
+  if (len(diag) == 0) {
+    select_print(header, rows, options, column_indexes);
+  }
+} return void;
+(["a", "b", "c"], [["1", "2", "3"], ["4", "5", "6"]], [2, 3], [44, 0, 0, 0, 0], ["select", "c,a"], []):(["a", "b", "c"], [["1", "2", "3"], ["4", "5", "6"]], [2, 3], [44, 0, 0, 0, 0], ["select", "c,a"], []) then prints:("c,a\n3,1\n6,4\n")
+(["a", "b"], [["1", "2"]], [2], [44, 0, 0, 0, 0], ["select", "zz"], []):(["a", "b"], [["1", "2"]], [2], [44, 0, 0, 0, 0], ["select", "zz"], ["unknown column 'zz'; available columns: a, b"]) then prints:("")

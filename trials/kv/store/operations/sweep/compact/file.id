@@ -1,0 +1,39 @@
+// Writes the compacted log to path.compact and renames it over path. The new size, or -1 with the log untouched.
+compact_file(string path, string[] keys, int[] entry_numbers, int[] used, word[] entry_records) {
+  string temporary_path = path + ".compact";
+  int file_handle = fs_open(temporary_path, "w");
+  int total = 0 - 1;
+} chain (string path, string[] keys, int[] entry_numbers, int[] used, word[] entry_records) {
+  if(file_handle >= 0) {
+    total = compact_write(file_handle, keys, entry_numbers, used, entry_records);
+  }
+  total = swap_in(temporary_path, path, total);
+} return int total;
+given log_prefix_loaded(57) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records)):(24) then scratch_size_text:("size 24") then scratch_byte_total:(1279) then scratch_remove:(0)
+given log_prefix_loaded(52) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records)):(42) then scratch_size_text:("size 42") then scratch_byte_total:(2192) then scratch_remove:(0)
+given store_empty_lists ("/nonexistent-kv-dir/none", (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records)):(-1)
+
+// Rewrites the log so it holds only what is live. The new size, or -1 if the log could not be made ready or rewritten; the counters follow.
+database_compact(string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records) {
+  int ready = database_ready(path, counters);
+  int total = 0 - 1;
+  if(ready >= 0) {
+    total = compact_file(path, keys, entry_numbers, used, entry_records);
+  }
+} chain (string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records) {
+  if(total >= 0) {
+    compact_count(counters, total);
+  }
+} return int total;
+given log_prefix_loaded(57) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records)):(24) then store_file_counters_text:("24/24/0") then store_state_text:("1/0/1") then log_reload_state_text:("1/0/1/0") then scratch_remove:(0)
+given log_prefix_loaded(52) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records)):(42) then store_file_counters_text:("42/42/0") then store_state_text:("2/0/2") then scratch_leftover_size(".bad"):(10) then log_reload_state_text:("2/0/2/0") then scratch_remove:(0)
+given store_empty_lists ("/nonexistent-kv-dir/none", (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records)):(-1) then store_file_counters_text:("0/0/0")
+
+// Counts a compaction: the log is exactly the live records, so nothing is garbage and every record is a live key.
+compact_count(int[] counters, int total) {
+  counters_settle(counters, total);
+  counters[(import st_dead)] = 0;
+  counters[(import st_recs)] = counters[(import st_live)];
+} return void;
+given store_marked_counters ((import store_counters), 30):() then store_file_counters_text:("30/30/0")
+given store_overwritten ((import store_counters), 42):() then store_state_text:("2/0/2") then store_file_counters_text:("42/42/0")

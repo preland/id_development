@@ -1,5 +1,5 @@
-wr_special(int c, int d) {
-  int hit = c == d || c == (import ch_quote) || c == (import ch_nl) || c == (import ch_cr);
+csv_write_special(int character_code, int delimiter) {
+  int hit = character_code == delimiter || character_code == (import ch_quote) || character_code == (import ch_nl) || character_code == (import ch_cr);
 } return int hit;
 (44, 44):(1)
 (34, 44):(1)
@@ -9,12 +9,12 @@ wr_special(int c, int d) {
 (44, 59):(0)
 (59, 59):(1)
 
-wr_needs(string f, int d) {
-  int i = 0;
+csv_write_needs_quote(string field_text, int delimiter) {
+  int index = 0;
   int hit = 0;
-  while (character_code_at(f, i) >= 0 && hit == 0) {
-    hit = wr_special(character_code_at(f, i), d);
-    i = i + 1;
+  while (character_code_at(field_text, index) >= 0 && hit == 0) {
+    hit = csv_write_special(character_code_at(field_text, index), delimiter);
+    index = index + 1;
   }
 } return int hit;
 ("plain", 44):(0)
@@ -24,11 +24,11 @@ wr_needs(string f, int d) {
 ("a;b", 44):(0)
 ("", 44):(0)
 
-wr_quote(string f) {
-  string[] parts = string_split(f, "\"");
+csv_write_quote(string field_text) {
+  string[] parts = string_split(field_text, "\"");
   string body = string_join(parts, "\"\"");
-  string q = "\"" + body + "\"";
-} return string q;
+  string quoted = "\"" + body + "\"";
+} return string quoted;
 ("a,b"):("\"a,b\"")
 ("say \"hi\""):("\"say \"\"hi\"\"\"")
 (""):("\"\"")

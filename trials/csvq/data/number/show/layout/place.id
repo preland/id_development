@@ -1,0 +1,34 @@
+number_big(string digit_text, int exponent_ten) {
+  int digit_count = len(digit_text);
+  string result_text = digit_text + string_repeat("0", exponent_ten + 1 - digit_count);
+  if (digit_count > exponent_ten + 1) {
+    result_text = str_sub(digit_text, 0, exponent_ten + 1) + "." + str_sub(digit_text, exponent_ten + 1, digit_count - exponent_ten - 1);
+  }
+} return string result_text;
+("123", 0):("1.23")
+("5", 3):("5000")
+("12345", 2):("123.45")
+("12", 1):("12")
+
+number_place(string digit_text, int exponent_ten) {
+  string result_text = "0." + string_repeat("0", 0 - exponent_ten - 1) + digit_text;
+  if (exponent_ten >= 0) {
+    result_text = number_big(digit_text, exponent_ten);
+  }
+} return string result_text;
+("5", -1):("0.5")
+("123", -3):("0.00123")
+("123", 0):("1.23")
+("5", 3):("5000")
+
+number_layout(string digit_text, int exponent_ten) {
+  string result_text = number_place(digit_text, exponent_ten);
+  if (exponent_ten < -4 || exponent_ten >= 15) {
+    result_text = number_scientific(digit_text, exponent_ten);
+  }
+} return string result_text;
+("15", 2):("150")
+("15", -4):("0.00015")
+("15", -5):("1.5e-05")
+("15", 15):("1.5e+15")
+("15", 14):("150000000000000")

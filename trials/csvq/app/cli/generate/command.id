@@ -1,0 +1,12 @@
+command_generate(string[] arguments, int[] options, string[] diag) {
+  int row_count = column_unsigned(arguments[1]);
+  if (row_count < 0) {
+    push(diag, "gen needs a non-negative row count, got '" + arguments[1] + "'");
+  } else {
+    csv_write_print(["id", "name", "dept", "age", "score", "note"], options[(import o_delim)]);
+    generate_rows(row_count, [1], options[(import o_delim)]);
+  }
+} return void;
+(["gen", "0"], [44, 0, 0, 0, 0], []):(["gen", "0"], [44, 0, 0, 0, 0], []) then prints:("id,name,dept,age,score,note\n")
+(["gen", "x"], [44, 0, 0, 0, 0], []):(["gen", "x"], [44, 0, 0, 0, 0], ["gen needs a non-negative row count, got 'x'"]) then prints:("")
+(["gen", "2"], [59, 0, 0, 0, 0], []):(["gen", "2"], [59, 0, 0, 0, 0], []) then prints:("id;name;dept;age;score;note\n1;\"Dana \"\"DJ\"\" Lee\";hr;51;42.51;\"line one\nline two\"\n2;Ada Lovelace;legal;39;46.49;ok\n")

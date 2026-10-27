@@ -1,0 +1,31 @@
+// Sets the file counters after a repair: size and file agree, and nothing is wrong any more.
+counters_settle(int[] counters, int size) {
+  counters[(import st_size)] = size;
+  counters[(import st_file)] = size;
+  counters[(import st_why)] = 0;
+} return void;
+given store_marked_counters ((import store_counters), 42):((import store_counters)) then store_file_counters_text:("42/42/0")
+given store_empty_lists ((import store_counters), 8):((import store_counters)) then store_file_counters_text:("8/8/0")
+
+// Renames the scratch file tmp over path if the size it was built to is a real one, and always removes tmp. size itself, or -1 if the rename failed or size was already -1.
+swap_in(string temporary_path, string path, int size) {
+  int moved = 0 - 1;
+  if(size >= 0) {
+    moved = fs_rename(temporary_path, path);
+  }
+  int gone = fs_remove(temporary_path);
+} chain (string temporary_path, string path, int size) {
+  if(moved != 0) {
+    size = 0 - 1;
+  }
+} return int size;
+given scratch_with_compact_twin ((import scratch_compact_path), (import scratch_path), 3):(3) then scratch_size_text:("size 3") then scratch_leftover_size(".compact"):(-1) then scratch_remove:(0)
+given scratch_with_compact_twin ((import scratch_compact_path), (import scratch_path), -1):(-1) then scratch_size_text:("size 10") then scratch_leftover_size(".compact"):(-1) then scratch_remove:(0)
+given scratch_with_compact_twin ("/nonexistent-kv-dir/tmp", (import scratch_path), 5):(-1) then scratch_size_text:("size 10") then scratch_leftover_size(".compact"):(3) then scratch_remove:(0)
+
+// The notice printed when a damaged tail has been cut off the log and set aside.
+repair_message(string path) {
+  string message = "kv: " + path + ": repaired the log; the damaged bytes are saved in " + path + ".bad";
+} return string message;
+("x.kv"):("kv: x.kv: repaired the log; the damaged bytes are saved in x.kv.bad")
+("/tmp/db"):("kv: /tmp/db: repaired the log; the damaged bytes are saved in /tmp/db.bad")

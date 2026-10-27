@@ -1,22 +1,22 @@
-cmd_run(string name, string[] hdr, string[][] rows, int[] lines, int[] o, string[] args, string[] diag) {
+command_run(string name, string[] header, string[][] rows, int[] lines, int[] options, string[] arguments, string[] diag) {
   if (name == "select") {
-    cmd_select(hdr, rows, lines, o, args, diag);
+    command_select(header, rows, lines, options, arguments, diag);
   }
   if (name == "filter") {
-    cmd_filter(hdr, rows, lines, o, args, diag);
+    command_filter(header, rows, lines, options, arguments, diag);
   }
   if (name == "sort") {
-    cmd_sort(hdr, rows, lines, o, args, diag);
+    command_sort(header, rows, lines, options, arguments, diag);
   }
-} chain (string name, string[] hdr, string[][] rows, int[] lines, int[] o, string[] args, string[] diag) {
+} chain (string name, string[] header, string[][] rows, int[] lines, int[] options, string[] arguments, string[] diag) {
   if (name == "count") {
-    cmd_count(hdr, rows, lines, o, args, diag);
+    command_count(header, rows, lines, options, arguments, diag);
   }
   if (name == "head") {
-    cmd_head(hdr, rows, lines, o, args, diag);
+    command_head(header, rows, lines, options, arguments, diag);
   }
   if (name == "stats") {
-    cmd_stats(hdr, rows, lines, o, args, diag);
+    command_stats(header, rows, lines, options, arguments, diag);
   }
 } return void;
 ("select", ["a", "b"], [["1", "2"]], [2], [44, 0, 0, 0, 0], ["select", "b"], []):("select", ["a", "b"], [["1", "2"]], [2], [44, 0, 0, 0, 0], ["select", "b"], []) then prints:("b\n2\n")
@@ -26,11 +26,11 @@ cmd_run(string name, string[] hdr, string[][] rows, int[] lines, int[] o, string
 ("head", ["a"], [["2"], ["1"]], [2, 3], [44, 0, 0, 0, 0], ["head", "1"], []):("head", ["a"], [["2"], ["1"]], [2, 3], [44, 0, 0, 0, 0], ["head", "1"], []) then prints:("a\n2\n")
 ("stats", ["a"], [["2"], ["4"]], [2, 3], [44, 0, 0, 0, 0], ["stats", "a"], []):("stats", ["a"], [["2"], ["4"]], [2, 3], [44, 0, 0, 0, 0], ["stats", "a"], []) then prints:("count,min,max,mean,sum\n2,2,4,3,6\n")
 
-cli_path(string[] args) {
-  int at = list_string_index((import cmd_names), args[0]);
+cli_path(string[] arguments) {
+  int at = list_string_index((import cmd_names), arguments[0]);
   string path = "-";
-  if (len(args) > 1 + (import cmd_need)[at]) {
-    path = args[1 + (import cmd_need)[at]];
+  if (len(arguments) > 1 + (import cmd_need)[at]) {
+    path = arguments[1 + (import cmd_need)[at]];
   }
 } return string path;
 (["count"]):("-")

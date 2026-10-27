@@ -1,0 +1,30 @@
+command_count(string[] header, string[][] rows, int[] lines, int[] options, string[] arguments, string[] diag) {
+  print(len(rows));
+} return void;
+(["a"], [["1"], ["2"], ["3"]], [2, 3, 4], [44, 0, 0, 0, 0], ["count"], []):(["a"], [["1"], ["2"], ["3"]], [2, 3, 4], [44, 0, 0, 0, 0], ["count"], []) then prints:("3\n")
+(["a"], [], [], [44, 0, 0, 0, 0], ["count"], []):(["a"], [], [], [44, 0, 0, 0, 0], ["count"], []) then prints:("0\n")
+
+row_take(string[][] rows, int row_total, string[][] keep) {
+  int index = 0;
+  while (index < row_total && index < len(rows)) {
+    push(keep, rows[index]);
+    index = index + 1;
+  }
+} return void;
+([["a"], ["b"], ["c"]], 2, []):([["a"], ["b"], ["c"]], 2, [["a"], ["b"]])
+([["a"]], 5, []):([["a"]], 5, [["a"]])
+([["a"]], 0, []):([["a"]], 0, [])
+
+command_head(string[] header, string[][] rows, int[] lines, int[] options, string[] arguments, string[] diag) {
+  int row_total = column_unsigned(arguments[1]);
+  if (row_total < 0) {
+    push(diag, "head needs a non-negative integer, got '" + arguments[1] + "'");
+  } else {
+    string[][] keep = [];
+    row_take(rows, row_total, keep);
+    out_table(header, keep, options);
+  }
+} return void;
+(["a"], [["1"], ["2"], ["3"]], [2, 3, 4], [44, 0, 0, 0, 0], ["head", "2"], []):(["a"], [["1"], ["2"], ["3"]], [2, 3, 4], [44, 0, 0, 0, 0], ["head", "2"], []) then prints:("a\n1\n2\n")
+(["a"], [["1"]], [2], [44, 0, 0, 0, 0], ["head", "x"], []):(["a"], [["1"]], [2], [44, 0, 0, 0, 0], ["head", "x"], ["head needs a non-negative integer, got 'x'"])
+(["a"], [["1"]], [2], [44, 0, 0, 0, 0], ["head", "0"], []):(["a"], [["1"]], [2], [44, 0, 0, 0, 0], ["head", "0"], []) then prints:("a\n")

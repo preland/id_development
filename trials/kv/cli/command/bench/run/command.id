@@ -1,0 +1,16 @@
+// kv DB bench COUNT: puts COUNT keys of about a hundred bytes each, reopens the log, reads them all back and prints the timings. Status 2 if COUNT is not above zero.
+command_bench(string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, string[] argv) {
+  int requested_keys = to_int(argv[3]);
+  int[] results = [0, 0, 0, 0, 0];
+  int code = 2;
+} chain (string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, string[] argv) {
+  if(requested_keys > 0) {
+    code = bench_go(path, keys, entry_numbers, used, counters, entry_records, requested_keys, results);
+  } else {
+    eprint("kv: bench needs a count above zero");
+  }
+} return int code;
+given bench_empty_setup ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), ["kv", "x", "bench", "4"]):(0) then scratch_size_text:("size 428") then scratch_remove:(0)
+given bench_empty_setup ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), ["kv", "x", "bench", "1"]):(0) then scratch_size_text:("size 113") then scratch_remove:(0)
+given bench_empty_setup ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), ["kv", "x", "bench", "50000"]):(0) then scratch_size_text:("size 5627788") then store_state_text:("50000/0/50000") then scratch_remove:(0)
+given bench_empty_setup ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), ["kv", "x", "bench", "0"]):(2) then scratch_size_text:("size 0") then eprints:("kv: bench needs a count above zero\n") then scratch_remove:(0)

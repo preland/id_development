@@ -1,0 +1,22 @@
+// Whether the record is a put or a delete.
+record_kind(word record) {
+  int kind = peek8(record + (import rec_off_kind));
+} return int kind;
+given record_good_put ((import memory_block_address)):(1)
+given record_good_delete ((import memory_block_address)):(2)
+
+// The key, as a string. Trusts the length and traps on a NUL in the key: call it on a record rec_check accepted.
+record_key(word record) {
+  int key_length = record_key_length(record);
+  string key = str_of_mem(record + (import rec_hdr), key_length);
+} return string key;
+given record_good_put ((import memory_block_address)):("ab")
+given memory_block_zeroed given memory_load((import memory_block_address), [183, 44, 248, 165, 1, 2, 0, 0, 0, 3, 0, 0, 0, 97, 0, 120, 121, 122]) ((import memory_block_address)):() then traps:("NUL byte")
+
+// How far into the record the value's first byte is.
+record_value_offset(word record) {
+  int key_length = record_key_length(record);
+  int value_offset = (import rec_hdr) + key_length;
+} return int value_offset;
+given record_good_put ((import memory_block_address)):(15)
+given memory_block_zeroed given memory_load((import memory_block_address), [232, 243, 87, 197, 1, 0, 0, 0, 0, 3, 0, 0, 0, 120, 121, 122]) ((import memory_block_address)):(13)

@@ -1,0 +1,28 @@
+// Whether the key reads back whole: a NUL inside it would cut the string short, and str_of_mem refuses it, so the bytes are scanned first. 0, or -6.
+record_check_key(word record) {
+  int key_length = record_key_length(record);
+  int key_length_before_zero = buffer_length_before_zero(record + (import rec_hdr), key_length);
+  int code = 0;
+} chain (word record) {
+  if(key_length_before_zero != key_length) {
+    code = 0 - 6;
+  }
+} return int code;
+given record_good_put ((import memory_block_address)):(0)
+given memory_block_zeroed given memory_load((import memory_block_address), [183, 44, 248, 165, 1, 2, 0, 0, 0, 3, 0, 0, 0, 97, 0, 120, 121, 122]) ((import memory_block_address)):(-6)
+
+// The words for a rec_check code, or "" for a code that is not a failure.
+record_why(int code) {
+  int reason_count = len((import rec_reasons));
+  int reason_index = 0 - code - 1;
+  string why = "";
+} chain (int code) {
+  if(reason_index >= 0 && reason_index < reason_count) {
+    why = (import rec_reasons)[reason_index];
+  }
+} return string why;
+(-1):("truncated header")
+(-5):("checksum mismatch")
+(-6):("key holds a NUL byte")
+(0):("")
+(-7):("")

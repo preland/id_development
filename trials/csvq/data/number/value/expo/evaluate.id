@@ -1,0 +1,33 @@
+number_exponent_index(string number_text) {
+  int index = number_exponent_start(number_text);
+  int exponent_index = -1;
+  if (character_code_at(number_text, index) >= 0) {
+    exponent_index = index;
+  }
+} return int exponent_index;
+("12e5"):(2)
+("125"):(-1)
+("1.5E-3"):(3)
+
+number_exponent_parse(string number_text, int index) {
+  int end_index = number_sign(number_text, index);
+  int exponent_value = number_digits_value(number_text, end_index);
+  if (character_code_at(number_text, index) == (import ch_minus)) {
+    exponent_value = 0 - exponent_value;
+  }
+} return int exponent_value;
+("e-12", 1):(-12)
+("e+7", 1):(7)
+("e5", 1):(5)
+("e99999999999", 1):(1000)
+
+number_exponent(string number_text) {
+  int exponent_marker = number_exponent_index(number_text);
+  int exponent_value = 0;
+  if (exponent_marker >= 0) {
+    exponent_value = number_exponent_parse(number_text, exponent_marker + 1);
+  }
+} return int exponent_value;
+("1e3"):(3)
+("1.5E-3"):(-3)
+("15"):(0)

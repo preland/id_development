@@ -1,0 +1,33 @@
+// Whether entry e is the one its key resolves to, so the record is not garbage: 1 if so.
+live_at(string[] keys, int[] entry_numbers, int[] used, word[] entry_records, int entry_index) {
+  string key = record_key(entry_records[entry_index]);
+  int current_entry = hash_map_get(keys, entry_numbers, used, key, (import no_entry));
+  int live = current_entry == entry_index;
+} return int live;
+given store_two_puts ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records), 0):(1)
+given store_overwritten ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records), 0):(0)
+given store_overwritten ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records), 2):(1)
+
+// Adds two byte counts, where -1 means a failure that stays a failure.
+tally(int total, int sent) {
+  int sum = 0 - 1;
+  if(total >= 0 && sent >= 0) {
+    sum = total + sent;
+  }
+} return int sum;
+(3, 4):(7)
+(-1, 4):(-1)
+(3, -1):(-1)
+(0, 0):(0)
+
+// Writes one whole record to an open handle. Its length, or -1 if it did not all go out.
+emit_record(int file_handle, word record) {
+  int emitted_length = record_length(record);
+  int sent = write_all(file_handle, record, emitted_length);
+  if(sent != emitted_length) {
+    sent = 0 - 1;
+  }
+} return int sent;
+given store_with_writer ((import scratch_writer_handle), (import store_first_put_record)):(18) then scratch_close_and_size:(18) then scratch_byte_total:(913) then scratch_remove:(0)
+given store_with_writer ((import scratch_writer_handle), (import store_second_put_record)):(16) then scratch_close_and_size:(16) then scratch_byte_total:(702) then scratch_remove:(0)
+given store_with_writer (-1, (import store_first_put_record)):(-1) then scratch_remove:(0)

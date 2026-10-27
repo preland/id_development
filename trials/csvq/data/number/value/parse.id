@@ -1,0 +1,50 @@
+number_step(word[] mantissa_words, int character_code) {
+  if (character_is_digit(character_code) == 1 && mantissa_words[0] < 100000000000000000) {
+    mantissa_words[0] = mantissa_words[0] * 10 + (character_code - (import ch_zero));
+  } else {
+    if (character_is_digit(character_code) == 1) {
+      mantissa_words[1] = mantissa_words[1] + 1;
+    }
+  }
+} return void;
+([0, 0], 55):([7, 0], 55)
+([12, 0], 51):([123, 0], 51)
+([5, 0], 46):([5, 0], 46)
+([5, 0], -1):([5, 0], -1)
+([100000000000000000, 0], 55):([100000000000000000, 1], 55)
+
+number_mantissa_value(string number_text, word[] mantissa_words) {
+  int index = 0;
+  while (number_stop(character_code_at(number_text, index)) == 0) {
+    number_step(mantissa_words, character_code_at(number_text, index));
+    index = index + 1;
+  }
+} return void;
+("12.5", [0, 0]):("12.5", [125, 0])
+("-3e9", [0, 0]):("-3e9", [3, 0])
+("007", [0, 0]):("007", [7, 0])
+(".5", [0, 0]):(".5", [5, 0])
+("123456789012345678901", [0, 0]):("123456789012345678901", [123456789012345678, 3])
+
+number_value(string number_text) {
+  word[] mantissa_words = [0, 0];
+  number_mantissa_value(number_text, mantissa_words);
+  int decimal_exponent = number_exponent(number_text) - number_fraction_digits(number_text) + mantissa_words[1];
+} chain (string number_text) {
+  float mantissa = mantissa_words[0];
+  float signed_value = number_scale(mantissa, decimal_exponent);
+  if (character_code_at(number_text, 0) == (import ch_minus)) {
+    signed_value = 0.0 - signed_value;
+  }
+} return float signed_value;
+("12.5"):(12.5)
+("-0.25"):(-0.25)
+("1e3"):(1000.0)
+("2.5E-2"):(0.025)
+("0.1"):(0.1)
+("123456789012"):(123456789012.0)
+("+7"):(7.0)
+("0.30000000000000004"):(0.30000000000000004)
+("123456789012345678"):(123456789012345680.0)
+("123456789012345678901"):(123456789012345680000.0)
+("0.1234567890123456789012"):(0.12345678901234568)

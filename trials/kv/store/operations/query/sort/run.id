@@ -1,0 +1,31 @@
+// Arranges the list as a heap with the highest string first.
+strings_arrange(string[] strings) {
+  int index = len(strings) / 2 - 1;
+  while(index >= 0) {
+    strings_sift(strings, index, len(strings));
+    index = index - 1;
+  }
+} return void;
+(["a", "b", "c", "d"]):(["d", "b", "c", "a"])
+([]):([])
+
+// Takes the highest string off the heap into the tail, one at a time, until the list is in ascending order.
+strings_drain(string[] strings) {
+  int last = len(strings) - 1;
+  while(last > 0) {
+    strings_swap(strings, 0, last);
+    strings_sift(strings, 0, last);
+    last = last - 1;
+  }
+} return void;
+(["d", "b", "c", "a"]):(["a", "b", "c", "d"])
+(["a"]):(["a"])
+
+// Sorts a string list in place, bytewise (so "Z" before "a", and UTF-8 in code point order).
+strings_sort(string[] strings) {
+  strings_arrange(strings);
+  strings_drain(strings);
+} return void;
+(["b", "a", "c"]):(["a", "b", "c"])
+(["b", "a", "b"]):(["a", "b", "b"])
+(["é", "z", "Z"]):(["Z", "z", "é"])

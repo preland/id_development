@@ -1,35 +1,35 @@
 // Replays a log image, and records how much of it was sound in the counters: st_size the sound bytes, st_file the bytes there were, st_why what stopped the replay. 0 if all of it was sound, 1 if a damaged tail was left out.
 // head is head_ok's answer for the image: 0 to scan it, 1 for a start too short to hold records.
-load_scan(string[] keys, int[] vals, int[] used, int[] st, word[] ea, word ad, int size, int head) {
+load_scan(string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, word address, int size, int head) {
   int good = 0;
   if(head == 0) {
-    good = scan_all(keys, vals, used, st, ea, ad, size);
+    good = scan_all(keys, entry_numbers, used, counters, entry_records, address, size);
   }
   int cause = 0;
-} chain (string[] keys, int[] vals, int[] used, int[] st, word[] ea, word ad, int size, int head) {
+} chain (string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, word address, int size, int head) {
   if(good < size) {
-    cause = rec_check(ad + good, size - good);
+    cause = record_check(address + good, size - good);
   }
-  st[(import st_size)] = good;
-  st[(import st_file)] = size;
-} chain (string[] keys, int[] vals, int[] used, int[] st, word[] ea, word ad, int size, int head) {
-  st[(import st_why)] = cause;
+  counters[(import st_size)] = good;
+  counters[(import st_file)] = size;
+} chain (string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, word address, int size, int head) {
+  counters[(import st_why)] = cause;
   int code = good < size;
 } return int code;
-given log_t_image ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 57, 0):(0) then db_t_meta:("57/57/0") then db_t_state:("1/33/3")
-given log_t_image ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 52, 0):(1) then db_t_meta:("42/52/-1") then db_t_state:("2/0/2")
-given log_t_image ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 55, 0):(1) then db_t_meta:("42/55/-4")
-given log_t_flip ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 57, 0):(1) then db_t_meta:("26/57/-5") then db_t_state:("1/0/1")
-given log_t_image ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 3, 1):(1) then db_t_meta:("0/3/-1")
+given log_image_build ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import log_image_address), 57, 0):(0) then store_file_counters_text:("57/57/0") then store_state_text:("1/33/3")
+given log_image_build ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import log_image_address), 52, 0):(1) then store_file_counters_text:("42/52/-1") then store_state_text:("2/0/2")
+given log_image_build ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import log_image_address), 55, 0):(1) then store_file_counters_text:("42/55/-4")
+given log_image_bad_checksum ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import log_image_address), 57, 0):(1) then store_file_counters_text:("26/57/-5") then store_state_text:("1/0/1")
+given log_image_build ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import log_image_address), 3, 1):(1) then store_file_counters_text:("0/3/-1")
 
 // Replays an image held in the store: 0 or 1 as load_scan says, or 2 if it does not start with the magic and so is not a kv log at all.
-load_image(string[] keys, int[] vals, int[] used, int[] st, word[] ea, word ad, int size) {
-  int head = head_ok(ad, size);
+load_image(string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, word address, int size) {
+  int head = head_ok(address, size);
   int code = 2;
   if(head >= 0) {
-    code = load_scan(keys, vals, used, st, ea, ad, size, head);
+    code = load_scan(keys, entry_numbers, used, counters, entry_records, address, size, head);
   }
 } return int code;
-given log_t_image ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 57):(0) then db_t_state:("1/33/3")
-given log_t_alien ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 57):(2) then db_t_state:("0/0/0") then db_t_meta:("0/0/0")
-given log_t_image ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 5):(1) then db_t_meta:("0/5/-1")
+given log_image_build ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import log_image_address), 57):(0) then store_state_text:("1/33/3")
+given log_image_bad_magic ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import log_image_address), 57):(2) then store_state_text:("0/0/0") then store_file_counters_text:("0/0/0")
+given log_image_build ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import log_image_address), 5):(1) then store_file_counters_text:("0/5/-1")

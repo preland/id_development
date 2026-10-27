@@ -1,0 +1,17 @@
+// Fixtures: valid records at the start of the memory block, bytes worked out with zlib's crc32 rather than with rec_make.
+// A put of key "ab" with value "xyz".
+record_good_put() {
+  memory_block_zeroed();
+  memory_load((import memory_block_address), [63, 19, 215, 52, 1, 2, 0, 0, 0, 3, 0, 0, 0, 97, 98, 120, 121, 122]);
+} return void;
+():() then memory_block_sum:(913)
+():() then memory_block_byte_at(4):(1)
+
+// A delete of key "ab": no value.
+record_good_delete() {
+  memory_block_zeroed();
+  memory_load((import memory_block_address), [130, 130, 68, 232, 2, 2, 0, 0, 0, 0, 0, 0, 0, 97, 98]);
+} return void;
+():() then memory_block_sum:(759)
+():() then memory_block_byte_at(4):(2)
+

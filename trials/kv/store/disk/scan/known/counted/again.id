@@ -1,15 +1,15 @@
 // Loads the scratch file into a store of its own, and says what it found as "live/dead/recs/status".
-log_t_again() {
+log_reload_state_text() {
   string[] keys = [];
-  int[] vals = [];
+  int[] entry_numbers = [];
   int[] used = [];
 } chain () {
-  int[] st = [];
-  word[] ea = [];
-  db_new(keys, vals, used, st);
+  int[] counters = [];
+  word[] entry_records = [];
+  database_new(keys, entry_numbers, used, counters);
 } chain () {
-  int code = db_load((import file_t_path), keys, vals, used, st, ea);
-  string state = st[(import st_live)] + "/" + st[(import st_dead)] + "/" + st[(import st_recs)] + "/" + code;
+  int code = database_load((import scratch_path), keys, entry_numbers, used, counters, entry_records);
+  string state = counters[(import st_live)] + "/" + counters[(import st_dead)] + "/" + counters[(import st_recs)] + "/" + code;
 } return string state;
-given log_t_dumped(57) ():("1/33/3/0") then file_t_done:(0)
-given log_t_dumped(52) ():("2/0/2/1") then file_t_done:(0)
+given log_image_prefix_on_file(57) ():("1/33/3/0") then scratch_remove:(0)
+given log_image_prefix_on_file(52) ():("2/0/2/1") then scratch_remove:(0)

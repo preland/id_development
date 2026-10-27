@@ -1,0 +1,14 @@
+// Writes a whole record at rec: header, key, then vlen bytes copied from src, then the checksum.
+record_make(word record, int kind, string key, word source, int value_length) {
+  int key_length = len(key);
+  poke8(record + (import rec_off_kind), kind);
+  poke32(record + (import rec_off_klen), key_length);
+} chain (word record, int kind, string key, word source, int value_length) {
+  poke32(record + (import rec_off_vlen), value_length);
+  string_copy_to_memory(key, 0, key_length, record + (import rec_hdr));
+  buffer_copy(record + (import rec_hdr) + key_length, source, value_length);
+} chain (word record, int kind, string key, word source, int value_length) {
+  record_seal(record);
+} return void;
+given record_value_source ((import memory_block_address), 1, "ab", (import value_source_address), 3):() then memory_block_sum:(913)
+given record_value_source ((import memory_block_address), 2, "ab", (import value_source_address), 0):() then memory_block_sum:(759)

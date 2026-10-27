@@ -1,0 +1,43 @@
+cli_apply(int option_kind, string argument, string[] argv, int[] scan_state, int[] options, string[] arguments, string[] diag) {
+  if (option_kind == 0) {
+    push(arguments, argument);
+    scan_state[0] = scan_state[0] + 1;
+  }
+  if (option_kind == 1) {
+    options[(import flag_slots)[list_string_index((import flag_names), argument)]] = 1;
+    scan_state[0] = scan_state[0] + 1;
+  }
+  if (option_kind == 2) {
+    cli_value(argv, scan_state, options, diag);
+  }
+} chain (int option_kind, string argument, string[] argv, int[] scan_state, int[] options, string[] arguments, string[] diag) {
+  if (option_kind == 3) {
+    string delimiter_name = str_sub(argument, 12, len(argument) - 12);
+    cli_delimiter(delimiter_name, options, diag);
+    scan_state[0] = scan_state[0] + 1;
+  }
+  if (option_kind == 4) {
+    push(diag, "unknown option '" + argument + "'; an argument that starts with '-' must come after '--'");
+    scan_state[0] = scan_state[0] + 1;
+  }
+  if (option_kind == 5) {
+    scan_state[1] = 1;
+    scan_state[0] = scan_state[0] + 1;
+  }
+} return void;
+(0, "count", ["csvq", "count"], [1, 0], [44, 0, 0, 0, 0], [], []):(0, "count", ["csvq", "count"], [2, 0], [44, 0, 0, 0, 0], ["count"], [])
+(1, "--desc", ["csvq", "--desc"], [1, 0], [44, 0, 0, 0, 0], [], []):(1, "--desc", ["csvq", "--desc"], [2, 0], [44, 1, 0, 0, 0], [], [])
+(1, "-h", ["csvq", "-h"], [1, 0], [44, 0, 0, 0, 0], [], []):(1, "-h", ["csvq", "-h"], [2, 0], [44, 0, 0, 0, 1], [], [])
+(2, "-d", ["csvq", "-d", "|"], [1, 0], [44, 0, 0, 0, 0], [], []):(2, "-d", ["csvq", "-d", "|"], [3, 0], [124, 0, 0, 0, 0], [], [])
+(3, "--delimiter=tab", ["csvq", "--delimiter=tab"], [1, 0], [44, 0, 0, 0, 0], [], []):(3, "--delimiter=tab", ["csvq", "--delimiter=tab"], [2, 0], [9, 0, 0, 0, 0], [], [])
+(4, "-z", ["csvq", "-z"], [1, 0], [44, 0, 0, 0, 0], [], []):(4, "-z", ["csvq", "-z"], [2, 0], [44, 0, 0, 0, 0], [], ["unknown option '-z'; an argument that starts with '-' must come after '--'"])
+(5, "--", ["csvq", "--"], [1, 0], [44, 0, 0, 0, 0], [], []):(5, "--", ["csvq", "--"], [2, 1], [44, 0, 0, 0, 0], [], [])
+
+cli_argument(string[] argv, int[] scan_state, int[] options, string[] arguments, string[] diag) {
+  string argument = argv[scan_state[0]];
+  int argument_kind = cli_kind(argument, scan_state[1]);
+  cli_apply(argument_kind, argument, argv, scan_state, options, arguments, diag);
+} return void;
+(["csvq", "sort", "x"], [1, 0], [44, 0, 0, 0, 0], [], []):(["csvq", "sort", "x"], [2, 0], [44, 0, 0, 0, 0], ["sort"], [])
+(["csvq", "--numeric"], [1, 0], [44, 0, 0, 0, 0], [], []):(["csvq", "--numeric"], [2, 0], [44, 0, 1, 0, 0], [], [])
+(["csvq", "--", "-5"], [2, 1], [44, 0, 0, 0, 0], ["filter"], []):(["csvq", "--", "-5"], [3, 1], [44, 0, 0, 0, 0], ["filter", "-5"], [])

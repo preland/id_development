@@ -1,0 +1,29 @@
+number_scaled(float float_value, int exponent_ten) {
+  float fs = number_scale(float_value, 14 - exponent_ten);
+  word scaled_word = fs + 0.5;
+} return word scaled_word;
+(12345.0, 4):(123450000000000)
+(0.5, -1):(500000000000000)
+(1.5, 0):(150000000000000)
+
+number_exponent_rounded(float float_value) {
+  int exponent_ten = number_exponent_ten(float_value);
+  word integer_word = number_scaled(float_value, exponent_ten);
+  exponent_ten = exponent_ten + (integer_word >= 1000000000000000) - (integer_word < 100000000000000);
+} return int exponent_ten;
+(12345.0):(4)
+(0.001):(-3)
+(999999999999999.9):(15)
+(1.0):(0)
+
+number_zero_trim(string digit_text) {
+  int keep_length = len(digit_text);
+  while (keep_length > 1 && character_code_at(digit_text, keep_length - 1) == (import ch_zero)) {
+    keep_length = keep_length - 1;
+  }
+  string trimmed_digits = str_sub(digit_text, 0, keep_length);
+} return string trimmed_digits;
+("123000"):("123")
+("100000000000000"):("1")
+("0"):("0")
+("105"):("105")

@@ -1,16 +1,16 @@
 // The warning for a log whose tail was damaged: how many bytes were left out, where they start, and why.
-open_msg(string path, int[] st) {
-  int dropped = st[(import st_file)] - st[(import st_size)];
-  int cause = st[(import st_why)];
-  string msg = "kv: warning: " + path + ": ignoring " + dropped + " damaged byte(s) at offset " + st[(import st_size)] + " (" + rec_why(cause) + ")";
-} return string msg;
+open_message(string path, int[] counters) {
+  int dropped = counters[(import st_file)] - counters[(import st_size)];
+  int cause = counters[(import st_why)];
+  string message = "kv: warning: " + path + ": ignoring " + dropped + " damaged byte(s) at offset " + counters[(import st_size)] + " (" + record_why(cause) + ")";
+} return string message;
 ("x.kv", [0, 0, 0, 42, 0, 52, -5]):("kv: warning: x.kv: ignoring 10 damaged byte(s) at offset 42 (checksum mismatch)")
 ("y.kv", [0, 0, 0, 0, 0, 3, -1]):("kv: warning: y.kv: ignoring 3 damaged byte(s) at offset 0 (truncated header)")
 
 // Says so on standard error if db_load recovered from a damaged tail (status 1).
-warn_open(string path, int[] st, int status) {
+warn_open(string path, int[] counters, int status) {
   if(status == 1) {
-    eprint(open_msg(path, st));
+    eprint(open_message(path, counters));
   }
 } return void;
 ("x.kv", [0, 0, 0, 42, 0, 52, -5], 1):() then eprints:("kv: warning: x.kv: ignoring 10 damaged byte(s) at offset 42 (checksum mismatch)\n")
@@ -18,11 +18,11 @@ warn_open(string path, int[] st, int status) {
 
 // Says why a log could not be opened (2 not a kv log, 3 unreadable) and answers the exit status, 3.
 fail_open(string path, int status) {
-  string msg = "kv: " + path + ": cannot read the file";
+  string message = "kv: " + path + ": cannot read the file";
   if(status == 2) {
-    msg = "kv: " + path + ": not a kv log (it does not start with " + (import log_magic) + ")";
+    message = "kv: " + path + ": not a kv log (it does not start with " + (import log_magic) + ")";
   }
-  eprint(msg);
+  eprint(message);
 } return int 3;
 ("x.kv", 2):(3) then eprints:("kv: x.kv: not a kv log (it does not start with IDKVLOG1)\n")
 ("x.kv", 3):(3) then eprints:("kv: x.kv: cannot read the file\n")

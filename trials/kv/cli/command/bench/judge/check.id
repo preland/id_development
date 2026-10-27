@@ -1,0 +1,35 @@
+// Whether the record at rec holds the value bench_val gives entry i: 1 if so.
+bench_same(word record, int index) {
+  int seen_length = peek32(record + (import rec_off_vlen));
+  word address = record + record_value_offset(record);
+  string seen = str_of_mem(address, seen_length);
+} chain (word record, int index) {
+  int same = seen == bench_value(index);
+} return int same;
+given bench_pair_store ((import bench_first_record), 0):(1) then scratch_remove:(0)
+given bench_pair_store ((import bench_first_record), 1):(0) then scratch_remove:(0)
+
+// Whether entry i is in the store with the right value: 1 if so.
+bench_hit(string[] keys, int[] entry_numbers, int[] used, word[] entry_records, int index) {
+  word record = database_record(keys, entry_numbers, used, entry_records, "key-" + index);
+  int hit = 0;
+  if(record != 0) {
+    hit = bench_same(record, index);
+  }
+} return int hit;
+given bench_pair_store ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records), 0):(1) then scratch_remove:(0)
+given bench_pair_store ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records), 5):(0) then scratch_remove:(0)
+given bench_pair_store ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records), 1):(0) then scratch_remove:(0)
+
+// How many of the entries 0 to n-1 are in the store with the right value.
+bench_get(string[] keys, int[] entry_numbers, int[] used, word[] entry_records, int gets_wanted) {
+  int ok = 0;
+  int index = 0;
+  while(index < gets_wanted) {
+    ok = ok + bench_hit(keys, entry_numbers, used, entry_records, index);
+    index = index + 1;
+  }
+} return int ok;
+given bench_pair_store ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records), 1):(1) then scratch_remove:(0)
+given bench_pair_store ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records), 4):(1) then scratch_remove:(0)
+given bench_pair_store ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records), 0):(0) then scratch_remove:(0)

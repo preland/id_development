@@ -1,11 +1,11 @@
-cli_use(string[] args, int[] o, string[] diag) {
-  int rc = 2;
-  if (len(diag) == 0 && len(args) > 0) {
-    rc = cli_go(args, o, diag);
+cli_use(string[] arguments, int[] options, string[] diag) {
+  int exit_status = 2;
+  if (len(diag) == 0 && len(arguments) > 0) {
+    exit_status = cli_go(arguments, options, diag);
   } else {
     cli_usage(diag);
   }
-} return int rc;
+} return int exit_status;
 (["count"], [44, 0, 0, 0, 0], []):(0)
 ([], [44, 0, 0, 0, 0], []):(2) then eprints:("usage: csvq [OPTIONS] COMMAND [ARGS] [FILE]\n\ncommands:\n  select COLS          keep the named or 1-based numbered columns, in the order given\n  filter COL OP VALUE  keep the rows where COL OP VALUE holds; OP is ==, !=, <, > or contains\n  sort COL             sort the rows by COL, keeping equal rows in input order\n  count                print the number of data rows\n  stats COL            print the count, min, max, mean and sum of COL\n  head N               keep the first N data rows\n  gen ROWS             write ROWS rows of deterministic test data\n\noptions:\n  -d, --delimiter D    field delimiter: one byte, or tab, comma, semicolon, pipe, space (default comma)\n  --no-header          the first row is data; columns can only be given by number\n  --desc               sort: largest first\n  --numeric            sort: compare as numbers\n  -h, --help           show this help\n\nFILE is a path, or - (the default) for standard input.\nUse -- before an argument that starts with '-'.\n")
 (["count"], [44, 0, 0, 0, 0], ["oops"]):(2) then eprints:("csvq: oops\nTry 'csvq --help' for more information.\n")

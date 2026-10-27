@@ -1,38 +1,38 @@
 // Fixtures for the store: an empty one in five exported lists, and the same with records built in the flat store.
-db_t_lists() {
-  export string[] db_t_keys = [];
-  export int[] db_t_vals = [];
-  export int[] db_t_used = [];
+store_empty_lists() {
+  export string[] store_keys = [];
+  export int[] store_entry_numbers = [];
+  export int[] store_slot_flags = [];
 } chain () {
-  export int[] db_t_st = [];
-  export word[] db_t_ea = [];
-  db_new(db_t_keys, db_t_vals, db_t_used, db_t_st);
+  export int[] store_counters = [];
+  export word[] store_entry_records = [];
+  database_new(store_keys, store_entry_numbers, store_slot_flags, store_counters);
 } return void;
-():() then db_t_state:("0/0/0")
-():() then db_t_where:("-1,-1")
+():() then store_state_text:("0/0/0")
+():() then store_entries_text:("-1,-1")
 
 // Three records made with rec_make: a put of "ab" (18 bytes), a put of "cd" (16 bytes), and a delete of "ab" (15 bytes).
-db_t_recs() {
-  db_t_lists();
-  export word db_t_a = alloc(128);
-  export word db_t_b = (import db_t_a) + 32;
+store_three_records() {
+  store_empty_lists();
+  export word store_first_put_record = alloc(128);
+  export word store_second_put_record = (import store_first_put_record) + 32;
 } chain () {
-  export word db_t_t = (import db_t_a) + 64;
-  export word db_t_src = (import db_t_a) + 96;
-  string_copy_to_memory("xyz", 0, 3, db_t_src);
+  export word store_first_delete_record = (import store_first_put_record) + 64;
+  export word store_value_source = (import store_first_put_record) + 96;
+  string_copy_to_memory("xyz", 0, 3, store_value_source);
 } chain () {
-  rec_make(db_t_a, 1, "ab", db_t_src, 3);
-  rec_make(db_t_b, 1, "cd", db_t_src, 1);
-  rec_make(db_t_t, 2, "ab", db_t_src, 0);
+  record_make(store_first_put_record, 1, "ab", store_value_source, 3);
+  record_make(store_second_put_record, 1, "cd", store_value_source, 1);
+  record_make(store_first_delete_record, 2, "ab", store_value_source, 0);
 } return void;
-():() then db_t_state:("0/0/0")
-():() then db_t_where:("-1,-1")
+():() then store_state_text:("0/0/0")
+():() then store_entries_text:("-1,-1")
 
 // The two puts applied, in that order: "ab" is entry 0 and "cd" entry 1.
-db_t_puts() {
-  db_t_recs();
-  apply_put((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import db_t_a));
-  apply_put((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import db_t_b));
+store_two_puts() {
+  store_three_records();
+  apply_put((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import store_first_put_record));
+  apply_put((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import store_second_put_record));
 } return void;
-():() then db_t_state:("2/0/2")
-():() then db_t_where:("0,1")
+():() then store_state_text:("2/0/2")
+():() then store_entries_text:("0,1")

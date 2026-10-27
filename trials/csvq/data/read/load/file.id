@@ -1,38 +1,38 @@
-inp_file(string path, int d, string[][] rows, int[] lines, string[] diag) {
-  int h = fs_open(path, "r");
-  if (h < 0) {
-    inp_fail(fs_error(), diag);
+input_file(string path, int delimiter, string[][] rows, int[] lines, string[] diag) {
+  int file_handle = fs_open(path, "r");
+  if (file_handle < 0) {
+    input_fail(fs_error(), diag);
   } else {
-    inp_slurp(path, h, d, rows, lines, diag);
+    input_slurp(path, file_handle, delimiter, rows, lines, diag);
   }
 } return void;
 ("/nonexistent/csvq-none", 44, [], [], []):("/nonexistent/csvq-none", 44, [], [], ["cannot read: no such file or directory"])
 ("/", 44, [], [], []):("/", 44, [], [], ["cannot read: is a directory"])
-given inp_t_disk ((import tf), 44, [], [], []):((import tf), 44, [["a", "b"], ["1", "2"]], [1, 2], []) then inp_t_clean:(0)
-given inp_t_disk ((import tz), 44, [], [], []):((import tz), 44, [], [], []) then inp_t_clean:(0)
+given input_disk_files ((import data_path), 44, [], [], []):((import data_path), 44, [["a", "b"], ["1", "2"]], [1, 2], []) then input_disk_cleanup:(0)
+given input_disk_files ((import empty_path), 44, [], [], []):((import empty_path), 44, [], [], []) then input_disk_cleanup:(0)
 
-inp_slurp(string path, int h, int d, string[][] rows, int[] lines, string[] diag) {
+input_slurp(string path, int file_handle, int delimiter, string[][] rows, int[] lines, string[] diag) {
   int size = fs_size(path);
-  word ad = alloc(size + 1);
-  int got = fs_read_mem(h, ad, size);
-} chain (string path, int h, int d, string[][] rows, int[] lines, string[] diag) {
-  fs_close(h);
+  word buffer = alloc(size + 1);
+  int got = fs_read_mem(file_handle, buffer, size);
+} chain (string path, int file_handle, int delimiter, string[][] rows, int[] lines, string[] diag) {
+  fs_close(file_handle);
   if (got >= 0 && got == size) {
-    inp_text(ad, size, d, rows, lines, diag);
+    input_text(buffer, size, delimiter, rows, lines, diag);
   } else {
-    inp_fail(fs_error(), diag);
+    input_fail(fs_error(), diag);
   }
 } return void;
 ("/nonexistent/csvq-none", 999, 44, [], [], []):("/nonexistent/csvq-none", 999, 44, [], [], ["cannot read: error 9"])
-given inp_t_disk ((import tf), (import hf), 59, [], [], []):((import tf), (import hf), 59, [["a,b"], ["1,2"]], [1, 2], []) then inp_t_clean:(0)
+given input_disk_files ((import data_path), (import read_handle), 59, [], [], []):((import data_path), (import read_handle), 59, [["a,b"], ["1,2"]], [1, 2], []) then input_disk_cleanup:(0)
 
-inp_text(word ad, int n, int d, string[][] rows, int[] lines, string[] diag) {
-  int at = inp_nul(ad, n);
+input_text(word buffer, int row_total, int delimiter, string[][] rows, int[] lines, string[] diag) {
+  int at = input_nul_offset(buffer, row_total);
   if (at >= 0) {
     push(diag, "input contains a NUL byte at offset " + at + ", which csvq cannot process");
   } else {
-    csv_parse(ad, d, rows, lines, diag);
+    csv_parse(buffer, delimiter, rows, lines, diag);
   }
 } return void;
-given inp_t_mem ((import nb), 3, 44, [], [], []):((import nb), 3, 44, [], [], ["input contains a NUL byte at offset 1, which csvq cannot process"])
-given inp_t_mem ((import nb), 1, 44, [], [], []):((import nb), 1, 44, [["a"]], [1], [])
+given input_memory_buffer ((import nul_buffer), 3, 44, [], [], []):((import nul_buffer), 3, 44, [], [], ["input contains a NUL byte at offset 1, which csvq cannot process"])
+given input_memory_buffer ((import nul_buffer), 1, 44, [], [], []):((import nul_buffer), 1, 44, [["a"]], [1], [])

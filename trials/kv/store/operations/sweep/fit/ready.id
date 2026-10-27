@@ -1,0 +1,30 @@
+// Makes the log fit for an append: a damaged tail is repaired away, a missing or empty file gets its header. 0 or more if it is ready, -1 if it could not be made so.
+database_ready(string path, int[] counters) {
+  int code = 0;
+  if(counters_dirty(counters) == 1) {
+    code = log_repair(path, counters);
+  } else {
+    code = ready_head(path, counters);
+  }
+} return int code;
+given log_sound_counters ((import scratch_path), (import store_counters)):(0) then scratch_size_text:("size 57") then scratch_remove:(0)
+given log_counters_claim(42, 52) ((import scratch_path), (import store_counters)):(42) then scratch_size_text:("size 42") then scratch_remove:(0)
+given log_image_on_file ((import scratch_path), (import store_counters)):(8) then store_file_counters_text:("8/8/0") then scratch_size_text:("size 8") then scratch_remove:(0)
+given store_empty_lists ("/nonexistent-kv-dir/none", (import store_counters)):(-1)
+
+// The header check on its own: a log that has none yet is given one.
+ready_head(string path, int[] counters) {
+  int code = 0;
+  if(counters[(import st_size)] == 0) {
+    code = log_begin(path, counters);
+  }
+} return int code;
+given log_sound_counters ((import scratch_path), (import store_counters)):(0) then scratch_remove:(0)
+given log_image_on_file ((import scratch_path), (import store_counters)):(8) then scratch_size_text:("size 8") then scratch_remove:(0)
+
+// Whether the file holds more than the sound bytes the counters know of: 1 if so.
+counters_dirty(int[] counters) {
+  int dirty = counters[(import st_file)] != counters[(import st_size)];
+} return int dirty;
+([0, 0, 0, 57, 0, 57, 0]):(0)
+([0, 0, 0, 42, 0, 52, 0]):(1)

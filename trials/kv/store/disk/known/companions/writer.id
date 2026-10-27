@@ -1,0 +1,28 @@
+// The sum of n bytes at ad.
+memory_byte_sum(word address, int byte_count) {
+  int sum = 0;
+  int index = 0;
+  while(index < byte_count) {
+    sum = sum + peek8(address + index);
+    index = index + 1;
+  }
+} return int sum;
+given memory_block_zeroed given buffer_fill((import memory_block_address), 64, 1) ((import memory_block_address), 10):(10)
+given memory_block_zeroed ((import memory_block_address), 10):(0)
+
+// Opens the empty scratch file for writing and keeps the handle; the memory block is all ones.
+scratch_open_for_write() {
+  scratch_empty();
+  buffer_fill((import memory_block_address), 64, 1);
+  export int scratch_writer_handle = fs_open((import scratch_path), "w");
+} return void;
+():() then scratch_close_and_size:(0) then scratch_remove:(0)
+():() then scratch_byte_total:(0) then scratch_remove:(0)
+
+// Closes the writer, so what was buffered reaches the file, and answers the file's size.
+scratch_close_and_size() {
+  int shut = fs_close((import scratch_writer_handle));
+  int size = fs_size((import scratch_path));
+} return int size;
+given scratch_open_for_write ():(0) then scratch_remove:(0)
+given scratch_open_for_write ():(0) then scratch_byte_total:(0) then scratch_remove:(0)

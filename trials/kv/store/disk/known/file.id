@@ -1,28 +1,28 @@
 // Fixtures for the code that touches files: a scratch file made with fs_mktemp, empty or holding the ten bytes "0123456789", beside a memory block that is all ones.
 // Every case that uses one ends with file_t_done, which removes it.
-file_t_empty() {
-  mem_t_zeros();
-  export string file_t_path = fs_mktemp("kvt_", 0);
-  fs_drop_exit(file_t_path);
+scratch_empty() {
+  memory_block_zeroed();
+  export string scratch_path = fs_mktemp("kvt_", 0);
+  fs_drop_exit(scratch_path);
 } return void;
-():() then file_t_size:("size 0") then file_t_done:(0)
-():() then file_t_bytes:(0) then file_t_done:(0)
+():() then scratch_size_text:("size 0") then scratch_remove:(0)
+():() then scratch_byte_total:(0) then scratch_remove:(0)
 
-file_t_ten() {
-  file_t_empty();
-  buffer_fill((import mem_t_ad), 64, 1);
-  int h = fs_open((import file_t_path), "w");
+scratch_ten_bytes() {
+  scratch_empty();
+  buffer_fill((import memory_block_address), 64, 1);
+  int file_handle = fs_open((import scratch_path), "w");
 } chain () {
-  int wrote = fs_write(h, [48, 49, 50, 51, 52, 53, 54, 55, 56, 57], 10);
-  int shut = fs_close(h);
+  int wrote = fs_write(file_handle, [48, 49, 50, 51, 52, 53, 54, 55, 56, 57], 10);
+  int shut = fs_close(file_handle);
 } return void;
-():() then file_t_size:("size 10") then file_t_done:(0)
-():() then file_t_bytes:(525) then file_t_done:(0)
+():() then scratch_size_text:("size 10") then scratch_remove:(0)
+():() then scratch_byte_total:(525) then scratch_remove:(0)
 
 // Opens the scratch file for reading and keeps the handle.
-file_t_open() {
-  file_t_ten();
-  export int file_t_h = fs_open((import file_t_path), "r");
+scratch_open_for_read() {
+  scratch_ten_bytes();
+  export int scratch_reader_handle = fs_open((import scratch_path), "r");
 } return void;
-():() then file_t_size:("size 10") then file_t_done:(0)
-():() then file_t_bytes:(525) then file_t_done:(0)
+():() then scratch_size_text:("size 10") then scratch_remove:(0)
+():() then scratch_byte_total:(525) then scratch_remove:(0)

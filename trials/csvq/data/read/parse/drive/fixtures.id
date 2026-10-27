@@ -1,0 +1,32 @@
+csv_sample_buffers() {
+  export word sample_plain = mem_of_str("a,b\r\n1,2\nx,\n");
+  export word sample_quoted = mem_of_str("\"a\"\"b\",\"c\nd\"\nz,w");
+  export word sample_unclosed = mem_of_str("a,b\n\"never");
+} chain () {
+  export word sample_short_row = mem_of_str("a,b\n1\n");
+  export word sample_with_bom = mem_of_str("\xEF\xBB\xBFz");
+  export word sample_empty = mem_of_str("");
+} chain () {
+  export word sample_garbage_after_quote = mem_of_str("\"a\"x\n");
+  export word sample_carriage_return = mem_of_str("a\rb");
+  export word sample_blank_line = mem_of_str("a\n\nb\n");
+} chain () {
+  export word scratch_buffer = alloc(16);
+} return void;
+():() then csv_sample_size:(12) then csv_sample_byte_total:(98)
+():() then csv_sample_byte_total:(98)
+
+csv_sample_size() {
+  int byte_count = 0;
+  while (peek8((import sample_plain) + byte_count) > 0) {
+    byte_count = byte_count + 1;
+  }
+} return int byte_count;
+given csv_sample_buffers ():(12)
+():() then traps:("uninitialised export")
+
+csv_sample_byte_total() {
+  int byte_total = peek8((import sample_short_row) + 2) + peek8((import scratch_buffer));
+} return int byte_total;
+given csv_sample_buffers ():(98)
+():() then traps:("uninitialised export")

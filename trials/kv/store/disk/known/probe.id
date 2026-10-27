@@ -1,28 +1,28 @@
 // The scratch file's size in bytes.
-file_t_size() {
-  string size_lb = "size " + (fs_size((import file_t_path)));
-} return string size_lb;
-given file_t_empty ():("size 0") then file_t_done:(0)
-given file_t_ten ():("size 10") then file_t_done:(0)
+scratch_size_text() {
+  string size_label = "size " + (fs_size((import scratch_path)));
+} return string size_label;
+given scratch_empty ():("size 0") then scratch_remove:(0)
+given scratch_ten_bytes ():("size 10") then scratch_remove:(0)
 
 // The sum of the scratch file's bytes, read with the fs natives directly.
-file_t_bytes() {
-  word ad = alloc(256);
-  int h = fs_open((import file_t_path), "r");
-  int grabbed = fs_read_mem(h, ad, 256);
+scratch_byte_total() {
+  word address = alloc(256);
+  int file_handle = fs_open((import scratch_path), "r");
+  int grabbed = fs_read_mem(file_handle, address, 256);
 } chain () {
-  int shut = fs_close(h);
-  int sum = file_t_add(ad, grabbed);
+  int shut = fs_close(file_handle);
+  int sum = memory_byte_sum(address, grabbed);
 } return int sum;
-given file_t_empty ():(0) then file_t_done:(0)
-given file_t_ten ():(525) then file_t_done:(0)
+given scratch_empty ():(0) then scratch_remove:(0)
+given scratch_ten_bytes ():(525) then scratch_remove:(0)
 
 // Removes the scratch file and whatever the log code left beside it; 0 when the scratch file is gone.
-file_t_done() {
-  int gone = fs_remove((import file_t_path));
-  int aside = file_t_clean((import file_t_path));
-  int left = fs_exists((import file_t_path));
+scratch_remove() {
+  int gone = fs_remove((import scratch_path));
+  int aside = scratch_remove_leftovers((import scratch_path));
+  int left = fs_exists((import scratch_path));
 } return int left;
-given file_t_empty ():(0)
-given file_t_ten ():(0)
-given file_t_extra ():(0)
+given scratch_empty ():(0)
+given scratch_ten_bytes ():(0)
+given scratch_with_leftovers ():(0)

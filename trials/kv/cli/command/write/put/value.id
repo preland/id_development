@@ -1,0 +1,41 @@
+// Prints the message for how a put ended, and answers its exit status.
+put_report(string path, int status) {
+  string message = put_text(path, status);
+  say_error(message);
+  int code = (import put_exits)[status];
+} return int code;
+("x.kv", 0):(0) then eprints:("")
+("x.kv", 3):(3) then eprints:("kv: x.kv: cannot write to the log\n")
+("x.kv", 1):(2) then eprints:("kv: a key must be 1 to 65535 bytes\n")
+
+// Stores the string val (its bytes, however many) under key.
+put_argument(string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, string key, string value_text) {
+  int argument_length = len(value_text);
+  word address = alloc(argument_length + 1);
+  string_copy_to_memory(value_text, 0, argument_length, address);
+} chain (string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, string key, string value_text) {
+  int status = database_put(path, keys, entry_numbers, used, counters, entry_records, key, address, argument_length);
+  int code = put_report(path, status);
+} return int code;
+given log_image_on_file ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), "ab", "xyz"):(0) then store_state_text:("1/0/1") then scratch_size_text:("size 26") then scratch_remove:(0)
+given log_image_on_file ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), "", "xyz"):(2) then scratch_size_text:("size 0") then eprints:("kv: a key must be 1 to 65535 bytes\n") then scratch_remove:(0)
+given log_image_on_file ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), "ab", ""):(0) then scratch_size_text:("size 23") then scratch_remove:(0)
+given store_empty_lists ("/nonexistent-kv-dir/none", (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), "ab", "v"):(3) then eprints:("kv: /nonexistent-kv-dir/none: cannot write to the log\n")
+
+// Stores everything that can be read from the file inp (standard input, for the command) under key.
+put_standard_input(string path, string input_path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, string key) {
+  word address = alloc((import slurp_chunk));
+  word[] slurp_buffer = [address, (import slurp_chunk), 0];
+  int got = slurp(input_path, slurp_buffer);
+} chain (string path, string input_path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, string key) {
+  int status = 4;
+  int value_length = slurp_buffer[2];
+  if(got >= 0) {
+    status = database_put(path, keys, entry_numbers, used, counters, entry_records, key, slurp_buffer[0], value_length);
+  }
+} chain (string path, string input_path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, string key) {
+  int code = put_report(path, status);
+} return int code;
+given log_image_on_file stdin "hello" ((import scratch_path), "/dev/stdin", (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), "ab"):(0) then store_state_text:("1/0/1") then scratch_size_text:("size 28") then scratch_remove:(0)
+given log_image_on_file stdin "" ((import scratch_path), "/dev/stdin", (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), "ab"):(0) then scratch_size_text:("size 23") then scratch_remove:(0)
+given log_image_on_file ((import scratch_path), "/nonexistent-kv-dir/none", (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), "ab"):(3) then scratch_size_text:("size 0") then eprints:("kv: cannot read the value\n") then scratch_remove:(0)

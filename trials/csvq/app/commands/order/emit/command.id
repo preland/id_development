@@ -1,0 +1,29 @@
+sort_emit(string[] header, string[][] rows, int[] options, string[] text_keys, float[] number_keys) {
+  int[] order = sort_order(len(rows), text_keys, number_keys, options);
+  sort_print(header, rows, order, options);
+} return void;
+(["k"], [["b"], ["a"]], [44, 0, 0, 0, 0], ["b", "a"], []):(["k"], [["b"], ["a"]], [44, 0, 0, 0, 0], ["b", "a"], []) then prints:("k\na\nb\n")
+(["k"], [["b"], ["a"]], [44, 1, 0, 0, 0], ["b", "a"], []):(["k"], [["b"], ["a"]], [44, 1, 0, 0, 0], ["b", "a"], []) then prints:("k\nb\na\n")
+
+sort_all(string[] header, string[][] rows, int[] lines, int[] options, int column_index, string[] diag) {
+  string[] text_keys = [];
+  float[] number_keys = [];
+  sort_keys(rows, lines, header, column_index, options, text_keys, number_keys, diag);
+} chain (string[] header, string[][] rows, int[] lines, int[] options, int column_index, string[] diag) {
+  if (len(diag) == 0) {
+    sort_emit(header, rows, options, text_keys, number_keys);
+  }
+} return void;
+(["k", "v"], [["a", "2"], ["b", "10"]], [2, 3], [44, 0, 1, 0, 0], 1, []):(["k", "v"], [["a", "2"], ["b", "10"]], [2, 3], [44, 0, 1, 0, 0], 1, []) then prints:("k,v\na,2\nb,10\n")
+(["k", "v"], [["a", "2"], ["b", "10"]], [2, 3], [44, 0, 0, 0, 0], 1, []):(["k", "v"], [["a", "2"], ["b", "10"]], [2, 3], [44, 0, 0, 0, 0], 1, []) then prints:("k,v\nb,10\na,2\n")
+(["k", "v"], [["a", "2"], ["b", "x"]], [2, 3], [44, 0, 1, 0, 0], 1, []):(["k", "v"], [["a", "2"], ["b", "x"]], [2, 3], [44, 0, 1, 0, 0], 1, ["line 3: 'x' in column 'v' is not a number (needed by --numeric)"]) then prints:("")
+
+command_sort(string[] header, string[][] rows, int[] lines, int[] options, string[] arguments, string[] diag) {
+  int[] column_indexes = [];
+  column_pick(header, arguments[1], column_indexes, diag);
+  if (len(diag) == 0) {
+    sort_all(header, rows, lines, options, column_indexes[0], diag);
+  }
+} return void;
+(["k", "v"], [["b", "1"], ["a", "2"]], [2, 3], [44, 0, 0, 0, 0], ["sort", "k"], []):(["k", "v"], [["b", "1"], ["a", "2"]], [2, 3], [44, 0, 0, 0, 0], ["sort", "k"], []) then prints:("k,v\na,2\nb,1\n")
+(["k", "v"], [["b", "1"], ["a", "2"]], [2, 3], [44, 0, 0, 0, 0], ["sort", "zz"], []):(["k", "v"], [["b", "1"], ["a", "2"]], [2, 3], [44, 0, 0, 0, 0], ["sort", "zz"], ["unknown column 'zz'; available columns: k, v"]) then prints:("")

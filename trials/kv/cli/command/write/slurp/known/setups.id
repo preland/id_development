@@ -1,0 +1,11 @@
+// Fixtures: a growing buffer as slurp keeps it, in a word list of address, capacity and length, beside an open handle on the ten byte scratch file. The 16 bytes behind the address are all 1.
+// Room for 16 bytes, none used.
+slurp_empty_buffer() {
+  scratch_open_for_read();
+  word address = alloc(16);
+  buffer_fill(address, 16, 1);
+} chain () {
+  export word[] slurp_empty_buffer_list = [address, 16, 0];
+} return void;
+():() then slurp_buffer_state:("16/0/0") then scratch_remove:(0)
+():() then scratch_size_text:("size 10") then scratch_remove:(0)

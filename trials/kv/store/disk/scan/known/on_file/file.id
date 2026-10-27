@@ -1,0 +1,20 @@
+// Fixtures: the image written to a scratch file, whole, with its last five bytes cut off, and cut to its first three.
+// Written with the fs natives directly, so the code that reads logs is not what builds its own input.
+log_image_on_file() {
+  log_image_build();
+  scratch_empty();
+} return void;
+():() then scratch_size_text:("size 0") then scratch_remove:(0)
+():() then log_image_byte_sum:(2951) then scratch_remove:(0)
+
+// The scratch file cut to the image's first n bytes: 57 is whole, 52 is torn, 3 is the start of a header ("IDK").
+log_image_prefix_on_file(int prefix_length) {
+  log_image_on_file();
+  log_image_dump(prefix_length);
+} return void;
+(57):() then scratch_size_text:("size 57") then scratch_byte_total:(2951) then scratch_remove:(0)
+(57):() then scratch_size_text:("size 57") then store_state_text:("0/0/0") then scratch_remove:(0)
+(52):() then scratch_size_text:("size 52") then scratch_byte_total:(2756) then scratch_remove:(0)
+(52):() then scratch_size_text:("size 52") then store_state_text:("0/0/0") then scratch_remove:(0)
+(3):() then scratch_size_text:("size 3") then scratch_byte_total:(216) then scratch_remove:(0)
+(3):() then scratch_size_text:("size 3") then store_state_text:("0/0/0") then scratch_remove:(0)

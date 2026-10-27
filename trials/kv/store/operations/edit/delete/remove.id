@@ -1,0 +1,32 @@
+// Writes a delete of key to the log and, once it is there, to the index. 0 deleted, 1 there was no such key (nothing is written), 3 the log could not be written, 5 the log has no room for the record.
+database_delete(string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, string key) {
+  int old = hash_map_get(keys, entry_numbers, used, key, (import no_entry));
+  int code = 1;
+  if(old >= 0) {
+    code = put_fit(counters, len(key), 0);
+  }
+} chain (string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, string key) {
+  if(old >= 0 && code == 0) {
+    code = delete_store(path, keys, entry_numbers, used, counters, entry_records, key);
+  }
+} return int code;
+given log_prefix_loaded(57) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), "cd"):(0) then store_state_text:("0/64/4") then store_entries_text:("-1,-1") then store_file_counters_text:("72/72/0") then scratch_remove:(0)
+given log_prefix_loaded(57) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), "ab"):(1) then store_file_counters_text:("57/57/0") then scratch_size_text:("size 57") then scratch_remove:(0)
+given log_image_on_file ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), "zz"):(1) then scratch_size_text:("size 0") then scratch_remove:(0)
+given log_nearly_full ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), "cd"):(5) then store_entries_text:("-1,1") then scratch_size_text:("size 57") then scratch_remove:(0)
+
+// Builds the record for a delete and appends it; the index is updated only if the whole record reached the log.
+delete_store(string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, string key) {
+  int tombstone_size = record_size(len(key), 0);
+  word record = alloc(tombstone_size);
+  record_make(record, (import rec_del), key, 0, 0);
+} chain (string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, string key) {
+  int sent = log_append(path, counters, record, tombstone_size);
+  int code = 3;
+  if(sent == tombstone_size) {
+    apply_delete(keys, entry_numbers, used, counters, entry_records, record);
+    code = 0;
+  }
+} return int code;
+given log_prefix_loaded(57) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), "cd"):(0) then store_entries_text:("-1,-1") then scratch_size_text:("size 72") then scratch_remove:(0)
+given store_empty_lists ("/nonexistent-kv-dir/none", (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), "ab"):(3) then store_state_text:("0/0/0")

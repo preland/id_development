@@ -1,0 +1,32 @@
+number_format_absolute(float float_value) {
+  string result_text = "inf";
+  if (float_is_finite(float_value) == 1) {
+    result_text = number_format_finite(float_value);
+  }
+} return string result_text;
+(2.5):("2.5")
+(1024.0):("1024")
+
+number_format_signed(float float_value) {
+  string result_text = "0";
+  if (float_value > 0.0) {
+    result_text = number_format_absolute(float_value);
+  } else {
+    if (float_value < 0.0) {
+      result_text = "-" + number_format_absolute(0.0 - float_value);
+    }
+  }
+} return string result_text;
+(0.0):("0")
+(-2.5):("-2.5")
+(7.0):("7")
+
+number_format(float float_value) {
+  string result_text = "nan";
+  if (float_value == float_value) {
+    result_text = number_format_signed(float_value);
+  }
+} return string result_text;
+(1.5):("1.5")
+(-100.0):("-100")
+(0.30000000000000004):("0.3")

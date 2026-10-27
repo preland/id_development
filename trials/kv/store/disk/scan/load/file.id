@@ -1,16 +1,16 @@
 // Reads size bytes of the file at path and replays them. 3 if the file could not be read whole, otherwise load_image's answer.
-load_file(string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea, int size) {
-  word ad = alloc(size);
-  int have = log_read(path, ad, size);
+load_file(string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, int size) {
+  word address = alloc(size);
+  int have = log_read(path, address, size);
   int code = 3;
-} chain (string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea, int size) {
+} chain (string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, int size) {
   if(have == size) {
-    code = load_image(keys, vals, used, st, ea, ad, size);
+    code = load_image(keys, entry_numbers, used, counters, entry_records, address, size);
   }
 } return int code;
-given log_t_dumped(57) ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), 57):(0) then db_t_state:("1/33/3") then file_t_done:(0)
-given log_t_odd ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), 57):(2) then db_t_state:("0/0/0") then file_t_done:(0)
-given db_t_lists ("/nonexistent-kv-dir/none", (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), 8):(3)
+given log_image_prefix_on_file(57) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), 57):(0) then store_state_text:("1/33/3") then scratch_remove:(0)
+given log_wrong_magic_file ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), 57):(2) then store_state_text:("0/0/0") then scratch_remove:(0)
+given store_empty_lists ("/nonexistent-kv-dir/none", (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), 8):(3)
 
 // What fs_size and fs_exists together say about a log file: 0 nothing to load (absent, or empty), 1 something to load, 3 there but of a size that cannot be known -- fs_size gives -1 for a file over two gibibytes, and treating that as absent would let the next put truncate it.
 size_state(int size, int exists) {
@@ -27,18 +27,18 @@ size_state(int size, int exists) {
 (57, 1):(1)
 
 // Opens the store's log: replays the file at path into the lists. An absent or empty file is an empty store, and is left alone. 0 clean, 1 a damaged tail was left out, 2 not a kv log, 3 the file could not be read.
-db_load(string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea) {
+database_load(string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records) {
   int size = fs_size(path);
   int verdict = size_state(size, fs_exists(path));
   int code = verdict;
-} chain (string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea) {
+} chain (string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records) {
   if(verdict == 1) {
-    code = load_file(path, keys, vals, used, st, ea, size);
+    code = load_file(path, keys, entry_numbers, used, counters, entry_records, size);
   }
 } return int code;
-given log_t_dumped(57) ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea)):(0) then db_t_meta:("57/57/0") then file_t_done:(0)
-given log_t_dumped(52) ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea)):(1) then db_t_meta:("42/52/-1") then file_t_done:(0)
-given log_t_odd ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea)):(2) then file_t_done:(0)
-given log_t_ready ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea)):(0) then db_t_meta:("0/0/0") then file_t_done:(0)
-given db_t_lists ("/nonexistent-kv-dir/none", (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea)):(0) then db_t_meta:("0/0/0")
-given log_t_dumped(3) ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea)):(1) then db_t_meta:("0/3/-1") then file_t_done:(0)
+given log_image_prefix_on_file(57) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records)):(0) then store_file_counters_text:("57/57/0") then scratch_remove:(0)
+given log_image_prefix_on_file(52) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records)):(1) then store_file_counters_text:("42/52/-1") then scratch_remove:(0)
+given log_wrong_magic_file ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records)):(2) then scratch_remove:(0)
+given log_image_on_file ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records)):(0) then store_file_counters_text:("0/0/0") then scratch_remove:(0)
+given store_empty_lists ("/nonexistent-kv-dir/none", (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records)):(0) then store_file_counters_text:("0/0/0")
+given log_image_prefix_on_file(3) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records)):(1) then store_file_counters_text:("0/3/-1") then scratch_remove:(0)

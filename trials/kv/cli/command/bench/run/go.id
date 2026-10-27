@@ -1,0 +1,53 @@
+// Opens the log at path again into fresh lists, timing that, then reads every entry 0 to n-1 back, timing that. Fills res: the reopen's and the gets' milliseconds at 1 and 2, how many values were right at 3, how many keys the reopened store has at 4.
+bench_reload(string path, int reload_keys, int[] results) {
+  string[] keys = [];
+  int[] entry_numbers = [];
+  int[] used = [];
+} chain (string path, int reload_keys, int[] results) {
+  int[] counters = [];
+  word[] entry_records = [];
+  database_new(keys, entry_numbers, used, counters);
+} chain (string path, int reload_keys, int[] results) {
+  int reopen_started = ticks();
+  int status = database_load(path, keys, entry_numbers, used, counters, entry_records);
+  int reopen_ended = ticks();
+} chain (string path, int reload_keys, int[] results) {
+  results[1] = reopen_ended - reopen_started;
+  results[4] = counters[(import st_live)];
+  int ok = bench_get(keys, entry_numbers, used, entry_records, reload_keys);
+} chain (string path, int reload_keys, int[] results) {
+  int reads_ended = ticks();
+  results[3] = ok;
+  results[2] = reads_ended - reopen_ended;
+} return void;
+given bench_pair_store ((import scratch_path), 1, (import bench_empty_results)):() then bench_counts_text:("1/2") then scratch_remove:(0)
+given bench_pair_store ((import scratch_path), 2, (import bench_empty_results)):() then bench_counts_text:("1/2") then scratch_remove:(0)
+given bench_pair_store ("/nonexistent-kv-dir/none", 2, (import bench_empty_results)):() then bench_counts_text:("0/0") then scratch_remove:(0)
+
+// 0 if every one of the n values read back right, 3 if not.
+bench_verdict(int expected_keys, int[] results) {
+  int code = 0;
+  if(results[3] != expected_keys) {
+    code = 3;
+  }
+} return int code;
+(5, [1, 2, 3, 5, 5]):(0)
+(5, [1, 2, 3, 4, 5]):(3)
+
+// Times n puts, then reloads and reads them back, and prints the four lines of results. The exit status.
+bench_go(string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, int benchmark_keys, int[] results) {
+  int puts_started = ticks();
+  int code = bench_put(path, keys, entry_numbers, used, counters, entry_records, benchmark_keys);
+  int puts_ended = ticks();
+} chain (string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, int benchmark_keys, int[] results) {
+  results[0] = puts_ended - puts_started;
+  if(code == 0) {
+    bench_reload(path, benchmark_keys, results);
+    print(bench_text(benchmark_keys, results));
+  }
+  if(code == 0) {
+    code = bench_verdict(benchmark_keys, results);
+  }
+} return int code;
+given bench_empty_setup ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), 20, (import bench_empty_results)):(0) then scratch_size_text:("size 2128") then scratch_remove:(0)
+given bench_empty_setup ("/nonexistent-kv-dir/none", (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), 3, (import bench_empty_results)):(3) then scratch_remove:(0)

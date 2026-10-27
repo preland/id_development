@@ -1,0 +1,11 @@
+// kv DB put KEY VALUE, or with - for VALUE, the value is all of standard input (inp).
+command_put(string path, string input_path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, string[] argv) {
+  int code = 0;
+  if(argv[4] == "-") {
+    code = put_standard_input(path, input_path, keys, entry_numbers, used, counters, entry_records, argv[3]);
+  } else {
+    code = put_argument(path, keys, entry_numbers, used, counters, entry_records, argv[3], argv[4]);
+  }
+} return int code;
+given log_image_on_file stdin "hello" ((import scratch_path), "/dev/stdin", (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), ["kv", "x", "put", "ab", "-"]):(0) then store_state_text:("1/0/1") then scratch_size_text:("size 28") then scratch_remove:(0)
+given log_image_on_file stdin "hello" ((import scratch_path), "/dev/stdin", (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), ["kv", "x", "put", "ab", "xyz"]):(0) then store_state_text:("1/0/1") then scratch_size_text:("size 26") then scratch_remove:(0)

@@ -1,0 +1,29 @@
+// Copies the eight magic bytes that start every log to ad.
+head_put(word address) {
+  string_copy_to_memory((import log_magic), 0, (import log_hdr), address);
+} return void;
+given memory_block_zeroed ((import memory_block_address)):() then memory_block_sum:(577)
+given memory_block_zeroed given buffer_fill((import memory_block_address), 64, 1) ((import memory_block_address)):() then memory_block_sum:(601)
+
+// Starts a log: truncates or creates the file at path and writes the magic into it. The bytes written, or -1.
+log_start(string path) {
+  word address = alloc((import log_hdr));
+  head_put(address);
+  int sent = log_write(path, "w", address, (import log_hdr));
+} return int sent;
+given scratch_empty ((import scratch_path)):(8) then scratch_size_text:("size 8") then scratch_byte_total:(577)
+given scratch_ten_bytes ((import scratch_path)):(8) then scratch_size_text:("size 8")
+("/nonexistent-kv-dir/none"):(-1)
+
+// Writes the magic to an open handle. 8 if all of it went out, otherwise -1.
+write_head(int file_handle) {
+  word address = alloc((import log_hdr));
+  head_put(address);
+  int sent = write_all(file_handle, address, (import log_hdr));
+} chain (int file_handle) {
+  if(sent != (import log_hdr)) {
+    sent = 0 - 1;
+  }
+} return int sent;
+given scratch_open_for_write ((import scratch_writer_handle)):(8) then scratch_close_and_size:(8) then scratch_byte_total:(577)
+(-1):(-1)

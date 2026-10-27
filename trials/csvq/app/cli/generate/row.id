@@ -1,0 +1,29 @@
+generate_score(int[] generator_state) {
+  int whole = generate_next(generator_state) % 101;
+  int cents = generate_next(generator_state) % 100;
+  string score_text = whole + "." + format_integer_zero_padded(cents, 2);
+} return string score_text;
+([1]):("72.58")
+([0]):("0.68")
+
+generate_row(int[] generator_state, int index) {
+  string[] row = ["" + index];
+  push(row, generate_pick((import gen_names), generator_state));
+  push(row, generate_pick((import gen_depts), generator_state));
+} chain (int[] generator_state, int index) {
+  push(row, "" + (18 + generate_next(generator_state) % 63));
+  push(row, generate_score(generator_state));
+  push(row, generate_pick((import gen_notes), generator_state));
+} return string[] row;
+([1], 7):(["7", "Dana \"DJ\" Lee", "hr", "51", "42.51", "line one\nline two"])
+([0], 1):(["1", "Ada Lovelace", "hr", "52", "99.98", "ok"])
+
+generate_rows(int row_total, int[] generator_state, int delimiter) {
+  int index = 1;
+  while (index <= row_total) {
+    csv_write_print(generate_row(generator_state, index), delimiter);
+    index = index + 1;
+  }
+} return void;
+(0, [1], 44):(0, [1], 44) then prints:("")
+(1, [1], 44):(1, [-1778682749], 44) then prints:("1,\"Dana \"\"DJ\"\" Lee\",hr,51,42.51,\"line one\nline two\"\n")

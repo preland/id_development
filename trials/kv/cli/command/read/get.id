@@ -1,0 +1,37 @@
+// Writes the value of the record at rec, all of its bytes and nothing else, to the file outp. 0, or 3 (with a message) if the write failed.
+emit_value(string output_path, word record) {
+  int stored_length = peek32(record + (import rec_off_vlen));
+  int sent = log_write(output_path, "a", record + record_value_offset(record), stored_length);
+  int code = 0;
+} chain (string output_path, word record) {
+  if(sent < 0) {
+    eprint("kv: cannot write the value to " + output_path);
+    code = 3;
+  }
+} return int code;
+given store_with_writer ((import scratch_path), (import store_first_put_record)):(0) then scratch_size_text:("size 3") then scratch_byte_total:(363) then scratch_remove:(0)
+given store_binary_value_with_writer ((import scratch_path), (import store_first_put_record)):(0) then scratch_size_text:("size 4") then scratch_byte_total:(265) then scratch_remove:(0)
+given store_with_writer ((import scratch_path), (import store_second_put_record)):(0) then scratch_size_text:("size 1") then scratch_byte_total:(120) then scratch_remove:(0)
+given store_with_writer ((import scratch_path), (import store_first_delete_record)):(0) then scratch_size_text:("size 0") then scratch_remove:(0)
+given store_three_records ("/nonexistent-kv-dir/none", (import store_first_put_record)):(3) then eprints:("kv: cannot write the value to /nonexistent-kv-dir/none\n")
+
+// The answer to a get: the value of rec if there is one, otherwise (rec is 0) a message about key and exit status 1.
+get_out(string output_path, word record, string key) {
+  int code = 1;
+  if(record != 0) {
+    code = emit_value(output_path, record);
+  } else {
+    eprint("kv: no such key: " + key);
+  }
+} return int code;
+given store_with_writer ((import scratch_path), (import store_first_put_record), "ab"):(0) then scratch_size_text:("size 3") then scratch_remove:(0)
+given store_three_records ("/dev/null", 0, "zz"):(1) then eprints:("kv: no such key: zz\n")
+
+// kv DB get KEY: the value's bytes on outp, or a message and status 1 if there is no such key.
+command_get(string output_path, string[] keys, int[] entry_numbers, int[] used, word[] entry_records, string[] argv) {
+  word record = database_record(keys, entry_numbers, used, entry_records, argv[3]);
+  int code = get_out(output_path, record, argv[3]);
+} return int code;
+given store_two_puts ("/dev/null", (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records), ["kv", "x", "get", "ab"]):(0)
+given store_two_puts ("/dev/null", (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records), ["kv", "x", "get", "zz"]):(1) then eprints:("kv: no such key: zz\n")
+given store_deleted ("/dev/null", (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records), ["kv", "x", "get", "ab"]):(1) then eprints:("kv: no such key: ab\n")

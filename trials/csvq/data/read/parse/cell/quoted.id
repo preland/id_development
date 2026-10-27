@@ -1,37 +1,37 @@
-csv_qfill(word base, int i, int j, word ad) {
-  int n = 0;
-  while (i < j) {
-    poke8(ad + n, peek8(base + i));
-    n = n + 1;
-    i = i + 1 + csv_dbl(base, i);
+csv_quote_fill(word base, int index, int end_index, word buffer) {
+  int copied_length = 0;
+  while (index < end_index) {
+    poke8(buffer + copied_length, peek8(base + index));
+    copied_length = copied_length + 1;
+    index = index + 1 + csv_doubled_quote(base, index);
   }
-} return int n;
-given csv_t_all ((import tq), 1, 5, (import sb)):(3)
-given csv_t_all ((import tq), 8, 11, (import sb)):(3)
-given csv_t_all ((import tq), 5, 5, (import sb)):(0)
+} return int copied_length;
+given csv_sample_buffers ((import sample_quoted), 1, 5, (import scratch_buffer)):(3)
+given csv_sample_buffers ((import sample_quoted), 8, 11, (import scratch_buffer)):(3)
+given csv_sample_buffers ((import sample_quoted), 5, 5, (import scratch_buffer)):(0)
 
-csv_qcopy(word base, int i, int j) {
-  word ad = alloc(j - i + 1);
-  int n = csv_qfill(base, i, j, ad);
-  string f = str_of_mem(ad, n);
-} return string f;
-given csv_t_all ((import tq), 1, 5):("a\"b")
-given csv_t_all ((import tq), 8, 11):("c\nd")
-given csv_t_all ((import tq), 5, 5):("")
+csv_quote_copy(word base, int index, int end_index) {
+  word buffer = alloc(end_index - index + 1);
+  int row_total = csv_quote_fill(base, index, end_index, buffer);
+  string field_text = str_of_mem(buffer, row_total);
+} return string field_text;
+given csv_sample_buffers ((import sample_quoted), 1, 5):("a\"b")
+given csv_sample_buffers ((import sample_quoted), 8, 11):("c\nd")
+given csv_sample_buffers ((import sample_quoted), 5, 5):("")
 
-csv_quoted(word base, int[] st, string[] row, string[] diag) {
-  int ln = st[(import s_line)];
-  int i = st[(import s_pos)] + 1;
-  int j = csv_qscan(base, i);
-} chain (word base, int[] st, string[] row, string[] diag) {
-  push(row, csv_qcopy(base, i, j));
-  st[(import s_line)] = st[(import s_line)] + csv_nls(base, i, j);
-  st[(import s_pos)] = j + 1;
-} chain (word base, int[] st, string[] row, string[] diag) {
-  if (peek8(base + j) == 0) {
-    push(diag, "line " + ln + ": quoted field is never closed (missing closing quote)");
+csv_quoted(word base, int[] scan_state, string[] row, string[] diag) {
+  int line_number = scan_state[(import s_line)];
+  int index = scan_state[(import s_pos)] + 1;
+  int end_index = csv_quote_scan(base, index);
+} chain (word base, int[] scan_state, string[] row, string[] diag) {
+  push(row, csv_quote_copy(base, index, end_index));
+  scan_state[(import s_line)] = scan_state[(import s_line)] + csv_newline_count(base, index, end_index);
+  scan_state[(import s_pos)] = end_index + 1;
+} chain (word base, int[] scan_state, string[] row, string[] diag) {
+  if (peek8(base + end_index) == 0) {
+    push(diag, "line " + line_number + ": quoted field is never closed (missing closing quote)");
   }
 } return void;
-given csv_t_all ((import tq), [0, 1, -1, 0], [], []):((import tq), [6, 1, -1, 0], ["a\"b"], [])
-given csv_t_all ((import tq), [7, 1, -1, 0], [], []):((import tq), [12, 2, -1, 0], ["c\nd"], [])
-given csv_t_all ((import tx), [4, 2, -1, 0], [], []):((import tx), [11, 2, -1, 0], ["never"], ["line 2: quoted field is never closed (missing closing quote)"])
+given csv_sample_buffers ((import sample_quoted), [0, 1, -1, 0], [], []):((import sample_quoted), [6, 1, -1, 0], ["a\"b"], [])
+given csv_sample_buffers ((import sample_quoted), [7, 1, -1, 0], [], []):((import sample_quoted), [12, 2, -1, 0], ["c\nd"], [])
+given csv_sample_buffers ((import sample_unclosed), [4, 2, -1, 0], [], []):((import sample_unclosed), [11, 2, -1, 0], ["never"], ["line 2: quoted field is never closed (missing closing quote)"])

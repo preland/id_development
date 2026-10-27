@@ -1,40 +1,40 @@
 // Whether the first bytes of a file are the log's magic: 0 for a whole, matching header, 1 for a shorter start that still matches so far (a crash while the header was being written), -1 for anything else.
-head_ok(word ad, int size) {
-  int n = fixed_point_minimum(size, (import log_hdr));
-  string seen = str_of_mem(ad, n);
-  string magic = str_sub((import log_magic), 0, n);
-} chain (word ad, int size) {
+head_ok(word address, int size) {
+  int compared_length = fixed_point_minimum(size, (import log_hdr));
+  string seen = str_of_mem(address, compared_length);
+  string magic = str_sub((import log_magic), 0, compared_length);
+} chain (word address, int size) {
   int code = 0 - 1;
   if(seen == magic) {
-    code = n < (import log_hdr);
+    code = compared_length < (import log_hdr);
   }
 } return int code;
-given log_t_image ((import log_t_ad), 57):(0)
-given log_t_image ((import log_t_ad), 5):(1)
-given mem_t_zeros given buffer_fill((import mem_t_ad), 64, 1) ((import mem_t_ad), 8):(-1)
+given log_image_build ((import log_image_address), 57):(0)
+given log_image_build ((import log_image_address), 5):(1)
+given memory_block_zeroed given buffer_fill((import memory_block_address), 64, 1) ((import memory_block_address), 8):(-1)
 
 // Checks the record at pos in an image of size bytes and, if it is sound, replays it. Its size, or the negative code rec_check gave.
-scan_step(string[] keys, int[] vals, int[] used, int[] st, word[] ea, word ad, int pos, int size) {
-  int n = rec_check(ad + pos, size - pos);
-  if(n > 0) {
-    apply_rec(keys, vals, used, st, ea, ad + pos);
+scan_step(string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, word address, int byte_position, int size) {
+  int step_result = record_check(address + byte_position, size - byte_position);
+  if(step_result > 0) {
+    apply_record(keys, entry_numbers, used, counters, entry_records, address + byte_position);
   }
-} return int n;
-given log_t_image ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 8, 57):(18) then db_t_state:("1/0/1")
-given log_t_flip ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 26, 57):(-5) then db_t_state:("0/0/0")
+} return int step_result;
+given log_image_build ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import log_image_address), 8, 57):(18) then store_state_text:("1/0/1")
+given log_image_bad_checksum ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import log_image_address), 26, 57):(-5) then store_state_text:("0/0/0")
 
 // Replays every sound record of the image, in order, up to the first one that is not. Where the sound part ends.
-scan_all(string[] keys, int[] vals, int[] used, int[] st, word[] ea, word ad, int size) {
-  int pos = (import log_hdr);
-  int n = 1;
-  while(pos < size && n > 0) {
-    n = scan_step(keys, vals, used, st, ea, ad, pos, size);
-    if(n > 0) {
-      pos = pos + n;
+scan_all(string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, word address, int size) {
+  int byte_position = (import log_hdr);
+  int last_step = 1;
+  while(byte_position < size && last_step > 0) {
+    last_step = scan_step(keys, entry_numbers, used, counters, entry_records, address, byte_position, size);
+    if(last_step > 0) {
+      byte_position = byte_position + last_step;
     }
   }
-} return int pos;
-given log_t_image ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 57):(57) then db_t_state:("1/33/3")
-given log_t_image ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 52):(42) then db_t_state:("2/0/2")
-given log_t_flip ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 57):(26) then db_t_state:("1/0/1")
-given log_t_image ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import log_t_ad), 8):(8) then db_t_state:("0/0/0")
+} return int byte_position;
+given log_image_build ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import log_image_address), 57):(57) then store_state_text:("1/33/3")
+given log_image_build ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import log_image_address), 52):(42) then store_state_text:("2/0/2")
+given log_image_bad_checksum ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import log_image_address), 57):(26) then store_state_text:("1/0/1")
+given log_image_build ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import log_image_address), 8):(8) then store_state_text:("0/0/0")

@@ -1,0 +1,29 @@
+// What to tell the user about how a delete of key ended: 0 done, 1 there was no such key, 3 could not write, 5 the log is full. "" for success.
+delete_text(string path, string key, int status) {
+  string message = "";
+  if(status == 1) {
+    message = "kv: no such key: " + key;
+  }
+  if(status == 3) {
+    message = "kv: " + path + ": cannot write to the log";
+  }
+} chain (string path, string key, int status) {
+  if(status == 5) {
+    message = full_text(path);
+  }
+} return string message;
+("x.kv", "k", 0):("")
+("x.kv", "k", 1):("kv: no such key: k")
+("x.kv", "k", 3):("kv: x.kv: cannot write to the log")
+("x.kv", "k", 5):("kv: x.kv: the log is full (over 2147483647 bytes); compact it or delete keys")
+
+// kv DB del KEY: removes the key; a message and status 1 if it was not there.
+command_delete(string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, string[] argv) {
+  int status = database_delete(path, keys, entry_numbers, used, counters, entry_records, argv[3]);
+  string message = delete_text(path, argv[3], status);
+  say_error(message);
+} chain (string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, string[] argv) {
+  int code = (import del_exits)[status];
+} return int code;
+given log_prefix_loaded(57) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), ["kv", "x", "del", "cd"]):(0) then store_entries_text:("-1,-1") then scratch_size_text:("size 72") then scratch_remove:(0)
+given log_prefix_loaded(57) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), ["kv", "x", "del", "ab"]):(1) then eprints:("kv: no such key: ab\n") then scratch_size_text:("size 57") then scratch_remove:(0)

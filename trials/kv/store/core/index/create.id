@@ -1,0 +1,23 @@
+// A fresh, empty store: a hash table from key to entry number, and the counters that ride in the same list as the table's own count.
+database_new(string[] keys, int[] entry_numbers, int[] used, int[] counters) {
+  hash_map_initialize(keys, entry_numbers, used, counters);
+  counters_fill(counters);
+} return void;
+([], [], [], []):(["", "", "", "", "", "", "", ""], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0])
+(["x"], [9], [1], [5]):(["x", "", "", "", "", "", "", "", ""], [9, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [5, 0, 0, 0, 0, 0, 0])
+
+// Pads the counter list with zeros up to st_len slots.
+counters_fill(int[] counters) {
+  while(len(counters) < (import st_len)) {
+    push(counters, 0);
+  }
+} return void;
+([0]):([0, 0, 0, 0, 0, 0, 0])
+([0, 4, 5, 6, 7, 8, 9, 10]):([0, 4, 5, 6, 7, 8, 9, 10])
+
+// Adds n to one counter.
+counters_add(int[] counters, int slot, int amount) {
+  counters[slot] = counters[slot] + amount;
+} return void;
+([0, 1, 2], 1, 5):([0, 6, 2])
+([0, 1, 2], 2, -3):([0, 1, -1])

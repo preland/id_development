@@ -1,35 +1,35 @@
 // Runs the command argv[2] against an opened store. The command line has been checked, so the word is one of cmd_names; a value that gets here without being one answers 2.
-cmd_run(string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea, string[] argv) {
-  string cmd = argv[2];
+command_run(string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, string[] argv) {
+  string command = argv[2];
   int code = 2;
-  if(cmd == "put") {
-    code = cmd_put(path, (import in_dev), keys, vals, used, st, ea, argv);
+  if(command == "put") {
+    code = command_put(path, (import in_dev), keys, entry_numbers, used, counters, entry_records, argv);
   }
-} chain (string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea, string[] argv) {
-  if(cmd == "get") {
-    code = cmd_get((import out_dev), keys, vals, used, ea, argv);
+} chain (string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, string[] argv) {
+  if(command == "get") {
+    code = command_get((import out_dev), keys, entry_numbers, used, entry_records, argv);
   }
-  if(cmd == "del") {
-    code = cmd_del(path, keys, vals, used, st, ea, argv);
+  if(command == "del") {
+    code = command_delete(path, keys, entry_numbers, used, counters, entry_records, argv);
   }
-  if(cmd == "list") {
-    code = cmd_list(keys, vals, used, argv);
+  if(command == "list") {
+    code = command_list(keys, entry_numbers, used, argv);
   }
-} chain (string path, string[] keys, int[] vals, int[] used, int[] st, word[] ea, string[] argv) {
-  if(cmd == "compact") {
-    code = cmd_compact(path, keys, vals, used, st, ea);
+} chain (string path, string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, string[] argv) {
+  if(command == "compact") {
+    code = command_compact(path, keys, entry_numbers, used, counters, entry_records);
   }
-  if(cmd == "stats") {
-    code = cmd_stats(st);
+  if(command == "stats") {
+    code = command_stats(counters);
   }
-  if(cmd == "bench") {
-    code = cmd_bench(path, keys, vals, used, st, ea, argv);
+  if(command == "bench") {
+    code = command_bench(path, keys, entry_numbers, used, counters, entry_records, argv);
   }
 } return int code;
-given log_t_loaded(57) ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), ["kv", "x", "list"]):(0) then prints:("cd\n") then file_t_done:(0)
-given log_t_loaded(57) ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), ["kv", "x", "stats"]):(0) then prints:("keys: 1\nrecords: 3\ngarbage-bytes: 33\nlog-bytes: 57\nfile-bytes: 57\n") then file_t_done:(0)
-given log_t_loaded(57) ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), ["kv", "x", "get", "zz"]):(1) then eprints:("kv: no such key: zz\n") then file_t_done:(0)
-given log_t_loaded(57) ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), ["kv", "x", "del", "cd"]):(0) then file_t_size:("size 72") then file_t_done:(0)
-given log_t_loaded(57) ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), ["kv", "x", "put", "ab", "xyz"]):(0) then file_t_size:("size 75") then file_t_done:(0)
-given log_t_loaded(57) ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), ["kv", "x", "compact"]):(0) then file_t_size:("size 24") then prints:("compacted 57 -> 24 bytes\n") then file_t_done:(0)
-given log_t_loaded(57) ((import file_t_path), (import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), ["kv", "x", "zap"]):(2) then file_t_size:("size 57") then file_t_done:(0)
+given log_prefix_loaded(57) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), ["kv", "x", "list"]):(0) then prints:("cd\n") then scratch_remove:(0)
+given log_prefix_loaded(57) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), ["kv", "x", "stats"]):(0) then prints:("keys: 1\nrecords: 3\ngarbage-bytes: 33\nlog-bytes: 57\nfile-bytes: 57\n") then scratch_remove:(0)
+given log_prefix_loaded(57) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), ["kv", "x", "get", "zz"]):(1) then eprints:("kv: no such key: zz\n") then scratch_remove:(0)
+given log_prefix_loaded(57) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), ["kv", "x", "del", "cd"]):(0) then scratch_size_text:("size 72") then scratch_remove:(0)
+given log_prefix_loaded(57) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), ["kv", "x", "put", "ab", "xyz"]):(0) then scratch_size_text:("size 75") then scratch_remove:(0)
+given log_prefix_loaded(57) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), ["kv", "x", "compact"]):(0) then scratch_size_text:("size 24") then prints:("compacted 57 -> 24 bytes\n") then scratch_remove:(0)
+given log_prefix_loaded(57) ((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), ["kv", "x", "zap"]):(2) then scratch_size_text:("size 57") then scratch_remove:(0)

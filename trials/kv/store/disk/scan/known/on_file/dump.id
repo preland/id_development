@@ -1,0 +1,17 @@
+// Writes the first n bytes of the image over the scratch file.
+log_image_dump(int image_length) {
+  int file_handle = fs_open((import scratch_path), "w");
+  int wrote = fs_write_mem(file_handle, (import log_image_address), image_length);
+  int shut = fs_close(file_handle);
+} return void;
+given log_image_on_file (3):() then scratch_size_text:("size 3") then scratch_byte_total:(216) then scratch_remove:(0)
+given log_image_on_file (0):() then scratch_size_text:("size 0") then scratch_remove:(0)
+
+// The scratch file holding an image whose magic is wrong: 57 bytes that are not a log.
+log_wrong_magic_file() {
+  log_image_bad_magic();
+  scratch_empty();
+  log_image_dump(57);
+} return void;
+():() then scratch_size_text:("size 57") then scratch_byte_total:(2966) then scratch_remove:(0)
+():() then scratch_size_text:("size 57") then store_state_text:("0/0/0") then scratch_remove:(0)

@@ -1,0 +1,28 @@
+// Doubles the buffer's capacity, keeping the bytes it already holds.
+slurp_grow(word[] slurp_buffer) {
+  int have = slurp_buffer[2];
+  word cap = slurp_buffer[1] * 2;
+  word address = alloc(cap);
+} chain (word[] slurp_buffer) {
+  buffer_copy(address, slurp_buffer[0], have);
+  slurp_buffer[0] = address;
+  slurp_buffer[1] = cap;
+} return void;
+given slurp_empty_buffer given word_list_set((import slurp_empty_buffer_list), 1, 8) given word_list_set((import slurp_empty_buffer_list), 2, 8) ((import slurp_empty_buffer_list)):() then slurp_buffer_state:("16/8/8") then scratch_remove:(0)
+given slurp_empty_buffer given word_list_set((import slurp_empty_buffer_list), 1, 4) ((import slurp_empty_buffer_list)):() then slurp_buffer_state:("8/0/0") then scratch_remove:(0)
+
+// Reads once from the handle into the room the buffer has left, and grows the buffer if that filled it. The bytes read, 0 at the end of the file, -1 on an error.
+slurp_step(int file_handle, word[] slurp_buffer) {
+  int room = slurp_buffer[1] - slurp_buffer[2];
+  int got = fs_read_mem(file_handle, slurp_buffer[0] + slurp_buffer[2], room);
+  if(got > 0) {
+    slurp_buffer[2] = slurp_buffer[2] + got;
+  }
+} chain (int file_handle, word[] slurp_buffer) {
+  if(slurp_buffer[2] == slurp_buffer[1]) {
+    slurp_grow(slurp_buffer);
+  }
+} return int got;
+given slurp_empty_buffer ((import scratch_reader_handle), (import slurp_empty_buffer_list)):(10) then slurp_buffer_state:("16/10/525") then scratch_remove:(0)
+given slurp_empty_buffer given word_list_set((import slurp_empty_buffer_list), 1, 4) ((import scratch_reader_handle), (import slurp_empty_buffer_list)):(4) then slurp_buffer_state:("8/4/198") then scratch_remove:(0)
+(-1, [0, 4, 0]):(-1)

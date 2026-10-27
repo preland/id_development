@@ -1,0 +1,19 @@
+// Fixture: a store on a scratch file with two entries, key-0 holding bench_val(0) and key-1 holding a different value. bench_t_a is where the record of key-0 is.
+bench_pair_store() {
+  bench_empty_setup();
+  put_argument((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), "key-0", bench_value(0));
+  put_argument((import scratch_path), (import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), "key-1", "wrong");
+} chain () {
+  export word bench_first_record = database_record((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_entry_records), "key-0");
+} return void;
+():() then store_state_text:("2/0/2") then scratch_remove:(0)
+():() then scratch_size_text:("size 136") then scratch_remove:(0)
+
+// The same, with the last two counts of the results list set to 7 and 9.
+bench_pair_with_counts() {
+  bench_pair_store();
+  integer_list_set((import bench_empty_results), 3, 7);
+  integer_list_set((import bench_empty_results), 4, 9);
+} return void;
+():() then bench_counts_text:("7/9") then scratch_remove:(0)
+():() then scratch_size_text:("size 136") then scratch_remove:(0)

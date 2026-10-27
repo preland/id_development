@@ -1,0 +1,19 @@
+input_memory_buffer() {
+  export word nul_buffer = alloc(4);
+  poke8(nul_buffer, 97);
+  poke8(nul_buffer + 2, 98);
+} return void;
+():() then input_buffer_first_byte:("first 97")
+():() then input_buffer_third_byte:(98)
+
+input_buffer_first_byte() {
+  string first_byte_text = "first " + (peek8((import nul_buffer)));
+} return string first_byte_text;
+given input_memory_buffer ():("first 97")
+():() then traps:("uninitialised export")
+
+input_buffer_third_byte() {
+  int third_byte = peek8((import nul_buffer) + 2);
+} return int third_byte;
+given input_memory_buffer ():(98)
+():() then traps:("uninitialised export")

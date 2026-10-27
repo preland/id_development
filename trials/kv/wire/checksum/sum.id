@@ -1,0 +1,20 @@
+// Folds n bytes of the flat store, from ad, into a running CRC value.
+checksum_range(word checksum, word address, int range_length) {
+  int index = 0;
+  while(index < range_length) {
+    checksum = checksum_step(checksum, peek8(address + index));
+    index = index + 1;
+  }
+} return word checksum;
+given checksum_digits_block (4294967295, (import memory_block_address), 9):(873187033)
+given checksum_digits_block (4294967295, (import memory_block_address), 0):(4294967295)
+given checksum_digits_block (0, (import memory_block_address), 1):(1373503546)
+
+// The CRC-32 of n bytes at ad, as gzip and zlib compute it: crc32("123456789") is 0xCBF43926.
+crc32(word address, int input_length) {
+  word run = checksum_range((import crc_init), address, input_length);
+  word out = run ^ (import crc_init);
+} return word out;
+given checksum_digits_block ((import memory_block_address), 9):(3421780262)
+given checksum_digits_block ((import memory_block_address), 0):(0)
+given checksum_digits_block ((import memory_block_address), 1):(2212294583)

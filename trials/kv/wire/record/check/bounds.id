@@ -1,0 +1,39 @@
+// Whether the key and value lengths are ones a writer could have produced: 0, or -3.
+record_check_lengths(word record) {
+  int key_length = record_key_length(record);
+  int value_length = peek32(record + (import rec_off_vlen));
+  int code = 0;
+} chain (word record) {
+  if(key_length < 1 || key_length > (import rec_max_key) || value_length < 0 || value_length > (import rec_max_val)) {
+    code = 0 - 3;
+  }
+} return int code;
+given record_good_put ((import memory_block_address)):(0)
+given record_with_length_field(2147483647) ((import memory_block_address)):(-3)
+given memory_block_zeroed given memory_load((import memory_block_address), [232, 243, 87, 197, 1, 0, 0, 0, 0, 3, 0, 0, 0, 120, 121, 122]) ((import memory_block_address)):(-3)
+given record_with_length_field(1073741824) ((import memory_block_address)):(0)
+given record_with_length_field(1073741825) ((import memory_block_address)):(-3)
+
+// Whether all the bytes the header promises are there: 0, or -4. Only safe once rec_ck_lens has passed.
+record_check_room(word record, int avail) {
+  int size = record_length(record);
+  int code = 0;
+  if(size > avail) {
+    code = 0 - 4;
+  }
+} return int code;
+given record_good_put ((import memory_block_address), 18):(0)
+given record_good_put ((import memory_block_address), 17):(-4)
+
+// Whether the stored checksum matches the bytes: 0, or -5.
+record_check_checksum(word record) {
+  word stored = peek32(record);
+  word actual = record_checksum(record);
+  int code = 0;
+} chain (word record) {
+  if(stored != actual) {
+    code = 0 - 5;
+  }
+} return int code;
+given record_good_put ((import memory_block_address)):(0)
+given record_poked_byte(15, 121) ((import memory_block_address)):(-5)

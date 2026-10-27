@@ -1,21 +1,21 @@
-cli_exec(string[] args, int[] o, string[] diag) {
-  if (args[0] == "gen") {
-    cmd_gen(args, o, diag);
+cli_exec(string[] arguments, int[] options, string[] diag) {
+  if (arguments[0] == "gen") {
+    command_generate(arguments, options, diag);
   } else {
-    cli_table(args, o, diag);
+    cli_table(arguments, options, diag);
   }
 } return void;
 (["gen", "0"], [44, 0, 0, 0, 0], []):(["gen", "0"], [44, 0, 0, 0, 0], []) then prints:("id,name,dept,age,score,note\n")
 stdin "a\n1\n" (["count"], [44, 0, 0, 0, 0], []):(["count"], [44, 0, 0, 0, 0], []) then prints:("1\n")
 
-cli_go(string[] args, int[] o, string[] diag) {
-  int rc = 0;
-  cli_exec(args, o, diag);
+cli_go(string[] arguments, int[] options, string[] diag) {
+  int exit_status = 0;
+  cli_exec(arguments, options, diag);
   if (len(diag) > 0) {
     eprint("csvq: " + diag[0]);
-    rc = 1;
+    exit_status = 1;
   }
-} return int rc;
+} return int exit_status;
 stdin "a\n1\n" (["count"], [44, 0, 0, 0, 0], []):(0) then prints:("1\n")
 stdin "a\n1\n" (["select", "q"], [44, 0, 0, 0, 0], []):(1) then eprints:("csvq: <stdin>: unknown column 'q'; available columns: a\n")
 

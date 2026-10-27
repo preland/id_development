@@ -1,0 +1,18 @@
+select_rows(string[][] rows, int[] column_indexes) {
+  string[][] projected = [];
+  int index = 0;
+  while (index < len(rows)) {
+    push(projected, order_by_strings(rows[index], column_indexes));
+    index = index + 1;
+  }
+} return string[][] projected;
+([["a", "b"], ["c", "d"]], [1]):([["b"], ["d"]])
+([], [0]):([])
+
+select_print(string[] header, string[][] rows, int[] options, int[] column_indexes) {
+  string[] projected_header = order_by_strings(header, column_indexes);
+  string[][] projected_rows = select_rows(rows, column_indexes);
+  out_table(projected_header, projected_rows, options);
+} return void;
+(["a", "b"], [["1", "2"]], [44, 0, 0, 0, 0], [1]):(["a", "b"], [["1", "2"]], [44, 0, 0, 0, 0], [1]) then prints:("b\n2\n")
+(["a", "b"], [["1", "2"]], [59, 0, 0, 1, 0], [1, 0]):(["a", "b"], [["1", "2"]], [59, 0, 0, 1, 0], [1, 0]) then prints:("2;1\n")

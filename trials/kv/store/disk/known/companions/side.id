@@ -1,0 +1,32 @@
+// The files the log code leaves beside a log: what it saved of a bad tail, and the scratch names for a repair and a compaction.
+// Removes all three, and answers how many were there.
+scratch_remove_leftovers(string path) {
+  int bad_removal = fs_remove(path + ".bad");
+  int repair_removal = fs_remove(path + ".repair");
+  int compact_removal = fs_remove(path + ".compact");
+} chain (string path) {
+  int present = 3 + bad_removal + repair_removal + compact_removal;
+} return int present;
+given scratch_with_leftovers ((import scratch_path)):(2) then scratch_remove:(0)
+given scratch_empty ((import scratch_path)):(0) then scratch_remove:(0)
+
+// A scratch file with a .bad and a .compact beside it.
+scratch_with_leftovers() {
+  scratch_empty();
+  int bad_handle = fs_open((import scratch_path) + ".bad", "w");
+  int compact_handle = fs_open((import scratch_path) + ".compact", "w");
+} chain () {
+  int bad_closed = fs_close(bad_handle);
+  int compact_closed = fs_close(compact_handle);
+} return void;
+():() then scratch_size_text:("size 0") then scratch_leftover_size(".bad"):(0) then scratch_remove:(0)
+():() then scratch_size_text:("size 0") then scratch_remove:(0)
+
+// The size of the file beside the scratch file whose name ends in file_t_ext (".bad" or ".compact"), or -1.
+scratch_leftover_size(string leftover_suffix) {
+  int size = fs_size((import scratch_path) + leftover_suffix);
+} return int size;
+given scratch_with_leftovers (".bad"):(0) then scratch_remove:(0)
+given scratch_empty (".bad"):(-1) then scratch_remove:(0)
+given scratch_with_compact_twin (".compact"):(3) then scratch_remove:(0)
+given scratch_ten_bytes (".compact"):(-1) then scratch_remove:(0)

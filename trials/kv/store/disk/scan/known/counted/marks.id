@@ -1,28 +1,28 @@
 // Fixtures: the scratch log files with the counters a load of them would have left, set directly so the code under test does not depend on the loader.
 // The 57 byte log, all of it sound.
-log_t_sound() {
-  log_t_dumped(57);
-  st_add((import db_t_st), (import st_size), 57);
-  st_add((import db_t_st), (import st_file), 57);
+log_sound_counters() {
+  log_image_prefix_on_file(57);
+  counters_add((import store_counters), (import st_size), 57);
+  counters_add((import store_counters), (import st_file), 57);
 } return void;
-():() then db_t_meta:("57/57/0") then file_t_done:(0)
-():() then file_t_size:("size 57") then file_t_done:(0)
+():() then store_file_counters_text:("57/57/0") then scratch_remove:(0)
+():() then scratch_size_text:("size 57") then scratch_remove:(0)
 
 // The 52 byte torn file, with counters claiming a sound part of log_t_snd bytes: 42 is the file's own, 100 is more than it has, since something shrank it.
-log_t_counted(int log_t_snd, int log_t_fsz) {
-  log_t_dumped(52);
-  st_add((import db_t_st), (import st_size), log_t_snd);
-  st_add((import db_t_st), (import st_file), log_t_fsz);
+log_counters_claim(int sound_claim, int file_claim) {
+  log_image_prefix_on_file(52);
+  counters_add((import store_counters), (import st_size), sound_claim);
+  counters_add((import store_counters), (import st_file), file_claim);
 } return void;
-(42, 52):() then db_t_meta:("42/52/0") then file_t_done:(0)
-(42, 52):() then file_t_size:("size 52") then file_t_done:(0)
-(100, 100):() then db_t_meta:("100/100/0") then file_t_done:(0)
-(100, 100):() then file_t_size:("size 52") then file_t_done:(0)
+(42, 52):() then store_file_counters_text:("42/52/0") then scratch_remove:(0)
+(42, 52):() then scratch_size_text:("size 52") then scratch_remove:(0)
+(100, 100):() then store_file_counters_text:("100/100/0") then scratch_remove:(0)
+(100, 100):() then scratch_size_text:("size 52") then scratch_remove:(0)
 
 // The 3 byte start of a header, none of it sound.
-log_t_cut() {
-  log_t_dumped(3);
-  st_add((import db_t_st), (import st_file), 3);
+log_cut_header() {
+  log_image_prefix_on_file(3);
+  counters_add((import store_counters), (import st_file), 3);
 } return void;
-():() then db_t_meta:("0/3/0") then file_t_done:(0)
-():() then file_t_size:("size 3") then file_t_done:(0)
+():() then store_file_counters_text:("0/3/0") then scratch_remove:(0)
+():() then scratch_size_text:("size 3") then scratch_remove:(0)

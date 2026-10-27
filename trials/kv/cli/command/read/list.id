@@ -1,0 +1,25 @@
+// Prints each string on a line of its own.
+list_print(string[] strings) {
+  int index = 0;
+  while(index < len(strings)) {
+    print(strings[index]);
+    index = index + 1;
+  }
+} return void;
+(["a", "b"]):(["a", "b"]) then prints:("a\nb\n")
+([]):([]) then prints:("")
+
+// kv DB list [PREFIX]: the live keys that start with PREFIX (all of them without one), one per line, in byte order.
+command_list(string[] keys, int[] entry_numbers, int[] used, string[] argv) {
+  string prefix = "";
+  if(len(argv) == 4) {
+    prefix = argv[3];
+  }
+  string[] picked = database_keys(keys, entry_numbers, used, prefix);
+} chain (string[] keys, int[] entry_numbers, int[] used, string[] argv) {
+  list_print(picked);
+} return int 0;
+given store_two_puts ((import store_keys), (import store_entry_numbers), (import store_slot_flags), ["kv", "x", "list"]):(0) then prints:("ab\ncd\n")
+given store_two_puts ((import store_keys), (import store_entry_numbers), (import store_slot_flags), ["kv", "x", "list", "c"]):(0) then prints:("cd\n")
+given store_deleted ((import store_keys), (import store_entry_numbers), (import store_slot_flags), ["kv", "x", "list"]):(0) then prints:("cd\n")
+given store_empty_lists ((import store_keys), (import store_entry_numbers), (import store_slot_flags), ["kv", "x", "list"]):(0) then prints:("")

@@ -1,0 +1,42 @@
+filter_rows(string[][] rows, int column_index, int code, string value_text, float value_number, int value_is_number) {
+  string[][] keep = [];
+  int index = 0;
+  while (index < len(rows)) {
+    if (filter_test(rows[index][column_index], value_text, code, value_number, value_is_number) == 1) {
+      push(keep, rows[index]);
+    }
+    index = index + 1;
+  }
+} return string[][] keep;
+([["a", "1"], ["b", "20"], ["c", "3"]], 1, 3, "2", 2.0, 1):([["b", "20"], ["c", "3"]])
+([["a", "1"], ["b", "20"], ["c", "3"]], 0, 4, "b", 0.0, 0):([["b", "20"]])
+([["a", "1"]], 0, 0, "z", 0.0, 0):([])
+
+filter_print(string[] header, string[][] rows, int[] options, int column_index, int code, string value_text) {
+  int value_is_number = number_ok(value_text);
+  float value_number = 0.0;
+  if (value_is_number == 1) {
+    value_number = number_value(value_text);
+  }
+} chain (string[] header, string[][] rows, int[] options, int column_index, int code, string value_text) {
+  string[][] keep = filter_rows(rows, column_index, code, value_text, value_number, value_is_number);
+  out_table(header, keep, options);
+} return void;
+(["n", "v"], [["a", "5"], ["b", "15"]], [44, 0, 0, 0, 0], 1, 3, "9"):(["n", "v"], [["a", "5"], ["b", "15"]], [44, 0, 0, 0, 0], 1, 3, "9") then prints:("n,v\nb,15\n")
+(["n", "v"], [["a", "5"], ["b", "15"]], [44, 0, 0, 0, 0], 0, 0, "a"):(["n", "v"], [["a", "5"], ["b", "15"]], [44, 0, 0, 0, 0], 0, 0, "a") then prints:("n,v\na,5\n")
+
+command_filter(string[] header, string[][] rows, int[] lines, int[] options, string[] arguments, string[] diag) {
+  int[] column_indexes = [];
+  column_pick(header, arguments[1], column_indexes, diag);
+  int code = list_string_index((import op_names), arguments[2]);
+} chain (string[] header, string[][] rows, int[] lines, int[] options, string[] arguments, string[] diag) {
+  if (code < 0 && len(diag) == 0) {
+    push(diag, "unknown operator '" + arguments[2] + "'; use one of: " + string_join((import op_names), ", "));
+  }
+  if (len(diag) == 0) {
+    filter_print(header, rows, options, column_indexes[0], code, arguments[3]);
+  }
+} return void;
+(["n", "v"], [["a", "5"], ["b", "15"]], [2, 3], [44, 0, 0, 0, 0], ["filter", "v", ">", "9"], []):(["n", "v"], [["a", "5"], ["b", "15"]], [2, 3], [44, 0, 0, 0, 0], ["filter", "v", ">", "9"], []) then prints:("n,v\nb,15\n")
+(["n", "v"], [["a", "5"]], [2], [44, 0, 0, 0, 0], ["filter", "v", "~", "9"], []):(["n", "v"], [["a", "5"]], [2], [44, 0, 0, 0, 0], ["filter", "v", "~", "9"], ["unknown operator '~'; use one of: ==, !=, <, >, contains"]) then prints:("")
+(["n", "v"], [["a", "5"]], [2], [44, 0, 0, 0, 0], ["filter", "w", "==", "9"], []):(["n", "v"], [["a", "5"]], [2], [44, 0, 0, 0, 0], ["filter", "w", "==", "9"], ["unknown column 'w'; available columns: n, v"]) then prints:("")

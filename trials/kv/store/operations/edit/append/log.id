@@ -1,0 +1,23 @@
+// Appends n bytes at rec to the log at path, first making the log fit for it. n bytes on success, -1 on failure; the counters follow the file.
+log_append(string path, int[] counters, word record, int append_length) {
+  int ready = database_ready(path, counters);
+  int sent = 0 - 1;
+  if(ready >= 0) {
+    sent = log_write(path, "a", record, append_length);
+    counters_wrote(counters, sent, append_length);
+  }
+} return int sent;
+given log_image_on_file ((import scratch_path), (import store_counters), (import log_value_source), 3):(3) then store_file_counters_text:("11/11/0") then scratch_size_text:("size 11") then scratch_remove:(0)
+given store_empty_lists ("/nonexistent-kv-dir/none", (import store_counters), 1, 3):(-1) then store_file_counters_text:("0/0/0")
+
+// Counts an append: if all n bytes went out the sound part and the file both grew, if not the file is marked as holding something the counters do not know of, so the next append repairs it first.
+counters_wrote(int[] counters, int sent, int expected_length) {
+  if(sent == expected_length) {
+    counters_add(counters, (import st_size), expected_length);
+    counters_add(counters, (import st_file), expected_length);
+  } else {
+    counters_add(counters, (import st_file), 1);
+  }
+} return void;
+given store_empty_lists ((import store_counters), 5, 5):((import store_counters)) then store_file_counters_text:("5/5/0")
+given store_empty_lists ((import store_counters), -1, 5):((import store_counters)) then store_file_counters_text:("0/1/0")

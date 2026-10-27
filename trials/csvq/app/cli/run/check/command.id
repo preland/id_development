@@ -1,0 +1,21 @@
+cli_command_check(string[] arguments, int[] options, string[] diag) {
+  int at = list_string_index((import cmd_names), arguments[0]);
+  if (at < 0) {
+    push(diag, "unknown command '" + arguments[0] + "'; the commands are: " + string_join((import cmd_names), ", "));
+  } else {
+    cli_arity(at, arguments, diag);
+    cli_flags(arguments, options, diag);
+  }
+} return void;
+(["frobnicate"], [44, 0, 0, 0, 0], []):(["frobnicate"], [44, 0, 0, 0, 0], ["unknown command 'frobnicate'; the commands are: select, filter, sort, count, head, stats, gen"])
+(["count"], [44, 0, 0, 0, 0], []):(["count"], [44, 0, 0, 0, 0], [])
+(["head"], [44, 0, 0, 0, 0], []):(["head"], [44, 0, 0, 0, 0], ["head needs N"])
+
+cli_check(string[] arguments, int[] options, string[] diag) {
+  if (len(arguments) > 0 && len(diag) == 0) {
+    cli_command_check(arguments, options, diag);
+  }
+} return void;
+([], [44, 0, 0, 0, 0], []):([], [44, 0, 0, 0, 0], [])
+(["sort", "a"], [44, 0, 0, 0, 0], ["earlier"]):(["sort", "a"], [44, 0, 0, 0, 0], ["earlier"])
+(["nope"], [44, 0, 0, 0, 0], []):(["nope"], [44, 0, 0, 0, 0], ["unknown command 'nope'; the commands are: select, filter, sort, count, head, stats, gen"])

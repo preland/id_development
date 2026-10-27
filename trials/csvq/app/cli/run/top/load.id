@@ -1,7 +1,7 @@
-cli_load(string path, int[] o, string[] hdr, string[][] rows, int[] lines, string[] diag) {
-  inp_load(path, o[(import o_delim)], rows, lines, diag);
+cli_load(string path, int[] options, string[] header, string[][] rows, int[] lines, string[] diag) {
+  input_load(path, options[(import o_delim)], rows, lines, diag);
   if (len(diag) == 0) {
-    tbl_split(o, hdr, rows, lines);
+    table_split(options, header, rows, lines);
   }
 } return void;
 stdin "a,b\n1,2\n" ("-", [44, 0, 0, 0, 0], [], [], [], []):("-", [44, 0, 0, 0, 0], ["a", "b"], [["1", "2"]], [2], [])
@@ -22,16 +22,16 @@ cli_tag(string path, string[] diag) {
 ("data.csv", ["bad"]):("data.csv", ["data.csv: bad"])
 ("data.csv", []):("data.csv", [])
 
-cli_table(string[] args, int[] o, string[] diag) {
-  string[] hdr = [];
+cli_table(string[] arguments, int[] options, string[] diag) {
+  string[] header = [];
   string[][] rows = [];
   int[] lines = [];
-} chain (string[] args, int[] o, string[] diag) {
-  cli_load(cli_path(args), o, hdr, rows, lines, diag);
+} chain (string[] arguments, int[] options, string[] diag) {
+  cli_load(cli_path(arguments), options, header, rows, lines, diag);
   if (len(diag) == 0) {
-    cmd_run(args[0], hdr, rows, lines, o, args, diag);
+    command_run(arguments[0], header, rows, lines, options, arguments, diag);
   }
-  cli_tag(cli_path(args), diag);
+  cli_tag(cli_path(arguments), diag);
 } return void;
 stdin "n,v\na,1\nb,2\n" (["filter", "v", ">", "1"], [44, 0, 0, 0, 0], []):(["filter", "v", ">", "1"], [44, 0, 0, 0, 0], []) then prints:("n,v\nb,2\n")
 stdin "n,v\na,1\n" (["select", "zz"], [44, 0, 0, 0, 0], []):(["select", "zz"], [44, 0, 0, 0, 0], ["<stdin>: unknown column 'zz'; available columns: n, v"]) then prints:("")

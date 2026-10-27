@@ -1,0 +1,38 @@
+// Counts a delete: the tombstone is garbage at once, and so is the record it kills, if there was one (entry old).
+count_delete(int[] counters, word[] entry_records, int old, word record) {
+  int gone = record_length(record);
+  if(old >= 0) {
+    word previous_record = entry_records[old];
+    gone = gone + record_length(previous_record);
+    counters_add(counters, (import st_live), 0 - 1);
+  }
+  counters_add(counters, (import st_dead), gone);
+} return void;
+given store_two_puts ((import store_counters), (import store_entry_records), 0, (import store_first_delete_record)):() then store_state_text:("1/33/2")
+given store_three_records ((import store_counters), (import store_entry_records), -1, (import store_first_delete_record)):() then store_state_text:("0/15/0")
+
+// Replays one delete record: the key, if it was there, no longer points at any entry.
+apply_delete(string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, word record) {
+  string key = record_key(record);
+  int old = hash_map_get(keys, entry_numbers, used, key, (import no_entry));
+  count_delete(counters, entry_records, old, record);
+} chain (string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, word record) {
+  if(old >= 0) {
+    hash_map_put(keys, entry_numbers, used, counters, key, (import no_entry));
+  }
+  counters_add(counters, (import st_recs), 1);
+} return void;
+given store_two_puts ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import store_first_delete_record)):() then store_state_text:("1/33/3") then store_entries_text:("-1,1")
+given store_three_records ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import store_first_delete_record)):() then store_state_text:("0/15/1") then store_entries_text:("-1,-1")
+
+// Replays one record of either kind.
+apply_record(string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, word record) {
+  int kind = record_kind(record);
+  if(kind == (import rec_put)) {
+    apply_put(keys, entry_numbers, used, counters, entry_records, record);
+  } else {
+    apply_delete(keys, entry_numbers, used, counters, entry_records, record);
+  }
+} return void;
+given store_three_records ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import store_first_put_record)):() then store_state_text:("1/0/1") then store_entries_text:("0,-1")
+given store_two_puts ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import store_first_delete_record)):() then store_state_text:("1/33/3") then store_entries_text:("-1,1")

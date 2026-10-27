@@ -1,23 +1,23 @@
-cli_top(string[] args, int[] o, string[] diag) {
-  int rc = 0;
-  if (o[(import o_help)] == 1) {
+cli_top(string[] arguments, int[] options, string[] diag) {
+  int exit_status = 0;
+  if (options[(import o_help)] == 1) {
     print((import usage_text));
   } else {
-    rc = cli_use(args, o, diag);
+    exit_status = cli_use(arguments, options, diag);
   }
-} return int rc;
+} return int exit_status;
 ([], [44, 0, 0, 0, 1], []):(0)
 (["count"], [44, 0, 0, 0, 0], []):(0)
 
 cli_run(string[] argv) {
-  int[] o = list_copy((import o_default));
-  string[] args = [];
+  int[] options = list_copy((import o_default));
+  string[] arguments = [];
   string[] diag = [];
 } chain (string[] argv) {
-  cli_scan(argv, o, args, diag);
-  cli_check(args, o, diag);
-  int rc = cli_top(args, o, diag);
-} return int rc;
+  cli_scan(argv, options, arguments, diag);
+  cli_check(arguments, options, diag);
+  int exit_status = cli_top(arguments, options, diag);
+} return int exit_status;
 stdin "a,b\n1,2\n" (["csvq", "count"]):(0) then prints:("1\n")
 (["csvq", "count", "--desc"]):(2) then eprints:("csvq: --desc only applies to the sort command\nTry 'csvq --help' for more information.\n")
 

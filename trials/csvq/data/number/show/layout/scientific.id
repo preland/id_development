@@ -1,0 +1,46 @@
+number_exponent_suffix(int exponent_ten) {
+  string exponent_sign = "+";
+  int exponent_magnitude = exponent_ten;
+  if (exponent_ten < 0) {
+    exponent_sign = "-";
+    exponent_magnitude = 0 - exponent_ten;
+  }
+} chain (int exponent_ten) {
+  string exponent_text = "" + exponent_magnitude;
+  if (exponent_magnitude < 10) {
+    exponent_text = "0" + exponent_text;
+  }
+  string result_text = "e" + exponent_sign + exponent_text;
+} return string result_text;
+(5):("e+05")
+(-7):("e-07")
+(123):("e+123")
+(15):("e+15")
+
+number_scientific(string digit_text, int exponent_ten) {
+  string head = str_sub(digit_text, 0, 1);
+  if (len(digit_text) > 1) {
+    head = head + "." + str_sub(digit_text, 1, len(digit_text) - 1);
+  }
+  string result_text = head + number_exponent_suffix(exponent_ten);
+} return string result_text;
+("15", 20):("1.5e+20")
+("1", -7):("1e-07")
+("123456789012345", 17):("1.23456789012345e+17")
+
+number_body(float float_value) {
+  int exponent_ten = number_exponent_rounded(float_value);
+  word integer_word = number_scaled(float_value, exponent_ten);
+  string digit_text = number_zero_trim("" + integer_word);
+} chain (float float_value) {
+  string result_text = number_layout(digit_text, exponent_ten);
+} return string result_text;
+(12345.0):("12345")
+(0.001):("0.001")
+(1234567.891):("1234567.891")
+(100.0):("100")
+(0.1):("0.1")
+(1000000000000000.0):("1e+15")
+(0.00001):("1e-05")
+(0.333333333333333333):("0.333333333333333")
+(123456789012345680000.0):("1.23456789012346e+20")

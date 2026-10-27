@@ -1,0 +1,31 @@
+sort_number_key(string cell, int line_number, string name, float[] number_keys, string[] diag) {
+  if (number_ok(cell) == 1) {
+    push(number_keys, number_value(cell));
+  } else {
+    push(diag, "line " + line_number + ": '" + cell + "' in column '" + name + "' is not a number (needed by --numeric)");
+  }
+} return void;
+("2.5", 3, "age", [], []):("2.5", 3, "age", [2.5], [])
+("abc", 7, "age", [], []):("abc", 7, "age", [], ["line 7: 'abc' in column 'age' is not a number (needed by --numeric)"])
+
+sort_key(string cell, int line_number, string name, int is_numeric, string[] text_keys, float[] number_keys, string[] diag) {
+  if (is_numeric == 0) {
+    push(text_keys, cell);
+  } else {
+    sort_number_key(cell, line_number, name, number_keys, diag);
+  }
+} return void;
+("x", 2, "c", 0, [], [], []):("x", 2, "c", 0, ["x"], [], [])
+("4", 2, "c", 1, [], [], []):("4", 2, "c", 1, [], [4.0], [])
+("q", 5, "c", 1, [], [], []):("q", 5, "c", 1, [], [], ["line 5: 'q' in column 'c' is not a number (needed by --numeric)"])
+
+sort_keys(string[][] rows, int[] lines, string[] header, int column_index, int[] options, string[] text_keys, float[] number_keys, string[] diag) {
+  int index = 0;
+  while (index < len(rows) && len(diag) == 0) {
+    sort_key(rows[index][column_index], lines[index], header[column_index], options[(import o_num)], text_keys, number_keys, diag);
+    index = index + 1;
+  }
+} return void;
+([["a", "9"], ["b", "10"]], [2, 3], ["k", "v"], 1, [44, 0, 0, 0, 0], [], [], []):([["a", "9"], ["b", "10"]], [2, 3], ["k", "v"], 1, [44, 0, 0, 0, 0], ["9", "10"], [], [])
+([["a", "9"], ["b", "10"]], [2, 3], ["k", "v"], 1, [44, 0, 1, 0, 0], [], [], []):([["a", "9"], ["b", "10"]], [2, 3], ["k", "v"], 1, [44, 0, 1, 0, 0], [], [9.0, 10.0], [])
+([["a", "9"], ["b", "x"], ["c", "y"]], [2, 3, 4], ["k", "v"], 1, [44, 0, 1, 0, 0], [], [], []):([["a", "9"], ["b", "x"], ["c", "y"]], [2, 3, 4], ["k", "v"], 1, [44, 0, 1, 0, 0], [], [9.0], ["line 3: 'x' in column 'v' is not a number (needed by --numeric)"])

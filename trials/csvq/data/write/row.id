@@ -1,31 +1,31 @@
-wr_field(string f, int d, int one) {
-  string g = f;
-  if (wr_needs(f, d) == 1 || (one == 1 && f == "")) {
-    g = wr_quote(f);
+csv_write_field(string field_text, int delimiter, int one) {
+  string rendered = field_text;
+  if (csv_write_needs_quote(field_text, delimiter) == 1 || (one == 1 && field_text == "")) {
+    rendered = csv_write_quote(field_text);
   }
-} return string g;
+} return string rendered;
 ("plain", 44, 0):("plain")
 ("a,b", 44, 0):("\"a,b\"")
 ("", 44, 0):("")
 ("", 44, 1):("\"\"")
 ("a;b", 59, 0):("\"a;b\"")
 
-wr_fields(string[] row, int d, string[] parts) {
-  int i = 0;
+csv_write_fields(string[] row, int delimiter, string[] parts) {
+  int index = 0;
   int one = len(row) == 1;
-  while (i < len(row)) {
-    push(parts, wr_field(row[i], d, one));
-    i = i + 1;
+  while (index < len(row)) {
+    push(parts, csv_write_field(row[index], delimiter, one));
+    index = index + 1;
   }
 } return void;
 (["a", "b,c"], 44, []):(["a", "b,c"], 44, ["a", "\"b,c\""])
 ([""], 44, ["x"]):([""], 44, ["x", "\"\""])
 (["", ""], 44, []):(["", ""], 44, ["", ""])
 
-wr_row(string[] row, int d) {
+csv_write_row(string[] row, int delimiter) {
   string[] parts = [];
-  wr_fields(row, d, parts);
-  string line = string_join(parts, chr(d));
+  csv_write_fields(row, delimiter, parts);
+  string line = string_join(parts, chr(delimiter));
 } return string line;
 (["a", "b,c", "d"], 44):("a,\"b,c\",d")
 (["x", "y"], 59):("x;y")

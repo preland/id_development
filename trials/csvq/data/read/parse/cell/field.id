@@ -1,34 +1,34 @@
-csv_skip(word base, int d, int i) {
-  int c = peek8(base + i);
-  while (c > 0 && c != d && c != (import ch_nl) && c != (import ch_cr)) {
-    i = i + 1;
-    c = peek8(base + i);
+csv_skip(word base, int delimiter, int index) {
+  int character_code = peek8(base + index);
+  while (character_code > 0 && character_code != delimiter && character_code != (import ch_nl) && character_code != (import ch_cr)) {
+    index = index + 1;
+    character_code = peek8(base + index);
   }
-} return int i;
-given csv_t_all ((import ta), 44, 0):(1)
-given csv_t_all ((import ta), 44, 2):(3)
-given csv_t_all ((import ta), 44, 7):(8)
-given csv_t_all ((import ta), 44, 12):(12)
-given csv_t_all ((import ta), 59, 0):(3)
+} return int index;
+given csv_sample_buffers ((import sample_plain), 44, 0):(1)
+given csv_sample_buffers ((import sample_plain), 44, 2):(3)
+given csv_sample_buffers ((import sample_plain), 44, 7):(8)
+given csv_sample_buffers ((import sample_plain), 44, 12):(12)
+given csv_sample_buffers ((import sample_plain), 59, 0):(3)
 
-csv_plain(word base, int d, int[] st, string[] row) {
-  int a = st[(import s_pos)];
-  int i = csv_skip(base, d, a);
-  string f = str_of_mem(base + a, i - a);
-} chain (word base, int d, int[] st, string[] row) {
-  st[(import s_pos)] = i;
-  push(row, f);
+csv_plain(word base, int delimiter, int[] scan_state, string[] row) {
+  int start_index = scan_state[(import s_pos)];
+  int index = csv_skip(base, delimiter, start_index);
+  string field_text = str_of_mem(base + start_index, index - start_index);
+} chain (word base, int delimiter, int[] scan_state, string[] row) {
+  scan_state[(import s_pos)] = index;
+  push(row, field_text);
 } return void;
-given csv_t_all ((import ta), 44, [0, 1, -1, 0], []):((import ta), 44, [1, 1, -1, 0], ["a"])
-given csv_t_all ((import ta), 44, [9, 3, 2, 0], ["p"]):((import ta), 44, [10, 3, 2, 0], ["p", "x"])
-given csv_t_all ((import ta), 44, [11, 3, 2, 0], []):((import ta), 44, [11, 3, 2, 0], [""])
+given csv_sample_buffers ((import sample_plain), 44, [0, 1, -1, 0], []):((import sample_plain), 44, [1, 1, -1, 0], ["a"])
+given csv_sample_buffers ((import sample_plain), 44, [9, 3, 2, 0], ["p"]):((import sample_plain), 44, [10, 3, 2, 0], ["p", "x"])
+given csv_sample_buffers ((import sample_plain), 44, [11, 3, 2, 0], []):((import sample_plain), 44, [11, 3, 2, 0], [""])
 
-csv_take(word base, int d, int[] st, string[] row, string[] diag) {
-  if (peek8(base + st[(import s_pos)]) == (import ch_quote)) {
-    csv_quoted(base, st, row, diag);
+csv_take(word base, int delimiter, int[] scan_state, string[] row, string[] diag) {
+  if (peek8(base + scan_state[(import s_pos)]) == (import ch_quote)) {
+    csv_quoted(base, scan_state, row, diag);
   } else {
-    csv_plain(base, d, st, row);
+    csv_plain(base, delimiter, scan_state, row);
   }
 } return void;
-given csv_t_all ((import ta), 44, [0, 1, -1, 0], [], []):((import ta), 44, [1, 1, -1, 0], ["a"], [])
-given csv_t_all ((import tq), 44, [0, 1, -1, 0], [], []):((import tq), 44, [6, 1, -1, 0], ["a\"b"], [])
+given csv_sample_buffers ((import sample_plain), 44, [0, 1, -1, 0], [], []):((import sample_plain), 44, [1, 1, -1, 0], ["a"], [])
+given csv_sample_buffers ((import sample_quoted), 44, [0, 1, -1, 0], [], []):((import sample_quoted), 44, [6, 1, -1, 0], ["a\"b"], [])

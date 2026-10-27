@@ -1,0 +1,29 @@
+statistics_print(float[] accumulator, int[] options) {
+  string[] row = statistics_row(accumulator);
+  string[][] tab = [row];
+  out_table(["count", "min", "max", "mean", "sum"], tab, options);
+} return void;
+([6.5, 0.0, 2.0, 2.5, 4.0], [44, 0, 0, 0, 0]):([6.5, 0.0, 2.0, 2.5, 4.0], [44, 0, 0, 0, 0]) then prints:("count,min,max,mean,sum\n2,2.5,4,3.25,6.5\n")
+([0.0, 0.0, 0.0, 0.0, 0.0], [59, 0, 0, 1, 0]):([0.0, 0.0, 0.0, 0.0, 0.0], [59, 0, 0, 1, 0]) then prints:("0;;;;0\n")
+
+statistics_run(string[] header, string[][] rows, int[] lines, int[] options, int column_index, string[] diag) {
+  float[] accumulator = [0.0, 0.0, 0.0, 0.0, 0.0];
+  statistics_scan(header, rows, lines, column_index, accumulator, diag);
+  if (len(diag) == 0) {
+    statistics_print(accumulator, options);
+  }
+} return void;
+(["a"], [["1"], ["2"]], [2, 3], [44, 0, 0, 0, 0], 0, []):(["a"], [["1"], ["2"]], [2, 3], [44, 0, 0, 0, 0], 0, []) then prints:("count,min,max,mean,sum\n2,1,2,1.5,3\n")
+(["a"], [["10000000000000000"], ["1"], ["-10000000000000000"]], [2, 3, 4], [44, 0, 0, 0, 0], 0, []):(["a"], [["10000000000000000"], ["1"], ["-10000000000000000"]], [2, 3, 4], [44, 0, 0, 0, 0], 0, []) then prints:("count,min,max,mean,sum\n3,-10000000000000000,10000000000000000,0.333333333333333,1\n")
+(["a"], [["1e308"], ["1e308"]], [2, 3], [44, 0, 0, 0, 0], 0, []):(["a"], [["1e308"], ["1e308"]], [2, 3], [44, 0, 0, 0, 0], 0, []) then prints:("count,min,max,mean,sum\n2,1e+308,1e+308,inf,inf\n")
+(["a"], [["q"]], [2], [44, 0, 0, 0, 0], 0, []):(["a"], [["q"]], [2], [44, 0, 0, 0, 0], 0, ["line 2: 'q' in column 'a' is not a number"]) then prints:("")
+
+command_stats(string[] header, string[][] rows, int[] lines, int[] options, string[] arguments, string[] diag) {
+  int[] column_indexes = [];
+  column_pick(header, arguments[1], column_indexes, diag);
+  if (len(diag) == 0) {
+    statistics_run(header, rows, lines, options, column_indexes[0], diag);
+  }
+} return void;
+(["a", "b"], [["1", "2.5"], ["3", "4"]], [2, 3], [44, 0, 0, 0, 0], ["stats", "b"], []):(["a", "b"], [["1", "2.5"], ["3", "4"]], [2, 3], [44, 0, 0, 0, 0], ["stats", "b"], []) then prints:("count,min,max,mean,sum\n2,2.5,4,3.25,6.5\n")
+(["a", "b"], [["1", "2.5"]], [2], [44, 0, 0, 0, 0], ["stats", "c"], []):(["a", "b"], [["1", "2.5"]], [2], [44, 0, 0, 0, 0], ["stats", "c"], ["unknown column 'c'; available columns: a, b"]) then prints:("")

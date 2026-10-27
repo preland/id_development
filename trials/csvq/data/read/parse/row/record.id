@@ -1,38 +1,38 @@
-csv_record(word base, int d, int[] st, string[] row, string[] diag) {
-  st[(import s_more)] = 1;
-  while (st[(import s_more)] == 1 && len(diag) == 0) {
-    csv_take(base, d, st, row, diag);
-    csv_sep(base, d, st, diag);
+csv_record(word base, int delimiter, int[] scan_state, string[] row, string[] diag) {
+  scan_state[(import s_more)] = 1;
+  while (scan_state[(import s_more)] == 1 && len(diag) == 0) {
+    csv_take(base, delimiter, scan_state, row, diag);
+    csv_separator(base, delimiter, scan_state, diag);
   }
 } return void;
-given csv_t_all ((import ta), 44, [0, 1, -1, 0], [], []):((import ta), 44, [5, 2, -1, 0], ["a", "b"], [])
-given csv_t_all ((import ta), 44, [9, 3, 2, 0], [], []):((import ta), 44, [12, 4, 2, 0], ["x", ""], [])
-given csv_t_all ((import tq), 44, [0, 1, -1, 0], [], []):((import tq), 44, [13, 3, -1, 0], ["a\"b", "c\nd"], [])
-given csv_t_all ((import tg), 44, [0, 1, -1, 0], [], []):((import tg), 44, [3, 1, -1, 0], ["a"], ["line 1: unexpected character after a closing quote (expected the delimiter or the end of the line)"])
+given csv_sample_buffers ((import sample_plain), 44, [0, 1, -1, 0], [], []):((import sample_plain), 44, [5, 2, -1, 0], ["a", "b"], [])
+given csv_sample_buffers ((import sample_plain), 44, [9, 3, 2, 0], [], []):((import sample_plain), 44, [12, 4, 2, 0], ["x", ""], [])
+given csv_sample_buffers ((import sample_quoted), 44, [0, 1, -1, 0], [], []):((import sample_quoted), 44, [13, 3, -1, 0], ["a\"b", "c\nd"], [])
+given csv_sample_buffers ((import sample_garbage_after_quote), 44, [0, 1, -1, 0], [], []):((import sample_garbage_after_quote), 44, [3, 1, -1, 0], ["a"], ["line 1: unexpected character after a closing quote (expected the delimiter or the end of the line)"])
 
-csv_keep(int[] st, string[][] rows, int[] lines, string[] row, int ln, string[] diag) {
-  if (st[(import s_wid)] < 0) {
-    st[(import s_wid)] = len(row);
+csv_keep(int[] scan_state, string[][] rows, int[] lines, string[] row, int line_number, string[] diag) {
+  if (scan_state[(import s_wid)] < 0) {
+    scan_state[(import s_wid)] = len(row);
   }
-  if (len(row) == st[(import s_wid)]) {
+  if (len(row) == scan_state[(import s_wid)]) {
     push(rows, row);
-    push(lines, ln);
+    push(lines, line_number);
   } else {
-    push(diag, "line " + ln + ": expected " + st[(import s_wid)] + " fields like the first row, but found " + len(row));
+    push(diag, "line " + line_number + ": expected " + scan_state[(import s_wid)] + " fields like the first row, but found " + len(row));
   }
 } return void;
 ([0, 1, -1, 0], [], [], ["a", "b"], 1, []):([0, 1, 2, 0], [["a", "b"]], [1], ["a", "b"], 1, [])
 ([0, 3, 2, 0], [["x", "y"]], [1], ["c"], 3, []):([0, 3, 2, 0], [["x", "y"]], [1], ["c"], 3, ["line 3: expected 2 fields like the first row, but found 1"])
 
-csv_row(word base, int d, int[] st, string[][] rows, int[] lines, string[] diag) {
+csv_row(word base, int delimiter, int[] scan_state, string[][] rows, int[] lines, string[] diag) {
   string[] row = [];
-  int ln = st[(import s_line)];
-  csv_record(base, d, st, row, diag);
-} chain (word base, int d, int[] st, string[][] rows, int[] lines, string[] diag) {
+  int line_number = scan_state[(import s_line)];
+  csv_record(base, delimiter, scan_state, row, diag);
+} chain (word base, int delimiter, int[] scan_state, string[][] rows, int[] lines, string[] diag) {
   if (len(diag) == 0) {
-    csv_keep(st, rows, lines, row, ln, diag);
+    csv_keep(scan_state, rows, lines, row, line_number, diag);
   }
 } return void;
-given csv_t_all ((import ta), 44, [0, 1, -1, 0], [], [], []):((import ta), 44, [5, 2, 2, 0], [["a", "b"]], [1], [])
-given csv_t_all ((import tr), 44, [4, 2, 2, 0], [], [], []):((import tr), 44, [6, 3, 2, 0], [], [], ["line 2: expected 2 fields like the first row, but found 1"])
-given csv_t_all ((import tx), 44, [4, 2, 2, 0], [], [], []):((import tx), 44, [11, 2, 2, 0], [], [], ["line 2: quoted field is never closed (missing closing quote)"])
+given csv_sample_buffers ((import sample_plain), 44, [0, 1, -1, 0], [], [], []):((import sample_plain), 44, [5, 2, 2, 0], [["a", "b"]], [1], [])
+given csv_sample_buffers ((import sample_short_row), 44, [4, 2, 2, 0], [], [], []):((import sample_short_row), 44, [6, 3, 2, 0], [], [], ["line 2: expected 2 fields like the first row, but found 1"])
+given csv_sample_buffers ((import sample_unclosed), 44, [4, 2, 2, 0], [], [], []):((import sample_unclosed), 44, [11, 2, 2, 0], [], [], ["line 2: quoted field is never closed (missing closing quote)"])

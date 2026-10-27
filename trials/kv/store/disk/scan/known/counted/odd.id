@@ -1,18 +1,18 @@
 // The 52 byte torn file with a .bad already beside it holding three bytes, so a second repair has something to append to.
-log_t_twice() {
-  log_t_counted(42, 52);
-  int h = fs_open((import file_t_path) + ".bad", "w");
-  int wrote = fs_write(h, [1, 2, 3], 3);
+log_torn_with_bad() {
+  log_counters_claim(42, 52);
+  int file_handle = fs_open((import scratch_path) + ".bad", "w");
+  int wrote = fs_write(file_handle, [1, 2, 3], 3);
 } chain () {
-  int shut = fs_close(h);
+  int shut = fs_close(file_handle);
 } return void;
-():() then file_t_aside(".bad"):(3) then file_t_done:(0)
-():() then file_t_size:("size 52") then db_t_meta:("42/52/0") then file_t_done:(0)
+():() then scratch_leftover_size(".bad"):(3) then scratch_remove:(0)
+():() then scratch_size_text:("size 52") then store_file_counters_text:("42/52/0") then scratch_remove:(0)
 
 // A log holding only its header: the file has 8 bytes and the counters know it.
-log_t_head() {
-  log_t_ready();
-  log_begin((import file_t_path), (import db_t_st));
+log_header_only() {
+  log_image_on_file();
+  log_begin((import scratch_path), (import store_counters));
 } return void;
-():() then db_t_meta:("8/8/0") then file_t_size:("size 8") then file_t_done:(0)
-():() then file_t_bytes:(577) then file_t_done:(0)
+():() then store_file_counters_text:("8/8/0") then scratch_size_text:("size 8") then scratch_remove:(0)
+():() then scratch_byte_total:(577) then scratch_remove:(0)

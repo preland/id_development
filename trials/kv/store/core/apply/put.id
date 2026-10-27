@@ -1,25 +1,25 @@
 // Counts a put: the record it replaces (entry old, or none) becomes garbage, or a new key goes live.
-stat_put(int[] st, word[] ea, int old) {
+count_put(int[] counters, word[] entry_records, int old) {
   if(old >= 0) {
-    word prev = ea[old];
-    int gone = rec_len(prev);
-    st_add(st, (import st_dead), gone);
+    word previous_record = entry_records[old];
+    int gone = record_length(previous_record);
+    counters_add(counters, (import st_dead), gone);
   } else {
-    st_add(st, (import st_live), 1);
+    counters_add(counters, (import st_live), 1);
   }
 } return void;
-given db_t_recs ((import db_t_st), (import db_t_ea), -1):() then db_t_state:("1/0/0")
-given db_t_puts ((import db_t_st), (import db_t_ea), 0):() then db_t_state:("2/18/2")
+given store_three_records ((import store_counters), (import store_entry_records), -1):() then store_state_text:("1/0/0")
+given store_two_puts ((import store_counters), (import store_entry_records), 0):() then store_state_text:("2/18/2")
 
 // Replays one put record into the store: the key now points at a new entry that holds the record's address.
-apply_put(string[] keys, int[] vals, int[] used, int[] st, word[] ea, word rec) {
-  string key = rec_key(rec);
-  int old = hash_map_get(keys, vals, used, key, (import no_entry));
-  stat_put(st, ea, old);
-} chain (string[] keys, int[] vals, int[] used, int[] st, word[] ea, word rec) {
-  hash_map_put(keys, vals, used, st, key, len(ea));
-  push(ea, rec);
-  st_add(st, (import st_recs), 1);
+apply_put(string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, word record) {
+  string key = record_key(record);
+  int old = hash_map_get(keys, entry_numbers, used, key, (import no_entry));
+  count_put(counters, entry_records, old);
+} chain (string[] keys, int[] entry_numbers, int[] used, int[] counters, word[] entry_records, word record) {
+  hash_map_put(keys, entry_numbers, used, counters, key, len(entry_records));
+  push(entry_records, record);
+  counters_add(counters, (import st_recs), 1);
 } return void;
-given db_t_recs ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import db_t_a)):() then db_t_state:("1/0/1") then db_t_where:("0,-1")
-given db_t_puts ((import db_t_keys), (import db_t_vals), (import db_t_used), (import db_t_st), (import db_t_ea), (import db_t_a)):() then db_t_state:("2/18/3") then db_t_where:("2,1")
+given store_three_records ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import store_first_put_record)):() then store_state_text:("1/0/1") then store_entries_text:("0,-1")
+given store_two_puts ((import store_keys), (import store_entry_numbers), (import store_slot_flags), (import store_counters), (import store_entry_records), (import store_first_put_record)):() then store_state_text:("2/18/3") then store_entries_text:("2,1")

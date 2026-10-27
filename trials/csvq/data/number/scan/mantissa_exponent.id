@@ -1,0 +1,40 @@
+number_mantissa_end(string number_text) {
+  int sign_end = number_sign(number_text, 0);
+  int integer_end = number_digits(number_text, sign_end);
+  int fraction_end = number_dot(number_text, integer_end);
+} chain (string number_text) {
+  int mantissa_stop = fraction_end;
+  if (integer_end == sign_end && fraction_end <= integer_end + 1) {
+    mantissa_stop = -1;
+  }
+} return int mantissa_stop;
+("12.5e3"):(4)
+("-.5"):(3)
+("."):(-1)
+("+"):(-1)
+("5."):(2)
+(""):(-1)
+
+number_exponent_digits_end(string number_text, int index) {
+  int exponent_digit_stop = number_digits(number_text, number_sign(number_text, index));
+  int exponent_digit_result = exponent_digit_stop;
+  if (exponent_digit_stop == number_sign(number_text, index)) {
+    exponent_digit_result = -1;
+  }
+} return int exponent_digit_result;
+("5", 0):(1)
+("-12x", 0):(3)
+("e", 1):(-1)
+("+", 0):(-1)
+
+number_exponent_end(string number_text, int index) {
+  int exponent_result = index;
+  if (index >= 0 && (character_code_at(number_text, index) == (import ch_e) || character_code_at(number_text, index) == (import ch_ecap))) {
+    exponent_result = number_exponent_digits_end(number_text, index + 1);
+  }
+} return int exponent_result;
+("1e5", 1):(3)
+("1E-5", 1):(4)
+("1e", 1):(-1)
+("15", 2):(2)
+("15", -1):(-1)

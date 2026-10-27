@@ -1,0 +1,31 @@
+column_unsigned(string spec) {
+  int parsed_number = -1;
+  if (len(spec) > 0 && number_digits(spec, 0) == len(spec)) {
+    parsed_number = 2147483647;
+    if (len(spec) < 10) {
+      parsed_number = to_int(spec);
+    }
+  }
+} return int parsed_number;
+("42"):(42)
+("007"):(7)
+("-1"):(-1)
+("12a"):(-1)
+(""):(-1)
+("1234567890"):(2147483647)
+("99999999999999999999"):(2147483647)
+("0"):(0)
+
+column_find(string[] header, string spec) {
+  int at = list_string_index(header, spec);
+  int column_number = column_unsigned(spec);
+  if (at < 0 && column_number >= 1 && column_number <= len(header)) {
+    at = column_number - 1;
+  }
+} return int at;
+(["a", "b", "c"], "b"):(1)
+(["a", "b", "c"], "3"):(2)
+(["a", "b", "c"], "4"):(-1)
+(["a", "b", "c"], "0"):(-1)
+(["2", "1"], "1"):(1)
+(["a"], "x"):(-1)
