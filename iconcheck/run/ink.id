@@ -11,20 +11,16 @@ icon_coverage_total(int[] bitmap) {
 ([14, 0, 0, 0, 0]):(0)
 ([0, 2, 1, 0, 0, 10, 20]):(30)
 
-// 1 when icon id at px pixels is drawn, with no fault in its path, and has some ink; else 0.
+// Whether icon id at px pixels is drawn, with no fault in its path, and has some ink.
 icon_draws_cleanly(int icon_number, int pixel_size) {
   int[] bitmap = vector_bitmap(icon_number, pixel_size);
   int coverage_total = icon_coverage_total(bitmap);
-  int drawn_cleanly = 0;
-} chain (int icon_number, int pixel_size) {
-  if (bitmap[0] == 0 && coverage_total > 0) {
-    drawn_cleanly = 1;
-  }
-} return int drawn_cleanly;
-given vector_start() given idstd_vector_register(7, "M 0 0 L 2 0 L 2 2 L 0 2 Z") (7, 16):(1)
-given vector_start() given idstd_vector_register(7, "M 0 0 X") (7, 16):(0)
-given vector_start() given idstd_vector_register(7, "M 0 0") (7, 16):(0)
-given vector_start() (7, 16):(0)
+  bool drawn_cleanly = bitmap[0] == 0 && coverage_total > 0;
+} return bool drawn_cleanly;
+given vector_start() given idstd_vector_register(7, "M 0 0 L 2 0 L 2 2 L 0 2 Z") (7, 16):(true)
+given vector_start() given idstd_vector_register(7, "M 0 0 X") (7, 16):(false)
+given vector_start() given idstd_vector_register(7, "M 0 0") (7, 16):(false)
+given vector_start() (7, 16):(false)
 
 // One line about icon id at px pixels, and whether it passed (icon_draws_cleanly).
 icon_report_line(int icon_number, int pixel_size) {
@@ -33,7 +29,7 @@ icon_report_line(int icon_number, int pixel_size) {
   string report_text = "" + icon_number + " " + pixel_size + " status " + bitmap[0] + " " + bitmap[1] + "x" + bitmap[2] + " ink " + coverage_total;
 } chain (int icon_number, int pixel_size) {
   print(report_text);
-  int drawn_cleanly = icon_draws_cleanly(icon_number, pixel_size);
-} return int drawn_cleanly;
-given vector_start() given idstd_vector_register(7, "M 0 0 L 2 0 L 2 2 L 0 2 Z") (7, 16):(1) then prints:("7 16 status 0 2x2 ink 1020\n")
-given vector_start() (7, 24):(0) then prints:("7 24 status 14 0x0 ink 0\n")
+  bool drawn_cleanly = icon_draws_cleanly(icon_number, pixel_size);
+} return bool drawn_cleanly;
+given vector_start() given idstd_vector_register(7, "M 0 0 L 2 0 L 2 2 L 0 2 Z") (7, 16):(true) then prints:("7 16 status 0 2x2 ink 1020\n")
+given vector_start() (7, 24):(false) then prints:("7 24 status 14 0x0 ink 0\n")
