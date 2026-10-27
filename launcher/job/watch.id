@@ -5,7 +5,7 @@
 job_event(int job_seen) {
   int job_kind = -1;
   if (job_seen > 0) {
-    job_kind = proc_wait_kind();
+    job_kind = process_wait_kind();
   }
 } return int job_kind;
 given job_test_start("exit 6") given job_test_wait(0) (1):(0)
@@ -16,11 +16,11 @@ given job_test_start("kill -9 $$") given job_test_wait(0) (1):(1)
 // Waits up to job_ticks times 50 ms for job_pid to exit, without blocking: 1 when it did (and
 // the wait's result can be read), 0 when it is still running, -1 when it is not a child.
 job_poll(int job_pid, int job_ticks) {
-  int job_seen = proc_waitpid(job_pid, (import proc_w_nohang));
+  int job_seen = process_wait_child(job_pid, (import proc_w_nohang));
   int job_tick = 0;
   while (job_seen == 0 && job_tick < job_ticks) {
     clock_sleep_nanoseconds(50000000);
-    job_seen = proc_waitpid(job_pid, (import proc_w_nohang));
+    job_seen = process_wait_child(job_pid, (import proc_w_nohang));
     job_tick = job_tick + 1;
   }
 } chain (int job_pid, int job_ticks) {
@@ -34,7 +34,7 @@ given job_test_start("sleep 3") ((import job_test_pid), 2):(0)
 // the last wait, exited 0, killed 1. A stop is not the end: it asks the user (job_pause) and goes on
 // waiting. job_flags[0] becomes 1 when the user chose to kill the stopped program.
 job_watch(int job_pid, int job_group, int[] job_flags) {
-  int job_seen = proc_waitpid(job_pid, (import proc_w_stopped));
+  int job_seen = process_wait_child(job_pid, (import proc_w_stopped));
   int job_kind = job_event(job_seen);
   while (job_kind == (import proc_k_stopped)) {
     job_kind = job_pause(job_pid, job_group, job_flags);

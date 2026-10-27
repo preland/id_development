@@ -4,7 +4,7 @@
 
 discover_test_configuration(string discover_test_body) {
   string discover_test_directory = fs_mktemp("discover_t_", 1);
-  int discover_test_made = fs_mkdir_p(discover_test_directory + "/idlaunch");
+  int discover_test_made = fs_mkdir_path(discover_test_directory + "/idlaunch");
   int discover_test_put = fs_write_text(discover_test_directory + "/idlaunch/roots", discover_test_body);
 } chain (string discover_test_body) {
   environment_put("XDG_CONFIG_HOME", discover_test_directory);
@@ -19,7 +19,7 @@ given discover_test_configuration("a\nb\n") ():("a\nb\n")
 given discover_test_configuration("") ():("")
 
 discover_test_here() {
-  discover_test_configuration(fs_dir_of((import discover_test_path)));
+  discover_test_configuration(fs_directory_of((import discover_test_path)));
 } return void;
 given discover_test_image(7, "", "NOPE", 0) ():() then discover_test_runnable():(7)
 given discover_test_image(9000, "", "\x7fELF", 1) ():() then discover_test_runnable():(9000)

@@ -12,10 +12,10 @@ job_launch(string job_path, string[] job_words, string job_name, int job_screen)
     flush();
   }
   int job_mode = term_mode_back(0);
-  int job_pid = proc_start(job_argv(job_path, job_words), "", "", (import proc_f_foreground) + (import proc_f_group), -1, -1, -1);
+  int job_pid = process_start(job_argv(job_path, job_words), "", "", (import proc_f_foreground) + (import proc_f_group), -1, -1, -1);
 } chain (string job_path, string[] job_words, string job_name, int job_screen) {
   if (job_pid < 0) {
-    eprint("idlaunch: cannot start " + job_name + " (error " + proc_error() + ")");
+    eprint("idlaunch: cannot start " + job_name + " (error " + process_error() + ")");
   }
 } return int job_pid;
 ("/no/such/program", [], "program", 0):(-1) then eprints:("idlaunch: cannot start program (error 2)\n")
@@ -25,11 +25,11 @@ job_launch(string job_path, string[] job_words, string job_name, int job_screen)
 // plus code (exited 0, killed 1; code the status or the signal). job_flags[0] is set when the
 // user ended a stopped program.
 job_follow(int job_pid, int job_screen, int[] job_flags) {
-  int job_grouped = proc_setpgid(job_pid, job_pid);
+  int job_grouped = process_set_group(job_pid, job_pid);
   int job_handed = term_foreground(0, job_pid);
   int job_kind = job_watch(job_pid, job_pid, job_flags);
 } chain (int job_pid, int job_screen, int[] job_flags) {
-  int job_code = proc_wait_code();
+  int job_code = process_wait_code();
   int job_swept = job_finish(job_pid, job_screen);
   int job_packed = job_kind * 256 + job_code;
 } return int job_packed;

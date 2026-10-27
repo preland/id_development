@@ -1,12 +1,12 @@
 // Takes every event the window has waiting, one at a time, into the one list wa_ev (a frame with nothing waiting allocates nothing), and answers 1 as soon as one asks to close the app (the rest stay waiting), else 0.
 app_events_take(App app_take_application) {
   int[] app_take_fields = (import cli_event_list);
-  int app_take_kind = gfx_event(app_take_fields);
+  int app_take_kind = graphics_event(app_take_fields);
   int app_take_quit = 0;
 } chain (App app_take_application) {
   while(app_take_kind != 0 && app_take_quit == 0) {
     app_take_quit = app_on(app_take_application, app_take_kind, app_take_fields);
-    app_take_kind = gfx_event(app_take_fields);
+    app_take_kind = graphics_event(app_take_fields);
   }
 } return int app_take_quit;
 given cli_test_boot_app ((import cli_application)):(0)
@@ -33,7 +33,7 @@ app_window_paint(App app_paint_application, int app_paint_quit) {
   if(app_paint_dialog != (import wa_d_none) && app_paint_stale != 0 && app_paint_quit == 0) {
     view_input_window_draw(app_paint_application.ui.view);
     app_dialog_paint();
-    integer_list_set((import view_state), (import vw_s_d), 1 - gfx_present((import surface_pixels)));
+    integer_list_set((import view_state), (import vw_s_d), 1 - graphics_present((import surface_pixels)));
   }
 } return void;
 given cli_test_boot_app given app_dialog_show("T", ["hi"], ["OK"], 4) given view_test_remember_pixel(200, 150) ((import cli_application), 0):() then view_test_pixel_color:(16777215)

@@ -2,11 +2,11 @@
 // directory, and a tally of what scan_visit, scan_files and scan_tree find around it.
 
 scan_test_bury(int scan_test_levels, string scan_test_folder) {
-  string scan_test_root_directory = fs_dir_of((import scan_test_path));
+  string scan_test_root_directory = fs_directory_of((import scan_test_path));
   export string scan_test_root = scan_test_root_directory;
   string scan_test_deep = scan_test_root_directory + "/" + scan_test_folder + string_repeat("/n", scan_test_levels);
 } chain (int scan_test_levels, string scan_test_folder) {
-  int scan_test_made = fs_mkdir_p(scan_test_deep);
+  int scan_test_made = fs_mkdir_path(scan_test_deep);
   int scan_test_moved = fs_rename((import scan_test_path), scan_test_deep + "/prog");
 } return void export scan_test_root;
 given scan_test_image(100, 20, "\x7fELF") (1, "n"):() then scan_test_tally(3):(1)
@@ -14,7 +14,7 @@ given scan_test_image(100, 20, "\x7fELF") (1, ".git"):() then scan_test_tally(3)
 
 scan_test_tally(int scan_test_mode) {
   string[] scan_test_hits = [];
-  string scan_test_directory = fs_dir_of((import scan_test_path));
+  string scan_test_directory = fs_directory_of((import scan_test_path));
   string scan_test_name = path_base((import scan_test_path));
 } chain (int scan_test_mode) {
   if (scan_test_mode == 1) {

@@ -25,7 +25,7 @@ given tool_t_session ("no_such_function_anywhere", 1, "sample"):("{\"ok\":false,
 tool_read_file(string read_file, int read_line, int read_count) {
   string read_root = environment_text((import tool_root_key));
   int read_where = tool_scope(read_root, read_file);
-  string read_real = fs_realpath(tool_place(read_root, read_file));
+  string read_real = fs_real_path(tool_place(read_root, read_file));
 } chain (string read_file, int read_line, int read_count) {
   string read_text = tool_failure("outside_project", "the path leaves the project root; use a path inside it");
   string read_rel = tool_relative(read_root, read_real);
@@ -34,10 +34,10 @@ tool_read_file(string read_file, int read_line, int read_count) {
   if (read_where == 2) {
     read_text = tool_failure("not_found", "no such file in the project: " + read_file);
   }
-  if (read_where == 0 && fs_is_dir(read_real) == 1) {
+  if (read_where == 0 && fs_is_directory(read_real) == 1) {
     read_text = tool_failure("bad_argument", "that path is a directory; use list");
   }
-  if (read_where == 0 && fs_is_dir(read_real) == 0) {
+  if (read_where == 0 && fs_is_directory(read_real) == 0) {
     read_text = tool_success(read_head + "," + tool_file_slice(read_real, read_line, read_count));
   }
 } return string read_text;

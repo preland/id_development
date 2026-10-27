@@ -7,7 +7,7 @@
 // first) into the rest of key_bytes and answers how many bytes key_bytes holds now.
 key_gather(int[] key_bytes) {
   int[] key_tail = list_filled(7, 0);
-  int key_got = proc_fd_read(0, key_tail, 7, 30);
+  int key_got = process_descriptor_read(0, key_tail, 7, 30);
   int key_total = key_copy(key_bytes, key_tail, key_got);
 } return int key_total;
 stdin "[A" ([27, 0, 0, 0, 0, 0, 0, 0]):(3)
@@ -17,7 +17,7 @@ stdin "" ([27, 0, 0, 0, 0, 0, 0, 0]):(1)
 // code of key_decode, 0 on a timeout, key_closed when input has closed.
 key_read(int key_wait) {
   int[] key_bytes = list_filled(8, 0);
-  int key_count = proc_fd_read(0, key_bytes, 1, key_wait);
+  int key_count = process_descriptor_read(0, key_bytes, 1, key_wait);
   int key_total = key_count;
 } chain (int key_wait) {
   if (key_count == 1 && key_bytes[0] == 27) {

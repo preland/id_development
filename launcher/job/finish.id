@@ -4,20 +4,20 @@
 // Ends whatever still runs in process group job_group: nothing alive answers 0; processes that
 // went away after SIGTERM within 2 s answer 1; ones that needed SIGKILL answer 2.
 job_sweep(int job_group) {
-  int job_first = proc_signal_group(job_group, 0) == 0;
+  int job_first = process_signal_group(job_group, 0) == 0;
   int job_tick = 0;
   int job_alive = job_first;
 } chain (int job_group) {
   if (job_first == 1) {
-    int job_termed = proc_signal_group(job_group, (import sig_n_term));
+    int job_termed = process_signal_group(job_group, (import sig_n_term));
   }
   while (job_alive == 1 && job_tick < 40) {
     clock_sleep_nanoseconds(50000000);
-    job_alive = proc_signal_group(job_group, 0) == 0;
+    job_alive = process_signal_group(job_group, 0) == 0;
     job_tick = job_tick + 1;
   }
   if (job_alive == 1) {
-    int job_killed = proc_signal_group(job_group, (import sig_n_kill));
+    int job_killed = process_signal_group(job_group, (import sig_n_kill));
   }
 } chain (int job_group) {
   int job_level = job_first + job_alive;
@@ -32,7 +32,7 @@ given job_test_start("(trap '' TERM; exec sleep 4) & exit 0") given job_test_wai
 // 1, the screen is repaired (job_repair_text: attributes, cursor, main screen, mouse reporting).
 // Answers job_sweep's level.
 job_finish(int job_group, int job_screen) {
-  int job_taken = term_foreground(0, proc_getpgid(0));
+  int job_taken = term_foreground(0, process_get_group(0));
   int job_swept = job_sweep(job_group);
   int job_mode = term_mode_back(0);
 } chain (int job_group, int job_screen) {

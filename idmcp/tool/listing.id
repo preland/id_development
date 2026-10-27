@@ -30,7 +30,7 @@ tool_list_dir(string[] dir_rows, string[] dir_files, string dir_prefix, int dir_
 
 tool_listed(string list_path, int list_depth) {
   string list_root = environment_text((import tool_root_key));
-  string list_real = fs_realpath(tool_place(list_root, list_path));
+  string list_real = fs_real_path(tool_place(list_root, list_path));
   string list_rel = tool_relative(list_root, list_real);
 } chain (string list_path, int list_depth) {
   string[] list_rows = tool_functions(tool_calls());
@@ -43,7 +43,7 @@ tool_listed(string list_path, int list_depth) {
   }
   string list_members = tool_field("functions", tool_file_functions(list_rows, list_rel));
 } chain (string list_path, int list_depth) {
-  if (fs_is_dir(list_real) == 1) {
+  if (fs_is_directory(list_real) == 1) {
     list_members = tool_field("entries", tool_list_dir(list_rows, list_files, list_prefix, list_levels));
   }
   string listing_text = tool_success(tool_label("path", list_rel) + "," + list_members);

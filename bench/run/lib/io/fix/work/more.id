@@ -10,7 +10,7 @@ given br_t_work ():("")
 
 br_t_exe(string body, int tc, string name) {
   string path = br_bin((import br_tw), tc, name);
-  int mk = fs_mkdir_p(fs_dir_of(path));
+  int mk = fs_mkdir_path(fs_directory_of(path));
   int ok = br_append(path, "#!/bin/sh\n" + body + "\n");
 } chain (string body, int tc, string name) {
   int rc = br_sh("chmod +x " + path);
@@ -20,7 +20,7 @@ given br_t_work ("exit 1", 5, "y"):() then br_t_count:(0)
 
 br_t_out(int tc, string name, string text) {
   string path = br_outp((import br_tw), tc, name);
-  int mk = fs_mkdir_p(fs_dir_of(path));
+  int mk = fs_mkdir_path(fs_directory_of(path));
   int ok = br_append(path, text);
 } return void;
 given br_t_work (0, "x", "hi"):() then br_t_count:(0)

@@ -1,15 +1,15 @@
 // Starts a child from its argument lines and exports its handle. A child that reads its standard input waits there for ever, which is what a case wants to kill.
 office_test_spawn(string command_lines) {
-  export int child_handle = proc_spawn(command_lines);
+  export int child_handle = process_spawn(command_lines);
 } return void;
 ("true\n"):() then office_test_gone:(1)
 ("sh\n-c\nread x\n"):() then office_test_gone:(0)
 
 // 1 when the spawned child has exited within 300 ms; a child still running is killed and counts as 0.
 office_test_gone() {
-  int code = proc_wait((import child_handle), 300);
+  int code = process_wait((import child_handle), 300);
   int gone = code >= 0;
-  int killed = proc_kill((import child_handle));
+  int killed = process_kill((import child_handle));
 } return int gone;
 given office_test_spawn("true\n") ():(1)
 given office_test_spawn("sh\n-c\nread x\n") ():(0)

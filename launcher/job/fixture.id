@@ -3,7 +3,7 @@
 
 job_test_start(string job_test_script) {
   string job_test_lines = "/bin/sh\n-c\n" + job_test_script + "\n";
-  int job_test_child = proc_start(job_test_lines, "", "", (import proc_f_group), -1, -1, -1);
+  int job_test_child = process_start(job_test_lines, "", "", (import proc_f_group), -1, -1, -1);
   export int job_test_pid = job_test_child;
 } return void export job_test_pid;
 ("exit 0"):() then job_test_after(0):(0)
@@ -11,9 +11,9 @@ job_test_start(string job_test_script) {
 ("kill -9 $$"):() then job_test_after(0):(265)
 
 job_test_after(int job_test_options) {
-  int job_test_seen = proc_waitpid((import job_test_pid), job_test_options);
-  int job_test_kind = proc_wait_kind();
-  int job_test_code = proc_wait_code();
+  int job_test_seen = process_wait_child((import job_test_pid), job_test_options);
+  int job_test_kind = process_wait_kind();
+  int job_test_code = process_wait_code();
 } chain (int job_test_options) {
   int job_test_outcome = (job_test_kind * 256 + job_test_code) * (job_test_seen > 0) - (job_test_seen <= 0);
 } return int job_test_outcome;
